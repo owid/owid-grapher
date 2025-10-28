@@ -3,10 +3,10 @@ import {
     FilterType,
     Filter,
     // eslint-disable-next-line import-x/no-relative-packages
-} from "../../../site/search/searchTypes.js"
+} from "../../site/search/searchTypes.js"
 import { getIndexName, AlgoliaConfig } from "./algoliaClient.js"
 // eslint-disable-next-line import-x/no-relative-packages
-import type { SearchChartHit } from "../../../site/search/searchTypes.js"
+import type { SearchChartHit } from "../../site/search/searchTypes.js"
 
 export interface SearchState {
     query: string

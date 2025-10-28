@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/cloudflare"
 import { Env } from "../_common/env.js"
-import { getAlgoliaConfig } from "../_common/search/algoliaClient.js"
-import { searchCharts, SearchState } from "../_common/search/searchApi.js"
+import { getAlgoliaConfig } from "./algoliaClient.js"
+import { searchCharts, SearchState } from "./searchApi.js"
 // eslint-disable-next-line import-x/no-relative-packages
 import { FilterType, Filter } from "../../site/search/searchTypes.js"
 
