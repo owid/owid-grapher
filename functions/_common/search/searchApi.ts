@@ -1,5 +1,11 @@
-import { SearchIndexName, FilterType, Filter } from "../../../site/search/searchTypes.js"
+import {
+    SearchIndexName,
+    FilterType,
+    Filter,
+    // eslint-disable-next-line import-x/no-relative-packages
+} from "../../../site/search/searchTypes.js"
 import { getIndexName, AlgoliaConfig } from "./algoliaClient.js"
+// eslint-disable-next-line import-x/no-relative-packages
 import type { SearchChartHit } from "../../../site/search/searchTypes.js"
 
 export interface SearchState {
@@ -130,7 +136,7 @@ export async function searchCharts(
         const {
             _highlightResult,
             _snippetResult,
-            objectID,
+            objectID: _objectID,
             ...cleanHit
         } = hit as any
 
