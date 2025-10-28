@@ -369,7 +369,7 @@ export function enumerateGdocComponentsWithoutChildren(
                         "simple-text",
                         "donors",
                         "socials",
-                        "subscribe-bar",
+                        "subscribe-banner",
                         "narrative-chart"
                     ),
                 },

@@ -24,7 +24,7 @@ import {
     EnrichedBlockPullQuote,
     EnrichedBlockGuidedChart,
     EnrichedBlockRecirc,
-    EnrichedBlockSubscribeBar,
+    EnrichedBlockSubscribeBanner,
     EnrichedBlockScroller,
     EnrichedBlockSDGGrid,
     EnrichedBlockSDGToc,
@@ -60,7 +60,7 @@ import {
     RawBlockPullQuote,
     RawBlockGuidedChart,
     RawBlockRecirc,
-    RawBlockSubscribeBar,
+    RawBlockSubscribeBanner,
     RawBlockScroller,
     RawBlockSDGGrid,
     RawBlockSideBySideContainer,
@@ -215,7 +215,7 @@ export function parseRawBlocksToEnrichedBlocks(
             })
         )
         .with({ type: "recirc" }, parseRecirc)
-        .with({ type: "subscribe-bar" }, parseSubscribeBar)
+        .with({ type: "subscribe-banner" }, parseSubscribeBanner)
         .with({ type: "text" }, parseText)
         .with(
             { type: "html" },
@@ -1266,9 +1266,9 @@ const parseRecirc = (raw: RawBlockRecirc): EnrichedBlockRecirc => {
     }
 }
 
-const parseSubscribeBar = (
-    raw: RawBlockSubscribeBar
-): EnrichedBlockSubscribeBar => {
+const parseSubscribeBanner = (
+    raw: RawBlockSubscribeBanner
+): EnrichedBlockSubscribeBanner => {
     const parseErrors: ParseError[] = []
 
     let align: BlockAlignment = "center"
@@ -1278,13 +1278,13 @@ const parseSubscribeBar = (
             align = rawAlign as BlockAlignment
         } else {
             parseErrors.push({
-                message: `If specified, subscribe-bar align must be one of ${blockAlignments.join(", ")}`,
+                message: `If specified, subscribe-banner align must be one of ${blockAlignments.join(", ")}`,
             })
         }
     }
 
     return {
-        type: "subscribe-bar",
+        type: "subscribe-banner",
         align,
         parseErrors,
     }

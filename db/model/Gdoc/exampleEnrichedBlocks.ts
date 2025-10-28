@@ -341,8 +341,8 @@ export const enrichedBlockExamples: Record<
         ],
         parseErrors: [],
     },
-    ["subscribe-bar"]: {
-        type: "subscribe-bar",
+    ["subscribe-banner"]: {
+        type: "subscribe-banner",
         align: "center",
         parseErrors: [],
     },

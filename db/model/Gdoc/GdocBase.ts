@@ -762,7 +762,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                         "homepage-search",
                         "latest-data-insights",
                         "socials", // only external links
-                        "subscribe-bar"
+                        "subscribe-banner"
                     ),
                 },
                 () => []

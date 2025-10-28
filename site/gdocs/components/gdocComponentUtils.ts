@@ -1,9 +1,9 @@
 import {
-    EnrichedBlockSubscribeBar,
+    EnrichedBlockSubscribeBanner,
     OwidEnrichedGdocBlock,
 } from "@ourworldindata/types"
 
-export const injectAutomaticSubscribeBar = (
+export const injectAutomaticSubscribeBanner = (
     blocks: OwidEnrichedGdocBlock[]
 ): OwidEnrichedGdocBlock[] => {
     const lastHeadingIndex = blocks.findLastIndex(
@@ -12,15 +12,15 @@ export const injectAutomaticSubscribeBar = (
 
     if (lastHeadingIndex === -1) return blocks
 
-    const subscribeBarBlock: EnrichedBlockSubscribeBar = {
-        type: "subscribe-bar",
+    const SubscribeBannerBlock: EnrichedBlockSubscribeBanner = {
+        type: "subscribe-banner",
         align: "center",
         parseErrors: [],
     }
 
     return [
         ...blocks.slice(0, lastHeadingIndex),
-        subscribeBarBlock,
+        SubscribeBannerBlock,
         ...blocks.slice(lastHeadingIndex),
     ]
 }

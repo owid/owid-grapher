@@ -1,4 +1,4 @@
-.subscribe-bar {
+.subscribe-banner {
     background-color: $gray-10;
     padding: 16px 24px;
     border-radius: 8px;
@@ -9,7 +9,7 @@
     }
 }
 
-.subscribe-bar__header {
+.subscribe-banner__header {
     display: flex;
     flex-wrap: wrap;
     margin-bottom: 4px;
@@ -27,7 +27,7 @@
     }
 }
 
-.subscribe-bar__p {
+.subscribe-banner__p {
     color: $blue-65;
     margin: 0;
     @include sm-only {
@@ -35,7 +35,7 @@
     }
 }
 
-.subscribe-bar__button {
+.subscribe-banner__button {
     flex: 1 1 108px;
     margin-left: 24px;
     align-self: center;
@@ -46,8 +46,8 @@
     }
 }
 
-.subscribe-bar--left,
-.subscribe-bar--right {
+.subscribe-banner--left,
+.subscribe-banner--right {
     flex-direction: column;
     align-self: start;
     margin: 0;
@@ -59,7 +59,7 @@
     @include md-down {
         margin: 16px 0 32px 0;
     }
-    .subscribe-bar__button {
+    .subscribe-banner__button {
         flex: 1 1 100%;
         margin-left: 0;
         align-self: flex-start;
@@ -69,7 +69,7 @@
             margin-left: 24px;
         }
     }
-    .subscribe-bar__p {
+    .subscribe-banner__p {
         margin-bottom: 16px;
     }
 }

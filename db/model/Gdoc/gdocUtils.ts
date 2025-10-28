@@ -257,7 +257,7 @@ export function extractFilenamesFromBlock(
                     "pull-quote",
                     "guided-chart",
                     "recirc",
-                    "subscribe-bar",
+                    "subscribe-banner",
                     "resource-panel",
                     "scroller",
                     "sdg-grid",
