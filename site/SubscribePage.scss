@@ -23,9 +23,7 @@
     }
 
     .newsletter-subscription-form__subheader {
-        width: 100%;
-        @include body-1-regular;
-        color: $blue-60;
+        display: none;
     }
 
     .newsletter-subscription-form__checkbox-image {
