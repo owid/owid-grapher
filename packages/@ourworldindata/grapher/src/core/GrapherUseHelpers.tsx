@@ -65,11 +65,7 @@ export function renderGrapherIntoContainer(
             })
         )
         resizeObserver.observe(containerNode)
-    } else if (
-        typeof window === "object" &&
-        typeof document === "object" &&
-        !navigator.userAgent.includes("jsdom")
-    ) {
+    } else if (typeof window === "object" && typeof document === "object") {
         // only show the warning when we're in something that roughly resembles a browser
         console.warn(
             "ResizeObserver not available; grapher will not be able to render"

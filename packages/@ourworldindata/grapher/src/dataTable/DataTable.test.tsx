@@ -1,5 +1,5 @@
 /**
- * @vitest-environment jsdom
+ * @vitest-environment happy-dom
  */
 
 import { expect, it, describe, beforeAll, beforeEach } from "vitest"
