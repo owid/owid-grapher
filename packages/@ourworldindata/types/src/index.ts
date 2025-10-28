@@ -893,4 +893,4 @@ export {
     LargeVariantGridSlotKey,
 } from "./endpointTypes/GrapherSearchResultJson.js"
 
-export * from "./analyticsTypes/index.js"
+export * from "./analyticsTypes/analyticsTypes.js"
