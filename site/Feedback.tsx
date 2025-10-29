@@ -89,7 +89,7 @@ const vaccineNotice = (
 const copyrightNotice = (
     <a
         key="copyrightNotice"
-        href={`${BAKED_BASE_URL}/faqs#how-is-your-work-copyrighted`}
+        href={`${BAKED_BASE_URL}/faqs#can-i-reuse-or-republish-your-charts`}
         target="_blank"
         rel="noopener"
     >
@@ -99,7 +99,7 @@ const copyrightNotice = (
 const citationNotice = (
     <a
         key="citationNotice"
-        href={`${BAKED_BASE_URL}/faqs#how-should-i-cite-your-work`}
+        href={`${BAKED_BASE_URL}/faqs#how-should-i-cite-your-charts`}
         target="_blank"
         rel="noopener"
     >
