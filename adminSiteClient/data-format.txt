@@ -1,0 +1,53 @@
+//
+// (1) Two files, one for the data, one for the metadata
+//
+
+// causes-of-death.metadata.json
+{
+    "dimensions": {
+        "entities": [
+            {
+                "id": 15,
+                "name": "Afghanistan"
+            },
+            {
+                "id": 16,
+                "name": "Albania"
+            }
+        ],
+        "variables": [
+            {
+                "id": 123456,
+                "name": "Cancers",
+                "category": "noncommunicable-diseases"
+            }
+        ]
+    },
+    "categories": [
+        {
+            "id": "noncommunicable-diseases",
+            "name": "Non-communicable diseases"
+        }
+    ]
+}
+
+// causes-of-death.data.json
+{
+    "entities": [15, 15, 15],
+    "values": [0, 10000, 20000],
+    "variables": [1, 2, 3],
+    "years": [2010, 2010, 2010] // not yet needed
+}
+
+//
+// (2) One metadata file, one data file for each entity
+//
+
+// causes-of-death.metadata.json same as above
+
+// causes-of-death.<entity>.data.json
+{
+    "values": [0, 10000, 20000],
+    "variables": [1, 2, 3],
+    "years": [2010, 2010, 2010] // not yet needed
+}
