@@ -158,6 +158,10 @@ const regionsByName = lazy(() =>
     Object.fromEntries(regions.map((region) => [region.name, region]))
 )
 
+const regionsBySlug = lazy(() =>
+    Object.fromEntries(regions.map((region) => [region.slug, region]))
+)
+
 const regionsByCode = lazy(() =>
     Object.fromEntries(regions.map((region) => [region.code, region]))
 )
@@ -284,6 +288,9 @@ export const getCountryBySlug = (slug: string): Country | undefined =>
 
 export const getRegionByName = (name: string): Region | undefined =>
     regionsByName()[name]
+
+export const getRegionBySlug = (slug: string): Region | undefined =>
+    regionsBySlug()[slug]
 
 const getRegionByCode = (code: string): Region | undefined =>
     regionsByCode()[code]
