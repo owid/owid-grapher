@@ -1571,3 +1571,175 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
 .ImageReplaceConfirmModal__strong-text {
     font-weight: bold;
 }
+
+/* Causes of Death Country Selector Styling */
+.causes-of-death-country-selector {
+    font-family:
+        Lato, "Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif;
+    margin: 20px 0;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    color: #5b5b5b;
+    max-width: 900px;
+    position: relative;
+}
+
+.country-selector-section h3 {
+    color: #333;
+    font-size: 1.5rem;
+    font-weight: 600;
+    font-family:
+        "Playfair Display", Georgia, "Times New Roman", "Liberation Serif",
+        serif;
+}
+
+$sm: 768px;
+@mixin sm-only {
+    @media (max-width: $sm) {
+        @content;
+    }
+}
+
+@include sm-only {
+    .country-selector-section h3 {
+        font-size: 1.25rem;
+    }
+}
+
+.single-treemap-section h4 {
+    margin: 0 0 15px 0;
+    color: #555;
+    font-size: 1.2rem;
+    font-weight: 500;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #ddd;
+}
+
+/* Style the dropdown container */
+.causes-of-death-country-selector .grapher-dropdown {
+    max-width: 100%;
+}
+
+.causes-of-death-country-selector .grapher-dropdown .control {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 8px 12px;
+    background-color: white;
+    font-size: 14px;
+    min-height: 38px;
+}
+
+.causes-of-death-country-selector .grapher-dropdown .control:hover {
+    border-color: #999;
+}
+
+.causes-of-death-country-selector .grapher-dropdown .control:focus-within {
+    border-color: #007cbb;
+    box-shadow: 0 0 0 2px rgba(0, 124, 187, 0.2);
+}
+
+.causes-of-death-country-selector .grapher-dropdown .label {
+    color: #666;
+    font-weight: normal;
+}
+
+/* Category annotation arrows styling */
+.arrow {
+    transition: opacity 300ms ease;
+}
+
+.arrow:hover {
+    opacity: 1 !important;
+}
+
+.arrow__shape {
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+/* Ensure arrows appear above treemap rectangles */
+g:has(.arrow) {
+    z-index: 10;
+}
+
+/* Causes of Death subtitle styling */
+.causes-of-death-subtitle {
+    color: #5b5b5b;
+    font-size: 1.125rem;
+    line-height: 1.2;
+}
+
+@include sm-only {
+    .causes-of-death-subtitle {
+        font-size: 1rem;
+    }
+}
+
+/* Causes of Death source line styling */
+.causes-of-death-source {
+    margin-top: 8px;
+    /* font-size: 12px; */
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    column-gap: 16px;
+    row-gap: 2px;
+    line-height: 1.2;
+}
+
+@include sm-only {
+    .causes-of-death-source {
+        font-size: 1rem;
+    }
+}
+
+/* CC BY button styling */
+.cc-by-button {
+    background: none;
+    border: none;
+    color: #5b5b5b;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: none;
+}
+
+/* CC BY button hover styling - remove all hover effects */
+.cc-by-button:hover {
+    color: #5b5b5b;
+    text-decoration: none;
+    background: none;
+}
+
+/* CC BY tooltip styling */
+.cc-by-tooltip {
+    background: white;
+    color: black;
+    border: 1px solid #d3d3d3;
+    border-radius: 4px;
+    box-shadow: 0px 4px 40px rgba(0, 0, 0, 0.2);
+    padding: 8px 12px;
+    font-size: 14px;
+    max-width: 304px;
+    line-height: 1.4;
+    text-align: left;
+    white-space: inherit;
+    z-index: 1000;
+    font-family:
+        "Lato", "Helvetica Neue", Helvetica, Arial, "Liberation Sans",
+        sans-serif;
+}
+
+/* OWID logo with text wrapping */
+.owid-logo-corner {
+    float: right;
+    height: 45px;
+    width: auto;
+    margin: 0 0 15px 15px;
+}
+
+/* Settings box styling */
+.settings-box {
+    max-width: 900px;
+}
