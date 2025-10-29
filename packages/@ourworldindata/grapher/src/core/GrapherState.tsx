@@ -1963,7 +1963,7 @@ export class GrapherState {
     }
 
     @computed get currentTitle(): string {
-        let text = this.displayTitle.trim()
+        let text = `(changed) ${this.displayTitle.trim()}`
         if (text.length === 0) return text
 
         // helper function to add an annotation fragment to the title
