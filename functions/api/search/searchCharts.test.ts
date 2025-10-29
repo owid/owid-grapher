@@ -35,7 +35,9 @@ describe("searchCharts with real Algolia", () => {
         expect(result.results[0]).toHaveProperty("url")
 
         // URL should be properly constructed
-        expect(result.results[0].url).toMatch(/^https:\/\/ourworldindata\.org\/(grapher|explorers)\//)
+        expect(result.results[0].url).toMatch(
+            /^https:\/\/ourworldindata\.org\/(grapher|explorers)\//
+        )
     })
 
     it("returns results with country filter", async () => {
@@ -43,9 +45,7 @@ describe("searchCharts with real Algolia", () => {
             algoliaConfig,
             {
                 query: "gdp",
-                filters: [
-                    { type: FilterType.COUNTRY, name: "United States" },
-                ],
+                filters: [{ type: FilterType.COUNTRY, name: "United States" }],
                 requireAllCountries: false,
             },
             0,
@@ -81,9 +81,7 @@ describe("searchCharts with real Algolia", () => {
             algoliaConfig,
             {
                 query: "",
-                filters: [
-                    { type: FilterType.TOPIC, name: "Health" },
-                ],
+                filters: [{ type: FilterType.TOPIC, name: "Health" }],
                 requireAllCountries: false,
             },
             0,
@@ -143,8 +141,10 @@ describe("searchCharts with real Algolia", () => {
         expect(result.results.length).toBeGreaterThan(0)
 
         // Find examples of different types if they exist
-        const chartResult = result.results.find(r => r.type === "chart")
-        const explorerResult = result.results.find(r => r.type === "explorerView")
+        const chartResult = result.results.find((r) => r.type === "chart")
+        const explorerResult = result.results.find(
+            (r) => r.type === "explorerView"
+        )
 
         if (chartResult) {
             expect(chartResult.url).toBe(
