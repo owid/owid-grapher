@@ -308,14 +308,14 @@ export default function OwidGdocPage({
                 <SiteHeader
                     isOnHomepage={gdoc.content.type === OwidGdocType.Homepage}
                 />
-                <div id="owid-document-root">
+                <main id="owid-document-root">
                     <AriaAnnouncerProvider>
                         <DebugProvider debug={debug}>
                             <OwidGdoc {...gdoc} isPreviewing={isPreviewing} />
                         </DebugProvider>
                         <AriaAnnouncer />
                     </AriaAnnouncerProvider>
-                </div>
+                </main>
                 <SiteFooter
                     context={SiteFooterContext.gdocsDocument}
                     debug={debug}

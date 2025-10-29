@@ -1,0 +1,44 @@
+.site-header {
+    view-transition-name: site-header;
+}
+
+main {
+    view-transition-name: site-main;
+}
+
+::view-transition-group(root) {
+    animation-duration: 0.01ms;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+}
+
+::view-transition-group(site-header) {
+    animation-duration: 0.01ms;
+}
+
+::view-transition-old(site-header),
+::view-transition-new(site-header) {
+    animation: none;
+}
+
+::view-transition-group(site-main) {
+    animation-duration: 1000ms;
+    animation-timing-function: ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .site-header,
+    main {
+        view-transition-name: none;
+    }
+
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation-duration: 0.01ms !important;
+        animation-delay: 0ms !important;
+    }
+}
