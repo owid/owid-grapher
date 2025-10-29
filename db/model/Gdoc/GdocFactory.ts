@@ -303,7 +303,8 @@ export async function getMinimalGdocBaseObjects(
 export async function getPublishedGdocBaseObjectBySlug(
     knex: KnexReadonlyTransaction,
     slug: string,
-    fetchLinkedTags: boolean
+    fetchLinkedTags: boolean,
+    type?: OwidGdocType
 ): Promise<OwidGdocBaseInterface | undefined> {
     const row = await knexRawFirst<DbRawPostGdoc>(
         knex,
@@ -312,8 +313,9 @@ export async function getPublishedGdocBaseObjectBySlug(
             FROM posts_gdocs
             WHERE slug = ?
             AND published = 1
-            AND publishedAt <= NOW()`,
-        [slug]
+            AND publishedAt <= NOW()
+            ${type ? "AND type = ?" : ""}`,
+        type ? [slug, type] : [slug]
     )
     if (!row) return undefined
     const enrichedRow = parsePostsGdocsRow(row)
@@ -344,9 +346,15 @@ export async function getPublishedGdocBaseObjectBySlug(
     return gdoc
 }
 
+/**
+ * From a slug, get a Gdoc object with all its metadata and state loaded, in its correct subclass.
+ * If type is provided, only fetch the Gdoc if it matches that type.
+ * (There can be multiple published gdocs with the same slug if they are of different types)
+ */
 export async function getAndLoadGdocBySlug(
     knex: KnexReadonlyTransaction,
-    slug: string
+    slug: string,
+    type?: OwidGdocType
 ): Promise<
     | GdocPost
     | GdocDataInsight
@@ -356,10 +364,11 @@ export async function getAndLoadGdocBySlug(
     | GdocAnnouncement
     | GdocProfile
 > {
-    const base = await getPublishedGdocBaseObjectBySlug(knex, slug, true)
+    const base = await getPublishedGdocBaseObjectBySlug(knex, slug, true, type)
     if (!base) {
+        const typeMessage = type ? ` with type "${type}"` : ""
         throw new Error(
-            `No published Google Doc with slug "${slug}" found in the database`
+            `No published Google Doc with slug "${slug}"${typeMessage} found in the database`
         )
     }
     return loadGdocFromGdocBase(knex, base)
