@@ -51,6 +51,7 @@ import { DataInsightIndexPage } from "./DataInsightIndexPage.js"
 import { MultiDimIndexPage } from "./MultiDimIndexPage.js"
 import { FeaturedMetricsPage } from "./FeaturedMetricsPage.js"
 import { DodsIndexPage } from "./DodsIndexPage.js"
+import { CausesOfDeathPage } from "./CausesOfDeathPage.js"
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -395,6 +396,12 @@ export class AdminApp extends React.Component<{
                                     exact
                                     path="/bulk-downloads"
                                     component={BulkDownloadPage}
+                                />
+                                <Route exact path="/test.csv" />
+                                <Route
+                                    exact
+                                    path="/causes-of-death"
+                                    component={CausesOfDeathPage}
                                 />
                                 <Route
                                     exact
