@@ -121,10 +121,7 @@ export class OwidAdminApp {
                             const instantiatedProfile =
                                 instantiateProfileForEntity(
                                     gdoc as GdocProfile,
-                                    {
-                                        name: entity.name,
-                                        code: entity.code,
-                                    }
+                                    entity
                                 )
                             res.set("X-Robots-Tag", "noindex")
                             res.send(

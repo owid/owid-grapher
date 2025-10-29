@@ -21,6 +21,7 @@ import {
     renderGdocTombstone,
     renderExplorerIndexPage,
     renderSubscribePage,
+    renderGdoc,
 } from "../baker/siteRenderers.js"
 import {
     BAKED_BASE_URL,
@@ -49,6 +50,7 @@ import {
     queryParamsToStr,
     EnrichedBlockImage,
     OwidGdocType,
+    getRegionBySlug,
 } from "@ourworldindata/utils"
 import {
     EXPLORERS_ROUTE_FOLDER,
@@ -85,6 +87,11 @@ import {
     enrichLatestPageItems,
     getLatestPageItems,
 } from "../db/model/Gdoc/GdocPost.js"
+import { getAndLoadGdocBySlug } from "../db/model/Gdoc/GdocFactory.js"
+import {
+    instantiateProfileForEntity,
+    GdocProfile,
+} from "../db/model/Gdoc/GdocProfile.js"
 
 // todo: switch to an object literal where the key is the path and the value is the request handler? easier to test, reflect on, and manipulate
 const mockSiteRouter = Router()
@@ -387,7 +394,12 @@ getPlainRouteWithROTransaction(
 
         try {
             return res.send(
-                await renderGdocsPageBySlug(trx, pageNumberOrSlug, true)
+                await renderGdocsPageBySlug(
+                    trx,
+                    pageNumberOrSlug,
+                    true,
+                    OwidGdocType.DataInsight
+                )
             )
         } catch (e) {
             console.error(e)
@@ -551,7 +563,8 @@ getPlainRouteNonIdempotentWithRWTransaction(
             const page = await renderGdocsPageBySlug(
                 trx,
                 req.params.authorSlug,
-                true
+                true,
+                OwidGdocType.Author
             )
             res.send(page)
             return
@@ -666,6 +679,45 @@ getPlainRouteWithROTransaction(
             return rest
         })
         res.send(publishedDataInsightsForJson)
+    }
+)
+
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    "/profile/:profileSlug/:entity",
+    async (req, res, trx) => {
+        const { profileSlug, entity: entityParam } = req.params
+
+        if (!profileSlug || !entityParam) {
+            return res.status(404).send(renderNotFoundPage())
+        }
+
+        try {
+            const gdoc = await getAndLoadGdocBySlug(
+                trx,
+                profileSlug,
+                OwidGdocType.Profile
+            )
+
+            if (!gdoc || gdoc.content.type !== OwidGdocType.Profile) {
+                return res.status(404).send(renderNotFoundPage())
+            }
+
+            const entity = getRegionBySlug(entityParam)
+            if (!entity) {
+                return res.status(404).send(renderNotFoundPage())
+            }
+
+            const instantiatedProfile = instantiateProfileForEntity(
+                gdoc as GdocProfile,
+                entity
+            )
+
+            return res.send(renderGdoc(instantiatedProfile, true))
+        } catch (error) {
+            console.error("Error loading profile:", error)
+            return res.status(404).send(renderNotFoundPage())
+        }
     }
 )
 
