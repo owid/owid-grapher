@@ -65,3 +65,14 @@ export type SearchChartHit =
     | SearchChartViewHit
     | SearchExplorerViewHit
     | SearchMultiDimViewHit
+
+/**
+ * Enriched search result with URL added
+ * This is what we return from the API after processing Algolia results
+ */
+export type EnrichedSearchChartHit = Omit<
+    SearchChartHit,
+    "objectID" | "_highlightResult" | "_snippetResult"
+> & {
+    url: string
+}

@@ -1,6 +1,6 @@
 import { SearchIndexName, FilterType, Filter } from "./types.js"
 import { getIndexName, AlgoliaConfig } from "./algoliaClient.js"
-import type { SearchChartHit } from "./types.js"
+import type { SearchChartHit, EnrichedSearchChartHit } from "./types.js"
 import { liteClient as algoliasearch } from "algoliasearch/lite"
 
 export interface SearchState {
@@ -11,7 +11,7 @@ export interface SearchState {
 
 export interface SearchApiResponse {
     query: string
-    results: SearchChartHit[]
+    results: EnrichedSearchChartHit[]
     nbHits: number
     page: number
     nbPages: number
@@ -101,13 +101,13 @@ export async function searchCharts(
     const result = response.results[0]
 
     // Clean up the hits and add URL
-    const cleanedHits = result.hits.map((hit) => {
+    const cleanedHits = result.hits.map((hit): EnrichedSearchChartHit => {
         const {
             _highlightResult,
             _snippetResult,
             objectID: _objectID,
             ...cleanHit
-        } = hit as any
+        } = hit as any // Algolia adds internal fields not in our types
 
         // Construct URL based on type
         let url: string
