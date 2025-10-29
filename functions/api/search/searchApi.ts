@@ -1,6 +1,7 @@
 import { SearchIndexName, FilterType, Filter } from "./types.js"
 import { getIndexName, AlgoliaConfig } from "./algoliaClient.js"
 import type { SearchChartHit } from "./types.js"
+import { liteClient as algoliasearch } from "algoliasearch/lite"
 
 export interface SearchState {
     query: string
@@ -11,14 +12,6 @@ export interface SearchState {
 export interface SearchApiResponse {
     query: string
     results: SearchChartHit[]
-    nbHits: number
-    page: number
-    nbPages: number
-    hitsPerPage: number
-}
-
-interface AlgoliaSearchResponse {
-    hits: SearchChartHit[]
     nbHits: number
     page: number
     nbPages: number
@@ -42,7 +35,7 @@ function getFilterNamesOfType(
     return new Set(filters.filter((f) => f.type === type).map((f) => f.name))
 }
 
-function formatCountryFacetFilters(
+export function formatCountryFacetFilters(
     countries: Set<string>,
     requireAll: boolean
 ): (string | string[])[] {
@@ -57,7 +50,9 @@ function formatCountryFacetFilters(
     return requireAll ? filters.map((f) => [f]) : [filters]
 }
 
-function formatTopicFacetFilters(topics: Set<string>): (string | string[])[] {
+export function formatTopicFacetFilters(
+    topics: Set<string>
+): (string | string[])[] {
     if (topics.size === 0) return []
 
     const filters = Array.from(topics).map((topic) => `tags:${topic}`)
@@ -86,44 +81,24 @@ export async function searchCharts(
         config.indexPrefix
     )
 
-    const searchParams = {
-        requests: [
-            {
-                indexName,
-                params: new URLSearchParams({
-                    query: state.query,
-                    attributesToRetrieve: DATA_CATALOG_ATTRIBUTES.join(","),
-                    highlightPreTag: "<mark>",
-                    highlightPostTag: "</mark>",
-                    hitsPerPage: hitsPerPage.toString(),
-                    page: page.toString(),
-                    ...(facetFilters.length > 0 && {
-                        facetFilters: JSON.stringify(facetFilters),
-                    }),
-                }).toString(),
-            },
-        ],
-    }
+    // Create Algolia lite client
+    const client = algoliasearch(config.appId, config.apiKey)
 
-    // Use Algolia's REST API directly
-    const url = `https://${config.appId}-dsn.algolia.net/1/indexes/*/queries`
-
-    const response = await fetch(url, {
-        method: "POST",
-        headers: {
-            "X-Algolia-Application-Id": config.appId,
-            "X-Algolia-API-Key": config.apiKey,
-            "Content-Type": "application/json",
+    // Search using the algoliasearch package
+    const response = await client.search<SearchChartHit>([
+        {
+            indexName,
+            query: state.query,
+            attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
+            highlightPreTag: "<mark>",
+            highlightPostTag: "</mark>",
+            hitsPerPage,
+            page,
+            facetFilters,
         },
-        body: JSON.stringify(searchParams),
-    })
+    ])
 
-    if (!response.ok) {
-        throw new Error(`Algolia search failed: ${response.statusText}`)
-    }
-
-    const data = await response.json<{ results: AlgoliaSearchResponse[] }>()
-    const result = data.results[0]
+    const result = response.results[0]
 
     // Clean up the hits and add URL
     const cleanedHits = result.hits.map((hit) => {
