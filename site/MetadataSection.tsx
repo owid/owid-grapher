@@ -164,7 +164,6 @@ export default function MetadataSection({
                                 under the{" "}
                                 <a
                                     href="https://creativecommons.org/licenses/by/4.0/"
-                                    target="_blank"
                                     rel="noopener"
                                     className="reuse__link"
                                 >

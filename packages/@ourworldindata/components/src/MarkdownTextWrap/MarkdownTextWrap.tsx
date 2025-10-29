@@ -273,7 +273,7 @@ export class IRLink extends IRElement {
     }
     toHTML(key?: React.Key): React.ReactElement {
         return (
-            <a key={key} href={this.href} target="_blank" rel="noopener">
+            <a key={key} href={this.href} rel="noopener">
                 {this.children.map((child, i) => child.toHTML(i))}
             </a>
         )
@@ -283,7 +283,6 @@ export class IRLink extends IRElement {
             <a
                 key={key}
                 href={this.href}
-                target="_blank"
                 style={{ textDecoration: "underline" }}
                 rel="noopener"
             >

@@ -40,11 +40,7 @@ export function TopicPageIntro(props: TopicPageIntroProps) {
             <div className="topic-page-intro__links col-start-9 span-cols-4 col-md-start-1 span-md-cols-12">
                 {props.downloadButton ? (
                     <div className="topic-page-intro__download-button">
-                        <a
-                            href={props.downloadButton.url}
-                            target="_blank"
-                            rel="noopener"
-                        >
+                        <a href={props.downloadButton.url} rel="noopener">
                             {props.downloadButton.text}
                         </a>
                     </div>

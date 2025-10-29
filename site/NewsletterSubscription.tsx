@@ -106,7 +106,6 @@ export const NewsletterSubscriptionForm = ({
             method="post"
             id="mc-embedded-subscribe-banner"
             name="mc-embedded-subscribe-banner"
-            target="_blank"
             onSubmit={() =>
                 analytics.logSiteFormSubmit(
                     "newsletter-subscribe",
@@ -148,7 +147,6 @@ export const NewsletterSubscriptionForm = ({
                 <a
                     className="newsletter-subscription-form__example-link note-12-medium"
                     href="https://us8.campaign-archive.com/?u=18058af086319ba6afad752ec&id=53877b47f3"
-                    target="_blank"
                     rel="noopener"
                 >
                     See example OWID Brief newsletter
@@ -185,7 +183,6 @@ export const NewsletterSubscriptionForm = ({
                 <a
                     className="newsletter-subscription-form__example-link note-12-medium"
                     href="https://us8.campaign-archive.com/?u=18058af086319ba6afad752ec&id=fdf16136e1"
-                    target="_blank"
                     rel="noopener"
                 >
                     See example Data Insights newsletter

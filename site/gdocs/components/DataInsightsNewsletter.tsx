@@ -55,7 +55,6 @@ export default function DataInsightsNewsletter({
                         className="data-insights-newsletter__form"
                         action="https://ourworldindata.us8.list-manage.com/subscribe/post?u=18058af086319ba6afad752ec&id=2e166c1fc1"
                         method="post"
-                        target="_blank"
                         onSubmit={() =>
                             analytics.logSiteFormSubmit(
                                 "newsletter-subscribe",

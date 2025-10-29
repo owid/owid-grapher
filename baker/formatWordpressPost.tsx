@@ -101,7 +101,7 @@ export const formatWordpressPost = async (
         const url = Url.fromURL(src)
         const output = `
                 <figure data-grapher-src="${src}" class="${GRAPHER_PREVIEW_CLASS}">
-                    <a href="${src}" target="_blank">
+                    <a href="${src}">
                     <div>
                         <img
                           src="${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${url.slug}.png${url.queryStr}"

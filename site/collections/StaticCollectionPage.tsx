@@ -49,11 +49,7 @@ export const StaticCollectionPage = (
                                         )}
                                         data-grapher-src={grapherUrl}
                                     >
-                                        <a
-                                            href={grapherUrl}
-                                            target="_blank"
-                                            rel="noopener"
-                                        >
+                                        <a href={grapherUrl} rel="noopener">
                                             <GrapherImage slug={chartSlug} />
                                         </a>
                                     </figure>
