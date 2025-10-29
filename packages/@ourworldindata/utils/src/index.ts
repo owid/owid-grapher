@@ -221,6 +221,7 @@ export {
     getCountryNamesForRegion,
     checkHasMembers,
     getRegionByName,
+    getRegionBySlug,
     getParentRegions,
     getSiblingRegions,
     articulateEntity,
