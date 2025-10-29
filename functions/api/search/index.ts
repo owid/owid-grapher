@@ -95,8 +95,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         return new Response(
             JSON.stringify({
                 error: "An error occurred while processing the search request",
-                details:
-                    error instanceof Error ? error.message : String(error),
+                details: error instanceof Error ? error.message : String(error),
             }),
             {
                 status: 500,
