@@ -79,16 +79,24 @@ export function renderSingleGrapherOnGrapherPage(
     {
         archiveContext,
         noCache,
-    }: { archiveContext?: ArchiveContext; noCache?: boolean } = {}
+        queryParams,
+    }: {
+        archiveContext?: ArchiveContext
+        noCache?: boolean
+        queryParams?: URLSearchParams
+    } = {}
 ): void {
     const container = document.getElementsByTagName("figure")[0]
+    const queryStrValue = queryParams
+        ? `?${queryParams.toString()}`
+        : window.location.search
     try {
         renderGrapherIntoContainer(
             {
                 ...jsonConfig,
                 bindUrlToWindow: true,
                 enableKeyboardShortcuts: true,
-                queryStr: window.location.search,
+                queryStr: queryStrValue,
                 archiveContext,
             },
             container,
