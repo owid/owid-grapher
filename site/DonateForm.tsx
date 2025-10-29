@@ -438,9 +438,7 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
                         label={
                             <span className="donation-checkbox__label">
                                 Include my name on our{" "}
-                                <a href="/funding" target="_blank">
-                                    public list of donors
-                                </a>
+                                <a href="/funding">public list of donors</a>
                             </span>
                         }
                         checked={this.showOnList}

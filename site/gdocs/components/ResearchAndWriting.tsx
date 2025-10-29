@@ -114,7 +114,6 @@ function ResearchAndWritingLink(
                 },
                 className
             )}
-            target="_blank"
             rel="noopener"
         >
             {filename && !shouldHideThumbnail ? (

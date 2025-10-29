@@ -301,7 +301,6 @@ export const LongFormPage = (props: {
                                                             access under the{" "}
                                                             <a
                                                                 href="https://creativecommons.org/licenses/by/4.0/"
-                                                                target="_blank"
                                                                 rel="noopener"
                                                             >
                                                                 Creative Commons

@@ -381,7 +381,7 @@ ${posts
         const imageUrl = cloudflareId
             ? `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/w=1024`
             : `${BAKED_GRAPHER_URL}/${DEFAULT_THUMBNAIL_FILENAME}`
-        const image = `<br><br><a href="${postUrl}" target="_blank"><img src="${encodeURI(
+        const image = `<br><br><a href="${postUrl}"><img src="${encodeURI(
             imageUrl
         )}"/></a>`
         const summary = post.excerpt

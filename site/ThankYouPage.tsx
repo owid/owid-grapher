@@ -64,7 +64,6 @@ export const ThankYouPage = (props: { baseUrl: string }) => (
                                         shareMessage + " " + donateLink
                                     )}`}
                                     className="share-message__button"
-                                    target="_blank"
                                     rel="noopener"
                                 >
                                     <FontAwesomeIcon icon={faBluesky} />
@@ -76,7 +75,6 @@ export const ThankYouPage = (props: { baseUrl: string }) => (
                                         donateLink
                                     )}&related=OurWorldInData`}
                                     className="share-message__button"
-                                    target="_blank"
                                     rel="noopener"
                                 >
                                     <FontAwesomeIcon icon={faXTwitter} />
@@ -86,7 +84,6 @@ export const ThankYouPage = (props: { baseUrl: string }) => (
                                         donateLink
                                     )}`}
                                     className="share-message__button"
-                                    target="_blank"
                                     rel="noopener"
                                 >
                                     <FontAwesomeIcon icon={faFacebook} />
