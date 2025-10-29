@@ -89,11 +89,14 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             },
         })
     } catch (error) {
+        console.error("Search API error:", error)
         Sentry.captureException(error)
 
         return new Response(
             JSON.stringify({
                 error: "An error occurred while processing the search request",
+                details:
+                    error instanceof Error ? error.message : String(error),
             }),
             {
                 status: 500,

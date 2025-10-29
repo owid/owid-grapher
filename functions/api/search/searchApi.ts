@@ -1,7 +1,6 @@
 import { SearchIndexName, FilterType, Filter } from "./types.js"
 import { getIndexName, AlgoliaConfig } from "./algoliaClient.js"
 import type { SearchChartHit, EnrichedSearchChartHit } from "./types.js"
-import { liteClient as algoliasearch } from "algoliasearch/lite"
 
 export interface SearchState {
     query: string
@@ -18,6 +17,14 @@ export interface SearchApiResponse {
     hitsPerPage: number
 }
 
+interface AlgoliaSearchResponse {
+    hits: SearchChartHit[]
+    nbHits: number
+    page: number
+    nbPages: number
+    hitsPerPage: number
+}
+
 // Minimal set of attributes needed by the MCP server and other API consumers
 const DATA_CATALOG_ATTRIBUTES = [
     "title",
@@ -25,7 +32,7 @@ const DATA_CATALOG_ATTRIBUTES = [
     "subtitle",
     "variantName",
     "type",
-    "queryParams", // For explorerView and multiDimView URL construction
+    "queryParams",
 ]
 
 function getFilterNamesOfType(
@@ -44,8 +51,7 @@ export function formatCountryFacetFilters(
     const filters = Array.from(countries).map(
         (country) => `availableEntities:${country}`
     )
-
-    // If requireAll is true, each country must be present (AND logic)
+    // If requireAll is true, charts must have ALL countries (AND logic)
     // Otherwise, any country can match (OR logic)
     return requireAll ? filters.map((f) => [f]) : [filters]
 }
@@ -56,7 +62,6 @@ export function formatTopicFacetFilters(
     if (topics.size === 0) return []
 
     const filters = Array.from(topics).map((topic) => `tags:${topic}`)
-
     // Topics use OR logic (any topic can match)
     return [filters]
 }
@@ -81,24 +86,48 @@ export async function searchCharts(
         config.indexPrefix
     )
 
-    // Create Algolia lite client
-    const client = algoliasearch(config.appId, config.apiKey)
+    const searchParams = {
+        requests: [
+            {
+                indexName,
+                params: new URLSearchParams({
+                    query: state.query,
+                    attributesToRetrieve: DATA_CATALOG_ATTRIBUTES.join(","),
+                    highlightPreTag: "<mark>",
+                    highlightPostTag: "</mark>",
+                    hitsPerPage: hitsPerPage.toString(),
+                    page: page.toString(),
+                    ...(facetFilters.length > 0 && {
+                        facetFilters: JSON.stringify(facetFilters),
+                    }),
+                }).toString(),
+            },
+        ],
+    }
 
-    // Search using the algoliasearch package
-    const response = await client.search<SearchChartHit>([
-        {
-            indexName,
-            query: state.query,
-            attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
-            highlightPreTag: "<mark>",
-            highlightPostTag: "</mark>",
-            hitsPerPage,
-            page,
-            facetFilters,
+    // Use Algolia's REST API directly with fetch()
+    // Note: We can't use the algoliasearch npm package because it requires
+    // XMLHttpRequest which is not available in CloudFlare Workers
+    const url = `https://${config.appId}-dsn.algolia.net/1/indexes/*/queries`
+
+    const response = await fetch(url, {
+        method: "POST",
+        headers: {
+            "X-Algolia-Application-Id": config.appId,
+            "X-Algolia-API-Key": config.apiKey,
+            "Content-Type": "application/json",
         },
-    ])
+        body: JSON.stringify(searchParams),
+    })
 
-    const result = response.results[0]
+    if (!response.ok) {
+        throw new Error(`Algolia search failed: ${response.statusText}`)
+    }
+
+    const data = (await response.json()) as {
+        results: AlgoliaSearchResponse[]
+    }
+    const result = data.results[0]
 
     // Clean up the hits and add URL
     const cleanedHits = result.hits.map((hit): EnrichedSearchChartHit => {
