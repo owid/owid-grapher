@@ -87,9 +87,9 @@ export function renderSingleGrapherOnGrapherPage(
     } = {}
 ): void {
     const container = document.getElementsByTagName("figure")[0]
-    const queryStrValue =
-        queryParams?.toString() ??
-        new URLSearchParams(window.location.search).toString()
+    const queryStrValue = queryParams
+        ? `?${queryParams.toString()}`
+        : window.location.search
     try {
         renderGrapherIntoContainer(
             {
