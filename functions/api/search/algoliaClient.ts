@@ -1,4 +1,4 @@
-import { Env } from "../env.js"
+import { Env } from "../../_common/env.js"
 
 export interface AlgoliaConfig {
     appId: string
