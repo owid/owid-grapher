@@ -223,11 +223,16 @@ export {
     getCountryNamesForRegion,
     checkHasMembers,
     getRegionByName,
+    getRegionBySlug,
     getParentRegions,
     getSiblingRegions,
     articulateEntity,
 } from "./regions.js"
-export { instantiateProfile, type ProfileEntity } from "./profiles.js"
+export {
+    instantiateProfile,
+    type ProfileEntity,
+    getEntitiesForProfile,
+} from "./profiles.js"
 
 export {
     type GridBounds,
