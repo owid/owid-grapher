@@ -81,6 +81,7 @@ export const Head = (props: {
                 name="viewport"
                 content="width=device-width, initial-scale=1, minimum-scale=1"
             />
+            <meta name="view-transition" content="same-origin" />
             <title>{fullPageTitle}</title>
             <meta name="description" content={pageDesc} />
             <link rel="canonical" href={canonicalUrl} />

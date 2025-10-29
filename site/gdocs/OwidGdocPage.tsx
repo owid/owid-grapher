@@ -321,7 +321,7 @@ export default function OwidGdocPage({
                     isOnHomepage={gdoc.content.type === OwidGdocType.Homepage}
                     archiveInfo={isOnArchivalPage ? archiveContext : undefined}
                 />
-                <div id="owid-document-root">
+                <main id="owid-document-root">
                     <AriaAnnouncerProvider>
                         <DebugProvider debug={debug}>
                             <OwidGdoc
@@ -332,7 +332,7 @@ export default function OwidGdocPage({
                         </DebugProvider>
                         <AriaAnnouncer />
                     </AriaAnnouncerProvider>
-                </div>
+                </main>
                 <SiteFooter
                     context={SiteFooterContext.gdocsDocument}
                     debug={debug}
