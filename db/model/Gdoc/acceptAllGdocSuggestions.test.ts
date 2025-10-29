@@ -87,7 +87,11 @@ describe(acceptAllGdocSuggestions.name, () => {
 
         const styledRun =
             transformed.body?.content?.[1]?.paragraph?.elements?.[0]?.textRun
+        // Note: bold is undefined because the text was already bold, and suggesting
+        // bold on already-bold text toggles it off (removes the bold property)
         expect(styledRun?.textStyle?.bold).toBeUndefined()
+        // Italic is set because the text wasn't italic before, and suggesting
+        // italic toggles it on
         expect(styledRun?.textStyle?.italic).toBe(true)
         expect(styledRun?.suggestedTextStyleChanges).toBeUndefined()
     })

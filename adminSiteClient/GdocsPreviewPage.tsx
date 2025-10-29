@@ -23,6 +23,7 @@ import {
     OwidGdoc,
     Tippy,
     CreateTombstoneData,
+    Url,
 } from "@ourworldindata/utils"
 import { Button, Col, Drawer, Row, Space, Switch, Tag, Typography } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -92,12 +93,12 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
             contentSource: GdocsContentSource,
             acceptSuggestions = false
         ) => {
-            const params = new URLSearchParams({
-                contentSource,
-            })
-            if (acceptSuggestions) params.set("acceptSuggestions", "true")
+            const url = Url.fromURL(`/api/gdocs/${id}`)
+            if (acceptSuggestions)
+                url.setQueryParams({ acceptSuggestions: "true", contentSource })
+            else url.setQueryParams({ contentSource })
             const json = await admin.requestJSON<OwidGdocJSON>(
-                `/api/gdocs/${id}?${params.toString()}`,
+                url.fullUrl,
                 {},
                 "GET",
                 { onFailure: "continue" }
