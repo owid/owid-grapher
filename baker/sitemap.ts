@@ -3,7 +3,7 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
-import { dayjs, countries } from "@ourworldindata/utils"
+import { dayjs, countries, getEntitiesForProfile } from "@ourworldindata/utils"
 import {
     DbPlainChart,
     DbPlainMultiDimDataPage,
@@ -21,6 +21,11 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 
 import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 import { getMinimalAuthors } from "../db/model/Gdoc/GdocAuthor.js"
+import {
+    GdocProfile,
+    getSlugForProfileEntity,
+} from "../db/model/Gdoc/GdocProfile.js"
+import { gdocFromJSON } from "../db/model/Gdoc/GdocFactory.js"
 import { SEARCH_BASE_PATH } from "../site/search/searchUtils.js"
 
 interface SitemapUrl {
@@ -95,6 +100,9 @@ export const makeSitemap = async (
 ) => {
     const gdocPosts = await getPublishedGdocPosts(knex)
     const authorPages = await getMinimalAuthors(knex)
+    const profileTemplates = (await db
+        .getPublishedGdocsWithTags(knex, [OwidGdocType.Profile])
+        .then((gdocs) => gdocs.map(gdocFromJSON))) as GdocProfile[]
 
     const publishedDataInsights = await db.getPublishedDataInsights(knex)
     const dataInsightFeedPageCount = calculateDataInsightIndexPageCount(
@@ -123,6 +131,20 @@ export const makeSitemap = async (
 
     const explorers = await explorerAdminServer.getAllPublishedExplorers(knex)
     const multiDims = await getPublishedMultiDims(knex)
+
+    const profileUrls = profileTemplates.flatMap((profileTemplate) => {
+        const lastmod = profileTemplate.updatedAt
+            ? dayjs(profileTemplate.updatedAt).format("YYYY-MM-DD")
+            : undefined
+
+        return getEntitiesForProfile(profileTemplate).map((entity) => ({
+            loc: urljoin(
+                BAKED_BASE_URL,
+                getSlugForProfileEntity(profileTemplate, entity)
+            ),
+            lastmod,
+        }))
+    })
 
     let urls = countries.map((c) => ({
         loc: urljoin(BAKED_BASE_URL, "country", c.slug),
@@ -178,6 +200,7 @@ export const makeSitemap = async (
                 lastmod: dayjs(a.updatedAt).format("YYYY-MM-DD"),
             }))
         )
+        .concat(profileUrls)
 
     const sitemap = `<?xml version="1.0" encoding="utf-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
