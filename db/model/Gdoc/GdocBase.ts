@@ -722,6 +722,17 @@ export class GdocBase implements OwidGdocBaseInterface {
                     })
                 )
             })
+            .with({ type: "table" }, (block) => {
+                const links: DbInsertPostGdocLink[] = []
+                if (!block.caption) return links
+                for (const span of block.caption) {
+                    traverseEnrichedSpan(span, (span) => {
+                        const link = this.extractLinkFromSpan(span)
+                        if (link) links.push(link)
+                    })
+                }
+                return links
+            })
             .with(
                 {
                     // no urls directly on any of these blocks
@@ -757,7 +768,6 @@ export class GdocBase implements OwidGdocBaseInterface {
                         "simple-text",
                         "sticky-left",
                         "sticky-right",
-                        "table",
                         "text",
                         "homepage-search",
                         "latest-data-insights",

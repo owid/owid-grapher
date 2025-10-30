@@ -584,6 +584,7 @@ export function enrichedBlockToRawBlock(
                 type: b.type,
                 value: {
                     template: b.template,
+                    size: b.size,
                     rows: b.rows.map((row) => ({
                         type: row.type,
                         value: {
@@ -595,6 +596,7 @@ export function enrichedBlockToRawBlock(
                             })),
                         },
                     })),
+                    caption: b.caption ? spansToHtmlText(b.caption) : undefined,
                 },
             }
         })

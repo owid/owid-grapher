@@ -1386,11 +1386,16 @@ export const parseTable = (raw: RawBlockTable): EnrichedBlockTable => {
         }
     }
 
+    const caption = raw.value?.caption
+        ? htmlToSpans(raw.value.caption)
+        : undefined
+
     return {
         type: "table",
         rows: enrichedRows,
         template,
         size,
+        caption,
         parseErrors,
     }
 }

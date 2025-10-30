@@ -402,7 +402,11 @@ ${links}`
                 )
                 return `|${cells.join("|")}|`
             })
-            return "\n" + rows.join("\n") // markdown tables need a leading empty line
+            const table = "\n" + rows.join("\n") // markdown tables need a leading empty line
+            const caption = b.caption
+                ? `\n\n*${spansToMarkdown(b.caption)}*`
+                : ""
+            return table + caption
         })
         .with({ type: "explorer-tiles" }, () => undefined) // Note: dropped
         .with({ type: "blockquote" }, (b): string | undefined => {

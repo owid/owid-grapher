@@ -885,6 +885,7 @@ export type RawBlockTable = {
         template?: TableTemplate
         size?: TableSize
         rows?: RawBlockTableRow[]
+        caption?: string
     }
 }
 
@@ -906,6 +907,7 @@ export type EnrichedBlockTable = {
     template: TableTemplate
     size: TableSize
     rows: EnrichedBlockTableRow[]
+    caption?: Span[]
 } & EnrichedBlockWithParseErrors
 
 export interface EnrichedBlockTableRow {
