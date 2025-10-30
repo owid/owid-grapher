@@ -28,6 +28,8 @@ import {
     SVG_STYLE_PROPS,
     BASE_FONT_SIZE,
     Patterns,
+    GRAPHER_IMAGE_WIDTH_1X,
+    GRAPHER_IMAGE_WIDTH_2X,
 } from "../core/GrapherConstants"
 import { ChartSeries } from "./ChartInterface"
 import {
@@ -233,7 +235,10 @@ export function makeAxisLabel({
 export function generateGrapherImageSrcSet(defaultSrc: string): string {
     const url = Url.fromURL(defaultSrc)
     const existingQueryParams = url.queryParams
-    const imWidths = ["850", "1700"]
+    const imWidths = [
+        GRAPHER_IMAGE_WIDTH_1X.toString(),
+        GRAPHER_IMAGE_WIDTH_2X.toString(),
+    ]
     const srcSet = imWidths
         .map((imWidth) => {
             return `${url.setQueryParams({ ...existingQueryParams, imWidth }).fullUrl} ${imWidth}w`
