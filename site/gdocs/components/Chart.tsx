@@ -80,11 +80,6 @@ export default function Chart({
                     })}
                     data-is-multi-dim={isMultiDim || undefined}
                     data-grapher-src={isExplorer ? undefined : resolvedUrl}
-                    data-grapher-config={
-                        isExplorer || _.isEmpty(chartConfig)
-                            ? undefined
-                            : JSON.stringify(chartConfig)
-                    }
                     data-explorer-src={isExplorer ? resolvedUrl : undefined}
                     style={{
                         width: "100%",
