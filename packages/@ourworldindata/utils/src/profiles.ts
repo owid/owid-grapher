@@ -110,6 +110,14 @@ export const instantiateProfile = (
         replaceStringsInObject(clonedContent.body, replacements)
     }
 
+    const region = getRegionByNameOrVariantName(entity.name)
+    if (region) {
+        clonedContent.instantiatedEntity = {
+            ...region,
+            isCountry: checkIsCountry(region),
+        }
+    }
+
     return clonedContent
 }
 
