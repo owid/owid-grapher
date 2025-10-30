@@ -31,7 +31,6 @@ import * as R from "remeda"
 export interface MapCountryDropdownManager {
     mapConfig?: MapConfig
     isOnMapTab?: boolean
-    hideMapRegionDropdown?: boolean
     isMapSelectionEnabled?: boolean
     globeController?: GlobeController
 }

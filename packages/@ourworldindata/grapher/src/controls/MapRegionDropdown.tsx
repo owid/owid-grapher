@@ -14,7 +14,6 @@ export interface MapRegionDropdownManager {
     globeController?: GlobeController
     isOnMapTab?: boolean
     mapRegionDropdownValue?: MapRegionDropdownValue
-    hideMapRegionDropdown?: boolean
     isMapSelectionEnabled?: boolean
 }
 
@@ -47,10 +46,9 @@ export class MapRegionDropdown extends React.Component<{
     }
 
     @computed private get showMenu(): boolean {
-        const { hideMapRegionDropdown, isOnMapTab, isMapSelectionEnabled } =
-            this.manager
+        const { isOnMapTab, isMapSelectionEnabled } = this.manager
 
-        return !!(!hideMapRegionDropdown && isOnMapTab && isMapSelectionEnabled)
+        return !!(isOnMapTab && isMapSelectionEnabled)
     }
 
     @action.bound onChange(selected: MapRegionDropdownOption | null): void {

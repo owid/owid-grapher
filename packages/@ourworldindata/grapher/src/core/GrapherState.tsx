@@ -503,18 +503,10 @@ export class GrapherState {
             hideOriginUrl: observable,
             hideEntityControls: observable,
             enableMapSelection: observable,
-            hideZoomToggle: observable,
-            hideNoDataAreaToggle: observable,
-            hideFacetYDomainToggle: observable,
-            hideXScaleToggle: observable,
-            hideYScaleToggle: observable,
-            hideMapRegionDropdown: observable,
             forceHideAnnotationFieldsInTitle: observable,
             hasTableTab: observable,
-            hideChartTabs: observable,
             hideShareButton: observable,
             hideExploreTheDataButton: observable,
-            hideRelatedQuestion: observable,
             isDisplayedAlongsideComplementaryTable: observable,
         })
         // prefer the manager's selection over the config's selectedEntityNames
@@ -1902,7 +1894,7 @@ export class GrapherState {
         const availableTabs: GrapherTabName[] = []
         if (this.hasTableTab) availableTabs.push(GRAPHER_TAB_NAMES.Table)
         if (this.hasMapTab) availableTabs.push(GRAPHER_TAB_NAMES.WorldMap)
-        if (!this.hideChartTabs) availableTabs.push(...this.validChartTypes)
+        availableTabs.push(...this.validChartTypes)
         return availableTabs
     }
     @computed get hasMultipleChartTypes(): boolean {
@@ -3569,14 +3561,6 @@ export class GrapherState {
 
     enableMapSelection = false
 
-    // exposed programmatically for hiding interactive controls or tabs when desired
-    // (e.g. used to hide Grapher chrome when a Grapher chart in a Gdoc article is in "read-only" mode)
-    hideZoomToggle = false
-    hideNoDataAreaToggle = false
-    hideFacetYDomainToggle = false
-    hideXScaleToggle = false
-    hideYScaleToggle = false
-    hideMapRegionDropdown = false
     // enforces hiding an annotation, even if that means that a crucial piece of information is missing from the chart title
     forceHideAnnotationFieldsInTitle: AnnotationFieldsInTitle = {
         entity: false,
@@ -3584,7 +3568,6 @@ export class GrapherState {
         changeInPrefix: false,
     }
     hasTableTab = true
-    hideChartTabs = false
     hideShareButton = false
     hideExploreTheDataButton = true
     hideRelatedQuestion = false

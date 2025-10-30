@@ -93,15 +93,8 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hideOriginUrl?: boolean
 
     hideEntityControls?: boolean
-    hideZoomToggle?: boolean
-    hideNoDataAreaToggle?: boolean
-    hideFacetYDomainToggle?: boolean
-    hideXScaleToggle?: boolean
-    hideYScaleToggle?: boolean
-    hideMapRegionDropdown?: boolean
     forceHideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
     hasTableTab?: boolean
-    hideChartTabs?: boolean
     hideShareButton?: boolean
     hideExploreTheDataButton?: boolean
     hideRelatedQuestion?: boolean

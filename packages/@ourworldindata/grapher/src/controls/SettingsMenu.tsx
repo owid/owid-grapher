@@ -53,11 +53,6 @@ export interface SettingsMenuManager
     hideFacetControl?: boolean
     hideRelativeToggle?: boolean
     hideEntityControls?: boolean
-    hideZoomToggle?: boolean
-    hideNoDataAreaToggle?: boolean
-    hideFacetYDomainToggle?: boolean
-    hideXScaleToggle?: boolean
-    hideYScaleToggle?: boolean
 
     // chart state
     activeChartType?: GrapherChartType
@@ -106,7 +101,6 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
     }
 
     @computed get showYScaleToggle(): boolean | undefined {
-        if (this.manager.hideYScaleToggle) return false
         if (this.manager.isRelativeMode) return false
         if (
             [
@@ -122,7 +116,6 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
     }
 
     @computed private get showXScaleToggle(): boolean | undefined {
-        if (this.manager.hideXScaleToggle) return false
         if (this.manager.isRelativeMode) return false
         return this.manager.xAxis.canChangeScaleType
     }
@@ -130,24 +123,19 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
     @computed private get showFacetYDomainToggle(): boolean {
         // don't offer to make the y range relative if the range is discrete
         return (
-            !this.manager.hideFacetYDomainToggle &&
             this.manager.facetStrategy !== FacetStrategy.none &&
             this.chartType !== StackedDiscreteBar
         )
     }
 
     @computed get showZoomToggle(): boolean {
-        const { hideZoomToggle } = this.manager
         return (
-            !hideZoomToggle &&
-            this.chartType === ScatterPlot &&
-            this.selectionArray.hasSelection
+            this.chartType === ScatterPlot && this.selectionArray.hasSelection
         )
     }
 
     @computed get showNoDataAreaToggle(): boolean {
         return (
-            !this.manager.hideNoDataAreaToggle &&
             this.chartType === Marimekko &&
             this.manager.xColumnSlug !== undefined
         )

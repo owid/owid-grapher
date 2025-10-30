@@ -193,8 +193,6 @@ class MultiEmbedder {
         // make sure the tab of the active pane is visible
         if (figureConfigAttr && !isEmpty(localConfig)) {
             const activeTab = queryParams?.tab || grapherPageConfig.tab
-            if (activeTab === GRAPHER_TAB_CONFIG_OPTIONS.chart)
-                localConfig.hideChartTabs = false
             if (activeTab === GRAPHER_TAB_CONFIG_OPTIONS.map)
                 localConfig.hasMapTab = true
             if (activeTab === GRAPHER_TAB_CONFIG_OPTIONS.table)
