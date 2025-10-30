@@ -29,8 +29,6 @@ export {
     BASE_FONT_SIZE,
     WORLD_ENTITY_NAME,
     Patterns,
-    grapherInterfaceWithHiddenControls,
-    grapherInterfaceWithHiddenTabs,
     CONTINENTS_INDICATOR_ID,
     POPULATION_INDICATOR_ID_USED_IN_ADMIN,
     latestGrapherConfigSchema,

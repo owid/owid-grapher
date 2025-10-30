@@ -2,8 +2,6 @@ import * as _ from "lodash-es"
 import {
     BlockPositionChoice,
     ChartPositionChoice,
-    ChartControlKeyword,
-    ChartTabKeyword,
     EnrichedBlockAside,
     EnrichedBlockCallout,
     EnrichedBlockChart,
@@ -154,7 +152,6 @@ import {
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
-    filterValidStringValues,
     excludeNullish,
     omitUndefinedValues,
     Url,
@@ -498,34 +495,6 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
                 })
             }
         const caption = val.caption ? htmlToSpans(val.caption) : []
-        const title = val.title
-        const subtitle = val.subtitle
-
-        const validControlKeywords = Object.values(ChartControlKeyword)
-        const controls = _.uniq(
-            filterValidStringValues(
-                val.controls?.flatMap((d: { list: string[] }) => d.list) || [],
-                validControlKeywords,
-                (invalidKeyword: string) => {
-                    warnings.push({
-                        message: `Keyword '${invalidKeyword}' in 'controls' is not valid. Must be one of: ${validControlKeywords}`,
-                    })
-                }
-            )
-        )
-
-        const validTabKeywords = Object.values(ChartTabKeyword)
-        const tabs = _.uniq(
-            filterValidStringValues(
-                val.tabs?.flatMap((d: { list: string[] }) => d.list) || [],
-                validTabKeywords,
-                (invalidKeyword: string) => {
-                    warnings.push({
-                        message: `Keyword '${invalidKeyword}' in 'tabs' is not valid. Must be one of: ${validTabKeywords}.`,
-                    })
-                }
-            )
-        )
 
         return omitUndefinedValues({
             type: "chart",
@@ -535,10 +504,6 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
             column,
             position,
             caption: caption.length > 0 ? caption : undefined,
-            title,
-            subtitle,
-            controls: controls.length > 0 ? controls : undefined,
-            tabs: tabs.length > 0 ? tabs : undefined,
             parseErrors: [],
         }) as EnrichedBlockChart
     }

@@ -31,28 +31,6 @@ export type EnrichedBlockAside = {
     caption: Span[]
 } & EnrichedBlockWithParseErrors
 
-export enum ChartControlKeyword {
-    all = "all",
-    relativeToggle = "relativeToggle",
-    timeline = "timeline",
-    facetControl = "facetControl",
-    entitySelector = "entitySelector",
-    zoomToggle = "zoomToggle",
-    noDataAreaToggle = "noDataAreaToggle",
-    alignAxisScalesToggle = "alignAxisScalesToggle",
-    xLogLinearSelector = "xLogLinearSelector",
-    yLogLinearSelector = "yLogLinearSelector",
-    mapRegionDropdown = "mapRegionDropdown",
-    tableFilterToggle = "tableFilterToggle",
-}
-
-export enum ChartTabKeyword {
-    all = "all",
-    chart = "chart",
-    map = "map",
-    table = "table",
-}
-
 export type RawBlockChartValue = {
     url?: string
     height?: string
@@ -61,10 +39,6 @@ export type RawBlockChartValue = {
     // TODO: position is used as a classname apparently? Should be renamed or split
     position?: string
     caption?: string
-    title?: string
-    subtitle?: string
-    controls?: { list: string[] }[]
-    tabs?: { list: string[] }[]
 }
 
 export type RawBlockChart = {
@@ -80,10 +54,6 @@ export type EnrichedBlockChart = {
     column?: string
     position?: ChartPositionChoice
     caption?: Span[]
-    title?: string
-    subtitle?: string
-    controls?: ChartControlKeyword[]
-    tabs?: ChartTabKeyword[]
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockNarrativeChartValue = {
