@@ -1260,6 +1260,7 @@ export function extractGdocPageData(gdoc: OwidGdoc) {
         "id",
         "slug",
         "content",
+        "contentMd5",
         "createdAt",
         "updatedAt",
         "published",
