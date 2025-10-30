@@ -42,7 +42,7 @@ import {
 } from "../../db/model/Gdoc/GdocFactory.js"
 import { GdocHomepage } from "../../db/model/Gdoc/GdocHomepage.js"
 import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
-import { enqueueLightningChange } from "./routeUtils.js"
+import { enqueueLightningChange, extractSqlError } from "./routeUtils.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
@@ -153,26 +153,6 @@ async function indexAndBakeGdocIfNeccesary(
         .exhaustive()
 }
 
-async function validateSlugCollisionsIfPublishing(
-    trx: db.KnexReadonlyTransaction,
-    gdoc:
-        | GdocPost
-        | GdocDataInsight
-        | GdocHomepage
-        | GdocAbout
-        | GdocAuthor
-        | GdocAnnouncement
-) {
-    if (!gdoc.published) return
-
-    const hasSlugCollision = await db.checkIfSlugCollides(trx, gdoc)
-    if (hasSlugCollision) {
-        throw new JsonError(
-            `You are attempting to publish a Google Doc with a slug that already exists: "${gdoc.slug}"`
-        )
-    }
-}
-
 /**
  * Only supports creating a new empty Gdoc or updating an existing one. Does not
  * support creating a new Gdoc from an existing one. Relevant updates will
@@ -195,8 +175,6 @@ export async function createOrUpdateGdoc(
     const nextGdoc = gdocFromJSON(req.body)
     await nextGdoc.loadState(trx)
 
-    await validateSlugCollisionsIfPublishing(trx, nextGdoc)
-
     await setImagesInContentGraph(trx, nextGdoc)
 
     await setLinksForGdoc(
@@ -208,7 +186,26 @@ export async function createOrUpdateGdoc(
             : GdocLinkUpdateMode.DeleteOnly
     )
 
-    const upserted = await upsertGdoc(trx, nextGdoc)
+    let upserted
+    try {
+        upserted = await upsertGdoc(trx, nextGdoc)
+    } catch (e) {
+        const maybeSqlError = extractSqlError(e)
+        if (maybeSqlError.code === "ER_DUP_ENTRY") {
+            // Example message: "Duplicate entry 'article|optimism-and-pessimism' for key 'posts_gdocs.idx_unique_published'"
+            const duplicateValueMatch = String(maybeSqlError.sqlMessage).match(
+                /Duplicate entry '([^|]+)\|(.+)' for key 'posts_gdocs.idx_unique_published'/
+            )
+            if (duplicateValueMatch) {
+                const [_, type, slug] = duplicateValueMatch
+                throw new JsonError(
+                    `A published ${type} with the slug "${slug}" already exists. Please choose a different slug.`,
+                    400
+                )
+            }
+        }
+        throw e
+    }
     await indexAndBakeGdocIfNeccesary(trx, res.locals.user, prevGdoc, nextGdoc)
 
     return upserted

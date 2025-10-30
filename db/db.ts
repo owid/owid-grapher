@@ -17,7 +17,6 @@ import {
     DBRawPostGdocWithTags,
     parsePostsGdocsWithTagsRow,
     DBEnrichedPostGdocWithTags,
-    parsePostsGdocsRow,
     TagGraphRootName,
     FlatTagGraph,
     FlatTagGraphNode,
@@ -33,7 +32,6 @@ import {
     MinimalTag,
     BreadcrumbItem,
     PostsGdocsTableName,
-    OwidGdocBaseInterface,
     TagGraphRoot,
     FeaturedMetricByParentTagNameDictionary,
     ChartConfigsTableName,
@@ -45,7 +43,6 @@ import {
     DbRawPostGdoc,
 } from "@ourworldindata/types"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
-import { getCanonicalUrl } from "@ourworldindata/components"
 import { rawGdocToMinimalPost } from "./model/Gdoc/GdocBase.js"
 
 /**
@@ -324,29 +321,6 @@ export const getPublishedDataInsights = (
             authors: JSON.parse(record.authors),
         }))
     ) as Promise<MinimalDataInsightInterface[]>
-}
-
-export async function checkIfSlugCollides(
-    knex: KnexReadonlyTransaction,
-    gdoc: OwidGdocBaseInterface
-): Promise<boolean> {
-    const existingGdoc = await knex(PostsGdocsTableName)
-        .where({
-            slug: gdoc.slug,
-            published: true,
-        })
-        .whereNot({
-            id: gdoc.id,
-        })
-        .first()
-        .then((row) => (row ? parsePostsGdocsRow(row) : undefined))
-
-    if (!existingGdoc) return false
-
-    const existingCanonicalUrl = getCanonicalUrl("", existingGdoc)
-    const incomingCanonicalUrl = getCanonicalUrl("", gdoc)
-
-    return existingCanonicalUrl === incomingCanonicalUrl
 }
 
 export const getPublishedDataInsightCount = (
