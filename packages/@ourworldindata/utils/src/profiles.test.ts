@@ -1,9 +1,19 @@
 import { describe, expect, it } from "vitest"
-import { instantiateProfile } from "./profiles.js"
-import { getCountryByName, articulateEntity, type Country } from "./regions.js"
+import { instantiateProfile, getEntitiesForProfile } from "./profiles.js"
+import {
+    getCountryByName,
+    articulateEntity,
+    type Country,
+    countries,
+    checkIsCountry,
+    regions,
+    getRegionByNameOrVariantName,
+} from "./regions.js"
 import {
     OwidGdocType,
     type OwidGdocProfileContent,
+    type OwidGdocProfileInterface,
+    OwidGdocPublicationContext,
 } from "@ourworldindata/types"
 
 const buildProfileTemplate = (): OwidGdocProfileContent => ({
@@ -64,6 +74,23 @@ const buildProfileTemplate = (): OwidGdocProfileContent => ({
     },
 })
 
+const buildProfile = (scope?: string): OwidGdocProfileInterface => ({
+    id: "profile-test",
+    slug: "profile-test-slug",
+    content: {
+        ...buildProfileTemplate(),
+        scope: scope ?? "",
+    },
+    published: true,
+    createdAt: new Date("2025-10-30T00:00:00Z"),
+    updatedAt: new Date("2025-10-30T00:00:00Z"),
+    publishedAt: new Date("2025-10-30T00:00:00Z"),
+    revisionId: "rev-1",
+    publicationContext: OwidGdocPublicationContext.listed,
+    manualBreadcrumbs: null,
+    markdown: null,
+})
+
 describe("instantiateProfile", () => {
     it("replaces placeholders with articulated entity name and code", () => {
         const country = getCountryByName("United States") as Country
@@ -111,5 +138,107 @@ describe("instantiateProfile", () => {
         const instantiated = instantiateProfile(template, country)
 
         expect(instantiated.title).toEqual("France Energy Profile")
+    })
+})
+
+describe("getEntitiesForProfile", () => {
+    it("returns an empty list when the scope is blank", () => {
+        const profile = buildProfile("")
+
+        const entities = getEntitiesForProfile(profile)
+
+        expect(entities).toEqual([])
+    })
+
+    it("returns specific countries when they're the only ones specified", () => {
+        const profile = buildProfile("United States, Canada")
+
+        const entities = getEntitiesForProfile(profile)
+
+        expect(entities).toHaveLength(2)
+        expect(entities).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({ code: "USA", name: "United States" }),
+                expect.objectContaining({ code: "CAN", name: "Canada" }),
+            ])
+        )
+    })
+
+    it("returns all countries when scope is 'countries'", () => {
+        const profile = buildProfile("countries")
+
+        const entities = getEntitiesForProfile(profile)
+
+        expect(entities).toHaveLength(countries.length)
+        expect(entities).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({ code: "USA", name: "United States" }),
+                expect.objectContaining({ code: "FRA", name: "France" }),
+            ])
+        )
+    })
+
+    it("returns all non-country regions when scope is 'regions'", () => {
+        const profile = buildProfile("regions")
+        const nonCountryRegions = regions.filter(
+            (region) => !checkIsCountry(region)
+        )
+
+        const entities = getEntitiesForProfile(profile)
+
+        expect(entities).toHaveLength(nonCountryRegions.length)
+        const europe = getRegionByNameOrVariantName("Europe")
+        expect(europe).toBeTruthy()
+        expect(entities).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    code: europe!.code,
+                    name: europe!.name,
+                }),
+            ])
+        )
+    })
+
+    it("deduplicates entities referenced by name or code", () => {
+        const profile = buildProfile("United States, USA")
+
+        const entities = getEntitiesForProfile(profile)
+
+        expect(entities).toHaveLength(1)
+        expect(entities[0]).toMatchObject({
+            code: "USA",
+            name: "United States",
+        })
+    })
+
+    it("includes both countries and regions when scope is 'all'", () => {
+        const profile = buildProfile("all")
+        const nonCountryRegions = regions.filter(
+            (region) => !checkIsCountry(region)
+        )
+
+        const entities = getEntitiesForProfile(profile)
+
+        expect(entities).toHaveLength(
+            countries.length + nonCountryRegions.length
+        )
+        expect(entities).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({ code: "USA" }),
+                expect.objectContaining({ code: "OWID_EUR" }),
+            ])
+        )
+    })
+
+    it("resolves entities with trailing parentheticals", () => {
+        const profile = buildProfile("China (People's Republic of)")
+
+        const entities = getEntitiesForProfile(profile)
+
+        expect(entities).toHaveLength(1)
+        expect(entities[0]).toMatchObject({
+            code: "CHN",
+            name: "China",
+        })
     })
 })
