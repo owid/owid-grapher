@@ -238,13 +238,17 @@ function runSiteTools() {
 
 const hydrateOwidGdoc = (debug?: boolean, isPreviewing?: boolean) => {
     const wrapper = document.querySelector("#owid-document-root")
-    const props = deserializeOwidGdocPageData(window._OWID_GDOC_PROPS)
     if (!wrapper) return
+    const props = deserializeOwidGdocPageData(window._OWID_GDOC_PROPS)
     hydrateRoot(
         wrapper,
         <AriaAnnouncerProvider>
             <DebugProvider debug={debug}>
-                <OwidGdoc {...props} isPreviewing={isPreviewing} />
+                <OwidGdoc
+                    {...props}
+                    isPreviewing={isPreviewing}
+                    archiveContext={window._OWID_ARCHIVE_INFO}
+                />
             </DebugProvider>
             <AriaAnnouncer />
         </AriaAnnouncerProvider>
