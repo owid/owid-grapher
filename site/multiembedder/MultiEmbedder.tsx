@@ -5,7 +5,6 @@ import {
     GLOBAL_ENTITY_SELECTOR_ELEMENT,
     GrapherProgrammaticInterface,
     GRAPHER_EMBEDDED_FIGURE_ATTR,
-    GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR,
     hydrateGlobalEntitySelectorIfAny,
     migrateSelectedEntityNamesParam,
     SelectionArray,
@@ -18,7 +17,6 @@ import {
     getWindowUrl,
     isPresent,
     Url,
-    GRAPHER_TAB_CONFIG_OPTIONS,
     fetchWithRetry,
     NarrativeChartInfo,
     searchParamsToMultiDimView,
@@ -30,7 +28,6 @@ import {
     ExplorerProps,
     EXPLORER_EMBEDDED_FIGURE_SELECTOR,
     buildExplorerProps,
-    isEmpty,
 } from "@ourworldindata/explorer"
 import {
     GRAPHER_PREVIEW_CLASS,
@@ -168,7 +165,7 @@ class MultiEmbedder {
             additionalConfig?: Partial<GrapherProgrammaticInterface>
         }
     ) {
-        const { queryStr, queryParams } = embedUrl ?? {}
+        const { queryStr } = embedUrl ?? {}
 
         figure.classList.remove(GRAPHER_PREVIEW_CLASS)
         const common: GrapherProgrammaticInterface = {
@@ -185,26 +182,11 @@ class MultiEmbedder {
             fetchedGrapherPageConfig
         )
 
-        const figureConfigAttr = figure.getAttribute(
-            GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR
-        )
-        const localConfig = figureConfigAttr ? JSON.parse(figureConfigAttr) : {}
-
-        // make sure the tab of the active pane is visible
-        if (figureConfigAttr && !isEmpty(localConfig)) {
-            const activeTab = queryParams?.tab || grapherPageConfig.tab
-            if (activeTab === GRAPHER_TAB_CONFIG_OPTIONS.map)
-                localConfig.hasMapTab = true
-            if (activeTab === GRAPHER_TAB_CONFIG_OPTIONS.table)
-                localConfig.hasTableTab = true
-        }
-
         const config = _.merge(
             {}, // merge mutates the first argument
             grapherPageConfig,
             common,
             additionalConfig,
-            localConfig,
             {
                 manager: {
                     selection: this.selection.hasSelection
@@ -247,12 +229,7 @@ class MultiEmbedder {
         queryStr: string
     ) {
         figure.classList.remove(GRAPHER_PREVIEW_CLASS)
-        const figureConfigAttr = figure.getAttribute(
-            GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR
-        )
-        const localGrapherConfig = figureConfigAttr
-            ? JSON.parse(figureConfigAttr)
-            : {}
+        const localGrapherConfig: GrapherProgrammaticInterface = {}
         localGrapherConfig.manager = {
             selection: new SelectionArray(this.selection.selectedEntityNames),
         }

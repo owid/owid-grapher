@@ -9,7 +9,6 @@ import { defaultGrapherConfig } from "../schema/defaultGrapherConfig.js"
 export const GRAPHER_PROD_URL = "https://ourworldindata.org"
 
 export const GRAPHER_EMBEDDED_FIGURE_ATTR = "data-grapher-src"
-export const GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR = "data-grapher-config"
 
 export const GRAPHER_NARRATIVE_CHART_CONFIG_FIGURE_ATTR =
     "data-grapher-narrative-chart-config"
