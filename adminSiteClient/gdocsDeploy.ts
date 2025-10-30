@@ -160,6 +160,7 @@ export const checkIsLightningUpdate = (
         refs: false,
         "sidebar-toc": true,
         toc: true,
+        instantiatedEntity: false, // NA, derived field
     }
 
     const contentPropsMap: Record<OwidGdocType, Record<string, boolean>> = {
