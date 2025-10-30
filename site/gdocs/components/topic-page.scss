@@ -30,6 +30,35 @@
         }
     }
 
+    .profile-title {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-top: 40px;
+        flex-wrap: wrap;
+        margin-bottom: 8px;
+        h1 {
+            margin: 0;
+        }
+    }
+
+    .profile-title__label {
+        color: $blue-60;
+        width: 100%;
+    }
+
+    .profile-title__container {
+        width: 100%;
+        display: flex;
+        gap: 6px;
+    }
+
+    .profile-title__flag {
+        width: auto;
+        height: 16px;
+        position: relative;
+    }
+
     p.topic-page-header__byline {
         font-size: 0.875rem;
         margin-bottom: 0;

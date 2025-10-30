@@ -25,6 +25,7 @@ type ProfileProps = Omit<
 
 export function Profile({ content, publishedAt, slug }: ProfileProps) {
     const hasSidebarToc = content["sidebar-toc"]
+    const instantiatedEntity = content.instantiatedEntity
 
     const shortPageCitation = getShortPageCitation(
         content.authors,
@@ -44,20 +45,37 @@ export function Profile({ content, publishedAt, slug }: ProfileProps) {
     return (
         <article className="centered-article-container grid grid-cols-12-full-width centered-article-container--profile">
             <header className="topic-page-header grid span-cols-14 grid-cols-12-full-width">
-                <h1 className="display-2-semibold col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
-                    {content.title}
-                </h1>
+                <div className="profile-title col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
+                    <div className="profile-title__container">
+                        {instantiatedEntity?.isCountry && (
+                            <img
+                                className="profile-title__flag"
+                                src={`/images/flags/${instantiatedEntity.code}.svg`}
+                                alt=""
+                                width={64}
+                                height={48}
+                            />
+                        )}
+                        <span className="profile-title__label h5-black-caps">
+                            {instantiatedEntity?.name}{" "}
+                            {instantiatedEntity?.isCountry
+                                ? "Country Profile"
+                                : "Region Profile"}
+                        </span>
+                    </div>
+                    <h1 className="display-2-semibold">{content.title}</h1>
+                </div>
                 {content.subtitle && (
-                    <p className="topic-page-header__subtitle body-1-regular col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
+                    <p className="topic-page-header__subtitle body-1-regular col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
                         {content.subtitle}
                     </p>
                 )}
                 {content.authors.length > 0 && (
-                    <p className="topic-page-header__byline col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
+                    <p className="topic-page-header__byline col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
                         <Byline names={content.authors} />
                     </p>
                 )}
-                <div className="topic-page-header__cta-buttons col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
+                <div className="topic-page-header__cta-buttons col-start-11 span-cols-3 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
                     <a href={`#${CITATION_ID}`}>
                         <FontAwesomeIcon icon={faBook} />
                         Cite this work

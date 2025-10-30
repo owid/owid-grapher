@@ -261,6 +261,15 @@ export interface OwidGdocProfileContent {
     toc?: TocHeadingWithTitleSupertitle[]
     body: OwidEnrichedGdocBlock[]
     refs?: { definitions: RefDictionary; errors: OwidGdocErrorMessage[] }
+    instantiatedEntity?: OwidGdocProfileEntitySummary
+}
+
+export interface OwidGdocProfileEntitySummary {
+    name: string
+    code: string
+    slug?: string
+    regionType?: string
+    isCountry: boolean
 }
 
 export interface OwidGdocProfileInterface extends OwidGdocBaseInterface {
