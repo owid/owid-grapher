@@ -4,6 +4,7 @@ import {
     OwidGdocErrorMessageType,
     OwidGdocProfileContent,
     OwidGdocProfileInterface,
+    OwidGdocProfileEntitySummary,
 } from "@ourworldindata/types"
 import {
     getRegionByNameOrVariantName,
@@ -20,6 +21,7 @@ const GENERIC_PROFILE_SCOPES = new Set(["countries", "regions", "all"])
 
 export class GdocProfile extends GdocBase implements OwidGdocProfileInterface {
     declare content: OwidGdocProfileContent
+    instantiatedEntity?: OwidGdocProfileEntitySummary
 
     constructor(id?: string) {
         super(id)
@@ -96,6 +98,7 @@ export class GdocProfile extends GdocBase implements OwidGdocProfileInterface {
  * Renders a profile template for a specific entity by replacing template tokens
  * with entity-specific values.
  */
+
 export function instantiateProfileForEntity(
     profileTemplate: GdocProfile,
     entity: ProfileEntity
@@ -117,5 +120,7 @@ export function getSlugForProfileEntity(
     profileTemplate: GdocProfile,
     entity: ProfileEntity
 ): string {
-    return `profile/${profileTemplate.slug}/${slugify(entity.name)}`
+    const region = getRegionByNameOrVariantName(entity.name)
+    const entitySlug = region ? region.slug : slugify(entity.name)
+    return `profile/${profileTemplate.slug}/${entitySlug}`
 }
