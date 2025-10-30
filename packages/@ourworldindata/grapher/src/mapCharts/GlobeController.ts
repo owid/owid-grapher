@@ -3,12 +3,7 @@ import { geoInterpolate, geoOrthographic, geoPath } from "d3-geo"
 import { interpolateNumber } from "d3-interpolate"
 import { easeCubicOut } from "d3-ease"
 import * as R from "remeda"
-import {
-    EntityName,
-    GlobeConfig,
-    GlobeRegionName,
-    MapRegionName,
-} from "@ourworldindata/types"
+import { EntityName, GlobeConfig, GlobeRegionName } from "@ourworldindata/types"
 import {
     Bounds,
     excludeUndefined,
@@ -73,36 +68,24 @@ export class GlobeController {
 
     hideGlobe(): void {
         this.globeConfig.isActive = false
-        this.resetGlobe()
     }
 
     toggleGlobe(): void {
         this.globeConfig.isActive = !this.globeConfig.isActive
-
-        // reset globe if it's being hidden
-        if (!this.globeConfig.isActive) this.resetGlobe()
     }
 
-    private resetGlobe(): void {
+    resetGlobe(): void {
         this.globeConfig.rotation = DEFAULT_GLOBE_ROTATION
         this.globeConfig.zoom = 1
         this.globeConfig.focusCountry = undefined
-
-        // also reset the current region
-        this.manager.mapConfig.region = MapRegionName.World
     }
 
-    private setFocusCountry(country: EntityName): void {
+    setFocusCountry(country: EntityName): void {
         this.globeConfig.focusCountry = country
     }
 
     dismissCountryFocus(): void {
         this.globeConfig.focusCountry = undefined
-    }
-
-    focusOnCountry(country: EntityName): void {
-        this.rotateToCountry(country)
-        this.setFocusCountry(country)
     }
 
     private jumpTo(target: Partial<Target>): void {

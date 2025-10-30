@@ -28,7 +28,7 @@ import { MAP_REGION_LABELS } from "../mapCharts/MapChartConstants"
 import { match } from "ts-pattern"
 import * as R from "remeda"
 
-export interface MapCountryDropdownManager {
+export interface MapZoomDropdownManager {
     mapConfig?: MapConfig
     isOnMapTab?: boolean
     hideMapRegionDropdown?: boolean
@@ -54,26 +54,23 @@ function isGroupedOption(
 }
 
 @observer
-export class MapCountryDropdown extends React.Component<{
-    manager: MapCountryDropdownManager
+export class MapZoomDropdown extends React.Component<{
+    manager: MapZoomDropdownManager
 }> {
     private searchInput = ""
     private localEntityNames: EntityName[] | undefined = undefined
 
-    constructor(props: { manager: MapCountryDropdownManager }) {
+    constructor(props: { manager: MapZoomDropdownManager }) {
         super(props)
 
-        makeObservable<MapCountryDropdown, "searchInput" | "localEntityNames">(
+        makeObservable<MapZoomDropdown, "searchInput" | "localEntityNames">(
             this,
-            {
-                searchInput: observable,
-                localEntityNames: observable,
-            }
+            { searchInput: observable, localEntityNames: observable }
         )
     }
 
-    static shouldShow(manager: MapCountryDropdownManager): boolean {
-        const menu = new MapCountryDropdown({ manager })
+    static shouldShow(manager: MapZoomDropdownManager): boolean {
+        const menu = new MapZoomDropdown({ manager })
         return menu.showMenu
     }
 
@@ -87,7 +84,7 @@ export class MapCountryDropdown extends React.Component<{
         )
     }
 
-    @computed private get manager(): MapCountryDropdownManager {
+    @computed private get manager(): MapZoomDropdownManager {
         return this.props.manager
     }
 
@@ -113,8 +110,9 @@ export class MapCountryDropdown extends React.Component<{
                     this.mapConfig.region = MapRegionName.World
                 }
 
-                // focus the country on the globe
-                this.manager.globeController?.focusOnCountry(selected.value)
+                // rotate to the country on the globe and show its tooltip
+                this.manager.globeController?.setFocusCountry(selected.value)
+                this.manager.globeController?.rotateToCountry(selected.value)
             })
             .with("continent", () => {
                 this.manager.globeController?.rotateToOwidContinent(
@@ -241,7 +239,7 @@ export class MapCountryDropdown extends React.Component<{
 
     override render(): React.ReactElement | null {
         return this.showMenu ? (
-            <div className="map-country-dropdown">
+            <div className="map-zoom-dropdown">
                 <Dropdown
                     options={
                         this.searchInput ? this.filteredOptions : this.options
@@ -260,7 +258,7 @@ export class MapCountryDropdown extends React.Component<{
                             {option.label}
                             {option.isLocal && (
                                 <FontAwesomeIcon
-                                    className="map-country-dropdown-local-icon"
+                                    className="map-zoom-dropdown-local-icon"
                                     icon={faLocationArrow}
                                 />
                             )}
