@@ -25,6 +25,7 @@ type ProfileProps = Omit<
 
 export function Profile({ content, publishedAt, slug }: ProfileProps) {
     const hasSidebarToc = content["sidebar-toc"]
+    const instantiatedEntity = content.instantiatedEntity
 
     const shortPageCitation = getShortPageCitation(
         content.authors,
@@ -44,9 +45,26 @@ export function Profile({ content, publishedAt, slug }: ProfileProps) {
     return (
         <article className="centered-article-container grid grid-cols-12-full-width centered-article-container--profile">
             <header className="topic-page-header grid span-cols-14 grid-cols-12-full-width">
-                <h1 className="display-2-semibold col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
-                    {content.title}
-                </h1>
+                <div className="profile-title col-start-2 span-cols-12">
+                    <span className="profile-title__label h5-black-caps">
+                        {instantiatedEntity?.isCountry
+                            ? "Country Profile"
+                            : "Region Profile"}
+                        <span className="profile-title__dash">&mdash;</span>
+                        <span>{instantiatedEntity?.name}</span>
+                    </span>
+                    {instantiatedEntity?.isCountry && (
+                        <img
+                            className="profile-title__flag"
+                            src={`/images/flags/${instantiatedEntity.code}.svg`}
+                            alt=""
+                            width={64}
+                            height={48}
+                        />
+                    )}
+                    <h2 className="profile-title__entity-name display-3-semibold"></h2>
+                    <h1 className="display-2-semibold">{content.title}</h1>
+                </div>
                 {content.subtitle && (
                     <p className="topic-page-header__subtitle body-1-regular col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
                         {content.subtitle}
