@@ -1,6 +1,17 @@
 import * as _ from "lodash-es"
-import { articulateEntity, type Region } from "./regions.js"
-import { type OwidGdocProfileContent } from "@ourworldindata/types"
+import {
+    articulateEntity,
+    checkIsCountry,
+    countries,
+    getRegionByNameOrVariantName,
+    regions,
+    type Region,
+} from "./regions.js"
+import {
+    OwidGdocProfileInterface,
+    type OwidGdocProfileContent,
+} from "@ourworldindata/types"
+import { removeTrailingParenthetical } from "./Util.js"
 
 export type ProfileEntity = Pick<Region, "name" | "code">
 
@@ -100,4 +111,61 @@ export const instantiateProfile = (
     }
 
     return clonedContent
+}
+
+export function getEntitiesForProfile(
+    profileTemplate: OwidGdocProfileInterface
+): ProfileEntity[] {
+    const scopeRaw = profileTemplate.content.scope
+    if (!scopeRaw) return []
+
+    const scopeValues = scopeRaw
+        .split(",")
+        .map((value) => value.trim().toLowerCase())
+        .filter((value) => value.length > 0)
+
+    const entitiesByCode = new Map<string, ProfileEntity>()
+    const addEntity = (region?: { name?: string; code?: string }): void => {
+        if (!region?.code || !region?.name) return
+        if (!entitiesByCode.has(region.code)) {
+            entitiesByCode.set(region.code, {
+                name: region.name,
+                code: region.code,
+            })
+        }
+    }
+
+    const nonCountryRegions = regions.filter(
+        (region) => !checkIsCountry(region)
+    )
+
+    for (const scopeValue of scopeValues) {
+        if (scopeValue === "countries" || scopeValue === "all") {
+            for (const country of countries) addEntity(country)
+        }
+
+        if (scopeValue === "regions" || scopeValue === "all") {
+            for (const region of nonCountryRegions) addEntity(region)
+        }
+
+        if (
+            scopeValue === "countries" ||
+            scopeValue === "regions" ||
+            scopeValue === "all"
+        ) {
+            continue
+        }
+
+        const withoutParenthetical = removeTrailingParenthetical(scopeValue)
+        const matchingRegion =
+            getRegionByNameOrVariantName(scopeValue) ??
+            getRegionByNameOrVariantName(withoutParenthetical) ??
+            regions.find((region) => region.code.toLowerCase() === scopeValue)
+
+        addEntity(matchingRegion)
+    }
+
+    return Array.from(entitiesByCode.values()).sort((a, b) =>
+        a.name.localeCompare(b.name)
+    )
 }
