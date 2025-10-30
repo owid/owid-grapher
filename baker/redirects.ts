@@ -67,6 +67,10 @@ export const getRedirects = async (knex: db.KnexReadonlyTransaction) => {
         // Automatic static grapher exports for every grapher chart
         // Example: https://assets.ourworldindata.org/grapher/exports/absolute-change-co2.svg
         "/grapher/exports/* https://ourworldindata.org/grapher/:splat 301",
+
+        // Old country profiles
+        // Example: /co2/country/canada --> /profile/co2/canada
+        "/:slug/country/:country /profile/:slug/:country 301",
     ]
 
     // Get redirects from the database (exported from the Wordpress DB)
