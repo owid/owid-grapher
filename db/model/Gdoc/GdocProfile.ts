@@ -109,7 +109,13 @@ export function instantiateProfileForEntity(
     return {
         ...profileTemplate,
         content: instantiatedContent,
-        // The template slug is something like "energy", and we want "profile/energy/usa"
-        slug: `profile/${profileTemplate.slug}/${slugify(entity.name)}`,
+        slug: getSlugForProfileEntity(profileTemplate, entity),
     }
+}
+
+export function getSlugForProfileEntity(
+    profileTemplate: GdocProfile,
+    entity: ProfileEntity
+): string {
+    return `profile/${profileTemplate.slug}/${slugify(entity.name)}`
 }
