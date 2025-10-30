@@ -96,6 +96,6 @@ Here are the steps for this project, as I see them.
 - [x] Create a new settings drawer (see e.g. GdocPostSettings) which would give the author a way to preview the profile for a different country
 - [x] Include country profiles in the sitemap. Each template will expand to ~200 entity-specific URLs, so we should keep an eye on sitemap generation performance.
 - [x] Reimplement a new version of the `countryProfiles` baking step in SiteBaker.tsx (using instantiateProfileForEntity)
-- [ ] Add redirects from the old URL to the new one
+- [x] Add redirects from the old URL to the new one
 
 Although we will launch with country-only scope, the infrastructure should make it easy to add region-level profiles later (e.g. "Asia"), since the entity metadata already lives in `regions.json`.
