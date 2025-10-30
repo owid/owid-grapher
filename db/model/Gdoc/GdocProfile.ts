@@ -10,6 +10,7 @@ import {
     removeTrailingParenthetical,
     instantiateProfile,
     ProfileEntity,
+    slugify,
 } from "@ourworldindata/utils"
 import * as db from "../../db.js"
 import { GdocBase } from "./GdocBase.js"
@@ -109,6 +110,6 @@ export function instantiateProfileForEntity(
         ...profileTemplate,
         content: instantiatedContent,
         // The template slug is something like "energy", and we want "profile/energy/usa"
-        slug: `profile/${profileTemplate.slug}/${entity.code.toLowerCase()}`,
+        slug: `profile/${profileTemplate.slug}/${slugify(entity.name)}`,
     }
 }
