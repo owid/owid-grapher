@@ -115,6 +115,9 @@ export interface PostChecksums {
             }
         }
     }
+    images: {
+        [imageId: string]: { filename: string; hash: string }
+    }
 }
 
 export interface PostChecksumsObjectWithHash {
