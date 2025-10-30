@@ -91,6 +91,15 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const [selectedEntity, setSelectedEntity] = useState("USA")
 
     const iframeRef = useRef<HTMLIFrameElement>(null)
+    const iframeSrc = Url.fromURL(
+        `/gdocs/${currentGdoc?.id}/preview#owid-document-root`
+    ).setQueryParams({
+        entity:
+            currentGdoc?.content.type === OwidGdocType.Profile
+                ? selectedEntity
+                : undefined,
+        acceptSuggestions: acceptSuggestions ? "true" : "false",
+    })
 
     const fetchGdoc = useCallback(
         async (
@@ -546,7 +555,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     */}
                     <iframe
                         ref={iframeRef}
-                        src={`/gdocs/${currentGdoc.id}/preview${acceptSuggestions ? "?acceptSuggestions=true" : ""}#owid-document-root`}
+                        src={iframeSrc.fullUrl}
                         style={{
                             width: "100%",
                             border: "none",
