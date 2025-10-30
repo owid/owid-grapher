@@ -667,6 +667,12 @@ export const enrichedBlockExamples: Record<
         type: "table",
         template: "header-row",
         size: "narrow",
+        caption: [
+            {
+                spanType: "span-simple-text",
+                text: "Table 1: Example cities and their continents",
+            },
+        ],
         rows: [
             {
                 type: "table-row",

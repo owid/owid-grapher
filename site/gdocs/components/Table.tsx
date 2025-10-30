@@ -1,6 +1,7 @@
 import * as React from "react"
 import { EnrichedBlockTable } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./ArticleBlocks.js"
+import SpanElements from "./SpanElements.js"
 
 function TableCell(props: {
     tag: "td" | "th"
@@ -79,6 +80,11 @@ export function Table(props: TableProps) {
                             )
                         })}
                 </tbody>
+                {props.caption && (
+                    <caption>
+                        <SpanElements spans={props.caption} />
+                    </caption>
+                )}
             </table>
         </div>
     )

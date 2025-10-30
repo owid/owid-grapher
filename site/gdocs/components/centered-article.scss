@@ -937,6 +937,15 @@ p.article-block__text + #article-licence {
                 font-size: 0.75rem;
             }
         }
+        caption {
+            margin-top: 6px;
+            caption-side: bottom;
+            color: $blue-60;
+            @include body-3-medium-italic;
+            a {
+                @include owid-link-90;
+            }
+        }
     }
 }
 

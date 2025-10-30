@@ -840,6 +840,7 @@ function* rawBlockTableToArchieMLString(
     yield "{.table}"
     yield* propertyToArchieMLString("template", block.value)
     yield* propertyToArchieMLString("size", block.value)
+    yield* propertyToArchieMLString("caption", block.value)
     const rows = block?.value?.rows
     if (rows) {
         yield "[.+rows]"
