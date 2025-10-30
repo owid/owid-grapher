@@ -13,6 +13,8 @@ fields:
         description: Foreign key to multi-dim chart for the base chart this narrative view is derived from
     queryParamsForParentChart:
         description: JSON query parameters that customize the parent chart for this narrative view
+    queryParamsForParentChartMd5:
+        description: MD5 hash of the queryParamsForParentChart JSON, stored as base64-encoded string for efficient comparison and caching
     createdAt:
         description: Timestamp when the narrative chart was created
     updatedAt:

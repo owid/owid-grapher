@@ -16,6 +16,7 @@ import {
     ExplorerChecksumsObjectWithHash,
     PostChecksums,
     PostChecksumsObjectWithHash,
+    IndicatorChecksums,
     ExplorerVariablesTableName,
     DbPlainExplorerVariable,
     VariablesTableName,
@@ -140,6 +141,7 @@ const hashPostChecksumsObj = (checksums: PostChecksums): string => {
             "graphers",
             "explorers",
             "multiDims",
+            "narrativeCharts",
             "images"
         )
     )
@@ -467,6 +469,100 @@ export const getExplorerChecksumsFromDb = async (
     )
 }
 
+export const getNarrativeChartChecksumsFromDb = async (
+    knex: db.KnexReadonlyTransaction,
+    names?: string[]
+): Promise<
+    {
+        narrativeChartId: number
+        narrativeChartName: string
+        chartConfigMd5: string
+        queryParamsForParentChartMd5: string
+        indicators: IndicatorChecksums
+    }[]
+> => {
+    type NarrativeChartRow = {
+        id: number
+        name: string
+        chartConfigMd5: string
+        queryParamsForParentChartMd5: string
+        config: JsonString
+    }
+
+    // First, get narrative charts with their configs
+    const query = knex("narrative_charts as nc")
+        .select(
+            "nc.id",
+            "nc.name",
+            "cc.fullMd5 as chartConfigMd5",
+            "nc.queryParamsForParentChartMd5",
+            "cc.full as config"
+        )
+        .join("chart_configs as cc", "nc.chartConfigId", "cc.id")
+
+    if (names && names.length > 0) {
+        query.whereIn("nc.name", names)
+    }
+
+    const narrativeCharts = await query
+
+    // Extract variable IDs from configs
+    const allVariableIds = new Set<number>()
+    for (const chart of narrativeCharts) {
+        const config = JSON.parse(chart.config)
+        if (config.dimensions) {
+            for (const dim of config.dimensions) {
+                if (dim.variableId) {
+                    allVariableIds.add(dim.variableId)
+                }
+            }
+        }
+    }
+
+    // Fetch variable checksums
+    const variables =
+        allVariableIds.size > 0
+            ? await knex("variables")
+                  .select("id", "metadataChecksum", "dataChecksum")
+                  .whereIn("id", Array.from(allVariableIds))
+            : []
+
+    const variableChecksumsMap = new Map(
+        variables.map((v) => [
+            v.id,
+            {
+                metadataChecksum: v.metadataChecksum,
+                dataChecksum: v.dataChecksum,
+            },
+        ])
+    )
+
+    // Build result with indicators
+    return narrativeCharts.map((chart: NarrativeChartRow) => {
+        const config = JSON.parse(chart.config)
+        const indicators: IndicatorChecksums = {}
+
+        if (config.dimensions) {
+            for (const dim of config.dimensions) {
+                if (dim.variableId) {
+                    const checksums = variableChecksumsMap.get(dim.variableId)
+                    if (checksums) {
+                        indicators[dim.variableId] = checksums
+                    }
+                }
+            }
+        }
+
+        return {
+            narrativeChartId: chart.id,
+            narrativeChartName: chart.name,
+            chartConfigMd5: chart.chartConfigMd5,
+            queryParamsForParentChartMd5: chart.queryParamsForParentChartMd5,
+            indicators,
+        }
+    })
+}
+
 export const findChangedExplorerPages = async (
     knex: db.KnexReadonlyTransaction
 ): Promise<ExplorerChecksumsObjectWithHash[]> => {
@@ -495,6 +591,7 @@ type LinkedChart = Pick<DbPlainPostGdocLink, "sourceId" | "linkType" | "target">
 interface ChartsByPost {
     grapher: Set<string>
     explorer: Set<string>
+    narrativeChart: Set<string>
 }
 
 const getLinkedChartsFromPosts = async (
@@ -508,8 +605,9 @@ const getLinkedChartsFromPosts = async (
         .whereIn("linkType", [
             ContentGraphLinkType.Grapher,
             ContentGraphLinkType.Explorer,
+            ContentGraphLinkType.NarrativeChart,
         ])
-        .where("componentType", "chart")
+        .whereIn("componentType", ["chart", "narrative-chart"])
 }
 
 const groupLinkedChartsByPost = (
@@ -522,6 +620,7 @@ const groupLinkedChartsByPost = (
         chartsByPost.set(post.id, {
             grapher: new Set<string>(),
             explorer: new Set<string>(),
+            narrativeChart: new Set<string>(),
         })
     }
 
@@ -532,6 +631,8 @@ const groupLinkedChartsByPost = (
                 postCharts.grapher.add(link.target)
             } else if (link.linkType === ContentGraphLinkType.Explorer) {
                 postCharts.explorer.add(link.target)
+            } else if (link.linkType === ContentGraphLinkType.NarrativeChart) {
+                postCharts.narrativeChart.add(link.target)
             }
         }
     }
@@ -672,9 +773,13 @@ export const getPostChecksumsFromDb = async (
 
     const allGrapherSlugs = new Set<string>()
     const allExplorerSlugs = new Set<string>()
+    const allNarrativeChartNames = new Set<string>()
     for (const [, charts] of chartsByPost) {
         charts.grapher.forEach((slug) => allGrapherSlugs.add(slug))
         charts.explorer.forEach((slug) => allExplorerSlugs.add(slug))
+        charts.narrativeChart.forEach((name) =>
+            allNarrativeChartNames.add(name)
+        )
     }
 
     const grapherSlugRedirects = await resolveGrapherRedirects(
@@ -722,6 +827,14 @@ export const getPostChecksumsFromDb = async (
         explorerChecksums.map((e) => [e.explorerSlug, e])
     )
 
+    const narrativeChartChecksums = await getNarrativeChartChecksumsFromDb(
+        knex,
+        Array.from(allNarrativeChartNames)
+    )
+    const narrativeChartChecksumsMap = new Map(
+        narrativeChartChecksums.map((nc) => [nc.narrativeChartName, nc])
+    )
+
     const allVariableIds = new Set<number>()
     for (const grapher of grapherChecksums) {
         Object.keys(grapher.checksums.indicators).forEach((id) =>
@@ -735,6 +848,11 @@ export const getPostChecksumsFromDb = async (
     }
     for (const explorer of explorerChecksums) {
         Object.keys(explorer.checksums.indicators).forEach((id) =>
+            allVariableIds.add(parseInt(id))
+        )
+    }
+    for (const narrativeChart of narrativeChartChecksums) {
+        Object.keys(narrativeChart.indicators).forEach((id) =>
             allVariableIds.add(parseInt(id))
         )
     }
@@ -797,6 +915,26 @@ export const getPostChecksumsFromDb = async (
             }
         }
 
+        const narrativeCharts: Record<
+            string,
+            {
+                name: string
+                chartConfigMd5: string
+                queryParamsForParentChartMd5: string
+            }
+        > = {}
+        for (const name of postCharts.narrativeChart) {
+            const checksum = narrativeChartChecksumsMap.get(name)
+            if (checksum) {
+                narrativeCharts[checksum.narrativeChartId.toString()] = {
+                    name: checksum.narrativeChartName,
+                    chartConfigMd5: checksum.chartConfigMd5,
+                    queryParamsForParentChartMd5:
+                        checksum.queryParamsForParentChartMd5,
+                }
+            }
+        }
+
         const postIndicators: Record<
             string,
             { metadataChecksum: string; dataChecksum: string }
@@ -838,6 +976,19 @@ export const getPostChecksumsFromDb = async (
                 }
             }
         }
+        for (const name of postCharts.narrativeChart) {
+            const narrativeChartChecksum = narrativeChartChecksumsMap.get(name)
+            if (narrativeChartChecksum) {
+                for (const id of Object.keys(
+                    narrativeChartChecksum.indicators
+                )) {
+                    const variableChecksum = variableChecksumsMap.get(id)
+                    if (variableChecksum) {
+                        postIndicators[id] = variableChecksum
+                    }
+                }
+            }
+        }
 
         const checksums: PostChecksums = {
             postContentMd5: post.contentMd5,
@@ -845,6 +996,7 @@ export const getPostChecksumsFromDb = async (
             graphers,
             explorers,
             multiDims,
+            narrativeCharts,
             images: _.mapValues(
                 _.keyBy(imagesByPostId[post.id], "id"),
                 (image) => ({
