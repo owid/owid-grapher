@@ -52,15 +52,15 @@ export const DynamicCollectionPage = (props: { baseUrl: string }) => {
                 <main className="collections-page grid grid-cols-12-full-width">
                     <header className="collections-page__header grid grid-cols-12-full-width span-cols-14">
                         <h1 className="display-2-semibold span-cols-12 col-start-2 collection-title">
-                            Custom Collection
+                            Chart Collection
                         </h1>
                         <p className="span-cols-8 col-start-2 span-md-cols-12 col-md-start-2 body-1-regular collection-explanation">
-                            This page is displaying a selection of charts that
-                            has been configured via the URL.{" "}
+                            This page shows a collection
+                            of Our World in Data charts.{" "}
                         </p>
                         <p className="span-cols-8 col-start-2 span-md-cols-12 col-md-start-2 body-1-regular collection-explanation">
-                            Any changes that you make to the charts will update
-                            the URL so that you can easily share it again.
+                            You can customize the selection of charts via
+                            the URL and share your version with others.
                         </p>
                     </header>
                     <div
