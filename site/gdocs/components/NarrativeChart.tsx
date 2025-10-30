@@ -18,7 +18,7 @@ import {
     BAKED_GRAPHER_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
 } from "../../../settings/clientSettings.js"
-import { queryParamsToStr } from "@ourworldindata/utils"
+import { queryParamsToStr, readFromAssetMap } from "@ourworldindata/utils"
 
 export default function NarrativeChart({
     d,
@@ -30,7 +30,7 @@ export default function NarrativeChart({
     fullWidthOnMobile?: boolean
 }) {
     const refChartContainer = useRef<HTMLDivElement>(null)
-    const { isPreviewing } = useContext(DocumentContext)
+    const { isPreviewing, archiveContext } = useContext(DocumentContext)
     useEmbedChart(0, refChartContainer, isPreviewing)
 
     const viewMetadata = useLinkedNarrativeChart(d.name)
@@ -51,9 +51,26 @@ export default function NarrativeChart({
 
     const metadataStringified = JSON.stringify(viewMetadata)
 
-    const resolvedUrl = `${BAKED_GRAPHER_URL}/${viewMetadata.parentChartSlug}${queryParamsToStr(
+    const parentQueryString = queryParamsToStr(
         viewMetadata.queryParamsForParentChart
-    )}`
+    )
+    const resolvedUrl = `${BAKED_GRAPHER_URL}/${viewMetadata.parentChartSlug}${parentQueryString}`
+
+    const isOnArchivalPage = archiveContext?.type === "archive-page"
+    const assetMap = isOnArchivalPage
+        ? archiveContext?.assets?.runtime
+        : undefined
+
+    const archivedParentUrl = viewMetadata.latestArchivedParent?.archiveUrl
+        ? `${viewMetadata.latestArchivedParent.archiveUrl}${parentQueryString}`
+        : undefined
+    const linkTarget =
+        isOnArchivalPage && archivedParentUrl ? archivedParentUrl : resolvedUrl
+
+    const imageSrc = readFromAssetMap(assetMap, {
+        path: d.name,
+        fallback: `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/by-uuid/${viewMetadata.chartConfigId}.png`,
+    })
 
     return (
         <div
@@ -71,14 +88,16 @@ export default function NarrativeChart({
                     border: "0px none",
                     height: d.height,
                 }}
-                {...{
+                // MultiEmbedder should not kick in on archival pages.
+                {...(!isOnArchivalPage && {
                     [GRAPHER_NARRATIVE_CHART_CONFIG_FIGURE_ATTR]:
                         metadataStringified,
-                }}
+                })}
             >
-                <a href={resolvedUrl}>
+                <a href={linkTarget}>
                     <img
-                        src={`${GRAPHER_DYNAMIC_THUMBNAIL_URL}/by-uuid/${viewMetadata.chartConfigId}.svg`}
+                        className="GrapherImage"
+                        src={imageSrc}
                         alt={viewMetadata.title}
                         width={DEFAULT_GRAPHER_WIDTH}
                         height={DEFAULT_GRAPHER_HEIGHT}

@@ -28,6 +28,7 @@ import { bakeSingleGrapherPageForArchival } from "../GrapherBaker.js"
 import { bakeSingleMultiDimDataPageForArchival } from "../MultiDimBaker.js"
 import { bakeSingleExplorerPageForArchival } from "../ExplorerBaker.js"
 import { bakeSinglePostPageForArchival } from "../SiteBaker.js"
+import { grapherToPng } from "../GrapherImageBaker.js"
 import {
     hashAndCopyFile,
     hashAndWriteFile,
@@ -78,6 +79,36 @@ import {
     getArchivedPostVersionsByPostId,
     getLatestArchivedPostVersions,
 } from "../../db/model/ArchivedPostVersion.js"
+
+export interface MinimalChartInfo {
+    chartId: number
+    chartConfigId: string
+    config: GrapherInterface
+}
+
+export interface MinimalPostInfo {
+    postId: string
+    postSlug: string
+}
+
+export interface MinimalMultiDimInfo {
+    id: number
+    slug: string
+    config: MultiDimDataPageConfigEnriched
+}
+
+export interface MinimalNarrativeChartInfo {
+    id: number
+    name: string
+    config: GrapherInterface
+}
+
+export interface MinimalImageInfo {
+    id: number
+    filename: string
+    cloudflareId: string
+    originalWidth: number
+}
 
 export const projBaseDir = findProjectBaseDir(__dirname)
 if (!projBaseDir) throw new Error("Could not find project base directory")
@@ -441,28 +472,89 @@ export const archiveVideos = async (
     return videoFilesByPostId
 }
 
-export interface MinimalChartInfo {
-    chartId: number
-    chartConfigId: string
-    config: GrapherInterface
+const bakeNarrativeChartImage = async (
+    narrativeChart: MinimalNarrativeChartInfo,
+    archiveDir: string
+): Promise<{ name: string; hashedPath: string }> => {
+    const narrativeChartsDir = path.join(archiveDir, "images/narrative-charts")
+    await fs.mkdirp(narrativeChartsDir)
+    const png = await grapherToPng(narrativeChart.config)
+    const filename = `${narrativeChart.name}.png`
+    const targetPath = path.join(narrativeChartsDir, filename)
+    const targetPathWithHash = await hashAndWriteFile(targetPath, png)
+    return {
+        name: narrativeChart.name,
+        hashedPath: `/images/narrative-charts/${path.basename(targetPathWithHash)}`,
+    }
 }
 
-export interface MinimalPostInfo {
-    postId: string
-    postSlug: string
-}
+export const archiveNarrativeCharts = async (
+    knex: db.KnexReadonlyTransaction,
+    narrativeChartsByPostId: Record<string, Set<string>>,
+    archiveDir: string
+): Promise<Record<string, AssetMap>> => {
+    const uniqueNarrativeChartNames = _.uniq(
+        Object.values(narrativeChartsByPostId).flatMap((names) =>
+            Array.from(names)
+        )
+    )
 
-export interface MinimalMultiDimInfo {
-    id: number
-    slug: string
-    config: MultiDimDataPageConfigEnriched
-}
+    if (uniqueNarrativeChartNames.length === 0) return {}
 
-export interface MinimalImageInfo {
-    id: number
-    filename: string
-    cloudflareId: string
-    originalWidth: number
+    console.log(
+        "Narrative charts to archive:",
+        uniqueNarrativeChartNames.length
+    )
+
+    // Load narrative chart configs from database
+    type NarrativeChartRow = {
+        id: number
+        name: string
+        config: string
+    }
+
+    const narrativeChartRows = await knex("narrative_charts as nc")
+        .select("nc.id", "nc.name", "cc.full as config")
+        .join("chart_configs as cc", "nc.chartConfigId", "cc.id")
+        .whereIn("nc.name", uniqueNarrativeChartNames)
+        .then((rows: NarrativeChartRow[]) =>
+            rows.map((row) => ({
+                id: row.id,
+                name: row.name,
+                config: JSON.parse(row.config) as GrapherInterface,
+            }))
+        )
+
+    // Render images and write them to disk
+    const bakedFilesByNarrativeChartName: Record<string, string> = {}
+    await pMap(
+        narrativeChartRows,
+        async (narrativeChart) => {
+            const { name, hashedPath } = await bakeNarrativeChartImage(
+                narrativeChart,
+                archiveDir
+            )
+            bakedFilesByNarrativeChartName[name] = hashedPath
+        },
+        { concurrency: 10 }
+    )
+
+    // Map back to post IDs
+    const narrativeChartFilesByPostId: Record<string, AssetMap> = {}
+    for (const [postId, narrativeChartNames] of Object.entries(
+        narrativeChartsByPostId
+    )) {
+        const postNarrativeChartFiles: AssetMap = {}
+        for (const name of narrativeChartNames) {
+            const hashedPath = bakedFilesByNarrativeChartName[name]
+            if (hashedPath) {
+                postNarrativeChartFiles[name] = hashedPath
+            }
+        }
+        narrativeChartFilesByPostId[postId] = postNarrativeChartFiles
+    }
+
+    return narrativeChartFilesByPostId
 }
 
 export const createCommonArchivalContext = async (
@@ -710,7 +802,8 @@ export const bakeArchivalPostPagesToFolder = async (
     postInfos: MinimalPostInfo[],
     commonCtx: CommonArchivalContext,
     imageFilesByPostId: Record<string, AssetMap> = {},
-    videoFilesByPostId: Record<string, AssetMap> = {}
+    videoFilesByPostId: Record<string, AssetMap> = {},
+    narrativeChartFilesByPostId: Record<string, AssetMap> = {}
 ) => {
     await fs.mkdirp(path.join(commonCtx.archiveDir))
     console.log(`Baking post pages locally to dir '${commonCtx.archiveDir}'`)
@@ -737,12 +830,15 @@ export const bakeArchivalPostPagesToFolder = async (
 
         const imageFiles = imageFilesByPostId[postInfo.postId] || {}
         const videoFiles = videoFilesByPostId[postInfo.postId] || {}
+        const narrativeChartFiles =
+            narrativeChartFilesByPostId[postInfo.postId] || {}
         await bakePostPageForArchival(knex, commonCtx.archiveDir, postInfo, {
             ...commonCtx,
             checksumsObj,
             latestArchivalVersions,
             imageFiles,
             videoFiles,
+            narrativeChartFiles,
         }).then((manifest) => {
             manifests[postInfo.postSlug] = manifest
         })
@@ -799,6 +895,7 @@ interface PostBakeContext extends CommonArchivalContext {
     >
     imageFiles: AssetMap
     videoFiles: AssetMap
+    narrativeChartFiles: AssetMap
 }
 
 async function bakeGrapherPageForArchival(
@@ -896,6 +993,7 @@ async function bakePostPageForArchival(
         latestArchivalVersions,
         imageFiles,
         videoFiles,
+        narrativeChartFiles,
     } = ctx
 
     if (!ARCHIVE_BASE_URL) throw new Error("ARCHIVE_BASE_URL is missing")
@@ -904,6 +1002,7 @@ async function bakePostPageForArchival(
         ...commonRuntimeFiles,
         ...imageFiles,
         ...videoFiles,
+        ...narrativeChartFiles,
     }
     const manifest = await assemblePostManifest({
         staticAssetMap,

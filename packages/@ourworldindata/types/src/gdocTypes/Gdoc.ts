@@ -70,6 +70,7 @@ export interface NarrativeChartInfo {
     chartConfigId: string
     parentChartSlug: string
     queryParamsForParentChart: QueryParams
+    latestArchivedParent?: ArchivedPageVersion
 }
 
 /**

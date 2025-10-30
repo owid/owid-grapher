@@ -9,6 +9,7 @@ import {
     Grapher,
     GrapherProgrammaticInterface,
     GrapherState,
+    GRAPHER_IMAGE_WIDTH_2X,
 } from "@ourworldindata/grapher"
 import path from "path"
 import * as db from "../db/db.js"
@@ -16,6 +17,7 @@ import { grapherSlugToExportFileKey } from "./GrapherBakingUtils.js"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import { DATA_API_URL } from "../settings/serverSettings.js"
 import ReactDOMServer from "react-dom/server"
+import sharp from "sharp"
 
 interface SvgFilenameFragments {
     slug: string
@@ -137,4 +139,18 @@ export async function grapherToSVG(
     return grapher.grapherState.generateStaticSvg(
         ReactDOMServer.renderToStaticMarkup
     )
+}
+
+// NOTE: To ensure the correct fonts are used in the generated PNG, the fonts
+// referenced in the SVG must be installed locally.
+export async function grapherToPng(
+    jsonConfig: GrapherInterface,
+    width: number = GRAPHER_IMAGE_WIDTH_2X
+): Promise<Buffer> {
+    const svg = await grapherToSVG(jsonConfig)
+    return await sharp(Buffer.from(svg), { density: 144 })
+        .png()
+        .resize(width)
+        .flatten({ background: "#ffffff" })
+        .toBuffer()
 }

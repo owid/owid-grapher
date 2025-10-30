@@ -55,6 +55,7 @@ import {
     archiveChartConfigs,
     archiveImages,
     archiveVideos,
+    archiveNarrativeCharts,
     CommonArchivalContext,
     MinimalMultiDimInfo,
     MinimalChartInfo,
@@ -155,6 +156,22 @@ const getExplorersToArchive = async (
     return await findChangedExplorerPages(trx)
 }
 
+function makeNarrativeChartsByPostId(
+    posts: PostChecksumsObjectWithHash[]
+): Record<string, Set<string>> {
+    const narrativeChartsByPostId: Record<string, Set<string>> = {}
+    for (const post of posts) {
+        const narrativeChartNames = new Set<string>()
+        for (const narrativeChartId in post.checksums.narrativeCharts) {
+            narrativeChartNames.add(
+                post.checksums.narrativeCharts[narrativeChartId].name
+            )
+        }
+        narrativeChartsByPostId[post.postId] = narrativeChartNames
+    }
+    return narrativeChartsByPostId
+}
+
 const getPostsToArchive = async (
     trx: db.KnexReadWriteTransaction,
     { type, postSlugs }: Options
@@ -162,11 +179,17 @@ const getPostsToArchive = async (
     postsToArchive: PostChecksumsObjectWithHash[]
     imagesByPostId: Record<string, ArchivalImage[]>
     videosByPostId: Record<string, string[]>
+    narrativeChartsByPostId: Record<string, Set<string>>
 }> => {
     const shouldProcessPosts = type === "posts" || type === "all"
 
     if (!shouldProcessPosts) {
-        return { postsToArchive: [], imagesByPostId: {}, videosByPostId: {} }
+        return {
+            postsToArchive: [],
+            imagesByPostId: {},
+            videosByPostId: {},
+            narrativeChartsByPostId: {},
+        }
     }
 
     if (postSlugs && postSlugs.length > 0) {
@@ -190,17 +213,27 @@ const getPostsToArchive = async (
         const postIds = _.uniq(postsToArchive.map((post) => post.postId))
         const imagesByPostIdToArchive = _.pick(imagesByPostId, postIds)
         const videosByPostIdToArchive = await getVideosByPostId(trx, postIds)
+        const narrativeChartsByPostIdToArchive =
+            makeNarrativeChartsByPostId(postsToArchive)
 
         return {
             postsToArchive,
             imagesByPostId: imagesByPostIdToArchive,
             videosByPostId: videosByPostIdToArchive,
+            narrativeChartsByPostId: narrativeChartsByPostIdToArchive,
         }
     }
 
     const { postChecksums, imagesByPostId, videosByPostId } =
         await findChangedPostPages(trx)
-    return { postsToArchive: postChecksums, imagesByPostId, videosByPostId }
+    const narrativeChartsByPostId = makeNarrativeChartsByPostId(postChecksums)
+
+    return {
+        postsToArchive: postChecksums,
+        imagesByPostId,
+        videosByPostId,
+        narrativeChartsByPostId,
+    }
 }
 
 /**
@@ -522,6 +555,7 @@ const archivePostPages = async (
     commonCtx: CommonArchivalContext,
     imageFilesByPostId: Record<string, AssetMap>,
     videoFilesByPostId: Record<string, AssetMap>,
+    narrativeChartFilesByPostId: Record<string, AssetMap>,
     archivalDate: ArchivalTimestamp,
     opts: Options
 ): Promise<void> => {
@@ -533,7 +567,8 @@ const archivePostPages = async (
         postInfos,
         commonCtx,
         imageFilesByPostId,
-        videoFilesByPostId
+        videoFilesByPostId,
+        narrativeChartFilesByPostId
     )
 
     await insertArchivedPostVersions(
@@ -560,7 +595,12 @@ const findChangedPagesAndArchive = async (opts: Options): Promise<void> => {
             graphersToArchive,
             multiDimsToArchive,
             explorersToArchive,
-            { postsToArchive, imagesByPostId, videosByPostId },
+            {
+                postsToArchive,
+                imagesByPostId,
+                videosByPostId,
+                narrativeChartsByPostId,
+            },
         ] = await Promise.all([
             getGraphersToArchive(trx, opts),
             getMultiDimsToArchive(trx, opts),
@@ -665,6 +705,12 @@ const findChangedPagesAndArchive = async (opts: Options): Promise<void> => {
             commonCtx.baseArchiveDir
         )
 
+        const narrativeChartFilesByPostId = await archiveNarrativeCharts(
+            trx,
+            narrativeChartsByPostId,
+            commonCtx.baseArchiveDir
+        )
+
         // Must run after the charts so we can fetch their latest archived
         // versions.
         await archivePostPages(
@@ -674,6 +720,7 @@ const findChangedPagesAndArchive = async (opts: Options): Promise<void> => {
             commonCtx,
             imageFilesByPostId,
             videoFilesByPostId,
+            narrativeChartFilesByPostId,
             archivalDate,
             opts
         )
