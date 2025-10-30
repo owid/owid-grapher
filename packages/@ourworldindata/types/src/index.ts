@@ -860,6 +860,7 @@ export {
     type ArchivedPageVersion,
     type ArchiveVersions,
     type ArchiveContext,
+    type IndicatorChecksums,
     type GrapherChecksums,
     type GrapherChecksumsObjectWithHash,
     type MultiDimChecksums,
