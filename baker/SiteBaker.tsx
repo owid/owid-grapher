@@ -51,6 +51,7 @@ import {
     NarrativeChartInfo,
     ArchiveContext,
     OwidGdocType,
+    getEntitiesForProfile,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { getRedirects, flushCache as redirectsFlushCache } from "./redirects.js"
@@ -66,6 +67,10 @@ import { generateEmbedSnippet } from "../site/viteUtils.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import { mapSlugsToConfigs } from "../db/model/Chart.js"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
+import {
+    GdocProfile,
+    instantiateProfileForEntity,
+} from "../db/model/Gdoc/GdocProfile.js"
 import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 import {
     gdocFromJSON,
@@ -183,9 +188,51 @@ export class SiteBaker {
         this.explorerAdminServer = new ExplorerAdminServer()
     }
 
-    private async bakeCountryProfiles(_knex: db.KnexReadonlyTransaction) {
+    private async bakeCountryProfiles(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("countryProfiles")) return
-        this.progressBar.tick({ name: "Skipping legacy country profiles" })
+        this.progressBar.tick({ name: "Baking profile pages" })
+
+        const profileTemplates = (await db
+            .getPublishedGdocsWithTags(knex, [OwidGdocType.Profile])
+            .then((gdocs) => gdocs.map(gdocFromJSON))) as GdocProfile[]
+
+        if (profileTemplates.length === 0) return
+
+        for (const profileTemplate of profileTemplates) {
+            const attachments = await this.getPrefetchedGdocAttachments(knex, [
+                profileTemplate.content.authors,
+                profileTemplate.linkedDocumentIds,
+                profileTemplate.linkedImageFilenames,
+                profileTemplate.linkedChartSlugs.grapher,
+                profileTemplate.linkedChartSlugs.explorer,
+                profileTemplate.linkedNarrativeChartNames,
+            ])
+
+            profileTemplate.linkedAuthors = attachments.linkedAuthors
+            profileTemplate.linkedDocuments = attachments.linkedDocuments
+            profileTemplate.imageMetadata = attachments.imageMetadata
+            profileTemplate.linkedCharts = {
+                ...attachments.linkedCharts.graphers,
+                ...attachments.linkedCharts.explorers,
+            }
+            profileTemplate.linkedNarrativeCharts =
+                attachments.linkedNarrativeCharts
+
+            const entities = getEntitiesForProfile(profileTemplate)
+
+            for (const entity of entities) {
+                const instantiatedProfile = instantiateProfileForEntity(
+                    profileTemplate,
+                    entity
+                )
+                const html = renderGdoc(instantiatedProfile)
+                const outPath = path.join(
+                    this.bakedSiteDir,
+                    `${instantiatedProfile.slug}.html`
+                )
+                await this.stageWrite(outPath, html)
+            }
+        }
     }
 
     // Bake an individual post/page
