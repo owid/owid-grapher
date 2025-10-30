@@ -192,11 +192,19 @@ export class SiteBaker {
         if (!this.bakeSteps.has("countryProfiles")) return
         this.progressBar.tick({ name: "Baking profile pages" })
 
-        const profileTemplates = (await db
-            .getPublishedGdocsWithTags(knex, [OwidGdocType.Profile])
-            .then((gdocs) => gdocs.map(gdocFromJSON))) as GdocProfile[]
+        const profileTemplates = (
+            await db
+                .getPublishedGdocsWithTags(knex, [OwidGdocType.Profile])
+                .then((gdocs) => gdocs.map(gdocFromJSON))
+        ).filter(
+            (gdoc): gdoc is GdocProfile =>
+                gdoc.content.type === OwidGdocType.Profile
+        )
 
         if (profileTemplates.length === 0) return
+
+        const tagHierarchiesByChildName =
+            await db.getTagHierarchiesByChildName(knex)
 
         for (const profileTemplate of profileTemplates) {
             const attachments = await this.getPrefetchedGdocAttachments(knex, [
@@ -208,6 +216,7 @@ export class SiteBaker {
                 profileTemplate.linkedNarrativeChartNames,
             ])
 
+            profileTemplate.donors = attachments.donors
             profileTemplate.linkedAuthors = attachments.linkedAuthors
             profileTemplate.linkedDocuments = attachments.linkedDocuments
             profileTemplate.imageMetadata = attachments.imageMetadata
@@ -215,8 +224,19 @@ export class SiteBaker {
                 ...attachments.linkedCharts.graphers,
                 ...attachments.linkedCharts.explorers,
             }
+            profileTemplate.linkedIndicators = attachments.linkedIndicators
             profileTemplate.linkedNarrativeCharts =
                 attachments.linkedNarrativeCharts
+
+            if (
+                !profileTemplate.manualBreadcrumbs?.length &&
+                profileTemplate.tags?.length
+            ) {
+                profileTemplate.breadcrumbs = db.getBestBreadcrumbs(
+                    profileTemplate.tags,
+                    tagHierarchiesByChildName
+                )
+            }
 
             const entities = getEntitiesForProfile(profileTemplate)
 
