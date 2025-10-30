@@ -32,6 +32,8 @@ const main = async () => {
             await runDeployIfQueueIsNotEmpty()
         } catch (error) {
             await logErrorAndMaybeCaptureInSentry(error)
+            // Close DB connections to allow process to exit cleanly
+            await db.closeTypeOrmAndKnexConnections()
             throw error
         }
         await new Promise((resolve) => setTimeout(resolve, 5 * 1000))
