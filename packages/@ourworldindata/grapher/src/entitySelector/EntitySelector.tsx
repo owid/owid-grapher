@@ -121,7 +121,6 @@ export interface EntitySelectorManager {
     onSelectEntity?: (entityName: EntityName) => void
     onDeselectEntity?: (entityName: EntityName) => void
     onClearEntities?: () => void
-    yColumnSlugs?: ColumnSlug[]
     entityRegionTypeGroups?: EntityRegionTypeGroup[]
     entityNamesByRegionType?: EntityNamesByRegionType
     isReady?: boolean
@@ -587,10 +586,6 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
 
     @computed private get endTime(): Time {
         return this.manager.endTime ?? this.table.maxTime!
-    }
-
-    @computed private get yColumnSlugs(): ColumnSlug[] {
-        return this.manager.yColumnSlugs ?? []
     }
 
     private isEntityMuted(entityName: EntityName): boolean {
