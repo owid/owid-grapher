@@ -32,6 +32,7 @@ export const NewsletterSubscription = ({
                         }}
                     />
                     <div className="box">
+                        <NewsletterSubscriptionHeader />
                         <NewsletterSubscriptionForm context={context} />
                     </div>
                 </>
@@ -61,13 +62,22 @@ export const NewsletterSubscription = ({
     )
 }
 
-export const NewsletterSubscriptionHeader = () => {
+export const NewsletterSubscriptionHeader = ({
+    showSubheading = false,
+}: {
+    showSubheading?: boolean
+}) => {
     return (
         <div className="newsletter-subscription-header">
             <NewsletterIcon className="newsletter-subscription-header__icon" />
             <h4 className="newsletter-subscription-header__heading h3-bold">
                 Subscribe to our newsletters
             </h4>
+            {showSubheading && (
+                <span className="newsletter-subscription-header__subheading">
+                    Receive our latest work by email
+                </span>
+            )}
         </div>
     )
 }
@@ -113,9 +123,6 @@ export const NewsletterSubscriptionForm = ({
                 )
             }
         >
-            <span className="newsletter-subscription-form__subheader">
-                Receive our latest work by email.
-            </span>
             <img
                 alt=""
                 className="newsletter-subscription-form__checkbox-image"

@@ -295,7 +295,7 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
                 <HomepageAnnouncements />
                 <div className="span-cols-1 span-md-cols-2">
                     <div className="homepage-intro__newsletter-signup">
-                        <NewsletterSubscriptionHeader />
+                        <NewsletterSubscriptionHeader showSubheading />
                         <NewsletterSubscriptionForm
                             context={NewsletterSubscriptionContext.Homepage}
                         />

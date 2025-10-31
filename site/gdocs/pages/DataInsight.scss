@@ -315,10 +315,6 @@
     grid-row: 2 / span 3;
     align-self: start;
 
-    .newsletter-subscription-form__subheader {
-        display: none;
-    }
-
     @include md-down {
         grid-row: unset;
         .newsletter-subscription-form__email-submit {

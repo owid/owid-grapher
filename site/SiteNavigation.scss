@@ -146,11 +146,16 @@
                     }
                 }
             }
-            .newsletter-subscription-form__subheader {
-                @include h3-bold;
-                color: $blue-60;
-                margin: 0;
+
+            .newsletter-subscription-header__icon {
+                display: none;
             }
+
+            .newsletter-subscription-header__heading {
+                flex: unset;
+                margin-bottom: 12px;
+            }
+
             .SiteNavigationToggle__dropdown {
                 position: absolute;
                 top: calc(100% + $header-border-height);

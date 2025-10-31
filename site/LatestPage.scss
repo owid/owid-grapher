@@ -51,10 +51,6 @@
 .latest-page__newsletter-signup {
     grid-row: 2 / span 3;
 
-    .newsletter-subscription-form__subheader {
-        display: none;
-    }
-
     @include md-down {
         grid-row: unset;
     }

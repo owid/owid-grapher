@@ -6,7 +6,10 @@ import {
     faEnvelopeOpenText,
 } from "@fortawesome/free-solid-svg-icons"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
-import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
+import {
+    NewsletterSubscriptionForm,
+    NewsletterSubscriptionHeader,
+} from "./NewsletterSubscription.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { SiteNavigationTopics } from "./SiteNavigationTopics.js"
 import { SiteLogos } from "./SiteLogos.js"
@@ -190,11 +193,14 @@ export const SiteNavigation = ({
                                 isActive={menu === Menu.Subscribe}
                                 onToggle={() => toggleMenu(Menu.Subscribe)}
                                 dropdown={
-                                    <NewsletterSubscriptionForm
-                                        context={
-                                            NewsletterSubscriptionContext.Floating
-                                        }
-                                    />
+                                    <>
+                                        <NewsletterSubscriptionHeader />
+                                        <NewsletterSubscriptionForm
+                                            context={
+                                                NewsletterSubscriptionContext.Floating
+                                            }
+                                        />
+                                    </>
                                 }
                                 className="newsletter-subscription"
                             >
