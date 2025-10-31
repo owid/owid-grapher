@@ -10,7 +10,12 @@ import {
     faPanorama,
     faImage,
 } from "@fortawesome/free-solid-svg-icons"
-import { canWriteToClipboard, isAndroid, isIOS } from "@ourworldindata/utils"
+import {
+    canWriteToClipboard,
+    copyToClipboard,
+    isAndroid,
+    isIOS,
+} from "@ourworldindata/utils"
 import { GrapherModal } from "../core/GrapherConstants"
 import { isTargetOutsideElement } from "../chart/ChartUtils.js"
 import { GrapherRasterizeFn } from "../captionedChart/StaticChartRasterizer.js"
@@ -164,8 +169,12 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
 
         try {
             this.setState({ copiedLink: false, copiedPng: false })
-            await navigator.clipboard.writeText(this.canonicalUrl)
-            this.setState({ copiedLink: true, copiedPng: false })
+            const success = await copyToClipboard(this.canonicalUrl)
+            if (success) {
+                this.setState({ copiedLink: true, copiedPng: false })
+            } else {
+                console.error('Failed to copy link to clipboard')
+            }
         } catch (err) {
             console.error(
                 "couldn't copy to clipboard using navigator.clipboard",

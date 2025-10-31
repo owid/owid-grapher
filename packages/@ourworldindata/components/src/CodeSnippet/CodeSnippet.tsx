@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCopy } from "@fortawesome/free-solid-svg-icons"
-import { canWriteToClipboard } from "@ourworldindata/utils"
+import { canWriteToClipboard, copyToClipboard } from "@ourworldindata/utils"
 import cx from "classnames"
 import { SimpleMarkdownText } from "../SimpleMarkdownText"
 
@@ -11,12 +11,18 @@ export const CodeSnippet = ({
     theme = "dark",
     isTruncated = false,
     useMarkdown = false,
+
+    // If true, always show the copy button (even if clipboard API is not available).
+    // Useful for the admin, where we're often running in HTTP contexts, but have fallbacks
+    // for copying to clipboard.
+    forceShowCopyButton = false,
 }: {
     className?: string
     code: string
     theme?: "dark" | "light"
     isTruncated?: boolean
     useMarkdown?: boolean
+    forceShowCopyButton?: boolean
 }) => {
     const [canCopy, setCanCopy] = useState(false)
     const [hasCopied, setHasCopied] = useState(false)
@@ -27,7 +33,9 @@ export const CodeSnippet = ({
 
     const copy = async () => {
         try {
-            await navigator.clipboard.writeText(code)
+            const success = await copyToClipboard(code)
+            if (!success) return
+
             setHasCopied(true)
             // reset CSS animation
             setTimeout(() => setHasCopied(false), 2000)
@@ -59,7 +67,7 @@ export const CodeSnippet = ({
                     )}
                 </code>
             </pre>
-            {canCopy && (
+            {(canCopy || forceShowCopyButton) && (
                 <button
                     className={cx("code-copy-button", {
                         "code-copy-button--has-copied": hasCopied,

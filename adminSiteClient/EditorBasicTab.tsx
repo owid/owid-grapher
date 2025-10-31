@@ -30,7 +30,6 @@ import {
     DimensionProperty,
     OwidVariableId,
     OwidChartDimensionInterface,
-    copyToClipboard,
 } from "@ourworldindata/utils"
 import { FieldsRow, Section, SelectField, TextField, Toggle } from "./Forms.js"
 import { VariableSelector } from "./VariableSelector.js"
@@ -49,11 +48,11 @@ import {
     NarrativeChartEditor,
     isNarrativeChartEditorInstance,
 } from "./NarrativeChartEditor.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCopy } from "@fortawesome/free-solid-svg-icons"
-import { Button } from "antd"
 import * as R from "remeda"
 import { SortableList } from "./SortableList.js"
+import { CodeSnippet } from "@ourworldindata/components"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faFile } from "@fortawesome/free-solid-svg-icons"
 
 interface DimensionSlotViewProps<Editor> {
     slot: DimensionSlot
@@ -628,21 +627,22 @@ function IndicatorChartInfo(props: { editor: IndicatorChartEditor }) {
 function NarrativeChartInfo(props: { editor: NarrativeChartEditor }) {
     const { name = "" } = props.editor.manager
 
+    // In theory, it'd be great to use `rawToArchie` here, but that's in the `db` package
+    const gdocSnippet = `{.narrative-chart}
+  name: ${name}
+{}`
+
     return (
         <Section name="Narrative chart">
             <p>
                 Your are editing the config of a narrative chart named{" "}
                 <i>{name}</i>.
             </p>
-            <Button
-                size="small"
-                color="default"
-                variant="filled"
-                icon={<FontAwesomeIcon icon={faCopy} size="sm" />}
-                onClick={() => copyToClipboard(name)}
-            >
-                Copy name
-            </Button>
+
+            <h6>
+                <FontAwesomeIcon icon={faFile} /> GDoc ArchieML snippet
+            </h6>
+            <CodeSnippet code={gdocSnippet} forceShowCopyButton />
         </Section>
     )
 }
