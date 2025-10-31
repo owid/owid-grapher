@@ -1,10 +1,15 @@
+import * as _ from "lodash-es"
 import {
     NarrativeChartInfo,
     NarrativeChartsTableName,
     DbPlainNarrativeChart,
     JsonString,
+    ArchivedPageVersion,
 } from "@ourworldindata/types"
 import * as db from "../db.js"
+import { getLatestArchivedChartPageVersionsIfEnabled } from "./ArchivedChartVersion.js"
+import { getLatestArchivedMultiDimPageVersionsIfEnabled } from "./ArchivedMultiDimVersion.js"
+import { ARCHIVE_BASE_URL } from "../../settings/serverSettings.js"
 
 export async function narrativeChartExists(
     knex: db.KnexReadonlyTransaction,
@@ -23,8 +28,15 @@ export const getNarrativeChartsInfo = async (
 ): Promise<NarrativeChartInfo[]> => {
     if (names?.length === 0) return []
 
-    type RawRow = Omit<NarrativeChartInfo, "queryParamsForParentChart"> & {
+    const includeParentArchive = !!ARCHIVE_BASE_URL
+
+    type RawRow = Omit<
+        NarrativeChartInfo,
+        "queryParamsForParentChart" | "latestArchivedParent"
+    > & {
         queryParamsForParentChart: JsonString
+        parentChartId: number | null
+        parentMultiDimId: number | null
     }
 
     const rows: RawRow[] = await knex("narrative_charts as nc")
@@ -33,7 +45,9 @@ export const getNarrativeChartsInfo = async (
             knex.raw('cc.full ->> "$.title" as title'),
             "nc.chartConfigId",
             knex.raw("COALESCE(pcc.slug, mddp.slug) as parentChartSlug"),
-            "nc.queryParamsForParentChart"
+            "nc.queryParamsForParentChart",
+            "nc.parentChartId",
+            knex.raw("mddp.id as parentMultiDimId")
         )
         .join("chart_configs as cc", "cc.id", "nc.chartConfigId")
         .leftJoin("charts as pc", "nc.parentChartId", "pc.id")
@@ -50,9 +64,51 @@ export const getNarrativeChartsInfo = async (
             }
         })
 
+    let archivedChartVersions: Record<number, ArchivedPageVersion> = {}
+    let archivedMultiDimVersions: Record<number, ArchivedPageVersion> = {}
+
+    if (includeParentArchive) {
+        const parentChartIds = _.uniq(
+            rows
+                .map((row) => row.parentChartId ?? undefined)
+                .filter((id): id is number => id !== undefined)
+        )
+        const parentMultiDimIds = _.uniq(
+            rows
+                .map((row) => row.parentMultiDimId ?? undefined)
+                .filter((id): id is number => id !== undefined)
+        )
+
+        if (parentChartIds.length) {
+            archivedChartVersions =
+                await getLatestArchivedChartPageVersionsIfEnabled(
+                    knex,
+                    parentChartIds
+                )
+        }
+
+        if (parentMultiDimIds.length) {
+            archivedMultiDimVersions =
+                await getLatestArchivedMultiDimPageVersionsIfEnabled(
+                    knex,
+                    parentMultiDimIds
+                )
+        }
+    }
+
     return rows.map((row) => ({
-        ...row,
+        name: row.name,
+        title: row.title,
+        chartConfigId: row.chartConfigId,
+        parentChartSlug: row.parentChartSlug,
         queryParamsForParentChart: JSON.parse(row.queryParamsForParentChart),
+        latestArchivedParent: includeParentArchive
+            ? row.parentChartId
+                ? archivedChartVersions[row.parentChartId]
+                : row.parentMultiDimId
+                  ? archivedMultiDimVersions[row.parentMultiDimId]
+                  : undefined
+            : undefined,
     }))
 }
 

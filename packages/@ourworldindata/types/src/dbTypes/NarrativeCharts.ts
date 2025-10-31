@@ -8,12 +8,14 @@ export interface DbInsertNarrativeChart {
     chartConfigId: string
     parentChartId?: number | null
     parentMultiDimXChartConfigId?: number | null
-    queryParamsForParentChart?: JsonString | null
+    queryParamsForParentChart: JsonString
     createdAt?: Date | null
     updatedAt?: Date | null
     lastEditedByUserId: number
 }
-export type DbPlainNarrativeChart = Required<DbInsertNarrativeChart>
+export type DbPlainNarrativeChart = Required<DbInsertNarrativeChart> & {
+    queryParamsForParentChartMd5: string
+}
 
 // These props of the config object are _always_ explicitly persisted
 // in the narrative chart's config, and thus cannot be accidentally overridden by
