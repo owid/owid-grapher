@@ -165,8 +165,8 @@ export default function MultiDim({
                 if (ignoreFetchedData) return
                 const grapherConfig = {
                     ...viewGrapherConfig,
-                    ...localGrapherConfig,
                     ...baseGrapherConfig,
+                    ...localGrapherConfig,
                 }
                 if (slug) {
                     grapherConfig.slug = slug // Needed for the URL used for sharing.
