@@ -78,9 +78,13 @@ export class SlideInDrawer extends React.Component<SlideInDrawerProps> {
         return this.props.active
     }
 
-    private animationFor(selector: string): { animation: string } {
+    private animationFor(selector: string): React.CSSProperties {
         const phase = this.active ? "enter" : "exit"
-        return { animation: `${selector}-${phase} 333ms` }
+        return {
+            animationName: `${selector}-${phase}`,
+            animationDuration: "333ms",
+            animationFillMode: "forwards",
+        }
     }
 
     override render(): React.ReactElement | null {
