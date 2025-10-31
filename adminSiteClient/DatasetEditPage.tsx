@@ -198,6 +198,25 @@ class DatasetEditor extends Component<DatasetEditorProps> {
         return dataset.variables
     }
 
+    @computed get collectionUrl(): string | null {
+        const { dataset } = this.props
+        const publishedCharts = dataset.charts.filter(
+            (chart) => chart.isPublished
+        )
+
+        if (publishedCharts.length === 0) {
+            return null
+        }
+
+        // Sort by pageviews descending (most views first)
+        const sortedSlugs = publishedCharts
+            .sort((a, b) => b.pageviewsPerDay - a.pageviewsPerDay)
+            .map((chart) => chart.slug)
+
+        const chartsParam = sortedSlugs.join("+")
+        return `https://ourworldindata.org/collection/custom?charts=${chartsParam}`
+    }
+
     @action.bound onSearchInput(input: string) {
         this.searchInput = input
     }
@@ -513,6 +532,17 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                             Explore in Wizard
                         </Button>
                     </a>
+                    {/* Link to view all published charts in a collection */}
+                    {this.collectionUrl && (
+                        <a
+                            href={this.collectionUrl}
+                            target="_blank"
+                            className="btn btn-secondary"
+                            rel="noopener"
+                        >
+                            View all published charts
+                        </a>
+                    )}
                 </section>
 
                 {/* TAB NAVIGATION */}
