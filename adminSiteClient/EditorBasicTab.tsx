@@ -642,7 +642,7 @@ function NarrativeChartInfo(props: { editor: NarrativeChartEditor }) {
             <h6>
                 <FontAwesomeIcon icon={faFile} /> GDoc ArchieML snippet
             </h6>
-            <CodeSnippet code={gdocSnippet} />
+            <CodeSnippet code={gdocSnippet} forceShowCopyButton />
         </Section>
     )
 }
