@@ -17,7 +17,7 @@ jobs:
             pull-requests: write
 
         steps:
-            - uses: actions/stale@v9
+            - uses: actions/stale@v10
               with:
                   repo-token: ${{ secrets.GITHUB_TOKEN }}
                   stale-issue-message: "This issue has had no activity within 4 months. It is considered stale and will be closed in 30 days unless it is worked on or tagged as pinned."
