@@ -32,6 +32,7 @@ export const NewsletterSubscription = ({
                         }}
                     />
                     <div className="box">
+                        <NewsletterSubscriptionHeader />
                         <NewsletterSubscriptionForm context={context} />
                     </div>
                 </>
@@ -114,6 +115,8 @@ export const NewsletterSubscriptionForm = ({
                 )
             }
         >
+            {/* We hide this everywhere except on the homepage 
+                where it's needed for spacing reasons */}
             <span className="newsletter-subscription-form__subheader">
                 Receive our latest work by email.
             </span>
