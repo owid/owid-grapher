@@ -5,12 +5,10 @@ import {
 } from "@ourworldindata/types"
 import { Bounds } from "@ourworldindata/utils"
 import { defaultGrapherConfig } from "../schema/defaultGrapherConfig.js"
-import type { GrapherProgrammaticInterface } from "./Grapher"
 
 export const GRAPHER_PROD_URL = "https://ourworldindata.org"
 
 export const GRAPHER_EMBEDDED_FIGURE_ATTR = "data-grapher-src"
-export const GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR = "data-grapher-config"
 
 export const GRAPHER_NARRATIVE_CHART_CONFIG_FIGURE_ATTR =
     "data-grapher-narrative-chart-config"
@@ -148,29 +146,6 @@ export enum Patterns {
     noDataPatternForGlobe = "noDataPatternForGlobe",
     projectedDataPattern = "projectedDataPattern",
     projectedDataPatternForLegend = "projectedDataPatternForLegend",
-}
-
-export const grapherInterfaceWithHiddenControls: GrapherProgrammaticInterface =
-    {
-        hideRelativeToggle: true,
-        hideTimeline: true,
-        hideFacetControl: true,
-        hideEntityControls: true,
-        hideZoomToggle: true,
-        hideNoDataAreaToggle: true,
-        hideFacetYDomainToggle: true,
-        hideXScaleToggle: true,
-        hideYScaleToggle: true,
-        hideMapRegionDropdown: true,
-        map: {
-            hideTimeline: true,
-        },
-    }
-
-export const grapherInterfaceWithHiddenTabs: GrapherProgrammaticInterface = {
-    hasMapTab: false,
-    hasTableTab: false,
-    hideChartTabs: true,
 }
 
 export const SVG_STYLE_PROPS: React.CSSProperties = {

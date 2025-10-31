@@ -1,18 +1,7 @@
 import * as _ from "lodash-es"
 import { useRef, useMemo, useContext, useEffect } from "react"
-import {
-    grapherInterfaceWithHiddenControls,
-    grapherInterfaceWithHiddenTabs,
-    GrapherProgrammaticInterface,
-    GuidedChartContext,
-} from "@ourworldindata/grapher"
-import {
-    ChartControlKeyword,
-    ChartTabKeyword,
-    EnrichedBlockChart,
-    Url,
-    excludeUndefined,
-} from "@ourworldindata/utils"
+import { GuidedChartContext } from "@ourworldindata/grapher"
+import { EnrichedBlockChart, Url } from "@ourworldindata/utils"
 import { ChartConfigType, GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import { useLinkedChart } from "../utils.js"
 import SpanElements from "./SpanElements.js"
@@ -61,62 +50,11 @@ export default function Chart({
     const isExplorerWithControls = isExplorer && hasControls
     const isMultiDimWithControls = isMultiDim && hasControls
 
-    // config passed to grapher charts
-    const customizedChartConfig = useMemo(() => {
-        let config: GrapherProgrammaticInterface = {}
-        const isCustomized = d.title || d.subtitle
-        if (!isExplorer && isCustomized) {
-            const controls: ChartControlKeyword[] = d.controls || []
-            const tabs: ChartTabKeyword[] = d.tabs || []
-
-            const showAllControls = controls.includes(ChartControlKeyword.all)
-            const showAllTabs = tabs.includes(ChartTabKeyword.all)
-
-            const allControlsHidden = grapherInterfaceWithHiddenControls
-            const allTabsHidden = grapherInterfaceWithHiddenTabs
-
-            const enabledControls = excludeUndefined(
-                controls.map(mapControlKeywordToGrapherConfig)
-            )
-            const enabledTabs = excludeUndefined(
-                tabs.map(mapTabKeywordToGrapherConfig)
-            )
-
-            config = _.merge(
-                {},
-                !showAllControls ? allControlsHidden : {},
-                !showAllTabs ? allTabsHidden : {},
-                ...enabledControls,
-                ...enabledTabs,
-                {
-                    hideRelatedQuestion: true,
-                    hideShareButton: true, // always hidden since the original chart would be shared, not the customized one
-                    hideExploreTheDataButton: false,
-                },
-                {
-                    title: d.title,
-                    subtitle: d.subtitle,
-                }
-            )
-
-            // make sure the custom title is presented as is
-            if (config.title) {
-                config.forceHideAnnotationFieldsInTitle = {
-                    entity: true,
-                    time: true,
-                    changeInPrefix: true,
-                }
-            }
-        }
-        return config
-    }, [d.title, d.subtitle, d.controls, d.tabs, isExplorer])
-
     const chartConfig = useMemo(
         () => ({
             archiveContext: linkedChart?.archivedPageVersion,
-            ...customizedChartConfig,
         }),
-        [linkedChart?.archivedPageVersion, customizedChartConfig]
+        [linkedChart?.archivedPageVersion]
     )
 
     if (!linkedChart) return null
@@ -142,11 +80,6 @@ export default function Chart({
                     })}
                     data-is-multi-dim={isMultiDim || undefined}
                     data-grapher-src={isExplorer ? undefined : resolvedUrl}
-                    data-grapher-config={
-                        isExplorer || _.isEmpty(chartConfig)
-                            ? undefined
-                            : JSON.stringify(chartConfig)
-                    }
                     data-explorer-src={isExplorer ? resolvedUrl : undefined}
                     style={{
                         width: "100%",
@@ -179,61 +112,4 @@ export default function Chart({
             ) : null}
         </div>
     )
-}
-
-const mapControlKeywordToGrapherConfig = (
-    keyword: ChartControlKeyword
-): GrapherProgrammaticInterface | undefined => {
-    switch (keyword) {
-        case ChartControlKeyword.relativeToggle:
-            return { hideRelativeToggle: false }
-
-        case ChartControlKeyword.timeline:
-            return { hideTimeline: false, map: { hideTimeline: false } }
-
-        case ChartControlKeyword.facetControl:
-            return { hideFacetControl: false }
-
-        case ChartControlKeyword.entitySelector:
-            return { hideEntityControls: false }
-
-        case ChartControlKeyword.zoomToggle:
-            return { hideZoomToggle: false }
-
-        case ChartControlKeyword.noDataAreaToggle:
-            return { hideNoDataAreaToggle: false }
-
-        case ChartControlKeyword.alignAxisScalesToggle:
-            return { hideFacetYDomainToggle: false }
-
-        case ChartControlKeyword.xLogLinearSelector:
-            return { hideXScaleToggle: false }
-
-        case ChartControlKeyword.yLogLinearSelector:
-            return { hideYScaleToggle: false }
-
-        case ChartControlKeyword.mapRegionDropdown:
-            return { hideMapRegionDropdown: false }
-
-        default:
-            return undefined
-    }
-}
-
-const mapTabKeywordToGrapherConfig = (
-    keyword: ChartTabKeyword
-): GrapherProgrammaticInterface | undefined => {
-    switch (keyword) {
-        case ChartTabKeyword.table:
-            return { hasTableTab: true }
-
-        case ChartTabKeyword.map:
-            return { hasMapTab: true }
-
-        case ChartTabKeyword.chart:
-            return { hideChartTabs: false }
-
-        default:
-            return undefined
-    }
 }

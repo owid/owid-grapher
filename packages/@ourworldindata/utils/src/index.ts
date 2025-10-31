@@ -108,7 +108,6 @@ export {
     greatestCommonDivisor,
     findGreatestCommonDivisorOfArray,
     type NodeWithUrl,
-    filterValidStringValues,
     traverseEnrichedSpan,
     copyToClipboard,
     checkIsGdocPost,
