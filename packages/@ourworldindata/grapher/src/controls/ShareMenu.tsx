@@ -173,7 +173,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
             if (success) {
                 this.setState({ copiedLink: true, copiedPng: false })
             } else {
-                console.error('Failed to copy link to clipboard')
+                console.error("Failed to copy link to clipboard")
             }
         } catch (err) {
             console.error(
