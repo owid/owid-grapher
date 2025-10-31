@@ -226,9 +226,14 @@ export class LineChart
 
     @computed get activeTimes(): Time[] {
         const { highlightedTimesInLineChart = [] } = this.manager
-        return this.tooltipState.target?.time
-            ? [this.tooltipState.target.time, ...highlightedTimesInLineChart]
-            : highlightedTimesInLineChart
+        return _.uniq(
+            this.tooltipState.target?.time
+                ? [
+                      this.tooltipState.target.time,
+                      ...highlightedTimesInLineChart,
+                  ]
+                : highlightedTimesInLineChart
+        )
     }
 
     @computed private get activeXVerticalLines(): React.ReactElement | null {
