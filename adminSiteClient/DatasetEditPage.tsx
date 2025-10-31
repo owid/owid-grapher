@@ -200,15 +200,20 @@ class DatasetEditor extends Component<DatasetEditorProps> {
 
     @computed get collectionUrl(): string | null {
         const { dataset } = this.props
-        const publishedChartSlugs = dataset.charts
-            .filter((chart) => chart.isPublished)
-            .map((chart) => chart.slug)
+        const publishedCharts = dataset.charts.filter(
+            (chart) => chart.isPublished
+        )
 
-        if (publishedChartSlugs.length === 0) {
+        if (publishedCharts.length === 0) {
             return null
         }
 
-        const chartsParam = publishedChartSlugs.join("+")
+        // Sort by pageviews descending (most views first)
+        const sortedSlugs = publishedCharts
+            .sort((a, b) => b.pageviewsPerDay - a.pageviewsPerDay)
+            .map((chart) => chart.slug)
+
+        const chartsParam = sortedSlugs.join("+")
         return `https://ourworldindata.org/collection/custom?charts=${chartsParam}`
     }
 
