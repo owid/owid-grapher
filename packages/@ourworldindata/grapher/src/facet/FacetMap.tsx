@@ -439,6 +439,11 @@ export class FacetMap
             : undefined
     }
 
+    // Renamed so that it's picked up by the legend component
+    @computed get numericFocusBracket(): ColorScaleBin | undefined {
+        return this.legendHoverBin
+    }
+
     override componentDidMount(): void {
         exposeInstanceOnWindow(this, "facetMap")
     }

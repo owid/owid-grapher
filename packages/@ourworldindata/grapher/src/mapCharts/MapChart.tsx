@@ -477,12 +477,12 @@ export class MapChart
         return undefined
     }
 
-    // rename so that they're picked up by the legend component
+    // Renamed so that it's picked up by the legend component
     @computed get categoricalFocusBracket(): CategoricalBin | undefined {
         return this.categoricalHoverBracket
     }
 
-    // rename so that they're picked up by the legend component
+    // Renamed so that it's picked up by the legend component
     @computed get numericFocusBracket(): ColorScaleBin | undefined {
         return this.numericHoverBracket
     }
