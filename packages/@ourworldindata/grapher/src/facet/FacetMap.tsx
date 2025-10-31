@@ -173,7 +173,10 @@ export class FacetMap
         const horizontalLayout = { rows: 1, columns: 2, count: 2 }
         const verticalLayout = { rows: 2, columns: 1, count: 2 }
 
-        if (this.mapConfig.globe.isActive) return horizontalLayout
+        if (this.mapConfig.globe.isActive)
+            return bounds.width > bounds.height
+                ? horizontalLayout
+                : verticalLayout
 
         const mapAspectRatio = this.mapViewport.ratio
 
