@@ -7,10 +7,7 @@ import {
     pickEntitiesForChartHit,
     toGrapherQueryParams,
 } from "./searchUtils.js"
-import {
-    makeLabelForGrapherTab,
-    WORLD_ENTITY_NAME,
-} from "@ourworldindata/grapher"
+import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher"
 import {
     buildChartHitDataDisplayProps,
     GRAPHER_TAB_NAMES,
@@ -20,8 +17,7 @@ import {
 import { SearchChartHitHeader } from "./SearchChartHitHeader.js"
 import { Button } from "@ourworldindata/components"
 import { faDownload } from "@fortawesome/free-solid-svg-icons"
-import { CaptionedLink } from "./SearchChartHitCaptionedLink.js"
-import { SearchChartHitThumbnail } from "./SearchChartHitThumbnail.js"
+import { CaptionedThumbnail } from "./SearchChartHitCaptionedThumbnail.js"
 import { SearchChartHitDataDisplay } from "./SearchChartHitDataDisplay.js"
 import {
     getTotalColumnCount,
@@ -127,10 +123,6 @@ export function SearchChartHitRichDataFallback({
                 style={contentStyle}
             >
                 {placedTabs.map(({ grapherTab, slotKey }) => {
-                    const caption = makeLabelForGrapherTab(grapherTab, {
-                        format: "long",
-                    })
-
                     const { chartUrl, previewUrl } =
                         constructChartAndPreviewUrlsForTab({
                             hit,
@@ -143,18 +135,14 @@ export function SearchChartHitRichDataFallback({
                     const className = makeSlotClassNames("medium", slotKey)
 
                     return (
-                        <CaptionedLink
+                        <CaptionedThumbnail
                             key={grapherTab}
-                            caption={caption}
-                            url={chartUrl}
+                            chartType={grapherTab}
+                            chartUrl={chartUrl}
+                            previewUrl={previewUrl}
                             className={className}
                             onClick={() => onClick(grapherTab)}
-                        >
-                            <SearchChartHitThumbnail
-                                previewUrl={previewUrl}
-                                hoverOverlayText="Click to explore"
-                            />
-                        </CaptionedLink>
+                        />
                     )
                 })}
 

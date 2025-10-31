@@ -8,7 +8,7 @@ export function CaptionedThumbnail({
     chartType,
     chartUrl,
     previewUrl,
-    isSmallSlot,
+    isSmallSlot = false,
     imageWidth,
     imageHeight,
     className,
@@ -17,7 +17,7 @@ export function CaptionedThumbnail({
     chartType: GrapherTabName
     chartUrl: string
     previewUrl: string
-    isSmallSlot: boolean
+    isSmallSlot?: boolean
     imageWidth?: number
     imageHeight?: number
     className?: string
