@@ -338,17 +338,17 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
             <button
                 className="date clickable"
                 type="button"
-                onClick={(): void =>
+                onClick={action((): void =>
                     markerType === "start"
                         ? controller.resetStartToMin()
                         : controller.resetEndToMax()
-                }
-                onMouseEnter={() => {
+                )}
+                onMouseEnter={action(() => {
                     if (this.shouldShowHoverTimeHandle) this.hoverTime = time
-                }}
-                onMouseLeave={() => {
+                })}
+                onMouseLeave={action(() => {
                     this.hoverTime = undefined
-                }}
+                })}
             >
                 {this.formatTime(time)}
             </button>
@@ -420,13 +420,13 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                     hover: this.mouseHoveringOverTimeline,
                 })}
                 style={{ padding: `0 ${GRAPHER_FRAME_PADDING_HORIZONTAL}px` }}
-                onMouseOver={(event) =>
+                onMouseOver={action((event) =>
                     this.onMouseOverSlider(event.nativeEvent)
-                }
+                )}
                 onMouseLeave={this.onMouseLeaveSlider}
-                onMouseMove={(event) =>
+                onMouseMove={action((event) =>
                     this.onMouseMoveSlider(event.nativeEvent)
-                }
+                )}
             >
                 {!this.manager.disablePlay && (
                     <ActionButton

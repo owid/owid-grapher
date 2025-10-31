@@ -262,11 +262,17 @@ export class StackedAreaChart
         this.lineLegendHoveredSeriesName = seriesName
     }
 
+    @action.bound private clearLineLegendHover(): void {
+        this.lineLegendHoveredSeriesName = undefined
+    }
+
     @action.bound onLineLegendMouseLeave(): void {
         clearTimeout(this.hoverTimer)
+
+        // Wait before clearing selection in case the mouse is moving
+        // quickly over neighboring labels
         this.hoverTimer = window.setTimeout(() => {
-            // wait before clearing selection in case the mouse is moving quickly over neighboring labels
-            this.lineLegendHoveredSeriesName = undefined
+            this.clearLineLegendHover()
         }, 200)
     }
 

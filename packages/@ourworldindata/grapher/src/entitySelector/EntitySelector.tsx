@@ -291,7 +291,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         this.disposers.forEach((dispose) => dispose())
     }
 
-    private set(newState: Partial<EntitySelectorState>): void {
+    @action.bound private set(newState: Partial<EntitySelectorState>): void {
         const correctedState = { ...newState }
 
         if (newState.sortConfig !== undefined) {

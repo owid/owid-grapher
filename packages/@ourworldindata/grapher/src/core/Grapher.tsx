@@ -595,9 +595,11 @@ export class Grapher extends React.Component<GrapherProps> {
                             // We need to render this immediately to avoid a Safari bug, where Safari
                             // is seemingly blocking rendering during the initial fetches, and will then
                             // subsequently render using the wrong bounds.
-                            flushSync(() => {
-                                this.hasBeenVisible = true
-                            })
+                            flushSync(
+                                action(() => {
+                                    this.hasBeenVisible = true
+                                })
+                            )
 
                             if (!this.hasLoggedGAViewEvent) {
                                 this.hasLoggedGAViewEvent = true
@@ -671,10 +673,10 @@ export class Grapher extends React.Component<GrapherProps> {
     }
 
     @action.bound private setUpWindowResizeEventHandler(): void {
-        const updateWindowDimensions = (): void => {
+        const updateWindowDimensions = action((): void => {
             this.grapherState.windowInnerWidth = window.innerWidth
             this.grapherState.windowInnerHeight = window.innerHeight
-        }
+        })
         const onResize = _.debounce(updateWindowDimensions, 400, {
             leading: true,
         })

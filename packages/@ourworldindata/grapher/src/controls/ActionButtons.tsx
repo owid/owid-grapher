@@ -299,11 +299,11 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
                                 dataTrackNote="chart_click_download"
                                 showLabel={this.showButtonLabels}
                                 icon={faDownload}
-                                onClick={(e): void => {
+                                onClick={action((e): void => {
                                     this.manager.activeModal =
                                         GrapherModal.Download
                                     e.stopPropagation()
-                                }}
+                                })}
                             />
                         </li>
                     )}
@@ -314,10 +314,10 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
                                 dataTrackNote="chart_click_share"
                                 showLabel={this.showButtonLabels}
                                 icon={faShareNodes}
-                                onClick={(e): void => {
+                                onClick={action((e): void => {
                                     this.toggleShareMenu()
                                     e.stopPropagation()
-                                }}
+                                })}
                                 isActive={this.manager.isShareMenuActive}
                             />
                             {isShareMenuActive && this.renderShareMenu()}
