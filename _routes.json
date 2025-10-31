@@ -8,9 +8,9 @@
         "/*.css",
         "/*.js",
         "/images/*",
-        "*.woff2",
-        "*.woff",
-        "*.ttf",
-        "*.ico"
+        "/*.woff2",
+        "/*.woff",
+        "/*.ttf",
+        "/*.ico"
     ]
 }
