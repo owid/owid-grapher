@@ -635,7 +635,7 @@ function NarrativeChartInfo(props: { editor: NarrativeChartEditor }) {
     return (
         <Section name="Narrative chart">
             <p>
-                Your are editing the config of a narrative chart named{" "}
+                You are editing the config of a narrative chart named{" "}
                 <i>{name}</i>.
             </p>
 
