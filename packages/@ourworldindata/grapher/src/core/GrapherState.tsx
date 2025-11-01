@@ -882,8 +882,12 @@ export class GrapherState {
     }
 
     @computed get showLegend(): boolean {
-        // hide the legend for stacked bar charts
-        // if the legend only ever shows a single entity
+        // When the chart is displayed alongside a complementary table
+        // (e.g., in search results), the table serves as a legend, so we
+        // hide the chart's legend to avoid redundancy
+        if (this.isDisplayedAlongsideComplementaryTable) return false
+
+        // Hide single-entity legends for stacked bar charts
         if (this.isOnStackedBarTab) {
             const seriesStrategy =
                 this.chartState.seriesStrategy ||
@@ -896,6 +900,14 @@ export class GrapherState {
         }
 
         return !this.hideLegend
+    }
+
+    @computed get hideMapLegend(): boolean {
+        return this.isDisplayedAlongsideComplementaryTable
+    }
+
+    @computed get isMinimalThumbnail(): boolean {
+        return this.isDisplayedAlongsideComplementaryTable
     }
 
     @computed private get hasChartThatShowsAllEntities(): boolean {

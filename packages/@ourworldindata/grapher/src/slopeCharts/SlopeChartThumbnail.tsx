@@ -244,8 +244,7 @@ export class SlopeChartThumbnail
     @computed private get startLabelsState(): VerticalLabelsState | undefined {
         if (!this.manager.showLegend) return undefined
 
-        const showEntityNames =
-            !this.manager.isDisplayedAlongsideComplementaryTable
+        const showEntityNames = !this.manager.isMinimalThumbnail
 
         const series = this.labelCandidateSeries.map((series) => {
             const { seriesName, color } = series

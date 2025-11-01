@@ -5,6 +5,7 @@ import { Bounds } from "@ourworldindata/utils"
 
 export interface FacetChartManager extends ChartManager {
     canSelectMultipleEntities?: boolean
+    isDisplayedAlongsideComplementaryTable?: boolean
 }
 
 export interface FacetChartProps {
