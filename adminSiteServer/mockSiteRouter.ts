@@ -10,7 +10,6 @@ import {
     feedbackPage,
     renderNotFoundPage,
     renderLatestPage,
-    countryProfileCountryPage,
     renderExplorerPage,
     makeAtomFeedNoTopicPages,
     renderDynamicCollectionPage,
@@ -21,6 +20,7 @@ import {
     renderGdocTombstone,
     renderExplorerIndexPage,
     renderSubscribePage,
+    renderGdoc,
 } from "../baker/siteRenderers.js"
 import {
     BAKED_BASE_URL,
@@ -29,13 +29,9 @@ import {
 } from "../settings/serverSettings.js"
 
 import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil.js"
-import {
-    countryProfilePage,
-    countriesIndexPage,
-} from "../baker/countryProfiles.js"
+import { countryProfilePage } from "../baker/countryProfiles.js"
 import { makeSitemap } from "../baker/sitemap.js"
 import { getChartConfigBySlug } from "../db/model/Chart.js"
-import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { getVariableData, getVariableMetadata } from "../db/model/Variable.js"
 import { MultiEmbedderTestPage } from "../site/multiembedder/MultiEmbedderTestPage.js"
@@ -50,6 +46,9 @@ import {
     queryParamsToStr,
     EnrichedBlockImage,
     OwidGdocType,
+    regions,
+    getRegionByNameOrVariantName,
+    ProfileEntity,
 } from "@ourworldindata/utils"
 import {
     EXPLORERS_ROUTE_FOLDER,
@@ -85,12 +84,47 @@ import {
     enrichLatestPageItems,
     getLatestPageItems,
 } from "../db/model/Gdoc/GdocPost.js"
+import { countriesIndexPage } from "../baker/countriesIndex.js"
+import { getAndLoadGdocBySlug } from "../db/model/Gdoc/GdocFactory.js"
+import {
+    instantiateProfileForEntity,
+    GdocProfile,
+} from "../db/model/Gdoc/GdocProfile.js"
 
 // todo: switch to an object literal where the key is the path and the value is the request handler? easier to test, reflect on, and manipulate
 const mockSiteRouter = Router()
 
 mockSiteRouter.use(express.urlencoded({ extended: true }))
 mockSiteRouter.use(express.json())
+
+const findProfileEntity = (entityParam: string): ProfileEntity | undefined => {
+    const trimmed = entityParam.trim()
+    if (!trimmed) return undefined
+
+    const normalized = trimmed.toLowerCase()
+
+    const byCode = regions.find(
+        (region) => region.code?.toLowerCase() === normalized
+    )
+    if (byCode) return { name: byCode.name, code: byCode.code }
+
+    const bySlug = regions.find(
+        (region) => region.slug?.toLowerCase() === normalized
+    )
+    if (bySlug) return { name: bySlug.name, code: bySlug.code }
+
+    const byName = getRegionByNameOrVariantName(trimmed)
+    if (byName) return { name: byName.name, code: byName.code }
+
+    if (trimmed.includes("-")) {
+        const hyphenToSpace = trimmed.replace(/-/g, " ")
+        const byHyphenatedName = getRegionByNameOrVariantName(hyphenToSpace)
+        if (byHyphenatedName)
+            return { name: byHyphenatedName.name, code: byHyphenatedName.code }
+    }
+
+    return undefined
+}
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
@@ -387,7 +421,12 @@ getPlainRouteWithROTransaction(
 
         try {
             return res.send(
-                await renderGdocsPageBySlug(trx, pageNumberOrSlug, true)
+                await renderGdocsPageBySlug(
+                    trx,
+                    pageNumberOrSlug,
+                    true,
+                    OwidGdocType.DataInsight
+                )
             )
         } catch (e) {
             console.error(e)
@@ -423,21 +462,6 @@ getPlainRouteWithROTransaction(
             )
         )
     }
-)
-
-countryProfileSpecs.forEach((spec) =>
-    getPlainRouteWithROTransaction(
-        mockSiteRouter,
-        `/${spec.rootPath}/:countrySlug`,
-        async (req, res, trx) => {
-            const countryPage = await countryProfileCountryPage(
-                spec,
-                req.params.countrySlug,
-                trx
-            )
-            res.send(countryPage)
-        }
-    )
 )
 
 getPlainRouteWithROTransaction(
@@ -570,7 +594,8 @@ getPlainRouteNonIdempotentWithRWTransaction(
             const page = await renderGdocsPageBySlug(
                 trx,
                 req.params.authorSlug,
-                true
+                true,
+                OwidGdocType.Author
             )
             res.send(page)
             return
@@ -667,6 +692,58 @@ getPlainRouteWithROTransaction(
             return rest
         })
         res.send(publishedDataInsightsForJson)
+    }
+)
+
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    "/profile/:profileSlug/:entity",
+    async (req, res, trx) => {
+        const profileSlugParam = req.params.profileSlug
+        const entityParam = req.params.entity
+
+        if (!profileSlugParam || !entityParam) {
+            res.status(404).send(renderNotFoundPage())
+            return
+        }
+
+        let profileTemplate: GdocProfile | undefined
+
+        try {
+            const gdoc = await getAndLoadGdocBySlug(
+                trx,
+                profileSlugParam,
+                OwidGdocType.Profile
+            )
+            profileTemplate = gdoc as GdocProfile
+        } catch (error) {
+            if (
+                error instanceof Error &&
+                error.message.includes("No published Google Doc with slug")
+            ) {
+                console.error(error)
+                res.status(500).send(renderNotFoundPage())
+                return
+            }
+        }
+
+        if (!profileTemplate) {
+            res.status(404).send(renderNotFoundPage())
+            return
+        }
+
+        const entity = findProfileEntity(entityParam)
+        if (!entity) {
+            res.status(404).send(renderNotFoundPage())
+            return
+        }
+
+        const instantiatedProfile = instantiateProfileForEntity(
+            profileTemplate,
+            entity
+        )
+
+        res.send(renderGdoc(instantiatedProfile, true))
     }
 )
 

@@ -224,7 +224,13 @@ export {
     getRegionByName,
     getParentRegions,
     getSiblingRegions,
+    articulateEntity,
 } from "./regions.js"
+export {
+    instantiateProfile,
+    type ProfileEntity,
+    getEntitiesForProfile,
+} from "./profiles.js"
 
 export { type GridBounds, FontFamily, Bounds } from "./Bounds.js"
 

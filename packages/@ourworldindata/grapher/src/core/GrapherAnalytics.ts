@@ -9,7 +9,6 @@ type WindowWithDataLayer = Window & {
 declare const window: WindowWithDataLayer
 
 export enum EventCategory {
-    CountryProfileSearch = "owid.country_profile_search",
     Filter = "owid.filter",
     GlobalEntitySelectorUsage = "owid.global_entity_selector_usage",
     GrapherView = "owid.grapher_view",
