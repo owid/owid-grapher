@@ -19,8 +19,6 @@ import {
     extractPotentialDataSlugsFromTransform,
 } from "@ourworldindata/core-table"
 import {
-    EntityPicker,
-    EntityPickerManager,
     Grapher,
     GrapherManager,
     GrapherProgrammaticInterface,
@@ -191,10 +189,7 @@ const isNarrow = () =>
 @observer
 export class Explorer
     extends React.Component<ExplorerProps>
-    implements
-        SlideShowManager<ExplorerChoiceParams>,
-        EntityPickerManager,
-        GrapherManager
+    implements SlideShowManager<ExplorerChoiceParams>, GrapherManager
 {
     analytics = new GrapherAnalytics()
     grapherState: GrapherState
@@ -628,7 +623,7 @@ export class Explorer
             ),
             bakedGrapherURL: this.bakedBaseUrl,
             adminBaseUrl: this.adminBaseUrl,
-            hideEntityControls: this.showExplorerControls,
+            // hideEntityControls: this.showExplorerControls,
             enableMapSelection: this.enableMapSelection,
         }
 
@@ -693,7 +688,7 @@ export class Explorer
             ),
             bakedGrapherURL: this.bakedBaseUrl,
             adminBaseUrl: this.adminBaseUrl,
-            hideEntityControls: this.showExplorerControls,
+            // hideEntityControls: this.showExplorerControls,
             enableMapSelection: this.enableMapSelection,
         }
 
@@ -1027,22 +1022,7 @@ export class Explorer
     }
 
     private renderEntityPicker() {
-        const selection =
-            this.grapherState.isOnMapTab && this.enableMapSelection
-                ? this.grapherState.mapConfig.selection
-                : this.selection
-
-        return (
-            <EntityPicker
-                key="entityPicker"
-                manager={this}
-                selection={selection}
-                onSelectEntity={this.grapherState.onSelectEntity}
-                onDeselectEntity={this.grapherState.onDeselectEntity}
-                onClearEntities={this.grapherState.onClearEntities}
-                isDropdownMenu={this.isNarrow}
-            />
-        )
+        return <></>
     }
 
     @action.bound private toggleMobileControls() {
