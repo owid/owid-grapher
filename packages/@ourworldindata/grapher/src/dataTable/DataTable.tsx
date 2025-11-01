@@ -345,7 +345,9 @@ export class DataTable extends React.Component<DataTableProps> {
             const dimensionHeaderText = (
                 <React.Fragment>
                     <div className="name">
-                        {_.upperFirst(display.columnName.title)}{" "}
+                        <span className="title-text">
+                            {_.upperFirst(display.columnName.title)}{" "}
+                        </span>
                         <span className="title-fragments">
                             {joinTitleFragments(
                                 display.columnName.attributionShort,
@@ -354,9 +356,9 @@ export class DataTable extends React.Component<DataTableProps> {
                         </span>
                     </div>
                     <div className="description">
-                        <span className="unit">{display.unit}</span>{" "}
-                        <span className="divider">
-                            {display.unit && targetTime !== undefined && "•"}
+                        <span className="unit">{display.unit}</span>
+                        <span>
+                            {display.unit && targetTime !== undefined && ","}
                         </span>{" "}
                         <span className="time">
                             {targetTime !== undefined &&
@@ -617,32 +619,23 @@ export class DataTable extends React.Component<DataTableProps> {
         if (this.displayDimensions.length === 0) return null
 
         const singleDimension = this.displayDimensions[0]
-        const titleFragments = (singleDimension.display.columnName
-            .attributionShort ||
-            singleDimension.display.columnName.titleVariant) && (
-            <>
-                <span className="title-fragments">
-                    {joinTitleFragments(
-                        singleDimension.display.columnName.attributionShort,
-                        singleDimension.display.columnName.titleVariant
-                    )}
-                </span>
-            </>
-        )
-        const separator =
-            (singleDimension.display.columnName.attributionShort ||
-                singleDimension.display.columnName.titleVariant) &&
-            singleDimension.display.unit
-                ? " – "
-                : " "
+        const titleFragments =
+            singleDimension.display.columnName.attributionShort ||
+            singleDimension.display.columnName.titleVariant
+                ? joinTitleFragments(
+                      singleDimension.display.columnName.attributionShort,
+                      singleDimension.display.columnName.titleVariant
+                  )
+                : undefined
 
         return singleDimension ? (
             <div className="caption">
-                {singleDimension.display.columnName.title} {titleFragments}
-                {separator}
-                {singleDimension.display.unit && (
-                    <span className="unit">{singleDimension.display.unit}</span>
-                )}
+                {singleDimension.display.columnName.title}{" "}
+                <span className="title-fragments">
+                    {titleFragments}
+                    {singleDimension.display.unit &&
+                        ` (${singleDimension.display.unit})`}
+                </span>
             </div>
         ) : null
     }
