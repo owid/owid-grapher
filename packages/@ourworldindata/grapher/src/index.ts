@@ -114,7 +114,9 @@ export {
     useGuidedChartLinkHandler,
     GuidedChartContext,
     type GuidedChartContextValue,
-} from "./chart/GuidedChartUtils"
+    type ArchiveGuidedChartRegistration,
+    buildArchiveGuidedChartSrc,
+} from "./chart/guidedChartUtils"
 export {
     isChartTypeName,
     isValidTabQueryParam,
