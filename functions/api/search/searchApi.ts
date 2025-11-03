@@ -33,6 +33,9 @@ const DATA_CATALOG_ATTRIBUTES = [
     "variantName",
     "type",
     "queryParams",
+    "availableEntities",
+    "originalAvailableEntities",
+    "availableTabs",
 ]
 
 function getFilterNamesOfType(

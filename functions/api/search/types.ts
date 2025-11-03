@@ -35,6 +35,7 @@ interface BaseSearchChartHit {
     slug: string
     availableEntities: string[]
     originalAvailableEntities?: string[]
+    availableTabs?: string[]
     objectID: string
     variantName?: string
     subtitle?: string
