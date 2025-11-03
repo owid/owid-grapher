@@ -77,3 +77,28 @@ export type EnrichedSearchChartHit = Omit<
 > & {
     url: string
 }
+
+/**
+ * Page search hit from Algolia
+ */
+export interface SearchPageHit {
+    title: string
+    slug: string
+    type: string
+    thumbnailUrl?: string
+    date?: string
+    content?: string
+    authors?: string[]
+    objectID: string
+    __position: number
+}
+
+/**
+ * Enriched page search result with URL added
+ */
+export type EnrichedSearchPageHit = Omit<
+    SearchPageHit,
+    "objectID" | "_highlightResult" | "_snippetResult"
+> & {
+    url: string
+}

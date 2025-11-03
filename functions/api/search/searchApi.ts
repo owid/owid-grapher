@@ -1,6 +1,11 @@
 import { SearchIndexName, FilterType, Filter } from "./types.js"
 import { getIndexName, AlgoliaConfig } from "./algoliaClient.js"
-import type { SearchChartHit, EnrichedSearchChartHit } from "./types.js"
+import type {
+    SearchChartHit,
+    EnrichedSearchChartHit,
+    SearchPageHit,
+    EnrichedSearchPageHit,
+} from "./types.js"
 
 export interface SearchState {
     query: string
@@ -15,6 +20,14 @@ export interface SearchApiResponse {
     page: number
     nbPages: number
     hitsPerPage: number
+}
+
+export interface SearchPagesApiResponse {
+    query: string
+    results: EnrichedSearchPageHit[]
+    nbHits: number
+    offset: number
+    length: number
 }
 
 interface AlgoliaSearchResponse {
@@ -169,5 +182,92 @@ export async function searchCharts(
         page: result.page,
         nbPages: result.nbPages,
         hitsPerPage: result.hitsPerPage,
+    }
+}
+
+// Minimal set of attributes needed for page search
+const PAGE_ATTRIBUTES = [
+    "title",
+    "thumbnailUrl",
+    "date",
+    "slug",
+    "type",
+    "content",
+    "authors",
+]
+
+export async function searchPages(
+    config: AlgoliaConfig,
+    query: string,
+    offset: number = 0,
+    length: number = 10,
+    pageTypes: string[] = ["article", "about-page"]
+): Promise<SearchPagesApiResponse> {
+    const indexName = getIndexName(SearchIndexName.Pages, config.indexPrefix)
+
+    // Build filters string for page types
+    const filters = pageTypes.map((type) => `type:${type}`).join(" OR ")
+
+    const searchParams = {
+        requests: [
+            {
+                indexName,
+                query,
+                filters,
+                facetFilters: [[]],
+                attributesToRetrieve: PAGE_ATTRIBUTES,
+                highlightPreTag: "<mark>",
+                highlightPostTag: "</mark>",
+                offset,
+                length,
+            },
+        ],
+    }
+
+    const url = `https://${config.appId}-dsn.algolia.net/1/indexes/*/queries`
+
+    const response = await fetch(url, {
+        method: "POST",
+        headers: {
+            "X-Algolia-Application-Id": config.appId,
+            "X-Algolia-API-Key": config.apiKey,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(searchParams),
+    })
+
+    if (!response.ok) {
+        throw new Error(`Algolia search failed: ${response.statusText}`)
+    }
+
+    const data = (await response.json()) as {
+        results: [{ hits: SearchPageHit[]; nbHits: number }]
+    }
+    const result = data.results[0]
+
+    // Clean up the hits and add URL
+    const cleanedHits = result.hits.map((hit): EnrichedSearchPageHit => {
+        const {
+            _highlightResult,
+            _snippetResult,
+            objectID: _objectID,
+            ...cleanHit
+        } = hit as any
+
+        // Construct URL based on slug
+        const url = `https://ourworldindata.org/${cleanHit.slug}`
+
+        return {
+            ...cleanHit,
+            url,
+        }
+    })
+
+    return {
+        query,
+        results: cleanedHits,
+        nbHits: result.nbHits,
+        offset,
+        length,
     }
 }
