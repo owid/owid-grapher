@@ -86,7 +86,8 @@ export async function searchCharts(
     config: AlgoliaConfig,
     state: SearchState,
     page: number = 0,
-    hitsPerPage: number = 20
+    hitsPerPage: number = 20,
+    baseUrl: string = "https://ourworldindata.org"
 ): Promise<SearchApiResponse> {
     const countryFacetFilters = formatCountryFacetFilters(
         getFilterNamesOfType(state.filters, FilterType.COUNTRY),
@@ -159,14 +160,14 @@ export async function searchCharts(
         if (cleanHit.type === "explorerView") {
             // Explorer views: /explorers/{slug}{queryParams}
             const queryParams = cleanHit.queryParams || ""
-            url = `https://ourworldindata.org/explorers/${cleanHit.slug}${queryParams}`
+            url = `${baseUrl}/explorers/${cleanHit.slug}${queryParams}`
         } else if (cleanHit.type === "multiDimView") {
             // Multi-dimensional views: /grapher/{slug}{queryParams}
             const queryParams = cleanHit.queryParams || ""
-            url = `https://ourworldindata.org/grapher/${cleanHit.slug}${queryParams}`
+            url = `${baseUrl}/grapher/${cleanHit.slug}${queryParams}`
         } else {
             // Regular charts: /grapher/{slug}
-            url = `https://ourworldindata.org/grapher/${cleanHit.slug}`
+            url = `${baseUrl}/grapher/${cleanHit.slug}`
         }
 
         return {
@@ -201,7 +202,8 @@ export async function searchPages(
     query: string,
     offset: number = 0,
     length: number = 10,
-    pageTypes: string[] = ["article", "about-page"]
+    pageTypes: string[] = ["article", "about-page"],
+    baseUrl: string = "https://ourworldindata.org"
 ): Promise<SearchPagesApiResponse> {
     const indexName = getIndexName(SearchIndexName.Pages, config.indexPrefix)
 
@@ -255,7 +257,7 @@ export async function searchPages(
         } = hit as any
 
         // Construct URL based on slug
-        const url = `https://ourworldindata.org/${cleanHit.slug}`
+        const url = `${baseUrl}/${cleanHit.slug}`
 
         return {
             ...cleanHit,

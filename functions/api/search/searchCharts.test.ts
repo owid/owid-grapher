@@ -201,6 +201,28 @@ describe("searchCharts with real Algolia", () => {
         expect(result.results.length).toBe(0)
         expect(result.nbHits).toBe(0)
     })
+
+    it("uses custom base URL for staging deployments", async () => {
+        const stagingUrl = "https://staging-pr-123.owid.io"
+        const result = await searchCharts(
+            algoliaConfig,
+            {
+                query: "population",
+                filters: [],
+                requireAllCountries: false,
+            },
+            0,
+            3,
+            stagingUrl
+        )
+
+        expect(result.results.length).toBeGreaterThan(0)
+
+        // All URLs should use the staging base URL
+        result.results.forEach((hit) => {
+            expect(hit.url).toMatch(new RegExp(`^${stagingUrl}/`))
+        })
+    })
 })
 
 describe("searchPages with real Algolia", () => {
@@ -315,5 +337,24 @@ describe("searchPages with real Algolia", () => {
         expect(result.query).toBe("xyzabc123nonsense456")
         expect(result.results.length).toBe(0)
         expect(result.nbHits).toBe(0)
+    })
+
+    it("uses custom base URL for staging deployments", async () => {
+        const stagingUrl = "https://staging-pr-123.owid.io"
+        const result = await searchPages(
+            algoliaConfig,
+            "climate change",
+            0,
+            3,
+            ["article", "about-page"],
+            stagingUrl
+        )
+
+        expect(result.results.length).toBeGreaterThan(0)
+
+        // All URLs should use the staging base URL
+        result.results.forEach((hit) => {
+            expect(hit.url).toMatch(new RegExp(`^${stagingUrl}/`))
+        })
     })
 })

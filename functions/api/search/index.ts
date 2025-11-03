@@ -72,12 +72,16 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         // Get Algolia config
         const algoliaConfig = getAlgoliaConfig(env)
 
+        // Extract base URL from request (for staging/preview deployments)
+        const baseUrl = `${url.protocol}//${url.host}`
+
         // Perform search
         const results = await searchCharts(
             algoliaConfig,
             searchState,
             page,
-            hitsPerPage
+            hitsPerPage,
+            baseUrl
         )
 
         return new Response(JSON.stringify(results, null, 2), {
