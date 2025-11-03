@@ -257,8 +257,7 @@ export class LineChartThumbnail
     @computed private get startLabelsState(): VerticalLabelsState | undefined {
         if (!this.manager.showLegend) return undefined
 
-        const showEntityNames =
-            !this.manager.isDisplayedAlongsideComplementaryTable
+        const showEntityNames = !this.manager.isMinimalThumbnail
 
         let labelCandidateSeries = this.chartState.series
 
