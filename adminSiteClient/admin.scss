@@ -1573,7 +1573,7 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
 }
 
 /* Causes of Death Country Selector Styling */
-.causes-of-death-country-selector {
+.causes-of-death-captioned-chart {
     font-family:
         Lato, "Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif;
     margin: 20px 0;
@@ -1584,13 +1584,17 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
     position: relative;
 }
 
-.country-selector-section h3 {
+.causes-of-death-header h1 {
     color: #333;
     font-size: 1.5rem;
     font-weight: 600;
     font-family:
         "Playfair Display", Georgia, "Times New Roman", "Liberation Serif",
         serif;
+
+    span {
+        color: #858585;
+    }
 }
 
 $sm: 768px;
@@ -1601,26 +1605,26 @@ $sm: 768px;
 }
 
 @include sm-only {
-    .country-selector-section h3 {
+    .causes-of-death-header h1 {
         font-size: 1.25rem;
     }
 }
 
-.single-treemap-section h4 {
-    margin: 0 0 15px 0;
-    color: #555;
-    font-size: 1.2rem;
-    font-weight: 500;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #ddd;
-}
+// .single-treemap-section h4 {
+//     margin: 0 0 15px 0;
+//     color: #555;
+//     font-size: 1.2rem;
+//     font-weight: 500;
+//     padding-bottom: 8px;
+//     border-bottom: 1px solid #ddd;
+// }
 
 /* Style the dropdown container */
-.causes-of-death-country-selector .grapher-dropdown {
+.causes-of-death-captioned-chart .grapher-dropdown {
     max-width: 100%;
 }
 
-.causes-of-death-country-selector .grapher-dropdown .control {
+.causes-of-death-captioned-chart .grapher-dropdown .control {
     border: 1px solid #ccc;
     border-radius: 4px;
     padding: 8px 12px;
@@ -1629,16 +1633,16 @@ $sm: 768px;
     min-height: 38px;
 }
 
-.causes-of-death-country-selector .grapher-dropdown .control:hover {
+.causes-of-death-captioned-chart .grapher-dropdown .control:hover {
     border-color: #999;
 }
 
-.causes-of-death-country-selector .grapher-dropdown .control:focus-within {
+.causes-of-death-captioned-chart .grapher-dropdown .control:focus-within {
     border-color: #007cbb;
     box-shadow: 0 0 0 2px rgba(0, 124, 187, 0.2);
 }
 
-.causes-of-death-country-selector .grapher-dropdown .label {
+.causes-of-death-captioned-chart .grapher-dropdown .label {
     color: #666;
     font-weight: normal;
 }
@@ -1662,20 +1666,20 @@ g:has(.arrow) {
 }
 
 /* Causes of Death subtitle styling */
-.causes-of-death-subtitle {
+.causes-of-death-header__subtitle {
     color: #5b5b5b;
     font-size: 1.125rem;
     line-height: 1.2;
 }
 
 @include sm-only {
-    .causes-of-death-subtitle {
+    .causes-of-death-header__subtitle {
         font-size: 1rem;
     }
 }
 
 /* Causes of Death source line styling */
-.causes-of-death-source {
+.causes-of-death-footer {
     margin-top: 8px;
     /* font-size: 12px; */
     font-size: 14px;
@@ -1689,7 +1693,7 @@ g:has(.arrow) {
 }
 
 @include sm-only {
-    .causes-of-death-source {
+    .causes-of-death-footer {
         font-size: 1rem;
     }
 }
@@ -1732,7 +1736,7 @@ g:has(.arrow) {
 }
 
 /* OWID logo with text wrapping */
-.owid-logo-corner {
+.owid-logo {
     float: right;
     height: 45px;
     width: auto;
@@ -1742,4 +1746,43 @@ g:has(.arrow) {
 /* Settings box styling */
 .settings-box {
     max-width: 900px;
+}
+
+.causes-of-death-captioned-chart .causes-of-death__entity-dropdown {
+    margin-bottom: 20px;
+    max-width: 300px;
+}
+
+.causes-of-death-captioned-chart {
+    .causes-of-death-captioned-chart__treemap {
+        position: relative;
+        transition: opacity 0.2s ease-in-out;
+
+        &--loading {
+            opacity: 0.7;
+        }
+    }
+
+    .causes-of-death-captioned-chart__treemap-loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 10;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.8);
+        font-size: 14px;
+        color: #666;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+.causes-of-death-treemap {
+    max-width: 100%;
+    height: auto;
+    font: 10px sans-serif;
 }

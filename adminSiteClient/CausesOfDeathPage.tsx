@@ -1,17 +1,32 @@
-import { EntityName, Time } from "@ourworldindata/types"
+import { EntityName as _EntityName, Time } from "@ourworldindata/types"
 import { useQuery } from "@tanstack/react-query"
 import * as d3 from "d3"
 import { useState, useMemo } from "react"
 import {
-    CAUSE_OF_DEATH_INDICATOR_NAMES,
-    FetchedDataRow,
+    CAUSE_OF_DEATH_INDICATOR_NAMES as _CAUSE_OF_DEATH_INDICATOR_NAMES,
+    FetchedDataRow as _FetchedDataRow,
 } from "./CausesOfDeathConstants"
-import {
-    CausesOfDeathComponent,
-    CausesOfDeathCountrySelector,
-} from "./CausesOfDeathComponent"
+import { CausesOfDeathCaptionedChart } from "./CausesOfDeathComponent"
 // @ts-expect-error - JavaScript module without type definitions
 import { hybridSliceDiceSmartStack } from "./customTiling.js"
+
+interface CausesOfDeathMetadata {
+    dimensions: {
+        entities: Array<{ id: number; name: string }>
+        variables: Array<{ id: number; name: string }>
+    }
+}
+
+interface EntityData {
+    values: number[]
+    variables: number[]
+    years: number[]
+}
+
+interface EntityDataWithInfo extends EntityData {
+    entityId: number
+    entityName: string
+}
 
 const TILING_METHODS = [
     { value: "squarify", label: "Squarify", method: d3.treemapSquarify },
@@ -31,57 +46,76 @@ const TILING_METHODS = [
 ]
 
 export function CausesOfDeathPage() {
-    // const [selectedEntity, setSelectedEntity] = useState<EntityName>("World")
     const [selectedYear, setSelectedYear] = useState<Time>(2023)
     const [selectedTiling, setSelectedTiling] = useState<string>("custom")
     const [_minThickness, _setMinThickness] = useState<number>(120)
     const [_innerMinThickness, _setInnerMinThickness] = useState<number>(40)
     const [debug, setDebug] = useState<boolean>(false)
 
-    const result = useQuery({
-        queryKey: ["causesOfDeath"],
-        queryFn: async () => {
-            const response = await fetch("/deaths-by-cause.csv")
-            const csvText = await response.text()
-            return d3.csvParse<FetchedDataRow, string>(csvText, d3.autoType)
+    // Fetch metadata
+    const metadataResult = useQuery({
+        queryKey: ["causesOfDeathMetadata"],
+        queryFn: async (): Promise<CausesOfDeathMetadata> => {
+            const response = await fetch("/causes-of-death.metadata.json")
+            return response.json()
         },
     })
 
-    // Extract unique entities and years from the data
-    const { entities, years } = useMemo(() => {
-        if (!result.data) return { entities: [], years: [] }
+    // Fetch data for all entities
+    const allEntitiesDataResult = useQuery({
+        queryKey: ["causesOfDeathAllData"],
+        queryFn: async (): Promise<EntityDataWithInfo[]> => {
+            if (!metadataResult.data) return []
 
-        const uniqueEntities = Array.from(
-            new Set(result.data.map((d) => d.Entity))
-        ).sort()
-        const uniqueYears = Array.from(
-            new Set(result.data.map((d) => d.Year))
-        ).sort((a, b) => b - a)
+            const entityPromises = metadataResult.data.dimensions.entities.map(
+                async (entity) => {
+                    const response = await fetch(
+                        `/causes-of-death.${entity.id}.data.json`
+                    )
+                    const data = await response.json()
+                    return {
+                        ...data,
+                        entityId: entity.id,
+                        entityName: entity.name,
+                    }
+                }
+            )
 
-        return { entities: uniqueEntities, years: uniqueYears }
-    }, [result.data])
+            return Promise.all(entityPromises)
+        },
+        enabled: !!metadataResult.data,
+    })
 
-    // Set default entity when data loads
-    // useMemo(() => {
-    //     if (entities.length > 0 && !selectedEntity) {
-    //         setSelectedEntity(entities[0])
-    //     }
-    // }, [entities, selectedEntity])
+    // Extract years from all entity data
+    const years = useMemo(() => {
+        if (!allEntitiesDataResult.data) return []
+
+        const allYears = allEntitiesDataResult.data.flatMap(
+            (entityData) => entityData.years
+        )
+        return Array.from(new Set(allYears)).sort((a, b) => b - a)
+    }, [allEntitiesDataResult.data])
 
     const data = useMemo(() => {
-        return parseFetchedData(result.data)
-    }, [result.data])
+        return parseAllEntitiesData(
+            metadataResult.data,
+            allEntitiesDataResult.data
+        )
+    }, [metadataResult.data, allEntitiesDataResult.data])
 
     return (
         <div style={{ paddingBottom: "60px" }}>
-            {result.isLoading && <p>Loading...</p>}
-            {result.isError && <p>Error: {String(result.error)}</p>}
-
-            {/* <EntitySelect
-                entities={entities}
-                selectedEntity={selectedEntity}
-                onEntityChange={setSelectedEntity}
-            /> */}
+            {(metadataResult.isLoading || allEntitiesDataResult.isLoading) && (
+                <p>Loading...</p>
+            )}
+            {(metadataResult.isError || allEntitiesDataResult.isError) && (
+                <p>
+                    Error:{" "}
+                    {String(
+                        metadataResult.error || allEntitiesDataResult.error
+                    )}
+                </p>
+            )}
 
             <div style={{ marginTop: "15px", paddingLeft: "20px" }}>
                 <div
@@ -154,8 +188,7 @@ export function CausesOfDeathPage() {
                 <>
                     {/* Country selector section */}
                     <div style={{ padding: "0 20px" }}>
-                        <CausesOfDeathCountrySelector
-                            data={data}
+                        <CausesOfDeathCaptionedChart
                             year={selectedYear}
                             debug={debug}
                             tilingMethod={
@@ -303,53 +336,53 @@ export function CausesOfDeathPage() {
     )
 }
 
-function parseFetchedData(data: FetchedDataRow[] | undefined) {
-    if (!data) return undefined
+function parseAllEntitiesData(
+    metadata: CausesOfDeathMetadata | undefined,
+    allEntitiesData: EntityDataWithInfo[] | undefined
+) {
+    if (!metadata || !allEntitiesData) return undefined
 
-    return data.flatMap((row) =>
-        CAUSE_OF_DEATH_INDICATOR_NAMES.map((indicatorName) => ({
-            entityName: row.Entity,
-            year: row.Year,
-            variable: indicatorName,
-            value: row[indicatorName],
-        }))
-    )
-}
+    // Map variable IDs to the original indicator names
+    const variableIdToIndicatorName = new Map<number, string>([
+        [1, "Total number of deaths from heart diseases"],
+        [2, "Total number of deaths from cancers"],
+        [3, "Total number of deaths from chronic respiratory diseases"],
+        [4, "Total number of deaths from digestive diseases"],
+        [5, "Total number of deaths from diabetes and kidney diseases"],
+        [6, "Total number of deaths from neurological disorders"],
+        [7, "Total number of deaths from other non-communicable diseases"],
+        [8, "Total number of deaths from pneumonia"],
+        [9, "Total number of deaths from diarrheal diseases"],
+        [10, "Total number of deaths from tuberculosis"],
+        [11, "Total number of deaths from HIV/AIDS"],
+        [12, "Total number of deaths from malaria"],
+        [13, "Total number of deaths from neonatal disorders"],
+        [14, "Total number of deaths from maternal disorders"],
+        [15, "Total number of deaths from nutritional deficiencies"],
+        [16, "Total number of deaths from transport injuries"],
+        [17, "Total number of deaths from other injuries"],
+        [18, "Total number of deaths from suicide"],
+        [19, "Total number of deaths from other infectious diseases"],
+        [20, "Total number of deaths from interpersonal violence"],
+    ])
 
-interface EntitySelectProps {
-    entities: EntityName[]
-    selectedEntity: EntityName
-    onEntityChange: (entity: EntityName) => void
-}
+    return allEntitiesData.flatMap(
+        (entityData) =>
+            entityData.values
+                .map((value, index) => {
+                    const variableId = entityData.variables[index]
+                    const year = entityData.years[index]
+                    const indicatorName =
+                        variableIdToIndicatorName.get(variableId)
 
-function _EntitySelect({
-    entities,
-    selectedEntity,
-    onEntityChange,
-}: EntitySelectProps) {
-    return (
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <label
-                htmlFor="entity-select"
-                style={{
-                    fontWeight: "bold",
-                }}
-            >
-                Country:
-            </label>
-            <select
-                id="entity-select"
-                value={selectedEntity}
-                onChange={(e) => onEntityChange(e.target.value as EntityName)}
-                style={{ padding: "5px", minWidth: "200px" }}
-            >
-                {entities.map((entity) => (
-                    <option key={entity} value={entity}>
-                        {entity}
-                    </option>
-                ))}
-            </select>
-        </div>
+                    return {
+                        entityName: entityData.entityName,
+                        year,
+                        variable: indicatorName as any,
+                        value,
+                    }
+                })
+                .filter((item) => item.variable) // Filter out any items where variable name wasn't found
     )
 }
 
