@@ -5,7 +5,11 @@ import { CoreColumn } from "@ourworldindata/core-table"
 import { NO_DATA_LABEL } from "../color/ColorScale.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle, faS } from "@fortawesome/free-solid-svg-icons"
-import { formatInlineList, GrapherTooltipAnchor } from "@ourworldindata/utils"
+import {
+    formatInlineList,
+    GrapherTooltipAnchor,
+    GrapherTrendArrowDirection,
+} from "@ourworldindata/utils"
 import { GrapherTrendArrow } from "@ourworldindata/components"
 import {
     TooltipTableProps,
@@ -53,31 +57,59 @@ export function TooltipValue({
     )
 }
 
+function formatValueShort(
+    value: number | string | undefined,
+    column: CoreColumn
+): string {
+    if (value === undefined) return NO_DATA_LABEL
+    if (typeof value === "string") return value
+    return column.formatValueShort(value)
+}
+
+function formatValueShortWithAbbreviations(
+    value: number | string | undefined,
+    column: CoreColumn
+): string {
+    if (value === undefined) return NO_DATA_LABEL
+    if (typeof value === "string") return value
+    return column.formatValueShortWithAbbreviations(value)
+}
+
+function getTrendArrowDirection(
+    values: (string | number | undefined)[]
+): GrapherTrendArrowDirection | undefined {
+    // Can't show a trend for less than two values
+    if (values.length < 2) return
+
+    // If any value is not a number, default to the right arrow
+    if (values.some((v) => !_.isNumber(v))) return "right"
+
+    const numericValues = values as [number, number]
+    return numericValues[0] < numericValues[1]
+        ? "up"
+        : numericValues[0] > numericValues[1]
+          ? "down"
+          : "right"
+}
+
 export function TooltipValueRange({
     column,
     values,
-    color,
+    colors,
     notice,
     labelVariant = "name+unit",
     showSignificanceSuperscript,
 }: TooltipValueRangeProps): React.ReactElement | null {
     const [firstValue, lastValue] = values.map((v) =>
-        column.formatValueShort(v)
+        formatValueShort(v, column)
     )
     const [firstTerm, lastTerm] =
         // TODO: would be nicer to actually measure the typeset text but we would need to
         // add Lato's metrics to the `string-pixel-width` module to use Bounds.forText
         _.sum([firstValue?.length, lastValue?.length]) > 20
-            ? values.map((v) => column.formatValueShortWithAbbreviations(v))
+            ? values.map((v) => formatValueShortWithAbbreviations(v, column))
             : [firstValue, lastValue]
-    const trend =
-        values.length < 2
-            ? null
-            : values[0] < values[1]
-              ? "up"
-              : values[0] > values[1]
-                ? "down"
-                : "right"
+    const trend = getTrendArrowDirection(values)
 
     const { roundsToSignificantFigures } = column
     const showSuperscript =
@@ -85,21 +117,18 @@ export function TooltipValueRange({
     const superscript = showSuperscript ? <IconCircledS asSup={true} /> : null
 
     return values.length ? (
-        <Variable
-            column={column}
-            color={color}
-            notice={notice}
-            labelVariant={labelVariant}
-        >
+        <Variable column={column} notice={notice} labelVariant={labelVariant}>
             <span className="range">
                 <span className="term">
-                    {firstTerm}
+                    <span style={{ color: colors?.[0] }}>{firstTerm}</span>
                     {!lastTerm && superscript}
                 </span>
-                {trend && <GrapherTrendArrow direction={trend} />}
+                {trend && (
+                    <GrapherTrendArrow direction={trend} isColored={!colors} />
+                )}
                 {lastTerm && (
                     <span className="term">
-                        {lastTerm}
+                        <span style={{ color: colors?.[1] }}>{lastTerm}</span>
                         {superscript}
                     </span>
                 )}

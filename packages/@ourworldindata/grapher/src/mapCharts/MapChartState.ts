@@ -4,6 +4,7 @@ import { ChartState } from "../chart/ChartInterface"
 import {
     ChoroplethSeries,
     ChoroplethSeriesByName,
+    MAP_REGION_LABELS,
     MapChartManager,
     MapColumnInfo,
 } from "./MapChartConstants"
@@ -32,7 +33,7 @@ import {
 } from "@ourworldindata/utils"
 import { MapConfig } from "./MapConfig"
 import { combineHistoricalAndProjectionColumns } from "../chart/ChartUtils"
-import { isOnTheMap } from "./MapHelpers"
+import { getCountriesByRegion, isOnTheMap } from "./MapHelpers"
 import { MapSelectionArray } from "../selection/MapSelectionArray"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
@@ -41,8 +42,8 @@ export type MapFormatValueForTooltip = (
     d: PrimitiveType,
     options?: TickFormattingOptions
 ) => {
-    formattedValue: string
-    isRounded: boolean
+    label: string
+    isCategorical: boolean
 }
 
 export class MapChartState implements ChartState, ColorScaleManager {
@@ -140,12 +141,38 @@ export class MapChartState implements ChartState, ColorScaleManager {
     }
 
     private dropNonMapEntitiesForSelection(table: OwidTable): OwidTable {
-        const { selectionArray } = this
+        const { selectionArray, mapConfig } = this
 
         const allMappableCountryNames = mappableCountries.map((c) => c.name)
         const allRegionNames = regions
             .filter((r) => checkHasMembers(r) && r.code !== "OWID_WRL")
             .map((r) => r.name)
+
+        const mappableCountryNameSet = new Set(allMappableCountryNames)
+
+        // If in 2D mode and a continent is selected, then all countries
+        // outside of the selected continent are disabled on the map
+        // and thus also not selectable
+        if (this.mapConfig.is2dContinentActive()) {
+            const countriesInRegionSet = getCountriesByRegion(
+                MAP_REGION_LABELS[mapConfig.region]
+            )
+            if (!countriesInRegionSet) return table
+
+            const countriesInRegion = Array.from(countriesInRegionSet)
+            const mappableCountriesInRegion = countriesInRegion.filter(
+                (countryName) => mappableCountryNameSet.has(countryName)
+            )
+
+            return table.filterByEntityNames(
+                R.unique([
+                    // only keep countries in the region
+                    ...mappableCountriesInRegion,
+                    // keep the user's selection
+                    ...selectionArray.selectedEntityNames,
+                ])
+            )
+        }
 
         // if no regions are currently selected, keep all mappable countries and regions
         if (!selectionArray.hasRegions) {
@@ -202,11 +229,26 @@ export class MapChartState implements ChartState, ColorScaleManager {
             : table
     }
 
-    @computed get transformedTable(): OwidTable {
+    @computed get transformedTableFromGrapher(): OwidTable {
         return (
             this.manager.transformedTable ??
             this.transformTable(this.inputTable)
         )
+    }
+
+    @computed get transformedTable(): OwidTable {
+        let table = this.transformedTableFromGrapher
+
+        // A target time is set for faceted maps
+        if (this.manager.targetTime !== undefined) {
+            table = table.filterByTargetTimes(
+                [this.manager.targetTime],
+                this.mapConfig.timeTolerance ??
+                    table.get(this.mapColumnSlug).tolerance
+            )
+        }
+
+        return table
     }
 
     @computed get selectionArray(): MapSelectionArray {
@@ -274,7 +316,7 @@ export class MapChartState implements ChartState, ColorScaleManager {
     }
 
     @computed get targetTime(): number | undefined {
-        return this.manager.endTime
+        return this.manager.targetTime ?? this.manager.endTime
     }
 
     @computed get columnIsProjection(): CoreColumn | undefined {
@@ -345,15 +387,15 @@ export class MapChartState implements ChartState, ColorScaleManager {
                 const bin = colorScale.getBinForValue(d)
                 const label = bin?.label
                 if (label !== undefined && label !== "")
-                    return { formattedValue: label, isRounded: false }
+                    return { label, isCategorical: true }
             }
 
-            if (typeof d === "number")
-                return {
-                    formattedValue: this.mapColumn.formatValueShort(d, options),
-                    isRounded: true,
-                }
-            else return { formattedValue: anyToString(d), isRounded: false }
+            if (typeof d === "number") {
+                const label = this.mapColumn.formatValueShort(d, options)
+                return { label, isCategorical: false }
+            } else {
+                return { label: anyToString(d), isCategorical: true }
+            }
         }
     }
 

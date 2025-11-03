@@ -11,6 +11,7 @@ import {
     LegacyGrapherQueryParams,
     GRAPHER_TAB_NAMES,
     OwidChartDimensionInterface,
+    GRAPHER_TAB_QUERY_PARAMS,
 } from "@ourworldindata/types"
 import {
     TimeBoundValue,
@@ -641,6 +642,19 @@ describe("urls", () => {
         grapher.setTab(GRAPHER_TAB_NAMES.LineChart)
         expect(grapher.changedParams.tab).toEqual("line")
     })
+
+    it("shows a multi-year chart by default", () => {
+        const grapher = new GrapherState({})
+        expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.LineChart)
+        expect(grapher.timelineHandleTimeBounds).toEqual([-Infinity, Infinity])
+    })
+
+    it("shows a single-year map by default", () => {
+        const grapher = new GrapherState({ hasMapTab: true })
+        grapher.populateFromQueryParams({ tab: "map" })
+        expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.WorldMap)
+        expect(grapher.timelineHandleTimeBounds).toEqual([Infinity, Infinity])
+    })
 })
 
 describe("time domain tests", () => {
@@ -761,6 +775,28 @@ describe("time parameter", () => {
                     const params = toQueryParams({
                         minTime: test.param[0],
                         maxTime: test.param[1],
+                    })
+                    expect(params.time).toEqual(test.query)
+                })
+            }
+        }
+
+        for (const test of tests) {
+            it(`parse ${test.name} (map tab)`, () => {
+                const grapher = fromQueryParams({
+                    tab: GRAPHER_TAB_QUERY_PARAMS.map,
+                    time: test.query,
+                })
+                const [start, end] = grapher.timelineHandleTimeBounds
+                expect(start).toEqual(test.param[0])
+                expect(end).toEqual(test.param[1])
+            })
+            if (!test.irreversible) {
+                it(`encode ${test.name}`, () => {
+                    const params = toQueryParams({
+                        hasMapTab: true,
+                        tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+                        map: { startTime: test.param[0], time: test.param[1] },
                     })
                     expect(params.time).toEqual(test.query)
                 })
@@ -1095,7 +1131,7 @@ it("considers map tolerance before using column tolerance", () => {
         map: new MapConfig({ timeTolerance: 1, columnSlug: "gdp", time: 2002 }),
     })
 
-    expect(grapher.timelineHandleTimeBounds[1]).toEqual(2002)
+    expect(grapher.timelineHandleTimeBounds).toEqual([2002, 2002])
     expect(
         grapher.transformedTable.filterByEntityNames(["Germany"]).get("gdp")
             .values

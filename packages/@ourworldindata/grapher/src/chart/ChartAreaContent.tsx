@@ -10,11 +10,12 @@ import {
 import { DataTable } from "../dataTable/DataTable"
 import { CaptionedChartManager } from "../captionedChart/CaptionedChart"
 import { LoadingIndicator } from "@ourworldindata/components"
-import { FacetChart } from "../facetChart/FacetChart"
+import { FacetChart } from "../facet/FacetChart"
 import { getChartSvgProps, NoDataPattern } from "./ChartUtils"
 import { ChartComponent, makeChartState } from "./ChartTypeMap"
 import { GRAPHER_CHART_AREA_CLASS } from "../core/GrapherConstants"
 import { ChartState } from "./ChartInterface"
+import { FacetMap } from "../facet/FacetMap.js"
 
 interface ChartAreaContentProps {
     manager: CaptionedChartManager
@@ -73,17 +74,14 @@ export class ChartAreaContent extends React.Component<ChartAreaContentProps> {
 
         if (!activeChartOrMapType) return null
 
-        // Todo: make FacetChart a chart type name?
-        const activeChartType =
-            activeChartOrMapType !== GRAPHER_MAP_TYPE
-                ? activeChartOrMapType
-                : undefined
-        if (manager.isFaceted && activeChartType)
-            return (
+        if (manager.isFaceted)
+            return activeChartOrMapType === GRAPHER_MAP_TYPE ? (
+                <FacetMap bounds={bounds} manager={manager} />
+            ) : (
                 <FacetChart
                     bounds={bounds}
-                    chartTypeName={activeChartType}
                     manager={manager}
+                    chartTypeName={activeChartOrMapType}
                 />
             )
 

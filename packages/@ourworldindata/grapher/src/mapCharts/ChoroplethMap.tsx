@@ -6,6 +6,7 @@ import {
     makeIdForHumanConsumption,
     excludeUndefined,
     EntityName,
+    MapRegionName,
 } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -24,6 +25,9 @@ import {
     ANNOTATION_COLOR_DARK,
     RenderFeature,
     PROJECTED_DATA_LEGEND_COLOR,
+    MapViewport,
+    MAP_VIEWPORTS,
+    MAP_REGION_LABELS,
 } from "./MapChartConstants"
 import { getGeoFeaturesForMap } from "./GeoFeatures"
 import {
@@ -38,6 +42,7 @@ import {
 import { Patterns } from "../core/GrapherConstants"
 import {
     detectNearbyFeature,
+    getCountriesByRegion,
     getForegroundFeatures,
     sortFeaturesByInteractionStateAndSize,
 } from "./MapHelpers"
@@ -46,10 +51,10 @@ import {
     makeExternalAnnotationForFeature,
     repositionAndFilterExternalAnnotations,
 } from "./MapAnnotations"
-import { geoRobinson } from "./d3-geo-projection"
 import { isDarkColor } from "../color/ColorUtils"
 import { MapConfig } from "./MapConfig"
 import { MapSelectionArray } from "../selection/MapSelectionArray"
+import { MAP_PROJECTIONS } from "./MapProjections"
 
 @observer
 export class ChoroplethMap extends React.Component<{
@@ -76,8 +81,6 @@ export class ChoroplethMap extends React.Component<{
         return isTouchDevice()
     }
 
-    private viewport = { x: 0.565, y: 0.5 } as const
-
     @computed private get manager(): ChoroplethMapManager {
         return this.props.manager
     }
@@ -92,6 +95,10 @@ export class ChoroplethMap extends React.Component<{
 
     @computed private get selectionArray(): MapSelectionArray {
         return this.manager.selectionArray ?? new MapSelectionArray()
+    }
+
+    @computed private get viewport(): MapViewport {
+        return this.manager.mapViewport ?? MAP_VIEWPORTS[this.mapConfig.region]
     }
 
     @computed.struct private get choroplethData(): ChoroplethSeriesByName {
@@ -110,10 +117,12 @@ export class ChoroplethMap extends React.Component<{
 
     // Calculate what scaling should be applied to the untransformed map to match the current viewport to the container
     @computed private get viewportScale(): number {
-        const { bounds, mapBounds } = this
+        const { bounds, viewport, mapBounds } = this
+        const viewportWidth = viewport.width * mapBounds.width
+        const viewportHeight = viewport.height * mapBounds.height
         return Math.min(
-            bounds.width / mapBounds.width,
-            bounds.height / mapBounds.height
+            bounds.width / viewportWidth,
+            bounds.height / viewportHeight
         )
     }
 
@@ -146,7 +155,22 @@ export class ChoroplethMap extends React.Component<{
     }
 
     @computed private get features(): MapRenderFeature[] {
-        return getGeoFeaturesForMap()
+        return getGeoFeaturesForMap(this.mapConfig.region)
+    }
+
+    @computed private get featuresInRegion(): MapRenderFeature[] {
+        const { features, mapConfig } = this
+
+        if (mapConfig.region === MapRegionName.World) return features
+
+        const countriesByProjection = getCountriesByRegion(
+            MAP_REGION_LABELS[mapConfig.region]
+        )
+        if (countriesByProjection === undefined) return []
+
+        return features.filter((feature) =>
+            countriesByProjection.has(feature.id)
+        )
     }
 
     @computed private get featuresById(): Map<string, MapRenderFeature> {
@@ -154,7 +178,7 @@ export class ChoroplethMap extends React.Component<{
     }
 
     @computed private get foregroundFeatures(): MapRenderFeature[] {
-        return getForegroundFeatures(this.features, this.selectionArray)
+        return getForegroundFeatures(this.featuresInRegion, this.selectionArray)
     }
 
     @computed
@@ -199,7 +223,7 @@ export class ChoroplethMap extends React.Component<{
     }
 
     @computed private get projection(): any {
-        return geoRobinson()
+        return MAP_PROJECTIONS[this.mapConfig.region]
     }
 
     @computed private get shouldShowAnnotations(): boolean {
@@ -220,7 +244,7 @@ export class ChoroplethMap extends React.Component<{
             this.mapConfig.selection.selectedCountryNamesInForeground.map(
                 (name) => this.featuresById.get(name)
             )
-        )
+        ).filter((feature) => this.foregroundFeatures.includes(feature))
     }
 
     /* Naively placed annotations that might be overlapping */
@@ -239,7 +263,7 @@ export class ChoroplethMap extends React.Component<{
                     feature,
                     projection: this.projection,
                     formattedValue: this.formatAnnotationLabel(series.value),
-                    fontSizeScale: this.viewportScaleSqrt,
+                    fontSizeScale: this.viewportScale,
                     color: labelColor,
                 }
 
@@ -350,17 +374,26 @@ export class ChoroplethMap extends React.Component<{
 
         this.setHoverEnterFeature(feature)
 
+        const is2dContinentActive = this.mapConfig.is2dContinentActive()
+
         if (isMapSelectionEnabled) {
-            // select/deselect the country if allowed
+            // Select/deselect the country if allowed
             selection.toggleSelection(feature.id)
-        } else if (window?.visualViewport?.scale === 1) {
-            // rotate to the selected country on the globe
-            // but not if the user is zoomed in, otherwise they can get stuck in 3D mode
-            globeController?.focusOnCountry(feature.id)
+        } else if (
+            // Don't rotate if the maps shows a continent in 2d mode
+            !is2dContinentActive &&
+            // Don't rotate if the map is faceted
+            !this.manager.isFaceted &&
+            // Don't rotate if the user is zoomed in, otherwise they can get stuck in 3D mode
+            window?.visualViewport?.scale === 1
+        ) {
+            // Rotate to the selected country on the globe
+            globeController?.rotateToCountry(feature.id)
         }
     }
 
     @action.bound private onDocumentClick(): void {
+        this.manager.globeController?.dismissCountryFocus()
         if (this.hoverEnterFeature || this.hoverNearbyFeature) {
             this.hoverEnterFeature = undefined
             this.hoverNearbyFeature = undefined

@@ -29,7 +29,7 @@ import {
 } from "../tooltip/Tooltip"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { extent } from "d3-array"
-import { SeriesName, VerticalAlign } from "@ourworldindata/types"
+import { SeriesName, VerticalAlign, Time } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
@@ -63,7 +63,7 @@ import {
 } from "../chart/ChartUtils"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { ColorScale } from "../color/ColorScale"
-import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
+import { GRAPHER_BACKGROUND_DEFAULT, GRAY_50 } from "../color/ColorConstants"
 import { darkenColorForLine } from "../color/ColorUtils"
 import {
     HorizontalColorLegendManager,
@@ -140,9 +140,9 @@ export class LineChart
         return this.placedSeries.flatMap((series) => series.points)
     }
 
-    private tooltipState = new TooltipState<{
-        x: number
-    }>({ fade: "immediate" })
+    private tooltipState = new TooltipState<{ time: Time }>({
+        fade: "immediate",
+    })
 
     @action.bound private onCursorMove(
         ev: React.MouseEvent | React.TouchEvent
@@ -166,14 +166,14 @@ export class LineChart
             right: boxPadding,
         })
 
-        let hoverX
+        let hoverTime
         if (boundedBox.contains(mouse)) {
             const invertedX = this.dualAxis.horizontalAxis.invert(mouse.x)
 
             const closestValue = _.minBy(this.allValues, (point) =>
                 Math.abs(invertedX - point.x)
             )
-            hoverX = closestValue?.x
+            hoverTime = closestValue?.x
         }
 
         // be sure all lines are un-dimmed if the cursor is above the graph itself
@@ -181,7 +181,8 @@ export class LineChart
             this.clearLineLegendHover()
         }
 
-        this.tooltipState.target = hoverX === undefined ? null : { x: hoverX }
+        this.tooltipState.target =
+            hoverTime === undefined ? null : { time: hoverTime }
     }
 
     @computed private get manager(): LineChartManager {
@@ -223,64 +224,71 @@ export class LineChart
         return DEFAULT_MARKER_RADIUS
     }
 
-    @computed private get activeX(): number | undefined {
-        return (
-            this.tooltipState.target?.x ??
-            this.manager.entityYearHighlight?.year
+    @computed get activeTimes(): Time[] {
+        const { highlightedTimesInLineChart = [] } = this.manager
+        return _.uniq(
+            this.tooltipState.target?.time
+                ? [
+                      this.tooltipState.target.time,
+                      ...highlightedTimesInLineChart,
+                  ]
+                : highlightedTimesInLineChart
         )
     }
 
-    @computed private get activeXVerticalLine():
-        | React.ReactElement
-        | undefined {
-        const { activeX, dualAxis } = this
+    @computed private get activeXVerticalLines(): React.ReactElement | null {
+        const { activeTimes, dualAxis } = this
         const { horizontalAxis, verticalAxis } = dualAxis
 
-        if (activeX === undefined) return undefined
+        if (!activeTimes) return null
 
         return (
-            <g className="hoverIndicator">
-                <line
-                    x1={horizontalAxis.place(activeX)}
-                    y1={verticalAxis.range[0]}
-                    x2={horizontalAxis.place(activeX)}
-                    y2={verticalAxis.range[1]}
-                    stroke="rgba(180,180,180,.4)"
-                />
-                {this.renderSeries.map((series, index) => {
-                    const point = series.points.find(
-                        (point) => point.x === activeX
-                    )
-                    if (!point || series.hover.background) return null
-
-                    const color = this.hasColorScale
-                        ? darkenColorForLine(
-                              this.chartState.getColorScaleColor(
-                                  point.colorValue
-                              )
-                          )
-                        : series.color
-                    const opacity = series.focus?.background
-                        ? GRAPHER_OPACITY_MUTE
-                        : 1
-
-                    return (
-                        <circle
-                            key={getSeriesKey(series, index)}
-                            cx={horizontalAxis.place(point.x)}
-                            cy={verticalAxis.place(point.y)}
-                            r={this.lineStrokeWidth / 2 + 3.5}
-                            fill={color}
-                            stroke={
-                                this.manager.backgroundColor ??
-                                GRAPHER_BACKGROUND_DEFAULT
-                            }
-                            strokeWidth={0.5}
-                            opacity={opacity}
+            <>
+                {activeTimes.map((time) => (
+                    <g className="hoverIndicator" key={time}>
+                        <line
+                            x1={horizontalAxis.place(time)}
+                            y1={verticalAxis.range[0]}
+                            x2={horizontalAxis.place(time)}
+                            y2={verticalAxis.range[1]}
+                            stroke="rgba(180,180,180,.4)"
                         />
-                    )
-                })}
-            </g>
+                        {this.renderSeries.map((series, index) => {
+                            const point = series.points.find(
+                                (point) => point.x === time
+                            )
+                            if (!point || series.hover.background) return null
+
+                            const valueColor = this.hasColorScale
+                                ? darkenColorForLine(
+                                      this.chartState.getColorScaleColor(
+                                          point.colorValue
+                                      )
+                                  )
+                                : series.color
+                            const color =
+                                !series.focus.background || series.hover.active
+                                    ? valueColor
+                                    : GRAY_50
+
+                            return (
+                                <circle
+                                    key={getSeriesKey(series, index)}
+                                    cx={horizontalAxis.place(point.x)}
+                                    cy={verticalAxis.place(point.y)}
+                                    r={this.lineStrokeWidth / 2 + 3.5}
+                                    fill={color}
+                                    stroke={
+                                        this.manager.backgroundColor ??
+                                        GRAPHER_BACKGROUND_DEFAULT
+                                    }
+                                    strokeWidth={0.5}
+                                />
+                            )
+                        })}
+                    </g>
+                ))}
+            </>
         )
     }
 
@@ -304,7 +312,7 @@ export class LineChart
             (segments) =>
                 segments.find((series) =>
                     // Ideally pick series with a defined value at the target time
-                    series.points.find((point) => point.x === target.x)
+                    series.points.find((point) => point.x === target.time)
                 ) ??
                 segments.find((series): boolean | void => {
                     // Otherwise pick the series whose start & end contains the target time
@@ -313,8 +321,8 @@ export class LineChart
                     return (
                         _.isNumber(startX) &&
                         _.isNumber(endX) &&
-                        startX < target.x &&
-                        target.x < endX
+                        startX < target.time &&
+                        target.time < endX
                     )
                 }) ??
                 null // If neither series matches, exclude the entity from the tooltip altogether
@@ -324,13 +332,13 @@ export class LineChart
             excludeNullish(R.values(seriesSegments)),
             (series) => {
                 const value = series.points.find(
-                    (point) => point.x === target.x
+                    (point) => point.x === target.time
                 )
                 return value !== undefined ? -value.y : Infinity
             }
         )
 
-        const formattedTime = formatColumn.formatTime(target.x),
+        const formattedTime = formatColumn.formatTime(target.time),
             { unit, shortUnit } = formatColumn,
             { isRelativeMode, startTime } = this.manager
 
@@ -394,7 +402,7 @@ export class LineChart
                         )
 
                         const point = series.points.find(
-                            (point) => point.x === target.x
+                            (point) => point.x === target.time
                         )
 
                         const blurred =
@@ -466,7 +474,6 @@ export class LineChart
     @computed private get hoveredSeriesNames(): string[] {
         const { externalLegendHoverBin } = this.manager
         const hoveredSeriesNames = excludeUndefined([
-            this.manager.entityYearHighlight?.entityName,
             this.lineLegendHoveredSeriesName,
         ])
         if (externalLegendHoverBin) {
@@ -493,8 +500,9 @@ export class LineChart
         return !isTouchDevice() && this.series.length > 1
     }
 
-    @computed private get hasEntityYearHighlight(): boolean {
-        return this.manager.entityYearHighlight !== undefined
+    @computed private get hasTimeHighlights(): boolean {
+        const { highlightedTimesInLineChart = [] } = this.manager
+        return highlightedTimesInLineChart.length > 0
     }
 
     @action.bound private onDocumentClick(e: MouseEvent): void {
@@ -699,8 +707,8 @@ export class LineChart
                 {this.renderDualAxis()}
                 <g clipPath={this.clipPath.id}>{this.renderChartElements()}</g>
 
-                {(this.isTooltipActive || this.hasEntityYearHighlight) &&
-                    this.activeXVerticalLine}
+                {(this.isTooltipActive || this.hasTimeHighlights) &&
+                    this.activeXVerticalLines}
                 {this.tooltip}
             </g>
         )
