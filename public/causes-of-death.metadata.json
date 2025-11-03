@@ -1,0 +1,163 @@
+{
+    "categories": [
+        {
+            "id": 1,
+            "name": "Infectious diseases"
+        },
+        {
+            "id": 2,
+            "name": "Injuries"
+        },
+        {
+            "id": 3,
+            "name": "Maternal, neonatal, and nutritional disorders"
+        },
+        {
+            "id": 4,
+            "name": "Noncommunicable diseases"
+        }
+    ],
+    "dimensions": {
+        "entities": [
+            {
+                "id": 1,
+                "name": "Brazil"
+            },
+            {
+                "id": 2,
+                "name": "Central African Republic"
+            },
+            {
+                "id": 3,
+                "name": "China"
+            },
+            {
+                "id": 4,
+                "name": "France"
+            },
+            {
+                "id": 5,
+                "name": "Papua New Guinea"
+            },
+            {
+                "id": 6,
+                "name": "South Africa"
+            },
+            {
+                "id": 7,
+                "name": "United States"
+            },
+            {
+                "id": 8,
+                "name": "World"
+            }
+        ],
+        "variables": [
+            {
+                "id": 1,
+                "name": "Heart diseases",
+                "description": "Heart attacks, strokes, and other cardiovascular diseases",
+                "category": 4
+            },
+            {
+                "id": 2,
+                "name": "Cancers",
+                "category": 4
+            },
+            {
+                "id": 3,
+                "name": "Chronic respiratory diseases",
+                "description": "COPD, Asthma, and others",
+                "category": 4
+            },
+            {
+                "id": 4,
+                "name": "Digestive diseases",
+                "description": "Cirrhosis and others",
+                "category": 4
+            },
+            {
+                "id": 5,
+                "name": "Diabetes and kidney diseases",
+                "category": 4
+            },
+            {
+                "id": 6,
+                "name": "Neurological disorders",
+                "description": "Alzheimer's, Parkinson's, epilepsy, and others",
+                "category": 4
+            },
+            {
+                "id": 7,
+                "name": "Other non-communicable diseases",
+                "category": 4
+            },
+            {
+                "id": 8,
+                "name": "Pneumonia",
+                "category": 1
+            },
+            {
+                "id": 9,
+                "name": "Diarrheal diseases",
+                "category": 1
+            },
+            {
+                "id": 10,
+                "name": "Tuberculosis",
+                "category": 1
+            },
+            {
+                "id": 11,
+                "name": "HIV/AIDS",
+                "category": 1
+            },
+            {
+                "id": 12,
+                "name": "Malaria",
+                "category": 1
+            },
+            {
+                "id": 13,
+                "name": "Neonatal disorders",
+                "description": "Babies who died within the first 28 days of life",
+                "category": 3
+            },
+            {
+                "id": 14,
+                "name": "Maternal disorders",
+                "category": 3
+            },
+            {
+                "id": 15,
+                "name": "Nutritional deficiencies",
+                "category": 3
+            },
+            {
+                "id": 16,
+                "name": "Transport injuries",
+                "category": 2
+            },
+            {
+                "id": 17,
+                "name": "Other injuries",
+                "category": 2
+            },
+            {
+                "id": 18,
+                "name": "Suicide",
+                "category": 2
+            },
+            {
+                "id": 19,
+                "name": "Other infectious diseases",
+                "category": 1
+            },
+            {
+                "id": 20,
+                "name": "Interpersonal violence",
+                "category": 2
+            }
+        ]
+    }
+}

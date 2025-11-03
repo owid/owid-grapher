@@ -1,27 +1,68 @@
 import { EntityName, Time } from "@ourworldindata/types"
 
+type NumericId = number
+
+interface BasicEntry {
+    id: NumericId
+    name: string
+}
+
+export type CategoryMetadata = BasicEntry
+export type EntityMetadata = BasicEntry
+export type VariableMetadata = BasicEntry & {
+    description: string
+    category: NumericId
+}
+
+export interface CausesOfDeathMetadata {
+    categories: CategoryMetadata[]
+    dimensions: { entities: EntityMetadata[]; variables: VariableMetadata[] }
+}
+
+export interface CausesOfDeathEntityData {
+    values: number[]
+    variables: number[]
+    years: number[]
+}
+
+interface EntityData {
+    values: number[]
+    variables: number[]
+    years: number[]
+}
+
+interface EntityDataWithInfo extends EntityData {
+    entityId: number
+    entityName: string
+}
+
 export const CAUSE_OF_DEATH_INDICATOR_NAMES = [
-    "Total number of deaths from cancers",
-    "Total number of deaths from chronic respiratory diseases",
-    "Total number of deaths from diabetes and kidney diseases",
-    "Total number of deaths from diarrheal diseases",
-    "Total number of deaths from digestive diseases",
-    "Total number of deaths from heart diseases",
-    "Total number of deaths from HIV/AIDS",
-    "Total number of deaths from interpersonal violence",
-    "Total number of deaths from malaria",
-    "Total number of deaths from maternal disorders",
-    "Total number of deaths from neonatal disorders",
-    "Total number of deaths from neurological disorders",
-    "Total number of deaths from nutritional deficiencies",
-    "Total number of deaths from other infectious diseases",
-    "Total number of deaths from other injuries",
-    "Total number of deaths from other non-communicable diseases",
-    "Total number of deaths from pneumonia",
-    "Total number of deaths from suicide",
-    "Total number of deaths from transport injuries",
-    "Total number of deaths from tuberculosis",
+    "Cancers",
+    "Chronic respiratory diseases",
+    "Diabetes and kidney diseases",
+    "Diarrheal diseases",
+    "Digestive diseases",
+    "Heart diseases",
+    "HIV/AIDS",
+    "Interpersonal violence",
+    "Malaria",
+    "Maternal disorders",
+    "Neonatal disorders",
+    "Neurological disorders",
+    "Nutritional deficiencies",
+    "Other infectious diseases",
+    "Other injuries",
+    "Other non-communicable diseases",
+    "Pneumonia",
+    "Suicide",
+    "Transport injuries",
+    "Tuberculosis",
 ] as const
+
+export const isCauseOfDeathIndicatorName = (
+    name: string
+): name is CauseOfDeathIndicatorName =>
+    CAUSE_OF_DEATH_INDICATOR_NAMES.includes(name as any)
 
 export const CAUSE_OF_DEATH_CATEGORIES = [
     "Noncommunicable diseases",
@@ -44,61 +85,13 @@ export type CauseOfDeathIndicatorName =
     (typeof CAUSE_OF_DEATH_INDICATOR_NAMES)[number]
 export type CauseOfDeathCategory = (typeof CAUSE_OF_DEATH_CATEGORIES)[number]
 
-export const CAUSE_OF_DEATH_CATEGORY_MAPPING: Record<
-    CauseOfDeathIndicatorName,
-    CauseOfDeathCategory
-> = {
-    "Total number of deaths from cancers": "Noncommunicable diseases",
-    "Total number of deaths from chronic respiratory diseases":
-        "Noncommunicable diseases",
-    "Total number of deaths from diabetes and kidney diseases":
-        "Noncommunicable diseases",
-    "Total number of deaths from diarrheal diseases": "Infectious diseases",
-    "Total number of deaths from digestive diseases":
-        "Noncommunicable diseases",
-    "Total number of deaths from heart diseases": "Noncommunicable diseases",
-    "Total number of deaths from HIV/AIDS": "Infectious diseases",
-    "Total number of deaths from interpersonal violence": "Injuries",
-    "Total number of deaths from malaria": "Infectious diseases",
-    "Total number of deaths from maternal disorders":
-        "Maternal, neonatal, and nutritional disorders",
-    "Total number of deaths from neonatal disorders":
-        "Maternal, neonatal, and nutritional disorders",
-    "Total number of deaths from neurological disorders":
-        "Noncommunicable diseases",
-    "Total number of deaths from nutritional deficiencies":
-        "Maternal, neonatal, and nutritional disorders",
-    "Total number of deaths from other infectious diseases":
-        "Infectious diseases",
-    "Total number of deaths from other injuries": "Injuries",
-    "Total number of deaths from other non-communicable diseases":
-        "Noncommunicable diseases",
-    "Total number of deaths from pneumonia": "Infectious diseases",
-    "Total number of deaths from suicide": "Injuries",
-    "Total number of deaths from transport injuries": "Injuries",
-    "Total number of deaths from tuberculosis": "Infectious diseases",
-}
-
-export const CAUSE_OF_DEATH_DESCRIPTIONS: Partial<
-    Record<CauseOfDeathIndicatorName, string>
-> = {
-    "Total number of deaths from heart diseases":
-        "Heart attacks, strokes, and other cardiovascular diseases",
-    "Total number of deaths from chronic respiratory diseases":
-        "COPD, Asthma, and others",
-    "Total number of deaths from digestive diseases": "Cirrhosis and others",
-    "Total number of deaths from neurological disorders":
-        "Alzheimer's, Parkinson's, epilepsy, and others",
-    "Total number of deaths from neonatal disorders":
-        "Babies who died within the first 28 days of life",
-}
-
 export type FetchedDataRow = {
     Entity: EntityName
     Year: Time
 } & Record<CauseOfDeathIndicatorName, number>
 
 export interface DataRow {
+    // todo: remove
     entityName: EntityName
     year: Time
     variable: CauseOfDeathIndicatorName
