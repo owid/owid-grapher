@@ -10,16 +10,26 @@ interface Margins {
     left: number
 }
 
-const useChartDimensions = <E extends HTMLElement>(
-    passedMargins: Partial<Margins> = {},
-    {
+export interface DimensionsConfig {
+    initialWidth?: number
+    ratio?: number
+    minHeight?: number
+    maxHeight?: number
+}
+
+const useChartDimensions = <E extends HTMLElement>(options?: {
+    margins?: Partial<Margins>
+    config?: DimensionsConfig
+}) => {
+    const ref = useRef<E>(null)
+
+    const passedMargins = options?.margins || {}
+    const {
         initialWidth = 800,
         ratio = 16 / 9,
         minHeight = 300,
         maxHeight = 400,
-    } = {}
-) => {
-    const ref = useRef<E>(null)
+    } = options?.config || {}
 
     // set default margins
     const margins = {
