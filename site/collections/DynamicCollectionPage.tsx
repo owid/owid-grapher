@@ -56,11 +56,7 @@ export const DynamicCollectionPage = (props: { baseUrl: string }) => {
                         </h1>
                         <p className="span-cols-8 col-start-2 span-md-cols-12 col-md-start-2 body-1-regular collection-explanation">
                             This page shows a collection of Our World in Data
-                            charts.{" "}
-                        </p>
-                        <p className="span-cols-8 col-start-2 span-md-cols-12 col-md-start-2 body-1-regular collection-explanation">
-                            You can customize the selection of charts via the
-                            URL and share your version with others.
+                            charts.
                         </p>
                     </header>
                     <div
