@@ -125,6 +125,7 @@ export const SearchInput = forwardRef(
                         enterKeyHint="search"
                         value={value}
                         role="combobox"
+                        autoFocus
                         aria-expanded={showSuggestions}
                         aria-controls={autocompleteId}
                         aria-activedescendant={activeOptionId}
