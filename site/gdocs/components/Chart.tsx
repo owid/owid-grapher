@@ -22,6 +22,7 @@ export default function Chart({
 }) {
     const { isPreviewing, archiveContext } = useContext(DocumentContext)
     const refChartContainer = useRef<HTMLDivElement>(null)
+    const archiveIframeRef = useRef<HTMLIFrameElement | null>(null)
     useEmbedChart(0, refChartContainer, isPreviewing)
 
     // Connect chart ref to GuidedChartContext for guided chart scrollTo on mobile
@@ -38,34 +39,71 @@ export default function Chart({
     // This means we can link to the same chart multiple times with different querystrings
     // and it should all resolve correctly via the same linkedChart
     const { linkedChart } = useLinkedChart(d.url)
-
     const url = Url.fromURL(d.url)
-    const resolvedUrl = linkedChart?.resolvedUrl
-    const resolvedUrlParsed = Url.fromURL(resolvedUrl ?? "")
-    const slug = resolvedUrlParsed.slug!
-    const queryStr = resolvedUrlParsed.queryStr
-    const isExplorer = linkedChart?.configType === ChartConfigType.Explorer
-    const isMultiDim = linkedChart?.configType === ChartConfigType.MultiDim
-    const hasControls = url.queryParams.hideControls !== "true"
-    const isExplorerWithControls = isExplorer && hasControls
-    const isMultiDimWithControls = isMultiDim && hasControls
-
+    const resolvedUrl = linkedChart?.resolvedUrl ?? ""
+    const resolvedUrlParsed = useMemo(
+        () => Url.fromURL(resolvedUrl),
+        [resolvedUrl]
+    )
+    const resolvedQueryParams = useMemo(() => {
+        return { ...resolvedUrlParsed.queryParams }
+    }, [resolvedUrlParsed])
     const chartConfig = useMemo(
         () => ({
             archiveContext: linkedChart?.archivedPageVersion,
         }),
         [linkedChart?.archivedPageVersion]
     )
+    const configType = linkedChart?.configType
+    const isExplorer = configType === ChartConfigType.Explorer
+    const isMultiDim = configType === ChartConfigType.MultiDim
+    const hasControls = url.queryParams.hideControls !== "true"
+    const isExplorerWithControls = isExplorer && hasControls
+    const isMultiDimWithControls = isMultiDim && hasControls
 
-    if (!linkedChart) return null
+    const archivedChartVersion = linkedChart?.archivedPageVersion
+    const shouldRenderArchiveEmbed =
+        archiveContext?.type === "archive-page" && !!archivedChartVersion
 
-    if (
-        archiveContext?.type === "archive-page" &&
-        linkedChart.archivedPageVersion
-    ) {
-        const archiveUrl = Url.fromURL(
-            linkedChart.archivedPageVersion.archiveUrl
-        ).updateQueryParams(resolvedUrlParsed.queryParams)
+    const archiveUrl = useMemo(() => {
+        if (!shouldRenderArchiveEmbed) return undefined
+        const baseUrl = Url.fromURL(archivedChartVersion.archiveUrl)
+        return baseUrl.updateQueryParams(resolvedQueryParams)
+    }, [shouldRenderArchiveEmbed, archivedChartVersion, resolvedQueryParams])
+
+    const slug = resolvedUrlParsed.slug
+    const queryStr = resolvedUrlParsed.queryStr
+
+    useEffect(() => {
+        if (
+            !shouldRenderArchiveEmbed ||
+            !guidedChartContext?.registerArchiveChart ||
+            !configType
+        )
+            return
+        const unregister = guidedChartContext.registerArchiveChart({
+            iframeRef: archiveIframeRef,
+            baseUrl: archiveUrl?.fullUrl ?? archivedChartVersion.archiveUrl,
+            defaultQueryParams: resolvedQueryParams,
+            chartConfigType: configType,
+        })
+        return () => {
+            unregister()
+        }
+    }, [
+        configType,
+        guidedChartContext,
+        shouldRenderArchiveEmbed,
+        archiveUrl?.fullUrl,
+        archivedChartVersion?.archiveUrl,
+        archivedChartVersion,
+        resolvedUrl,
+        resolvedQueryParams,
+    ])
+
+    if (!linkedChart || !slug) return null
+
+    if (shouldRenderArchiveEmbed && archiveUrl) {
         const defaultHeight =
             isMultiDimWithControls || isExplorerWithControls ? "680px" : "600px"
         return (
@@ -75,8 +113,10 @@ export default function Chart({
                         !isExplorerWithControls && fullWidthOnMobile,
                 })}
                 style={{ gridRow: d.row, gridColumn: d.column }}
+                ref={refChartContainer}
             >
                 <iframe
+                    ref={archiveIframeRef}
                     src={archiveUrl.fullUrl}
                     width="100%"
                     height={d.height || defaultHeight}
