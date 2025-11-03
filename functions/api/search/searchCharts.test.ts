@@ -294,13 +294,9 @@ describe("searchPages with real Algolia", () => {
     })
 
     it("filters by page types", async () => {
-        const result = await searchPages(
-            algoliaConfig,
-            "about",
-            0,
-            5,
-            ["about-page"]
-        )
+        const result = await searchPages(algoliaConfig, "about", 0, 5, [
+            "about-page",
+        ])
 
         expect(result.results.length).toBeGreaterThan(0)
         // All results should be about-pages
