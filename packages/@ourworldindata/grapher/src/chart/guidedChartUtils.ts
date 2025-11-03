@@ -1,13 +1,26 @@
 import * as React from "react"
 import { GrapherProgrammaticInterface } from "../core/Grapher.js"
 import { GrapherState } from "../core/GrapherState.js"
-import { MultiDimDataPageConfig } from "@ourworldindata/utils"
-import { MultiDimDimensionChoices } from "@ourworldindata/types"
+import { MultiDimDataPageConfig, Url } from "@ourworldindata/utils"
+import {
+    MultiDimDimensionChoices,
+    ChartConfigType,
+} from "@ourworldindata/types"
+
+export interface ArchiveGuidedChartRegistration {
+    iframeRef: React.RefObject<HTMLIFrameElement | null>
+    baseUrl: string
+    defaultQueryParams: Record<string, string | undefined>
+    chartConfigType: ChartConfigType
+}
 
 export interface GuidedChartContextValue {
     grapherStateRef: React.RefObject<GrapherState>
     chartRef?: React.RefObject<HTMLDivElement>
     onGuidedChartLinkClick?: (href: string) => void
+    registerArchiveChart?: (
+        registration: ArchiveGuidedChartRegistration
+    ) => () => void
     registerMultiDim?: (registrationData: {
         config: MultiDimDataPageConfig
         onSettingsChange: (newSettings: MultiDimDimensionChoices) => void
@@ -47,4 +60,19 @@ export function useGuidedChartLinkHandler():
     | undefined {
     const context = React.useContext(GuidedChartContext)
     return context?.onGuidedChartLinkClick
+}
+
+export const buildArchiveGuidedChartSrc = (
+    registration: ArchiveGuidedChartRegistration,
+    guidedUrl: Url
+): string => {
+    const baseUrl = Url.fromURL(registration.baseUrl)
+    const mergedQuery = {
+        ...registration.defaultQueryParams,
+        ...guidedUrl.queryParams,
+    }
+    const updatedUrl = baseUrl.setQueryParams(mergedQuery)
+
+    const hash = guidedUrl.hash || baseUrl.hash
+    return hash ? updatedUrl.update({ hash }).fullUrl : updatedUrl.fullUrl
 }
