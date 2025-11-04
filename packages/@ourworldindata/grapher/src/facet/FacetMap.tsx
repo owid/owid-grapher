@@ -198,7 +198,12 @@ export class FacetMap
         const verticalDiff = Math.abs(
             Math.log2(mapAspectRatio / verticalLayoutAspectRatio)
         )
-        return horizontalDiff <= verticalDiff
+
+        // World maps tend to look better side-by-side, so we give the
+        // horizontal layout an advantage when the region is World
+        const bias = this.mapConfig.region === MapRegionName.World ? 0.5 : 0
+
+        return horizontalDiff - bias <= verticalDiff
             ? horizontalLayout
             : verticalLayout
     }
