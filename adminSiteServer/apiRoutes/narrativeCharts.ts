@@ -24,7 +24,7 @@ import {
     DbInsertChartConfig,
 } from "@ourworldindata/types"
 import { diffGrapherConfigs, mergeGrapherConfigs } from "@ourworldindata/utils"
-import { z } from "zod"
+import * as z from "zod"
 import {
     ApiNarrativeChartOverview,
     DataInsightMinimalInformation,

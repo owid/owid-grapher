@@ -1,4 +1,4 @@
-import { z } from "zod/mini"
+import * as z from "zod/mini"
 export type DonationInterval = "once" | "monthly" | "annual"
 
 export type DonationCurrencyCode = "USD" | "GBP" | "EUR"
