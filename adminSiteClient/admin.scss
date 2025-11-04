@@ -19,6 +19,14 @@
 
 @import "@react-awesome-query-builder/antd/css/styles.css";
 
+// Import required variables for tooltip styles
+@import "../packages/@ourworldindata/components/src/styles/colors.scss";
+@import "../packages/@ourworldindata/components/src/styles/variables.scss";
+@import "../packages/@ourworldindata/components/src/styles/typography.scss";
+
+// Import tooltip styles for the new MobX-free tooltip system
+@import "../packages/@ourworldindata/grapher/src/tooltip/Tooltip.scss";
+
 @import "./GdocsIndexPage.scss";
 @import "./FeaturedMetricsPage.scss";
 @import "./FilesIndexPage.scss";
