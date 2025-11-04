@@ -105,6 +105,7 @@ export class MapResetButton extends React.Component<{
                 type="button"
                 data-track-note={this.trackNote}
                 onClick={this.onClick}
+                className="menu-toggle"
             >
                 <FontAwesomeIcon icon={faRotateLeft} />
                 {this.label}
