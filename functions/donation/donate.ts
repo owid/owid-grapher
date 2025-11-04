@@ -10,7 +10,7 @@ import {
 import { Env } from "../_common/env.js"
 import { DEFAULT_HEADERS, CORS_HEADERS } from "./_utils/constants.js"
 import { logError } from "./_utils/error.js"
-import { z } from "zod"
+import * as z from "zod"
 
 const filePath = "donation/donate.ts"
 
