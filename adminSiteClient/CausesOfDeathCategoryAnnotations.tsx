@@ -17,12 +17,14 @@ export function CausesOfDeathCategoryAnnotations({
     treeNodes,
     width,
     annotationHeight,
+    debug,
 }: {
     data: DataRow[]
     metadata: MyCausesOfDeathMetadata
     treeNodes: TreeNode[]
     width: number
     annotationHeight: number
+    debug: boolean
 }) {
     // Calculate deaths per category and sort by totals
     const sortedCategories = useMemo(() => {
@@ -58,7 +60,7 @@ export function CausesOfDeathCategoryAnnotations({
     const arrowWidth = 50
 
     const textWidths = candidates.map((_, i) => {
-        const text = `**${formattedPercentages[i]}** died from **${candidates[0].name.toLowerCase()}**`
+        const text = `**${formattedPercentages[i]}** died from **${candidates[i].name.toLowerCase()}**`
         return new MarkdownTextWrap({
             text,
             fontSize,
@@ -101,6 +103,20 @@ export function CausesOfDeathCategoryAnnotations({
                 arrowWidth={arrowWidth}
             />
 
+            {debug && (
+                <CategoryAnnotation
+                    bounds={bounds[1]}
+                    categoryName={candidates[1].name.toLowerCase()}
+                    categoryColor={getColor(candidates[1].name)}
+                    formattedPercentage={formattedPercentages[1]}
+                    anchor={anchor}
+                    fontSize={fontSize}
+                    fontWeight={fontWeight}
+                    arrowWidth={arrowWidth}
+                    color="red"
+                />
+            )}
+
             {secondAnnotationFits && (
                 <CategoryAnnotation
                     bounds={bounds[1]}
@@ -125,6 +141,7 @@ function CategoryAnnotation({
     anchor,
     fontSize,
     fontWeight,
+    color = "#5b5b5b",
     arrowWidth = 50,
 }: {
     bounds: Bounds
@@ -134,6 +151,7 @@ function CategoryAnnotation({
     anchor: "start" | "end" // anchor the text at the start of the end of the bounds
     fontSize: number
     fontWeight: number
+    color?: string
     arrowWidth?: number
 }) {
     const isEndAnchored = anchor === "end"
@@ -179,7 +197,7 @@ function CategoryAnnotation({
                 end={arrowEnd}
                 startHandleOffset={arrowStartHandleOffset}
                 endHandleOffset={arrowEndHandleOffset}
-                color="#5b5b5b"
+                color={color}
                 width={1}
                 opacity={0.7}
                 headLength={6}
