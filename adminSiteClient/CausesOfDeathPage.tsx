@@ -7,8 +7,7 @@ import {
     FetchedDataRow as _FetchedDataRow,
 } from "./CausesOfDeathConstants"
 import { CausesOfDeathCaptionedChart } from "./CausesOfDeathComponent"
-// @ts-expect-error - JavaScript module without type definitions
-import { hybridSliceDiceSmartStack } from "./customTiling.js"
+import { stackedSliceDiceTiling } from "./stackedSliceDiceTiling.js"
 
 interface CausesOfDeathMetadata {
     dimensions: {
@@ -38,9 +37,9 @@ const TILING_METHODS = [
         value: "custom",
         label: "Custom",
         method: (minThick: number, innerMinThick: number) =>
-            hybridSliceDiceSmartStack({
-                minThickness: minThick,
-                innerMinThickness: innerMinThick,
+            stackedSliceDiceTiling({
+                minSliceWidth: minThick,
+                minStackHeight: innerMinThick,
             }),
     },
 ]
