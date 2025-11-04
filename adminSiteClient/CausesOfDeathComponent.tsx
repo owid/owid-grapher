@@ -167,8 +167,6 @@ function CausesOfDeathTreemap({
                 metadata={metadata}
                 treeNodes={leaves}
                 width={width}
-                isNarrow={isNarrow}
-                debug={debug}
                 annotationHeight={annotationHeight}
             />
         </svg>
