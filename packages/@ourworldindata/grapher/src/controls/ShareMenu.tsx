@@ -277,7 +277,12 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                     </a>
                 )}
                 {editUrl && (
-                    <a title="Edit chart" href={editUrl} rel="noopener">
+                    <a
+                        title="Edit chart"
+                        href={editUrl}
+                        target="_blank"
+                        rel="noopener"
+                    >
                         <FontAwesomeIcon className="icon" icon={faEdit} />
                         Edit
                     </a>
@@ -286,6 +291,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                     <a
                         title="Create a narrative chart"
                         href={createNarrativeChartUrl}
+                        target="_blank"
                         rel="noopener"
                     >
                         <FontAwesomeIcon className="icon" icon={faPanorama} />
