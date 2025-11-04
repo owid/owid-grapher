@@ -311,10 +311,14 @@ function determineVisibleLabels({
     if (textBounds.description)
         shouldShow.description = contentBounds.encloses(textBounds.description)
 
-    if (textBounds.perYear)
-        shouldShow.perYear = contentBounds.encloses(textBounds.perYear)
-    if (textBounds.perDay)
-        shouldShow.perDay = contentBounds.encloses(textBounds.perDay)
+    // Show both per year and per day metrics together, or neither
+    if (textBounds.perYear && textBounds.perDay) {
+        const bothMetricsFit =
+            contentBounds.encloses(textBounds.perYear) &&
+            contentBounds.encloses(textBounds.perDay)
+        shouldShow.perYear = bothMetricsFit
+        shouldShow.perDay = bothMetricsFit
+    }
 
     return shouldShow
 }
@@ -384,11 +388,8 @@ function formatNumberLongText(value: number): string {
     } else if (value >= 1000000) {
         const millions = value / 1000000
         return `${millions.toFixed(1)} million`
-    } else if (value >= 1000) {
-        const thousands = value / 1000
-        return `${thousands.toFixed(0)} thousand`
     } else {
-        return value.toString()
+        return d3.format(",.0f")(value)
     }
 }
 
