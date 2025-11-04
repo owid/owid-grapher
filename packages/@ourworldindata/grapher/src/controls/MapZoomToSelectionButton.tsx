@@ -58,6 +58,7 @@ export class MapZoomToSelectionButton extends React.Component<MapZoomToSelection
                 onClick={this.onClick}
                 type="button"
                 data-track-note="map_zoom_to_selection"
+                className="menu-toggle"
             >
                 <GlobeIcon size={16} />
                 Zoom to selection
