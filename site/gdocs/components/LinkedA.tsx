@@ -17,12 +17,8 @@ export default function LinkedA({ span }: { span: SpanLink }) {
     const { linkedChart } = useLinkedChart(span.url)
 
     if (linkType === "url") {
-        // Don't open in new tab if it's an anchor link
-        const linkProps = !span.url.startsWith("#")
-            ? { target: "_blank", rel: "noopener" }
-            : {}
         return (
-            <a href={span.url} className="span-link" {...linkProps}>
+            <a href={span.url} className="span-link">
                 <SpanElements spans={span.children} />
             </a>
         )

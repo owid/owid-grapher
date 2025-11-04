@@ -144,7 +144,7 @@ export class DynamicCollection extends React.Component<DynamicCollectionProps> {
                                 data-grapher-src={grapherUrl}
                                 data-grapher-index={index}
                             >
-                                <a href={grapherUrl} rel="noopener">
+                                <a href={grapherUrl}>
                                     <GrapherImage slug={chartSlug} />
                                 </a>
                             </figure>

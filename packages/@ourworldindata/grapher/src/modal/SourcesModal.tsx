@@ -490,7 +490,7 @@ export class Source extends React.Component<SourceProps> {
                     </>
                 )}
                 {this.editUrl && (
-                    <a href={this.editUrl} rel="noopener">
+                    <a href={this.editUrl}>
                         <FontAwesomeIcon icon={faPencilAlt} />
                     </a>
                 )}

@@ -232,7 +232,6 @@ abstract class AbstractHeader<
             return (
                 <a
                     href={manager.canonicalUrl}
-                    rel="noopener"
                     data-track-note="chart_click_title"
                 >
                     <h1 style={this.title.htmlStyle}>
@@ -247,7 +246,6 @@ abstract class AbstractHeader<
             <h1 style={this.title.htmlStyle}>
                 <a
                     href={manager.canonicalUrl}
-                    rel="noopener"
                     data-track-note="chart_click_title"
                 >
                     {this.title.renderHTML()}
@@ -333,7 +331,6 @@ export class StaticHeader extends AbstractHeader<StaticHeaderProps> {
                             fontFamily:
                                 "'Playfair Display', Georgia, 'Times New Roman', 'Liberation Serif', serif",
                         }}
-                        rel="noopener"
                     >
                         {title.renderSVG(x, y, {
                             textProps: { fill: GRAY_100 },

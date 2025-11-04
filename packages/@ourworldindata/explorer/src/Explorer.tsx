@@ -981,7 +981,6 @@ export class Explorer
                 {this.explorerProgram.downloadDataLink && (
                     <a
                         href={this.explorerProgram.downloadDataLink}
-                        rel="noopener"
                         className="ExplorerDownloadLink"
                     >
                         Download this dataset

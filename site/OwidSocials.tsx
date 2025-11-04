@@ -20,7 +20,6 @@ export const OwidSocials = ({
                             className="owid-socials__link"
                             href={url}
                             title={title}
-                            rel="noopener"
                             data-track-note={context}
                         >
                             <FontAwesomeIcon

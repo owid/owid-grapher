@@ -94,9 +94,7 @@ export const makeLinks = ({ link }: { link?: string }): React.ReactNode => {
             <React.Fragment key={urlOrText}>
                 <span>
                     {isUrl ? (
-                        <a href={urlOrText} rel="noopener">
-                            {urlOrText}
-                        </a>
+                        <a href={urlOrText}>{urlOrText}</a>
                     ) : (
                         <SimpleMarkdownText
                             text={urlOrText}

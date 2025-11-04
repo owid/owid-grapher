@@ -76,7 +76,7 @@ export default function NarrativeChart({
                         metadataStringified,
                 }}
             >
-                <a href={resolvedUrl} rel="noopener">
+                <a href={resolvedUrl}>
                     <img
                         src={`${GRAPHER_DYNAMIC_THUMBNAIL_URL}/by-uuid/${viewMetadata.chartConfigId}.svg`}
                         alt={viewMetadata.title}

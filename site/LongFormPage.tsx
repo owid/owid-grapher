@@ -299,10 +299,7 @@ export const LongFormPage = (props: {
                                                             World in Data are
                                                             completely open
                                                             access under the{" "}
-                                                            <a
-                                                                href="https://creativecommons.org/licenses/by/4.0/"
-                                                                rel="noopener"
-                                                            >
+                                                            <a href="https://creativecommons.org/licenses/by/4.0/">
                                                                 Creative Commons
                                                                 BY license
                                                             </a>

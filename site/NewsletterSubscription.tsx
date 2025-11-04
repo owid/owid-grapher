@@ -147,7 +147,6 @@ export const NewsletterSubscriptionForm = ({
                 <a
                     className="newsletter-subscription-form__example-link note-12-medium"
                     href="https://us8.campaign-archive.com/?u=18058af086319ba6afad752ec&id=53877b47f3"
-                    rel="noopener"
                 >
                     See example OWID Brief newsletter
                 </a>
@@ -183,7 +182,6 @@ export const NewsletterSubscriptionForm = ({
                 <a
                     className="newsletter-subscription-form__example-link note-12-medium"
                     href="https://us8.campaign-archive.com/?u=18058af086319ba6afad752ec&id=fdf16136e1"
-                    rel="noopener"
                 >
                     See example Data Insights newsletter
                 </a>

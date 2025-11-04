@@ -1010,9 +1010,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                             <ul>
                                 {sourceLinks.map((link, i) => (
                                     <li key={i}>
-                                        <a href={link} rel="noopener">
-                                            {link}
-                                        </a>
+                                        <a href={link}>{link}</a>
                                     </li>
                                 ))}
                             </ul>

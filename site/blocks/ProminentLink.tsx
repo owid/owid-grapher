@@ -134,15 +134,13 @@ export class ProminentLink extends Component<ProminentLinkProps> {
             )
         }
 
-        const target = this.updatedUrl.isGrapher ? { target: "_blank" } : {}
-
         return (
             <div
                 className={classes.join(" ")}
                 data-style={this.style}
                 data-title={this.props.title}
             >
-                <a href={this.updatedUrl.fullUrl} {...target}>
+                <a href={this.updatedUrl.fullUrl}>
                     {this.style === ProminentLinkStyles.thin
                         ? renderThinStyle()
                         : renderDefaultStyle()}

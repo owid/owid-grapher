@@ -109,7 +109,7 @@ export class Logo {
             style: { height: `${this.targetHeight}px` },
         }
         if (this.props.isLink && spec.url)
-            return <a {...props} href={spec.url} rel="noopener" />
+            return <a {...props} href={spec.url} />
         else return <div {...props} />
     }
 }

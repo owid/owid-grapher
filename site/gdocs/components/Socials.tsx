@@ -30,9 +30,7 @@ function SocialLink({ url, text, type }: EnrichedSocialLink) {
     return (
         <li className="article-block__social-link social-link">
             <FontAwesomeIcon icon={type ? typeToIcon[type] : faLink} />
-            <a href={url} rel="noopener">
-                {text}
-            </a>
+            <a href={url}>{text}</a>
         </li>
     )
 }

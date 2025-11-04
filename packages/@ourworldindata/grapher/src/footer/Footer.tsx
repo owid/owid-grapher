@@ -406,16 +406,12 @@ abstract class AbstractFooter<
             <div className="license" style={this.licenseAndOriginUrl.htmlStyle}>
                 {this.finalUrlText && (
                     <>
-                        <a href={this.finalUrl} rel="noopener">
-                            {this.finalUrlText}
-                        </a>{" "}
-                        |{" "}
+                        <a href={this.finalUrl}>{this.finalUrlText}</a> |{" "}
                     </>
                 )}
                 <a
                     className={this.manager.hasOWIDLogo ? "cclogo" : undefined}
                     href={this.licenseUrl}
-                    rel="noopener"
                     style={{ textDecoration: "none" }}
                 >
                     {this.licenseText}

@@ -28,7 +28,6 @@ export const IndicatorProcessing = (props: IndicatorProcessingProps) => {
             </div>
             <a
                 href="https://docs.owid.io/projects/etl/"
-                rel="noopener"
                 className="indicator-processing__link"
             >
                 Read about our data pipeline

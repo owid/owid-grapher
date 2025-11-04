@@ -64,9 +64,6 @@ export const ProminentLink = (props: {
         description ??= linkedChart?.subtitle
     }
 
-    const anchorTagProps =
-        linkType === "url" ? { target: "_blank", rel: "noopener" } : undefined
-
     const textContainerClassName = thumbnail
         ? "col-sm-start-4 col-md-start-3 col-start-2 col-end-limit"
         : "col-start-1 col-end-limit"
@@ -74,11 +71,7 @@ export const ProminentLink = (props: {
     const shouldVerticallyCenter = !description
 
     return (
-        <a
-            className={cx(props.className, "prominent-link")}
-            href={href}
-            {...anchorTagProps}
-        >
+        <a className={cx(props.className, "prominent-link")} href={href}>
             {thumbnail ? (
                 <div
                     className={cx(

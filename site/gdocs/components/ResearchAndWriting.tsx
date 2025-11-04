@@ -114,7 +114,6 @@ function ResearchAndWritingLink(
                 },
                 className
             )}
-            rel="noopener"
         >
             {filename && !shouldHideThumbnail ? (
                 <figure>
