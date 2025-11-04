@@ -19,6 +19,7 @@ import {
 import { ResponsiveCausesOfDeathTreemap } from "./CausesOfDeathTreemap"
 import { Link, Tooltip, TooltipTrigger } from "react-aria-components"
 import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher"
+import { formatCountryName } from "./CausesOfDeathHelpers.js"
 
 // TODO: Fetch World data immediately (waits for the metadata to resolve right now)
 // TODO: Not sure yet how to best show loading states when switching countries
@@ -306,11 +307,4 @@ function renderRegionTriggerValue(
             {option.label}
         </>
     )
-}
-
-function formatCountryName(countryName: string): string {
-    if (COUNTRIES_WITH_DEFINITE_ARTICLE.includes(countryName)) {
-        return `the ${countryName}`
-    }
-    return countryName
 }
