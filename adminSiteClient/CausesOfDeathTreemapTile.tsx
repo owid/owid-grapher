@@ -6,8 +6,7 @@ import {
 
 import { CausesOfDeathTreemapTileLabels } from "./CausesOfDeathTreemapTileLabels"
 
-// @ts-expect-error - JavaScript module without type definitions
-import { hybridSliceDiceSmartStack as _hybridSliceDiceSmartStack } from "./customTiling.js"
+import { stackedSliceDiceTiling as _stackedSliceDiceTiling } from "./stackedSliceDiceTiling.js"
 
 export function CausesOfDeathTreemapTile({
     node,

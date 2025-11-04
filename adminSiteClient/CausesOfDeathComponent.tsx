@@ -10,8 +10,6 @@ import * as d3 from "d3"
 import useChartDimensions, { DimensionsConfig } from "./useChartDimensions"
 import { CausesOfDeathCategoryAnnotations } from "./CausesOfDeathCategoryAnnotations"
 
-// @ts-expect-error - JavaScript module without type definitions
-import { hybridSliceDiceSmartStack as _hybridSliceDiceSmartStack } from "./customTiling.js"
 import { MyCausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
 import { CausesOfDeathTreemapTile } from "./CausesOfDeathTreemapTile.js"
 
@@ -168,6 +166,7 @@ function CausesOfDeathTreemap({
                 treeNodes={leaves}
                 width={width}
                 annotationHeight={annotationHeight}
+                debug={debug}
             />
         </svg>
     )
