@@ -132,3 +132,15 @@ export interface EnrichedDataItem {
 export type TreeNode = d3.HierarchyRectangularNode<
     d3.HierarchyNode<EnrichedDataItem>
 >
+
+export interface TooltipTarget {
+    nodeId: string
+    variable: string
+    value: number
+    category?: string
+}
+
+export interface TooltipState {
+    target: { node: TreeNode } | null
+    position: { x: number; y: number }
+}
