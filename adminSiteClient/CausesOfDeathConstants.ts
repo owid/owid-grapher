@@ -122,3 +122,16 @@ export const COUNTRIES_WITH_DEFINITE_ARTICLE = [
     "Congo",
     "Micronesia (country)",
 ]
+
+export interface EnrichedDataItem {
+    entityName: EntityName
+    year: Time
+    variable: string
+    category?: string
+    parentId?: string
+    value: number | null
+}
+
+export type TreeNode = d3.HierarchyRectangularNode<
+    d3.HierarchyNode<EnrichedDataItem>
+>
