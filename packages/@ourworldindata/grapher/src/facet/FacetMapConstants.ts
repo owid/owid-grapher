@@ -1,10 +1,7 @@
 import { ChartSeries } from "../chart/ChartInterface"
-import { Bounds } from "@ourworldindata/utils"
+import { Bounds, GrapherAnalyticsContext } from "@ourworldindata/utils"
 import { MapChartManager } from "../mapCharts/MapChartConstants"
-import {
-    GrapherAnalytics,
-    GrapherAnalyticsContext,
-} from "../core/GrapherAnalytics"
+import { GrapherAnalytics } from "../core/GrapherAnalytics"
 
 export interface FacetMapManager extends MapChartManager {
     analytics?: GrapherAnalytics

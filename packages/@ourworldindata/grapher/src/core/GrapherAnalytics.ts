@@ -1,4 +1,14 @@
 import { findDOMParent } from "@ourworldindata/utils"
+import {
+    EventCategory,
+    GrapherErrorAction,
+    type EntityControlEvent,
+    type EntitySelectorEvent,
+    type GrapherImageDownloadEvent,
+    type GrapherInteractionEvent,
+    type GrapherAnalyticsContext,
+    type GAEvent,
+} from "@ourworldindata/types"
 
 const DEBUG = false
 
@@ -7,81 +17,6 @@ type WindowWithDataLayer = Window & {
     dataLayer?: (GAEvent | GAConsent)[]
 }
 declare const window: WindowWithDataLayer
-
-export enum EventCategory {
-    CountryProfileSearch = "owid.country_profile_search",
-    Filter = "owid.filter",
-    GlobalEntitySelectorUsage = "owid.global_entity_selector_usage",
-    GrapherView = "owid.grapher_view",
-    GrapherClick = "owid.grapher_click",
-    GrapherHover = "owid.grapher_hover",
-    GrapherError = "owid.grapher_error",
-    GrapherEntitySelector = "owid.grapher_entity_selector",
-    ExplorerView = "owid.explorer_view",
-    Expander = "owid.expander",
-    ExplorerCountrySelector = "owid.explorer_country_selector",
-    Hover = "owid.hover",
-    KeyboardShortcut = "owid.keyboard_shortcut",
-    SiteClick = "owid.site_click",
-    SiteError = "owid.site_error",
-    SiteInstantSearchClick = "owid.site_instantsearch_click",
-    SiteSearch = "owid.site_search",
-    SiteSearchAutocompleteClick = "owid.site_search_autocomplete_click",
-    SiteSearchResultClick = "owid.site_search_result_click",
-    SiteFormSubmit = "owid.site_form_submit",
-    DetailOnDemand = "owid.detail_on_demand",
-    SiteGuidedChartLinkClick = "owid.site_guided_chart_link_click",
-    SiteChartPreviewMouseover = "owid.site_chart_preview_mouseover",
-}
-
-enum EventAction {
-    grapherViewError = "grapher_view_error",
-    entitiesNotFound = "entities_not_found",
-    timelinePlay = "timeline_play",
-}
-
-type EntityControlEvent = "open" | "change" | "close"
-export type EntitySelectorEvent =
-    | "enter"
-    | "select"
-    | "deselect"
-    | "sortBy"
-    | "sortOrder"
-    | "filterBy"
-    | "clear"
-
-export type GrapherImageDownloadEvent =
-    | "chart_download_png"
-    | "chart_download_svg"
-
-export type GrapherInteractionEvent =
-    | "map_country_hover" // hover over a country in the map or on the globe
-    | "map_legend_hover" // hover over a legend item on the map tab
-
-export interface GrapherAnalyticsContext {
-    slug?: string
-    viewConfigId?: string
-    narrativeChartName?: string
-}
-
-interface GAEvent {
-    event: EventCategory
-    eventAction?: string
-    eventContext?: string
-    eventTarget?: string
-    grapherPath?: string
-    viewConfigId?: string // specifies a view in a multi-dim data page
-    narrativeChartName?: string // specifies the name of a narrative chart
-    explorerPath?: string
-    explorerView?: string
-    autocompleteQuery?: string
-    autocompletePosition?: number
-    autocompleteFilterType?: string
-    autocompleteFilterName?: string
-    autocompleteSuggestions?: string
-    autocompleteSuggestionsTypes?: string
-    autocompleteSuggestionsCount?: number
-}
 
 // taken from https://github.com/DefinitelyTyped/DefinitelyTyped/blob/de66435d18fbdb2684947d16b5cd3a77f876324c/types/gtag.js/index.d.ts#L151-L156
 interface GAConsentParams {
@@ -119,7 +54,7 @@ export class GrapherAnalytics {
     logGrapherViewError(error: Error): void {
         this.logToGA({
             event: EventCategory.GrapherError,
-            eventAction: EventAction.grapherViewError,
+            eventAction: GrapherErrorAction.GrapherViewError,
             eventContext: error.message,
         })
     }
@@ -127,7 +62,7 @@ export class GrapherAnalytics {
     logEntitiesNotFoundError(entities: string[]): void {
         this.logToGA({
             event: EventCategory.GrapherError,
-            eventAction: EventAction.entitiesNotFound,
+            eventAction: GrapherErrorAction.EntitiesNotFound,
             eventContext: JSON.stringify(entities),
         })
     }
@@ -220,7 +155,10 @@ export class GrapherAnalytics {
         })
     }
 
-    logSiteFormSubmit(action: string, label?: string): void {
+    logSiteFormSubmit(
+        action: "newsletter-subscribe" | "donate",
+        label?: string
+    ): void {
         this.logToGA({
             event: EventCategory.SiteFormSubmit,
             eventAction: action,

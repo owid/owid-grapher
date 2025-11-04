@@ -1,5 +1,6 @@
 import * as _ from "lodash-es"
-import { GrapherAnalytics, EventCategory } from "@ourworldindata/grapher"
+import { GrapherAnalytics } from "@ourworldindata/grapher"
+import { EventCategory } from "@ourworldindata/types"
 import {
     type SearchChartHit,
     type SearchState,
@@ -54,18 +55,21 @@ export class SiteAnalytics extends GrapherAnalytics {
     }
 
     logSearch(state: SearchState) {
+        const topics = Array.from(
+            getFilterNamesOfType(state.filters, FilterType.TOPIC)
+        )
+        const selectedCountryNames = Array.from(
+            getFilterNamesOfType(state.filters, FilterType.COUNTRY)
+        )
+
         this.logToGA({
             event: EventCategory.SiteSearch,
             eventAction: "search",
-            eventContext: JSON.stringify({
-                ...state,
-                topics: Array.from(
-                    getFilterNamesOfType(state.filters, FilterType.TOPIC)
-                ),
-                selectedCountryNames: Array.from(
-                    getFilterNamesOfType(state.filters, FilterType.COUNTRY)
-                ),
-            }),
+            searchQuery: state.query || "",
+            searchRequireAllCountries: state.requireAllCountries,
+            searchResultType: state.resultType || "",
+            searchTopics: topics.join("~"),
+            searchSelectedCountries: selectedCountryNames.join("~"),
         })
     }
 
