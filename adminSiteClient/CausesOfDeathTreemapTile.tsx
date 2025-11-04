@@ -18,6 +18,8 @@ export function CausesOfDeathTreemapTile({
     treemapWidth,
     treemapHeight,
     debug = false,
+    onMouseEnter,
+    onMouseLeave,
 }: {
     node: TreeNode
     description: string
@@ -29,6 +31,8 @@ export function CausesOfDeathTreemapTile({
     annotationHeight: number
     isNarrow: boolean
     debug: boolean
+    onMouseEnter?: (node: TreeNode, event: React.MouseEvent) => void
+    onMouseLeave?: () => void
 }) {
     if (!node.value) return null
 
@@ -50,6 +54,11 @@ export function CausesOfDeathTreemapTile({
         <g
             key={idBase}
             transform={`translate(${node.x0},${node.y0 + annotationHeight})`}
+            onMouseEnter={
+                onMouseEnter ? (event) => onMouseEnter(node, event) : undefined
+            }
+            onMouseLeave={onMouseLeave}
+            style={{ cursor: onMouseEnter ? "pointer" : undefined }}
         >
             {/* Colored rect */}
             <rect
