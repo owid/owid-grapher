@@ -377,9 +377,6 @@ export {
 } from "./gdocTypes/Gdoc.js"
 
 export {
-    DataPageJsonTypeObject,
-    type DataPageJson,
-    type DataPageParseError,
     type DataPageV2ContentFields,
     type DataPageDataV2,
     type DataPageRelatedResearch,
