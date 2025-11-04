@@ -1,6 +1,15 @@
-import { TooltipState } from "./CausesOfDeathConstants.js"
+import cx from "classnames"
+import {
+    CAUSE_OF_DEATH_CATEGORY_COLORS,
+    TooltipState,
+} from "./CausesOfDeathConstants.js"
 import { TooltipCore } from "@ourworldindata/grapher/src/tooltip/Tooltip"
-import * as d3 from "d3"
+import { TooltipValueCore } from "@ourworldindata/grapher/src/tooltip/TooltipContents"
+import {
+    formatCountryName,
+    formatNumberLongText,
+    formatPercentSigFig,
+} from "./CausesOfDeathHelpers.js"
 
 export function CausesOfDeathTreemapTooltip({
     state,
@@ -22,7 +31,25 @@ export function CausesOfDeathTreemapTooltip({
     const node = target.node
     const variable = node.data.data.variable
     const value = node.value || 0
-    const category = node.data.data.category
+    const year = node.data.data.year
+
+    // Get total deaths from root node
+    const totalDeaths = node.ancestors()[node.ancestors().length - 1].value || 0
+
+    const labelVariant = "unit-only"
+    const unit = "Deaths"
+    const color = undefined
+    const displayValue = formatNumberLongText(value)
+
+    console.log("variable:", variable)
+    const categoryColor =
+        CAUSE_OF_DEATH_CATEGORY_COLORS[node.data.data.category ?? ""] ||
+        "#5b5b5b"
+
+    const locationDescription =
+        node.data.data.entityName === "World"
+            ? "globally"
+            : `in ${formatCountryName(node.data.data.entityName)}`
 
     return (
         <TooltipCore
@@ -32,13 +59,72 @@ export function CausesOfDeathTreemapTooltip({
             offsetX={offsetX}
             offsetY={offsetY}
             title={variable}
-            subtitle={category}
+            subtitle={year.toString()}
             containerWidth={containerWidth}
             containerHeight={containerHeight}
+            style={{ maxWidth: 300 }}
         >
-            <div style={{ fontSize: "11px" }}>
-                Deaths: {d3.format(",~")(value)}
+            <div
+                className={cx("variable", {
+                    "variable--no-name": labelVariant === "unit-only",
+                })}
+            >
+                <div className="values" style={{ color }}>
+                    <span>
+                        {formatPercentSigFig(value / totalDeaths)}{" "}
+                        <span style={{ fontWeight: 400 }}>died from </span>
+                        <span style={{ fontWeight: 400 }}>
+                            {variable === variable.toUpperCase()
+                                ? variable
+                                : variable.toLowerCase()}
+                        </span>{" "}
+                        <span style={{ fontWeight: 400 }}>
+                            in {year}, totaling
+                        </span>{" "}
+                        {displayValue} deaths
+                        {/* <span style={{ fontWeight: 400 }}>
+                            {" "}
+                            {locationDescription}
+                        </span> */}
+                    </span>
+                </div>
             </div>
+            {/* <div
+                className={cx("variable", {
+                    "variable--no-name": labelVariant === "unit-only",
+                })}
+            >
+                <div className="definition">
+                    {unit && unit.length > 1 && (
+                        <span className="unit">{unit}</span>
+                    )}
+                </div>
+                <div className="values" style={{ color }}>
+                    <span>{displayValue}</span>{" "}
+                    <span
+                        style={{
+                            color: "#858585",
+                            fontWeight: 400,
+                            fontSize: "0.8em",
+                            // fontStyle: "italic",
+                        }}
+                    >
+                        &nbsp;
+                        {`(of ${formatNumberLongText(totalDeaths)} total)`}
+                    </span>
+                </div>
+            </div> */}
+            {/* <TooltipValueCore
+                value={value / totalDeaths}
+                displayInfo={{
+                    // displayName: "Share of all deaths",
+                    unit: "Share of deaths",
+                }}
+                valueFormatter={{
+                    formatValue: (v) => formatPercentSigFig(v),
+                }}
+                labelVariant="unit-only"
+            /> */}
         </TooltipCore>
     )
 }
