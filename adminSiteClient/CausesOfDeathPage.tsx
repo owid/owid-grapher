@@ -6,7 +6,7 @@ import {
     CAUSE_OF_DEATH_INDICATOR_NAMES as _CAUSE_OF_DEATH_INDICATOR_NAMES,
     FetchedDataRow as _FetchedDataRow,
 } from "./CausesOfDeathConstants"
-import { CausesOfDeathCaptionedChart } from "./CausesOfDeathComponent"
+import { CausesOfDeathCaptionedChart } from "./CausesOfDeathTreemap"
 import { stackedSliceDiceTiling } from "./stackedSliceDiceTiling.js"
 
 interface CausesOfDeathMetadata {

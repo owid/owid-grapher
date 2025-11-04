@@ -173,7 +173,7 @@ export function CausesOfDeathTreemapTileLabels({
     })
 
     const render = (shouldShow: LabelKeyRecord<boolean>, color: string) => (
-        <g fill={color}>
+        <g fill={color} style={{ pointerEvents: "none" }}>
             {shouldShow.title &&
                 textWrap.title.renderSVG(bounds.title.x, bounds.title.y, {
                     textProps: { fillOpacity: 0.9 },
