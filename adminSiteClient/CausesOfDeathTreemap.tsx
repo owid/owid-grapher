@@ -3,15 +3,18 @@ import {
     CAUSE_OF_DEATH_CATEGORIES,
     DataRow,
     EnrichedDataItem,
+    TooltipState,
     TreeNode,
 } from "./CausesOfDeathConstants"
-import { useMemo } from "react"
+import { useMemo, useState, useCallback, useRef } from "react"
 import * as d3 from "d3"
 import useChartDimensions, { DimensionsConfig } from "./useChartDimensions"
 import { CausesOfDeathCategoryAnnotations } from "./CausesOfDeathCategoryAnnotations"
+import { getRelativeMouse } from "@ourworldindata/utils"
 
 import { MyCausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
 import { CausesOfDeathTreemapTile } from "./CausesOfDeathTreemapTile.js"
+import { CausesOfDeathTreemapTooltip } from "./CausesOfDeathTreemapTooltip.js"
 
 export { CausesOfDeathCaptionedChart } from "./CausesOfDeathCaptionedChart"
 
@@ -83,7 +86,53 @@ function CausesOfDeathTreemap({
     tilingMethod?: any // TODO: type this
     debug?: boolean
 }) {
-    console.log("metad", metadata)
+    // Tooltip state management
+    const [tooltipState, setTooltipState] = useState<TooltipState>({
+        target: null,
+        position: { x: 0, y: 0 },
+    })
+    const svgRef = useRef<SVGSVGElement>(null)
+    const hideTimeoutRef = useRef<number | null>(null)
+
+    const onTileMouseEnter = useCallback(
+        (node: TreeNode, event: React.MouseEvent) => {
+            if (!svgRef.current) return
+
+            // Clear any pending hide timeout
+            if (hideTimeoutRef.current) {
+                clearTimeout(hideTimeoutRef.current)
+                hideTimeoutRef.current = null
+            }
+
+            const position = getRelativeMouse(svgRef.current, event.nativeEvent)
+            const target = { node }
+
+            if (debug) {
+                console.log("Tooltip target:", target, "Position:", position)
+            }
+
+            setTooltipState({ target, position })
+        },
+        [debug]
+    )
+
+    const onTileMouseMove = useCallback(
+        (event: React.MouseEvent) => {
+            if (!svgRef.current || !tooltipState.target) return
+
+            const position = getRelativeMouse(svgRef.current, event.nativeEvent)
+            setTooltipState((prev) => ({ ...prev, position }))
+        },
+        [tooltipState.target]
+    )
+
+    const onTileMouseLeave = useCallback(() => {
+        // Delay hiding the tooltip to prevent flashing when moving between tiles
+        hideTimeoutRef.current = window.setTimeout(() => {
+            setTooltipState((prev) => ({ ...prev, target: null }))
+            hideTimeoutRef.current = null
+        }, 200) // 200ms delay should be enough to prevent flashing
+    }, [])
 
     const enrichedData: EnrichedDataItem[] = [
         // Root node
@@ -134,41 +183,56 @@ function CausesOfDeathTreemap({
     const annotationHeight = !isNarrow ? 30 : 0
 
     return (
-        <svg
-            className="causes-of-death-treemap"
-            // TODO: figure out the height stuff
-            viewBox={`0 0 ${width} ${height + annotationHeight}`}
-            width={width}
-            height={height + annotationHeight}
-        >
-            {leaves.map((node) => (
-                <CausesOfDeathTreemapTile
-                    key={node.data.id}
-                    node={node}
-                    description={
-                        metadata.variableByName.get(node.data.data.variable)
-                            ?.description || ""
-                    }
-                    // todo: remove this somehow
-                    numAllDeaths={numAllDeaths}
-                    isLargestTile={leaves[0] === node}
+        <div style={{ position: "relative" }}>
+            <svg
+                ref={svgRef}
+                className="causes-of-death-treemap"
+                // TODO: figure out the height stuff
+                viewBox={`0 0 ${width} ${height + annotationHeight}`}
+                width={width}
+                height={height + annotationHeight}
+                onMouseMove={onTileMouseMove}
+            >
+                {leaves.map((node) => (
+                    <CausesOfDeathTreemapTile
+                        key={node.data.id}
+                        node={node}
+                        description={
+                            metadata.variableByName.get(node.data.data.variable)
+                                ?.description || ""
+                        }
+                        // todo: remove this somehow
+                        numAllDeaths={numAllDeaths}
+                        isLargestTile={leaves[0] === node}
+                        annotationHeight={annotationHeight}
+                        isNarrow={isNarrow}
+                        treemapWidth={width}
+                        treemapHeight={height}
+                        debug={debug}
+                        onMouseEnter={onTileMouseEnter}
+                        onMouseLeave={onTileMouseLeave}
+                    />
+                ))}
+
+                <CausesOfDeathCategoryAnnotations
+                    data={data}
+                    metadata={metadata}
+                    treeNodes={leaves}
+                    width={width}
                     annotationHeight={annotationHeight}
-                    isNarrow={isNarrow}
-                    treemapWidth={width}
-                    treemapHeight={height}
                     debug={debug}
                 />
-            ))}
+            </svg>
 
-            <CausesOfDeathCategoryAnnotations
-                data={data}
-                metadata={metadata}
-                treeNodes={leaves}
-                width={width}
-                annotationHeight={annotationHeight}
-                debug={debug}
-            />
-        </svg>
+            {/* Tooltip rendered outside SVG */}
+            {tooltipState.target && (
+                <CausesOfDeathTreemapTooltip
+                    state={tooltipState}
+                    containerWidth={width}
+                    containerHeight={height + annotationHeight}
+                />
+            )}
+        </div>
     )
 }
 
