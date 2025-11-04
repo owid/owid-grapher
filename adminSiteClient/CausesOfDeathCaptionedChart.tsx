@@ -16,7 +16,7 @@ import {
     useCausesOfDeathEntityData,
     useCausesOfDeathMetadata,
 } from "./CausesOfDeathDataFetching"
-import { ResponsiveCausesOfDeathTreemap } from "./CausesOfDeathComponent"
+import { ResponsiveCausesOfDeathTreemap } from "./CausesOfDeathTreemap"
 import { Link, Tooltip, TooltipTrigger } from "react-aria-components"
 import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher"
 
