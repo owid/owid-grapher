@@ -71,10 +71,7 @@ export const CAUSE_OF_DEATH_CATEGORIES = [
     "Injuries",
 ] as const
 
-export const CAUSE_OF_DEATH_CATEGORY_COLORS: Record<
-    CauseOfDeathCategory,
-    string
-> = {
+export const CAUSE_OF_DEATH_CATEGORY_COLORS: Record<string, string> = {
     "Noncommunicable diseases": "#074964",
     "Infectious diseases": "#A5184D",
     "Maternal, neonatal, and nutritional disorders": "#B73696",
