@@ -10,15 +10,18 @@ import {
     formatNumberLongText,
     formatPercentSigFig,
 } from "./CausesOfDeathHelpers.js"
+import { GrapherTooltipAnchor } from "@ourworldindata/types"
 
 export function CausesOfDeathTreemapTooltip({
     state,
+    anchor,
     containerWidth,
     containerHeight,
     offsetX = 8,
     offsetY = 8,
 }: {
     state: TooltipState
+    anchor?: GrapherTooltipAnchor
     containerWidth: number
     containerHeight: number
     offsetX?: number
@@ -60,9 +63,11 @@ export function CausesOfDeathTreemapTooltip({
             offsetY={offsetY}
             title={variable}
             subtitle={year.toString()}
+            style={{ maxWidth: 300 }}
+            // TODO: does this make sense here?
             containerWidth={containerWidth}
             containerHeight={containerHeight}
-            style={{ maxWidth: 300 }}
+            anchor={anchor}
         >
             <div
                 className={cx("variable", {
