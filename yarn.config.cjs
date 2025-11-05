@@ -1,9 +1,15 @@
 // @ts-check
-const { defineConfig } = require(`@yarnpkg/types`)
+
+/** @type {import('@yarnpkg/types')} */
+const { defineConfig } = require(`@yarnpkg/types`);
+
+/**
+ * @typedef {import('@yarnpkg/types').Yarn.Constraints.Context} Context
 
 /**
  * This rule will enforce that a workspace MUST depend on the same version of
  * a dependency as the one used by the other workspaces.
+ * @param {Context} context
  */
 function enforceConsistentDependenciesAcrossTheProject({ Yarn }) {
     for (const dependency of Yarn.dependencies()) {
