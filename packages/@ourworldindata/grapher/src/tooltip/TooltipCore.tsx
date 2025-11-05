@@ -12,6 +12,8 @@ import {
     TooltipFadeMode,
     TooltipFooterIcon,
     TooltipContext,
+    TooltipContextProps,
+    TooltipContainerCoreProps,
 } from "./TooltipProps"
 import { IconCircledS } from "./TooltipContents.js"
 
@@ -33,20 +35,12 @@ export class TooltipStateCore<T> {
     private _target: T | undefined = undefined
     private _timer: number | undefined = undefined
     private _fade: TooltipFadeMode
-    private _onTargetChange?: (target: T | undefined) => void
 
-    constructor({
-        fade,
-        onTargetChange,
-    }: {
-        fade?: TooltipFadeMode
-        onTargetChange?: (target: T | undefined) => void
-    } = {}) {
+    constructor({ fade }: { fade?: TooltipFadeMode } = {}) {
         // "delayed" mode is good for charts with gaps between targetable areas
         // "immediate" is better if the tooltip is displayed for all points in the chart's bounds
         // "none" disables the fade transition altogether
         this._fade = fade ?? "delayed"
-        this._onTargetChange = onTargetChange
     }
 
     get target(): T | undefined {
@@ -56,7 +50,6 @@ export class TooltipStateCore<T> {
     resetTarget(): void {
         this._target = undefined
         this._timer = undefined
-        this._onTargetChange?.(this._target)
     }
 
     set target(newTarget: T | null) {
@@ -74,7 +67,6 @@ export class TooltipStateCore<T> {
         } else {
             this._target = newTarget
             this._timer = undefined
-            this._onTargetChange?.(this._target)
         }
     }
 
@@ -85,12 +77,7 @@ export class TooltipStateCore<T> {
 }
 
 // Core tooltip card component without MobX
-export interface TooltipCardCoreProps extends TooltipProps {
-    bounds?: Bounds
-    containerWidth?: number
-    containerHeight?: number
-    onBoundsChange?: (bounds: Bounds) => void
-}
+export type TooltipCardCoreProps = TooltipProps
 
 export class TooltipCardCore extends React.Component<TooltipCardCoreProps> {
     static override contextType = TooltipContext
@@ -101,11 +88,7 @@ export class TooltipCardCore extends React.Component<TooltipCardCoreProps> {
 
     private updateBounds(): void {
         if (this.base.current) {
-            const newBounds = Bounds.fromElement(this.base.current)
-            if (!this.bounds?.equals(newBounds)) {
-                this.bounds = newBounds
-                this.props.onBoundsChange?.(newBounds)
-            }
+            this.bounds = Bounds.fromElement(this.base.current)
         }
     }
 
@@ -132,12 +115,20 @@ export class TooltipCardCore extends React.Component<TooltipCardCoreProps> {
             offsetX = 0,
             offsetY = 0,
         } = this.props
+        const {
+            containerDimensions: {
+                width: containerWidth,
+                height: containerHeight,
+            } = {},
+            anchor,
+        } = this.context
 
-        const style = { ...this.props.style }
+        const isPinnedToBottom = anchor === GrapherTooltipAnchor.Bottom
 
         // if container dimensions are given, we make sure the tooltip
         // is positioned within the container bounds
-        if (this.props.containerWidth && this.props.containerHeight) {
+        const style = { ...this.props.style }
+        if (containerWidth && containerHeight && !isPinnedToBottom) {
             if (this.props.offsetYDirection === "upward") {
                 offsetY = -offsetY - (this.bounds?.height ?? 0)
             }
@@ -153,15 +144,12 @@ export class TooltipCardCore extends React.Component<TooltipCardCoreProps> {
             let left = x + offsetX
             let top = y + offsetY
             if (this.bounds) {
-                if (left + this.bounds.width > this.props.containerWidth)
+                if (left + this.bounds.width > containerWidth)
                     left -= this.bounds.width + 2 * offsetX // flip left
-                if (
-                    top + this.bounds.height * 0.75 >
-                    this.props.containerHeight
-                )
+                if (top + this.bounds.height * 0.75 > containerHeight)
                     top -= this.bounds.height + 2 * offsetY // flip upwards eventually...
-                if (top + this.bounds.height > this.props.containerHeight)
-                    top = this.props.containerHeight - this.bounds.height // ...but first pin at bottom
+                if (top + this.bounds.height > containerHeight)
+                    top = containerHeight - this.bounds.height // ...but first pin at bottom
 
                 if (left < 0) left = 0 // pin on left
                 if (top < 0) top = 0 // pin at top
@@ -191,8 +179,6 @@ export class TooltipCardCore extends React.Component<TooltipCardCoreProps> {
 
         // ignore the given width and max-width if the tooltip position is fixed
         // since we want to use the full width of the screen in that case
-        const isPinnedToBottom =
-            this.context.anchor === GrapherTooltipAnchor.bottom
         if (isPinnedToBottom && (style.width || style.maxWidth)) {
             style.width = style.maxWidth = undefined
         }
@@ -258,88 +244,46 @@ export class TooltipCardCore extends React.Component<TooltipCardCoreProps> {
     }
 }
 
-// Non-MobX tooltip provider interface
-export interface TooltipProviderCore {
-    tooltip?: TooltipProps | undefined
-}
-
-// Core tooltip container without MobX
-export interface TooltipContainerCoreProps {
-    tooltipProvider: TooltipProviderCore
-    anchor?: GrapherTooltipAnchor
-    // if container dimensions are given, the tooltip will be positioned within its bounds
-    containerWidth?: number
-    containerHeight?: number
-}
-
 export class TooltipContainerCore extends React.Component<TooltipContainerCoreProps> {
-    private get tooltip(): TooltipProps | undefined {
-        return this.props.tooltipProvider.tooltip
-    }
-
-    private get anchor(): GrapherTooltipAnchor {
-        return this.props.anchor ?? GrapherTooltipAnchor.mouse
-    }
-
-    private get rendered(): React.ReactElement | null {
-        const { tooltip } = this
+    override render(): React.ReactElement | null {
+        const tooltip = this.props.tooltipProvider.tooltip
         if (!tooltip) return null
 
-        const isFixedToBottom = this.anchor === GrapherTooltipAnchor.bottom
+        const isFixedToBottom =
+            this.props.anchor === GrapherTooltipAnchor.Bottom
+        const className = classnames("tooltip-container", {
+            "fixed-bottom": isFixedToBottom,
+        })
+
+        const context = {
+            containerDimensions: this.props.containerDimensions,
+            anchor: this.props.anchor,
+        }
+
         return (
-            <TooltipContext.Provider value={{ anchor: this.anchor }}>
-                <div
-                    className={classnames("tooltip-container", {
-                        "fixed-bottom": isFixedToBottom,
-                    })}
-                >
-                    <TooltipCardCore
-                        {...tooltip}
-                        containerWidth={this.props.containerWidth}
-                        containerHeight={this.props.containerHeight}
-                    />
+            <TooltipContext.Provider value={context}>
+                <div className={className}>
+                    <TooltipCardCore {...tooltip} />
                 </div>
             </TooltipContext.Provider>
         )
     }
-
-    override render(): React.ReactElement | null {
-        return this.rendered
-    }
 }
 
-// Better API: Tooltip component with nested children (non-MobX)
-export interface TooltipCoreProps extends Omit<TooltipProps, "children"> {
-    children?: React.ReactNode
-    containerWidth?: number
-    containerHeight?: number
-    show?: boolean // Controls visibility
-}
+export type TooltipCoreProps = TooltipProps &
+    Omit<TooltipContainerCoreProps, "tooltipProvider">
 
 export class TooltipCore extends React.Component<TooltipCoreProps> {
     override render(): React.ReactElement | null {
-        const {
-            show = true,
-            children,
-            containerWidth,
-            containerHeight,
-            ...tooltipProps
-        } = this.props
+        const { containerDimensions, anchor, ...tooltipProps } = this.props
 
-        if (!show) return null
-
-        const tooltipProvider = {
-            tooltip: {
-                ...tooltipProps,
-                children,
-            },
-        }
+        const tooltipProvider = { tooltip: tooltipProps }
 
         return (
             <TooltipContainerCore
                 tooltipProvider={tooltipProvider}
-                containerWidth={containerWidth}
-                containerHeight={containerHeight}
+                containerDimensions={containerDimensions}
+                anchor={anchor}
             />
         )
     }
