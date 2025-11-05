@@ -30,25 +30,9 @@ export class TooltipCard extends React.Component<
         }
     }
 
-    override componentDidMount(): void {
-        this.updateBounds()
-    }
-
-    override componentDidUpdate(): void {
-        this.updateBounds()
-    }
-
-    override render(): React.ReactElement {
+    private get tooltipStyle(): React.CSSProperties {
         const { bounds } = this
-        let {
-            id,
-            title,
-            titleAnnotation,
-            subtitle,
-            subtitleFormat,
-            footer,
-            dissolve,
-            children,
+        const {
             containerBounds,
             anchor,
             x = 0,
@@ -58,33 +42,37 @@ export class TooltipCard extends React.Component<
         } = this.props
         const isPinnedToBottom = anchor === GrapherTooltipAnchor.bottom
 
+        const style = { ...this.props.style }
+
         // if container dimensions are given, we make sure the tooltip
         // is positioned within the container bounds
-        const style = { ...this.props.style }
         if (
             containerBounds?.width &&
             containerBounds.height &&
             !isPinnedToBottom
         ) {
+            let adjustedOffsetY = offsetY
+            let adjustedOffsetX = offsetX
+
             if (this.props.offsetYDirection === "upward") {
-                offsetY = -offsetY - (bounds?.height ?? 0)
+                adjustedOffsetY = -offsetY - (bounds?.height ?? 0)
             }
 
             if (
                 this.props.offsetXDirection === "left" &&
                 x > (bounds?.width ?? 0)
             ) {
-                offsetX = -offsetX - (bounds?.width ?? 0)
+                adjustedOffsetX = -offsetX - (bounds?.width ?? 0)
             }
 
             // Ensure tooltip remains inside chart
-            let left = x + offsetX
-            let top = y + offsetY
+            let left = x + adjustedOffsetX
+            let top = y + adjustedOffsetY
             if (bounds) {
                 if (left + bounds.width > containerBounds?.width)
-                    left -= bounds.width + 2 * offsetX // flip left
+                    left -= bounds.width + 2 * adjustedOffsetX // flip left
                 if (top + bounds.height * 0.75 > containerBounds.height)
-                    top -= bounds.height + 2 * offsetY // flip upwards eventually...
+                    top -= bounds.height + 2 * adjustedOffsetY // flip upwards eventually...
                 if (top + bounds.height > containerBounds.height)
                     top = containerBounds.height - bounds.height // ...but first pin at bottom
 
@@ -96,6 +84,37 @@ export class TooltipCard extends React.Component<
             style.left = left
             style.top = top
         }
+
+        // ignore the given width and max-width if the tooltip position is fixed
+        // since we want to use the full width of the screen in that case
+        if (isPinnedToBottom && (style.width || style.maxWidth)) {
+            style.width = style.maxWidth = undefined
+        }
+
+        return style
+    }
+
+    override componentDidMount(): void {
+        this.updateBounds()
+    }
+
+    override componentDidUpdate(): void {
+        this.updateBounds()
+    }
+
+    override render(): React.ReactElement {
+        let {
+            id,
+            title,
+            titleAnnotation,
+            subtitle,
+            subtitleFormat,
+            footer,
+            dissolve,
+            children,
+            anchor,
+        } = this.props
+        const isPinnedToBottom = anchor === GrapherTooltipAnchor.bottom
 
         // add a preposition to unit-based subtitles
         const hasHeader = title !== undefined || subtitle !== undefined
@@ -114,12 +133,6 @@ export class TooltipCard extends React.Component<
         // skip transition delay if requested
         const immediate = dissolve === "immediate"
 
-        // ignore the given width and max-width if the tooltip position is fixed
-        // since we want to use the full width of the screen in that case
-        if (isPinnedToBottom && (style.width || style.maxWidth)) {
-            style.width = style.maxWidth = undefined
-        }
-
         return (
             <TooltipContext.Provider value={{ anchor }}>
                 <div
@@ -136,7 +149,7 @@ export class TooltipCard extends React.Component<
                             dissolve,
                             immediate,
                         })}
-                        style={style}
+                        style={this.tooltipStyle}
                     >
                         {hasHeader && (
                             <div className="frontmatter">
