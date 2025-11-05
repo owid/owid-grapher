@@ -25,7 +25,7 @@ describe(toPercentageColumnDef, () => {
         const newTable = new OwidTable(``, columnDefs)
         const percentageColumn = newTable.get(SampleColumnSlugs.GDP)
 
-        expect(percentageColumn.formatValue(10.12)).toEqual("10.12%")
-        expect(percentageColumn.formatValueForMobile(10.12)).toEqual("10.12%")
+        expect(percentageColumn.formatValue(10.12)).toEqual("10.1%")
+        expect(percentageColumn.formatValueForMobile(10.12)).toEqual("10.1%")
     })
 })
