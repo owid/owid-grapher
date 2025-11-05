@@ -1,7 +1,7 @@
 import { expect, beforeAll, test, afterAll } from "vitest"
 
 import { dbTestConfig } from "./dbTestConfig.js"
-import { knex, Knex } from "knex"
+import knex, { Knex } from "knex"
 import {
     knexRaw,
     knexReadWriteTransaction,

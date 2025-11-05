@@ -1,5 +1,5 @@
 import { beforeAll, afterAll, afterEach, expect } from "vitest"
-import { knex, Knex } from "knex"
+import knex, { Knex } from "knex"
 import { dbTestConfig } from "../../db/tests/dbTestConfig.js"
 import { OwidAdminApp } from "../appClass.js"
 import {

@@ -22,7 +22,7 @@ import {
     PostsGdocsTableName,
 } from "@ourworldindata/types"
 import { formatDate } from "@ourworldindata/utils"
-import { Knex } from "knex"
+import type { Knex } from "knex"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import { decodeHTML } from "entities"
 import { gdocFromJSON } from "./Gdoc/GdocFactory.js"
@@ -201,9 +201,9 @@ export const getLatestPageItems = async (
     const rawResults = await db.knexRaw<Record<string, any>>(
         knex,
         `-- sql
-             SELECT 
+             SELECT
                  pg.*,
-                 COUNT(*) OVER() as totalRecords            
+                 COUNT(*) OVER() as totalRecords
              FROM ${PostsGdocsTableName} pg
              WHERE pg.published = TRUE
              AND pg.publishedAt <= NOW()
