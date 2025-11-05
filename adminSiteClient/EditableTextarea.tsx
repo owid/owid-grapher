@@ -15,6 +15,7 @@ interface EditableTextareaProps {
     placeholder?: string
     disabled?: boolean
     valid?: boolean
+    isDirtyOverride?: boolean
 }
 
 export function EditableTextarea({
@@ -27,8 +28,10 @@ export function EditableTextarea({
     placeholder,
     disabled = false,
     valid = true,
+    isDirtyOverride,
 }: EditableTextareaProps) {
-    const [isDirty, setIsDirty] = useState(false)
+    const [internalIsDirty, setInternalIsDirty] = useState(false)
+    const isDirty = isDirtyOverride ?? internalIsDirty
 
     const handleChange = useCallback(
         (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -40,7 +43,7 @@ export function EditableTextarea({
     const handleSave = useCallback(() => {
         const trimmed = value.trim()
         onSave(trimmed)
-        setIsDirty(false)
+        setInternalIsDirty(false)
     }, [onSave, value])
 
     return (
@@ -50,7 +53,7 @@ export function EditableTextarea({
                 value={value}
                 onChange={(e) => {
                     handleChange(e)
-                    setIsDirty(true)
+                    setInternalIsDirty(true)
                 }}
                 placeholder={placeholder}
                 disabled={disabled}

@@ -94,11 +94,18 @@ function AltTextEditor({
     getAltText: ImageEditorApi["getAltText"]
 }) {
     const [value, setValue] = useState(text)
+    const [savedValue, setSavedValue] = useState(text)
+
+    useEffect(() => {
+        setValue(text)
+        setSavedValue(text)
+    }, [text])
 
     const saveAltText = useCallback(
         (newValue: string) => {
             patchImage(image, { defaultAlt: newValue })
             setValue(newValue)
+            setSavedValue(newValue)
         },
         [image, patchImage]
     )
@@ -122,6 +129,7 @@ function AltTextEditor({
             className="ImageIndexPage__alt-text-editor"
             extraActions={altTextButton}
             autoResize
+            isDirtyOverride={value !== savedValue}
         />
     )
 }
