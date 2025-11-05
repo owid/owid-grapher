@@ -1,17 +1,15 @@
 import * as React from "react"
 import { observable, computed, action, makeObservable, runInAction } from "mobx"
 import { observer } from "mobx-react"
+import { PointVector } from "@ourworldindata/utils"
 import {
-    Bounds,
-    PointVector,
-    GrapherTooltipAnchor,
-} from "@ourworldindata/utils"
-import { TooltipProps, TooltipManager, TooltipFadeMode } from "./TooltipProps"
-import {
-    TooltipCardCore,
-    TooltipContainerCore,
-    TOOLTIP_FADE_DURATION,
-} from "./TooltipCore"
+    TooltipProps,
+    TooltipManager,
+    TooltipFadeMode,
+    TooltipContextProps,
+    TooltipContainerCoreProps,
+} from "./TooltipProps"
+import { TooltipContainerCore, TOOLTIP_FADE_DURATION } from "./TooltipCore"
 
 // MobX wrapper for TooltipState
 export class TooltipState<T> {
@@ -70,53 +68,11 @@ export class TooltipState<T> {
     }
 }
 
-// MobX wrapper for TooltipCard
-@observer
-export class TooltipCard extends React.Component<
-    TooltipProps & {
-        bounds?: Bounds
-        containerWidth?: number
-        containerHeight?: number
-    }
-> {
-    private bounds: Bounds | undefined = undefined
-
-    constructor(
-        props: TooltipProps & {
-            bounds?: Bounds
-            containerWidth?: number
-            containerHeight?: number
-        }
-    ) {
-        super(props)
-        makeObservable<TooltipCard, "bounds">(this, {
-            bounds: observable.struct,
-        })
-    }
-
-    @action.bound private updateBounds(bounds: Bounds): void {
-        this.bounds = bounds
-    }
-
-    override render(): React.ReactElement {
-        return (
-            <TooltipCardCore
-                {...this.props}
-                onBoundsChange={this.updateBounds}
-            />
-        )
-    }
-}
-
-interface TooltipContainerProps {
+interface TooltipContainerProps
+    extends Omit<TooltipContainerCoreProps, "tooltipProvider"> {
     tooltipProvider: TooltipManager
-    anchor?: GrapherTooltipAnchor
-    // if container dimensions are given, the tooltip will be positioned within its bounds
-    containerWidth?: number
-    containerHeight?: number
 }
 
-// MobX wrapper for TooltipContainer
 @observer
 export class TooltipContainer extends React.Component<TooltipContainerProps> {
     constructor(props: TooltipContainerProps) {
@@ -129,7 +85,7 @@ export class TooltipContainer extends React.Component<TooltipContainerProps> {
         return tooltip?.get()
     }
 
-    @computed private get tooltipProviderCore(): {
+    @computed private get tooltipProvider(): {
         tooltip: TooltipProps | undefined
     } {
         return { tooltip: this.tooltip }
@@ -139,7 +95,7 @@ export class TooltipContainer extends React.Component<TooltipContainerProps> {
         return (
             <TooltipContainerCore
                 {...this.props}
-                tooltipProvider={this.tooltipProviderCore}
+                tooltipProvider={this.tooltipProvider}
             />
         )
     }

@@ -209,9 +209,9 @@ export enum ScatterPointLabelStrategy {
 
 export enum GrapherTooltipAnchor {
     // the tooltip is positioned relative to the mouse cursor
-    mouse = "mouse",
+    Mouse = "mouse",
     // the tooltip is pinned to the bottom of the screen
-    bottom = "bottom",
+    Bottom = "bottom",
 }
 
 export interface AnnotationFieldsInTitle {
