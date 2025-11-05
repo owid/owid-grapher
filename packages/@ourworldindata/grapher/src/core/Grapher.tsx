@@ -566,19 +566,14 @@ export class Grapher extends React.Component<GrapherProps> {
                 {this.grapherState.shouldPinTooltipToBottom ? (
                     <BodyDiv>
                         <TooltipContainer
-                            tooltipProvider={this.grapherState}
+                            tooltipManager={this.grapherState}
                             anchor={GrapherTooltipAnchor.bottom}
                         />
                     </BodyDiv>
                 ) : (
                     <TooltipContainer
-                        tooltipProvider={this.grapherState}
-                        containerWidth={
-                            this.grapherState.captionedChartBounds.width
-                        }
-                        containerHeight={
-                            this.grapherState.captionedChartBounds.height
-                        }
+                        tooltipManager={this.grapherState}
+                        containerBounds={this.grapherState.captionedChartBounds}
                     />
                 )}
             </>
