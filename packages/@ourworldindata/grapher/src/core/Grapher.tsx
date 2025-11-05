@@ -28,7 +28,6 @@ import {
     GrapherInterface,
     LegacyGrapherInterface,
     DetailDictionary,
-    GrapherTooltipAnchor,
     NarrativeChartInfo,
     ArchiveContext,
     AdditionalGrapherDataFetchFn,
@@ -575,7 +574,7 @@ export class Grapher extends React.Component<GrapherProps> {
                         tooltipManager={this.grapherState}
                         containerBounds={this.grapherState.captionedChartBounds}
                     />
-                )}
+                </BodyPortal>
             </>
         )
     }

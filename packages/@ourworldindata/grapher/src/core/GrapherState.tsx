@@ -63,6 +63,7 @@ import {
     GlobeRegionName,
     GrapherWindowType,
     MapRegionName,
+    GrapherTooltipAnchor,
 } from "@ourworldindata/types"
 import {
     objectWithPersistablesToObject,
@@ -3042,6 +3043,12 @@ export class GrapherState {
 
     @computed get shouldPinTooltipToBottom(): boolean {
         return this.isTouchDevice
+    }
+
+    @computed get tooltipAnchor(): GrapherTooltipAnchor {
+        return this.shouldPinTooltipToBottom
+            ? GrapherTooltipAnchor.Bottom
+            : GrapherTooltipAnchor.Mouse
     }
 
     isShareMenuActive = false
