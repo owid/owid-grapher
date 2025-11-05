@@ -9,7 +9,7 @@ import {
     TooltipContainerProps,
 } from "./TooltipProps"
 import {
-    TooltipCardContainer,
+    TooltipCard,
     calculateTooltipTargetWithFade,
     getTooltipFadeMode,
     DEFAULT_TOOLTIP_FADE_MODE,
@@ -81,19 +81,10 @@ export class TooltipContainer extends React.Component<ManagedTooltipContainerPro
         return tooltip?.get()
     }
 
-    @computed private get tooltipProvider(): {
-        tooltip: TooltipProps | undefined
-    } {
-        return { tooltip: this.tooltip }
-    }
-
     override render(): React.ReactElement | null {
-        return (
-            <TooltipCardContainer
-                {...this.props}
-                tooltipProvider={this.tooltipProvider}
-            />
-        )
+        const { props, tooltip } = this
+        if (!tooltip) return null
+        return <TooltipCard {...props} {...tooltip} />
     }
 }
 

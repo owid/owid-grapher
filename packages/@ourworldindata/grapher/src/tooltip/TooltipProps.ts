@@ -100,4 +100,6 @@ export interface TooltipContainerProps {
     anchor?: GrapherTooltipAnchor
 }
 
-export const TooltipContext = React.createContext<TooltipContainerProps>({})
+export const TooltipContext = React.createContext<
+    Pick<TooltipContainerProps, "anchor">
+>({})

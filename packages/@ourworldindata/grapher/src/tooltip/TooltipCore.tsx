@@ -117,10 +117,9 @@ export function calculateTooltipTargetWithFade<T>({
     }
 }
 
-class TooltipCard extends React.Component<TooltipProps> {
-    static override contextType = TooltipContext
-    declare context: React.ContextType<typeof TooltipContext>
-
+export class TooltipCard extends React.Component<
+    TooltipProps & TooltipContainerProps
+> {
     private base = React.createRef<HTMLDivElement>()
     private bounds: Bounds | undefined = undefined
 
@@ -149,13 +148,13 @@ class TooltipCard extends React.Component<TooltipProps> {
             footer,
             dissolve,
             children,
+            containerBounds,
+            anchor,
             x = 0,
             y = 0,
             offsetX = 0,
             offsetY = 0,
         } = this.props
-        const { containerBounds, anchor } = this.context
-
         const isPinnedToBottom = anchor === GrapherTooltipAnchor.bottom
 
         // if container dimensions are given, we make sure the tooltip
@@ -221,105 +220,73 @@ class TooltipCard extends React.Component<TooltipProps> {
         }
 
         return (
-            <div
-                ref={this.base}
-                id={id?.toString()}
-                role="tooltip"
-                className={classnames("Tooltip", {
-                    plain,
-                    dissolve,
-                    immediate,
-                })}
-                style={style}
-            >
-                {hasHeader && (
-                    <div className="frontmatter">
-                        {title && (
-                            <div className="title">
-                                {title}{" "}
-                                <span className="annotation">
-                                    {titleAnnotation}
-                                </span>
+            <TooltipContext.Provider value={{ anchor }}>
+                <div
+                    className={classnames("tooltip-container", {
+                        "fixed-bottom": isPinnedToBottom,
+                    })}
+                >
+                    <div
+                        ref={this.base}
+                        id={id?.toString()}
+                        role="tooltip"
+                        className={classnames("Tooltip", {
+                            plain,
+                            dissolve,
+                            immediate,
+                        })}
+                        style={style}
+                    >
+                        {hasHeader && (
+                            <div className="frontmatter">
+                                {title && (
+                                    <div className="title">
+                                        {title}{" "}
+                                        <span className="annotation">
+                                            {titleAnnotation}
+                                        </span>
+                                    </div>
+                                )}
+                                {subtitle && (
+                                    <div className="subtitle">
+                                        {timeNotice && TOOLTIP_ICON.notice}
+                                        <span>{subtitle}</span>
+                                    </div>
+                                )}
                             </div>
                         )}
-                        {subtitle && (
-                            <div className="subtitle">
-                                {timeNotice && TOOLTIP_ICON.notice}
-                                <span>{subtitle}</span>
-                            </div>
-                        )}
-                    </div>
-                )}
-                <div className="content-and-endmatter">
-                    {children && <div className="content">{children}</div>}
-                    {footer && footer.length > 0 && (
-                        <div
-                            className={classnames("endmatter", {
-                                "multiple-lines": footer.length > 1,
-                            })}
-                        >
-                            {footer?.map(({ icon, text }) => (
+                        <div className="content-and-endmatter">
+                            {children && (
+                                <div className="content">{children}</div>
+                            )}
+                            {footer && footer.length > 0 && (
                                 <div
-                                    key={text}
-                                    className={classnames("line", {
-                                        "icon-sig":
-                                            icon ===
-                                            TooltipFooterIcon.significance,
-                                        "no-icon":
-                                            icon === TooltipFooterIcon.none,
+                                    className={classnames("endmatter", {
+                                        "multiple-lines": footer.length > 1,
                                     })}
                                 >
-                                    {TOOLTIP_ICON[icon]}
-                                    <p>{text}</p>
+                                    {footer?.map(({ icon, text }) => (
+                                        <div
+                                            key={text}
+                                            className={classnames("line", {
+                                                "icon-sig":
+                                                    icon ===
+                                                    TooltipFooterIcon.significance,
+                                                "no-icon":
+                                                    icon ===
+                                                    TooltipFooterIcon.none,
+                                            })}
+                                        >
+                                            {TOOLTIP_ICON[icon]}
+                                            <p>{text}</p>
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
+                            )}
                         </div>
-                    )}
+                    </div>
                 </div>
-            </div>
+            </TooltipContext.Provider>
         )
     }
-}
-
-export function TooltipCardContainer(
-    props: TooltipContainerProps & {
-        tooltipProvider: { tooltip?: TooltipProps }
-    }
-): React.ReactElement | null {
-    const tooltip = props.tooltipProvider.tooltip
-    if (!tooltip) return null
-
-    const isFixedToBottom = props.anchor === GrapherTooltipAnchor.bottom
-    const className = classnames("tooltip-container", {
-        "fixed-bottom": isFixedToBottom,
-    })
-
-    const context: TooltipContainerProps = {
-        containerBounds: props.containerBounds,
-        anchor: props.anchor,
-    }
-
-    return (
-        <TooltipContext.Provider value={context}>
-            <div className={className}>
-                <TooltipCard {...tooltip} />
-            </div>
-        </TooltipContext.Provider>
-    )
-}
-
-export function Tooltip(
-    props: TooltipProps & TooltipContainerProps
-): React.ReactElement | null {
-    const { containerBounds, anchor, ...tooltipProps } = props
-
-    const tooltipProvider = { tooltip: tooltipProps }
-
-    return (
-        <TooltipCardContainer
-            tooltipProvider={tooltipProvider}
-            containerBounds={containerBounds}
-            anchor={anchor}
-        />
-    )
 }
