@@ -4,6 +4,7 @@ import { observer } from "mobx-react"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import classnames from "classnames"
+import { match } from "ts-pattern"
 import { Bounds, GrapherTooltipAnchor } from "@ourworldindata/utils"
 import {
     TooltipProps,
@@ -149,7 +150,11 @@ export class TooltipCard extends React.Component<
                                 )}
                                 {subtitle && (
                                     <div className="subtitle">
-                                        {timeNotice && TOOLTIP_ICON.notice}
+                                        {timeNotice && (
+                                            <TooltipIcon
+                                                icon={TooltipFooterIcon.Notice}
+                                            />
+                                        )}
                                         <span>{subtitle}</span>
                                     </div>
                                 )}
@@ -171,13 +176,13 @@ export class TooltipCard extends React.Component<
                                             className={classnames("line", {
                                                 "icon-sig":
                                                     icon ===
-                                                    TooltipFooterIcon.significance,
+                                                    TooltipFooterIcon.Significance,
                                                 "no-icon":
                                                     icon ===
-                                                    TooltipFooterIcon.none,
+                                                    TooltipFooterIcon.None,
                                             })}
                                         >
-                                            {TOOLTIP_ICON[icon]}
+                                            <TooltipIcon icon={icon} />
                                             <p>{text}</p>
                                         </div>
                                     ))}
@@ -250,13 +255,23 @@ export class Tooltip extends React.Component<ManagedTooltipProps> {
     }
 }
 
-const TOOLTIP_ICON: Record<TooltipFooterIcon, React.ReactElement | null> = {
-    notice: <FontAwesomeIcon className="icon" icon={faInfoCircle} />,
-    stripes: <div className="stripes icon"></div>,
-    significance: (
-        <div className="icon">
-            <IconCircledS />
-        </div>
-    ),
-    none: null,
+function TooltipIcon({
+    icon,
+}: {
+    icon: TooltipFooterIcon
+}): React.ReactElement | null {
+    return match(icon)
+        .with(TooltipFooterIcon.Notice, () => (
+            <FontAwesomeIcon className="icon" icon={faInfoCircle} />
+        ))
+        .with(TooltipFooterIcon.Stripes, () => (
+            <div className="stripes icon"></div>
+        ))
+        .with(TooltipFooterIcon.Significance, () => (
+            <div className="icon">
+                <IconCircledS />
+            </div>
+        ))
+        .with(TooltipFooterIcon.None, () => null)
+        .exhaustive()
 }

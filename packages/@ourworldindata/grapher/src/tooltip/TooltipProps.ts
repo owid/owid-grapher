@@ -20,10 +20,10 @@ export interface TooltipManager {
 export type TooltipFadeMode = "delayed" | "immediate" | "none"
 
 export enum TooltipFooterIcon {
-    notice = "notice",
-    stripes = "stripes",
-    significance = "significance",
-    none = "none",
+    Notice = "notice",
+    Stripes = "stripes",
+    Significance = "significance",
+    None = "none",
 }
 
 export interface FooterItem {
