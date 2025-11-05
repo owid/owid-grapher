@@ -1,4 +1,4 @@
-import { EntityName, Time } from "@ourworldindata/types"
+import { EntityName, GrapherTooltipAnchor, Time } from "@ourworldindata/types"
 import {
     CAUSE_OF_DEATH_CATEGORIES,
     DataRow,
@@ -15,6 +15,7 @@ import { getRelativeMouse } from "@ourworldindata/utils"
 import { MyCausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
 import { CausesOfDeathTreemapTile } from "./CausesOfDeathTreemapTile.js"
 import { CausesOfDeathTreemapTooltip } from "./CausesOfDeathTreemapTooltip.js"
+import { BodyPortal } from "@ourworldindata/components"
 
 export { CausesOfDeathCaptionedChart } from "./CausesOfDeathCaptionedChart"
 
@@ -182,6 +183,8 @@ function CausesOfDeathTreemap({
     const isNarrow = width < SMALL_BREAKPOINT
     const annotationHeight = !isNarrow ? 30 : 0
 
+    const shouldPinTooltipToBottom = isNarrow
+
     return (
         <div style={{ position: "relative" }}>
             <svg
@@ -225,13 +228,20 @@ function CausesOfDeathTreemap({
             </svg>
 
             {/* Tooltip rendered outside SVG */}
-            {tooltipState.target && (
-                <CausesOfDeathTreemapTooltip
-                    state={tooltipState}
-                    containerWidth={width}
-                    containerHeight={height + annotationHeight}
-                />
-            )}
+            <BodyPortal disabled={!shouldPinTooltipToBottom}>
+                {tooltipState.target && (
+                    <CausesOfDeathTreemapTooltip
+                        state={tooltipState}
+                        anchor={
+                            shouldPinTooltipToBottom
+                                ? GrapherTooltipAnchor.Bottom
+                                : undefined
+                        }
+                        containerWidth={width}
+                        containerHeight={height + annotationHeight}
+                    />
+                )}
+            </BodyPortal>
         </div>
     )
 }
