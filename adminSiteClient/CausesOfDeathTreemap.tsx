@@ -19,7 +19,7 @@ import { BodyPortal } from "@ourworldindata/components"
 
 export { CausesOfDeathCaptionedChart } from "./CausesOfDeathCaptionedChart"
 
-const SMALL_BREAKPOINT = 768
+export const SMALL_BREAKPOINT = 768
 
 export function ResponsiveCausesOfDeathTreemap({
     data,
@@ -28,6 +28,7 @@ export function ResponsiveCausesOfDeathTreemap({
     year,
     dimensionsConfig,
     tilingMethod,
+    isNarrow,
     debug = false,
 }: {
     data: DataRow[]
@@ -36,17 +37,12 @@ export function ResponsiveCausesOfDeathTreemap({
     year: Time
     dimensionsConfig?: DimensionsConfig
     tilingMethod?: any // TODO
+    isNarrow?: boolean
     debug?: boolean
 }) {
     const { ref, dimensions } = useChartDimensions<HTMLDivElement>({
         config: dimensionsConfig,
     })
-
-    // TODO: extract
-    const isNarrow = dimensions.width < SMALL_BREAKPOINT
-    const myTilingMethod = isNarrow
-        ? d3.treemapSlice
-        : (tilingMethod ?? d3.treemapSquarify)
 
     const height = isNarrow
         ? (dimensionsConfig?.maxHeight ?? 900)
@@ -59,7 +55,7 @@ export function ResponsiveCausesOfDeathTreemap({
                 metadata={metadata}
                 entityName={entityName}
                 year={year}
-                tilingMethod={myTilingMethod}
+                tilingMethod={tilingMethod}
                 width={dimensions.width}
                 height={height}
                 debug={debug}
@@ -246,94 +242,4 @@ function CausesOfDeathTreemap({
                 ))}
         </div>
     )
-}
-
-// export function CausesOfDeathComponent({
-//     data,
-//     entityName,
-//     year,
-//     tilingMethod,
-//     dimensionsConfig,
-//     debug = false,
-// }: {
-//     data: DataRow[]
-//     entityName: EntityName
-//     year: Time
-//     tilingMethod?: any
-//     dimensionsConfig?: {
-//         initialWidth?: number
-//         ratio?: number
-//         minHeight?: number
-//         maxHeight?: number
-//     }
-//     debug?: boolean
-// }) {
-//     const { ref, dimensions } = useChartDimensions<HTMLDivElement>(
-//         {
-//             top: 0,
-//             right: 0,
-//             bottom: 0,
-//             left: 0,
-//         },
-//         {
-//             initialWidth: dimensionsConfig?.initialWidth || 900,
-//             ratio: dimensionsConfig?.ratio || 3 / 2,
-//             minHeight: dimensionsConfig?.minHeight || 400,
-//             maxHeight: dimensionsConfig?.maxHeight || 800,
-//         }
-//     )
-
-//     const width = dimensions.width
-//     const isNarrow = width < 768 // same as small breakpoint
-//     const height = isNarrow ? 900 : dimensions.height
-
-//     return (
-//         <div ref={ref} style={{ position: "relative" }}>
-//             <CausesOfDeathTreemap
-//                 data={data}
-//                 entityName={entityName}
-//                 year={year}
-//                 tilingMethod={tilingMethod}
-//                 width={width}
-//                 height={height}
-//                 showCategoryAnnotation={!isNarrow}
-//                 debug={debug}
-//             />
-//             <div className="causes-of-death-footer">
-//                 <span>
-//                     <b>Data source:</b> IHME, Global Burden of Disease (2024)
-//                 </span>
-//                 <TooltipTrigger>
-//                     <Link
-//                         className="cc-by-button"
-//                         href="https://creativecommons.org/licenses/by/4.0/"
-//                         target="_blank"
-//                         rel="noopener noreferrer"
-//                     >
-//                         CC BY
-//                     </Link>
-//                     <Tooltip className="cc-by-tooltip">
-//                         Our World in Data charts are licensed under Creative
-//                         Commons; you are free to use, share, and adapt this
-//                         material. Click through to the CC BY page for more
-//                         information. Please bear in mind that the underlying
-//                         source data for all our charts might be subject to
-//                         different license terms from third-party authors.
-//                     </Tooltip>
-//                 </TooltipTrigger>
-//             </div>
-//         </div>
-//     )
-// }
-
-function _formatSigFig(value: number): string {
-    return d3.format(".2s")(value)
-}
-
-function _formatPercent(value: number): string {
-    return d3.format(".0%")(value)
-}
-
-function _format(value: number): string {
-    return d3.format(",~")(value)
 }
