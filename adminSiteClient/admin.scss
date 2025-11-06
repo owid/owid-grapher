@@ -1812,3 +1812,48 @@ g:has(.arrow) {
         pointer-events: none;
     }
 }
+
+.causes-of-death-legend {
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 3px;
+    column-gap: 16px;
+    margin-bottom: 1rem;
+}
+
+.causes-of-death-legend__item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    line-height: 1.2;
+}
+
+.causes-of-death-legend__color-box {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 2px;
+}
+
+.causes-of-death-legend__label {
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .causes-of-death-legend {
+        flex-direction: column;
+    }
+
+    .causes-of-death-legend__item {
+        font-size: 13px;
+    }
+
+    .causes-of-death-legend__color-box {
+        width: 14px;
+        height: 14px;
+    }
+}
