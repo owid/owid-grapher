@@ -64,7 +64,7 @@ export function CausesOfDeathTreemapTile({
             <rect
                 id={leafId}
                 fill={color}
-                fillOpacity={0.9}
+                // fillOpacity={0.9}
                 width={width}
                 height={height}
                 rx={2}
