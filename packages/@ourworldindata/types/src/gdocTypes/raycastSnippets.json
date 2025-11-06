@@ -233,5 +233,10 @@
         "name": "static-viz",
         "text": "{.static-viz}\nname: \nsize: \nhasOutline: \n{}",
         "keyword": "+static-viz"
+    },
+    {
+        "name": "conditional-section",
+        "text": "{.conditional-section}\ninclude: \nexclude: \n[.+content]\n\n[]\n{}",
+        "keyword": "+conditional-section"
     }
 ]

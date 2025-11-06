@@ -1,17 +1,22 @@
 import * as _ from "lodash-es"
 import {
     articulateEntity,
+    checkHasMembers,
     checkIsCountry,
     countries,
+    getRegionByName,
     getRegionByNameOrVariantName,
     regions,
     type Region,
 } from "./regions.js"
 import {
+    EnrichedBlockConditionalSection,
     OwidGdocProfileInterface,
+    ParseError,
     type OwidGdocProfileContent,
 } from "@ourworldindata/types"
-import { generateToc } from "./Util.js"
+
+import { generateToc, traverseEnrichedBlock } from "./Util.js"
 
 export type ProfileEntity = Pick<Region, "name" | "code">
 
@@ -107,6 +112,14 @@ export const instantiateProfile = (
 
     replaceStringsInObject(clonedContent, replacements)
 
+    clonedContent.body.forEach((node) => {
+        traverseEnrichedBlock(node, (block) => {
+            if (block.type === "conditional-section") {
+                parseInstantiatedConditionalSection(block, entity.name)
+            }
+        })
+    })
+
     const region = getRegionByNameOrVariantName(entity.name)
     if (region) {
         clonedContent.instantiatedEntity = {
@@ -170,4 +183,223 @@ export function getEntitiesForProfile(
     return Array.from(entitiesByCode.values()).sort((a, b) =>
         a.name.localeCompare(b.name)
     )
+}
+
+/**
+ * Conditional Section Parsing & Validation
+ */
+
+/**
+ * This is the second pass to parse conditional sections after instantiation.
+ * It determines whether or not the profile is instantiated for an entity that
+ * matches the include/exclude criteria, and removes the content if not.
+ */
+function parseInstantiatedConditionalSection(
+    block: EnrichedBlockConditionalSection,
+    entity: string
+): void {
+    const shouldRender = checkShouldConditionalSectionRender({
+        entity,
+        include: block.include,
+        exclude: block.exclude,
+    })
+    if (!shouldRender) {
+        block.content = []
+        return
+    }
+}
+
+function resolveRegionList(names: string[]): {
+    resolved: { region: Region; raw: string }[]
+    errors: ParseError[]
+} {
+    const errors: ParseError[] = []
+    const resolved: { region: Region; raw: string }[] = []
+
+    for (const name of names) {
+        const region = getRegionByName(name)
+        if (!region) {
+            errors.push({ message: `Unknown region: ${name}` })
+        } else {
+            resolved.push({ region, raw: name })
+        }
+    }
+    return { resolved, errors }
+}
+
+const validationRules = {
+    ensureHasEntries: function (
+        includeCount: number,
+        excludeCount: number
+    ): ParseError[] {
+        if (includeCount === 0 && excludeCount === 0) {
+            return [
+                {
+                    message:
+                        "Conditional section must specify at least one include or exclude entry",
+                },
+            ]
+        }
+        return []
+    },
+    ensureNoOverlap: function (
+        includeRegions: { region: Region; raw: string }[],
+        excludeRegions: { region: Region; raw: string }[]
+    ): { errors: ParseError[]; overlapNames: string[] } {
+        const includeCodes = new Map(
+            includeRegions.map(({ region }) => [region.code, region.name])
+        )
+
+        const overlapNames = excludeRegions
+            .map(({ region }) => includeCodes.get(region.code))
+            .filter((name): name is string => !!name)
+
+        if (overlapNames.length === 0) return { errors: [], overlapNames }
+
+        return {
+            overlapNames,
+            errors: [
+                {
+                    message: `Entities cannot be in both include and exclude lists: ${[
+                        ...new Set(overlapNames),
+                    ].join(", ")}`,
+                },
+            ],
+        }
+    },
+    ensureIncludeListsAreRegionsWhenExcluding: function (
+        includeContainsCountry: boolean,
+        hasOverlap: boolean
+    ): ParseError[] {
+        if (!includeContainsCountry || hasOverlap) return []
+        return [
+            {
+                message:
+                    "Include list must contain regions (not individual countries) when excludes are specified",
+            },
+        ]
+    },
+    ensureExcludesAreCovered: function (
+        includeRegions: { region: Region; raw: string }[],
+        excludeRegions: { region: Region; raw: string }[],
+        includeContainsCountry: boolean,
+        hasOverlap: boolean
+    ): ParseError[] {
+        if (includeContainsCountry || hasOverlap) return []
+
+        const errors: ParseError[] = []
+        for (const { region: excludedRegion } of excludeRegions) {
+            const includedByAny = includeRegions.some(({ region }) => {
+                if (region.code === excludedRegion.code) return true
+                if (!checkHasMembers(region)) return false
+                return region.members.includes(excludedRegion.code)
+            })
+            if (!includedByAny) {
+                errors.push({
+                    message: `${excludedRegion.name} is not covered by the include list`,
+                })
+            }
+        }
+        return errors
+    },
+}
+
+/**
+ * Validate that the include/exclude lists in a conditional section make sense.
+ * e.g. include: "Europe", exclude: "France" is valid
+ * e.g. include: "South America", exclude: "Germany" is invalid
+ * See validationRules for more details.
+ */
+export function validateConditionalSectionLists(
+    include: string[],
+    exclude: string[]
+): ParseError[] {
+    const allErrors: ParseError[] = []
+    const entryRuleErrors = validationRules.ensureHasEntries(
+        include.length,
+        exclude.length
+    )
+    if (entryRuleErrors.length) {
+        return entryRuleErrors
+    }
+
+    const [
+        { resolved: includeRegions, errors: includeErrors },
+        { resolved: excludeRegions, errors: excludeErrors },
+    ] = [include, exclude].map(resolveRegionList)
+    allErrors.push(...includeErrors, ...excludeErrors)
+
+    // If only one list has entries, we can skip interaction checks
+    if (includeRegions.length === 0 || excludeRegions.length === 0) {
+        return allErrors
+    }
+
+    const { errors: overlapErrors, overlapNames } =
+        validationRules.ensureNoOverlap(includeRegions, excludeRegions)
+
+    const hasOverlap = overlapNames.length > 0
+    const includeContainsCountry = includeRegions.some(({ region }) =>
+        checkIsCountry(region)
+    )
+
+    const includeErrorsRule =
+        validationRules.ensureIncludeListsAreRegionsWhenExcluding(
+            includeContainsCountry,
+            hasOverlap
+        )
+
+    const coverageErrors = validationRules.ensureExcludesAreCovered(
+        includeRegions,
+        excludeRegions,
+        includeContainsCountry,
+        hasOverlap
+    )
+
+    allErrors.push(...overlapErrors, ...includeErrorsRule, ...coverageErrors)
+
+    return allErrors
+}
+
+function calculateRenderLogic(
+    entityRegion: Region,
+    includeRegions: { region: Region; raw: string }[],
+    excludeRegions: { region: Region; raw: string }[]
+): boolean {
+    // Helper to check if entity is in a given region (or is the region)
+    const matchesCondition = (condition: Region): boolean => {
+        if (condition.code === entityRegion.code) return true
+        if (checkHasMembers(condition)) {
+            return condition.members.includes(entityRegion.code)
+        }
+        return false
+    }
+
+    const isExcluded = excludeRegions.some(({ region }) =>
+        matchesCondition(region)
+    )
+
+    // An empty include list means "include all"
+    const isIncluded =
+        includeRegions.length === 0 ||
+        includeRegions.some(({ region }) => matchesCondition(region))
+
+    return !isExcluded && isIncluded
+}
+
+export function checkShouldConditionalSectionRender({
+    entity,
+    include,
+    exclude,
+}: {
+    entity: string
+    include: string[]
+    exclude: string[]
+}): boolean {
+    const entityRegion = getRegionByName(entity)
+    if (!entityRegion) return false
+
+    const { resolved: includeRegions } = resolveRegionList(include)
+    const { resolved: excludeRegions } = resolveRegionList(exclude)
+
+    return calculateRenderLogic(entityRegion, includeRegions, excludeRegions)
 }
