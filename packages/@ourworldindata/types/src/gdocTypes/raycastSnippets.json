@@ -223,5 +223,10 @@
         "name": "sticky-left-with-chart",
         "text": "{ .sticky-left }\n[.+right]\n{.chart}\nurl: \ncaption: \n{}\n[]\n[.+left]\n\n[]\n{}",
         "keyword": "+slwc"
+    },
+    {
+        "name": "conditional-section",
+        "text": "{.conditional-section}\nentity: \ninclude: \nexclude: \n[.+content]\n\n[]\n{}",
+        "keyword": "+conditional-section"
     }
 ]
