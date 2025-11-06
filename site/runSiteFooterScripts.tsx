@@ -234,6 +234,52 @@ function runSiteTools() {
         const root = createRoot(siteToolsElem)
         root.render(<SiteTools />)
     }
+
+    runHtmlLangObserver()
+}
+
+function runHtmlLangObserver() {
+    const htmlElement = document.documentElement
+
+    // Create a MutationObserver to watch for changes to the lang attribute, which is a signpost
+    // of a translation service / browser translation.
+    // This can catch automatic translations in Chrome, Safari, Firefox - but not Edge.
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (
+                mutation.type === "attributes" &&
+                mutation.attributeName === "lang"
+            ) {
+                const newLang = htmlElement.getAttribute("lang")
+                const prevLang = mutation.oldValue
+
+                const context = {
+                    newLang,
+                    prevLang,
+                    browser: navigator.userAgent,
+                    browserLanguages: navigator.languages,
+                }
+
+                console.log(
+                    `Site translated from ${prevLang} to ${newLang}`,
+                    context
+                )
+
+                // TODO: Handle language change
+                // Add your custom logic here for when the language changes
+                // For example, you might want to:
+                // - Update text direction for RTL languages
+                // - Reload certain components with new translations
+                // - Update date/number formatting
+            }
+        })
+    })
+
+    observer.observe(htmlElement, {
+        attributes: true,
+        attributeFilter: ["lang"],
+        attributeOldValue: true,
+    })
 }
 
 const hydrateOwidGdoc = (debug?: boolean, isPreviewing?: boolean) => {
