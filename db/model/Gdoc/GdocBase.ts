@@ -26,7 +26,7 @@ import {
     Url,
 } from "@ourworldindata/utils"
 import { BAKED_GRAPHER_URL } from "../../../settings/serverSettings.js"
-import { docs as googleDocs } from "@googleapis/docs"
+import { docs as googleDocs, type docs_v1 } from "@googleapis/docs"
 import { gdocToArchie } from "./gdocToArchie.js"
 import { archieToEnriched } from "./archieToEnriched.js"
 import { getChartConfigById, mapSlugsToIds } from "../Chart.js"
@@ -43,6 +43,7 @@ import {
     spansToSimpleString,
 } from "./gdocUtils.js"
 import { OwidGoogleAuth } from "../../OwidGoogleAuth.js"
+import { acceptAllGdocSuggestions } from "./acceptAllGdocSuggestions.js"
 import { enrichedBlocksToMarkdown } from "./enrichedToMarkdown.js"
 import { getDatapageIndicatorId } from "../Variable.js"
 import { createLinkForNarrativeChart, createLinkFromUrl } from "../Link.js"
@@ -892,22 +893,32 @@ export class GdocBase implements OwidGdocBaseInterface {
         this.linkedNarrativeCharts = _.keyBy(result, "name")
     }
 
-    async fetchAndEnrichGdoc(): Promise<void> {
+    async fetchAndEnrichGdoc(
+        acceptSuggestions: boolean = false
+    ): Promise<void> {
         const docsClient = googleDocs({
             version: "v1",
             auth: OwidGoogleAuth.getGoogleReadonlyAuth(),
         })
 
         // Retrieve raw data from Google
+        const suggestionsViewMode = acceptSuggestions
+            ? "SUGGESTIONS_INLINE"
+            : "PREVIEW_WITHOUT_SUGGESTIONS"
+
         const { data } = await docsClient.documents.get({
             documentId: this.id,
-            suggestionsViewMode: "PREVIEW_WITHOUT_SUGGESTIONS",
+            suggestionsViewMode,
         })
 
-        this.revisionId = data.revisionId ?? null
+        const normalizedDocument: docs_v1.Schema$Document = acceptSuggestions
+            ? acceptAllGdocSuggestions(data)
+            : data
+
+        this.revisionId = normalizedDocument.revisionId ?? null
 
         // Convert the doc to ArchieML syntax
-        const { text } = await gdocToArchie(data)
+        const { text } = await gdocToArchie(normalizedDocument)
 
         // Convert the ArchieML to our enriched JSON structure
         this.content = archieToEnriched(text, this._enrichSubclassContent)
