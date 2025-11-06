@@ -45,11 +45,14 @@ const TILING_METHODS = [
 ]
 
 export function CausesOfDeathPage() {
-    const [selectedYear, setSelectedYear] = useState<Time>(2023)
     const [selectedTiling, setSelectedTiling] = useState<string>("custom")
     const [_minThickness, _setMinThickness] = useState<number>(120)
     const [_innerMinThickness, _setInnerMinThickness] = useState<number>(40)
     const [debug, setDebug] = useState<boolean>(false)
+
+    // This is only needed for the commented-out sections below
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const selectedYear: Time = 2023
 
     // Fetch metadata
     const metadataResult = useQuery({
@@ -84,16 +87,6 @@ export function CausesOfDeathPage() {
         },
         enabled: !!metadataResult.data,
     })
-
-    // Extract years from all entity data
-    const years = useMemo(() => {
-        if (!allEntitiesDataResult.data) return []
-
-        const allYears = allEntitiesDataResult.data.flatMap(
-            (entityData) => entityData.years
-        )
-        return Array.from(new Set(allYears)).sort((a, b) => b - a)
-    }, [allEntitiesDataResult.data])
 
     const data = useMemo(() => {
         return parseAllEntitiesData(
@@ -136,13 +129,6 @@ export function CausesOfDeathPage() {
                     >
                         Settings
                     </h3>
-                    <div style={{ marginBottom: "15px" }}>
-                        <YearSelect
-                            years={years}
-                            selectedYear={selectedYear}
-                            onYearChange={setSelectedYear}
-                        />
-                    </div>
 
                     <div style={{ marginBottom: "15px" }}>
                         <TilingSelect
@@ -188,7 +174,6 @@ export function CausesOfDeathPage() {
                     {/* Country selector section */}
                     <div style={{ padding: "0 20px" }}>
                         <CausesOfDeathCaptionedChart
-                            year={selectedYear}
                             debug={debug}
                             tilingMethod={
                                 selectedTiling === "custom"
@@ -496,47 +481,6 @@ function _CustomTilingControls({
                     style={{ width: "300px" }}
                 />
             </div>
-        </div>
-    )
-}
-
-interface YearSelectProps {
-    years: Time[]
-    selectedYear: Time
-    onYearChange: (year: Time) => void
-}
-
-function YearSelect({ years, selectedYear, onYearChange }: YearSelectProps) {
-    return (
-        <div style={{ display: "flex", alignItems: "baseline", gap: "10px" }}>
-            <label
-                htmlFor="year-select"
-                style={{
-                    fontWeight: "600",
-                    fontSize: "14px",
-                    minWidth: "120px",
-                }}
-            >
-                Year:
-            </label>
-            <select
-                id="year-select"
-                value={selectedYear}
-                onChange={(e) => onYearChange(parseInt(e.target.value) as Time)}
-                style={{
-                    padding: "8px 12px",
-                    minWidth: "100px",
-                    border: "1px solid #ccc",
-                    borderRadius: "4px",
-                    fontSize: "14px",
-                }}
-            >
-                {years.map((year) => (
-                    <option key={year} value={year}>
-                        {year}
-                    </option>
-                ))}
-            </select>
         </div>
     )
 }
