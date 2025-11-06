@@ -213,14 +213,16 @@ function CausesOfDeathTreemap({
                     />
                 ))}
 
-                <CausesOfDeathCategoryAnnotations
-                    data={data}
-                    metadata={metadata}
-                    treeNodes={leaves}
-                    width={width}
-                    annotationHeight={annotationHeight}
-                    debug={debug}
-                />
+                {!isNarrow && (
+                    <CausesOfDeathCategoryAnnotations
+                        data={data}
+                        metadata={metadata}
+                        treeNodes={leaves}
+                        width={width}
+                        annotationHeight={annotationHeight}
+                        debug={debug}
+                    />
+                )}
             </svg>
 
             {tooltipState.target &&
