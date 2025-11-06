@@ -1857,3 +1857,102 @@ g:has(.arrow) {
         height: 14px;
     }
 }
+
+// Mobile horizontal bar chart for narrow screens
+.causes-of-death-mobile-bar-chart {
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.causes-of-death-mobile-bar-chart__item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+}
+
+// TODO: container
+.causes-of-death-mobile-bar-chart__bar-container {
+    width: 100%;
+    height: 24px;
+    background-color: #f8f9fa;
+    border-radius: 2px;
+    overflow: hidden;
+    // border: 1px solid rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+// .causes-of-death-mobile-bar-chart__bar-container:hover,
+// .causes-of-death-mobile-bar-chart__bar-container:focus {
+//     border-color: rgba(0, 0, 0, 0.2);
+//     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+// }
+
+// .causes-of-death-mobile-bar-chart__bar-container:focus {
+//     border-color: #0070f3;
+//     box-shadow: 0 0 0 2px rgba(0, 112, 243, 0.2);
+// }
+
+.causes-of-death-mobile-bar-chart__bar {
+    height: 100%;
+    border-radius: 2px;
+    transition: all 0.2s ease;
+    min-width: 2px; // Ensure very small percentages are still visible
+}
+
+// .causes-of-death-mobile-bar-chart__bar-container:hover
+//     .causes-of-death-mobile-bar-chart__bar {
+//     opacity: 0.85;
+//     transform: scaleY(0.95);
+// }
+
+.causes-of-death-mobile-bar-chart__label {
+    // position: absolute;
+    // top: 0;
+    // left: 0;
+    // right: 0;
+    // height: 24px;
+    // display: flex;
+    // justify-content: space-between;
+    // align-items: center;
+    // font-size: 13px;
+    // line-height: 1.2;
+    // pointer-events: none;
+    // z-index: 1;
+    // padding: 0 8px;
+}
+
+.causes-of-death-mobile-bar-chart__percentage {
+    font-weight: 700;
+    flex-shrink: 0;
+    color: #fff;
+}
+
+// .causes-of-death-mobile-bar-chart__category {
+//     font-weight: 500;
+//     text-align: right;
+//     color: #5b5b5b;
+// }
+
+// Extra responsive adjustments for very narrow screens
+.causes-of-death-mobile-bar-chart__item {
+    gap: 6px;
+}
+
+.causes-of-death-mobile-bar-chart__bar-container {
+    height: 20px;
+}
+
+.causes-of-death-mobile-bar-chart__label {
+    height: 20px;
+    font-size: 12px;
+    padding: 0 6px;
+}
+
+// .causes-of-death-mobile-bar-chart__category {
+//     text-align: right;
+// }
