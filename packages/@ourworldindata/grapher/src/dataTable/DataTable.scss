@@ -31,7 +31,7 @@
             padding-top: 2px;
             padding-bottom: 14px;
 
-            .unit {
+            .title-fragments {
                 color: $light-text;
                 font-weight: 500;
             }
@@ -128,9 +128,30 @@
                 &.dimension {
                     text-align: left;
 
+                    .name {
+                        display: -webkit-box;
+                        -webkit-box-orient: vertical;
+                        -webkit-line-clamp: 2;
+                        line-clamp: 2;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        font-weight: 500;
+                        color: $light-text;
+
+                        .title-text {
+                            font-weight: 700;
+                            color: $dark-text;
+                        }
+                    }
+
+                    .title-fragments {
+                        text-wrap: auto;
+                    }
+
                     .description {
-                        color: $gray-60;
+                        color: $dark-text;
                         text-align: left;
+                        font-weight: 500;
                     }
                 }
             }
