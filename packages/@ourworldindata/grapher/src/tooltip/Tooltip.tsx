@@ -44,7 +44,7 @@ export class TooltipCard extends React.Component<
             offsetX = 0,
             offsetY = 0,
         } = this.props
-        const isPinnedToBottom = anchor === GrapherTooltipAnchor.bottom
+        const isPinnedToBottom = anchor === GrapherTooltipAnchor.Bottom
 
         const style = { ...this.props.style }
 
@@ -118,7 +118,7 @@ export class TooltipCard extends React.Component<
             children,
             anchor,
         } = this.props
-        const isPinnedToBottom = anchor === GrapherTooltipAnchor.bottom
+        const isPinnedToBottom = anchor === GrapherTooltipAnchor.Bottom
 
         // add a preposition to unit-based subtitles
         const hasHeader = title !== undefined || subtitle !== undefined
