@@ -1,11 +1,7 @@
 import * as R from "remeda"
 import cx from "classnames"
 import { EntityName, Time } from "@ourworldindata/types"
-import {
-    COUNTRIES_WITH_DEFINITE_ARTICLE,
-    DataRow,
-    EntityMetadata,
-} from "./CausesOfDeathConstants"
+import { DataRow, EntityMetadata } from "./CausesOfDeathConstants"
 import React, { useMemo, useState, useCallback, useEffect } from "react"
 import * as d3 from "d3"
 import {
@@ -17,9 +13,12 @@ import {
     useCausesOfDeathMetadata,
 } from "./CausesOfDeathDataFetching"
 import { ResponsiveCausesOfDeathTreemap } from "./CausesOfDeathTreemap"
+import { ResponsiveCausesOfDeathCategoriesBarChart } from "./CausesOfDeathCategoriesBarChart"
 import { Link, Tooltip, TooltipTrigger } from "react-aria-components"
 import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher"
 import { formatCountryName } from "./CausesOfDeathHelpers.js"
+import { useMediaQuery } from "usehooks-ts"
+import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../site/SiteConstants.js"
 
 // TODO: Fetch World data immediately (waits for the metadata to resolve right now)
 // TODO: Not sure yet how to best show loading states when switching countries
@@ -33,6 +32,8 @@ export function CausesOfDeathCaptionedChart({
     tilingMethod?: any
     debug?: boolean
 }) {
+    const isNarrow = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
+
     const [selectedEntityName, setSelectedEntityName] =
         useState(WORLD_ENTITY_NAME)
 
@@ -88,6 +89,15 @@ export function CausesOfDeathCaptionedChart({
                 onChange={setSelectedEntityName}
                 isLoading={isFetching}
             />
+            {isNarrow && (
+                <ResponsiveCausesOfDeathCategoriesBarChart
+                    data={data}
+                    metadata={metadata}
+                    entityName={entityName}
+                    year={year}
+                    height={60}
+                />
+            )}
             <div
                 className={cx("causes-of-death-captioned-chart__treemap", {
                     "causes-of-death-captioned-chart__treemap--loading":
@@ -99,14 +109,16 @@ export function CausesOfDeathCaptionedChart({
                         Loading data for {selectedEntityName}...
                     </div>
                 )}
+
                 <ResponsiveCausesOfDeathTreemap
                     data={data}
                     metadata={metadata}
                     entityName={entityName}
                     year={year}
                     dimensionsConfig={dimensionsConfig}
-                    tilingMethod={tilingMethod}
+                    tilingMethod={isNarrow ? d3.treemapSlice : tilingMethod}
                     debug={debug}
+                    isNarrow={isNarrow}
                 />
             </div>
             <CausesOfDeathFooter />
