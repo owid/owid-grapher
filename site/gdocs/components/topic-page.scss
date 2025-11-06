@@ -278,46 +278,10 @@
         margin-top: 24px;
     }
 
-    // Shared styles for heading variant decorative pseudo-elements
-    // At lg, heading takes up 6 columns, so 200% is 12 columns then we add a missing gutter
-    // Using percentages instead of absolute values because different browsers calculate the grid size differently
-    @mixin heading-variant-pseudo-widths {
-        @include md-up {
-            width: calc(200% + var(--grid-gap));
-            left: calc(-50% - var(--grid-gap) / 2);
-        }
-        @include md-only {
-            width: 120%;
-            left: -10%;
-        }
-        @include sm-only {
-            width: 100%;
-            left: 0;
-        }
-    }
-
-    @mixin heading-variant-base {
-        text-wrap: unset;
-        position: relative;
-        @include sm-only {
-            font-size: 1.5rem;
-            line-height: 2rem;
-        }
-    }
-
     // Light variant: gray line above the heading
     &.centered-article-container--heading-variant-light {
         > h1.article-block__heading {
-            @include heading-variant-base;
-            margin-top: 96px;
-
-            &::before {
-                content: "";
-                position: absolute;
-                top: -48px;
-                border-top: 1px solid $blue-10;
-                @include heading-variant-pseudo-widths;
-            }
+            @include h1-hr;
         }
 
         // the LTP TOC is responsible for adding the spacing and divider line

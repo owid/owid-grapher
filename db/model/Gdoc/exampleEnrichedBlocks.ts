@@ -422,6 +422,13 @@ export const enrichedBlockExamples: Record<
         content: [enrichedBlockText],
         parseErrors: [],
     },
+    "conditional-section": {
+        type: "conditional-section",
+        content: [enrichedBlockText],
+        include: ["Europe"],
+        exclude: [],
+        parseErrors: [],
+    },
     "prominent-link": {
         type: "prominent-link",
         url: "https://ourworldindata.org/grapher/total-cases-covid-19",
