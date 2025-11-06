@@ -94,7 +94,7 @@ export const GrapherPage = (props: {
         adminBaseUrl: ADMIN_BASE_URL,
         bakedGrapherURL: BAKED_GRAPHER_URL,
     })}
-const archiveContext = ${JSON.stringify(archiveContext || undefined)}
+const archiveContext = window._OWID_ARCHIVE_CONTEXT
 const isPreviewing = ${isPreviewing}
 window.renderSingleGrapherOnGrapherPage(jsonConfig, "${DATA_API_URL}", { archiveContext, isPreviewing })`
 
@@ -199,7 +199,7 @@ window.renderSingleGrapherOnGrapherPage(jsonConfig, "${DATA_API_URL}", { archive
                 </main>
                 <SiteFooter
                     context={SiteFooterContext.grapherPage}
-                    archiveInfo={isOnArchivalPage ? archiveContext : undefined}
+                    archiveContext={archiveContext}
                     isPreviewing={isPreviewing}
                 />
                 <script

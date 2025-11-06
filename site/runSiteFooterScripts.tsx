@@ -137,6 +137,7 @@ function hydrateDataPageV2Content({
                 {...props}
                 grapherConfig={grapherConfig}
                 isPreviewing={isPreviewing}
+                archiveContext={window._OWID_ARCHIVE_CONTEXT}
             />
         </DebugProvider>
     )
@@ -209,8 +210,8 @@ function runSiteNavigation(hideDonationFlag?: boolean) {
         }
 
         let archiveInfo: ArchiveMetaInformation | undefined
-        if (window._OWID_ARCHIVE_INFO) {
-            archiveInfo = window._OWID_ARCHIVE_INFO
+        if (window._OWID_ARCHIVE_CONTEXT) {
+            archiveInfo = window._OWID_ARCHIVE_CONTEXT
         }
 
         const root = createRoot(siteNavigationElem)
@@ -247,7 +248,7 @@ const hydrateOwidGdoc = (debug?: boolean, isPreviewing?: boolean) => {
                 <OwidGdoc
                     {...props}
                     isPreviewing={isPreviewing}
-                    archiveContext={window._OWID_ARCHIVE_INFO}
+                    archiveContext={window._OWID_ARCHIVE_CONTEXT}
                 />
             </DebugProvider>
             <AriaAnnouncer />
@@ -269,6 +270,7 @@ const hydrateMultiDimDataPageContent = (isPreviewing?: boolean) => {
                     config={MultiDimDataPageConfig.fromObject(configObj)}
                     {...props}
                     isPreviewing={isPreviewing}
+                    archiveContext={window._OWID_ARCHIVE_CONTEXT}
                 />
             </BrowserRouter>
         </DebugProvider>
