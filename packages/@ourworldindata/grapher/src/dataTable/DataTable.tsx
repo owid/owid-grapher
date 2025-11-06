@@ -342,17 +342,25 @@ export class DataTable extends React.Component<DataTableProps> {
             )
             const targetTime = singleColumn?.targetTime
 
+            const title = _.upperFirst(display.columnName.title)
+            const titleFragments = joinTitleFragments(
+                display.columnName.attributionShort,
+                display.columnName.titleVariant
+            )
+
             const dimensionHeaderText = (
                 <React.Fragment>
-                    <div className="name">
-                        <span className="title-text">
-                            {_.upperFirst(display.columnName.title)}{" "}
-                        </span>
+                    <div
+                        className="name"
+                        title={
+                            titleFragments
+                                ? `${title} – ${titleFragments}`
+                                : title
+                        }
+                    >
+                        <span className="title-text">{title} </span>
                         <span className="title-fragments">
-                            {joinTitleFragments(
-                                display.columnName.attributionShort,
-                                display.columnName.titleVariant
-                            )}
+                            {titleFragments}
                         </span>
                     </div>
                     <div className="description">
