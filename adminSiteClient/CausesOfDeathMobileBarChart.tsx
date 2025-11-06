@@ -90,23 +90,6 @@ export function CausesOfDeathMobileBarChart({
                 ).width
                 const percentageFits = percentageWidth <= availableWidth
 
-                const barWidth = item.percentage * dimensions.width
-                const availableWidthInBar =
-                    barWidth - padding - percentageWidth - 0.5 * padding
-
-                const labelWidth = Bounds.forText(item.category, {
-                    fontSize,
-                }).width
-
-                const availableWidthRight =
-                    availableWidth - offset - barWidth - padding
-                const labelPosition =
-                    labelWidth <= availableWidthInBar
-                        ? "inside-bar"
-                        : labelWidth <= availableWidthRight
-                          ? "outside-bar-right"
-                          : "outside-bar-left"
-
                 return (
                     <div
                         key={item.category}
@@ -154,62 +137,28 @@ export function CausesOfDeathMobileBarChart({
                                     top: "50%", // TODO
                                     transform: "translate(-100%, -50%)",
                                     left: `calc(${offset}% - ${padding}px)`, // TODO
-                                    color: "#4e4e4e",
+                                    color: "#5b5b5b",
                                     fontSize,
                                 }}
                             >
                                 {item.formattedPercentage}
                             </span>
                         )}
-                        {labelPosition === "inside-bar" && (
-                            <span
-                                className="causes-of-death-mobile-bar-chart__category"
-                                style={{
-                                    position: "absolute",
-                                    top: "50%",
-                                    transform: "translateY(-50%)",
-                                    left: percentageWidth + padding + padding,
-                                    color: "white",
-                                    fontSize,
-                                }}
-                            >
-                                {item.category}
-                            </span>
-                        )}
-                        {/* TODO:not tested */}
-                        {labelPosition === "outside-bar-right" && (
-                            <span
-                                className="causes-of-death-mobile-bar-chart__category"
-                                style={{
-                                    position: "absolute",
-                                    top: "50%",
-                                    transform: "translateY(-50%)",
-                                    left: `calc(${offset}% + ${barWidth}px + ${padding}px)`,
-                                    color: "white",
-                                    fontSize,
-                                }}
-                            >
-                                {item.category}
-                            </span>
-                        )}
-                        {labelPosition === "outside-bar-left" && (
-                            <span
-                                className="causes-of-death-mobile-bar-chart__category"
-                                style={{
-                                    position: "absolute",
-                                    top: "50%",
-                                    transform: "translateY(-50%)",
-                                    // left: `calc(${offset}% - ${padding}px)`,
-                                    left: padding,
-                                    color: "#4e4e4e",
-                                    fontSize,
-                                    whiteSpace: "nowrap",
-                                    textAnchor: "end",
-                                }}
-                            >
-                                {item.category}
-                            </span>
-                        )}
+                        <span
+                            className="causes-of-death-mobile-bar-chart__category"
+                            style={{
+                                position: "absolute",
+                                top: "-20px",
+                                left: "0",
+                                color: "#5b5b5b",
+                                // color: item.color,
+                                fontSize,
+                                fontWeight: 500,
+                                whiteSpace: "nowrap",
+                            }}
+                        >
+                            {item.category}
+                        </span>
                     </div>
                 )
             })}
