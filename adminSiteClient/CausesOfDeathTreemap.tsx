@@ -227,21 +227,23 @@ function CausesOfDeathTreemap({
                 />
             </svg>
 
-            {/* Tooltip rendered outside SVG */}
-            <BodyPortal disabled={!shouldPinTooltipToBottom}>
-                {tooltipState.target && (
+            {tooltipState.target &&
+                (shouldPinTooltipToBottom ? (
+                    <BodyPortal>
+                        <CausesOfDeathTreemapTooltip
+                            state={tooltipState}
+                            anchor={GrapherTooltipAnchor.Bottom}
+                        />
+                    </BodyPortal>
+                ) : (
                     <CausesOfDeathTreemapTooltip
                         state={tooltipState}
-                        anchor={
-                            shouldPinTooltipToBottom
-                                ? GrapherTooltipAnchor.Bottom
-                                : undefined
-                        }
-                        containerWidth={width}
-                        containerHeight={height + annotationHeight}
+                        containerBounds={{
+                            width,
+                            height: height + annotationHeight,
+                        }}
                     />
-                )}
-            </BodyPortal>
+                ))}
         </div>
     )
 }
