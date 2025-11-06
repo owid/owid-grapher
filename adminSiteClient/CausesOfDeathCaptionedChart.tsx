@@ -15,6 +15,7 @@ import {
 import { ResponsiveCausesOfDeathTreemap } from "./CausesOfDeathTreemap"
 import { ResponsiveCausesOfDeathCategoriesBarChart } from "./CausesOfDeathCategoriesBarChart"
 import { CausesOfDeathLegend } from "./CausesOfDeathLegend"
+import { CausesOfDeathMobileBarChart } from "./CausesOfDeathMobileBarChart"
 import { Link, Tooltip, TooltipTrigger } from "react-aria-components"
 import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher"
 import { formatCountryName } from "./CausesOfDeathHelpers.js"
@@ -100,7 +101,11 @@ export function CausesOfDeathCaptionedChart({
                 />
             )} */}
 
-            <CausesOfDeathLegend data={data} metadata={metadata} />
+            {isNarrow ? (
+                <CausesOfDeathMobileBarChart data={data} metadata={metadata} />
+            ) : (
+                <CausesOfDeathLegend data={data} metadata={metadata} />
+            )}
 
             <div
                 className={cx("causes-of-death-captioned-chart__treemap", {
