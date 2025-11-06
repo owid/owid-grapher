@@ -51,7 +51,6 @@ export function MultiDimDataPage({
         imageMetadata,
         tagToSlugMap,
         isPreviewing,
-        archiveContext,
     }
     const imageUrl: string = urljoin(
         baseUrl || "/",
@@ -134,7 +133,7 @@ export function MultiDimDataPage({
                 <SiteFooter
                     context={SiteFooterContext.multiDimDataPage}
                     isPreviewing={isPreviewing}
-                    archiveInfo={isOnArchivalPage ? archiveContext : undefined}
+                    archiveContext={archiveContext}
                 />
             </body>
         </Html>

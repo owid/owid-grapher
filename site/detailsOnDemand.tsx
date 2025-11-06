@@ -21,7 +21,7 @@ type Tippyfied<E> = E & {
 declare global {
     interface Window {
         details?: DetailDictionary
-        _OWID_ARCHIVE_INFO?: ArchiveMetaInformation
+        _OWID_ARCHIVE_CONTEXT?: ArchiveMetaInformation
     }
 }
 
@@ -37,7 +37,7 @@ export async function runDetailsOnDemand(
 
     const runtimeAssetMap =
         (typeof window !== "undefined" &&
-            window._OWID_ARCHIVE_INFO?.assets?.runtime) ||
+            window._OWID_ARCHIVE_CONTEXT?.assets?.runtime) ||
         undefined
 
     const dodFetchUrl = shouldFetchFromAdminApi
