@@ -1,5 +1,49 @@
+.profile-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 40px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+    h1 {
+        margin: 0;
+    }
+}
+
+.profile-title__label {
+    color: $blue-60;
+    width: 100%;
+}
+
+.profile-title__container {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+}
+
+.profile-title__flag {
+    width: auto;
+    height: 16px;
+    position: relative;
+}
+
 .centered-article-container--profile {
     h1.article-block__heading {
         @include h1-hr;
+    }
+
+    @include text-block-override {
+        font-size: 1rem;
+    }
+
+    .footnote-container,
+    #article-citation {
+        margin-top: 0;
+    }
+
+    // Whichever block comes before the footnote container or citation footer
+    > [class*="article-block__"]:has(+ .footnote-container),
+    > [class*="article-block__"]:has(+ #article-citation) {
+        margin-bottom: 48px;
     }
 }

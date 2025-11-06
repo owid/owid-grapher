@@ -4,7 +4,7 @@ import LinkedAuthor from "./LinkedAuthor.js"
 export const Byline = ({ names }: { names: string[] }) => {
     return (
         <>
-            {"By: "}
+            {"By "}
             {names.map((name, index) => {
                 const isLast = index === names.length - 1
                 const isSecondToLast = index === names.length - 2
