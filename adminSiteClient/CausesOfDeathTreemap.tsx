@@ -23,6 +23,7 @@ export const SMALL_BREAKPOINT = 768
 
 export function ResponsiveCausesOfDeathTreemap({
     data,
+    historicalData,
     metadata,
     entityName,
     year,
@@ -32,6 +33,7 @@ export function ResponsiveCausesOfDeathTreemap({
     debug = false,
 }: {
     data: DataRow[]
+    historicalData?: DataRow[]
     metadata: MyCausesOfDeathMetadata
     entityName: EntityName
     year: Time
@@ -52,6 +54,7 @@ export function ResponsiveCausesOfDeathTreemap({
         <div ref={ref}>
             <CausesOfDeathTreemap
                 data={data}
+                historicalData={historicalData}
                 metadata={metadata}
                 entityName={entityName}
                 year={year}
@@ -66,6 +69,7 @@ export function ResponsiveCausesOfDeathTreemap({
 
 function CausesOfDeathTreemap({
     data,
+    historicalData,
     metadata,
     entityName,
     year,
@@ -75,6 +79,7 @@ function CausesOfDeathTreemap({
     debug = false,
 }: {
     data: DataRow[]
+    historicalData?: DataRow[]
     metadata: MyCausesOfDeathMetadata
     entityName: EntityName
     year: Time
@@ -231,6 +236,7 @@ function CausesOfDeathTreemap({
                         <CausesOfDeathTreemapTooltip
                             state={tooltipState}
                             anchor={GrapherTooltipAnchor.Bottom}
+                            historicalData={historicalData || data}
                         />
                     </BodyPortal>
                 ) : (
@@ -240,6 +246,7 @@ function CausesOfDeathTreemap({
                             width,
                             height: height + annotationHeight,
                         }}
+                        historicalData={historicalData || data}
                     />
                 ))}
         </div>
