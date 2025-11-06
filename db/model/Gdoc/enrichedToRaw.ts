@@ -59,6 +59,7 @@ import {
     RawBlockResourcePanel,
     RawBlockCta,
     RawBlockScript,
+    RawBlockConditionalSection,
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -407,6 +408,18 @@ export function enrichedBlockToRawBlock(
             (b): RawBlockGraySection => ({
                 type: b.type,
                 value: b.items.map(enrichedBlockToRawBlock),
+            })
+        )
+        .with(
+            { type: "conditional-section" },
+            (b): RawBlockConditionalSection => ({
+                type: b.type,
+                value: {
+                    content: b.content.map(enrichedBlockToRawBlock),
+                    entity: b.entity,
+                    include: b.include.join(", "),
+                    exclude: b.exclude.join(", "),
+                },
             })
         )
         .with(

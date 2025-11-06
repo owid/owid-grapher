@@ -230,6 +230,7 @@ export function extractFilenamesFromBlock(
                     "callout",
                     "chart-story",
                     "chart",
+                    "conditional-section",
                     "code",
                     "cookie-notice",
                     "cta",
