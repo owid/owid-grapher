@@ -640,6 +640,20 @@ function ArticleBlockInternal({
                 ))}
             </ExploreDataSection>
         ))
+        .with({ type: "conditional-section" }, (block) => (
+            <>
+                {block.content.map((item, i) => (
+                    <ArticleBlock
+                        key={i}
+                        b={item}
+                        containerType={containerType}
+                        toc={toc}
+                        shouldRenderLinks={shouldRenderLinks}
+                        interactiveImages={interactiveImages}
+                    />
+                ))}
+            </>
+        ))
         .with({ type: "prominent-link" }, (block) => (
             <ProminentLink
                 className={getLayout("prominent-link", containerType)}

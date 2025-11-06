@@ -63,6 +63,7 @@ import {
     RawBlockScript,
     RawBlockStaticViz,
     RawBlockLTPToc,
+    RawBlockConditionalSection,
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -415,6 +416,17 @@ export function enrichedBlockToRawBlock(
                     title: b.title,
                     align: b.align,
                     content: b.content.map(enrichedBlockToRawBlock),
+                },
+            })
+        )
+        .with(
+            { type: "conditional-section" },
+            (b): RawBlockConditionalSection => ({
+                type: b.type,
+                value: {
+                    content: b.content.map(enrichedBlockToRawBlock),
+                    include: b.include.join(", "),
+                    exclude: b.exclude.join(", "),
                 },
             })
         )

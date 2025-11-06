@@ -582,37 +582,45 @@
     );
 }
 
-/* Add a light gray line above a heading when it's in the main article body (i.e. not an all-charts block, or in a two-column section) */
-@mixin h1-hr {
+@mixin heading-variant-base {
     text-wrap: unset;
     position: relative;
-    margin-top: 64px;
-
     @include sm-only {
         font-size: 1.5rem;
         line-height: 2rem;
     }
+}
+
+// Shared styles for heading variant decorative pseudo-elements
+// At lg, heading takes up 6 columns, so 200% is 12 columns then we add a missing gutter
+// Using percentages instead of absolute values because different browsers calculate the grid size differently
+@mixin heading-variant-pseudo-widths {
+    @include md-up {
+        width: calc(200% + var(--grid-gap));
+        left: calc(-50% - var(--grid-gap) / 2);
+    }
+    @include md-only {
+        width: 120%;
+        left: -10%;
+    }
+    @include sm-only {
+        width: 100%;
+        left: 0;
+    }
+}
+
+/* Add a light gray line above a heading when it's in the main article body (i.e. not an all-charts block, or in a two-column section) */
+@mixin h1-hr {
+    @include heading-variant-base;
+    text-wrap: unset;
+    position: relative;
+    margin-top: 96px;
 
     &::before {
         content: "";
         position: absolute;
-        top: -32px;
+        top: -48px;
         border-top: 1px solid $blue-10;
-        /* At lg, heading takes up 6 columns, so 200% is 12 columns then we add a missing gutter */
-        /* Using percentages instead of absolute values because different browsers calculate the grid size differently */
-        @include md-up {
-            width: calc(200% + var(--grid-gap));
-            left: calc(-50% - var(--grid-gap) / 2);
-        }
-
-        @include md-only {
-            width: 120%;
-            left: -10%;
-        }
-
-        @include sm-only {
-            width: 100%;
-            left: 0;
-        }
+        @include heading-variant-pseudo-widths;
     }
 }

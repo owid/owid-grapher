@@ -80,7 +80,6 @@ export const countryIndicatorVariables = async (
         return rows.map(parseVariablesRow)
     })
 
-// TODO: what is this? check with matthieu/sophia
 export const denormalizeLatestCountryData = async (
     trx: db.KnexReadWriteTransaction,
     variableIds?: number[]
