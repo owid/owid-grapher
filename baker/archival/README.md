@@ -118,11 +118,11 @@ This works as follows:
 
 When `ARCHIVE_BASE_URL` is set, we provide information about the latest archived version (if any) to the data page / grapher page.
 
-This information is of the type `ArchivedChartOrArchivePageMeta`, which can be one of two things:
+This information is of the type `ArchiveContext`, which can be one of two things:
 
 - When in a normal (_live_) bake, this is going to be basic information about the last archived version, like its URL and date. The object has `{ type: "archived-page-version" }`.
 - When in an archival bake, there is extended information relevant for rendering the archived page, like the previous archived version (for backwards navigation), and also the runtime and static asset maps. The object has `{ type: "archive-page" }`.
-    - In this case, you can also conveniently access this information through the `window._OWID_ARCHIVE_INFO` variable.
+- You can also conveniently access this information through the `window._OWID_ARCHIVE_CONTEXT` variable.
 
 This information is then used to compute the citation text, and in the latter case also for other considerations like the archive navigation bar.
 

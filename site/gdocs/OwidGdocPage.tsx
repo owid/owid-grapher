@@ -337,7 +337,7 @@ export default function OwidGdocPage({
                     context={SiteFooterContext.gdocsDocument}
                     debug={debug}
                     isPreviewing={isPreviewing}
-                    archiveInfo={isOnArchivalPage ? archiveContext : undefined}
+                    archiveContext={archiveContext}
                 />
             </body>
         </Html>
