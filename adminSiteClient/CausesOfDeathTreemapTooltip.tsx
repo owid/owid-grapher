@@ -94,7 +94,8 @@ export function CausesOfDeathTreemapTooltip({
                     unit: "Share of deaths",
                 }}
                 valueFormatter={{
-                    formatValueShort: (v) => formatPercentSigFig(v),
+                    formatValueShort: (v) =>
+                        formatPercentSigFig(typeof v === "number" ? v : 0),
                 }}
                 labelVariant="unit-only"
             />
@@ -105,7 +106,8 @@ export function CausesOfDeathTreemapTooltip({
                     unit: "Per year",
                 }}
                 valueFormatter={{
-                    formatValueShort: (v) => formatNumberLongText(v),
+                    formatValueShort: (v) =>
+                        formatNumberLongText(typeof v === "number" ? v : 0),
                 }}
                 labelVariant="unit-only"
             />
@@ -116,7 +118,8 @@ export function CausesOfDeathTreemapTooltip({
                     unit: "Per average day",
                 }}
                 valueFormatter={{
-                    formatValueShort: (v) => formatNumberLongText(v),
+                    formatValueShort: (v) =>
+                        formatNumberLongText(typeof v === "number" ? v : 0),
                 }}
                 labelVariant="unit-only"
             />

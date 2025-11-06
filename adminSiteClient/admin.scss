@@ -1794,3 +1794,21 @@ g:has(.arrow) {
     height: auto;
     font: 10px sans-serif;
 }
+
+.causes-of-death-categories-bar-chart {
+    margin: 1rem 0;
+
+    svg {
+        display: block;
+    }
+
+    rect {
+        transition: opacity 0.2s ease;
+    }
+
+    text {
+        font-family: inherit;
+        user-select: none;
+        pointer-events: none;
+    }
+}
