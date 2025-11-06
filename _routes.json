@@ -3,6 +3,11 @@
     "include": ["/*"],
     "exclude": [
         "/grapher/_grapherRedirects.json",
+        "/topicTagGraph.json",
+        "/dods.json",
+        "/*-logo.svg",
+        "/apple-touch-icon.png",
+        "/robots.txt",
         "/assets/*",
         "/fonts/*",
         "/*.css",
