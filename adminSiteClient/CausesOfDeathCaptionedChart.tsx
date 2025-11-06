@@ -159,6 +159,7 @@ export function CausesOfDeathCaptionedChart({
 
                 <ResponsiveCausesOfDeathTreemap
                     data={data}
+                    historicalData={entityData}
                     metadata={metadata}
                     entityName={entityName}
                     year={selectedYear}
