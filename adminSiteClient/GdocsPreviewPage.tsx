@@ -93,10 +93,12 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
             contentSource: GdocsContentSource,
             acceptSuggestions = false
         ) => {
-            const url = Url.fromURL(`/api/gdocs/${id}`)
-            if (acceptSuggestions)
-                url.setQueryParams({ acceptSuggestions: "true", contentSource })
-            else url.setQueryParams({ contentSource })
+            const queryParams = acceptSuggestions
+                ? { acceptSuggestions: "true", contentSource }
+                : { contentSource }
+            const url = Url.fromURL(`/api/gdocs/${id}`).setQueryParams(
+                queryParams
+            )
             const json = await admin.requestJSON<OwidGdocJSON>(
                 url.fullUrl,
                 {},
