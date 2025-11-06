@@ -62,7 +62,7 @@ export { Button } from "./Button/Button.js"
 
 export { Halo } from "./Halo/Halo.js"
 
-export { BodyDiv } from "./bodyDiv/BodyDiv.js"
+export { BodyPortal } from "./BodyPortal/BodyPortal.js"
 
 export { LoadingIndicator } from "./loadingIndicator/LoadingIndicator.js"
 

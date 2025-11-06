@@ -1,7 +1,7 @@
 import * as React from "react"
 import { action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import { BodyDiv } from "@ourworldindata/components"
+import { BodyPortal } from "@ourworldindata/components"
 import { isTargetOutsideElement } from "../chart/ChartUtils"
 
 interface FullScreenProps {
@@ -41,7 +41,7 @@ export class FullScreen extends React.Component<FullScreenProps> {
 
     override render() {
         return (
-            <BodyDiv>
+            <BodyPortal>
                 <div
                     className="FullScreenOverlay"
                     role="dialog"
@@ -55,7 +55,7 @@ export class FullScreen extends React.Component<FullScreenProps> {
                         {this.props.children}
                     </div>
                 </div>
-            </BodyDiv>
+            </BodyPortal>
         )
     }
 }

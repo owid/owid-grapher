@@ -21,7 +21,7 @@ import {
     queryParamsToStr,
     setWindowQueryStr,
 } from "@ourworldindata/utils"
-import { BodyDiv } from "@ourworldindata/components"
+import { BodyPortal } from "@ourworldindata/components"
 import {
     ScaleType,
     AnnotationFieldsInTitle,
@@ -564,12 +564,12 @@ export class Grapher extends React.Component<GrapherProps> {
 
                 {/* Tooltip: either pin to the bottom or render into the chart area */}
                 {this.grapherState.shouldPinTooltipToBottom ? (
-                    <BodyDiv>
+                    <BodyPortal>
                         <TooltipContainer
                             tooltipManager={this.grapherState}
                             anchor={GrapherTooltipAnchor.bottom}
                         />
-                    </BodyDiv>
+                    </BodyPortal>
                 ) : (
                     <TooltipContainer
                         tooltipManager={this.grapherState}
