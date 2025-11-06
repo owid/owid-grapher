@@ -3,27 +3,24 @@ import {
     CAUSE_OF_DEATH_CATEGORY_COLORS,
     TooltipState,
 } from "./CausesOfDeathConstants.js"
-import { TooltipCore } from "@ourworldindata/grapher/src/tooltip/Tooltip"
-import { TooltipValueCore } from "@ourworldindata/grapher/src/tooltip/TooltipContents"
 import {
     formatCountryName,
     formatNumberLongText,
     formatPercentSigFig,
 } from "./CausesOfDeathHelpers.js"
 import { GrapherTooltipAnchor } from "@ourworldindata/types"
+import { TooltipCard } from "@ourworldindata/grapher/src/tooltip/Tooltip.js"
 
 export function CausesOfDeathTreemapTooltip({
     state,
     anchor,
-    containerWidth,
-    containerHeight,
+    containerBounds,
     offsetX = 8,
     offsetY = 8,
 }: {
     state: TooltipState
     anchor?: GrapherTooltipAnchor
-    containerWidth: number
-    containerHeight: number
+    containerBounds?: { width: number; height: number }
     offsetX?: number
     offsetY?: number
 }) {
@@ -55,7 +52,7 @@ export function CausesOfDeathTreemapTooltip({
             : `in ${formatCountryName(node.data.data.entityName)}`
 
     return (
-        <TooltipCore
+        <TooltipCard
             id="causes-of-death-tooltip"
             x={position.x}
             y={position.y}
@@ -64,9 +61,7 @@ export function CausesOfDeathTreemapTooltip({
             title={variable}
             subtitle={year.toString()}
             style={{ maxWidth: 300 }}
-            // TODO: does this make sense here?
-            containerWidth={containerWidth}
-            containerHeight={containerHeight}
+            containerBounds={containerBounds}
             anchor={anchor}
         >
             <div
@@ -130,6 +125,6 @@ export function CausesOfDeathTreemapTooltip({
                 }}
                 labelVariant="unit-only"
             /> */}
-        </TooltipCore>
+        </TooltipCard>
     )
 }
