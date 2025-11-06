@@ -338,6 +338,9 @@ ${items}
         .with({ type: "explore-data-section" }, (b): string | undefined =>
             enrichedBlocksToMarkdown(b.content, exportComponents)
         )
+        .with({ type: "conditional-section" }, (b): string | undefined =>
+            enrichedBlocksToMarkdown(b.content, exportComponents)
+        )
         .with({ type: "prominent-link" }, (b): string | undefined => {
             if (b.url.match(gdocUrlRegex)) {
                 return undefined
