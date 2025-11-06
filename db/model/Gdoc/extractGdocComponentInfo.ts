@@ -217,6 +217,14 @@ export function enumerateGdocComponentsWithoutChildren(
                     path
                 )
             )
+            .with({ type: "conditional-section" }, (conditionalSection) =>
+                handleComponent(
+                    conditionalSection,
+                    [{ prop: "content", iterator: iterateArrayProp }],
+                    parentPath,
+                    path
+                )
+            )
             .with({ type: "expander" }, (expander) =>
                 handleComponent(
                     expander,

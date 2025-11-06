@@ -13,9 +13,6 @@ import {
     ALL_CHARTS_ID,
     KEY_INSIGHTS_ID,
     RESEARCH_AND_WRITING_ID,
-    FEATURED_DATA_INSIGHTS_ID,
-    EXPLORE_DATA_SECTION_ID,
-    EXPLORE_DATA_SECTION_DEFAULT_TITLE,
 } from "@ourworldindata/utils"
 import { convertHeadingTextToId } from "@ourworldindata/components"
 import {

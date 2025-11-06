@@ -232,6 +232,7 @@ export {
     instantiateProfile,
     type ProfileEntity,
     getEntitiesForProfile,
+    validateConditionalSectionLists,
 } from "./profiles.js"
 
 export {
