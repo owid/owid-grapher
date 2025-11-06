@@ -662,7 +662,7 @@ export async function getAndLoadListedGdocPosts(
     // When loadState=true (default), it fully loads linked charts, validates, loads images, etc.
     const gdocs = (await Promise.all(
         enrichedRows.map(async (row) =>
-            loadGdocFromGdocBase(knex, row, undefined, {
+            loadGdocFromGdocBase(knex, row, undefined, undefined, {
                 loadState: shouldLoadState,
             })
         )
