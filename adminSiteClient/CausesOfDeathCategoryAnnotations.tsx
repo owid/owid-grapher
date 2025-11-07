@@ -83,9 +83,12 @@ export function CausesOfDeathCategoryAnnotations({
         })
     const bounds = [boundsForLargestCategory, boundsForSecondLargestCategory]
 
-    // Check if the second annotation fits within its container
     const availableWidthForSecondLabel = bounds[1].width - arrowWidth
-    const secondAnnotationFits = availableWidthForSecondLabel >= textWidths[1]
+    const secondAnnotationFits =
+        // Check if the second annotation is on the same horizontal line as the first one
+        bounds[1].y === bounds[0].y &&
+        // Check if the second annotation fits within its container
+        availableWidthForSecondLabel >= textWidths[1]
 
     const getColor = (categoryName: string) =>
         CAUSE_OF_DEATH_CATEGORY_COLORS[categoryName] || "#5b5b5b"
