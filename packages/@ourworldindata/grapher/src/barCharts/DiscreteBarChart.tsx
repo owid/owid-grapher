@@ -40,7 +40,7 @@ import {
 import { DiscreteBarChartState } from "./DiscreteBarChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import {
-    fitLabelToBarHeight,
+    wrapLabelForHeight,
     makeProjectedDataPatternId,
 } from "./DiscreteBarChartHelpers"
 import { OwidTable } from "@ourworldindata/core-table"
@@ -115,33 +115,24 @@ export class DiscreteBarChart
     @computed private get entityLabelStyle(): {
         fontSize: number
         fontWeight: number
+        lineHeight: number
     } {
-        return { fontSize: this.labelFontSize, fontWeight: 700 }
-    }
-
-    // useful if `barHeight` can't be used due to a cyclic dependency
-    // keep in mind though that this is not exactly the same as `barHeight`
-    @computed private get approximateBarHeight(): number {
-        const { height } = this.bounds
-        const approximateMaxBarHeight = height / this.barCount
-        const approximateBarSpacing =
-            approximateMaxBarHeight * BAR_SPACING_FACTOR
-        const totalWhiteSpace = this.barCount * approximateBarSpacing
-        return (height - totalWhiteSpace) / this.barCount
+        return {
+            fontSize: this.labelFontSize,
+            fontWeight: 700,
+            lineHeight: 1,
+        }
     }
 
     @computed get sizedSeries(): DiscreteBarSeries[] {
-        // can't use `this.barHeight` due to a circular dependency
-        const barHeight = this.approximateBarHeight
-
         return this.series.map((series) => {
             const label = series.shortEntityName ?? series.entityName
-            const labelWrap = fitLabelToBarHeight({
+            const labelWrap = wrapLabelForHeight({
                 label,
-                barHeight,
-                initialWidth: 0.3 * this.bounds.width,
+                availableHeight: this.bounds.height / this.barCount,
+                minWidth: 0.3 * this.bounds.width,
                 maxWidth: 0.66 * this.bounds.width,
-                labelStyle: this.entityLabelStyle,
+                fontSettings: this.entityLabelStyle,
             })
 
             return { ...series, label: labelWrap }

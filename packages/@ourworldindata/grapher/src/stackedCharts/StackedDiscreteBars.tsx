@@ -51,7 +51,7 @@ import { HorizontalAxis } from "../axis/Axis"
 import { HashMap, NodeGroup } from "react-move"
 import { easeQuadOut } from "d3-ease"
 import { StackedDiscreteBarChartState } from "./StackedDiscreteBarChartState"
-import { fitLabelToBarHeight } from "../barCharts/DiscreteBarChartHelpers.js"
+import { wrapLabelForHeight } from "../barCharts/DiscreteBarChartHelpers.js"
 
 const BAR_SPACING_FACTOR = 0.35
 
@@ -141,22 +141,22 @@ export class StackedDiscreteBars
     }
 
     @computed private get labelFontSize(): number {
-        // can't use `this.barHeight` due to a circular dependency
-        const barHeight = this.approximateBarHeight
+        const availableHeight = this.bounds.height / this.barCount
         return Math.min(
             GRAPHER_FONT_SCALE_12 * this.fontSize,
-
-            1.1 * barHeight
+            1.1 * availableHeight
         )
     }
 
     @computed private get labelStyle(): {
         fontSize: number
         fontWeight: number
+        lineHeight: number
     } {
         return {
             fontSize: this.labelFontSize,
             fontWeight: 700,
+            lineHeight: 1,
         }
     }
 
@@ -241,17 +241,14 @@ export class StackedDiscreteBars
     }
 
     @computed private get sizedItems(): readonly SizedItem[] {
-        // can't use `this.barHeight` due to a circular dependency
-        const barHeight = this.approximateBarHeight
-
         return this.chartState.sortedItems.map((item) => {
             const label = item.shortEntityName ?? item.entityName
-            const labelWrap = fitLabelToBarHeight({
+            const labelWrap = wrapLabelForHeight({
                 label,
-                barHeight,
-                initialWidth: 0.3 * this.bounds.width,
+                availableHeight: this.bounds.height / this.barCount,
+                minWidth: 0.3 * this.bounds.width,
                 maxWidth: 0.66 * this.bounds.width,
-                labelStyle: this.labelStyle,
+                fontSettings: this.labelStyle,
             })
 
             return { ...item, label: labelWrap }
@@ -281,17 +278,6 @@ export class StackedDiscreteBars
     @computed private get barHeight(): number {
         const totalWhiteSpace = this.barCount * this.barSpacing
         return (this.innerBounds.height - totalWhiteSpace) / this.barCount
-    }
-
-    // useful if `barHeight` can't be used due to a cyclic dependency
-    // keep in mind though that this is not exactly the same as `barHeight`
-    @computed private get approximateBarHeight(): number {
-        const { height } = this.bounds
-        const approximateMaxBarHeight = height / this.barCount
-        const approximateBarSpacing =
-            approximateMaxBarHeight * BAR_SPACING_FACTOR
-        const totalWhiteSpace = this.barCount * approximateBarSpacing
-        return (height - totalWhiteSpace) / this.barCount
     }
 
     @computed get fontSize(): number {
