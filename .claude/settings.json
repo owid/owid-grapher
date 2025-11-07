@@ -1,6 +1,39 @@
 {
     "permissions": {
-        "allow": ["Bash(grep:*)", "Bash(yarn typecheck)", "Bash(git log:*)"],
+        "allow": [
+            "Bash(grep:*)",
+            "Bash(yarn typecheck)",
+            "Bash(yarn test:*)",
+            "Bash(make test:*)",
+            "Bash(yarn testLintChanged:*)",
+            "Bash(yarn fixPrettierChanged:*)",
+            "Bash(git log:*)",
+            "Bash(git diff:*)",
+            "Bash(git show:*)",
+            "Bash(gh pr view:*)",
+            "Bash(tmux list-windows:*)",
+            "Bash(tmux list-panes:*)",
+            "Bash(tmux list-keys:*)",
+            "Bash(tmux list-commands:*)",
+            "Bash(tmux show-options:*)",
+            "Bash(tmux show-window-options:*)",
+            "Bash(tmux show-hooks:*)",
+            "Bash(tmux show-messages:*)",
+            "Bash(tmux show-environment:*)",
+            "Bash(tmux server-info:*)",
+            "Bash(tmux display-message:*)",
+            "Bash(tmux capture-pane:*)",
+            "Bash(tmux list-buffers:*)",
+            "Bash(tmux show-buffer:*)",
+            "Bash(tmux save-buffer:*)"
+        ],
         "deny": []
+    },
+    "sandbox": {
+        "excludedCommands": [
+            "tmux"
+        ],
+        "autoAllowBashIfSandboxed": true,
+        "enabled": true
     }
 }

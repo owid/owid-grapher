@@ -46,6 +46,18 @@ Our main datastore is a mysql 8 database. The documentation for this lives in db
 
 You can run (read only) queries against the database with `yarn query "QUERY TEXT"` - e.g. if you need to understand the contents of a table of the cardinality of various tables.
 
+# Inspecting server logs
+
+During development, the developer will likely have a running server, started with `make up.full` or `make up`. This runs the following services in one tmux tab each, in this tab order:
+
+- docker-compose setup with the mysql test database (see ./docker-compose.grapher.yml for details)
+- admin api node express server (the one in ./adminSiteServer)
+- vite server
+- cloudflare wrangler dev server (to run the code in ./functions) locally)
+- and a terminal that you can ignore.
+
+It can be useful to check the logs of these tabs. You can do so by getting the tail of the corresponding tabs. You can use tmux to query the content of these tabs.
+
 # Additional documentation
 
 More details of our gdocs pipeline are described in these files:
