@@ -1,6 +1,8 @@
 import * as _ from "lodash-es"
 import {
     BlockPositionChoice,
+    AllChartsLayout,
+    allChartsLayouts,
     ChartPositionChoice,
     EnrichedBlockAside,
     EnrichedBlockCallout,
@@ -301,6 +303,16 @@ function parseAllCharts(raw: RawBlockAllCharts): EnrichedBlockAllCharts {
     if (!raw.value.heading)
         return createError({ message: "all-charts block missing heading" })
 
+    const layout = raw.value.layout as AllChartsLayout | undefined
+    if (layout) {
+        if (!allChartsLayouts.includes(layout as AllChartsLayout)) {
+            return createError({
+                message: `all-charts block has unsupported layout "${layout}"`,
+                isWarning: true,
+            })
+        }
+    }
+
     const top = raw.value.top
     if (top) {
         if (!_.isArray(top)) {
@@ -329,6 +341,7 @@ function parseAllCharts(raw: RawBlockAllCharts): EnrichedBlockAllCharts {
         type: "all-charts",
         heading: raw.value.heading,
         top: top?.map((item) => ({ url: extractUrl(item.url) })) || [],
+        layout,
         parseErrors: [],
     }
 }

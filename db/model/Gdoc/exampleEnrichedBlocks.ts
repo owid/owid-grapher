@@ -102,6 +102,7 @@ export const enrichedBlockExamples: Record<
     "all-charts": {
         type: "all-charts",
         heading: "All our charts on Poverty",
+        layout: "grid",
         top: [{ url: "https://ourworldindata.org/grapher/poverty-over-time" }],
         parseErrors: [],
     },

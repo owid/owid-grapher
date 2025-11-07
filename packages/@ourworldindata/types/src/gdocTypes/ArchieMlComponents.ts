@@ -4,6 +4,9 @@ import { Span, SpanSimpleText } from "./Spans.js"
 export type BlockPositionChoice = "right" | "left"
 export type ChartPositionChoice = "featured"
 
+export const allChartsLayouts = ["grid", "list"] as const
+export type AllChartsLayout = (typeof allChartsLayouts)[number]
+
 type ArchieMLUnexpectedNonObjectValue = string
 
 export type ParseError = {
@@ -560,6 +563,7 @@ export type RawBlockAllCharts = {
     type: "all-charts"
     value: {
         heading?: string
+        layout?: string
         top?: { url: string }[]
     }
 }
@@ -567,6 +571,7 @@ export type RawBlockAllCharts = {
 export type EnrichedBlockAllCharts = {
     type: "all-charts"
     heading: string
+    layout?: AllChartsLayout
     top: { url: string }[]
 } & EnrichedBlockWithParseErrors
 

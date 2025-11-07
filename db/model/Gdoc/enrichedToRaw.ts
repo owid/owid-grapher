@@ -92,6 +92,7 @@ export function enrichedBlockToRawBlock(
                 value: {
                     heading: b.heading,
                     top: b.top,
+                    layout: b.layout,
                 },
             })
         )

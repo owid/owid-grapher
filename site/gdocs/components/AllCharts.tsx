@@ -13,6 +13,7 @@ import { AttachmentsContext } from "../AttachmentsContext.js"
 import { RelatedCharts } from "../../blocks/RelatedCharts.js"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 import { Button } from "@ourworldindata/components"
+import { match } from "ts-pattern"
 
 type AllChartsProps = EnrichedBlockAllCharts & {
     className?: string
@@ -45,9 +46,12 @@ function sortRelatedCharts(
 }
 
 export function AllCharts(props: AllChartsProps) {
-    const { heading, top, className } = props
+    const { heading, top, className, layout = "grid" } = props
     const { relatedCharts, tags } = useContext(AttachmentsContext)
     if (relatedCharts.length === 0) return null
+
+    const layoutModifierClass = `article-block__all-charts--${layout}`
+    // TODO: Implement dedicated rendering for the list layout. Until then we reuse the grid layout.
 
     const topSlugs = top.map((item) => Url.fromURL(item.url).slug as string)
 
@@ -57,8 +61,16 @@ export function AllCharts(props: AllChartsProps) {
         : ""
 
     const sortedRelatedCharts = sortRelatedCharts(relatedCharts, topSlugs)
+    const seeAllButton = (
+        <Button
+            theme="solid-vermillion"
+            text="See all charts on this topic"
+            href={`${urljoin(BAKED_BASE_URL, `/data`, firstTagDataCatalogQueryString)}`}
+        />
+    )
+
     return (
-        <div className={cx(className)}>
+        <div className={cx(className, layoutModifierClass)}>
             <h1
                 className="article-block__heading h1-semibold"
                 id={ALL_CHARTS_ID}
@@ -72,15 +84,23 @@ export function AllCharts(props: AllChartsProps) {
                     href={`#${ALL_CHARTS_ID}`}
                 />
             </h1>
-            <Button
-                theme="solid-vermillion"
-                text="See all charts on this topic"
-                href={`${urljoin(BAKED_BASE_URL, `/data`, firstTagDataCatalogQueryString)}`}
-            />
-            <RelatedCharts
-                showKeyChartsOnly={true}
-                charts={sortedRelatedCharts}
-            />
+            {match(layout)
+                .with("grid", () => (
+                    <>
+                        {seeAllButton}
+                        <RelatedCharts
+                            showKeyChartsOnly={true}
+                            charts={sortedRelatedCharts}
+                        />
+                    </>
+                ))
+                .with("list", () => (
+                    <>
+                        {seeAllButton}
+                        {/* todo: implement list layout */}
+                    </>
+                ))
+                .exhaustive()}
         </div>
     )
 }
