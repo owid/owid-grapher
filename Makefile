@@ -164,6 +164,8 @@ sync-cloudflare-images: node_modules
 refresh.full: refresh refresh.pageviews
 	@echo '==> Full refresh completed'
 
+down: export COMPOSE_PROJECT_NAME ?= owid-grapher
+
 down:
 	@echo '==> Stopping services'
 	docker compose -f docker-compose.grapher.yml down
