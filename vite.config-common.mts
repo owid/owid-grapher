@@ -13,6 +13,7 @@ import {
 export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
     const entrypointInfo = VITE_ENTRYPOINT_INFO[entrypoint]
     const isBundlemon = process.env.BUNDLEMON === "true"
+    const vitePort = parseInt(process.env.VITE_PORT || "8090", 10)
 
     return defineConfig({
         publicDir: false, // don't copy public folder to dist
@@ -83,7 +84,7 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
             },
         ],
         server: {
-            port: 8090,
+            port: vitePort,
             warmup: { clientFiles: [VITE_ASSET_SITE_ENTRY] },
             // remote dev setup
             ...(process.env.VITE_HOST
@@ -94,7 +95,7 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                 : {}),
         },
         preview: {
-            port: 8090,
+            port: vitePort,
         },
     })
 }

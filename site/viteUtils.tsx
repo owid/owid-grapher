@@ -15,7 +15,8 @@ import { AssetMap } from "@ourworldindata/types"
 import { VITE_ENTRYPOINT_INFO, ViteEntryPoint } from "./viteConstants.js"
 import { IS_ARCHIVE } from "../settings/clientSettings.js"
 
-const VITE_DEV_URL = process.env.VITE_DEV_URL ?? "http://localhost:8090"
+const VITE_PORT = process.env.VITE_PORT ?? "8090"
+const VITE_DEV_URL = process.env.VITE_DEV_URL ?? `http://localhost:${VITE_PORT}`
 
 // We ALWAYS load polyfills.
 
