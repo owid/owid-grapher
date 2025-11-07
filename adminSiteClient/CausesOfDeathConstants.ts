@@ -15,6 +15,7 @@ export type VariableMetadata = BasicEntry & {
 }
 
 export interface CausesOfDeathMetadata {
+    source: string
     categories: CategoryMetadata[]
     dimensions: { entities: EntityMetadata[]; variables: VariableMetadata[] }
 }
