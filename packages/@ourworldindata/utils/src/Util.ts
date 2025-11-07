@@ -1535,6 +1535,10 @@ export function recursivelyMapArticleContent(
         }
     } else if (node.type === "gray-section") {
         node.items.map((block) => recursivelyMapArticleContent(block, callback))
+    } else if (node.type === "conditional-section") {
+        node.content.map((block) =>
+            recursivelyMapArticleContent(block, callback)
+        )
     } else if (
         node.type === "sticky-left" ||
         node.type === "sticky-right" ||
@@ -1616,6 +1620,12 @@ export function traverseEnrichedBlock(
         .with({ type: "gray-section" }, (graySection) => {
             callback(graySection)
             graySection.items.forEach((node) =>
+                traverseEnrichedBlock(node, callback, spanCallback)
+            )
+        })
+        .with({ type: "conditional-section" }, (conditional) => {
+            callback(conditional)
+            conditional.content.forEach((node) =>
                 traverseEnrichedBlock(node, callback, spanCallback)
             )
         })
