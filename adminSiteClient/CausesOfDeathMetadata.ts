@@ -12,6 +12,7 @@ export class MyCausesOfDeathMetadata {
 
     dimensions: CausesOfDeathMetadata["dimensions"]
     categories: CausesOfDeathMetadata["categories"]
+    source: CausesOfDeathMetadata["source"]
 
     private _entityNameToId?: Map<EntityName, number>
     private _variableById?: Map<number, VariableMetadata>
@@ -24,6 +25,7 @@ export class MyCausesOfDeathMetadata {
 
         this.dimensions = metadata.dimensions
         this.categories = metadata.categories
+        this.source = metadata.source
     }
 
     get entityNameToId(): Map<EntityName, number> {
