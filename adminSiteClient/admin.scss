@@ -423,6 +423,12 @@ $nav-height: 45px;
         flex-direction: column;
         gap: 1em;
     }
+
+    .DimensionSlotHeader {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 }
 
 .EditorExportTab {

@@ -52,13 +52,15 @@ import * as R from "remeda"
 import { SortableList } from "./SortableList.js"
 import { CodeSnippet } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faFile } from "@fortawesome/free-solid-svg-icons"
+import { faFile, faArrowsUpDown } from "@fortawesome/free-solid-svg-icons"
 
 interface DimensionSlotViewProps<Editor> {
     slot: DimensionSlot
     editor: Editor
     database: EditorDatabase
     errorMessagesForDimensions: ErrorMessagesForDimensions
+    canSwapXAndY?: boolean
+    onSwapXAndY?: () => void
 }
 
 @observer
@@ -243,7 +245,7 @@ class DimensionSlotView<
 
     override render() {
         const { isSelectingVariables } = this
-        const { slot, editor } = this.props
+        const { slot, editor, canSwapXAndY, onSwapXAndY } = this.props
         const dimensions = slot.dimensions.map((dim, index) => ({
             id: dim.variableId,
             dim,
@@ -252,10 +254,23 @@ class DimensionSlotView<
         type SortableListItemType = (typeof dimensions)[0]
 
         const canAddMore = slot.allowMultiple || slot.dimensions.length === 0
+        const isXAxis = slot.property === DimensionProperty.x
+        const showSwapButton = isXAxis && canSwapXAndY && onSwapXAndY
 
         return (
             <div>
-                <h5>{slot.name}</h5>
+                <div className="DimensionSlotHeader">
+                    <h5>{slot.name}</h5>
+                    {showSwapButton && (
+                        <button
+                            className="btn btn-sm"
+                            onClick={onSwapXAndY}
+                            title="Swap X and Y axes"
+                        >
+                            <FontAwesomeIcon icon={faArrowsUpDown} /> Swap axes
+                        </button>
+                    )}
+                </div>
                 <SortableList<SortableListItemType>
                     items={dimensions}
                     onChange={this.onDragEnd}
@@ -337,6 +352,72 @@ class VariablesSection<
         })
     }
 
+    @computed get xDimension(): ChartDimension | undefined {
+        const { grapherState } = this.props.editor
+        return grapherState.dimensions.find(
+            (d) => d.property === DimensionProperty.x
+        )
+    }
+
+    @computed get yDimensions(): ChartDimension[] {
+        const { grapherState } = this.props.editor
+        return grapherState.dimensions.filter(
+            (d) => d.property === DimensionProperty.y
+        )
+    }
+
+    @computed get canSwapXAndY(): boolean {
+        const { grapherState } = this.props.editor
+
+        // Only show if there's exactly one variable in each slot
+        if (!this.xDimension || this.yDimensions.length !== 1) return false
+
+        const xSlot = grapherState.dimensionSlots.find(
+            (slot) => slot.property === DimensionProperty.x
+        )
+        const ySlot = grapherState.dimensionSlots.find(
+            (slot) => slot.property === DimensionProperty.y
+        )
+
+        // Only show swap button if neither slot allows multiple variables
+        return !xSlot?.allowMultiple && !ySlot?.allowMultiple
+    }
+
+    @action.bound private async swapXAndY() {
+        const { grapherState } = this.props.editor
+
+        if (!this.canSwapXAndY) return
+
+        // Sanity check: There is exactly one variable in each slot
+        if (!this.xDimension || this.yDimensions.length !== 1) return
+
+        // Create new dimensions array with swapped properties
+        const newDimensions = grapherState.dimensions.map((dim) => {
+            const dimObj = dim.toObject()
+
+            // Turn X dimension into Y dimension
+            if (dim.property === DimensionProperty.x) {
+                return { ...dimObj, property: DimensionProperty.y }
+            }
+
+            // Turn Y dimension into X dimension
+            else if (dim.property === DimensionProperty.y) {
+                return { ...dimObj, property: DimensionProperty.x }
+            }
+
+            return dimObj
+        })
+
+        // Set all dimensions from the new configs
+        grapherState.setDimensionsFromConfigs(newDimensions)
+
+        grapherState.updateAuthoredVersion({
+            dimensions: grapherState.dimensions.map((dim) => dim.toObject()),
+        })
+        grapherState.seriesColorMap?.clear()
+        await this.props.editor.reloadGrapherData()
+    }
+
     override render() {
         const { props } = this
         const { dimensionSlots } = props.editor.grapherState
@@ -353,6 +434,8 @@ class VariablesSection<
                             errorMessagesForDimensions={
                                 props.errorMessagesForDimensions
                             }
+                            canSwapXAndY={this.canSwapXAndY}
+                            onSwapXAndY={this.swapXAndY}
                         />
                     ))}
                 </div>
