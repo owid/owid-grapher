@@ -47,7 +47,6 @@ import {
     getTagHierarchiesByChildName,
     getBestBreadcrumbs,
 } from "../../db.js"
-import { enrichedBlocksToMarkdown } from "./enrichedToMarkdown.js"
 import { GdocAbout } from "./GdocAbout.js"
 import { GdocAuthor } from "./GdocAuthor.js"
 import { extractFilenamesFromBlock } from "./gdocUtils.js"
@@ -156,13 +155,7 @@ export async function updateGdocContentOnly(
         | GdocAuthor
         | GdocAnnouncement
 ): Promise<void> {
-    let markdown: string | null = gdoc.markdown
-    try {
-        const markdownContentSource = gdoc.enrichedBlockSources.flat()
-        markdown = enrichedBlocksToMarkdown(markdownContentSource, true) ?? null
-    } catch (e) {
-        console.error("Error when converting content to markdown", e)
-    }
+    gdoc.updateMarkdown()
     await knex
         .table(PostsGdocsTableName)
         .where({ id })
@@ -170,7 +163,7 @@ export async function updateGdocContentOnly(
         .update({
             content: JSON.stringify(gdoc.content),
             revisionId: gdoc.revisionId,
-            markdown,
+            markdown: gdoc.markdown,
         })
     await updateDerivedGdocPostsComponents(knex, id, gdoc.content.body)
 }
@@ -721,10 +714,11 @@ export function getDbEnrichedGdocFromOwidGdoc(
 }
 export async function upsertGdoc(
     knex: KnexReadWriteTransaction,
-    gdoc: OwidGdoc | GdocBase
+    gdoc: GdocBase
 ): Promise<DbEnrichedPostGdoc> {
     let sql = undefined
     try {
+        gdoc.updateMarkdown()
         const enrichedGdoc = getDbEnrichedGdocFromOwidGdoc(gdoc)
         const rawPost = serializePostsGdocsRow(enrichedGdoc)
         const query = knex

@@ -11,6 +11,10 @@ if [ -e .env ]; then
     source .env
 fi
 
+# Some developers enable Algolia indexing in their local .env, but it interferes
+# with the db test suite. Since indexing is never needed here, force-disable it.
+export ALGOLIA_INDEXING=false
+
 : "${GRAPHER_TEST_DB_USER:?Need to set GRAPHER_TEST_DB_USER non-empty}"
 : "${GRAPHER_TEST_DB_PASS:?Need to set GRAPHER_TEST_DB_PASS non-empty}"
 : "${GRAPHER_TEST_DB_NAME:?Need to set GRAPHER_TEST_DB_NAME non-empty}"
