@@ -35,6 +35,13 @@ import { gdocFromJSON } from "./GdocFactory.js"
 import * as R from "remeda"
 import { getAllImages } from "../Image.js"
 import { keyBy, pick } from "lodash-es"
+import {
+    RELATED_CHARTS_GROUP_BY_ORDER,
+    RELATED_CHARTS_PUBLISHED_FILTER,
+    RELATED_CHARTS_SELECT,
+    mapRelatedChartRows,
+    type RelatedChartQueryRow,
+} from "../relatedCharts.js"
 
 export class GdocPost extends GdocBase implements OwidGdocPostInterface {
     declare content: OwidGdocPostContent
@@ -163,39 +170,24 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
     ): Promise<void> {
         if (!this.tags?.length || !this.hasAllChartsBlock) return
 
-        const relatedCharts = await knexRaw<{
-            chartId: number
-            slug: string
-            title: string
-            variantName: string
-            keyChartLevel: number
-        }>(
+        const relatedChartRows = await knexRaw<RelatedChartQueryRow>(
             knex,
             `-- sql
-                SELECT DISTINCT
-                    charts.id AS chartId,
-                    chart_configs.slug,
-                    chart_configs.full->>"$.title" AS title,
-                    chart_configs.full->>"$.variantName" AS variantName,
-                    chart_tags.keyChartLevel
-                FROM charts
-                JOIN chart_configs ON charts.configId=chart_configs.id
-                INNER JOIN chart_tags ON charts.id=chart_tags.chartId
+                ${RELATED_CHARTS_SELECT}
                 WHERE chart_tags.tagId IN (?)
-                    AND chart_configs.full->>"$.isPublished" = "true"
-                ORDER BY title ASC
+                ${RELATED_CHARTS_PUBLISHED_FILTER}
+                ${RELATED_CHARTS_GROUP_BY_ORDER}
             `,
             [this.tags.map((tag) => tag.id)]
         )
         archivedVersions ??= await getLatestChartArchivedVersionsIfEnabled(
             knex,
-            relatedCharts.map((c) => c.chartId)
+            relatedChartRows.map((c) => c.chartId)
         )
 
-        this.relatedCharts = relatedCharts.map((chart) => ({
-            ...chart,
-            archiveContext: archivedVersions[chart.chartId] || undefined,
-        }))
+        this.relatedCharts = mapRelatedChartRows(relatedChartRows, {
+            archivedVersions,
+        })
     }
 }
 

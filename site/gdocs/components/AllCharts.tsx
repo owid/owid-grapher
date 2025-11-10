@@ -14,9 +14,33 @@ import { RelatedCharts } from "../../blocks/RelatedCharts.js"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 import { Button } from "@ourworldindata/components"
 import { match } from "ts-pattern"
+import { SearchChartHitComponent } from "../../search/SearchChartHitComponent.js"
+import {
+    ChartRecordType,
+    SearchChartHit,
+    SearchChartHitComponentVariant,
+} from "../../search/searchTypes.js"
 
 type AllChartsProps = EnrichedBlockAllCharts & {
     className?: string
+}
+
+const toSearchChartHit = (
+    chart: RelatedChart,
+    position: number
+): SearchChartHit => {
+    return {
+        type: ChartRecordType.Chart,
+        objectID: chart.objectID,
+        slug: chart.slug,
+        title: chart.title,
+        variantName: chart.variantName ?? undefined,
+        subtitle: chart.subtitle,
+        availableTabs: chart.availableTabs,
+        availableEntities: chart.availableEntities,
+        originalAvailableEntities: chart.originalAvailableEntities,
+        __position: position,
+    }
 }
 
 function sortRelatedCharts(
@@ -51,7 +75,6 @@ export function AllCharts(props: AllChartsProps) {
     if (relatedCharts.length === 0) return null
 
     const layoutModifierClass = `article-block__all-charts--${layout}`
-    // TODO: Implement dedicated rendering for the list layout. Until then we reuse the grid layout.
 
     const topSlugs = top.map((item) => Url.fromURL(item.url).slug as string)
 
@@ -61,6 +84,7 @@ export function AllCharts(props: AllChartsProps) {
         : ""
 
     const sortedRelatedCharts = sortRelatedCharts(relatedCharts, topSlugs)
+
     const seeAllButton = (
         <Button
             theme="solid-vermillion"
@@ -96,8 +120,41 @@ export function AllCharts(props: AllChartsProps) {
                 ))
                 .with("list", () => (
                     <>
+                        <ul className="search-data-results__list">
+                            {sortedRelatedCharts
+                                .slice(0, 8)
+                                .map((chart, idx) => {
+                                    const variant: SearchChartHitComponentVariant =
+                                        idx < 4 ? "medium" : "small"
+
+                                    const hit = toSearchChartHit(chart, idx + 1)
+
+                                    const onClick = (
+                                        _vizType: string | null
+                                    ) => {
+                                        // TODO
+                                        // analytics.logSiteSearchResultClick(hit, {
+                                        //     position: hitIndex + 1,
+                                        //     source: "search",
+                                        //     vizType,
+                                        // })
+                                    }
+
+                                    return (
+                                        <li
+                                            className="search-data-results__hit"
+                                            key={chart.slug}
+                                        >
+                                            <SearchChartHitComponent
+                                                hit={hit}
+                                                variant={variant}
+                                                onClick={onClick}
+                                            />
+                                        </li>
+                                    )
+                                })}
+                        </ul>
                         {seeAllButton}
-                        {/* todo: implement list layout */}
                     </>
                 ))
                 .exhaustive()}

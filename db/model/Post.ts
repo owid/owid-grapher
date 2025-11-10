@@ -30,6 +30,13 @@ import { GdocPost } from "./Gdoc/GdocPost.js"
 import { GdocAnnouncement } from "./Gdoc/GdocAnnouncement.js"
 import { GdocDataInsight } from "./Gdoc/GdocDataInsight.js"
 import { BLOG_POSTS_PER_PAGE } from "../../settings/serverSettings.js"
+import {
+    RELATED_CHARTS_GROUP_BY_ORDER,
+    RELATED_CHARTS_PUBLISHED_FILTER,
+    RELATED_CHARTS_SELECT,
+    mapRelatedChartRows,
+    type RelatedChartQueryRow,
+} from "./relatedCharts.js"
 
 export const postsTable = "posts"
 
@@ -102,24 +109,21 @@ export const isPostSlugCitable = (_: string): boolean => {
 export const getPostRelatedCharts = async (
     knex: db.KnexReadonlyTransaction,
     postId: number
-): Promise<RelatedChart[]> =>
-    db.knexRaw<RelatedChart>(
+): Promise<RelatedChart[]> => {
+    const rows = await db.knexRaw<RelatedChartQueryRow>(
         knex,
         `-- sql
-        SELECT DISTINCT
-            chart_configs.slug,
-            chart_configs.full->>"$.title" AS title,
-            chart_configs.full->>"$.variantName" AS variantName,
-            chart_tags.keyChartLevel
-        FROM charts
-        JOIN chart_configs ON charts.configId=chart_configs.id
-        INNER JOIN chart_tags ON charts.id=chart_tags.chartId
-        INNER JOIN post_tags ON chart_tags.tagId=post_tags.tag_id
-        WHERE post_tags.post_id=${postId}
-        AND chart_configs.full->>"$.isPublished" = "true"
-        ORDER BY title ASC
-    `
+        ${RELATED_CHARTS_SELECT}
+        INNER JOIN post_tags ON chart_tags.tagId = post_tags.tag_id
+        WHERE post_tags.post_id = ?
+        ${RELATED_CHARTS_PUBLISHED_FILTER}
+        ${RELATED_CHARTS_GROUP_BY_ORDER}
+    `,
+        [postId]
     )
+
+    return mapRelatedChartRows(rows)
+}
 
 const getFullPost = async (
     knex: db.KnexReadonlyTransaction,

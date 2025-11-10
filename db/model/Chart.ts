@@ -5,6 +5,13 @@ import {
     getGrapherConfigsForVariable,
 } from "./Variable.js"
 import {
+    RELATED_CHARTS_GROUP_BY_ORDER,
+    RELATED_CHARTS_PUBLISHED_FILTER,
+    RELATED_CHARTS_SELECT,
+    mapRelatedChartRows,
+    type RelatedChartQueryRow,
+} from "./relatedCharts.js"
+import {
     JsonError,
     KeyChartLevel,
     MultipleOwidVariableDataDimensionsMap,
@@ -625,28 +632,21 @@ export const getRelatedChartsForVariable = async (
                 WHERE ct.chartId = charts.id AND t.name = 'Unlisted'
             )`
         : ""
-
-    return db.knexRaw<RelatedChart>(
+    const rows = await db.knexRaw<RelatedChartQueryRow>(
         knex,
         `-- sql
-            SELECT
-                charts.id AS chartId,
-                chart_configs.slug,
-                chart_configs.full->>"$.title" AS title,
-                chart_configs.full->>"$.variantName" AS variantName,
-                MAX(chart_tags.keyChartLevel) as keyChartLevel
-            FROM charts
-            JOIN chart_configs ON charts.configId=chart_configs.id
-            INNER JOIN chart_tags ON charts.id=chart_tags.chartId
-            INNER JOIN chart_dimensions ON charts.id=chart_dimensions.chartId
-            WHERE chart_dimensions.variableId = ${variableId}
-            AND chart_configs.full->>"$.isPublished" = "true"
+            ${RELATED_CHARTS_SELECT}
+            INNER JOIN chart_dimensions ON charts.id = chart_dimensions.chartId
+            WHERE chart_dimensions.variableId = ?
+            ${RELATED_CHARTS_PUBLISHED_FILTER}
             ${filterUnlistedClause}
             ${excludeChartIds}
-            GROUP BY charts.id
-            ORDER BY title ASC
-        `
+            ${RELATED_CHARTS_GROUP_BY_ORDER}
+        `,
+        [variableId]
     )
+
+    return mapRelatedChartRows(rows)
 }
 
 export const getRedirectsByChartId = async (

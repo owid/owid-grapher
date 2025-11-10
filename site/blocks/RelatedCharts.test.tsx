@@ -5,21 +5,27 @@
 import { expect, it } from "vitest"
 import { render, screen, fireEvent, getByRole } from "@testing-library/react"
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../../settings/clientSettings.js"
-import { KeyChartLevel } from "@ourworldindata/utils"
+import { KeyChartLevel, RelatedChart } from "@ourworldindata/utils"
 import { RelatedCharts } from "./RelatedCharts.js"
 
-const charts = [
+const charts: RelatedChart[] = [
     {
         title: "Chart 1",
         slug: "chart-1",
         keyChartLevel: KeyChartLevel.Middle,
         chartId: 1,
+        objectID: "1",
+        availableEntities: [],
+        availableTabs: [],
     },
     {
         title: "Chart 2",
         slug: "chart-2",
         keyChartLevel: KeyChartLevel.Top,
         chartId: 2,
+        objectID: "2",
+        availableEntities: [],
+        availableTabs: [],
     },
 ]
 
