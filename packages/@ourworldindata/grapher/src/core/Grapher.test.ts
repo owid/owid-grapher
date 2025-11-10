@@ -1588,3 +1588,161 @@ describe("projectionColumnInfoBySlug", () => {
         expect(grapherState.projectionColumnInfoBySlug.size).toBe(0)
     })
 })
+
+describe("tableAfterColorAndSizeToleranceApplication", () => {
+    it("applies the specified tolerance to the size column", () => {
+        const table = new OwidTable(
+            [
+                ["entityName", "year", "x", "y", "size"],
+                ["USA", 2000, 1, 2, 100],
+                ["USA", 2001, 1.5, 2.5, null],
+                ["USA", 2002, 2, 3, null],
+                ["USA", 2003, 2.5, 3.5, null],
+                ["USA", 2004, 3, 4, 200],
+            ],
+            [
+                {
+                    slug: "size",
+                    type: ColumnTypeNames.Numeric,
+                    display: { tolerance: 1 },
+                },
+            ]
+        )
+
+        const grapher = new GrapherState({
+            table,
+            chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+            xSlug: "x",
+            ySlugs: "y",
+            sizeSlug: "size",
+        })
+
+        const result = grapher.tableAfterColorAndSizeToleranceApplication
+        const sizeColumn = result.get("size")
+
+        const owidRowsByTime = sizeColumn.owidRowByEntityNameAndTime.get("USA")
+        expect(owidRowsByTime?.get(2001)).toMatchObject({
+            value: 100,
+            originalTime: 2000,
+        })
+        expect(owidRowsByTime?.get(2002)).toBeUndefined() // Outside tolerance
+        expect(owidRowsByTime?.get(2003)).toMatchObject({
+            value: 200,
+            originalTime: 2004,
+        })
+    })
+
+    it("uses infinity as default size tolerance", () => {
+        const table = new OwidTable([
+            ["entityName", "year", "x", "y", "size"],
+            ["USA", 2000, 1, 2, 100],
+            ["USA", 2001, 1.5, 2.5, null],
+            ["USA", 2002, 2, 3, null],
+            ["USA", 2003, 2.5, 3.5, null],
+            ["USA", 2004, 3, 4, 200],
+        ])
+
+        const grapher = new GrapherState({
+            table,
+            chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+            xSlug: "x",
+            ySlugs: "y",
+            sizeSlug: "size",
+        })
+
+        const result = grapher.tableAfterColorAndSizeToleranceApplication
+        const sizeColumn = result.get("size")
+
+        const owidRowsByTime = sizeColumn.owidRowByEntityNameAndTime.get("USA")
+        expect(owidRowsByTime?.get(2001)).toMatchObject({
+            value: 100,
+            originalTime: 2000,
+        })
+        expect(owidRowsByTime?.get(2002)).toMatchObject({
+            value: 200,
+            originalTime: 2004,
+        })
+        expect(owidRowsByTime?.get(2003)).toMatchObject({
+            value: 200,
+            originalTime: 2004,
+        })
+    })
+
+    it("applies the specified tolerance to a categorical color column", () => {
+        const table = new OwidTable(
+            [
+                ["entityName", "year", "x", "y", "color"],
+                ["USA", 2000, 1, 2, "Europe"],
+                ["USA", 2001, 1.5, 2.5, null],
+                ["USA", 2002, 2, 3, null],
+                ["USA", 2003, 2.5, 3.5, null],
+                ["USA", 2004, 3, 4, "Asia"],
+            ],
+            [
+                {
+                    slug: "color",
+                    type: ColumnTypeNames.Categorical,
+                    display: { tolerance: 1 },
+                },
+            ]
+        )
+
+        const grapher = new GrapherState({
+            table,
+            chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+            xSlug: "x",
+            ySlugs: "y",
+            colorSlug: "color",
+        })
+
+        const result = grapher.tableAfterColorAndSizeToleranceApplication
+        const colorColumn = result.get("color")
+
+        const owidRowsByTime = colorColumn.owidRowByEntityNameAndTime.get("USA")
+        expect(owidRowsByTime?.get(2001)).toMatchObject({
+            value: "Europe",
+            originalTime: 2000,
+        })
+        expect(owidRowsByTime?.get(2002)).toBeUndefined() // Outside tolerance
+        expect(owidRowsByTime?.get(2003)).toMatchObject({
+            value: "Asia",
+            originalTime: 2004,
+        })
+    })
+
+    it("uses infinity as default color tolerance", () => {
+        const table = new OwidTable([
+            ["entityName", "year", "x", "y", "color"],
+            ["USA", 2000, 1, 2, 100],
+            ["USA", 2001, 1.5, 2.5, null],
+            ["USA", 2002, 2, 3, null],
+            ["USA", 2003, 2.5, 3.5, null],
+            ["USA", 2004, 3, 4, 200],
+        ])
+
+        const grapher = new GrapherState({
+            table,
+            chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+            xSlug: "x",
+            ySlugs: "y",
+            sizeSlug: "color",
+        })
+
+        const result = grapher.tableAfterColorAndSizeToleranceApplication
+        const colorColumn = result.get("color")
+
+        const owidRowsByTime = colorColumn.owidRowByEntityNameAndTime.get("USA")
+        expect(owidRowsByTime?.get(2001)).toMatchObject({
+            value: 100,
+            originalTime: 2000,
+        })
+        expect(owidRowsByTime?.get(2002)).toMatchObject({
+            value: 200,
+            originalTime: 2004,
+        })
+        expect(owidRowsByTime?.get(2003)).toMatchObject({
+            value: 200,
+            originalTime: 2004,
+        })
+    })
+})
