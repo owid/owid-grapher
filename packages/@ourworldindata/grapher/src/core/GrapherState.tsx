@@ -1421,9 +1421,6 @@ export class GrapherState {
 
         return true
     }
-    @computed.struct private get variableIds(): number[] {
-        return _.uniq(this.dimensions.map((d) => d.variableId))
-    }
 
     @computed get hasOWIDLogo(): boolean {
         return (
