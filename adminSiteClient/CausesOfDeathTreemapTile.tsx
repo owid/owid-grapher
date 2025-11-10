@@ -58,13 +58,11 @@ export function CausesOfDeathTreemapTile({
                 onMouseEnter ? (event) => onMouseEnter(node, event) : undefined
             }
             onMouseLeave={onMouseLeave}
-            style={{ cursor: onMouseEnter ? "pointer" : undefined }}
         >
             {/* Colored rect */}
             <rect
                 id={leafId}
                 fill={color}
-                // fillOpacity={0.9}
                 width={width}
                 height={height}
                 rx={2}
