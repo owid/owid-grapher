@@ -36,6 +36,7 @@ interface TextFieldProps extends React.HTMLAttributes<HTMLInputElement> {
     secondaryLabel?: string
     value: string | undefined
     onValue?: (value: string) => void
+    onDebouncedValue?: (value: string) => void
     onEnter?: () => void
     onEscape?: () => void
     onButtonClick?: () => void
@@ -55,8 +56,18 @@ interface TextFieldProps extends React.HTMLAttributes<HTMLInputElement> {
 
 export class TextField extends React.Component<TextFieldProps> {
     base = React.createRef<HTMLDivElement>()
+    debouncedOnValue: ReturnType<typeof _.debounce>
+
     constructor(props: TextFieldProps) {
         super(props)
+        this.debouncedOnValue = _.debounce(
+            (value: string) => this.props.onDebouncedValue?.(value),
+            200
+        )
+    }
+
+    override componentWillUnmount() {
+        this.debouncedOnValue.cancel()
     }
 
     @bind onKeyDown(ev: React.KeyboardEvent<HTMLInputElement>) {
@@ -74,6 +85,11 @@ export class TextField extends React.Component<TextFieldProps> {
         const trimmedValue = value.trim()
         this.props.onValue?.(trimmedValue)
         this.props.onBlur?.(e)
+    }
+
+    @bind onChange(value: string) {
+        this.props.onValue?.(value)
+        this.debouncedOnValue(value)
     }
 
     override componentDidMount() {
@@ -145,9 +161,7 @@ export class TextField extends React.Component<TextFieldProps> {
                         className="form-control"
                         type="text"
                         value={props.value || ""}
-                        onChange={(e) =>
-                            this.props.onValue?.(e.currentTarget.value)
-                        }
+                        onChange={(e) => this.onChange(e.currentTarget.value)}
                         onBlur={this.onBlur}
                         onKeyDown={this.onKeyDown}
                         {...passthroughProps}
@@ -278,6 +292,7 @@ interface NumberFieldProps {
     allowDecimal?: boolean
     allowNegative?: boolean
     onValue: (value: number | undefined) => void
+    onDebouncedValue?: (value: number | undefined) => void
     onBlur?: () => void
     onEnter?: () => void
     onEscape?: () => void
@@ -327,6 +342,13 @@ export class NumberField extends React.Component<
                 this.setState({ inputValue: inputMatches ? undefined : value })
                 props.onValue(isNumber ? asNumber : undefined)
             },
+            onDebouncedValue: props.onDebouncedValue
+                ? (value: string) => {
+                      const asNumber = parseFloat(value)
+                      const isNumber = !isNaN(asNumber)
+                      props.onDebouncedValue?.(isNumber ? asNumber : undefined)
+                  }
+                : undefined,
             onBlur: () => {
                 this.setState({
                     inputValue: undefined,
@@ -949,6 +971,7 @@ interface BindAutoStringProps<K, T> {
     errorMessage?: string
     softCharacterLimit?: number
     onBlur?: () => void
+    onDebouncedChange?: () => void
     placeholder?: string
     textarea?: boolean
 }
@@ -980,7 +1003,8 @@ export class BindAutoString<
     }
 
     override render() {
-        const { field, store, label, auto, ...rest } = this.props
+        const { field, store, label, auto, onDebouncedChange, ...rest } =
+            this.props
 
         const value = store[field] as string | undefined
 
@@ -991,6 +1015,7 @@ export class BindAutoString<
                 isAuto={value === undefined}
                 onValue={this.onValue}
                 onToggleAuto={this.onToggleAuto}
+                onDebouncedValue={onDebouncedChange}
                 {...rest}
                 onBlur={this.onBlur}
             />
@@ -1079,6 +1104,7 @@ interface AutoFloatFieldProps {
     isAuto: boolean
     helpText?: string
     onValue: (value: number | undefined) => void
+    onDebouncedValue?: (value: number | undefined) => void
     onToggleAuto: (value: boolean) => void
     onBlur?: () => void
     resetButton?: Omit<WithResetButtonProps, "children">
@@ -1191,6 +1217,7 @@ export class BindAutoFloat<
     label?: string
     helpText?: string
     onBlur?: () => void
+    onDebouncedChange?: () => void
 }> {
     constructor(props: {
         field: K
@@ -1199,6 +1226,7 @@ export class BindAutoFloat<
         label?: string
         helpText?: string
         onBlur?: () => void
+        onDebouncedChange?: () => void
     }) {
         super(props)
         makeObservable(this)
@@ -1215,7 +1243,8 @@ export class BindAutoFloat<
     }
 
     override render() {
-        const { field, store, label, auto, ...rest } = this.props
+        const { field, store, label, auto, onDebouncedChange, ...rest } =
+            this.props
 
         const value = store[field] as number | undefined
 
@@ -1226,6 +1255,7 @@ export class BindAutoFloat<
                 isAuto={value === undefined}
                 onValue={this.onValue}
                 onToggleAuto={this.onToggleAuto}
+                onDebouncedValue={onDebouncedChange}
                 {...rest}
             />
         )

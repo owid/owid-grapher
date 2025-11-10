@@ -182,7 +182,7 @@ export class DimensionCard<
                             field="name"
                             store={dimension.display}
                             auto={column.displayName}
-                            onBlur={this.onChange}
+                            onDebouncedChange={this.onChange}
                             errorMessage={this.props.errorMessage}
                         />
                         <BindAutoString
@@ -190,14 +190,14 @@ export class DimensionCard<
                             field="unit"
                             store={dimension.display}
                             auto={column.unit ?? ""}
-                            onBlur={this.onChange}
+                            onDebouncedChange={this.onChange}
                         />
                         <BindAutoString
                             label="Short (axis) unit"
                             field="shortUnit"
                             store={dimension.display}
                             auto={column.shortUnit ?? ""}
-                            onBlur={this.onChange}
+                            onDebouncedChange={this.onChange}
                         />
                         <SelectField
                             label="Rounding mode"
@@ -227,7 +227,7 @@ export class DimensionCard<
                                 field="numSignificantFigures"
                                 store={dimension.display}
                                 auto={column.numSignificantFigures}
-                                onBlur={this.onChange}
+                                onDebouncedChange={this.onChange}
                             />
                         )}
                         <BindAutoFloat
@@ -235,7 +235,7 @@ export class DimensionCard<
                             field="numDecimalPlaces"
                             store={dimension.display}
                             auto={column.numDecimalPlaces}
-                            onBlur={this.onChange}
+                            onDebouncedChange={this.onChange}
                             helpText={
                                 this.roundingMode ===
                                 OwidVariableRoundingMode.significantFigures
@@ -249,14 +249,14 @@ export class DimensionCard<
                             store={dimension.display}
                             auto={column.unitConversionFactor}
                             helpText={`Multiply all values by this amount`}
-                            onBlur={this.onChange}
+                            onDebouncedChange={this.onChange}
                         />
                         {this.tableDisplaySettings}
                         <BindAutoFloat
                             field="tolerance"
                             store={dimension.display}
                             auto={column.tolerance}
-                            onBlur={this.onChange}
+                            onDebouncedChange={this.onChange}
                             helpText={`Tolerance for charts and maps. The tolerance
                                 set in the Map tab, if defined, overrides the map
                                 tolerance defined here.`}
