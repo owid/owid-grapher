@@ -220,7 +220,7 @@ export class MapTooltip
 
         if (startValueIsInterpolated && endValueIsInterpolated)
             return {
-                icon: TooltipFooterIcon.notice,
+                icon: TooltipFooterIcon.Notice,
                 text: makeTooltipToleranceNotice(
                     `${formattedStartTime} and ${formattedEndTime}`,
                     { plural: true }
@@ -229,13 +229,13 @@ export class MapTooltip
 
         if (endValueIsInterpolated && formattedEndTime)
             return {
-                icon: TooltipFooterIcon.notice,
+                icon: TooltipFooterIcon.Notice,
                 text: makeTooltipToleranceNotice(formattedEndTime),
             }
 
         if (startValueIsInterpolated && formattedStartTime)
             return {
-                icon: TooltipFooterIcon.notice,
+                icon: TooltipFooterIcon.Notice,
                 text: makeTooltipToleranceNotice(formattedStartTime),
             }
 
@@ -259,7 +259,7 @@ export class MapTooltip
             return undefined
 
         return {
-            icon: TooltipFooterIcon.none,
+            icon: TooltipFooterIcon.None,
             text: makeTooltipRoundingNotice([mapColumn.numSignificantFigures], {
                 plural: this.shouldShowValueRange,
             }),

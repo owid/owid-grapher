@@ -626,13 +626,13 @@ export class StackedDiscreteBars
 
         const toleranceNotice = targetNotice
             ? {
-                  icon: TooltipFooterIcon.notice,
+                  icon: TooltipFooterIcon.Notice,
                   text: makeTooltipToleranceNotice(targetNotice),
               }
             : undefined
         const roundingNotice = this.formatColumn.roundsToSignificantFigures
             ? {
-                  icon: TooltipFooterIcon.none,
+                  icon: TooltipFooterIcon.None,
                   text: makeTooltipRoundingNotice([
                       this.formatColumn.numSignificantFigures,
                   ]),

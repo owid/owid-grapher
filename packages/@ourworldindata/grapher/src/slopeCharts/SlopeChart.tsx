@@ -770,13 +770,13 @@ export class SlopeChart
         const targetYear = constructTargetYearForToleranceNotice()
         const toleranceNotice = targetYear
             ? {
-                  icon: TooltipFooterIcon.notice,
+                  icon: TooltipFooterIcon.Notice,
                   text: makeTooltipToleranceNotice(targetYear),
               }
             : undefined
         const roundingNotice = series.column.roundsToSignificantFigures
             ? {
-                  icon: TooltipFooterIcon.none,
+                  icon: TooltipFooterIcon.None,
                   text: makeTooltipRoundingNotice(
                       [series.column.numSignificantFigures],
                       { plural: !isRelativeMode }

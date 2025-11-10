@@ -748,15 +748,15 @@ export class ScatterPlotChart
 
         const toleranceNotice = targetNotice
             ? {
-                  icon: TooltipFooterIcon.notice,
+                  icon: TooltipFooterIcon.Notice,
                   text: makeTooltipToleranceNotice(targetNotice),
               }
             : undefined
         const roundingNotice = anyRoundedToSigFigs
             ? {
                   icon: allRoundedToSigFigs
-                      ? TooltipFooterIcon.none
-                      : TooltipFooterIcon.significance,
+                      ? TooltipFooterIcon.None
+                      : TooltipFooterIcon.Significance,
                   text: makeTooltipRoundingNotice(sigFigs, {
                       plural: sigFigs.length > 1,
                   }),
@@ -764,7 +764,7 @@ export class ScatterPlotChart
             : undefined
         const footer = excludeUndefined([toleranceNotice, roundingNotice])
         const superscript =
-            !!roundingNotice && roundingNotice.icon !== TooltipFooterIcon.none
+            !!roundingNotice && roundingNotice.icon !== TooltipFooterIcon.None
 
         return (
             <Tooltip

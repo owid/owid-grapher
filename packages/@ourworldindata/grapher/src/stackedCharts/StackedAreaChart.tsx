@@ -439,7 +439,7 @@ export class StackedAreaChart
 
         const roundingNotice = formatColumn.roundsToSignificantFigures
             ? {
-                  icon: TooltipFooterIcon.none,
+                  icon: TooltipFooterIcon.None,
                   text: makeTooltipRoundingNotice([
                       formatColumn.numSignificantFigures,
                   ]),

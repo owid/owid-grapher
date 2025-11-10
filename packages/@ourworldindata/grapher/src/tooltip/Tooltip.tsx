@@ -4,6 +4,7 @@ import { observer } from "mobx-react"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import classnames from "classnames"
+import { match } from "ts-pattern"
 import { Bounds, GrapherTooltipAnchor } from "@ourworldindata/utils"
 import {
     TooltipProps,
@@ -29,25 +30,9 @@ export class TooltipCard extends React.Component<
         }
     }
 
-    override componentDidMount(): void {
-        this.updateBounds()
-    }
-
-    override componentDidUpdate(): void {
-        this.updateBounds()
-    }
-
-    override render(): React.ReactElement {
+    private get tooltipStyle(): React.CSSProperties {
         const { bounds } = this
-        let {
-            id,
-            title,
-            titleAnnotation,
-            subtitle,
-            subtitleFormat,
-            footer,
-            dissolve,
-            children,
+        const {
             containerBounds,
             anchor,
             x = 0,
@@ -57,33 +42,37 @@ export class TooltipCard extends React.Component<
         } = this.props
         const isPinnedToBottom = anchor === GrapherTooltipAnchor.bottom
 
+        const style = { ...this.props.style }
+
         // if container dimensions are given, we make sure the tooltip
         // is positioned within the container bounds
-        const style = { ...this.props.style }
         if (
             containerBounds?.width &&
             containerBounds.height &&
             !isPinnedToBottom
         ) {
+            let adjustedOffsetY = offsetY
+            let adjustedOffsetX = offsetX
+
             if (this.props.offsetYDirection === "upward") {
-                offsetY = -offsetY - (bounds?.height ?? 0)
+                adjustedOffsetY = -offsetY - (bounds?.height ?? 0)
             }
 
             if (
                 this.props.offsetXDirection === "left" &&
                 x > (bounds?.width ?? 0)
             ) {
-                offsetX = -offsetX - (bounds?.width ?? 0)
+                adjustedOffsetX = -offsetX - (bounds?.width ?? 0)
             }
 
             // Ensure tooltip remains inside chart
-            let left = x + offsetX
-            let top = y + offsetY
+            let left = x + adjustedOffsetX
+            let top = y + adjustedOffsetY
             if (bounds) {
                 if (left + bounds.width > containerBounds?.width)
-                    left -= bounds.width + 2 * offsetX // flip left
+                    left -= bounds.width + 2 * adjustedOffsetX // flip left
                 if (top + bounds.height * 0.75 > containerBounds.height)
-                    top -= bounds.height + 2 * offsetY // flip upwards eventually...
+                    top -= bounds.height + 2 * adjustedOffsetY // flip upwards eventually...
                 if (top + bounds.height > containerBounds.height)
                     top = containerBounds.height - bounds.height // ...but first pin at bottom
 
@@ -95,6 +84,37 @@ export class TooltipCard extends React.Component<
             style.left = left
             style.top = top
         }
+
+        // ignore the given width and max-width if the tooltip position is fixed
+        // since we want to use the full width of the screen in that case
+        if (isPinnedToBottom && (style.width || style.maxWidth)) {
+            style.width = style.maxWidth = undefined
+        }
+
+        return style
+    }
+
+    override componentDidMount(): void {
+        this.updateBounds()
+    }
+
+    override componentDidUpdate(): void {
+        this.updateBounds()
+    }
+
+    override render(): React.ReactElement {
+        let {
+            id,
+            title,
+            titleAnnotation,
+            subtitle,
+            subtitleFormat,
+            footer,
+            dissolve,
+            children,
+            anchor,
+        } = this.props
+        const isPinnedToBottom = anchor === GrapherTooltipAnchor.bottom
 
         // add a preposition to unit-based subtitles
         const hasHeader = title !== undefined || subtitle !== undefined
@@ -113,12 +133,6 @@ export class TooltipCard extends React.Component<
         // skip transition delay if requested
         const immediate = dissolve === "immediate"
 
-        // ignore the given width and max-width if the tooltip position is fixed
-        // since we want to use the full width of the screen in that case
-        if (isPinnedToBottom && (style.width || style.maxWidth)) {
-            style.width = style.maxWidth = undefined
-        }
-
         return (
             <TooltipContext.Provider value={{ anchor }}>
                 <div
@@ -135,7 +149,7 @@ export class TooltipCard extends React.Component<
                             dissolve,
                             immediate,
                         })}
-                        style={style}
+                        style={this.tooltipStyle}
                     >
                         {hasHeader && (
                             <div className="frontmatter">
@@ -149,7 +163,11 @@ export class TooltipCard extends React.Component<
                                 )}
                                 {subtitle && (
                                     <div className="subtitle">
-                                        {timeNotice && TOOLTIP_ICON.notice}
+                                        {timeNotice && (
+                                            <TooltipIcon
+                                                icon={TooltipFooterIcon.Notice}
+                                            />
+                                        )}
                                         <span>{subtitle}</span>
                                     </div>
                                 )}
@@ -171,13 +189,13 @@ export class TooltipCard extends React.Component<
                                             className={classnames("line", {
                                                 "icon-sig":
                                                     icon ===
-                                                    TooltipFooterIcon.significance,
+                                                    TooltipFooterIcon.Significance,
                                                 "no-icon":
                                                     icon ===
-                                                    TooltipFooterIcon.none,
+                                                    TooltipFooterIcon.None,
                                             })}
                                         >
-                                            {TOOLTIP_ICON[icon]}
+                                            <TooltipIcon icon={icon} />
                                             <p>{text}</p>
                                         </div>
                                     ))}
@@ -250,13 +268,23 @@ export class Tooltip extends React.Component<ManagedTooltipProps> {
     }
 }
 
-const TOOLTIP_ICON: Record<TooltipFooterIcon, React.ReactElement | null> = {
-    notice: <FontAwesomeIcon className="icon" icon={faInfoCircle} />,
-    stripes: <div className="stripes icon"></div>,
-    significance: (
-        <div className="icon">
-            <IconCircledS />
-        </div>
-    ),
-    none: null,
+function TooltipIcon({
+    icon,
+}: {
+    icon: TooltipFooterIcon
+}): React.ReactElement | null {
+    return match(icon)
+        .with(TooltipFooterIcon.Notice, () => (
+            <FontAwesomeIcon className="icon" icon={faInfoCircle} />
+        ))
+        .with(TooltipFooterIcon.Stripes, () => (
+            <div className="stripes icon"></div>
+        ))
+        .with(TooltipFooterIcon.Significance, () => (
+            <div className="icon">
+                <IconCircledS />
+            </div>
+        ))
+        .with(TooltipFooterIcon.None, () => null)
+        .exhaustive()
 }

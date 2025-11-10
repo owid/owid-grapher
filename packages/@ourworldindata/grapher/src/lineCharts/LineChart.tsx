@@ -358,11 +358,11 @@ export class LineChart
         const projectionNotice = sortedData.some(
             (series) => series.isProjection
         )
-            ? { icon: TooltipFooterIcon.stripes, text: "Projected data" }
+            ? { icon: TooltipFooterIcon.Stripes, text: "Projected data" }
             : undefined
         const roundingNotice = formatColumn.roundsToSignificantFigures
             ? {
-                  icon: TooltipFooterIcon.none,
+                  icon: TooltipFooterIcon.None,
                   text: makeTooltipRoundingNotice([
                       formatColumn.numSignificantFigures,
                   ]),

@@ -454,7 +454,7 @@ export class MarimekkoChart
                 : undefined
         const toleranceNotice = targetNotice
             ? {
-                  icon: TooltipFooterIcon.notice,
+                  icon: TooltipFooterIcon.Notice,
                   text: makeTooltipToleranceNotice(targetNotice),
               }
             : undefined
@@ -476,15 +476,15 @@ export class MarimekkoChart
         const roundingNotice = anyRoundedToSigFigs
             ? {
                   icon: allRoundedToSigFigs
-                      ? TooltipFooterIcon.none
-                      : TooltipFooterIcon.significance,
+                      ? TooltipFooterIcon.None
+                      : TooltipFooterIcon.Significance,
                   text: makeTooltipRoundingNotice(sigFigs, {
                       plural: sigFigs.length > 1,
                   }),
               }
             : undefined
         const superscript =
-            !!roundingNotice && roundingNotice.icon !== TooltipFooterIcon.none
+            !!roundingNotice && roundingNotice.icon !== TooltipFooterIcon.None
 
         const footer = excludeUndefined([toleranceNotice, roundingNotice])
 
