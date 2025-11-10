@@ -96,6 +96,40 @@ With that done, the next time you run `make up`, the database files will be re-d
 
 A new database will then be created (expect another 10-20 minutes.)
 
+## Running multiple parallel instances
+
+If you need to run multiple dev environments in parallel (e.g., multiple clones of the repo for working on different branches), you can configure each instance to avoid conflicts by setting these environment variables in each instance's `.env` file:
+
+**Repository #1** (`.env`):
+
+```bash
+TMUX_SESSION_NAME=grapher
+COMPOSE_PROJECT_NAME=owid-grapher
+GRAPHER_DB_PORT=3307
+ADMIN_SERVER_PORT=3030
+VITE_PORT=8090
+WRANGLER_PORT=8788  # only needed for make up.full
+```
+
+**Repository #2** (`.env`):
+
+```bash
+TMUX_SESSION_NAME=grapher2
+COMPOSE_PROJECT_NAME=owid-grapher-2
+GRAPHER_DB_PORT=3308
+ADMIN_SERVER_PORT=3031
+VITE_PORT=8091
+WRANGLER_PORT=8789  # only needed for make up.full
+```
+
+With these settings configured, each repository can run `make up` or `make up.full` without conflicts:
+
+- Different tmux sessions (`TMUX_SESSION_NAME`)
+- Isolated Docker volumes (`COMPOSE_PROJECT_NAME`)
+- No port conflicts (all ports are different)
+
+The admin UI for the second instance would then be available at `http://localhost:3031/admin/charts`.
+
 ### Troubleshooting
 
 - For **MacOS** users: Ensure the Docker Desktop is installed and running. If you encounter the error `Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?` then it's most likely that Docker is not running and you need to start (or restart) it

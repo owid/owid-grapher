@@ -43,20 +43,24 @@ help:
 	@echo '  make sync-cloudflare-images sync Cloudflare Images with local DB'
 
 up: export DEBUG = 'knex:query'
+up: export COMPOSE_PROJECT_NAME ?= owid-grapher
+up: export TMUX_SESSION_NAME ?= grapher
+up: export ADMIN_SERVER_PORT ?= 3030
+up: export VITE_PORT ?= 8090
 
 up: require create-if-missing.env tmp-downloads/owid_metadata.sql.gz node_modules
 	@make validate.env
 	@make check-port-3306
 
-	@if tmux has-session -t grapher 2>/dev/null; then \
+	@if tmux has-session -t $(TMUX_SESSION_NAME) 2>/dev/null; then \
 		echo '==> Killing existing tmux session'; \
-		tmux kill-session -t grapher; \
+		tmux kill-session -t $(TMUX_SESSION_NAME); \
 	fi
 
 	@echo '==> Starting dev environment'
 	@mkdir -p logs
-	tmux new-session -s grapher \
-		-n docker 'docker compose -f docker-compose.grapher.yml up' \; \
+	tmux new-session -s $(TMUX_SESSION_NAME) \
+		-n docker 'COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT_NAME) docker compose -f docker-compose.grapher.yml up' \; \
 			set remain-on-exit on \; \
 		set-option -g default-shell $(SCRIPT_SHELL) \; \
 		new-window -n admin \
@@ -64,7 +68,7 @@ up: require create-if-missing.env tmp-downloads/owid_metadata.sql.gz node_module
 			set remain-on-exit on \; \
 		new-window -n vite 'yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
-		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
+		new-window -n welcome 'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) VITE_PORT=$(VITE_PORT) devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
 		bind X kill-pane \; \
 		bind Q kill-server \; \
@@ -83,25 +87,30 @@ up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.
 			set remain-on-exit on \; \
 		new-window -n vite 'yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
-		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
+		new-window -n welcome 'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) VITE_PORT=$(VITE_PORT) devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
 		bind X kill-pane \; \
 		bind Q kill-server
 
 up.full: export DEBUG = 'knex:query'
+up.full: export COMPOSE_PROJECT_NAME ?= owid-grapher
+up.full: export TMUX_SESSION_NAME ?= grapher
+up.full: export ADMIN_SERVER_PORT ?= 3030
+up.full: export VITE_PORT ?= 8090
+up.full: export WRANGLER_PORT ?= 8788
 
 up.full: require create-if-missing.env.full tmp-downloads/owid_metadata.sql.gz node_modules
 	@make validate.env.full
 	@make check-port-3306
 
-	@if tmux has-session -t grapher 2>/dev/null; then \
+	@if tmux has-session -t $(TMUX_SESSION_NAME) 2>/dev/null; then \
 		echo '==> Killing existing tmux session'; \
-		tmux kill-session -t grapher; \
+		tmux kill-session -t $(TMUX_SESSION_NAME); \
 	fi
 
 	@echo '==> Starting dev environment'
-	tmux new-session -s grapher \
-		-n docker 'docker compose -f docker-compose.grapher.yml up' \; \
+	tmux new-session -s $(TMUX_SESSION_NAME) \
+		-n docker 'COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT_NAME) docker compose -f docker-compose.grapher.yml up' \; \
 			set remain-on-exit on \; \
 		set-option -g default-shell $(SCRIPT_SHELL) \; \
 		new-window -n admin \
@@ -111,7 +120,7 @@ up.full: require create-if-missing.env.full tmp-downloads/owid_metadata.sql.gz n
 			set remain-on-exit on \; \
 		new-window -n functions 'yarn startLocalCloudflareFunctions' \; \
 			set remain-on-exit on \; \
-		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
+		new-window -n welcome 'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) VITE_PORT=$(VITE_PORT) WRANGLER_PORT=$(WRANGLER_PORT) devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
 		bind X kill-pane \; \
 		bind Q kill-server \; \
@@ -154,6 +163,8 @@ sync-cloudflare-images: node_modules
 
 refresh.full: refresh refresh.pageviews
 	@echo '==> Full refresh completed'
+
+down: export COMPOSE_PROJECT_NAME ?= owid-grapher
 
 down:
 	@echo '==> Stopping services'

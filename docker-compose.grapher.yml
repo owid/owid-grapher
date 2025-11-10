@@ -63,4 +63,6 @@ services:
 
 volumes:
     mysql_data_public:
+        name: ${COMPOSE_PROJECT_NAME:-owid-grapher}_mysql_data_public
     mysql_load_data:
+        name: ${COMPOSE_PROJECT_NAME:-owid-grapher}_mysql_load_data
