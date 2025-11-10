@@ -39,8 +39,10 @@ import {
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { DiscreteBarChartState } from "./DiscreteBarChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
-import { makeProjectedDataPatternId } from "./DiscreteBarChartHelpers"
-import { TextWrap } from "@ourworldindata/components"
+import {
+    fitLabelToBarHeight,
+    makeProjectedDataPatternId,
+} from "./DiscreteBarChartHelpers"
 import { OwidTable } from "@ourworldindata/core-table"
 import { HorizontalAxis } from "../axis/Axis"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
@@ -53,9 +55,6 @@ const GAP__ENTITY_LABEL__BAR = 5
 
 /** The gap between the the entity label and negative value label */
 const GAP__ENTITY_LABEL__VALUE_LABEL = 10
-
-/** If an entity name exceeds this width, we use the short name instead (if available) */
-const SOFT_MAX_LABEL_WIDTH = 90
 
 export interface Label {
     valueString: string
@@ -136,48 +135,16 @@ export class DiscreteBarChart
         const barHeight = this.approximateBarHeight
 
         return this.series.map((series) => {
-            // make sure we're dealing with a single-line text fragment
-            const entityName = series.entityName.replace(/\n/g, " ").trim()
-
-            const maxLegendWidth = 0.3 * this.bounds.width
-
-            let label = new TextWrap({
-                text: entityName,
-                maxWidth: maxLegendWidth,
-                ...this.entityLabelStyle,
+            const label = series.shortEntityName ?? series.entityName
+            const labelWrap = fitLabelToBarHeight({
+                label,
+                barHeight,
+                initialWidth: 0.3 * this.bounds.width,
+                maxWidth: 0.66 * this.bounds.width,
+                labelStyle: this.entityLabelStyle,
             })
 
-            // prevent labels from being taller than the bar
-            let step = 0
-            while (
-                label.height > barHeight &&
-                label.lines.length > 1 &&
-                step < 10 // safety net
-            ) {
-                const currMaxWidth = label.maxWidth + 20
-                // labels shouldn't exceed this width
-                if (currMaxWidth > 0.66 * this.bounds.width) break
-                label = new TextWrap({
-                    text: entityName,
-                    maxWidth: currMaxWidth,
-                    ...this.entityLabelStyle,
-                })
-                step += 1
-            }
-
-            // if the label is too long, use the short name instead
-            const tooLong =
-                label.width > SOFT_MAX_LABEL_WIDTH ||
-                label.width > maxLegendWidth
-            if (tooLong && series.shortEntityName) {
-                label = new TextWrap({
-                    text: series.shortEntityName,
-                    maxWidth: label.maxWidth,
-                    ...this.entityLabelStyle,
-                })
-            }
-
-            return { ...series, label }
+            return { ...series, label: labelWrap }
         })
     }
 

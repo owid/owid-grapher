@@ -226,8 +226,9 @@ export class SlopeChartState implements ChartState {
             hasMultipleEntitiesSelected,
             allowsMultiEntitySelection: canSelectMultipleEntities,
         })
+        const shortEntityName = getShortNameForEntity(entityName)
         const displayName = getDisplayName({
-            entityName: getShortNameForEntity(entityName) ?? entityName,
+            entityName: shortEntityName ?? entityName,
             columnName,
             seriesStrategy,
             hasMultipleEntitiesSelected,

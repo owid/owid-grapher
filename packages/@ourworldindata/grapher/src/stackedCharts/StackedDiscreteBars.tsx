@@ -50,11 +50,8 @@ import { isDarkColor } from "../color/ColorUtils"
 import { HorizontalAxis } from "../axis/Axis"
 import { HashMap, NodeGroup } from "react-move"
 import { easeQuadOut } from "d3-ease"
-import { TextWrap } from "@ourworldindata/components"
 import { StackedDiscreteBarChartState } from "./StackedDiscreteBarChartState"
-
-// if an entity name exceeds this width, we use the short name instead (if available)
-const SOFT_MAX_LABEL_WIDTH = 90
+import { fitLabelToBarHeight } from "../barCharts/DiscreteBarChartHelpers.js"
 
 const BAR_SPACING_FACTOR = 0.35
 
@@ -248,45 +245,16 @@ export class StackedDiscreteBars
         const barHeight = this.approximateBarHeight
 
         return this.chartState.sortedItems.map((item) => {
-            // make sure we're dealing with a single-line text fragment
-            const entityName = item.entityName.replace(/\n/g, " ").trim()
-
-            const maxLegendWidth = 0.3 * this.bounds.width
-
-            let label = new TextWrap({
-                text: entityName,
-                maxWidth: maxLegendWidth,
-                ...this.labelStyle,
+            const label = item.shortEntityName ?? item.entityName
+            const labelWrap = fitLabelToBarHeight({
+                label,
+                barHeight,
+                initialWidth: 0.3 * this.bounds.width,
+                maxWidth: 0.66 * this.bounds.width,
+                labelStyle: this.labelStyle,
             })
 
-            // prevent labels from being taller than the bar
-            let step = 0
-            while (
-                label.height > barHeight &&
-                label.lines.length > 1 &&
-                step < 10 // safety net
-            ) {
-                label = new TextWrap({
-                    text: entityName,
-                    maxWidth: label.maxWidth + 20,
-                    ...this.labelStyle,
-                })
-                step += 1
-            }
-
-            // if the label is too long, use the short name instead
-            const tooLong =
-                label.width > SOFT_MAX_LABEL_WIDTH ||
-                label.width > maxLegendWidth
-            if (tooLong && item.shortEntityName) {
-                label = new TextWrap({
-                    text: item.shortEntityName,
-                    maxWidth: label.maxWidth,
-                    ...this.labelStyle,
-                })
-            }
-
-            return { ...item, label }
+            return { ...item, label: labelWrap }
         })
     }
 

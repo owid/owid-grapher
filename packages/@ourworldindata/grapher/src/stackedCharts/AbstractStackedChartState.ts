@@ -25,6 +25,7 @@ import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
     getDefaultFailMessage,
+    getShortNameForEntity,
     makeSelectionArray,
 } from "../chart/ChartUtils.js"
 import { ColorSchemes } from "../color/ColorSchemes.js"
@@ -168,6 +169,7 @@ export abstract class AbstractStackedChartState implements ChartState {
                 return {
                     isProjection,
                     seriesName: entityName,
+                    shortEntityName: getShortNameForEntity(entityName),
                     rows: owidRowsByEntityName.get(entityName) || [],
                     focus: this.focusArray.state(entityName),
                 }

@@ -57,6 +57,7 @@ export interface StackedSeries<PositionType extends StackedPointPositionType>
     columnSlug?: string
     isProjection?: boolean
     isAllZeros?: boolean
+    shortEntityName?: string
     focus?: InteractionState
 }
 

@@ -30,6 +30,7 @@ import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
     getDefaultFailMessage,
+    getShortNameForEntity,
     makeSelectionArray,
 } from "../chart/ChartUtils"
 import { ColorScheme } from "../color/ColorScheme"
@@ -305,8 +306,9 @@ export class LineChartState implements ChartState, ColorScaleManager {
             hasMultipleEntitiesSelected,
             allowsMultiEntitySelection: canSelectMultipleEntities,
         })
+        const shortEntityName = getShortNameForEntity(entityName)
         const displayName = getDisplayName({
-            entityName,
+            entityName: shortEntityName ?? entityName,
             columnName,
             seriesStrategy,
             hasMultipleEntitiesSelected,
