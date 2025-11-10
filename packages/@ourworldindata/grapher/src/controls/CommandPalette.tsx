@@ -1,5 +1,5 @@
 import * as _ from "lodash-es"
-import { BodyDiv } from "@ourworldindata/components"
+import { BodyPortal } from "@ourworldindata/components"
 import { observer } from "mobx-react"
 import * as React from "react"
 
@@ -62,12 +62,12 @@ export class CommandPalette extends React.Component<CommandPaletteProps> {
         )
 
         return (
-            <BodyDiv>
+            <BodyPortal>
                 <div className={CommandPaletteClassName} style={style}>
                     <div className="paletteTitle">Keyboard Shortcuts</div>
                     {sortedCommands}
                 </div>
-            </BodyDiv>
+            </BodyPortal>
         )
     }
 }

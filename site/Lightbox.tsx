@@ -8,7 +8,7 @@ import {
     faXmark,
 } from "@fortawesome/free-solid-svg-icons"
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
-import { LoadingIndicator, BodyDiv } from "@ourworldindata/components"
+import { LoadingIndicator, BodyPortal } from "@ourworldindata/components"
 import { triggerDownloadFromBlob } from "@ourworldindata/utils"
 import { useTriggerOnEscape } from "./hooks.js"
 import cx from "classnames"
@@ -82,7 +82,7 @@ export const Lightbox = ({
     useTriggerOnEscape(onClose)
 
     return (
-        <BodyDiv divClassname="lightbox">
+        <BodyPortal containerClassName="lightbox">
             <div className="container">
                 {!isLoaded && <LoadingIndicator color="#ccc" />}
                 <TransformWrapper
@@ -152,6 +152,6 @@ export const Lightbox = ({
                     )}
                 </TransformWrapper>
             </div>
-        </BodyDiv>
+        </BodyPortal>
     )
 }
