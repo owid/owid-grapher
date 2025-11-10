@@ -169,8 +169,10 @@ export function isValidTabConfigOption(
     return Object.values(GRAPHER_TAB_CONFIG_OPTIONS).includes(candidate as any)
 }
 
-export const isChartTab = (tab: GrapherTabName): boolean =>
+export const isChartTab = (tab: GrapherTabName): tab is GrapherChartType =>
     tab !== GRAPHER_TAB_NAMES.Table && tab !== GRAPHER_TAB_NAMES.WorldMap
 
-export const isMapTab = (tab: GrapherTabName): boolean =>
+export const isMapTab = (
+    tab: GrapherTabName
+): tab is typeof GRAPHER_TAB_NAMES.WorldMap =>
     tab === GRAPHER_TAB_NAMES.WorldMap
