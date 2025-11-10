@@ -245,13 +245,31 @@ function runHtmlLangObserver() {
     // of a translation service / browser translation.
     // This can catch automatic translations in Chrome, Safari, Firefox - but not Edge.
     const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
+        // Chrome sometimes fires two mutations in a row, so we deduplicate here:
+        const mutationsUniq = _.uniqBy(mutations, (m) =>
+            [m.attributeName, m.oldValue].join("-")
+        )
+
+        mutationsUniq.forEach((mutation) => {
+            if (!mutation.attributeName) return
+
+            const target = mutation.target as HTMLElement
+            const newValue = target.getAttribute(mutation.attributeName)
+
             if (
                 mutation.type === "attributes" &&
                 mutation.attributeName === "lang"
             ) {
-                const newLang = htmlElement.getAttribute("lang")
+                const newLang = newValue
                 const prevLang = mutation.oldValue
+
+                if (prevLang === newLang) {
+                    console.log(
+                        "received lang mutation, but no change",
+                        mutation
+                    )
+                    return
+                }
 
                 const context = {
                     newLang,
@@ -271,6 +289,26 @@ function runHtmlLangObserver() {
                 // - Update text direction for RTL languages
                 // - Reload certain components with new translations
                 // - Update date/number formatting
+            } else if (
+                mutation.type === "attributes" &&
+                mutation.attributeName === "_msthash"
+            ) {
+                let oldLang,
+                    newLang: string | null = null
+
+                if (mutation.oldValue === null) {
+                    oldLang = "en"
+                } else if (newValue === null) {
+                    newLang = "en"
+                } else {
+                    return
+                }
+                // This attribute change indicates that Microsoft Translator (Edge) has translated the page.
+                // Sadly, in this case we don't have a way to know which language it was translated to.
+                console.log(
+                    "Site translated by Microsoft Translator (Edge browser)",
+                    { oldLang, newLang }
+                )
             }
         })
     })
@@ -280,6 +318,17 @@ function runHtmlLangObserver() {
         attributeFilter: ["lang"],
         attributeOldValue: true,
     })
+
+    const titleElement = document.head.querySelector("title")
+    if (titleElement) {
+        observer.observe(titleElement, {
+            attributes: true,
+            attributeFilter: ["_msthash"],
+            attributeOldValue: true,
+        })
+    }
+
+    console.log("Attached listeners")
 }
 
 const hydrateOwidGdoc = (debug?: boolean, isPreviewing?: boolean) => {
