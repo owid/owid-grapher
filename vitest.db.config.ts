@@ -12,7 +12,7 @@ export default defineConfig({
         maxConcurrency: 1,
         fileParallelism: false,
         pool: "threads",
-        poolOptions: { threads: { singleThread: true } },
+        maxWorkers: 1,
         sequence: { concurrent: false },
         setupFiles: [
             "devTools/vitest-setup.ts",
