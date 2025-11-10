@@ -16,6 +16,7 @@ export const GdocsSaveButtons = ({
     hasWarnings,
     hasChanges,
     isLightningUpdate,
+    disableButtons,
     doPublish,
     saveDraft,
 }: {
@@ -27,6 +28,7 @@ export const GdocsSaveButtons = ({
     hasWarnings: boolean
     hasChanges: boolean
     isLightningUpdate: boolean
+    disableButtons: boolean
     setDiffOpen: (open: boolean) => void
     doPublish: VoidFunction
     saveDraft: VoidFunction
@@ -93,14 +95,21 @@ export const GdocsSaveButtons = ({
         <>
             <Space>
                 {!published && (
-                    <Button disabled={!hasChanges} onClick={saveDraft}>
+                    <Button
+                        disabled={disableButtons || !hasChanges}
+                        onClick={saveDraft}
+                    >
                         Save draft
                     </Button>
                 )}
                 <Badge {...badgeProps}>
                     {/* #gdocsvalidationclient: prevent saving published articles with errors */}
                     <Button
-                        disabled={hasErrors || (published && !hasChanges)}
+                        disabled={
+                            disableButtons ||
+                            hasErrors ||
+                            (published && !hasChanges)
+                        }
                         type="primary"
                         onClick={confirmPublish}
                         title={

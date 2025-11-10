@@ -332,6 +332,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                 setDiffOpen={setDiffOpen}
                                 doPublish={doPublish}
                                 saveDraft={saveDraft}
+                                disableButtons={acceptSuggestions}
                             />
                             <Space>
                                 <Switch
