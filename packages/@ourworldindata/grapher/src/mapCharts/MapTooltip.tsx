@@ -349,6 +349,7 @@ function MapTooltipValue({
             value={formattedValue}
             color={color}
             isProjection={isProjection}
+            labelVariant="unit-only"
         />
     )
 }
@@ -381,7 +382,12 @@ function MapTooltipRangeValues({
         : [startDatum?.value, endDatum?.value]
 
     return (
-        <TooltipValueRange column={mapColumn} values={values} colors={colors} />
+        <TooltipValueRange
+            column={mapColumn}
+            values={values}
+            colors={colors}
+            labelVariant="unit-only"
+        />
     )
 }
 
