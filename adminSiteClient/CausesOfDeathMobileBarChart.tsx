@@ -25,7 +25,7 @@ export function CausesOfDeathMobileBarChart({
     data: DataRow[]
     metadata: MyCausesOfDeathMetadata
 }) {
-    const { ref, dimensions } = useChartDimensions<HTMLElement>()
+    const { ref, dimensions } = useChartDimensions<HTMLDivElement>()
 
     const categoryData = useMemo(() => {
         // Calculate total deaths
