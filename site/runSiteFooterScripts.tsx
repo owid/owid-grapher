@@ -122,7 +122,7 @@ async function hydrateDataInsightsIndexPage() {
     }
 }
 
-export function hydrateDataPageV2Content({
+function hydrateDataPageV2Content({
     isPreviewing,
 }: { isPreviewing?: boolean } = {}) {
     const wrapper = document.querySelector(`#${OWID_DATAPAGE_CONTENT_ROOT_ID}`)
@@ -199,7 +199,7 @@ function runFootnotes() {
     })
 }
 
-export function runSiteNavigation(hideDonationFlag?: boolean) {
+function runSiteNavigation(hideDonationFlag?: boolean) {
     const siteNavigationElem = document.querySelector(".site-navigation-root")
     if (siteNavigationElem) {
         let isOnHomepage = false
