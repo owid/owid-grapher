@@ -235,17 +235,27 @@ function runSiteTools() {
         root.render(<SiteTools />)
     }
 
-    runHtmlLangObserver()
+    runBrowserTranslationDetector()
 }
 
-function runHtmlLangObserver() {
+function runBrowserTranslationDetector() {
     const htmlElement = document.documentElement
 
-    // Create a MutationObserver to watch for changes to the lang attribute, which is a signpost
+    function sendTranslationAnalyticsEvent(
+        prevLang: string | null,
+        newLang: string | null
+    ) {
+        // Here you would integrate with your analytics service
+        console.log("Browser translation detected:", {
+            from: prevLang,
+            to: newLang,
+        })
+    }
+
+    // Create a MutationObserver to watch for changes to the HTML which are signposts
     // of a translation service / browser translation.
-    // This can catch automatic translations in Chrome, Safari, Firefox - but not Edge.
     const observer = new MutationObserver((mutations) => {
-        // Chrome sometimes fires two mutations in a row, so we deduplicate here:
+        // Chrome sometimes fires two of the same mutations in a row, so we deduplicate here:
         const mutationsUniq = _.uniqBy(mutations, (m) =>
             [m.attributeName, m.oldValue].join("-")
         )
@@ -256,69 +266,48 @@ function runHtmlLangObserver() {
             const target = mutation.target as HTMLElement
             const newValue = target.getAttribute(mutation.attributeName)
 
+            let prevLang: string | null = null,
+                newLang: string | null = null
+
             if (
                 mutation.type === "attributes" &&
                 mutation.attributeName === "lang"
             ) {
-                const newLang = newValue
-                const prevLang = mutation.oldValue
+                newLang = newValue
+                prevLang = mutation.oldValue
 
                 if (prevLang === newLang) {
-                    console.log(
-                        "received lang mutation, but no change",
-                        mutation
-                    )
+                    // In Safari, it sometimes happens that we receive mutations that don't change the lang attribute
                     return
                 }
 
-                const context = {
-                    newLang,
-                    prevLang,
-                    browser: navigator.userAgent,
-                    browserLanguages: navigator.languages,
-                }
-
-                console.log(
-                    `Site translated from ${prevLang} to ${newLang}`,
-                    context
-                )
-
-                // TODO: Handle language change
-                // Add your custom logic here for when the language changes
-                // For example, you might want to:
-                // - Update text direction for RTL languages
-                // - Reload certain components with new translations
-                // - Update date/number formatting
+                sendTranslationAnalyticsEvent(prevLang, newLang)
             } else if (
                 mutation.type === "attributes" &&
                 mutation.attributeName === "_msthash"
             ) {
-                let oldLang,
-                    newLang: string | null = null
-
                 if (mutation.oldValue === null) {
-                    oldLang = "en"
+                    prevLang = "en"
                 } else if (newValue === null) {
                     newLang = "en"
                 } else {
+                    // Don't handle events where both old and new values are non-null - this might mean that the title changed and was re-translated
                     return
                 }
-                // This attribute change indicates that Microsoft Translator (Edge) has translated the page.
-                // Sadly, in this case we don't have a way to know which language it was translated to.
-                console.log(
-                    "Site translated by Microsoft Translator (Edge browser)",
-                    { oldLang, newLang }
-                )
+
+                sendTranslationAnalyticsEvent(prevLang, newLang)
             }
         })
     })
 
+    // Observe <html lang="...">, which is changed by most browser translation services
     observer.observe(htmlElement, {
         attributes: true,
         attributeFilter: ["lang"],
         attributeOldValue: true,
     })
 
+    // Observe <title _msthash="...">, which is changed by Microsoft Edge translation
     const titleElement = document.head.querySelector("title")
     if (titleElement) {
         observer.observe(titleElement, {
@@ -327,8 +316,6 @@ function runHtmlLangObserver() {
             attributeOldValue: true,
         })
     }
-
-    console.log("Attached listeners")
 }
 
 const hydrateOwidGdoc = (debug?: boolean, isPreviewing?: boolean) => {
