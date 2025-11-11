@@ -406,7 +406,7 @@ describe("TooltipTable", () => {
     it("shows totals at top when tooltip is anchored to bottom", () => {
         const { container } = render(
             <TooltipContext.Provider
-                value={{ anchor: GrapherTooltipAnchor.bottom }}
+                value={{ anchor: GrapherTooltipAnchor.Bottom }}
             >
                 <TooltipTable
                     columns={toTooltipTableColumns(fruitColumn)}
