@@ -219,8 +219,10 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
+    // Add a listener to detect browser translation events
     startDetectingBrowserTranslation() {
         const htmlElement = document.documentElement
+        const initialLang = htmlElement.getAttribute("lang")
 
         const sendTranslationAnalyticsEvent = (
             prevLang: string | null,
@@ -269,9 +271,9 @@ export class SiteAnalytics extends GrapherAnalytics {
                     mutation.attributeName === "_msthash"
                 ) {
                     if (mutation.oldValue === null) {
-                        prevLang = "en"
+                        prevLang = initialLang
                     } else if (newValue === null) {
-                        newLang = "en"
+                        newLang = initialLang
                     } else {
                         // Don't handle events where both old and new values are non-null - this might mean that the title changed and was re-translated
                         return

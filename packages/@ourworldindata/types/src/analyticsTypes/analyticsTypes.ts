@@ -315,7 +315,9 @@ export interface GlobalEntitySelectorUsageParams {
 }
 
 export interface TranslatePageParams {
+    /** Information about the translation event, in the form { from: string | null, to: string | null } */
     eventTarget: JsonString
+    /** Comma-separated list of browser languages, e.g.: `es-ES,de-DE,en` */
     eventContext: string
 }
 
