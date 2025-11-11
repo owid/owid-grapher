@@ -205,18 +205,33 @@ export class SiteAnalytics extends GrapherAnalytics {
         )
     }
 
+    private logBrowserTranslationEvent(ctx: {
+        from: string | null
+        to: string | null
+    }) {
+        const browserLanguages =
+            navigator.languages || [navigator.language] || []
+
+        this.logToGA({
+            event: EventCategory.TranslatePage,
+            eventTarget: JSON.stringify(ctx),
+            eventContext: browserLanguages.join(","),
+        })
+    }
+
     startDetectingBrowserTranslation() {
         const htmlElement = document.documentElement
 
-        function sendTranslationAnalyticsEvent(
+        const sendTranslationAnalyticsEvent = (
             prevLang: string | null,
             newLang: string | null
-        ) {
-            // Here you would integrate with your analytics service
-            console.log("Browser translation detected:", {
-                from: prevLang,
-                to: newLang,
-            })
+        ) => {
+            const ctx = { from: prevLang, to: newLang }
+
+            // eslint-disable-next-line no-console
+            console.info("Browser translation detected", ctx)
+
+            this.logBrowserTranslationEvent(ctx)
         }
 
         // Create a MutationObserver to watch for changes to the HTML which are signposts

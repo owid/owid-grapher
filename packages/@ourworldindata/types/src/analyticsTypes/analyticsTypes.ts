@@ -19,6 +19,8 @@
 //
 // 3. This file is the single source of truth for the analytics contract
 
+import { JsonString } from "../domainTypes/Various.js"
+
 // =============================================================================
 // EVENT CATEGORIES
 // =============================================================================
@@ -45,6 +47,7 @@ export enum EventCategory {
     DetailOnDemand = "owid.detail_on_demand",
     SiteGuidedChartLinkClick = "owid.site_guided_chart_link_click",
     SiteChartPreviewMouseover = "owid.site_chart_preview_mouseover",
+    TranslatePage = "owid.translate_page",
 }
 
 // =============================================================================
@@ -73,6 +76,7 @@ export type EventParamsMap = {
     [EventCategory.SiteError]: SiteErrorParams
     [EventCategory.Filter]: FilterParams
     [EventCategory.GlobalEntitySelectorUsage]: GlobalEntitySelectorUsageParams
+    [EventCategory.TranslatePage]: TranslatePageParams
 }
 
 export type GAEvent = {
@@ -308,6 +312,11 @@ export interface GlobalEntitySelectorUsageParams {
     eventAction: EntityControlEvent
     /** Additional note or context */
     eventContext?: string
+}
+
+export interface TranslatePageParams {
+    eventTarget: JsonString
+    eventContext: string
 }
 
 // =============================================================================

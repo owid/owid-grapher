@@ -30,3 +30,4 @@ const analytics = new SiteAnalytics(ENV)
 document.documentElement?.classList.add("js-loaded")
 
 analytics.startClickTracking()
+analytics.startDetectingBrowserTranslation()
