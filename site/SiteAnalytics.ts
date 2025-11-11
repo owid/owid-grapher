@@ -204,4 +204,101 @@ export class SiteAnalytics extends GrapherAnalytics {
             { capture: true, passive: true }
         )
     }
+
+    private logBrowserTranslationEvent(ctx: {
+        from: string | null
+        to: string | null
+    }) {
+        const browserLanguages =
+            navigator.languages || [navigator.language] || []
+
+        this.logToGA({
+            event: EventCategory.TranslatePage,
+            eventTarget: JSON.stringify(ctx),
+            eventContext: browserLanguages.join(","),
+        })
+    }
+
+    // Add a listener to detect browser translation events
+    startDetectingBrowserTranslation() {
+        const htmlElement = document.documentElement
+        const initialLang = htmlElement.getAttribute("lang")
+
+        const sendTranslationAnalyticsEvent = (
+            prevLang: string | null,
+            newLang: string | null
+        ) => {
+            const ctx = { from: prevLang, to: newLang }
+
+            // eslint-disable-next-line no-console
+            console.info("Browser translation detected", ctx)
+
+            this.logBrowserTranslationEvent(ctx)
+        }
+
+        // Create a MutationObserver to watch for changes to the HTML which are signposts
+        // of a translation service / browser translation.
+        const observer = new MutationObserver((mutations) => {
+            // Chrome sometimes fires two of the same mutations in a row, so we deduplicate here:
+            const mutationsUniq = _.uniqBy(mutations, (m) =>
+                [m.attributeName, m.oldValue].join("-")
+            )
+
+            mutationsUniq.forEach((mutation) => {
+                if (!mutation.attributeName) return
+
+                const target = mutation.target as HTMLElement
+                const newValue = target.getAttribute(mutation.attributeName)
+
+                let prevLang: string | null = null,
+                    newLang: string | null = null
+
+                if (
+                    mutation.type === "attributes" &&
+                    mutation.attributeName === "lang"
+                ) {
+                    newLang = newValue
+                    prevLang = mutation.oldValue
+
+                    if (prevLang === newLang) {
+                        // In Safari, it sometimes happens that we receive mutations that don't change the lang attribute
+                        return
+                    }
+
+                    sendTranslationAnalyticsEvent(prevLang, newLang)
+                } else if (
+                    mutation.type === "attributes" &&
+                    mutation.attributeName === "_msthash"
+                ) {
+                    if (mutation.oldValue === null) {
+                        prevLang = initialLang
+                    } else if (newValue === null) {
+                        newLang = initialLang
+                    } else {
+                        // Don't handle events where both old and new values are non-null - this might mean that the title changed and was re-translated
+                        return
+                    }
+
+                    sendTranslationAnalyticsEvent(prevLang, newLang)
+                }
+            })
+        })
+
+        // Observe <html lang="...">, which is changed by most browser translation services
+        observer.observe(htmlElement, {
+            attributes: true,
+            attributeFilter: ["lang"],
+            attributeOldValue: true,
+        })
+
+        // Observe <title _msthash="...">, which is changed by Microsoft Edge translation
+        const titleElement = document.head.querySelector("title")
+        if (titleElement) {
+            observer.observe(titleElement, {
+                attributes: true,
+                attributeFilter: ["_msthash"],
+                attributeOldValue: true,
+            })
+        }
+    }
 }

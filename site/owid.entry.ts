@@ -76,3 +76,4 @@ try {
 }
 
 analytics.startClickTracking()
+analytics.startDetectingBrowserTranslation()
