@@ -17,6 +17,7 @@ import {
     Bounds,
     isTouchDevice,
     makeIdForHumanConsumption,
+    calculateTrendDirection,
 } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
 import { NoDataModal } from "../noDataModal/NoDataModal"
@@ -67,6 +68,7 @@ import {
     TooltipValueRange,
     makeTooltipToleranceNotice,
     makeTooltipRoundingNotice,
+    formatTooltipRangeValues,
 } from "../tooltip/Tooltip"
 import { NoDataSection } from "./NoDataSection"
 import { ScatterPlotChartState } from "./ScatterPlotChartState"
@@ -693,16 +695,22 @@ export class ScatterPlotChart
             { x: xEnd, y: yEnd } = R.last(values)?.time ?? {}
 
         let xValues = xStart === xEnd ? [values[0].x] : values.map((v) => v.x),
-            xNoticeNeeded =
+            xOriginalTimeNeeded =
                 (xStart !== undefined && xStart !== startTime && xStart) ||
                 (xEnd !== undefined && xEnd !== endTime && xEnd),
-            xNotice = xNoticeNeeded ? [xStart, xEnd] : []
+            xOriginalTimes = xOriginalTimeNeeded ? [xStart, xEnd] : []
+        const xOriginalTimesFormatted = xOriginalTimes.map((t) =>
+            t !== undefined ? xColumn.formatTime(t) : undefined
+        )
 
         let yValues = yStart === yEnd ? [values[0].y] : values.map((v) => v.y),
-            yNoticeNeeded =
+            yOriginalTimeNeeded =
                 (yStart !== undefined && yStart !== startTime && yStart) ||
                 (yEnd !== undefined && yEnd !== endTime && yEnd),
-            yNotice = yNoticeNeeded ? [yStart, yEnd] : []
+            yOriginalTimes = yOriginalTimeNeeded ? [yStart, yEnd] : []
+        const yOriginalTimesFormatted = yOriginalTimes.map((t) =>
+            t !== undefined ? yColumn.formatTime(t) : undefined
+        )
 
         // handle the special case where the same variable is used for both axes
         // with a different year's value on each
@@ -715,8 +723,8 @@ export class ScatterPlotChart
                 startTime = _.min([time.x, time.y])
                 endTime = _.max([time.x, time.y])
                 xValues = time.x < time.y ? [x, y] : [y, x]
-                xNotice = yNotice = yValues = []
-                xNoticeNeeded = yNoticeNeeded = false
+                xOriginalTimes = yOriginalTimes = yValues = []
+                xOriginalTimeNeeded = yOriginalTimeNeeded = false
             }
         }
 
@@ -725,9 +733,13 @@ export class ScatterPlotChart
                 .map((t) => this.yColumn.formatTime(t))
                 .join(" to "),
             targetNotice =
-                xNoticeNeeded || yNoticeNeeded ? timeRange : undefined,
+                xOriginalTimeNeeded || yOriginalTimeNeeded
+                    ? timeRange
+                    : undefined,
             timeLabel =
                 timeRange + (isRelativeMode ? " (avg. annual change)" : "")
+
+        const sizeValues = excludeNullish(values.map((v) => v.size))
 
         const columns = [xColumn, yColumn, sizeColumn].filter(
             (column) => !column.isMissing
@@ -781,23 +793,49 @@ export class ScatterPlotChart
                 footer={footer}
                 dismiss={() => (this.tooltipState.target = null)}
             >
-                <TooltipValueRange
-                    column={xColumn}
-                    values={xValues}
-                    notice={xNotice}
-                    showSignificanceSuperscript={superscript}
-                />
-                <TooltipValueRange
-                    column={yColumn}
-                    values={yValues}
-                    notice={yNotice}
-                    showSignificanceSuperscript={superscript}
-                />
-                <TooltipValueRange
-                    column={sizeColumn}
-                    values={excludeNullish(values.map((v) => v.size))}
-                    showSignificanceSuperscript={superscript}
-                />
+                {!xColumn.isMissing && xColumn.name !== "time" && (
+                    <TooltipValueRange
+                        label={xColumn.displayName}
+                        unit={xColumn.displayUnit}
+                        values={formatTooltipRangeValues(xValues, xColumn)}
+                        trend={calculateTrendDirection(...xValues) ?? "right"}
+                        originalTimes={xOriginalTimesFormatted}
+                        isRoundedToSignificantFigures={
+                            xColumn.roundsToSignificantFigures
+                        }
+                        showSignificanceSuperscript={superscript}
+                    />
+                )}
+                {!yColumn.isMissing && yColumn.name !== "time" && (
+                    <TooltipValueRange
+                        label={yColumn.displayName}
+                        unit={yColumn.displayUnit}
+                        values={formatTooltipRangeValues(yValues, yColumn)}
+                        trend={calculateTrendDirection(...yValues) ?? "right"}
+                        originalTimes={yOriginalTimesFormatted}
+                        isRoundedToSignificantFigures={
+                            yColumn.roundsToSignificantFigures
+                        }
+                        showSignificanceSuperscript={superscript}
+                    />
+                )}
+                {!sizeColumn.isMissing && (
+                    <TooltipValueRange
+                        label={sizeColumn.displayName}
+                        unit={sizeColumn.displayUnit}
+                        values={formatTooltipRangeValues(
+                            sizeValues,
+                            sizeColumn
+                        )}
+                        trend={
+                            calculateTrendDirection(...sizeValues) ?? "right"
+                        }
+                        isRoundedToSignificantFigures={
+                            sizeColumn.roundsToSignificantFigures
+                        }
+                        showSignificanceSuperscript={superscript}
+                    />
+                )}
             </Tooltip>
         )
     }
