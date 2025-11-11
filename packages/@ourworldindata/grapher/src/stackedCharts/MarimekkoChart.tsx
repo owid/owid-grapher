@@ -67,9 +67,6 @@ const MARKER_MARGIN: number = 4
 const MARKER_AREA_HEIGHT: number = 25
 const MAX_LABEL_COUNT: number = 20
 
-// if an entity name exceeds this width, we use the short name instead (if available)
-const SOFT_MAX_LABEL_WIDTH = 60
-
 export type MarimekkoChartProps = ChartComponentProps<MarimekkoChartState>
 
 @observer
@@ -579,16 +576,9 @@ export class MarimekkoChart
         fontSize: number,
         isSelected: boolean
     ): LabelCandidate {
-        let label = item.entityName
-        let labelBounds = Bounds.forText(label, {
-            fontSize,
-        })
-        if (labelBounds.width > SOFT_MAX_LABEL_WIDTH && item.shortEntityName) {
-            label = item.shortEntityName
-            labelBounds = Bounds.forText(label, {
-                fontSize,
-            })
-        }
+        const label = item.shortEntityName ?? item.entityName
+        const labelBounds = Bounds.forText(label, { fontSize })
+
         return {
             item: item,
             label,
