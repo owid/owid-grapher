@@ -344,7 +344,7 @@ export class StackedBarChart
         const title = formatColumn.formatTime(hoverTime)
         const titleAnnotation = this.xAxis.label ? `(${this.xAxis.label})` : ""
 
-        const { unit, shortUnit } = formatColumn
+        const { displayUnit } = formatColumn
 
         const totalValue = _.sum(
             series.map(
@@ -393,7 +393,7 @@ export class StackedBarChart
                 offsetY={-16}
                 title={title}
                 titleAnnotation={titleAnnotation}
-                subtitle={unit !== shortUnit ? unit : undefined}
+                subtitle={displayUnit}
                 subtitleFormat="unit"
                 footer={footer}
                 dissolve={fading}
