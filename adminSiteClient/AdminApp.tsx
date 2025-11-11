@@ -41,6 +41,7 @@ import { BulkGrapherConfigEditorPage } from "./BulkGrapherConfigEditor.js"
 import { GdocsIndexPage } from "./GdocsIndexPage.js"
 import { GdocsMatchProps, GdocsPreviewPage } from "./GdocsPreviewPage.js"
 import { GdocsStoreProvider } from "./GdocsStoreProvider.js"
+import { GdocsAlgoliaPreview } from "./GdocsAlgoliaPreview.js"
 import { IndicatorChartEditorPage } from "./IndicatorChartEditorPage.js"
 import { CreateNarrativeChartEditorPage } from "./CreateNarrativeChartEditorPage.js"
 import { NarrativeChartEditorPage } from "./NarrativeChartEditorPage.js"
@@ -354,6 +355,13 @@ export class AdminApp extends React.Component<{
                                     exact
                                     path="/tags"
                                     component={TagsIndexPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/gdocs/:id/records"
+                                    render={(props: GdocsMatchProps) => (
+                                        <GdocsAlgoliaPreview {...props} />
+                                    )}
                                 />
                                 <Route
                                     exact

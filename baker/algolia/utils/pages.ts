@@ -371,27 +371,8 @@ export async function indexIndividualGdocPost(
         return
     }
     const indexName = getIndexName(SearchIndexName.Pages)
-    const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
-    const cloudflareImagesByFilename = await db
-        .getCloudflareImages(knex)
-        .then((images) => _.keyBy(images, "filename"))
-    const existingPageviews = pageviews[`/${indexedSlug}`]
-    const pageviewsForGdoc = {
-        [gdoc.slug]: existingPageviews || {
-            views_7d: 0,
-            views_14d: 0,
-            views_365d: 0,
-            day: new Date(),
-            url: gdoc.slug,
-        },
-    }
 
-    const records = await generateGdocRecords(
-        [gdoc],
-        pageviewsForGdoc,
-        cloudflareImagesByFilename,
-        knex
-    )
+    const records = await generateGdocPostRecords(gdoc, knex)
 
     const existingRecordsForPost: Hit[] = await getExistingRecordsForSlug(
         client,
@@ -425,6 +406,38 @@ export async function indexIndividualGdocPost(
     } catch (e) {
         console.error("Error indexing Gdoc post to Algolia: ", e)
     }
+}
+
+/**
+ * Generate Algolia records for a single gdoc post without indexing them.
+ * Useful for previewing what records would be created.
+ */
+export async function generateGdocPostRecords(
+    gdoc: OwidGdocPostInterface,
+    knex: db.KnexReadonlyTransaction
+) {
+    const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
+    const cloudflareImagesByFilename = await db
+        .getCloudflareImages(knex)
+        .then((images) => _.keyBy(images, "filename"))
+
+    const existingPageviews = pageviews[`/${gdoc.slug}`]
+    const pageviewsForGdoc = {
+        [gdoc.slug]: existingPageviews || {
+            views_7d: 0,
+            views_14d: 0,
+            views_365d: 0,
+            day: new Date(),
+            url: gdoc.slug,
+        },
+    }
+
+    return generateGdocRecords(
+        [gdoc],
+        pageviewsForGdoc,
+        cloudflareImagesByFilename,
+        knex
+    )
 }
 
 export async function removeIndividualGdocPostFromIndex(

@@ -22,6 +22,7 @@ import {
 import {
     indexIndividualGdocPost,
     removeIndividualGdocPostFromIndex,
+    generateGdocPostRecords,
 } from "../../baker/algolia/utils/pages.js"
 import { GdocAbout } from "../../db/model/Gdoc/GdocAbout.js"
 import { GdocAuthor } from "../../db/model/Gdoc/GdocAuthor.js"
@@ -316,4 +317,47 @@ export async function setGdocTags(
     await setTagsForGdoc(trx, gdocId, tagIdsAsObjects)
 
     return { success: true }
+}
+
+/**
+ * Generate a preview of Algolia index records for a gdoc.
+ * Returns the records that would be created when indexing this gdoc.
+ */
+export async function getPreviewGdocIndexRecords(
+    _req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const { id } = _req.params
+    const contentSource = _req.query.contentSource as
+        | GdocsContentSource
+        | undefined
+
+    try {
+        const gdoc = await getAndLoadGdocById(trx, id, contentSource, false)
+
+        if (!gdoc) {
+            throw new JsonError(`No Google Doc with id ${id} found`)
+        }
+
+        const gdocJson = gdoc.toJSON()
+
+        // Only generate records for posts (excluding fragments)
+        if (!checkIsGdocPostExcludingFragments(gdocJson)) {
+            return {
+                records: [],
+                message: `Gdoc type "${gdocJson.content.type}" is not indexed in Algolia`,
+            }
+        }
+
+        const records = await generateGdocPostRecords(gdocJson, trx)
+
+        res.set("Cache-Control", "no-store")
+        return { records, count: records.length }
+    } catch (error) {
+        console.error("Error generating gdoc index records", error)
+        return res.status(500).json({
+            error: { message: String(error), status: 500 },
+        })
+    }
 }
