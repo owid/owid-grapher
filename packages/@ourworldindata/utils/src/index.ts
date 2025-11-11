@@ -142,6 +142,7 @@ export {
     merge,
     calculateTrendDirection,
     getDisplayUnit,
+    stripOuterParentheses,
 } from "./Util.js"
 
 export {

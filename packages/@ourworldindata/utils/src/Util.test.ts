@@ -33,6 +33,7 @@ import {
     imemo,
     normaliseToSingleDigitNumber,
     getUniqueNamesFromTagHierarchies,
+    stripOuterParentheses,
 } from "./Util.js"
 import {
     BlockImageSize,
@@ -1063,5 +1064,25 @@ describe(getUniqueNamesFromTagHierarchies, () => {
                 topicHierarchiesByChildName
             )
         ).toEqual(["Environment", "Water Topic"])
+    })
+})
+
+describe(stripOuterParentheses, () => {
+    it("removes a single pair of outer parentheses", () => {
+        expect(stripOuterParentheses("(example)")).toBe("example")
+    })
+
+    it("returns the string unchanged if there are no outer parentheses", () => {
+        expect(stripOuterParentheses("no parentheses")).toBe("no parentheses")
+    })
+
+    it("doesn't remove inner parentheses", () => {
+        expect(stripOuterParentheses("example (with inner)")).toBe(
+            "example (with inner)"
+        )
+    })
+
+    it("trims whitespace before checking for parentheses", () => {
+        expect(stripOuterParentheses("   (trimmed)   ")).toBe("trimmed")
     })
 })

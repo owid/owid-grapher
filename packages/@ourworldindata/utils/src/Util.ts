@@ -2240,6 +2240,20 @@ export function calculateTrendDirection(
           : "right"
 }
 
+/**
+ * Removes a single pair of outer parentheses from a string, if present.
+ *
+ * For example:
+ *   "(example)" => "example"
+ *   "no parentheses" => "no parentheses"
+ *   "(example (with inner))" => "example (with inner)"
+ *
+ * Leading and trailing whitespace is trimmed before checking for parentheses.
+ */
+export function stripOuterParentheses(input: string): string {
+    return input.trim().replace(/^\((.*)\)$/, "$1")
+}
+
 export function getDisplayUnit(
     column: { unit?: string; shortUnit?: string },
     { allowTrivial = false }: { allowTrivial?: boolean } = {}
@@ -2251,7 +2265,7 @@ export function getDisplayUnit(
     const unit = allowTrivial || !isTrivial ? column.unit : undefined
 
     // Remove parentheses from the beginning and end of the unit
-    const strippedUnit = unit?.replace(/(^\(|\)$)/g, "")
+    const strippedUnit = unit ? stripOuterParentheses(unit) : undefined
 
     return strippedUnit
 }

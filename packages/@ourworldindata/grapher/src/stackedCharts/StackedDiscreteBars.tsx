@@ -578,7 +578,7 @@ export class StackedDiscreteBars
     @computed private get tooltip(): React.ReactElement | undefined {
         const {
                 tooltipState: { target, position, fading },
-                formatColumn: { unit, shortUnit },
+                formatColumn: { displayUnit },
                 manager: { endTime: targetTime },
                 inputTable: { timeColumn },
             } = this,
@@ -620,7 +620,7 @@ export class StackedDiscreteBars
                     offsetX={20}
                     offsetY={-16}
                     title={target.entityName}
-                    subtitle={unit !== shortUnit ? unit : undefined}
+                    subtitle={displayUnit}
                     subtitleFormat="unit"
                     footer={footer}
                     dissolve={fading}

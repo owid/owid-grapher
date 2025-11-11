@@ -434,7 +434,7 @@ export class StackedAreaChart
 
         const formatColumn = this.chartState.formatColumn,
             formattedTime = formatColumn.formatTime(bottomSeriesPoint.position),
-            { unit, shortUnit } = formatColumn
+            { displayUnit } = formatColumn
 
         const title = formattedTime
         const titleAnnotation = this.xAxis.label ? `(${this.xAxis.label})` : ""
@@ -465,7 +465,7 @@ export class StackedAreaChart
                 style={{ maxWidth: "50%" }}
                 title={title}
                 titleAnnotation={titleAnnotation}
-                subtitle={unit !== shortUnit ? unit : undefined}
+                subtitle={displayUnit}
                 subtitleFormat="unit"
                 footer={footer}
                 dissolve={fading}
