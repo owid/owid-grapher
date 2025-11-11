@@ -207,6 +207,8 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
                 Related:&nbsp;
                 <a
                     href={relatedQuestions![0].url}
+                    target="_blank"
+                    rel="noopener"
                     data-track-note="chart_click_related"
                 >
                     {relatedQuestions![0].text}
