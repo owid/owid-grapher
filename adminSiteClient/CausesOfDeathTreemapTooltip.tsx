@@ -3,14 +3,11 @@ import {
     TooltipState,
     DataRow,
 } from "./CausesOfDeathConstants.js"
-import {
-    formatNumberLongText,
-    formatPercentSigFig,
-} from "./CausesOfDeathHelpers.js"
+import { formatPercentSigFig } from "./CausesOfDeathHelpers.js"
 import { GrapherTooltipAnchor } from "@ourworldindata/types"
 import {
     TooltipCard,
-    TooltipValueCore,
+    TooltipValue,
 } from "@ourworldindata/grapher/src/tooltip/Tooltip.js"
 import { Bounds } from "@ourworldindata/utils"
 import { useMemo } from "react"
@@ -127,16 +124,13 @@ export function CausesOfDeathTreemapTooltip({
                     </span>
                 </div>
             </div> */}
-            <TooltipValueCore
-                value={value / totalDeaths}
-                displayInfo={{
-                    // displayName: "Share of all deaths",
-                    unit: "Share of deaths",
-                }}
-                valueFormatter={{
-                    formatValueShort: (v) =>
-                        formatPercentSigFig(typeof v === "number" ? v : 0),
-                }}
+            <TooltipValue
+                value={formatPercentSigFig(
+                    typeof (value / totalDeaths) === "number"
+                        ? value / totalDeaths
+                        : 0
+                )}
+                unit="Share of deaths"
                 labelVariant="unit-only"
                 color={categoryColor}
             />
