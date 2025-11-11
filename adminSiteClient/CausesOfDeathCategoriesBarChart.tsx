@@ -308,6 +308,8 @@ function CausesOfDeathCategoriesBarLabels({
                             dy: "-0.5em", // TODO
                         },
                     })
+                } else {
+                    return null
                 }
             })}
         </g>
