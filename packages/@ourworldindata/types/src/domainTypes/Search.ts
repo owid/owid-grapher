@@ -6,6 +6,7 @@ import type {
 } from "instantsearch.js"
 import { OwidGdocType } from "../gdocTypes/Gdoc.js"
 import { GrapherTabName } from "../grapherTypes/GrapherTypes.js"
+import { BreadcrumbItemSchema } from "./Site.js"
 import * as z from "zod/mini"
 
 export const PagesIndexRecordSchema = z.object({
@@ -24,6 +25,7 @@ export const PagesIndexRecordSchema = z.object({
     modifiedDate: z.optional(z.string()),
     tags: z.optional(z.array(z.string())),
     thumbnailUrl: z.string(),
+    headings: z.optional(z.array(BreadcrumbItemSchema)),
 })
 
 export type PageRecord = z.infer<typeof PagesIndexRecordSchema>

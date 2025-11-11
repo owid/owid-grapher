@@ -15,6 +15,9 @@ import {
     spansToUnformattedPlainText,
     EnrichedBlockText,
     Span,
+    BreadcrumbItem,
+    OwidEnrichedGdocBlock,
+    traverseEnrichedBlock,
 } from "@ourworldindata/utils"
 import { getAlgoliaClient } from "../configureAlgolia.js"
 import { PageRecord, SearchIndexName } from "@ourworldindata/types"
@@ -32,8 +35,16 @@ import {
     getFirstBlockOfType,
     takeConsecutiveBlocksOfType,
 } from "../../../site/gdocs/utils.js"
-import { getPrefixedGdocPath, toPlaintext } from "@ourworldindata/components"
-import { stripCustomMarkdownComponents } from "../../../db/model/Gdoc/enrichedToMarkdown.js"
+import {
+    getPrefixedGdocPath,
+    toPlaintext,
+    convertHeadingTextToId,
+} from "@ourworldindata/components"
+import {
+    stripCustomMarkdownComponents,
+    enrichedBlocksToMarkdown,
+} from "../../../db/model/Gdoc/enrichedToMarkdown.js"
+import { spansToSimpleString } from "../../../db/model/Gdoc/gdocUtils.js"
 
 const computePageScore = (record: Omit<PageRecord, "score">): number => {
     const { importance, views_7d } = record
@@ -207,6 +218,75 @@ const getPostImportance = (
         .exhaustive()
 }
 
+type Section = {
+    headings: BreadcrumbItem[] // Breadcrumb trail to this section
+    blocks: OwidEnrichedGdocBlock[] // Content blocks in this section
+}
+
+/**
+ * Groups enriched blocks by section, tracking heading hierarchy.
+ * Returns an array of sections with their breadcrumb trails.
+ * Traverses nested blocks (e.g., aside, callout) to find all headings.
+ */
+function groupEnrichedBlocksBySection(
+    blocks: OwidEnrichedGdocBlock[]
+): Section[] {
+    const sections: Section[] = []
+    const headingStack: BreadcrumbItem[] = []
+    let currentBlocks: OwidEnrichedGdocBlock[] = []
+
+    blocks.forEach((block) => {
+        let hasProcessedHeading = false
+
+        // Traverse the block tree to find headings (they can be nested)
+        traverseEnrichedBlock(block, (child) => {
+            if (child.type === "heading") {
+                // Save the current section if it has content
+                if (currentBlocks.length > 0) {
+                    sections.push({
+                        headings: [...headingStack],
+                        blocks: currentBlocks,
+                    })
+                    currentBlocks = []
+                }
+
+                // Pop stack to the correct level for this heading
+                // A heading at level N should pop everything >= N
+                while (
+                    headingStack.length > 0 &&
+                    headingStack.length >= child.level
+                ) {
+                    headingStack.pop()
+                }
+
+                // Push new heading onto stack
+                const breadcrumbItem: BreadcrumbItem = {
+                    label: spansToSimpleString(child.text),
+                    href: `#${convertHeadingTextToId(child.text)}`,
+                }
+                headingStack.push(breadcrumbItem)
+                hasProcessedHeading = true
+            }
+        })
+
+        // Only add the block to currentBlocks if it's not just a heading container
+        // (if it had a heading, we've already started a new section)
+        if (!hasProcessedHeading || block.type !== "heading") {
+            currentBlocks.push(block)
+        }
+    })
+
+    // Don't forget the last section
+    if (currentBlocks.length > 0) {
+        sections.push({
+            headings: [...headingStack],
+            blocks: currentBlocks,
+        })
+    }
+
+    return sections
+}
+
 async function generateGdocRecords(
     gdocs: (OwidGdocPostInterface | OwidGdocDataInsightInterface)[],
     pageviews: Record<string, RawPageview>,
@@ -225,14 +305,6 @@ async function generateGdocRecords(
             continue
         }
 
-        // Only rendering the blocks - not the page nav, title, byline, etc
-        const plaintextContent = gdoc.markdown
-            ? formatGdocMarkdown(gdoc.markdown)
-            : ""
-
-        const chunks = chunkParagraphs(plaintextContent, 1000)
-        let i = 0
-
         const thumbnailUrl = getThumbnailUrl(gdoc, cloudflareImagesByFilename)
 
         const originalTagNames = gdoc.tags?.map((t) => t.name) ?? []
@@ -245,29 +317,50 @@ async function generateGdocRecords(
             topicHierarchiesByChildName
         )
 
-        for (const chunk of chunks) {
-            const record = {
-                objectID: `${gdoc.id}-c${i}`,
-                importance: getPostImportance(gdoc),
-                type: gdoc.content.type,
-                slug: gdoc.slug,
-                title: gdoc.content.title || "",
-                content: chunk,
-                views_7d:
-                    pageviews[getPrefixedGdocPath("", gdoc)]?.views_7d ?? 0,
-                excerpt: getExcerptFromGdoc(gdoc),
-                excerptLong: getExcerptLongFromGdoc(gdoc),
-                date: gdoc.publishedAt!.toISOString(),
-                modifiedDate: (
-                    gdoc.updatedAt ?? gdoc.publishedAt!
-                ).toISOString(),
-                tags: [...topicTags],
-                authors: gdoc.content.authors,
-                thumbnailUrl,
+        // Group enriched blocks by section
+        const sections = groupEnrichedBlocksBySection(gdoc.content.body)
+
+        // Process each section and chunk within it
+        let chunkCounter = 0
+        for (const section of sections) {
+            // Convert section blocks to markdown, then to plaintext
+            const sectionMarkdown =
+                enrichedBlocksToMarkdown(section.blocks, false) ?? ""
+            const plaintextContent = formatGdocMarkdown(sectionMarkdown)
+
+            // Skip empty sections
+            if (!plaintextContent.trim()) {
+                continue
             }
-            const score = computePageScore(record)
-            records.push({ ...record, score })
-            i += 1
+
+            // Apply existing chunking strategy within the section
+            const chunks = chunkParagraphs(plaintextContent, 1000)
+
+            for (const chunk of chunks) {
+                const record = {
+                    objectID: `${gdoc.id}-c${chunkCounter}`,
+                    importance: getPostImportance(gdoc),
+                    type: gdoc.content.type,
+                    slug: gdoc.slug,
+                    title: gdoc.content.title || "",
+                    content: chunk,
+                    views_7d:
+                        pageviews[getPrefixedGdocPath("", gdoc)]?.views_7d ?? 0,
+                    excerpt: getExcerptFromGdoc(gdoc),
+                    excerptLong: getExcerptLongFromGdoc(gdoc),
+                    date: gdoc.publishedAt!.toISOString(),
+                    modifiedDate: (
+                        gdoc.updatedAt ?? gdoc.publishedAt!
+                    ).toISOString(),
+                    tags: [...topicTags],
+                    authors: gdoc.content.authors,
+                    thumbnailUrl,
+                    headings: section.headings,
+                }
+                const score = computePageScore(record)
+                records.push({ ...record, score })
+                chunkCounter++
+            }
         }
     }
     return records
