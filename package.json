@@ -47,6 +47,7 @@
         "syncCloudflareImages": "tsx --tsconfig tsconfig.tsx.json devTools/cloudflareImagesSync/cloudflareImagesSync.ts",
         "reconstructPostsGdocsComponents": "tsx --tsconfig tsconfig.tsx.json devTools/reconstructPostsGdocsComponents/reconstructPostsGdocsComponents.ts",
         "query": "tsx --tsconfig tsconfig.tsx.json devTools/db-ai-helpers/query.ts",
+        "regenerateGdocMarkdown": "tsx --tsconfig tsconfig.tsx.json devTools/regenerateGdocMarkdown.ts",
         "addIncomingForeignKeys": "tsx --tsconfig tsconfig.tsx.json devTools/db-ai-helpers/addIncomingForeignKeys.ts"
     },
     "dependencies": {
