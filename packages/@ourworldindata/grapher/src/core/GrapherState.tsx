@@ -209,6 +209,7 @@ import {
     DEFAULT_GRAPHER_HEIGHT,
     STATIC_EXPORT_DETAIL_SPACING,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
+    CHART_TYPES_THAT_SHOW_ALL_ENTITIES,
 } from "./GrapherConstants.js"
 import { parseGlobeRotation, grapherObjectToQueryParams } from "./GrapherUrl.js"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
@@ -879,8 +880,16 @@ export class GrapherState {
         return !this.hideLegend
     }
 
+    private isChartTypeThatShowsAllEntities(
+        chartType: GrapherChartType
+    ): boolean {
+        return CHART_TYPES_THAT_SHOW_ALL_ENTITIES.includes(chartType)
+    }
+
     @computed private get hasChartThatShowsAllEntities(): boolean {
-        return this.hasScatter || this.hasMarimekko
+        return this.validChartTypes.some((chartType) =>
+            this.isChartTypeThatShowsAllEntities(chartType)
+        )
     }
 
     @computed get isOnArchivalPage(): boolean {
@@ -1506,6 +1515,33 @@ export class GrapherState {
         }
     }
 
+    @action.bound private ensureEntitySelectionIsSensibleForTab(
+        tab: GrapherTabName
+    ): void {
+        // No-op if the current tab is a map or table tab
+        if (!isChartTab(tab)) return
+
+        const isChartTypeThatShowsAllEntities =
+            this.isChartTypeThatShowsAllEntities(tab)
+
+        // If the chart show all entities (e.g. scatter plot or Marimekko chart),
+        // then we typically prefer no selection unless the user has explicitly
+        // made changes to the default selection
+        if (
+            isChartTypeThatShowsAllEntities &&
+            !this.areSelectedEntitiesDifferentThanAuthors
+        ) {
+            this.selection.clearSelection()
+        }
+
+        // If the chart type only shows a subset of entities at a time
+        // (e.g. line chart), then an empty selection is not useful, so we
+        // automatically apply the author's selection
+        if (!isChartTypeThatShowsAllEntities && !this.selection.hasSelection) {
+            this.applyOriginalSelectionAsAuthored()
+        }
+    }
+
     @action.bound onChartSwitching(
         _oldTab: GrapherTabName,
         newTab: GrapherTabName
@@ -1516,6 +1552,7 @@ export class GrapherState {
             )
 
         this.ensureTimeHandlesAreSensibleForTab(newTab)
+        this.ensureEntitySelectionIsSensibleForTab(newTab)
     }
 
     @action.bound syncEntitySelectionBetweenChartAndMap(

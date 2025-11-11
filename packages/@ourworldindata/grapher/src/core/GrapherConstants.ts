@@ -165,3 +165,8 @@ export enum GrapherModal {
 
 export const CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME: GrapherChartType[] =
     [GRAPHER_CHART_TYPES.LineChart, GRAPHER_CHART_TYPES.SlopeChart]
+
+export const CHART_TYPES_THAT_SHOW_ALL_ENTITIES: GrapherChartType[] = [
+    GRAPHER_CHART_TYPES.ScatterPlot,
+    GRAPHER_CHART_TYPES.Marimekko,
+]
