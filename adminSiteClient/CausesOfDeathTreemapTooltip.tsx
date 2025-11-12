@@ -11,21 +11,47 @@ import {
 } from "@ourworldindata/grapher/src/tooltip/Tooltip.js"
 import { Bounds } from "@ourworldindata/utils"
 import { useMemo } from "react"
+import { BodyPortal } from "@ourworldindata/components"
 
 export function CausesOfDeathTreemapTooltip({
     state,
+    shouldPinTooltipToBottom,
+    containerBounds,
+    historicalData,
+}: {
+    state: TooltipState
+    anchor?: GrapherTooltipAnchor
+    shouldPinTooltipToBottom?: boolean
+    containerBounds?: { width: number; height: number }
+    historicalData?: DataRow[]
+}) {
+    return shouldPinTooltipToBottom ? (
+        <BodyPortal>
+            <CausesOfDeathTreemapTooltipCard
+                state={state}
+                anchor={GrapherTooltipAnchor.Bottom}
+                historicalData={historicalData}
+            />
+        </BodyPortal>
+    ) : (
+        <CausesOfDeathTreemapTooltipCard
+            state={state}
+            containerBounds={containerBounds}
+            historicalData={historicalData}
+        />
+    )
+}
+
+function CausesOfDeathTreemapTooltipCard({
+    state,
     anchor,
     containerBounds,
-    offsetX = 8,
-    offsetY = 8,
     historicalData,
 }: {
     state: TooltipState
     anchor?: GrapherTooltipAnchor
     containerBounds?: { width: number; height: number }
-    offsetX?: number
-    offsetY?: number
-    historicalData: DataRow[]
+    historicalData?: DataRow[]
 }) {
     const { target, position } = state
 
@@ -95,8 +121,8 @@ export function CausesOfDeathTreemapTooltip({
             id="causes-of-death-tooltip"
             x={position.x}
             y={position.y}
-            offsetX={offsetX}
-            offsetY={offsetY}
+            offsetX={8}
+            offsetY={8}
             title={variable}
             subtitle={year.toString()}
             style={{ maxWidth: 300 }}
@@ -206,7 +232,7 @@ function CausesOfDeathTooltipSparkline({
     const lastLabelBounds = Bounds.forText(lastValueLabel, { fontSize })
 
     // Calculate padding with enough space for labels
-    const myPadding = 2
+    const myPadding = 6
     const leftPadding = Math.max(15, firstLabelBounds.width + myPadding) // 8px margin from label to line
     const rightPadding = Math.max(15, lastLabelBounds.width + myPadding) // 8px margin from line to label
 
