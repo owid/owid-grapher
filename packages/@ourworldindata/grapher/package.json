@@ -48,7 +48,6 @@
     "topojson-client": "^3.1.0",
     "ts-pattern": "^5.8.0",
     "url-join": "^5.0.0",
-    "url-parse": "^1.5.10",
     "versor": "^0.2.0"
   },
   "devDependencies": {
@@ -63,7 +62,6 @@
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "@types/topojson-client": "^3.1.1",
-    "@types/url-parse": "^1.4.8",
     "eslint": "^9.37.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "typescript": "~5.9.2",

@@ -5,7 +5,6 @@ export { pairs }
 import dayjs from "./dayjs.js"
 import { formatLocale, FormatLocaleObject } from "d3-format"
 import striptags from "striptags"
-import parseUrl from "url-parse"
 import {
     type Integer,
     IDEAL_PLOT_ASPECT_RATIO,
@@ -48,6 +47,7 @@ import {
 import { PointVector } from "./PointVector.js"
 import * as React from "react"
 import { match, P } from "ts-pattern"
+import { Url } from "./urls/Url.js"
 
 export type NoUndefinedValues<T> = {
     [P in keyof T]: Required<NonNullable<T[P]>>
@@ -465,12 +465,10 @@ export const csvEscape = (value: unknown): string => {
         : valueStr
 }
 
-export const urlToSlug = (url: string): string =>
-    R.last(
-        parseUrl(url)
-            .pathname.split("/")
-            .filter((x) => x)
-    ) as string
+export const urlToSlug = (url: string): string => {
+    const pathname = Url.fromURL(url).pathname ?? ""
+    return R.last(pathname.split("/").filter((x) => x)) as string
+}
 
 // Removes all undefineds from an object.
 export const trimObject = <Obj>(

@@ -1,11 +1,11 @@
 import * as React from "react"
 import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import parseUrl from "url-parse"
 import {
     Bounds,
     getRelativeMouse,
     makeIdForHumanConsumption,
+    Url,
 } from "@ourworldindata/utils"
 import {
     DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
@@ -136,7 +136,7 @@ abstract class AbstractFooter<
 
     @computed protected get finalUrl(): string {
         const originUrl = this.originUrlWithProtocol
-        const url = parseUrl(originUrl)
+        const url = Url.fromURL(originUrl)
         return `${url.origin}${url.pathname}`
     }
 
@@ -147,8 +147,9 @@ abstract class AbstractFooter<
         if (!originUrl || !originUrl.toLowerCase().match(/^https?:\/\/./))
             return undefined
 
-        const url = parseUrl(originUrl)
-        return `${url.host}${url.pathname}`
+        const url = Url.fromURL(originUrl)
+        return `${url.origin}${url.pathname}`
+            .replace(/^https?:\/\//, "")
             .replace("ourworldindata.org", "OurWorldinData.org")
             .replace(/\/$/, "") // remove trailing slash
     }
