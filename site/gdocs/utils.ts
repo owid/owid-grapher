@@ -27,6 +27,26 @@ import { AttachmentsContext } from "./AttachmentsContext.js"
 import { SubnavItem, subnavs } from "../SiteConstants.js"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 
+const getOrigin = (url: string, base?: string): string | undefined => {
+    try {
+        return new URL(url, base).origin
+    } catch {
+        return undefined
+    }
+}
+
+export function isExternalUrl(
+    linkType: ContentGraphLinkType,
+    url: string
+): boolean {
+    if (linkType !== ContentGraphLinkType.Url) return false
+    const bakedOrigin = getOrigin(BAKED_BASE_URL)
+    if (!bakedOrigin) return false
+    const linkOrigin = getOrigin(url, bakedOrigin)
+    if (!linkOrigin) return false
+    return linkOrigin !== bakedOrigin
+}
+
 export const breadcrumbColorForCoverColor = (
     coverColor: OwidGdocPostContent["cover-color"]
 ): "white" | "blue" => {
