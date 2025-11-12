@@ -414,14 +414,16 @@ export async function indexIndividualGdocPost(
  */
 export async function generateGdocPostRecords(
     gdoc: OwidGdocPostInterface,
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadonlyTransaction,
+    indexedSlug?: string
 ) {
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
     const cloudflareImagesByFilename = await db
         .getCloudflareImages(knex)
         .then((images) => _.keyBy(images, "filename"))
 
-    const existingPageviews = pageviews[`/${gdoc.slug}`]
+    // Use indexedSlug if provided (for slug changes), otherwise use gdoc.slug
+    const existingPageviews = pageviews[`/${indexedSlug ?? gdoc.slug}`]
     const pageviewsForGdoc = {
         [gdoc.slug]: existingPageviews || {
             views_7d: 0,
