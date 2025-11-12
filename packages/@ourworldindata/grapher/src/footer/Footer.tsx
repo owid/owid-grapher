@@ -137,7 +137,7 @@ abstract class AbstractFooter<
     @computed protected get finalUrl(): string {
         const originUrl = this.originUrlWithProtocol
         const url = Url.fromURL(originUrl)
-        return `${url.origin}${url.pathname}`
+        return url.originAndPath ?? ""
     }
 
     @computed protected get correctedUrlText(): string | undefined {
@@ -148,8 +148,8 @@ abstract class AbstractFooter<
             return undefined
 
         const url = Url.fromURL(originUrl)
-        return `${url.origin}${url.pathname}`
-            .replace(/^https?:\/\//, "")
+        return url.originAndPath
+            ?.replace(/^https?:\/\//, "")
             .replace("ourworldindata.org", "OurWorldinData.org")
             .replace(/\/$/, "") // remove trailing slash
     }
