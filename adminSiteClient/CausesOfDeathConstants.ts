@@ -26,17 +26,6 @@ export interface CausesOfDeathEntityData {
     years: number[]
 }
 
-interface EntityData {
-    values: number[]
-    variables: number[]
-    years: number[]
-}
-
-interface EntityDataWithInfo extends EntityData {
-    entityId: number
-    entityName: string
-}
-
 export const CAUSE_OF_DEATH_INDICATOR_NAMES = [
     "Cancers",
     "Chronic respiratory diseases",
@@ -128,6 +117,7 @@ export interface EnrichedDataItem {
     category?: string
     parentId?: string
     value: number | null
+    share: number | null
 }
 
 export type TreeNode = d3.HierarchyRectangularNode<
