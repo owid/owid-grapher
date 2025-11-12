@@ -24,6 +24,7 @@ import {
     TooltipState,
     TooltipTable,
     makeTooltipRoundingNotice,
+    toTooltipTableColumns,
 } from "../tooltip/Tooltip"
 import {
     BASE_FONT_SIZE,
@@ -400,7 +401,7 @@ export class StackedBarChart
                 dismiss={() => (this.tooltipState.target = null)}
             >
                 <TooltipTable
-                    columns={[formatColumn]}
+                    columns={toTooltipTableColumns(formatColumn)}
                     totals={[totalValue]}
                     rows={sortedHoverPoints.map(
                         ({ point, seriesName: name, seriesColor }) => {

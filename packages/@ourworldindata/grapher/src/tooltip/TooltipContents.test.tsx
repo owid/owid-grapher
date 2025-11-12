@@ -8,10 +8,10 @@ import {
     TooltipValue,
     TooltipValueRange,
     TooltipTable,
-    IconCircledS,
+    SignificanceIcon,
     makeTooltipToleranceNotice,
     makeTooltipRoundingNotice,
-    NO_DATA_COLOR,
+    toTooltipTableColumns,
 } from "./TooltipContents"
 import {
     SynthesizeFruitTable,
@@ -30,7 +30,12 @@ describe("TooltipValue", () => {
 
     it("renders numeric values", () => {
         const { container } = render(
-            <TooltipValue column={column} value={42} color="#ff0000" />
+            <TooltipValue
+                label={column.displayName}
+                unit={column.displayUnit}
+                value={column.formatValueShort(42)}
+                color="#ff0000"
+            />
         )
 
         const values = container.querySelector(".values span")
@@ -40,40 +45,27 @@ describe("TooltipValue", () => {
         expect(definition?.textContent).toBe("Fruit")
     })
 
-    it("renders string values", () => {
-        const { container } = render(
-            <TooltipValue
-                column={column}
-                value="Custom value"
-                color="#ff0000"
-            />
-        )
-
-        const values = container.querySelector(".values span")
-        expect(values?.textContent).toBe("Custom value")
-    })
-
     it("renders NO_DATA_LABEL for undefined values", () => {
         const { container } = render(
-            <TooltipValue column={column} value={undefined} />
+            <TooltipValue
+                label={column.displayName}
+                unit={column.displayUnit}
+                value={column.formatValueShort(undefined)}
+            />
         )
 
         const values = container.querySelector(".values span")
         expect(values?.textContent).toBe(NO_DATA_LABEL)
     })
 
-    it("uses NO_DATA_COLOR for missing data", () => {
-        const { container } = render(
-            <TooltipValue column={column} value={undefined} color="#ff0000" />
-        )
-
-        const values = container.querySelector(".values")
-        expect(values?.getAttribute("style")).toContain(NO_DATA_COLOR)
-    })
-
     it("applies provided color for valid data", () => {
         const { container } = render(
-            <TooltipValue column={column} value={42} color="#ff0000" />
+            <TooltipValue
+                label={column.displayName}
+                unit={column.displayUnit}
+                value={column.formatValueShort(42)}
+                color="#ff0000"
+            />
         )
 
         const values = container.querySelector(".values")
@@ -96,8 +88,10 @@ describe("TooltipValue", () => {
 
         const { container } = render(
             <TooltipValue
-                column={columnWithRounding}
-                value={42}
+                label={columnWithRounding.displayName}
+                unit={columnWithRounding.displayUnit}
+                value={columnWithRounding.formatValueShort(42)}
+                isRoundedToSignificantFigures={true}
                 showSignificanceSuperscript={true}
             />
         )
@@ -121,8 +115,10 @@ describe("TooltipValue", () => {
 
         const { container } = render(
             <TooltipValue
-                column={columnWithRounding}
-                value={42}
+                label={columnWithRounding.displayName}
+                unit={columnWithRounding.displayUnit}
+                value={columnWithRounding.formatValueShort(42)}
+                isRoundedToSignificantFigures={true}
                 showSignificanceSuperscript={false}
             />
         )
@@ -132,7 +128,12 @@ describe("TooltipValue", () => {
 
     it("shows projection label when isProjection is true", () => {
         const { container } = render(
-            <TooltipValue column={column} value={42} isProjection={true} />
+            <TooltipValue
+                label={column.displayName}
+                unit={column.displayUnit}
+                value={column.formatValueShort(42)}
+                isProjection={true}
+            />
         )
 
         expect(container.querySelector(".projection")?.textContent).toBe(
@@ -140,19 +141,29 @@ describe("TooltipValue", () => {
         )
     })
 
-    it("shows notice with info icon when provided", () => {
+    it("shows originalTime with info icon when provided", () => {
         const { container } = render(
-            <TooltipValue column={column} value={42} notice={2020} />
+            <TooltipValue
+                label={column.displayName}
+                unit={column.displayUnit}
+                value={column.formatValueShort(42)}
+                originalTime="2020"
+            />
         )
 
-        const notice = container.querySelector(".time-notice")
-        expect(notice).toBeTruthy()
-        expect(notice?.textContent).toContain("2020")
+        const timeNotice = container.querySelector(".time-notice")
+        expect(timeNotice).toBeTruthy()
+        expect(timeNotice?.textContent).toContain("2020")
     })
 
     it("respects labelVariant unit-only", () => {
         const { container } = render(
-            <TooltipValue column={column} value={42} labelVariant="unit-only" />
+            <TooltipValue
+                label={column.displayName}
+                unit={column.displayUnit}
+                value={column.formatValueShort(42)}
+                labelVariant="unit-only"
+            />
         )
 
         expect(container.querySelector(".variable--no-name")).toBeTruthy()
@@ -165,59 +176,26 @@ describe("TooltipValueRange", () => {
 
     it("renders value range with both values", () => {
         const { container } = render(
-            <TooltipValueRange column={column} values={[10, 50]} />
+            <TooltipValueRange
+                label={column.displayName}
+                unit={column.displayUnit}
+                values={["10", "50"]}
+                trend="up"
+            />
         )
 
         const terms = container.querySelectorAll(".term")
         expect(terms).toHaveLength(2)
     })
 
-    it("shows up arrow when second value is higher", () => {
-        const { container } = render(
-            <TooltipValueRange column={column} values={[10, 50]} />
-        )
-
-        const arrow = container.querySelector(".GrapherTrendArrow")
-        expect(arrow).toBeTruthy()
-        expect(arrow?.getAttribute("class")).toContain("up")
-    })
-
-    it("shows down arrow when second value is lower", () => {
-        const { container } = render(
-            <TooltipValueRange column={column} values={[50, 10]} />
-        )
-
-        const arrow = container.querySelector(".GrapherTrendArrow")
-        expect(arrow).toBeTruthy()
-        expect(arrow?.getAttribute("class")).toContain("down")
-    })
-
-    it("shows right arrow when values are equal", () => {
-        const { container } = render(
-            <TooltipValueRange column={column} values={[50, 50]} />
-        )
-
-        const arrow = container.querySelector(".GrapherTrendArrow")
-        expect(arrow).toBeTruthy()
-        expect(arrow?.getAttribute("class")).toContain("right")
-    })
-
-    it("shows right arrow when values contain non-numbers", () => {
-        const { container } = render(
-            <TooltipValueRange column={column} values={["foo", 50]} />
-        )
-
-        const arrow = container.querySelector(".GrapherTrendArrow")
-        expect(arrow).toBeTruthy()
-        expect(arrow?.getAttribute("class")).toContain("right")
-    })
-
     it("applies colors to range values", () => {
         const { container } = render(
             <TooltipValueRange
-                column={column}
-                values={[10, 50]}
+                label={column.displayName}
+                unit={column.displayUnit}
+                values={["10", "50"]}
                 colors={["#ff0000", "#00ff00"]}
+                trend="up"
             />
         )
 
@@ -242,8 +220,11 @@ describe("TooltipValueRange", () => {
 
         const { container } = render(
             <TooltipValueRange
-                column={columnWithRounding}
-                values={[10, 50]}
+                label={columnWithRounding.displayName}
+                unit={columnWithRounding.displayUnit}
+                values={["10", "50"]}
+                trend="up"
+                isRoundedToSignificantFigures={true}
                 showSignificanceSuperscript={true}
             />
         )
@@ -251,47 +232,19 @@ describe("TooltipValueRange", () => {
         expect(container.querySelector("div.icon-circled-s")).toBeTruthy()
     })
 
-    it("shows notice when provided", () => {
+    it("shows originalTimes when provided", () => {
         const { container } = render(
             <TooltipValueRange
-                column={column}
-                values={[10, 50]}
-                notice={[2019, 2020]}
+                label={column.displayName}
+                unit={column.displayUnit}
+                values={["10", "50"]}
+                trend="up"
+                originalTimes={["2019", "2020"]}
             />
         )
 
-        const notice = container.querySelector(".time-notice")
-        expect(notice).toBeTruthy()
-    })
-
-    it("returns null for empty values array", () => {
-        const { container } = render(
-            <TooltipValueRange column={column} values={[]} />
-        )
-
-        expect(container.querySelector(".range")).toBeFalsy()
-    })
-
-    it("uses abbreviations for long combined text", () => {
-        // Create a column that will produce long formatted values
-        const tableWithUnit = table.updateDefs((def) => {
-            if (def.slug === SampleColumnSlugs.Fruit) {
-                def.unit = " very long unit name"
-            }
-            return def
-        })
-        const columnWithUnit = tableWithUnit.get(SampleColumnSlugs.Fruit)
-
-        const { container } = render(
-            <TooltipValueRange
-                column={columnWithUnit}
-                values={[1000000, 5000000]}
-            />
-        )
-
-        // Should use abbreviated format when text is too long
-        const terms = container.querySelectorAll(".term")
-        expect(terms).toHaveLength(2)
+        const timeNotice = container.querySelector(".time-notice")
+        expect(timeNotice).toBeTruthy()
     })
 })
 
@@ -303,7 +256,7 @@ describe("TooltipTable", () => {
     it("renders a basic table with rows", () => {
         const { container } = render(
             <TooltipTable
-                columns={[fruitColumn]}
+                columns={toTooltipTableColumns(fruitColumn)}
                 rows={[
                     {
                         name: "Series 1",
@@ -326,7 +279,7 @@ describe("TooltipTable", () => {
     it("renders header for multiple columns", () => {
         const { container } = render(
             <TooltipTable
-                columns={[fruitColumn, vegColumn]}
+                columns={toTooltipTableColumns([fruitColumn, vegColumn])}
                 rows={[
                     {
                         name: "Series 1",
@@ -346,7 +299,7 @@ describe("TooltipTable", () => {
     it("does not render header for single column", () => {
         const { container } = render(
             <TooltipTable
-                columns={[fruitColumn]}
+                columns={toTooltipTableColumns(fruitColumn)}
                 rows={[
                     {
                         name: "Series 1",
@@ -363,7 +316,7 @@ describe("TooltipTable", () => {
     it("renders swatches with correct colors", () => {
         const { container } = render(
             <TooltipTable
-                columns={[fruitColumn]}
+                columns={toTooltipTableColumns(fruitColumn)}
                 rows={[
                     {
                         name: "Series 1",
@@ -382,7 +335,7 @@ describe("TooltipTable", () => {
     it("applies focused class to rows", () => {
         const { container } = render(
             <TooltipTable
-                columns={[fruitColumn]}
+                columns={toTooltipTableColumns(fruitColumn)}
                 rows={[
                     {
                         name: "Series 1",
@@ -400,7 +353,7 @@ describe("TooltipTable", () => {
     it("applies blurred class to rows", () => {
         const { container } = render(
             <TooltipTable
-                columns={[fruitColumn]}
+                columns={toTooltipTableColumns(fruitColumn)}
                 rows={[
                     {
                         name: "Series 1",
@@ -417,7 +370,7 @@ describe("TooltipTable", () => {
     it("applies striped class to rows", () => {
         const { container } = render(
             <TooltipTable
-                columns={[fruitColumn]}
+                columns={toTooltipTableColumns(fruitColumn)}
                 rows={[
                     {
                         name: "Series 1",
@@ -434,12 +387,12 @@ describe("TooltipTable", () => {
     it("shows totals at bottom by default", () => {
         const { container } = render(
             <TooltipTable
-                columns={[fruitColumn]}
+                columns={toTooltipTableColumns(fruitColumn)}
+                totals={[100]}
                 rows={[
                     { name: "Series 1", values: [40] },
                     { name: "Series 2", values: [60] },
                 ]}
-                totals={[100]}
             />
         )
 
@@ -456,12 +409,12 @@ describe("TooltipTable", () => {
                 value={{ anchor: GrapherTooltipAnchor.bottom }}
             >
                 <TooltipTable
-                    columns={[fruitColumn]}
+                    columns={toTooltipTableColumns(fruitColumn)}
+                    totals={[100]}
                     rows={[
                         { name: "Series 1", values: [40] },
                         { name: "Series 2", values: [60] },
                     ]}
-                    totals={[100]}
                 />
             </TooltipContext.Provider>
         )
@@ -473,12 +426,12 @@ describe("TooltipTable", () => {
     it("hides totals when all values are undefined", () => {
         const { container } = render(
             <TooltipTable
-                columns={[fruitColumn]}
+                columns={toTooltipTableColumns(fruitColumn)}
+                totals={[undefined]}
                 rows={[
                     { name: "Series 1", values: [undefined] },
                     { name: "Series 2", values: [undefined] },
                 ]}
-                totals={[undefined]}
             />
         )
 
@@ -496,12 +449,12 @@ describe("TooltipTable", () => {
 
         const { container } = render(
             <TooltipTable
-                columns={[columnWithPercent]}
+                columns={toTooltipTableColumns(columnWithPercent)}
+                totals={[100]}
                 rows={[
                     { name: "Series 1", values: [50] },
                     { name: "Series 2", values: [50] },
                 ]}
-                totals={[100]}
             />
         )
 
@@ -511,7 +464,7 @@ describe("TooltipTable", () => {
     it("renders missing values with missing class", () => {
         const { container } = render(
             <TooltipTable
-                columns={[fruitColumn]}
+                columns={toTooltipTableColumns(fruitColumn)}
                 rows={[{ name: "Series 1", values: [undefined] }]}
             />
         )
@@ -519,29 +472,29 @@ describe("TooltipTable", () => {
         expect(container.querySelector("td.series-value.missing")).toBeTruthy()
     })
 
-    it("shows notice for rows", () => {
+    it("shows originalTime for rows", () => {
         const { container } = render(
             <TooltipTable
-                columns={[fruitColumn]}
+                columns={toTooltipTableColumns(fruitColumn)}
                 rows={[
                     {
                         name: "Series 1",
                         values: [42],
-                        notice: "Data from 2019",
+                        originalTime: "Data from 2019",
                     },
                 ]}
             />
         )
 
-        const notice = container.querySelector("td.time-notice")
-        expect(notice).toBeTruthy()
-        expect(notice?.textContent).toContain("Data from 2019")
+        const timeNotice = container.querySelector("td.time-notice")
+        expect(timeNotice).toBeTruthy()
+        expect(timeNotice?.textContent).toContain("Data from 2019")
     })
 
     it("handles series names with parenthetical", () => {
         const { container } = render(
             <TooltipTable
-                columns={[fruitColumn]}
+                columns={toTooltipTableColumns(fruitColumn)}
                 rows={[
                     {
                         name: "United States (USA)",
@@ -558,7 +511,7 @@ describe("TooltipTable", () => {
     it("renders annotation for rows", () => {
         const { container } = render(
             <TooltipTable
-                columns={[fruitColumn]}
+                columns={toTooltipTableColumns(fruitColumn)}
                 rows={[
                     {
                         name: "Series 1",
@@ -577,7 +530,7 @@ describe("TooltipTable", () => {
     it("applies swatched class when any row has swatch", () => {
         const { container } = render(
             <TooltipTable
-                columns={[fruitColumn]}
+                columns={toTooltipTableColumns(fruitColumn)}
                 rows={[
                     {
                         name: "Series 1",
@@ -594,20 +547,20 @@ describe("TooltipTable", () => {
 
 describe("IconCircledS", () => {
     it("renders icon with circle", () => {
-        const { container } = render(<IconCircledS />)
+        const { container } = render(<SignificanceIcon />)
 
         expect(container.querySelector(".icon-circled-s")).toBeTruthy()
         expect(container.querySelector(".circle")).toBeTruthy()
     })
 
-    it("applies superscript class when asSup is true", () => {
-        const { container } = render(<IconCircledS asSup={true} />)
+    it("applies superscript class when asSuperscript is true", () => {
+        const { container } = render(<SignificanceIcon asSuperscript={true} />)
 
         expect(container.querySelector(".as-superscript")).toBeTruthy()
     })
 
-    it("does not apply superscript class when asSup is false", () => {
-        const { container } = render(<IconCircledS asSup={false} />)
+    it("does not apply superscript class when asSuperscript is false", () => {
+        const { container } = render(<SignificanceIcon asSuperscript={false} />)
 
         expect(container.querySelector(".as-superscript")).toBeFalsy()
     })
@@ -618,13 +571,6 @@ describe("makeTooltipToleranceNotice", () => {
         const notice = makeTooltipToleranceNotice("2020")
         expect(notice).toBe(
             "Data not available for 2020. Showing closest available data point instead"
-        )
-    })
-
-    it("returns plural form when specified", () => {
-        const notice = makeTooltipToleranceNotice("2020", { plural: true })
-        expect(notice).toBe(
-            "Data not available for 2020. Showing closest available data points instead"
         )
     })
 })

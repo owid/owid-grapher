@@ -26,6 +26,7 @@ import {
     TooltipState,
     TooltipTable,
     makeTooltipRoundingNotice,
+    toTooltipTableColumns,
 } from "../tooltip/Tooltip"
 import { StackedAreaChartState } from "./StackedAreaChartState.js"
 import { AREA_OPACITY, StackedSeries } from "./StackedConstants"
@@ -472,7 +473,7 @@ export class StackedAreaChart
                 dismiss={this.dismissTooltip}
             >
                 <TooltipTable
-                    columns={[formatColumn]}
+                    columns={toTooltipTableColumns(formatColumn)}
                     totals={[totalValue]}
                     rows={series.toReversed().map((series) => {
                         const { seriesName: name, color, points } = series
