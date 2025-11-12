@@ -2,7 +2,11 @@ import { useEffect, useState } from "react"
 import * as React from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import { PageRecord } from "../site/search/searchTypes.js"
+import {
+    PageRecord,
+    PagesIndexRecordsResponse,
+    PagesIndexRecordsResponseSchema,
+} from "@ourworldindata/types"
 import { Alert, Card, Space, Spin, Typography, Tag } from "antd"
 import { Link, RouteComponentProps } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -17,13 +21,13 @@ interface GdocsAlgoliaPreviewMatchParams {
 export type GdocsAlgoliaPreviewMatchProps =
     RouteComponentProps<GdocsAlgoliaPreviewMatchParams>
 
-interface IndexRecordsResponse {
-    records: PageRecord[]
-    count: number
-    message?: string
-}
-
-const RecordCard = ({ record, index }: { record: PageRecord; index: number }) => {
+const RecordCard = ({
+    record,
+    index,
+}: {
+    record: PageRecord
+    index: number
+}) => {
     return (
         <Card
             title={
@@ -50,12 +54,14 @@ const RecordCard = ({ record, index }: { record: PageRecord; index: number }) =>
     )
 }
 
-export const GdocsAlgoliaPreview = ({ match }: GdocsAlgoliaPreviewMatchProps) => {
+export const GdocsAlgoliaPreview = ({
+    match,
+}: GdocsAlgoliaPreviewMatchProps) => {
     const { id } = match.params
     const { admin } = React.useContext(AdminAppContext)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
-    const [data, setData] = useState<IndexRecordsResponse | null>(null)
+    const [data, setData] = useState<PagesIndexRecordsResponse | null>(null)
 
     const gdocTitle =
         data && data.records.length > 0 ? data.records[0].title : null
@@ -67,7 +73,8 @@ export const GdocsAlgoliaPreview = ({ match }: GdocsAlgoliaPreviewMatchProps) =>
 
             try {
                 const response = await admin.getJSON(`/api/gdocs/${id}/records`)
-                setData(response as IndexRecordsResponse)
+                const parsed = PagesIndexRecordsResponseSchema.parse(response)
+                setData(parsed)
             } catch (err) {
                 setError(err instanceof Error ? err.message : String(err))
             } finally {
@@ -81,10 +88,15 @@ export const GdocsAlgoliaPreview = ({ match }: GdocsAlgoliaPreviewMatchProps) =>
     return (
         <AdminLayout title="Algolia Index Preview">
             <div style={{ padding: 24 }}>
-                <Space direction="vertical" size="large" style={{ width: "100%" }}>
+                <Space
+                    direction="vertical"
+                    size="large"
+                    style={{ width: "100%" }}
+                >
                     <div>
                         <Link to={`/gdocs/${id}/preview`}>
-                            <FontAwesomeIcon icon={faAngleLeft} /> Back to preview
+                            <FontAwesomeIcon icon={faAngleLeft} /> Back to
+                            preview
                         </Link>
                     </div>
 
@@ -114,7 +126,11 @@ export const GdocsAlgoliaPreview = ({ match }: GdocsAlgoliaPreviewMatchProps) =>
                     {data && !loading && (
                         <>
                             {data.message && (
-                                <Alert message={data.message} type="info" showIcon />
+                                <Alert
+                                    message={data.message}
+                                    type="info"
+                                    showIcon
+                                />
                             )}
 
                             {data.count > 0 && (

@@ -6,27 +6,37 @@ import type {
 } from "instantsearch.js"
 import { OwidGdocType } from "../gdocTypes/Gdoc.js"
 import { GrapherTabName } from "../grapherTypes/GrapherTypes.js"
+import * as z from "zod/mini"
 
-export interface PageRecord {
-    objectID: string
-    type: OwidGdocType
-    importance: number
-    slug: string
-    title: string
-    content: string
-    views_7d: number
-    score: number
-    excerpt?: string
-    excerptLong?: string[]
-    authors?: string[]
-    date?: string
-    modifiedDate?: string
-    tags?: string[]
-    // WP example: https://ourworldindata.org/wp-content/uploads/2021/03/Biodiversity-thumbnail.png
-    // GDoc example: https://imagedelivery.net/our-id/image-uuid/w=512
-    // Fallback example: https://ourworldindta.org/default-thumbnail.png
-    thumbnailUrl: string
-}
+export const PagesIndexRecordSchema = z.object({
+    objectID: z.string(),
+    importance: z.number(),
+    type: z.enum(OwidGdocType),
+    slug: z.string(),
+    title: z.string(),
+    content: z.string(),
+    views_7d: z.number(),
+    score: z.number(),
+    excerpt: z.optional(z.string()),
+    excerptLong: z.optional(z.array(z.string())),
+    authors: z.optional(z.array(z.string())),
+    date: z.optional(z.string()),
+    modifiedDate: z.optional(z.string()),
+    tags: z.optional(z.array(z.string())),
+    thumbnailUrl: z.string(),
+})
+
+export type PageRecord = z.infer<typeof PagesIndexRecordSchema>
+
+export const PagesIndexRecordsResponseSchema = z.object({
+    records: z.array(PagesIndexRecordSchema),
+    count: z.number(),
+    message: z.optional(z.string()),
+})
+
+export type PagesIndexRecordsResponse = z.infer<
+    typeof PagesIndexRecordsResponseSchema
+>
 
 export type IPageHit = PageRecord & Hit<BaseHit>
 

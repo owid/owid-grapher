@@ -10,6 +10,7 @@ import {
     PostsGdocsXImagesTableName,
     PostsGdocsTableName,
     PostsGdocsComponentsTableName,
+    PagesIndexRecordsResponse,
 } from "@ourworldindata/types"
 import { checkIsGdocPostExcludingFragments } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
@@ -325,9 +326,9 @@ export async function setGdocTags(
  */
 export async function getPreviewGdocIndexRecords(
     _req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: e.Response<PagesIndexRecordsResponse, Record<string, any>>,
     trx: db.KnexReadonlyTransaction
-) {
+): Promise<PagesIndexRecordsResponse> {
     const { id } = _req.params
     const contentSource = _req.query.contentSource as
         | GdocsContentSource
@@ -342,22 +343,29 @@ export async function getPreviewGdocIndexRecords(
 
         const gdocJson = gdoc.toJSON()
 
+        res.set("Cache-Control", "no-store")
+
         // Only generate records for posts (excluding fragments)
         if (!checkIsGdocPostExcludingFragments(gdocJson)) {
-            return {
+            const payload: PagesIndexRecordsResponse = {
                 records: [],
+                count: 0,
                 message: `Gdoc type "${gdocJson.content.type}" is not indexed in Algolia`,
             }
+            return payload
         }
 
         const records = await generateGdocPostRecords(gdocJson, trx)
 
-        res.set("Cache-Control", "no-store")
-        return { records, count: records.length }
+        const payload: PagesIndexRecordsResponse = {
+            records,
+            count: records.length,
+        }
+
+        return payload
     } catch (error) {
         console.error("Error generating gdoc index records", error)
-        return res.status(500).json({
-            error: { message: String(error), status: 500 },
-        })
+        if (error instanceof Error) throw error
+        throw new Error(String(error))
     }
 }
