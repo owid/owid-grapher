@@ -9,7 +9,6 @@ import {
 import { MyCausesOfDeathMetadata } from "./CausesOfDeathMetadata"
 import useChartDimensions, { DimensionsConfig } from "./useChartDimensions"
 import { TextWrap, MarkdownTextWrap } from "@ourworldindata/components"
-import { Bounds } from "@ourworldindata/utils"
 import { isDarkColor } from "@ourworldindata/grapher/src/color/ColorUtils"
 import { formatPercentSigFig } from "./CausesOfDeathHelpers"
 

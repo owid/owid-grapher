@@ -1,11 +1,7 @@
 import * as R from "remeda"
 import cx from "classnames"
 import { EntityName, Time } from "@ourworldindata/types"
-import {
-    CausesOfDeathMetadata,
-    DataRow,
-    EntityMetadata,
-} from "./CausesOfDeathConstants"
+import { DataRow, EntityMetadata } from "./CausesOfDeathConstants"
 import React, { useMemo, useState, useCallback, useEffect } from "react"
 import * as d3 from "d3"
 import {
@@ -17,7 +13,6 @@ import {
     useCausesOfDeathMetadata,
 } from "./CausesOfDeathDataFetching"
 import { ResponsiveCausesOfDeathTreemap } from "./CausesOfDeathTreemap"
-import { ResponsiveCausesOfDeathCategoriesBarChart } from "./CausesOfDeathCategoriesBarChart"
 import { CausesOfDeathLegend } from "./CausesOfDeathLegend"
 import { CausesOfDeathMobileBarChart } from "./CausesOfDeathMobileBarChart"
 import { CausesOfDeathTimeSlider } from "./CausesOfDeathTimeSlider"
@@ -42,7 +37,7 @@ export function CausesOfDeathCaptionedChart({
 
     const [selectedEntityName, setSelectedEntityName] =
         useState(WORLD_ENTITY_NAME)
-    const [selectedYear, setSelectedYear] = useState<Time>(2023)
+    const [selectedYear, setSelectedYear] = useState<Time>()
 
     // Fetch metadata
     const { data: metadata, status: metadataStatus } =
@@ -57,33 +52,12 @@ export function CausesOfDeathCaptionedChart({
     } = useCausesOfDeathEntityData(selectedEntityName, metadata)
 
     // Extract available years from entity data
-    const availableYears = useMemo(() => {
-        if (!entityData) return []
-        const years = [...new Set(entityData.map((row) => row.year))]
-        return years.sort((a, b) => b - a) // Sort descending (newest first)
-    }, [entityData])
+    const availableYears = useMemo(
+        () => [...new Set(entityData?.map((row) => row.year))],
+        [entityData]
+    )
 
-    // Adjust selected year if it's not available for the current entity
-    useEffect(() => {
-        if (
-            availableYears.length > 0 &&
-            !availableYears.includes(selectedYear)
-        ) {
-            // Default to the most recent year available for this entity
-            setSelectedYear(availableYears[0])
-        }
-    }, [availableYears, selectedYear])
-
-    // Initialize with the most recent year when data first loads
-    useEffect(() => {
-        if (
-            availableYears.length > 0 &&
-            selectedYear === 2023 &&
-            !availableYears.includes(2023)
-        ) {
-            setSelectedYear(availableYears[0])
-        }
-    }, [availableYears, selectedYear])
+    const currentYear = selectedYear ?? availableYears.at(-1)
 
     // Only show loading overlay after 300ms delay to prevent flashing
     const showDelayedLoading = useDelayedLoading(isPlaceholderData, 300)
@@ -98,10 +72,16 @@ export function CausesOfDeathCaptionedChart({
         return <div>Error loading country data</div>
     }
 
-    if (!entityData || !metadata) return <div>No data available</div>
+    if (
+        !metadata ||
+        !entityData ||
+        entityData.length === 0 ||
+        currentYear === undefined
+    )
+        return <div>No data available</div>
 
-    const entityName = entityData[0].entityName
-    const data = entityData.filter((row) => row.year === selectedYear)
+    const { entityName } = entityData[0]
+    const data = entityData.filter((row) => row.year === currentYear)
 
     const dimensionsConfig = {
         initialWidth: 900,
@@ -116,7 +96,7 @@ export function CausesOfDeathCaptionedChart({
             <CausesOfDeathHeader
                 data={data}
                 entityName={entityName}
-                year={selectedYear}
+                year={currentYear}
             />
             <SideBySide>
                 <EntityDropdown
@@ -129,20 +109,11 @@ export function CausesOfDeathCaptionedChart({
                 <CausesOfDeathTimeSlider
                     className="causes-of-death__time-slider"
                     years={availableYears}
-                    selectedYear={selectedYear}
+                    selectedYear={currentYear}
                     onChange={setSelectedYear}
                     isLoading={isFetching}
                 />
             </SideBySide>
-            {/* {isNarrow && (
-                <ResponsiveCausesOfDeathCategoriesBarChart
-                    data={data}
-                    metadata={metadata}
-                    entityName={entityName}
-                    year={year}
-                    height={60}
-                />
-            )} */}
 
             {isNarrow ? (
                 <CausesOfDeathMobileBarChart data={data} metadata={metadata} />
@@ -167,7 +138,7 @@ export function CausesOfDeathCaptionedChart({
                     historicalData={entityData}
                     metadata={metadata}
                     entityName={entityName}
-                    year={selectedYear}
+                    year={currentYear}
                     dimensionsConfig={dimensionsConfig}
                     tilingMethod={isNarrow ? d3.treemapSlice : tilingMethod}
                     debug={debug}
