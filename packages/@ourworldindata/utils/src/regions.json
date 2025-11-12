@@ -4501,6 +4501,7 @@
         "slug": "africa-un",
         "regionType": "aggregate",
         "definedBy": "un",
+        "translationCodes": ["002"],
         "members": [
             "AGO",
             "ATF",
@@ -4570,6 +4571,7 @@
         "slug": "asia-un",
         "regionType": "aggregate",
         "definedBy": "un",
+        "translationCodes": ["142"],
         "members": [
             "AFG",
             "ARE",
@@ -4628,6 +4630,7 @@
         "slug": "europe-un",
         "regionType": "aggregate",
         "definedBy": "un",
+        "translationCodes": ["150"],
         "members": [
             "ALA",
             "ALB",
@@ -4688,6 +4691,7 @@
         "slug": "latin-america-and-the-caribbean-un",
         "regionType": "aggregate",
         "definedBy": "un",
+        "translationCodes": ["419", "029"],
         "members": [
             "ABW",
             "AIA",
@@ -4749,6 +4753,7 @@
         "slug": "northern-america-un",
         "regionType": "aggregate",
         "definedBy": "un",
+        "translationCodes": ["003"],
         "members": ["BMU", "CAN", "GRL", "SPM", "USA"]
     },
     {
@@ -4757,6 +4762,7 @@
         "slug": "oceania-un",
         "regionType": "aggregate",
         "definedBy": "un",
+        "translationCodes": ["009"],
         "members": [
             "ASM",
             "AUS",

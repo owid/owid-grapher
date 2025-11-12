@@ -44,6 +44,14 @@ const ETL_REGIONS_URL =
         OWID_SAM: "005",
 
         // Regions according to the UN
+        UN_AFR: "002",
+        UN_ASI: "142",
+        UN_EUR: "150",
+        UN_LAC: ["419", "029"],
+        UN_NAM: "003",
+        UN_OCE: "009",
+
+        // Regions according to the UN M49
         UNM49_AFR: "002",
         UNM49_AMR: "019",
         UNM49_ANZ: "053",
