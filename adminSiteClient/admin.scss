@@ -1956,3 +1956,13 @@ g:has(.arrow) {
     flex-grow: 0;
     width: 300px;
 }
+
+.causes-of-death-tooltip__value {
+    margin-top: 4px;
+}
+
+.causes-of-death-tooltip__value .muted {
+    font-weight: 400;
+    font-size: 0.8em;
+    color: #858585;
+}
