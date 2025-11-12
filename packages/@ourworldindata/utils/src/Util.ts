@@ -1,7 +1,6 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
-import { extent, pairs } from "d3-array"
-export { pairs }
+import { extent } from "d3-array"
 import dayjs from "./dayjs.js"
 import { formatLocale, FormatLocaleObject } from "d3-format"
 import striptags from "striptags"

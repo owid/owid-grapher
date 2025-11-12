@@ -5,11 +5,11 @@ import { EntitySelectionMode, SeriesName, Color } from "@ourworldindata/types"
 import { observable, computed, action, makeObservable } from "mobx"
 import { ScaleLinear, scaleSqrt } from "d3-scale"
 import { Quadtree, quadtree } from "d3-quadtree"
+import { pairs } from "d3-array"
 import { quantize, interpolate } from "d3-interpolate"
 import {
     intersection,
     excludeNullish,
-    pairs,
     excludeUndefined,
     getRelativeMouse,
     exposeInstanceOnWindow,

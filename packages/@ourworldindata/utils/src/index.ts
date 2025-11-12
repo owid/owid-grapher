@@ -1,5 +1,4 @@
 export {
-    pairs,
     type NoUndefinedValues,
     type AllKeysRequired,
     type PartialBy,
