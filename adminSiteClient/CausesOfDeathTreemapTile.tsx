@@ -1,3 +1,4 @@
+import { Bounds } from "@ourworldindata/utils"
 import {
     CauseOfDeathCategory,
     CAUSE_OF_DEATH_CATEGORY_COLORS,
@@ -11,22 +12,17 @@ import { stackedSliceDiceTiling as _stackedSliceDiceTiling } from "./stackedSlic
 export function CausesOfDeathTreemapTile({
     node,
     description,
-    numAllDeaths, // for percentage calculation
     isLargestTile,
     annotationHeight,
     isNarrow,
-    treemapWidth,
-    treemapHeight,
+    treemapBounds,
     debug = false,
     onMouseEnter,
     onMouseLeave,
 }: {
     node: TreeNode
     description: string
-    treemapWidth: number
-    treemapHeight: number
-    // remove all props here?
-    numAllDeaths: number
+    treemapBounds: Bounds
     isLargestTile: boolean
     annotationHeight: number
     isNarrow: boolean
@@ -75,11 +71,10 @@ export function CausesOfDeathTreemapTile({
                 color={color}
                 variable={data.variable}
                 value={value}
-                numAllDeaths={numAllDeaths}
+                share={data.share ?? 0}
                 description={description}
                 isLargestTile={isLargestTile}
-                treemapWidth={treemapWidth}
-                treemapHeight={treemapHeight}
+                treemapBounds={treemapBounds}
                 isNarrow={isNarrow}
                 debug={debug}
             />

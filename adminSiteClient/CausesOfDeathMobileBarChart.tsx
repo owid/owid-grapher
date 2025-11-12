@@ -8,7 +8,6 @@ import {
 import { MyCausesOfDeathMetadata } from "./CausesOfDeathMetadata"
 import { formatPercentSigFig } from "./CausesOfDeathHelpers"
 import useChartDimensions from "./useChartDimensions.js"
-import { TextWrap } from "@ourworldindata/components"
 import { Bounds } from "@ourworldindata/utils"
 
 interface CategoryBarData {

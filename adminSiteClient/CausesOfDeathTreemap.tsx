@@ -1,4 +1,4 @@
-import { EntityName, GrapherTooltipAnchor, Time } from "@ourworldindata/types"
+import { EntityName, Time } from "@ourworldindata/types"
 import {
     CAUSE_OF_DEATH_CATEGORIES,
     DataRow,
@@ -10,12 +10,11 @@ import { useMemo, useState, useCallback, useRef } from "react"
 import * as d3 from "d3"
 import useChartDimensions, { DimensionsConfig } from "./useChartDimensions"
 import { CausesOfDeathCategoryAnnotations } from "./CausesOfDeathCategoryAnnotations"
-import { getRelativeMouse } from "@ourworldindata/utils"
+import { Bounds, getRelativeMouse } from "@ourworldindata/utils"
 
 import { MyCausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
 import { CausesOfDeathTreemapTile } from "./CausesOfDeathTreemapTile.js"
 import { CausesOfDeathTreemapTooltip } from "./CausesOfDeathTreemapTooltip.js"
-import { BodyPortal } from "@ourworldindata/components"
 
 export { CausesOfDeathCaptionedChart } from "./CausesOfDeathCaptionedChart"
 
@@ -136,9 +135,11 @@ function CausesOfDeathTreemap({
         }, 200) // 200ms delay should be enough to prevent flashing
     }, [])
 
+    const numAllDeaths = d3.sum(data, (d) => d.value) || 0
+
     const enrichedData: EnrichedDataItem[] = [
         // Root node
-        { entityName, year, variable: "All", value: null },
+        { entityName, year, variable: "All", value: null, share: 0 }, // todo: null
         // Category nodes
         ...CAUSE_OF_DEATH_CATEGORIES.map((category) => ({
             entityName,
@@ -146,13 +147,19 @@ function CausesOfDeathTreemap({
             variable: category,
             parentId: "All", // points to the root node
             value: null,
+            share: null,
         })),
         // Data nodes
         ...data.map((row) => {
             const category = metadata.categoryNameByVariableName.get(
                 row.variable
             )
-            return { ...row, category, parentId: category }
+            return {
+                ...row,
+                share: row.value / numAllDeaths,
+                category,
+                parentId: category,
+            }
         }),
     ]
 
@@ -178,23 +185,22 @@ function CausesOfDeathTreemap({
     const root = treemapLayout(hierarchy)
     const leaves = useMemo(() => root.leaves() as TreeNode[], [root])
 
-    const numAllDeaths = d3.sum(data, (d) => d.value) || 0
-
     // TODO: extract?
     const isNarrow = width < SMALL_BREAKPOINT
     const annotationHeight = !isNarrow ? 30 : 0
-
     const shouldPinTooltipToBottom = isNarrow
+
+    const treemapBounds = new Bounds(0, 0, width, height)
+    const containerBounds = treemapBounds.expand({ bottom: annotationHeight })
 
     return (
         <div style={{ position: "relative" }}>
             <svg
                 ref={svgRef}
                 className="causes-of-death-treemap"
-                // TODO: figure out the height stuff
-                viewBox={`0 0 ${width} ${height + annotationHeight}`}
-                width={width}
-                height={height + annotationHeight}
+                viewBox={`0 0 ${containerBounds.width} ${containerBounds.height}`}
+                width={containerBounds.width}
+                height={containerBounds.height}
                 onMouseMove={onTileMouseMove}
             >
                 {leaves.map((node) => (
@@ -205,13 +211,10 @@ function CausesOfDeathTreemap({
                             metadata.variableByName.get(node.data.data.variable)
                                 ?.description || ""
                         }
-                        // todo: remove this somehow
-                        numAllDeaths={numAllDeaths}
                         isLargestTile={leaves[0] === node}
                         annotationHeight={annotationHeight}
                         isNarrow={isNarrow}
-                        treemapWidth={width}
-                        treemapHeight={height}
+                        treemapBounds={treemapBounds}
                         debug={debug}
                         onMouseEnter={onTileMouseEnter}
                         onMouseLeave={onTileMouseLeave}
@@ -230,25 +233,14 @@ function CausesOfDeathTreemap({
                 )}
             </svg>
 
-            {tooltipState.target &&
-                (shouldPinTooltipToBottom ? (
-                    <BodyPortal>
-                        <CausesOfDeathTreemapTooltip
-                            state={tooltipState}
-                            anchor={GrapherTooltipAnchor.Bottom}
-                            historicalData={historicalData || data}
-                        />
-                    </BodyPortal>
-                ) : (
-                    <CausesOfDeathTreemapTooltip
-                        state={tooltipState}
-                        containerBounds={{
-                            width,
-                            height: height + annotationHeight,
-                        }}
-                        historicalData={historicalData || data}
-                    />
-                ))}
+            {tooltipState.target && (
+                <CausesOfDeathTreemapTooltip
+                    state={tooltipState}
+                    shouldPinTooltipToBottom={shouldPinTooltipToBottom}
+                    containerBounds={containerBounds}
+                    historicalData={historicalData}
+                />
+            )}
         </div>
     )
 }

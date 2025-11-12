@@ -28,13 +28,12 @@ interface TreemapTileLabelsProps {
     // Data for rendering
     variable: string
     value: number
-    numAllDeaths: number
+    share: number
     description?: string
     isLargestTile: boolean
 
     // Layout configuration
-    treemapWidth: number
-    treemapHeight: number
+    treemapBounds: Bounds
     isNarrow: boolean
 
     // Debug mode
@@ -47,28 +46,27 @@ export function CausesOfDeathTreemapTileLabels({
     color,
     variable,
     value,
-    numAllDeaths,
+    share,
     description,
     isLargestTile,
-    treemapWidth,
-    treemapHeight,
+    treemapBounds,
     isNarrow,
     debug = false,
 }: TreemapTileLabelsProps) {
     const area = width * height
 
     const minFontSize = isNarrow
-        ? Math.max(10, treemapWidth / 100)
-        : Math.max(8, treemapWidth / 150) // Minimum font size scales with width
+        ? Math.max(10, treemapBounds.width / 100)
+        : Math.max(8, treemapBounds.width / 150) // Minimum font size scales with width
     const maxFontSize = isNarrow
-        ? Math.min(20, treemapWidth / 20, treemapHeight / 25)
-        : Math.min(24, treemapWidth / 30, treemapHeight / 20) // Maximum font size scales with dimensions
+        ? Math.min(20, treemapBounds.width / 20, treemapBounds.height / 25)
+        : Math.min(24, treemapBounds.width / 30, treemapBounds.height / 20) // Maximum font size scales with dimensions
 
     // Calculate font size based on rectangle area using d3 scaling
     // Make font size range responsive to visualization dimensions
     const fontSizeScale = d3
         .scaleSqrt()
-        .domain([0, (treemapWidth * treemapHeight) / 4]) // assume max meaningful area is 1/4 of total
+        .domain([0, (treemapBounds.width * treemapBounds.height) / 4]) // assume max meaningful area is 1/4 of total
         .range([minFontSize, maxFontSize])
         .clamp(true)
     const baseFontSize = Math.round(fontSizeScale(area))
@@ -76,20 +74,20 @@ export function CausesOfDeathTreemapTileLabels({
     // Calculate adaptive padding based on rectangle dimensions
     const horizontalPaddingScale = d3
         .scaleSqrt()
-        .domain([0, treemapWidth / 2]) // based on rectangle width
+        .domain([0, treemapBounds.width / 2]) // based on rectangle width
         .range([2, 6]) // horizontal padding range from 2px to 6px
         .clamp(true)
     const horizontalPadding = Math.round(horizontalPaddingScale(width))
 
     const verticalPaddingScale = d3
         .scaleSqrt()
-        .domain([0, treemapHeight / 2]) // based on rectangle height
+        .domain([0, treemapBounds.height / 2]) // based on rectangle height
         .range([2, 6]) // vertical padding range from 2px to 6px
         .clamp(true)
     const verticalPadding = Math.round(verticalPaddingScale(height))
 
     // Build the lines: percentage first, then yearly and daily values
-    const formattedPercentage = formatPercentSigFig(value / numAllDeaths)
+    const formattedPercentage = formatPercentSigFig(share)
     const yearlyValue = formatNumberLongText(value)
     const dailyValue = formatSigFigNoAbbrev(value / 365)
 
