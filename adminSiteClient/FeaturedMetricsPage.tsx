@@ -409,6 +409,19 @@ function FeaturedMetricsExplainer() {
                         </>
                     ),
                 },
+                {
+                    key: "indexing",
+                    label: "When will my changes to the Featured Metrics go live?",
+                    children: (
+                        <>
+                            <p>
+                                Featured Metrics get indexed by the weekly
+                                Algolia sync, which runs every Friday at 19:00
+                                UTC.
+                            </p>
+                        </>
+                    ),
+                },
             ]}
         />
     )
