@@ -83,6 +83,7 @@ export interface DataRow {
     year: Time
     variable: CauseOfDeathIndicatorName
     value: number
+    share: number
 }
 
 export interface EnrichedDataRow extends DataRow {

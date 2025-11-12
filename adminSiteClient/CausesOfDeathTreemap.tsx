@@ -241,6 +241,14 @@ function CausesOfDeathTreemap({
                     historicalData={historicalData}
                 />
             )}
+
+            {/* <CausesOfDeathTreemapTooltip
+                state={{
+                    target: { node: leaves[0] },
+                    position: { x: 0, y: 0 },
+                }}
+                historicalData={historicalData}
+            /> */}
         </div>
     )
 }
