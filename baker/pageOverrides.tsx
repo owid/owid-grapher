@@ -1,6 +1,6 @@
 import { PageOverrides } from "../site/LongFormPage.js"
 import { BAKED_BASE_URL } from "../settings/serverSettings.js"
-import { urlToSlug, FullPost } from "@ourworldindata/utils"
+import { FullPost, Url } from "@ourworldindata/utils"
 import { FormattingOptions } from "@ourworldindata/types"
 import { getTopSubnavigationParentItem } from "../site/gdocs/utils.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
@@ -34,8 +34,8 @@ export const getLandingOnlyIfParent = async (
     )?.href
     if (!landingItemHref) return
 
-    const landingSlug = urlToSlug(landingItemHref)
-    if (landingSlug === post.slug) return
+    const landingSlug = Url.fromURL(landingItemHref).slug
+    if (!landingSlug || landingSlug === post.slug) return
 
     // Using no-throw version to prevent throwing and stopping baking mid-way.
     // It is more desirable to temporarily deploy with citation overrides

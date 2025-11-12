@@ -46,7 +46,6 @@ import {
 import { PointVector } from "./PointVector.js"
 import * as React from "react"
 import { match, P } from "ts-pattern"
-import { Url } from "./urls/Url.js"
 
 export type NoUndefinedValues<T> = {
     [P in keyof T]: Required<NonNullable<T[P]>>
@@ -462,11 +461,6 @@ export const csvEscape = (value: unknown): string => {
     return valueStr.includes(",")
         ? `"${valueStr.replace(/"/g, '""')}"`
         : valueStr
-}
-
-export const urlToSlug = (url: string): string => {
-    const pathname = Url.fromURL(url).pathname ?? ""
-    return R.last(pathname.split("/").filter((x) => x)) as string
 }
 
 // Removes all undefineds from an object.

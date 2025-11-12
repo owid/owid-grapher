@@ -37,7 +37,6 @@ export {
     isTouchDevice,
     type Json,
     csvEscape,
-    urlToSlug,
     trimObject,
     fetchText,
     fetchJson,
