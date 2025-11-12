@@ -1,7 +1,6 @@
-import { EntityName as _EntityName, Time } from "@ourworldindata/types"
-import { useQuery } from "@tanstack/react-query"
+import { EntityName as _EntityName } from "@ourworldindata/types"
 import * as d3 from "d3"
-import { useState, useMemo } from "react"
+import { useState } from "react"
 import {
     CAUSE_OF_DEATH_INDICATOR_NAMES as _CAUSE_OF_DEATH_INDICATOR_NAMES,
     FetchedDataRow as _FetchedDataRow,
@@ -9,32 +8,13 @@ import {
 import { CausesOfDeathCaptionedChart } from "./CausesOfDeathTreemap"
 import { stackedSliceDiceTiling } from "./stackedSliceDiceTiling.js"
 
-interface CausesOfDeathMetadata {
-    dimensions: {
-        entities: Array<{ id: number; name: string }>
-        variables: Array<{ id: number; name: string }>
-    }
-}
-
-interface EntityData {
-    values: number[]
-    variables: number[]
-    years: number[]
-}
-
-interface EntityDataWithInfo extends EntityData {
-    entityId: number
-    entityName: string
-}
-
-const TILING_METHODS = [
-    { value: "squarify", label: "Squarify", method: d3.treemapSquarify },
-    { value: "binary", label: "Binary", method: d3.treemapBinary },
-    { value: "dice", label: "Dice", method: d3.treemapDice },
-    { value: "slice", label: "Slice", method: d3.treemapSlice },
-    { value: "sliceDice", label: "Slice-Dice", method: d3.treemapSliceDice },
-    {
-        value: "custom",
+const availableTilingMethods = {
+    squarify: { label: "Squarify", method: d3.treemapSquarify },
+    binary: { label: "Binary", method: d3.treemapBinary },
+    dice: { label: "Dice", method: d3.treemapDice },
+    slice: { label: "Slice", method: d3.treemapSlice },
+    sliceDice: { label: "Slice-Dice", method: d3.treemapSliceDice },
+    custom: {
         label: "Custom",
         method: (minThick: number, innerMinThick: number) =>
             stackedSliceDiceTiling({
@@ -42,73 +22,27 @@ const TILING_METHODS = [
                 minStackHeight: innerMinThick,
             }),
     },
-]
+} as const
+
+type TilingMethodKey = keyof typeof availableTilingMethods
 
 export function CausesOfDeathPage() {
-    const [selectedTiling, setSelectedTiling] = useState<string>("custom")
-    const [_minThickness, _setMinThickness] = useState<number>(120)
-    const [_innerMinThickness, _setInnerMinThickness] = useState<number>(40)
+    const [selectedTilingMethod, setSelectedTilingMethod] =
+        useState<TilingMethodKey>("custom")
+    const [minThickness, setMinThickness] = useState<number>(120)
+    const [innerMinThickness, setInnerMinThickness] = useState<number>(40)
     const [debug, setDebug] = useState<boolean>(false)
 
-    // This is only needed for the commented-out sections below
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const selectedYear: Time = 2023
-
-    // Fetch metadata
-    const metadataResult = useQuery({
-        queryKey: ["causesOfDeathMetadata"],
-        queryFn: async (): Promise<CausesOfDeathMetadata> => {
-            const response = await fetch("/causes-of-death.metadata.json")
-            return response.json()
-        },
-    })
-
-    // Fetch data for all entities
-    const allEntitiesDataResult = useQuery({
-        queryKey: ["causesOfDeathAllData"],
-        queryFn: async (): Promise<EntityDataWithInfo[]> => {
-            if (!metadataResult.data) return []
-
-            const entityPromises = metadataResult.data.dimensions.entities.map(
-                async (entity) => {
-                    const response = await fetch(
-                        `/causes-of-death.${entity.id}.data.json`
-                    )
-                    const data = await response.json()
-                    return {
-                        ...data,
-                        entityId: entity.id,
-                        entityName: entity.name,
-                    }
-                }
-            )
-
-            return Promise.all(entityPromises)
-        },
-        enabled: !!metadataResult.data,
-    })
-
-    const data = useMemo(() => {
-        return parseAllEntitiesData(
-            metadataResult.data,
-            allEntitiesDataResult.data
-        )
-    }, [metadataResult.data, allEntitiesDataResult.data])
+    const tilingMethod =
+        selectedTilingMethod === "custom"
+            ? availableTilingMethods["custom"].method(
+                  minThickness,
+                  innerMinThickness
+              )
+            : availableTilingMethods[selectedTilingMethod].method
 
     return (
         <div style={{ paddingBottom: "60px" }}>
-            {(metadataResult.isLoading || allEntitiesDataResult.isLoading) && (
-                <p>Loading...</p>
-            )}
-            {(metadataResult.isError || allEntitiesDataResult.isError) && (
-                <p>
-                    Error:{" "}
-                    {String(
-                        metadataResult.error || allEntitiesDataResult.error
-                    )}
-                </p>
-            )}
-
             <div style={{ marginTop: "15px", paddingLeft: "20px" }}>
                 <div
                     className="settings-box"
@@ -132,8 +66,8 @@ export function CausesOfDeathPage() {
 
                     <div style={{ marginBottom: "15px" }}>
                         <TilingSelect
-                            selectedTiling={selectedTiling}
-                            onTilingChange={setSelectedTiling}
+                            selectedTiling={selectedTilingMethod}
+                            onTilingChange={setSelectedTilingMethod}
                         />
                     </div>
 
@@ -158,221 +92,31 @@ export function CausesOfDeathPage() {
                 </div>
             </div>
 
-            {/* {selectedTiling === "custom" && (
+            {selectedTilingMethod === "custom" && (
                 <div style={{ marginTop: "15px" }}>
                     <CustomTilingControls
+                        show={false}
                         minThickness={minThickness}
                         innerMinThickness={innerMinThickness}
                         onMinThicknessChange={setMinThickness}
                         onInnerMinThicknessChange={setInnerMinThickness}
                     />
                 </div>
-            )} */}
-
-            {data && (
-                <>
-                    {/* Country selector section */}
-                    <div style={{ padding: "0 20px" }}>
-                        <CausesOfDeathCaptionedChart
-                            debug={debug}
-                            tilingMethod={
-                                selectedTiling === "custom"
-                                    ? (
-                                          TILING_METHODS.find(
-                                              (m) => m.value === selectedTiling
-                                          )?.method as any
-                                      )(120, 40)
-                                    : TILING_METHODS.find(
-                                          (m) => m.value === selectedTiling
-                                      )?.method || d3.treemapSquarify
-                            }
-                        />
-                    </div>
-
-                    {/* Small treemaps grid */}
-                    {/* <div style={{ padding: "0 20px", marginTop: "80px" }}>
-                        <h2
-                            style={{
-                                margin: "0 0 20px 0",
-                                fontSize: "20px",
-                                fontWeight: "600",
-                                color: "#333",
-                            }}
-                        >
-                            Small multiple treemaps
-                        </h2>
-                    </div>
-                    <div
-                        style={{
-                            display: "grid",
-                            gridTemplateColumns:
-                                "repeat(auto-fit, minmax(300px, 350px))",
-                            gap: "20px",
-                            marginBottom: "60px",
-                            padding: "0 20px",
-                            justifyContent: "center",
-                        }}
-                    >
-                        {entities.map((entityName) => (
-                            <div
-                                key={entityName}
-                                style={{ textAlign: "center" }}
-                            >
-                                <h3
-                                    style={{
-                                        margin: "0 0 10px 0",
-                                        fontSize: "16px",
-                                    }}
-                                >
-                                    {entityName}
-                                </h3>
-                                <CausesOfDeathComponent
-                                    data={data}
-                                    entityName={entityName}
-                                    year={selectedYear}
-                                    dimensionsConfig={{
-                                        initialWidth: 350,
-                                        ratio: 4 / 3,
-                                        minHeight: 200,
-                                        maxHeight: 250,
-                                    }}
-                                    tilingMethod={
-                                        selectedTiling === "custom"
-                                            ? (
-                                                  TILING_METHODS.find(
-                                                      (m) =>
-                                                          m.value ===
-                                                          selectedTiling
-                                                  )?.method as any
-                                              )(120, 40)
-                                            : TILING_METHODS.find(
-                                                  (m) =>
-                                                      m.value === selectedTiling
-                                              )?.method || d3.treemapSquarify
-                                    }
-                                />
-                            </div>
-                        ))}
-                    </div> */}
-
-                    {/* Large individual treemaps */}
-                    {/* <div style={{ padding: "0 20px" }}>
-                        {entities.map((entityName) => (
-                            <div
-                                key={`large-${entityName}`}
-                                style={{
-                                    marginBottom: "80px",
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    alignItems: "center",
-                                }}
-                            >
-                                <h3
-                                    style={{
-                                        margin: "0 0 20px 0",
-                                        fontSize: "24px",
-                                        fontWeight: "600",
-                                    }}
-                                >
-                                    {entityName}
-                                </h3>
-                                <div
-                                    style={{
-                                        transform: "scale(1.1)",
-                                        transformOrigin: "center",
-                                        margin: "60px 0",
-                                    }}
-                                >
-                                    <CausesOfDeathComponent
-                                        data={data}
-                                        entityName={entityName}
-                                        year={selectedYear}
-                                        dimensionsConfig={{
-                                            initialWidth: 800,
-                                            ratio: 3 / 2,
-                                            minHeight: 400,
-                                            maxHeight: 600,
-                                        }}
-                                        tilingMethod={
-                                            selectedTiling === "custom"
-                                                ? (
-                                                      TILING_METHODS.find(
-                                                          (m) =>
-                                                              m.value ===
-                                                              selectedTiling
-                                                      )?.method as any
-                                                  )(120, 40)
-                                                : TILING_METHODS.find(
-                                                      (m) =>
-                                                          m.value ===
-                                                          selectedTiling
-                                                  )?.method ||
-                                                  d3.treemapSquarify
-                                        }
-                                    />
-                                </div>
-                            </div>
-                        ))}
-                    </div> */}
-                </>
             )}
+
+            <div style={{ padding: "0 20px" }}>
+                <CausesOfDeathCaptionedChart
+                    tilingMethod={tilingMethod}
+                    debug={debug}
+                />
+            </div>
         </div>
     )
 }
 
-function parseAllEntitiesData(
-    metadata: CausesOfDeathMetadata | undefined,
-    allEntitiesData: EntityDataWithInfo[] | undefined
-) {
-    if (!metadata || !allEntitiesData) return undefined
-
-    // Map variable IDs to the original indicator names
-    const variableIdToIndicatorName = new Map<number, string>([
-        [1, "Total number of deaths from heart diseases"],
-        [2, "Total number of deaths from cancers"],
-        [3, "Total number of deaths from chronic respiratory diseases"],
-        [4, "Total number of deaths from digestive diseases"],
-        [5, "Total number of deaths from diabetes and kidney diseases"],
-        [6, "Total number of deaths from neurological disorders"],
-        [7, "Total number of deaths from other non-communicable diseases"],
-        [8, "Total number of deaths from pneumonia"],
-        [9, "Total number of deaths from diarrheal diseases"],
-        [10, "Total number of deaths from tuberculosis"],
-        [11, "Total number of deaths from HIV/AIDS"],
-        [12, "Total number of deaths from malaria"],
-        [13, "Total number of deaths from neonatal disorders"],
-        [14, "Total number of deaths from maternal disorders"],
-        [15, "Total number of deaths from nutritional deficiencies"],
-        [16, "Total number of deaths from transport injuries"],
-        [17, "Total number of deaths from other injuries"],
-        [18, "Total number of deaths from suicide"],
-        [19, "Total number of deaths from other infectious diseases"],
-        [20, "Total number of deaths from interpersonal violence"],
-    ])
-
-    return allEntitiesData.flatMap(
-        (entityData) =>
-            entityData.values
-                .map((value, index) => {
-                    const variableId = entityData.variables[index]
-                    const year = entityData.years[index]
-                    const indicatorName =
-                        variableIdToIndicatorName.get(variableId)
-
-                    return {
-                        entityName: entityData.entityName,
-                        year,
-                        variable: indicatorName as any,
-                        value,
-                    }
-                })
-                .filter((item) => item.variable) // Filter out any items where variable name wasn't found
-    )
-}
-
 interface TilingSelectProps {
-    selectedTiling: string
-    onTilingChange: (tiling: string) => void
+    selectedTiling: TilingMethodKey
+    onTilingChange: (tiling: TilingMethodKey) => void
 }
 
 function TilingSelect({ selectedTiling, onTilingChange }: TilingSelectProps) {
@@ -391,7 +135,9 @@ function TilingSelect({ selectedTiling, onTilingChange }: TilingSelectProps) {
             <select
                 id="tiling-select"
                 value={selectedTiling}
-                onChange={(e) => onTilingChange(e.target.value)}
+                onChange={(e) =>
+                    onTilingChange(e.target.value as TilingMethodKey)
+                }
                 style={{
                     padding: "8px 12px",
                     minWidth: "150px",
@@ -400,8 +146,8 @@ function TilingSelect({ selectedTiling, onTilingChange }: TilingSelectProps) {
                     fontSize: "14px",
                 }}
             >
-                {TILING_METHODS.map((method) => (
-                    <option key={method.value} value={method.value}>
+                {Object.entries(availableTilingMethods).map(([key, method]) => (
+                    <option key={key} value={key}>
                         {method.label}
                     </option>
                 ))}
@@ -411,18 +157,21 @@ function TilingSelect({ selectedTiling, onTilingChange }: TilingSelectProps) {
 }
 
 interface CustomTilingControlsProps {
+    show: boolean
     minThickness: number
     innerMinThickness: number
     onMinThicknessChange: (value: number) => void
     onInnerMinThicknessChange: (value: number) => void
 }
 
-function _CustomTilingControls({
+function CustomTilingControls({
+    show,
     minThickness,
     innerMinThickness,
     onMinThicknessChange,
     onInnerMinThicknessChange,
 }: CustomTilingControlsProps) {
+    if (!show) return null
     return (
         <div
             style={{
