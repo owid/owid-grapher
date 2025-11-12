@@ -13,7 +13,6 @@ import {
     useCausesOfDeathMetadata,
 } from "./CausesOfDeathDataFetching"
 import { ResponsiveCausesOfDeathTreemap } from "./CausesOfDeathTreemap"
-import { CausesOfDeathLegend } from "./CausesOfDeathLegend"
 import { CausesOfDeathMobileBarChart } from "./CausesOfDeathMobileBarChart"
 import { CausesOfDeathTimeSlider } from "./CausesOfDeathTimeSlider"
 import { Link, Tooltip, TooltipTrigger } from "react-aria-components"
@@ -115,10 +114,8 @@ export function CausesOfDeathCaptionedChart({
                 />
             </SideBySide>
 
-            {isNarrow ? (
+            {isNarrow && (
                 <CausesOfDeathMobileBarChart data={data} metadata={metadata} />
-            ) : (
-                <CausesOfDeathLegend data={data} metadata={metadata} />
             )}
 
             <div
