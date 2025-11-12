@@ -41,6 +41,8 @@ export const entityRegionTypeLabels: Record<EntityRegionType, string> = {
     wb: "World Bank regions",
     un: "United Nations regions",
     unsdg: "UN Sustainable Development Goals regions",
+    unm49: "United Nations M49 regions",
+    pew: "Pew Research Center regions",
 
     // Regions defined by an institution, but we don't have region definitions in regions.json for these (we recognize them by their suffix)
     unsd: "UN Statistics Division regions",
