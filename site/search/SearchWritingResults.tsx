@@ -1,15 +1,15 @@
 import { useMediaQuery } from "usehooks-ts"
 import * as _ from "lodash-es"
 
-import { OwidGdocType } from "@ourworldindata/types"
-import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import {
+    OwidGdocType,
     FlatArticleHit,
     SearchFlatArticleResponse,
     SearchTopicPageResponse,
     TopicPageHit,
     SearchTopicType,
-} from "./searchTypes.js"
+} from "@ourworldindata/types"
+import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import { searchQueryKeys, queryArticles, queryTopicPages } from "./queries.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
 import { useInfiniteSearchOffset } from "./searchHooks.js"

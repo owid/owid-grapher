@@ -1,4 +1,10 @@
-import { TagGraphRoot } from "@ourworldindata/types"
+import {
+    TagGraphRoot,
+    SearchState,
+    FilterType,
+    TemplateConfig,
+    SearchResultType,
+} from "@ourworldindata/types"
 import { LiteClient } from "algoliasearch/lite"
 import { useReducer, useMemo, useDeferredValue } from "react"
 import { match } from "ts-pattern"
@@ -6,12 +12,6 @@ import { useIsFetching } from "@tanstack/react-query"
 
 // Search state and types
 import { searchReducer, createActions } from "./searchState.js"
-import {
-    SearchState,
-    FilterType,
-    TemplateConfig,
-    SearchResultType,
-} from "./searchTypes.js"
 
 // Utils and hooks
 import {

@@ -1,7 +1,7 @@
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { commafyNumber } from "@ourworldindata/utils"
-import { SearchWritingTopicsResponse } from "./searchTypes.js"
+import { SearchWritingTopicsResponse } from "@ourworldindata/types"
 import { useSearchContext } from "./SearchContext.js"
 import { Button, getCanonicalPath } from "@ourworldindata/components"
 import { SearchStackedArticleHit } from "./SearchStackedArticleHit.js"

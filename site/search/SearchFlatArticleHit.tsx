@@ -1,9 +1,8 @@
 import cx from "classnames"
 import { Snippet } from "react-instantsearch"
 import { getCanonicalPath } from "@ourworldindata/components"
-import { OwidGdocType } from "@ourworldindata/types"
+import { OwidGdocType, FlatArticleHit } from "@ourworldindata/types"
 import { formatAuthors, formatDate } from "@ourworldindata/utils"
-import { FlatArticleHit } from "./searchTypes.js"
 
 export function SearchFlatArticleHit({
     className,

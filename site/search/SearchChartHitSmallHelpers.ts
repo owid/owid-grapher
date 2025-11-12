@@ -1,12 +1,13 @@
 import { QueryStatus, useQuery } from "@tanstack/react-query"
 import {
+    ChartRecordType,
     EntityName,
     GrapherTabName,
     GrapherValuesJson,
+    SearchChartHit,
 } from "@ourworldindata/types"
 import { fetchJson } from "@ourworldindata/utils"
 import { CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME } from "@ourworldindata/grapher"
-import { ChartRecordType, SearchChartHit } from "./searchTypes"
 import {
     constructChartInfoUrl,
     constructChartUrl,

@@ -2,7 +2,10 @@ import { useRef } from "react"
 import { useIntersectionObserver, useMediaQuery } from "usehooks-ts"
 
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
-import { DataInsightHit, SearchDataInsightResponse } from "./searchTypes.js"
+import {
+    DataInsightHit,
+    SearchDataInsightResponse,
+} from "@ourworldindata/types"
 import { queryDataInsights, searchQueryKeys } from "./queries.js"
 import { SearchDataInsightHit } from "./SearchDataInsightHit.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"

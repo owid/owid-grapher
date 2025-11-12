@@ -1,6 +1,6 @@
 import { countries, excludeUndefined } from "@ourworldindata/utils"
 import * as R from "remeda"
-import { SynonymMap } from "./searchTypes.js"
+import { SynonymMap } from "@ourworldindata/types"
 
 export const synonyms = [
     ["owid", "our world in data"],

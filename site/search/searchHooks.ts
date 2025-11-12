@@ -1,4 +1,4 @@
-import { FilterType, SearchState } from "./searchTypes.js"
+import { FilterType, SearchState } from "@ourworldindata/types"
 import {
     getFilterNamesOfType,
     getSelectedTopic,

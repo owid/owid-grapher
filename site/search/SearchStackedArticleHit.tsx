@@ -1,6 +1,6 @@
 import { getCanonicalPath } from "@ourworldindata/components"
 import { Snippet } from "react-instantsearch"
-import { StackedArticleHit } from "./searchTypes.js"
+import { StackedArticleHit } from "@ourworldindata/types"
 
 export function SearchStackedArticleHit({
     hit,

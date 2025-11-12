@@ -891,3 +891,4 @@ export {
 } from "./endpointTypes/GrapherSearchResultJson.js"
 
 export * from "./analyticsTypes/analyticsTypes.js"
+export * from "./domainTypes/Search.js"

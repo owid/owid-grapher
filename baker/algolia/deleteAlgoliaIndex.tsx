@@ -1,7 +1,7 @@
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { ALGOLIA_INDEX_PREFIX } from "../../settings/clientSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
-import { SearchIndexName } from "../../site/search/searchTypes.js"
+import { SearchIndexName } from "@ourworldindata/types"
 import { getIndexName } from "../../site/search/searchClient.js"
 
 const deleteAlgoliaIndex = async () => {

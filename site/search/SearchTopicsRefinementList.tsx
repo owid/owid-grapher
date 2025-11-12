@@ -6,7 +6,7 @@ import { useState } from "react"
 import { useSearchContext } from "./SearchContext.js"
 import { useSelectedTopic } from "./searchHooks.js"
 import { getSelectableTopics } from "./searchUtils.js"
-import { SearchTopicType } from "./searchTypes.js"
+import { SearchTopicType } from "@ourworldindata/types"
 
 export const SearchTopicsRefinementList = ({
     topicType,

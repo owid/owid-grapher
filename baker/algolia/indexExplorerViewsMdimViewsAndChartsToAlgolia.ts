@@ -17,7 +17,7 @@ import {
 } from "./utils/shared.js"
 import { getChartsRecords } from "./utils/charts.js"
 import { getIndexName } from "../../site/search/searchClient.js"
-import { SearchIndexName } from "../../site/search/searchTypes.js"
+import { SearchIndexName } from "@ourworldindata/types"
 import { getMdimViewRecords } from "./utils/mdimViews.js"
 
 const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {

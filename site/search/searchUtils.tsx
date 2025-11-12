@@ -10,6 +10,21 @@ import {
     OwidGdocType,
     TagGraphRoot,
     TimeBounds,
+    SearchIndexName,
+    Filter,
+    FilterType,
+    ScoredFilter,
+    SearchResultType,
+    SearchTopicType,
+    SearchFacetFilters,
+    ChartRecordType,
+    SearchChartHit,
+    IChartHit,
+    SearchUrlParam,
+    SynonymMap,
+    Ngram,
+    WordPositioned,
+    ScoredFilterPositioned,
 } from "@ourworldindata/types"
 import {
     Url,
@@ -27,23 +42,6 @@ import {
     mapGrapherTabNameToQueryParam,
 } from "@ourworldindata/grapher"
 import { getIndexName } from "./searchClient.js"
-import {
-    SearchIndexName,
-    Filter,
-    FilterType,
-    ScoredFilter,
-    SearchResultType,
-    SearchTopicType,
-    SearchFacetFilters,
-    ChartRecordType,
-    SearchChartHit,
-    IChartHit,
-    SearchUrlParam,
-    SynonymMap,
-    Ngram,
-    WordPositioned,
-    ScoredFilterPositioned,
-} from "./searchTypes.js"
 import {
     faBook,
     faBookmark,

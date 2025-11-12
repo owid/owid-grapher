@@ -19,15 +19,13 @@ import {
     LayoutSlot,
     GrapherSearchResultJson,
     GrapherQueryParams,
-} from "@ourworldindata/types"
-import { Button } from "@ourworldindata/components"
-import { MEDIUM_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
-import {
     ChartRecordType,
     SearchChartHit,
     SearchChartHitComponentProps,
     SearchChartHitComponentVariant,
-} from "./searchTypes.js"
+} from "@ourworldindata/types"
+import { Button } from "@ourworldindata/components"
+import { MEDIUM_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import {
     constructChartUrl,
     constructPreviewUrl,

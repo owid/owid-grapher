@@ -1,7 +1,8 @@
 import * as R from "remeda"
-import { EntityName, OwidGdocType, TagGraphRoot } from "@ourworldindata/types"
-import { type LiteClient } from "algoliasearch/lite"
 import {
+    EntityName,
+    OwidGdocType,
+    TagGraphRoot,
     SearchState,
     SearchChartsResponse,
     SearchChartHit,
@@ -15,7 +16,8 @@ import {
     FilterType,
     SearchIndexName,
     SearchFlatArticleResponse,
-} from "./searchTypes.js"
+} from "@ourworldindata/types"
+import { type LiteClient } from "algoliasearch/lite"
 import {
     getFilterNamesOfType,
     formatCountryFacetFilters,

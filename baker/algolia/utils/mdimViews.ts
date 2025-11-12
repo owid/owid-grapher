@@ -16,10 +16,7 @@ import * as db from "../../../db/db.js"
 import { getAllPublishedMultiDimDataPages } from "../../../db/model/MultiDimDataPage.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
-import {
-    ChartRecord,
-    ChartRecordType,
-} from "../../../site/search/searchTypes.js"
+import { ChartRecord, ChartRecordType } from "@ourworldindata/types"
 import {
     getRelevantVariableIds,
     getRelevantVariableMetadata,

@@ -6,7 +6,7 @@ import * as Sentry from "@sentry/node"
 import * as db from "../../db/db.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
-import { SearchIndexName } from "../../site/search/searchTypes.js"
+import { SearchIndexName } from "@ourworldindata/types"
 import { getIndexName } from "../../site/search/searchClient.js"
 import { getChartsRecords } from "./utils/charts.js"
 

@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 import { queryWritingTopics, searchQueryKeys } from "./queries.js"
 import { useSearchContext } from "./SearchContext.js"
 import { useSelectedTopic } from "./searchHooks.js"
-import { SearchWritingTopicsResponse } from "./searchTypes.js"
+import { SearchWritingTopicsResponse } from "@ourworldindata/types"
 import { SearchWritingTopic } from "./SearchWritingTopic.js"
 import { SearchWritingTopicsResultsSkeleton } from "./SearchWritingTopicsResultsSkeleton.js"
 

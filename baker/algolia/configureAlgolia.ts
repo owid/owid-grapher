@@ -10,7 +10,7 @@ import {
     ALGOLIA_SECRET_KEY,
 } from "../../settings/serverSettings.js"
 import { countries, excludeUndefined } from "@ourworldindata/utils"
-import { SearchIndexName } from "../../site/search/searchTypes.js"
+import { SearchIndexName } from "@ourworldindata/types"
 import { getIndexName } from "../../site/search/searchClient.js"
 import { synonyms } from "../../site/search/synonymUtils.js"
 
