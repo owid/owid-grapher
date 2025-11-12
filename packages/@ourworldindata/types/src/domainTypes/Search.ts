@@ -6,7 +6,7 @@ import type {
 } from "instantsearch.js"
 import { OwidGdocType } from "../gdocTypes/Gdoc.js"
 import { GrapherTabName } from "../grapherTypes/GrapherTypes.js"
-import { BreadcrumbItemSchema } from "./Site.js"
+import { BreadcrumbItemSchema, BreadcrumbItem } from "./Site.js"
 import * as z from "zod/mini"
 
 export const PagesIndexRecordSchema = z.object({
@@ -216,8 +216,11 @@ export type TopicPageHit = {
     slug: string
     excerpt: string
     excerptLong?: string[]
+    content?: string
+    headings?: BreadcrumbItem[]
     objectID: string
     __position: number
+    _snippetResult?: HitHighlightResult
 }
 
 export type SearchTopicPageResponse = SearchResponse<TopicPageHit>
