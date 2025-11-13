@@ -146,7 +146,7 @@ export const NewsletterSubscriptionForm = ({
                 </label>
                 <a
                     className="newsletter-subscription-form__example-link note-12-medium"
-                    href="https://us8.campaign-archive.com/?u=18058af086319ba6afad752ec&id=53877b47f3"
+                    href="https://mailchi.mp/ourworldindata/owid-brief-2025-11-14"
                 >
                     See example OWID Brief newsletter
                 </a>
