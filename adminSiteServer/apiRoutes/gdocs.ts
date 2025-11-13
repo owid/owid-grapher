@@ -343,6 +343,12 @@ export async function getPreviewGdocIndexRecords(
 
         const gdocJson = gdoc.toJSON()
 
+        // Provide fallback dates to avoid issues in record generation, where
+        // dates are expected
+        const fallbackDate = gdocJson.publishedAt ?? new Date()
+        gdocJson.publishedAt = fallbackDate
+        gdocJson.updatedAt ??= fallbackDate
+
         res.set("Cache-Control", "no-store")
 
         // Only generate records for posts (excluding fragments)
