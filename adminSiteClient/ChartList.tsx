@@ -27,6 +27,9 @@ import {
 } from "../adminShared/search.js"
 import { TextField } from "./Forms.js"
 import { ENV } from "../settings/clientSettings.js"
+import { Tooltip } from "antd"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 
 // These properties are coming from OldChart.ts
 export interface ChartListItem {
@@ -344,6 +347,9 @@ export class ChartList extends React.Component<ChartListProps> {
                                 onClick={handleReferencesCountSortClick}
                             >
                                 references{getReferencesCountSortIndicator()}
+                                <Tooltip title="Only considers published content. This number might differ from the chart editor count, which includes unpublished data insights.">
+                                    <FontAwesomeIcon icon={faInfoCircle} />
+                                </Tooltip>
                             </th>
                             <th></th>
                             <th></th>
