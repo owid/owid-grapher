@@ -113,6 +113,8 @@ export const getReferencesByChartId = async (
         gdoc_grapher_slugs AS (
             SELECT
                 pg.id,
+                pg.slug,
+                pg.type,
                 pg.content ->> '$.title' AS title,
                 pg.published,
                 pg.content ->> '$."narrative-chart"' AS narrativeChart,
@@ -125,6 +127,8 @@ export const getReferencesByChartId = async (
         )
         SELECT
             ggs.id AS gdocId,
+            ggs.slug,
+            ggs.type,
             ggs.title,
             ggs.published,
             ggs.narrativeChart,
