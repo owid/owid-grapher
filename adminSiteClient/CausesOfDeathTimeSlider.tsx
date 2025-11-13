@@ -124,12 +124,10 @@ export function CausesOfDeathTimeSlider({
                 hover: isHovering,
             })}
             onMouseEnter={() => {
-                console.log("Mouse entered slider")
                 setIsHovering(true)
                 setShowTooltip(true)
             }}
             onMouseLeave={() => {
-                console.log("Mouse left slider")
                 setIsHovering(false)
                 // Hide tooltip only if not dragging
                 if (!isDragging) {

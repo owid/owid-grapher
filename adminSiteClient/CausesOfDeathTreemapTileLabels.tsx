@@ -130,7 +130,7 @@ export function CausesOfDeathTreemapTileLabels({
     const descriptionFontSize = fontSize * 0.8
     const metricsFontSize = fontSize * 0.6
 
-    const showMetrics = metricsFontSize >= 10
+    const showMetrics = metricsFontSize >= 8
     const padding = verticalPadding / 2
 
     const textWrap = {

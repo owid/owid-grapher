@@ -192,7 +192,9 @@ function CausesOfDeathTreemap({
     const shouldPinTooltipToBottom = isNarrow
 
     const treemapBounds = new Bounds(0, 0, width, height)
-    const containerBounds = treemapBounds.expand({ bottom: annotationHeight })
+    const containerBounds = treemapBounds.expand({
+        bottom: 2 * annotationHeight,
+    })
 
     return (
         <div style={{ position: "relative" }}>
