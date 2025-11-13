@@ -37,6 +37,7 @@ import {
     createOrUpdateGdoc,
     deleteGdoc,
     setGdocTags,
+    getPreviewGdocIndexRecords,
 } from "./apiRoutes/gdocs.js"
 import {
     getImagesHandler,
@@ -299,6 +300,11 @@ getRouteNonIdempotentWithRWTransaction(
     apiRouter,
     "/gdocs/:id",
     getIndividualGdoc
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/gdocs/:id/records",
+    getPreviewGdocIndexRecords
 )
 putRouteWithRWTransaction(apiRouter, "/gdocs/:id", createOrUpdateGdoc)
 deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", deleteGdoc)

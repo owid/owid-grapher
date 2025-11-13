@@ -44,6 +44,7 @@ import { GdocsEditLink } from "./GdocsEditLink.js"
 import { openSuccessNotification } from "./gdocsNotifications.js"
 import { GdocsDiffButton } from "./GdocsDiffButton.js"
 import { GdocsDiff } from "./GdocsDiff.js"
+import { GdocsRecordsPreview } from "./GdocsRecordsPreview.js"
 import {
     BAKED_BASE_URL,
     PUBLISHED_AT_FORMAT,
@@ -79,6 +80,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         undefined | string
     >()
     const [isDiffOpen, setDiffOpen] = useState(false)
+    const [isRecordsOpen, setRecordsOpen] = useState(false)
     const [errors, setErrors] = React.useState<OwidGdocErrorMessage[]>()
     const { admin } = useContext(AdminAppContext)
     const store = useGdocsStore()
@@ -124,6 +126,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                 ? prev
                 : { original: undefined, current: undefined }
         )
+        setRecordsOpen(false)
     }, [id])
 
     // initialize
@@ -379,6 +382,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                 onDelete={onDelete}
                                 isMobilePreviewActive={isMobilePreviewActive}
                                 toggleMobilePreview={toggleMobilePreview}
+                                onOpenRecords={() => setRecordsOpen(true)}
                             />
                         </Space>
                     </Col>
@@ -512,6 +516,18 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     <GdocsDiff
                         originalGdoc={originalGdoc}
                         currentGdoc={currentGdoc}
+                    />
+                </Drawer>
+                <Drawer
+                    placement="bottom"
+                    size="large"
+                    title="Algolia index preview"
+                    onClose={() => setRecordsOpen(false)}
+                    open={isRecordsOpen}
+                >
+                    <GdocsRecordsPreview
+                        gdocId={currentGdoc.id}
+                        open={isRecordsOpen}
                     />
                 </Drawer>
 

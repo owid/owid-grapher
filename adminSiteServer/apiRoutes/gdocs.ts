@@ -10,8 +10,12 @@ import {
     PostsGdocsXImagesTableName,
     PostsGdocsTableName,
     PostsGdocsComponentsTableName,
+    PagesIndexRecordsResponse,
 } from "@ourworldindata/types"
-import { checkIsGdocPostExcludingFragments } from "@ourworldindata/utils"
+import {
+    checkIsDataInsight,
+    checkIsGdocPostExcludingFragments,
+} from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 import {
     checkHasChanges,
@@ -22,6 +26,7 @@ import {
 import {
     indexIndividualGdocPost,
     removeIndividualGdocPostFromIndex,
+    getIndividualGdocRecords,
 } from "../../baker/algolia/utils/pages.js"
 import { GdocAbout } from "../../db/model/Gdoc/GdocAbout.js"
 import { GdocAuthor } from "../../db/model/Gdoc/GdocAuthor.js"
@@ -316,4 +321,63 @@ export async function setGdocTags(
     await setTagsForGdoc(trx, gdocId, tagIdsAsObjects)
 
     return { success: true }
+}
+
+/**
+ * Generate a preview of Algolia index records for a gdoc.
+ * Returns the records that would be created when indexing this gdoc.
+ */
+export async function getPreviewGdocIndexRecords(
+    _req: Request,
+    res: e.Response<PagesIndexRecordsResponse, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+): Promise<PagesIndexRecordsResponse> {
+    const { id } = _req.params
+    const contentSource = _req.query.contentSource as
+        | GdocsContentSource
+        | undefined
+
+    try {
+        const gdoc = await getAndLoadGdocById(trx, id, contentSource, false)
+
+        if (!gdoc) {
+            throw new JsonError(`No Google Doc with id ${id} found`)
+        }
+
+        const gdocJson = gdoc.toJSON()
+
+        // Provide fallback dates to avoid issues in record generation, where
+        // dates are expected
+        const fallbackDate = gdocJson.publishedAt ?? new Date()
+        gdocJson.publishedAt = fallbackDate
+        gdocJson.updatedAt ??= fallbackDate
+
+        res.set("Cache-Control", "no-store")
+
+        // Only generate records for posts (excluding fragments)
+        if (
+            !checkIsGdocPostExcludingFragments(gdocJson) &&
+            !checkIsDataInsight(gdocJson)
+        ) {
+            const payload: PagesIndexRecordsResponse = {
+                records: [],
+                count: 0,
+                message: `Gdoc type "${gdocJson.content.type}" is not indexed in Algolia`,
+            }
+            return payload
+        }
+
+        const records = await getIndividualGdocRecords(gdocJson, trx)
+
+        const payload: PagesIndexRecordsResponse = {
+            records,
+            count: records.length,
+        }
+
+        return payload
+    } catch (error) {
+        console.error("Error generating gdoc index records", error)
+        if (error instanceof Error) throw error
+        throw new Error(String(error))
+    }
 }

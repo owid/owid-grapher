@@ -8,6 +8,7 @@ import {
     faBug,
     faMobileScreen,
     faDesktop,
+    faList,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -26,6 +27,7 @@ enum GdocsMoreMenuAction {
     Unpublish = "unpublish",
     Delete = "delete",
     Mobile = "mobile",
+    Records = "records",
 }
 
 export const GdocsMoreMenu = ({
@@ -35,6 +37,7 @@ export const GdocsMoreMenu = ({
     onDelete,
     isMobilePreviewActive,
     toggleMobilePreview,
+    onOpenRecords,
 }: {
     gdoc: OwidGdoc
     onDebug: VoidFunction
@@ -42,6 +45,7 @@ export const GdocsMoreMenu = ({
     onDelete: (tombstone?: CreateTombstoneData) => Promise<void>
     isMobilePreviewActive: boolean
     toggleMobilePreview: () => void
+    onOpenRecords: VoidFunction
 }) => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
@@ -77,6 +81,10 @@ export const GdocsMoreMenu = ({
                                 break
                             case GdocsMoreMenuAction.Mobile:
                                 toggleMobilePreview()
+                                break
+                            case GdocsMoreMenuAction.Records:
+                                onOpenRecords()
+                                break
                         }
                     },
                     items: [
@@ -99,6 +107,11 @@ export const GdocsMoreMenu = ({
                                     }
                                 />
                             ),
+                        },
+                        {
+                            key: GdocsMoreMenuAction.Records,
+                            label: "Preview records",
+                            icon: <FontAwesomeIcon icon={faList} />,
                         },
                         {
                             key: GdocsMoreMenuAction.Unpublish,

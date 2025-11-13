@@ -187,32 +187,32 @@ function formatGdocMarkdown(content: string): string {
     return withoutArrow
 }
 
+const getPostImportance = (
+    gdoc:
+        | OwidGdocAboutInterface
+        | OwidGdocDataInsightInterface
+        | OwidGdocPostInterface
+): number => {
+    return match(gdoc.content.type)
+        .with(OwidGdocType.Article, () =>
+            "deprecation-notice" in gdoc.content ? -0.5 : 0
+        )
+        .with(OwidGdocType.AboutPage, () => 1)
+        .with(
+            P.union(OwidGdocType.TopicPage, OwidGdocType.LinearTopicPage),
+            () => 3
+        )
+        .with(P.union(OwidGdocType.Fragment, undefined), () => 0)
+        .with(OwidGdocType.DataInsight, () => 0)
+        .exhaustive()
+}
+
 async function generateGdocRecords(
     gdocs: (OwidGdocPostInterface | OwidGdocDataInsightInterface)[],
     pageviews: Record<string, RawPageview>,
     cloudflareImagesByFilename: Record<string, DbEnrichedImage>,
     knex: db.KnexReadonlyTransaction
 ): Promise<PageRecord[]> {
-    const getPostImportance = (
-        gdoc:
-            | OwidGdocAboutInterface
-            | OwidGdocDataInsightInterface
-            | OwidGdocPostInterface
-    ): number => {
-        return match(gdoc.content.type)
-            .with(OwidGdocType.Article, () =>
-                "deprecation-notice" in gdoc.content ? -0.5 : 0
-            )
-            .with(OwidGdocType.AboutPage, () => 1)
-            .with(
-                P.union(OwidGdocType.TopicPage, OwidGdocType.LinearTopicPage),
-                () => 3
-            )
-            .with(P.union(OwidGdocType.Fragment, undefined), () => 0)
-            .with(OwidGdocType.DataInsight, () => 0)
-            .exhaustive()
-    }
-
     const topicHierarchiesByChildName =
         await db.getTopicHierarchiesByChildName(knex)
 
@@ -371,27 +371,8 @@ export async function indexIndividualGdocPost(
         return
     }
     const indexName = getIndexName(SearchIndexName.Pages)
-    const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
-    const cloudflareImagesByFilename = await db
-        .getCloudflareImages(knex)
-        .then((images) => _.keyBy(images, "filename"))
-    const existingPageviews = pageviews[`/${indexedSlug}`]
-    const pageviewsForGdoc = {
-        [gdoc.slug]: existingPageviews || {
-            views_7d: 0,
-            views_14d: 0,
-            views_365d: 0,
-            day: new Date(),
-            url: gdoc.slug,
-        },
-    }
 
-    const records = await generateGdocRecords(
-        [gdoc],
-        pageviewsForGdoc,
-        cloudflareImagesByFilename,
-        knex
-    )
+    const records = await getIndividualGdocRecords(gdoc, knex)
 
     const existingRecordsForPost: Hit[] = await getExistingRecordsForSlug(
         client,
@@ -425,6 +406,39 @@ export async function indexIndividualGdocPost(
     } catch (e) {
         console.error("Error indexing Gdoc post to Algolia: ", e)
     }
+}
+
+/**
+ * Get Algolia records for a single gdoc
+ */
+export async function getIndividualGdocRecords(
+    gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface,
+    knex: db.KnexReadonlyTransaction,
+    indexedSlug?: string
+) {
+    const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
+    const cloudflareImagesByFilename = await db
+        .getCloudflareImages(knex)
+        .then((images) => _.keyBy(images, "filename"))
+
+    // Use indexedSlug if provided (for slug changes), otherwise use gdoc.slug
+    const existingPageviews = pageviews[`/${indexedSlug ?? gdoc.slug}`]
+    const pageviewsForGdoc = {
+        [gdoc.slug]: existingPageviews || {
+            views_7d: 0,
+            views_14d: 0,
+            views_365d: 0,
+            day: new Date(),
+            url: gdoc.slug,
+        },
+    }
+
+    return generateGdocRecords(
+        [gdoc],
+        pageviewsForGdoc,
+        cloudflareImagesByFilename,
+        knex
+    )
 }
 
 export async function removeIndividualGdocPostFromIndex(
