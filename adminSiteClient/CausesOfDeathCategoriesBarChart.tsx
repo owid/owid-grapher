@@ -4,7 +4,6 @@ import { EntityName, Time } from "@ourworldindata/types"
 import {
     DataRow,
     CAUSE_OF_DEATH_CATEGORY_COLORS,
-    CauseOfDeathCategory,
 } from "./CausesOfDeathConstants"
 import { MyCausesOfDeathMetadata } from "./CausesOfDeathMetadata"
 import useChartDimensions, { DimensionsConfig } from "./useChartDimensions"
@@ -13,7 +12,7 @@ import { isDarkColor } from "@ourworldindata/grapher/src/color/ColorUtils"
 import { formatPercentSigFig } from "./CausesOfDeathHelpers"
 
 interface CategoryData {
-    category: CauseOfDeathCategory
+    category: string
     value: number
     percentage: number
     color: string
@@ -65,14 +64,14 @@ function groupDataByCategories(
     metadata: MyCausesOfDeathMetadata
 ): CategoryData[] {
     // Group data by category and sum values
-    const categoryTotals = new Map<CauseOfDeathCategory, number>()
+    const categoryTotals = new Map<string, number>()
 
     data.forEach((row) => {
         const categoryName = metadata.categoryNameByVariableName.get(
             row.variable
         )
         if (categoryName) {
-            const category = categoryName as CauseOfDeathCategory
+            const category = categoryName as string
             const currentTotal = categoryTotals.get(category) || 0
             categoryTotals.set(category, currentTotal + row.value)
         }
