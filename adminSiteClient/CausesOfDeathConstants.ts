@@ -26,68 +26,69 @@ export interface CausesOfDeathEntityData {
     years: number[]
 }
 
-export const CAUSE_OF_DEATH_INDICATOR_NAMES = [
-    "Cancers",
-    "Chronic respiratory diseases",
-    "Diabetes and kidney diseases",
-    "Diarrheal diseases",
-    "Digestive diseases",
-    "Heart diseases",
-    "HIV/AIDS",
-    "Interpersonal violence",
-    "Malaria",
-    "Maternal disorders",
-    "Neonatal disorders",
-    "Neurological disorders",
-    "Nutritional deficiencies",
-    "Other infectious diseases",
-    "Other injuries",
-    "Other non-communicable diseases",
-    "Pneumonia",
-    "Suicide",
-    "Transport injuries",
-    "Tuberculosis",
-] as const
+// export const CAUSE_OF_DEATH_INDICATOR_NAMES = [
+//     "Cancers",
+//     "Chronic respiratory diseases",
+//     "Diabetes and kidney diseases",
+//     "Diarrheal diseases",
+//     "Digestive diseases",
+//     "Heart diseases",
+//     "HIV/AIDS",
+//     "Interpersonal violence",
+//     "Malaria",
+//     "Maternal disorders",
+//     "Neonatal disorders",
+//     "Neurological disorders",
+//     "Nutritional deficiencies",
+//     "Other infectious diseases",
+//     "Other injuries",
+//     "Other non-communicable diseases",
+//     "Pneumonia",
+//     "Suicide",
+//     "Transport injuries",
+//     "Tuberculosis",
+// ] as const
 
-export const isCauseOfDeathIndicatorName = (
-    name: string
-): name is CauseOfDeathIndicatorName =>
-    CAUSE_OF_DEATH_INDICATOR_NAMES.includes(name as any)
+// export const isCauseOfDeathIndicatorName = (
+//     name: string
+// ): name is CauseOfDeathIndicatorName =>
+//     CAUSE_OF_DEATH_INDICATOR_NAMES.includes(name as any)
 
-export const CAUSE_OF_DEATH_CATEGORIES = [
-    "Noncommunicable diseases",
-    "Infectious diseases",
-    "Maternal, neonatal, and nutritional disorders",
-    "Injuries",
-] as const
+// export const CAUSE_OF_DEATH_CATEGORIES = [
+//     "Noncommunicable diseases",
+//     "Infectious diseases",
+//     "Maternal, neonatal, and nutritional disorders",
+//     "Injuries",
+// ] as const
 
 export const CAUSE_OF_DEATH_CATEGORY_COLORS: Record<string, string> = {
     "Noncommunicable diseases": "#074964",
     "Infectious diseases": "#A5184D",
     "Maternal, neonatal, and nutritional disorders": "#B73696",
     Injuries: "#0B9D75",
+    "Neonatal disorders": "#591347",
 }
 
-export type CauseOfDeathIndicatorName =
-    (typeof CAUSE_OF_DEATH_INDICATOR_NAMES)[number]
-export type CauseOfDeathCategory = (typeof CAUSE_OF_DEATH_CATEGORIES)[number]
+// export type CauseOfDeathIndicatorName =
+//     (typeof CAUSE_OF_DEATH_INDICATOR_NAMES)[number]
+// export type CauseOfDeathCategory = (typeof CAUSE_OF_DEATH_CATEGORIES)[number]
 
 export type FetchedDataRow = {
     Entity: EntityName
     Year: Time
-} & Record<CauseOfDeathIndicatorName, number>
+} & Record<string, number> // CauseOfDeathIndicatorName to value mapping
 
 export interface DataRow {
     // todo: remove
     entityName: EntityName
     year: Time
-    variable: CauseOfDeathIndicatorName
+    variable: string
     value: number
     share: number
 }
 
 export interface EnrichedDataRow extends DataRow {
-    category: CauseOfDeathCategory
+    category: string // CauseOfDeathCategory
 }
 
 export const COUNTRIES_WITH_DEFINITE_ARTICLE = [

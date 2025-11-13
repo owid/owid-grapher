@@ -1,10 +1,7 @@
 import { EntityName as _EntityName } from "@ourworldindata/types"
 import * as d3 from "d3"
 import { useState } from "react"
-import {
-    CAUSE_OF_DEATH_INDICATOR_NAMES as _CAUSE_OF_DEATH_INDICATOR_NAMES,
-    FetchedDataRow as _FetchedDataRow,
-} from "./CausesOfDeathConstants"
+import { FetchedDataRow as _FetchedDataRow } from "./CausesOfDeathConstants"
 import { CausesOfDeathCaptionedChart } from "./CausesOfDeathTreemap"
 import { stackedSliceDiceTiling } from "./stackedSliceDiceTiling.js"
 
@@ -26,9 +23,18 @@ const availableTilingMethods = {
 
 type TilingMethodKey = keyof typeof availableTilingMethods
 
+type AgeGroup = "all-ages" | "under-5"
+
+const availableAgeGroups = {
+    "all-ages": { label: "All ages" },
+    "under-5": { label: "Under 5 year olds" },
+} as const
+
 export function CausesOfDeathPage() {
     const [selectedTilingMethod, setSelectedTilingMethod] =
         useState<TilingMethodKey>("custom")
+    const [selectedAgeGroup, setSelectedAgeGroup] =
+        useState<AgeGroup>("all-ages")
     const [minThickness, setMinThickness] = useState<number>(120)
     const [innerMinThickness, setInnerMinThickness] = useState<number>(40)
     const [debug, setDebug] = useState<boolean>(false)
@@ -63,6 +69,13 @@ export function CausesOfDeathPage() {
                     >
                         Settings
                     </h3>
+
+                    <div style={{ marginBottom: "15px" }}>
+                        <AgeGroupSelect
+                            selectedAgeGroup={selectedAgeGroup}
+                            onAgeGroupChange={setSelectedAgeGroup}
+                        />
+                    </div>
 
                     <div style={{ marginBottom: "15px" }}>
                         <TilingSelect
@@ -107,6 +120,7 @@ export function CausesOfDeathPage() {
             <div style={{ padding: "0 20px" }}>
                 <CausesOfDeathCaptionedChart
                     tilingMethod={tilingMethod}
+                    selectedAgeGroup={selectedAgeGroup}
                     debug={debug}
                 />
             </div>
@@ -149,6 +163,49 @@ function TilingSelect({ selectedTiling, onTilingChange }: TilingSelectProps) {
                 {Object.entries(availableTilingMethods).map(([key, method]) => (
                     <option key={key} value={key}>
                         {method.label}
+                    </option>
+                ))}
+            </select>
+        </div>
+    )
+}
+
+interface AgeGroupSelectProps {
+    selectedAgeGroup: AgeGroup
+    onAgeGroupChange: (ageGroup: AgeGroup) => void
+}
+
+function AgeGroupSelect({
+    selectedAgeGroup,
+    onAgeGroupChange,
+}: AgeGroupSelectProps) {
+    return (
+        <div style={{ display: "flex", alignItems: "baseline", gap: "10px" }}>
+            <label
+                htmlFor="age-group-select"
+                style={{
+                    fontWeight: "600",
+                    fontSize: "14px",
+                    minWidth: "120px",
+                }}
+            >
+                Age Group:
+            </label>
+            <select
+                id="age-group-select"
+                value={selectedAgeGroup}
+                onChange={(e) => onAgeGroupChange(e.target.value as AgeGroup)}
+                style={{
+                    padding: "8px 12px",
+                    minWidth: "150px",
+                    border: "1px solid #ccc",
+                    borderRadius: "4px",
+                    fontSize: "14px",
+                }}
+            >
+                {Object.entries(availableAgeGroups).map(([key, ageGroup]) => (
+                    <option key={key} value={key}>
+                        {ageGroup.label}
                     </option>
                 ))}
             </select>

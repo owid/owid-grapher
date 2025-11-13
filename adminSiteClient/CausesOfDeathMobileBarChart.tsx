@@ -1,7 +1,6 @@
 import { useMemo } from "react"
 import * as R from "remeda"
 import {
-    CAUSE_OF_DEATH_CATEGORIES,
     CAUSE_OF_DEATH_CATEGORY_COLORS,
     DataRow,
 } from "./CausesOfDeathConstants"
@@ -47,15 +46,15 @@ export function CausesOfDeathMobileBarChart({
 
         // Convert to percentage ratios (0-1) and create bar data
         const barData: CategoryBarData[] = []
-        for (const category of CAUSE_OF_DEATH_CATEGORIES) {
-            const total = categoryTotals.get(category) || 0
+        for (const category of metadata.categories) {
+            const total = categoryTotals.get(category.name) || 0
             const percentage = total / totalDeaths
             const formattedPercentage = formatPercentSigFig(percentage)
 
             barData.push({
-                category,
+                category: category.name,
                 percentage,
-                color: CAUSE_OF_DEATH_CATEGORY_COLORS[category],
+                color: CAUSE_OF_DEATH_CATEGORY_COLORS[category.name] ?? "red",
                 formattedPercentage,
             })
         }

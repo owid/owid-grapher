@@ -2976,6 +2976,7 @@ export class GrapherState {
 
     // Whether a server-side download is available for the download modal
     @computed get isServerSideDownloadAvailable(): boolean {
+        return false
         return (
             // Chart is published (this is false for charts inside explorers, for example)
             !!this.isPublished &&

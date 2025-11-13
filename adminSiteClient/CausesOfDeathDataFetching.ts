@@ -3,28 +3,49 @@ import {
     CausesOfDeathEntityData,
     CausesOfDeathMetadata,
     DataRow,
-    isCauseOfDeathIndicatorName,
 } from "./CausesOfDeathConstants"
 import { fetchJson } from "@ourworldindata/utils"
 import { MyCausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
 
-export const CAUSES_OF_DEATH_METADATA_PATH = "/causes-of-death.metadata.json"
-export const CAUSES_OF_DEATH_DATA_PATH_TEMPLATE =
-    "/causes-of-death.{entityId}.data.json"
-
-const queryKeys = {
-    metadata: () => ["causes-of-death", "metadata"],
-    data: (entityId: number) => ["causes-of-death", "data", entityId],
+const getDataPaths = (ageGroup: "all-ages" | "under-5") => {
+    if (ageGroup === "under-5") {
+        return {
+            metadata: "/children-under-5-deaths.metadata.json",
+            data: "/children-under-5-deaths.{entityId}.data.json",
+        }
+    } else {
+        return {
+            metadata: "/causes-of-death.metadata.json",
+            data: "/causes-of-death.{entityId}.data.json",
+        }
+    }
 }
 
-export const useCausesOfDeathMetadata = (): {
+const queryKeys = {
+    metadata: (ageGroup: "all-ages" | "under-5") => [
+        "causes-of-death",
+        ageGroup,
+        "metadata",
+    ],
+    data: (entityId: number, ageGroup: "all-ages" | "under-5") => [
+        "causes-of-death",
+        ageGroup,
+        "data",
+        entityId,
+    ],
+}
+
+export const useCausesOfDeathMetadata = (
+    ageGroup: "all-ages" | "under-5" = "under-5"
+): {
     data?: MyCausesOfDeathMetadata
     status: QueryStatus
 } => {
+    const paths = getDataPaths(ageGroup)
+
     const result = useQuery({
-        queryKey: queryKeys.metadata(),
-        queryFn: () =>
-            fetchJson<CausesOfDeathMetadata>(CAUSES_OF_DEATH_METADATA_PATH),
+        queryKey: queryKeys.metadata(ageGroup),
+        queryFn: () => fetchJson<CausesOfDeathMetadata>(paths.metadata),
     })
 
     const data = result.data
@@ -39,17 +60,16 @@ export const useCausesOfDeathMetadata = (): {
 /** Fetch data for a specific entity */
 export const useCausesOfDeathEntityData = (
     entityName: string,
-    metadata: MyCausesOfDeathMetadata | undefined
+    metadata: MyCausesOfDeathMetadata | undefined,
+    ageGroup: "all-ages" | "under-5" = "under-5"
 ) => {
     const entityId = metadata?.entityNameToId.get(entityName)
+    const paths = getDataPaths(ageGroup)
 
     const result = useQuery({
-        queryKey: queryKeys.data(entityId!),
+        queryKey: queryKeys.data(entityId!, ageGroup),
         queryFn: async (): Promise<CausesOfDeathEntityData> => {
-            const path = CAUSES_OF_DEATH_DATA_PATH_TEMPLATE.replace(
-                "{entityId}",
-                entityId!.toString()
-            )
+            const path = paths.data.replace("{entityId}", entityId!.toString())
             return fetchJson<CausesOfDeathEntityData>(path)
         },
         enabled: entityId !== undefined,
@@ -83,12 +103,13 @@ export const parseEntityData = (
             const variable = metadata.variableById.get(variableId)?.name
             if (!variable) return null
 
-            if (!isCauseOfDeathIndicatorName(variable)) {
-                console.warn(`Unknown variable name: ${variable}`)
-                return null
-            }
+            // TODO
+            // if (!isCauseOfDeathIndicatorName(variable)) {
+            //     console.warn(`Unknown variable name: ${variable}`)
+            //     return null
+            // }
 
-            return { entityName, year, variable, value }
+            return { entityName, year, variable, value, share: 0 } // TODO: share?
         })
         .filter((item) => item !== null)
 }
