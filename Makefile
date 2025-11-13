@@ -231,6 +231,9 @@ test: node_modules
 	@echo '==> Checking formatting'
 	yarn testPrettierAll
 
+	@echo '==> Checking Raycast snippets'
+	yarn checkRaycastSnippets
+
 	@echo '==> Running tests'
 	yarn run test
 
