@@ -27,9 +27,11 @@ import { MyCausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
 
 export function CausesOfDeathCaptionedChart({
     tilingMethod = d3.treemapSquarify,
+    selectedAgeGroup = "all-ages",
     debug = false,
 }: {
     tilingMethod?: any
+    selectedAgeGroup?: "all-ages" | "under-5"
     debug?: boolean
 }) {
     const isNarrow = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
@@ -40,7 +42,7 @@ export function CausesOfDeathCaptionedChart({
 
     // Fetch metadata
     const { data: metadata, status: metadataStatus } =
-        useCausesOfDeathMetadata()
+        useCausesOfDeathMetadata(selectedAgeGroup)
 
     // Fetch data for the selected entity
     const {
@@ -48,7 +50,11 @@ export function CausesOfDeathCaptionedChart({
         status: entityDataStatus,
         isPlaceholderData,
         isFetching,
-    } = useCausesOfDeathEntityData(selectedEntityName, metadata)
+    } = useCausesOfDeathEntityData(
+        selectedEntityName,
+        metadata,
+        selectedAgeGroup
+    )
 
     // Extract available years from entity data
     const availableYears = useMemo(
@@ -96,8 +102,16 @@ export function CausesOfDeathCaptionedChart({
                 data={data}
                 entityName={entityName}
                 year={currentYear}
+                selectedAgeGroup={selectedAgeGroup}
             />
             <SideBySide>
+                <AgeBracketDropdown
+                    className="causes-of-death__entity-dropdown"
+                    availableAgeBrackets={["all-ages", "under-5"]}
+                    selectedAgeBracket={selectedAgeGroup}
+                    onChange={() => void 0}
+                    isLoading={isFetching}
+                />
                 <EntityDropdown
                     className="causes-of-death__entity-dropdown"
                     availableEntities={metadata?.availableEntities}
@@ -151,10 +165,12 @@ function CausesOfDeathHeader({
     data,
     entityName,
     year,
+    selectedAgeGroup = "under-5",
 }: {
     data: DataRow[]
     entityName: EntityName
     year: Time
+    selectedAgeGroup?: "all-ages" | "under-5"
 }) {
     const numTotalDeaths = useMemo(
         () =>
@@ -176,17 +192,25 @@ function CausesOfDeathHeader({
             ? "globally"
             : `in ${formatCountryName(entityName)}`
 
+    const ageGroupDescription =
+        selectedAgeGroup === "under-5" ? "children under 5" : "people"
+    const titleQuestion =
+        selectedAgeGroup === "under-5"
+            ? "What do children die from?"
+            : "What do people die from?"
+
     return (
         <header className="causes-of-death-header">
             <h1>
-                What do people die from?{" "}
+                {titleQuestion}{" "}
                 <span>
                     Causes of death {locationDescription} in {year}
                 </span>
             </h1>
             <p className="causes-of-death-header__subtitle">
                 The size of the entire visualization represents the total number
-                of deaths in {formatCountryName(entityName)} in {year}:{" "}
+                of deaths among {ageGroupDescription} in{" "}
+                {formatCountryName(entityName)} in {year}:{" "}
                 {formattedNumTotalDeaths}. Each rectangle within is proportional
                 to the share of deaths due to a particular cause.
             </p>
@@ -279,6 +303,59 @@ function EntityDropdown({
     )
 }
 
+function AgeBracketDropdown({
+    availableAgeBrackets,
+    selectedAgeBracket,
+    onChange,
+    className,
+    isLoading,
+}: {
+    availableAgeBrackets: ("all-ages" | "under-5")[]
+    selectedAgeBracket: "all-ages" | "under-5"
+    onChange: (ageBracket: string) => void
+    className?: string
+    isLoading?: boolean
+}) {
+    const options = useMemo(() => {
+        return (
+            availableAgeBrackets?.map((ageBracket: string) => ({
+                value: ageBracket,
+                label: ageBracket === "all-ages" ? "All" : "Under 5",
+                id: ageBracket,
+            })) ?? []
+        )
+    }, [availableAgeBrackets])
+
+    const selectedValue = useMemo(() => {
+        return (
+            options.find((entity) => entity.value === selectedAgeBracket) ||
+            null
+        )
+    }, [options, selectedAgeBracket])
+
+    const handleChange = useCallback(
+        (option: BasicDropdownOption | null) => {
+            onChange(option?.value ?? "all-ages")
+        },
+        [onChange]
+    )
+
+    return (
+        <Dropdown
+            className={className}
+            options={options}
+            value={selectedValue}
+            onChange={handleChange}
+            placeholder="Select an age bracket..."
+            isSearchable={true}
+            isClearable={false}
+            isLoading={isLoading}
+            aria-label="Select age bracket"
+            renderTriggerValue={renderAgeBracketTriggerValue}
+        />
+    )
+}
+
 function SideBySide({ children }: { children: React.ReactNode }) {
     return <div className="side-by-side">{children}</div>
 }
@@ -345,6 +422,18 @@ function renderRegionTriggerValue(
     return (
         <>
             <span className="label">Region: </span>
+            {option.label}
+        </>
+    )
+}
+
+function renderAgeBracketTriggerValue(
+    option: BasicDropdownOption | null
+): React.ReactNode | undefined {
+    if (!option) return undefined
+    return (
+        <>
+            <span className="label">Age: </span>
             {option.label}
         </>
     )
