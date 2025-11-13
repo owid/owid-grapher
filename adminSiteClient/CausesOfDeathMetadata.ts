@@ -1,18 +1,20 @@
 import * as R from "remeda"
 import { EntityName } from "@ourworldindata/types"
 import {
+    AgeGroupMetadata,
     CategoryMetadata,
-    CausesOfDeathMetadata,
+    MetadataJson,
     EntityMetadata,
     VariableMetadata,
 } from "./CausesOfDeathConstants.js"
 
-export class MyCausesOfDeathMetadata {
-    private metadata: CausesOfDeathMetadata
+export class CausesOfDeathMetadata {
+    private metadata: MetadataJson
 
-    dimensions: CausesOfDeathMetadata["dimensions"]
-    categories: CausesOfDeathMetadata["categories"]
-    source: CausesOfDeathMetadata["source"]
+    dimensions: MetadataJson["dimensions"]
+    private categories: MetadataJson["categories"]
+    source: MetadataJson["source"]
+    timeRange: MetadataJson["timeRange"]
 
     private _entityNameToId?: Map<EntityName, number>
     private _variableById?: Map<number, VariableMetadata>
@@ -20,12 +22,13 @@ export class MyCausesOfDeathMetadata {
     private _categoryById?: Map<number, CategoryMetadata>
     private _categoryNameByVariableName?: Map<string, string>
 
-    constructor(metadata: CausesOfDeathMetadata) {
+    constructor(metadata: MetadataJson) {
         this.metadata = metadata
 
         this.dimensions = metadata.dimensions
         this.categories = metadata.categories
         this.source = metadata.source
+        this.timeRange = metadata.timeRange
     }
 
     get entityNameToId(): Map<EntityName, number> {
@@ -67,6 +70,21 @@ export class MyCausesOfDeathMetadata {
         return this._variableByName
     }
 
+    get ageGroupById(): Map<number, AgeGroupMetadata> {
+        return new Map(
+            this.dimensions.ageGroups.map((ageGroup) => [ageGroup.id, ageGroup])
+        )
+    }
+
+    get ageGroupByName(): Map<string, AgeGroupMetadata> {
+        return new Map(
+            this.dimensions.ageGroups.map((ageGroup) => [
+                ageGroup.name,
+                ageGroup,
+            ])
+        )
+    }
+
     get categoryById(): Map<number, CategoryMetadata> {
         if (this._categoryById) return this._categoryById
 
@@ -96,5 +114,28 @@ export class MyCausesOfDeathMetadata {
         )
 
         return this._categoryNameByVariableName
+    }
+
+    categoriesForAgeGroup(ageGroupName: string): CategoryMetadata[] {
+        const variablesForAgeGroup = this.dimensions.variables.filter(
+            (variable) =>
+                this.ageGroupById.get(variable.ageGroup)?.name === ageGroupName
+        )
+
+        const categoryIds = R.unique(
+            variablesForAgeGroup.map((v) => v.category)
+        )
+
+        return categoryIds
+            .map((c) => this.categoryById.get(c))
+            .filter((c) => c !== undefined)
+    }
+
+    get availableYears(): number[] {
+        return R.range(this.timeRange.start, this.timeRange.end + 1)
+    }
+
+    get availableAgeGroups(): string[] {
+        return this.dimensions.ageGroups.map((ageGroup) => ageGroup.name)
     }
 }

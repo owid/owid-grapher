@@ -7,23 +7,33 @@ interface BasicEntry {
     name: string
 }
 
+export type AgeGroup = "All ages" | "Children under 5"
+
 export type CategoryMetadata = BasicEntry
 export type EntityMetadata = BasicEntry
 export type VariableMetadata = BasicEntry & {
     description: string
     category: NumericId
+    ageGroup: NumericId
 }
+export type AgeGroupMetadata = BasicEntry
 
-export interface CausesOfDeathMetadata {
+export interface MetadataJson {
     source: string
     categories: CategoryMetadata[]
-    dimensions: { entities: EntityMetadata[]; variables: VariableMetadata[] }
+    dimensions: {
+        entities: EntityMetadata[]
+        variables: VariableMetadata[]
+        ageGroups: AgeGroupMetadata[]
+    }
+    timeRange: { start: number; end: number }
 }
 
-export interface CausesOfDeathEntityData {
+export interface DataJson {
     values: number[]
     variables: number[]
     years: number[]
+    ageGroups: number[]
 }
 
 // export const CAUSE_OF_DEATH_INDICATOR_NAMES = [
@@ -79,11 +89,14 @@ export type FetchedDataRow = {
 } & Record<string, number> // CauseOfDeathIndicatorName to value mapping
 
 export interface DataRow {
-    // todo: remove
     entityName: EntityName
     year: Time
     variable: string
+    ageGroup: string
     value: number
+}
+
+export interface EnrichedDataRows extends DataRow {
     share: number
 }
 
