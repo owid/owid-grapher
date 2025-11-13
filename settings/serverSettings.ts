@@ -26,8 +26,7 @@ export const DATA_API_FOR_ADMIN_UI: string | undefined =
     serverSettings.DATA_API_FOR_ADMIN_UI
 export const BAKED_BASE_URL: string = clientSettings.BAKED_BASE_URL
 
-export const ARCHIVE_BASE_URL: string | null =
-    serverSettings.ARCHIVE_BASE_URL || null
+export const ARCHIVE_BASE_URL: string | null = clientSettings.ARCHIVE_BASE_URL
 
 export const CLOUDFLARE_IMAGES_URL = clientSettings.CLOUDFLARE_IMAGES_URL
 
