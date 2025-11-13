@@ -8,7 +8,7 @@ import {
     FilterType,
     SearchResultType,
     SearchUrlParam,
-} from "./searchTypes.js"
+} from "@ourworldindata/types"
 import {
     createCountryFilter,
     createTopicFilter,

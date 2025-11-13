@@ -1,7 +1,7 @@
 import cx from "classnames"
 import { Highlight } from "react-instantsearch"
 import { getIndexName } from "./searchClient.js"
-import { SearchChartHit, SearchIndexName } from "./searchTypes.js"
+import { SearchChartHit, SearchIndexName } from "@ourworldindata/types"
 
 interface SearchChartHitHeaderProps {
     hit: SearchChartHit

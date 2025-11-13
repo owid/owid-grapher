@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useEffect } from "react"
 import { useSearchContext } from "./SearchContext.js"
 import { getFilterIcon, extractFiltersFromQuery } from "./searchUtils.js"
-import { FilterType, ScoredFilterPositioned } from "./searchTypes.js"
+import { FilterType, ScoredFilterPositioned } from "@ourworldindata/types"
 import { SearchFilterPill } from "./SearchFilterPill.js"
 import { listedRegionsNames } from "@ourworldindata/utils"
 

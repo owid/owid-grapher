@@ -1,7 +1,10 @@
 import { useMemo } from "react"
 import { buildChartHitDataDisplayProps, Tippy } from "@ourworldindata/utils"
-import { GRAPHER_TAB_NAMES, GrapherChartType } from "@ourworldindata/types"
-import { SearchChartHitComponentProps } from "./searchTypes.js"
+import {
+    GRAPHER_TAB_NAMES,
+    GrapherChartType,
+    SearchChartHitComponentProps,
+} from "@ourworldindata/types"
 import {
     constructChartUrl,
     pickEntitiesForChartHit,

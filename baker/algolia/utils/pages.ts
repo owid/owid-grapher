@@ -17,10 +17,7 @@ import {
     Span,
 } from "@ourworldindata/utils"
 import { getAlgoliaClient } from "../configureAlgolia.js"
-import {
-    PageRecord,
-    SearchIndexName,
-} from "../../../site/search/searchTypes.js"
+import { PageRecord, SearchIndexName } from "@ourworldindata/types"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import { getIndexName } from "../../../site/search/searchClient.js"
 import type { Hit, SearchClient } from "@algolia/client-search"

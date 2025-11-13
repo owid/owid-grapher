@@ -9,7 +9,7 @@ import {
     type DataInsightHit,
     type StackedArticleHit,
     FilterType,
-} from "./search/searchTypes.js"
+} from "@ourworldindata/types"
 import { getFilterNamesOfType } from "./search/searchUtils.js"
 import { findDOMParent } from "@ourworldindata/utils"
 

@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 import { queryDataTopics, searchQueryKeys } from "./queries.js"
 import { useSearchContext } from "./SearchContext.js"
 import { useSelectedTopic } from "./searchHooks.js"
-import { SearchDataTopicsResponse } from "./searchTypes.js"
+import { SearchDataTopicsResponse } from "@ourworldindata/types"
 import { SearchDataTopic } from "./SearchDataTopic.js"
 import { SearchDataTopicsResultsSkeleton } from "./SearchDataTopicsResultsSkeleton.js"
 

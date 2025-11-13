@@ -20,6 +20,9 @@ import {
     CoreRow,
     MinimalExplorerInfo,
     OwidColumnDef,
+    ChartRecord,
+    ChartRecordType,
+    ExplorerType,
 } from "@ourworldindata/types"
 
 import * as db from "../../../db/db.js"
@@ -47,11 +50,6 @@ import {
     processAvailableEntities as processRecordAvailableEntities,
     scaleRecordScores,
 } from "./shared.js"
-import {
-    ChartRecord,
-    ChartRecordType,
-    ExplorerType,
-} from "../../../site/search/searchTypes.js"
 
 /**
  * Matches "duplicate 1234", to catch the (hacky) rows that are using the `duplicate` transformation to create

@@ -10,7 +10,7 @@ import {
     createCountryFilter,
 } from "./searchUtils"
 
-import { FilterType, SynonymMap } from "./searchTypes.js"
+import { FilterType, SynonymMap } from "@ourworldindata/types"
 import { listedRegionsNames } from "@ourworldindata/utils"
 
 describe("Fuzzy search in search autocomplete", () => {

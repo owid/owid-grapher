@@ -6,14 +6,14 @@ import {
     PreviewVariant,
     RichDataComponentVariant,
 } from "./SearchChartHitRichDataTypes.js"
-import { SearchChartHitComponentVariant } from "./searchTypes"
-import { getTableColumnCountForGridSlotKey } from "@ourworldindata/utils"
 import {
+    SearchChartHitComponentVariant,
     GridSlotKey,
     LargeVariantGridSlotKey,
     MediumVariantGridSlotKey,
     LayoutSlot,
 } from "@ourworldindata/types"
+import { getTableColumnCountForGridSlotKey } from "@ourworldindata/utils"
 
 // Keep in sync with $scatter-thumbnail-width and $scatter-thumbnail-height in SearchChartHitRichData.scss
 const SCATTER_THUMBNAIL_WIDTH = 300

@@ -3,12 +3,10 @@ import {
     KeyChartLevel,
     ContentGraphLinkType,
     parseChartConfig,
-} from "@ourworldindata/types"
-import * as db from "../../../db/db.js"
-import {
     ChartRecord,
     ChartRecordType,
-} from "../../../site/search/searchTypes.js"
+} from "@ourworldindata/types"
+import * as db from "../../../db/db.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import { getRelatedArticles } from "../../../db/model/Post.js"
 import { getPublishedLinksTo } from "../../../db/model/Link.js"

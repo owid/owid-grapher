@@ -1,7 +1,11 @@
 import { createContext, useContext } from "react"
-import { SearchState, SynonymMap, TemplateConfig } from "./searchTypes.js"
+import {
+    SearchState,
+    SynonymMap,
+    TemplateConfig,
+    TagGraphRoot,
+} from "@ourworldindata/types"
 import { createActions } from "./searchState.js"
-import { TagGraphRoot } from "@ourworldindata/types"
 import { LiteClient } from "algoliasearch/lite"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 

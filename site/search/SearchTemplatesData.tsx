@@ -1,5 +1,5 @@
 import { match } from "ts-pattern"
-import { SearchTopicType } from "./searchTypes.js"
+import { SearchTopicType } from "@ourworldindata/types"
 import { useSearchContext } from "./SearchContext.js"
 import { SearchDataResults } from "./SearchDataResults.js"
 import { SearchDataTopicsResults } from "./SearchDataTopicsResults.js"

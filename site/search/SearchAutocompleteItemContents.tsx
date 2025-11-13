@@ -1,7 +1,7 @@
 import { faSearch, faFilter } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { match } from "ts-pattern"
-import { Filter, FilterType } from "./searchTypes"
+import { Filter, FilterType } from "@ourworldindata/types"
 import { SearchFilterPill } from "./SearchFilterPill.js"
 import { getFilterIcon } from "./searchUtils.js"
 

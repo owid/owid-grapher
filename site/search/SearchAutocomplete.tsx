@@ -12,7 +12,7 @@ import {
 } from "./searchUtils.js"
 import { useSearchAutocomplete } from "./SearchAutocompleteContext.js"
 import { SearchAutocompleteItemContents } from "./SearchAutocompleteItemContents.js"
-import { Filter, FilterType } from "./searchTypes.js"
+import { Filter, FilterType } from "@ourworldindata/types"
 import { useSearchContext } from "./SearchContext.js"
 import { listedRegionsNames } from "@ourworldindata/utils"
 import { useDebounceValue } from "usehooks-ts"

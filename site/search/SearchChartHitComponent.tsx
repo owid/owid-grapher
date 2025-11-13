@@ -4,7 +4,7 @@ import { SearchChartHitSmall } from "./SearchChartHitSmall.js"
 import {
     SearchChartHitComponentProps,
     SearchChartHitComponentVariant,
-} from "./searchTypes.js"
+} from "@ourworldindata/types"
 import { SearchChartHitRichData } from "./SearchChartHitRichData.js"
 import { MEDIUM_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 

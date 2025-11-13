@@ -1,6 +1,6 @@
 import { expect, it, describe, beforeEach } from "vitest"
 import { buildSynonymMap } from "./synonymUtils.js"
-import { SynonymMap } from "./searchTypes.js"
+import { SynonymMap } from "@ourworldindata/types"
 
 describe("buildSynonymMap", () => {
     let synonymMap: SynonymMap

@@ -1,5 +1,5 @@
 import { ALGOLIA_INDEX_PREFIX } from "../../settings/clientSettings.js"
-import { SearchIndexName } from "./searchTypes.js"
+import { SearchIndexName } from "@ourworldindata/types"
 
 export const getIndexName = (index: SearchIndexName | string): string => {
     if (ALGOLIA_INDEX_PREFIX !== "") {

@@ -1,10 +1,11 @@
-import { GrapherTabName, OwidGdocType } from "@ourworldindata/types"
 import type {
     SearchResponse,
     BaseHit,
     Hit,
     HitHighlightResult,
 } from "instantsearch.js"
+import { OwidGdocType } from "../gdocTypes/Gdoc.js"
+import { GrapherTabName } from "../grapherTypes/GrapherTypes.js"
 
 export interface PageRecord {
     objectID: string

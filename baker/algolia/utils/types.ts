@@ -3,8 +3,9 @@ import {
     FeaturedMetricIncomeGroup,
     GrapherInterface,
     GrapherTabName,
+    ChartRecord,
+    ExplorerType,
 } from "@ourworldindata/types"
-import { ChartRecord, ExplorerType } from "../../../site/search/searchTypes.js"
 import { OwidIncomeGroupName } from "@ourworldindata/utils"
 
 /** Charts */

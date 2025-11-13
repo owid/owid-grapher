@@ -1,8 +1,7 @@
 import cx from "classnames"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import { formatDate } from "@ourworldindata/utils"
-import { OwidGdocType } from "@ourworldindata/types"
-import { DataInsightHit } from "./searchTypes.js"
+import { OwidGdocType, DataInsightHit } from "@ourworldindata/types"
 
 export const SearchDataInsightHit = ({
     hit,
