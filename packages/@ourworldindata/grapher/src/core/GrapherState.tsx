@@ -3361,6 +3361,7 @@ export class GrapherState
 
     // Whether a server-side download is available for the download modal
     @computed get isServerSideDownloadAvailable(): boolean {
+        return false
         return (
             // We're not on an archival grapher page
             !this.isOnArchivalPage &&
