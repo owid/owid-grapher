@@ -1,0 +1,227 @@
+[
+    {
+        "name": "prominent-link",
+        "text": "{.prominent-link}\nurl: \n{}",
+        "keyword": "+prominent-link"
+    },
+    {
+        "name": "callout",
+        "text": "{.callout}\ntitle: \n[.+text]\n\n[]\n{}",
+        "keyword": "+callout"
+    },
+    {
+        "name": "additional-charts",
+        "text": "{.additional-charts}\n[.list]\n* \n[]\n{}",
+        "keyword": "+additional-charts"
+    },
+    {
+        "name": "align",
+        "text": "{.align}\nalignment: \n[.+content]\n\n[]\n{}",
+        "keyword": "+align"
+    },
+    {
+        "name": "all-charts",
+        "text": "{.all-charts}\nheading: \n[.top]\nurl: \n[]\n{}",
+        "keyword": "+all-charts"
+    },
+    {
+        "name": "aside",
+        "text": "{.aside}\nposition: \ncaption: \n{}",
+        "keyword": "+aside"
+    },
+    {
+        "name": "blockquote",
+        "text": "{.blockquote}\ncitation: \n[.+text]\n\n[]\n{}",
+        "keyword": "+blockquote"
+    },
+    {
+        "name": "chart",
+        "text": "{.chart}\nurl: \ncaption: \n{}",
+        "keyword": "+chart"
+    },
+    {
+        "name": "chart-story",
+        "text": "[.chart-story]\nnarrative: \nchart: \n{.technical}\n[.list]\n* \n[]\n{}\n[]",
+        "keyword": "+chart-story"
+    },
+    {
+        "name": "code",
+        "text": "[.+code]\n\n[]",
+        "keyword": "+code"
+    },
+    {
+        "name": "cookie-notice",
+        "text": "{.cookie-notice}\n{}",
+        "keyword": "+cookie-notice"
+    },
+    {
+        "name": "cta",
+        "text": "{.cta}\ntext: \nurl: \n{}",
+        "keyword": "+cta"
+    },
+    {
+        "name": "entry-summary",
+        "text": "{.entry-summary}\n[.items]\ntext: \nslug: \n[]\n{}",
+        "keyword": "+entry-summary"
+    },
+    {
+        "name": "expandable-paragraph",
+        "text": "[.+expandable-paragraph]\n\n[]",
+        "keyword": "+expandable-paragraph"
+    },
+    {
+        "name": "expander",
+        "text": "{.expander}\ntitle: \nsubtitle: \nheading: \n[.+content]\n\n[]\n{}",
+        "keyword": "+expander"
+    },
+    {
+        "name": "explorer-tiles",
+        "text": "{.explorer-tiles}\ntitle: \nsubtitle: \n[.explorers]\nurl: \nurl: \n[]\n{}",
+        "keyword": "+explorer-tiles"
+    },
+    {
+        "name": "gray-section",
+        "text": "[.+gray-section]\n\n[]",
+        "keyword": "+gray-section"
+    },
+    {
+        "name": "guided-chart",
+        "text": "[.+guided-chart]\n{.chart}\nurl: \n{}\n\n[]",
+        "keyword": "+guided-chart"
+    },
+    {
+        "name": "heading",
+        "text": "{.heading}\ntext: \nlevel: \n{}",
+        "keyword": "+heading"
+    },
+    {
+        "name": "horizontal-rule",
+        "text": "{.horizontal-rule}\n{}",
+        "keyword": "+horizontal-rule"
+    },
+    {
+        "name": "image",
+        "text": "{.image}\nfilename: \ncaption: \nsize: \n{}",
+        "keyword": "+image"
+    },
+    {
+        "name": "key-indicator",
+        "text": "{.key-indicator}\ndatapageUrl: \ntitle: \n[.+text]\n\n[]\n{}",
+        "keyword": "+key-indicator"
+    },
+    {
+        "name": "key-indicator-collection",
+        "text": "{.key-indicator-collection}\n[.+indicators]\n{.key-indicator}\ndatapageUrl: \ntitle: \n[.+text]\n\n[]\n{}\n{.key-indicator}\ndatapageUrl: \ntitle: \n[.+text]\n\n[]\n{}\n[]\n{}",
+        "keyword": "+key-indicator-collection"
+    },
+    {
+        "name": "key-insights",
+        "text": "{.key-insights}\nheading: \n[.insights]\ntitle: \nfilename: \n[.+content]\n\n\n[]\ntitle: \nurl: \n[.+content]\n\n\n[]\ntitle: \nnarrativeChartName: \n[.+content]\n\n\n[]\n[]\n{}",
+        "keyword": "+key-insights"
+    },
+    {
+        "name": "list",
+        "text": "[.list]\n* \n[]",
+        "keyword": "+list"
+    },
+    {
+        "name": "missing-data",
+        "text": "{.missing-data}\n{}",
+        "keyword": "+missing-data"
+    },
+    {
+        "name": "narrative-chart",
+        "text": "{.narrative-chart}\nname: \ncaption: \n{}",
+        "keyword": "+narrative-chart"
+    },
+    {
+        "name": "numbered-list",
+        "text": "[.numbered-list]\n* \n[]",
+        "keyword": "+numbered-list"
+    },
+    {
+        "name": "pull-quote",
+        "text": "{.pull-quote}\nquote: \nalign: \n[.+content]\n\n[]\n{}",
+        "keyword": "+pull-quote"
+    },
+    {
+        "name": "recirc",
+        "text": "{.recirc}\ntitle: \nalign: \n[.links]\nurl: \nurl: \ntitle: \nsubtitle: \n[]\n{}",
+        "keyword": "+recirc"
+    },
+    {
+        "name": "research-and-writing",
+        "text": "{.research-and-writing}\nheading: \nhide-authors: \nhide-date: \n[.primary]\nurl: \n[]\n[.secondary]\nurl: \nurl: \n[]\n{.more}\nheading: \n[.articles]\nurl: \nurl: \nauthors: \ntitle: \nfilename: \nurl: \nauthors: \ntitle: \nfilename: \n[]\n{}\n{.latest}\nheading: \n{}\n[.rows]\nheading: \n[.articles]\nurl: \nurl: \nauthors: \ntitle: \nfilename: \n[]\n[]\n{}",
+        "keyword": "+research-and-writing"
+    },
+    {
+        "name": "resource-panel",
+        "text": "{.resource-panel}\nicon: \nkicker: \ntitle: \nbuttonText: \n[.links]\nurl: \nurl: \ntitle: \nsubtitle: \n[]\n{}",
+        "keyword": "+resource-panel"
+    },
+    {
+        "name": "script",
+        "text": "[.+script]\n\n\n[]",
+        "keyword": "+script"
+    },
+    {
+        "name": "scroller",
+        "text": "[.+scroller]\nurl: \n\n[]",
+        "keyword": "+scroller"
+    },
+    {
+        "name": "sdg-toc",
+        "text": "{.sdg-toc}\n{}",
+        "keyword": "+sdg-toc"
+    },
+    {
+        "name": "side-by-side",
+        "text": "{ .side-by-side }\n[.+right]\n\n[]\n[.+left]\n\n[]\n{}",
+        "keyword": "+side-by-side"
+    },
+    {
+        "name": "sticky-left",
+        "text": "{ .sticky-left }\n[.+right]\n\n[]\n[.+left]\n\n[]\n{}",
+        "keyword": "+sticky-left"
+    },
+    {
+        "name": "sticky-right",
+        "text": "{ .sticky-right }\n[.+right]\n\n[]\n[.+left]\n\n[]\n{}",
+        "keyword": "+sticky-right"
+    },
+    {
+        "name": "subscribe-banner",
+        "text": "{.subscribe-banner}\nalign: \n{}",
+        "keyword": "+subscribe-banner"
+    },
+    {
+        "name": "table",
+        "text": "{.table}\ntemplate: \nsize: \ncaption: \n\n{}",
+        "keyword": "+table"
+    },
+    {
+        "name": "topic-page-intro",
+        "text": "{.topic-page-intro}\n[.+content]\n\n\n[]\n{.download-button}\ntext: \nurl: \n{}\n[.related-topics]\ntext: \nurl: \n[]\n{}",
+        "keyword": "+topic-page-intro"
+    },
+    {
+        "name": "video",
+        "text": "{.video}\nurl: \nfilename: \nshouldLoop: \ncaption: \n{}",
+        "keyword": "+video"
+    },
+    {
+        "name": "html",
+        "text": "html: \n:end",
+        "keyword": "+html"
+    },
+    {
+        "name": "sticky-right-with-chart",
+        "text": "{ .sticky-right }\n[.+right]\n{.chart}\nurl: \ncaption: \n{}\n[]\n[.+left]\n\n[]\n{}",
+        "keyword": "+sticky-right-with-chart"
+    },
+    {
+        "name": "sticky-left-with-chart",
+        "text": "{ .sticky-left }\n[.+right]\n{.chart}\nurl: \ncaption: \n{}\n[]\n[.+left]\n\n[]\n{}",
+        "keyword": "+sticky-left-with-chart"
+    }
+]
