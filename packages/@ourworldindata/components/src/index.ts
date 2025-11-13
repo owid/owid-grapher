@@ -1,4 +1,4 @@
-export { TextWrap, shortenForTargetWidth } from "./TextWrap/TextWrap.js"
+export { TextWrap, shortenWithEllipsis } from "./TextWrap/TextWrap.js"
 
 export {
     MarkdownTextWrap,
