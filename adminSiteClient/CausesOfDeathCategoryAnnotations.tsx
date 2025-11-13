@@ -5,7 +5,7 @@ import {
     CAUSE_OF_DEATH_CATEGORY_COLORS,
     TreeNode,
 } from "./CausesOfDeathConstants"
-import { MyCausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
+import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
 import Arrow from "./Arrow"
 import * as d3 from "d3"
 import * as R from "remeda"
@@ -29,7 +29,7 @@ export function CausesOfDeathCategoryAnnotations({
     debug,
 }: {
     data: DataRow[]
-    metadata: MyCausesOfDeathMetadata
+    metadata: CausesOfDeathMetadata
     treeNodes: TreeNode[]
     width: number
     annotationHeight: number

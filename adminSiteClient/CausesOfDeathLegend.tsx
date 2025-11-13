@@ -5,7 +5,7 @@ import {
     CAUSE_OF_DEATH_CATEGORY_COLORS,
     DataRow,
 } from "./CausesOfDeathConstants"
-import { MyCausesOfDeathMetadata } from "./CausesOfDeathMetadata"
+import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata"
 import { formatPercentSigFig } from "./CausesOfDeathHelpers"
 
 export function CausesOfDeathLegend({
@@ -13,7 +13,7 @@ export function CausesOfDeathLegend({
     metadata,
 }: {
     data: DataRow[]
-    metadata: MyCausesOfDeathMetadata
+    metadata: CausesOfDeathMetadata
 }) {
     const categoryPercentages = useMemo(() => {
         // Calculate total deaths

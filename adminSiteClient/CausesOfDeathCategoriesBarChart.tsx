@@ -5,7 +5,7 @@ import {
     DataRow,
     CAUSE_OF_DEATH_CATEGORY_COLORS,
 } from "./CausesOfDeathConstants"
-import { MyCausesOfDeathMetadata } from "./CausesOfDeathMetadata"
+import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata"
 import useChartDimensions, { DimensionsConfig } from "./useChartDimensions"
 import { TextWrap, MarkdownTextWrap } from "@ourworldindata/components"
 import { isDarkColor } from "@ourworldindata/grapher/src/color/ColorUtils"
@@ -41,7 +41,7 @@ interface BarSegmentLabel {
 
 interface CausesOfDeathCategoriesBarChartProps {
     data: DataRow[]
-    metadata: MyCausesOfDeathMetadata
+    metadata: CausesOfDeathMetadata
     entityName: EntityName
     year: Time
     width: number
@@ -51,7 +51,7 @@ interface CausesOfDeathCategoriesBarChartProps {
 
 interface ResponsiveCausesOfDeathCategoriesBarChartProps {
     data: DataRow[]
-    metadata: MyCausesOfDeathMetadata
+    metadata: CausesOfDeathMetadata
     entityName: EntityName
     year: Time
     dimensionsConfig?: DimensionsConfig
@@ -61,7 +61,7 @@ interface ResponsiveCausesOfDeathCategoriesBarChartProps {
 
 function groupDataByCategories(
     data: DataRow[],
-    metadata: MyCausesOfDeathMetadata
+    metadata: CausesOfDeathMetadata
 ): CategoryData[] {
     // Group data by category and sum values
     const categoryTotals = new Map<string, number>()
