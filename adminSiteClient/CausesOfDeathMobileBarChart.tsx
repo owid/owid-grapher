@@ -4,7 +4,7 @@ import {
     CAUSE_OF_DEATH_CATEGORY_COLORS,
     DataRow,
 } from "./CausesOfDeathConstants"
-import { MyCausesOfDeathMetadata } from "./CausesOfDeathMetadata"
+import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata"
 import { formatPercentSigFig } from "./CausesOfDeathHelpers"
 import useChartDimensions from "./useChartDimensions.js"
 import { Bounds } from "@ourworldindata/utils"
@@ -21,7 +21,7 @@ export function CausesOfDeathMobileBarChart({
     metadata,
 }: {
     data: DataRow[]
-    metadata: MyCausesOfDeathMetadata
+    metadata: CausesOfDeathMetadata
 }) {
     const { ref, dimensions } = useChartDimensions<HTMLDivElement>()
 
