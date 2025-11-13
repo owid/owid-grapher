@@ -51,7 +51,7 @@ import { HorizontalAxis } from "../axis/Axis"
 import { HashMap, NodeGroup } from "react-move"
 import { easeQuadOut } from "d3-ease"
 import { StackedDiscreteBarChartState } from "./StackedDiscreteBarChartState"
-import { wrapLabelForHeight } from "../barCharts/DiscreteBarChartHelpers.js"
+import { enrichSeriesWithLabels } from "../barCharts/DiscreteBarChartHelpers.js"
 
 const BAR_SPACING_FACTOR = 0.35
 
@@ -241,17 +241,12 @@ export class StackedDiscreteBars
     }
 
     @computed private get sizedItems(): readonly SizedItem[] {
-        return this.chartState.sortedItems.map((item) => {
-            const label = item.shortEntityName ?? item.entityName
-            const labelWrap = wrapLabelForHeight({
-                label,
-                availableHeight: this.bounds.height / this.barCount,
-                minWidth: 0.3 * this.bounds.width,
-                maxWidth: 0.66 * this.bounds.width,
-                fontSettings: this.labelStyle,
-            })
-
-            return { ...item, label: labelWrap }
+        return enrichSeriesWithLabels({
+            series: this.chartState.sortedItems,
+            availableHeightPerSeries: this.bounds.height / this.barCount,
+            minLabelWidth: 0.3 * this.bounds.width,
+            maxLabelWidth: 0.66 * this.bounds.width,
+            fontSettings: this.labelStyle,
         })
     }
 

@@ -40,8 +40,8 @@ import {
 import { DiscreteBarChartState } from "./DiscreteBarChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import {
-    wrapLabelForHeight,
     makeProjectedDataPatternId,
+    enrichSeriesWithLabels,
 } from "./DiscreteBarChartHelpers"
 import { OwidTable } from "@ourworldindata/core-table"
 import { HorizontalAxis } from "../axis/Axis"
@@ -125,17 +125,12 @@ export class DiscreteBarChart
     }
 
     @computed get sizedSeries(): DiscreteBarSeries[] {
-        return this.series.map((series) => {
-            const label = series.shortEntityName ?? series.entityName
-            const labelWrap = wrapLabelForHeight({
-                label,
-                availableHeight: this.bounds.height / this.barCount,
-                minWidth: 0.3 * this.bounds.width,
-                maxWidth: 0.66 * this.bounds.width,
-                fontSettings: this.entityLabelStyle,
-            })
-
-            return { ...series, label: labelWrap }
+        return enrichSeriesWithLabels({
+            series: this.series,
+            availableHeightPerSeries: this.bounds.height / this.barCount,
+            minLabelWidth: 0.3 * this.bounds.width,
+            maxLabelWidth: 0.66 * this.bounds.width,
+            fontSettings: this.entityLabelStyle,
         })
     }
 

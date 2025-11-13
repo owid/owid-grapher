@@ -16,7 +16,7 @@ import {
     exposeInstanceOnWindow,
     SplitBoundsPadding,
 } from "@ourworldindata/utils"
-import { shortenForTargetWidth } from "@ourworldindata/components"
+import { shortenWithEllipsis } from "@ourworldindata/components"
 import { action, computed, makeObservable, observable } from "mobx"
 import {
     BASE_FONT_SIZE,
@@ -876,16 +876,9 @@ export class FacetChart
         )
 
         if (fontSize > idealFontSize) {
-            const ellipsisWidth = Bounds.forText("…", {
-                fontSize,
-            }).width
-
-            label = `${shortenForTargetWidth(
-                label,
-                availableWidth - ellipsisWidth,
-                { fontSize }
-            )}…`
+            label = shortenWithEllipsis(label, availableWidth, { fontSize })
         }
+
         return { fontSize, shortenedLabel: label }
     }
 

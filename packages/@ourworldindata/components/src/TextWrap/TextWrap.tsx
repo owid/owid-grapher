@@ -46,6 +46,10 @@ function startsWithNewline(text: string): boolean {
     return /^\n/.test(text)
 }
 
+/**
+ * Shortens text to fit within a target width using binary search.
+ * Returns the longest substring that fits within the target width.
+ */
 export const shortenForTargetWidth = (
     text: string,
     targetWidth: number,
@@ -55,7 +59,7 @@ export const shortenForTargetWidth = (
         fontFamily?: FontFamily
     } = {}
 ): string => {
-    // use binary search to find the largest substring that fits within the target width
+    // Use binary search to find the largest substring that fits within the target width
     let low = 0
     let high = text.length
     while (low <= high) {
@@ -68,6 +72,26 @@ export const shortenForTargetWidth = (
         }
     }
     return text.slice(0, low - 1)
+}
+
+/** Shortens text to fit within the target width and appends an ellipsis (…) */
+export const shortenWithEllipsis = (
+    text: string,
+    targetWidth: number,
+    fontSettings: {
+        fontSize?: number
+        fontWeight?: number
+        fontFamily?: FontFamily
+    } = {}
+): string => {
+    const ellipsis = "…"
+    const ellipsisWidth = Bounds.forText(ellipsis, fontSettings).width
+    const truncatedText = shortenForTargetWidth(
+        text,
+        targetWidth - ellipsisWidth,
+        fontSettings
+    )
+    return `${truncatedText}${ellipsis}`
 }
 
 export class TextWrap {
