@@ -490,6 +490,7 @@ export const getPublishedGdocsWithTags = async (
         OwidGdocType.LinearTopicPage,
         OwidGdocType.TopicPage,
         OwidGdocType.AboutPage,
+        OwidGdocType.Announcement,
     ]
 ): Promise<DBEnrichedPostGdocWithTags[]> => {
     return knexRaw<DBRawPostGdocWithTags>(
