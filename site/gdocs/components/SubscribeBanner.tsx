@@ -3,6 +3,11 @@ import { EnrichedBlockSubscribeBanner } from "@ourworldindata/utils"
 import { Button } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons"
+import { IS_ARCHIVE } from "../../../settings/clientSettings.js"
+import { PROD_URL } from "../../SiteConstants.js"
+
+// We don't archive the subscribe page.
+const BASE_URL = IS_ARCHIVE ? PROD_URL : ""
 
 export default function SubscribeBanner({
     d,
@@ -36,7 +41,7 @@ export default function SubscribeBanner({
                 className="subscribe-banner__button"
                 theme="solid-vermillion"
                 text="Subscribe"
-                href="/subscribe"
+                href={`${BASE_URL}/subscribe`}
                 icon={null}
             />
         </div>

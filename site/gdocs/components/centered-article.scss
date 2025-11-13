@@ -639,7 +639,7 @@ h3.article-block__heading.has-supertitle {
     border-top: 1px solid $blue-10;
     padding: 32px 0;
     color: $blue-60;
-    @include body-1-regular;
+    @include body-3-regular;
 
     a {
         text-underline-offset: 5px;
@@ -650,25 +650,8 @@ h3.article-block__heading.has-supertitle {
         }
     }
 
-    .centered-article-header__byline {
-        margin: 0 16px;
-        @include md-down {
-            @include body-3-regular;
-        }
-    }
-
-    .centered-article-header__dateline {
-        margin: 0 16px;
-        @include md-down {
-            @include body-3-regular;
-            font-size: 0.75rem;
-            margin-top: 4px;
-        }
-    }
-
     .centered-article-header__links a {
         @include md-down {
-            @include body-3-regular;
             margin: 0;
             &:last-child {
                 margin-top: 4px;
@@ -694,6 +677,21 @@ h3.article-block__heading.has-supertitle {
             margin-bottom: 16px;
         }
     }
+}
+
+.centered-article-header__meta-container-left {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 24px;
+}
+
+.centered-article-header__browse-versions-button {
+    @include owid-link-60;
+    padding: 0;
+    background-color: transparent;
+    display: inline;
+    cursor: pointer;
 }
 
 .footnote-container,

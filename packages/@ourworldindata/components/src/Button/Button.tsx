@@ -5,6 +5,7 @@ import { IconDefinition, faArrowRight } from "@fortawesome/free-solid-svg-icons"
 type ButtonCommonProps = {
     text?: string
     className?: string
+    style?: React.CSSProperties
     theme:
         | "solid-vermillion"
         | "solid-blue"
@@ -40,6 +41,7 @@ export type ButtonProps =
 export const Button = ({
     theme = "solid-vermillion",
     className,
+    style,
     href,
     onClick,
     text,
@@ -75,6 +77,7 @@ export const Button = ({
         const aProps = {
             href: disabled ? undefined : href,
             className: classes,
+            style,
             "data-track-note": dataTrackNote,
             onClick: disabled
                 ? (e: React.MouseEvent) => e.preventDefault()
@@ -88,6 +91,7 @@ export const Button = ({
     const buttonProps = {
         type,
         className: classes,
+        style,
         onClick,
         "aria-label": ariaLabel,
         "data-track-note": dataTrackNote,
