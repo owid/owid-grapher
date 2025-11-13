@@ -1,4 +1,4 @@
-import { QueryStatus, useQuery } from "@tanstack/react-query"
+import { QueryStatus, useQuery, useQueryClient } from "@tanstack/react-query"
 import {
     CausesOfDeathEntityData,
     CausesOfDeathMetadata,
@@ -6,6 +6,7 @@ import {
 } from "./CausesOfDeathConstants"
 import { fetchJson } from "@ourworldindata/utils"
 import { MyCausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
+import { useEffect } from "react"
 
 const getDataPaths = (ageGroup: "all-ages" | "under-5") => {
     if (ageGroup === "under-5") {
@@ -40,19 +41,29 @@ export const useCausesOfDeathMetadata = (
 ): {
     data?: MyCausesOfDeathMetadata
     status: QueryStatus
+    isPlaceholderData: boolean
+    isFetching: boolean
 } => {
     const paths = getDataPaths(ageGroup)
 
     const result = useQuery({
         queryKey: queryKeys.metadata(ageGroup),
         queryFn: () => fetchJson<CausesOfDeathMetadata>(paths.metadata),
+        // Keep previous metadata while fetching new metadata
+        placeholderData: (previousData) => previousData,
+        staleTime: 5 * 60 * 1000, // Consider metadata fresh for 5 minutes
     })
 
     const data = result.data
         ? new MyCausesOfDeathMetadata(result.data)
         : undefined
 
-    return { data: data, status: result.status }
+    return {
+        data: data,
+        status: result.status,
+        isPlaceholderData: result.isPlaceholderData,
+        isFetching: result.isFetching,
+    }
 }
 
 /** Fetch data for a specific entity */
@@ -86,6 +97,26 @@ export const useCausesOfDeathEntityData = (
         isPlaceholderData: result.isPlaceholderData,
         isFetching: result.isFetching,
     }
+}
+
+/**
+ * Prefetch metadata for both age groups to improve switching UX
+ */
+export const usePrefetchCausesOfDeathMetadata = () => {
+    const queryClient = useQueryClient()
+
+    useEffect(() => {
+        const ageGroups: ("all-ages" | "under-5")[] = ["all-ages", "under-5"]
+
+        ageGroups.forEach((ageGroup) => {
+            const paths = getDataPaths(ageGroup)
+            void queryClient.prefetchQuery({
+                queryKey: queryKeys.metadata(ageGroup),
+                queryFn: () => fetchJson<CausesOfDeathMetadata>(paths.metadata),
+                staleTime: 5 * 60 * 1000, // Consider metadata fresh for 5 minutes
+            })
+        })
+    }, [queryClient])
 }
 
 export const parseEntityData = (
