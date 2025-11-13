@@ -1,15 +1,5 @@
 [
     {
-        "name": "prominent-link",
-        "text": "{.prominent-link}\nurl: \n{}",
-        "keyword": "+prominent-link"
-    },
-    {
-        "name": "callout",
-        "text": "{.callout}\ntitle: \n[.+text]\n\n[]\n{}",
-        "keyword": "+callout"
-    },
-    {
         "name": "additional-charts",
         "text": "{.additional-charts}\n[.list]\n* \n[]\n{}",
         "keyword": "+additional-charts"
@@ -33,6 +23,11 @@
         "name": "blockquote",
         "text": "{.blockquote}\ncitation: \n[.+text]\n\n[]\n{}",
         "keyword": "+blockquote"
+    },
+    {
+        "name": "callout",
+        "text": "{.callout}\ntitle: \n[.+text]\n\n[]\n{}",
+        "keyword": "+callout"
     },
     {
         "name": "chart",
@@ -140,6 +135,11 @@
         "keyword": "+numbered-list"
     },
     {
+        "name": "prominent-link",
+        "text": "{.prominent-link}\nurl: \n{}",
+        "keyword": "+prominent-link"
+    },
+    {
         "name": "pull-quote",
         "text": "{.pull-quote}\nquote: \nalign: \n[.+content]\n\n[]\n{}",
         "keyword": "+pull-quote"
@@ -217,11 +217,11 @@
     {
         "name": "sticky-right-with-chart",
         "text": "{ .sticky-right }\n[.+right]\n{.chart}\nurl: \ncaption: \n{}\n[]\n[.+left]\n\n[]\n{}",
-        "keyword": "+sticky-right-with-chart"
+        "keyword": "+srwc"
     },
     {
         "name": "sticky-left-with-chart",
         "text": "{ .sticky-left }\n[.+right]\n{.chart}\nurl: \ncaption: \n{}\n[]\n[.+left]\n\n[]\n{}",
-        "keyword": "+sticky-left-with-chart"
+        "keyword": "+slwc"
     }
 ]
