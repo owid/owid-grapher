@@ -12,7 +12,10 @@ export interface UrlAndMaybeDate {
     date?: Date | ArchivalDateString
 }
 
+export type ArchiveContentType = "chart" | "article"
+
 export interface ArchiveSiteNavigationInfo {
+    contentType: ArchiveContentType
     liveUrl?: string
     previousVersion?: UrlAndMaybeDate
     nextVersion?: UrlAndMaybeDate
@@ -23,6 +26,7 @@ export interface ArchiveSiteNavigationInfo {
 export interface ArchivedPageVersion {
     archivalDate: ArchivalDateString
     archiveUrl: string
+    versionsFileUrl?: string
     type: "archived-page-version"
 }
 

@@ -109,6 +109,7 @@ import { getLatestArchivedExplorerPageVersionsIfEnabled } from "../db/model/Arch
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import { getImagesByFilenames } from "../db/model/Image.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
+import { getLatestArchivedPostPageVersionsIfEnabled } from "../db/model/ArchivedPostVersion.js"
 
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToString(element)}`
@@ -164,7 +165,14 @@ export const renderGdocsPageBySlug = async (
 
     await gdoc.loadState(knex)
 
-    return renderGdoc(gdoc, isPreviewing)
+    let archiveContext
+    if (gdoc.content.type === OwidGdocType.Article) {
+        const archivedVersions =
+            await getLatestArchivedPostPageVersionsIfEnabled(knex, [gdoc.id])
+        archiveContext = archivedVersions[gdoc.id]
+    }
+
+    return renderGdoc(gdoc, isPreviewing, archiveContext)
 }
 
 export const renderGdoc = (
