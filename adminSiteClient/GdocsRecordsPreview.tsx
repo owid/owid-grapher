@@ -91,7 +91,7 @@ export const GdocsRecordsPreview = ({
                     {data.count > 0 && (
                         <>
                             <Alert
-                                message={`This document will be split into ${data.count} searchable records${
+                                message={`This document will be split into ${data.count} searchable record${
                                     data.count === 1 ? "" : "s"
                                 } in Algolia`}
                                 type="success"
