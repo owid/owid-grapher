@@ -31,21 +31,21 @@ const availableAgeGroups = {
 } as const
 
 export function CausesOfDeathPage() {
-    const [selectedTilingMethod, setSelectedTilingMethod] =
-        useState<TilingMethodKey>("custom")
-    const [selectedAgeGroup, setSelectedAgeGroup] =
-        useState<AgeGroup>("all-ages")
+    // const [selectedTilingMethod, setSelectedTilingMethod] =
+    //     useState<TilingMethodKey>("custom")
+    // const [selectedAgeGroup, setSelectedAgeGroup] =
+    //     useState<AgeGroup>("all-ages")
     const [minThickness, setMinThickness] = useState<number>(120)
     const [innerMinThickness, setInnerMinThickness] = useState<number>(40)
     const [debug, setDebug] = useState<boolean>(false)
 
-    const tilingMethod =
-        selectedTilingMethod === "custom"
-            ? availableTilingMethods["custom"].method(
-                  minThickness,
-                  innerMinThickness
-              )
-            : availableTilingMethods[selectedTilingMethod].method
+    // const tilingMethod =
+    //     selectedTilingMethod === "custom"
+    //         ? availableTilingMethods["custom"].method(
+    //               minThickness,
+    //               innerMinThickness
+    //           )
+    //         : availableTilingMethods[selectedTilingMethod].method
 
     return (
         <div style={{ paddingBottom: "60px" }}>
@@ -77,12 +77,12 @@ export function CausesOfDeathPage() {
                         />
                     </div> */}
 
-                    <div style={{ marginBottom: "15px" }}>
+                    {/* <div style={{ marginBottom: "15px" }}>
                         <TilingSelect
                             selectedTiling={selectedTilingMethod}
                             onTilingChange={setSelectedTilingMethod}
                         />
-                    </div>
+                    </div> */}
 
                     <div>
                         <label
@@ -105,7 +105,7 @@ export function CausesOfDeathPage() {
                 </div>
             </div>
 
-            {selectedTilingMethod === "custom" && (
+            {/* {selectedTilingMethod === "custom" && (
                 <div style={{ marginTop: "15px" }}>
                     <CustomTilingControls
                         show={false}
@@ -115,13 +115,10 @@ export function CausesOfDeathPage() {
                         onInnerMinThicknessChange={setInnerMinThickness}
                     />
                 </div>
-            )}
+            )} */}
 
             <div style={{ padding: "0 20px" }}>
-                <CausesOfDeathCaptionedChart
-                    tilingMethod={tilingMethod}
-                    debug={debug}
-                />
+                <CausesOfDeathCaptionedChart debug={debug} />
             </div>
         </div>
     )
@@ -132,42 +129,44 @@ interface TilingSelectProps {
     onTilingChange: (tiling: TilingMethodKey) => void
 }
 
-function TilingSelect({ selectedTiling, onTilingChange }: TilingSelectProps) {
-    return (
-        <div style={{ display: "flex", alignItems: "baseline", gap: "10px" }}>
-            <label
-                htmlFor="tiling-select"
-                style={{
-                    fontWeight: "600",
-                    fontSize: "14px",
-                    minWidth: "120px",
-                }}
-            >
-                Tiling Method:
-            </label>
-            <select
-                id="tiling-select"
-                value={selectedTiling}
-                onChange={(e) =>
-                    onTilingChange(e.target.value as TilingMethodKey)
-                }
-                style={{
-                    padding: "8px 12px",
-                    minWidth: "150px",
-                    border: "1px solid #ccc",
-                    borderRadius: "4px",
-                    fontSize: "14px",
-                }}
-            >
-                {Object.entries(availableTilingMethods).map(([key, method]) => (
-                    <option key={key} value={key}>
-                        {method.label}
-                    </option>
-                ))}
-            </select>
-        </div>
-    )
-}
+// function TilingSelect({ selectedTiling, onTilingChange }: TilingSelectProps) {
+//     return (
+//         <div style={{ display: "flex", alignItems: "baseline", gap: "10px" }}>
+//             <label
+//                 htmlFor="tiling-select"
+//                 style={{
+//                     fontWeight: "600",
+//                     fontSize: "14px",
+//                     minWidth: "120px",
+//                 }}
+//             >
+//                 Tiling Method:
+//             </label>
+//             <select
+//                 id="tiling-select"
+//                 value={selectedTiling}
+//                 onChange={(e) =>
+//                     onTilingChange(e.target.value as TilingMethodKey)
+//                 }
+//                 style={{
+//                     padding: "8px 12px",
+//                     minWidth: "150px",
+//                     border: "1px solid #ccc",
+//                     borderRadius: "4px",
+//                     fontSize: "14px",
+//                 }}
+//             >
+//                 {Object.entries(availableTilingMethods).map(([key, method]) => (
+//                     <option key={key} value={key}>
+//                         {method.label}
+//                     </option>
+//                 ))}
+//             </select>
+//         </div>
+//     )
+// }
+
+// }
 
 interface AgeGroupSelectProps {
     selectedAgeGroup: AgeGroup
