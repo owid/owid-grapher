@@ -1584,9 +1584,9 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
 .causes-of-death-captioned-chart {
     font-family:
         Lato, "Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif;
-    margin: 20px 0;
-    padding: 20px;
-    border: 1px solid #e0e0e0;
+    // margin: 20px 0;
+    // padding: 20px;
+    // border: 1px solid #e0e0e0;
     color: #5b5b5b;
     max-width: 900px;
     position: relative;
@@ -1633,12 +1633,12 @@ $sm: 768px;
 }
 
 .causes-of-death-captioned-chart .grapher-dropdown .control {
-    border: 1px solid #ccc;
+    border: 1px solid #e7e7e7;
     border-radius: 4px;
     padding: 8px 12px;
     background-color: white;
     font-size: 14px;
-    min-height: 38px;
+    // min-height: 38px;
 }
 
 .causes-of-death-captioned-chart .grapher-dropdown .control:hover {
@@ -1757,7 +1757,7 @@ g:has(.arrow) {
 }
 
 .causes-of-death-captioned-chart .causes-of-death__entity-dropdown {
-    margin-bottom: 20px;
+    // margin-bottom: 20px;
     max-width: 220px;
 }
 
