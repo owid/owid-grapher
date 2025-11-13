@@ -78,6 +78,7 @@ import {
 } from "../db/model/Gdoc/GdocFactory.js"
 import { getBakePath } from "@ourworldindata/components"
 import { GdocAuthor, getMinimalAuthors } from "../db/model/Gdoc/GdocAuthor.js"
+import { getLatestArchivedPostPageVersionsIfEnabled } from "../db/model/ArchivedPostVersion.js"
 import {
     makeExplorerLinkedChart,
     makeGrapherLinkedChart,
@@ -219,8 +220,11 @@ export class SiteBaker {
     }
 
     // Bake an individual post/page
-    private async bakeOwidGdoc(gdoc: OwidGdoc) {
-        const html = renderGdoc(gdoc)
+    private async bakeOwidGdoc(
+        gdoc: OwidGdoc,
+        archiveContext?: ArchiveContext
+    ) {
+        const html = renderGdoc(gdoc, false, archiveContext)
         const outPath = `${getBakePath(this.bakedSiteDir, gdoc)}.html`
         await fs.mkdirp(path.dirname(outPath))
         await this.stageWrite(outPath, html)
@@ -560,6 +564,16 @@ export class SiteBaker {
                 ? publishedGdocs.filter((gdoc) => slugs.includes(gdoc.slug))
                 : publishedGdocs
 
+        const gdocIds = gdocsToBake.map((gdoc) => gdoc.id)
+
+        const archivedVersions =
+            gdocIds.length > 0
+                ? await getLatestArchivedPostPageVersionsIfEnabled(
+                      knex,
+                      gdocIds
+                  )
+                : {}
+
         // Ensure we have a published gdoc for each slug given
         if (slugs !== undefined && slugs.length !== gdocsToBake.length) {
             const slugsNotFound = slugs.filter(
@@ -610,8 +624,9 @@ export class SiteBaker {
             }
 
             await publishedGdoc.validate(knex)
+            const archiveContext = archivedVersions[publishedGdoc.id]
             try {
-                await this.bakeOwidGdoc(publishedGdoc)
+                await this.bakeOwidGdoc(publishedGdoc, archiveContext)
             } catch (e) {
                 await logErrorAndMaybeCaptureInSentry(
                     new Error(

@@ -70,6 +70,7 @@ export async function getLatestArchivedPostPageVersions(
                         relative: false,
                     }
                 ),
+                versionsFileUrl: `${ARCHIVE_BASE_URL}/versions/posts/${r.postId}.json`,
                 type: "archived-page-version",
             },
         ])

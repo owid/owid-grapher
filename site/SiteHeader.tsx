@@ -1,5 +1,8 @@
 import { ArchiveMetaInformation } from "@ourworldindata/types"
-import { ArchiveSiteNavigation } from "./archive/ArchiveSiteNavigation.js"
+import {
+    ArchiveWritingNavigation,
+    ArchiveDataNavigation,
+} from "./archive/ArchiveNavigation.js"
 import { SiteNavigation } from "./SiteNavigation.js"
 
 interface SiteHeaderProps {
@@ -14,18 +17,32 @@ interface SiteHeaderProps {
     archiveInfo?: ArchiveMetaInformation
 }
 
-export const SiteHeaderNavigation = (props: SiteHeaderProps) =>
-    props.archiveInfo?.archiveNavigation ? (
-        <ArchiveSiteNavigation
-            archivalDate={props.archiveInfo.archivalDate}
-            {...props.archiveInfo.archiveNavigation}
-        />
-    ) : (
+export const SiteHeaderNavigation = (props: SiteHeaderProps) => {
+    const archiveInfo = props.archiveInfo
+    if (archiveInfo?.archiveNavigation) {
+        const archiveNavigation = archiveInfo.archiveNavigation
+        const nav =
+            archiveNavigation.contentType === "writing" ? (
+                <ArchiveWritingNavigation
+                    archivalDate={archiveInfo.archivalDate}
+                    {...archiveNavigation}
+                />
+            ) : (
+                <ArchiveDataNavigation
+                    archivalDate={archiveInfo.archivalDate}
+                    {...archiveNavigation}
+                />
+            )
+        return nav
+    }
+
+    return (
         <SiteNavigation
             hideDonationFlag={props.hideDonationFlag}
             isOnHomepage={props.isOnHomepage}
         />
     )
+}
 
 export const SiteHeader = (props: SiteHeaderProps) => (
     <header className="site-header">

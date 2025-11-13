@@ -1,6 +1,7 @@
 import * as _ from "lodash-es"
 import cx from "classnames"
 import { useIntersectionObserver } from "usehooks-ts"
+import { useContext } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBoxArchive } from "@fortawesome/free-solid-svg-icons"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
@@ -12,6 +13,7 @@ import {
     OwidGdocType,
     formatAuthorsForBibtex,
     EnrichedBlockText,
+    getPhraseForArchivalDate,
 } from "@ourworldindata/utils"
 import { CodeSnippet } from "@ourworldindata/components"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
@@ -19,6 +21,7 @@ import { OwidGdocHeader } from "../components/OwidGdocHeader.js"
 import StickyNav from "../../blocks/StickyNav.js"
 import { getShortPageCitation } from "../utils.js"
 import { TableOfContents } from "../../TableOfContents.js"
+import { DocumentContext } from "../DocumentContext.js"
 
 const citationDescriptionsByArticleType: Record<
     | OwidGdocType.Article
@@ -56,6 +59,7 @@ export function GdocPost({
     breadcrumbs,
     manualBreadcrumbs,
 }: GdocPostProps) {
+    const { archiveContext } = useContext(DocumentContext)
     const postType = content.type ?? OwidGdocType.Article
     const citationDescription = citationDescriptionsByArticleType[postType]
     const shortPageCitation = getShortPageCitation(
@@ -63,7 +67,12 @@ export function GdocPost({
         content.title ?? "",
         publishedAt
     )
-    const citationText = `${shortPageCitation} Published online at OurWorldinData.org. Retrieved from: '${`${BAKED_BASE_URL}/${slug}`}' [Online Resource]`
+    const citationUrl =
+        archiveContext?.archiveUrl ?? `${BAKED_BASE_URL}/${slug}`
+    const archivalPhrase = getPhraseForArchivalDate(
+        archiveContext?.archivalDate
+    )
+    const citationText = `${shortPageCitation} Published online at OurWorldinData.org. Retrieved from: '${citationUrl}' [Online Resource]${archivalPhrase ? ` ${archivalPhrase}` : ""}`
     const hasSidebarToc = content["sidebar-toc"]
     const shouldHideSubscribeBanner =
         content["hide-subscribe-banner"] || postType === OwidGdocType.TopicPage
@@ -76,7 +85,7 @@ export function GdocPost({
     title = {${content.title}},
     journal = {Our World in Data},
     year = {${publishedAt?.getFullYear()}},
-    note = {${BAKED_BASE_URL}/${slug}}
+    note = {${citationUrl}}
 }`
 
     const stickyNavLinks = content["sticky-nav"]
