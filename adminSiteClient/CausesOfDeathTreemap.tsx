@@ -8,10 +8,9 @@ import {
 import { useMemo, useState, useCallback, useRef } from "react"
 import * as d3 from "d3"
 import useChartDimensions, { DimensionsConfig } from "./useChartDimensions"
-import { CausesOfDeathCategoryAnnotations } from "./CausesOfDeathCategoryAnnotations"
 import { Bounds, getRelativeMouse } from "@ourworldindata/utils"
 
-import { MyCausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
+import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
 import { CausesOfDeathTreemapTile } from "./CausesOfDeathTreemapTile.js"
 import { CausesOfDeathTreemapTooltip } from "./CausesOfDeathTreemapTooltip.js"
 
@@ -25,6 +24,7 @@ export function ResponsiveCausesOfDeathTreemap({
     metadata,
     entityName,
     year,
+    ageGroup,
     dimensionsConfig,
     tilingMethod,
     isNarrow,
@@ -32,9 +32,10 @@ export function ResponsiveCausesOfDeathTreemap({
 }: {
     data: DataRow[]
     historicalData?: DataRow[]
-    metadata: MyCausesOfDeathMetadata
+    metadata: CausesOfDeathMetadata
     entityName: EntityName
     year: Time
+    ageGroup: string
     dimensionsConfig?: DimensionsConfig
     tilingMethod?: any // TODO
     isNarrow?: boolean
@@ -56,6 +57,7 @@ export function ResponsiveCausesOfDeathTreemap({
                 metadata={metadata}
                 entityName={entityName}
                 year={year}
+                ageGroup={ageGroup}
                 tilingMethod={tilingMethod}
                 width={dimensions.width}
                 height={height}
@@ -71,6 +73,7 @@ function CausesOfDeathTreemap({
     metadata,
     entityName,
     year,
+    ageGroup,
     tilingMethod = d3.treemapSquarify,
     width,
     height,
@@ -78,16 +81,15 @@ function CausesOfDeathTreemap({
 }: {
     data: DataRow[]
     historicalData?: DataRow[]
-    metadata: MyCausesOfDeathMetadata
+    metadata: CausesOfDeathMetadata
     entityName: EntityName
     year: Time
+    ageGroup: string
     width: number
     height: number
     tilingMethod?: any // TODO: type this
     debug?: boolean
 }) {
-    console.log("DATA", data)
-
     // Tooltip state management
     const [tooltipState, setTooltipState] = useState<TooltipState>({
         target: null,
@@ -142,7 +144,7 @@ function CausesOfDeathTreemap({
         // Root node
         { entityName, year, variable: "All", value: null, share: 0 }, // todo: null
         // Category nodes
-        ...metadata.categories.map((category) => ({
+        ...metadata.categoriesForAgeGroup(ageGroup).map((category) => ({
             entityName,
             year,
             variable: category.name,
@@ -224,7 +226,7 @@ function CausesOfDeathTreemap({
                     />
                 ))}
 
-                {!isNarrow && (
+                {/* {!isNarrow && (
                     <CausesOfDeathCategoryAnnotations
                         data={data}
                         metadata={metadata}
@@ -233,7 +235,7 @@ function CausesOfDeathTreemap({
                         annotationHeight={annotationHeight}
                         debug={debug}
                     />
-                )}
+                )} */}
             </svg>
 
             {tooltipState.target && (
