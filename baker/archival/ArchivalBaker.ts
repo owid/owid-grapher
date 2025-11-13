@@ -758,6 +758,7 @@ export const bakeArchivalExplorerPagesToFolder = async (
             : undefined
 
         const archiveNavigation: ArchiveSiteNavigationInfo = {
+            contentType: "data",
             liveUrl: `${PROD_URL}/explorers/${program.slug}`,
             previousVersion,
             versionsFileUrl: `/versions/explorers/${program.slug}.json`,
@@ -951,6 +952,7 @@ async function bakeGrapherPageForArchival(
           }
         : undefined
     const archiveNavigation: ArchiveSiteNavigationInfo = {
+        contentType: "data",
         liveUrl: `${PROD_URL}/grapher/${config.slug}`,
         previousVersion,
         versionsFileUrl: `/versions/charts/${chartInfo.chartId}.json`,
@@ -1025,6 +1027,7 @@ async function bakePostPageForArchival(
         : undefined
 
     const archiveNavigation: ArchiveSiteNavigationInfo = {
+        contentType: "writing",
         liveUrl: `${PROD_URL}/${postSlug}`,
         previousVersion,
         versionsFileUrl: `/versions/posts/${postId}.json`,
@@ -1197,6 +1200,7 @@ export const bakeMultiDimDataPageForArchival = async (
         : undefined
 
     const archiveNavigation: ArchiveSiteNavigationInfo = {
+        contentType: "data",
         liveUrl: `${PROD_URL}/grapher/${slug}`,
         previousVersion,
         versionsFileUrl: `/versions/multi-dim/${id}.json`,

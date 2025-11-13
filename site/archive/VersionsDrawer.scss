@@ -1,0 +1,233 @@
+.versions-drawer-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: flex-end;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: $zindex-lightbox;
+
+    &[data-entering] {
+        animation: versions-drawer-overlay-fade 160ms ease forwards;
+
+        .versions-drawer-dialog {
+            animation: versions-drawer-dialog-slide-right 200ms ease forwards;
+        }
+    }
+
+    &[data-exiting] {
+        animation: versions-drawer-overlay-fade 140ms ease forwards reverse;
+
+        .versions-drawer-dialog {
+            animation: versions-drawer-dialog-slide-right 160ms ease forwards
+                reverse;
+        }
+    }
+}
+
+@keyframes versions-drawer-dialog-slide-right {
+    from {
+        transform: translateX(100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes versions-drawer-dialog-slide-up {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+@keyframes versions-drawer-overlay-fade {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.versions-drawer-modal {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    pointer-events: none;
+}
+
+.versions-drawer-dialog {
+    pointer-events: auto;
+    height: 100vh;
+    width: min(408px, 100%);
+    background-color: $white;
+    color: $blue-90;
+    box-shadow: 0 10px 30px rgba($oxford-blue, 0.25);
+    display: flex;
+    flex-direction: column;
+    will-change: transform;
+    overflow: hidden;
+}
+
+.versions-drawer-dialog__container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.versions-drawer-dialog__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 24px;
+    background-color: $blue-5;
+}
+
+.versions-drawer-dialog__title {
+    @include body-2-semibold;
+    margin: 0;
+}
+
+.versions-drawer-dialog__close-button {
+    color: $blue-50;
+    border: 1px solid $blue-50;
+    background-color: transparent;
+
+    &:hover,
+    &:focus-visible {
+        color: $blue-65;
+        border-color: $blue-65;
+        background-color: transparent;
+    }
+}
+
+.versions-drawer-dialog__content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px 24px;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.versions-drawer__status {
+    @include body-3-regular;
+    color: $blue-65;
+}
+
+.versions-drawer__status--error {
+    color: $error-text-color;
+}
+
+.versions-drawer-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: relative;
+    list-style: none;
+    padding-left: 25px;
+}
+
+.versions-drawer-timeline::before {
+    content: "";
+    position: absolute;
+    top: 24px;
+    left: 8px;
+    bottom: 23px;
+    width: 1px;
+    background-color: $blue-20;
+}
+
+.versions-drawer-timeline__item {
+    position: relative;
+}
+
+.versions-drawer-timeline__dot {
+    position: absolute;
+    left: -21px;
+    top: 19px;
+    width: 9px;
+    height: 9px;
+    border: 1px solid $blue-20;
+    border-radius: 50%;
+    background-color: $white;
+}
+
+.versions-drawer-timeline__item--large {
+    .versions-drawer-timeline__dot {
+        width: 17px;
+        height: 17px;
+        top: 15.5px;
+        left: -25px;
+    }
+}
+
+.versions-drawer-timeline__item--selected {
+    .versions-drawer-timeline__dot {
+        background-color: $blue-20;
+    }
+
+    .versions-drawer-timeline__link {
+        background-color: $blue-20;
+    }
+}
+
+.versions-drawer-timeline__link {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 48px;
+    padding: 8px 12px;
+    color: $blue-90;
+    border-radius: 4px;
+}
+
+.versions-drawer-timeline__link:hover,
+.versions-drawer-timeline__link:focus {
+    background-color: $blue-5;
+}
+
+.versions-drawer-timeline__title--archived {
+    @include h6-black-caps;
+}
+
+.versions-drawer-timeline__title--live {
+    @include body-3-bold;
+}
+
+.versions-drawer-timeline__description {
+    @include body-3-regular;
+    color: $blue-65;
+}
+
+@include sm-only {
+    .versions-drawer-overlay {
+        flex-direction: column;
+        justify-content: flex-end;
+        align-items: stretch;
+
+        &[data-entering] .versions-drawer-dialog {
+            animation: versions-drawer-dialog-slide-up 220ms ease forwards;
+        }
+
+        &[data-exiting] .versions-drawer-dialog {
+            animation: versions-drawer-dialog-slide-up 180ms ease forwards
+                reverse;
+        }
+    }
+
+    .versions-drawer-modal {
+        justify-content: center;
+    }
+
+    .versions-drawer-dialog {
+        height: min(490px, 100vh);
+        max-height: 100vh;
+        width: 100%;
+    }
+}
