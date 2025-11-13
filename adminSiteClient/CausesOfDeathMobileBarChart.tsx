@@ -71,8 +71,6 @@ export function CausesOfDeathMobileBarChart({
             aria-label="Causes of death by category"
         >
             {categoryData.map((item, index) => {
-                console.log(index)
-
                 const offset = categoryData
                     .slice(0, index)
                     .reduce((acc, curr) => acc + curr.percentage * 100, 0)
@@ -81,7 +79,6 @@ export function CausesOfDeathMobileBarChart({
                 const padding = 4
                 const availableWidth =
                     item.percentage * dimensions.width - padding - 0.5 * padding
-                console.log({ availableWidth })
                 const percentageWidth = Bounds.forText(
                     item.formattedPercentage,
                     { fontSize: 12, fontWeight: 600 }

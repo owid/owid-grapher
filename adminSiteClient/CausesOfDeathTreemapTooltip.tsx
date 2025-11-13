@@ -503,8 +503,6 @@ function CausesOfDeathTooltipSparkline({
     const width = 36
     const height = 22
 
-    console.log(data, currentValue)
-
     const dotRadius = 4
 
     // Format labels first to measure their width (as percentages)
