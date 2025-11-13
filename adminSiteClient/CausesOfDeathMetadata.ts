@@ -95,8 +95,6 @@ export class MyCausesOfDeathMetadata {
             ])
         )
 
-        console.log(this._categoryNameByVariableName)
-
         return this._categoryNameByVariableName
     }
 }

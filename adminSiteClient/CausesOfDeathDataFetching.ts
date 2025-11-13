@@ -52,8 +52,6 @@ export const useCausesOfDeathMetadata = (
         ? new MyCausesOfDeathMetadata(result.data)
         : undefined
 
-    console.log("fetched", result.data, data)
-
     return { data: data, status: result.status }
 }
 
