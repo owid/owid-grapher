@@ -7,6 +7,7 @@ import {
 } from "@ourworldindata/types"
 import { Alert, Card, Space, Spin, Tag } from "antd"
 import { useQuery } from "@tanstack/react-query"
+import JSONView from "@uiw/react-json-view"
 
 const RecordCard = ({
     record,
@@ -25,18 +26,17 @@ const RecordCard = ({
             style={{ marginBottom: 16 }}
             size="small"
         >
-            <pre
+            <div
                 style={{
                     background: "#f5f5f5",
                     padding: 16,
                     borderRadius: 4,
                     overflow: "auto",
                     fontSize: 12,
-                    margin: 0,
                 }}
             >
-                {JSON.stringify(record, null, 2)}
-            </pre>
+                <JSONView value={record} />
+            </div>
         </Card>
     )
 }
