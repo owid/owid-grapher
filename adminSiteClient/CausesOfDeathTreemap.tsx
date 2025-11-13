@@ -1,6 +1,5 @@
 import { EntityName, Time } from "@ourworldindata/types"
 import {
-    CAUSE_OF_DEATH_CATEGORIES,
     DataRow,
     EnrichedDataItem,
     TooltipState,
@@ -87,6 +86,8 @@ function CausesOfDeathTreemap({
     tilingMethod?: any // TODO: type this
     debug?: boolean
 }) {
+    console.log("DATA", data)
+
     // Tooltip state management
     const [tooltipState, setTooltipState] = useState<TooltipState>({
         target: null,
@@ -141,10 +142,10 @@ function CausesOfDeathTreemap({
         // Root node
         { entityName, year, variable: "All", value: null, share: 0 }, // todo: null
         // Category nodes
-        ...CAUSE_OF_DEATH_CATEGORIES.map((category) => ({
+        ...metadata.categories.map((category) => ({
             entityName,
             year,
-            variable: category,
+            variable: category.name,
             parentId: "All", // points to the root node
             value: null,
             share: null,
