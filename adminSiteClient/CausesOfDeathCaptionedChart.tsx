@@ -97,13 +97,6 @@ export function CausesOfDeathCaptionedChart({
 
     return (
         <article className="causes-of-death-captioned-chart">
-            <OwidLogo />
-            <CausesOfDeathHeader
-                data={data}
-                entityName={entityName}
-                year={currentYear}
-                selectedAgeGroup={selectedAgeGroup}
-            />
             <SideBySide>
                 <AgeBracketDropdown
                     className="causes-of-death__entity-dropdown"
@@ -128,35 +121,71 @@ export function CausesOfDeathCaptionedChart({
                 />
             </SideBySide>
 
-            {isNarrow && (
-                <CausesOfDeathMobileBarChart data={data} metadata={metadata} />
-            )}
-
-            <div
-                className={cx("causes-of-death-captioned-chart__treemap", {
-                    "causes-of-death-captioned-chart__treemap--loading":
-                        isPlaceholderData,
-                })}
-            >
-                {showDelayedLoading && (
-                    <div className="causes-of-death-captioned-chart__treemap-loading-overlay">
-                        Loading data for {selectedEntityName}...
-                    </div>
-                )}
-
-                <ResponsiveCausesOfDeathTreemap
+            <div style={{ padding: 16, border: "1px solid #e0e0e0" }}>
+                <OwidLogo />
+                <CausesOfDeathHeader
                     data={data}
-                    historicalData={entityData}
-                    metadata={metadata}
                     entityName={entityName}
                     year={currentYear}
-                    dimensionsConfig={dimensionsConfig}
-                    tilingMethod={isNarrow ? d3.treemapSlice : tilingMethod}
-                    debug={debug}
-                    isNarrow={isNarrow}
+                    selectedAgeGroup={selectedAgeGroup}
                 />
+                {/* <SideBySide>
+                <AgeBracketDropdown
+                    className="causes-of-death__entity-dropdown"
+                    availableAgeBrackets={["all-ages", "under-5"]}
+                    selectedAgeBracket={selectedAgeGroup}
+                    onChange={() => void 0}
+                    isLoading={isFetching}
+                />
+                <EntityDropdown
+                    className="causes-of-death__entity-dropdown"
+                    availableEntities={metadata?.availableEntities}
+                    selectedEntityName={selectedEntityName}
+                    onChange={setSelectedEntityName}
+                    isLoading={isFetching}
+                />
+                <CausesOfDeathTimeSlider
+                    className="causes-of-death__time-slider"
+                    years={availableYears}
+                    selectedYear={currentYear}
+                    onChange={setSelectedYear}
+                    isLoading={isFetching}
+                />
+            </SideBySide> */}
+
+                {isNarrow && (
+                    <CausesOfDeathMobileBarChart
+                        data={data}
+                        metadata={metadata}
+                    />
+                )}
+
+                <div
+                    className={cx("causes-of-death-captioned-chart__treemap", {
+                        "causes-of-death-captioned-chart__treemap--loading":
+                            isPlaceholderData,
+                    })}
+                >
+                    {showDelayedLoading && (
+                        <div className="causes-of-death-captioned-chart__treemap-loading-overlay">
+                            Loading data for {selectedEntityName}...
+                        </div>
+                    )}
+
+                    <ResponsiveCausesOfDeathTreemap
+                        data={data}
+                        historicalData={entityData}
+                        metadata={metadata}
+                        entityName={entityName}
+                        year={currentYear}
+                        dimensionsConfig={dimensionsConfig}
+                        tilingMethod={isNarrow ? d3.treemapSlice : tilingMethod}
+                        debug={debug}
+                        isNarrow={isNarrow}
+                    />
+                </div>
+                <CausesOfDeathFooter metadata={metadata} />
             </div>
-            <CausesOfDeathFooter metadata={metadata} />
         </article>
     )
 }
@@ -357,7 +386,18 @@ function AgeBracketDropdown({
 }
 
 function SideBySide({ children }: { children: React.ReactNode }) {
-    return <div className="side-by-side">{children}</div>
+    return (
+        <div
+            className="side-by-side"
+            style={{
+                border: "1px solid #e0e0e0",
+                padding: 16,
+                marginBottom: 16,
+            }}
+        >
+            {children}
+        </div>
+    )
 }
 
 function OwidLogo() {
