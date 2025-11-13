@@ -70,12 +70,12 @@ export function CausesOfDeathPage() {
                         Settings
                     </h3>
 
-                    <div style={{ marginBottom: "15px" }}>
+                    {/* <div style={{ marginBottom: "15px" }}>
                         <AgeGroupSelect
                             selectedAgeGroup={selectedAgeGroup}
                             onAgeGroupChange={setSelectedAgeGroup}
                         />
-                    </div>
+                    </div> */}
 
                     <div style={{ marginBottom: "15px" }}>
                         <TilingSelect
@@ -120,7 +120,6 @@ export function CausesOfDeathPage() {
             <div style={{ padding: "0 20px" }}>
                 <CausesOfDeathCaptionedChart
                     tilingMethod={tilingMethod}
-                    selectedAgeGroup={selectedAgeGroup}
                     debug={debug}
                 />
             </div>

@@ -11,6 +11,7 @@ import {
 import {
     useCausesOfDeathEntityData,
     useCausesOfDeathMetadata,
+    usePrefetchCausesOfDeathMetadata,
 } from "./CausesOfDeathDataFetching"
 import { ResponsiveCausesOfDeathTreemap } from "./CausesOfDeathTreemap"
 import { CausesOfDeathMobileBarChart } from "./CausesOfDeathMobileBarChart"
@@ -25,24 +26,33 @@ import { MyCausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
 // TODO: Fetch World data immediately (waits for the metadata to resolve right now)
 // TODO: Not sure yet how to best show loading states when switching countries
 
+type AgeGroup = "all-ages" | "under-5"
+
 export function CausesOfDeathCaptionedChart({
     tilingMethod = d3.treemapSquarify,
-    selectedAgeGroup = "all-ages",
     debug = false,
 }: {
     tilingMethod?: any
-    selectedAgeGroup?: "all-ages" | "under-5"
     debug?: boolean
 }) {
     const isNarrow = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
 
+    const [selectedAgeGroup, setSelectedAgeGroup] =
+        useState<AgeGroup>("all-ages")
     const [selectedEntityName, setSelectedEntityName] =
         useState(WORLD_ENTITY_NAME)
     const [selectedYear, setSelectedYear] = useState<Time>()
 
+    // Prefetch metadata for both age groups to improve switching UX
+    usePrefetchCausesOfDeathMetadata()
+
     // Fetch metadata
-    const { data: metadata, status: metadataStatus } =
-        useCausesOfDeathMetadata(selectedAgeGroup)
+    const {
+        data: metadata,
+        status: metadataStatus,
+        isPlaceholderData: isMetadataPlaceholder,
+        isFetching: isMetadataFetching,
+    } = useCausesOfDeathMetadata(selectedAgeGroup)
 
     // Fetch data for the selected entity
     const {
@@ -64,8 +74,12 @@ export function CausesOfDeathCaptionedChart({
 
     const currentYear = selectedYear ?? availableYears.at(-1)
 
-    // Only show loading overlay after 300ms delay to prevent flashing
+    // Only show loading overlays after 300ms delay to prevent flashing
     const showDelayedLoading = useDelayedLoading(isPlaceholderData, 300)
+    const showDelayedMetadataLoading = useDelayedLoading(
+        isMetadataPlaceholder,
+        300
+    )
 
     // Show loading state only for initial load (when no data exists)
     if (metadataStatus === "pending" || entityDataStatus === "pending") {
@@ -102,22 +116,22 @@ export function CausesOfDeathCaptionedChart({
                     className="causes-of-death__entity-dropdown"
                     availableAgeBrackets={["all-ages", "under-5"]}
                     selectedAgeBracket={selectedAgeGroup}
-                    onChange={() => void 0}
-                    isLoading={isFetching}
+                    onChange={setSelectedAgeGroup}
+                    isLoading={isMetadataFetching}
                 />
                 <EntityDropdown
                     className="causes-of-death__entity-dropdown"
                     availableEntities={metadata?.availableEntities}
                     selectedEntityName={selectedEntityName}
                     onChange={setSelectedEntityName}
-                    isLoading={isFetching}
+                    isLoading={isFetching || isMetadataFetching}
                 />
                 <CausesOfDeathTimeSlider
                     className="causes-of-death__time-slider"
                     years={availableYears}
                     selectedYear={currentYear}
                     onChange={setSelectedYear}
-                    isLoading={isFetching}
+                    isLoading={isFetching || isMetadataFetching}
                 />
             </SideBySide>
 
@@ -163,12 +177,21 @@ export function CausesOfDeathCaptionedChart({
                 <div
                     className={cx("causes-of-death-captioned-chart__treemap", {
                         "causes-of-death-captioned-chart__treemap--loading":
-                            isPlaceholderData,
+                            isPlaceholderData || isMetadataPlaceholder,
                     })}
                 >
                     {showDelayedLoading && (
                         <div className="causes-of-death-captioned-chart__treemap-loading-overlay">
                             Loading data for {selectedEntityName}...
+                        </div>
+                    )}
+                    {showDelayedMetadataLoading && !showDelayedLoading && (
+                        <div className="causes-of-death-captioned-chart__treemap-loading-overlay">
+                            Loading{" "}
+                            {selectedAgeGroup === "all-ages"
+                                ? "all ages"
+                                : "under-5"}{" "}
+                            data...
                         </div>
                     )}
 
@@ -238,8 +261,7 @@ function CausesOfDeathHeader({
             </h1>
             <p className="causes-of-death-header__subtitle">
                 The size of the entire visualization represents the total number
-                of deaths among {ageGroupDescription} in{" "}
-                {formatCountryName(entityName)} in {year}:{" "}
+                of deaths {locationDescription} in {year}:{" "}
                 {formattedNumTotalDeaths}. Each rectangle within is proportional
                 to the share of deaths due to a particular cause.
             </p>
@@ -339,9 +361,9 @@ function AgeBracketDropdown({
     className,
     isLoading,
 }: {
-    availableAgeBrackets: ("all-ages" | "under-5")[]
-    selectedAgeBracket: "all-ages" | "under-5"
-    onChange: (ageBracket: string) => void
+    availableAgeBrackets: AgeGroup[]
+    selectedAgeBracket: AgeGroup
+    onChange: (ageBracket: AgeGroup) => void
     className?: string
     isLoading?: boolean
 }) {
@@ -364,7 +386,7 @@ function AgeBracketDropdown({
 
     const handleChange = useCallback(
         (option: BasicDropdownOption | null) => {
-            onChange(option?.value ?? "all-ages")
+            onChange((option?.value as AgeGroup) ?? "all-ages")
         },
         [onChange]
     )
