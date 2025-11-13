@@ -367,7 +367,7 @@ export class MarimekkoChart
         }
     }
 
-    @action.bound private onEntityMouseLeave(): void {
+    @action.bound private dismissTooltip(): void {
         this.tooltipState.target = null
     }
 
@@ -491,6 +491,7 @@ export class MarimekkoChart
                 id={makeIdForHumanConsumption("marimekko-chart")}
                 className="MarimekkoChart"
                 onMouseMove={(ev): void => this.onMouseMove(ev)}
+                onMouseLeave={(): void => this.dismissTooltip()}
             >
                 <rect
                     x={bounds.left}
@@ -563,7 +564,7 @@ export class MarimekkoChart
                 selectionArray={this.selectionArray}
                 selectedItems={this.chartState.selectedItems}
                 onEntityClick={this.onEntityClick}
-                onEntityMouseLeave={this.onEntityMouseLeave}
+                onEntityMouseLeave={this.dismissTooltip}
                 onEntityMouseOver={this.onEntityMouseOver}
             />
         )
@@ -1066,7 +1067,7 @@ export class MarimekkoChart
                         onMouseOver={(): void =>
                             this.onEntityMouseOver(candidate.item.entityName)
                         }
-                        onMouseLeave={(): void => this.onEntityMouseLeave()}
+                        onMouseLeave={(): void => this.dismissTooltip()}
                         onClick={(): void =>
                             this.onEntityClick(candidate.item.entityName)
                         }
