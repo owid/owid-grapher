@@ -12,7 +12,10 @@ import {
     PostsGdocsComponentsTableName,
     PagesIndexRecordsResponse,
 } from "@ourworldindata/types"
-import { checkIsGdocPostExcludingFragments } from "@ourworldindata/utils"
+import {
+    checkIsDataInsight,
+    checkIsGdocPostExcludingFragments,
+} from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 import {
     checkHasChanges,
@@ -23,7 +26,7 @@ import {
 import {
     indexIndividualGdocPost,
     removeIndividualGdocPostFromIndex,
-    generateGdocPostRecords,
+    getIndividualGdocRecords,
 } from "../../baker/algolia/utils/pages.js"
 import { GdocAbout } from "../../db/model/Gdoc/GdocAbout.js"
 import { GdocAuthor } from "../../db/model/Gdoc/GdocAuthor.js"
@@ -352,7 +355,10 @@ export async function getPreviewGdocIndexRecords(
         res.set("Cache-Control", "no-store")
 
         // Only generate records for posts (excluding fragments)
-        if (!checkIsGdocPostExcludingFragments(gdocJson)) {
+        if (
+            !checkIsGdocPostExcludingFragments(gdocJson) &&
+            !checkIsDataInsight(gdocJson)
+        ) {
             const payload: PagesIndexRecordsResponse = {
                 records: [],
                 count: 0,
@@ -361,7 +367,7 @@ export async function getPreviewGdocIndexRecords(
             return payload
         }
 
-        const records = await generateGdocPostRecords(gdocJson, trx)
+        const records = await getIndividualGdocRecords(gdocJson, trx)
 
         const payload: PagesIndexRecordsResponse = {
             records,

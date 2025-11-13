@@ -187,32 +187,32 @@ function formatGdocMarkdown(content: string): string {
     return withoutArrow
 }
 
+const getPostImportance = (
+    gdoc:
+        | OwidGdocAboutInterface
+        | OwidGdocDataInsightInterface
+        | OwidGdocPostInterface
+): number => {
+    return match(gdoc.content.type)
+        .with(OwidGdocType.Article, () =>
+            "deprecation-notice" in gdoc.content ? -0.5 : 0
+        )
+        .with(OwidGdocType.AboutPage, () => 1)
+        .with(
+            P.union(OwidGdocType.TopicPage, OwidGdocType.LinearTopicPage),
+            () => 3
+        )
+        .with(P.union(OwidGdocType.Fragment, undefined), () => 0)
+        .with(OwidGdocType.DataInsight, () => 0)
+        .exhaustive()
+}
+
 async function generateGdocRecords(
     gdocs: (OwidGdocPostInterface | OwidGdocDataInsightInterface)[],
     pageviews: Record<string, RawPageview>,
     cloudflareImagesByFilename: Record<string, DbEnrichedImage>,
     knex: db.KnexReadonlyTransaction
 ): Promise<PageRecord[]> {
-    const getPostImportance = (
-        gdoc:
-            | OwidGdocAboutInterface
-            | OwidGdocDataInsightInterface
-            | OwidGdocPostInterface
-    ): number => {
-        return match(gdoc.content.type)
-            .with(OwidGdocType.Article, () =>
-                "deprecation-notice" in gdoc.content ? -0.5 : 0
-            )
-            .with(OwidGdocType.AboutPage, () => 1)
-            .with(
-                P.union(OwidGdocType.TopicPage, OwidGdocType.LinearTopicPage),
-                () => 3
-            )
-            .with(P.union(OwidGdocType.Fragment, undefined), () => 0)
-            .with(OwidGdocType.DataInsight, () => 0)
-            .exhaustive()
-    }
-
     const topicHierarchiesByChildName =
         await db.getTopicHierarchiesByChildName(knex)
 
@@ -372,7 +372,7 @@ export async function indexIndividualGdocPost(
     }
     const indexName = getIndexName(SearchIndexName.Pages)
 
-    const records = await generateGdocPostRecords(gdoc, knex)
+    const records = await getIndividualGdocRecords(gdoc, knex)
 
     const existingRecordsForPost: Hit[] = await getExistingRecordsForSlug(
         client,
@@ -409,11 +409,10 @@ export async function indexIndividualGdocPost(
 }
 
 /**
- * Generate Algolia records for a single gdoc post without indexing them.
- * Useful for previewing what records would be created.
+ * Get Algolia records for a single gdoc
  */
-export async function generateGdocPostRecords(
-    gdoc: OwidGdocPostInterface,
+export async function getIndividualGdocRecords(
+    gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface,
     knex: db.KnexReadonlyTransaction,
     indexedSlug?: string
 ) {
