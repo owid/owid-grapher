@@ -132,6 +132,31 @@ describe(Url, () => {
         expect(url.fullUrlNoTrailingSlash).toEqual("/")
     })
 
+    const slugTestCases = [
+        { url: "https://ourworldindata.org/", slug: "" },
+        { url: "https://ourworldindata.org/grapher/abc", slug: "abc" },
+        { url: "https://ourworldindata.org/grapher/123-xyz", slug: "123-xyz" },
+        {
+            url: "https://ourworldindata.org/grapher/with-hash#section",
+            slug: "with-hash",
+        },
+        {
+            url: "https://ourworldindata.org/grapher/with-dash?abc=123",
+            slug: "with-dash",
+        },
+        {
+            url: "/grapher/relative-path",
+            slug: "relative-path",
+        },
+    ]
+
+    it.each(slugTestCases)(
+        "correctly extracts slug from $url",
+        ({ url, slug }) => {
+            expect(Url.fromURL(url).slug).toEqual(slug)
+        }
+    )
+
     describe("areQueryParamsEqual", () => {
         it("returns true for identical query params", () => {
             const url1 = Url.fromURL("https://example.com/?a=1&b=2")

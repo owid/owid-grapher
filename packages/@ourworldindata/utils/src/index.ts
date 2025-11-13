@@ -1,5 +1,4 @@
 export {
-    pairs,
     type NoUndefinedValues,
     type AllKeysRequired,
     type PartialBy,
@@ -38,7 +37,6 @@ export {
     isTouchDevice,
     type Json,
     csvEscape,
-    urlToSlug,
     trimObject,
     fetchText,
     fetchJson,

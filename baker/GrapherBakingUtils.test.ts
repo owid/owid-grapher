@@ -1,41 +1,6 @@
 import { expect, it, describe } from "vitest"
 
-import {
-    grapherSlugToExportFileKey,
-    grapherUrlToSlugAndQueryStr,
-} from "./GrapherBakingUtils.js"
-
-describe(grapherUrlToSlugAndQueryStr, () => {
-    it("can extract a slug", () => {
-        const grapherUrl = "https://ourworldindata.org/grapher/soil-lifespans"
-        const { slug, queryStr } = grapherUrlToSlugAndQueryStr(grapherUrl)
-        expect(slug).toEqual("soil-lifespans")
-        expect(queryStr).toEqual("")
-    })
-
-    it("can extract slug and queryStr", () => {
-        const grapherUrl =
-            "https://ourworldindata.org/grapher/soil-lifespans?tab=map"
-        const { slug, queryStr } = grapherUrlToSlugAndQueryStr(grapherUrl)
-        expect(slug).toEqual("soil-lifespans")
-        expect(queryStr).toEqual("?tab=map")
-    })
-
-    it("ignores empty query string", () => {
-        const grapherUrl = "https://ourworldindata.org/grapher/soil-lifespans?"
-        const { slug, queryStr } = grapherUrlToSlugAndQueryStr(grapherUrl)
-        expect(slug).toEqual("soil-lifespans")
-        expect(queryStr).toEqual("")
-    })
-
-    it("can handle slugs with uppercase letters", () => {
-        const grapherUrl =
-            "https://ourworldindata.org/grapher/real-gdp-per-capita-pennWT"
-        const { slug, queryStr } = grapherUrlToSlugAndQueryStr(grapherUrl)
-        expect(slug).toEqual("real-gdp-per-capita-pennWT")
-        expect(queryStr).toEqual("")
-    })
-})
+import { grapherSlugToExportFileKey } from "./GrapherBakingUtils.js"
 
 describe(grapherSlugToExportFileKey, () => {
     it("can handle empty query string", () => {

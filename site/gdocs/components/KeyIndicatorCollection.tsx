@@ -16,7 +16,7 @@ import {
     EnrichedBlockKeyIndicator,
     GRAPHER_TAB_CONFIG_OPTIONS,
 } from "@ourworldindata/types"
-import { Url, urlToSlug, commafyNumber } from "@ourworldindata/utils"
+import { Url, commafyNumber } from "@ourworldindata/utils"
 import { isValidTabQueryParam } from "@ourworldindata/grapher"
 
 import { useLinkedChart, useLinkedIndicator } from "../utils.js"
@@ -42,8 +42,8 @@ export default function KeyIndicatorCollection({
     d: EnrichedBlockKeyIndicatorCollection
     className?: string
 }) {
-    const slugs = d.blocks.map((b: EnrichedBlockKeyIndicator) =>
-        urlToSlug(b.datapageUrl)
+    const slugs = d.blocks.map(
+        (b: EnrichedBlockKeyIndicator) => Url.fromURL(b.datapageUrl).slug ?? ""
     )
 
     const [isBlockOpen, setBlockOpen] = useState<boolean[]>(

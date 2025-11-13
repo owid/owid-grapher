@@ -4,9 +4,9 @@ import { DataPageV2 } from "../site/DataPageV2.js"
 import { renderToHtmlPage } from "../baker/siteRenderers.js"
 import {
     excludeUndefined,
-    urlToSlug,
     mergeGrapherConfigs,
     experiments,
+    Url,
 } from "@ourworldindata/utils"
 import fs from "fs-extra"
 import {
@@ -343,7 +343,7 @@ const renderGrapherPage = async (
     } = {}
 ) => {
     const isOnArchivalPage = archiveContext?.type === "archive-page"
-    const postSlug = urlToSlug(grapher.originUrl || "") as string | undefined
+    const postSlug = Url.fromURL(grapher.originUrl ?? "").slug
     // TODO: update this to use gdocs posts
     const postId =
         postSlug && !isOnArchivalPage

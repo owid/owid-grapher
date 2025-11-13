@@ -11,15 +11,7 @@ import {
 import { queryParamsToStr, strToQueryParams } from "./UrlUtils.js"
 import * as R from "remeda"
 
-const parseUrl = (url: string): urlParseLib<string> => {
-    const parsed = urlParseLib(url, {})
-    // The library returns an unparsed string for `query`, its types aren't quite right.
-    const query = parsed.query.toString()
-    return {
-        ...parsed,
-        query,
-    }
-}
+const parseUrl = (url: string): urlParseLib<string> => urlParseLib(url, {})
 
 const ensureStartsWith = (str: string, start: string): string => {
     if (str.startsWith(start)) return str

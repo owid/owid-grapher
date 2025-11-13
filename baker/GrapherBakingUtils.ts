@@ -1,13 +1,11 @@
 import * as _ from "lodash-es"
 import fs from "fs-extra"
 import { glob } from "glob"
-import * as R from "remeda"
 
 import * as db from "../db/db.js"
 import {
     DbPlainTag,
     DbPlainUser,
-    Url,
     PostsGdocsTableName,
     OwidGdocType,
 } from "@ourworldindata/utils"
@@ -15,15 +13,6 @@ import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedir
 import { hashMd5 } from "../serverUtils/hash.js"
 import { BAKE_ON_CHANGE } from "../settings/serverSettings.js"
 import { DeployQueueServer } from "./DeployQueueServer.js"
-
-// Splits a grapher URL like https://ourworldindata.org/grapher/soil-lifespans?tab=chart
-// into its slug (soil-lifespans) and queryStr (?tab=chart)
-export const grapherUrlToSlugAndQueryStr = (grapherUrl: string) => {
-    const url = Url.fromURL(grapherUrl)
-    const slug = R.last(url.pathname?.split("/") ?? []) as string // todo / refactor: use Url.slug
-    const queryStr = url.queryStr
-    return { slug, queryStr }
-}
 
 // Combines a grapher slug, and potentially its query string, to _part_ of an export file
 // name. It's called fileKey and not fileName because the actual export filename also includes
