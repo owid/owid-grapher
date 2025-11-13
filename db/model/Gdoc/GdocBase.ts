@@ -383,7 +383,7 @@ export class GdocBase implements OwidGdocBaseInterface {
             for (const block of enrichedBlockSource) {
                 traverseEnrichedBlock(block, (block) => {
                     if (block.type === "key-indicator") {
-                        const slug = Url.fromURL(block.datapageUrl).slug!
+                        const slug = Url.fromURL(block.datapageUrl).slug ?? ""
                         slugs.add(slug)
                     }
                 })
@@ -1099,7 +1099,16 @@ export class GdocBase implements OwidGdocBaseInterface {
             enrichedBlockSource.forEach((block) =>
                 traverseEnrichedBlock(block, (block) => {
                     if (block.type === "key-indicator" && block.datapageUrl) {
-                        const slug = Url.fromURL(block.datapageUrl).slug!
+                        const slug = Url.fromURL(block.datapageUrl).slug
+                        if (!slug) {
+                            contentErrors.push({
+                                property: "body",
+                                type: OwidGdocErrorMessageType.Error,
+                                message: `Key indicator's dataPageUrl is not valid: ${block.datapageUrl}`,
+                            })
+                            return
+                        }
+
                         const linkedChart = this.linkedCharts?.[slug]
                         if (linkedChart && !linkedChart.indicatorId) {
                             contentErrors.push({
