@@ -197,6 +197,21 @@ body {
     @include h3-bold;
 }
 
+@mixin h3-semibold {
+    font-family: $serif-font-stack;
+    font-size: 1.125rem;
+    line-height: calc(4 / 3);
+    font-weight: 600;
+    display: block;
+    margin-top: 48px;
+    margin-bottom: 24px;
+    letter-spacing: 0;
+}
+
+.h3-semibold {
+    @include h3-semibold;
+}
+
 @mixin h4-semibold {
     font-family: $serif-font-stack;
     font-size: 1rem;
