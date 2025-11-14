@@ -211,7 +211,7 @@ function ArticleBlockInternal({
             <StaticViz
                 className={getLayout("static-viz", containerType)}
                 name={block.name}
-                containerType={containerType}
+                containerType={containerType as ImageParentContainer}
             />
         ))
         .with({ type: "people" }, (block) => (
