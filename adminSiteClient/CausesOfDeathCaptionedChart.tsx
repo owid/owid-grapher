@@ -113,28 +113,37 @@ export function CausesOfDeathCaptionedChart({
 
     return (
         <article className="causes-of-death-captioned-chart">
-            <SideBySide>
-                <AgeBracketDropdown
-                    className="causes-of-death__entity-dropdown"
-                    availableAgeBrackets={metadata.availableAgeGroups}
-                    selectedAgeBracket={selectedAgeGroup}
-                    onChange={setSelectedAgeGroup}
-                />
-                <EntityDropdown
-                    className="causes-of-death__entity-dropdown"
-                    availableEntities={metadata?.availableEntities}
-                    selectedEntityName={selectedEntityName}
-                    onChange={setSelectedEntityName}
-                    isLoading={entityDataResponse.isFetching}
-                />
-                <CausesOfDeathTimeSlider
-                    className="causes-of-death__time-slider"
-                    years={metadata.availableYears}
-                    selectedYear={activeYear}
-                    onChange={setSelectedYear}
-                    isLoading={entityDataResponse.isFetching}
-                />
-            </SideBySide>
+            <div
+                style={{
+                    border: "1px solid #e0e0e0",
+                    padding: 16,
+                    marginBottom: 16,
+                }}
+            >
+                <div className="controls-title">Configure the data</div>
+                <SideBySide>
+                    <AgeBracketDropdown
+                        className="causes-of-death__entity-dropdown"
+                        availableAgeBrackets={metadata.availableAgeGroups}
+                        selectedAgeBracket={selectedAgeGroup}
+                        onChange={setSelectedAgeGroup}
+                    />
+                    <EntityDropdown
+                        className="causes-of-death__entity-dropdown"
+                        availableEntities={metadata?.availableEntities}
+                        selectedEntityName={selectedEntityName}
+                        onChange={setSelectedEntityName}
+                        isLoading={entityDataResponse.isFetching}
+                    />
+                    <CausesOfDeathTimeSlider
+                        className="causes-of-death__time-slider"
+                        years={metadata.availableYears}
+                        selectedYear={activeYear}
+                        onChange={setSelectedYear}
+                        isLoading={entityDataResponse.isFetching}
+                    />
+                </SideBySide>
+            </div>
 
             <div style={{ padding: 16, border: "1px solid #e0e0e0" }}>
                 <OwidLogo />
@@ -379,9 +388,6 @@ function SideBySide({ children }: { children: React.ReactNode }) {
         <div
             className="side-by-side"
             style={{
-                border: "1px solid #e0e0e0",
-                padding: 16,
-                marginBottom: 16,
                 rowGap: 12,
             }}
         >
