@@ -79,19 +79,33 @@ export const parseEntityData = ({
             const year = entityData.years[index]
             const ageGroupId = entityData.ageGroups[index]
 
-            const variable = metadata.variableById.get(variableId)?.name
-            if (!variable) {
-                console.warn(`Unknown variable ID: ${variableId}`)
-                return null
-            }
-
-            const ageGroup = metadata.ageGroupById.get(ageGroupId)?.name
-            if (!ageGroup) {
+            const ageGroupMetadata = metadata.ageGroupById.get(ageGroupId)
+            if (!ageGroupMetadata) {
                 console.warn(`Unknown age group ID: ${ageGroupId}`)
                 return null
             }
 
-            return { entityName, year, variable, ageGroup, value }
+            const variableMetadata = metadata.variableById.get(variableId)
+            if (!variableMetadata) {
+                console.warn(`Unknown variable ID: ${variableId}`)
+                return null
+            }
+
+            const categoryId = variableMetadata.category
+            const categoryMetadata = metadata.categoryById.get(categoryId)
+            if (!categoryMetadata) {
+                console.warn(`Unknown category ID: ${categoryId}`)
+                return null
+            }
+
+            return {
+                entityName,
+                year,
+                variable: variableMetadata.name,
+                ageGroup: ageGroupMetadata.name,
+                category: categoryMetadata.name,
+                value,
+            }
         })
         .filter((item) => item !== null)
 }
