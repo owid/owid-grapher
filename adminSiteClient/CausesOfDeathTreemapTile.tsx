@@ -1,6 +1,5 @@
 import { Bounds } from "@ourworldindata/utils"
 import {
-    CauseOfDeathCategory,
     CAUSE_OF_DEATH_CATEGORY_COLORS,
     TreeNode,
 } from "./CausesOfDeathConstants"
@@ -16,7 +15,6 @@ export function CausesOfDeathTreemapTile({
     annotationHeight,
     isNarrow,
     treemapBounds,
-    debug = false,
     onMouseEnter,
     onMouseLeave,
 }: {
@@ -26,7 +24,6 @@ export function CausesOfDeathTreemapTile({
     isLargestTile: boolean
     annotationHeight: number
     isNarrow: boolean
-    debug: boolean
     onMouseEnter?: (node: TreeNode, event: React.MouseEvent) => void
     onMouseLeave?: () => void
 }) {
@@ -42,9 +39,7 @@ export function CausesOfDeathTreemapTile({
     const width = node.x1 - node.x0
     const height = node.y1 - node.y0
 
-    const color =
-        CAUSE_OF_DEATH_CATEGORY_COLORS[parentKey as CauseOfDeathCategory] ||
-        "#cccccc"
+    const color = CAUSE_OF_DEATH_CATEGORY_COLORS[parentKey] || "#cccccc"
 
     return (
         <g
@@ -76,7 +71,6 @@ export function CausesOfDeathTreemapTile({
                 isLargestTile={isLargestTile}
                 treemapBounds={treemapBounds}
                 isNarrow={isNarrow}
-                debug={debug}
             />
         </g>
     )

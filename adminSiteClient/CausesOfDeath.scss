@@ -14,84 +14,149 @@
 @import "../packages/@ourworldindata/grapher/src/controls/Dropdown.scss";
 @import "../packages/@ourworldindata//grapher/src/tooltip/Tooltip.scss";
 
+$frame: 1px solid $frame-color;
+$frame-padding: 16px;
+$frame-max-width: 900px;
+$black-text: $gray-100;
+
 .causes-of-death-page {
     margin: 24px;
+    font-family: $sans-serif-font-stack;
+}
+
+.causes-of-death-chart {
+    max-width: $frame-max-width;
+    color: $dark-text;
+}
+
+.causes-of-death-controls {
+    border: $frame;
+    padding: $frame-padding;
+    margin-bottom: 16px;
+
+    .causes-of-death-controls__title {
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.15em;
+        color: $light-text;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+    }
+
+    .causes-of-death-controls__content {
+        display: flex;
+        column-gap: 16px;
+        row-gap: 8px;
+        align-items: center;
+
+        @include sm-only {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        > * {
+            flex: 1 1 0;
+            width: 100%;
+        }
+    }
+}
+
+.causes-of-death-captioned-chart {
+    border: $frame;
+    padding: $frame-padding;
+
+    .causes-of-death-captioned-chart__chart-area {
+        position: relative;
+    }
+
+    .causes-of-death-captioned-chart__loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 10;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: $black-text;
+    }
+}
+
+.causes-of-death-header {
+    .causes-of-death-header__content h1 {
+        color: $black-text;
+        font-size: 1.375rem;
+        font-weight: 600;
+        font-family: $serif-font-stack;
+        margin: 0;
+        margin-bottom: 8px;
+
+        span {
+            color: $light-text;
+        }
+
+        @include sm-only {
+            font-size: 1.15rem;
+        }
+    }
+
+    .causes-of-death-header__subtitle {
+        font-size: 1rem;
+        line-height: 1.2;
+        margin: 0;
+        margin-bottom: 16px;
+
+        @include sm-only {
+            font-size: 0.875rem;
+        }
+    }
+
+    .causes-of-death-header__value--loading {
+        color: $gray-50;
+        font-style: italic;
+    }
+}
+
+/* Causes of Death source line styling */
+.causes-of-death-footer {
+    font-size: 0.875rem;
+    margin-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+
+    column-gap: 16px;
+    row-gap: 2px;
+
+    @include sm-only {
+        font-size: 0.75rem;
+    }
+
+    .causes-of-death-footer__cc {
+        background: none;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    @at-root .causes-of-death-footer__tooltip {
+        background: white;
+        color: $black-text;
+        border-radius: 4px;
+        box-shadow: 0px 4px 40px rgba(0, 0, 0, 0.2);
+        padding: 8px 12px;
+        font-size: 0.875rem;
+        max-width: 300px;
+        line-height: 1.5;
+        font-family: $sans-serif-font-stack;
+    }
 }
 
 // NEEDS CLEANUP
-
-/* Causes of Death Country Selector Styling */
-.causes-of-death-captioned-chart {
-    font-family: $sans-serif-font-stack;
-    // margin: 20px 0;
-    // padding: 20px;
-    // border: 1px solid #e0e0e0;
-    color: #5b5b5b;
-    max-width: 900px;
-    position: relative;
-}
-
-.causes-of-death-header h1 {
-    color: #333;
-    font-size: 21px;
-    font-weight: 600;
-    font-family: $serif-font-stack;
-    margin: 0;
-
-    span {
-        color: #858585;
-    }
-}
-
-$sm: 768px;
-@mixin sm-only {
-    @media (max-width: $sm) {
-        @content;
-    }
-}
-
-@include sm-only {
-    .causes-of-death-header h1 {
-        font-size: 17.5px;
-    }
-}
-
-// .single-treemap-section h4 {
-//     margin: 0 0 15px 0;
-//     color: #555;
-//     font-size: 1.2rem;
-//     font-weight: 500;
-//     padding-bottom: 8px;
-//     border-bottom: 1px solid #ddd;
-// }
-
-/* Style the dropdown container */
-.causes-of-death-captioned-chart .grapher-dropdown {
-    max-width: 100%;
-}
-
-.causes-of-death-captioned-chart .grapher-dropdown .control {
-    border: 1px solid #e7e7e7;
-    border-radius: 4px;
-    padding: 8px 12px;
-    background-color: white;
-    font-size: 14px;
-    // min-height: 38px;
-}
-
-.causes-of-death-captioned-chart .grapher-dropdown .control:hover {
-    border-color: #999;
-}
-
-.causes-of-death-captioned-chart .grapher-dropdown .control:focus-within {
-    border-color: #007cbb;
-    box-shadow: 0 0 0 2px rgba(0, 124, 187, 0.2);
-}
-
-.causes-of-death-captioned-chart .grapher-dropdown .label {
-    color: #666;
-    font-weight: normal;
-}
 
 /* Category annotation arrows styling */
 .arrow {
@@ -111,77 +176,6 @@ g:has(.arrow) {
     z-index: 10;
 }
 
-/* Causes of Death subtitle styling */
-.causes-of-death-header__subtitle {
-    color: #5b5b5b;
-    font-size: 15.75px;
-    line-height: 1.2;
-    margin: 8px 0 12px 0;
-}
-
-@include sm-only {
-    .causes-of-death-header__subtitle {
-        font-size: 14px;
-    }
-}
-
-/* Causes of Death source line styling */
-.causes-of-death-footer {
-    margin-top: 8px;
-    /* font-size: 12px; */
-    font-size: 14px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    column-gap: 16px;
-    row-gap: 2px;
-    line-height: 1.2;
-}
-
-@include sm-only {
-    .causes-of-death-footer {
-        font-size: 14px;
-    }
-}
-
-/* CC BY button styling */
-.cc-by-button {
-    background: none;
-    border: none;
-    color: #5b5b5b;
-    font-size: 14px;
-    cursor: pointer;
-    padding: 0;
-    text-decoration: none;
-}
-
-/* CC BY button hover styling - remove all hover effects */
-.cc-by-button:hover {
-    color: #5b5b5b;
-    text-decoration: none;
-    background: none;
-}
-
-/* CC BY tooltip styling */
-.cc-by-tooltip {
-    background: white;
-    color: black;
-    border: 1px solid #d3d3d3;
-    border-radius: 4px;
-    box-shadow: 0px 4px 40px rgba(0, 0, 0, 0.2);
-    padding: 8px 12px;
-    font-size: 14px;
-    max-width: 304px;
-    line-height: 1.4;
-    text-align: left;
-    white-space: inherit;
-    z-index: 1000;
-    font-family:
-        "Lato", "Helvetica Neue", Helvetica, Arial, "Liberation Sans",
-        sans-serif;
-}
-
 /* OWID logo with text wrapping */
 .owid-logo {
     float: right;
@@ -193,39 +187,6 @@ g:has(.arrow) {
 /* Settings box styling */
 .settings-box {
     max-width: 900px;
-}
-
-.causes-of-death-captioned-chart .causes-of-death__entity-dropdown {
-    // margin-bottom: 20px;
-    max-width: 220px;
-}
-
-.causes-of-death-captioned-chart {
-    .causes-of-death-captioned-chart__treemap {
-        position: relative;
-        transition: opacity 0.2s ease-in-out;
-
-        &--loading {
-            opacity: 0.7;
-        }
-    }
-
-    .causes-of-death-captioned-chart__treemap-loading-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 10;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(255, 255, 255, 0.8);
-        font-size: 14px;
-        color: #666;
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
 }
 
 .causes-of-death-treemap {
@@ -382,18 +343,13 @@ g:has(.arrow) {
 .side-by-side {
     display: flex;
     column-gap: 16px;
+    row-gap: 12px;
     align-items: center;
 
     @include sm-only {
         flex-direction: column;
         align-items: flex-start;
     }
-}
-
-.causes-of-death__entity-dropdown {
-    flex-shrink: 0;
-    flex-grow: 0;
-    width: 300px;
 }
 
 .causes-of-death-tooltip__value {
