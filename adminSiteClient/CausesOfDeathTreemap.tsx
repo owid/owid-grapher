@@ -9,7 +9,7 @@ import {
 } from "./CausesOfDeathConstants"
 import { useMemo, useState, useCallback, useRef } from "react"
 import * as d3 from "d3"
-import useChartDimensions, { DimensionsConfig } from "./useChartDimensions"
+import { useChartDimensions, useWindowDimensions } from "./useDimensions"
 import { Bounds, getRelativeMouse } from "@ourworldindata/utils"
 
 import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
@@ -23,6 +23,8 @@ import {
 import { formatPercentSigFig } from "./CausesOfDeathHelpers.js"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { match } from "ts-pattern"
+import { CausesOfDeathMobileBarChart } from "./CausesOfDeathMobileBarChart.js"
+import { stackedSliceDiceTiling } from "./stackedSliceDiceTiling.js"
 
 export { CausesOfDeathCaptionedChart } from "./CausesOfDeathCaptionedChart"
 
@@ -35,10 +37,6 @@ export function ResponsiveCausesOfDeathTreemap({
     entityName,
     year,
     ageGroup,
-    dimensionsConfig,
-    tilingMethod,
-    isNarrow,
-    debug = false,
 }: {
     data: DataRow[]
     historicalData?: DataRow[]
@@ -46,17 +44,23 @@ export function ResponsiveCausesOfDeathTreemap({
     entityName: EntityName
     year: Time
     ageGroup: string
-    dimensionsConfig?: DimensionsConfig
-    tilingMethod?: any // TODO
-    isNarrow?: boolean
-    debug?: boolean
 }) {
-    const { ref, dimensions } = useChartDimensions<HTMLDivElement>({
-        config: dimensionsConfig,
-    })
+    const config = {
+        initialWidth: 900,
+        ratio: 3 / 2,
+        minHeight: 400,
+        maxHeight: 800,
+    }
 
+    const { ref, dimensions } = useChartDimensions<HTMLDivElement>({ config })
+    const { dimensions: windowDimensions } = useWindowDimensions()
+
+    const isNarrow = dimensions.width < SMALL_BREAKPOINT
     const height = isNarrow
-        ? (dimensionsConfig?.maxHeight ?? 900)
+        ? R.clamp(windowDimensions.height - 16, {
+              min: config.minHeight,
+              max: config.maxHeight,
+          })
         : dimensions.height
 
     return (
@@ -68,10 +72,8 @@ export function ResponsiveCausesOfDeathTreemap({
                 entityName={entityName}
                 year={year}
                 ageGroup={ageGroup}
-                tilingMethod={tilingMethod}
                 width={dimensions.width}
                 height={height}
-                debug={debug}
             />
         </div>
     )
@@ -84,10 +86,8 @@ function CausesOfDeathTreemap({
     entityName,
     year,
     ageGroup,
-    tilingMethod = d3.treemapSquarify,
     width,
     height,
-    debug = false,
 }: {
     data: DataRow[]
     historicalData?: DataRow[]
@@ -97,8 +97,6 @@ function CausesOfDeathTreemap({
     ageGroup: string
     width: number
     height: number
-    tilingMethod?: any // TODO: type this
-    debug?: boolean
 }) {
     // Tooltip state management
     const [tooltipState, setTooltipState] = useState<TooltipState>({
@@ -121,13 +119,9 @@ function CausesOfDeathTreemap({
             const position = getRelativeMouse(svgRef.current, event.nativeEvent)
             const target = { node }
 
-            if (debug) {
-                console.log("Tooltip target:", target, "Position:", position)
-            }
-
             setTooltipState({ target, position })
         },
-        [debug]
+        []
     )
 
     const onTileMouseMove = useCallback(
@@ -148,8 +142,12 @@ function CausesOfDeathTreemap({
         }, 200) // 200ms delay should be enough to prevent flashing
     }, [])
 
-    const numAllDeaths = d3.sum(data, (d) => d.value) || 0
+    const isNarrow = width < SMALL_BREAKPOINT
+    const tilingMethod = isNarrow
+        ? d3.treemapSlice
+        : stackedSliceDiceTiling({ minSliceWidth: 120, minStackHeight: 40 })
 
+    const numAllDeaths = d3.sum(data, (d) => d.value) || 0
     const enrichedData: EnrichedDataItem[] = [
         // Root node
         { entityName, year, variable: "All", value: null, share: 0 }, // todo: null
@@ -185,7 +183,7 @@ function CausesOfDeathTreemap({
 
     const treemapLayout = d3
         .treemap<d3.HierarchyNode<EnrichedDataItem>>()
-        .tile(tilingMethod)
+        .tile(tilingMethod as any) // TODO
         .size([width, height])
         .padding(1)
         .round(true)
@@ -193,8 +191,6 @@ function CausesOfDeathTreemap({
     const root = treemapLayout(hierarchy)
     const leaves = useMemo(() => root.leaves() as TreeNode[], [root])
 
-    // TODO: extract?
-    const isNarrow = width < SMALL_BREAKPOINT
     const shouldPinTooltipToBottom = isNarrow
 
     const treemapBounds = new Bounds(0, 0, width, height)
@@ -225,6 +221,14 @@ function CausesOfDeathTreemap({
 
     return (
         <div style={{ position: "relative" }}>
+            {isNarrow && (
+                <CausesOfDeathMobileBarChart
+                    data={data}
+                    metadata={metadata}
+                    ageGroup={ageGroup}
+                />
+            )}
+
             <svg
                 ref={svgRef}
                 className="causes-of-death-treemap"
@@ -245,7 +249,6 @@ function CausesOfDeathTreemap({
                         annotationHeight={containerPadding.top}
                         isNarrow={isNarrow}
                         treemapBounds={treemapBounds}
-                        debug={debug}
                         onMouseEnter={onTileMouseEnter}
                         onMouseLeave={onTileMouseLeave}
                     />
