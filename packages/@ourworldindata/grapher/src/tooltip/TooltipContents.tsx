@@ -156,8 +156,7 @@ function Variable({
 
     const { mainLabel: columnName, unit } = makeAxisLabel({
         label: column.displayName,
-        unit: column.unit,
-        shortUnit: column.shortUnit,
+        displayUnit: column.displayUnit,
     })
 
     const displayNotice =

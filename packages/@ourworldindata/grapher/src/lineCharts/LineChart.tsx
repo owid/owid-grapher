@@ -339,7 +339,7 @@ export class LineChart
         )
 
         const formattedTime = formatColumn.formatTime(target.time),
-            { unit, shortUnit } = formatColumn,
+            { displayUnit: unitLabel } = formatColumn,
             { isRelativeMode, startTime } = this.manager
 
         const title = formattedTime
@@ -348,7 +348,6 @@ export class LineChart
         const columns = [formatColumn]
         if (hasColorScale) columns.push(colorColumn)
 
-        const unitLabel = unit !== shortUnit ? unit : undefined
         const subtitle =
             isRelativeMode && startTime
                 ? `% change since ${formatColumn.formatTime(startTime)}`

@@ -553,8 +553,7 @@ abstract class AbstractAxis {
 
         const axisLabel = makeAxisLabel({
             label: this.label,
-            unit: this.formatColumn?.unit,
-            shortUnit: this.formatColumn?.shortUnit,
+            displayUnit: this.formatColumn?.displayUnit,
         })
 
         const logScaleNotice = "plotted on a logarithmic axis"
