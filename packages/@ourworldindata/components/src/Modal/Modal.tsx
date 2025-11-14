@@ -9,7 +9,7 @@ export interface ModalProps {
     children?: React.ReactNode
     isHeightFixed?: boolean
     alignVertical?: ModalVerticalAlignment
-    /** Additional selectors (e.g., class names) treated as interactive. */
+    /** Additional selectors treated as interactive to prevent modal dismissal. */
     interactiveElementSelectors?: string[]
 }
 
@@ -28,27 +28,28 @@ export class Modal extends React.Component<ModalProps> {
         return this.props.alignVertical ?? "center"
     }
 
-    private get interactiveSelector(): string | undefined {
-        const selectors = [
+    private get interactiveSelectors(): string[] {
+        return [
             "a",
             "button",
             "input",
             ...(this.props.interactiveElementSelectors ?? []),
         ]
-        return selectors.length ? selectors.join(", ") : undefined
     }
 
     private isElementInteractive(element: HTMLElement): boolean {
-        const selector = this.interactiveSelector
+        const selector = this.interactiveSelectors.join(", ")
         return selector ? element.closest(selector) !== null : false
     }
 
-    private isTargetOutsideElement(target: EventTarget, element: Node): boolean {
+    private isTargetOutsideElement(
+        target: EventTarget,
+        element: Node
+    ): boolean {
         const targetNode = target as Node
-        if (typeof document === "undefined") return !element.contains(targetNode)
-        return (
-            !element.contains(targetNode) && document.contains(targetNode)
-        )
+        if (typeof document === "undefined")
+            return !element.contains(targetNode)
+        return !element.contains(targetNode) && document.contains(targetNode)
     }
 
     @bind private onDocumentClick(e: MouseEvent): void {

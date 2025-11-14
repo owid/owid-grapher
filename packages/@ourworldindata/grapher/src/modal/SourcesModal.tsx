@@ -40,7 +40,6 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     GrapherModal,
     isContinentsVariableId,
-    MODAL_INTERACTIVE_ELEMENT_SELECTORS,
 } from "../core/GrapherConstants"
 import * as R from "remeda"
 
@@ -321,9 +320,6 @@ export class SourcesModal extends React.Component<
                 bounds={this.modalBounds}
                 isHeightFixed={true}
                 onDismiss={this.onDismiss}
-                interactiveElementSelectors={
-                    MODAL_INTERACTIVE_ELEMENT_SELECTORS
-                }
             >
                 <div className="sources-modal-content">
                     {this.showStickyHeader ? (

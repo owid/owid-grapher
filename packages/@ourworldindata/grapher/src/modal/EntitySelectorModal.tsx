@@ -7,10 +7,7 @@ import {
     EntitySelector,
     EntitySelectorManager,
 } from "../entitySelector/EntitySelector"
-import {
-    DEFAULT_GRAPHER_BOUNDS,
-    MODAL_INTERACTIVE_ELEMENT_SELECTORS,
-} from "../core/GrapherConstants"
+import { DEFAULT_GRAPHER_BOUNDS } from "../core/GrapherConstants"
 
 export interface EntitySelectorModalManager extends EntitySelectorManager {
     isEntitySelectorModalOrDrawerOpen?: boolean
@@ -50,9 +47,6 @@ export class EntitySelectorModal extends React.Component<{
                 onDismiss={this.onDismiss}
                 bounds={this.modalBounds}
                 isHeightFixed={true}
-                interactiveElementSelectors={
-                    MODAL_INTERACTIVE_ELEMENT_SELECTORS
-                }
             >
                 <EntitySelector
                     manager={this.manager}
