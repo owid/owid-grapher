@@ -110,69 +110,37 @@ function MultiColumnResults({
             )}
             {interleavedTopics.length > 0 && (
                 <div className="search-writing-results__topics">
-                    {hasLargeTopic ? (
+                    {interleavedTopics.map((hit, index) => (
                         <SearchTopicPageHit
-                            hit={interleavedTopics[0]}
-                            variant="large"
+                            key={hit.objectID}
+                            hit={hit}
+                            variant={hasLargeTopic ? "large" : undefined}
                             onClick={() => {
-                                analytics.logSiteSearchResultClick(
-                                    interleavedTopics[0],
-                                    {
-                                        position: 1,
-                                        source: "search",
-                                    }
-                                )
+                                analytics.logSiteSearchResultClick(hit, {
+                                    position: index + 1,
+                                    source: "search",
+                                })
                             }}
                         />
-                    ) : (
-                        interleavedTopics.map((hit, index) => (
-                            <SearchTopicPageHit
-                                key={hit.objectID}
-                                hit={hit}
-                                onClick={() => {
-                                    analytics.logSiteSearchResultClick(hit, {
-                                        position: index + 1,
-                                        source: "search",
-                                    })
-                                }}
-                            />
-                        ))
-                    )}
+                    ))}
                 </div>
             )}
             {remainingTopics.length > 0 && (
                 <div className="search-writing-results__overflow">
-                    {hasLargeTopic ? (
+                    {remainingTopics.map((hit, index) => (
                         <SearchTopicPageHit
-                            hit={remainingTopics[0]}
-                            variant="large"
+                            key={hit.objectID}
+                            hit={hit}
+                            variant={hasLargeTopic ? "large" : undefined}
                             onClick={() => {
-                                analytics.logSiteSearchResultClick(
-                                    remainingTopics[0],
-                                    {
-                                        position: interleavedTopics.length + 1,
-                                        source: "search",
-                                    }
-                                )
+                                analytics.logSiteSearchResultClick(hit, {
+                                    position:
+                                        interleavedTopics.length + index + 1,
+                                    source: "search",
+                                })
                             }}
                         />
-                    ) : (
-                        remainingTopics.map((hit, index) => (
-                            <SearchTopicPageHit
-                                key={hit.objectID}
-                                hit={hit}
-                                onClick={() => {
-                                    analytics.logSiteSearchResultClick(hit, {
-                                        position:
-                                            interleavedTopics.length +
-                                            index +
-                                            1,
-                                        source: "search",
-                                    })
-                                }}
-                            />
-                        ))
-                    )}
+                    ))}
                 </div>
             )}
         </div>
