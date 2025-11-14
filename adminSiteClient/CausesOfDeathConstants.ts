@@ -93,6 +93,7 @@ export interface DataRow {
     year: Time
     variable: string
     ageGroup: string
+    category: string
     value: number
 }
 
