@@ -49,3 +49,11 @@ export function formatCountryName(countryName: string): string {
     }
     return countryName
 }
+
+export const minBy = <T>(array: T[], selector: (item: T) => number): number => {
+    return Math.min(...array.map(selector))
+}
+
+export const maxBy = <T>(array: T[], selector: (item: T) => number): number => {
+    return Math.max(...array.map(selector))
+}
