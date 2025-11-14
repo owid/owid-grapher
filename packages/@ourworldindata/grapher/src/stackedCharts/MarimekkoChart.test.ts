@@ -1025,3 +1025,29 @@ it("can deal with y columns with missing values", () => {
     expect(xPositions[1]).toBeCloseTo(xAxisRange * 0.4, 0)
     expect(xPositions[2]).toBeCloseTo(xAxisRange * 0.5, 0)
 })
+
+it("drops rows that have data only for the color column", () => {
+    const csv = `year,entityName,population,percentBelow2USD,continent
+2001,USA,330000000,5,North America
+2001,China,1400000000,10,Asia
+2001,UK,,,Europe`
+    const table = new OwidTable(csv, [
+        { slug: "population", type: ColumnTypeNames.Numeric },
+        { slug: "percentBelow2USD", type: ColumnTypeNames.Numeric },
+        { slug: "continent", type: ColumnTypeNames.String },
+        { slug: "year", type: ColumnTypeNames.Year },
+    ])
+
+    const manager: MarimekkoChartManager = {
+        table,
+        yColumnSlugs: ["percentBelow2USD"],
+        xColumnSlug: "population",
+        categoricalColorColumnSlug: "continent",
+    }
+    const chartState = new MarimekkoChartState({ manager })
+
+    // Only USA and China should be included, as they have both y and x data
+    // The UK should be dropped because it doesn't have x or y data
+    const entityNames = chartState.series[0].points.map((p) => p.position)
+    expect(entityNames).toEqual(["USA", "China"])
+})
