@@ -88,6 +88,7 @@ export function CausesOfDeathCaptionedChart({
     const activeData = activeTimeSeriesData.filter(
         (row) => row.year === activeYear
     )
+    console.log("activeData", activeData)
     const activeEntityName = activeData.at(0)?.entityName
 
     // Sanity check
@@ -381,6 +382,7 @@ function SideBySide({ children }: { children: React.ReactNode }) {
                 border: "1px solid #e0e0e0",
                 padding: 16,
                 marginBottom: 16,
+                rowGap: 12,
             }}
         >
             {children}
