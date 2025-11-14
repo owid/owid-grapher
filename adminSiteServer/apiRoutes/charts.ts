@@ -59,7 +59,6 @@ import {
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
 import { getLogsByChartId } from "../getLogsByChartId.js"
-import { getPublishedLinksTo } from "../../db/model/Link.js"
 
 import { Request } from "../authentication.js"
 import e from "express"

@@ -11,10 +11,9 @@ import { useImage } from "../utils.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../../SiteConstants.js"
 import { useMediaQuery } from "usehooks-ts"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import { Container } from "./layout.js"
 import { Lightbox } from "../../Lightbox.js"
+import { FloatingDownloadButton } from "./FloatingDownloadButton.js"
 
 // generates rules that tell the browser:
 // below the medium breakpoint, the image will be 95vw wide
@@ -189,9 +188,9 @@ export default function Image(props: {
                 />
             </picture>
             {isInteractive && !shouldHideDownloadButton && (
-                <ImageDownloadButton
-                    filename={activeImage.filename}
-                    handleDownload={handleDownload}
+                <FloatingDownloadButton
+                    label={`Download ${activeImage.filename}`}
+                    onClick={() => void handleDownload()}
                 />
             )}
             {isLightboxOpen && (
@@ -204,35 +203,6 @@ export default function Image(props: {
                     alt={alt}
                 />
             )}
-        </div>
-    )
-}
-function ImageDownloadButton(props: {
-    filename: string
-    handleDownload: () => Promise<void>
-}) {
-    const { filename, handleDownload } = props
-
-    return (
-        <div className="article-block__image-download-button-container">
-            <button
-                aria-label={`Download ${filename}`}
-                className="article-block__image-download-button"
-                onClick={(e) => {
-                    e.preventDefault()
-                    void handleDownload()
-                }}
-            >
-                <div className="article-block__image-download-button-background-layer">
-                    <FontAwesomeIcon
-                        icon={faDownload}
-                        className="article-block__image-download-button-icon"
-                    />
-                    <span className="article-block__image-download-button-text">
-                        Download image
-                    </span>
-                </div>
-            </button>
         </div>
     )
 }
