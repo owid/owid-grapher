@@ -102,6 +102,7 @@ export const parseEntityData = ({
                 entityName,
                 year,
                 variable: variableMetadata.name,
+                description: variableMetadata.description,
                 ageGroup: ageGroupMetadata.name,
                 category: categoryMetadata.name,
                 value,
