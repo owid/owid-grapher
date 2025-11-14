@@ -36,9 +36,7 @@ const requiresGrapherOrSourceRule =
             ) {
                 return Promise.resolve()
             }
-            return Promise.reject(
-                new Error(GRAPER_SOURCE_VALIDATION_MESSAGE)
-            )
+            return Promise.reject(new Error(GRAPER_SOURCE_VALIDATION_MESSAGE))
         },
     })
 
@@ -359,7 +357,7 @@ export function StaticVizEditPage() {
                             type="primary"
                             htmlType="submit"
                             disabled={!isValid}
-                            loading={currentMutation.isLoading}
+                            loading={currentMutation.isPending}
                             style={{ marginRight: 8 }}
                         >
                             {isEditing ? "Update" : "Create"}

@@ -1,0 +1,130 @@
+.static-viz {
+    position: relative;
+}
+
+.static-viz__download-overlay {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 16px;
+    z-index: 5;
+    overflow: auto;
+}
+
+.static-viz-download-modal {
+    --modal-padding: 24px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-height: 100%;
+    background-color: #fff;
+    border-radius: 4px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+
+.static-viz-download-modal__content {
+    padding: 0 24px 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    flex: 1 1 auto;
+}
+
+.static-viz-download-modal__section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.static-viz-download-modal__heading {
+    h3 {
+        @include h3-bold;
+        margin: 0;
+        color: $blue-90;
+    }
+
+    p {
+        @include label-2-regular;
+        margin: 4px 0 0;
+        color: $bluish-grey-text-color;
+    }
+}
+
+.static-viz-download-modal__description {
+    @include body-2-regular;
+    margin: 0;
+    white-space: pre-line;
+    color: $gray-70;
+}
+
+.static-viz-download-modal__button {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 14px 16px;
+    border: none;
+    background-color: $blue-5;
+    color: $blue-90;
+    text-align: left;
+    text-decoration: none;
+    gap: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    font: inherit;
+
+    &:hover {
+        background-color: $accent-pale-blue;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $blue-40;
+        outline-offset: 2px;
+    }
+}
+
+.static-viz-download-modal__preview {
+    flex-shrink: 0;
+    width: 120px;
+
+    .image {
+        width: 100%;
+        margin: 0;
+
+        picture,
+        img {
+            width: 100%;
+            height: auto;
+        }
+
+        img {
+            border-radius: 4px;
+            box-shadow: 0 6px 13px rgba(49, 37, 2, 0.1);
+        }
+    }
+}
+
+.static-viz-download-modal__button-content {
+    flex: 1;
+
+    h4 {
+        @include body-2-semibold;
+        margin: 0;
+        color: $gray-80;
+    }
+
+    p {
+        @include label-1-regular;
+        margin: 4px 0 0;
+        color: $bluish-grey-text-color;
+    }
+}
+
+.static-viz-download-modal__button-icon {
+    flex-shrink: 0;
+    font-size: 16px;
+}
