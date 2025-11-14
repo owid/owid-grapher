@@ -12,6 +12,8 @@ import AboutPage from "./pages/AboutPage.js"
 import { AttachmentsContext } from "./AttachmentsContext.js"
 import { DocumentContext } from "./DocumentContext.js"
 import { AnnouncementPage } from "./pages/Announcement.js"
+import { QueryClientProvider } from "@tanstack/react-query"
+import { createGdocQueryClient } from "./createGdocQueryClient.js"
 
 function AdminLinks() {
     return (
@@ -35,6 +37,8 @@ export function OwidGdoc({
     isPreviewing = false,
     ...props
 }: OwidGdocProps): React.ReactElement {
+    const [queryClient] = React.useState(() => createGdocQueryClient())
+
     const content = match(props)
         .with(
             {
@@ -104,8 +108,10 @@ export function OwidGdoc({
             }}
         >
             <DocumentContext.Provider value={{ isPreviewing }}>
-                <AdminLinks />
-                {content}
+                <QueryClientProvider client={queryClient}>
+                    <AdminLinks />
+                    {content}
+                </QueryClientProvider>
             </DocumentContext.Provider>
         </AttachmentsContext.Provider>
     )

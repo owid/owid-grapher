@@ -93,6 +93,11 @@ export interface RelatedChart extends BasicChartInformation {
     chartId: number
     keyChartLevel?: KeyChartLevel
     archiveContext?: ArchiveContext | undefined
+    objectID: string
+    availableEntities: string[]
+    availableTabs: GrapherTabName[]
+    originalAvailableEntities?: string[]
+    subtitle?: string
 }
 export enum DimensionProperty {
     y = "y",
