@@ -49,3 +49,6 @@ archive/*
 
 # Sentry Config File
 .env.sentry-build-plugin
+
+public/*.metadata.json
+public/*.data.json
