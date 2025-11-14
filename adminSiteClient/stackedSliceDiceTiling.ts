@@ -62,7 +62,7 @@ interface ChildEntry<T> {
  * Type definition for D3 treemap tiling functions
  * Takes a node and its bounding rectangle, positions all children within it
  */
-type TilingFunction<T> = (
+export type TilingFunction<T> = (
     node: d3.HierarchyRectangularNode<T>,
     x0: number,
     y0: number,
@@ -77,8 +77,8 @@ type TilingFunction<T> = (
  * @returns A tiling function compatible with D3's treemap.tile()
  */
 export function stackedSliceDiceTiling<T>({
-    minSliceWidth = 12,
-    minStackHeight = 12,
+    minSliceWidth = 120,
+    minStackHeight = 40,
 }: TilingOptions = {}): TilingFunction<T> {
     /**
      * The actual tiling function that D3 will call for each node

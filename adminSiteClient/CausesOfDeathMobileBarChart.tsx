@@ -1,9 +1,6 @@
 import { useMemo } from "react"
 import * as R from "remeda"
-import {
-    CAUSE_OF_DEATH_CATEGORY_COLORS,
-    DataRow,
-} from "./CausesOfDeathConstants"
+import { DataRow, getCategoryColor } from "./CausesOfDeathConstants"
 import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata"
 import { formatPercentSigFig } from "./CausesOfDeathHelpers"
 import { useChartDimensions } from "./useDimensions.js"
@@ -56,7 +53,7 @@ export function CausesOfDeathMobileBarChart({
             barData.push({
                 category: category.name,
                 percentage,
-                color: CAUSE_OF_DEATH_CATEGORY_COLORS[category.name] ?? "red",
+                color: getCategoryColor(category.name),
                 formattedPercentage,
             })
         }
