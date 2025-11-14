@@ -270,7 +270,8 @@ export const getWordpressPostReferencesByChartId = async (
                 p.title,
                 p.slug,
                 p.id,
-                CONCAT("${BAKED_BASE_URL}","/",p.slug) as url
+                CONCAT("${BAKED_BASE_URL}","/",p.slug) as url,
+                'article' as type
             FROM
                 posts p
                 JOIN posts_links pl ON p.id = pl.sourceId
@@ -321,7 +322,8 @@ export const getGdocsPostReferencesByChartId = async (
                 pg.content ->> '$.title' AS title,
                 pg.slug AS slug,
                 pg.id AS id,
-                CONCAT("${BAKED_BASE_URL}","/",pg.slug) as url
+                CONCAT("${BAKED_BASE_URL}","/",pg.slug) as url,
+                pg.type AS type
             FROM
                 posts_gdocs pg
                 JOIN posts_gdocs_links pgl ON pg.id = pgl.sourceId
@@ -329,8 +331,7 @@ export const getGdocsPostReferencesByChartId = async (
             WHERE
                 pg.type NOT IN (
                     '${OwidGdocType.Fragment}',
-                    '${OwidGdocType.AboutPage}',
-                    '${OwidGdocType.DataInsight}'
+                    '${OwidGdocType.AboutPage}'
                 )
                 AND pg.published = 1
             ORDER BY

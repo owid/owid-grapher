@@ -40,7 +40,11 @@ export interface NarrativeChartMinimalInformation {
 }
 
 export const getFullReferencesCount = (references: References): number => {
-    return Object.values(references).reduce((acc, ref) => acc + ref.length, 0)
+    // Get unique count, because a post can be referenced via the `grapher-url` Data Insight property,
+    // and also in its content directly. We want such cases to appear as one reference.
+    const allRefs = Object.values(references).flat()
+    const uniqueRefs = new Set(allRefs.map((ref) => `${ref.type}:${ref.slug}`))
+    return uniqueRefs.size
 }
 
 export interface ChartEditorManager extends AbstractChartEditorManager {
