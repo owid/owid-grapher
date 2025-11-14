@@ -51,6 +51,21 @@
             margin-bottom: $vertical-spacing;
             right: 0;
             @include popover-box-styles;
+            .newsletter-subscription-header {
+                padding: 32px 40px 0 40px;
+                svg {
+                    display: none;
+                }
+                h4 {
+                    flex: unset;
+                }
+            }
+            .newsletter-subscription-form__subheader {
+                display: none;
+            }
+            .newsletter-subscription-form {
+                padding-top: 16px;
+            }
         }
         button,
         a.prompt {
