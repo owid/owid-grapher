@@ -134,7 +134,7 @@ function buildArrow(
     return d
 }
 
-export default function Arrow<D = unknown>({
+export function Arrow<D = unknown>({
     start = [0, 0],
     end = [50, 0],
     data,
