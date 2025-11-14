@@ -1,147 +1,122 @@
+import { useMemo } from "react"
+import * as R from "remeda"
+import * as d3 from "d3"
+
+import { Bounds } from "@ourworldindata/utils"
+import { GrapherTooltipAnchor } from "@ourworldindata/types"
+import { BodyPortal } from "@ourworldindata/components"
 import {
-    CAUSE_OF_DEATH_CATEGORY_COLORS,
+    TooltipCard,
+    TooltipValue,
+} from "@ourworldindata/grapher/src/tooltip/Tooltip.js"
+
+import {
     TooltipState,
     DataRow,
+    getCategoryColor,
 } from "./CausesOfDeathConstants.js"
 import {
     formatNumberLongText,
     formatPercentSigFig,
     formatSigFigNoAbbrev,
+    maxBy,
+    minBy,
 } from "./CausesOfDeathHelpers.js"
-import { GrapherTooltipAnchor } from "@ourworldindata/types"
-import {
-    TooltipCard,
-    TooltipValue,
-} from "@ourworldindata/grapher/src/tooltip/Tooltip.js"
-import { Bounds } from "@ourworldindata/utils"
-import { useMemo } from "react"
-import { BodyPortal } from "@ourworldindata/components"
 
 export function CausesOfDeathTreemapTooltip({
     state,
     shouldPinTooltipToBottom,
     containerBounds,
-    historicalData,
+    timeSeriesData,
+    year,
 }: {
     state: TooltipState
     anchor?: GrapherTooltipAnchor
     shouldPinTooltipToBottom?: boolean
-    containerBounds?: { width: number; height: number }
-    historicalData?: DataRow[]
+    containerBounds?: Bounds
+    timeSeriesData: DataRow[]
+    year: number
 }) {
     return shouldPinTooltipToBottom ? (
         <BodyPortal>
             <CausesOfDeathTreemapTooltipCard
                 state={state}
+                year={year}
+                timeSeriesData={timeSeriesData}
                 anchor={GrapherTooltipAnchor.Bottom}
-                historicalData={historicalData}
             />
         </BodyPortal>
     ) : (
         <CausesOfDeathTreemapTooltipCard
             state={state}
+            year={year}
+            timeSeriesData={timeSeriesData}
             containerBounds={containerBounds}
-            historicalData={historicalData}
         />
     )
 }
 
 function CausesOfDeathTreemapTooltipCard({
     state,
-    anchor,
+    year,
+    timeSeriesData,
     containerBounds,
-    historicalData,
+    anchor,
 }: {
     state: TooltipState
-    anchor?: GrapherTooltipAnchor
+    year: number
+    timeSeriesData: DataRow[]
     containerBounds?: { width: number; height: number }
-    historicalData?: DataRow[]
+    anchor?: GrapherTooltipAnchor
 }) {
     const { target, position } = state
 
     // Process sparkline data for current entity and variable (as percentage share)
-    const sparklineDataShare = useMemo(() => {
-        if (!historicalData || !target) return []
+    const sparklineData = useMemo(() => {
+        if (!target) return []
 
-        const currentEntity = target.node.data.data.entityName
-        const currentVariable = target.node.data.data.variable
+        const { variable } = target.node.data.data
 
-        // Calculate total deaths by year for this entity
-        const totalsByYear = new Map<number, number>()
-        historicalData
-            .filter((row) => row.entityName === currentEntity)
-            .forEach((row) => {
-                const currentTotal = totalsByYear.get(row.year) || 0
-                totalsByYear.set(row.year, currentTotal + row.value)
-            })
+        // Calculate total deaths by year
+        const totalsByYear = R.pipe(
+            timeSeriesData,
+            R.groupBy((row) => row.year),
+            R.mapValues((rows) => R.sumBy(rows, (row) => row.value))
+        )
 
-        return historicalData
-            .filter(
-                (row) =>
-                    row.entityName === currentEntity &&
-                    row.variable === currentVariable
-            )
+        return timeSeriesData
+            .filter((row) => row.variable === variable)
             .map((row) => {
-                const totalForYear = totalsByYear.get(row.year) || 1
-                const sharePercent = (row.value / totalForYear) * 100
+                const totalForYear = totalsByYear[row.year] || 1
+                const share = row.value / totalForYear
                 return {
                     entityName: row.entityName,
-                    time: row.year,
-                    value: sharePercent,
+                    year: row.year,
+                    value2: row.value,
+                    share2: share,
                 }
             })
-            .sort((a, b) => a.time - b.time)
-    }, [historicalData, target])
+            .sort((a, b) => a.year - b.year)
+    }, [timeSeriesData, target])
 
-    // Process sparkline data for current entity and variable (as percentage share)
-    const sparklineDataAbsolute = useMemo(() => {
-        if (!historicalData || !target) return []
-
-        const currentEntity = target.node.data.data.entityName
-        const currentVariable = target.node.data.data.variable
-
-        return historicalData
-            .filter(
-                (row) =>
-                    row.entityName === currentEntity &&
-                    row.variable === currentVariable
-            )
-            .map((row) => {
-                return {
-                    entityName: row.entityName,
-                    time: row.year,
-                    value: row.value,
-                }
-            })
-            .sort((a, b) => a.time - b.time)
-    }, [historicalData, target])
-
-    const sparklineTimeRange = useMemo(() => {
-        if (sparklineDataShare.length === 0) return { minTime: 0, maxTime: 0 }
-        return {
-            minTime: Math.min(...sparklineDataShare.map((d) => d.time)),
-            maxTime: Math.max(...sparklineDataShare.map((d) => d.time)),
-        }
-    }, [sparklineDataShare])
+    const timeRange: [number, number] = useMemo(
+        () => [
+            minBy(sparklineData, (d) => d.year),
+            maxBy(sparklineData, (d) => d.year),
+        ],
+        [sparklineData]
+    )
 
     if (!target) return null
 
     const node = target.node
-    const variable = node.data.data.variable
-    const value = node.value || 0
-    const share = node.data.data.share || 0
-    const year = node.data.data.year
 
-    // Get total deaths from root node
-    const totalDeaths = node.ancestors()[node.ancestors().length - 1].value || 0
+    const { variable, value, share } = node.data.data
 
-    // Calculate current value as percentage for sparkline highlight
-    const currentValuePercent =
-        totalDeaths > 0 ? (value / totalDeaths) * 100 : 0
+    // Shouldn't happen
+    if (value === undefined || share === undefined) return null
 
-    const categoryColor =
-        CAUSE_OF_DEATH_CATEGORY_COLORS[node.data.data.category ?? ""] ||
-        "#5b5b5b"
+    const categoryColor = getCategoryColor(node.data.data.category)
 
     return (
         <TooltipCard
@@ -156,35 +131,14 @@ function CausesOfDeathTreemapTooltipCard({
             containerBounds={containerBounds}
             anchor={anchor}
         >
-            {/* <div
-                className={cx("variable", {
-                    "variable--no-name": labelVariant === "unit-only",
-                })}
-            >
-                <div className="values" style={{ color }}>
-                    <span>
-                        {formatPercentSigFig(value / totalDeaths)}{" "}
-                        <span style={{ fontWeight: 400 }}>died from </span>
-                        <span style={{ fontWeight: 400 }}>
-                            {variable === variable.toUpperCase()
-                                ? variable
-                                : variable.toLowerCase()}
-                        </span>{" "}
-                        <span style={{ fontWeight: 400 }}>
-                            in {year}, totaling
-                        </span>{" "}
-                        {displayValue} deaths
-                    </span>
-                </div>
-            </div> */}
             <TooltipValue
                 value={
                     <div className="causes-of-death-tooltip__value">
                         <CausesOfDeathTooltipSparkline
-                            data={sparklineDataShare}
-                            timeRange={sparklineTimeRange}
-                            currentYear={year}
-                            currentValue={currentValuePercent}
+                            data={sparklineData}
+                            getValue={(d) => d.share2}
+                            timeRange={timeRange}
+                            year={year}
                             color={categoryColor}
                         />
                         <span>{formatPercentSigFig(share)}</span>
@@ -197,10 +151,10 @@ function CausesOfDeathTreemapTooltipCard({
                 value={
                     <div className="causes-of-death-tooltip__value">
                         <CausesOfDeathTooltipSparkline
-                            data={sparklineDataAbsolute}
-                            timeRange={sparklineTimeRange}
-                            currentYear={year}
-                            currentValue={value}
+                            data={sparklineData}
+                            getValue={(d) => d.value2}
+                            timeRange={timeRange}
+                            year={year}
                             color={categoryColor}
                         />
                         <span>
@@ -214,359 +168,53 @@ function CausesOfDeathTreemapTooltipCard({
                 label="Number of deaths"
                 color={categoryColor}
             />
-            {/* <TooltipValueCore
-                value={value}
-                displayInfo={{
-                    // displayName: "Share of all deaths",
-                    unit: "Per year",
-                }}
-                valueFormatter={{
-                    formatValueShort: (v) =>
-                        formatNumberLongText(typeof v === "number" ? v : 0),
-                }}
-                labelVariant="unit-only"
-            />
-            <TooltipValueCore
-                value={value / 365}
-                displayInfo={{
-                    // displayName: "Share of all deaths",
-                    unit: "Per average day",
-                }}
-                valueFormatter={{
-                    formatValueShort: (v) =>
-                        formatNumberLongText(typeof v === "number" ? v : 0),
-                }}
-                labelVariant="unit-only"
-            /> */}
-
-            {/* Add sparkline section if there's historical data */}
-            {/* {sparklineDataShare.length > 1 && (
-                <CausesOfDeathTooltipLineChart
-                    data={sparklineDataShare}
-                    timeRange={sparklineTimeRange}
-                    currentYear={year}
-                    currentValue={currentValuePercent}
-                    color={categoryColor}
-                />
-            )} */}
         </TooltipCard>
     )
 }
 
-function CausesOfDeathTooltipLineChart({
-    data,
-    timeRange,
-    currentYear,
-    currentValue,
-    color,
-}: {
-    data: {
-        entityName: string
-        time: number
-        value: number
-    }[]
-    timeRange: { minTime: number; maxTime: number }
-    currentYear: number
-    currentValue: number
-    color: string
-}) {
-    const width = 180
-    const height = 60
-
-    // Format labels first to measure their width (as percentages)
-    const firstValue = data[0]
-    const lastValue = data[data.length - 1]
-    const firstValueLabel = formatPercentSigFig(firstValue.value / 100)
-    const lastValueLabel = formatPercentSigFig(lastValue.value / 100)
-
-    // Measure text width for proper padding
-    const fontSize = 10
-    const firstLabelBounds = Bounds.forText(firstValueLabel, { fontSize })
-    const lastLabelBounds = Bounds.forText(lastValueLabel, { fontSize })
-
-    // Calculate padding with enough space for labels
-    const myPadding = 6
-    const leftPadding = Math.max(15, firstLabelBounds.width + myPadding) // 8px margin from label to line
-    const rightPadding = Math.max(15, lastLabelBounds.width + myPadding) // 8px margin from line to label
-
-    const padding = {
-        top: 12,
-        right: rightPadding,
-        bottom: 12,
-        left: leftPadding,
-    }
-
-    const plotWidth = width - padding.left - padding.right
-    const plotHeight = height - padding.top - padding.bottom
-
-    // Calculate scales
-    const xScale = (time: number) =>
-        ((time - timeRange.minTime) / (timeRange.maxTime - timeRange.minTime)) *
-            plotWidth +
-        padding.left
-
-    const values = data.map((d) => d.value)
-    const dataMin = Math.min(...values)
-    const dataMax = Math.max(...values)
-
-    // Always include zero in the y-scale domain
-    const yMin = Math.min(0, dataMin)
-    const yMax = Math.max(0, dataMax)
-    const yRange = yMax - yMin || 1 // avoid division by zero
-
-    const yScale = (value: number) =>
-        height - padding.bottom - ((value - yMin) / yRange) * plotHeight
-
-    // Create path
-    const pathData = data
-        .map((d, i) => {
-            const x = xScale(d.time)
-            const y = yScale(d.value)
-            return `${i === 0 ? "M" : "L"} ${x} ${y}`
-        })
-        .join(" ")
-
-    // Format time labels
-    const startYearLabel = timeRange.minTime.toString()
-    const endYearLabel = timeRange.maxTime.toString()
-
-    // Calculate positions for first and last value labels
-    const firstValueX = xScale(firstValue.time)
-    const firstValueY = yScale(firstValue.value)
-    const lastValueX = xScale(lastValue.time)
-    const lastValueY = yScale(lastValue.value)
-
-    return (
-        <div
-            style={{
-                marginTop: 4,
-                // paddingTop: "8px",
-                // borderTop: "1px solid #eee",
-            }}
-        >
-            {/* <div
-                style={{
-                    fontSize: "11px",
-                    color: "#666",
-                    marginBottom: "6px",
-                    fontWeight: 400,
-                }}
-            >
-                Trend over time
-            </div> */}
-            <div style={{ position: "relative" }}>
-                <svg
-                    width={width}
-                    height={height}
-                    viewBox={`0 0 ${width} ${height}`}
-                >
-                    <rect width={width} height={height} fill="aliceblue" />
-
-                    {/* Zero line (horizontal reference) */}
-                    <line
-                        x1={padding.left}
-                        y1={yScale(0)}
-                        x2={padding.left + plotWidth}
-                        y2={yScale(0)}
-                        stroke="#bbb"
-                        strokeWidth={1}
-                        // strokeDasharray="3,3"
-                    />
-
-                    {/* Sparkline path */}
-                    <path
-                        d={pathData}
-                        stroke={color}
-                        fill="none"
-                        strokeWidth={2}
-                    />
-
-                    {/* Current year vertical line */}
-                    <line
-                        x1={xScale(currentYear)}
-                        y1={padding.top}
-                        x2={xScale(currentYear)}
-                        y2={height - padding.bottom}
-                        stroke="#ddd"
-                        strokeWidth={1}
-                        // strokeDasharray="2,2"
-                    />
-
-                    {/* Current year highlight dot */}
-                    <circle
-                        cx={xScale(currentYear)}
-                        cy={yScale(currentValue)}
-                        r={4}
-                        fill={color}
-                        stroke="#fff"
-                        strokeWidth={1.5}
-                    />
-
-                    {/* First value label (to the left of the line) */}
-                    <g className="first-value-label">
-                        <text
-                            className="outline"
-                            x={firstValueX - myPadding}
-                            y={firstValueY}
-                            fontSize={fontSize}
-                            fill="#fff"
-                            stroke="#fff"
-                            strokeWidth={3}
-                            textAnchor="end"
-                            dominantBaseline="middle"
-                        >
-                            {firstValueLabel}
-                        </text>
-                        <text
-                            x={firstValueX - myPadding}
-                            y={firstValueY}
-                            fontSize={fontSize}
-                            fill="#666"
-                            textAnchor="end"
-                            dominantBaseline="middle"
-                        >
-                            {firstValueLabel}
-                        </text>
-                    </g>
-
-                    {/* Last value label (to the right of the line) */}
-                    <g className="last-value-label">
-                        <text
-                            className="outline"
-                            x={lastValueX + myPadding}
-                            y={lastValueY}
-                            fontSize={fontSize}
-                            fill="#fff"
-                            stroke="#fff"
-                            strokeWidth={3}
-                            textAnchor="start"
-                            dominantBaseline="middle"
-                        >
-                            {lastValueLabel}
-                        </text>
-                        <text
-                            x={lastValueX + myPadding}
-                            y={lastValueY}
-                            fontSize={fontSize}
-                            fill="#666"
-                            textAnchor="start"
-                            dominantBaseline="middle"
-                        >
-                            {lastValueLabel}
-                        </text>
-                    </g>
-
-                    {/* X-axis time labels */}
-                    <g className="time-labels">
-                        <text
-                            x={padding.left}
-                            y={height - 2}
-                            fontSize="9"
-                            fill="#999"
-                            textAnchor="start"
-                        >
-                            {startYearLabel}
-                        </text>
-                        <text
-                            x={padding.left + plotWidth}
-                            y={height - 2}
-                            fontSize="9"
-                            fill="#999"
-                            textAnchor="end"
-                        >
-                            {endYearLabel}
-                        </text>
-                    </g>
-                </svg>
-            </div>
-        </div>
-    )
+interface SparklineDatapoint {
+    entityName: string
+    year: number
+    value2: number
+    share2: number
 }
 
 function CausesOfDeathTooltipSparkline({
     data,
+    getValue,
     timeRange,
-    currentYear,
-    currentValue,
+    year,
     color,
+    width = 36,
+    height = 14,
+    dotRadius = 4,
 }: {
-    data: {
-        entityName: string
-        time: number
-        value: number
-    }[]
-    timeRange: { minTime: number; maxTime: number }
-    currentYear: number
-    currentValue: number
+    data: SparklineDatapoint[]
+    getValue: (d: SparklineDatapoint) => number
+    timeRange: [number, number]
+    year: number
     color: string
+    width?: number
+    height?: number
+    dotRadius?: number
 }) {
-    const width = 36
-    const height = 22
+    // Calculate scales using d3
+    const xScale = d3.scaleLinear().domain(timeRange).range([0, width])
 
-    const dotRadius = 4
+    const yMin = 0
+    const yMax = maxBy(data, getValue) ?? 0
+    const yScale = d3.scaleLinear().domain([yMin, yMax]).range([height, 0])
 
-    // Format labels first to measure their width (as percentages)
-    const firstValue = data[0]
-    const lastValue = data[data.length - 1]
-    const firstValueLabel = formatPercentSigFig(firstValue.value / 100)
-    const lastValueLabel = formatPercentSigFig(lastValue.value / 100)
+    // Create path using d3 line generator
+    const line = d3
+        .line<SparklineDatapoint>()
+        .x((d) => xScale(d.year))
+        .y((d) => yScale(getValue(d)))
 
-    // Measure text width for proper padding
-    const fontSize = 10
-    const firstLabelBounds = Bounds.forText(firstValueLabel, { fontSize })
-    const lastLabelBounds = Bounds.forText(lastValueLabel, { fontSize })
+    const path = line(data)
+    if (!path) return null
 
-    // Calculate padding with enough space for labels
-    const myPadding = 6
-    const leftPadding = Math.max(8) // 8px margin from label to line
-    const rightPadding = Math.max(8) // 8px margin from line to label
-
-    const padding = {
-        top: dotRadius,
-        right: 0,
-        bottom: dotRadius,
-        left: 0,
-    }
-
-    const plotWidth = width - padding.left - padding.right
-    const plotHeight = height - padding.top - padding.bottom
-
-    // Calculate scales
-    const xScale = (time: number) =>
-        ((time - timeRange.minTime) / (timeRange.maxTime - timeRange.minTime)) *
-            plotWidth +
-        padding.left
-
-    const values = data.map((d) => d.value)
-    const dataMin = Math.min(...values)
-    const dataMax = Math.max(...values)
-
-    // Always include zero in the y-scale domain
-    const yMin = Math.min(0, dataMin)
-    const yMax = Math.max(0, dataMax)
-    const yRange = yMax - yMin || 1 // avoid division by zero
-
-    const yScale = (value: number) =>
-        height - padding.bottom - ((value - yMin) / yRange) * plotHeight
-
-    // Create path
-    const pathData = data
-        .map((d, i) => {
-            const x = xScale(d.time)
-            const y = yScale(d.value)
-            return `${i === 0 ? "M" : "L"} ${x} ${y}`
-        })
-        .join(" ")
-
-    // Format time labels
-    const startYearLabel = timeRange.minTime.toString()
-    const endYearLabel = timeRange.maxTime.toString()
-
-    // Calculate positions for first and last value labels
-    const firstValueX = xScale(firstValue.time)
-    const firstValueY = yScale(firstValue.value)
-    const lastValueX = xScale(lastValue.time)
-    const lastValueY = yScale(lastValue.value)
+    const datapoint = data.find((row) => row.year === year)
 
     return (
         <svg
@@ -575,116 +223,28 @@ function CausesOfDeathTooltipSparkline({
             viewBox={`0 0 ${width} ${height}`}
             style={{ marginRight: 8, overflow: "visible" }}
         >
-            {/* <rect width={width} height={height} fill="aliceblue" /> */}
             {/* Zero line (horizontal reference) */}
             <line
-                x1={padding.left}
+                x1={0}
                 y1={yScale(0)}
-                x2={padding.left + plotWidth}
+                x2={width}
                 y2={yScale(0)}
                 stroke="#ddd"
                 strokeWidth={1}
-                // strokeDasharray="3,3"
             />
 
             {/* Sparkline path */}
-            <path d={pathData} stroke={color} fill="none" strokeWidth={2} />
-
-            {/* Current year vertical line */}
-            {/* <line
-                        x1={xScale(currentYear)}
-                        y1={padding.top}
-                        x2={xScale(currentYear)}
-                        y2={height - padding.bottom}
-                        stroke="#ddd"
-                        strokeWidth={2}
-                    /> */}
+            <path d={path} stroke={color} fill="none" strokeWidth={2} />
 
             {/* Current year highlight dot */}
             <circle
-                cx={xScale(currentYear)}
-                cy={yScale(currentValue)}
+                cx={xScale(year)}
+                cy={yScale(datapoint ? getValue(datapoint) : 0)}
                 r={dotRadius}
                 fill={color}
                 stroke="#fff"
                 strokeWidth={1.5}
             />
-
-            {/* First value label (to the left of the line) */}
-            {/* <g className="first-value-label">
-                        <text
-                            className="outline"
-                            x={firstValueX - myPadding}
-                            y={firstValueY}
-                            fontSize={fontSize}
-                            fill="#fff"
-                            stroke="#fff"
-                            strokeWidth={3}
-                            textAnchor="end"
-                            dominantBaseline="middle"
-                        >
-                            {firstValueLabel}
-                        </text>
-                        <text
-                            x={firstValueX - myPadding}
-                            y={firstValueY}
-                            fontSize={fontSize}
-                            fill="#666"
-                            textAnchor="end"
-                            dominantBaseline="middle"
-                        >
-                            {firstValueLabel}
-                        </text>
-                    </g> */}
-
-            {/* Last value label (to the right of the line) */}
-            {/* <g className="last-value-label">
-                        <text
-                            className="outline"
-                            x={lastValueX + myPadding}
-                            y={lastValueY}
-                            fontSize={fontSize}
-                            fill="#fff"
-                            stroke="#fff"
-                            strokeWidth={3}
-                            textAnchor="start"
-                            dominantBaseline="middle"
-                        >
-                            {lastValueLabel}
-                        </text>
-                        <text
-                            x={lastValueX + myPadding}
-                            y={lastValueY}
-                            fontSize={fontSize}
-                            fill="#666"
-                            textAnchor="start"
-                            dominantBaseline="middle"
-                        >
-                            {lastValueLabel}
-                        </text>
-                    </g> */}
-
-            {/* X-axis time labels */}
-            {/* <g className="time-labels">
-                        <text
-                            x={padding.left}
-                            y={height - 2}
-                            fontSize="9"
-                            fill="#999"
-                            textAnchor="start"
-                        >
-                            {startYearLabel}
-                        </text>
-                        <text
-                            x={padding.left + plotWidth}
-                            y={height - 2}
-                            fontSize="9"
-                            fill="#999"
-                            textAnchor="end"
-                        >
-                            {endYearLabel}
-                        </text>
-                    </g> */}
         </svg>
     )
 }

@@ -71,12 +71,17 @@ export interface DataJson {
 //     "Injuries",
 // ] as const
 
-export const CAUSE_OF_DEATH_CATEGORY_COLORS: Record<string, string> = {
+const CAUSE_OF_DEATH_CATEGORY_COLORS: Record<string, string> = {
     "Noncommunicable diseases": "#074964",
     "Infectious diseases": "#A5184D",
     "Maternal, neonatal, and nutritional disorders": "#B73696",
     Injuries: "#0B9D75",
     "Neonatal disorders": "#591347",
+}
+
+export const getCategoryColor = (category?: string): string => {
+    if (!category) return "#cccccc"
+    return CAUSE_OF_DEATH_CATEGORY_COLORS[category] || "#cccccc"
 }
 
 // export type CauseOfDeathIndicatorName =
@@ -92,6 +97,7 @@ export interface DataRow {
     entityName: EntityName
     year: Time
     variable: string
+    description?: string
     ageGroup: string
     category: string
     value: number
@@ -130,10 +136,11 @@ export interface EnrichedDataItem {
     entityName: EntityName
     year: Time
     variable: string
+    description?: string
     category?: string
     parentId?: string
-    value: number | null
-    share: number | null
+    value?: number
+    share?: number
 }
 
 export type TreeNode = d3.HierarchyRectangularNode<
