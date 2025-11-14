@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect, useCallback } from "react"
 import { Time } from "@ourworldindata/types"
 import { getRelativeMouse } from "@ourworldindata/utils"
 import cx from "classnames"
-import "./CausesOfDeathTimeSlider.scss"
 
 export interface CausesOfDeathTimeSliderProps {
     years: Time[]
