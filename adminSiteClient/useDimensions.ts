@@ -17,7 +17,12 @@ export interface DimensionsConfig {
     maxHeight?: number
 }
 
-const useChartDimensions = <E extends HTMLElement>(options?: {
+interface WindowDimensions {
+    width: number
+    height: number
+}
+
+export const useChartDimensions = <E extends HTMLElement>(options?: {
     margins?: Partial<Margins>
     config?: DimensionsConfig
 }) => {
@@ -73,4 +78,27 @@ const useChartDimensions = <E extends HTMLElement>(options?: {
     return { ref, dimensions }
 }
 
-export default useChartDimensions
+export const useWindowDimensions = (): { dimensions: WindowDimensions } => {
+    const [windowDimensions, setWindowDimensions] = useState<WindowDimensions>({
+        width: typeof window !== "undefined" ? window.innerWidth : 1200,
+        height: typeof window !== "undefined" ? window.innerHeight : 800,
+    })
+
+    useEffect(() => {
+        const handleResize = () => {
+            setWindowDimensions({
+                width: window.innerWidth,
+                height: window.innerHeight,
+            })
+        }
+
+        window.addEventListener("resize", handleResize)
+
+        // Set initial dimensions in case they changed between initial state and effect
+        handleResize()
+
+        return () => window.removeEventListener("resize", handleResize)
+    }, [])
+
+    return { dimensions: windowDimensions }
+}

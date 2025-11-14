@@ -6,7 +6,7 @@ import {
 } from "./CausesOfDeathConstants"
 import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata"
 import { formatPercentSigFig } from "./CausesOfDeathHelpers"
-import useChartDimensions from "./useChartDimensions.js"
+import { useChartDimensions } from "./useDimensions.js"
 import { Bounds } from "@ourworldindata/utils"
 
 interface CategoryBarData {
@@ -19,9 +19,11 @@ interface CategoryBarData {
 export function CausesOfDeathMobileBarChart({
     data,
     metadata,
+    ageGroup,
 }: {
     data: DataRow[]
     metadata: CausesOfDeathMetadata
+    ageGroup: string
 }) {
     const { ref, dimensions } = useChartDimensions<HTMLDivElement>()
 
@@ -46,7 +48,7 @@ export function CausesOfDeathMobileBarChart({
 
         // Convert to percentage ratios (0-1) and create bar data
         const barData: CategoryBarData[] = []
-        for (const category of metadata.categories) {
+        for (const category of metadata.categoriesForAgeGroup(ageGroup)) {
             const total = categoryTotals.get(category.name) || 0
             const percentage = total / totalDeaths
             const formattedPercentage = formatPercentSigFig(percentage)
@@ -61,7 +63,7 @@ export function CausesOfDeathMobileBarChart({
 
         // Sort by percentage (descending)
         return R.sortBy(barData, (item) => -item.percentage)
-    }, [data, metadata])
+    }, [data, metadata, ageGroup])
 
     return (
         <div

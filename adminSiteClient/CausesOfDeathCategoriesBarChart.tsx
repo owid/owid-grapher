@@ -6,7 +6,7 @@ import {
     CAUSE_OF_DEATH_CATEGORY_COLORS,
 } from "./CausesOfDeathConstants"
 import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata"
-import useChartDimensions, { DimensionsConfig } from "./useChartDimensions"
+import { useChartDimensions, DimensionsConfig } from "./useDimensions"
 import { TextWrap, MarkdownTextWrap } from "@ourworldindata/components"
 import { isDarkColor } from "@ourworldindata/grapher/src/color/ColorUtils"
 import { formatPercentSigFig } from "./CausesOfDeathHelpers"
