@@ -17,7 +17,6 @@ import { CausesOfDeathTreemapTile } from "./CausesOfDeathTreemapTile.js"
 import { CausesOfDeathTreemapTooltip } from "./CausesOfDeathTreemapTooltip.js"
 import {
     Category,
-    CausesOfDeathCategoryAnnotations,
     NewCategoryAnnotations,
     PlacedCategory,
 } from "./CausesOfDeathCategoryAnnotations.js"
