@@ -2,12 +2,15 @@ import * as React from "react"
 import { observer } from "mobx-react"
 import { computed, action, makeObservable } from "mobx"
 import { Bounds } from "@ourworldindata/utils"
-import { Modal } from "./Modal"
+import { Modal } from "@ourworldindata/components"
 import {
     EntitySelector,
     EntitySelectorManager,
 } from "../entitySelector/EntitySelector"
-import { DEFAULT_GRAPHER_BOUNDS } from "../core/GrapherConstants"
+import {
+    DEFAULT_GRAPHER_BOUNDS,
+    MODAL_INTERACTIVE_ELEMENT_SELECTORS,
+} from "../core/GrapherConstants"
 
 export interface EntitySelectorModalManager extends EntitySelectorManager {
     isEntitySelectorModalOrDrawerOpen?: boolean
@@ -47,6 +50,9 @@ export class EntitySelectorModal extends React.Component<{
                 onDismiss={this.onDismiss}
                 bounds={this.modalBounds}
                 isHeightFixed={true}
+                interactiveElementSelectors={
+                    MODAL_INTERACTIVE_ELEMENT_SELECTORS
+                }
             >
                 <EntitySelector
                     manager={this.manager}

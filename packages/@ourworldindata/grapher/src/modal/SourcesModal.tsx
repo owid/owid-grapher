@@ -22,6 +22,7 @@ import {
     CLOSE_BUTTON_WIDTH,
     CloseButton,
     LoadingIndicator,
+    Modal,
 } from "@ourworldindata/components"
 import * as React from "react"
 import cx from "classnames"
@@ -31,7 +32,6 @@ import { faPencilAlt } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { OwidColumnDef } from "@ourworldindata/types"
 import { CoreColumn } from "@ourworldindata/core-table"
-import { Modal } from "./Modal"
 import { SourcesKeyDataTable } from "./SourcesKeyDataTable"
 import { SourcesDescriptions } from "./SourcesDescriptions"
 import { TabItem, Tabs } from "../tabs/Tabs"
@@ -40,6 +40,7 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     GrapherModal,
     isContinentsVariableId,
+    MODAL_INTERACTIVE_ELEMENT_SELECTORS,
 } from "../core/GrapherConstants"
 import * as R from "remeda"
 
@@ -320,6 +321,9 @@ export class SourcesModal extends React.Component<
                 bounds={this.modalBounds}
                 isHeightFixed={true}
                 onDismiss={this.onDismiss}
+                interactiveElementSelectors={
+                    MODAL_INTERACTIVE_ELEMENT_SELECTORS
+                }
             >
                 <div className="sources-modal-content">
                     {this.showStickyHeader ? (

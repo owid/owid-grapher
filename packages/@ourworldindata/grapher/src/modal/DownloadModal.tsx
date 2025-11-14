@@ -17,6 +17,7 @@ import {
     OverlayHeader,
     RadioButton,
     LoadingIndicator,
+    Modal,
 } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -36,7 +37,6 @@ import {
     OwidTable,
     CoreColumn,
 } from "@ourworldindata/core-table"
-import { Modal } from "./Modal"
 import { GrapherRasterizeFn } from "../captionedChart/StaticChartRasterizer.js"
 import { TabItem, Tabs } from "../tabs/Tabs.js"
 import {
@@ -49,6 +49,7 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
     GrapherModal,
+    MODAL_INTERACTIVE_ELEMENT_SELECTORS,
 } from "../core/GrapherConstants"
 
 export interface DownloadModalManager {
@@ -151,6 +152,9 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
             <Modal
                 bounds={this.modalBounds}
                 onDismiss={this.onDismiss}
+                interactiveElementSelectors={
+                    MODAL_INTERACTIVE_ELEMENT_SELECTORS
+                }
                 alignVertical="top"
             >
                 <div

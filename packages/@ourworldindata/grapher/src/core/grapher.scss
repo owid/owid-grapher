@@ -63,7 +63,7 @@ $zindex-controls-drawer: 150;
     @import "../controls/ContentSwitchers.scss";
     @import "../controls/ActionButtons.scss";
     @import "../controls/ShareMenu.scss";
-    @import "../modal/Modal.scss";
+    @import "../../../components/src/Modal/Modal.scss";
     @import "../modal/EmbedModal.scss";
     @import "../modal/DownloadModal.scss";
     @import "../entitySelector/EntitySelector.scss";

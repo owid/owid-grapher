@@ -2,13 +2,17 @@ import { observer } from "mobx-react"
 import * as React from "react"
 import { computed, action, makeObservable } from "mobx"
 import { Bounds, Url } from "@ourworldindata/utils"
-import { Modal } from "./Modal"
 import {
     Checkbox,
     CodeSnippet,
     OverlayHeader,
+    Modal,
 } from "@ourworldindata/components"
-import { DEFAULT_GRAPHER_BOUNDS, GrapherModal } from "../core/GrapherConstants"
+import {
+    DEFAULT_GRAPHER_BOUNDS,
+    GrapherModal,
+    MODAL_INTERACTIVE_ELEMENT_SELECTORS,
+} from "../core/GrapherConstants"
 
 export interface EmbedModalManager {
     embedUrl?: string
@@ -111,6 +115,9 @@ export class EmbedModal extends React.Component<EmbedModalProps> {
                 bounds={this.modalBounds}
                 alignVertical="bottom"
                 onDismiss={this.onDismiss}
+                interactiveElementSelectors={
+                    MODAL_INTERACTIVE_ELEMENT_SELECTORS
+                }
             >
                 <div
                     className="embed-modal-content"

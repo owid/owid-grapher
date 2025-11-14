@@ -1,18 +1,20 @@
 import * as React from "react"
 import { Bounds, bind } from "@ourworldindata/utils"
-import {
-    isElementInteractive,
-    isTargetOutsideElement,
-} from "../chart/ChartUtils"
 
-export class Modal extends React.Component<{
+export type ModalVerticalAlignment = "top" | "center" | "bottom"
+
+export interface ModalProps {
     bounds: Bounds
     onDismiss: () => void
     children?: React.ReactNode
-    isHeightFixed?: boolean // by default, the modal height is not fixed but fits to the content
-    alignVertical?: "top" | "center" | "bottom"
-}> {
-    contentRef = React.createRef<HTMLDivElement>()
+    isHeightFixed?: boolean
+    alignVertical?: ModalVerticalAlignment
+    /** Additional selectors (e.g., class names) treated as interactive. */
+    interactiveElementSelectors?: string[]
+}
+
+export class Modal extends React.Component<ModalProps> {
+    private contentRef = React.createRef<HTMLDivElement>()
 
     private get bounds(): Bounds {
         return this.props.bounds
@@ -22,22 +24,44 @@ export class Modal extends React.Component<{
         return this.props.isHeightFixed ?? false
     }
 
-    private get alignVertical(): "top" | "center" | "bottom" {
+    private get alignVertical(): ModalVerticalAlignment {
         return this.props.alignVertical ?? "center"
     }
 
-    @bind onDocumentClick(e: MouseEvent): void {
+    private get interactiveSelector(): string | undefined {
+        const selectors = [
+            "a",
+            "button",
+            "input",
+            ...(this.props.interactiveElementSelectors ?? []),
+        ]
+        return selectors.length ? selectors.join(", ") : undefined
+    }
+
+    private isElementInteractive(element: HTMLElement): boolean {
+        const selector = this.interactiveSelector
+        return selector ? element.closest(selector) !== null : false
+    }
+
+    private isTargetOutsideElement(target: EventTarget, element: Node): boolean {
+        const targetNode = target as Node
+        if (typeof document === "undefined") return !element.contains(targetNode)
+        return (
+            !element.contains(targetNode) && document.contains(targetNode)
+        )
+    }
+
+    @bind private onDocumentClick(e: MouseEvent): void {
         if (
-            this.contentRef?.current &&
-            isTargetOutsideElement(e.target!, this.contentRef.current) &&
+            this.contentRef.current &&
+            this.isTargetOutsideElement(e.target!, this.contentRef.current) &&
             // clicking on an interactive element should not dismiss the modal
-            // (this is especially important for the suggested chart review tool)
-            !isElementInteractive(e.target as HTMLElement)
+            !this.isElementInteractive(e.target as HTMLElement)
         )
             this.props.onDismiss()
     }
 
-    @bind onDocumentKeyDown(e: KeyboardEvent): void {
+    @bind private onDocumentKeyDown(e: KeyboardEvent): void {
         if (e.key === "Escape") this.props.onDismiss()
     }
 
@@ -60,9 +84,7 @@ export class Modal extends React.Component<{
             maxHeight: bounds.height,
         }
 
-        if (this.isHeightFixed) {
-            contentStyle.height = bounds.height
-        }
+        if (this.isHeightFixed) contentStyle.height = bounds.height
 
         if (this.alignVertical === "bottom") {
             contentStyle.bottom = bounds.y
