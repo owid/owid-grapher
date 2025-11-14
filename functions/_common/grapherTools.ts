@@ -403,5 +403,38 @@ export function getGrapherTableWithRelevantColumns(
 
     const uniqueSlugs = _.uniq(slugs)
 
+    // Deduplicate originalTime columns that have identical content
+    // This happens when multiple value columns share the same original time data
+    const originalTimeSlugs = uniqueSlugs.filter((slug) =>
+        slug.includes("-originalTime")
+    )
+
+    if (originalTimeSlugs.length > 1) {
+        // Group originalTime columns by their content (as a hash of their values)
+        const timeColumnsByContent = new Map<string, string>()
+
+        for (const slug of originalTimeSlugs) {
+            const column = table.get(slug)
+            // Create a simple hash of the column values
+            const contentHash = JSON.stringify(column.values)
+
+            if (!timeColumnsByContent.has(contentHash)) {
+                timeColumnsByContent.set(contentHash, slug)
+            }
+        }
+
+        // Only keep one originalTime column per unique content
+        const deduplicatedOriginalTimeSlugs = Array.from(
+            timeColumnsByContent.values()
+        )
+        const slugsToRemove = originalTimeSlugs.filter(
+            (slug) => !deduplicatedOriginalTimeSlugs.includes(slug)
+        )
+
+        return table.select(
+            uniqueSlugs.filter((slug) => !slugsToRemove.includes(slug))
+        )
+    }
+
     return table.select(uniqueSlugs)
 }
