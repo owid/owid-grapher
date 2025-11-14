@@ -654,8 +654,6 @@ export const getNonRedistributableInfo = (
 ): { cols: CoreColumn[] | undefined; sourceLinks: string[] | undefined } => {
     if (!table) return { cols: undefined, sourceLinks: undefined }
 
-    return { cols: undefined, sourceLinks: undefined }
-
     const nonRedistributableCols = table.columnsAsArray.filter(
         (col) => (col.def as OwidColumnDef).nonRedistributable
     )

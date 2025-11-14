@@ -7,6 +7,8 @@ import {
     formatSigFigNoAbbrev,
     formatPercentSigFig,
 } from "./CausesOfDeathHelpers.js"
+import { useCausesOfDeathChartContext } from "./CausesOfDeathContext"
+import { TreeNode } from "./CausesOfDeathConstants.js"
 
 type LabelKey = "title" | "percentage" | "description" | "perYear" | "perDay"
 
@@ -19,46 +21,34 @@ interface PartialLabelKeyRecord<V> {
     perDay?: V
 }
 
-interface TreemapTileLabelsProps {
-    // Rectangle dimensions and positioning
-    width: number
-    height: number
-    color: string
-
-    // Data for rendering
-    variable: string
-    value: number
-    share: number
-    description?: string
-    isLargestTile: boolean
-
-    // Layout configuration
-    treemapBounds: Bounds
-    isNarrow: boolean
-
-    // Debug mode
-    debug?: boolean
-}
-
 export function CausesOfDeathTreemapTileLabels({
+    node,
     width,
     height,
     color,
-    variable,
-    value,
-    share,
-    description,
     isLargestTile,
     treemapBounds,
-    isNarrow,
-    debug = false,
-}: TreemapTileLabelsProps) {
+}: {
+    node: TreeNode
+    width: number
+    height: number
+    color: string
+    isLargestTile: boolean
+    treemapBounds: Bounds
+}) {
+    const { isMobile } = useCausesOfDeathChartContext()
+
+    const { value, share, variable, description } = node.data.data
+
+    // Shouldn't happen
+    if (value === undefined || share === undefined) return null
+
     const area = width * height
 
-    const minFontSize = isNarrow
+    const minFontSize = isMobile
         ? Math.max(10, treemapBounds.width / 100)
         : Math.max(8, treemapBounds.width / 150) // Minimum font size scales with width
-    const maxFontSize = isNarrow
+    const maxFontSize = isMobile
         ? Math.min(20, treemapBounds.width / 20, treemapBounds.height / 25)
         : Math.min(24, treemapBounds.width / 30, treemapBounds.height / 20) // Maximum font size scales with dimensions
 
@@ -122,7 +112,7 @@ export function CausesOfDeathTreemapTileLabels({
     const fontSize = calculateOptimalFontSize({
         makeTextWrap: makeLabelWrapForFontSize,
         initialFontSize: baseFontSize,
-        minFontSize: isNarrow ? 10 : 8,
+        minFontSize: isMobile ? 10 : 8,
         availableWidth,
         availableHeight,
     })
@@ -175,8 +165,10 @@ export function CausesOfDeathTreemapTileLabels({
         textBounds: bounds,
     })
 
-    const render = (shouldShow: LabelKeyRecord<boolean>, color: string) => (
-        <g fill={color} style={{ pointerEvents: "none" }}>
+    const textColor = isDarkColor(color) ? "white" : "#5b5b5b"
+
+    return (
+        <g fill={textColor} style={{ pointerEvents: "none" }}>
             {shouldShow.title &&
                 textWrap.title.renderSVG(bounds.title.x, bounds.title.y, {
                     textProps: { fillOpacity: 0.9 },
@@ -208,25 +200,6 @@ export function CausesOfDeathTreemapTileLabels({
                     textProps: { fillOpacity: 0.7 },
                 })}
         </g>
-    )
-
-    const shouldShowAll: LabelKeyRecord<boolean> = {
-        title: true,
-        percentage: true,
-        description: true,
-        perYear: true,
-        perDay: true,
-    }
-
-    const textColor = isDarkColor(color) ? "white" : "#5b5b5b"
-
-    return debug ? (
-        <>
-            {render(shouldShowAll, "red")}
-            {render(shouldShow, textColor)}
-        </>
-    ) : (
-        render(shouldShow, textColor)
     )
 }
 

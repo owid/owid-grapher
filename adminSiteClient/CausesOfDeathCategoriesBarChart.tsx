@@ -1,10 +1,7 @@
 import { useMemo } from "react"
 import * as d3 from "d3"
 import { EntityName, Time } from "@ourworldindata/types"
-import {
-    DataRow,
-    CAUSE_OF_DEATH_CATEGORY_COLORS,
-} from "./CausesOfDeathConstants"
+import { DataRow, getCategoryColor } from "./CausesOfDeathConstants"
 import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata"
 import { useChartDimensions, DimensionsConfig } from "./useDimensions"
 import { TextWrap, MarkdownTextWrap } from "@ourworldindata/components"
@@ -88,7 +85,7 @@ function groupDataByCategories(
         category,
         value,
         percentage: totalDeaths > 0 ? value / totalDeaths : 0,
-        color: CAUSE_OF_DEATH_CATEGORY_COLORS[category] || "#ccc",
+        color: getCategoryColor(category),
     }))
 }
 

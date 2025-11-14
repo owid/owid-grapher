@@ -16,6 +16,7 @@
 
 $frame: 1px solid $frame-color;
 $frame-padding: 16px;
+$frame-radius: 2px;
 $frame-max-width: 900px;
 $black-text: $gray-100;
 
@@ -32,6 +33,7 @@ $black-text: $gray-100;
 .causes-of-death-controls {
     border: $frame;
     padding: $frame-padding;
+    border-radius: $frame-radius;
     margin-bottom: 16px;
 
     .causes-of-death-controls__title {
@@ -64,6 +66,7 @@ $black-text: $gray-100;
 .causes-of-death-captioned-chart {
     border: $frame;
     padding: $frame-padding;
+    border-radius: $frame-radius;
 
     .causes-of-death-captioned-chart__chart-area {
         position: relative;
@@ -187,12 +190,6 @@ g:has(.arrow) {
 /* Settings box styling */
 .settings-box {
     max-width: 900px;
-}
-
-.causes-of-death-treemap {
-    max-width: 100%;
-    height: auto;
-    font: 10px sans-serif;
 }
 
 .causes-of-death-categories-bar-chart {
@@ -376,7 +373,7 @@ g:has(.arrow) {
     $timelineHeight: 32px;
 
     // Timeline styling variables from TimelineComponent.scss
-    $handle-diameter: 20px;
+    $handle-diameter: 16px;
     $default-knob: $gray-60;
     $active-knob: $blue-50;
     $light-timeline: $gray-20;
@@ -439,8 +436,8 @@ g:has(.arrow) {
         position: relative;
         display: flex;
         align-items: center;
-        margin-left: 0.8 * $handle-diameter;
-        margin-right: 0.8 * $handle-diameter;
+        margin-left: $handle-diameter;
+        margin-right: $handle-diameter;
         padding: 12px 0;
         box-sizing: content-box !important;
         background-clip: content-box !important;

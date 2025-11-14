@@ -1,8 +1,5 @@
 import { Bounds } from "@ourworldindata/utils"
-import {
-    CAUSE_OF_DEATH_CATEGORY_COLORS,
-    TreeNode,
-} from "./CausesOfDeathConstants"
+import { getCategoryColor, TreeNode } from "./CausesOfDeathConstants"
 
 import { CausesOfDeathTreemapTileLabels } from "./CausesOfDeathTreemapTileLabels"
 
@@ -10,72 +7,44 @@ import { stackedSliceDiceTiling as _stackedSliceDiceTiling } from "./stackedSlic
 
 export function CausesOfDeathTreemapTile({
     node,
-    description,
-    isLargestTile,
-    annotationHeight,
-    isNarrow,
     treemapBounds,
+    translateY,
+    isLargestTile,
     onMouseEnter,
     onMouseLeave,
 }: {
     node: TreeNode
-    description: string
     treemapBounds: Bounds
+    translateY: number
     isLargestTile: boolean
-    annotationHeight: number
-    isNarrow: boolean
-    onMouseEnter?: (node: TreeNode, event: React.MouseEvent) => void
-    onMouseLeave?: () => void
-}) {
-    if (!node.value) return null
+    onMouseEnter: (node: TreeNode, event: React.MouseEvent) => void
+    onMouseLeave: () => void
+}): React.ReactElement | null {
+    const { value, share, category } = node.data.data
 
-    const value = node.value
-    const data = node.data.data
-
-    const idBase = slugify(data.variable)
-    const leafId = `leaf-${idBase}`
-    const parentKey = data.parentId || ""
+    if (value === undefined || share === undefined) return null
 
     const width = node.x1 - node.x0
     const height = node.y1 - node.y0
 
-    const color = CAUSE_OF_DEATH_CATEGORY_COLORS[parentKey] || "#cccccc"
+    const color = getCategoryColor(category)
 
     return (
         <g
-            key={idBase}
-            transform={`translate(${node.x0},${node.y0 + annotationHeight})`}
-            onMouseEnter={
-                onMouseEnter ? (event) => onMouseEnter(node, event) : undefined
-            }
+            transform={`translate(${node.x0},${node.y0 + translateY})`}
+            onMouseEnter={(event) => onMouseEnter(node, event)}
             onMouseLeave={onMouseLeave}
         >
-            {/* Colored rect */}
-            <rect
-                id={leafId}
-                fill={color}
-                width={width}
-                height={height}
-                rx={2}
-            />
+            <rect fill={color} width={width} height={height} rx={2} />
 
-            {/* Labels rendered by the extracted component */}
             <CausesOfDeathTreemapTileLabels
+                node={node}
                 width={width}
                 height={height}
                 color={color}
-                variable={data.variable}
-                value={value}
-                share={data.share ?? 0}
-                description={description}
                 isLargestTile={isLargestTile}
                 treemapBounds={treemapBounds}
-                isNarrow={isNarrow}
             />
         </g>
     )
-}
-
-function slugify(s: string): string {
-    return s.replace(/[^a-zA-Z0-9_-]+/g, "-")
 }
