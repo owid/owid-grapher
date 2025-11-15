@@ -14,6 +14,7 @@ import {
     EnrichedBlockImage,
     EnrichedBlockExplorerTiles,
     EnrichedBlockVideo,
+    EnrichedBlockStaticViz,
     EnrichedBlockKeyInsights,
     EnrichedBlockList,
     EnrichedBlockNumberedList,
@@ -51,6 +52,7 @@ import {
     RawBlockHtml,
     RawBlockImage,
     RawBlockVideo,
+    RawBlockStaticViz,
     RawBlockKeyInsights,
     RawBlockList,
     RawBlockNumberedList,
@@ -195,6 +197,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "chart-story" }, parseChartStory)
         .with({ type: "image" }, parseImage)
         .with({ type: "video" }, parseVideo)
+        .with({ type: "static-viz" }, parseStaticViz)
         .with({ type: "list" }, parseList)
         .with({ type: "numbered-list" }, parseNumberedList)
         .with({ type: "people" }, parsePeople)
@@ -827,6 +830,30 @@ const parseVideo = (raw: RawBlockVideo): EnrichedBlockVideo => {
         caption,
         shouldLoop: raw.value.shouldLoop === "true",
         shouldAutoplay: raw.value.shouldAutoplay === "true",
+        parseErrors: [],
+    }
+}
+
+const parseStaticViz = (raw: RawBlockStaticViz): EnrichedBlockStaticViz => {
+    const createError = (
+        error: ParseError,
+        name: string = ""
+    ): EnrichedBlockStaticViz => ({
+        type: "static-viz",
+        name,
+        parseErrors: [error],
+    })
+
+    const name = raw.value.name?.trim()
+    if (!name) {
+        return createError({
+            message: "name property is missing or empty",
+        })
+    }
+
+    return {
+        type: "static-viz",
+        name,
         parseErrors: [],
     }
 }

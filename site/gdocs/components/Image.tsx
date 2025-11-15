@@ -11,10 +11,9 @@ import { useImage } from "../utils.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../../SiteConstants.js"
 import { useMediaQuery } from "usehooks-ts"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import { Container } from "./layout.js"
 import { Lightbox } from "../../Lightbox.js"
+import { FloatingDownloadButton } from "./FloatingDownloadButton.js"
 
 // generates rules that tell the browser:
 // below the medium breakpoint, the image will be 95vw wide
@@ -66,14 +65,18 @@ const containerSizes: Record<ImageParentContainer, string> = {
 export const LIGHTBOX_IMAGE_CLASS = "lightbox-image"
 
 export default function Image(props: {
-    filename: string
+    filename?: string
     smallFilename?: string
     alt?: string
     hasOutline?: boolean
     className?: string
     containerType?: ImageParentContainer
     shouldLightbox?: boolean
+    shouldHideDownloadButton?: boolean
     preferSmallFilename?: boolean
+    // Manually-passed image data (for StaticViz)
+    imageData?: ImageMetadata
+    smallImageData?: ImageMetadata
 }) {
     const {
         filename,
@@ -81,7 +84,10 @@ export default function Image(props: {
         hasOutline,
         containerType = "default",
         shouldLightbox = true,
+        shouldHideDownloadButton = false,
         preferSmallFilename,
+        imageData,
+        smallImageData,
     } = props
 
     const className = cx("image", props.className, {
@@ -93,8 +99,14 @@ export default function Image(props: {
 
     const { isPreviewing } = useContext(DocumentContext)
     const isSmall = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
-    const image = useImage(filename)
-    const smallImage = useImage(smallFilename)
+
+    // Always call hooks unconditionally, then choose which data to use
+    const imageFromHook = useImage(filename)
+    const smallImageFromHook = useImage(smallFilename)
+
+    // Use manually-passed image data if provided, otherwise use filename-based lookup
+    const image = imageData || imageFromHook
+    const smallImage = smallImageData || smallImageFromHook
     const activeImage =
         (isSmall || preferSmallFilename) && smallImage ? smallImage : image
     const [isLightboxOpen, setIsLightboxOpen] = useState(false)
@@ -128,7 +140,7 @@ export default function Image(props: {
 
     if (!activeImage || !activeImage.cloudflareId) {
         if (isPreviewing) {
-            return renderImageError(filename)
+            return renderImageError(filename || "unknown")
         }
         // Don't render anything if we're not previewing (i.e. a bake) and the image is not found
         return null
@@ -175,27 +187,11 @@ export default function Image(props: {
                     height={activeImage.originalHeight ?? undefined}
                 />
             </picture>
-            {isInteractive && (
-                <div className="article-block__image-download-button-container">
-                    <button
-                        aria-label={`Download ${filename}`}
-                        className="article-block__image-download-button"
-                        onClick={(e) => {
-                            e.preventDefault()
-                            void handleDownload()
-                        }}
-                    >
-                        <div className="article-block__image-download-button-background-layer">
-                            <FontAwesomeIcon
-                                icon={faDownload}
-                                className="article-block__image-download-button-icon"
-                            />
-                            <span className="article-block__image-download-button-text">
-                                Download image
-                            </span>
-                        </div>
-                    </button>
-                </div>
+            {isInteractive && !shouldHideDownloadButton && (
+                <FloatingDownloadButton
+                    label={`Download ${activeImage.filename}`}
+                    onClick={() => void handleDownload()}
+                />
             )}
             {isLightboxOpen && (
                 <Lightbox
