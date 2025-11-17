@@ -1,5 +1,6 @@
 import * as _ from "lodash-es"
 import cx from "classnames"
+import { useContext, useMemo } from "react"
 import { useIntersectionObserver } from "usehooks-ts"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBoxArchive } from "@fortawesome/free-solid-svg-icons"
@@ -12,6 +13,7 @@ import {
     OwidGdocType,
     formatAuthorsForBibtex,
     EnrichedBlockText,
+    traverseEnrichedBlock,
 } from "@ourworldindata/utils"
 import { CodeSnippet } from "@ourworldindata/components"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
@@ -19,6 +21,8 @@ import { OwidGdocHeader } from "../components/OwidGdocHeader.js"
 import StickyNav from "../../blocks/StickyNav.js"
 import { getShortPageCitation } from "../utils.js"
 import { TableOfContents } from "../../TableOfContents.js"
+import { AttachmentsContext } from "../AttachmentsContext.js"
+import { FEATURED_METRICS_ID } from "@ourworldindata/types/src/gdocTypes/GdocConstants.js"
 
 const citationDescriptionsByArticleType: Record<
     | OwidGdocType.Article
@@ -56,6 +60,7 @@ export function GdocPost({
     breadcrumbs,
     manualBreadcrumbs,
 }: GdocPostProps) {
+    const { tags } = useContext(AttachmentsContext)
     const postType = content.type ?? OwidGdocType.Article
     const citationDescription = citationDescriptionsByArticleType[postType]
     const shortPageCitation = getShortPageCitation(
@@ -70,6 +75,25 @@ export function GdocPost({
     const isDeprecated =
         postType === OwidGdocType.Article &&
         Boolean(content["deprecation-notice"])
+    const topicName = tags[0]?.name // see https://github.com/owid/owid-issues/issues/2200
+    const hasAllChartsBlock = useMemo(() => {
+        if (!content.body) return false
+
+        return content.body.some((block) => {
+            let found = false
+            traverseEnrichedBlock(block, (node) => {
+                if (node.type === "all-charts") {
+                    found = true
+                }
+            })
+            return found
+        })
+    }, [content.body])
+
+    const shouldRenderFeaturedMetrics =
+        postType === OwidGdocType.LinearTopicPage &&
+        Boolean(topicName) &&
+        !hasAllChartsBlock
 
     const bibtex = `@article{owid-${slug.replace(/\//g, "-")},
     author = {${formatAuthorsForBibtex(content.authors)}},
@@ -133,6 +157,13 @@ export function GdocPost({
                     toc={content.toc}
                     blocks={content.body}
                     automaticSubscribeBanner={!shouldHideSubscribeBanner}
+                />
+            ) : null}
+            {shouldRenderFeaturedMetrics ? (
+                <div
+                    id={FEATURED_METRICS_ID}
+                    className="span-cols-14 grid grid-cols-12-full-width"
+                    data-topic-name={topicName}
                 />
             ) : null}
             {content.refs && !_.isEmpty(content.refs.definitions) ? (
