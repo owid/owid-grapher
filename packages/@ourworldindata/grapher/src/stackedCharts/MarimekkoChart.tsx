@@ -367,7 +367,7 @@ export class MarimekkoChart
     @computed private get showLegend(): boolean {
         return (
             (!!this.colorColumnSlug || this.categoricalLegendData.length > 1) &&
-            !this.manager.isDisplayedAlongsideComplementaryTable
+            !!this.manager.showLegend
         )
     }
 

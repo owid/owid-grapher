@@ -593,11 +593,7 @@ export class DiscreteBarChart
     }
 
     @computed private get showColorLegend(): boolean {
-        return (
-            this.hasColorLegend &&
-            !!this.manager.showLegend &&
-            !this.manager.isDisplayedAlongsideComplementaryTable
-        )
+        return this.hasColorLegend && !!this.manager.showLegend
     }
 
     @computed get legendX(): number {
