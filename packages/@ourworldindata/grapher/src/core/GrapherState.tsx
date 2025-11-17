@@ -905,14 +905,22 @@ export class GrapherState
 
         // Filter times
         if (
-            this.timelineMinTime === undefined &&
-            this.timelineMaxTime === undefined
+            this.timelineMinTime !== undefined ||
+            this.timelineMaxTime !== undefined
         )
-            return table
-        return table.filterByTimeRange(
-            this.timelineMinTime ?? -Infinity,
-            this.timelineMaxTime ?? Infinity
-        )
+            table = table.filterByTimeRange(
+                this.timelineMinTime ?? -Infinity,
+                this.timelineMaxTime ?? Infinity
+            )
+
+        // Drop entities that have no data in any of the x or y columns
+        // (This can happen if an entity has data only for the color or size column)
+        const slugs = excludeUndefined([...this.yColumnSlugs, this.xColumnSlug])
+        if (slugs.length > 0) {
+            table = table.dropEntitiesThatHaveNoDataInAllColumns(slugs)
+        }
+
+        return table
     }
 
     /** The base data table after author-configured filters have been applied */
