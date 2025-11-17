@@ -1,4 +1,6 @@
 import { useCallback } from "react"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faLocationArrow } from "@fortawesome/free-solid-svg-icons"
 
 import { EntityName } from "@ourworldindata/types"
 import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher"
@@ -10,6 +12,7 @@ import {
 import { EntityMetadata } from "./CausesOfDeathConstants.js"
 import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
 import { CausesOfDeathTimeSlider } from "./CausesOfDeathTimeSlider.js"
+import { useUserCountryInformation } from "./CausesOfDeathDataFetching.js"
 
 export function CausesOfDeathControls({
     metadata,
@@ -106,12 +109,23 @@ function EntityDropdown({
     className?: string
     isLoading?: boolean
 }) {
+    const { data: userCountryInfo } = useUserCountryInformation()
+
     const options =
         availableEntities?.map((entity) => ({
             value: entity.name,
             label: entity.name,
             id: entity.id,
         })) ?? []
+
+    // Move user's country to the top of the list if it's available
+    const userCountryOptionIndex = options.findIndex(
+        (option) => option.label === userCountryInfo?.name
+    )
+    if (userCountryInfo && userCountryOptionIndex > -1) {
+        const [userCountryOption] = options.splice(userCountryOptionIndex, 1)
+        options.unshift(userCountryOption)
+    }
 
     return (
         <Dropdown
@@ -125,6 +139,12 @@ function EntityDropdown({
             aria-label="Select a region"
             renderTriggerValue={(option) => (
                 <EntityDropdownLabel option={option} />
+            )}
+            renderMenuOption={(option) => (
+                <EntityDropdownOption
+                    option={option}
+                    isUserCountry={option?.label === userCountryInfo?.name}
+                />
             )}
             fallbackValue={WORLD_ENTITY_NAME}
         />
@@ -179,6 +199,24 @@ function EntityDropdownLabel({
             <span className="label">Region: </span>
             {option.label}
         </>
+    )
+}
+
+function EntityDropdownOption({
+    option,
+    isUserCountry,
+}: {
+    option: BasicDropdownOption | null
+    isUserCountry?: boolean
+}): React.ReactElement | null {
+    if (!option) return null
+    return (
+        <div className="causes-of-death-controls__entity-dropdown-option">
+            <span>{option.label}</span>
+            {isUserCountry && (
+                <FontAwesomeIcon icon={faLocationArrow} size="sm" />
+            )}
+        </div>
     )
 }
 
