@@ -1031,6 +1031,38 @@ export class CoreTable<
         )
     }
 
+    dropAllRows(): this {
+        return this.dropRowsAt(this.indices, "Drop all rows")
+    }
+
+    dropRowsWithErrorValuesForColumn(slug: ColumnSlug): this {
+        return this.columnFilter(
+            slug,
+            (value) => isNotErrorValue(value),
+            `Drop rows with empty or ErrorValues in ${slug} column`
+        )
+    }
+
+    // TODO rewrite with column ops
+    dropRowsWithErrorValuesForAnyColumn(slugs: ColumnSlug[]): this {
+        return this.rowFilter(
+            (row) => slugs.every((slug) => isNotErrorValue(row[slug])),
+            `Drop rows with empty or ErrorValues in any column: ${slugs.join(
+                ", "
+            )}`
+        )
+    }
+
+    // TODO rewrite with column ops
+    dropRowsWithErrorValuesForAllColumns(slugs: ColumnSlug[]): this {
+        return this.rowFilter(
+            (row) => slugs.some((slug) => isNotErrorValue(row[slug])),
+            `Drop rows with empty or ErrorValues in every column: ${slugs.join(
+                ", "
+            )}`
+        )
+    }
+
     replaceCells(
         columnSlugs: ColumnSlug[],
         replaceFn: (val: CoreValueType) => CoreValueType
