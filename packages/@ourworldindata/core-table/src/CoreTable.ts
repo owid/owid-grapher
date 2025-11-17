@@ -2,6 +2,7 @@ import * as _ from "lodash-es"
 import {
     csvEscape,
     intersection,
+    union,
     isPresent,
     ColumnSlug,
     PrimitiveType,
@@ -1031,8 +1032,8 @@ export class CoreTable<
         )
     }
 
-    dropAllRows(): this {
-        return this.dropRowsAt(this.indices, "Drop all rows")
+    dropAllRows(message?: string): this {
+        return this.dropRowsAt(this.indices, message ?? "Drop all rows")
     }
 
     dropRowsWithErrorValuesForColumn(slug: ColumnSlug): this {
@@ -1043,23 +1044,55 @@ export class CoreTable<
         )
     }
 
-    // TODO rewrite with column ops
     dropRowsWithErrorValuesForAnyColumn(slugs: ColumnSlug[]): this {
-        return this.rowFilter(
-            (row) => slugs.every((slug) => isNotErrorValue(row[slug])),
-            `Drop rows with empty or ErrorValues in any column: ${slugs.join(
-                ", "
-            )}`
+        // With no columns specified, no rows are dropped
+        if (slugs.length === 0) {
+            return this.noopTransform(
+                `Dropping 0 rows with empty or ErrorValues (no columns specified)`
+            )
+        }
+
+        // Get valid row indices for each column, then find their intersection
+        // (rows that are valid in ALL specified columns)
+        const validIndicesPerColumn = this.getColumns(slugs).map(
+            (col) => col.validRowIndices
+        )
+        const validIndices = intersection(...validIndicesPerColumn)
+
+        // Drop rows that are NOT in the valid indices
+        const indicesToDrop = this.indices.filter(
+            (index) => !validIndices.includes(index)
+        )
+
+        return this.dropRowsAt(
+            indicesToDrop,
+            `Dropping ${indicesToDrop.length} rows with empty or ErrorValues in any column: ${slugs.join(", ")}`
         )
     }
 
-    // TODO rewrite with column ops
     dropRowsWithErrorValuesForAllColumns(slugs: ColumnSlug[]): this {
-        return this.rowFilter(
-            (row) => slugs.some((slug) => isNotErrorValue(row[slug])),
-            `Drop rows with empty or ErrorValues in every column: ${slugs.join(
-                ", "
-            )}`
+        // With no columns specified, all rows are dropped (some returns false for empty array)
+        if (slugs.length === 0) {
+            return this.dropAllRows(
+                `Dropping all rows with empty or ErrorValues in every column (no columns specified)`
+            )
+        }
+
+        // Get valid row indices for each column, then find their union
+        // (rows that are valid in AT LEAST ONE specified column)
+        const validIndicesPerColumn = this.getColumns(slugs).map(
+            (col) => col.validRowIndices
+        )
+        const validIndices = union(...validIndicesPerColumn)
+
+        // Drop rows that are NOT in the valid indices
+        const indicesToDrop = this.indices.filter(
+            (index) => !validIndices.includes(index)
+        )
+
+        return this.dropRowsAt(
+            indicesToDrop,
+            `Dropping ${indicesToDrop.length} rows with empty or ErrorValues in every column: ${slugs.join(", ")}`
         )
     }
 
