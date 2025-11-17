@@ -5,13 +5,16 @@ import {
     SearchResultType,
 } from "@ourworldindata/types"
 import { SearchChartHitComponent } from "./search/SearchChartHitComponent.js"
-import { createTopicFilter } from "./search/searchUtils.js"
+import { createTopicFilter, SEARCH_BASE_PATH } from "./search/searchUtils.js"
 import { queryCharts, searchQueryKeys } from "./search/queries.js"
 import {
     getLiteSearchClient,
     getSearchQueryClient,
 } from "./search/searchClients.js"
 import { SearchDataResultsSkeleton } from "./search/SearchDataResultsSkeleton.js"
+import { Button } from "@ourworldindata/components"
+import { searchStateToUrl } from "./search/searchState.js"
+import { Url } from "@ourworldindata/utils"
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
 
 const MAX_MEDIUM_RESULTS = 4
@@ -48,6 +51,9 @@ const FeaturedMetrics = ({ topicName }: FeaturedMetricsProps) => {
 
     if (!isLoading && hits.length === 0) return null
 
+    const url = Url.fromURL(searchStateToUrl(searchState))
+    const searchHref = `${SEARCH_BASE_PATH}${url.queryStr}`
+
     return (
         <section className="featured-metrics col-start-2 span-cols-12">
             <h1 className="featured-metrics__title h1-semibold">
@@ -56,26 +62,40 @@ const FeaturedMetrics = ({ topicName }: FeaturedMetricsProps) => {
             {isLoading ? (
                 <SearchDataResultsSkeleton />
             ) : (
-                <ul className="featured-metrics__list search-data-results__list">
-                    {hits.map((hit, hitIndex) => {
-                        const variant =
-                            hitIndex < MAX_MEDIUM_RESULTS ? "medium" : "small"
+                <>
+                    <ul className="search-data-results__list">
+                        {hits.map((hit, hitIndex) => {
+                            const variant =
+                                hitIndex < MAX_MEDIUM_RESULTS
+                                    ? "medium"
+                                    : "small"
 
-                        return (
-                            <li
-                                className="featured-metrics__list-item search-data-results__hit"
-                                key={hit.objectID}
-                            >
-                                <SearchChartHitComponent
-                                    hit={hit}
-                                    variant={variant}
-                                    selectedRegionNames={[]}
-                                    onClick={() => undefined}
-                                />
-                            </li>
-                        )
-                    })}
-                </ul>
+                            return (
+                                <li
+                                    className="search-data-results__hit"
+                                    key={hit.objectID}
+                                >
+                                    <SearchChartHitComponent
+                                        hit={hit}
+                                        variant={variant}
+                                        selectedRegionNames={[]}
+                                        onClick={() => undefined}
+                                    />
+                                </li>
+                            )
+                        })}
+                    </ul>
+                    <div className="featured-metrics__see-all">
+                        <Button
+                            theme="solid-vermillion"
+                            text={`See all ${data?.nbHits ?? 0} charts on this topic`}
+                            href={searchHref}
+                            dataTrackNote="featured-metrics-see-all"
+                            icon={faMagnifyingGlass}
+                            iconPosition="left"
+                        />
+                    </div>
+                </>
             )}
         </section>
     )
