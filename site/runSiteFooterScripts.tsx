@@ -35,6 +35,8 @@ import {
 import { getInitialState } from "./cookiePreferences.js"
 import { CookiePreferencesManager } from "./CookiePreferencesManager.js"
 import { SearchWrapper } from "./search/SearchWrapper.js"
+import { FeaturedDataInsightsWrapper } from "./FeaturedDataInsights.js"
+import { FEATURED_DATA_INSIGHTS_ID } from "@ourworldindata/types/src/gdocTypes/GdocConstants.js"
 import { DebugProvider } from "./gdocs/DebugProvider.js"
 import { AriaAnnouncerProvider } from "./AriaAnnouncerContext.js"
 import { AriaAnnouncer } from "./AriaAnnouncer.js"
@@ -56,6 +58,16 @@ function hydrateSearchPage() {
     if (root) {
         hydrateRoot(root, <SearchWrapper topicTagGraph={topicTagGraph} />)
     }
+}
+
+function runFeaturedDataInsights() {
+    const container = document.getElementById(FEATURED_DATA_INSIGHTS_ID)
+    const topicName = container?.dataset.topicName
+
+    if (!container || !topicName) return
+
+    const root = createRoot(container)
+    root.render(<FeaturedDataInsightsWrapper topicName={topicName} />)
 }
 
 function hydrateSubscribePage() {
@@ -371,6 +383,7 @@ export const runSiteFooterScripts = async (
             break
         case SiteFooterContext.gdocsDocument:
             hydrateOwidGdoc(debug, isPreviewing)
+            runFeaturedDataInsights()
             runAllGraphersLoadedListener()
             runSiteNavigation(hideDonationFlag)
             runFootnotes()
