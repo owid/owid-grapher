@@ -7,6 +7,7 @@
     margin-bottom: 24px;
     display: flex;
     flex-direction: column;
+    grid-row: span 10;
 }
 
 .article-block__chart:has(+ .recirc) {
