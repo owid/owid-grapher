@@ -70,6 +70,7 @@ import {
     makeTooltipToleranceNotice,
     makeTooltipRoundingNotice,
     formatTooltipRangeValues,
+    TooltipValue,
 } from "../tooltip/Tooltip"
 import { NoDataSection } from "./NoDataSection"
 import { ScatterPlotChartState } from "./ScatterPlotChartState"
@@ -690,6 +691,75 @@ export class ScatterPlotChart
     }
 
     @computed private get tooltip(): React.ReactElement | null {
+        return this.chartState.isTimeScatter
+            ? this.timeScatterTooltip
+            : this.scatterTooltip
+    }
+
+    /** Tooltip for time scatter plots (x axis is time) */
+    @computed private get timeScatterTooltip(): React.ReactElement | null {
+        const {
+            yColumn,
+            sizeColumn,
+            tooltipState: { target, position, fading },
+        } = this
+
+        if (!target) return null
+
+        const point = target.series.points?.[0]
+        if (!point) return null
+
+        const subtitle = this.xColumn.formatTime(point.timeValue)
+
+        const roundingNotice = yColumn.roundsToSignificantFigures
+            ? {
+                  icon: TooltipFooterIcon.None,
+                  text: makeTooltipRoundingNotice(
+                      [yColumn.numSignificantFigures],
+                      { plural: false }
+                  ),
+              }
+            : undefined
+        const footer = excludeUndefined([roundingNotice])
+        const superscript =
+            !!roundingNotice && roundingNotice.icon !== TooltipFooterIcon.None
+
+        return (
+            <Tooltip
+                id="scatterTooltip"
+                tooltipManager={this.manager}
+                x={position.x}
+                y={position.y}
+                offsetX={20}
+                offsetY={-16}
+                style={{ maxWidth: "250px" }}
+                title={target.series.label}
+                subtitle={subtitle}
+                dissolve={fading}
+                footer={footer}
+                dismiss={() => (this.tooltipState.target = null)}
+            >
+                <TooltipValue
+                    label={yColumn.displayName}
+                    unit={yColumn.displayUnit}
+                    value={yColumn.formatValueShort(point.y)}
+                    isRoundedToSignificantFigures={
+                        yColumn.roundsToSignificantFigures
+                    }
+                    showSignificanceSuperscript={superscript}
+                />
+                {!sizeColumn.isMissing && (
+                    <TooltipValue
+                        label={sizeColumn.displayName}
+                        unit={sizeColumn.displayUnit}
+                        value={sizeColumn.formatValueShort(point.size)}
+                    />
+                )}
+            </Tooltip>
+        )
+    }
+
+    @computed private get scatterTooltip(): React.ReactElement | null {
         if (!this.tooltipState.target) return null
 
         const {

@@ -229,6 +229,10 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
         return xColumnSlug ?? this.manager.table.timeColumn.slug
     }
 
+    @computed get isTimeScatter(): boolean {
+        return this.manager.xColumnSlug === undefined
+    }
+
     @computed get xColumn(): CoreColumn {
         return this.transformedTable.get(this.xColumnSlug)
     }
