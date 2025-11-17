@@ -12,13 +12,9 @@ import {
 } from "react"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { Container } from "./layout.js"
-import { Button, OverlayHeader } from "@ourworldindata/components"
+import { OverlayHeader, MarkdownTextWrap } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import {
-    faArrowRight,
-    faArrowUpRightFromSquare,
-    faDownload,
-} from "@fortawesome/free-solid-svg-icons"
+import { faArrowRight, faDownload } from "@fortawesome/free-solid-svg-icons"
 import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.js"
 import { triggerDownloadFromBlob } from "@ourworldindata/utils"
 import { ImageMetadata, LinkedStaticViz } from "@ourworldindata/types"
@@ -215,9 +211,13 @@ const StaticVizDownloadModal = ({
                             <div className="static-viz-download-modal__heading">
                                 <h3>How this visualization was made</h3>
                             </div>
-                            <p className="static-viz-download-modal__description">
-                                {staticViz.description}
-                            </p>
+                            <div className="static-viz-download-modal__description">
+                                <MarkdownTextWrap
+                                    text={staticViz.description}
+                                    fontSize={14}
+                                    lineHeight={1.2}
+                                />
+                            </div>
                         </section>
                     )}
                     <section className="static-viz-download-modal__section">
@@ -262,12 +262,9 @@ const StaticVizDownloadModal = ({
                     )}
                     {grapherLink && (
                         <section className="static-viz-download-modal__section">
-                            <div
-                                className="static-viz-download-modal__heading"
-                                style={{ marginBottom: 8 }}
-                            >
+                            <div className="static-viz-download-modal__heading">
                                 <h3>Continue exploring</h3>
-                                <p>
+                                <p style={{ marginBottom: 8 }}>
                                     Visit this chart on Our World in Data to
                                     explore and customize the data.
                                 </p>
