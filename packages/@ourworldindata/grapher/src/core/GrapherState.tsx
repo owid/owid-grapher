@@ -302,11 +302,13 @@ export class GrapherState {
     hideFacetControl = true
 
     /**
-     * Indicates whether the chart is embedded alongside a complementary table.
-     * If that's the case, the chart can be simplified (e.g. hide legends or
-     * annotations) since the table serves as an additional source of information.
+     * Renders charts in a simplified mode by hiding legends and showing value
+     * labels instead of entity labels. Used when the chart is displayed alongside
+     * a complementary table (e.g. in search results) where the table provides
+     * entity names and serves as a legend, making chart labels and legends
+     * redundant.
      */
-    isDisplayedAlongsideComplementaryTable = false
+    isMinimalThumbnail: boolean = false
 
     // the desired faceting strategy, which might not be possible if we change the data
     selectedFacetStrategy: FacetStrategy | undefined = undefined
@@ -507,7 +509,7 @@ export class GrapherState {
             hasTableTab: observable,
             hideShareButton: observable,
             hideExploreTheDataButton: observable,
-            isDisplayedAlongsideComplementaryTable: observable,
+            isMinimalThumbnail: observable,
         })
         // prefer the manager's selection over the config's selectedEntityNames
         // if both are passed in and the manager's selection is not empty.
@@ -871,7 +873,7 @@ export class GrapherState {
         // When the chart is displayed alongside a complementary table
         // (e.g., in search results), the table serves as a legend, so we
         // hide the chart's legend to avoid redundancy
-        if (this.isDisplayedAlongsideComplementaryTable) return false
+        if (this.isMinimalThumbnail) return false
 
         // Hide single-entity legends for stacked bar charts
         if (this.isOnStackedBarTab) {
@@ -886,10 +888,6 @@ export class GrapherState {
         }
 
         return !this.hideLegend
-    }
-
-    @computed get isMinimalThumbnail(): boolean {
-        return this.isDisplayedAlongsideComplementaryTable
     }
 
     private isChartTypeThatShowsAllEntities(
