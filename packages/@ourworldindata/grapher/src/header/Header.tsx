@@ -233,6 +233,10 @@ abstract class AbstractHeader<
                 <a
                     href={manager.canonicalUrl}
                     data-track-note="chart_click_title"
+                    {...(manager.isInIFrame && {
+                        target: "_blank",
+                        rel: "noopener",
+                    })}
                 >
                     <h1 style={this.title.htmlStyle}>
                         {this.title.renderHTML()}
@@ -247,6 +251,10 @@ abstract class AbstractHeader<
                 <a
                     href={manager.canonicalUrl}
                     data-track-note="chart_click_title"
+                    {...(manager.isInIFrame && {
+                        target: "_blank",
+                        rel: "noopener",
+                    })}
                 >
                     {this.title.renderHTML()}
                 </a>
@@ -331,6 +339,10 @@ export class StaticHeader extends AbstractHeader<StaticHeaderProps> {
                             fontFamily:
                                 "'Playfair Display', Georgia, 'Times New Roman', 'Liberation Serif', serif",
                         }}
+                        {...(manager.isInIFrame && {
+                            target: "_blank",
+                            rel: "noopener",
+                        })}
                     >
                         {title.renderSVG(x, y, {
                             textProps: { fill: GRAY_100 },
