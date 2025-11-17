@@ -157,7 +157,8 @@ export async function queryCharts(
 export async function queryDataInsights(
     liteSearchClient: LiteClient,
     state: SearchState,
-    page: number = 0
+    page: number = 0,
+    hitsPerPage: number = 4
 ): Promise<SearchDataInsightResponse> {
     const selectedCountryNames = getFilterNamesOfType(
         state.filters,
@@ -198,7 +199,7 @@ export async function queryDataInsights(
             ],
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
-            hitsPerPage: 4,
+            hitsPerPage,
             page,
         },
     ]

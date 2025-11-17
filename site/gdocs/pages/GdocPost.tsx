@@ -19,6 +19,9 @@ import { OwidGdocHeader } from "../components/OwidGdocHeader.js"
 import StickyNav from "../../blocks/StickyNav.js"
 import { getShortPageCitation } from "../utils.js"
 import { TableOfContents } from "../../TableOfContents.js"
+import { AttachmentsContext } from "../AttachmentsContext.js"
+import { FEATURED_DATA_INSIGHTS_ID } from "@ourworldindata/types/src/gdocTypes/GdocConstants.js"
+import { useContext } from "react"
 
 const citationDescriptionsByArticleType: Record<
     | OwidGdocType.Article
@@ -56,6 +59,7 @@ export function GdocPost({
     breadcrumbs,
     manualBreadcrumbs,
 }: GdocPostProps) {
+    const { tags } = useContext(AttachmentsContext)
     const postType = content.type ?? OwidGdocType.Article
     const citationDescription = citationDescriptionsByArticleType[postType]
     const shortPageCitation = getShortPageCitation(
@@ -70,6 +74,10 @@ export function GdocPost({
     const isDeprecated =
         postType === OwidGdocType.Article &&
         Boolean(content["deprecation-notice"])
+    const topicName = tags[0]?.name // see https://github.com/owid/owid-issues/issues/2200
+    const shouldRenderFeaturedDataInsights =
+        postType === OwidGdocType.LinearTopicPage && Boolean(topicName)
+
     const bibtex = `@article{owid-${slug.replace(/\//g, "-")},
     author = {${formatAuthorsForBibtex(content.authors)}},
     title = {${content.title}},
@@ -132,6 +140,13 @@ export function GdocPost({
                     toc={content.toc}
                     blocks={content.body}
                     automaticSubscribeBanner={!shouldHideSubscribeBanner}
+                />
+            ) : null}
+            {shouldRenderFeaturedDataInsights ? (
+                <div
+                    id={FEATURED_DATA_INSIGHTS_ID}
+                    className="span-cols-14 grid grid-cols-12-full-width"
+                    data-topic-name={topicName}
                 />
             ) : null}
             {content.refs && !_.isEmpty(content.refs.definitions) ? (
