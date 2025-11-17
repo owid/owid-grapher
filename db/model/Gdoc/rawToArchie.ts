@@ -477,6 +477,8 @@ function* rawBlockStaticVizToArchieMLString(
 ): Generator<string, void, undefined> {
     yield "{.static-viz}"
     yield* propertyToArchieMLString("name", block.value)
+    yield* propertyToArchieMLString("size", block.value)
+    yield* propertyToArchieMLString("hasOutline", block.value)
     yield "{}"
 }
 

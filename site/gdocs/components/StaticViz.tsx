@@ -26,10 +26,16 @@ interface StaticVizProps {
     name: string
     className?: string
     containerType?: Container
+    hasOutline?: boolean
 }
 
 export default function StaticViz(props: StaticVizProps) {
-    const { name, className, containerType = "default" } = props
+    const {
+        name,
+        className,
+        containerType = "default",
+        hasOutline = true,
+    } = props
     const staticViz = useLinkedStaticViz(name)
     const { isPreviewing } = useContext(DocumentContext)
     const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false)
@@ -58,7 +64,7 @@ export default function StaticViz(props: StaticVizProps) {
     return (
         <figure className={cx("static-viz", className)}>
             <Image
-                hasOutline
+                hasOutline={hasOutline}
                 imageData={staticViz.desktop}
                 smallImageData={staticViz.mobile}
                 containerType={imageContainerType}

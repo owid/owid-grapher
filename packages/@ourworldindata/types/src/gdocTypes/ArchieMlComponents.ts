@@ -263,12 +263,16 @@ export type RawBlockStaticViz = {
     type: "static-viz"
     value: {
         name?: string
+        size?: BlockImageSize
+        hasOutline?: string
     }
 }
 
 export type EnrichedBlockStaticViz = {
     type: "static-viz"
     name: string
+    size: BlockImageSize
+    hasOutline: boolean
 } & EnrichedBlockWithParseErrors
 
 // TODO: This is what lists staring with * are converted to in archieToEnriched

@@ -209,9 +209,13 @@ function ArticleBlockInternal({
         ))
         .with({ type: "static-viz" }, (block) => (
             <StaticViz
-                className={getLayout("static-viz", containerType)}
+                className={cx(
+                    "article-block__static-viz",
+                    getLayout(`static-viz--${block.size}`, containerType)
+                )}
                 name={block.name}
                 containerType={containerType}
+                hasOutline={block.hasOutline}
             />
         ))
         .with({ type: "people" }, (block) => (

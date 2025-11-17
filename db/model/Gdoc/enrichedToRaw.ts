@@ -234,6 +234,8 @@ export function enrichedBlockToRawBlock(
                 type: "static-viz",
                 value: {
                     name: block.name,
+                    size: block.size,
+                    hasOutline: String(block.hasOutline),
                 },
             })
         )
