@@ -246,6 +246,8 @@ export const enrichedBlockExamples: Record<
     "static-viz": {
         type: "static-viz",
         name: "some-static-viz",
+        size: BlockImageSize.Wide,
+        hasOutline: true,
         parseErrors: [],
     },
     list: {
