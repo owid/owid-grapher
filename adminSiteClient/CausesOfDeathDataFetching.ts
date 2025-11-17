@@ -1,6 +1,6 @@
 import { QueryStatus, useQuery } from "@tanstack/react-query"
 import { DataJson, MetadataJson, DataRow } from "./CausesOfDeathConstants"
-import { fetchJson } from "@ourworldindata/utils"
+import { fetchJson, UserCountryInformation } from "@ourworldindata/utils"
 import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
 
 const METADATA_PATH = "/deaths-combined.metadata.json"
@@ -9,6 +9,7 @@ const DATA_PATH = "/deaths-combined.{entityId}.data.json"
 const queryKeys = {
     metadata: () => ["causes-of-death", "metadata"],
     data: (entityId: number) => ["causes-of-death", "data", entityId],
+    location: () => ["location"],
 }
 
 /** Fetch causes of death metadata */
@@ -64,7 +65,20 @@ export const useCausesOfDeathEntityData = (
     }
 }
 
-export const parseEntityData = ({
+export function useUserCountryInformation(): { data?: UserCountryInformation } {
+    const result = useQuery({
+        queryKey: queryKeys.location(),
+        queryFn: async () => {
+            return fetchJson<UserCountryInformation>(
+                "https://detect-country.owid.io"
+            )
+        },
+    })
+
+    return result
+}
+
+const parseEntityData = ({
     entityData,
     entityName,
     metadata,

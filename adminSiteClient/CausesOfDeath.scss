@@ -61,6 +61,15 @@ $black-text: $gray-100;
             width: 100%;
         }
     }
+
+    @at-root {
+        .causes-of-death-controls__entity-dropdown-option {
+            svg {
+                color: $gray-60;
+                margin-left: 6px;
+            }
+        }
+    }
 }
 
 .causes-of-death-captioned-chart {
