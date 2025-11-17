@@ -279,6 +279,7 @@ export const OwidEnergy = {
     singleColorScale: false,
     isDistinct: true,
     colorSets: [EnergyColorPalette],
+    colorMap: EnergyColors,
 }
 CustomColorSchemes.push(OwidEnergy)
 
@@ -369,6 +370,7 @@ export const ContinentColorsColorScheme = {
     singleColorScale: false,
     isDistinct: true,
     colorSets: [ContinentColorPalette],
+    colorMap: ContinentColors,
 }
 
 CustomColorSchemes.push(ContinentColorsColorScheme)
@@ -383,9 +385,19 @@ function getModifiedLinesColorScheme(
             : color
     )
 
+    // If the scheme has a colorMap, we need to create a modified version with darker colors
+    const modifiedColorMap = colorScheme.colorMap
+        ? _.mapValues(colorScheme.colorMap, (color) =>
+              color in darkerColorReplacementsHexToReplacementColorName
+                  ? darkerColorReplacementsHexToReplacementColorName[color]
+                  : color
+          )
+        : undefined
+
     return {
         ...colorScheme,
         colorSets: [modifiedColors],
+        colorMap: modifiedColorMap,
         name: colorScheme.name + "Lines",
         displayName: (colorScheme.displayName ?? "") + " (Lines)",
     }
