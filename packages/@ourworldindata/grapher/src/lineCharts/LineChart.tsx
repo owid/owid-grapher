@@ -26,6 +26,7 @@ import {
     TooltipState,
     TooltipTable,
     makeTooltipRoundingNotice,
+    toTooltipTableColumns,
 } from "../tooltip/Tooltip"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { extent } from "d3-array"
@@ -388,7 +389,7 @@ export class LineChart
                 dismiss={this.dismissTooltip}
             >
                 <TooltipTable
-                    columns={columns}
+                    columns={toTooltipTableColumns(columns)}
                     rows={sortedData.map((series) => {
                         const {
                             seriesName,

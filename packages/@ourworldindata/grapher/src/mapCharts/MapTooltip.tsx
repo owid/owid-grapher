@@ -13,6 +13,7 @@ import {
     makeTooltipToleranceNotice,
     makeTooltipRoundingNotice,
     TooltipValueRange,
+    formatTooltipRangeValues,
 } from "../tooltip/Tooltip"
 import { MapChartManager, MapColumnInfo } from "./MapChartConstants"
 import { ColorScale } from "../color/ColorScale"
@@ -25,7 +26,11 @@ import {
     PrimitiveType,
 } from "@ourworldindata/types"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
-import { excludeUndefined, PointVector } from "@ourworldindata/utils"
+import {
+    calculateTrendDirection,
+    excludeUndefined,
+    PointVector,
+} from "@ourworldindata/utils"
 import { darkenColorForHighContrastText } from "../color/ColorUtils"
 import { MapSparkline, MapSparklineManager } from "./MapSparkline.js"
 import { match } from "ts-pattern"
@@ -345,10 +350,12 @@ function MapTooltipValue({
 
     return (
         <TooltipValue
-            column={mapColumn}
+            label={mapColumn.displayName}
+            unit={mapColumn.displayUnit}
             value={formattedValue}
             color={color}
             isProjection={isProjection}
+            isRoundedToSignificantFigures={mapColumn.roundsToSignificantFigures}
             labelVariant="unit-only"
         />
     )
@@ -383,9 +390,12 @@ function MapTooltipRangeValues({
 
     return (
         <TooltipValueRange
-            column={mapColumn}
-            values={values}
+            label={mapColumn.displayName}
+            unit={mapColumn.displayUnit}
+            values={formatTooltipRangeValues(values, mapColumn)}
             colors={colors}
+            trend={calculateTrendDirection(...values) ?? "right"}
+            isRoundedToSignificantFigures={mapColumn.roundsToSignificantFigures}
             labelVariant="unit-only"
         />
     )

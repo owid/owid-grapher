@@ -17,7 +17,7 @@ import {
     TooltipContext,
     TooltipFooterIcon,
 } from "./TooltipProps"
-import { IconCircledS } from "./TooltipContents.js"
+import { SignificanceIcon } from "./TooltipContents.js"
 
 export * from "./TooltipContents.js"
 export { TooltipState } from "./TooltipState.js"
@@ -286,7 +286,7 @@ function TooltipIcon({
         ))
         .with(TooltipFooterIcon.Significance, () => (
             <div className="icon">
-                <IconCircledS />
+                <SignificanceIcon />
             </div>
         ))
         .with(TooltipFooterIcon.None, () => null)

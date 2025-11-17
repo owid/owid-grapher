@@ -1,52 +1,53 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import classnames from "classnames"
-import { CoreColumn } from "@ourworldindata/core-table"
 import { NO_DATA_LABEL } from "../color/ColorScale.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle, faS } from "@fortawesome/free-solid-svg-icons"
-import {
-    formatInlineList,
-    GrapherTooltipAnchor,
-    GrapherTrendArrowDirection,
-} from "@ourworldindata/utils"
+import { formatInlineList, GrapherTooltipAnchor } from "@ourworldindata/utils"
 import { GrapherTrendArrow } from "@ourworldindata/components"
 import {
-    TooltipTableProps,
     TooltipValueProps,
     TooltipValueRangeProps,
     TooltipContext,
+    TooltipTableProps,
+    TooltipVariableProps,
 } from "./TooltipProps"
 import { makeAxisLabel } from "../chart/ChartUtils.js"
 import * as R from "remeda"
+import { CoreColumn } from "@ourworldindata/core-table"
+
+type TooltipValue = number | string | undefined
 
 export const NO_DATA_COLOR = "#999"
 
 export function TooltipValue({
-    column,
+    label,
+    unit,
     value,
     color,
-    notice,
+    originalTime,
     isProjection,
-    labelVariant = "name+unit",
+    labelVariant = "label+unit",
+    isRoundedToSignificantFigures,
     showSignificanceSuperscript,
-}: TooltipValueProps): React.ReactElement | null {
-    const displayValue = _.isNumber(value)
-        ? column.formatValueShort(value)
-        : (value ?? NO_DATA_LABEL)
+}: TooltipValueProps): React.ReactElement {
+    const displayValue = value || NO_DATA_LABEL
     const displayColor = displayValue === NO_DATA_LABEL ? NO_DATA_COLOR : color
 
-    const { roundsToSignificantFigures } = column
     const showSuperscript =
-        showSignificanceSuperscript && roundsToSignificantFigures
-    const superscript = showSuperscript ? <IconCircledS asSup={true} /> : null
+        showSignificanceSuperscript && isRoundedToSignificantFigures
+    const superscript = showSuperscript ? (
+        <SignificanceIcon asSuperscript={true} />
+    ) : null
 
     return (
         <Variable
-            column={column}
+            label={label}
+            unit={unit}
             color={displayColor}
             isProjection={isProjection}
-            notice={notice ? [notice] : undefined}
+            originalTimes={originalTime ? [originalTime] : undefined}
             labelVariant={labelVariant}
         >
             <span>
@@ -57,67 +58,34 @@ export function TooltipValue({
     )
 }
 
-function formatValueShort(
-    value: number | string | undefined,
-    column: CoreColumn
-): string {
-    if (value === undefined) return NO_DATA_LABEL
-    if (typeof value === "string") return value
-    return column.formatValueShort(value)
-}
-
-function formatValueShortWithAbbreviations(
-    value: number | string | undefined,
-    column: CoreColumn
-): string {
-    if (value === undefined) return NO_DATA_LABEL
-    if (typeof value === "string") return value
-    return column.formatValueShortWithAbbreviations(value)
-}
-
-function getTrendArrowDirection(
-    values: (string | number | undefined)[]
-): GrapherTrendArrowDirection | undefined {
-    // Can't show a trend for less than two values
-    if (values.length < 2) return
-
-    // If any value is not a number, default to the right arrow
-    if (values.some((v) => !_.isNumber(v))) return "right"
-
-    const numericValues = values as [number, number]
-    return numericValues[0] < numericValues[1]
-        ? "up"
-        : numericValues[0] > numericValues[1]
-          ? "down"
-          : "right"
-}
-
 export function TooltipValueRange({
-    column,
+    label,
+    unit,
     values,
     colors,
-    notice,
-    labelVariant = "name+unit",
+    originalTimes,
+    trend,
+    labelVariant = "label+unit",
+    isRoundedToSignificantFigures,
     showSignificanceSuperscript,
 }: TooltipValueRangeProps): React.ReactElement | null {
-    const [firstValue, lastValue] = values.map((v) =>
-        formatValueShort(v, column)
-    )
-    const [firstTerm, lastTerm] =
-        // TODO: would be nicer to actually measure the typeset text but we would need to
-        // add Lato's metrics to the `string-pixel-width` module to use Bounds.forText
-        _.sum([firstValue?.length, lastValue?.length]) > 20
-            ? values.map((v) => formatValueShortWithAbbreviations(v, column))
-            : [firstValue, lastValue]
-    const trend = getTrendArrowDirection(values)
+    const [firstTerm, lastTerm] = values
 
-    const { roundsToSignificantFigures } = column
+    if (firstTerm === undefined && lastTerm === undefined) return null
+
     const showSuperscript =
-        showSignificanceSuperscript && roundsToSignificantFigures
-    const superscript = showSuperscript ? <IconCircledS asSup={true} /> : null
+        showSignificanceSuperscript && isRoundedToSignificantFigures
+    const superscript = showSuperscript ? (
+        <SignificanceIcon asSuperscript={true} />
+    ) : null
 
-    return values.length ? (
-        <Variable column={column} notice={notice} labelVariant={labelVariant}>
+    return (
+        <Variable
+            label={label}
+            unit={unit}
+            originalTimes={originalTimes}
+            labelVariant={labelVariant}
+        >
             <span className="range">
                 <span className="term">
                     <span style={{ color: colors?.[0] }}>{firstTerm}</span>
@@ -134,37 +102,27 @@ export function TooltipValueRange({
                 )}
             </span>
         </Variable>
-    ) : null
+    )
 }
 
 function Variable({
-    column,
+    label,
+    unit,
     children,
     color,
-    notice,
+    originalTimes,
     isProjection,
-    labelVariant = "name+unit",
-}: {
-    column: CoreColumn
-    color?: string
-    isProjection?: boolean
-    notice?: (number | string | undefined)[]
-    labelVariant?: "name+unit" | "unit-only"
-    children?: React.ReactNode
-}): React.ReactElement | null {
-    if (column.isMissing || column.name === "time") return null
-
-    const { mainLabel: columnName, unit } = makeAxisLabel({
-        label: column.displayName,
-        displayUnit: column.displayUnit,
+    labelVariant = "label+unit",
+}: TooltipVariableProps): React.ReactElement {
+    const { mainLabel: columnName, unit: formattedUnit } = makeAxisLabel({
+        label: label || "",
+        displayUnit: unit,
     })
 
-    const displayNotice =
-        _.uniq((notice ?? []).filter((t) => t !== undefined))
-            .map((time) =>
-                typeof time === "number" ? column.formatTime(time) : time
-            )
-            .join("\u2013") || null
+    const displayOriginalTimes =
+        _.uniq((originalTimes ?? []).filter((t) => t !== undefined)).join(
+            "\u2013"
+        ) || null
 
     return (
         <div
@@ -174,8 +132,8 @@ function Variable({
         >
             <div className="definition">
                 {columnName && <span className="name">{columnName}</span>}
-                {unit && unit.length > 1 && (
-                    <span className="unit">{unit}</span>
+                {formattedUnit && formattedUnit.length > 1 && (
+                    <span className="unit">{formattedUnit}</span>
                 )}
                 {isProjection && (
                     <span className="projection">projected data</span>
@@ -183,10 +141,10 @@ function Variable({
             </div>
             <div className="values" style={{ color }}>
                 {children}
-                {displayNotice && (
+                {displayOriginalTimes && (
                     <span className="time-notice">
                         <FontAwesomeIcon icon={faInfoCircle} />
-                        {displayNotice}
+                        {displayOriginalTimes}
                     </span>
                 )}
             </div>
@@ -196,21 +154,19 @@ function Variable({
 
 export function TooltipTable({
     columns,
-    totals,
     rows,
-    format: formatProp,
+    totals = [],
 }: TooltipTableProps): React.ReactElement | null {
     const context = React.useContext(TooltipContext)
     const focal = rows.some((row) => row.focused)
     const swatched = rows.some((row) => row.swatch)
-    const format = { trailingZeroes: true, ...formatProp }
+
     const tooEmpty =
         rows.length < 2 ||
-        totals?.every((value) => value === undefined) ||
+        totals.every((value) => value === undefined) ||
         rows.some(({ values }) => values.every((value) => value === undefined))
-    const tooTrivial = R.zip(columns, totals ?? []).every(
-        ([column, total]) =>
-            !!column?.formatValueShort(total).match(/^100(\.0+)?%/)
+    const tooTrivial = R.zip(columns, totals).every(
+        ([column, total]) => !!column?.formatValue(total).match(/^100(\.0+)?%/)
     )
     const showTotals = totals && !(tooEmpty || tooTrivial)
 
@@ -218,11 +174,9 @@ export function TooltipTable({
     // so that it's always visible even if the tooltip is scrollable
     const showTotalsAtTop = context?.anchor === GrapherTooltipAnchor.bottom
 
-    const totalsCells = R.zip(columns, totals ?? []).map(([column, total]) => (
-        <td key={column?.slug} className="series-value">
-            {column && total !== undefined
-                ? column.formatValueShort(total, format)
-                : null}
+    const totalsCells = R.zip(columns, totals).map(([column, total]) => (
+        <td key={column?.label} className="series-value">
+            {column && total !== undefined ? column.formatValue(total) : null}
         </td>
     ))
 
@@ -234,8 +188,8 @@ export function TooltipTable({
                         <td className="series-color"></td>
                         <td className="series-name"></td>
                         {columns.map((column) => (
-                            <td className="series-value" key={column.slug}>
-                                {column.displayName}
+                            <td className="series-value" key={column.label}>
+                                {column.label}
                             </td>
                         ))}
                     </tr>
@@ -260,7 +214,7 @@ export function TooltipTable({
                         striped,
                         annotation,
                         values,
-                        notice,
+                        originalTime,
                         swatch = {},
                     } = row
                     const {
@@ -306,23 +260,19 @@ export function TooltipTable({
                                 const missing = value === undefined
                                 return column ? (
                                     <td
-                                        key={column.slug}
+                                        key={column.label}
                                         className={classnames("series-value", {
                                             missing,
                                         })}
                                     >
-                                        {!missing &&
-                                            column.formatValueShort(
-                                                value,
-                                                format
-                                            )}
+                                        {!missing && column.formatValue(value)}
                                     </td>
                                 ) : null
                             })}
-                            {notice && (
+                            {originalTime && (
                                 <td className="time-notice">
                                     <FontAwesomeIcon icon={faInfoCircle} />{" "}
-                                    {notice}
+                                    {originalTime}
                                 </td>
                             )}
                         </tr>
@@ -343,15 +293,15 @@ export function TooltipTable({
     )
 }
 
-export function IconCircledS({
-    asSup = false,
+export function SignificanceIcon({
+    asSuperscript = false,
 }: {
-    asSup?: boolean
+    asSuperscript?: boolean
 }): React.ReactElement {
     return (
         <div
             className={classnames("icon-circled-s", {
-                "as-superscript": asSup,
+                "as-superscript": asSuperscript,
             })}
         >
             <div className="circle" />
@@ -382,4 +332,52 @@ export function makeTooltipRoundingNotice(
     const are = plural ? "are" : "is"
     const figures = formattedNumSigFigs === "1" ? "figure" : "figures"
     return `${values} ${are} rounded to ${formattedNumSigFigs} significant ${figures}`
+}
+
+export function toTooltipTableColumns(
+    columns: CoreColumn | CoreColumn[]
+): TooltipTableProps["columns"] {
+    const columnsArray = Array.isArray(columns) ? columns : [columns]
+
+    return columnsArray.map((column) => ({
+        label: column.displayName,
+        formatValue: (value) =>
+            column.formatValueShort(value, { trailingZeroes: true }),
+    }))
+}
+
+export function formatTooltipRangeValues(
+    values: TooltipValue[],
+    column: CoreColumn
+): [string, string] {
+    const formatTooltipValueShort = (value: TooltipValue): string =>
+        formatTooltipValue(value, (value) => column.formatValueShort(value))
+    const formatTooltipValueShortWithAbbreviations = (
+        value: TooltipValue
+    ): string =>
+        formatTooltipValue(value, (value) =>
+            column.formatValueShortWithAbbreviations(value)
+        )
+
+    const [firstValue, lastValue] = values.map((v) =>
+        formatTooltipValueShort(v)
+    )
+
+    const [firstTerm, lastTerm] =
+        // TODO: would be nicer to actually measure the typeset text but we would need to
+        // add Lato's metrics to the `string-pixel-width` module to use Bounds.forText
+        _.sum([firstValue?.length, lastValue?.length]) > 20
+            ? values.map((v) => formatTooltipValueShortWithAbbreviations(v))
+            : [firstValue, lastValue]
+
+    return [firstTerm, lastTerm]
+}
+
+function formatTooltipValue(
+    value: TooltipValue,
+    formatValue: (value: number) => string
+): string {
+    if (value === undefined) return NO_DATA_LABEL
+    if (typeof value === "string") return value
+    return formatValue(value)
 }

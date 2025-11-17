@@ -38,6 +38,7 @@ import {
     TooltipTable,
     makeTooltipRoundingNotice,
     makeTooltipToleranceNotice,
+    toTooltipTableColumns,
 } from "../tooltip/Tooltip"
 import {
     Bar,
@@ -608,7 +609,7 @@ export class StackedDiscreteBars
                     dismiss={() => (this.tooltipState.target = null)}
                 >
                     <TooltipTable
-                        columns={[this.formatColumn]}
+                        columns={toTooltipTableColumns(this.formatColumn)}
                         totals={[item.totalValue]}
                         rows={item.bars.map((bar) => {
                             const {
@@ -623,7 +624,7 @@ export class StackedDiscreteBars
                                 blurred,
                                 focused: name === target.seriesName,
                                 values: [!blurred ? value : undefined],
-                                notice:
+                                originalTime:
                                     !blurred && time !== targetTime
                                         ? timeColumn.formatValue(time)
                                         : undefined,
