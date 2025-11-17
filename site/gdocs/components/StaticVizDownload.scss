@@ -39,8 +39,8 @@
 .static-viz-download-modal__section {
     display: flex;
     flex-direction: column;
-    padding-bottom: 16px;
     &:not(:last-child) {
+        padding-bottom: 16px;
         border-bottom: 1px solid $gray-10;
     }
 

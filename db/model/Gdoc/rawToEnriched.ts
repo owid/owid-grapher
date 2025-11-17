@@ -837,10 +837,14 @@ const parseVideo = (raw: RawBlockVideo): EnrichedBlockVideo => {
 const parseStaticViz = (raw: RawBlockStaticViz): EnrichedBlockStaticViz => {
     const createError = (
         error: ParseError,
-        name: string = ""
+        name: string = "",
+        size: BlockImageSize = BlockImageSize.Wide,
+        hasOutline: boolean = true
     ): EnrichedBlockStaticViz => ({
         type: "static-viz",
         name,
+        size,
+        hasOutline,
         parseErrors: [error],
     })
 
@@ -851,9 +855,30 @@ const parseStaticViz = (raw: RawBlockStaticViz): EnrichedBlockStaticViz => {
         })
     }
 
+    const size = raw.value.size ?? BlockImageSize.Wide
+    if (!checkIsBlockImageSize(size)) {
+        return createError(
+            {
+                message: `Invalid size property: ${size}`,
+            },
+            name
+        )
+    }
+
+    const hasOutlineValidation = validateRawBoolean("hasOutline", raw.value)
+    if (!hasOutlineValidation.isValid) {
+        return createError(hasOutlineValidation, name, size)
+    }
+    const hasOutline =
+        raw.value.hasOutline === undefined
+            ? true
+            : raw.value.hasOutline === "true"
+
     return {
         type: "static-viz",
         name,
+        size,
+        hasOutline,
         parseErrors: [],
     }
 }
