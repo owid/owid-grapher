@@ -40,12 +40,16 @@
     display: flex;
     flex-direction: column;
     padding-bottom: 16px;
-    border-bottom: 1px solid $gray-10;
+    &:not(:last-child) {
+        border-bottom: 1px solid $gray-10;
+    }
+
+    &:last-child {
+        padding-bottom: 8px;
+    }
 }
 
 .static-viz-download-modal__heading {
-    margin-bottom: 8px;
-
     h3 {
         @include h3-semibold;
         margin: 0;
@@ -56,8 +60,20 @@
         @include label-1-regular;
         margin: 0;
         margin-top: 4px;
-        color: $gray-80;
+        color: $gray-70;
     }
+}
+
+.static-viz-download-modal__heading + .static-viz-download-modal__description {
+    margin-top: 8px;
+}
+
+.static-viz-download-modal__heading + .static-viz-download-modal__button {
+    margin-top: 16px;
+}
+
+.static-viz-download-modal__heading + .static-viz-download-modal__grapher-link {
+    margin-top: 8px;
 }
 
 .static-viz-download-modal__grapher-link {
@@ -73,7 +89,7 @@
 
 .static-viz-download-modal__description {
     @include body-2-regular;
-    margin: 8px 0 0;
+    margin: 0;
     color: $gray-80;
     a {
         @include owid-link-60;
@@ -81,11 +97,15 @@
     }
     .markdown-text-wrap {
         display: block;
+        color: $gray-70;
     }
 
     .markdown-text-wrap__line {
         &:not(:last-child) {
             margin-bottom: 8px;
+        }
+        &:last-child {
+            margin-bottom: 0;
         }
     }
 }
