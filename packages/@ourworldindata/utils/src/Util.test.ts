@@ -17,6 +17,7 @@ import {
     getRandomNumberGenerator,
     findClosestTimeIndex,
     intersection,
+    union,
     getClosestTimePairs,
     differenceObj,
     numberMagnitude,
@@ -259,6 +260,18 @@ describe("intersection", () => {
             )
         ).toEqual([])
         expect(intersectionOfSets([]).size).toEqual(new Set().size)
+    })
+})
+
+describe("union", () => {
+    it("can compute unions", () => {
+        expect(union([1, 2], [2, 3])).toEqual([1, 2, 3])
+        expect(union([1, 2], [3, 4])).toEqual([1, 2, 3, 4])
+        expect(union([], [])).toEqual([])
+        expect(union([1, 2, 3])).toEqual([1, 2, 3])
+        expect(union()).toEqual([])
+        expect(union([1, 1, 2], [2, 3, 3])).toEqual([1, 2, 3])
+        expect(union(["a"], ["b"], ["c"])).toEqual(["a", "b", "c"])
     })
 })
 

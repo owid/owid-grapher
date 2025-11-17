@@ -893,6 +893,18 @@ export const intersection = <T>(...arrs: T[][]): T[] => {
     return intersection(arrs[0], intersection(...arrs.slice(1)))
 }
 
+export const union = <T>(...arrs: T[][]): T[] => {
+    if (arrs.length === 0) return []
+    if (arrs.length === 1) return arrs[0]
+    const set = new Set<T>()
+    for (const arr of arrs) {
+        for (const value of arr) {
+            set.add(value)
+        }
+    }
+    return Array.from(set)
+}
+
 export function sortByUndefinedLast<T>(
     array: T[],
     accessor: (t: T) => string | number | undefined,
