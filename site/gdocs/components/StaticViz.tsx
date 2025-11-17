@@ -11,7 +11,7 @@ import {
     type MouseEvent,
 } from "react"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
-import { OverlayHeader } from "@ourworldindata/components"
+import { MarkdownTextWrap, OverlayHeader } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight, faDownload } from "@fortawesome/free-solid-svg-icons"
 import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.js"
@@ -203,9 +203,13 @@ const StaticVizDownloadModal = ({
                             <div className="static-viz-download-modal__heading">
                                 <h3>How this visualization was made</h3>
                             </div>
-                            <p className="static-viz-download-modal__description">
-                                {staticViz.description}
-                            </p>
+                            <div className="static-viz-download-modal__description">
+                                <MarkdownTextWrap
+                                    text={staticViz.description}
+                                    fontSize={14}
+                                    lineHeight={1.2}
+                                />
+                            </div>
                         </section>
                     )}
                     <section className="static-viz-download-modal__section">
