@@ -62,14 +62,20 @@ export function formatCountryFacetFilters(
     countries: Set<string>,
     requireAll: boolean
 ): (string | string[])[] {
-    if (countries.size === 0) return []
+    // Always filter out income-group-specific featured metrics
+    // These are designed for specific use cases and shouldn't appear in general searches
+    const excludeIncomeGroupFM = ["isIncomeGroupSpecificFM:false"]
+
+    if (countries.size === 0) return [excludeIncomeGroupFM]
 
     const filters = Array.from(countries).map(
         (country) => `availableEntities:${country}`
     )
     // If requireAll is true, charts must have ALL countries (AND logic)
     // Otherwise, any country can match (OR logic)
-    return requireAll ? filters.map((f) => [f]) : [filters]
+    return requireAll
+        ? [...filters.map((f) => [f]), excludeIncomeGroupFM]
+        : [filters, excludeIncomeGroupFM]
 }
 
 export function formatTopicFacetFilters(

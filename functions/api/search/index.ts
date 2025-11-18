@@ -4,6 +4,10 @@ import { getAlgoliaConfig } from "./algoliaClient.js"
 import { searchCharts, SearchState } from "./searchApi.js"
 import { FilterType, Filter } from "./types.js"
 
+const DEFAULT_HITS_PER_PAGE = 20
+const MAX_HITS_PER_PAGE = 100
+const MAX_PAGE = 1000
+
 const hasSearchEnvVars = (env: Env): boolean => {
     return !!env.ALGOLIA_ID && !!env.ALGOLIA_SEARCH_KEY
 }
@@ -30,12 +34,11 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         // Parse pagination parameters
         const page = parseInt(url.searchParams.get("page") || "0")
         const hitsPerPage = parseInt(
-            url.searchParams.get("hitsPerPage") || "20"
+            url.searchParams.get("hitsPerPage") ||
+                DEFAULT_HITS_PER_PAGE.toString()
         )
 
         // Validate pagination parameters
-        const MAX_HITS_PER_PAGE = 100
-        const MAX_PAGE = 1000
 
         if (page < 0 || page > MAX_PAGE) {
             return new Response(
