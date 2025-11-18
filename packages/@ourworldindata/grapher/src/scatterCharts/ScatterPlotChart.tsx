@@ -44,6 +44,7 @@ import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { ColorScale, NO_DATA_LABEL } from "../color/ColorScale"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
+import { getShortNameForEntity } from "../chart/ChartUtils"
 import {
     ScatterPlotManager,
     ScatterSeries,
@@ -535,10 +536,17 @@ export class ScatterPlotChart
 
     @computed
     private get selectedEntitiesWithoutData(): string[] {
-        return _.difference(
-            this.selectedEntityNames,
-            this.series.map((s) => s.seriesName)
+        const entitiesWithoutData = _.uniq(
+            _.difference(
+                this.selectedEntityNames,
+                this.series.map((s) => s.seriesName)
+            )
         )
+
+        return entitiesWithoutData.map((entityName) => {
+            const shortName = getShortNameForEntity(entityName)
+            return shortName ?? entityName
+        })
     }
 
     @computed private get hasNoDataSection(): boolean {
