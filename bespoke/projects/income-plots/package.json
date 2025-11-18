@@ -1,0 +1,19 @@
+{
+    "dependencies": {
+        "@observablehq/plot": "^0.6.17",
+        "@ourworldindata/components": "*",
+        "@ourworldindata/types": "*",
+        "@ourworldindata/utils": "*",
+        "fast-kde": "^0.2.2",
+        "jotai": "^2.15.1",
+        "remeda": "^2.32.0"
+    },
+    "devDependencies": {
+        "vite": "^7.2.2"
+    },
+    "workspaces": [
+        "../../../packages/@ourworldindata/components",
+        "../../../packages/@ourworldindata/types",
+        "../../../packages/@ourworldindata/utils"
+    ]
+}
