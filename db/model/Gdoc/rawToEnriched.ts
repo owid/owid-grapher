@@ -82,6 +82,8 @@ import {
     EnrichedBlockResearchAndWriting,
     EnrichedBlockResearchAndWritingLink,
     EnrichedBlockResearchAndWritingRow,
+    ResearchAndWritingVariant,
+    RESEARCH_AND_WRITING_VARIANTS,
     EnrichedBlockExpandableParagraph,
     RawBlockExpandableParagraph,
     RawBlockAllCharts,
@@ -2207,6 +2209,22 @@ function parseResearchAndWritingBlock(
         parseErrors.push(hideDateValidation)
     }
 
+    let variant: ResearchAndWritingVariant | undefined
+    if (raw.value.variant !== undefined) {
+        if (
+            !validateRawEnum(RESEARCH_AND_WRITING_VARIANTS, raw.value.variant)
+        ) {
+            const allowedVariants = RESEARCH_AND_WRITING_VARIANTS.map(
+                (allowed) => `"${allowed}"`
+            ).join(", ")
+            parseErrors.push({
+                message: `Invalid "variant" value. Allowed values: ${allowedVariants}`,
+            })
+        } else {
+            variant = raw.value.variant
+        }
+    }
+
     const primary: EnrichedBlockResearchAndWritingLink[] = []
     if (_.isArray(raw.value.primary)) {
         primary.push(...raw.value.primary.map((link) => enrichLink(link)))
@@ -2266,6 +2284,7 @@ function parseResearchAndWritingBlock(
         heading: raw.value.heading,
         "hide-authors": raw.value["hide-authors"] === "true",
         "hide-date": raw.value["hide-date"] === "true",
+        variant,
         primary,
         secondary,
         more,
