@@ -7,18 +7,28 @@ import {
     formatAuthors,
     formatDate,
     slugify,
+    Url,
 } from "@ourworldindata/utils"
 import { useLinkedDocument } from "../utils.js"
 import Image, { ImageParentContainer } from "./Image.js"
 import { DocumentContext } from "../DocumentContext.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
+import { Button } from "@ourworldindata/components"
 import {
     ARCHIVED_THUMBNAIL_FILENAME,
     DEFAULT_GDOC_FEATURED_IMAGE,
     DEFAULT_THUMBNAIL_FILENAME,
     DbEnrichedLatestWork,
     RESEARCH_AND_WRITING_DEFAULT_HEADING,
+    SearchResultType,
+    SearchState,
 } from "@ourworldindata/types"
+import {
+    createTopicFilter,
+    SEARCH_BASE_PATH,
+} from "../../search/searchUtils.js"
+import { searchStateToUrl } from "../../search/searchState.js"
+import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
 
 function Thumbnail({
     filename,
@@ -189,7 +199,19 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
     const primarySecondaryUrls = [...primary, ...secondary].map(
         (link) => link.value.url
     )
-    const { latestWorkLinks } = useContext(AttachmentsContext)
+    const { latestWorkLinks, tags } = useContext(AttachmentsContext)
+    const topicName = tags?.[0]?.name
+    let seeAllResearchHref: string | undefined
+    if (topicName) {
+        const searchState: SearchState = {
+            query: "",
+            filters: [createTopicFilter(topicName)],
+            requireAllCountries: false,
+            resultType: SearchResultType.WRITING,
+        }
+        const url = Url.fromURL(searchStateToUrl(searchState))
+        seeAllResearchHref = `${SEARCH_BASE_PATH}${url.queryStr}`
+    }
     // There might be latestWorkLinks available but we only want to show them if
     // a {.latest} block has been added
     if (latest && latestWorkLinks) {
@@ -409,6 +431,19 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                                 {...link}
                             />
                         ))}
+                    </div>
+                </div>
+            ) : null}
+            {variant === "featured" && seeAllResearchHref ? (
+                <div className="span-cols-12 research-and-writing-row">
+                    <div className="research-and-writing__see-all">
+                        <Button
+                            theme="solid-vermillion"
+                            text={`See all articles on this topic`}
+                            href={seeAllResearchHref}
+                            icon={faMagnifyingGlass}
+                            iconPosition="left"
+                        />
                     </div>
                 </div>
             ) : null}
