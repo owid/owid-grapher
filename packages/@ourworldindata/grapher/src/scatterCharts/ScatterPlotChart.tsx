@@ -619,6 +619,9 @@ export class ScatterPlotChart
                 {this.hasNoDataSection && (
                     <>
                         {!this.manager.isStatic &&
+                            (verticalColorLegend ||
+                                sizeLegend ||
+                                arrowLegend) &&
                             separatorLine(noDataSectionBounds.top)}
                         <NoDataSection
                             seriesNames={this.selectedEntitiesWithoutData}
