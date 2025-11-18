@@ -219,8 +219,9 @@ describe("searchCharts with real Algolia", () => {
         expect(result.results.length).toBeGreaterThan(0)
 
         // All URLs should use the staging base URL
+        const escapedUrl = stagingUrl.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
         result.results.forEach((hit) => {
-            expect(hit.url).toMatch(new RegExp(`^${stagingUrl}/`))
+            expect(hit.url).toMatch(new RegExp(`^${escapedUrl}/`))
         })
     })
 })
@@ -349,8 +350,9 @@ describe("searchPages with real Algolia", () => {
         expect(result.results.length).toBeGreaterThan(0)
 
         // All URLs should use the staging base URL
+        const escapedUrl = stagingUrl.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
         result.results.forEach((hit) => {
-            expect(hit.url).toMatch(new RegExp(`^${stagingUrl}/`))
+            expect(hit.url).toMatch(new RegExp(`^${escapedUrl}/`))
         })
     })
 })

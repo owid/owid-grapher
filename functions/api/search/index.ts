@@ -33,6 +33,42 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             url.searchParams.get("hitsPerPage") || "20"
         )
 
+        // Validate pagination parameters
+        const MAX_HITS_PER_PAGE = 100
+        const MAX_PAGE = 1000
+
+        if (page < 0 || page > MAX_PAGE) {
+            return new Response(
+                JSON.stringify({
+                    error: "Invalid page parameter",
+                    details: `Page must be between 0 and ${MAX_PAGE}`,
+                }),
+                {
+                    status: 400,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Access-Control-Allow-Origin": "*",
+                    },
+                }
+            )
+        }
+
+        if (hitsPerPage < 1 || hitsPerPage > MAX_HITS_PER_PAGE) {
+            return new Response(
+                JSON.stringify({
+                    error: "Invalid hitsPerPage parameter",
+                    details: `hitsPerPage must be between 1 and ${MAX_HITS_PER_PAGE}`,
+                }),
+                {
+                    status: 400,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Access-Control-Allow-Origin": "*",
+                    },
+                }
+            )
+        }
+
         // Build filters array
         const filters: Filter[] = []
 
@@ -99,7 +135,6 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         return new Response(
             JSON.stringify({
                 error: "An error occurred while processing the search request",
-                details: error instanceof Error ? error.message : String(error),
             }),
             {
                 status: 500,
