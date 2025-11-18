@@ -9,6 +9,7 @@ import {
 import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import { OwidSocials } from "./OwidSocials.js"
+import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 
 export interface SubscribePageProps {
     baseUrl: string
@@ -22,6 +23,7 @@ export const SubscribePage = ({ baseUrl }: SubscribePageProps) => {
                 pageTitle="Subscribe to Our World in Data"
                 pageDesc="Stay up to date with our latest research and data insights by subscribing to our newsletter."
                 baseUrl={baseUrl}
+                imageUrl={`${BAKED_BASE_URL}/images/biweekly-newsletter.webp`}
             />
             <body>
                 <SiteHeader />
