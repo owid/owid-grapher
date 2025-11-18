@@ -488,6 +488,34 @@ level: 2
         expect(matches.length).toBe(1)
     })
 
+    it("handles rich links the same way as regular links", async () => {
+        const url = "https://docs.google.com/document/d/1234567890"
+        const title = "My Google Doc"
+        const doc: docs_v1.Schema$Document = {
+            body: {
+                content: [
+                    {
+                        paragraph: {
+                            elements: [
+                                {
+                                    richLink: {
+                                        richLinkProperties: {
+                                            uri: url,
+                                            title: title,
+                                        },
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                ],
+            },
+        }
+
+        const { text } = await gdocToArchie(doc)
+        expect(text).toContain(`<a href="${url}">${title}</a>`)
+    })
+
     it.each(Object.values(enrichedBlockExamples))(
         "Parse <-> Serialize roundtrip should be equal - example type $type",
         (example) => {
