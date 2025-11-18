@@ -288,6 +288,8 @@ export {
     type EnrichedBlockResearchAndWritingLink,
     type EnrichedBlockLatestWork,
     type EnrichedBlockResearchAndWritingRow,
+    type ResearchAndWritingVariant,
+    RESEARCH_AND_WRITING_VARIANTS,
     type EnrichedBlockScroller,
     type EnrichedBlockSDGGrid,
     type EnrichedBlockSDGToc,

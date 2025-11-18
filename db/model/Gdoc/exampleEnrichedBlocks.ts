@@ -582,6 +582,7 @@ export const enrichedBlockExamples: Record<
         heading: "Featured Work",
         "hide-authors": true,
         "hide-date": true,
+        variant: "featured",
         primary: [
             {
                 value: {

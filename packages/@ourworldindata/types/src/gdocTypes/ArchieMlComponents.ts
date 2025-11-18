@@ -703,12 +703,17 @@ export type RawBlockLatestWork = {
     heading?: string
 }
 
+export const RESEARCH_AND_WRITING_VARIANTS = ["featured"] as const
+export type ResearchAndWritingVariant =
+    (typeof RESEARCH_AND_WRITING_VARIANTS)[number]
+
 export type RawBlockResearchAndWriting = {
     type: "research-and-writing"
     value: {
         heading?: string
         "hide-authors"?: string
         "hide-date"?: string
+        variant?: ResearchAndWritingVariant
         // We're migrating these to be arrays, but have to support the old use-case until it's done
         primary?:
             | RawBlockResearchAndWritingLink
@@ -748,6 +753,7 @@ export type EnrichedBlockResearchAndWriting = {
     heading?: string
     "hide-authors": boolean
     "hide-date": boolean
+    variant?: ResearchAndWritingVariant
     primary: EnrichedBlockResearchAndWritingLink[]
     secondary: EnrichedBlockResearchAndWritingLink[]
     more?: EnrichedBlockResearchAndWritingRow
