@@ -1,6 +1,5 @@
 import * as _ from "lodash-es"
 import React from "react"
-import * as R from "remeda"
 import { EntitySelectionMode, SeriesName, Color } from "@ourworldindata/types"
 import { observable, computed, action, makeObservable } from "mobx"
 import { ScaleLinear, scaleSqrt } from "d3-scale"
@@ -9,7 +8,6 @@ import { pairs } from "d3-array"
 import { quantize, interpolate } from "d3-interpolate"
 import {
     intersection,
-    excludeNullish,
     excludeUndefined,
     getRelativeMouse,
     exposeInstanceOnWindow,
@@ -17,7 +15,6 @@ import {
     Bounds,
     isTouchDevice,
     makeIdForHumanConsumption,
-    calculateTrendDirection,
 } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
 import { NoDataModal } from "../noDataModal/NoDataModal"
@@ -29,7 +26,6 @@ import {
     OwidTable,
     isNotErrorValue,
     CoreColumn,
-    ColumnTypeMap,
 } from "@ourworldindata/core-table"
 import {
     ConnectedScatterLegend,
@@ -62,20 +58,12 @@ import {
     ScatterSizeLegend,
     ScatterSizeLegendManager,
 } from "./ScatterSizeLegend"
-import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
-import {
-    Tooltip,
-    TooltipState,
-    TooltipValueRange,
-    makeTooltipToleranceNotice,
-    makeTooltipRoundingNotice,
-    formatTooltipRangeValues,
-    TooltipValue,
-} from "../tooltip/Tooltip"
+import { TooltipState } from "../tooltip/Tooltip"
 import { NoDataSection } from "./NoDataSection"
 import { ScatterPlotChartState } from "./ScatterPlotChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { toSizeRange } from "./ScatterUtils.js"
+import { ScatterPlotTooltip } from "./ScatterPlotTooltip"
 
 export type ScatterPlotChartProps = ChartComponentProps<ScatterPlotChartState>
 
@@ -271,8 +259,8 @@ export class ScatterPlotChart
     @computed private get arrowLegend(): ConnectedScatterLegend | undefined {
         if (
             this.displayStartTime === this.displayEndTime ||
-            this.xColumn instanceof ColumnTypeMap.Time ||
-            this.yColumn instanceof ColumnTypeMap.Time ||
+            this.xColumn.isTimeColumn ||
+            this.yColumn.isTimeColumn ||
             this.manager.isRelativeMode ||
             this.manager.isDisplayedAlongsideComplementaryTable
         )
@@ -691,230 +679,11 @@ export class ScatterPlotChart
     }
 
     @computed private get tooltip(): React.ReactElement | null {
-        return this.chartState.isTimeScatter
-            ? this.timeScatterTooltip
-            : this.scatterTooltip
-    }
-
-    /** Tooltip for time scatter plots (x axis is time) */
-    @computed private get timeScatterTooltip(): React.ReactElement | null {
-        const {
-            yColumn,
-            sizeColumn,
-            tooltipState: { target, position, fading },
-        } = this
-
-        if (!target) return null
-
-        const point = target.series.points?.[0]
-        if (!point) return null
-
-        const subtitle = this.xColumn.formatTime(point.timeValue)
-
-        const roundingNotice = yColumn.roundsToSignificantFigures
-            ? {
-                  icon: TooltipFooterIcon.None,
-                  text: makeTooltipRoundingNotice(
-                      [yColumn.numSignificantFigures],
-                      { plural: false }
-                  ),
-              }
-            : undefined
-        const footer = excludeUndefined([roundingNotice])
-        const superscript =
-            !!roundingNotice && roundingNotice.icon !== TooltipFooterIcon.None
-
         return (
-            <Tooltip
-                id="scatterTooltip"
-                tooltipManager={this.manager}
-                x={position.x}
-                y={position.y}
-                offsetX={20}
-                offsetY={-16}
-                style={{ maxWidth: "250px" }}
-                title={target.series.label}
-                subtitle={subtitle}
-                dissolve={fading}
-                footer={footer}
-                dismiss={() => (this.tooltipState.target = null)}
-            >
-                <TooltipValue
-                    label={yColumn.displayName}
-                    unit={yColumn.displayUnit}
-                    value={yColumn.formatValueShort(point.y)}
-                    isRoundedToSignificantFigures={
-                        yColumn.roundsToSignificantFigures
-                    }
-                    showSignificanceSuperscript={superscript}
-                />
-                {!sizeColumn.isMissing && (
-                    <TooltipValue
-                        label={sizeColumn.displayName}
-                        unit={sizeColumn.displayUnit}
-                        value={sizeColumn.formatValueShort(point.size)}
-                    />
-                )}
-            </Tooltip>
-        )
-    }
-
-    @computed private get scatterTooltip(): React.ReactElement | null {
-        if (!this.tooltipState.target) return null
-
-        const {
-            xColumn,
-            yColumn,
-            sizeColumn,
-            tooltipState: { target, position, fading },
-        } = this
-        const points = target.series.points ?? []
-        const values = excludeNullish(_.uniq([R.first(points), R.last(points)]))
-
-        let { startTime, endTime } = this.manager
-        const { x: xStart, y: yStart } = R.first(values)?.time ?? {},
-            { x: xEnd, y: yEnd } = R.last(values)?.time ?? {}
-
-        let xValues = xStart === xEnd ? [values[0].x] : values.map((v) => v.x),
-            xNoticeNeeded =
-                (xStart !== undefined && xStart !== startTime && xStart) ||
-                (xEnd !== undefined && xEnd !== endTime && xEnd),
-            xOriginalTimes = xNoticeNeeded ? [xStart, xEnd] : []
-
-        let yValues = yStart === yEnd ? [values[0].y] : values.map((v) => v.y),
-            yNoticeNeeded =
-                (yStart !== undefined && yStart !== startTime && yStart) ||
-                (yEnd !== undefined && yEnd !== endTime && yEnd),
-            yOriginalTimes = yNoticeNeeded ? [yStart, yEnd] : []
-
-        // Handle the special case where the same variable is used for both axes
-        // with a different year's value on each
-        if (
-            xColumn.def.datasetId === yColumn.def.datasetId &&
-            points.length === 1
-        ) {
-            const { x, y, time } = points[0]
-            if (time.x !== time.y && _.isNumber(time.x) && _.isNumber(time.y)) {
-                startTime = _.min([time.x, time.y])
-                endTime = _.max([time.x, time.y])
-                xValues = time.x < time.y ? [x, y] : [y, x]
-                xOriginalTimes = yOriginalTimes = yValues = []
-                xNoticeNeeded = yNoticeNeeded = false
-            }
-        }
-
-        const xOriginalTimesFormatted = xOriginalTimes.map((t) =>
-            t !== undefined ? xColumn.formatTime(t) : undefined
-        )
-        const yOriginalTimesFormatted = yOriginalTimes.map((t) =>
-            t !== undefined ? yColumn.formatTime(t) : undefined
-        )
-
-        const { isRelativeMode } = this.manager,
-            timeRange = _.uniq(excludeNullish([startTime, endTime]))
-                .map((t) => this.yColumn.formatTime(t))
-                .join(" to "),
-            targetNotice =
-                xNoticeNeeded || yNoticeNeeded ? timeRange : undefined,
-            timeLabel =
-                timeRange + (isRelativeMode ? " (avg. annual change)" : "")
-
-        const sizeValues = excludeNullish(values.map((v) => v.size))
-
-        const columns = [xColumn, yColumn, sizeColumn].filter(
-            (column) => !column.isMissing
-        )
-        const allRoundedToSigFigs = columns.every(
-            (column) => column.roundsToSignificantFigures
-        )
-        const anyRoundedToSigFigs = columns.some(
-            (column) => column.roundsToSignificantFigures
-        )
-        const sigFigs = excludeUndefined(
-            columns.map((column) =>
-                column.roundsToSignificantFigures
-                    ? column.numSignificantFigures
-                    : undefined
-            )
-        )
-
-        const toleranceNotice = targetNotice
-            ? {
-                  icon: TooltipFooterIcon.Notice,
-                  text: makeTooltipToleranceNotice(targetNotice),
-              }
-            : undefined
-        const roundingNotice = anyRoundedToSigFigs
-            ? {
-                  icon: allRoundedToSigFigs
-                      ? TooltipFooterIcon.None
-                      : TooltipFooterIcon.Significance,
-                  text: makeTooltipRoundingNotice(sigFigs, {
-                      plural: sigFigs.length > 1,
-                  }),
-              }
-            : undefined
-        const footer = excludeUndefined([toleranceNotice, roundingNotice])
-        const superscript =
-            !!roundingNotice && roundingNotice.icon !== TooltipFooterIcon.None
-
-        return (
-            <Tooltip
-                id="scatterTooltip"
-                tooltipManager={this.manager}
-                x={position.x}
-                y={position.y}
-                offsetX={20}
-                offsetY={-16}
-                style={{ maxWidth: "250px" }}
-                title={target.series.label}
-                subtitle={timeLabel}
-                dissolve={fading}
-                footer={footer}
-                dismiss={() => (this.tooltipState.target = null)}
-            >
-                {!xColumn.isMissing && xColumn.name !== "time" && (
-                    <TooltipValueRange
-                        label={xColumn.displayName}
-                        unit={xColumn.displayUnit}
-                        values={formatTooltipRangeValues(xValues, xColumn)}
-                        trend={calculateTrendDirection(...xValues)}
-                        originalTimes={xOriginalTimesFormatted}
-                        isRoundedToSignificantFigures={
-                            xColumn.roundsToSignificantFigures
-                        }
-                        showSignificanceSuperscript={superscript}
-                    />
-                )}
-                {!yColumn.isMissing && (
-                    <TooltipValueRange
-                        label={yColumn.displayName}
-                        unit={yColumn.displayUnit}
-                        values={formatTooltipRangeValues(yValues, yColumn)}
-                        trend={calculateTrendDirection(...yValues)}
-                        originalTimes={yOriginalTimesFormatted}
-                        isRoundedToSignificantFigures={
-                            yColumn.roundsToSignificantFigures
-                        }
-                        showSignificanceSuperscript={superscript}
-                    />
-                )}
-                {!sizeColumn.isMissing && (
-                    <TooltipValueRange
-                        label={sizeColumn.displayName}
-                        unit={sizeColumn.displayUnit}
-                        values={formatTooltipRangeValues(
-                            sizeValues,
-                            sizeColumn
-                        )}
-                        trend={calculateTrendDirection(...sizeValues)}
-                        isRoundedToSignificantFigures={
-                            sizeColumn.roundsToSignificantFigures
-                        }
-                        showSignificanceSuperscript={superscript}
-                    />
-                )}
-            </Tooltip>
+            <ScatterPlotTooltip
+                chartState={this.chartState}
+                tooltipState={this.tooltipState}
+            />
         )
     }
 
