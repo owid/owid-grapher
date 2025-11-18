@@ -7,7 +7,7 @@ import {
 describe("formatCountryFacetFilters", () => {
     it("returns empty array when no countries provided", () => {
         const result = formatCountryFacetFilters(new Set(), false)
-        expect(result).toEqual([])
+        expect(result).toEqual([["isIncomeGroupSpecificFM:false"]])
     })
 
     it("formats single country with OR logic (requireAll=false)", () => {
@@ -15,7 +15,10 @@ describe("formatCountryFacetFilters", () => {
             new Set(["United States"]),
             false
         )
-        expect(result).toEqual([["availableEntities:United States"]])
+        expect(result).toEqual([
+            ["availableEntities:United States"],
+            ["isIncomeGroupSpecificFM:false"],
+        ])
     })
 
     it("formats multiple countries with OR logic (requireAll=false)", () => {
@@ -29,6 +32,7 @@ describe("formatCountryFacetFilters", () => {
                 "availableEntities:China",
                 "availableEntities:India",
             ],
+            ["isIncomeGroupSpecificFM:false"],
         ])
     })
 
@@ -37,7 +41,10 @@ describe("formatCountryFacetFilters", () => {
             new Set(["United States"]),
             true
         )
-        expect(result).toEqual([["availableEntities:United States"]])
+        expect(result).toEqual([
+            ["availableEntities:United States"],
+            ["isIncomeGroupSpecificFM:false"],
+        ])
     })
 
     it("formats multiple countries with AND logic (requireAll=true)", () => {
@@ -49,6 +56,7 @@ describe("formatCountryFacetFilters", () => {
             ["availableEntities:United States"],
             ["availableEntities:China"],
             ["availableEntities:India"],
+            ["isIncomeGroupSpecificFM:false"],
         ])
     })
 })
