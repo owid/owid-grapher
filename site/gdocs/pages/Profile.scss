@@ -1,0 +1,5 @@
+.centered-article-container--profile {
+    h1.article-block__heading {
+        @include h1-hr;
+    }
+}
