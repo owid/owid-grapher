@@ -54,7 +54,10 @@
         height: 0;
         // Above explorer chrome
         z-index: 3;
-        margin-top: -48px;
+        margin-top: -32px;
+        @include md-down {
+            margin-top: -64px;
+        }
         .entry-sidebar {
             height: 100vh;
             position: absolute;
@@ -109,15 +112,20 @@
 
             .toggle-toc {
                 margin-left: 0;
-                transform: translateX(calc(100% + 16px));
+                transform: translateX(calc(100% + 32px));
                 position: absolute;
                 top: 0;
                 bottom: 0;
                 right: 0;
-                padding: 16px 0;
+                padding: 32px 0;
                 pointer-events: none;
                 display: unset;
                 transition: transform 300ms ease;
+                @include md-down {
+                    padding: 18px 0;
+                    transform: translateX(calc(100% + 16px));
+                }
+
                 button {
                     @include popover-box-button;
                     z-index: 20;
