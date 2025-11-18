@@ -119,7 +119,10 @@ export class CausesOfDeathMetadata {
     categoriesForAgeGroup(ageGroupName: string): CategoryMetadata[] {
         const variablesForAgeGroup = this.dimensions.variables.filter(
             (variable) =>
-                this.ageGroupById.get(variable.ageGroup)?.name === ageGroupName
+                variable.ageGroup.some(
+                    (ageGroupId) =>
+                        this.ageGroupById.get(ageGroupId)?.name === ageGroupName
+                )
         )
 
         const categoryIds = R.unique(
