@@ -373,6 +373,10 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
             controller.decreaseStartTime()
         } else if (key === "ArrowRight" || key === "ArrowUp") {
             controller.increaseStartTime()
+        } else if (key === "PageUp") {
+            controller.increaseStartTimeByLargeStep()
+        } else if (key === "PageDown") {
+            controller.decreaseStartTimeByLargeStep()
         }
     }
 
@@ -386,6 +390,10 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
             controller.decreaseEndTime()
         } else if (key === "ArrowRight" || key === "ArrowUp") {
             controller.increaseEndTime()
+        } else if (key === "PageUp") {
+            controller.increaseEndTimeByLargeStep()
+        } else if (key === "PageDown") {
+            controller.decreaseEndTimeByLargeStep()
         }
     }
 
@@ -420,6 +428,8 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                     hover: this.mouseHoveringOverTimeline,
                 })}
                 style={{ padding: `0 ${GRAPHER_FRAME_PADDING_HORIZONTAL}px` }}
+                role="group"
+                aria-label="Timeline controls"
                 onMouseOver={action((event) =>
                     this.onMouseOverSlider(event.nativeEvent)
                 )}
@@ -450,6 +460,8 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                 {this.timelineEdgeMarker("start")}
                 <div
                     className="slider clickable"
+                    role="group"
+                    aria-label="Timeline slider"
                     onMouseDown={(event) => this.onMouseDown(event.nativeEvent)}
                 >
                     <TimelineHandle
@@ -464,8 +476,13 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                             this.lastUpdatedTooltip === MarkerType.Start ? 2 : 1
                         }
                         onKeyDown={action((e) => {
-                            // prevent browser to scroll to the top or bottom of the page
-                            if (e.key === "Home" || e.key === "End")
+                            // Prevent scrolling
+                            if (
+                                e.key === "Home" ||
+                                e.key === "End" ||
+                                e.key === "PageUp" ||
+                                e.key === "PageDown"
+                            )
                                 e.preventDefault()
 
                             this.updateStartTimeOnKeyDown(e.key)
@@ -493,6 +510,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                                 startTimeProgress,
                                 this.hoverTimeProgress
                             )}
+                            ariaHidden={true}
                         />
                     )}
                     <TimelineHandle
@@ -508,7 +526,12 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                         }
                         onKeyDown={action((e) => {
                             // prevent browser to scroll to the top or bottom of the page
-                            if (e.key === "Home" || e.key === "End")
+                            if (
+                                e.key === "Home" ||
+                                e.key === "End" ||
+                                e.key === "PageUp" ||
+                                e.key === "PageDown"
+                            )
                                 e.preventDefault()
 
                             this.updateEndTimeOnKeyDown(e.key)
@@ -565,6 +588,7 @@ const TimelineHandle = ({
     onFocus?: React.FocusEventHandler<HTMLDivElement>
     onBlur?: React.FocusEventHandler<HTMLDivElement>
 }): React.ReactElement => {
+    const isInteractive = type !== "hoverMarker"
     return (
         // @ts-expect-error aria-value* fields expect a number, but if we're dealing with daily data,
         // the numeric representation of a date is meaningless, so we pass the formatted date string instead.
@@ -572,11 +596,13 @@ const TimelineHandle = ({
             className={cx("handle", type)}
             style={{ left: `${offsetPercent}%` }}
             role="slider"
-            tabIndex={0}
+            tabIndex={isInteractive ? 0 : -1}
             aria-valuemin={castToNumberIfPossible(formattedMinTime)}
             aria-valuenow={castToNumberIfPossible(formattedCurrTime)}
             aria-valuemax={castToNumberIfPossible(formattedMaxTime)}
+            aria-valuetext={formattedCurrTime}
             aria-label={ariaLabel}
+            aria-orientation="horizontal"
             onFocus={onFocus}
             onBlur={onBlur}
             onKeyDown={onKeyDown}
@@ -604,10 +630,12 @@ const TimelineInterval = ({
     startTimeProgress,
     endTimeProgress,
     className,
+    ariaHidden,
 }: {
     startTimeProgress: number
     endTimeProgress: number
     className?: string
+    ariaHidden?: boolean
 }): React.ReactElement => {
     const left = startTimeProgress * 100
     const right = 100 - endTimeProgress * 100
@@ -615,6 +643,8 @@ const TimelineInterval = ({
         <div
             className={cx("interval", className)}
             style={{ left: `${left}%`, right: `${right}%` }}
+            role="presentation"
+            aria-hidden={ariaHidden}
         />
     )
 }

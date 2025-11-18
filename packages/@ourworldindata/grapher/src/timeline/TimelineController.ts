@@ -150,6 +150,59 @@ export class TimelineController {
         this.updateEndTime(prevTime)
     }
 
+    // Jump forward by ~10% of available times
+    private getLargeStepForward(currentTime: number, fraction = 0.1): number {
+        const currentIndex = this.timesAsc.indexOf(currentTime)
+        if (currentIndex === -1) return this.maxTime
+
+        const stepSize = Math.max(
+            1,
+            Math.floor(this.timesAsc.length * fraction)
+        )
+
+        const targetIndex = Math.min(
+            this.timesAsc.length - 1,
+            currentIndex + stepSize
+        )
+
+        return this.timesAsc[targetIndex]
+    }
+
+    // Jump backward by ~10% of available times
+    private getLargeStepBackward(currentTime: number, fraction = 0.1): number {
+        const currentIndex = this.timesAsc.indexOf(currentTime)
+        if (currentIndex === -1) return this.minTime
+
+        const stepSize = Math.max(
+            1,
+            Math.floor(this.timesAsc.length * fraction)
+        )
+
+        const targetIndex = Math.max(0, currentIndex - stepSize)
+
+        return this.timesAsc[targetIndex]
+    }
+
+    increaseStartTimeByLargeStep(): void {
+        const nextTime = this.getLargeStepForward(this.startTime)
+        this.updateStartTime(nextTime)
+    }
+
+    decreaseStartTimeByLargeStep(): void {
+        const prevTime = this.getLargeStepBackward(this.startTime)
+        this.updateStartTime(prevTime)
+    }
+
+    increaseEndTimeByLargeStep(): void {
+        const nextTime = this.getLargeStepForward(this.endTime)
+        this.updateEndTime(nextTime)
+    }
+
+    decreaseEndTimeByLargeStep(): void {
+        const prevTime = this.getLargeStepBackward(this.endTime)
+        this.updateEndTime(prevTime)
+    }
+
     @action.bound private stop(): void {
         this.manager.isPlaying = false
         this.manager.isTimelineAnimationActive = false
