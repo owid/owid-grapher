@@ -2,7 +2,7 @@ import { useMemo } from "react"
 import * as R from "remeda"
 import { DataRow, getCategoryColor } from "./CausesOfDeathConstants"
 import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata"
-import { formatPercentSigFig } from "./CausesOfDeathHelpers"
+import { formatShare } from "./CausesOfDeathHelpers"
 import { useChartDimensions } from "./useDimensions.js"
 import { Bounds } from "@ourworldindata/utils"
 
@@ -48,7 +48,7 @@ export function CausesOfDeathMobileBarChart({
         for (const category of metadata.categoriesForAgeGroup(ageGroup)) {
             const total = categoryTotals.get(category.name) || 0
             const percentage = total / totalDeaths
-            const formattedPercentage = formatPercentSigFig(percentage)
+            const formattedPercentage = formatShare(percentage)
 
             barData.push({
                 category: category.name,

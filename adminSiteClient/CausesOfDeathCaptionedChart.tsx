@@ -9,10 +9,7 @@ import { EntityName, Time } from "@ourworldindata/types"
 
 import { DataRow } from "./CausesOfDeathConstants"
 import { ResponsiveCausesOfDeathTreemap } from "./CausesOfDeathTreemap"
-import {
-    formatCountryName,
-    formatNumberLongText,
-} from "./CausesOfDeathHelpers.js"
+import { formatCountryName, formatCount } from "./CausesOfDeathHelpers.js"
 import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
 
 export function CausesOfDeathCaptionedChart({
@@ -113,7 +110,7 @@ function CausesOfDeathHeader({
                             "causes-of-death-header__value--loading": isLoading,
                         })}
                     >
-                        {formatNumberLongText(numTotalDeaths)}
+                        {formatCount(numTotalDeaths)}
                     </span>
                     . Each rectangle within is proportional to the share of
                     deaths due to a particular cause.
