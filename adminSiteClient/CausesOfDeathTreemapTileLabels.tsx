@@ -2,11 +2,7 @@ import * as d3 from "d3"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { isDarkColor } from "@ourworldindata/grapher/src/color/ColorUtils"
 import { Bounds } from "@ourworldindata/utils"
-import {
-    formatNumberLongText,
-    formatSigFigNoAbbrev,
-    formatPercentSigFig,
-} from "./CausesOfDeathHelpers.js"
+import { formatCount, formatShare } from "./CausesOfDeathHelpers.js"
 import { useCausesOfDeathChartContext } from "./CausesOfDeathContext"
 import { TreeNode } from "./CausesOfDeathConstants.js"
 
@@ -77,9 +73,9 @@ export function CausesOfDeathTreemapTileLabels({
     const verticalPadding = Math.round(verticalPaddingScale(height))
 
     // Build the lines: percentage first, then yearly and daily values
-    const formattedPercentage = formatPercentSigFig(share)
-    const yearlyValue = formatNumberLongText(value)
-    const dailyValue = formatSigFigNoAbbrev(value / 365)
+    const formattedPercentage = formatShare(share)
+    const yearlyValue = formatCount(value)
+    const dailyValue = formatCount(value / 365, { abbreviate: false })
 
     // Only the largest rectangle gets "died from" text
     const labelText = isLargestTile
