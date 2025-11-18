@@ -6,7 +6,7 @@ import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata"
 import { useChartDimensions, DimensionsConfig } from "./useDimensions"
 import { TextWrap, MarkdownTextWrap } from "@ourworldindata/components"
 import { isDarkColor } from "@ourworldindata/grapher/src/color/ColorUtils"
-import { formatPercentSigFig } from "./CausesOfDeathHelpers"
+import { formatShare } from "./CausesOfDeathHelpers"
 
 interface CategoryData {
     category: string
@@ -112,7 +112,7 @@ function determineLabelStrategy(
     availableWidth: number,
     fontSize: number
 ): LabelStrategy {
-    const formattedPercentage = formatPercentSigFig(segment.percentage)
+    const formattedPercentage = formatShare(segment.percentage)
     const categoryName = segment.category
 
     // Strategy 1: Single line - "45.2% Noncommunicable diseases"
