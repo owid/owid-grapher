@@ -6,7 +6,7 @@ import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
 const BASE_URL =
     "https://owid-public.owid.io/sophia-bespoke-data-viz-demo-11-2025"
 const METADATA_PATH = BASE_URL + "/causes-of-death.metadata.json"
-const DATA_PATH = BASE_URL + "/causes-of-death.{entityId}.json"
+const DATA_PATH = BASE_URL + "/causes-of-death.{entityId}.data.json"
 
 const queryKeys = {
     metadata: () => ["causes-of-death", "metadata"],
@@ -21,7 +21,7 @@ export const useCausesOfDeathMetadata = (): {
 } => {
     const result = useQuery({
         queryKey: queryKeys.metadata(),
-        queryFn: () => fetchJson<MetadataJson>(METADATA_PATH),
+        queryFn: () => fetchJson<MetadataJson>(METADATA_PATH + "?nocache"),
     })
 
     const data = result.data
@@ -46,7 +46,9 @@ export const useCausesOfDeathEntityData = (
     const result = useQuery({
         queryKey: queryKeys.data(entityId!),
         queryFn: async (): Promise<DataJson> => {
-            const path = DATA_PATH.replace("{entityId}", entityId!.toString())
+            const path =
+                DATA_PATH.replace("{entityId}", entityId!.toString()) +
+                "?nocache"
             return fetchJson<DataJson>(path)
         },
         enabled: entityId !== undefined,
