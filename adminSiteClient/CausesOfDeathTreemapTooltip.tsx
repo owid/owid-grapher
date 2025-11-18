@@ -16,9 +16,8 @@ import {
     getCategoryColor,
 } from "./CausesOfDeathConstants.js"
 import {
-    formatNumberLongText,
-    formatPercentSigFig,
-    formatSigFigNoAbbrev,
+    formatCount,
+    formatShare,
     maxBy,
     minBy,
 } from "./CausesOfDeathHelpers.js"
@@ -141,7 +140,7 @@ function CausesOfDeathTreemapTooltipCard({
                             year={year}
                             color={categoryColor}
                         />
-                        <span>{formatPercentSigFig(share)}</span>
+                        <span>{formatShare(share)}</span>
                     </div>
                 }
                 label="Share of deaths"
@@ -158,9 +157,13 @@ function CausesOfDeathTreemapTooltipCard({
                             color={categoryColor}
                         />
                         <span>
-                            {formatNumberLongText(value)}{" "}
+                            {formatCount(value)}{" "}
                             <span className="muted">
-                                ({formatSigFigNoAbbrev(value / 365)} per day)
+                                (
+                                {formatCount(value / 365, {
+                                    abbreviate: false,
+                                })}{" "}
+                                per day)
                             </span>
                         </span>
                     </div>

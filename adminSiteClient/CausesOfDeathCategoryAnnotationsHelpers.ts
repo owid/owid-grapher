@@ -5,7 +5,7 @@ import {
     getCategoryColor,
     TreeNode,
 } from "./CausesOfDeathConstants.js"
-import { formatPercentSigFig, maxBy, minBy } from "./CausesOfDeathHelpers.js"
+import { formatShare, maxBy, minBy } from "./CausesOfDeathHelpers.js"
 import { match } from "ts-pattern"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 
@@ -122,7 +122,7 @@ function placeExternalCategoryAnnotation({
     const categoryColor = getCategoryColor(category.name)
     const textFragments = [
         {
-            text: formatPercentSigFig(category.share),
+            text: formatShare(category.share),
             style: { fontWeight: 700 },
         },
         { text: " died from " },
