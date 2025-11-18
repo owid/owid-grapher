@@ -8,8 +8,14 @@
 .topic-page-header {
     background-color: $blue-10;
     color: $blue-90;
-    margin-bottom: 40px;
+    margin-bottom: 32px;
     z-index: $zindex-extended-header;
+
+    @include md-down {
+        &:has(+ .toc-wrapper) {
+            margin-bottom: 64px;
+        }
+    }
 
     h1 {
         margin-bottom: 8px;
