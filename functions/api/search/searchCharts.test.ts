@@ -203,7 +203,7 @@ describe("searchCharts with real Algolia", () => {
     })
 
     it("uses custom base URL for staging deployments", async () => {
-        // lgtm[js/incomplete-hostname-regexp]
+        // codeql[js/incomplete-hostname-regexp]
         const stagingUrl = "https://staging-pr-123.owid.io"
         const result = await searchCharts(
             algoliaConfig,
@@ -338,7 +338,7 @@ describe("searchPages with real Algolia", () => {
     })
 
     it("uses custom base URL for staging deployments", async () => {
-        // lgtm[js/incomplete-hostname-regexp]
+        // codeql[js/incomplete-hostname-regexp]
         const stagingUrl = "https://staging-pr-123.owid.io"
         const result = await searchPages(
             algoliaConfig,
