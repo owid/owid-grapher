@@ -15,5 +15,48 @@ export function kdeLog(pointsLog2: number[]) {
         bandwidth: BANDWIDTH,
         extent: EXTENT,
     })
-    return [...k.points()].map((p) => ({ ...p, x: Math.pow(2, p.x) }))
+    return [...k.points()].map((p) => ({
+        ...p,
+        x: Math.pow(2, p.x),
+    })) as Array<{ x: number; y: number }>
+}
+
+// copied from CustomSchemes.ts
+const OwidDistinctColors = {
+    Purple: "#6d3e91",
+    DarkOrange: "#c05917",
+    LightTeal: "#58ac8c",
+    Blue: "#286bbb",
+    Maroon: "#883039",
+    Camel: "#bc8e5a",
+    MidnightBlue: "#00295b",
+    DustyCoral: "#c15065",
+    DarkOliveGreen: "#18470f",
+    DarkCopper: "#9a5129",
+    Peach: "#e56e5a",
+    Mauve: "#a2559c",
+    Turquoise: "#38aaba",
+    OliveGreen: "#578145",
+    Cherry: "#970046",
+    Teal: "#00847e",
+    RustyOrange: "#b13507",
+    Denim: "#4c6a9c",
+    Fuchsia: "#cf0a66",
+    TealishGreen: "#00875e",
+    Copper: "#b16214",
+    DarkMauve: "#8c4569",
+    Lime: "#3b8e1d",
+    Coral: "#d73c50",
+} as const
+
+export const REGION_COLORS = {
+    World: OwidDistinctColors.DarkOliveGreen,
+    "East Asia and Pacific": OwidDistinctColors.Copper,
+    "Europe and Central Asia": OwidDistinctColors.Denim,
+    "Middle East, North Africa, Afghanistan and Pakistan":
+        OwidDistinctColors.Camel,
+    "North America": OwidDistinctColors.Peach,
+    "South Asia": OwidDistinctColors.OliveGreen,
+    "Sub-Saharan Africa": OwidDistinctColors.DarkMauve,
+    "Latin America and Caribbean": OwidDistinctColors.Maroon,
 }
