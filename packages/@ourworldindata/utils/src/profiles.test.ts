@@ -95,13 +95,12 @@ describe("instantiateProfile", () => {
     it("replaces placeholders with articulated entity name and code", () => {
         const country = getCountryByName("United States") as Country
         const template = buildProfileTemplate()
+        const expectedEntity = articulateEntity(country.name)
 
         const instantiated = instantiateProfile(template, country)
 
         expect(instantiated).not.toBe(template)
-        expect(instantiated.title).toEqual(
-            `${articulateEntity(country.name)} Energy Profile`
-        )
+        expect(instantiated.title).toEqual(`${expectedEntity} Energy Profile`)
         expect(instantiated.excerpt).toEqual(
             `Insights about ${articulateEntity(country.name)}.`
         )
@@ -167,6 +166,58 @@ describe("instantiateProfile", () => {
             slug: "how-much-does-canada-emit",
             isSubheading: false,
         })
+    })
+
+    it("formats possessives for articulated names", () => {
+        const country = getCountryByName("United States") as Country
+        const template: OwidGdocProfileContent = {
+            ...buildProfileTemplate(),
+            title: "$entityName overview",
+            excerpt:
+                "$entityName is unique. What is $entityName’s life expectancy?",
+            body: [
+                {
+                    type: "text",
+                    value: [
+                        {
+                            spanType: "span-simple-text",
+                            text: "$entityName drives growth.\n- $entityName’s innovation sets trends.",
+                        },
+                    ],
+                    parseErrors: [],
+                },
+            ],
+        }
+
+        const instantiated = instantiateProfile(template, country)
+
+        expect(instantiated.title).toEqual("the United States overview")
+        expect(instantiated.excerpt).toEqual(
+            "the United States is unique. What is the United States’ life expectancy?"
+        )
+        expect(instantiated.body[0]).toMatchObject({
+            value: [
+                expect.objectContaining({
+                    text: "the United States drives growth.\n- the United States’ innovation sets trends.",
+                }),
+            ],
+        })
+    })
+
+    it("supports capitalized replacements via $EntityName tokens", () => {
+        const country = getCountryByName("United States") as Country
+        const template: OwidGdocProfileContent = {
+            ...buildProfileTemplate(),
+            title: "$EntityName overview",
+            excerpt: "$EntityName leads $entityName’s examples.",
+        }
+
+        const instantiated = instantiateProfile(template, country)
+
+        expect(instantiated.title).toEqual("The United States overview")
+        expect(instantiated.excerpt).toEqual(
+            "The United States leads the United States’ examples."
+        )
     })
 })
 
