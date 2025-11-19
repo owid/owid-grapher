@@ -6,9 +6,13 @@
         "@ourworldindata/utils": "*",
         "fast-kde": "^0.2.2",
         "jotai": "^2.15.1",
+        "react": "^19.2.0",
+        "react-dom": "^19.2.0",
         "remeda": "^2.32.0"
     },
     "devDependencies": {
+        "@types/react": "^19.2.6",
+        "@types/react-dom": "^19.2.3",
         "vite": "^7.2.2"
     },
     "workspaces": [
