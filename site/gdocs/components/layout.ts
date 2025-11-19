@@ -34,6 +34,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["explorer"]: "col-start-2 span-cols-12",
         ["explorer-tiles"]: "grid grid-cols-12 span-cols-12 col-start-2",
         ["gray-section"]: "span-cols-14 grid grid-cols-12-full-width",
+        ["explore-data-section"]: "span-cols-14 grid grid-cols-12-full-width",
         ["guided-chart"]: "grid grid-cols-12-full-width span-cols-14",
         ["heading"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["homepage-search"]: "grid grid-cols-12-full-width span-cols-14",
