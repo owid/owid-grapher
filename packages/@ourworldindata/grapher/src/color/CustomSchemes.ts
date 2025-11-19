@@ -338,6 +338,55 @@ export const ContinentColors = {
     EasternEurope: OwidDistinctColors.Blue,
     WesternEurope: OwidDistinctColors.MidnightBlue,
     AustralasiaAndOceania: OwidDistinctColors.Copper,
+
+    // World Bank regions
+    "East Asia and Pacific (WB)": OwidDistinctColors.Copper,
+    "Europe and Central Asia (WB)": OwidDistinctColors.Denim,
+    "Middle East, North Africa, Afghanistan and Pakistan (WB)":
+        OwidDistinctColors.Camel,
+    "North America (WB)": OwidDistinctColors.Peach,
+    "South Asia (WB)": OwidDistinctColors.OliveGreen,
+    "Sub-Saharan Africa (WB)": OwidDistinctColors.DarkMauve,
+    "Latin America and Caribbean (WB)": OwidDistinctColors.Maroon,
+
+    // UN regions
+    "Asia (UN)": OwidDistinctColors.Teal,
+    "Africa (UN)": OwidDistinctColors.Mauve,
+    "Europe (UN)": OwidDistinctColors.Denim,
+    "Oceania (UN)": OwidDistinctColors.Turquoise,
+    "Northern America (UN)": OwidDistinctColors.Peach,
+    "Latin America and the Caribbean (UN)": OwidDistinctColors.Maroon,
+
+    // WHO regions
+    "Africa (WHO)": OwidDistinctColors.Mauve,
+    "Europe (WHO)": OwidDistinctColors.Denim,
+    "Americas (WHO)": OwidDistinctColors.Peach,
+    "South-East Asia (WHO)": OwidDistinctColors.Lime,
+    "Western Pacific (WHO)": OwidDistinctColors.Turquoise,
+    "Eastern Mediterranean (WHO)": OwidDistinctColors.Camel,
+
+    // Maddison regions
+    "Australia and New Zealand": OwidDistinctColors.Teal,
+    "Central and Southern Asia": OwidDistinctColors.OliveGreen,
+    "Europe and Northern America": OwidDistinctColors.Denim,
+    "Eastern and South-Eastern Asia": OwidDistinctColors.Copper,
+    "Northern Africa and Western Asia": OwidDistinctColors.Camel,
+    "East Asia": OwidDistinctColors.Copper,
+    "Latin America": OwidDistinctColors.Maroon,
+    "Eastern Europe": OwidDistinctColors.MidnightBlue,
+    "Western Europe": OwidDistinctColors.Denim,
+    "Western Offshoots": OwidDistinctColors.Peach,
+    "Sub Saharan Africa": OwidDistinctColors.DarkMauve,
+    "South and South East Asia": OwidDistinctColors.OliveGreen,
+    "Middle East and North Africa": OwidDistinctColors.Camel,
+
+    // Pew Research Center regions
+    "Europe (Pew)": OwidDistinctColors.Denim,
+    "Asia-Pacific (Pew)": OwidDistinctColors.Teal,
+    "North America (Pew)": OwidDistinctColors.Peach,
+    "Sub-Saharan Africa (Pew)": OwidDistinctColors.DarkMauve,
+    "Latin America-Caribbean (Pew)": OwidDistinctColors.Maroon,
+    "Middle East-North Africa (Pew)": OwidDistinctColors.Camel,
 } as const
 
 // Used for looking up color names from hex values
