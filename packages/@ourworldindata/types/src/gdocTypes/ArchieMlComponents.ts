@@ -596,6 +596,20 @@ export type EnrichedBlockGraySection = {
     items: OwidEnrichedGdocBlock[]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockExploreDataSection = {
+    type: "explore-data-section"
+    value: {
+        title?: string
+        content: OwidRawGdocBlock[]
+    }
+}
+
+export type EnrichedBlockExploreDataSection = {
+    type: "explore-data-section"
+    title?: string
+    content: OwidEnrichedGdocBlock[]
+} & EnrichedBlockWithParseErrors
+
 export type ProminentLinkValue = {
     url?: string
     title?: string
@@ -1149,6 +1163,7 @@ export type OwidRawGdocBlock =
     | RawBlockStickyLeftContainer
     | RawBlockSideBySideContainer
     | RawBlockGraySection
+    | RawBlockExploreDataSection
     | RawBlockProminentLink
     | RawBlockSDGToc
     | RawBlockMissingData
@@ -1207,6 +1222,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockStickyLeftContainer
     | EnrichedBlockSideBySideContainer
     | EnrichedBlockGraySection
+    | EnrichedBlockExploreDataSection
     | EnrichedBlockProminentLink
     | EnrichedBlockSDGToc
     | EnrichedBlockMissingData
