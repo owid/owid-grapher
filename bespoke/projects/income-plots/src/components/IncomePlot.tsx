@@ -58,8 +58,10 @@ interface IncomePlotProps {
 
 export function IncomePlot({ width = 1000, height = 600 }: IncomePlotProps) {
     const containerRef = useRef<HTMLDivElement>(null)
-    const [povertyLine] = useAtom(customPovertyLineAtom)
-    const [showPovertyLine] = useAtom(showCustomPovertyLineAtom)
+    const [povertyLine, setPovertyLine] = useAtom(customPovertyLineAtom)
+    const [showPovertyLine, setShowPovertyLine] = useAtom(
+        showCustomPovertyLineAtom
+    )
 
     useEffect(() => {
         const container = containerRef.current
@@ -125,11 +127,21 @@ export function IncomePlot({ width = 1000, height = 600 }: IncomePlotProps) {
             style,
         })
 
+        plot.onclick = (event) => {
+            console.log("click event:", event, plot.value)
+            if (!showPovertyLine) setPovertyLine(plot.value.x.toFixed(2))
+            setShowPovertyLine(!showPovertyLine)
+        }
+
         container.appendChild(plot)
 
         // Cleanup function
         return () => plot.remove()
     }, [povertyLine, showPovertyLine, width, height])
 
-    return <div ref={containerRef} />
+    return (
+        <>
+            <div ref={containerRef}></div>
+        </>
+    )
 }
