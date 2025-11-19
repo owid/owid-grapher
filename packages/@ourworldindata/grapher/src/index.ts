@@ -8,6 +8,7 @@ export {
     CategoricalBin,
     type ColorScaleBin,
 } from "./color/ColorScaleBin"
+export { OwidDistinctColors } from "./color/CustomSchemes.js"
 export { ChartDimension } from "./chart/ChartDimension"
 export { FetchingGrapher } from "./core/FetchingGrapher"
 export {

@@ -1,12 +1,22 @@
 import * as Plot from "@observablehq/plot"
-import { formatCurrency, kdeLog } from "../utils/incomePlotUtils.ts"
+import {
+    formatCurrency,
+    kdeLog,
+    REGION_COLORS,
+} from "../utils/incomePlotUtils.ts"
 import data from "../data/incomeBins.json"
 import * as R from "remeda"
 
-console.log("data", data)
+const dataTyped = data as Array<{
+    country: string
+    region: string
+    year: number
+    pop: number
+    avgsLog2Times100: number[]
+}>
 
 const incomeData = R.pipe(
-    data,
+    dataTyped,
     R.filter((d) => d.year === 2021),
     R.map((d) => ({
         ...d,
@@ -15,14 +25,7 @@ const incomeData = R.pipe(
     R.sortBy(R.prop("region"))
 )
 
-const incomeData2 = data
-    .filter((d) => d.year === 2021)
-    .map((d) => ({
-        ...d,
-        avgsLog2: d.avgsLog2Times100.map((v) => v / 100),
-    }))
 const points = incomeData.flatMap((record) => {
-    console.log("record", record)
     const common = R.omit(record, ["avgsLog2Times100", "avgsLog2"])
     const kdeRes = kdeLog(record.avgsLog2)
     return kdeRes.map((kde) => ({
@@ -33,9 +36,19 @@ const points = incomeData.flatMap((record) => {
     }))
 })
 
-console.log("points", points)
+const regionsScale: Plot.ScaleOptions = {
+    domain: Object.keys(REGION_COLORS),
+    range: Object.values(REGION_COLORS),
+    legend: true,
+}
 
-const plotIncome = (data) =>
+const style = {
+    fontFamily:
+        'Lato, "Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif',
+    fontSize: "11.5px",
+}
+
+const plotIncome = (data: typeof points) =>
     Plot.plot({
         x: {
             type: "log",
@@ -44,9 +57,12 @@ const plotIncome = (data) =>
             // label: `Income or consumption per ${currentIntervalLowercase} (int-$)`,
         },
         y: { axis: false },
-        // height: CHART_HEIGHT,
+        height: 600,
         width: 1000,
-        // color: { ...regionsScale, legend: true },
+        color: {
+            ...regionsScale,
+            style,
+        },
         marks: [
             Plot.areaY(data, {
                 x: "x",
@@ -74,6 +90,7 @@ const plotIncome = (data) =>
                 })
             ),
         ],
+        style,
     })
 
 export const plot = () => plotIncome(points)
