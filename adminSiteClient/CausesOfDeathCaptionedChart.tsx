@@ -1,8 +1,6 @@
 import { useMemo } from "react"
 import * as R from "remeda"
 import cx from "classnames"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCircleNotch } from "@fortawesome/free-solid-svg-icons"
 import { Link, Tooltip, TooltipTrigger } from "react-aria-components"
 
 import { EntityName, Time } from "@ourworldindata/types"
@@ -11,6 +9,7 @@ import { DataRow } from "./CausesOfDeathConstants"
 import { ResponsiveCausesOfDeathTreemap } from "./CausesOfDeathTreemap"
 import { formatCountryName, formatCount } from "./CausesOfDeathHelpers.js"
 import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
+import { CausesOfDeathSpinner } from "./CausesOfDeathSpinner.js"
 
 export function CausesOfDeathCaptionedChart({
     data,
@@ -48,11 +47,7 @@ export function CausesOfDeathCaptionedChart({
             />
 
             <div className="causes-of-death-captioned-chart__chart-area">
-                {isLoading && (
-                    <div className="causes-of-death-captioned-chart__loading-overlay">
-                        <FontAwesomeIcon icon={faCircleNotch} spin size="2x" />
-                    </div>
-                )}
+                {isLoading && <CausesOfDeathSpinner />}
 
                 <ResponsiveCausesOfDeathTreemap
                     data={entityData}
