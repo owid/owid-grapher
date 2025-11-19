@@ -12,6 +12,7 @@ import {
     dyFromAlign,
     isTouchDevice,
     domainExtent,
+    calculateTrendDirection,
 } from "@ourworldindata/utils"
 import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -49,6 +50,7 @@ import { NoDataSection } from "../scatterCharts/NoDataSection"
 
 import { LineLegend, LineLegendProps } from "../lineLegend/LineLegend"
 import {
+    formatTooltipRangeValues,
     makeTooltipRoundingNotice,
     makeTooltipToleranceNotice,
     Tooltip,
@@ -807,8 +809,13 @@ export class SlopeChart
                 dismiss={() => (this.tooltipState.target = null)}
             >
                 <TooltipValueRange
-                    column={series.column}
-                    values={values}
+                    label={series.column.displayName}
+                    unit={series.column.displayUnit}
+                    values={formatTooltipRangeValues(values, series.column)}
+                    trend={calculateTrendDirection(...values)}
+                    isRoundedToSignificantFigures={
+                        series.column.roundsToSignificantFigures
+                    }
                     labelVariant="unit-only"
                 />
             </Tooltip>

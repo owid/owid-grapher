@@ -57,6 +57,7 @@ import {
     LabelCandidate,
     LabelWithPlacement,
     LabelCandidateWithElement,
+    Bar,
 } from "./MarimekkoChartConstants"
 import { MarimekkoChartState } from "./MarimekkoChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
@@ -423,7 +424,11 @@ export class MarimekkoChart
         const { entityName, xPoint, bars } = tooltipItem ?? {}
 
         const yValues =
-            bars?.map((bar: any) => {
+            bars?.map((bar: Bar) => {
+                const column = this.chartState.transformedTable.get(
+                    bar.columnSlug
+                )
+
                 const shouldShowYTimeNotice =
                     bar.yPoint.value !== undefined &&
                     bar.yPoint.time !== endTime
@@ -431,10 +436,10 @@ export class MarimekkoChart
                 return {
                     name: bar.seriesName,
                     value: bar.yPoint.value,
-                    column: this.chartState.transformedTable.get(
-                        bar.columnSlug
-                    ),
-                    notice: shouldShowYTimeNotice ? bar.yPoint.time : undefined,
+                    column,
+                    originalTime: shouldShowYTimeNotice
+                        ? column.formatTime(bar.yPoint.time)
+                        : undefined,
                 }
             }) ?? []
 
@@ -444,9 +449,12 @@ export class MarimekkoChart
         // usually the case when matching day and year variables
         const shouldShowXTimeNotice =
             xPoint && xPoint.time !== endTime && xOverrideTime === undefined
-        const xNotice = shouldShowXTimeNotice ? xPoint?.time : undefined
+        const xOriginalTime = shouldShowXTimeNotice ? xPoint?.time : undefined
+        const xOriginalTimeFormatted = xOriginalTime
+            ? xColumn?.formatTime(xOriginalTime)
+            : undefined
         const targetNotice =
-            xNotice || yValues.some(({ notice }) => !!notice)
+            xOriginalTime || yValues.some(({ originalTime }) => !!originalTime)
                 ? timeColumn.formatValue(endTime)
                 : undefined
         const toleranceNotice = targetNotice
@@ -528,20 +536,30 @@ export class MarimekkoChart
                         dissolve={fading}
                         dismiss={() => (this.tooltipState.target = null)}
                     >
-                        {yValues.map(({ name, value, column, notice }) => (
+                        {yValues.map(
+                            ({ name, value, column, originalTime }) => (
+                                <TooltipValue
+                                    key={name}
+                                    label={column.displayName}
+                                    unit={column.displayUnit}
+                                    value={column.formatValueShort(value)}
+                                    originalTime={originalTime}
+                                    isRoundedToSignificantFigures={
+                                        column.roundsToSignificantFigures
+                                    }
+                                    showSignificanceSuperscript={superscript}
+                                />
+                            )
+                        )}
+                        {xColumn && !xColumn.isMissing && (
                             <TooltipValue
-                                key={name}
-                                column={column}
-                                value={value}
-                                notice={notice}
-                                showSignificanceSuperscript={superscript}
-                            />
-                        ))}
-                        {xColumn && (
-                            <TooltipValue
-                                column={xColumn}
-                                value={xPoint?.value}
-                                notice={xNotice}
+                                label={xColumn.displayName}
+                                unit={xColumn.displayUnit}
+                                value={xColumn.formatValueShort(xPoint?.value)}
+                                originalTime={xOriginalTimeFormatted}
+                                isRoundedToSignificantFigures={
+                                    xColumn.roundsToSignificantFigures
+                                }
                                 showSignificanceSuperscript={superscript}
                             />
                         )}
