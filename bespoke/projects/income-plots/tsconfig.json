@@ -1,0 +1,7 @@
+{
+    "extends": "../../../devTools/tsconfigs/tsconfig.base.json",
+    "compilerOptions": {
+        "allowImportingTsExtensions": true,
+        "emitDeclarationOnly": true
+    }
+}

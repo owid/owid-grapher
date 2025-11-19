@@ -13,6 +13,7 @@
     },
     "workspaces": [
         "../../../packages/@ourworldindata/components",
+        "../../../packages/@ourworldindata/grapher",
         "../../../packages/@ourworldindata/types",
         "../../../packages/@ourworldindata/utils"
     ]
