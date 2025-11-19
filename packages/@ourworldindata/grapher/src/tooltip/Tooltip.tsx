@@ -5,7 +5,11 @@ import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import classnames from "classnames"
 import { match } from "ts-pattern"
-import { Bounds, GrapherTooltipAnchor } from "@ourworldindata/utils"
+import {
+    Bounds,
+    GrapherTooltipAnchor,
+    stripOuterParentheses,
+} from "@ourworldindata/utils"
 import {
     TooltipProps,
     TooltipManager,
@@ -121,7 +125,7 @@ export class TooltipCard extends React.Component<
         if (!!subtitle && subtitleFormat === "unit") {
             const unit = subtitle.toString()
             const preposition = !unit.match(/^(per|in|\() /i) ? "in " : ""
-            subtitle = preposition + unit.replace(/(^\(|\)$)/g, "")
+            subtitle = preposition + stripOuterParentheses(unit)
         }
 
         // flag the year in the header and add note in footer (if necessary)
