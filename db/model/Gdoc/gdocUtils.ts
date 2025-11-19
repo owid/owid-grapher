@@ -241,6 +241,7 @@ export function extractFilenamesFromBlock(
                     "featured-metrics",
                     "featured-data-insights",
                     "gray-section",
+                    "explore-data-section",
                     "heading",
                     "homepage-search",
                     "horizontal-rule",

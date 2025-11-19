@@ -757,6 +757,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                         "expander",
                         "entry-summary",
                         "gray-section",
+                        "explore-data-section",
                         "heading",
                         "horizontal-rule",
                         "html",

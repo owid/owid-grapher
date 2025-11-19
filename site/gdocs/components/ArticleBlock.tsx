@@ -58,6 +58,7 @@ import { AttachmentsContext } from "../AttachmentsContext.js"
 import { FeaturedMetrics } from "../../FeaturedMetrics.js"
 import { FeaturedDataInsights } from "../../FeaturedDataInsights.js"
 import { BlockQueryClientProvider } from "./BlockQueryClientProvider.js"
+import { ExploreDataSection } from "./ExploreDataSection.js"
 
 function ArticleBlockInternal({
     b: block,
@@ -600,6 +601,16 @@ function ArticleBlockInternal({
                     <ArticleBlock key={i} b={item} />
                 ))}
             </div>
+        ))
+        .with({ type: "explore-data-section" }, (block) => (
+            <ExploreDataSection
+                title={block.title}
+                className={getLayout("explore-data-section")}
+            >
+                {block.content.map((item, i) => (
+                    <ArticleBlock key={i} b={item} />
+                ))}
+            </ExploreDataSection>
         ))
         .with({ type: "prominent-link" }, (block) => (
             <ProminentLink

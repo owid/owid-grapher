@@ -8,6 +8,7 @@ import {
     EnrichedBlockChartStory,
     EnrichedBlockDonorList,
     EnrichedBlockGraySection,
+    EnrichedBlockExploreDataSection,
     EnrichedBlockHeading,
     EnrichedBlockHorizontalRule,
     EnrichedBlockHtml,
@@ -47,6 +48,7 @@ import {
     RawBlockChartStory,
     RawBlockDonorList,
     RawBlockGraySection,
+    RawBlockExploreDataSection,
     RawBlockHeading,
     RawBlockHtml,
     RawBlockImage,
@@ -237,6 +239,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "sticky-right" }, parseStickyRight)
         .with({ type: "side-by-side" }, parseSideBySide)
         .with({ type: "gray-section" }, parseGraySection)
+        .with({ type: "explore-data-section" }, parseExploreDataSection)
         .with({ type: "prominent-link" }, parseProminentLink)
         .with({ type: "topic-page-intro" }, parseTopicPageIntro)
         .with({ type: "cookie-notice" }, parseCookieNotice)
@@ -1609,6 +1612,19 @@ function parseGraySection(raw: RawBlockGraySection): EnrichedBlockGraySection {
     return {
         type: "gray-section",
         items: _.compact(raw.value.map(parseRawBlocksToEnrichedBlocks)),
+        parseErrors: [],
+    }
+}
+
+function parseExploreDataSection(
+    raw: RawBlockExploreDataSection
+): EnrichedBlockExploreDataSection {
+    return {
+        type: "explore-data-section",
+        title: raw.value.title,
+        content: _.compact(
+            raw.value.content.map(parseRawBlocksToEnrichedBlocks)
+        ),
         parseErrors: [],
     }
 }
