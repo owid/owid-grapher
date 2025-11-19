@@ -10,6 +10,7 @@ import {
 } from "./CausesOfDeathDataFetching.js"
 import { CausesOfDeathCaptionedChart } from "./CausesOfDeathCaptionedChart.js"
 import { CausesOfDeathControls } from "./CausesOfDeathControls.js"
+import { CausesOfDeathSpinner } from "./CausesOfDeathSpinner.js"
 
 const DEFAULT_AGE_GROUP = "All ages"
 const DEFAULT_ENTITY_NAME = WORLD_ENTITY_NAME
@@ -38,9 +39,12 @@ export function CausesOfDeathChart(): React.ReactElement {
         entityDataResponse.status
     )
 
-    // Show error message when loading the data or metadata failed
-    if (loadingStatus !== "success") {
+    if (loadingStatus === "error") {
         return <CausesOfDeathChartError />
+    }
+
+    if (loadingStatus === "pending") {
+        return <CausesOfDeathSkeleton />
     }
 
     const metadata = metadataResponse.data
@@ -89,6 +93,14 @@ export function CausesOfDeathChart(): React.ReactElement {
 
 function CausesOfDeathChartError() {
     return <div>Causes of Death visualization can't be loaded</div>
+}
+
+function CausesOfDeathSkeleton() {
+    return (
+        <div className="causes-of-death-skeleton">
+            <CausesOfDeathSpinner />
+        </div>
+    )
 }
 
 /**
