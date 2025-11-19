@@ -203,7 +203,6 @@ describe("searchCharts with real Algolia", () => {
     })
 
     it("uses custom base URL for staging deployments", async () => {
-        // codeql[js/incomplete-hostname-regexp]
         const stagingUrl = "https://staging-pr-123.owid.io"
         const result = await searchCharts(
             algoliaConfig,
@@ -220,9 +219,8 @@ describe("searchCharts with real Algolia", () => {
         expect(result.results.length).toBeGreaterThan(0)
 
         // All URLs should use the staging base URL
-        const escapedUrl = stagingUrl.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
         result.results.forEach((hit) => {
-            expect(hit.url).toMatch(new RegExp(`^${escapedUrl}/`))
+            expect(hit.url).toMatch(/^https:\/\/staging-pr-123\.owid\.io\//)
         })
     })
 })
@@ -338,7 +336,6 @@ describe("searchPages with real Algolia", () => {
     })
 
     it("uses custom base URL for staging deployments", async () => {
-        // codeql[js/incomplete-hostname-regexp]
         const stagingUrl = "https://staging-pr-123.owid.io"
         const result = await searchPages(
             algoliaConfig,
@@ -352,9 +349,8 @@ describe("searchPages with real Algolia", () => {
         expect(result.results.length).toBeGreaterThan(0)
 
         // All URLs should use the staging base URL
-        const escapedUrl = stagingUrl.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
         result.results.forEach((hit) => {
-            expect(hit.url).toMatch(new RegExp(`^${escapedUrl}/`))
+            expect(hit.url).toMatch(/^https:\/\/staging-pr-123\.owid\.io\//)
         })
     })
 })
