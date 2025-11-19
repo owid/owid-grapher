@@ -67,6 +67,18 @@ const replaceStringsInObject = (
     }
 }
 
+const getEntityPossessive = (value: string): string => {
+    const trimmedValue = value.trim()
+    if (!trimmedValue) return trimmedValue
+    return /s$/i.test(trimmedValue) ? `${trimmedValue}’` : `${trimmedValue}’s`
+}
+
+const capitalizeEntityName = (value: string): string => {
+    if (!value) return value
+    const [first, ...rest] = value
+    return first.toUpperCase() + rest.join("")
+}
+
 /**
  * Instantiates a profile content by replacing tokens with entity-specific values.
  */
@@ -75,9 +87,19 @@ export const instantiateProfile = (
     entity: ProfileEntity
 ): OwidGdocProfileContent => {
     const entityNameWithArticle = articulateEntity(entity.name)
+    const capitalizedEntity = capitalizeEntityName(entityNameWithArticle)
+    const entityPossessiveWithArticle = getEntityPossessive(
+        entityNameWithArticle
+    )
+    const entityPossessiveCapitalized = getEntityPossessive(capitalizedEntity)
+    const entityPossessiveWithoutArticle = getEntityPossessive(entity.name)
     const replacements: ReplacementPair[] = [
+        ["$EntityName’s", entityPossessiveCapitalized],
+        ["$EntityName", capitalizedEntity],
+        ["$entityName’s", entityPossessiveWithArticle],
         ["$entityName", entityNameWithArticle],
         ["$entityCode", entity.code],
+        ["$noArticleEntityName’s", entityPossessiveWithoutArticle],
         ["$noArticleEntityName", entity.name],
     ]
 
