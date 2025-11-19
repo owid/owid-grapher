@@ -177,14 +177,13 @@ export class EditorTextTab<
                     {this.showChartSlug && (
                         <AutoTextField
                             label="/grapher/"
-                            value={grapherState.displaySlug}
+                            value={grapherState.slug}
                             onValue={this.onSlug}
-                            isAuto={grapherState.slug === undefined}
+                            isAuto={
+                                grapherState.slug === grapherState.defaultSlug
+                            }
                             onToggleAuto={() =>
-                                (grapherState.slug =
-                                    grapherState.slug === undefined
-                                        ? grapherState.displaySlug
-                                        : undefined)
+                                (grapherState.slug = grapherState.defaultSlug)
                             }
                             helpText="Human-friendly URL for this chart"
                         />
