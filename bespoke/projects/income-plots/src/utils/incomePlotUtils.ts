@@ -53,10 +53,10 @@ export const REGION_COLORS = {
     World: OwidDistinctColors.DarkOliveGreen,
     "East Asia and Pacific": OwidDistinctColors.Copper,
     "Europe and Central Asia": OwidDistinctColors.Denim,
+    "Latin America and Caribbean": OwidDistinctColors.Maroon,
     "Middle East, North Africa, Afghanistan and Pakistan":
         OwidDistinctColors.Camel,
     "North America": OwidDistinctColors.Peach,
     "South Asia": OwidDistinctColors.OliveGreen,
     "Sub-Saharan Africa": OwidDistinctColors.DarkMauve,
-    "Latin America and Caribbean": OwidDistinctColors.Maroon,
 }
