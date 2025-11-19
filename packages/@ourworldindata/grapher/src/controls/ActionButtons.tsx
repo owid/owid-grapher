@@ -24,6 +24,7 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     GrapherModal,
 } from "../core/GrapherConstants.js"
+import { DownloadModalTabName } from "../modal/DownloadModal.js"
 
 export interface ActionButtonsManager extends ShareMenuManager {
     isAdmin?: boolean
@@ -34,6 +35,8 @@ export interface ActionButtonsManager extends ShareMenuManager {
     canonicalUrl?: string
     isInFullScreenMode?: boolean
     activeModal?: GrapherModal
+    activeDownloadModalTab?: DownloadModalTabName
+    isOnTableTab?: boolean
     hideFullScreenButton?: boolean
 }
 
@@ -232,6 +235,17 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
         this.manager.isInFullScreenMode = !this.manager.isInFullScreenMode
     }
 
+    @action.bound openDownloadModal(): void {
+        this.manager.activeModal = GrapherModal.Download
+
+        // Open the Data tab when opening from the table view, otherwise open the Vis tab
+        if (this.manager.isOnTableTab) {
+            this.manager.activeDownloadModalTab = DownloadModalTabName.Data
+        } else {
+            this.manager.activeDownloadModalTab = DownloadModalTabName.Vis
+        }
+    }
+
     @computed private get hasDownloadButton(): boolean {
         return true
     }
@@ -300,8 +314,7 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
                                 showLabel={this.showButtonLabels}
                                 icon={faDownload}
                                 onClick={action((e): void => {
-                                    this.manager.activeModal =
-                                        GrapherModal.Download
+                                    this.openDownloadModal()
                                     e.stopPropagation()
                                 })}
                             />
