@@ -6,6 +6,7 @@ import { observer } from "mobx-react"
 import {
     Bounds,
     canWriteToClipboard,
+    formatValue,
     getOriginAttributionFragments,
     getPhraseForProcessingLevel,
     triggerDownloadFromBlob,
@@ -1037,6 +1038,16 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
 
     const firstYColDef = yColumns?.[0]?.def as OwidColumnDef | undefined
 
+    const fullDataDescription = `Includes all entities and time points`
+    const filteredDataDescription = `Includes only the entities and time points currently visible in the chart`
+
+    const fullTableRowCountSnippet = makeNumberOfRowsSnippet(
+        downloadCtx.fullTable.numRows
+    )
+    const filteredTableRowCountSnippet = makeNumberOfRowsSnippet(
+        downloadCtx.filteredTable.numRows
+    )
+
     return (
         <>
             <SourceAndCitationSection table={props.manager.inputTable} />
@@ -1048,7 +1059,9 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                 <div>
                     <DownloadButton
                         title="Download full data"
-                        description="Includes all entities and time points."
+                        description={
+                            fullDataDescription + fullTableRowCountSnippet
+                        }
                         icon={<DownloadIconFullDataset />}
                         onClick={() => onDownloadClick(CsvDownloadType.Full)}
                         tracking={
@@ -1058,7 +1071,10 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                     />
                     <DownloadButton
                         title="Download displayed data"
-                        description="Includes only the entities and time points currently visible in the chart."
+                        description={
+                            filteredDataDescription +
+                            filteredTableRowCountSnippet
+                        }
                         icon={<DownloadIconSelected />}
                         onClick={() =>
                             onDownloadClick(CsvDownloadType.CurrentSelection)
@@ -1138,4 +1154,10 @@ function Callout(props: CalloutProps): React.ReactElement {
             </p>
         </div>
     )
+}
+
+function makeNumberOfRowsSnippet(numRows: number): string {
+    if (numRows <= 0) return " (empty)"
+    if (numRows === 1) return " (1 row)"
+    return ` (${formatValue(numRows, { numDecimalPlaces: 0 })} rows)`
 }
