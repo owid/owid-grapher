@@ -11,7 +11,6 @@ import {
     atomShowCustomPovertyLine,
     atomTimeIntervalFactor,
 } from "../store.ts"
-import * as R from "remeda"
 
 const style = {
     fontFamily:
