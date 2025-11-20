@@ -27,6 +27,7 @@ export function formatCurrency(num: number, currency: Currency) {
             currency: currency,
             trailingZeroDisplay: "stripIfInteger",
             notation: "engineering",
+            maximumSignificantDigits: 2,
         })
         currencyFormatterCache.set(currency, formatter)
     }
