@@ -5,9 +5,10 @@ import { formatCurrency, usePlot } from "../utils/incomePlotUtils.ts"
 import {
     atomCustomPovertyLine,
     atomHoveredEntity,
-    atomKdeDataForYear,
+    atomKdeDataForYearGroupedByRegion,
     atomPlotColorScale,
     atomShowCustomPovertyLine,
+    atomTimeIntervalFactor,
 } from "../store.ts"
 
 const style = {
@@ -23,13 +24,14 @@ interface IncomePlotProps {
 
 export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
     const containerRef = useRef<HTMLDivElement>(null)
-    const points = useAtomValue(atomKdeDataForYear)
+    const points = useAtomValue(atomKdeDataForYearGroupedByRegion)
     const [povertyLine, setPovertyLine] = useAtom(atomCustomPovertyLine)
     const [showPovertyLine, setShowPovertyLine] = useAtom(
         atomShowCustomPovertyLine
     )
     const plotColorScale = useAtomValue(atomPlotColorScale)
     const [hoveredEntity, setHoveredEntity] = useAtom(atomHoveredEntity)
+    const timeIntervalFactor = useAtomValue(atomTimeIntervalFactor)
 
     const hasHoveredEntity = hoveredEntity !== null
 
@@ -94,6 +96,7 @@ export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
             x: {
                 type: "log",
                 grid: true,
+                transform: (d) => d * timeIntervalFactor,
                 tickFormat: formatCurrency,
                 // label: `Income or consumption per day (int-$)`,
             },
@@ -132,6 +135,7 @@ export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
         height,
         width,
         marks,
+        timeIntervalFactor,
         hasHoveredEntity,
         hoveredEntity,
         showPovertyLine,
