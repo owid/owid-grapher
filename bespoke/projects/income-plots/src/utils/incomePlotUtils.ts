@@ -2,20 +2,24 @@ import { roundSigFig } from "@ourworldindata/utils"
 import * as fastKde from "fast-kde"
 import type * as Plot from "@observablehq/plot"
 import { useEffect } from "react"
+import {
+    KDE_BANDWIDTH,
+    KDE_EXTENT,
+    KDE_NUM_BINS,
+} from "./incomePlotConstants.ts"
 
 export function formatCurrency(num: number) {
+    if (num >= 1_000) return "$" + Math.round(num / 1_000) + "k"
     if (num >= 10) return "$" + roundSigFig(num, 2)
     if (num >= 1) return "$" + (Math.round(num * 10) / 10).toFixed(2)
     else return "$" + num.toFixed(2)
 }
 
-const BANDWIDTH = 0.15
-const EXTENT = [0.25, 1000].map(Math.log2)
-
 export function kdeLog(pointsLog2: number[]) {
     const k = fastKde.density1d(pointsLog2, {
-        bandwidth: BANDWIDTH,
-        extent: EXTENT,
+        bandwidth: KDE_BANDWIDTH,
+        extent: KDE_EXTENT,
+        bins: KDE_NUM_BINS,
     })
     return [...k.points()].map((p) => ({
         ...p,
