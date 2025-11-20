@@ -3,16 +3,40 @@ import * as fastKde from "fast-kde"
 import type * as Plot from "@observablehq/plot"
 import { useEffect } from "react"
 import {
+    Currency,
     KDE_BANDWIDTH,
     KDE_EXTENT,
     KDE_NUM_BINS,
 } from "./incomePlotConstants.ts"
 
-export function formatCurrency(num: number) {
-    if (num >= 1_000) return "$" + Math.round(num / 1_000) + "k"
-    if (num >= 10) return "$" + roundSigFig(num, 2)
-    if (num >= 1) return "$" + (Math.round(num * 10) / 10).toFixed(2)
-    else return "$" + num.toFixed(2)
+const currencyFormatterCache = new Map<Currency, Intl.NumberFormat>()
+
+export function formatCurrency(num: number, currency: Currency) {
+    if (currency === "INTD") {
+        if (num >= 1_000_000) return "$" + Math.round(num / 1_000_000) + "M"
+        if (num >= 1_000) return "$" + Math.round(num / 1_000) + "k"
+        if (num >= 10) return "$" + roundSigFig(num, 2)
+        if (num >= 1) return "$" + (Math.round(num * 10) / 10).toFixed(2)
+        else return "$" + num.toFixed(2)
+    }
+
+    let formatter = currencyFormatterCache.get(currency)
+    if (!formatter) {
+        formatter = new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: currency,
+            trailingZeroDisplay: "stripIfInteger",
+            notation: "engineering",
+        })
+        currencyFormatterCache.set(currency, formatter)
+    }
+    return formatter
+        .format(num)
+        .replace(/(\d\d)0?E-3$/, "0.$1")
+        .replace(/E0$/, "")
+        .replace(/E3$/, "k")
+        .replace(/E6$/, "M")
+        .replace(/E9$/, "B")
 }
 
 export function kdeLog(pointsLog2: number[]) {
