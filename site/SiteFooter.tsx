@@ -1,9 +1,6 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faRss } from "@fortawesome/free-solid-svg-icons"
-import {
-    ArchiveMetaInformation,
-    SiteFooterContext,
-} from "@ourworldindata/utils"
+import { ArchiveContext, SiteFooterContext } from "@ourworldindata/types"
 import { viteAssetsForSite } from "./viteUtils.js"
 import { ScriptLoadErrorDetector } from "./NoJSDetector.js"
 import { ABOUT_LINKS, PROD_URL, RSS_FEEDS, SOCIALS } from "./SiteConstants.js"
@@ -19,7 +16,7 @@ interface SiteFooterProps {
     context?: SiteFooterContext
     debug?: boolean
     isPreviewing?: boolean
-    archiveInfo?: ArchiveMetaInformation
+    archiveContext?: ArchiveContext
 }
 
 const linkBaseUrl = IS_ARCHIVE ? PROD_URL : ""
@@ -109,10 +106,15 @@ const FooterLinkColumnsArchive = () => (
 )
 
 export const SiteFooter = (props: SiteFooterProps) => {
+    const archiveContext = props.archiveContext
+    const isOnArchivalPage = archiveContext?.type === "archive-page"
+    const staticAssetMap = isOnArchivalPage
+        ? archiveContext?.assets?.static
+        : undefined
     const scripts: string[] = []
-    if (props.archiveInfo)
+    if (archiveContext)
         scripts.push(
-            `window._OWID_ARCHIVE_INFO = ${JSON.stringify(props.archiveInfo)};`
+            `window._OWID_ARCHIVE_CONTEXT = ${JSON.stringify(archiveContext)};`
         )
 
     scripts.push(
@@ -186,7 +188,7 @@ export const SiteFooter = (props: SiteFooterProps) => {
                         </a>
                     </div>
                 </div>
-                {props.archiveInfo ? (
+                {isOnArchivalPage ? (
                     <FooterLinkColumnsArchive />
                 ) : (
                     <FooterLinkColumnsProd />
@@ -210,11 +212,7 @@ export const SiteFooter = (props: SiteFooterProps) => {
                 </div>
 
                 <div className={SITE_TOOLS_CLASS} />
-                {
-                    viteAssetsForSite({
-                        staticAssetMap: props.archiveInfo?.assets?.static,
-                    }).forFooter
-                }
+                {viteAssetsForSite({ staticAssetMap }).forFooter}
                 <ScriptLoadErrorDetector />
                 <script
                     type="module"

@@ -115,7 +115,7 @@ const explorerConstants = ${serializeJSONForHTML(
         },
         EXPLORER_CONSTANTS_DELIMITER
     )}
-const archiveContext = ${JSON.stringify(archiveContext)};
+const archiveContext = window._OWID_ARCHIVE_CONTEXT
 window.Explorer.renderSingleExplorerOnExplorerPage(
     explorerProgram,
     grapherConfigs,
@@ -152,7 +152,7 @@ window.Explorer.renderSingleExplorerOnExplorerPage(
                 <SiteFooter
                     context={SiteFooterContext.explorerPage}
                     isPreviewing={props.isPreviewing}
-                    archiveInfo={isOnArchivalPage ? archiveContext : undefined}
+                    archiveContext={archiveContext}
                 />
                 <script
                     type="module"

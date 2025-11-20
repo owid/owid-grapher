@@ -162,7 +162,6 @@ export const DataPageV2 = (props: {
                                     datapageData,
                                     faqEntries,
                                     canonicalUrl,
-                                    archiveContext,
                                     tagToSlugMap: minimalTagToSlugMap,
                                     imageMetadata,
                                 }
@@ -187,7 +186,7 @@ export const DataPageV2 = (props: {
                 <SiteFooter
                     context={SiteFooterContext.dataPageV2}
                     isPreviewing={isPreviewing}
-                    archiveInfo={isOnArchivalPage ? archiveContext : undefined}
+                    archiveContext={archiveContext}
                 />
                 <script
                     dangerouslySetInnerHTML={{
