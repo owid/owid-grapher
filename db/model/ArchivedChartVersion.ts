@@ -27,14 +27,24 @@ export async function getLatestArchivedChartVersions(
     >[]
 > {
     const queryBuilder = knex<DbPlainArchivedChartVersion>(
-        ArchivedChartVersionsTableName
+        `${ArchivedChartVersionsTableName} as a1`
     )
-        .select("grapherId", "grapherSlug", "archivalTimestamp", "hashOfInputs")
-        .whereRaw(
-            `(grapherId, archivalTimestamp) IN (SELECT grapherId, MAX(archivalTimestamp) FROM archived_chart_versions a2 GROUP BY grapherId)`
+        .select(
+            "a1.grapherId",
+            "a1.grapherSlug",
+            "a1.archivalTimestamp",
+            "a1.hashOfInputs"
+        )
+        .joinRaw(
+            `-- sql
+            INNER JOIN (
+                SELECT grapherId, MAX(archivalTimestamp) as latestArchivalTimestamp
+                FROM archived_chart_versions
+                GROUP BY grapherId
+            ) a2 ON a1.grapherId = a2.grapherId AND a1.archivalTimestamp = a2.latestArchivalTimestamp`
         )
     if (chartIds) {
-        queryBuilder.whereIn("grapherId", chartIds)
+        queryBuilder.whereIn("a1.grapherId", chartIds)
     }
     return await queryBuilder
 }

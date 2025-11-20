@@ -27,14 +27,19 @@ export async function getLatestArchivedExplorerVersions(
     >[]
 > {
     const queryBuilder = knex<DbPlainArchivedExplorerVersion>(
-        ArchivedExplorerVersionsTableName
+        `${ArchivedExplorerVersionsTableName} as a1`
     )
-        .select("explorerSlug", "archivalTimestamp", "hashOfInputs")
-        .whereRaw(
-            `(explorerSlug, archivalTimestamp) IN (SELECT explorerSlug, MAX(archivalTimestamp) FROM archived_explorer_versions a2 GROUP BY explorerSlug)`
+        .select("a1.explorerSlug", "a1.archivalTimestamp", "a1.hashOfInputs")
+        .joinRaw(
+            `-- sql
+            INNER JOIN (
+                SELECT explorerSlug, MAX(archivalTimestamp) as latestArchivalTimestamp
+                FROM archived_explorer_versions
+                GROUP BY explorerSlug
+            ) a2 ON a1.explorerSlug = a2.explorerSlug AND a1.archivalTimestamp = a2.latestArchivalTimestamp`
         )
     if (slugs) {
-        queryBuilder.whereIn("explorerSlug", slugs)
+        queryBuilder.whereIn("a1.explorerSlug", slugs)
     }
     return await queryBuilder
 }
