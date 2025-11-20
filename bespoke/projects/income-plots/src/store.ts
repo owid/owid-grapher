@@ -8,6 +8,7 @@ import data from "./data/incomeBins.json"
 import { sleep } from "@ourworldindata/utils"
 import { kdeLog, REGION_COLORS } from "./utils/incomePlotUtils.ts"
 import * as R from "remeda"
+import * as Plot from "@observablehq/plot"
 
 export const atomCustomPovertyLine = atom(3)
 
@@ -84,9 +85,21 @@ export const atomKdeDataForYear = atom(async (get) => {
     return kdeData
 })
 
-export const atomLegendEntries = atom(() =>
+// Legend
+const atomEntityColors = atom(() =>
     Object.values(REGION_COLORS).map((color, idx) => ({
         name: Object.keys(REGION_COLORS)[idx],
         color: color,
     }))
 )
+
+export const atomLegendEntries = atomEntityColors
+
+export const atomPlotColorScale = atom<Plot.ScaleOptions>((get) => {
+    const legendEntries = get(atomLegendEntries)
+
+    return {
+        domain: legendEntries.map((entry) => entry.name),
+        range: legendEntries.map((entry) => entry.color),
+    }
+})
