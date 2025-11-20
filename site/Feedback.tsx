@@ -89,11 +89,11 @@ const topicMatchers: SpecialTopicMatcher[] = [
     { regex: translateRegex, topic: SpecialFeedbackTopic.Translation },
     { regex: fundingRegex, topic: SpecialFeedbackTopic.Funding },
     { regex: reusingChartsRegex, topic: SpecialFeedbackTopic.ReusingCharts },
-    { regex: reusingDataRegex, topic: SpecialFeedbackTopic.ReusingData },
     {
         regex: visualizationToolRegex,
         topic: SpecialFeedbackTopic.VisualizationTool,
     },
+    { regex: reusingDataRegex, topic: SpecialFeedbackTopic.ReusingData },
     { regex: logoRegex, topic: SpecialFeedbackTopic.Logo },
     { regex: teachingRegex, topic: SpecialFeedbackTopic.Teaching },
 ]
