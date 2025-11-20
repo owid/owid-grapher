@@ -564,3 +564,20 @@
     height: 0;
     padding-bottom: percentage(1 / $ratio);
 }
+
+// This mixin calculates the width of an item in a flex container given the
+// number of items we want per row. This is useful for situations where we want
+// the benefits of a grid (n items per row) but need to use flexbox for other
+// reasons (e.g. centering the last row of items rather than aligning it to the
+// grid).
+//
+// The calculation is as follows:
+// - We want the size of individual links to be such that we could fit N of them
+//   side by side, with (N-1) gaps in between.
+// - This makes up 100% of the width: N * link width + (N-1) * gap = 100%
+// - Solving for link width: link width = (100% - (N-1) * gap) / N
+@mixin flex-item-width-for-row-of($items-per-row) {
+    width: calc(
+        (100% - (var(--grid-gap) * #{$items-per-row - 1})) / #{$items-per-row}
+    );
+}
