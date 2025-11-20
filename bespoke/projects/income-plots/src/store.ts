@@ -114,13 +114,13 @@ const atomEntityColors = atom(() =>
 
 export const atomLegendEntries = atomEntityColors
 
-export const atomPlotColorScale = atom<Plot.ScaleOptions>((get) => {
+export const atomPlotColorScale = atom((get) => {
     const legendEntries = get(atomLegendEntries)
 
     return {
         domain: legendEntries.map((entry) => entry.name),
         range: legendEntries.map((entry) => entry.color),
-    }
+    } satisfies Plot.ScaleOptions
 })
 
 export const atomHoveredEntity = atom<string | null>(null)
