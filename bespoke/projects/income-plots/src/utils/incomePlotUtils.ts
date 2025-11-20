@@ -1,5 +1,7 @@
 import { roundSigFig } from "@ourworldindata/utils"
 import * as fastKde from "fast-kde"
+import type * as Plot from "@observablehq/plot"
+import { useEffect } from "react"
 
 export function formatCurrency(num: number) {
     if (num >= 10) return "$" + roundSigFig(num, 2)
@@ -19,6 +21,21 @@ export function kdeLog(pointsLog2: number[]) {
         ...p,
         x: Math.pow(2, p.x),
     })) as Array<{ x: number; y: number }>
+}
+
+export const usePlot = (
+    plot: ReturnType<typeof Plot.plot>,
+    containerRef: React.RefObject<HTMLElement | null>
+) => {
+    useEffect(() => {
+        const container = containerRef.current
+        if (!container) return
+
+        container.appendChild(plot)
+
+        // Cleanup when unmounted
+        return () => plot.remove()
+    }, [plot, containerRef])
 }
 
 // copied from CustomSchemes.ts
