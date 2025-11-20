@@ -6,7 +6,7 @@ import {
     kdeLog,
     REGION_COLORS,
 } from "../utils/incomePlotUtils.ts"
-import { customPovertyLineAtom, showCustomPovertyLineAtom } from "../store.ts"
+import { atomCustomPovertyLine, atomShowCustomPovertyLine } from "../store.ts"
 import data from "../data/incomeBins.json"
 import * as R from "remeda"
 
@@ -58,9 +58,9 @@ interface IncomePlotProps {
 
 export function IncomePlot({ width = 1000, height = 600 }: IncomePlotProps) {
     const containerRef = useRef<HTMLDivElement>(null)
-    const [povertyLine, setPovertyLine] = useAtom(customPovertyLineAtom)
+    const [povertyLine, setPovertyLine] = useAtom(atomCustomPovertyLine)
     const [showPovertyLine, setShowPovertyLine] = useAtom(
-        showCustomPovertyLineAtom
+        atomShowCustomPovertyLine
     )
 
     useEffect(() => {
@@ -127,11 +127,11 @@ export function IncomePlot({ width = 1000, height = 600 }: IncomePlotProps) {
             style,
         })
 
-        plot.onclick = (event) => {
-            console.log("click event:", event, plot.value)
+        plot.addEventListener("click", (event) => {
+            if (!plot.value) return
             if (!showPovertyLine) setPovertyLine(plot.value.x.toFixed(2))
             setShowPovertyLine(!showPovertyLine)
-        }
+        })
 
         container.appendChild(plot)
 
