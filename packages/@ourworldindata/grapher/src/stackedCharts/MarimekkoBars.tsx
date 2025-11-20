@@ -128,6 +128,7 @@ export function MarimekkoBars(props: MarimekkoBarsProps): React.ReactElement {
                 !focusColorBin.contains(entityColor?.colorDomainValue)) ||
             (focusColorBin === undefined && hasSelection && !isSelected) ||
             (!isHovered &&
+                !isSelected &&
                 tooltipState?.target !== undefined &&
                 !tooltipState.fading)
 
