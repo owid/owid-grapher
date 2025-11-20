@@ -59,6 +59,10 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this instanceof MissingColumn
     }
 
+    @imemo get isTimeColumn(): boolean {
+        return this instanceof TimeColumn
+    }
+
     @imemo get hasNumberFormatting(): boolean {
         return this instanceof AbstractColumnWithNumberFormatting
     }

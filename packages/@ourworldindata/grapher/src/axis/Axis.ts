@@ -18,7 +18,7 @@ import {
 import { ComparisonLineConfig } from "@ourworldindata/types"
 import { AxisConfig, AxisManager } from "./AxisConfig"
 import { MarkdownTextWrap } from "@ourworldindata/components"
-import { ColumnTypeMap, CoreColumn } from "@ourworldindata/core-table"
+import { CoreColumn } from "@ourworldindata/core-table"
 import {
     DEFAULT_GRAPHER_BOUNDS,
     GRAPHER_FONT_SCALE_10_5,
@@ -422,7 +422,7 @@ abstract class AbstractAxis {
             ticks = ticks.filter((t) => t.value % 1 === 0)
 
         // mark value=0 ticks as solid for non-time columns
-        if (!(this.formatColumn instanceof ColumnTypeMap.Time)) {
+        if (!this.formatColumn?.isTimeColumn) {
             ticks = ticks.map((tick) =>
                 tick.value === 0 ? { ...tick, solid: true } : tick
             )
