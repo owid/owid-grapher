@@ -61,6 +61,7 @@ export function spansToMarkdown(spans: Span[] | undefined): string {
 const CUSTOM_MARKDOWN_COMPONENTS = {
     AllCharts: "AllCharts",
     FeaturedMetrics: "FeaturedMetrics",
+    FeaturedDataInsights: "FeaturedDataInsights",
     Callout: "Callout",
     Chart: "Chart",
     DonorList: "DonorList",
@@ -471,6 +472,9 @@ ${links}`
         })
         .with({ type: "featured-metrics" }, (_): string | undefined =>
             markdownComponent("FeaturedMetrics", {}, exportComponents)
+        )
+        .with({ type: "featured-data-insights" }, (_): string | undefined =>
+            markdownComponent("FeaturedDataInsights", {}, exportComponents)
         )
         .with({ type: "socials" }, (b): string | undefined => {
             return b.links

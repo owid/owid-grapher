@@ -45,6 +45,7 @@ import {
     RawBlockHomepageSearch,
     RawBlockHomepageIntro,
     RawBlockFeaturedMetrics,
+    RawBlockFeaturedDataInsights,
     RawBlockHomepageIntroPost,
     RawBlockLatestDataInsights,
     RawBlockSocials,
@@ -708,6 +709,13 @@ export function enrichedBlockToRawBlock(
             { type: "featured-metrics" },
             (_): RawBlockFeaturedMetrics => ({
                 type: "featured-metrics",
+                value: {},
+            })
+        )
+        .with(
+            { type: "featured-data-insights" },
+            (_): RawBlockFeaturedDataInsights => ({
+                type: "featured-data-insights",
                 value: {},
             })
         )

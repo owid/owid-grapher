@@ -57,6 +57,7 @@ import { ResourcePanel } from "./ResourcePanel.js"
 import { Cta } from "./Cta.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { FeaturedMetrics } from "../../FeaturedMetrics.js"
+import { FeaturedDataInsights } from "../../FeaturedDataInsights.js"
 import { BlockQueryClientProvider } from "./BlockQueryClientProvider.js"
 
 function ArticleBlockInternal({
@@ -825,6 +826,35 @@ function ArticleBlockInternal({
             return (
                 <BlockQueryClientProvider>
                     <FeaturedMetrics
+                        topicName={topicName}
+                        className={layoutClassName}
+                    />
+                </BlockQueryClientProvider>
+            )
+        })
+        .with({ type: "featured-data-insights" }, () => {
+            const layoutClassName = getLayout(
+                "featured-data-insights",
+                containerType
+            )
+            const topicName = tags[0]?.name
+
+            if (!topicName) {
+                return (
+                    <BlockErrorFallback
+                        className={layoutClassName}
+                        error={{
+                            name: `Error in ${block.type}`,
+                            message:
+                                "Featured data insights requires at least one tag on the document.",
+                        }}
+                    />
+                )
+            }
+
+            return (
+                <BlockQueryClientProvider>
+                    <FeaturedDataInsights
                         topicName={topicName}
                         className={layoutClassName}
                     />

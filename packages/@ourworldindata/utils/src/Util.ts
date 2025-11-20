@@ -1803,6 +1803,7 @@ export function traverseEnrichedBlock(
                     "homepage-search",
                     "homepage-intro",
                     "featured-metrics",
+                    "featured-data-insights",
                     "latest-data-insights",
                     "socials",
                     "static-viz"
