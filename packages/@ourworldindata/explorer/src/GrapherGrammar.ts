@@ -24,6 +24,7 @@ import {
     UrlCellDef,
     IndicatorIdsOrEtlPathsCellDef,
     IndicatorIdOrEtlPathCellDef,
+    SlugOrIndicatorIdOrEtlPathCellDef,
     GrapherCellDef,
 } from "./gridLang/GridLangConstants.js"
 import * as R from "remeda"
@@ -265,10 +266,10 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
             omitEmptyStringValues({ sortOrder: parsedValue }),
     },
     sortColumnSlug: {
-        ...SlugDeclarationCellDef,
+        ...SlugOrIndicatorIdOrEtlPathCellDef,
         keyword: "sortColumnSlug",
         description:
-            "This setting is only respected when `sortBy` is set to `column`",
+            "Column slug, variable ID, or catalog path to sort by. This setting is only respected when `sortBy` is set to `column`",
         toGrapherObject: (parsedValue) =>
             omitEmptyStringValues({ sortColumnSlug: parsedValue.toString() }),
     },

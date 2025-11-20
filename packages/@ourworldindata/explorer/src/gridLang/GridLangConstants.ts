@@ -227,6 +227,14 @@ export const IndicatorIdOrEtlPathCellDef: CellDef = {
     requirementsDescription: `Can only contain the characters a-zA-Z0-9-_/#`,
 }
 
+export const SlugOrIndicatorIdOrEtlPathCellDef: CellDef = {
+    keyword: "",
+    cssClass: "SlugOrIndicatorIdOrEtlPath",
+    description: "A column slug, indicator ID, or catalog path.",
+    regex: /^[a-zA-Z0-9-_]+$|^\d+$|^[\w\d_/-]+#[\w\d_/-]+$/,
+    requirementsDescription: `Can be a slug (a-zA-Z0-9-_), an indicator ID (digits), or a catalog path (a-zA-Z0-9-_/#)`,
+}
+
 export const IndicatorIdsOrEtlPathsCellDef: CellDef = {
     keyword: "",
     cssClass: "IndicatorIdOrEtlPath",
