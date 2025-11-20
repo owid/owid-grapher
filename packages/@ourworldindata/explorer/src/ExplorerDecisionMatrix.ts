@@ -152,6 +152,7 @@ export class DecisionMatrix {
         GrapherGrammar.xVariableId.keyword,
         GrapherGrammar.colorVariableId.keyword,
         GrapherGrammar.sizeVariableId.keyword,
+        GrapherGrammar.sortColumnSlug.keyword,
     ]
 
     get allColumnsWithIndicatorIdsOrCatalogPaths() {
