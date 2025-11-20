@@ -43,8 +43,8 @@ export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
                 fill: "region",
                 z: "region",
                 className: "income-plot-chart-area",
-                tip: "xy",
-                title: () => "",
+                // tip: "xy",
+                title: "region",
                 // stroke: "region",
                 // strokeWidth: 1,
                 // strokeOpacity: 1,
@@ -52,22 +52,22 @@ export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
             }),
             Plot.ruleY([0]),
             // Pointer ruler & axis text
-            // Plot.ruleX(
-            //     points,
-            //     Plot.pointerX({ x: "x", stroke: "red", strokeOpacity: 0.15 })
-            // ),
-            // Plot.text(
-            //     points,
-            //     Plot.pointerX({
-            //         x: "x",
-            //         text: (d) => formatCurrency(d.x),
-            //         fill: "red",
-            //         dy: 9,
-            //         frameAnchor: "bottom",
-            //         lineAnchor: "top",
-            //         stroke: "white",
-            //     })
-            // ),
+            Plot.ruleX(
+                points,
+                Plot.pointerX({ x: "x", stroke: "red", strokeOpacity: 0.15 })
+            ),
+            Plot.text(
+                points,
+                Plot.pointerX({
+                    x: "x",
+                    text: (d) => formatCurrency(d.x * timeIntervalFactor),
+                    fill: "red",
+                    dy: 9,
+                    frameAnchor: "bottom",
+                    lineAnchor: "top",
+                    stroke: "white",
+                })
+            ),
         ]
 
         // Add poverty line if enabled
@@ -80,7 +80,8 @@ export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
                 }),
                 Plot.text([povertyLine], {
                     x: (d) => d,
-                    text: () => `Poverty line: ${formatCurrency(povertyLine)}`,
+                    text: () =>
+                        `Poverty line: ${formatCurrency(povertyLine * timeIntervalFactor)}`,
                     fill: "#d73027",
                     dy: -10,
                     frameAnchor: "top-left",
@@ -122,9 +123,20 @@ export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
             setShowPovertyLine(!showPovertyLine)
         })
 
-        plot.addEventListener("mousemove", () => {
-            setHoveredEntity(plot.value?.region ?? null)
-        })
+        // Attach hover listeners directly to the areas.
+        // Using plot.value doesn't work well here, because they are using a radius
+        // around the plotted data points, which makes it so that "center" of an area
+        // sometimes doesn't show the hover state.
+        plot.querySelectorAll(".income-plot-chart-area path").forEach(
+            (area) => {
+                const region = area.querySelector("title")?.textContent
+                if (!region) return
+
+                area.addEventListener("mousemove", () =>
+                    setHoveredEntity(region)
+                )
+            }
+        )
 
         plot.addEventListener("mouseleave", () => {
             setHoveredEntity(null)
