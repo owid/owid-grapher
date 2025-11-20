@@ -1,7 +1,11 @@
-import { useEffect, useRef } from "react"
+import { useMemo, useRef } from "react"
 import { useAtom, useAtomValue } from "jotai"
 import * as Plot from "@observablehq/plot"
-import { formatCurrency, REGION_COLORS } from "../utils/incomePlotUtils.ts"
+import {
+    formatCurrency,
+    REGION_COLORS,
+    usePlot,
+} from "../utils/incomePlotUtils.ts"
 import {
     atomCustomPovertyLine,
     atomKdeDataForYear,
@@ -33,10 +37,7 @@ export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
         atomShowCustomPovertyLine
     )
 
-    useEffect(() => {
-        const container = containerRef.current
-        if (!container) return
-
+    const marks = useMemo(() => {
         const marks = [
             Plot.areaY(points, {
                 x: "x",
@@ -82,7 +83,10 @@ export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
                 })
             )
         }
+        return marks
+    }, [points, povertyLine, showPovertyLine])
 
+    const plot = useMemo(() => {
         const plot = Plot.plot({
             x: {
                 type: "log",
@@ -103,12 +107,17 @@ export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
             if (!showPovertyLine) setPovertyLine(plot.value.x.toFixed(2))
             setShowPovertyLine(!showPovertyLine)
         })
+        return plot
+    }, [
+        marks,
+        width,
+        height,
+        setPovertyLine,
+        showPovertyLine,
+        setShowPovertyLine,
+    ])
 
-        container.appendChild(plot)
-
-        // Cleanup function
-        return () => plot.remove()
-    }, [povertyLine, showPovertyLine, width, height])
+    usePlot(plot, containerRef)
 
     return (
         <>
