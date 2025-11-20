@@ -363,7 +363,7 @@ export function getGrapherTableWithRelevantColumns(
     // Extract table from Grapher
     const fullTable = grapherState.inputTable
     const filteredTable = grapherState.isOnTableTab
-        ? grapherState.tableForDisplay
+        ? grapherState.filteredTableForDisplay
         : grapherState.transformedTable
     const table = options?.shouldUseFilteredTable ? filteredTable : fullTable
 

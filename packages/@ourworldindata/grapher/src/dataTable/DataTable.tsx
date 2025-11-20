@@ -42,7 +42,6 @@ import {
 import * as R from "remeda"
 import { makeSelectionArray } from "../chart/ChartUtils"
 import { isEntityRegionType } from "../core/EntitiesByRegionType"
-import { match } from "ts-pattern"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
     DataTableColumnKey,
@@ -129,7 +128,7 @@ export class DataTable extends React.Component<DataTableProps> {
     }
 
     @computed get table(): OwidTable {
-        let table = this.manager.tableForDisplay
+        let table = this.manager.filteredTableForDisplay
 
         // make sure the given table doesn't contain any rows outside of the time range
         table = table.filterByTimeRange(
@@ -137,28 +136,7 @@ export class DataTable extends React.Component<DataTableProps> {
             this.manager.closestTimelineMaxTime ?? Infinity
         )
 
-        // apply the region type filter if given
-        const keepEntityNames = this.filteredEntityNames
-        if (keepEntityNames && keepEntityNames.length > 0)
-            table = table.filterByEntityNames(keepEntityNames)
-
         return table
-    }
-
-    @computed private get filteredEntityNames(): EntityName[] | undefined {
-        const { filter } = this.tableConfig
-
-        if (isEntityRegionType(filter))
-            return this.manager.entityNamesByRegionType?.get(filter)
-
-        return match(filter)
-            .with("all", () => undefined) // no filter
-            .with("selection", () =>
-                this.selectionArray.hasSelection
-                    ? this.selectionArray.selectedEntityNames
-                    : undefined
-            )
-            .exhaustive()
     }
 
     @computed private get tableState(): DataTableState {

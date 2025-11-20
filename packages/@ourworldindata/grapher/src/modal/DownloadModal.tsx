@@ -62,7 +62,7 @@ export interface DownloadModalManager {
     externalQueryParams?: QueryParams
     inputTable?: OwidTable
     transformedTable?: OwidTable
-    tableForDisplay?: OwidTable
+    filteredTableForDisplay?: OwidTable
     yColumnsFromDimensionsOrSlugsOrAuto?: CoreColumn[]
     detailsOrderedByReference?: string[]
     activeModal?: GrapherModal
@@ -946,7 +946,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
             fullTable: props.manager.inputTable ?? BlankOwidTable(),
             filteredTable:
                 (props.manager.isOnTableTab
-                    ? props.manager.tableForDisplay
+                    ? props.manager.filteredTableForDisplay
                     : props.manager.transformedTable) ?? BlankOwidTable(),
             activeColumnSlugs: props.manager.activeColumnSlugs,
         }
@@ -958,7 +958,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
         props.manager.isOnTableTab,
         props.manager.inputTable,
         props.manager.transformedTable,
-        props.manager.tableForDisplay,
+        props.manager.filteredTableForDisplay,
         props.manager.activeColumnSlugs,
     ])
 
