@@ -1,4 +1,5 @@
 import cx from "classnames"
+import { useContext, useState } from "react"
 import {
     BreadcrumbItem,
     CITATION_ID,
@@ -8,12 +9,16 @@ import {
     formatDate,
 } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faBook } from "@fortawesome/free-solid-svg-icons"
+import { faBook, faClockRotateLeft } from "@fortawesome/free-solid-svg-icons"
 import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons"
 import Image from "./Image.js"
 import { Breadcrumbs } from "../../Breadcrumb/Breadcrumb.js"
 import { breadcrumbColorForCoverColor } from "../utils.js"
 import { Byline } from "./Byline.js"
+import { VersionsDrawer } from "../../archive/VersionsDrawer.js"
+import { useArchiveVersions } from "../../archive/versions.js"
+import { useWindowQueryParams } from "../../hooks.js"
+import { DocumentContext } from "../DocumentContext.js"
 
 function OwidArticleHeader({
     content,
@@ -31,6 +36,31 @@ function OwidArticleHeader({
         : undefined
 
     const breadcrumbColor = breadcrumbColorForCoverColor(content["cover-color"])
+    const { archiveContext } = useContext(DocumentContext)
+    const isOnArchivePage = archiveContext?.type === "archive-page"
+    const versionsFileUrl =
+        archiveContext?.versionsFileUrl ??
+        (isOnArchivePage
+            ? archiveContext.archiveNavigation.versionsFileUrl
+            : undefined)
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+    const [hasRequestedVersions, setHasRequestedVersions] = useState(false)
+    const { data: versions, status } = useArchiveVersions(versionsFileUrl, {
+        enabled: hasRequestedVersions,
+    })
+    const queryStr = useWindowQueryParams()
+    let liveUrl: string | undefined
+    if (isOnArchivePage) {
+        liveUrl = archiveContext?.archiveNavigation.liveUrl + queryStr
+    } else {
+        liveUrl =
+            typeof window !== "undefined" ? window.location.href : undefined
+    }
+
+    function handleDrawerOpenChange(isOpen: boolean) {
+        setIsDrawerOpen(isOpen)
+        if (isOpen) setHasRequestedVersions(true)
+    }
 
     return (
         <>
@@ -79,28 +109,42 @@ function OwidArticleHeader({
                 ) : null}
                 <div className="centered-article-header__meta-container col-start-2 span-cols-6 span-md-cols-6 col-md-start-1 grid grid-cols-2 ">
                     <div
-                        className={
+                        className={cx(
+                            "centered-article-header__meta-container-left",
                             isDeprecated
                                 ? "span-cols-2"
                                 : "span-cols-1 span-sm-cols-2"
-                        }
+                        )}
                     >
                         {content.authors.length > 0 && (
-                            <div className="centered-article-header__byline">
+                            <div>
                                 <Byline names={content.authors} />
                             </div>
                         )}
-                        <div className="centered-article-header__dateline body-3-medium-italic">
+                        <div>
                             {content.dateline ||
                                 (publishedAt && formatDate(publishedAt))}
                         </div>
+                        {versionsFileUrl && (
+                            <div>
+                                <button
+                                    className="centered-article-header__browse-versions-button"
+                                    onClick={() => handleDrawerOpenChange(true)}
+                                    type="button"
+                                    data-track-note="gdoc-header-browse-versions"
+                                >
+                                    <FontAwesomeIcon icon={faClockRotateLeft} />
+                                    Browse past versions
+                                </button>
+                            </div>
+                        )}
                     </div>
                     {!isDeprecated && (
                         <div className="centered-article-header__links span-cols-1 span-sm-cols-2">
                             {!content["hide-citation"] && (
                                 <a
                                     href="#article-citation"
-                                    className="body-1-regular display-block"
+                                    className="display-block"
                                 >
                                     <FontAwesomeIcon icon={faBook} />
                                     Cite this article
@@ -109,7 +153,7 @@ function OwidArticleHeader({
 
                             <a
                                 href="#article-licence"
-                                className="body-3-medium display-block"
+                                className="display-block"
                             >
                                 <FontAwesomeIcon icon={faCreativeCommons} />
                                 Reuse our work freely
@@ -118,6 +162,22 @@ function OwidArticleHeader({
                     )}
                 </div>
             </header>
+            {/* NOTE: We should render the versions drawer only once per page,
+            but since the header and the gdoc body are hydrated separately, they
+            don't have a common parent where we could share the drawer state and
+            render it only once. Data fetching is deduplicated because they
+            share the query client. */}
+            <VersionsDrawer
+                isOpen={isDrawerOpen}
+                onOpenChange={handleDrawerOpenChange}
+                versions={versions}
+                status={status}
+                queryString={queryStr}
+                isLive={!isOnArchivePage}
+                liveUrl={liveUrl}
+                currentArchivalDate={archiveContext?.archivalDate}
+                archiveUrl={archiveContext?.archiveUrl}
+            />
         </>
     )
 }

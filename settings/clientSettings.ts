@@ -29,6 +29,9 @@ export const BAKED_BASE_URL: string =
     process.env.BAKED_BASE_URL ??
     `http://${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}`
 
+export const ARCHIVE_BASE_URL: string | null =
+    process.env.ARCHIVE_BASE_URL || null
+
 export const BAKED_GRAPHER_URL: string =
     process.env.BAKED_GRAPHER_URL ?? `${BAKED_BASE_URL}/grapher`
 
