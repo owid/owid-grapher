@@ -59,7 +59,7 @@ export const atomRawDataForYear = atom(async (get, { signal }) => {
         }))
     const sortedDataForYear = R.sortBy(
         dataForYear,
-        R.prop("region"),
+        [R.prop("region"), "desc"],
         R.prop("pop")
     )
     return sortedDataForYear
