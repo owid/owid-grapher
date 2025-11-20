@@ -1,3 +1,5 @@
+import * as fastKde from "fast-kde"
+
 export const INT_POVERTY_LINE = 3.0
 
 export const AVAILABLE_YEARS_RANGE = [1990, 2025] as const
@@ -14,3 +16,7 @@ export interface LegendEntry {
 }
 
 export type LegendEntries = LegendEntry[]
+
+export const KDE_BANDWIDTH = 0.15
+export const KDE_EXTENT = [0.25, 1000].map(Math.log2)
+export const KDE_NUM_BINS = 200
