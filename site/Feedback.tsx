@@ -52,15 +52,29 @@ class Feedback {
 }
 
 const vaccinationRegex = /vaccination|vaccine|doses|vaccinat/i
-const licensingRegex = /license|licensing|copyright|permission|permit/i
+const licensingRegex = /license|licence|licensing|copyright|permission|permit/i
 const citationRegex = /cite|citation|citing|reference/i
 const translateRegex = /translat/i
+const fundingRegex = /\b(fund|funds|funding|funded|funder)\b/i
+const reusingChartsRegex = /(use|reuse|using|reusing)\s+(chart|image|picture)/i
+const reusingDataRegex =
+    /(use|reuse|using|reusing|utilize|utilizing|utilise|utilising)\s+data/i
+const visualizationToolRegex =
+    /grapher|grapher\s+reusability|(use|reuse|using|reusing)\s+grapher|data\s+viz\s+tool|data\s+visuali[sz]ation\s+tool|visuali[sz]ation\s+software/i
+const logoRegex = /logo/i
+const teachingRegex = /teach|teaching|teacher|teachers/i
 
 enum SpecialFeedbackTopic {
     Vaccination,
     Licensing,
     Citation,
     Translation,
+    Funding,
+    ReusingCharts,
+    ReusingData,
+    VisualizationTool,
+    Logo,
+    Teaching,
 }
 
 interface SpecialTopicMatcher {
@@ -73,6 +87,15 @@ const topicMatchers: SpecialTopicMatcher[] = [
     { regex: licensingRegex, topic: SpecialFeedbackTopic.Licensing },
     { regex: citationRegex, topic: SpecialFeedbackTopic.Citation },
     { regex: translateRegex, topic: SpecialFeedbackTopic.Translation },
+    { regex: fundingRegex, topic: SpecialFeedbackTopic.Funding },
+    { regex: reusingChartsRegex, topic: SpecialFeedbackTopic.ReusingCharts },
+    { regex: reusingDataRegex, topic: SpecialFeedbackTopic.ReusingData },
+    {
+        regex: visualizationToolRegex,
+        topic: SpecialFeedbackTopic.VisualizationTool,
+    },
+    { regex: logoRegex, topic: SpecialFeedbackTopic.Logo },
+    { regex: teachingRegex, topic: SpecialFeedbackTopic.Teaching },
 ]
 
 const vaccineNotice = (
@@ -82,7 +105,7 @@ const vaccineNotice = (
         target="_blank"
         rel="noopener"
     >
-        Covid Vaccines Questions
+        COVID-19 vaccine questions
     </a>
 )
 
@@ -93,7 +116,7 @@ const copyrightNotice = (
         target="_blank"
         rel="noopener"
     >
-        Copyright Queries
+        Copyright questions
     </a>
 )
 const citationNotice = (
@@ -103,7 +126,7 @@ const citationNotice = (
         target="_blank"
         rel="noopener"
     >
-        How to Cite our Work
+        How to cite our work
     </a>
 )
 const translateNotice = (
@@ -116,12 +139,78 @@ const translateNotice = (
         Translating our work
     </a>
 )
+const fundingNotice = (
+    <a
+        key="fundingNotice"
+        href={`${BAKED_BASE_URL}/faqs#how-are-you-funded`}
+        target="_blank"
+        rel="noopener"
+    >
+        How are you funded?
+    </a>
+)
+const reusingChartsNotice = (
+    <a
+        key="reusingChartsNotice"
+        href={`${BAKED_BASE_URL}/faqs#can-i-reuse-or-republish-your-charts`}
+        target="_blank"
+        rel="noopener"
+    >
+        Reusing our charts
+    </a>
+)
+const reusingDataNotice = (
+    <a
+        key="reusingDataNotice"
+        href={`${BAKED_BASE_URL}/faqs#can-i-reuse-or-republish-your-data`}
+        target="_blank"
+        rel="noopener"
+    >
+        Reusing our data
+    </a>
+)
+const visualizationToolNotice = (
+    <a
+        key="visualizationToolNotice"
+        href={`${BAKED_BASE_URL}/faqs#what-software-do-you-use-for-your-visualizations-and-can-i-use-it`}
+        target="_blank"
+        rel="noopener"
+    >
+        Our visualization tool
+    </a>
+)
+const logoNotice = (
+    <a
+        key="logoNotice"
+        href={`${BAKED_BASE_URL}/faqs#can-i-use-the-our-world-in-data-name-or-logo`}
+        target="_blank"
+        rel="noopener"
+    >
+        Can I use your logo?
+    </a>
+)
+const teachingNotice = (
+    <a
+        key="teachingNotice"
+        href={`${BAKED_BASE_URL}/faqs#can-i-use-your-work-for-teaching`}
+        target="_blank"
+        rel="noopener"
+    >
+        Teaching with OWID
+    </a>
+)
 
 const topicNotices = new Map<SpecialFeedbackTopic, React.ReactElement>([
     [SpecialFeedbackTopic.Vaccination, vaccineNotice],
     [SpecialFeedbackTopic.Citation, citationNotice],
     [SpecialFeedbackTopic.Licensing, copyrightNotice],
     [SpecialFeedbackTopic.Translation, translateNotice],
+    [SpecialFeedbackTopic.Funding, fundingNotice],
+    [SpecialFeedbackTopic.ReusingCharts, reusingChartsNotice],
+    [SpecialFeedbackTopic.ReusingData, reusingDataNotice],
+    [SpecialFeedbackTopic.VisualizationTool, visualizationToolNotice],
+    [SpecialFeedbackTopic.Logo, logoNotice],
+    [SpecialFeedbackTopic.Teaching, teachingNotice],
 ])
 
 interface FeedbackFormProps {
@@ -216,32 +305,25 @@ export class FeedbackForm extends React.Component<FeedbackFormProps> {
             )
         }
 
-        const notices = specialTopic
-            ? topicNotices.get(specialTopic)
-            : undefined
+        const notices =
+            specialTopic !== undefined
+                ? topicNotices.get(specialTopic)
+                : undefined
         return (
             <React.Fragment>
                 <div className="header">Leave us feedback</div>
                 <div className="notice">
                     <p>
                         <strong>Have a question?</strong> You may find an answer
-                        in:
-                        <br />
+                        in{" "}
                         <a
                             href={`${BAKED_BASE_URL}/faqs`}
                             target="_blank"
                             rel="noopener"
                         >
-                            <strong>General FAQ</strong>
-                        </a>{" "}
-                        or{" "}
-                        <a
-                            href={`${BAKED_BASE_URL}/covid-vaccinations#frequently-asked-questions`}
-                            target="_blank"
-                            rel="noopener"
-                        >
-                            <strong>Vaccinations FAQ</strong>
+                            <strong>FAQs</strong>
                         </a>
+                        .
                     </p>
                 </div>
                 <div className="formBody">
