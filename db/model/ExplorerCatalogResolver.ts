@@ -29,11 +29,38 @@ export const transformExplorerProgramToResolveCatalogPaths = async (
         [...requiredCatalogPaths],
         knex
     )
+
     const unresolvedCatalogPaths = new Set(
         [...requiredCatalogPaths].filter(
             (path) => !catalogPathToIndicatorIdMap.get(path)
         )
     )
+
+    const transformedProgram = resolveExplorerCatalogPaths(
+        program,
+        catalogPathToIndicatorIdMap
+    )
+
+    // Log unresolved catalog paths if any
+    if (unresolvedCatalogPaths.size > 0) {
+        const error = new Error(
+            `Not all catalog paths resolved to indicator ids for the explorer with slug "${program.slug}": ${[...unresolvedCatalogPaths].join(", ")}.`
+        )
+        if (errorReporter) {
+            await errorReporter(error)
+        } else {
+            console.error(error.message)
+        }
+    }
+
+    return { program: transformedProgram, unresolvedCatalogPaths }
+}
+
+export const resolveExplorerCatalogPaths = (
+    program: ExplorerProgram,
+    catalogPathToIndicatorIdMap: Map<string, number | null>
+): ExplorerProgram => {
+    const { decisionMatrix } = program
 
     const colSlugsToUpdate =
         decisionMatrix.allColumnsWithIndicatorIdsOrCatalogPaths.map(
@@ -41,7 +68,6 @@ export const transformExplorerProgramToResolveCatalogPaths = async (
         )
     // In the decision matrix table, replace any catalog paths with their corresponding indicator ids
     // If a catalog path is not found, it will be left as is
-    const missingCatalogPaths: string[] = []
     const newDecisionMatrixTable =
         decisionMatrix.tableWithOriginalColumnNames.replaceCells(
             colSlugsToUpdate,
@@ -55,30 +81,11 @@ export const transformExplorerProgramToResolveCatalogPaths = async (
                                 ?.toString() ?? catalogPath
                     )
 
-                    const unresolvedCatalogPaths = catalogPaths.filter(
-                        (path, index) => path === indicatorIds[index]
-                    )
-                    if (unresolvedCatalogPaths.length > 0) {
-                        missingCatalogPaths.push(...unresolvedCatalogPaths)
-                    }
-
                     return indicatorIds.join(" ")
                 }
                 return val
             }
         )
-
-    // Log unresolved catalog paths if any
-    if (missingCatalogPaths.length > 0) {
-        const error = new Error(
-            `Not all catalog paths resolved to indicator ids for the explorer with slug "${program.slug}": ${missingCatalogPaths.join(", ")}.`
-        )
-        if (errorReporter) {
-            await errorReporter(error)
-        } else {
-            console.error(error.message)
-        }
-    }
 
     // Write the result to the "graphers" block
     const grapherBlockLine = program.getRowMatchingWords(
@@ -166,5 +173,5 @@ export const transformExplorerProgramToResolveCatalogPaths = async (
         newProgram.updateBlock(lineNoInProgram, newColumnDefsTable.toMatrix())
     })
 
-    return { program: newProgram.clone, unresolvedCatalogPaths }
+    return newProgram.clone
 }
