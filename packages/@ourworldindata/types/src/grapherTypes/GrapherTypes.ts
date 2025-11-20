@@ -383,6 +383,7 @@ export interface ColorSchemeInterface {
     singleColorScale?: boolean
     isDistinct?: boolean
     displayName?: string
+    colorMap?: Record<string, Color> // Optional mapping from categorical values to specific colors
 }
 
 // Note: TypeScript does not currently support extending or merging enums. Ideally we would have 2 enums here (one for custom and one for brewer) and then just merge them.

@@ -657,3 +657,180 @@ describe("index", () => {
         expect(index2.get("red usa")?.length).toEqual(1)
     })
 })
+
+describe("dropRowsWithErrorValuesForAnyColumn", () => {
+    it("drops rows with error values in any of the specified columns", () => {
+        const table = new CoreTable(
+            [
+                { country: "USA", gdp: 100, pop: 300 },
+                {
+                    country: "France",
+                    gdp: ErrorValueTypes.BlankButShouldBeNumber,
+                    pop: 50,
+                },
+                {
+                    country: "Germany",
+                    gdp: 200,
+                    pop: ErrorValueTypes.BlankButShouldBeNumber,
+                },
+                {
+                    country: "Canada",
+                    gdp: ErrorValueTypes.BlankButShouldBeNumber,
+                    pop: ErrorValueTypes.BlankButShouldBeNumber,
+                },
+                { country: "UK", gdp: 150, pop: 60 },
+            ],
+            [
+                { slug: "gdp", type: ColumnTypeNames.Numeric },
+                { slug: "pop", type: ColumnTypeNames.Numeric },
+            ]
+        )
+
+        const filtered = table.dropRowsWithErrorValuesForAnyColumn([
+            "gdp",
+            "pop",
+        ])
+
+        expect(filtered.numRows).toEqual(2)
+        expect(filtered.get("country").values).toEqual(["USA", "UK"])
+        expect(filtered.get("gdp").values).toEqual([100, 150])
+        expect(filtered.get("pop").values).toEqual([300, 60])
+    })
+
+    it("only considers specified columns when filtering", () => {
+        const table = new CoreTable(
+            [
+                {
+                    country: "USA",
+                    gdp: 100,
+                    pop: 300,
+                    births: ErrorValueTypes.BlankButShouldBeNumber,
+                },
+                {
+                    country: "France",
+                    gdp: 80,
+                    pop: 50,
+                    births: ErrorValueTypes.BlankButShouldBeNumber,
+                },
+            ],
+            [
+                { slug: "gdp", type: ColumnTypeNames.Numeric },
+                { slug: "pop", type: ColumnTypeNames.Numeric },
+                { slug: "births", type: ColumnTypeNames.Numeric },
+            ]
+        )
+
+        const filtered = table.dropRowsWithErrorValuesForAnyColumn([
+            "gdp",
+            "pop",
+        ])
+
+        // Should keep both rows since gdp and pop have no errors, even though births does
+        expect(filtered.numRows).toEqual(2)
+        expect(filtered.get("country").values).toEqual(["USA", "France"])
+    })
+
+    it("handles empty column array", () => {
+        const table = new CoreTable([
+            { country: "USA", gdp: 100 },
+            { country: "France", gdp: ErrorValueTypes.BlankButShouldBeNumber },
+        ])
+
+        const filtered = table.dropRowsWithErrorValuesForAnyColumn([])
+
+        // With no columns specified, no rows are dropped
+        expect(filtered.numRows).toEqual(2)
+    })
+})
+
+describe("dropRowsWithErrorValuesForAllColumns", () => {
+    it("drops rows only when all specified columns have error values", () => {
+        const table = new CoreTable(
+            [
+                { country: "USA", gdp: 100, pop: 300 },
+                {
+                    country: "France",
+                    gdp: ErrorValueTypes.BlankButShouldBeNumber,
+                    pop: 50,
+                },
+                {
+                    country: "Germany",
+                    gdp: 200,
+                    pop: ErrorValueTypes.BlankButShouldBeNumber,
+                },
+                {
+                    country: "Canada",
+                    gdp: ErrorValueTypes.BlankButShouldBeNumber,
+                    pop: ErrorValueTypes.BlankButShouldBeNumber,
+                },
+                { country: "UK", gdp: 150, pop: 60 },
+            ],
+            [
+                { slug: "gdp", type: ColumnTypeNames.Numeric },
+                { slug: "pop", type: ColumnTypeNames.Numeric },
+            ]
+        )
+
+        const filtered = table.dropRowsWithErrorValuesForAllColumns([
+            "gdp",
+            "pop",
+        ])
+
+        // Should keep all rows except Canada (which has errors in both columns)
+        expect(filtered.numRows).toEqual(4)
+        expect(filtered.get("country").values).toEqual([
+            "USA",
+            "France",
+            "Germany",
+            "UK",
+        ])
+    })
+
+    it("handles empty column array", () => {
+        const table = new CoreTable([
+            { country: "USA", gdp: 100 },
+            { country: "France", gdp: ErrorValueTypes.BlankButShouldBeNumber },
+        ])
+
+        const filtered = table.dropRowsWithErrorValuesForAllColumns([])
+
+        // With no columns specified, all rows are dropped
+        expect(filtered.numRows).toEqual(0)
+    })
+
+    it("only considers specified columns when filtering", () => {
+        const table = new CoreTable(
+            [
+                {
+                    country: "USA",
+                    gdp: ErrorValueTypes.BlankButShouldBeNumber,
+                    pop: ErrorValueTypes.BlankButShouldBeNumber,
+                    births: 1000,
+                    other: 1,
+                },
+                {
+                    country: "France",
+                    gdp: 80,
+                    pop: 50,
+                    births: ErrorValueTypes.BlankButShouldBeNumber,
+                    other: 2,
+                },
+            ],
+            [
+                { slug: "gdp", type: ColumnTypeNames.Numeric },
+                { slug: "pop", type: ColumnTypeNames.Numeric },
+                { slug: "births", type: ColumnTypeNames.Numeric },
+                { slug: "other", type: ColumnTypeNames.Numeric },
+            ]
+        )
+
+        const filtered = table.dropRowsWithErrorValuesForAllColumns([
+            "gdp",
+            "pop",
+        ])
+
+        // Should drop USA (both gdp and pop have errors) but keep France
+        expect(filtered.numRows).toEqual(1)
+        expect(filtered.get("country").values).toEqual(["France"])
+    })
+})
