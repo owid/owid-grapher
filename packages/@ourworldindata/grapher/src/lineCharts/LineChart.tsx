@@ -347,7 +347,8 @@ export class LineChart
         const titleAnnotation = this.xAxis.label ? `(${this.xAxis.label})` : ""
 
         const columns = [formatColumn]
-        if (hasColorScale) columns.push(colorColumn)
+        if (hasColorScale && colorColumn.slug !== formatColumn.slug)
+            columns.push(colorColumn)
 
         const subtitle =
             isRelativeMode && startTime
