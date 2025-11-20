@@ -1,21 +1,13 @@
 import { useMemo, useRef } from "react"
 import { useAtom, useAtomValue } from "jotai"
 import * as Plot from "@observablehq/plot"
-import {
-    formatCurrency,
-    REGION_COLORS,
-    usePlot,
-} from "../utils/incomePlotUtils.ts"
+import { formatCurrency, usePlot } from "../utils/incomePlotUtils.ts"
 import {
     atomCustomPovertyLine,
     atomKdeDataForYear,
+    atomPlotColorScale,
     atomShowCustomPovertyLine,
 } from "../store.ts"
-
-const regionsScale: Plot.ScaleOptions = {
-    domain: Object.keys(REGION_COLORS),
-    range: Object.values(REGION_COLORS),
-}
 
 const style = {
     fontFamily:
@@ -35,6 +27,7 @@ export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
     const [showPovertyLine, setShowPovertyLine] = useAtom(
         atomShowCustomPovertyLine
     )
+    const plotColorScale = useAtomValue(atomPlotColorScale)
 
     const marks = useMemo(() => {
         const marks = [
@@ -96,7 +89,7 @@ export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
             y: { axis: false },
             height,
             width,
-            color: regionsScale,
+            color: plotColorScale,
             marks,
             style,
         })
@@ -114,6 +107,7 @@ export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
         setPovertyLine,
         showPovertyLine,
         setShowPovertyLine,
+        plotColorScale,
     ])
 
     usePlot(plot, containerRef)
