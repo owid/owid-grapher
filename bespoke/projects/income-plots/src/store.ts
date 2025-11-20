@@ -124,3 +124,4 @@ export const atomPlotColorScale = atom<Plot.ScaleOptions>((get) => {
 })
 
 export const atomHoveredEntity = atom<string | null>(null)
+export const atomHoveredX = atom<number | null>(null)
