@@ -7,3 +7,10 @@ export const TIME_INTERVALS = ["daily", "monthly", "yearly"] as const
 export type TimeInterval = (typeof TIME_INTERVALS)[number]
 
 export const TIME_INTERVAL_FACTORS = [1, 365 / 12, 365] as const
+
+export interface LegendEntry {
+    name: string
+    color: string
+}
+
+export type LegendEntries = LegendEntry[]
