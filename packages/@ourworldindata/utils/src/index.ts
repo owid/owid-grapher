@@ -271,6 +271,7 @@ export {
     THUMBNAIL_WIDTH,
     LARGE_THUMBNAIL_WIDTH,
     LARGEST_IMAGE_WIDTH,
+    appendImageSizeSuffix,
     getSizes,
     generateSrcSet,
     getFilenameWithoutExtension,
