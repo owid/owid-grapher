@@ -131,10 +131,10 @@
         gap: 16px;
 
         padding-bottom: 8px; // 8px padding + 8px gap
+        padding-top: 16px;
 
         + .download-modal__config-list {
             border-top: $ruler-border;
-            padding-top: 16px;
         }
 
         // Radio label
@@ -169,9 +169,6 @@
     }
 
     .download-modal__api-urls {
-        border-top: $ruler-border;
-        padding-top: 16px;
-
         display: flex;
         flex-direction: column;
         gap: 16px;

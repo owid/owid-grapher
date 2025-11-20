@@ -172,6 +172,7 @@ import {
     EntityRegionTypeGroup,
     groupEntityNamesByRegionType,
     EntityNamesByRegionType,
+    isEntityRegionType,
 } from "./EntitiesByRegionType.js"
 import {
     getEntityNamesParam,
@@ -957,6 +958,34 @@ export class GrapherState {
 
         return table
     }
+
+    @computed get filteredTableForDisplay(): OwidTable {
+        let table = this.tableForDisplay
+        const { filter } = this.dataTableConfig
+
+        const availableEntities = table.availableEntityNames
+
+        // Determine which entities should be visible based on the filter
+        const visibleEntities = match(filter)
+            .with("all", () => availableEntities)
+            .with("selection", () =>
+                this.selection.hasSelection
+                    ? this.selection.selectedEntityNames
+                    : availableEntities
+            )
+            .when(isEntityRegionType, (filter) => {
+                const regionNames = this.entityNamesByRegionType.get(filter)
+                return regionNames ?? availableEntities
+            })
+            .exhaustive()
+
+        // Apply entity filter if necessary
+        if (visibleEntities.length < availableEntities.length)
+            table = table.filterByEntityNames(visibleEntities)
+
+        return table
+    }
+
     @computed get tableForSelection(): OwidTable {
         // This table specifies which entities can be selected in the charts EntitySelectorModal.
         // It should contain all entities that can be selected, and none more.

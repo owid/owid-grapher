@@ -6,6 +6,7 @@ import { observer } from "mobx-react"
 import {
     Bounds,
     canWriteToClipboard,
+    formatValue,
     getOriginAttributionFragments,
     getPhraseForProcessingLevel,
     triggerDownloadFromBlob,
@@ -61,7 +62,7 @@ export interface DownloadModalManager {
     externalQueryParams?: QueryParams
     inputTable?: OwidTable
     transformedTable?: OwidTable
-    tableForDisplay?: OwidTable
+    filteredTableForDisplay?: OwidTable
     yColumnsFromDimensionsOrSlugsOrAuto?: CoreColumn[]
     detailsOrderedByReference?: string[]
     activeModal?: GrapherModal
@@ -848,6 +849,20 @@ const ApiAndCodeExamplesSection = (props: {
                     </p>
                 </div>
 
+                <section className="download-modal__api-urls">
+                    <div>
+                        <h4 className="grapher_body-2-medium">
+                            Data URL (CSV format)
+                        </h4>
+                        <CodeSnippet code={csvUrl} />
+                    </div>
+                    <div>
+                        <h4 className="grapher_body-2-medium">
+                            Metadata URL (JSON format)
+                        </h4>
+                        <CodeSnippet code={metadataUrl} />
+                    </div>
+                </section>
                 <section className="download-modal__config-list">
                     <RadioButton
                         label="Download full data, including all entities and time points"
@@ -891,20 +906,6 @@ const ApiAndCodeExamplesSection = (props: {
                         </div>
                     </section>
                 )}
-                <section className="download-modal__api-urls">
-                    <div>
-                        <h4 className="grapher_body-2-medium">
-                            Data URL (CSV format)
-                        </h4>
-                        <CodeSnippet code={csvUrl} />
-                    </div>
-                    <div>
-                        <h4 className="grapher_body-2-medium">
-                            Metadata URL (JSON format)
-                        </h4>
-                        <CodeSnippet code={metadataUrl} />
-                    </div>
-                </section>
             </div>
 
             <CodeExamplesBlock csvUrl={csvUrl} metadataUrl={metadataUrl} />
@@ -945,7 +946,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
             fullTable: props.manager.inputTable ?? BlankOwidTable(),
             filteredTable:
                 (props.manager.isOnTableTab
-                    ? props.manager.tableForDisplay
+                    ? props.manager.filteredTableForDisplay
                     : props.manager.transformedTable) ?? BlankOwidTable(),
             activeColumnSlugs: props.manager.activeColumnSlugs,
         }
@@ -957,7 +958,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
         props.manager.isOnTableTab,
         props.manager.inputTable,
         props.manager.transformedTable,
-        props.manager.tableForDisplay,
+        props.manager.filteredTableForDisplay,
         props.manager.activeColumnSlugs,
     ])
 
@@ -1037,6 +1038,16 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
 
     const firstYColDef = yColumns?.[0]?.def as OwidColumnDef | undefined
 
+    const fullDataDescription = `Includes all entities and time points`
+    const filteredDataDescription = `Includes only the entities and time points currently visible in the chart`
+
+    const fullTableRowCountSnippet = makeNumberOfRowsSnippet(
+        downloadCtx.fullTable.numRows
+    )
+    const filteredTableRowCountSnippet = makeNumberOfRowsSnippet(
+        downloadCtx.filteredTable.numRows
+    )
+
     return (
         <>
             <SourceAndCitationSection table={props.manager.inputTable} />
@@ -1048,7 +1059,9 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                 <div>
                     <DownloadButton
                         title="Download full data"
-                        description="Includes all entities and time points."
+                        description={
+                            fullDataDescription + fullTableRowCountSnippet
+                        }
                         icon={<DownloadIconFullDataset />}
                         onClick={() => onDownloadClick(CsvDownloadType.Full)}
                         tracking={
@@ -1058,7 +1071,10 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                     />
                     <DownloadButton
                         title="Download displayed data"
-                        description="Includes only the entities and time points currently visible in the chart."
+                        description={
+                            filteredDataDescription +
+                            filteredTableRowCountSnippet
+                        }
                         icon={<DownloadIconSelected />}
                         onClick={() =>
                             onDownloadClick(CsvDownloadType.CurrentSelection)
@@ -1138,4 +1154,10 @@ function Callout(props: CalloutProps): React.ReactElement {
             </p>
         </div>
     )
+}
+
+function makeNumberOfRowsSnippet(numRows: number): string {
+    if (numRows <= 0) return " (empty)"
+    if (numRows === 1) return " (1 row)"
+    return ` (${formatValue(numRows, { numDecimalPlaces: 0 })} rows)`
 }
