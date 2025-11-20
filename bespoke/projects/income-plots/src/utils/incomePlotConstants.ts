@@ -19,4 +19,4 @@ export type LegendEntries = LegendEntry[]
 
 export const KDE_BANDWIDTH = 0.15
 export const KDE_EXTENT = [0.25, 1000].map(Math.log2)
-export const KDE_NUM_BINS = 200
+export const KDE_NUM_BINS = 512
