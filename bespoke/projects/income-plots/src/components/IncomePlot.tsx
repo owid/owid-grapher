@@ -25,7 +25,7 @@ interface IncomePlotProps {
     height?: number
 }
 
-export function IncomePlot({ width = 1000, height = 600 }: IncomePlotProps) {
+export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
     const containerRef = useRef<HTMLDivElement>(null)
     const points = useAtomValue(atomKdeDataForYear)
     const [povertyLine, setPovertyLine] = useAtom(atomCustomPovertyLine)
@@ -42,6 +42,7 @@ export function IncomePlot({ width = 1000, height = 600 }: IncomePlotProps) {
                 x: "x",
                 y: "y",
                 fill: "region",
+                fillOpacity: 0.8,
             }),
             Plot.ruleY([0]),
             // Pointer ruler & axis text
@@ -97,7 +98,7 @@ export function IncomePlot({ width = 1000, height = 600 }: IncomePlotProps) {
             style,
         })
 
-        plot.addEventListener("click", (event) => {
+        plot.addEventListener("click", () => {
             if (!plot.value) return
             if (!showPovertyLine) setPovertyLine(plot.value.x.toFixed(2))
             setShowPovertyLine(!showPovertyLine)
