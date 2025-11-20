@@ -5,7 +5,6 @@ import { IncomePlotControlsRow } from "./IncomePlotControlsRow.tsx"
 export const App = () => {
     return (
         <div>
-            <h1>Income Distribution Visualization</h1>
             <Suspense fallback={<div>Loading plot...</div>}>
                 <IncomePlot />
             </Suspense>
