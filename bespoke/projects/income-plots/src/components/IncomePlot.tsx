@@ -3,13 +3,14 @@ import { useAtom, useAtomValue } from "jotai"
 import * as Plot from "@observablehq/plot"
 import { formatCurrency, usePlot } from "../utils/incomePlotUtils.ts"
 import {
+    atomCombinedFactor,
+    atomCurrentCurrency,
     atomCustomPovertyLine,
     atomHoveredEntity,
     atomHoveredX,
     atomKdeDataForYearGroupedByRegion,
     atomPlotColorScale,
     atomShowCustomPovertyLine,
-    atomTimeIntervalFactor,
 } from "../store.ts"
 import { PLOT_HEIGHT, PLOT_WIDTH } from "../utils/incomePlotConstants.ts"
 
@@ -37,32 +38,34 @@ export function IncomePlot({
     const plotColorScale = useAtomValue(atomPlotColorScale)
     const [hoveredEntity, setHoveredEntity] = useAtom(atomHoveredEntity)
     const [hoveredX, setHoveredX] = useAtom(atomHoveredX)
-    const timeIntervalFactor = useAtomValue(atomTimeIntervalFactor)
+    const combinedFactor = useAtomValue(atomCombinedFactor)
+    const currentCurrency = useAtomValue(atomCurrentCurrency)
 
     const hasHoveredEntity = hoveredEntity !== null
 
     const marks = useMemo(() => {
         const marks = [
+            // Background series, always rendered at 0.3 opacity
             Plot.areaY(points, {
                 x: "x",
                 y: "y",
                 fill: "region",
                 z: "region",
                 className: "income-plot-chart-area",
-                // tip: "xy",
                 title: "region",
                 // stroke: "region",
                 // strokeWidth: 1,
                 // strokeOpacity: 1,
                 fillOpacity: 0.3,
             }),
+            // Foreground series - often times only rendering the hovered
+            // entity or x position
             Plot.areaY(points, {
                 x: "x",
                 y: "y",
                 fill: "region",
                 z: "region",
                 className: "income-plot-chart-area--highlighted",
-                // tip: "xy",
                 title: "region",
                 fillOpacity: { value: "region", scale: "opacity" },
             }),
@@ -76,7 +79,8 @@ export function IncomePlot({
                 points,
                 Plot.pointerX({
                     x: "x",
-                    text: (d) => formatCurrency(d.x * timeIntervalFactor),
+                    text: (d) =>
+                        formatCurrency(d.x * combinedFactor, currentCurrency),
                     fill: "red",
                     dy: 9,
                     frameAnchor: "bottom",
@@ -97,7 +101,7 @@ export function IncomePlot({
                 Plot.text([povertyLine], {
                     x: (d) => d,
                     text: () =>
-                        `Poverty line: ${formatCurrency(povertyLine * timeIntervalFactor)}`,
+                        `Poverty line: ${formatCurrency(povertyLine * combinedFactor, currentCurrency)}`,
                     fill: "#d73027",
                     dy: -10,
                     frameAnchor: "top-left",
@@ -106,7 +110,7 @@ export function IncomePlot({
             )
         }
         return marks
-    }, [points, showPovertyLine, timeIntervalFactor, povertyLine])
+    }, [points, showPovertyLine, combinedFactor, currentCurrency, povertyLine])
 
     const plot = useMemo(() => {
         const plot = Plot.plot({
@@ -114,9 +118,8 @@ export function IncomePlot({
                 label: null,
                 type: "log",
                 grid: true,
-                transform: (d) => d * timeIntervalFactor,
-                tickFormat: formatCurrency,
-                // label: `Income or consumption per day (int-$)`,
+                transform: (d) => d * combinedFactor,
+                tickFormat: (d) => formatCurrency(d, currentCurrency),
             },
             y: { axis: false, insetTop: 10 },
             opacity: {
@@ -180,7 +183,7 @@ export function IncomePlot({
         height,
         width,
         marks,
-        timeIntervalFactor,
+        combinedFactor,
         hasHoveredEntity,
         hoveredEntity,
         setHoveredX,
@@ -212,13 +215,13 @@ export function IncomePlot({
                 highlighted.style.clipPath = `none`
             } else {
                 const clipX = hoverRightThreshold
-                    ? xScale.apply(hoverRightThreshold * timeIntervalFactor) -
+                    ? xScale.apply(hoverRightThreshold * combinedFactor) -
                       xRange[0]
                     : 0
                 highlighted.style.clipPath = `xywh(0 0 ${clipX}px 100%)`
             }
         }
-    }, [plot, hoverRightThreshold, timeIntervalFactor])
+    }, [plot, hoverRightThreshold, combinedFactor])
 
     return (
         <>
