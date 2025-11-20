@@ -208,12 +208,13 @@ export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
                 highlighted.style.clipPath = `none`
             } else {
                 const clipX = hoverRightThreshold
-                    ? xScale.apply(hoverRightThreshold) - xRange[0]
+                    ? xScale.apply(hoverRightThreshold * timeIntervalFactor) -
+                      xRange[0]
                     : 0
                 highlighted.style.clipPath = `xywh(0 0 ${clipX}px 100%)`
             }
         }
-    }, [plot, hoverRightThreshold])
+    }, [plot, hoverRightThreshold, timeIntervalFactor])
 
     return (
         <>
