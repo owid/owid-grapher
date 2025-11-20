@@ -82,7 +82,26 @@ export const atomKdeDataForYear = atom(async (get) => {
             y: kde.y * common.pop,
         }))
     })
+
     return kdeData
+})
+
+export const atomKdeDataForYearGroupedByRegion = atom(async (get) => {
+    const kdeData = await get(atomKdeDataForYear)
+
+    const transformed = R.mapValues(
+        R.groupBy(kdeData, (d) => `${d.region}-${d.x}`),
+        (kdes) => {
+            const first = kdes[0]
+            return {
+                ...first,
+                country: null,
+                pop: R.sumBy(kdes, (d) => d.pop),
+                y: R.sumBy(kdes, (d) => d.y),
+            }
+        }
+    )
+    return Object.values(transformed)
 })
 
 // Legend
