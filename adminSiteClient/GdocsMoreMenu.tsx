@@ -252,9 +252,9 @@ function DeleteModal({
                         <Form.Item
                             name="includeArchiveLink"
                             valuePropName="checked"
-                            extra="Adds a paragraphs with automatically generated link to the Internet Archive's Wayback Machine."
+                            extra="Adds a paragraph with a link to the latest archived version of the article with a fallback to the Internet Archive's Wayback Machine."
                         >
-                            <Checkbox>Include Wayback Machine link</Checkbox>
+                            <Checkbox>Include archive link</Checkbox>
                         </Form.Item>
                         <fieldset>
                             <legend>Related prominent link</legend>

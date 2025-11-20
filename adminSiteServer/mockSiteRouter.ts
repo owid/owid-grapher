@@ -1,5 +1,6 @@
 import express, { Router } from "express"
 import path from "path"
+import * as R from "remeda"
 import {
     renderFrontPage,
     renderGdocsPageBySlug,
@@ -78,6 +79,7 @@ import {
 import { getMinimalGdocPostsByIds } from "../db/model/Gdoc/GdocBase.js"
 import { getMultiDimDataPageBySlug } from "../db/model/MultiDimDataPage.js"
 import { getParsedDodsDictionary } from "../db/model/Dod.js"
+import { getLatestArchivedPostPageVersionsIfEnabled } from "../db/model/ArchivedPostVersion.js"
 import { TopicTag } from "../site/DataInsightsIndexPage.js"
 import { getSlugForTopicTag } from "../baker/GrapherBakingUtils.js"
 import { SEARCH_BASE_PATH } from "../site/search/searchUtils.js"
@@ -621,8 +623,26 @@ getPlainRouteWithROTransaction(
             res.status(404).send(renderNotFoundPage())
             return
         }
-        const attachments = await getTombstoneAttachments(trx, tombstone)
-        res.status(404).send(await renderGdocTombstone(tombstone, attachments))
+        const archivedVersions =
+            await getLatestArchivedPostPageVersionsIfEnabled(trx, [
+                tombstone.gdocId,
+            ])
+        const pageData: TombstonePageData = {
+            ...R.pick(tombstone, [
+                "slug",
+                "reason",
+                "includeArchiveLink",
+                "relatedLinkUrl",
+                "relatedLinkTitle",
+                "relatedLinkDescription",
+                "relatedLinkThumbnail",
+            ]),
+            archiveUrl: tombstone.includeArchiveLink
+                ? archivedVersions[tombstone.gdocId]?.archiveUrl
+                : undefined,
+        }
+        const attachments = await getTombstoneAttachments(trx, pageData)
+        res.status(404).send(renderGdocTombstone(pageData, attachments))
     }
 )
 
