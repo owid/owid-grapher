@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import { QueryClientProvider, useQuery } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import {
     DataInsightHit,
     SearchDataInsightResponse,
@@ -8,21 +8,22 @@ import {
 } from "@ourworldindata/types"
 import { createTopicFilter } from "./search/searchUtils.js"
 import { queryDataInsights, searchQueryKeys } from "./search/queries.js"
-import {
-    getLiteSearchClient,
-    getSearchQueryClient,
-} from "./search/searchClients.js"
+import { getLiteSearchClient } from "./search/searchClients.js"
 import { SearchDataInsightsResultsSkeleton } from "./search/SearchDataInsightsResultsSkeleton.js"
 import { SearchDataInsightHit } from "./search/SearchDataInsightHit.js"
 import { Button } from "@ourworldindata/components"
 
 const MAX_DATA_INSIGHTS_RESULTS = 1000 // setting to maximum allowed to get all results
 
-type FeaturedDataInsightsProps = {
+export type FeaturedDataInsightsProps = {
     topicName: string
+    className?: string
 }
 
-const FeaturedDataInsights = ({ topicName }: FeaturedDataInsightsProps) => {
+export const FeaturedDataInsights = ({
+    topicName,
+    className,
+}: FeaturedDataInsightsProps) => {
     const liteSearchClient = getLiteSearchClient()
 
     const searchState = useMemo<SearchState>(
@@ -59,25 +60,25 @@ const FeaturedDataInsights = ({ topicName }: FeaturedDataInsightsProps) => {
     if (!isLoading && totalResults === 0) return null
 
     return (
-        <section className="featured-data-insights col-start-2 span-cols-12">
-            <h1 className="featured-data-insights__title h1-semibold">
+        <section className={className}>
+            <h1 className="article-block__featured-data-insights__title h1-semibold">
                 Data insights on {topicName}
             </h1>
             {isLoading ? (
                 <SearchDataInsightsResultsSkeleton />
             ) : (
                 <>
-                    <div className="featured-data-insights__hits">
+                    <div className="article-block__featured-data-insights__hits">
                         {hits.map((hit: DataInsightHit) => (
                             <SearchDataInsightHit
                                 key={hit.objectID}
-                                className="featured-data-insights__hit"
+                                className="article-block__featured-data-insights__hit"
                                 hit={hit}
                                 onClick={() => undefined}
                             />
                         ))}
                     </div>
-                    <div className="featured-data-insights__see-all">
+                    <div className="article-block__featured-data-insights__see-all">
                         <Button
                             theme="solid-vermillion"
                             text="See all data insights"
@@ -88,17 +89,5 @@ const FeaturedDataInsights = ({ topicName }: FeaturedDataInsightsProps) => {
                 </>
             )}
         </section>
-    )
-}
-
-export const FeaturedDataInsightsWrapper = (
-    props: FeaturedDataInsightsProps
-) => {
-    const queryClient = getSearchQueryClient()
-
-    return (
-        <QueryClientProvider client={queryClient}>
-            <FeaturedDataInsights {...props} />
-        </QueryClientProvider>
     )
 }
