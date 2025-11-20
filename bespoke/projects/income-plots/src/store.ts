@@ -4,11 +4,16 @@ import {
     TIME_INTERVAL_FACTORS,
     TIME_INTERVALS,
 } from "./utils/incomePlotConstants.ts"
+import data from "./data/incomeBins.json"
+import { sleep } from "@ourworldindata/utils"
+import { kdeLog } from "./utils/incomePlotUtils.ts"
+import * as R from "remeda"
 
 export const atomCustomPovertyLine = atom(3)
 
 export const atomShowCustomPovertyLine = atom(false)
 
+// Basic atoms related to data-display controls
 export const atomCurrentYear = atom<number>(DEFAULT_YEAR)
 
 const atomTimeIntervalIdx = atom(0)
@@ -28,4 +33,53 @@ export const atomTimeInterval = atom(
 export const atomTimeIntervalFactor = atom((get) => {
     const idx = get(atomTimeIntervalIdx)
     return TIME_INTERVAL_FACTORS[idx]
+})
+
+// Data
+export const atomRawDataForYear = atom(async (get, { signal }) => {
+    const year = get(atomCurrentYear)
+
+    // TODO pull this into a shared type definition
+    const rawData = data as Array<{
+        country: string
+        region: string
+        year: number
+        pop: number
+        avgsLog2Times100: number[]
+    }>
+
+    await sleep(500)
+    if (signal.aborted) return []
+
+    const dataForYear = rawData
+        .filter((d) => d.year === year)
+        .map((d) => ({
+            ...d,
+            avgsLog2: d.avgsLog2Times100.map((v) => v / 100),
+        }))
+    const sortedDataForYear = R.sortBy(
+        dataForYear,
+        R.prop("region"),
+        R.prop("pop")
+    )
+    return sortedDataForYear
+})
+
+export const atomKdeDataForYear = atom(async (get) => {
+    const rawData = await get(atomRawDataForYear)
+    const kdeData = rawData.flatMap((record) => {
+        const common = {
+            country: record.country,
+            region: record.region,
+            year: record.year,
+            pop: record.pop,
+        }
+        const kdeRes = kdeLog(record.avgsLog2)
+        return kdeRes.map((kde) => ({
+            ...common,
+            ...kde,
+            y: kde.y * common.pop,
+        }))
+    })
+    return kdeData
 })
