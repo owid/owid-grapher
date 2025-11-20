@@ -458,6 +458,9 @@ ${links}`
                 .filter((item) => item !== "")
                 .join("\n")
         })
+        .with({ type: "featured-metrics" }, (_): string | undefined => {
+            return ""
+        })
         .with({ type: "socials" }, (b): string | undefined => {
             return b.links
                 .map((link) => `* [${link.text}](${link.url})`)
