@@ -11,6 +11,7 @@ import {
     atomShowCustomPovertyLine,
     atomTimeIntervalFactor,
 } from "../store.ts"
+import { PLOT_HEIGHT, PLOT_WIDTH } from "../utils/incomePlotConstants.ts"
 
 const style = {
     fontFamily:
@@ -23,7 +24,10 @@ interface IncomePlotProps {
     height?: number
 }
 
-export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
+export function IncomePlot({
+    width = PLOT_WIDTH,
+    height = PLOT_HEIGHT,
+}: IncomePlotProps) {
     const containerRef = useRef<HTMLDivElement>(null)
     const points = useAtomValue(atomKdeDataForYearGroupedByRegion)
     const [povertyLine, setPovertyLine] = useAtom(atomCustomPovertyLine)
@@ -113,7 +117,7 @@ export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
                 tickFormat: formatCurrency,
                 // label: `Income or consumption per day (int-$)`,
             },
-            y: { axis: false },
+            y: { axis: false, insetTop: 10 },
             opacity: {
                 type: "ordinal",
                 domain: plotColorScale.domain,
