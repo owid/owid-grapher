@@ -15,7 +15,6 @@ import {
 const regionsScale: Plot.ScaleOptions = {
     domain: Object.keys(REGION_COLORS),
     range: Object.values(REGION_COLORS),
-    legend: true,
 }
 
 const style = {

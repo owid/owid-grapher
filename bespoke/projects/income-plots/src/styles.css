@@ -1,0 +1,37 @@
+:root {
+    --gray-100: #2d2d2d;
+    --blue-20: #dbe5f0;
+    --legend-swatch-size: 12px;
+}
+
+* {
+    font-family:
+        Lato, "Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif;
+}
+
+.income-plot-legend {
+    font-size: 12px;
+    width: max-content;
+
+    display: grid;
+    grid-template-columns: max-content 150px;
+    column-gap: 5px;
+    row-gap: 2px;
+
+    color: var(--gray-100);
+
+    padding: 16px;
+    border: 1px solid var(--blue-20);
+
+    .legend-entry {
+        display: grid;
+        grid-column: 1 / -1;
+        grid-template-columns: subgrid;
+    }
+
+    .legend-entry-swatch {
+        height: var(--legend-swatch-size);
+        width: var(--legend-swatch-size);
+        justify-self: end;
+    }
+}
