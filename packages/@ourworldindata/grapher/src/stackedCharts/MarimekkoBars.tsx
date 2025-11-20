@@ -126,7 +126,7 @@ export function MarimekkoBars(props: MarimekkoBarsProps): React.ReactElement {
             item.focus.background ||
             (focusColorBin !== undefined &&
                 !focusColorBin.contains(entityColor?.colorDomainValue)) ||
-            (hasSelection && !isSelected) ||
+            (focusColorBin === undefined && hasSelection && !isSelected) ||
             (!isHovered &&
                 tooltipState?.target !== undefined &&
                 !tooltipState.fading)
