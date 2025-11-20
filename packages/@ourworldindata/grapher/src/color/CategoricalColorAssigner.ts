@@ -88,6 +88,8 @@ export class CategoricalColorAssigner {
     assign(id: CategoryId): Color {
         let color = this.colorMap.get(id)
         if (color === undefined) color = this.autoColorMapCache.get(id)
+        if (color === undefined && this.colorScheme.colorMap)
+            color = this.colorScheme.colorMap[id]
         if (color === undefined) color = this.leastUsedColor
         this.autoColorMapCache.set(id, color)
         return color
