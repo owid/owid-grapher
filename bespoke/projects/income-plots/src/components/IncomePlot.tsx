@@ -4,6 +4,7 @@ import * as Plot from "@observablehq/plot"
 import { formatCurrency, usePlot } from "../utils/incomePlotUtils.ts"
 import {
     atomCustomPovertyLine,
+    atomHoveredEntity,
     atomKdeDataForYear,
     atomPlotColorScale,
     atomShowCustomPovertyLine,
@@ -28,6 +29,9 @@ export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
         atomShowCustomPovertyLine
     )
     const plotColorScale = useAtomValue(atomPlotColorScale)
+    const [hoveredEntity, setHoveredEntity] = useAtom(atomHoveredEntity)
+
+    const hasHoveredEntity = hoveredEntity !== null
 
     const marks = useMemo(() => {
         const marks = [
@@ -35,26 +39,33 @@ export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
                 x: "x",
                 y: "y",
                 fill: "region",
-                fillOpacity: 0.8,
+                z: "region",
+                className: "income-plot-chart-area",
+                tip: "xy",
+                title: () => "",
+                // stroke: "region",
+                // strokeWidth: 1,
+                // strokeOpacity: 1,
+                fillOpacity: { value: "region", scale: "opacity" },
             }),
             Plot.ruleY([0]),
             // Pointer ruler & axis text
-            Plot.ruleX(
-                points,
-                Plot.pointerX({ x: "x", stroke: "red", strokeOpacity: 0.15 })
-            ),
-            Plot.text(
-                points,
-                Plot.pointerX({
-                    x: "x",
-                    text: (d) => formatCurrency(d.x),
-                    fill: "red",
-                    dy: 9,
-                    frameAnchor: "bottom",
-                    lineAnchor: "top",
-                    stroke: "white",
-                })
-            ),
+            // Plot.ruleX(
+            //     points,
+            //     Plot.pointerX({ x: "x", stroke: "red", strokeOpacity: 0.15 })
+            // ),
+            // Plot.text(
+            //     points,
+            //     Plot.pointerX({
+            //         x: "x",
+            //         text: (d) => formatCurrency(d.x),
+            //         fill: "red",
+            //         dy: 9,
+            //         frameAnchor: "bottom",
+            //         lineAnchor: "top",
+            //         stroke: "white",
+            //     })
+            // ),
         ]
 
         // Add poverty line if enabled
@@ -76,7 +87,7 @@ export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
             )
         }
         return marks
-    }, [points, povertyLine, showPovertyLine])
+    }, [points, showPovertyLine, povertyLine])
 
     const plot = useMemo(() => {
         const plot = Plot.plot({
@@ -87,6 +98,14 @@ export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
                 // label: `Income or consumption per day (int-$)`,
             },
             y: { axis: false },
+            opacity: {
+                type: "ordinal",
+                domain: plotColorScale.domain,
+                range: plotColorScale.domain?.map((entity) => {
+                    if (!hasHoveredEntity) return 0.8
+                    return entity === hoveredEntity ? 0.9 : 0.4
+                }),
+            },
             height,
             width,
             color: plotColorScale,
@@ -99,22 +118,33 @@ export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
             if (!showPovertyLine) setPovertyLine(plot.value.x.toFixed(2))
             setShowPovertyLine(!showPovertyLine)
         })
+
+        plot.addEventListener("mousemove", () => {
+            setHoveredEntity(plot.value?.region ?? null)
+        })
+
+        plot.addEventListener("mouseleave", () => {
+            setHoveredEntity(null)
+        })
         return plot
     }, [
-        marks,
-        width,
-        height,
-        setPovertyLine,
-        showPovertyLine,
-        setShowPovertyLine,
         plotColorScale,
+        height,
+        width,
+        marks,
+        hasHoveredEntity,
+        hoveredEntity,
+        showPovertyLine,
+        setPovertyLine,
+        setShowPovertyLine,
+        setHoveredEntity,
     ])
 
     usePlot(plot, containerRef)
 
     return (
         <>
-            <div ref={containerRef}></div>
+            <div className="income-plot-chart" ref={containerRef}></div>
         </>
     )
 }
