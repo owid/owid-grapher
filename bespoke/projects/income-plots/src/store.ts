@@ -61,7 +61,7 @@ export const atomRawDataForYear = atom(async (get, { signal }) => {
     const sortedDataForYear = R.sortBy(
         dataForYear,
         [R.prop("region"), "desc"],
-        R.prop("pop")
+        [R.prop("pop"), "desc"]
     )
     return sortedDataForYear
 })
@@ -103,3 +103,5 @@ export const atomPlotColorScale = atom<Plot.ScaleOptions>((get) => {
         range: legendEntries.map((entry) => entry.color),
     }
 })
+
+export const atomHoveredEntity = atom<string | null>(null)
