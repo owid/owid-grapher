@@ -117,6 +117,8 @@ import {
     EnrichedBlockHomepageIntro,
     RawBlockHomepageIntro,
     EnrichedBlockHomepageIntroPost,
+    RawBlockFeaturedMetrics,
+    EnrichedBlockFeaturedMetrics,
     RawSocialLink,
     RawBlockSocials,
     EnrichedBlockSocials,
@@ -263,6 +265,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "latest-data-insights" }, parseLatestDataInsights)
         .with({ type: "pill-row" }, parsePillRow)
         .with({ type: "homepage-search" }, parseHomepageSearch)
+        .with({ type: "featured-metrics" }, parseFeaturedMetrics)
         .with({ type: "homepage-intro" }, parseHomepageIntro)
         .with({ type: "socials" }, parseSocials)
         .exhaustive()
@@ -2592,6 +2595,15 @@ function parseHomepageSearch(
 ): EnrichedBlockHomepageSearch {
     return {
         type: "homepage-search",
+        parseErrors: [],
+    }
+}
+
+function parseFeaturedMetrics(
+    _: RawBlockFeaturedMetrics
+): EnrichedBlockFeaturedMetrics {
+    return {
+        type: "featured-metrics",
         parseErrors: [],
     }
 }

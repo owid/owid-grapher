@@ -45,6 +45,7 @@ import {
     RawBlockExplorerTiles,
     RawBlockPillRow,
     RawBlockHomepageSearch,
+    RawBlockFeaturedMetrics,
     RawBlockLatestDataInsights,
     RawBlockSocials,
     RawBlockPeople,
@@ -938,6 +939,13 @@ function* rawBlockHomepageIntroToArchieMLString(
     yield "{}"
 }
 
+function* rawBlockFeaturedMetricsToArchieMLString(
+    _: RawBlockFeaturedMetrics
+): Generator<string, void, undefined> {
+    yield "{.featured-metrics}"
+    yield "{}"
+}
+
 function* rawBlockSocialsToArchieMLString(
     block: RawBlockSocials
 ): Generator<string, void, undefined> {
@@ -1051,6 +1059,10 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
             rawBlockHomepageSearchToArchieMLString
         )
         .with({ type: "homepage-intro" }, rawBlockHomepageIntroToArchieMLString)
+        .with(
+            { type: "featured-metrics" },
+            rawBlockFeaturedMetricsToArchieMLString
+        )
         .with({ type: "socials" }, rawBlockSocialsToArchieMLString)
         .exhaustive()
     yield* content

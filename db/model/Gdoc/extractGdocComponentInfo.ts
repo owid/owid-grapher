@@ -361,6 +361,7 @@ export function enumerateGdocComponentsWithoutChildren(
                         "pill-row",
                         "homepage-search",
                         "homepage-intro",
+                        "featured-metrics",
                         "latest-data-insights",
                         "aside",
                         "text",

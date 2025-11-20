@@ -321,6 +321,8 @@ export {
     type EnrichedBlockPillRow,
     type RawBlockHomepageSearch,
     type EnrichedBlockHomepageSearch,
+    type RawBlockFeaturedMetrics,
+    type EnrichedBlockFeaturedMetrics,
     type RawBlockSocials,
     type EnrichedBlockSocials,
     SocialLinkType,
