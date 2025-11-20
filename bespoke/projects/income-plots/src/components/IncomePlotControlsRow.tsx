@@ -1,5 +1,9 @@
 import { useAtom } from "jotai"
-import { atomCurrentYear, atomTimeInterval } from "../store.ts"
+import {
+    atomCurrentCurrency,
+    atomCurrentYear,
+    atomTimeInterval,
+} from "../store.ts"
 import * as R from "remeda"
 import { useEffect, useState } from "react"
 import { AVAILABLE_YEARS_RANGE } from "../utils/incomePlotConstants.ts"
@@ -8,6 +12,7 @@ export const IncomePlotControlsRow = () => {
     const [timeInterval, nextTimeInterval] = useAtom(atomTimeInterval)
     const [currentYear, setCurrentYear] = useAtom(atomCurrentYear)
     const [currentYearLocal, setCurrentYearLocal] = useState(currentYear)
+    const [currentCurrency, nextCurrency] = useAtom(atomCurrentCurrency)
 
     useEffect(() => {
         if (currentYearLocal !== currentYear) {
@@ -32,6 +37,10 @@ export const IncomePlotControlsRow = () => {
                 onChange={(e) => setCurrentYearLocal(Number(e.target.value))}
                 style={{ width: 50 }}
             />
+            &nbsp;in&nbsp;
+            <button onClick={nextCurrency}>
+                {R.toUpperCase(currentCurrency)}
+            </button>
         </div>
     )
 }

@@ -1,5 +1,7 @@
 import { atom } from "jotai"
 import {
+    CURRENCIES,
+    CURRENCY_FACTORS,
     DEFAULT_YEAR,
     TIME_INTERVAL_FACTORS,
     TIME_INTERVALS,
@@ -123,5 +125,29 @@ export const atomPlotColorScale = atom((get) => {
     } satisfies Plot.ScaleOptions
 })
 
+// Hover state of the chart
 export const atomHoveredEntity = atom<string | null>(null)
 export const atomHoveredX = atom<number | null>(null)
+
+// Currency
+const atomCurrenctCurrencyIdx = atom(0)
+export const atomCurrentCurrency = atom(
+    (get) => {
+        const idx = get(atomCurrenctCurrencyIdx)
+        return CURRENCIES[idx]
+    },
+    (get, set) => {
+        set(atomCurrenctCurrencyIdx, (idx) => (idx + 1) % CURRENCIES.length)
+    }
+)
+
+export const atomCurrentCurrencyFactor = atom((get) => {
+    const currency = get(atomCurrentCurrency)
+    return CURRENCY_FACTORS[currency]
+})
+
+export const atomCombinedFactor = atom((get) => {
+    const timeIntervalFactor = get(atomTimeIntervalFactor)
+    const currencyFactor = get(atomCurrentCurrencyFactor)
+    return timeIntervalFactor * currencyFactor
+})
