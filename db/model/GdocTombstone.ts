@@ -6,6 +6,7 @@ export async function getTombstones(
 ): Promise<
     Pick<
         DbPlainPostGdocTombstone,
+        | "gdocId"
         | "id"
         | "slug"
         | "reason"
@@ -21,6 +22,7 @@ export async function getTombstones(
         `-- sql
         SELECT
             id,
+            gdocId,
             slug,
             reason,
             includeArchiveLink,
@@ -38,6 +40,7 @@ export async function getTombstoneBySlug(
 ): Promise<
     | Pick<
           DbPlainPostGdocTombstone,
+          | "gdocId"
           | "slug"
           | "reason"
           | "includeArchiveLink"
@@ -52,6 +55,7 @@ export async function getTombstoneBySlug(
         knex,
         `-- sql
         SELECT
+            gdocId,
             slug,
             reason,
             includeArchiveLink,

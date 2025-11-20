@@ -641,6 +641,11 @@ export class SiteBaker {
         if (!this.bakeSteps.has("gdocTombstones")) return
         this.progressBar.tick({ name: "Baking Google doc tombstones" })
         const tombstones = await getTombstones(knex)
+        const archivedPostVersions =
+            await getLatestArchivedPostPageVersionsIfEnabled(
+                knex,
+                tombstones.map((t) => t.gdocId)
+            )
 
         for (const tombstone of tombstones) {
             const attachments = await this.getPrefetchedGdocAttachments(knex)
@@ -656,8 +661,13 @@ export class SiteBaker {
                     )
                 }
             }
+            const { gdocId: _gdocId, ...rest } = tombstone
+            const pageData: TombstonePageData = {
+                ...rest,
+                archiveUrl: archivedPostVersions[tombstone.gdocId]?.archiveUrl,
+            }
             try {
-                await this.bakeOwidGdocTombstone(tombstone, attachments)
+                await this.bakeOwidGdocTombstone(pageData, attachments)
             } catch (e) {
                 await logErrorAndMaybeCaptureInSentry(
                     new Error(
