@@ -270,7 +270,7 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
         description:
             "This setting is only respected when `sortBy` is set to `column`",
         toGrapherObject: (parsedValue) =>
-            omitEmptyStringValues({ sortColumnSlug: parsedValue }),
+            omitEmptyStringValues({ sortColumnSlug: parsedValue.toString() }),
     },
     stackMode: {
         ...EnumCellDef,
