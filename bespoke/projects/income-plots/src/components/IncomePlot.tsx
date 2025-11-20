@@ -1,15 +1,17 @@
-import { useMemo, useRef } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import { useAtom, useAtomValue } from "jotai"
 import * as Plot from "@observablehq/plot"
 import { formatCurrency, usePlot } from "../utils/incomePlotUtils.ts"
 import {
     atomCustomPovertyLine,
     atomHoveredEntity,
+    atomHoveredX,
     atomKdeDataForYearGroupedByRegion,
     atomPlotColorScale,
     atomShowCustomPovertyLine,
     atomTimeIntervalFactor,
 } from "../store.ts"
+import * as R from "remeda"
 
 const style = {
     fontFamily:
@@ -31,6 +33,7 @@ export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
     )
     const plotColorScale = useAtomValue(atomPlotColorScale)
     const [hoveredEntity, setHoveredEntity] = useAtom(atomHoveredEntity)
+    const [hoveredX, setHoveredX] = useAtom(atomHoveredX)
     const timeIntervalFactor = useAtomValue(atomTimeIntervalFactor)
 
     const hasHoveredEntity = hoveredEntity !== null
@@ -48,6 +51,16 @@ export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
                 // stroke: "region",
                 // strokeWidth: 1,
                 // strokeOpacity: 1,
+                fillOpacity: 0.3,
+            }),
+            Plot.areaY(points, {
+                x: "x",
+                y: "y",
+                fill: "region",
+                z: "region",
+                className: "income-plot-chart-area--highlighted",
+                // tip: "xy",
+                title: "region",
                 fillOpacity: { value: "region", scale: "opacity" },
             }),
             Plot.ruleY([0]),
@@ -90,7 +103,7 @@ export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
             )
         }
         return marks
-    }, [points, showPovertyLine, povertyLine])
+    }, [points, showPovertyLine, timeIntervalFactor, povertyLine])
 
     const plot = useMemo(() => {
         const plot = Plot.plot({
@@ -107,7 +120,7 @@ export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
                 domain: plotColorScale.domain,
                 range: plotColorScale.domain?.map((entity) => {
                     if (!hasHoveredEntity) return 0.8
-                    return entity === hoveredEntity ? 0.9 : 0.4
+                    return entity === hoveredEntity ? 0.9 : 0
                 }),
             },
             height,
@@ -132,14 +145,30 @@ export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
                 const region = area.querySelector("title")?.textContent
                 if (!region) return
 
-                area.addEventListener("mousemove", () =>
+                area.querySelector("title")?.remove()
+
+                area.addEventListener("mousemove", () => {
                     setHoveredEntity(region)
-                )
+
+                    if (plot.value?.x) setHoveredX(plot.value.x)
+                    else setHoveredX(null)
+                })
+                area.addEventListener("mouseleave", () => {
+                    setHoveredEntity(null)
+                    setHoveredX(null)
+                })
             }
         )
+        plot.querySelectorAll(
+            ".income-plot-chart-area--highlighted path"
+        ).forEach((area) => {
+            const elem = area as SVGElement
+            elem.style.pointerEvents = "none"
+        })
 
         plot.addEventListener("mouseleave", () => {
             setHoveredEntity(null)
+            setHoveredX(null)
         })
         return plot
     }, [
@@ -150,6 +179,7 @@ export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
         timeIntervalFactor,
         hasHoveredEntity,
         hoveredEntity,
+        setHoveredX,
         showPovertyLine,
         setPovertyLine,
         setShowPovertyLine,
@@ -157,6 +187,33 @@ export function IncomePlot({ width = 1000, height = 500 }: IncomePlotProps) {
     ])
 
     usePlot(plot, containerRef)
+
+    const hoverRightThreshold = useMemo(() => {
+        const activePovertyLine = showPovertyLine ? povertyLine : null
+        return activePovertyLine ?? hoveredX
+    }, [showPovertyLine, povertyLine, hoveredX])
+
+    // When there's either a hoverX or a custom poverty line, only show
+    // the left part of the highlighted area up to the line.
+    // We do this using a clipPath, which is more efficient than filtering the data.
+    useEffect(() => {
+        const highlighted = plot.querySelector(
+            ".income-plot-chart-area--highlighted"
+        ) as SVGElement | null
+        const xScale = plot.scale("x")
+        if (highlighted && xScale) {
+            const xRange = xScale.range as [number, number]
+
+            if (hoverRightThreshold === null) {
+                highlighted.style.clipPath = `none`
+            } else {
+                const clipX = hoverRightThreshold
+                    ? xScale.apply(hoverRightThreshold) - xRange[0]
+                    : 0
+                highlighted.style.clipPath = `xywh(0 0 ${clipX}px 100%)`
+            }
+        }
+    }, [plot, hoverRightThreshold])
 
     return (
         <>
