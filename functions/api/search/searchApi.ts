@@ -1,4 +1,9 @@
-import { SearchIndexName, FilterType, Filter } from "./types.js"
+import {
+    SearchIndexName,
+    FilterType,
+    Filter,
+    ChartRecordType,
+} from "./types.js"
 import { getIndexName, AlgoliaConfig } from "./algoliaClient.js"
 import type {
     SearchChartHit,
@@ -154,20 +159,21 @@ export async function searchCharts(
 
     // Clean up the hits and add URL
     const cleanedHits = result.hits.map((hit): EnrichedSearchChartHit => {
-        const {
-            _highlightResult,
-            _snippetResult,
-            objectID: _objectID,
-            ...cleanHit
-        } = hit as any // Algolia adds internal fields not in our types
+        // Pick only the attributes we want to return to avoid spurious properties
+        const cleanHit: any = {}
+        for (const attr of DATA_CATALOG_ATTRIBUTES) {
+            if (attr in hit) {
+                cleanHit[attr] = (hit as any)[attr]
+            }
+        }
 
         // Construct URL based on type
         let url: string
-        if (cleanHit.type === "explorerView") {
+        if (cleanHit.type === ChartRecordType.ExplorerView) {
             // Explorer views: /explorers/{slug}{queryParams}
             const queryParams = cleanHit.queryParams || ""
             url = `${baseUrl}/explorers/${cleanHit.slug}${queryParams}`
-        } else if (cleanHit.type === "multiDimView") {
+        } else if (cleanHit.type === ChartRecordType.MultiDimView) {
             // Multi-dimensional views: /grapher/{slug}{queryParams}
             const queryParams = cleanHit.queryParams || ""
             url = `${baseUrl}/grapher/${cleanHit.slug}${queryParams}`
@@ -177,7 +183,7 @@ export async function searchCharts(
         }
 
         return {
-            ...cleanHit,
+            ...(cleanHit as SearchChartHit),
             url,
         }
     })

@@ -2,7 +2,7 @@ import * as Sentry from "@sentry/cloudflare"
 import { Env } from "../../_common/env.js"
 import { getAlgoliaConfig } from "./algoliaClient.js"
 import { searchCharts, SearchState } from "./searchApi.js"
-import { FilterType, Filter } from "./types.js"
+import { FilterType, Filter, SearchUrlParam } from "./types.js"
 
 const DEFAULT_HITS_PER_PAGE = 20
 const MAX_HITS_PER_PAGE = 100
@@ -23,13 +23,14 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             )
         }
         // Parse query parameter
-        const query = url.searchParams.get("q") || ""
+        const query = url.searchParams.get(SearchUrlParam.QUERY) || ""
 
         // Parse filter parameters
-        const countriesParam = url.searchParams.get("countries")
-        const topicsParam = url.searchParams.get("topics")
+        const countriesParam = url.searchParams.get(SearchUrlParam.COUNTRY)
+        const topicParam = url.searchParams.get(SearchUrlParam.TOPIC)
         const requireAllCountries =
-            url.searchParams.get("requireAllCountries") === "true"
+            url.searchParams.get(SearchUrlParam.REQUIRE_ALL_COUNTRIES) ===
+            "true"
 
         // Parse pagination parameters
         const page = parseInt(url.searchParams.get("page") || "0")
@@ -76,8 +77,9 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         const filters: Filter[] = []
 
         if (countriesParam) {
+            // Countries are separated by tilde (~) to match Grapher URL format
             const countries = countriesParam
-                .split(",")
+                .split("~")
                 .map((c) => c.trim())
                 .filter(Boolean)
             countries.forEach((country) => {
@@ -88,17 +90,15 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             })
         }
 
-        if (topicsParam) {
-            const topics = topicsParam
-                .split(",")
-                .map((t) => t.trim())
-                .filter(Boolean)
-            topics.forEach((topic) => {
+        // Only support single topic (UI doesn't support multiple topics)
+        if (topicParam) {
+            const topic = topicParam.trim()
+            if (topic) {
                 filters.push({
                     type: FilterType.TOPIC,
                     name: topic,
                 })
-            })
+            }
         }
 
         // Build search state
