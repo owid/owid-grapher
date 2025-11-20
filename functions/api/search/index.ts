@@ -2,7 +2,7 @@ import * as Sentry from "@sentry/cloudflare"
 import { Env } from "../../_common/env.js"
 import { getAlgoliaConfig } from "./algoliaClient.js"
 import { searchCharts, SearchState } from "./searchApi.js"
-import { FilterType, Filter, SearchUrlParam } from "./types.js"
+import { FilterType, Filter, SearchUrlParam } from "@ourworldindata/types"
 
 const DEFAULT_HITS_PER_PAGE = 20
 const MAX_HITS_PER_PAGE = 100
