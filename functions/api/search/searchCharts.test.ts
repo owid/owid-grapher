@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
 import { searchCharts, searchPages } from "./searchApi.js"
-import { FilterType } from "./types.js"
+import { FilterType } from "@ourworldindata/types"
 import type { AlgoliaConfig } from "./algoliaClient.js"
 
 describe("searchCharts with real Algolia", () => {
