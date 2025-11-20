@@ -4,6 +4,7 @@
         "@ourworldindata/components": "*",
         "@ourworldindata/types": "*",
         "@ourworldindata/utils": "*",
+        "classnames": "^2.5.1",
         "fast-kde": "^0.2.2",
         "jotai": "^2.15.1",
         "react": "^19.2.0",
