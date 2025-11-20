@@ -38,6 +38,10 @@ export const DEFAULT_GRAPHER_HEIGHT = 600
 export const GRAPHER_THUMBNAIL_WIDTH = 300
 export const GRAPHER_THUMBNAIL_HEIGHT = 160
 
+// Image widths used for generating srcSet (1x and 2x for high-DPI displays)
+export const GRAPHER_IMAGE_WIDTH_1X = 850
+export const GRAPHER_IMAGE_WIDTH_2X = 1700
+
 export const GRAPHER_SQUARE_SIZE = 540
 
 export const DEFAULT_GRAPHER_BOUNDS = new Bounds(

@@ -115,6 +115,13 @@ export interface PostChecksums {
             }
         }
     }
+    narrativeCharts: {
+        [narrativeChartId: string]: {
+            name: string
+            chartConfigMd5: string
+            queryParamsForParentChartMd5: string
+        }
+    }
     images: {
         [imageId: string]: { filename: string; hash: string }
     }
