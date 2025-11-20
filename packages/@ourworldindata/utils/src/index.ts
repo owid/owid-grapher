@@ -63,6 +63,7 @@ export {
     areSetsEqual,
     isSubsetOf,
     intersection,
+    union,
     sortByUndefinedLast,
     mapNullToUndefined,
     lowerCaseFirstLetterUnlessAbbreviation,
