@@ -26,6 +26,9 @@ export interface Env {
     STRIPE_WEBHOOK_SECRET: string
     STRIPE_API_KEY: string
     RECAPTCHA_SECRET_KEY: string
+    ALGOLIA_ID: string
+    ALGOLIA_SEARCH_KEY: string
+    ALGOLIA_INDEX_PREFIX?: string
 }
 // We collect the possible extensions here so we can easily take them into account
 // when handling redirects
