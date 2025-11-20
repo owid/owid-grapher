@@ -1,43 +1,12 @@
 import { useEffect, useRef } from "react"
-import { useAtom } from "jotai"
+import { useAtom, useAtomValue } from "jotai"
 import * as Plot from "@observablehq/plot"
+import { formatCurrency, REGION_COLORS } from "../utils/incomePlotUtils.ts"
 import {
-    formatCurrency,
-    kdeLog,
-    REGION_COLORS,
-} from "../utils/incomePlotUtils.ts"
-import { atomCustomPovertyLine, atomShowCustomPovertyLine } from "../store.ts"
-import data from "../data/incomeBins.json"
-import * as R from "remeda"
-
-const dataTyped = data as Array<{
-    country: string
-    region: string
-    year: number
-    pop: number
-    avgsLog2Times100: number[]
-}>
-
-const incomeData = R.pipe(
-    dataTyped,
-    R.filter((d) => d.year === 2021),
-    R.map((d) => ({
-        ...d,
-        avgsLog2: d.avgsLog2Times100.map((v) => v / 100),
-    })),
-    R.sortBy(R.prop("region"))
-)
-
-const points = incomeData.flatMap((record) => {
-    const common = R.omit(record, ["avgsLog2Times100", "avgsLog2"])
-    const kdeRes = kdeLog(record.avgsLog2)
-    return kdeRes.map((kde) => ({
-        ...common,
-        ...kde,
-        y: kde.y * common.pop,
-        // yNotScaledByPop: (kde.y * common.pop) / totalPopulation[common.region],
-    }))
-})
+    atomCustomPovertyLine,
+    atomKdeDataForYear,
+    atomShowCustomPovertyLine,
+} from "../store.ts"
 
 const regionsScale: Plot.ScaleOptions = {
     domain: Object.keys(REGION_COLORS),
@@ -58,6 +27,7 @@ interface IncomePlotProps {
 
 export function IncomePlot({ width = 1000, height = 600 }: IncomePlotProps) {
     const containerRef = useRef<HTMLDivElement>(null)
+    const points = useAtomValue(atomKdeDataForYear)
     const [povertyLine, setPovertyLine] = useAtom(atomCustomPovertyLine)
     const [showPovertyLine, setShowPovertyLine] = useAtom(
         atomShowCustomPovertyLine
