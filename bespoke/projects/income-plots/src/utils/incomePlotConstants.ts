@@ -1,0 +1,9 @@
+export const INT_POVERTY_LINE = 3.0
+
+export const AVAILABLE_YEARS_RANGE = [1990, 2025] as const
+export const DEFAULT_YEAR = AVAILABLE_YEARS_RANGE[1]
+
+export const TIME_INTERVALS = ["daily", "monthly", "yearly"] as const
+export type TimeInterval = (typeof TIME_INTERVALS)[number]
+
+export const TIME_INTERVAL_FACTORS = [1, 365 / 12, 365] as const
