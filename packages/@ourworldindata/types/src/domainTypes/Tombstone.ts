@@ -15,4 +15,5 @@ export type TombstonePageData = {
     relatedLinkTitle: string
     relatedLinkDescription: string
     relatedLinkThumbnail: string
+    archiveUrl?: string
 }

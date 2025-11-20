@@ -21,6 +21,7 @@ export default function TombstonePage({
         relatedLinkDescription,
         relatedLinkThumbnail,
         slug,
+        archiveUrl,
     },
 }: {
     baseUrl: string
@@ -28,6 +29,7 @@ export default function TombstonePage({
 }) {
     const canonicalUrl = urljoin(baseUrl, "deleted", slug)
     const oldUrl = urljoin(baseUrl, slug)
+    const waybackUrl = `https://web.archive.org/web/*/${oldUrl}`
     return (
         <Html>
             <Head
@@ -53,13 +55,20 @@ export default function TombstonePage({
                         {includeArchiveLink && (
                             <p className="body-3-medium">
                                 If you’d still like to view this page, you can
-                                check its archived copy via the{" "}
-                                <a
-                                    href={`https://web.archive.org/web/*/${oldUrl}`}
-                                >
-                                    Internet Archive's Wayback Machine
-                                </a>
-                                .
+                                check its archived copy{" "}
+                                {archiveUrl ? (
+                                    <>
+                                        in <a href={archiveUrl}>our archive</a>.
+                                    </>
+                                ) : (
+                                    <>
+                                        via the{" "}
+                                        <a href={waybackUrl}>
+                                            Internet Archive's Wayback Machine
+                                        </a>
+                                        .
+                                    </>
+                                )}
                             </p>
                         )}
                     </div>
