@@ -239,6 +239,7 @@ export function extractFilenamesFromBlock(
                     "expander",
                     "explorer-tiles",
                     "featured-metrics",
+                    "featured-data-insights",
                     "gray-section",
                     "heading",
                     "homepage-search",

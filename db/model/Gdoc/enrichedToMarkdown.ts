@@ -461,6 +461,7 @@ ${links}`
         .with({ type: "featured-metrics" }, (_): string | undefined => {
             return ""
         })
+        .with({ type: "featured-data-insights" }, (_): string | undefined => "")
         .with({ type: "socials" }, (b): string | undefined => {
             return b.links
                 .map((link) => `* [${link.text}](${link.url})`)

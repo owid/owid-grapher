@@ -362,6 +362,7 @@ export function enumerateGdocComponentsWithoutChildren(
                         "homepage-search",
                         "homepage-intro",
                         "featured-metrics",
+                        "featured-data-insights",
                         "latest-data-insights",
                         "aside",
                         "text",
