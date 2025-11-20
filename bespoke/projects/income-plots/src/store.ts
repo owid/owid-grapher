@@ -6,7 +6,7 @@ import {
 } from "./utils/incomePlotConstants.ts"
 import data from "./data/incomeBins.json"
 import { sleep } from "@ourworldindata/utils"
-import { kdeLog } from "./utils/incomePlotUtils.ts"
+import { kdeLog, REGION_COLORS } from "./utils/incomePlotUtils.ts"
 import * as R from "remeda"
 
 export const atomCustomPovertyLine = atom(3)
@@ -83,3 +83,10 @@ export const atomKdeDataForYear = atom(async (get) => {
     })
     return kdeData
 })
+
+export const atomLegendEntries = atom(() =>
+    Object.values(REGION_COLORS).map((color, idx) => ({
+        name: Object.keys(REGION_COLORS)[idx],
+        color: color,
+    }))
+)
