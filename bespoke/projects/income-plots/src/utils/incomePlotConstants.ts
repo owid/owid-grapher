@@ -10,6 +10,19 @@ export type TimeInterval = (typeof TIME_INTERVALS)[number]
 
 export const TIME_INTERVAL_FACTORS = [1, 365 / 12, 365] as const
 
+export const CURRENCIES = ["INTD", "USD", "EUR", "SEK"] as const
+export type Currency = (typeof CURRENCIES)[number]
+export const DEFAULT_CURRENCY: Currency = "INTD"
+
+// This is fantasy data for demonstration purposes only
+// Taken from https://en.wikipedia.org/wiki/International_dollar#Exchange_rate_by_country for now
+export const CURRENCY_FACTORS: Record<Currency, number> = {
+    INTD: 1,
+    USD: 1,
+    EUR: 0.72,
+    SEK: 8.73,
+}
+
 export interface LegendEntry {
     name: string
     color: string
