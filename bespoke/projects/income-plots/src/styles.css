@@ -23,13 +23,23 @@
     padding: 16px;
     border: 1px solid var(--blue-20);
 
+    cursor: default;
+
     .legend-entry {
         display: grid;
         grid-column: 1 / -1;
         grid-template-columns: subgrid;
     }
 
+    /* If there's at least one hovered legend entry, dim all non-highlighted ones */
+    &:has(.legend-entry--hovered) {
+        .legend-entry:not(.legend-entry--hovered) {
+            opacity: 0.5;
+        }
+    }
+
     .legend-entry-swatch {
+        background-color: var(--legend-entry-color);
         height: var(--legend-swatch-size);
         width: var(--legend-swatch-size);
         justify-self: end;
