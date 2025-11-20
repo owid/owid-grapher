@@ -111,6 +111,7 @@ export function IncomePlot({
     const plot = useMemo(() => {
         const plot = Plot.plot({
             x: {
+                label: null,
                 type: "log",
                 grid: true,
                 transform: (d) => d * timeIntervalFactor,
