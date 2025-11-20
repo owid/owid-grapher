@@ -1,4 +1,4 @@
-import { QueryClientProvider, useQuery } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import {
     SearchChartsResponse,
     SearchChartHit,
@@ -7,10 +7,7 @@ import {
 import { SearchChartHitComponent } from "./search/SearchChartHitComponent.js"
 import { createTopicFilter, SEARCH_BASE_PATH } from "./search/searchUtils.js"
 import { queryCharts, searchQueryKeys } from "./search/queries.js"
-import {
-    getLiteSearchClient,
-    getSearchQueryClient,
-} from "./search/searchClients.js"
+import { getLiteSearchClient } from "./search/searchClients.js"
 import { SearchDataResultsSkeleton } from "./search/SearchDataResultsSkeleton.js"
 import { Button } from "@ourworldindata/components"
 import { searchStateToUrl } from "./search/searchState.js"
@@ -20,11 +17,15 @@ import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
 const MAX_MEDIUM_RESULTS = 4
 const MAX_SMALL_RESULTS = 5
 
-type FeaturedMetricsProps = {
+export type FeaturedMetricsProps = {
     topicName: string
+    className?: string
 }
 
-const FeaturedMetrics = ({ topicName }: FeaturedMetricsProps) => {
+export const FeaturedMetrics = ({
+    topicName,
+    className,
+}: FeaturedMetricsProps) => {
     const liteSearchClient = getLiteSearchClient()
 
     const searchState = {
@@ -55,8 +56,8 @@ const FeaturedMetrics = ({ topicName }: FeaturedMetricsProps) => {
     const searchHref = `${SEARCH_BASE_PATH}${url.queryStr}`
 
     return (
-        <section className="featured-metrics col-start-2 span-cols-12">
-            <h1 className="featured-metrics__title h1-semibold">
+        <section className={className}>
+            <h1 className="article-block__featured-metrics__title h1-semibold">
                 Featured data on {topicName}
             </h1>
             {isLoading ? (
@@ -85,7 +86,7 @@ const FeaturedMetrics = ({ topicName }: FeaturedMetricsProps) => {
                             )
                         })}
                     </ul>
-                    <div className="featured-metrics__see-all">
+                    <div className="article-block__featured-metrics__see-all">
                         <Button
                             theme="solid-vermillion"
                             text={`See all ${data?.nbHits ?? 0} charts on this topic`}
@@ -98,15 +99,5 @@ const FeaturedMetrics = ({ topicName }: FeaturedMetricsProps) => {
                 </>
             )}
         </section>
-    )
-}
-
-export const FeaturedMetricsWrapper = (props: FeaturedMetricsProps) => {
-    const queryClient = getSearchQueryClient()
-
-    return (
-        <QueryClientProvider client={queryClient}>
-            <FeaturedMetrics {...props} />
-        </QueryClientProvider>
     )
 }

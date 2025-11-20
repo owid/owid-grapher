@@ -1011,6 +1011,15 @@ export type EnrichedBlockHomepageIntro = {
     featuredWork: EnrichedBlockHomepageIntroPost[]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockFeaturedMetrics = {
+    type: "featured-metrics"
+    value: Record<string, never>
+}
+
+export type EnrichedBlockFeaturedMetrics = {
+    type: "featured-metrics"
+} & EnrichedBlockWithParseErrors
+
 export type RawBlockLatestDataInsights = {
     type: "latest-data-insights"
     value: Record<string, never>
@@ -1142,6 +1151,7 @@ export type OwidRawGdocBlock =
     | RawBlockPillRow
     | RawBlockHomepageSearch
     | RawBlockHomepageIntro
+    | RawBlockFeaturedMetrics
     | RawBlockLatestDataInsights
     | RawBlockCookieNotice
     | RawBlockSubscribeBanner
@@ -1201,6 +1211,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockPillRow
     | EnrichedBlockHomepageSearch
     | EnrichedBlockHomepageIntro
+    | EnrichedBlockFeaturedMetrics
     | EnrichedBlockLatestDataInsights
     | EnrichedBlockCookieNotice
     | EnrichedBlockSubscribeBanner

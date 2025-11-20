@@ -6,7 +6,6 @@ export const LICENSE_ID = "article-licence"
 export const CITATION_ID = "article-citation"
 export const ENDNOTES_ID = "article-endnotes"
 export const RESEARCH_AND_WRITING_ID = "research-writing"
-export const FEATURED_METRICS_ID = "featured-metrics"
 
 export const RESEARCH_AND_WRITING_DEFAULT_HEADING = "Research & Writing"
 
