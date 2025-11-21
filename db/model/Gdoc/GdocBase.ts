@@ -802,6 +802,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                         "guided-chart",
                         "sdg-grid",
                         "sdg-toc",
+                        "ltp-toc",
                         "side-by-side",
                         "simple-text",
                         "sticky-left",

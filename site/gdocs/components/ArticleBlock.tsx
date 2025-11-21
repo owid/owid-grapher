@@ -60,6 +60,7 @@ import { FeaturedMetrics } from "../../FeaturedMetrics.js"
 import { FeaturedDataInsights } from "../../FeaturedDataInsights.js"
 import { BlockQueryClientProvider } from "./BlockQueryClientProvider.js"
 import { ExploreDataSection } from "./ExploreDataSection.js"
+import { LTPTableOfContents } from "./LTPTableOfContents.js"
 
 function ArticleBlockInternal({
     b: block,
@@ -652,6 +653,15 @@ function ArticleBlockInternal({
                     className={getLayout("toc", containerType)}
                 />
             )
+        })
+        .with({ type: "ltp-toc" }, (block) => {
+            return toc?.length ? (
+                <LTPTableOfContents
+                    title={block.title}
+                    toc={toc}
+                    className={getLayout("ltp-toc", containerType)}
+                />
+            ) : null
         })
         .with({ type: "missing-data" }, () => (
             <MissingData className={getLayout("missing-data", containerType)} />

@@ -23,6 +23,7 @@ import {
     RawBlockGuidedChart,
     RawBlockScroller,
     RawBlockSDGGrid,
+    RawBlockLTPToc,
     RawBlockSideBySideContainer,
     RawBlockStickyLeftContainer,
     RawBlockStickyRightContainer,
@@ -578,6 +579,16 @@ function* rawBlockSDGTocToArchieMLString(): Generator<string, void, undefined> {
     yield "{}"
 }
 
+function* rawBlockLTPTocToArchieMLString(
+    block: RawBlockLTPToc
+): Generator<string, void, undefined> {
+    yield "{.ltp-toc}"
+    if (typeof block.value !== "string") {
+        yield* propertyToArchieMLString("title", block.value)
+    }
+    yield "{}"
+}
+
 function* rawBlockMissingDataToArchieMLString(): Generator<
     string,
     void,
@@ -1064,6 +1075,7 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         )
         .with({ type: "prominent-link" }, RawBlockProminentLinkToArchieMLString)
         .with({ type: "sdg-toc" }, rawBlockSDGTocToArchieMLString)
+        .with({ type: "ltp-toc" }, rawBlockLTPTocToArchieMLString)
         .with({ type: "missing-data" }, rawBlockMissingDataToArchieMLString)
         .with(
             { type: "expandable-paragraph" },

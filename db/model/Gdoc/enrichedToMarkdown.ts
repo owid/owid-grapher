@@ -338,6 +338,7 @@ ${items}
             return text
         })
         .with({ type: "sdg-toc" }, () => undefined)
+        .with({ type: "ltp-toc" }, () => undefined)
         .with({ type: "missing-data" }, () => undefined)
         .with({ type: "numbered-list" }, (b): string | undefined =>
             b.items

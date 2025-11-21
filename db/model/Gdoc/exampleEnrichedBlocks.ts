@@ -446,6 +446,11 @@ export const enrichedBlockExamples: Record<
         value: {},
         parseErrors: [],
     },
+    "ltp-toc": {
+        type: "ltp-toc",
+        title: "Contents",
+        parseErrors: [],
+    },
     "missing-data": {
         type: "missing-data",
         value: {},
