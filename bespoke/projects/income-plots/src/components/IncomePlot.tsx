@@ -103,13 +103,13 @@ const IncomePlotAreas = ({
 
                 const combined = R.zip(first, last).map(([f, l]) => {
                     const arr = [f[0], l[1]] as d3.SeriesPoint<number>
-                    arr["data"] = f.data
+                    arr.data = f.data
                     return arr
                 }) as StackedSeriesPoint
 
-                combined["key"] = first.region
-                combined["region"] = first.region
-                combined["color"] = first.color
+                combined.key = first.region
+                combined.region = first.region
+                combined.color = first.color
 
                 return combined
             })
@@ -151,7 +151,7 @@ const IncomePlotAreas = ({
                         key={entityName}
                         className="income-plot-series"
                         data-country={series.country}
-                        data-region={series["region"]}
+                        data-region={series.region}
                         data-highlighted={isHighlighted}
                         onMouseEnter={() =>
                             entityName && setHoveredEntity(entityName)
@@ -162,14 +162,14 @@ const IncomePlotAreas = ({
                     >
                         <path
                             className="area-bg"
-                            fill={series["color"]}
+                            fill={series.color}
                             d={series.area}
                             strokeWidth={0.1}
                             stroke="white"
                         />
                         <path
                             className="area-fg"
-                            fill={series["color"]}
+                            fill={series.color}
                             d={series.area}
                             clipPath="url(#highlight-clip)"
                             style={{ pointerEvents: "none" }}
@@ -458,9 +458,9 @@ export function IncomePlot({
 
         stackedSeries.forEach((s) => {
             const series = s as unknown as StackedSeriesPoint
-            series["country"] = series.key
-            series["region"] = countryRegionMap.get(series.key)!
-            series["color"] = colorScale(series["region"]!) as string
+            series.country = series.key
+            series.region = countryRegionMap.get(series.key)!
+            series.color = colorScale(series.region!) as string
         })
 
         return stackedSeries as unknown as StackedSeriesPoint[]
