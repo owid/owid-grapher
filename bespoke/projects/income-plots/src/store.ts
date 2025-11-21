@@ -37,6 +37,18 @@ export const atomTimeIntervalFactor = atom((get) => {
     return TIME_INTERVAL_FACTORS[idx]
 })
 
+const atomCountriesOrRegionsModeInternal = atom<"countries" | "regions">(
+    "regions"
+)
+export const atomCountriesOrRegionsMode = atom(
+    (get) => get(atomCountriesOrRegionsModeInternal),
+    (get, set) => {
+        set(atomCountriesOrRegionsModeInternal, (current) =>
+            current === "countries" ? "regions" : "countries"
+        )
+    }
+)
+
 // Data
 export const atomRawDataForYear = atom(async (get, { signal }) => {
     const year = get(atomCurrentYear)
