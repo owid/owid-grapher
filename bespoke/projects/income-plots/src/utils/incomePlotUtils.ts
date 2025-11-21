@@ -5,8 +5,9 @@ import {
     KDE_BANDWIDTH,
     KDE_EXTENT,
     KDE_NUM_BINS,
+    TimeInterval,
 } from "./incomePlotConstants.ts"
-import type { RawDataForYearRecord } from "../store.ts"
+import { type RawDataForYearRecord } from "../store.ts"
 import * as R from "remeda"
 
 const currencyFormatterCache = new Map<Currency, Intl.NumberFormat>()
@@ -121,4 +122,15 @@ export const computePercentageBelowLine = (
         })
     )
     return map
+}
+
+export const getTimeIntervalStr = (interval: TimeInterval) => {
+    switch (interval) {
+        case "yearly":
+            return "year"
+        case "monthly":
+            return "month"
+        case "daily":
+            return "day"
+    }
 }

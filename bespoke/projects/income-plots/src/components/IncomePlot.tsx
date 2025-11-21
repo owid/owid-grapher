@@ -8,6 +8,7 @@ import {
     atomCountryRegionMap,
     atomCurrentCurrency,
     atomCustomPovertyLine,
+    atomCustomPovertyLineFormatted,
     atomHoveredEntity,
     atomHoveredEntityType,
     atomHoveredX,
@@ -321,10 +322,10 @@ const IncomePlotCustomPovertyLine = ({
     marginBottom,
 }: IncomePlotCustomPovertyLineProps) => {
     const povertyLine = useAtomValue(atomCustomPovertyLine)
-    const combinedFactor = useAtomValue(atomCombinedFactor)
-    const currentCurrency = useAtomValue(atomCurrentCurrency)
+    const povertyLineFormatted = useAtomValue(atomCustomPovertyLineFormatted)
 
-    if (!xScale || povertyLine === null) return null
+    if (!xScale || povertyLine === null || povertyLineFormatted === null)
+        return null
 
     return (
         <g className="poverty-line" style={{ pointerEvents: "none" }}>
@@ -343,10 +344,7 @@ const IncomePlotCustomPovertyLine = ({
                 fill="#d73027"
                 fontWeight="bold"
             >
-                {`Poverty line: ${formatCurrency(
-                    povertyLine * combinedFactor,
-                    currentCurrency as any
-                )}`}
+                {`Poverty line: ${povertyLineFormatted}`}
             </text>
         </g>
     )
