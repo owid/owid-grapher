@@ -16,6 +16,7 @@ import {
     atomShowCustomPovertyLine,
 } from "../store.ts"
 import {
+    INT_POVERTY_LINE,
     PLOT_HEIGHT,
     PLOT_WIDTH,
     StackedSeriesPoint,
@@ -218,19 +219,69 @@ const IncomePlotXAxis = ({
     )
 }
 
-interface IncomePlotPovertyLineProps {
+interface IncomePlotIntPovertyLineProps {
     xScale: d3.ScaleLogarithmic<number, number> | null
     marginTop: number
     height: number
     marginBottom: number
 }
 
-const IncomePlotPovertyLine = ({
+const IncomePlotIntPovertyLine = ({
     xScale,
     marginTop,
     height,
     marginBottom,
-}: IncomePlotPovertyLineProps) => {
+}: IncomePlotIntPovertyLineProps) => {
+    const combinedFactor = useAtomValue(atomCombinedFactor)
+    const currentCurrency = useAtomValue(atomCurrentCurrency)
+
+    if (!xScale) return null
+
+    const povertyLine = INT_POVERTY_LINE
+    const x = xScale(povertyLine)
+
+    const povertyLineText = `International poverty line: ${formatCurrency(
+        povertyLine * combinedFactor,
+        currentCurrency as any
+    )}`
+
+    return (
+        <g className="poverty-line" style={{ pointerEvents: "none" }}>
+            <line
+                x1={x}
+                x2={x}
+                y1={marginTop}
+                y2={height - marginBottom}
+                stroke="#a9a9a9"
+                strokeWidth={1}
+                strokeOpacity={0.8}
+                strokeDasharray="3,4"
+            />
+            <text
+                fill="#a9a9a9"
+                transform={`translate(${x + 5}, ${marginTop + 2}) rotate(90)`}
+                textAnchor="start"
+                fontSize={10}
+            >
+                {povertyLineText}
+            </text>
+        </g>
+    )
+}
+
+interface IncomePlotCustomPovertyLineProps {
+    xScale: d3.ScaleLogarithmic<number, number> | null
+    marginTop: number
+    height: number
+    marginBottom: number
+}
+
+const IncomePlotCustomPovertyLine = ({
+    xScale,
+    marginTop,
+    height,
+    marginBottom,
+}: IncomePlotCustomPovertyLineProps) => {
     const povertyLine = useAtomValue(atomCustomPovertyLine)
     const combinedFactor = useAtomValue(atomCombinedFactor)
     const currentCurrency = useAtomValue(atomCurrentCurrency)
@@ -450,7 +501,13 @@ export function IncomePlot({
                     marginBottom={marginBottom}
                     marginTop={marginTop}
                 />
-                <IncomePlotPovertyLine
+                <IncomePlotIntPovertyLine
+                    xScale={xScale}
+                    marginTop={marginTop}
+                    height={height}
+                    marginBottom={marginBottom}
+                />
+                <IncomePlotCustomPovertyLine
                     xScale={xScale}
                     marginTop={marginTop}
                     height={height}
