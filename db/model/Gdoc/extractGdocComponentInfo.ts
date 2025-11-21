@@ -209,6 +209,14 @@ export function enumerateGdocComponentsWithoutChildren(
                     path
                 )
             )
+            .with({ type: "explore-data-section" }, (exploreDataSection) =>
+                handleComponent(
+                    exploreDataSection,
+                    [{ prop: "content", iterator: iterateArrayProp }],
+                    parentPath,
+                    path
+                )
+            )
             .with({ type: "expander" }, (expander) =>
                 handleComponent(
                     expander,

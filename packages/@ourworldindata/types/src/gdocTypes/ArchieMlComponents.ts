@@ -580,6 +580,27 @@ export type EnrichedBlockGraySection = {
     items: OwidEnrichedGdocBlock[]
 } & EnrichedBlockWithParseErrors
 
+export const exploreDataSectionAlignments = ["left", "center"] as const
+
+export type ExploreDataSectionAlignment =
+    (typeof exploreDataSectionAlignments)[number]
+
+export type RawBlockExploreDataSection = {
+    type: "explore-data-section"
+    value: {
+        title?: string
+        align?: string
+        content: OwidRawGdocBlock[]
+    }
+}
+
+export type EnrichedBlockExploreDataSection = {
+    type: "explore-data-section"
+    title?: string
+    align: ExploreDataSectionAlignment
+    content: OwidEnrichedGdocBlock[]
+} & EnrichedBlockWithParseErrors
+
 export type ProminentLinkValue = {
     url?: string
     title?: string
@@ -1133,6 +1154,7 @@ export type OwidRawGdocBlock =
     | RawBlockStickyLeftContainer
     | RawBlockSideBySideContainer
     | RawBlockGraySection
+    | RawBlockExploreDataSection
     | RawBlockProminentLink
     | RawBlockSDGToc
     | RawBlockMissingData
@@ -1190,6 +1212,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockStickyLeftContainer
     | EnrichedBlockSideBySideContainer
     | EnrichedBlockGraySection
+    | EnrichedBlockExploreDataSection
     | EnrichedBlockProminentLink
     | EnrichedBlockSDGToc
     | EnrichedBlockMissingData
