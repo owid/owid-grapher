@@ -35,6 +35,34 @@ interface IncomePlotProps {
     height?: number
 }
 
+interface IncomePlotClipPathProps {
+    xScale: d3.ScaleLogarithmic<number, number> | null
+}
+
+const IncomePlotClipPath = ({ xScale }: IncomePlotClipPathProps) => {
+    const showPovertyLine = useAtomValue(atomShowCustomPovertyLine)
+    const povertyLine = useAtomValue(atomCustomPovertyLine)
+    const hoveredX = useAtomValue(atomHoveredX)
+    const hoverRightThresholdPlaced = useMemo(() => {
+        const activePovertyLine = showPovertyLine ? povertyLine : null
+        const threshold = activePovertyLine ?? hoveredX
+        if (!xScale || threshold === null) return null
+        return xScale(threshold)
+    }, [showPovertyLine, povertyLine, hoveredX, xScale])
+    return (
+        <defs>
+            <clipPath id="highlight-clip">
+                <rect
+                    x="0"
+                    y="0"
+                    width={hoverRightThresholdPlaced ?? "100%"}
+                    height={"100%"}
+                />
+            </clipPath>
+        </defs>
+    )
+}
+
 interface IncomePlotAreasProps {
     stackedSeries: StackedSeriesPoint[]
     xScale: d3.ScaleLogarithmic<number, number> | null
@@ -194,8 +222,10 @@ const IncomePlotPovertyLine = ({
     const povertyLine = useAtomValue(atomCustomPovertyLine)
     const combinedFactor = useAtomValue(atomCombinedFactor)
     const currentCurrency = useAtomValue(atomCurrentCurrency)
+    const showPovertyLine = useAtomValue(atomShowCustomPovertyLine)
 
-    if (!xScale) return null
+    if (!xScale || !showPovertyLine) return null
+
     return (
         <g className="poverty-line">
             <line
@@ -224,9 +254,6 @@ const IncomePlotPovertyLine = ({
 
 interface IncomePlotPointerProps {
     xScale: d3.ScaleLogarithmic<number, number> | null
-    hoveredX: number
-    combinedFactor: number
-    currentCurrency: string
     marginTop: number
     height: number
     marginBottom: number
@@ -277,18 +304,15 @@ export function IncomePlot({
     height = PLOT_HEIGHT,
 }: IncomePlotProps) {
     const svgRef = useRef<SVGSVGElement>(null)
+
     const points = useAtomValue(atomKdeDataForYear)
-    const [povertyLine, setPovertyLine] = useAtom(atomCustomPovertyLine)
-    const [showPovertyLine, setShowPovertyLine] = useAtom(
-        atomShowCustomPovertyLine
-    )
+    const setPovertyLine = useSetAtom(atomCustomPovertyLine)
+    const setShowPovertyLine = useSetAtom(atomShowCustomPovertyLine)
     const countryRegionMap = useAtomValue(atomCountryRegionMap)
     const xValues = useAtomValue(atomKdeXValues)
     const plotColorScaleConfig = useAtomValue(atomPlotColorScale)
     const setHoveredEntity = useSetAtom(atomHoveredEntity)
-    const [hoveredX, setHoveredX] = useAtom(atomHoveredX)
-    const combinedFactor = useAtomValue(atomCombinedFactor)
-    const currentCurrency = useAtomValue(atomCurrentCurrency)
+    const setHoveredX = useSetAtom(atomHoveredX)
 
     // Margins
     const marginTop = 10
@@ -360,13 +384,6 @@ export function IncomePlot({
         return { xScale, yScale }
     }, [xValues, width, stackedSeries, height])
 
-    const hoverRightThresholdPlaced = useMemo(() => {
-        const activePovertyLine = showPovertyLine ? povertyLine : null
-        const threshold = activePovertyLine ?? hoveredX
-        if (!xScale || threshold === null) return null
-        return xScale(threshold)
-    }, [showPovertyLine, povertyLine, hoveredX, xScale])
-
     const onMouseMove = useCallback(
         (event: MouseEvent) => {
             if (!xScale || !yScale || !stackedSeries.length || !svgRef.current)
@@ -429,16 +446,7 @@ export function IncomePlot({
                 onMouseLeave={onMouseLeave}
                 onClick={onClick}
             >
-                <defs>
-                    <clipPath id="highlight-clip">
-                        <rect
-                            x="0"
-                            y="0"
-                            width={hoverRightThresholdPlaced ?? width}
-                            height={height}
-                        />
-                    </clipPath>
-                </defs>
+                <IncomePlotClipPath xScale={xScale} />
                 <IncomePlotAreas
                     stackedSeries={stackedSeries}
                     xScale={xScale}
@@ -450,25 +458,18 @@ export function IncomePlot({
                     marginBottom={marginBottom}
                     marginTop={marginTop}
                 />
-                {showPovertyLine && (
-                    <IncomePlotPovertyLine
-                        xScale={xScale}
-                        marginTop={marginTop}
-                        height={height}
-                        marginBottom={marginBottom}
-                    />
-                )}
-                {hoveredX !== null && (
-                    <IncomePlotPointer
-                        xScale={xScale}
-                        hoveredX={hoveredX}
-                        combinedFactor={combinedFactor}
-                        currentCurrency={currentCurrency}
-                        marginTop={marginTop}
-                        height={height}
-                        marginBottom={marginBottom}
-                    />
-                )}
+                <IncomePlotPovertyLine
+                    xScale={xScale}
+                    marginTop={marginTop}
+                    height={height}
+                    marginBottom={marginBottom}
+                />
+                <IncomePlotPointer
+                    xScale={xScale}
+                    marginTop={marginTop}
+                    height={height}
+                    marginBottom={marginBottom}
+                />
             </svg>
         </div>
     )
