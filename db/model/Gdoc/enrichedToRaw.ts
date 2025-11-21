@@ -430,6 +430,7 @@ export function enrichedBlockToRawBlock(
                 type: b.type,
                 value: {
                     title: b.title,
+                    align: b.align,
                     content: b.content.map(enrichedBlockToRawBlock),
                 },
             })

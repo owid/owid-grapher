@@ -617,6 +617,7 @@ function ArticleBlockInternal({
         .with({ type: "explore-data-section" }, (block) => (
             <ExploreDataSection
                 title={block.title}
+                align={block.align}
                 className={getLayout("explore-data-section")}
             >
                 {block.content.map((item, i) => (

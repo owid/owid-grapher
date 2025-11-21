@@ -9,6 +9,8 @@ import {
     EnrichedBlockDonorList,
     EnrichedBlockGraySection,
     EnrichedBlockExploreDataSection,
+    ExploreDataSectionAlignment,
+    exploreDataSectionAlignments,
     EnrichedBlockHeading,
     EnrichedBlockHorizontalRule,
     EnrichedBlockHtml,
@@ -1671,13 +1673,27 @@ function parseGraySection(raw: RawBlockGraySection): EnrichedBlockGraySection {
 function parseExploreDataSection(
     raw: RawBlockExploreDataSection
 ): EnrichedBlockExploreDataSection {
+    const parseErrors: ParseError[] = []
+    let align: ExploreDataSectionAlignment = "left"
+
+    if (raw.value.align !== undefined) {
+        if (!validateRawEnum(exploreDataSectionAlignments, raw.value.align)) {
+            parseErrors.push({
+                message: `Invalid explore-data-section alignment "${raw.value.align}". Must be one of ${exploreDataSectionAlignments.join(", ")}`,
+            })
+        } else {
+            align = raw.value.align
+        }
+    }
+
     return {
         type: "explore-data-section",
         title: raw.value.title,
+        align,
         content: _.compact(
             raw.value.content.map(parseRawBlocksToEnrichedBlocks)
         ),
-        parseErrors: [],
+        parseErrors,
     }
 }
 
