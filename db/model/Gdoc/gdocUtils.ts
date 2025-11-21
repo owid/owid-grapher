@@ -265,6 +265,7 @@ export function extractFilenamesFromBlock(
                     "scroller",
                     "sdg-grid",
                     "sdg-toc",
+                    "ltp-toc",
                     "side-by-side",
                     "simple-text",
                     "socials",

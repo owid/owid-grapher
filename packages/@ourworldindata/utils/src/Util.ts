@@ -1790,6 +1790,7 @@ export function traverseEnrichedBlock(
                     "scroller",
                     "sdg-grid",
                     "sdg-toc",
+                    "ltp-toc",
                     "topic-page-intro",
                     "all-charts",
                     "entry-summary",

@@ -792,6 +792,20 @@ export type EnrichedBlockSDGToc = {
     value?: Record<string, never>
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockLTPToc = {
+    type: "ltp-toc"
+    value?:
+        | {
+              title?: string
+          }
+        | ArchieMLUnexpectedNonObjectValue
+}
+
+export type EnrichedBlockLTPToc = {
+    type: "ltp-toc"
+    title?: string
+} & EnrichedBlockWithParseErrors
+
 export type RawBlockMissingData = {
     type: "missing-data"
     value?: Record<string, never>
@@ -1157,6 +1171,7 @@ export type OwidRawGdocBlock =
     | RawBlockExploreDataSection
     | RawBlockProminentLink
     | RawBlockSDGToc
+    | RawBlockLTPToc
     | RawBlockMissingData
     | RawBlockAdditionalCharts
     | RawBlockNumberedList
@@ -1215,6 +1230,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockExploreDataSection
     | EnrichedBlockProminentLink
     | EnrichedBlockSDGToc
+    | EnrichedBlockLTPToc
     | EnrichedBlockMissingData
     | EnrichedBlockAdditionalCharts
     | EnrichedBlockNumberedList

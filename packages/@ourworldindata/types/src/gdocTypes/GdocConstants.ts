@@ -6,8 +6,12 @@ export const LICENSE_ID = "article-licence"
 export const CITATION_ID = "article-citation"
 export const ENDNOTES_ID = "article-endnotes"
 export const RESEARCH_AND_WRITING_ID = "research-writing"
+export const FEATURED_METRICS_ID = "featured-metrics"
+export const FEATURED_DATA_INSIGHTS_ID = "featured-data-insights"
+export const EXPLORE_DATA_SECTION_ID = "explore-data-section"
 
 export const RESEARCH_AND_WRITING_DEFAULT_HEADING = "Research & Writing"
+export const EXPLORE_DATA_SECTION_DEFAULT_TITLE = "Explore the data"
 
 /** Works for:
  * https://docs.google.com/document/d/abcd1234

@@ -62,6 +62,7 @@ import {
     RawBlockResourcePanel,
     RawBlockCta,
     RawBlockScript,
+    RawBlockLTPToc,
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -440,6 +441,13 @@ export function enrichedBlockToRawBlock(
             (b): RawBlockSDGToc => ({
                 type: b.type,
                 value: b.value,
+            })
+        )
+        .with(
+            { type: "ltp-toc" },
+            (b): RawBlockLTPToc => ({
+                type: b.type,
+                value: b.title ? { title: b.title } : undefined,
             })
         )
         .with(
