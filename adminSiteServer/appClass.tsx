@@ -80,8 +80,8 @@ export class OwidAdminApp {
 
         app.use("/", express.static("public"))
         app.use("/assets", express.static("dist/assets"))
-        app.use("/assets", express.static("dist/income-plots"))
-        app.use("/assets", express.static("dist/income-plots/assets"))
+        app.use("/admin/assets", express.static("dist/income-plots"))
+        app.use("/admin/assets", express.static("dist/income-plots/assets"))
         app.use("/assets-admin", express.static("dist/assets-admin"))
 
         app.use("/api", publicApiRouter.router)
