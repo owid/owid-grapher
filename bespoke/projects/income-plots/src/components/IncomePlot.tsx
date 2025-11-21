@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react"
+import { MouseEvent, useCallback, useEffect, useMemo, useRef } from "react"
 import { useAtom, useAtomValue } from "jotai"
 import * as d3 from "d3"
 import { formatCurrency } from "../utils/incomePlotUtils.ts"
@@ -37,9 +37,6 @@ export function IncomePlot({
     const backgroundAreasRef = useRef<SVGGElement>(null)
     const foregroundAreasRef = useRef<SVGGElement>(null)
     const xAxisRef = useRef<SVGGElement>(null)
-    const povertyLineRef = useRef<SVGGElement>(null)
-    const pointerRef = useRef<SVGGElement>(null)
-    const overlayRef = useRef<SVGRectElement>(null)
     const points = useAtomValue(atomKdeDataForYear)
     const [povertyLine, setPovertyLine] = useAtom(atomCustomPovertyLine)
     const [showPovertyLine, setShowPovertyLine] = useAtom(
@@ -172,11 +169,6 @@ export function IncomePlot({
 
         const g = d3.select(foregroundAreasRef.current)
 
-        g.style("pointer-events", "none").attr(
-            "clip-path",
-            "url(#highlight-clip)"
-        )
-
         g.selectAll("path")
             .data(stackedSeries)
             .join("path")
@@ -209,7 +201,6 @@ export function IncomePlot({
         if (!xAxisRef.current || !xScale) return
 
         const g = d3.select(xAxisRef.current)
-        g.attr("transform", `translate(0,${height - marginBottom})`)
 
         const [min, max] = xScale.domain()
         const xTicks: number[] = []
@@ -238,100 +229,16 @@ export function IncomePlot({
             .clone()
             .attr("y2", -(height - marginBottom - marginTop))
             .attr("stroke-opacity", 0.1)
+
+        return () => void g.selectAll("*").remove()
     }, [xScale, height, marginBottom, marginTop, currentCurrency])
 
-    // Render Poverty Line
-    useEffect(() => {
-        if (!povertyLineRef.current || !xScale) return
-        const g = d3.select(povertyLineRef.current)
-        g.selectAll("*").remove()
+    const onMouseMove = useCallback(
+        (event: MouseEvent) => {
+            if (!xScale || !yScale || !stackedSeries.length || !svgRef.current)
+                return
 
-        if (showPovertyLine) {
-            const x = xScale(povertyLine * combinedFactor)
-
-            g.append("line")
-                .attr("x1", x)
-                .attr("x2", x)
-                .attr("y1", marginTop)
-                .attr("y2", height - marginBottom)
-                .attr("stroke", "#d73027")
-                .attr("stroke-width", 2)
-                .attr("stroke-dasharray", "5,5")
-
-            g.append("text")
-                .attr("x", x + 5)
-                .attr("y", marginTop + 10)
-                .attr("fill", "#d73027")
-                .attr("font-weight", "bold")
-                .style("font-family", style.fontFamily)
-                .style("font-size", style.fontSize)
-                .text(
-                    `Poverty line: ${formatCurrency(povertyLine * combinedFactor, currentCurrency)}`
-                )
-        }
-    }, [
-        showPovertyLine,
-        povertyLine,
-        combinedFactor,
-        currentCurrency,
-        xScale,
-        height,
-        marginBottom,
-        marginTop,
-    ])
-
-    // Render Pointer
-    useEffect(() => {
-        if (!pointerRef.current || !xScale) return
-        const g = d3.select(pointerRef.current)
-        g.selectAll("*").remove()
-
-        if (hoveredX !== null) {
-            const x = xScale(hoveredX * combinedFactor)
-
-            g.append("line")
-                .attr("x1", x)
-                .attr("x2", x)
-                .attr("y1", marginTop)
-                .attr("y2", height - marginBottom)
-                .attr("stroke", "red")
-                .attr("stroke-opacity", 0.15)
-                .style("pointer-events", "none")
-
-            g.append("text")
-                .attr("x", x)
-                .attr("y", height - marginBottom + 9)
-                .attr("dy", "0.71em") // approximate alignment
-                .attr("fill", "red")
-                .attr("stroke", "white")
-                .attr("stroke-width", 3)
-                .attr("paint-order", "stroke")
-                .attr("text-anchor", "middle")
-                .style("font-family", style.fontFamily)
-                .style("font-size", style.fontSize)
-                .text(
-                    formatCurrency(hoveredX * combinedFactor, currentCurrency)
-                )
-        }
-    }, [
-        hoveredX,
-        combinedFactor,
-        currentCurrency,
-        xScale,
-        height,
-        marginBottom,
-        marginTop,
-    ])
-
-    // Interactions
-    useEffect(() => {
-        if (!overlayRef.current || !xScale || !yScale || !stackedSeries.length)
-            return
-
-        const overlay = d3.select(overlayRef.current)
-
-        overlay.on("mousemove", (event) => {
-            const [mx, my] = d3.pointer(event)
+            const [mx, my] = d3.pointer(event, svgRef.current)
             const xVal = xScale.invert(mx) / combinedFactor
             const yVal = yScale.invert(my)
 
@@ -354,33 +261,41 @@ export function IncomePlot({
                 }
                 setHoveredEntity(foundRegion)
             }
-        })
+        },
+        [
+            xScale,
+            yScale,
+            stackedSeries,
+            combinedFactor,
+            setHoveredX,
+            setHoveredEntity,
+        ]
+    )
 
-        overlay.on("mouseleave", () => {
-            setHoveredEntity(null)
-            setHoveredX(null)
-        })
+    const onMouseLeave = useCallback(() => {
+        setHoveredEntity(null)
+        setHoveredX(null)
+    }, [setHoveredEntity, setHoveredX])
 
-        overlay.on("click", (event) => {
-            const [mx] = d3.pointer(event)
+    const onClick = useCallback(
+        (event: MouseEvent) => {
+            if (!xScale || !svgRef.current) return
+            const [mx] = d3.pointer(event, svgRef.current)
             const xVal = xScale.invert(mx) / combinedFactor
 
             if (!showPovertyLine) {
                 setPovertyLine(xVal)
             }
             setShowPovertyLine(!showPovertyLine)
-        })
-    }, [
-        xScale,
-        yScale,
-        stackedSeries,
-        combinedFactor,
-        showPovertyLine,
-        setPovertyLine,
-        setShowPovertyLine,
-        setHoveredX,
-        setHoveredEntity,
-    ])
+        },
+        [
+            xScale,
+            combinedFactor,
+            showPovertyLine,
+            setPovertyLine,
+            setShowPovertyLine,
+        ]
+    )
 
     return (
         <div className="income-plot-chart" ref={containerRef}>
@@ -396,18 +311,82 @@ export function IncomePlot({
                     </clipPath>
                 </defs>
                 <g className="background-areas" ref={backgroundAreasRef} />
-                <g className="foreground-areas" ref={foregroundAreasRef} />
-                <g className="x-axis" ref={xAxisRef} />
-                <g className="poverty-line" ref={povertyLineRef} />
-                <g className="pointer" ref={pointerRef} />
+                <g
+                    className="foreground-areas"
+                    ref={foregroundAreasRef}
+                    style={{
+                        pointerEvents: "none",
+                        clipPath: `url(#highlight-clip)`,
+                    }}
+                />
+                <g
+                    className="x-axis"
+                    ref={xAxisRef}
+                    transform={`translate(0,${height - marginBottom})`}
+                />
+                {/* Render poverty line, if enabled */}
+                {showPovertyLine && xScale && (
+                    <g className="poverty-line">
+                        <line
+                            x1={xScale(povertyLine * combinedFactor)}
+                            x2={xScale(povertyLine * combinedFactor)}
+                            y1={marginTop}
+                            y2={height - marginBottom}
+                            stroke="#d73027"
+                            strokeWidth={2}
+                            strokeDasharray="5,5"
+                        />
+                        <text
+                            x={xScale(povertyLine * combinedFactor) + 5}
+                            y={marginTop + 10}
+                            fill="#d73027"
+                            fontWeight="bold"
+                        >
+                            {`Poverty line: ${formatCurrency(
+                                povertyLine * combinedFactor,
+                                currentCurrency
+                            )}`}
+                        </text>
+                    </g>
+                )}
+                {/* Render hovered X line and label */}
+                {hoveredX !== null && xScale && (
+                    <g className="pointer">
+                        <line
+                            x1={xScale(hoveredX * combinedFactor)}
+                            x2={xScale(hoveredX * combinedFactor)}
+                            y1={marginTop}
+                            y2={height - marginBottom}
+                            stroke="red"
+                            strokeOpacity={0.15}
+                            style={{ pointerEvents: "none" }}
+                        />
+                        <text
+                            x={xScale(hoveredX * combinedFactor)}
+                            y={height - marginBottom + 9}
+                            dy="0.71em"
+                            fill="red"
+                            stroke="white"
+                            strokeWidth={3}
+                            paintOrder="stroke"
+                        >
+                            {formatCurrency(
+                                hoveredX * combinedFactor,
+                                currentCurrency
+                            )}
+                        </text>
+                    </g>
+                )}
                 <rect
-                    ref={overlayRef}
                     className="overlay"
                     x={marginLeft}
                     y={marginTop}
                     width={width - marginLeft - marginRight}
                     height={height - marginTop - marginBottom}
                     fill="transparent"
+                    onMouseMove={onMouseMove}
+                    onMouseLeave={onMouseLeave}
+                    onClick={onClick}
                 />
             </svg>
         </div>
