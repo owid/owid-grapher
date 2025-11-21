@@ -12,7 +12,7 @@
         "buildGrapherSchema": "tsx --tsconfig tsconfig.tsx.json devTools/schema/buildGrapherSchema.ts",
         "buildViteAdmin": "NODE_OPTIONS=--max-old-space-size=8192 vite build --config vite.config-admin.mts && yarn buildViteBespoke",
         "buildViteArchive": "NODE_OPTIONS=--max-old-space-size=8192 vite build --config vite.config-archive.mts",
-        "buildViteBespoke": "cd bespoke/projects/income-plots && npm i && npm run build && cd -",
+        "buildViteBespoke": "cd bespoke/projects/income-plots && npm i && npm run build",
         "buildViteSite": "NODE_OPTIONS=--max-old-space-size=8192 vite build --config vite.config-site.mts",
         "buildVite": "yarn buildViteSite && yarn buildViteAdmin",
         "bakeGdocPosts": "tsx --tsconfig tsconfig.tsx.json baker/bakeGdocPosts.ts",
