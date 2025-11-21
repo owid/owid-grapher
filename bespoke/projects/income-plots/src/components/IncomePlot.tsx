@@ -74,7 +74,9 @@ const IncomePlotAreas = ({
     xScale,
     yScale,
 }: IncomePlotAreasProps) => {
-    const hoveredEntity = useAtomValue(atomHoveredEntity)
+    const ref = useRef<SVGGElement>(null)
+
+    const [hoveredEntity, setHoveredEntity] = useAtom(atomHoveredEntity)
     const hoveredEntityType = useAtomValue(atomHoveredEntityType)
 
     // Area Generator
@@ -95,8 +97,16 @@ const IncomePlotAreas = ({
         }))
     }, [area, stackedSeries])
 
+    const onMouseLeave = useCallback(
+        (entity: string) => {
+            // Only set to null if it hasn't been changed in the meantime
+            setHoveredEntity((current) => (current === entity ? null : current))
+        },
+        [setHoveredEntity]
+    )
+
     return (
-        <g className="plot-series">
+        <g className="plot-series" ref={ref}>
             {seriesWithAreas.map((series) => {
                 if (!series.area) return null
                 const isHighlighted =
@@ -111,6 +121,8 @@ const IncomePlotAreas = ({
                         data-country={series.key}
                         data-region={series["region"]}
                         data-highlighted={isHighlighted}
+                        onMouseEnter={() => setHoveredEntity(series.country)}
+                        onMouseLeave={() => onMouseLeave(series.country)}
                     >
                         <path
                             className="area-bg"
@@ -227,7 +239,7 @@ const IncomePlotPovertyLine = ({
     if (!xScale || !showPovertyLine) return null
 
     return (
-        <g className="poverty-line">
+        <g className="poverty-line" style={{ pointerEvents: "none" }}>
             <line
                 x1={xScale(povertyLine)}
                 x2={xScale(povertyLine)}
@@ -271,7 +283,7 @@ const IncomePlotPointer = ({
 
     if (!xScale || hoveredX === null) return null
     return (
-        <g className="pointer">
+        <g className="pointer" style={{ pointerEvents: "none" }}>
             <line
                 x1={xScale(hoveredX)}
                 x2={xScale(hoveredX)}
@@ -389,31 +401,11 @@ export function IncomePlot({
             if (!xScale || !yScale || !stackedSeries.length || !svgRef.current)
                 return
 
-            const [mx, my] = d3.pointer(event, svgRef.current)
+            const [mx] = d3.pointer(event, svgRef.current)
             const xVal = xScale.invert(mx)
-            const yVal = yScale.invert(my)
-
-            // Find closest data point index
-            const data = stackedSeries[0].map((d) => d.data as any)
-            const bisect = d3.bisector((d: any) => d.x).center
-            const index = bisect(data, xVal)
-
-            if (index >= 0 && index < data.length) {
-                const d = data[index]
-                setHoveredX(d.x)
-
-                let foundRegion = null
-                for (const layer of stackedSeries) {
-                    const [y0, y1] = layer[index]
-                    if (yVal >= y0 && yVal <= y1) {
-                        foundRegion = layer.key
-                        break
-                    }
-                }
-                setHoveredEntity(foundRegion)
-            }
+            setHoveredX(xVal)
         },
-        [xScale, yScale, stackedSeries, setHoveredX, setHoveredEntity]
+        [xScale, yScale, stackedSeries, setHoveredX]
     )
 
     const onMouseLeave = useCallback(() => {
