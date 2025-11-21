@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from "react"
 import { useAtom, useAtomValue } from "jotai"
-import * as Plot from "@observablehq/plot"
-import { formatCurrency, usePlot } from "../utils/incomePlotUtils.ts"
+import * as d3 from "d3"
+import { formatCurrency } from "../utils/incomePlotUtils.ts"
 import {
     atomCombinedFactor,
     atomCurrentCurrency,
@@ -9,7 +9,6 @@ import {
     atomHoveredEntity,
     atomHoveredX,
     atomKdeDataForYear,
-    atomKdeDataForYearGroupedByRegion,
     atomPlotColorScale,
     atomShowCustomPovertyLine,
 } from "../store.ts"
@@ -31,12 +30,13 @@ export function IncomePlot({
     height = PLOT_HEIGHT,
 }: IncomePlotProps) {
     const containerRef = useRef<HTMLDivElement>(null)
+    const svgRef = useRef<SVGSVGElement>(null)
     const points = useAtomValue(atomKdeDataForYear)
     const [povertyLine, setPovertyLine] = useAtom(atomCustomPovertyLine)
     const [showPovertyLine, setShowPovertyLine] = useAtom(
         atomShowCustomPovertyLine
     )
-    const plotColorScale = useAtomValue(atomPlotColorScale)
+    const plotColorScaleConfig = useAtomValue(atomPlotColorScale)
     const [hoveredEntity, setHoveredEntity] = useAtom(atomHoveredEntity)
     const [hoveredX, setHoveredX] = useAtom(atomHoveredX)
     const combinedFactor = useAtomValue(atomCombinedFactor)
@@ -44,193 +44,312 @@ export function IncomePlot({
 
     const hasHoveredEntity = hoveredEntity !== null
 
-    const marks = useMemo(() => {
-        const marks = [
-            // Background series, always rendered at 0.3 opacity
-            Plot.areaY(points, {
-                x: "x",
-                y: "y",
-                fill: "region",
-                z: "region",
-                className: "income-plot-chart-area",
-                title: "region",
-                // stroke: "region",
-                // strokeWidth: 1,
-                // strokeOpacity: 1,
-                fillOpacity: 0.3,
-            }),
-            // Foreground series - often times only rendering the hovered
-            // entity or x position
-            Plot.areaY(points, {
-                x: "x",
-                y: "y",
-                fill: "region",
-                z: "region",
-                className: "income-plot-chart-area--highlighted",
-                title: "region",
-                // stroke: "region",
-                // strokeWidth: 1,
-                // strokeOpacity: 1,
-                fillOpacity: { value: "region", scale: "opacity" },
-            }),
-            Plot.ruleY([0]),
-            // Pointer ruler & axis text
-            Plot.ruleX(
-                points,
-                Plot.pointerX({ x: "x", stroke: "red", strokeOpacity: 0.15 })
-            ),
-            Plot.text(
-                points,
-                Plot.pointerX({
-                    x: "x",
-                    text: (d) =>
-                        formatCurrency(d.x * combinedFactor, currentCurrency),
-                    fill: "red",
-                    dy: 9,
-                    frameAnchor: "bottom",
-                    lineAnchor: "top",
-                    stroke: "white",
-                })
-            ),
-        ]
+    // Margins
+    const marginTop = 10
+    const marginRight = 20
+    const marginBottom = 30
+    const marginLeft = 20
 
-        // Add poverty line if enabled
-        if (showPovertyLine) {
-            marks.push(
-                Plot.ruleX([povertyLine], {
-                    stroke: "#d73027",
-                    strokeWidth: 2,
-                    strokeDasharray: "5,5",
-                }),
-                Plot.text([povertyLine], {
-                    x: (d) => d,
-                    text: () =>
-                        `Poverty line: ${formatCurrency(povertyLine * combinedFactor, currentCurrency)}`,
-                    fill: "#d73027",
-                    dy: -10,
-                    frameAnchor: "top-left",
-                    fontWeight: "bold",
-                })
-            )
-        }
-        return marks
-    }, [points, showPovertyLine, combinedFactor, currentCurrency, povertyLine])
-
-    const plot = useMemo(() => {
-        const plot = Plot.plot({
-            x: {
-                label: null,
-                type: "log",
-                grid: true,
-                transform: (d) => d * combinedFactor,
-                tickFormat: (d) => formatCurrency(d, currentCurrency),
-            },
-            y: { axis: false, insetTop: 10 },
-            opacity: {
-                type: "ordinal",
-                domain: plotColorScale.domain,
-                range: plotColorScale.domain?.map((entity) => {
-                    if (!hasHoveredEntity) return 0.8
-                    return entity === hoveredEntity ? 0.9 : 0
-                }),
-            },
-            height,
-            width,
-            color: plotColorScale,
-            marks,
-            style,
-        })
-
-        plot.addEventListener("click", () => {
-            if (!plot.value) return
-            if (!showPovertyLine) setPovertyLine(plot.value.x.toFixed(2))
-            setShowPovertyLine(!showPovertyLine)
-        })
-
-        // Attach hover listeners directly to the areas.
-        // Using plot.value doesn't work well here, because they are using a radius
-        // around the plotted data points, which makes it so that "center" of an area
-        // sometimes doesn't show the hover state.
-        plot.querySelectorAll(".income-plot-chart-area path").forEach(
-            (area) => {
-                const region = area.querySelector("title")?.textContent
-                if (!region) return
-
-                area.querySelector("title")?.remove()
-
-                area.addEventListener("mousemove", () => {
-                    setHoveredEntity(region)
-
-                    if (plot.value?.x) setHoveredX(plot.value.x)
-                    else setHoveredX(null)
-                })
-                area.addEventListener("mouseleave", () => {
-                    setHoveredEntity(null)
-                    setHoveredX(null)
-                })
+    // Prepare Data for Stack
+    const { stackedSeries, xScale, yScale } = useMemo(() => {
+        if (!points.length)
+            return {
+                stackedSeries: [],
+                xScale: null,
+                yScale: null,
+                xDomain: [],
             }
+
+        // 1. Group by X and pivot
+        // Assuming points are consistent across regions (same x grid)
+        // We collect all unique X values first to be safe and sort them
+        const xValues = Array.from(new Set(points.map((d) => d.x))).sort(
+            (a, b) => a - b
         )
-        plot.querySelectorAll(
-            ".income-plot-chart-area--highlighted path"
-        ).forEach((area) => {
-            const elem = area as SVGElement
-            elem.style.pointerEvents = "none"
+
+        // Create a map for quick lookup: x -> { region: y }
+        const dataMap = new Map<number, { [key: string]: number }>()
+        points.forEach((d) => {
+            if (!dataMap.has(d.x)) dataMap.set(d.x, {})
+            const regionMap = dataMap.get(d.x)!
+            regionMap[d.region] = (regionMap[d.region] || 0) + d.y
         })
 
-        plot.addEventListener("mouseleave", () => {
+        const stackedDataInput = xValues.map((x) => {
+            const row: any = { x }
+            const regionValues = dataMap.get(x) || {}
+            plotColorScaleConfig.domain.forEach((region) => {
+                row[region] = regionValues[region] || 0
+            })
+            return row
+        })
+
+        // 2. Stack
+        const stack = d3.stack().keys(plotColorScaleConfig.domain.toReversed())
+        // .order(d3.stackOrderNone)
+        // .offset(d3.stackOffsetNone)
+
+        const stackedSeries = stack(stackedDataInput)
+
+        // 3. Scales
+        const xMin = d3.min(xValues, (d) => d * combinedFactor) || 0.1
+        const xMax = d3.max(xValues, (d) => d * combinedFactor) || 100
+        const xDomain = [Math.max(xMin, 0.1), xMax] // Log scale cannot have 0
+
+        const xScale = d3
+            .scaleLog()
+            .domain(xDomain)
+            .range([marginLeft, width - marginRight])
+
+        // Max Y is the max of the sum of y's for any x (since it's stacked)
+        const yMax =
+            d3.max(stackedDataInput, (d) => {
+                let sum = 0
+                plotColorScaleConfig.domain.forEach((r) => (sum += d[r]))
+                return sum
+            }) || 1
+
+        const yScale = d3
+            .scaleLinear()
+            .domain([0, yMax])
+            .range([height - marginBottom, marginTop])
+
+        return { stackedSeries, xScale, yScale, xDomain }
+    }, [points, combinedFactor, plotColorScaleConfig, width, height])
+
+    // Color Scale
+    const colorScale = useMemo(() => {
+        return d3
+            .scaleOrdinal()
+            .domain(plotColorScaleConfig.domain)
+            .range(plotColorScaleConfig.range)
+    }, [plotColorScaleConfig])
+
+    // Render
+    useEffect(() => {
+        if (!svgRef.current || !xScale || !yScale || !stackedSeries.length)
+            return
+
+        const svg = d3.select(svgRef.current)
+        svg.selectAll("*").remove() // Clear previous render
+
+        // Define Clip Path for Highlight
+        const defs = svg.append("defs")
+        const clipPath = defs.append("clipPath").attr("id", "highlight-clip")
+        clipPath
+            .append("rect")
+            .attr("y", 0)
+            .attr("height", height)
+            .attr("width", width) // Default full width
+
+        // Area Generator
+        const area = d3
+            .area<any>()
+            .x((d) => xScale(d.data.x * combinedFactor))
+            .y0((d) => yScale(d[0]))
+            .y1((d) => yScale(d[1]))
+
+        // Draw Background Areas
+        svg.append("g")
+            .attr("class", "background-areas")
+            .selectAll("path")
+            .data(stackedSeries)
+            .join("path")
+            .attr("fill", (d) => colorScale(d.key) as string)
+            .attr("fill-opacity", 0.3)
+            .attr("d", area)
+            .attr("class", "income-plot-chart-area")
+
+        // Draw Foreground Areas (Highlighted)
+        const foregroundGroup = svg
+            .append("g")
+            .attr("class", "foreground-areas")
+            .style("pointer-events", "none")
+            .attr("clip-path", "url(#highlight-clip)")
+
+        foregroundGroup
+            .selectAll("path")
+            .data(stackedSeries)
+            .join("path")
+            .attr("fill", (d) => colorScale(d.key) as string)
+            .attr("fill-opacity", (d) => {
+                if (!hasHoveredEntity) return 0.8
+                return d.key === hoveredEntity ? 0.9 : 0
+            })
+            .attr("d", area)
+            .attr("class", "income-plot-chart-area--highlighted")
+
+        // X Axis
+        const xAxis = d3
+            .axisBottom(xScale)
+            .ticks(width / 80)
+            .tickFormat((d) => formatCurrency(d as number, currentCurrency))
+            .tickSizeOuter(0)
+
+        const xAxisGroup = svg
+            .append("g")
+            .attr("transform", `translate(0,${height - marginBottom})`)
+            .call(xAxis)
+
+        xAxisGroup.select(".domain").remove()
+        xAxisGroup
+            .selectAll(".tick line")
+            .clone()
+            .attr("y2", -(height - marginBottom - marginTop))
+            .attr("stroke-opacity", 0.1)
+
+        // Poverty Line
+        if (showPovertyLine) {
+            const x = xScale(povertyLine * combinedFactor)
+
+            svg.append("line")
+                .attr("x1", x)
+                .attr("x2", x)
+                .attr("y1", marginTop)
+                .attr("y2", height - marginBottom)
+                .attr("stroke", "#d73027")
+                .attr("stroke-width", 2)
+                .attr("stroke-dasharray", "5,5")
+
+            svg.append("text")
+                .attr("x", x)
+                .attr("y", marginTop - 5)
+                .attr("fill", "#d73027")
+                .attr("font-weight", "bold")
+                .style("font-family", style.fontFamily)
+                .style("font-size", style.fontSize)
+                .text(
+                    `Poverty line: ${formatCurrency(povertyLine * combinedFactor, currentCurrency)}`
+                )
+        }
+
+        // Pointer X
+        if (hoveredX !== null) {
+            const x = xScale(hoveredX * combinedFactor)
+
+            svg.append("line")
+                .attr("x1", x)
+                .attr("x2", x)
+                .attr("y1", marginTop)
+                .attr("y2", height - marginBottom)
+                .attr("stroke", "red")
+                .attr("stroke-opacity", 0.15)
+                .style("pointer-events", "none")
+
+            svg.append("text")
+                .attr("x", x)
+                .attr("y", height - marginBottom + 9)
+                .attr("dy", "0.71em") // approximate alignment
+                .attr("fill", "red")
+                .attr("stroke", "white")
+                .attr("stroke-width", 3)
+                .attr("paint-order", "stroke")
+                .attr("text-anchor", "middle")
+                .style("font-family", style.fontFamily)
+                .style("font-size", style.fontSize)
+                .text(
+                    formatCurrency(hoveredX * combinedFactor, currentCurrency)
+                )
+        }
+
+        // Interactions
+        // We use a transparent overlay rect to capture events everywhere
+        const overlay = svg
+            .append("rect")
+            .attr("class", "overlay")
+            .attr("x", marginLeft)
+            .attr("y", marginTop)
+            .attr("width", width - marginLeft - marginRight)
+            .attr("height", height - marginBottom - marginTop)
+            .attr("fill", "transparent")
+        // .style("cursor", "crosshair")
+
+        overlay.on("mousemove", (event) => {
+            const [mx, my] = d3.pointer(event)
+            const xVal = xScale.invert(mx) / combinedFactor
+            const yVal = yScale.invert(my)
+
+            // Find closest data point index
+            // stackedSeries[0] has the data structure with .data.x
+            const data = stackedSeries[0].map((d) => d.data)
+            const bisect = d3.bisector((d: any) => d.x).center
+            const index = bisect(data, xVal)
+
+            if (index >= 0 && index < data.length) {
+                const d = data[index]
+                setHoveredX(d.x) // Set raw x
+
+                // Find region
+                let foundRegion = null
+                // Iterate series in reverse order (top to bottom) or just check intervals
+                for (const layer of stackedSeries) {
+                    const [y0, y1] = layer[index]
+                    // y0 and y1 are data values. yScale maps them to pixels.
+                    // yVal is data value (inverted from pixels).
+                    if (yVal >= y0 && yVal <= y1) {
+                        foundRegion = layer.key
+                        break
+                    }
+                }
+                setHoveredEntity(foundRegion)
+            }
+        })
+
+        overlay.on("mouseleave", () => {
             setHoveredEntity(null)
             setHoveredX(null)
         })
-        return plot
+
+        overlay.on("click", (event) => {
+            const [mx] = d3.pointer(event)
+            const xVal = xScale.invert(mx) / combinedFactor
+
+            if (!showPovertyLine) {
+                setPovertyLine(xVal)
+            }
+            setShowPovertyLine(!showPovertyLine)
+        })
     }, [
-        plotColorScale,
-        height,
+        stackedSeries,
+        xScale,
+        yScale,
         width,
-        marks,
+        height,
         combinedFactor,
         currentCurrency,
+        colorScale,
+        showPovertyLine,
+        povertyLine,
+        hoveredX,
         hasHoveredEntity,
         hoveredEntity,
-        showPovertyLine,
-        setPovertyLine,
-        setShowPovertyLine,
         setHoveredEntity,
         setHoveredX,
+        setPovertyLine,
+        setShowPovertyLine,
     ])
-
-    usePlot(plot, containerRef)
 
     const hoverRightThreshold = useMemo(() => {
         const activePovertyLine = showPovertyLine ? povertyLine : null
         return activePovertyLine ?? hoveredX
     }, [showPovertyLine, povertyLine, hoveredX])
 
-    // When there's either a hoverX or a custom poverty line, only show
-    // the left part of the highlighted area up to the line.
-    // We do this using a clipPath, which is more efficient than filtering the data.
     useEffect(() => {
-        const highlighted = plot.querySelector(
-            ".income-plot-chart-area--highlighted"
-        ) as SVGElement | null
-        const xScale = plot.scale("x")
-        if (highlighted && xScale) {
-            const xRange = xScale.range as [number, number]
+        if (!svgRef.current || !xScale) return
+        const svg = d3.select(svgRef.current)
+        const clipRect = svg.select("#highlight-clip rect")
 
-            if (hoverRightThreshold === null) {
-                highlighted.style.clipPath = `none`
-            } else {
-                const clipX = hoverRightThreshold
-                    ? xScale.apply(hoverRightThreshold * combinedFactor) -
-                      xRange[0]
-                    : 0
-                highlighted.style.clipPath = `xywh(0 0 ${clipX}px 100%)`
-            }
+        if (hoverRightThreshold === null) {
+            clipRect.attr("width", width)
+        } else {
+            const clipX = xScale(hoverRightThreshold * combinedFactor)
+            clipRect.attr("width", Math.max(0, clipX))
         }
-    }, [plot, hoverRightThreshold, combinedFactor])
+    }, [hoverRightThreshold, xScale, combinedFactor, width])
 
     return (
-        <>
-            <div className="income-plot-chart" ref={containerRef}></div>
-        </>
+        <div className="income-plot-chart" ref={containerRef}>
+            <svg ref={svgRef} width={width} height={height} style={style} />
+        </div>
     )
 }
