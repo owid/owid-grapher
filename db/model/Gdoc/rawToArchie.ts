@@ -57,6 +57,7 @@ import {
     RawBlockResourcePanel,
     RawBlockCta,
     RawBlockScript,
+    RawBlockConditionalSection,
 } from "@ourworldindata/types"
 import { match } from "ts-pattern"
 
@@ -531,6 +532,22 @@ function* RawBlockGraySectionToArchieMLString(
             yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
     }
     yield "[]"
+}
+
+function* RawBlockConditionalSectionToArchieMLString(
+    block: RawBlockConditionalSection
+): Generator<string, void, undefined> {
+    yield "{.conditional-section}"
+    yield* propertyToArchieMLString("entity", block.value)
+    yield* propertyToArchieMLString("include", block.value)
+    yield* propertyToArchieMLString("exclude", block.value)
+    yield "[.+content]"
+    if (block.value.content) {
+        for (const b of block.value.content)
+            yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
+    }
+    yield "[]"
+    yield "{}"
 }
 
 function* RawBlockProminentLinkToArchieMLString(
@@ -1012,6 +1029,10 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
             RawBlockSideBySideContainerToArchieMLString
         )
         .with({ type: "gray-section" }, RawBlockGraySectionToArchieMLString)
+        .with(
+            { type: "conditional-section" },
+            RawBlockConditionalSectionToArchieMLString
+        )
         .with({ type: "prominent-link" }, RawBlockProminentLinkToArchieMLString)
         .with({ type: "sdg-toc" }, rawBlockSDGTocToArchieMLString)
         .with({ type: "missing-data" }, rawBlockMissingDataToArchieMLString)

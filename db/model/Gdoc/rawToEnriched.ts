@@ -7,6 +7,7 @@ import {
     EnrichedBlockChart,
     EnrichedBlockChartStory,
     EnrichedBlockDonorList,
+    EnrichedBlockConditionalSection,
     EnrichedBlockGraySection,
     EnrichedBlockHeading,
     EnrichedBlockHorizontalRule,
@@ -46,6 +47,7 @@ import {
     RawBlockChart,
     RawBlockChartStory,
     RawBlockDonorList,
+    RawBlockConditionalSection,
     RawBlockGraySection,
     RawBlockHeading,
     RawBlockHtml,
@@ -176,6 +178,7 @@ import {
     EnrichedBlockScript,
     RawBlockScript,
 } from "@ourworldindata/types/src/gdocTypes/ArchieMlComponents.js"
+import { validateConditionalSectionLists } from "@ourworldindata/utils/src/profiles.js"
 
 export function parseRawBlocksToEnrichedBlocks(
     block: OwidRawGdocBlock
@@ -231,6 +234,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "sticky-right" }, parseStickyRight)
         .with({ type: "side-by-side" }, parseSideBySide)
         .with({ type: "gray-section" }, parseGraySection)
+        .with({ type: "conditional-section" }, parseConditionalSection)
         .with({ type: "prominent-link" }, parseProminentLink)
         .with({ type: "topic-page-intro" }, parseTopicPageIntro)
         .with({ type: "cookie-notice" }, parseCookieNotice)
@@ -1602,6 +1606,81 @@ function parseGraySection(raw: RawBlockGraySection): EnrichedBlockGraySection {
         type: "gray-section",
         items: _.compact(raw.value.map(parseRawBlocksToEnrichedBlocks)),
         parseErrors: [],
+    }
+}
+
+/**
+ * This is the first pass at validating a conditional section.
+ * There's a second pass once the profile has been instantiated
+ * in instantiateProfile to determine whether to include/exclude
+ * the content based on the profile's entities.
+ */
+function parseConditionalSection(
+    raw: RawBlockConditionalSection
+): EnrichedBlockConditionalSection | null {
+    const createError = (
+        error: ParseError
+    ): EnrichedBlockConditionalSection => ({
+        type: "conditional-section",
+        content: [],
+        entity: "",
+        include: [],
+        exclude: [],
+        parseErrors: [error],
+    })
+
+    const entity = raw.value.entity
+    if (entity !== "$noArticleEntityName") {
+        return createError({
+            message: `Conditional section must have entity: $noArticleEntityName`,
+        })
+    }
+
+    const content = raw.value.content
+    if (!content) {
+        return createError({
+            message: "Conditional section must have content",
+        })
+    }
+
+    const parseEntityList = (
+        rawList: unknown
+    ): { value: string[]; parseErrors: ParseError[] } => {
+        if (!rawList) {
+            return { value: [], parseErrors: [] }
+        }
+        if (typeof rawList === "string") {
+            const value: string[] = rawList.split(",").map((s) => s.trim())
+            return { value, parseErrors: [] }
+        }
+        return {
+            value: [],
+            parseErrors: [
+                {
+                    message:
+                        "Include/exclude must be a comma-separated string of entity names",
+                },
+            ],
+        }
+    }
+    const parseErrors: ParseError[] = []
+    const include = parseEntityList(raw.value.include)
+    const exclude = parseEntityList(raw.value.exclude)
+    parseErrors.push(...include.parseErrors)
+    parseErrors.push(...exclude.parseErrors)
+    parseErrors.push(
+        ...validateConditionalSectionLists(include.value, exclude.value)
+    )
+
+    return {
+        type: "conditional-section",
+        content: content
+            .map(parseRawBlocksToEnrichedBlocks)
+            .filter((block): block is OwidEnrichedGdocBlock => block !== null),
+        entity,
+        include: include.value,
+        exclude: exclude.value,
+        parseErrors,
     }
 }
 
