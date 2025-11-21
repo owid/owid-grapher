@@ -6,6 +6,8 @@ import {
     KDE_EXTENT,
     KDE_NUM_BINS,
 } from "./incomePlotConstants.ts"
+import type { RawDataForYearRecord } from "../store.ts"
+import * as R from "remeda"
 
 const currencyFormatterCache = new Map<Currency, Intl.NumberFormat>()
 
@@ -87,4 +89,36 @@ export const REGION_COLORS = {
     "North America": OwidDistinctColors.Peach,
     "South Asia": OwidDistinctColors.TealishGreen,
     "Sub-Saharan Africa": OwidDistinctColors.Mauve,
+}
+
+export const REGION_NAMES = Object.keys(REGION_COLORS)
+
+export const computePercentageBelowLine = (
+    rawData: RawDataForYearRecord[],
+    line: number,
+    countriesOrRegions: Set<string>
+) => {
+    const lineInLog2 = Math.log2(line)
+
+    const map = new Map(
+        [...countriesOrRegions].map((entity) => {
+            // If it's a country, then this is just a single record and the computation is simpler
+            const records = rawData.filter(
+                (d) => d.country === entity || d.region === entity
+            )
+
+            const totalPop = R.sumBy(records, R.prop("pop"))
+            const percentagesWeighted = records.map((record) => {
+                const pop = record.pop
+                const index = R.sortedIndex(record.avgsLog2, lineInLog2)
+
+                return (index / 10) * pop
+            })
+
+            const percentageBelowLine = R.sum(percentagesWeighted) / totalPop
+
+            return [entity, percentageBelowLine]
+        })
+    )
+    return map
 }
