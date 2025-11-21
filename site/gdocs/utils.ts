@@ -87,6 +87,19 @@ export const useLinkedAuthor = (
 
 type LinkedDocument = OwidGdocMinimalPostInterface & { url: string }
 
+export const getLinkedDocumentUrl = (
+    linkedDocument: Pick<OwidGdocMinimalPostInterface, "slug" | "type">,
+    originalUrl: string,
+    baseUrl: string = BAKED_BASE_URL
+): string => {
+    const canonicalUrl = getCanonicalUrl(baseUrl, {
+        slug: linkedDocument.slug,
+        content: { type: linkedDocument.type },
+    })
+    const hash = Url.fromURL(originalUrl).hash
+    return `${canonicalUrl}${hash}`
+}
+
 export const useLinkedDocument = (
     url: string
 ): { linkedDocument?: LinkedDocument; errorMessage?: string } => {
@@ -113,10 +126,7 @@ export const useLinkedDocument = (
     return {
         linkedDocument: {
             ...linkedDocument,
-            url: getCanonicalUrl(BAKED_BASE_URL, {
-                slug: linkedDocument.slug,
-                content: { type: linkedDocument.type },
-            }),
+            url: getLinkedDocumentUrl(linkedDocument, url),
         },
         errorMessage,
     }

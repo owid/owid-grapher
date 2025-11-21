@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
-import { ContentGraphLinkType } from "@ourworldindata/types"
-import { isExternalUrl } from "./utils.js"
+import { getLinkedDocumentUrl, isExternalUrl } from "./utils.js"
+import { ContentGraphLinkType, OwidGdocType } from "@ourworldindata/types"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 
 describe(isExternalUrl, () => {
@@ -30,5 +30,25 @@ describe(isExternalUrl, () => {
         expect(isExternalUrl(ContentGraphLinkType.Url, "not-a-valid-url")).toBe(
             false
         )
+    })
+})
+
+describe(getLinkedDocumentUrl, () => {
+    it("appends the fragment from the original gdoc URL to the canonical URL", () => {
+        const url = getLinkedDocumentUrl(
+            { slug: "a-slug", type: OwidGdocType.Article },
+            "https://docs.google.com/document/d/abcd/edit#my-heading",
+            "https://ourworldindata.org"
+        )
+        expect(url).toBe("https://ourworldindata.org/a-slug#my-heading")
+    })
+
+    it("returns the canonical URL when no fragment is provided", () => {
+        const url = getLinkedDocumentUrl(
+            { slug: "a-slug", type: OwidGdocType.Article },
+            "https://docs.google.com/document/d/abcd/edit",
+            "https://ourworldindata.org"
+        )
+        expect(url).toBe("https://ourworldindata.org/a-slug")
     })
 })
