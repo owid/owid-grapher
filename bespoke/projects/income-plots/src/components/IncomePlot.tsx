@@ -490,16 +490,16 @@ export function IncomePlot({
                 onClick={onClick}
             >
                 <IncomePlotClipPath xScale={xScale} />
-                <IncomePlotAreas
-                    stackedSeries={stackedSeries}
-                    xScale={xScale}
-                    yScale={yScale}
-                />
                 <IncomePlotXAxis
                     xScale={xScale}
                     height={height}
                     marginBottom={marginBottom}
                     marginTop={marginTop}
+                />
+                <IncomePlotAreas
+                    stackedSeries={stackedSeries}
+                    xScale={xScale}
+                    yScale={yScale}
                 />
                 <IncomePlotIntPovertyLine
                     xScale={xScale}
