@@ -68,6 +68,12 @@ export const atomRawDataForYear = atom(async (get, { signal }) => {
     return sortedDataForYear
 })
 
+export const atomCountryRegionMap = atom(async (get) => {
+    const rawData = await get(atomRawDataForYear)
+
+    return new Map(rawData.map((d) => [d.country, d.region]))
+})
+
 export const atomKdeDataForYear = atom(async (get) => {
     const rawData = await get(atomRawDataForYear)
     const kdeData = rawData.flatMap((record) => {
@@ -87,6 +93,16 @@ export const atomKdeDataForYear = atom(async (get) => {
 
     return kdeData
 })
+
+export const atomKdeXValues = atom<Promise<[number, ...number[]]>>(
+    async (get) => {
+        const kdeData = await get(atomKdeDataForYear)
+        return Array.from(new Set(kdeData.map((d) => d.x))) as [
+            number,
+            ...number[],
+        ]
+    }
+)
 
 export const atomKdeDataForYearGroupedByRegion = atom(async (get) => {
     const kdeData = await get(atomKdeDataForYear)
