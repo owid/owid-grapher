@@ -43,15 +43,13 @@ interface IncomePlotClipPathProps {
 }
 
 const IncomePlotClipPath = ({ xScale }: IncomePlotClipPathProps) => {
-    const showPovertyLine = useAtomValue(atomShowCustomPovertyLine)
     const povertyLine = useAtomValue(atomCustomPovertyLine)
     const hoveredX = useAtomValue(atomHoveredX)
     const hoverRightThresholdPlaced = useMemo(() => {
-        const activePovertyLine = showPovertyLine ? povertyLine : null
-        const threshold = activePovertyLine ?? hoveredX
+        const threshold = povertyLine ?? hoveredX
         if (!xScale || threshold === null) return null
         return xScale(threshold)
-    }, [showPovertyLine, povertyLine, hoveredX, xScale])
+    }, [povertyLine, hoveredX, xScale])
     return (
         <defs>
             <clipPath id="highlight-clip">
@@ -325,9 +323,8 @@ const IncomePlotCustomPovertyLine = ({
     const povertyLine = useAtomValue(atomCustomPovertyLine)
     const combinedFactor = useAtomValue(atomCombinedFactor)
     const currentCurrency = useAtomValue(atomCurrentCurrency)
-    const showPovertyLine = useAtomValue(atomShowCustomPovertyLine)
 
-    if (!xScale || !showPovertyLine) return null
+    if (!xScale || povertyLine === null) return null
 
     return (
         <g className="poverty-line" style={{ pointerEvents: "none" }}>
