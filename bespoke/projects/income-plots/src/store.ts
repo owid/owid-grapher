@@ -10,7 +10,6 @@ import data from "./data/incomeBins.json"
 import { sleep } from "@ourworldindata/utils"
 import { kdeLog, REGION_COLORS } from "./utils/incomePlotUtils.ts"
 import * as R from "remeda"
-import * as Plot from "@observablehq/plot"
 
 export const atomCustomPovertyLine = atom(3)
 
@@ -138,7 +137,7 @@ export const atomPlotColorScale = atom((get) => {
     return {
         domain: legendEntries.map((entry) => entry.name),
         range: legendEntries.map((entry) => entry.color),
-    } satisfies Plot.ScaleOptions
+    }
 })
 
 // Hover state of the chart
