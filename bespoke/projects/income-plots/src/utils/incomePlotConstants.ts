@@ -1,3 +1,4 @@
+import { SeriesPoint } from "d3-shape"
 import * as fastKde from "fast-kde"
 
 export const INT_POVERTY_LINE = 3.0
@@ -36,3 +37,11 @@ export const KDE_NUM_BINS = 200
 
 export const PLOT_WIDTH = 1000
 export const PLOT_HEIGHT = 500
+
+export interface StackedSeriesPoint extends Array<SeriesPoint<number>> {
+    x: number
+    key: string
+    country: string
+    region: string
+    color: string
+}
