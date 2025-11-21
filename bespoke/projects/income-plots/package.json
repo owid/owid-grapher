@@ -25,5 +25,9 @@
         "../../../packages/@ourworldindata/grapher",
         "../../../packages/@ourworldindata/types",
         "../../../packages/@ourworldindata/utils"
-    ]
+    ],
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build"
+    }
 }
