@@ -1,5 +1,5 @@
 import { MouseEvent, useCallback, useEffect, useMemo, useRef } from "react"
-import { useAtom, useAtomValue } from "jotai"
+import { useAtom, useAtomValue, useSetAtom } from "jotai"
 import * as d3 from "d3"
 import { formatCurrency } from "../utils/incomePlotUtils.ts"
 import {
@@ -35,12 +35,248 @@ interface IncomePlotProps {
     height?: number
 }
 
+interface IncomePlotAreasProps {
+    stackedSeries: StackedSeriesPoint[]
+    xScale: d3.ScaleLogarithmic<number, number> | null
+    yScale: d3.ScaleLinear<number, number> | null
+}
+
+const IncomePlotAreas = ({
+    stackedSeries,
+    xScale,
+    yScale,
+}: IncomePlotAreasProps) => {
+    const hoveredEntity = useAtomValue(atomHoveredEntity)
+    const hoveredEntityType = useAtomValue(atomHoveredEntityType)
+
+    // Area Generator
+    const area = useMemo(() => {
+        if (!xScale || !yScale) return null
+        return d3
+            .area<any>()
+            .x((d) => xScale(d.data.x))
+            .y0((d) => yScale(d[0]))
+            .y1((d) => yScale(d[1]))
+    }, [xScale, yScale])
+
+    const seriesWithAreas = useMemo(() => {
+        if (!area) return []
+        return stackedSeries.map((series) => ({
+            ...series,
+            area: area(series),
+        }))
+    }, [area, stackedSeries])
+
+    return (
+        <g className="plot-series">
+            {seriesWithAreas.map((series) => {
+                if (!series.area) return null
+                const isHighlighted =
+                    hoveredEntityType === null
+                        ? undefined
+                        : series[hoveredEntityType] === hoveredEntity
+
+                return (
+                    <g
+                        key={series.key}
+                        className="income-plot-series"
+                        data-country={series.key}
+                        data-region={series["region"]}
+                        data-highlighted={isHighlighted}
+                    >
+                        <path
+                            className="area-bg"
+                            fill={series["color"]}
+                            d={series.area}
+                        />
+                        <path
+                            className="area-fg"
+                            fill={series["color"]}
+                            d={series.area}
+                            clipPath="url(#highlight-clip)"
+                            style={{ pointerEvents: "none" }}
+                        />
+                    </g>
+                )
+            })}
+        </g>
+    )
+}
+
+interface IncomePlotXAxisProps {
+    xScale: d3.ScaleLogarithmic<number, number> | null
+    height: number
+    marginBottom: number
+    marginTop: number
+}
+
+const IncomePlotXAxis = ({
+    xScale,
+    height,
+    marginBottom,
+    marginTop,
+}: IncomePlotXAxisProps) => {
+    const xAxisRef = useRef<SVGGElement>(null)
+
+    const currentCurrency = useAtomValue(atomCurrentCurrency)
+    const combinedFactor = useAtomValue(atomCombinedFactor)
+
+    useEffect(() => {
+        if (!xAxisRef.current || !xScale) return
+
+        const g = d3.select(xAxisRef.current)
+
+        const [min, max] = xScale.domain()
+        const xTicks: number[] = []
+        for (
+            let power = Math.floor(Math.log10(min * combinedFactor));
+            Math.pow(10, power) <= max * combinedFactor;
+            power++
+        ) {
+            const base = Math.pow(10, power)
+            ;[1, 2, 3, 5].forEach((multiplier) => {
+                const val = (base * multiplier) / combinedFactor
+                if (val >= min && val <= max) xTicks.push(val)
+            })
+        }
+
+        const xAxis = d3
+            .axisBottom(xScale)
+            .tickValues(xTicks)
+            .tickFormat((d) =>
+                formatCurrency(
+                    (d as number) * combinedFactor,
+                    currentCurrency as any
+                )
+            )
+            .tickSizeOuter(0)
+
+        g.call(xAxis)
+
+        g.select(".domain").remove()
+        g.selectAll(".tick line")
+            .clone()
+            .attr("y2", -(height - marginBottom - marginTop))
+            .attr("stroke-opacity", 0.1)
+
+        return () => void g.selectAll("*").remove()
+    }, [
+        xScale,
+        height,
+        marginBottom,
+        marginTop,
+        currentCurrency,
+        combinedFactor,
+    ])
+
+    return (
+        <g
+            className="x-axis"
+            ref={xAxisRef}
+            transform={`translate(0,${height - marginBottom})`}
+        />
+    )
+}
+
+interface IncomePlotPovertyLineProps {
+    xScale: d3.ScaleLogarithmic<number, number> | null
+    marginTop: number
+    height: number
+    marginBottom: number
+}
+
+const IncomePlotPovertyLine = ({
+    xScale,
+    marginTop,
+    height,
+    marginBottom,
+}: IncomePlotPovertyLineProps) => {
+    const povertyLine = useAtomValue(atomCustomPovertyLine)
+    const combinedFactor = useAtomValue(atomCombinedFactor)
+    const currentCurrency = useAtomValue(atomCurrentCurrency)
+
+    if (!xScale) return null
+    return (
+        <g className="poverty-line">
+            <line
+                x1={xScale(povertyLine)}
+                x2={xScale(povertyLine)}
+                y1={marginTop}
+                y2={height - marginBottom}
+                stroke="#d73027"
+                strokeWidth={2}
+                strokeDasharray="5,5"
+            />
+            <text
+                x={xScale(povertyLine) + 5}
+                y={marginTop + 10}
+                fill="#d73027"
+                fontWeight="bold"
+            >
+                {`Poverty line: ${formatCurrency(
+                    povertyLine * combinedFactor,
+                    currentCurrency as any
+                )}`}
+            </text>
+        </g>
+    )
+}
+
+interface IncomePlotPointerProps {
+    xScale: d3.ScaleLogarithmic<number, number> | null
+    hoveredX: number
+    combinedFactor: number
+    currentCurrency: string
+    marginTop: number
+    height: number
+    marginBottom: number
+}
+
+const IncomePlotPointer = ({
+    xScale,
+    marginTop,
+    height,
+    marginBottom,
+}: IncomePlotPointerProps) => {
+    const hoveredX = useAtomValue(atomHoveredX)
+    const combinedFactor = useAtomValue(atomCombinedFactor)
+    const currentCurrency = useAtomValue(atomCurrentCurrency)
+
+    if (!xScale || hoveredX === null) return null
+    return (
+        <g className="pointer">
+            <line
+                x1={xScale(hoveredX)}
+                x2={xScale(hoveredX)}
+                y1={marginTop}
+                y2={height - marginBottom}
+                stroke="red"
+                strokeOpacity={0.15}
+                style={{ pointerEvents: "none" }}
+            />
+            <text
+                x={xScale(hoveredX)}
+                y={height - marginBottom + 9}
+                dy="0.71em"
+                fill="red"
+                stroke="white"
+                strokeWidth={3}
+                paintOrder="stroke"
+            >
+                {formatCurrency(
+                    hoveredX * combinedFactor,
+                    currentCurrency as any
+                )}
+            </text>
+        </g>
+    )
+}
+
 export function IncomePlot({
     width = PLOT_WIDTH,
     height = PLOT_HEIGHT,
 }: IncomePlotProps) {
     const svgRef = useRef<SVGSVGElement>(null)
-    const xAxisRef = useRef<SVGGElement>(null)
     const points = useAtomValue(atomKdeDataForYear)
     const [povertyLine, setPovertyLine] = useAtom(atomCustomPovertyLine)
     const [showPovertyLine, setShowPovertyLine] = useAtom(
@@ -49,8 +285,7 @@ export function IncomePlot({
     const countryRegionMap = useAtomValue(atomCountryRegionMap)
     const xValues = useAtomValue(atomKdeXValues)
     const plotColorScaleConfig = useAtomValue(atomPlotColorScale)
-    const [hoveredEntity, setHoveredEntity] = useAtom(atomHoveredEntity)
-    const hoveredEntityType = useAtomValue(atomHoveredEntityType)
+    const setHoveredEntity = useSetAtom(atomHoveredEntity)
     const [hoveredX, setHoveredX] = useAtom(atomHoveredX)
     const combinedFactor = useAtomValue(atomCombinedFactor)
     const currentCurrency = useAtomValue(atomCurrentCurrency)
@@ -132,62 +367,6 @@ export function IncomePlot({
         return xScale(threshold)
     }, [showPovertyLine, povertyLine, hoveredX, xScale])
 
-    // Area Generator
-    const area = useMemo(() => {
-        if (!xScale || !yScale) return null
-        return d3
-            .area<any>()
-            .x((d) => xScale(d.data.x))
-            .y0((d) => yScale(d[0]))
-            .y1((d) => yScale(d[1]))
-    }, [xScale, yScale])
-
-    // Render X Axis
-    useEffect(() => {
-        if (!xAxisRef.current || !xScale) return
-
-        const g = d3.select(xAxisRef.current)
-
-        const [min, max] = xScale.domain()
-        const xTicks: number[] = []
-        for (
-            let power = Math.floor(Math.log10(min * combinedFactor));
-            Math.pow(10, power) <= max * combinedFactor;
-            power++
-        ) {
-            const base = Math.pow(10, power)
-            ;[1, 2, 3, 5].forEach((multiplier) => {
-                const val = (base * multiplier) / combinedFactor
-                if (val >= min && val <= max) xTicks.push(val)
-            })
-        }
-
-        const xAxis = d3
-            .axisBottom(xScale)
-            .tickValues(xTicks)
-            .tickFormat((d) =>
-                formatCurrency((d as number) * combinedFactor, currentCurrency)
-            )
-            .tickSizeOuter(0)
-
-        g.call(xAxis)
-
-        g.select(".domain").remove()
-        g.selectAll(".tick line")
-            .clone()
-            .attr("y2", -(height - marginBottom - marginTop))
-            .attr("stroke-opacity", 0.1)
-
-        return () => void g.selectAll("*").remove()
-    }, [
-        xScale,
-        height,
-        marginBottom,
-        marginTop,
-        currentCurrency,
-        combinedFactor,
-    ])
-
     const onMouseMove = useCallback(
         (event: MouseEvent) => {
             if (!xScale || !yScale || !stackedSeries.length || !svgRef.current)
@@ -260,106 +439,36 @@ export function IncomePlot({
                         />
                     </clipPath>
                 </defs>
-                <g className="plot-series">
-                    {stackedSeries.map((series) => {
-                        const d = area ? area(series) : undefined
-                        if (!d) return null
-                        const isHighlighted =
-                            hoveredEntityType === null
-                                ? undefined
-                                : series[hoveredEntityType] === hoveredEntity
-
-                        return (
-                            <g
-                                key={series.key}
-                                className="income-plot-series"
-                                data-country={series.key}
-                                data-region={series["region"]}
-                                data-highlighted={isHighlighted}
-                            >
-                                <path
-                                    className="area-bg"
-                                    fill={series["color"]}
-                                    d={d}
-                                />
-                                <path
-                                    className="area-fg"
-                                    fill={series["color"]}
-                                    d={d}
-                                    clipPath="url(#highlight-clip)"
-                                    style={{ pointerEvents: "none" }}
-                                />
-                            </g>
-                        )
-                    })}
-                </g>
-                <g
-                    className="x-axis"
-                    ref={xAxisRef}
-                    transform={`translate(0,${height - marginBottom})`}
+                <IncomePlotAreas
+                    stackedSeries={stackedSeries}
+                    xScale={xScale}
+                    yScale={yScale}
                 />
-                {/* Render poverty line, if enabled */}
-                {showPovertyLine && xScale && (
-                    <g className="poverty-line">
-                        <line
-                            x1={xScale(povertyLine)}
-                            x2={xScale(povertyLine)}
-                            y1={marginTop}
-                            y2={height - marginBottom}
-                            stroke="#d73027"
-                            strokeWidth={2}
-                            strokeDasharray="5,5"
-                        />
-                        <text
-                            x={xScale(povertyLine) + 5}
-                            y={marginTop + 10}
-                            fill="#d73027"
-                            fontWeight="bold"
-                        >
-                            {`Poverty line: ${formatCurrency(
-                                povertyLine * combinedFactor,
-                                currentCurrency
-                            )}`}
-                        </text>
-                    </g>
-                )}
-                {/* Render hovered X line and label */}
-                {hoveredX !== null && xScale && (
-                    <g className="pointer">
-                        <line
-                            x1={xScale(hoveredX)}
-                            x2={xScale(hoveredX)}
-                            y1={marginTop}
-                            y2={height - marginBottom}
-                            stroke="red"
-                            strokeOpacity={0.15}
-                            style={{ pointerEvents: "none" }}
-                        />
-                        <text
-                            x={xScale(hoveredX)}
-                            y={height - marginBottom + 9}
-                            dy="0.71em"
-                            fill="red"
-                            stroke="white"
-                            strokeWidth={3}
-                            paintOrder="stroke"
-                        >
-                            {formatCurrency(
-                                hoveredX * combinedFactor,
-                                currentCurrency
-                            )}
-                        </text>
-                    </g>
-                )}
-                <rect
-                    className="overlay"
-                    x={marginLeft}
-                    y={marginTop}
-                    width={width - marginLeft - marginRight}
-                    height={height - marginTop - marginBottom}
-                    fill="transparent"
-                    style={{ pointerEvents: "none" }}
+                <IncomePlotXAxis
+                    xScale={xScale}
+                    height={height}
+                    marginBottom={marginBottom}
+                    marginTop={marginTop}
                 />
+                {showPovertyLine && (
+                    <IncomePlotPovertyLine
+                        xScale={xScale}
+                        marginTop={marginTop}
+                        height={height}
+                        marginBottom={marginBottom}
+                    />
+                )}
+                {hoveredX !== null && (
+                    <IncomePlotPointer
+                        xScale={xScale}
+                        hoveredX={hoveredX}
+                        combinedFactor={combinedFactor}
+                        currentCurrency={currentCurrency}
+                        marginTop={marginTop}
+                        height={height}
+                        marginBottom={marginBottom}
+                    />
+                )}
             </svg>
         </div>
     )
