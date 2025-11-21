@@ -1,5 +1,6 @@
 {
     "dependencies": {
+        "@floating-ui/react": "^0.27.16",
         "@ourworldindata/components": "*",
         "@ourworldindata/types": "*",
         "@ourworldindata/utils": "*",
