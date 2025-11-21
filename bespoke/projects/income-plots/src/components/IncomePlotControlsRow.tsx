@@ -1,5 +1,6 @@
 import { useAtom } from "jotai"
 import {
+    atomCountriesOrRegionsMode,
     atomCurrentCurrency,
     atomCurrentYear,
     atomTimeInterval,
@@ -7,6 +8,19 @@ import {
 import * as R from "remeda"
 import { useEffect, useState } from "react"
 import { AVAILABLE_YEARS_RANGE } from "../utils/incomePlotConstants.ts"
+
+export const IncomePlotControlsRowTop = () => {
+    const [countriesOrRegionsMode, nextCountriesOrRegionsMode] = useAtom(
+        atomCountriesOrRegionsMode
+    )
+    return (
+        <div style={{ marginBottom: 10 }}>
+            <button onClick={nextCountriesOrRegionsMode}>
+                {R.toTitleCase(countriesOrRegionsMode)}
+            </button>
+        </div>
+    )
+}
 
 export const IncomePlotControlsRowBottom = () => {
     const [timeInterval, nextTimeInterval] = useAtom(atomTimeInterval)

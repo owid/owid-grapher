@@ -4,6 +4,7 @@ import * as d3 from "d3"
 import { formatCurrency } from "../utils/incomePlotUtils.ts"
 import {
     atomCombinedFactor,
+    atomCountriesOrRegionsMode,
     atomCountryRegionMap,
     atomCurrentCurrency,
     atomCustomPovertyLine,
@@ -77,6 +78,7 @@ const IncomePlotAreas = ({
 }: IncomePlotAreasProps) => {
     const ref = useRef<SVGGElement>(null)
 
+    const countriesOrRegionsMode = useAtomValue(atomCountriesOrRegionsMode)
     const [hoveredEntity, setHoveredEntity] = useAtom(atomHoveredEntity)
     const hoveredEntityType = useAtomValue(atomHoveredEntityType)
 
@@ -90,13 +92,37 @@ const IncomePlotAreas = ({
             .y1((d) => yScale(d[1]))
     }, [xScale, yScale])
 
+    const stackedData = useMemo(() => {
+        if (countriesOrRegionsMode === "countries") return stackedSeries
+        else {
+            // Re-stack the already stacked data by regions
+            const grouped = R.groupBy(stackedSeries, (d) => d.region)
+            return Object.values(grouped).map((dataForRegion) => {
+                const first = R.first(dataForRegion)
+                const last = R.last(dataForRegion)
+
+                const combined = R.zip(first, last).map(([f, l]) => {
+                    const arr = [f[0], l[1]] as d3.SeriesPoint<number>
+                    arr["data"] = f.data
+                    return arr
+                }) as StackedSeriesPoint
+
+                combined["key"] = first.region
+                combined["region"] = first.region
+                combined["color"] = first.color
+
+                return combined
+            })
+        }
+    }, [countriesOrRegionsMode, stackedSeries])
+
     const seriesWithAreas = useMemo(() => {
         if (!area) return []
-        return stackedSeries.map((series) => ({
+        return stackedData.map((series) => ({
             ...series,
             area: area(series),
         }))
-    }, [area, stackedSeries])
+    }, [area, stackedData])
 
     const onMouseLeave = useCallback(
         (entity: string) => {
@@ -115,20 +141,31 @@ const IncomePlotAreas = ({
                         ? undefined
                         : series[hoveredEntityType] === hoveredEntity
 
+                const entityName =
+                    countriesOrRegionsMode === "countries"
+                        ? series.country
+                        : series.region
+
                 return (
                     <g
-                        key={series.key}
+                        key={entityName}
                         className="income-plot-series"
-                        data-country={series.key}
+                        data-country={series.country}
                         data-region={series["region"]}
                         data-highlighted={isHighlighted}
-                        onMouseEnter={() => setHoveredEntity(series.country)}
-                        onMouseLeave={() => onMouseLeave(series.country)}
+                        onMouseEnter={() =>
+                            entityName && setHoveredEntity(entityName)
+                        }
+                        onMouseLeave={() =>
+                            entityName && onMouseLeave(entityName)
+                        }
                     >
                         <path
                             className="area-bg"
                             fill={series["color"]}
                             d={series.area}
+                            strokeWidth={0.1}
+                            stroke="white"
                         />
                         <path
                             className="area-fg"
@@ -136,6 +173,8 @@ const IncomePlotAreas = ({
                             d={series.area}
                             clipPath="url(#highlight-clip)"
                             style={{ pointerEvents: "none" }}
+                            strokeWidth={0.1}
+                            stroke="white"
                         />
                     </g>
                 )
