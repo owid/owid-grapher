@@ -91,6 +91,23 @@ describe("searchCharts with real Algolia", () => {
         expect(result.results.length).toBeGreaterThan(0)
     })
 
+    it("throws helpful error for invalid topic when no results found", async () => {
+        await expect(
+            searchCharts(
+                algoliaConfig,
+                {
+                    query: "",
+                    filters: [
+                        { type: FilterType.TOPIC, name: "InvalidTopicName123" },
+                    ],
+                    requireAllCountries: false,
+                },
+                0,
+                5
+            )
+        ).rejects.toThrow(/does not exist. Available topics:/)
+    })
+
     it("handles pagination", async () => {
         const page0 = await searchCharts(
             algoliaConfig,

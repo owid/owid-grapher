@@ -113,7 +113,7 @@ This route provides a search API for both charts and pages (articles, about page
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `countries` | string | Country names separated by `~` (e.g., `United States~China`) |
-| `topics` | string | Topic name (e.g., `Health`) |
+| `topics` | string | Single topic name (e.g., `Global Health`) |
 | `requireAllCountries` | boolean | If `true`, only return charts with ALL specified countries |
 
 ### Response Schemas
@@ -173,6 +173,11 @@ GET /api/search?q=population
 **Search for charts about GDP in United States and China:**
 ```
 GET /api/search?q=gdp&countries=United%20States~China
+```
+
+**Search for charts in the "Global Health" topic:**
+```
+GET /api/search?topics=Global%20Health
 ```
 
 **Search for articles about climate change:**
