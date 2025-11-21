@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react"
 
 export default defineConfig({
     root: "./src",
-    // base: "/admin",
+    base: "/admin",
     build: {
         emptyOutDir: true,
         outDir: "../../../../dist/income-plots",
