@@ -8,7 +8,7 @@ import * as R from "remeda"
 import { useEffect, useState } from "react"
 import { AVAILABLE_YEARS_RANGE } from "../utils/incomePlotConstants.ts"
 
-export const IncomePlotControlsRow = () => {
+export const IncomePlotControlsRowBottom = () => {
     const [timeInterval, nextTimeInterval] = useAtom(atomTimeInterval)
     const [currentYear, setCurrentYear] = useAtom(atomCurrentYear)
     const [currentYearLocal, setCurrentYearLocal] = useState(currentYear)
