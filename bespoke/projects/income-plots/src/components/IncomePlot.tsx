@@ -21,6 +21,8 @@ const style = {
     fontFamily:
         'Lato, "Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif',
     fontSize: "11.5px",
+    maxWidth: "100%",
+    display: "block",
 }
 
 interface IncomePlotProps {
@@ -32,7 +34,6 @@ export function IncomePlot({
     width = PLOT_WIDTH,
     height = PLOT_HEIGHT,
 }: IncomePlotProps) {
-    const containerRef = useRef<HTMLDivElement>(null)
     const svgRef = useRef<SVGSVGElement>(null)
     const backgroundAreasRef = useRef<SVGGElement>(null)
     const foregroundAreasRef = useRef<SVGGElement>(null)
@@ -298,8 +299,14 @@ export function IncomePlot({
     )
 
     return (
-        <div className="income-plot-chart" ref={containerRef}>
-            <svg ref={svgRef} width={width} height={height} style={style}>
+        <div className="income-plot-chart">
+            <svg
+                ref={svgRef}
+                width={width}
+                height={height}
+                viewBox={`0 0 ${width} ${height}`}
+                style={style}
+            >
                 <defs>
                     <clipPath id="highlight-clip">
                         <rect
