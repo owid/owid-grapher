@@ -264,6 +264,10 @@ export function IncomePlot({
                     {stackedSeries.map((series) => {
                         const d = area ? area(series) : undefined
                         if (!d) return null
+                        const isHighlighted =
+                            hoveredEntityType === null
+                                ? undefined
+                                : series[hoveredEntityType] === hoveredEntity
 
                         return (
                             <g
@@ -271,6 +275,7 @@ export function IncomePlot({
                                 className="income-plot-series"
                                 data-country={series.key}
                                 data-region={series["region"]}
+                                data-highlighted={isHighlighted}
                             >
                                 <path
                                     className="area-bg"
