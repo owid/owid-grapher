@@ -1,6 +1,9 @@
 import { Suspense } from "react"
 import { IncomePlot } from "./IncomePlot.tsx"
-import { IncomePlotControlsRowBottom } from "./IncomePlotControlsRow.tsx"
+import {
+    IncomePlotControlsRowBottom,
+    IncomePlotControlsRowTop,
+} from "./IncomePlotControlsRow.tsx"
 import { IncomePlotLegend } from "./IncomePlotLegend.tsx"
 import { PLOT_HEIGHT, PLOT_WIDTH } from "../utils/incomePlotConstants.ts"
 import { useAtomValue } from "jotai"
@@ -11,6 +14,7 @@ export const App = () => {
     return (
         <div>
             <IncomePlotLegend />
+            <IncomePlotControlsRowTop />
             <div
                 style={{
                     width: PLOT_WIDTH,
