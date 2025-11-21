@@ -60,6 +60,12 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                     },
                 },
             }),
+            {
+                ...optimizeReactAriaLocales.vite({
+                    locales: ["en-US"],
+                }),
+                enforce: "pre",
+            },
             // Put the Sentry vite plugin after all other plugins.
             !process.env.VITEST &&
                 sentryVitePlugin({
@@ -76,12 +82,6 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                           }
                         : undefined,
                 }),
-            {
-                ...optimizeReactAriaLocales.vite({
-                    locales: ["en-US"],
-                }),
-                enforce: "pre",
-            },
         ],
         server: {
             port: vitePort,
