@@ -25,6 +25,7 @@ import {
 } from "../utils/incomePlotConstants.ts"
 import * as R from "remeda"
 import { IncomePlotTooltip } from "./IncomePlotTooltip.tsx"
+import { IncomePlotLegend } from "./IncomePlotLegend.tsx"
 
 const style = {
     fontFamily:
@@ -512,7 +513,11 @@ export function IncomePlot({
     )
 
     return (
-        <div className="income-plot-chart">
+        <div
+            className="income-plot-chart"
+            style={{ position: "relative", width, height, maxWidth: "100%" }}
+        >
+            <IncomePlotLegend />
             <svg
                 ref={svgRef}
                 className="income-plot-chart-svg"
