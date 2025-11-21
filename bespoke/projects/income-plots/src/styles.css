@@ -12,7 +12,12 @@
 }
 
 .income-plot-legend {
+    position: absolute;
+    right: 12px;
+    top: 12px;
     width: max-content;
+    z-index: 100;
+    background: white;
 
     padding: 16px;
     border: 1px solid var(--blue-20);
