@@ -25,6 +25,7 @@ export interface Country extends BaseRegion {
     isHistorical?: boolean
     isUnlisted?: boolean
     variantNames?: string[]
+    article?: string
 }
 
 export interface Aggregate extends BaseRegion {
@@ -157,6 +158,10 @@ const regionsByName = lazy(() =>
     Object.fromEntries(regions.map((region) => [region.name, region]))
 )
 
+const regionsBySlug = lazy(() =>
+    Object.fromEntries(regions.map((region) => [region.slug, region]))
+)
+
 const regionsByCode = lazy(() =>
     Object.fromEntries(regions.map((region) => [region.code, region]))
 )
@@ -284,6 +289,9 @@ export const getCountryBySlug = (slug: string): Country | undefined =>
 export const getRegionByName = (name: string): Region | undefined =>
     regionsByName()[name]
 
+export const getRegionBySlug = (slug: string): Region | undefined =>
+    regionsBySlug()[slug]
+
 const getRegionByCode = (code: string): Region | undefined =>
     regionsByCode()[code]
 
@@ -354,4 +362,51 @@ export const getRegionAlternativeNames = (
         }
     }
     return _regionAlternativeNames.get(regionName)!
+}
+
+const getRegionArticle = (region?: Region): string | undefined => {
+    if (!region) return undefined
+    if ("article" in region) {
+        const article = (region as { article?: string }).article
+        if (typeof article === "string") {
+            const trimmed = article.trim()
+            if (trimmed.length > 0) return trimmed
+        }
+    }
+    return undefined
+}
+
+const getArticleForEntity = (entity: string): string | undefined => {
+    const articleFromName = getRegionArticle(
+        getRegionByNameOrVariantName(entity)
+    )
+    if (articleFromName) return articleFromName
+
+    const articleFromCode = getRegionArticle(getRegionByCode(entity))
+    if (articleFromCode) return articleFromCode
+
+    const articleFromSlug = getRegionArticle(getCountryBySlug(entity))
+    if (articleFromSlug) return articleFromSlug
+
+    return undefined
+}
+
+export const articulateEntity = (entityName: string): string => {
+    const trimmedName = entityName.trim()
+    if (!trimmedName) return trimmedName
+
+    const article = getArticleForEntity(trimmedName)
+    if (!article) return trimmedName
+
+    const lowerTrimmedName = trimmedName.toLowerCase()
+    const lowerArticleWithSpace = `${article.toLowerCase()} `
+
+    if (
+        lowerTrimmedName.startsWith(lowerArticleWithSpace) ||
+        lowerTrimmedName === article.toLowerCase()
+    ) {
+        return trimmedName
+    }
+
+    return `${article} ${trimmedName}`
 }
