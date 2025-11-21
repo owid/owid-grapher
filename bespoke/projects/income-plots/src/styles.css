@@ -11,6 +11,10 @@
         Lato, "Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif;
 }
 
+.income-plot-chart-svg path {
+    shape-rendering: crispEdges;
+}
+
 .income-plot-legend {
     position: absolute;
     right: 12px;
