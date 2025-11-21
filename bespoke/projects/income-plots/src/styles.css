@@ -1,4 +1,6 @@
 :root {
+    --gray-20: #e7e7e7;
+    --gray-80: #5b5b5b;
     --gray-100: #2d2d2d;
     --blue-20: #dbe5f0;
     --legend-swatch-size: 12px;
@@ -63,5 +65,34 @@
         .income-plot-series[data-highlighted="true"] {
             opacity: 1;
         }
+    }
+}
+
+.income-plot-tooltip {
+    border: 1px solid var(--gray-20);
+    border-radius: 4px;
+    background: white;
+    padding: 12px;
+    max-width: 150px;
+    font-size: 14px;
+    pointer-events: none;
+    box-shadow: 0px 4px 40px 0px #00000026;
+
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    .tooltip--entityName {
+        color: var(--gray-100);
+    }
+
+    .tooltip--percentage {
+        color: var(--gray-100);
+        font-weight: bold;
+    }
+
+    .tooltip--set-pov-line {
+        color: var(--gray-80);
+        font-style: italic;
     }
 }

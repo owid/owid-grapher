@@ -187,3 +187,9 @@ export const atomCombinedFactor = atom((get) => {
     const currencyFactor = get(atomCurrentCurrencyFactor)
     return timeIntervalFactor * currencyFactor
 })
+
+export const atomTooltipIsOpen = atom((get) => {
+    const hoveredEntity = get(atomHoveredEntity)
+    const hoveredX = get(atomHoveredX)
+    return hoveredEntity !== null && hoveredX !== null
+})
