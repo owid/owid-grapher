@@ -19,7 +19,6 @@ import {
     atomHoveredEntity,
     atomHoveredX,
     atomRawDataForYear,
-    atomShowCustomPovertyLine,
     atomTimeInterval,
     atomTooltipIsOpen,
 } from "../store.ts"
@@ -45,14 +44,13 @@ export const IncomePlotTooltip = () => {
     const isOpen = useAtomValue(atomTooltipIsOpen)
     const hoveredEntity = useAtomValue(atomHoveredEntity)
     const hoveredX = useAtomValue(atomHoveredX)
-    const showPovertyLine = useAtomValue(atomShowCustomPovertyLine)
     const povertyLine = useAtomValue(atomCustomPovertyLine)
     const rawDataForYear = useAtomValue(atomRawDataForYear)
     const currency = useAtomValue(atomCurrentCurrency)
     const combinedFactor = useAtomValue(atomCombinedFactor)
     const timeInterval = useAtomValue(atomTimeInterval)
 
-    const lineForDisplay = showPovertyLine ? povertyLine : hoveredX
+    const lineForDisplay = povertyLine ?? hoveredX
 
     const { refs, floatingStyles, context } = useFloating({
         open: isOpen,
