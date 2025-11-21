@@ -41,26 +41,30 @@ export function CausesOfDeathControls({
                 Configure the data
             </div>
             <div className="causes-of-death-controls__content">
-                <AgeGroupDropdown
-                    availableAgeGroups={metadata.availableAgeGroups}
-                    selectedAgeGroup={ageGroup}
-                    onChange={setAgeGroup}
-                />
-                <SexDropdown
-                    availableSexes={metadata.availableSexes}
-                    selectedSex={sex}
-                    onChange={setSex}
-                />
-                <EntityDropdown
-                    availableEntities={metadata?.availableEntities}
-                    selectedEntityName={entityName}
-                    onChange={setEntityName}
-                />
-                <CausesOfDeathTimeSlider
-                    years={metadata.availableYears}
-                    selectedYear={year}
-                    onChange={setYear}
-                />
+                <div className="causes-of-death-controls__row">
+                    <AgeGroupDropdown
+                        availableAgeGroups={metadata.availableAgeGroups}
+                        selectedAgeGroup={ageGroup}
+                        onChange={setAgeGroup}
+                    />
+                    <SexDropdown
+                        availableSexes={metadata.availableSexes}
+                        selectedSex={sex}
+                        onChange={setSex}
+                    />
+                    <EntityDropdown
+                        availableEntities={metadata?.availableEntities}
+                        selectedEntityName={entityName}
+                        onChange={setEntityName}
+                    />
+                </div>
+                <div className="causes-of-death-controls__row">
+                    <CausesOfDeathTimeSlider
+                        years={metadata.availableYears}
+                        selectedYear={year}
+                        onChange={setYear}
+                    />
+                </div>
             </div>
         </div>
     )
