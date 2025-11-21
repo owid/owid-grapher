@@ -23,9 +23,18 @@ export interface RawDataForYearRecord extends RawDataRecord {
     avgsLog2: number[]
 }
 
-export const atomCustomPovertyLine = atom(3)
-
+const atomCustomPovertyLineInternal = atom(3)
 export const atomShowCustomPovertyLine = atom(false)
+export const atomCustomPovertyLine = atom(
+    (get) => {
+        const show = get(atomShowCustomPovertyLine)
+        if (!show) return null
+        return get(atomCustomPovertyLineInternal)
+    },
+    (get, set, newValue: number) => {
+        set(atomCustomPovertyLineInternal, newValue)
+    }
+)
 
 // Basic atoms related to data-display controls
 export const atomCurrentYear = atom<number>(DEFAULT_YEAR)
