@@ -4,15 +4,18 @@ import * as d3 from "d3"
 import { formatCurrency } from "../utils/incomePlotUtils.ts"
 import {
     atomCombinedFactor,
+    atomCountryRegionMap,
     atomCurrentCurrency,
     atomCustomPovertyLine,
     atomHoveredEntity,
     atomHoveredX,
     atomKdeDataForYear,
+    atomKdeXValues,
     atomPlotColorScale,
     atomShowCustomPovertyLine,
 } from "../store.ts"
 import { PLOT_HEIGHT, PLOT_WIDTH } from "../utils/incomePlotConstants.ts"
+import * as R from "remeda"
 
 const style = {
     fontFamily:
@@ -36,6 +39,8 @@ export function IncomePlot({
     const [showPovertyLine, setShowPovertyLine] = useAtom(
         atomShowCustomPovertyLine
     )
+    const countryRegionMap = useAtomValue(atomCountryRegionMap)
+    const xValues = useAtomValue(atomKdeXValues)
     const plotColorScaleConfig = useAtomValue(atomPlotColorScale)
     const [hoveredEntity, setHoveredEntity] = useAtom(atomHoveredEntity)
     const [hoveredX, setHoveredX] = useAtom(atomHoveredX)
@@ -51,73 +56,64 @@ export function IncomePlot({
     const marginLeft = 20
 
     // Prepare Data for Stack
-    const { stackedSeries, xScale, yScale } = useMemo(() => {
+    const { stackedSeries } = useMemo(() => {
         if (!points.length)
             return {
                 stackedSeries: [],
                 xScale: null,
                 yScale: null,
                 xDomain: [],
+                countryRegionMap: new Map<string, string>(),
             }
 
         // 1. Group by X and pivot
-        // Assuming points are consistent across regions (same x grid)
-        // We collect all unique X values first to be safe and sort them
-        const xValues = Array.from(new Set(points.map((d) => d.x))).sort(
-            (a, b) => a - b
-        )
-
-        // Create a map for quick lookup: x -> { region: y }
+        // Create a map for quick lookup: x -> { country: y }
         const dataMap = new Map<number, { [key: string]: number }>()
         points.forEach((d) => {
             if (!dataMap.has(d.x)) dataMap.set(d.x, {})
-            const regionMap = dataMap.get(d.x)!
-            regionMap[d.region] = (regionMap[d.region] || 0) + d.y
+            const xMap = dataMap.get(d.x)!
+            xMap[d.country] = d.y
         })
+
+        const countries = Array.from(countryRegionMap.keys())
 
         const stackedDataInput = xValues.map((x) => {
             const row: any = { x }
-            const regionValues = dataMap.get(x) || {}
-            plotColorScaleConfig.domain.forEach((region) => {
-                row[region] = regionValues[region] || 0
+            const xValuesMap = dataMap.get(x) || {}
+            countries.forEach((country) => {
+                row[country] = xValuesMap[country] || 0
             })
             return row
         })
 
         // 2. Stack
-        const stack = d3.stack().keys(plotColorScaleConfig.domain.toReversed())
-        // .order(d3.stackOrderNone)
-        // .offset(d3.stackOffsetNone)
+        const stack = d3.stack().keys(countries)
 
         const stackedSeries = stack(stackedDataInput)
 
+        return { stackedSeries }
+    }, [points, countryRegionMap, xValues])
+
+    const { xScale, yScale } = useMemo(() => {
         // 3. Scales
-        const xMin = d3.min(xValues, (d) => d * combinedFactor) || 0.1
-        const xMax = d3.max(xValues, (d) => d * combinedFactor) || 100
-        const xDomain = [Math.max(xMin, 0.1), xMax] // Log scale cannot have 0
+        const xMin = R.first(xValues) * combinedFactor
+        const xMax = R.last(xValues) * combinedFactor
+        const xDomain = [xMin, xMax]
 
         const xScale = d3
             .scaleLog()
             .domain(xDomain)
             .range([marginLeft, width - marginRight])
 
-        // Max Y is the max of the sum of y's for any x (since it's stacked)
-        const yMax =
-            d3.max(stackedDataInput, (d) => {
-                let sum = 0
-                plotColorScaleConfig.domain.forEach((r) => (sum += d[r]))
-                return sum
-            }) || 1
+        const yMax = d3.max(R.last(stackedSeries)!.map((d) => d[1])) || 1
 
         const yScale = d3
             .scaleLinear()
             .domain([0, yMax])
             .range([height - marginBottom, marginTop])
+        return { xScale, yScale }
+    }, [xValues, width, stackedSeries, height, combinedFactor])
 
-        return { stackedSeries, xScale, yScale, xDomain }
-    }, [points, combinedFactor, plotColorScaleConfig, width, height])
-
-    // Color Scale
     const colorScale = useMemo(() => {
         return d3
             .scaleOrdinal()
@@ -128,8 +124,8 @@ export function IncomePlot({
     const hoverRightThresholdPlaced = useMemo(() => {
         const activePovertyLine = showPovertyLine ? povertyLine : null
         const threshold = activePovertyLine ?? hoveredX
-        if (!xScale) return null
-        if (threshold !== null) return xScale(threshold * combinedFactor)
+        if (!xScale || threshold === null) return null
+        return xScale(threshold * combinedFactor)
     }, [showPovertyLine, povertyLine, hoveredX, xScale, combinedFactor])
 
     // Render
@@ -153,9 +149,11 @@ export function IncomePlot({
             .selectAll("path")
             .data(stackedSeries)
             .join("path")
-            .attr("fill", (d) => colorScale(d.key) as string)
+            .attr("fill", (d) => {
+                const region = countryRegionMap.get(d.key)
+                return colorScale(region!) as string
+            })
             .attr("fill-opacity", 0.3)
-            .attr("data-region", (d) => d.key)
             .attr("d", area)
             .attr("class", "income-plot-chart-area")
 
@@ -170,12 +168,17 @@ export function IncomePlot({
             .selectAll("path")
             .data(stackedSeries)
             .join("path")
-            .attr("fill", (d) => colorScale(d.key) as string)
+            .attr("fill", (d) => {
+                const region = countryRegionMap.get(d.key)
+                return colorScale(region!) as string
+            })
             .attr("fill-opacity", (d) => {
                 if (!hasHoveredEntity) return 0.8
-                return d.key === hoveredEntity ? 0.9 : 0
+                const region = countryRegionMap.get(d.key)
+                if (d.key === hoveredEntity || region === hoveredEntity)
+                    return 0.9
+                return 0
             })
-            .attr("data-region", (d) => d.key)
             .attr("d", area)
             .attr("class", "income-plot-chart-area--highlighted")
 
@@ -341,6 +344,7 @@ export function IncomePlot({
         setHoveredX,
         setPovertyLine,
         setShowPovertyLine,
+        countryRegionMap,
     ])
 
     useEffect(() => {
