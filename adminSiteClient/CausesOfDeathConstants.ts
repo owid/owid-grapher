@@ -2,7 +2,7 @@ import { EntityName, Time } from "@ourworldindata/types"
 
 type NumericId = number
 
-interface BasicEntry {
+export interface BasicEntry {
     id: NumericId
     name: string
 }
@@ -25,6 +25,7 @@ export interface MetadataJson {
         entities: EntityMetadata[]
         variables: VariableMetadata[]
         ageGroups: AgeGroupMetadata[]
+        sexes: BasicEntry[]
     }
     timeRange: { start: number; end: number }
 }
@@ -34,49 +35,16 @@ export interface DataJson {
     variables: number[]
     years: number[]
     ageGroups: number[]
+    sexes: number[]
 }
 
-// export const CAUSE_OF_DEATH_INDICATOR_NAMES = [
-//     "Cancers",
-//     "Chronic respiratory diseases",
-//     "Diabetes and kidney diseases",
-//     "Diarrheal diseases",
-//     "Digestive diseases",
-//     "Heart diseases",
-//     "HIV/AIDS",
-//     "Interpersonal violence",
-//     "Malaria",
-//     "Maternal disorders",
-//     "Neonatal disorders",
-//     "Neurological disorders",
-//     "Nutritional deficiencies",
-//     "Other infectious diseases",
-//     "Other injuries",
-//     "Other non-communicable diseases",
-//     "Pneumonia",
-//     "Suicide",
-//     "Transport injuries",
-//     "Tuberculosis",
-// ] as const
-
-// export const isCauseOfDeathIndicatorName = (
-//     name: string
-// ): name is CauseOfDeathIndicatorName =>
-//     CAUSE_OF_DEATH_INDICATOR_NAMES.includes(name as any)
-
-// export const CAUSE_OF_DEATH_CATEGORIES = [
-//     "Noncommunicable diseases",
-//     "Infectious diseases",
-//     "Maternal, neonatal, and nutritional disorders",
-//     "Injuries",
-// ] as const
-
+// TODO: maybe better placed in the metadata file?
 const CAUSE_OF_DEATH_CATEGORY_COLORS: Record<string, string> = {
-    "Noncommunicable diseases": "#074964",
+    "Non-communicable diseases": "#074964",
     "Infectious diseases": "#A5184D",
-    "Maternal, neonatal, and nutritional disorders": "#B73696",
+    "Maternal, neonatal and nutritional diseases": "#B73696",
     Injuries: "#0B9D75",
-    "Neonatal disorders": "#591347",
+    "Birth disorders": "#591347",
 }
 
 export const getCategoryColor = (category?: string): string => {
@@ -84,14 +52,10 @@ export const getCategoryColor = (category?: string): string => {
     return CAUSE_OF_DEATH_CATEGORY_COLORS[category] || "#cccccc"
 }
 
-// export type CauseOfDeathIndicatorName =
-//     (typeof CAUSE_OF_DEATH_INDICATOR_NAMES)[number]
-// export type CauseOfDeathCategory = (typeof CAUSE_OF_DEATH_CATEGORIES)[number]
-
 export type FetchedDataRow = {
     Entity: EntityName
     Year: Time
-} & Record<string, number> // CauseOfDeathIndicatorName to value mapping
+} & Record<string, number>
 
 export interface DataRow {
     entityName: EntityName
@@ -99,6 +63,7 @@ export interface DataRow {
     variable: string
     description?: string
     ageGroup: string
+    sex: string
     category: string
     value: number
 }
