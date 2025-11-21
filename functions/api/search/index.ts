@@ -1,12 +1,14 @@
 import * as Sentry from "@sentry/cloudflare"
 import { Env } from "../../_common/env.js"
 import { getAlgoliaConfig } from "./algoliaClient.js"
-import { searchCharts, SearchState } from "./searchApi.js"
+import { searchCharts, searchPages, SearchState } from "./searchApi.js"
 import { FilterType, Filter, SearchUrlParam } from "@ourworldindata/types"
 
 const DEFAULT_HITS_PER_PAGE = 20
 const MAX_HITS_PER_PAGE = 100
 const MAX_PAGE = 1000
+
+type SearchType = "charts" | "pages"
 
 const hasSearchEnvVars = (env: Env): boolean => {
     return !!env.ALGOLIA_ID && !!env.ALGOLIA_SEARCH_KEY
@@ -22,6 +24,27 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 "Missing environment variables. Please check that both ALGOLIA_ID and ALGOLIA_SEARCH_KEY are set."
             )
         }
+
+        // Determine search type
+        const searchType: SearchType =
+            (url.searchParams.get("type") as SearchType) || "charts"
+
+        if (searchType !== "charts" && searchType !== "pages") {
+            return new Response(
+                JSON.stringify({
+                    error: "Invalid type parameter",
+                    details: 'Type must be either "charts" or "pages"',
+                }),
+                {
+                    status: 400,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Access-Control-Allow-Origin": "*",
+                    },
+                }
+            )
+        }
+
         // Parse query parameter
         const query = url.searchParams.get(SearchUrlParam.QUERY) || ""
 
@@ -114,14 +137,24 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         // Extract base URL from request (for staging/preview deployments)
         const baseUrl = `${url.protocol}//${url.host}`
 
-        // Perform search
-        const results = await searchCharts(
-            algoliaConfig,
-            searchState,
-            page,
-            hitsPerPage,
-            baseUrl
-        )
+        // Perform search based on type
+        const results =
+            searchType === "pages"
+                ? await searchPages(
+                      algoliaConfig,
+                      query,
+                      page * hitsPerPage, // Convert page to offset
+                      hitsPerPage,
+                      undefined, // Use default page types
+                      baseUrl
+                  )
+                : await searchCharts(
+                      algoliaConfig,
+                      searchState,
+                      page,
+                      hitsPerPage,
+                      baseUrl
+                  )
 
         return new Response(JSON.stringify(results, null, 2), {
             status: 200,
