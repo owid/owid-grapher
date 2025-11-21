@@ -12,7 +12,7 @@ import { CausesOfDeathCaptionedChart } from "./CausesOfDeathCaptionedChart.js"
 import { CausesOfDeathControls } from "./CausesOfDeathControls.js"
 import { CausesOfDeathSpinner } from "./CausesOfDeathSpinner.js"
 
-const DEFAULT_AGE_GROUP = "All ages"
+const DEFAULT_AGE_GROUP = "Children under 5"
 const DEFAULT_SEX = "Both sexes"
 const DEFAULT_ENTITY_NAME = WORLD_ENTITY_NAME
 

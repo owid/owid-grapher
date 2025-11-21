@@ -155,6 +155,17 @@ function CausesOfDeathTreemap({
             year,
             variable: category.name,
             parentId: "All", // points to the root node
+            value: d3.sum(
+                data
+                    .filter((d) => d.category === category.name)
+                    .map((d) => d.value)
+            ),
+            share:
+                d3.sum(
+                    data
+                        .filter((d) => d.category === category.name)
+                        .map((d) => d.value)
+                ) / numAllDeaths,
         })),
 
         // Data nodes

@@ -1,4 +1,5 @@
 import * as d3 from "d3"
+import { sum } from "remeda"
 
 /**
  * HYBRID SLICE-DICE WITH SMART IN-COLUMN STACKING
@@ -77,7 +78,7 @@ export type TilingFunction<T> = (
  * @returns A tiling function compatible with D3's treemap.tile()
  */
 export function stackedSliceDiceTiling<T>({
-    minSliceWidth = 120,
+    minSliceWidth = 100,
     minStackHeight = 40,
 }: TilingOptions = {}): TilingFunction<T> {
     /**
@@ -99,46 +100,96 @@ export function stackedSliceDiceTiling<T>({
         x1: number,
         y1: number
     ): void {
+        // @ts-expect-error ignore
+        const debug = node.data.id === "All"
+        if (debug) console.log(node.data)
+
+        // @ts-expect-error ignore
+        const thinEnabled = node.data.id === "All"
+
         // STEP 1: BASIC SETUP AND VALIDATION
         const children = node.children
         if (!children || !children.length) return // No children to layout
+
+        // Sort children by value (largest first)
+        const sortedChildren = [...children].sort((a, b) => {
+            const aVal = a.value || 0
+            const bVal = b.value || 0
+            return bVal - aVal // Descending order
+        })
+
+        if (debug) console.log(`Laying out ${children.length} children`)
 
         // Calculate available width and height
         const W = x1 - x0,
             H = y1 - y0
         if (W <= 0 || H <= 0) return // No space to work with
 
+        if (debug) console.log(`Available space: w=${W} / h=${H}`)
+
         // STEP 2: DETERMINE LAYOUT ORIENTATION
         // Alternating slice/dice: even depth = columns (vertical strips), odd depth = rows (horizontal strips)
         // Example: Root (depth 0) uses columns, its children (depth 1) use rows, etc.
-        const vertical = (node.depth & 1) === 0 // true => columns, false => rows
+        const vertical = node.depth % 2 === 0 // true => columns, false => rows
         const primarySpan = vertical ? W : H
         // Note: secondarySpan would be vertical ? H : W, but it's not used in current logic
 
+        if (debug) console.log("vertical?", vertical)
+        if (debug) console.log("primary span", primarySpan)
+
         // STEP 3: EXTRACT VALUES AND CALCULATE PROPORTIONAL SIZES
         // Extract numeric values from each child node, ensuring non-negative values
-        const vals = children.map((c) => Math.max(0, c.value || 0))
-        const total = vals.reduce((s: number, v: number) => s + v, 0)
+        const vals = sortedChildren.map((c) => Math.max(0, c.value || 0))
+        const total = sum(vals)
         if (total === 0) return // No values to work with
+
+        if (debug) console.log("values", vals, total)
 
         // Calculate how thick each child would be in the primary direction
         // Example: If primarySpan=100px, total value=200, child value=50, then thickness=25px
-        const thick = vals.map((v) => (primarySpan * v) / total)
+        const thick = vals.map((v) => (v / total) * primarySpan)
+
+        if (debug) console.log("thicknesses", thick)
 
         // STEP 4: CATEGORIZE CHILDREN BY THICKNESS
-        // Split children into "thick enough" vs "too thin" based on minThickness threshold
-        const keep: ChildEntry<T>[] = [], // Children thick enough for normal layout
-            thin: ChildEntry<T>[] = [] // Children too thin, need special handling
+        // Since children are sorted by value (largest first), thin children must be at end (smallest)
+        const keep: ChildEntry<T>[] = [] // Children thick enough for normal layout
+        const thin: ChildEntry<T>[] = [] // Thin children (at the end)
 
-        for (let i = 0; i < children.length; i++) {
+        for (let i = 0; i < sortedChildren.length; i++) {
             const entry: ChildEntry<T> = {
-                node: children[i],
+                node: sortedChildren[i],
                 v: vals[i], // original value
                 t: thick[i], // calculated thickness
             }
-            // Example: If minSliceWidth=12 and calculated thickness=8, goes to 'thin' array
-            ;(entry.t >= minSliceWidth ? keep : thin).push(entry)
+            keep.push(entry)
         }
+
+        // Check from the end - move thin children from keep to thin array
+        // Only consider children thin if their cumulative thickness is below threshold
+        if (thinEnabled && vertical) {
+            let cumulativeThickness = 0
+            const potentialThin: ChildEntry<T>[] = []
+
+            // Collect children from the end while cumulative thickness is below threshold
+            while (keep.length > 0) {
+                const lastEntry = keep[keep.length - 1]
+                const newCumulative = cumulativeThickness + lastEntry.t
+
+                if (newCumulative < minSliceWidth) {
+                    cumulativeThickness = newCumulative
+                    potentialThin.unshift(keep.pop()!)
+                } else {
+                    break
+                }
+            }
+
+            // Move all collected thin children to thin array
+            thin.push(...potentialThin)
+        }
+
+        if (debug) console.log("keep", keep)
+        if (debug) console.log("thin", thin)
 
         /**
          * HELPER FUNCTION: Layout children in a linear sequence
@@ -162,12 +213,12 @@ export function stackedSliceDiceTiling<T>({
             Y1: number
         ): void {
             const span = vertical ? X1 - X0 : Y1 - Y0 // Available space in primary direction
-            const tot = list.reduce((s: number, d: ChildEntry<T>) => s + d.v, 0)
-            if (!tot || span <= 0) return
+            const total = sum(list.map((d) => d.v))
+            if (!total || span <= 0) return
 
             let off = 0 // Running offset as we place each child
             for (const d of list) {
-                const t = (span * d.v) / tot // This child's thickness (proportional to its value)
+                const t = (d.v / total) * span // This child's thickness (proportional to its value)
                 if (vertical) {
                     // Vertical mode: children are columns (vary in x, span full y)
                     setRect(d.node, X0 + off, Y0, X0 + off + t, Y1)
@@ -179,110 +230,193 @@ export function stackedSliceDiceTiling<T>({
             }
         }
 
+        // Add the thin values to the last keep entry
+        let tmpKeep = undefined
+        if (thin.length > 0) {
+            tmpKeep = keep.map((k, i) => {
+                if (i === keep.length - 1) {
+                    const v = k.v + sum(thin.map((d) => d.v))
+                    return {
+                        ...k,
+                        v: v,
+                        t: (v / total) * primarySpan,
+                    }
+                } else {
+                    return {
+                        ...k,
+                        t: (k.v / total) * primarySpan,
+                    }
+                }
+            })
+        }
+
+        if (debug) console.log("adjusted keep", keep)
+
         // STEP 5: LAYOUT THICK-ENOUGH CHILDREN NORMALLY
         // Calculate total space needed for all "keep" children
-        const keepSpan = keep.reduce(
-            (s: number, d: ChildEntry<T>) => s + d.t,
-            0
-        )
-        if (keepSpan > 0) {
-            if (vertical) {
-                // Vertical mode: "keep" children get columns on the left side
-                // Example: If keepSpan=60px, they occupy rectangle (x0, y0, x0+60, y1)
-                layoutPrimary(keep, x0, y0, x0 + keepSpan, y1)
-            } else {
-                // Horizontal mode: "keep" children get rows at the top
-                // Example: If keepSpan=40px, they occupy rectangle (x0, y0, x1, y0+40)
-                layoutPrimary(keep, x0, y0, x1, y0 + keepSpan)
-            }
-        }
-
-        // STEP 6: CREATE "THIN BAND" FOR TOO-THIN CHILDREN
-        // Calculate total space needed for all "thin" children
-        const thinSpan = thin.reduce(
-            (s: number, d: ChildEntry<T>) => s + d.t,
-            0
-        )
-        if (thinSpan > 0) {
-            // Define the bounding rectangle for the thin band
-            let bx0 = x0, // band left
-                by0 = y0, // band top
-                bx1 = x1, // band right
-                by1 = y1 // band bottom
-
-            if (vertical) {
-                // Vertical mode: thin band is to the right of "keep" children
-                // Example: If keepSpan=60px, thinSpan=20px, band occupies (60, y0, 80, y1)
-                bx0 = x0 + keepSpan
-                bx1 = x0 + keepSpan + thinSpan
-            } else {
-                // Horizontal mode: thin band is below "keep" children
-                // Example: If keepSpan=40px, thinSpan=15px, band occupies (x0, 40, x1, 55)
-                by0 = y0 + keepSpan
-                by1 = y0 + keepSpan + thinSpan
-            }
-
-            // STEP 7: WITHIN THIN BAND, STACK VERTICALLY BY DEFAULT
-            // Get total value of all thin children for proportional calculations
-            const totalThinV = thin.reduce(
-                (s: number, d: ChildEntry<T>) => s + d.v,
-                0
-            )
-            if (!totalThinV) return
-
-            // STEP 8: SEPARATE STACKED ITEMS BY HEIGHT
-            // Calculate how tall each thin child would be if stacked vertically,
-            // then separate into "tall enough" vs "too short"
-            const tall: ChildEntry<T>[] = [], // Items that are tall enough when stacked
-                short: ChildEntry<T>[] = [] // Items too short, need horizontal layout
-
-            for (const d of thin) {
-                // Calculate height this item would get if all thin items were stacked vertically
-                // Example: Band height=100px, totalThinV=200, this item value=30
-                // → stackedHeight = (30/200) * 100 = 15px
-                const stackedHeight = (d.v / totalThinV) * (by1 - by0)
-                ;(stackedHeight >= minStackHeight ? tall : short).push(d)
-            }
-
-            // STEP 9: LAYOUT TALL ITEMS VERTICALLY FROM TOP
-            let yOff = 0 // Running y-offset as we stack items vertically
-            const tallTotal = tall.reduce(
-                (s: number, d: ChildEntry<T>) => s + d.v,
-                0
-            )
-            if (tallTotal > 0) {
-                for (const d of tall) {
-                    // Calculate this item's height based on its proportion of total thin value
-                    // Example: totalThinV=200, item value=50, band height=100px → height=25px
-                    const h = (d.v / totalThinV) * (by1 - by0)
-                    setRect(d.node, bx0, by0 + yOff, bx1, by0 + yOff + h)
-                    yOff += h // Move down for next item
+        if (tmpKeep) {
+            const tmpKeepSpan = sum(tmpKeep.map((d) => d.t))
+            if (tmpKeepSpan > 0) {
+                if (vertical) {
+                    layoutPrimary(tmpKeep, x0, y0, x1, y1)
+                } else {
+                    layoutPrimary(tmpKeep, x0, y0, x1, y1)
                 }
             }
-
-            // STEP 10: LAYOUT SHORT ITEMS HORIZONTALLY AT BOTTOM
-            // Items too short for vertical stacking get placed side-by-side in a bottom row
-            const shortTotal = short.reduce(
-                (s: number, d: ChildEntry<T>) => s + d.v,
-                0
-            )
-            if (shortTotal > 0) {
-                // Calculate row height to preserve total area of short items
-                // Example: shortTotal=60, totalThinV=200, band height=100px → rowHeight=30px
-                const rowHeight = (shortTotal / totalThinV) * (by1 - by0)
-                const ry0 = by1 - rowHeight, // Row starts this far from bottom
-                    ry1 = by1 // Row extends to bottom
-
-                let xOff = 0 // Running x-offset as we place items side-by-side
-                for (const d of short) {
-                    // Calculate this item's width based on its proportion of short items total
-                    // Example: shortTotal=60, item value=20, band width=80px → width≈26.7px
-                    const wFrac = (d.v / shortTotal) * (bx1 - bx0)
-                    setRect(d.node, bx0 + xOff, ry0, bx0 + xOff + wFrac, ry1)
-                    xOff += wFrac // Move right for next item
+        } else {
+            const keepSpan = sum(keep.map((d) => d.t))
+            if (keepSpan > 0) {
+                if (vertical) {
+                    layoutPrimary(keep, x0, y0, x1, y1)
+                } else {
+                    layoutPrimary(keep, x0, y0, x1, y1)
                 }
             }
         }
+
+        // The last keep node now includes the thin children,
+        // so we need to adjust its rectangle to account for that
+        if (thin.length > 0 && tmpKeep && tmpKeep.length > 0) {
+            if (debug) console.log("tmp keep", tmpKeep)
+            const lastKeep = keep[keep.length - 1].node
+
+            const keepValue = lastKeep.value
+            const thinValue = sum(thin.map((d) => d.v))
+            const totalValue = keepValue! + thinValue
+
+            if (vertical) {
+                const height = H
+                const keepFrac = keepValue! / totalValue
+                const keepHeight = keepFrac * height
+                setRect(
+                    lastKeep,
+                    lastKeep.x0,
+                    lastKeep.y0,
+                    lastKeep.x1,
+                    lastKeep.y0 + keepHeight
+                )
+
+                // Position thin children stacked below the last keep
+                let offset = 0
+                for (const thinChild of thin) {
+                    const childHeight = (thinChild.v / totalValue) * H
+                    setRect(
+                        thinChild.node,
+                        lastKeep.x0,
+                        lastKeep.y1 + offset,
+                        lastKeep.x1,
+                        lastKeep.y1 + offset + childHeight
+                    )
+                    offset += childHeight
+                }
+            } else {
+                const width = W
+                const keepFrac = keepValue! / totalValue
+                const keepWidth = keepFrac * width
+                setRect(
+                    lastKeep,
+                    lastKeep.x0,
+                    lastKeep.y0,
+                    lastKeep.x0 + keepWidth,
+                    lastKeep.y1
+                )
+
+                // Position thin children stacked to the right of the last keep
+                let offset = 0
+                for (const thinChild of thin) {
+                    const childWidth = (thinChild.v / totalValue) * W
+                    setRect(
+                        thinChild.node,
+                        lastKeep.x1 + offset,
+                        lastKeep.y0,
+                        lastKeep.x1 + offset + childWidth,
+                        lastKeep.y1
+                    )
+                    offset += childWidth
+                }
+            }
+
+            // Skip the old STEP 6 logic since we've already handled thin children
+            // return
+        }
+
+        // return
+
+        // // STEP 6: CREATE "THIN BAND" FOR TOO-THIN CHILDREN
+        // // Calculate total space needed for all "thin" children
+        // const thinSpan = sum(thin.map((d) => d.t))
+        // const keepSpan = sum(keep.map((d) => d.t))
+        // if (thinSpan > 0) {
+        //     // Define the bounding rectangle for the thin band
+        //     let bx0 = x0, // band left
+        //         by0 = y0, // band top
+        //         bx1 = x1, // band right
+        //         by1 = y1 // band bottom
+
+        //     if (vertical) {
+        //         // Vertical mode: thin band is to the right of "keep" children
+        //         // Example: If keepSpan=60px, thinSpan=20px, band occupies (60, y0, 80, y1)
+        //         bx0 = x0 + keepSpan
+        //         bx1 = x0 + keepSpan + thinSpan
+        //     } else {
+        //         // Horizontal mode: thin band is below "keep" children
+        //         // Example: If keepSpan=40px, thinSpan=15px, band occupies (x0, 40, x1, 55)
+        //         by0 = y0 + keepSpan
+        //         by1 = y0 + keepSpan + thinSpan
+        //     }
+
+        //     // STEP 7: WITHIN THIN BAND, STACK VERTICALLY BY DEFAULT
+        //     // Get total value of all thin children for proportional calculations
+        //     const totalThinV = sum(thin.map((d) => d.v))
+        //     if (!totalThinV) return
+
+        //     // STEP 8: SEPARATE STACKED ITEMS BY HEIGHT
+        //     // Calculate how tall each thin child would be if stacked vertically,
+        //     // then separate into "tall enough" vs "too short"
+        //     const tall: ChildEntry<T>[] = [], // Items that are tall enough when stacked
+        //         short: ChildEntry<T>[] = [] // Items too short, need horizontal layout
+
+        //     for (const d of thin) {
+        //         // Calculate height this item would get if all thin items were stacked vertically
+        //         // Example: Band height=100px, totalThinV=200, this item value=30
+        //         // → stackedHeight = (30/200) * 100 = 15px
+        //         const stackedHeight = (d.v / totalThinV) * (by1 - by0)
+        //         ;(stackedHeight >= minStackHeight ? tall : short).push(d)
+        //     }
+
+        //     // STEP 9: LAYOUT TALL ITEMS VERTICALLY FROM TOP
+        //     let yOff = 0 // Running y-offset as we stack items vertically
+        //     const tallTotal = sum(tall.map((d) => d.v))
+        //     if (tallTotal > 0) {
+        //         for (const d of tall) {
+        //             // Calculate this item's height based on its proportion of total thin value
+        //             // Example: totalThinV=200, item value=50, band height=100px → height=25px
+        //             const h = (d.v / totalThinV) * (by1 - by0)
+        //             setRect(d.node, bx0, by0 + yOff, bx1, by0 + yOff + h)
+        //             yOff += h // Move down for next item
+        //         }
+        //     }
+
+        //     // STEP 10: LAYOUT SHORT ITEMS HORIZONTALLY AT BOTTOM
+        //     // Items too short for vertical stacking get placed side-by-side in a bottom row
+        //     const shortTotal = sum(short.map((d) => d.v))
+        //     if (shortTotal > 0) {
+        //         // Calculate row height to preserve total area of short items
+        //         // Example: shortTotal=60, totalThinV=200, band height=100px → rowHeight=30px
+        //         const rowHeight = (shortTotal / totalThinV) * (by1 - by0)
+        //         const ry0 = by1 - rowHeight, // Row starts this far from bottom
+        //             ry1 = by1 // Row extends to bottom
+
+        //         let xOff = 0 // Running x-offset as we place items side-by-side
+        //         for (const d of short) {
+        //             // Calculate this item's width based on its proportion of short items total
+        //             // Example: shortTotal=60, item value=20, band width=80px → width≈26.7px
+        //             const wFrac = (d.v / shortTotal) * (bx1 - bx0)
+        //             setRect(d.node, bx0 + xOff, ry0, bx0 + xOff + wFrac, ry1)
+        //             xOff += wFrac // Move right for next item
+        //         }
+        //     }
+        // }
 
         /**
          * HELPER FUNCTION: Set rectangle coordinates on a D3 hierarchy node
