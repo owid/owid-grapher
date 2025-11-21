@@ -143,6 +143,15 @@ export const atomPlotColorScale = atom((get) => {
 
 // Hover state of the chart
 export const atomHoveredEntity = atom<string | null>(null)
+export const atomHoveredEntityType = atom((get) => {
+    const hoveredEntity = get(atomHoveredEntity)
+    if (!hoveredEntity) return null
+
+    const legendEntries = get(atomLegendEntries)
+    const entry = legendEntries.find((e) => e.name === hoveredEntity)
+    if (entry) return "region"
+    return "country"
+})
 export const atomHoveredX = atom<number | null>(null)
 
 // Currency

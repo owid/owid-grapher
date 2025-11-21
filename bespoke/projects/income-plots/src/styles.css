@@ -47,3 +47,12 @@
         justify-self: end;
     }
 }
+
+.income-plot-chart {
+    .income-plot-series .area-bg {
+        fill-opacity: 0.3;
+    }
+    .income-plot-series .area-fg {
+        fill-opacity: 0.8;
+    }
+}
