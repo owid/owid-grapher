@@ -3,8 +3,6 @@ import { getCategoryColor, TreeNode } from "./CausesOfDeathConstants"
 
 import { CausesOfDeathTreemapTileLabels } from "./CausesOfDeathTreemapTileLabels"
 
-import { stackedSliceDiceTiling as _stackedSliceDiceTiling } from "./stackedSliceDiceTiling.js"
-
 export function CausesOfDeathTreemapTile({
     node,
     treemapBounds,

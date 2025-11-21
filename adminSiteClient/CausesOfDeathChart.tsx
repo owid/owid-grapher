@@ -13,7 +13,7 @@ import { CausesOfDeathControls } from "./CausesOfDeathControls.js"
 import { CausesOfDeathSpinner } from "./CausesOfDeathSpinner.js"
 
 const DEFAULT_AGE_GROUP = "All ages"
-const DEFAULT_SEX = "Both sexes"
+const DEFAULT_SEX = "Male"
 const DEFAULT_ENTITY_NAME = WORLD_ENTITY_NAME
 
 export function CausesOfDeathChart(): React.ReactElement {
