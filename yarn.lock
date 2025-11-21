@@ -6994,6 +6994,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/diff@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "@types/diff@npm:8.0.0"
+  dependencies:
+    diff: "npm:*"
+  checksum: 10/9a7210d664898457db83d463f2586b2b4883013772a84879dfd6a9e2d3c8dc3b087d90e552d28adf982ca6e8635e5a9b47c8dc21507643a01af6b0797a8cec68
+  languageName: node
+  linkType: hard
+
 "@types/dom-speech-recognition@npm:^0.0.1":
   version: 0.0.1
   resolution: "@types/dom-speech-recognition@npm:0.0.1"
@@ -9793,6 +9802,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"diff@npm:*, diff@npm:^8.0.2":
+  version: 8.0.2
+  resolution: "diff@npm:8.0.2"
+  checksum: 10/82a2120d3418f97822e17a6044ccd4b99a91e26e145e8698353673d7146bd2d092bbebb79c112aae7badc7b9c526f9098cbe342f96174feb6beabdd2587b3c42
+  languageName: node
+  linkType: hard
+
 "diff@npm:^5.1.0":
   version: 5.2.0
   resolution: "diff@npm:5.2.0"
@@ -11327,6 +11343,7 @@ __metadata:
     "@types/colorbrewer": "npm:^1.0.29"
     "@types/cookie-parser": "npm:^1.4.3"
     "@types/d3": "npm:^7.4.3"
+    "@types/diff": "npm:^8.0.0"
     "@types/express": "npm:^5.0.3"
     "@types/fs-extra": "npm:^11.0.1"
     "@types/geojson": "npm:^7946.0.10"
@@ -11372,6 +11389,7 @@ __metadata:
     cookie-parser: "npm:^1.4.7"
     d3: "npm:^7.9.0"
     dayjs: "npm:^1.11.11"
+    diff: "npm:^8.0.2"
     dotenv: "npm:^16.0.1"
     embla-carousel-class-names: "npm:^8.6.0"
     embla-carousel-react: "npm:^8.6.0"
