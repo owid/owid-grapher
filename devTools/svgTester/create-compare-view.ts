@@ -5,6 +5,7 @@ import fs from "fs-extra"
 import path from "path"
 import * as utils from "./utils.js"
 import * as _ from "lodash-es"
+import * as Diff from "diff"
 
 const DEFAULT_REPORT_FILENAME = "../owid-grapher-svgs/differences.html"
 
@@ -88,7 +89,8 @@ function escapeQuestionMark(str: string) {
 function createTabControls() {
     return `<div class="tabs">
         <button class="tab-btn active" data-tab="side-by-side">Side by Side</button>
-        <button class="tab-btn" data-tab="slider">Slider</button>
+        <button class="tab-btn" data-tab="slider">Swipe</button>
+        <button class="tab-btn" data-tab="code-diff">Code Diff</button>
     </div>`
 }
 
@@ -133,6 +135,36 @@ function createSliderView(
     </div>`
 }
 
+function createCodeDiffView(
+    referenceFilename: string,
+    differencesFilename: string,
+    svgFilename: string
+) {
+    // Read both SVG files
+    const referenceContent = fs.readFileSync(referenceFilename, "utf-8")
+    const differencesContent = fs.readFileSync(differencesFilename, "utf-8")
+
+    // Generate unified diff with just the filename as the title
+    const unifiedDiff = Diff.createTwoFilesPatch(
+        svgFilename,
+        svgFilename,
+        referenceContent,
+        differencesContent,
+        "",
+        ""
+    )
+
+    // Escape the diff for embedding in HTML (escape backticks and backslashes for template literal)
+    const escapedDiff = unifiedDiff
+        .replace(/\\/g, "\\\\")
+        .replace(/`/g, "\\`")
+        .replace(/\$/g, "\\$")
+
+    return `<div class="tab-pane" data-pane="code-diff">
+        <div class="code-diff-container" data-diff="${escapedDiff.replace(/"/g, "&quot;")}"></div>
+    </div>`
+}
+
 function createComparisonView(
     svgRecord: utils.SvgRecord,
     referenceDir: string,
@@ -161,6 +193,7 @@ function createComparisonView(
         <div class="tab-content">
             ${createSideBySideView(svgRecord, referenceFilename, differencesFilename, compareGrapherUrl)}
             ${createSliderView(referenceFilename, differencesFilename)}
+            ${createCodeDiffView(referenceFilename, differencesFilename, svgFilename)}
         </div>
     </section>`
 }
@@ -174,6 +207,7 @@ function createHtml(content: string) {
     <meta charset="utf-8">
     <title>Comparison</title>
     <link rel="stylesheet" href="https://unpkg.com/img-comparison-slider@8/dist/styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/diff2html/bundles/css/diff2html.min.css">
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -370,7 +404,8 @@ function createHtml(content: string) {
             overflow: hidden;
             --divider-width: 1px;
             --divider-color: #333;
-            --default-handle-opacity: 1;
+            --default-handle-opacity: 0;
+            cursor: ew-resize;
         }
 
         img-comparison-slider img {
@@ -417,13 +452,55 @@ function createHtml(content: string) {
         .slider-label-right {
             color: #1a7f37;
         }
+
+        /* Code diff view */
+        .code-diff-container {
+            max-height: 800px;
+            overflow: auto;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+        }
+
+        /* Override diff2html styles for better integration */
+        .code-diff-container .d2h-wrapper {
+            border: none;
+        }
+
+        .code-diff-container .d2h-file-header {
+            border-radius: 0;
+        }
+
+        /* Hide the "Viewed" checkbox */
+        .code-diff-container .d2h-file-collapse {
+            display: none !important;
+        }
+
+        /* Fix line number overflow on scroll */
+        .code-diff-container .d2h-file-diff {
+            overflow-x: auto;
+        }
+
+        .code-diff-container .d2h-code-side-linenumber {
+            position: sticky;
+            left: 0;
+            background: inherit;
+            z-index: 0;
+        }
+
+        .code-diff-container .d2h-code-linenumber {
+            min-width: 50px;
+        }
     </style>
 </head>
 
 <body>
     ${content}
     <script type="module" src="https://unpkg.com/img-comparison-slider@8/dist/index.js"></script>
+    <script src="https://unpkg.com/diff2html/bundles/js/diff2html-ui.min.js"></script>
     <script>
+        // Track which diffs have been rendered
+        const renderedDiffs = new Set();
+
         // Tab switching functionality
         document.addEventListener('click', (e) => {
             const tabBtn = e.target.closest('.tab-btn');
@@ -440,6 +517,31 @@ function createHtml(content: string) {
                 section.querySelectorAll('.tab-pane').forEach(pane => {
                     pane.classList.toggle('active', pane.dataset.pane === targetTab);
                 });
+
+                // Render code diff if switching to code-diff tab
+                if (targetTab === 'code-diff') {
+                    const diffContainer = section.querySelector('.code-diff-container');
+                    const slug = section.dataset.slug;
+                    const diffId = slug;
+
+                    // Only render once per section
+                    if (diffContainer && !renderedDiffs.has(diffId)) {
+                        const diffString = diffContainer.dataset.diff;
+
+                        // Create Diff2Html UI instance
+                        const diff2htmlUi = new Diff2HtmlUI(diffContainer, diffString, {
+                            drawFileList: false,
+                            matching: 'lines',
+                            outputFormat: 'side-by-side',
+                            highlight: true,
+                            renderNothingWhenEmpty: false,
+                        });
+
+                        diff2htmlUi.draw();
+                        renderedDiffs.add(diffId);
+                    }
+                }
+
                 return;
             }
 
