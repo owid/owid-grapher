@@ -1,6 +1,5 @@
 import { roundSigFig } from "@ourworldindata/utils"
 import * as fastKde from "fast-kde"
-import { useEffect } from "react"
 import {
     Currency,
     KDE_BANDWIDTH,
