@@ -16,7 +16,6 @@
     display: grid;
     grid-template-columns: max-content 150px;
     column-gap: 5px;
-    row-gap: 2px;
 
     color: var(--gray-100);
 
@@ -26,6 +25,9 @@
     cursor: default;
 
     .legend-entry {
+        /* We could be using row-gap in the grid, but then there's space between legend items for mouse events, which makes for an odd mouse interaction. So we use padding instead. */
+        padding-top: 1px;
+        padding-bottom: 1px;
         display: grid;
         grid-column: 1 / -1;
         grid-template-columns: subgrid;
