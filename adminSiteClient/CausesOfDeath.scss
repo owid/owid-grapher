@@ -47,6 +47,12 @@ $black-text: $gray-100;
 
     .causes-of-death-controls__content {
         display: flex;
+        flex-direction: column;
+        row-gap: 8px;
+    }
+
+    .causes-of-death-controls__row {
+        display: flex;
         column-gap: 16px;
         row-gap: 8px;
         align-items: center;
@@ -58,7 +64,20 @@ $black-text: $gray-100;
 
         > * {
             flex: 1 1 0;
-            width: 100%;
+
+            @include sm-only {
+                flex: 1 1 0;
+                width: 100%;
+            }
+        }
+
+        .causes-of-death-time-slider {
+            flex: 1 1 auto;
+            width: auto;
+
+            @include sm-only {
+                width: 100%;
+            }
         }
     }
 
