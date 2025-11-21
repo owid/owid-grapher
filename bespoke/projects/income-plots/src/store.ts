@@ -11,6 +11,18 @@ import { sleep } from "@ourworldindata/utils"
 import { kdeLog, REGION_COLORS } from "./utils/incomePlotUtils.ts"
 import * as R from "remeda"
 
+export interface RawDataRecord {
+    avgsLog2Times100: number[]
+    country: string
+    region: string
+    year: number
+    pop: number
+}
+
+export interface RawDataForYearRecord extends RawDataRecord {
+    avgsLog2: number[]
+}
+
 export const atomCustomPovertyLine = atom(3)
 
 export const atomShowCustomPovertyLine = atom(false)
@@ -53,14 +65,7 @@ export const atomCountriesOrRegionsMode = atom(
 export const atomRawDataForYear = atom(async (get, { signal }) => {
     const year = get(atomCurrentYear)
 
-    // TODO pull this into a shared type definition
-    const rawData = data as Array<{
-        country: string
-        region: string
-        year: number
-        pop: number
-        avgsLog2Times100: number[]
-    }>
+    const rawData = data as RawDataRecord[]
 
     await sleep(500)
     if (signal.aborted) return []
@@ -70,7 +75,8 @@ export const atomRawDataForYear = atom(async (get, { signal }) => {
         .map((d) => ({
             ...d,
             avgsLog2: d.avgsLog2Times100.map((v) => v / 100),
-        }))
+            pop: d.pop * 1000,
+        })) as RawDataForYearRecord[]
     const sortedDataForYear = R.sortBy(
         dataForYear,
         [R.prop("region"), "desc"],
