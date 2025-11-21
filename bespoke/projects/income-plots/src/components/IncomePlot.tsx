@@ -125,6 +125,13 @@ export function IncomePlot({
             .range(plotColorScaleConfig.range)
     }, [plotColorScaleConfig])
 
+    const hoverRightThresholdPlaced = useMemo(() => {
+        const activePovertyLine = showPovertyLine ? povertyLine : null
+        const threshold = activePovertyLine ?? hoveredX
+        if (!xScale) return null
+        if (threshold !== null) return xScale(threshold * combinedFactor)
+    }, [showPovertyLine, povertyLine, hoveredX, xScale, combinedFactor])
+
     // Render
     useEffect(() => {
         if (!svgRef.current || !xScale || !yScale || !stackedSeries.length)
@@ -132,15 +139,6 @@ export function IncomePlot({
 
         const svg = d3.select(svgRef.current)
         svg.selectAll("*").remove() // Clear previous render
-
-        // Define Clip Path for Highlight
-        const defs = svg.append("defs")
-        const clipPath = defs.append("clipPath").attr("id", "highlight-clip")
-        clipPath
-            .append("rect")
-            .attr("y", 0)
-            .attr("height", height)
-            .attr("width", width) // Default full width
 
         // Area Generator
         const area = d3
@@ -157,6 +155,7 @@ export function IncomePlot({
             .join("path")
             .attr("fill", (d) => colorScale(d.key) as string)
             .attr("fill-opacity", 0.3)
+            .attr("data-region", (d) => d.key)
             .attr("d", area)
             .attr("class", "income-plot-chart-area")
 
@@ -176,13 +175,28 @@ export function IncomePlot({
                 if (!hasHoveredEntity) return 0.8
                 return d.key === hoveredEntity ? 0.9 : 0
             })
+            .attr("data-region", (d) => d.key)
             .attr("d", area)
             .attr("class", "income-plot-chart-area--highlighted")
 
-        // X Axis
+        // X Axis Ticks: we only want to label "nice" values like 1, 2, 3, 5, 10, 20, 50, etc.
+        const [min, max] = xScale.domain()
+        const xTicks: number[] = []
+        for (
+            let power = Math.floor(Math.log10(min));
+            Math.pow(10, power) <= max;
+            power++
+        ) {
+            const base = Math.pow(10, power)
+            ;[1, 2, 3, 5].forEach((multiplier) => {
+                const val = base * multiplier
+                if (val >= min && val <= max) xTicks.push(val)
+            })
+        }
+
         const xAxis = d3
             .axisBottom(xScale)
-            .ticks(width / 80)
+            .tickValues(xTicks)
             .tickFormat((d) => formatCurrency(d as number, currentCurrency))
             .tickSizeOuter(0)
 
@@ -212,8 +226,8 @@ export function IncomePlot({
                 .attr("stroke-dasharray", "5,5")
 
             svg.append("text")
-                .attr("x", x)
-                .attr("y", marginTop - 5)
+                .attr("x", x + 5)
+                .attr("y", marginTop + 10)
                 .attr("fill", "#d73027")
                 .attr("font-weight", "bold")
                 .style("font-family", style.fontFamily)
@@ -329,23 +343,23 @@ export function IncomePlot({
         setShowPovertyLine,
     ])
 
-    const hoverRightThreshold = useMemo(() => {
-        const activePovertyLine = showPovertyLine ? povertyLine : null
-        return activePovertyLine ?? hoveredX
-    }, [showPovertyLine, povertyLine, hoveredX])
-
     useEffect(() => {
-        if (!svgRef.current || !xScale) return
+        if (!svgRef.current) return
         const svg = d3.select(svgRef.current)
-        const clipRect = svg.select("#highlight-clip rect")
 
-        if (hoverRightThreshold === null) {
-            clipRect.attr("width", width)
-        } else {
-            const clipX = xScale(hoverRightThreshold * combinedFactor)
-            clipRect.attr("width", Math.max(0, clipX))
-        }
-    }, [hoverRightThreshold, xScale, combinedFactor, width])
+        const clipPathWidth = hoverRightThresholdPlaced ?? width
+
+        // Define Clip Path for Highlight
+        const defs = svg.append("defs")
+        const clipPath = defs.append("clipPath").attr("id", "highlight-clip")
+        clipPath
+            .append("rect")
+            .attr("y", 0)
+            .attr("height", height)
+            .attr("width", clipPathWidth)
+
+        return () => void svg.select("defs").remove()
+    }, [hoverRightThresholdPlaced, width, height])
 
     return (
         <div className="income-plot-chart" ref={containerRef}>
