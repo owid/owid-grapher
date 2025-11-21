@@ -8,6 +8,7 @@ import {
     atomCustomPovertyLine,
     atomHoveredEntity,
     atomHoveredX,
+    atomKdeDataForYear,
     atomKdeDataForYearGroupedByRegion,
     atomPlotColorScale,
     atomShowCustomPovertyLine,
@@ -30,7 +31,7 @@ export function IncomePlot({
     height = PLOT_HEIGHT,
 }: IncomePlotProps) {
     const containerRef = useRef<HTMLDivElement>(null)
-    const points = useAtomValue(atomKdeDataForYearGroupedByRegion)
+    const points = useAtomValue(atomKdeDataForYear)
     const [povertyLine, setPovertyLine] = useAtom(atomCustomPovertyLine)
     const [showPovertyLine, setShowPovertyLine] = useAtom(
         atomShowCustomPovertyLine
@@ -67,6 +68,9 @@ export function IncomePlot({
                 z: "region",
                 className: "income-plot-chart-area--highlighted",
                 title: "region",
+                // stroke: "region",
+                // strokeWidth: 1,
+                // strokeOpacity: 1,
                 fillOpacity: { value: "region", scale: "opacity" },
             }),
             Plot.ruleY([0]),
@@ -184,13 +188,14 @@ export function IncomePlot({
         width,
         marks,
         combinedFactor,
+        currentCurrency,
         hasHoveredEntity,
         hoveredEntity,
-        setHoveredX,
         showPovertyLine,
         setPovertyLine,
         setShowPovertyLine,
         setHoveredEntity,
+        setHoveredX,
     ])
 
     usePlot(plot, containerRef)
