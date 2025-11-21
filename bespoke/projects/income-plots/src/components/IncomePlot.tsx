@@ -23,6 +23,7 @@ import {
     StackedSeriesPoint,
 } from "../utils/incomePlotConstants.ts"
 import * as R from "remeda"
+import { IncomePlotTooltip } from "./IncomePlotTooltip.tsx"
 
 const style = {
     fontFamily:
@@ -559,6 +560,7 @@ export function IncomePlot({
                     marginBottom={marginBottom}
                 />
             </svg>
+            <IncomePlotTooltip />
         </div>
     )
 }
