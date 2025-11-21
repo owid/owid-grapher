@@ -684,3 +684,213 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         expect(response.success).toBe(false)
     })
 })
+
+describe("Chart slug validation", { timeout: 15000 }, () => {
+    it("should allow creating a draft with an empty slug", async () => {
+        const draftConfig = {
+            $schema: latestGrapherConfigSchema,
+            title: "Draft without slug",
+            chartTypes: ["LineChart"],
+            // No slug provided - should be allowed for drafts
+        }
+
+        const response = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(draftConfig),
+        })
+
+        expect(response.success).toBe(true)
+        expect(typeof response.chartId).toBe("number")
+
+        const fullConfig = await env.fetchJson(
+            `/charts/${response.chartId}.config.json`
+        )
+        expect(fullConfig.isPublished).toBe(false)
+        expect(fullConfig.slug).toBeUndefined()
+    })
+
+    it("should allow creating a draft with a unique slug", async () => {
+        const draftConfig = {
+            $schema: latestGrapherConfigSchema,
+            slug: "unique-draft-slug",
+            title: "Draft with unique slug",
+            chartTypes: ["LineChart"],
+        }
+
+        const response = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(draftConfig),
+        })
+
+        expect(response.success).toBe(true)
+        expect(typeof response.chartId).toBe("number")
+
+        const fullConfig = await env.fetchJson(
+            `/charts/${response.chartId}.config.json`
+        )
+        expect(fullConfig.isPublished).toBe(false)
+        expect(fullConfig.slug).toBe("unique-draft-slug")
+    })
+
+    it("should reject creating a draft with a duplicate slug", async () => {
+        // First create a chart with a slug
+        const firstChart = {
+            $schema: latestGrapherConfigSchema,
+            slug: "duplicate-test-slug",
+            title: "First chart",
+            chartTypes: ["LineChart"],
+        }
+
+        const firstResponse = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(firstChart),
+        })
+        expect(firstResponse.success).toBe(true)
+
+        // Try to create another chart with the same slug
+        const secondChart = {
+            $schema: latestGrapherConfigSchema,
+            slug: "duplicate-test-slug",
+            title: "Second chart",
+            chartTypes: ["LineChart"],
+        }
+
+        const secondResponse = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(secondChart),
+        })
+
+        expect(secondResponse.success).toBe(false)
+        expect(secondResponse.error.message).toContain(
+            "This chart slug is in use by another chart"
+        )
+    })
+
+    it("should allow multiple drafts with empty slugs", async () => {
+        const draft1 = {
+            $schema: latestGrapherConfigSchema,
+            title: "Draft 1 without slug",
+            chartTypes: ["LineChart"],
+        }
+
+        const draft2 = {
+            $schema: latestGrapherConfigSchema,
+            title: "Draft 2 without slug",
+            chartTypes: ["LineChart"],
+        }
+
+        const response1 = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(draft1),
+        })
+
+        const response2 = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(draft2),
+        })
+
+        expect(response1.success).toBe(true)
+        expect(response2.success).toBe(true)
+
+        // Both should have undefined slugs
+        const config1 = await env.fetchJson(
+            `/charts/${response1.chartId}.config.json`
+        )
+        const config2 = await env.fetchJson(
+            `/charts/${response2.chartId}.config.json`
+        )
+
+        expect(config1.slug).toBeUndefined()
+        expect(config2.slug).toBeUndefined()
+    })
+
+    it("should reject publishing a chart with an empty slug", async () => {
+        // Create a draft without a slug
+        const draftConfig = {
+            $schema: latestGrapherConfigSchema,
+            title: "Draft to publish",
+            chartTypes: ["LineChart"],
+        }
+
+        const createResponse = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(draftConfig),
+        })
+        expect(createResponse.success).toBe(true)
+
+        // Try to publish it without adding a slug
+        const publishConfig = {
+            $schema: latestGrapherConfigSchema,
+            title: "Draft to publish",
+            chartTypes: ["LineChart"],
+            isPublished: true,
+        }
+
+        const publishResponse = await env.request({
+            method: "PUT",
+            path: `/charts/${createResponse.chartId}`,
+            body: JSON.stringify(publishConfig),
+        })
+
+        expect(publishResponse.success).toBe(false)
+        expect(publishResponse.error.message).toContain("Invalid chart slug")
+    })
+
+    it("should reject updating a draft to use a duplicate slug", async () => {
+        // Create first chart
+        const chart1 = {
+            $schema: latestGrapherConfigSchema,
+            slug: "existing-slug",
+            title: "Chart 1",
+            chartTypes: ["LineChart"],
+        }
+
+        const response1 = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(chart1),
+        })
+        expect(response1.success).toBe(true)
+
+        // Create second chart with different slug
+        const chart2 = {
+            $schema: latestGrapherConfigSchema,
+            slug: "different-slug",
+            title: "Chart 2",
+            chartTypes: ["LineChart"],
+        }
+
+        const response2 = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(chart2),
+        })
+        expect(response2.success).toBe(true)
+
+        // Try to update second chart to use first chart's slug
+        const updateConfig = {
+            $schema: latestGrapherConfigSchema,
+            slug: "existing-slug",
+            title: "Chart 2 updated",
+            chartTypes: ["LineChart"],
+        }
+
+        const updateResponse = await env.request({
+            method: "PUT",
+            path: `/charts/${response2.chartId}`,
+            body: JSON.stringify(updateConfig),
+        })
+
+        expect(updateResponse.success).toBe(false)
+        expect(updateResponse.error.message).toContain(
+            "This chart slug is in use by another chart"
+        )
+    })
+})

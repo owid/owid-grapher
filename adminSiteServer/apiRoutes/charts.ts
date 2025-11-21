@@ -346,7 +346,9 @@ export const saveGrapher = async (
     // Try to migrate the new config to the latest version
     newConfig = migrateGrapherConfigToLatestVersionAndFailOnError(newConfig)
 
-    // When a chart is published, check for conflicts
+    // Validate slug if:
+    // 1. Publishing - slug is required
+    // 2. Draft with non-empty slug - prevent duplicates (empty slugs are allowed for drafts)
     if (newConfig.isPublished) {
         await validateNewGrapherSlug(knex, newConfig.slug, existingConfig?.id)
         if (
@@ -371,6 +373,9 @@ export const saveGrapher = async (
                 `${existingConfig.slug}.json`
             )
         }
+    } else if (newConfig.slug && newConfig.slug.length > 0) {
+        // Only validate non-empty slugs for drafts (empty slugs are allowed for drafts)
+        await validateNewGrapherSlug(knex, newConfig.slug, existingConfig?.id)
     }
 
     if (existingConfig)

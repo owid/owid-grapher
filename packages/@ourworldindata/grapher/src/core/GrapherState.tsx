@@ -1788,9 +1788,15 @@ export class GrapherState {
             (config) => new ChartDimension(config, this)
         )
     }
-    @computed get displaySlug(): string {
-        return this.slug ?? slugify(this.displayTitle)
+
+    @computed get defaultSlug(): string {
+        return slugify(this.displayTitle)
     }
+
+    @computed get displaySlug(): string {
+        return this.slug ?? this.defaultSlug
+    }
+
     shouldIncludeDetailsInStaticExport = true
     // Used for superscript numbers in static exports
     @computed get detailsOrderedByReference(): string[] {
