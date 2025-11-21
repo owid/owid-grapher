@@ -1,18 +1,28 @@
 import { PropsWithChildren } from "react"
+import cx from "classnames"
+import { ExploreDataSectionAlignment } from "@ourworldindata/types"
 
 type ExploreDataSectionProps = PropsWithChildren<{
     title?: string
     className?: string
+    align: ExploreDataSectionAlignment
 }>
 
 export const ExploreDataSection = ({
     title = "Explore the data",
     className,
+    align,
     children,
 }: ExploreDataSectionProps) => {
     return (
-        <section className={className}>
-            <header className="article-block__explore-data-section__header col-start-2 span-cols-12">
+        <section
+            className={cx(
+                className,
+                "explore-data-section",
+                `explore-data-section--${align}`
+            )}
+        >
+            <header className="explore-data-section__header col-start-2 span-cols-12">
                 <div className="icon">{icon}</div>
                 <h1>{title}</h1>
             </header>

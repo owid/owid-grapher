@@ -542,6 +542,7 @@ function* RawBlockExploreDataSectionToArchieMLString(
     yield "{.explore-data-section}"
     if (typeof block.value !== "string") {
         yield* propertyToArchieMLString("title", block.value)
+        yield* propertyToArchieMLString("align", block.value)
         yield "[.+content]"
         for (const b of block.value.content)
             yield* OwidRawGdocBlockToArchieMLStringGenerator(b)

@@ -422,6 +422,7 @@ export const enrichedBlockExamples: Record<
     "explore-data-section": {
         type: "explore-data-section",
         title: "Explore the data",
+        align: "center",
         content: [enrichedBlockText],
         parseErrors: [],
     },

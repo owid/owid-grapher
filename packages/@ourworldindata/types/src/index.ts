@@ -264,6 +264,8 @@ export {
     type EnrichedBlockExpandableParagraph,
     type EnrichedBlockExplorerTiles,
     type EnrichedBlockGraySection,
+    exploreDataSectionAlignments,
+    type ExploreDataSectionAlignment,
     type EnrichedBlockExploreDataSection,
     type EnrichedBlockHeading,
     type EnrichedBlockHomepageIntroPost,

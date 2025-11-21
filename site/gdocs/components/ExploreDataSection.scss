@@ -40,3 +40,26 @@
         background-color: $blue-20;
     }
 }
+
+.explore-data-section--center {
+    .explore-data-section__header {
+        justify-content: center;
+    }
+
+    .article-block__text {
+        @include body-2-regular;
+
+        &:has(+ .article-block__explorer) {
+            margin-bottom: 0;
+        }
+    }
+
+    .article-block__text,
+    .article-block__heading {
+        text-align: center;
+    }
+
+    .article-block__explorer {
+        margin-bottom: 24px;
+    }
+}
