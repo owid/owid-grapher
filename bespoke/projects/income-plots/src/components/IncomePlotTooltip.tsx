@@ -12,13 +12,47 @@ import {
 } from "@floating-ui/react"
 import { useAtomValue } from "jotai"
 import { useRef } from "react"
-import { atomHoveredEntity, atomTooltipIsOpen } from "../store.ts"
+import {
+    atomCombinedFactor,
+    atomCurrentCurrency,
+    atomCustomPovertyLine,
+    atomHoveredEntity,
+    atomHoveredX,
+    atomRawDataForYear,
+    atomShowCustomPovertyLine,
+    atomTimeInterval,
+    atomTooltipIsOpen,
+} from "../store.ts"
+import {
+    computePercentageBelowLine,
+    formatCurrency,
+} from "../utils/incomePlotUtils.ts"
 
 export const IncomePlotTooltip = () => {
+    const getTimeIntervalStr = (interval: typeof timeInterval) => {
+        switch (interval) {
+            case "yearly":
+                return "year"
+            case "monthly":
+                return "month"
+            case "daily":
+                return "day"
+        }
+    }
+
     const arrowRef = useRef(null)
 
     const isOpen = useAtomValue(atomTooltipIsOpen)
     const hoveredEntity = useAtomValue(atomHoveredEntity)
+    const hoveredX = useAtomValue(atomHoveredX)
+    const showPovertyLine = useAtomValue(atomShowCustomPovertyLine)
+    const povertyLine = useAtomValue(atomCustomPovertyLine)
+    const rawDataForYear = useAtomValue(atomRawDataForYear)
+    const currency = useAtomValue(atomCurrentCurrency)
+    const combinedFactor = useAtomValue(atomCombinedFactor)
+    const timeInterval = useAtomValue(atomTimeInterval)
+
+    const lineForDisplay = showPovertyLine ? povertyLine : hoveredX
 
     const { refs, floatingStyles, context } = useFloating({
         open: isOpen,
@@ -30,6 +64,14 @@ export const IncomePlotTooltip = () => {
     const hover = useHover(context, { move: false })
     const clientPoint = useClientPoint(context)
     const { getFloatingProps } = useInteractions([hover, clientPoint])
+
+    if (!lineForDisplay || !hoveredEntity) return null
+    const percentageMap = computePercentageBelowLine(
+        rawDataForYear,
+        lineForDisplay,
+        new Set([hoveredEntity])
+    )
+    const percentageForEntity = percentageMap.get(hoveredEntity)
 
     return (
         <>
@@ -45,7 +87,17 @@ export const IncomePlotTooltip = () => {
                             {hoveredEntity}
                         </div>
                         <div className="tooltip--percentage">
-                            {/* Placeholder for: % if population below */}
+                            {percentageForEntity !== undefined && (
+                                <>
+                                    {Math.round(percentageForEntity)}% of the
+                                    population earns less than{" "}
+                                    {formatCurrency(
+                                        lineForDisplay * combinedFactor,
+                                        currency
+                                    )}
+                                    /{getTimeIntervalStr(timeInterval)}
+                                </>
+                            )}
                         </div>
                         <div className="tooltip--set-pov-line">
                             Click to set poverty line
