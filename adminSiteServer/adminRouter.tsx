@@ -289,4 +289,6 @@ getPlainRouteWithROTransaction(
     }
 )
 
+adminRouter.use("/income-plot", express.static("dist/income-plots/index.html"))
+
 export { adminRouter }
