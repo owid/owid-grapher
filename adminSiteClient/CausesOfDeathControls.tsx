@@ -17,17 +17,21 @@ import { useUserCountryInformation } from "./CausesOfDeathDataFetching.js"
 export function CausesOfDeathControls({
     metadata,
     ageGroup,
+    sex,
     entityName,
     year,
     setAgeGroup,
+    setSex,
     setEntityName,
     setYear,
 }: {
     metadata: CausesOfDeathMetadata
     ageGroup: string
+    sex: string
     entityName: string
     year: number
     setAgeGroup: (ageGroup: string) => void
+    setSex: (sex: string) => void
     setEntityName: (entityName: string) => void
     setYear: (year: number) => void
 }): React.ReactElement {
@@ -41,6 +45,11 @@ export function CausesOfDeathControls({
                     availableAgeGroups={metadata.availableAgeGroups}
                     selectedAgeGroup={ageGroup}
                     onChange={setAgeGroup}
+                />
+                <SexDropdown
+                    availableSexes={metadata.availableSexes}
+                    selectedSex={sex}
+                    onChange={setSex}
                 />
                 <EntityDropdown
                     availableEntities={metadata?.availableEntities}
@@ -229,6 +238,57 @@ function AgeGroupDropdownLabel({
     return (
         <>
             <span className="label">Age: </span>
+            {option.label}
+        </>
+    )
+}
+
+function SexDropdown({
+    availableSexes,
+    selectedSex,
+    onChange,
+    className,
+    isLoading,
+}: {
+    availableSexes: string[]
+    selectedSex: string
+    onChange: (sex: string) => void
+    className?: string
+    isLoading?: boolean
+}) {
+    const options =
+        availableSexes?.map((sex) => ({
+            value: sex,
+            label: sex,
+            id: sex,
+        })) ?? []
+
+    return (
+        <Dropdown
+            options={options}
+            selectedValue={selectedSex}
+            onChange={onChange}
+            className={className}
+            isLoading={isLoading}
+            placeholder="Select a sex..."
+            aria-label="Select a sex"
+            isSearchable={false}
+            renderTriggerValue={(option) => (
+                <SexDropdownLabel option={option} />
+            )}
+        />
+    )
+}
+
+function SexDropdownLabel({
+    option,
+}: {
+    option: BasicDropdownOption | null
+}): React.ReactElement | null {
+    if (!option) return null
+    return (
+        <>
+            <span className="label">Sex: </span>
             {option.label}
         </>
     )
