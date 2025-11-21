@@ -8,7 +8,11 @@ import {
 } from "./utils/incomePlotConstants.ts"
 import data from "./data/incomeBins.json"
 import { sleep } from "@ourworldindata/utils"
-import { kdeLog, REGION_COLORS } from "./utils/incomePlotUtils.ts"
+import {
+    formatCurrency,
+    kdeLog,
+    REGION_COLORS,
+} from "./utils/incomePlotUtils.ts"
 import * as R from "remeda"
 
 export interface RawDataRecord {
@@ -35,6 +39,13 @@ export const atomCustomPovertyLine = atom(
         set(atomCustomPovertyLineInternal, newValue)
     }
 )
+export const atomCustomPovertyLineFormatted = atom((get) => {
+    const line = get(atomCustomPovertyLine)
+    if (line === null) return null
+    const currency = get(atomCurrentCurrency)
+    const combinedFactor = get(atomCombinedFactor)
+    return formatCurrency(line * combinedFactor, currency)
+})
 
 // Basic atoms related to data-display controls
 export const atomCurrentYear = atom<number>(DEFAULT_YEAR)

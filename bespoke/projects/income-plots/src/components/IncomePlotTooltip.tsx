@@ -25,20 +25,10 @@ import {
 import {
     computePercentageBelowLine,
     formatCurrency,
+    getTimeIntervalStr,
 } from "../utils/incomePlotUtils.ts"
 
 export const IncomePlotTooltip = () => {
-    const getTimeIntervalStr = (interval: typeof timeInterval) => {
-        switch (interval) {
-            case "yearly":
-                return "year"
-            case "monthly":
-                return "month"
-            case "daily":
-                return "day"
-        }
-    }
-
     const arrowRef = useRef(null)
 
     const isOpen = useAtomValue(atomTooltipIsOpen)
