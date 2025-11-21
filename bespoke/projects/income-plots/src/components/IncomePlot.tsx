@@ -34,6 +34,12 @@ export function IncomePlot({
 }: IncomePlotProps) {
     const containerRef = useRef<HTMLDivElement>(null)
     const svgRef = useRef<SVGSVGElement>(null)
+    const backgroundAreasRef = useRef<SVGGElement>(null)
+    const foregroundAreasRef = useRef<SVGGElement>(null)
+    const xAxisRef = useRef<SVGGElement>(null)
+    const povertyLineRef = useRef<SVGGElement>(null)
+    const pointerRef = useRef<SVGGElement>(null)
+    const overlayRef = useRef<SVGRectElement>(null)
     const points = useAtomValue(atomKdeDataForYear)
     const [povertyLine, setPovertyLine] = useAtom(atomCustomPovertyLine)
     const [showPovertyLine, setShowPovertyLine] = useAtom(
@@ -128,25 +134,24 @@ export function IncomePlot({
         return xScale(threshold * combinedFactor)
     }, [showPovertyLine, povertyLine, hoveredX, xScale, combinedFactor])
 
-    // Render
-    useEffect(() => {
-        if (!svgRef.current || !xScale || !yScale || !stackedSeries.length)
-            return
-
-        const svg = d3.select(svgRef.current)
-        svg.selectAll("*").remove() // Clear previous render
-
-        // Area Generator
-        const area = d3
+    // Area Generator
+    const area = useMemo(() => {
+        if (!xScale || !yScale) return null
+        return d3
             .area<any>()
             .x((d) => xScale(d.data.x * combinedFactor))
             .y0((d) => yScale(d[0]))
             .y1((d) => yScale(d[1]))
+    }, [xScale, yScale, combinedFactor])
 
-        // Draw Background Areas
-        svg.append("g")
-            .attr("class", "background-areas")
-            .selectAll("path")
+    // Render Background Areas
+    useEffect(() => {
+        if (!backgroundAreasRef.current || !area || !stackedSeries.length)
+            return
+
+        const g = d3.select(backgroundAreasRef.current)
+
+        g.selectAll("path")
             .data(stackedSeries)
             .join("path")
             .attr("fill", (d) => {
@@ -158,16 +163,21 @@ export function IncomePlot({
             .attr("data-region", (d) => countryRegionMap.get(d.key)!)
             .attr("d", area)
             .attr("class", "income-plot-chart-area")
+    }, [stackedSeries, area, countryRegionMap, colorScale])
 
-        // Draw Foreground Areas (Highlighted)
-        const foregroundGroup = svg
-            .append("g")
-            .attr("class", "foreground-areas")
-            .style("pointer-events", "none")
-            .attr("clip-path", "url(#highlight-clip)")
+    // Render Foreground Areas
+    useEffect(() => {
+        if (!foregroundAreasRef.current || !area || !stackedSeries.length)
+            return
 
-        foregroundGroup
-            .selectAll("path")
+        const g = d3.select(foregroundAreasRef.current)
+
+        g.style("pointer-events", "none").attr(
+            "clip-path",
+            "url(#highlight-clip)"
+        )
+
+        g.selectAll("path")
             .data(stackedSeries)
             .join("path")
             .attr("fill", (d) => {
@@ -185,8 +195,22 @@ export function IncomePlot({
             .attr("data-region", (d) => countryRegionMap.get(d.key)!)
             .attr("d", area)
             .attr("class", "income-plot-chart-area--highlighted")
+    }, [
+        stackedSeries,
+        area,
+        countryRegionMap,
+        colorScale,
+        hasHoveredEntity,
+        hoveredEntity,
+    ])
 
-        // X Axis Ticks: we only want to label "nice" values like 1, 2, 3, 5, 10, 20, 50, etc.
+    // Render X Axis
+    useEffect(() => {
+        if (!xAxisRef.current || !xScale) return
+
+        const g = d3.select(xAxisRef.current)
+        g.attr("transform", `translate(0,${height - marginBottom})`)
+
         const [min, max] = xScale.domain()
         const xTicks: number[] = []
         for (
@@ -207,23 +231,25 @@ export function IncomePlot({
             .tickFormat((d) => formatCurrency(d as number, currentCurrency))
             .tickSizeOuter(0)
 
-        const xAxisGroup = svg
-            .append("g")
-            .attr("transform", `translate(0,${height - marginBottom})`)
-            .call(xAxis)
+        g.call(xAxis)
 
-        xAxisGroup.select(".domain").remove()
-        xAxisGroup
-            .selectAll(".tick line")
+        g.select(".domain").remove()
+        g.selectAll(".tick line")
             .clone()
             .attr("y2", -(height - marginBottom - marginTop))
             .attr("stroke-opacity", 0.1)
+    }, [xScale, height, marginBottom, marginTop, currentCurrency])
 
-        // Poverty Line
+    // Render Poverty Line
+    useEffect(() => {
+        if (!povertyLineRef.current || !xScale) return
+        const g = d3.select(povertyLineRef.current)
+        g.selectAll("*").remove()
+
         if (showPovertyLine) {
             const x = xScale(povertyLine * combinedFactor)
 
-            svg.append("line")
+            g.append("line")
                 .attr("x1", x)
                 .attr("x2", x)
                 .attr("y1", marginTop)
@@ -232,7 +258,7 @@ export function IncomePlot({
                 .attr("stroke-width", 2)
                 .attr("stroke-dasharray", "5,5")
 
-            svg.append("text")
+            g.append("text")
                 .attr("x", x + 5)
                 .attr("y", marginTop + 10)
                 .attr("fill", "#d73027")
@@ -243,12 +269,27 @@ export function IncomePlot({
                     `Poverty line: ${formatCurrency(povertyLine * combinedFactor, currentCurrency)}`
                 )
         }
+    }, [
+        showPovertyLine,
+        povertyLine,
+        combinedFactor,
+        currentCurrency,
+        xScale,
+        height,
+        marginBottom,
+        marginTop,
+    ])
 
-        // Pointer X
+    // Render Pointer
+    useEffect(() => {
+        if (!pointerRef.current || !xScale) return
+        const g = d3.select(pointerRef.current)
+        g.selectAll("*").remove()
+
         if (hoveredX !== null) {
             const x = xScale(hoveredX * combinedFactor)
 
-            svg.append("line")
+            g.append("line")
                 .attr("x1", x)
                 .attr("x2", x)
                 .attr("y1", marginTop)
@@ -257,7 +298,7 @@ export function IncomePlot({
                 .attr("stroke-opacity", 0.15)
                 .style("pointer-events", "none")
 
-            svg.append("text")
+            g.append("text")
                 .attr("x", x)
                 .attr("y", height - marginBottom + 9)
                 .attr("dy", "0.71em") // approximate alignment
@@ -272,18 +313,22 @@ export function IncomePlot({
                     formatCurrency(hoveredX * combinedFactor, currentCurrency)
                 )
         }
+    }, [
+        hoveredX,
+        combinedFactor,
+        currentCurrency,
+        xScale,
+        height,
+        marginBottom,
+        marginTop,
+    ])
 
-        // Interactions
-        // We use a transparent overlay rect to capture events everywhere
-        const overlay = svg
-            .append("rect")
-            .attr("class", "overlay")
-            .attr("x", marginLeft)
-            .attr("y", marginTop)
-            .attr("width", width - marginLeft - marginRight)
-            .attr("height", height - marginBottom - marginTop)
-            .attr("fill", "transparent")
-        // .style("cursor", "crosshair")
+    // Interactions
+    useEffect(() => {
+        if (!overlayRef.current || !xScale || !yScale || !stackedSeries.length)
+            return
+
+        const overlay = d3.select(overlayRef.current)
 
         overlay.on("mousemove", (event) => {
             const [mx, my] = d3.pointer(event)
@@ -291,22 +336,17 @@ export function IncomePlot({
             const yVal = yScale.invert(my)
 
             // Find closest data point index
-            // stackedSeries[0] has the data structure with .data.x
             const data = stackedSeries[0].map((d) => d.data)
             const bisect = d3.bisector((d: any) => d.x).center
             const index = bisect(data, xVal)
 
             if (index >= 0 && index < data.length) {
                 const d = data[index]
-                setHoveredX(d.x) // Set raw x
+                setHoveredX(d.x)
 
-                // Find region
                 let foundRegion = null
-                // Iterate series in reverse order (top to bottom) or just check intervals
                 for (const layer of stackedSeries) {
                     const [y0, y1] = layer[index]
-                    // y0 and y1 are data values. yScale maps them to pixels.
-                    // yVal is data value (inverted from pixels).
                     if (yVal >= y0 && yVal <= y1) {
                         foundRegion = layer.key
                         break
@@ -331,47 +371,45 @@ export function IncomePlot({
             setShowPovertyLine(!showPovertyLine)
         })
     }, [
-        stackedSeries,
         xScale,
         yScale,
-        width,
-        height,
+        stackedSeries,
         combinedFactor,
-        currentCurrency,
-        colorScale,
         showPovertyLine,
-        povertyLine,
-        hoveredX,
-        hasHoveredEntity,
-        hoveredEntity,
-        setHoveredEntity,
-        setHoveredX,
         setPovertyLine,
         setShowPovertyLine,
-        countryRegionMap,
+        setHoveredX,
+        setHoveredEntity,
     ])
-
-    useEffect(() => {
-        if (!svgRef.current) return
-        const svg = d3.select(svgRef.current)
-
-        const clipPathWidth = hoverRightThresholdPlaced ?? width
-
-        // Define Clip Path for Highlight
-        const defs = svg.append("defs")
-        const clipPath = defs.append("clipPath").attr("id", "highlight-clip")
-        clipPath
-            .append("rect")
-            .attr("y", 0)
-            .attr("height", height)
-            .attr("width", clipPathWidth)
-
-        return () => void svg.select("defs").remove()
-    }, [hoverRightThresholdPlaced, width, height])
 
     return (
         <div className="income-plot-chart" ref={containerRef}>
-            <svg ref={svgRef} width={width} height={height} style={style} />
+            <svg ref={svgRef} width={width} height={height} style={style}>
+                <defs>
+                    <clipPath id="highlight-clip">
+                        <rect
+                            x="0"
+                            y="0"
+                            width={hoverRightThresholdPlaced ?? width}
+                            height={height}
+                        />
+                    </clipPath>
+                </defs>
+                <g className="background-areas" ref={backgroundAreasRef} />
+                <g className="foreground-areas" ref={foregroundAreasRef} />
+                <g className="x-axis" ref={xAxisRef} />
+                <g className="poverty-line" ref={povertyLineRef} />
+                <g className="pointer" ref={pointerRef} />
+                <rect
+                    ref={overlayRef}
+                    className="overlay"
+                    x={marginLeft}
+                    y={marginTop}
+                    width={width - marginLeft - marginRight}
+                    height={height - marginTop - marginBottom}
+                    fill="transparent"
+                />
+            </svg>
         </div>
     )
 }
