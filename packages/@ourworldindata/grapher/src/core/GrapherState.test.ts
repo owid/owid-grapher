@@ -28,6 +28,7 @@ import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
     OwidTable,
+    ErrorValueTypes,
 } from "@ourworldindata/core-table"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 import { setSelectedEntityNamesParam } from "./EntityUrlBuilder"
@@ -1744,5 +1745,181 @@ describe("tableAfterColorAndSizeToleranceApplication", () => {
             value: 200,
             originalTime: 2004,
         })
+    })
+})
+
+describe("tolerance is not applied twice (issue #4891)", () => {
+    // If a column has tolerance=3, and an entity (e.g. Belarus) has data at year 2018,
+    // that data should be visible for years 2015-2021 (exactly ±3 years from 2018).
+    // However, the bug caused the data to appear at years 2012-2024 (±6 years), effectively
+    // applying the tolerance twice.
+    //
+    // The data transformation pipeline has two stages where tolerance is applied:
+    //
+    // 1. Interpolation (in transformTable):
+    //    - Creates a complete table with all entity-year combinations
+    //    - Fills missing years using tolerance (e.g., 2015-2021 get value from 2018)
+    //    - Years outside tolerance (e.g., 2014) remain empty
+    //
+    // 2. Filtering (in filterByTargetTimes):
+    //    - For a target year (e.g., 2014), finds the closest available year
+    //    - Originally used tolerance AGAIN to search (looking ±3 years from 2014)
+    //    - This could find 2015, which is within tolerance of 2014
+    //    - Result: 2018 data shown at 2014 (via 2015), which is 4 years away—outside the intended tolerance
+    //
+    // Normally this bug is hidden because after interpolation (step 1), every year has a row.
+    // The bug only manifests when some rows are removed between interpolation and filtering,
+    // such as when showNoDataArea=false in Marimekko charts.
+    //
+    // The fix:
+    // filterByTargetTimes now searches for the closest year WITHOUT applying tolerance again.
+    // It only returns data if an exact year match exists (which was already interpolated in step 1).
+
+    const createTable = (): OwidTable => {
+        const years: number[] = []
+        const entityNames: string[] = []
+        const testColumnValues: number[] = []
+
+        // United States provides a continuous range of years (2000-2024) to establish
+        // the full timeline. When complete() runs during interpolation, it creates rows
+        // for all these years for all entities.
+        for (let year = 2000; year <= 2024; year++) {
+            years.push(year)
+            entityNames.push("United States")
+            testColumnValues.push(year * 10)
+        }
+
+        // Belarus has data only at year 2018. With tolerance=3, this should be
+        // interpolated to years 2015-2021 (±3 years), but NOT to 2014 or earlier.
+        years.push(2018)
+        entityNames.push("Belarus")
+        testColumnValues.push(100)
+
+        return new OwidTable(
+            [
+                ["entityName", "year", "testColumn"],
+                ...years.map((year, i) => [
+                    entityNames[i],
+                    year,
+                    testColumnValues[i],
+                ]),
+            ],
+            [
+                {
+                    slug: "testColumn",
+                    type: ColumnTypeNames.Numeric,
+                    tolerance: 3,
+                },
+            ]
+        )
+    }
+
+    const table = createTable()
+
+    it("does not apply tolerance twice for Marimekko chart", () => {
+        const grapher = new GrapherState({
+            table,
+            chartTypes: [GRAPHER_CHART_TYPES.Marimekko],
+            ySlugs: "testColumn",
+            maxTime: 2014,
+            // showNoDataArea=false causes the chart to filter out rows that
+            // have no data. This creates the scenario where filterByTargetTimes might
+            // not find an exact year match, exposing the bug (if not fixed).
+            showNoDataArea: false,
+        })
+
+        expect(grapher.endTime).toBe(2014)
+        const testColumnValues2014 = grapher.transformedTable
+            .filterByEntityNames(["Belarus"])
+            .get("testColumn").values
+
+        // If the bug existed, Belarus would incorrectly show data at 2014 because:
+        // - Interpolation creates data at 2015 (within tolerance of 2018)
+        // - filterByTargetTimes would then find 2015 (within tolerance of 2014)
+        // - Result: 2018 data incorrectly shown at 2014 (double tolerance)
+        expect(testColumnValues2014).toEqual([])
+
+        // Year 2015 is exactly 3 years from 2018, at the boundary of the tolerance range.
+        // This SHOULD show Belarus's data.
+        grapher.maxTime = 2015
+        expect(grapher.endTime).toBe(2015)
+        const testColumnValues2015 = grapher.transformedTable
+            .filterByEntityNames(["Belarus"])
+            .get("testColumn").values
+        expect(testColumnValues2015).toEqual([100])
+    })
+
+    it("does not apply tolerance twice for DiscreteBar chart", () => {
+        const grapher = new GrapherState({
+            table,
+            chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
+            ySlugs: "testColumn",
+            selectedEntityNames: ["Belarus", "United States"],
+            maxTime: 2014,
+        })
+
+        const testColumnValues2014 = grapher.transformedTable
+            .filterByEntityNames(["Belarus"])
+            .get("testColumn").values
+
+        // Belarus should have NO valid values at 2014 (outside tolerance=3)
+        expect(testColumnValues2014).toEqual([])
+
+        // But should have a valid value at 2015
+        grapher.maxTime = 2015
+        const testColumnValues2015 = grapher.transformedTable
+            .filterByEntityNames(["Belarus"])
+            .get("testColumn").values
+        expect(testColumnValues2015).toEqual([100])
+    })
+
+    it("does not apply tolerance twice for SlopeChart", () => {
+        const grapher = new GrapherState({
+            table,
+            chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
+            ySlugs: "testColumn",
+            selectedEntityNames: ["Belarus", "United States"],
+            minTime: 2014,
+            maxTime: 2021,
+        })
+
+        const transformedTable = grapher.transformedTable
+        const belarusTable = transformedTable.filterByEntityNames(["Belarus"])
+
+        const allValues =
+            belarusTable.get("testColumn").valuesIncludingErrorValues
+        const validValues = belarusTable.get("testColumn").values
+
+        // Belarus should have a error value at 2014 (outside tolerance=3)
+        // and a valid value at 2021 (within tolerance=3)
+        expect(allValues[0]).toEqual(ErrorValueTypes.NoValueWithinTolerance)
+        expect(allValues[1]).toEqual(100)
+
+        // Only 2021 should have a valid value
+        expect(validValues).toEqual([100])
+    })
+
+    it("does not apply tolerance twice for Map chart", () => {
+        const grapher = new GrapherState({
+            table,
+            hasMapTab: true,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+            ySlugs: "testColumn",
+            map: new MapConfig({ timeTolerance: 3, time: 2014 }),
+        })
+
+        const testColumnValues2014 = grapher.transformedTable
+            .filterByEntityNames(["Belarus"])
+            .get("testColumn").values
+
+        // Year 2014 is outside tolerance range; Belarus should have NO data
+        expect(testColumnValues2014).toEqual([])
+
+        // Year 2015 is within tolerance range; Belarus should have data
+        grapher.map.time = 2015
+        const testColumnValues2015 = grapher.transformedTable
+            .filterByEntityNames(["Belarus"])
+            .get("testColumn").values
+        expect(testColumnValues2015).toEqual([100])
     })
 })
