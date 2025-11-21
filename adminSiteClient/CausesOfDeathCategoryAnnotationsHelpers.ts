@@ -150,7 +150,7 @@ function placeExternalCategoryAnnotation({
 
     const y = placement === "top" ? treemapY : treemapY + annotationHeight
     const annotationWidth = arrowWidth + textWidth
-    const padding = Math.min(30, 0.33 * nodesWidth)
+    const padding = R.clamp(0.33 * nodesWidth, { max: 30, min: 20 }) // TODO: something is off with the padding
 
     const candidates: {
         x: number
@@ -162,17 +162,13 @@ function placeExternalCategoryAnnotation({
 
         // arrow is on the left, annotation text to the left
         {
-            x: left - arrowWidth - textWidth + padding,
+            x: left - annotationWidth + padding,
             arrowAnchor: "left",
             textAnchor: "end",
         },
 
         // arrow is on the right, annotation text to the left
-        {
-            x: right - arrowWidth - textWidth,
-            arrowAnchor: "right",
-            textAnchor: "end",
-        },
+        { x: right - annotationWidth, arrowAnchor: "right", textAnchor: "end" },
 
         // arrow is on the right, annotation text to the right
         { x: right - padding, arrowAnchor: "right", textAnchor: "start" },
