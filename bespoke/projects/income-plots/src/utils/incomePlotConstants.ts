@@ -39,9 +39,8 @@ export const PLOT_WIDTH = 1000
 export const PLOT_HEIGHT = 500
 
 export interface StackedSeriesPoint extends Array<SeriesPoint<number>> {
-    x: number
     key: string
-    country: string
+    country?: string
     region: string
     color: string
 }
