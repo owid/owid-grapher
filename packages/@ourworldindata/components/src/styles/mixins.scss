@@ -581,3 +581,11 @@
         (100% - (var(--grid-gap) * #{$items-per-row - 1})) / #{$items-per-row}
     );
 }
+
+@mixin prominent-link-dark-style {
+    background-color: $blue-20;
+    color: $blue-65;
+    .prominent-link__heading-wrapper {
+        color: $blue-90;
+    }
+}

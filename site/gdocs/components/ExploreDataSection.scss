@@ -23,6 +23,10 @@
             }
         }
     }
+
+    .article-block__prominent-link {
+        @include prominent-link-dark-style;
+    }
 }
 
 .explore-data-section__header {
