@@ -37,3 +37,14 @@
         background-color: $blue-20;
     }
 }
+
+.article-block__explore-data-section--center {
+    .article-block__explore-data-section__header {
+        justify-content: center;
+    }
+
+    .article-block__text,
+    .article-block__heading {
+        text-align: center;
+    }
+}

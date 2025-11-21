@@ -580,10 +580,16 @@ export type EnrichedBlockGraySection = {
     items: OwidEnrichedGdocBlock[]
 } & EnrichedBlockWithParseErrors
 
+export const exploreDataSectionAlignments = ["left", "center"] as const
+
+export type ExploreDataSectionAlignment =
+    (typeof exploreDataSectionAlignments)[number]
+
 export type RawBlockExploreDataSection = {
     type: "explore-data-section"
     value: {
         title?: string
+        align?: string
         content: OwidRawGdocBlock[]
     }
 }
@@ -591,6 +597,7 @@ export type RawBlockExploreDataSection = {
 export type EnrichedBlockExploreDataSection = {
     type: "explore-data-section"
     title?: string
+    align: ExploreDataSectionAlignment
     content: OwidEnrichedGdocBlock[]
 } & EnrichedBlockWithParseErrors
 
