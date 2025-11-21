@@ -96,10 +96,17 @@ const parseEntityData = ({
             const variableId = entityData.variables[index]
             const year = entityData.years[index]
             const ageGroupId = entityData.ageGroups[index]
+            const sexId = entityData.sexes[index]
 
             const ageGroupMetadata = metadata.ageGroupById.get(ageGroupId)
             if (!ageGroupMetadata) {
                 console.warn(`Unknown age group ID: ${ageGroupId}`)
+                return null
+            }
+
+            const sexMetadata = metadata.sexById.get(sexId)
+            if (!sexMetadata) {
+                console.warn(`Unknown sex ID: ${sexId}`)
                 return null
             }
 
@@ -122,6 +129,7 @@ const parseEntityData = ({
                 variable: variableMetadata.name,
                 description: variableMetadata.description,
                 ageGroup: ageGroupMetadata.name,
+                sex: sexMetadata.name,
                 category: categoryMetadata.name,
                 value,
             }

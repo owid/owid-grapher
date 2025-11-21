@@ -13,11 +13,13 @@ import { CausesOfDeathControls } from "./CausesOfDeathControls.js"
 import { CausesOfDeathSpinner } from "./CausesOfDeathSpinner.js"
 
 const DEFAULT_AGE_GROUP = "All ages"
+const DEFAULT_SEX = "Both sexes"
 const DEFAULT_ENTITY_NAME = WORLD_ENTITY_NAME
 
 export function CausesOfDeathChart(): React.ReactElement {
     // State
     const [ageGroup, setAgeGroup] = useState(DEFAULT_AGE_GROUP)
+    const [sex, setSex] = useState(DEFAULT_SEX)
     const [entityName, setEntityName] = useState(DEFAULT_ENTITY_NAME)
     const [year, setYear] = useState<Time>()
 
@@ -51,9 +53,10 @@ export function CausesOfDeathChart(): React.ReactElement {
     const entityData = entityDataResponse.data
 
     const activeAgeGroup = ageGroup
+    const activeSex = sex
     const activeYear = year ?? metadata?.availableYears.at(-1)
     const activeData = entityData?.filter(
-        (row) => row.ageGroup === activeAgeGroup
+        (row) => row.ageGroup === activeAgeGroup && row.sex === activeSex
     )
     const activeEntityName = activeData?.at(0)?.entityName
 
@@ -64,7 +67,8 @@ export function CausesOfDeathChart(): React.ReactElement {
         activeData.length === 0 ||
         !activeYear ||
         !activeEntityName ||
-        !activeAgeGroup
+        !activeAgeGroup ||
+        !activeSex
     )
         return <CausesOfDeathChartError />
 
@@ -73,9 +77,11 @@ export function CausesOfDeathChart(): React.ReactElement {
             <CausesOfDeathControls
                 metadata={metadata}
                 ageGroup={ageGroup}
+                sex={sex}
                 entityName={entityName}
                 year={activeYear}
                 setAgeGroup={setAgeGroup}
+                setSex={setSex}
                 setEntityName={setEntityName}
                 setYear={setYear}
             />

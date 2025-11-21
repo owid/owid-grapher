@@ -6,6 +6,7 @@ import {
     MetadataJson,
     EntityMetadata,
     VariableMetadata,
+    BasicEntry,
 } from "./CausesOfDeathConstants.js"
 
 export class CausesOfDeathMetadata {
@@ -140,5 +141,17 @@ export class CausesOfDeathMetadata {
 
     get availableAgeGroups(): string[] {
         return this.dimensions.ageGroups.map((ageGroup) => ageGroup.name)
+    }
+
+    get sexById(): Map<number, BasicEntry> {
+        return new Map(this.dimensions.sexes.map((sex) => [sex.id, sex]))
+    }
+
+    get sexByName(): Map<string, BasicEntry> {
+        return new Map(this.dimensions.sexes.map((sex) => [sex.name, sex]))
+    }
+
+    get availableSexes(): string[] {
+        return this.dimensions.sexes.map((sex) => sex.name)
     }
 }
