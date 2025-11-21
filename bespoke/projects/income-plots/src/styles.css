@@ -12,19 +12,28 @@
 }
 
 .income-plot-legend {
-    font-size: 12px;
     width: max-content;
-
-    display: grid;
-    grid-template-columns: max-content 170px;
-    column-gap: 5px;
-
-    color: var(--gray-100);
 
     padding: 16px;
     border: 1px solid var(--blue-20);
 
-    cursor: default;
+    .legend-poverty-line-header {
+        font-size: 13px;
+        color: black;
+        margin-bottom: 12px;
+    }
+
+    .legend-entries-container {
+        font-size: 12px;
+
+        display: grid;
+        grid-template-columns: max-content 170px;
+        column-gap: 5px;
+
+        color: var(--gray-100);
+
+        cursor: default;
+    }
 
     .legend-entry {
         /* We could be using row-gap in the grid, but then there's space between legend items for mouse events, which makes for an odd mouse interaction. So we use padding instead. */
