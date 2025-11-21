@@ -175,6 +175,11 @@
         "keyword": "+sdg-toc"
     },
     {
+        "name": "ltp-toc",
+        "text": "{.ltp-toc}\ntitle: \n{}",
+        "keyword": "+ltp-toc"
+    },
+    {
         "name": "side-by-side",
         "text": "{ .side-by-side }\n[.+right]\n\n[]\n[.+left]\n\n[]\n{}",
         "keyword": "+side-by-side"

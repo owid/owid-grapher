@@ -16,6 +16,9 @@ import {
     ALL_CHARTS_ID,
     KEY_INSIGHTS_ID,
     RESEARCH_AND_WRITING_ID,
+    FEATURED_DATA_INSIGHTS_ID,
+    EXPLORE_DATA_SECTION_ID,
+    EXPLORE_DATA_SECTION_DEFAULT_TITLE,
 } from "@ourworldindata/utils"
 import { convertHeadingTextToId } from "@ourworldindata/components"
 import {
@@ -106,10 +109,10 @@ export function generateToc(
 ): TocHeadingWithTitleSupertitle[] {
     if (!body) return []
 
-    // For linear topic pages, we record h1s & h2s
+    // For linear topic pages, we record only h1s
     // For the sdg-toc, we record h2s & h3s (as it was developed before we decided to use h1s as our top level heading)
     // It would be nice to standardise this but it would require a migration, updating CSS, updating Gdocs, etc.
-    const [primary, secondary] = isTocForSidebar ? [1, 2] : [2, 3]
+    const [primary, secondary] = isTocForSidebar ? [1, undefined] : [2, 3]
     const toc: TocHeadingWithTitleSupertitle[] = []
 
     body.forEach((block) =>
@@ -130,39 +133,41 @@ export function generateToc(
                     })
                 }
             }
-            if (isTocForSidebar && child.type === "all-charts") {
+            if (!isTocForSidebar) return
+
+            if (child.type === "all-charts") {
                 toc.push({
                     title: child.heading,
                     text: child.heading,
                     slug: ALL_CHARTS_ID,
                     isSubheading: false,
                 })
+                return
+            }
+
+            if (child.type === "featured-data-insights") {
+                const title = "Data insights"
+                toc.push({
+                    title,
+                    text: title,
+                    slug: FEATURED_DATA_INSIGHTS_ID,
+                    isSubheading: false,
+                })
+                return
+            }
+
+            if (child.type === "explore-data-section") {
+                const title = child.title || EXPLORE_DATA_SECTION_DEFAULT_TITLE
+                toc.push({
+                    title,
+                    text: title,
+                    slug: EXPLORE_DATA_SECTION_ID,
+                    isSubheading: false,
+                })
+                return
             }
         })
     )
-
-    if (isTocForSidebar) {
-        toc.push(
-            {
-                title: "Endnotes",
-                text: "Endnotes",
-                slug: "article-endnotes",
-                isSubheading: false,
-            },
-            {
-                title: "Citation",
-                text: "Citation",
-                slug: "article-citation",
-                isSubheading: false,
-            },
-            {
-                title: "Licence",
-                text: "Licence",
-                slug: "article-licence",
-                isSubheading: false,
-            }
-        )
-    }
 
     return toc
 }

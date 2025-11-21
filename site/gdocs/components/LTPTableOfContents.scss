@@ -1,0 +1,38 @@
+.article-block__ltp-toc {
+    background-color: $blue-5;
+    border: 1px solid $blue-20;
+    padding: 24px;
+    margin: 24px -24px 32px;
+    row-gap: 16px;
+}
+
+.article-block__ltp-toc__title {
+    @include h2-bold;
+    color: $blue-90;
+    margin: 0;
+
+    @include sm-only {
+        @include h3-bold;
+        margin: 0;
+    }
+}
+
+.article-block__ltp-toc__list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.article-block__ltp-toc__item {
+    @include body-3-medium;
+}
+
+.article-block__ltp-toc__link {
+    color: $blue-90;
+    text-decoration: none;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
