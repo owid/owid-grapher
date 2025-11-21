@@ -155,6 +155,17 @@ function CausesOfDeathTreemap({
             year,
             variable: category.name,
             parentId: "All", // points to the root node
+            value: d3.sum(
+                data
+                    .filter((d) => d.category === category.name)
+                    .map((d) => d.value)
+            ),
+            share:
+                d3.sum(
+                    data
+                        .filter((d) => d.category === category.name)
+                        .map((d) => d.value)
+                ) / numAllDeaths,
         })),
 
         // Data nodes
@@ -179,7 +190,9 @@ function CausesOfDeathTreemap({
         .sort((a, b) => (b.value || 0) - (a.value || 0))
 
     const tilingMethod: TilingFunction<d3.HierarchyNode<EnrichedDataItem>> =
-        isMobile ? d3.treemapSlice : stackedSliceDiceTiling()
+        isMobile
+            ? d3.treemapSlice
+            : stackedSliceDiceTiling({ minColumnWidth: 100, minRowHeight: 30 })
 
     const treemapLayout = d3
         .treemap<d3.HierarchyNode<EnrichedDataItem>>()
