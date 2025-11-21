@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 import { IncomePlot } from "./IncomePlot.tsx"
-import { IncomePlotControlsRow } from "./IncomePlotControlsRow.tsx"
+import { IncomePlotControlsRowBottom } from "./IncomePlotControlsRow.tsx"
 import { IncomePlotLegend } from "./IncomePlotLegend.tsx"
 import { PLOT_HEIGHT, PLOT_WIDTH } from "../utils/incomePlotConstants.ts"
 
@@ -20,7 +20,7 @@ export const App = () => {
                     <IncomePlot />
                 </Suspense>
             </div>
-            <IncomePlotControlsRow />
+            <IncomePlotControlsRowBottom />
         </div>
     )
 }
