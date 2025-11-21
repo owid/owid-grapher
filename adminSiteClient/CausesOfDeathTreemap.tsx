@@ -15,7 +15,6 @@ import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
 import { CausesOfDeathTreemapTile } from "./CausesOfDeathTreemapTile.js"
 import { CausesOfDeathTreemapTooltip } from "./CausesOfDeathTreemapTooltip.js"
 import { CategoryAnnotations } from "./CausesOfDeathCategoryAnnotations.js"
-import { CausesOfDeathMobileBarChart } from "./CausesOfDeathMobileBarChart.js"
 import {
     stackedSliceDiceTiling,
     TilingFunction,
@@ -220,14 +219,6 @@ function CausesOfDeathTreemap({
 
     return (
         <div>
-            {isMobile && (
-                <CausesOfDeathMobileBarChart
-                    data={data}
-                    metadata={metadata}
-                    ageGroup={ageGroup}
-                />
-            )}
-
             <svg
                 ref={svgRef}
                 viewBox={`0 0 ${containerBounds.width} ${containerBounds.height}`}
