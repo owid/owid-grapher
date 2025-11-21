@@ -16,7 +16,7 @@
     width: max-content;
 
     display: grid;
-    grid-template-columns: max-content 150px;
+    grid-template-columns: max-content 170px;
     column-gap: 5px;
 
     color: var(--gray-100);
@@ -33,6 +33,14 @@
         display: grid;
         grid-column: 1 / -1;
         grid-template-columns: subgrid;
+
+        &.legend-entry--has-percentages {
+            .legend-entry-label {
+                text-overflow: ellipsis;
+                overflow: hidden;
+                white-space: nowrap;
+            }
+        }
     }
 
     /* If there's at least one hovered legend entry, dim all non-highlighted ones */
@@ -42,10 +50,17 @@
         }
     }
 
+    .legend-entry-percentage-container {
+        justify-self: end;
+        display: flex;
+        gap: 5px;
+    }
+
     .legend-entry-swatch {
+        display: inline-block;
         background-color: var(--legend-entry-color);
         height: var(--legend-swatch-size);
-        width: var(--legend-swatch-size);
+        width: var(--legend-entry-percentage, var(--legend-swatch-size));
         justify-self: end;
     }
 }
