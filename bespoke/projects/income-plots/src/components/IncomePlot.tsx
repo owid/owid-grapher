@@ -154,6 +154,8 @@ export function IncomePlot({
                 return colorScale(region!) as string
             })
             .attr("fill-opacity", 0.3)
+            .attr("data-country", (d) => d.key)
+            .attr("data-region", (d) => countryRegionMap.get(d.key)!)
             .attr("d", area)
             .attr("class", "income-plot-chart-area")
 
@@ -179,6 +181,8 @@ export function IncomePlot({
                     return 0.9
                 return 0
             })
+            .attr("data-country", (d) => d.key)
+            .attr("data-region", (d) => countryRegionMap.get(d.key)!)
             .attr("d", area)
             .attr("class", "income-plot-chart-area--highlighted")
 
