@@ -55,4 +55,13 @@
     .income-plot-series .area-fg {
         fill-opacity: 0.8;
     }
+
+    &:has(.income-plot-series[data-highlighted]) {
+        .income-plot-series {
+            opacity: 0.35;
+        }
+        .income-plot-series[data-highlighted="true"] {
+            opacity: 1;
+        }
+    }
 }
