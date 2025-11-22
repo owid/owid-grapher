@@ -67,7 +67,7 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                 enforce: "pre",
             },
             // Put the Sentry vite plugin after all other plugins.
-            !process.env.VITEST &&
+            clientSettings.LOAD_SENTRY &&
                 sentryVitePlugin({
                     authToken: process.env.SENTRY_AUTH_TOKEN,
                     org: process.env.SENTRY_ORG,
