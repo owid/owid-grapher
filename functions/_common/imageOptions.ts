@@ -86,7 +86,7 @@ export const extractOptions = (params: URLSearchParams): ImageOptions => {
     else if (imType === "thumbnail") {
         const thumbnailOptions = _.cloneDeep(THUMBNAIL_OPTIONS) as ImageOptions
         if (params.has("imMinimal")) {
-            thumbnailOptions.grapherProps.isDisplayedAlongsideComplementaryTable =
+            thumbnailOptions.grapherProps.isMinimalThumbnail =
                 params.get("imMinimal")! === "1"
         }
         if (params.has("imFontSize"))
@@ -117,7 +117,7 @@ export const extractOptions = (params: URLSearchParams): ImageOptions => {
         if (!options.grapherProps) options.grapherProps = {}
         options.grapherProps.variant = GrapherVariant.Uncaptioned
         if (params.has("imMinimal")) {
-            options.grapherProps.isDisplayedAlongsideComplementaryTable =
+            options.grapherProps.isMinimalThumbnail =
                 params.get("imMinimal")! === "1"
         }
     }

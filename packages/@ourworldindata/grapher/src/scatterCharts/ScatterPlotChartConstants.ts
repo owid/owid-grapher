@@ -38,6 +38,7 @@ export interface ScatterPlotManager extends ChartManager {
     isSingleTimeScatterAnimationActive?: boolean
     animationStartTime?: number
     animationEndTime?: number
+    showSizeLegendInScatters?: boolean
 }
 
 export interface ScatterSeries extends ChartSeries {

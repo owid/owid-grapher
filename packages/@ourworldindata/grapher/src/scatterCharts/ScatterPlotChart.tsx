@@ -262,7 +262,7 @@ export class ScatterPlotChart
             this.xColumn.isTimeColumn ||
             this.yColumn.isTimeColumn ||
             this.manager.isRelativeMode ||
-            this.manager.isDisplayedAlongsideComplementaryTable
+            !this.manager.showLegend
         )
             return undefined
 
@@ -298,10 +298,7 @@ export class ScatterPlotChart
     @computed private get verticalColorLegend():
         | VerticalColorLegend
         | undefined {
-        if (
-            this.legendItems.length === 0 ||
-            this.manager.isDisplayedAlongsideComplementaryTable
-        )
+        if (this.legendItems.length === 0 || !this.manager.showLegend)
             return undefined
         return new VerticalColorLegend({ manager: this })
     }
@@ -520,7 +517,11 @@ export class ScatterPlotChart
     }
 
     @computed private get sizeLegend(): ScatterSizeLegend | undefined {
-        if (this.chartState.isConnected || this.sizeColumn.isMissing)
+        if (
+            this.chartState.isConnected ||
+            this.sizeColumn.isMissing ||
+            (!this.manager.showLegend && !this.manager.showSizeLegendInScatters)
+        )
             return undefined
         return new ScatterSizeLegend(this)
     }
