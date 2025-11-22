@@ -5,6 +5,10 @@ metadata:
           column: replacedBy
         - table: posts_gdocs_x_images
           column: imageId
+        - table: static_viz
+          column: imageId
+        - table: static_viz
+          column: mobileImageId
 fields:
     id:
         description: Unique identifier for the image
