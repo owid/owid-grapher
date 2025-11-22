@@ -512,6 +512,12 @@ export {
     ArchivedExplorerVersionsTableName,
 } from "./dbTypes/ArchivedExplorerVersion.js"
 export {
+    type DbInsertArchivedPostVersion,
+    type DbPlainArchivedPostVersion,
+    type DbEnrichedArchivedPostVersion,
+    ArchivedPostVersionsTableName,
+} from "./dbTypes/ArchivedPostVersion.js"
+export {
     type DbInsertChartConfig,
     type DbRawChartConfig,
     type DbEnrichedChartConfig,
@@ -854,6 +860,8 @@ export {
     type MultiDimChecksumsObjectWithHash,
     type ExplorerChecksums,
     type ExplorerChecksumsObjectWithHash,
+    type PostChecksums,
+    type PostChecksumsObjectWithHash,
 } from "./domainTypes/Archive.js"
 export {
     type AdditionalGrapherDataFetchFn,

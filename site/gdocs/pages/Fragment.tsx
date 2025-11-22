@@ -3,7 +3,7 @@ import * as React from "react"
 
 type FragmentProps = Omit<
     OwidGdocPostInterface,
-    "markdown" | "publicationContext" | "revisionId"
+    "contentMd5" | "markdown" | "publicationContext" | "revisionId"
 >
 
 /**
