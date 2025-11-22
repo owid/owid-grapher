@@ -50,7 +50,7 @@ export const IncomePlotLegend = () => {
         <div className="income-plot-legend">
             {percentageBelowLineMap && povertyLineFormatted && (
                 <div className="legend-poverty-line-header">
-                    Share of population that learns less than{" "}
+                    Share of population that earns less than{" "}
                     {povertyLineFormatted} a {getTimeIntervalStr(timeInterval)}
                 </div>
             )}
