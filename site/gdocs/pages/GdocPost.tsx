@@ -70,7 +70,6 @@ export function GdocPost({
     const isDeprecated =
         postType === OwidGdocType.Article &&
         Boolean(content["deprecation-notice"])
-
     const bibtex = `@article{owid-${slug.replace(/\//g, "-")},
     author = {${formatAuthorsForBibtex(content.authors)}},
     title = {${content.title}},

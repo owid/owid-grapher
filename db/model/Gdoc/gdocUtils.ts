@@ -238,6 +238,7 @@ export function extractFilenamesFromBlock(
                     "expandable-paragraph",
                     "expander",
                     "explorer-tiles",
+                    "featured-metrics",
                     "gray-section",
                     "heading",
                     "homepage-search",

@@ -771,6 +771,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                         "sticky-right",
                         "text",
                         "homepage-search",
+                        "featured-metrics",
                         "latest-data-insights",
                         "socials", // only external links
                         "subscribe-banner"
