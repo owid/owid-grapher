@@ -126,7 +126,7 @@ export function enrichedBlockToMarkdown(
         .with({ type: "all-charts" }, (b): string | undefined =>
             markdownComponent(
                 "AllCharts",
-                { heading: b.heading }, // Note: truncated
+                { heading: b.heading, layout: b.layout }, // Note: truncated
                 exportComponents
             )
         )

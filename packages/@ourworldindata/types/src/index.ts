@@ -182,6 +182,8 @@ export {
     type ParseError,
     BlockImageSize,
     checkIsBlockImageSize,
+    allChartsLayouts,
+    type AllChartsLayout,
     type RawBlockAllCharts,
     type RawBlockAdditionalCharts,
     type RawBlockAside,
