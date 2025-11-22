@@ -124,6 +124,51 @@ export function formatTopicFacetFilters(
     return [filters]
 }
 
+/**
+ * Fetches available topics from Algolia
+ */
+async function getAvailableTopics(config: AlgoliaConfig): Promise<string[]> {
+    const indexName = getIndexName(
+        SearchIndexName.ExplorerViewsMdimViewsAndCharts,
+        config.indexPrefix
+    )
+
+    const searchParams = {
+        requests: [
+            {
+                indexName,
+                params: new URLSearchParams({
+                    query: "",
+                    hitsPerPage: "0",
+                    facets: JSON.stringify(["tags"]),
+                }).toString(),
+            },
+        ],
+    }
+
+    const url = `https://${config.appId}-dsn.algolia.net/1/indexes/*/queries`
+
+    const response = await fetch(url, {
+        method: "POST",
+        headers: {
+            "X-Algolia-Application-Id": config.appId,
+            "X-Algolia-API-Key": config.apiKey,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(searchParams),
+    })
+
+    if (!response.ok) {
+        throw new Error(`Algolia search failed: ${response.statusText}`)
+    }
+
+    const data = (await response.json()) as {
+        results: [{ facets?: { tags?: Record<string, number> } }]
+    }
+
+    return Object.keys(data.results[0].facets?.tags || {}).sort()
+}
+
 export async function searchCharts(
     config: AlgoliaConfig,
     state: SearchState,
@@ -187,6 +232,23 @@ export async function searchCharts(
         results: AlgoliaSearchResponse[]
     }
     const result = data.results[0]
+
+    // If we got zero results and user is filtering by topic, check if the topic exists
+    const requestedTopics = getFilterNamesOfType(
+        state.filters,
+        FilterType.TOPIC
+    )
+    if (result.nbHits === 0 && requestedTopics.size > 0) {
+        const availableTopics = await getAvailableTopics(config)
+        const invalidTopics = Array.from(requestedTopics).filter(
+            (topic) => !availableTopics.includes(topic)
+        )
+        if (invalidTopics.length > 0) {
+            throw new Error(
+                `No results found. The topic "${invalidTopics.join('", "')}" does not exist. Available topics: ${availableTopics.join(", ")}`
+            )
+        }
+    }
 
     // Clean up the hits and add URL
     const cleanedHits = result.hits.map((hit): EnrichedSearchChartHit => {
