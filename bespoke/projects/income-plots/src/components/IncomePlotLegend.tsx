@@ -13,6 +13,7 @@ import { useMemo } from "react"
 import {
     computePercentageBelowLine,
     getTimeIntervalStr,
+    roundPercentage,
 } from "../utils/incomePlotUtils.ts"
 import { WORLD_ENTITY_NAME } from "../utils/incomePlotConstants.ts"
 
@@ -81,7 +82,7 @@ export const IncomePlotLegend = () => {
                                     "--legend-entry-color": entry.color,
                                     "--legend-entry-percentage":
                                         percentageBelow !== undefined
-                                            ? `${Math.round(percentageBelow)}px`
+                                            ? `${R.round(percentageBelow, 1)}px`
                                             : "",
                                 } as React.CSSProperties
                             }
@@ -89,7 +90,7 @@ export const IncomePlotLegend = () => {
                             <div className="legend-entry-percentage-container">
                                 {percentageBelow !== undefined && (
                                     <span className="legend-entry-percentage-label">
-                                        {Math.round(percentageBelow * 10) / 10}%
+                                        {roundPercentage(percentageBelow)}%
                                     </span>
                                 )}
                                 <div className="legend-entry-swatch"></div>
