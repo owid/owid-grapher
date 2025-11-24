@@ -14,6 +14,7 @@ import {
     computePercentageBelowLine,
     getTimeIntervalStr,
 } from "../utils/incomePlotUtils.ts"
+import { WORLD_ENTITY_NAME } from "../utils/incomePlotConstants.ts"
 
 export const IncomePlotLegend = () => {
     const entries = useAtomValue(atomLegendEntries)
@@ -34,7 +35,8 @@ export const IncomePlotLegend = () => {
     }, [entries, povertyLine, rawDataForYear])
 
     const entriesSorted = useMemo(() => {
-        if (!percentageBelowLineMap) return entries
+        if (!percentageBelowLineMap)
+            return entries.filter((e) => e.name !== WORLD_ENTITY_NAME)
 
         // Sort by the percentage below the poverty line, descending, so the bar chart looks nice
         return R.sortBy(entries, [
@@ -67,6 +69,8 @@ export const IncomePlotLegend = () => {
                                 "legend-entry--hovered": isHovered,
                                 "legend-entry--has-percentages":
                                     percentageBelow !== undefined,
+                                "--legend-entry--is-world":
+                                    entry.name === WORLD_ENTITY_NAME,
                             })}
                             id={`legend-entry-${R.toKebabCase(entry.name)}`}
                             key={entry.name}
@@ -85,7 +89,7 @@ export const IncomePlotLegend = () => {
                             <div className="legend-entry-percentage-container">
                                 {percentageBelow !== undefined && (
                                     <span className="legend-entry-percentage-label">
-                                        {Math.round(percentageBelow)}%
+                                        {Math.round(percentageBelow * 10) / 10}%
                                     </span>
                                 )}
                                 <div className="legend-entry-swatch"></div>
