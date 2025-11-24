@@ -1,4 +1,9 @@
-import type { Cache, CacheStorage, Request, Response } from "@cloudflare/workers-types"
+import type {
+    Cache,
+    CacheStorage,
+    Request,
+    Response,
+} from "@cloudflare/workers-types"
 
 // Helper to access Cloudflare Workers-specific cache API
 // In Cloudflare Workers, `caches` has a `default` property which isn't in the standard CacheStorage type

@@ -87,7 +87,7 @@ describe("Search API endpoint", () => {
             } as any)
 
             expect(response.status).toBe(400)
-            const body = await response.json() as any
+            const body = (await response.json()) as any
             expect(body.error).toBe("Invalid type parameter")
         })
     })
@@ -157,7 +157,7 @@ describe("Search API endpoint", () => {
             } as any)
 
             expect(response.status).toBe(400)
-            const body = await response.json() as any
+            const body = (await response.json()) as any
             expect(body.error).toBe("Invalid page parameter")
         })
 
@@ -171,7 +171,7 @@ describe("Search API endpoint", () => {
             } as any)
 
             expect(response.status).toBe(400)
-            const body = await response.json() as any
+            const body = (await response.json()) as any
             expect(body.error).toBe("Invalid page parameter")
         })
 
@@ -185,7 +185,7 @@ describe("Search API endpoint", () => {
             } as any)
 
             expect(response.status).toBe(400)
-            const body = await response.json() as any
+            const body = (await response.json()) as any
             expect(body.error).toBe("Invalid hitsPerPage parameter")
         })
 
@@ -199,14 +199,17 @@ describe("Search API endpoint", () => {
             } as any)
 
             expect(response.status).toBe(400)
-            const body = await response.json() as any
+            const body = (await response.json()) as any
             expect(body.error).toBe("Invalid hitsPerPage parameter")
         })
     })
 
     describe("environment variables", () => {
         it("returns error when ALGOLIA_ID is missing", async () => {
-            const envWithoutId = { ...mockEnv, ALGOLIA_ID: undefined } as unknown as Env
+            const envWithoutId = {
+                ...mockEnv,
+                ALGOLIA_ID: undefined,
+            } as unknown as Env
             const request = new Request("http://localhost/api/search?q=test")
             const response = await onRequestGet({
                 request,
@@ -214,7 +217,7 @@ describe("Search API endpoint", () => {
             } as any)
 
             expect(response.status).toBe(500)
-            const body = await response.json() as any
+            const body = (await response.json()) as any
             expect(body.error).toBe(
                 "An error occurred while processing the search request"
             )

@@ -261,8 +261,7 @@ export async function fetchDataValuesForGrapher(
     })
 
     // Cache the response
-    if (shouldCache)
-        ctx.waitUntil(putInCache(ctx.request, response.clone()))
+    if (shouldCache) ctx.waitUntil(putInCache(ctx.request, response.clone()))
 
     return response
 }
@@ -352,8 +351,7 @@ export async function fetchSearchResultDataForGrapher(
     })
 
     // Cache the response
-    if (shouldCache)
-        ctx.waitUntil(putInCache(ctx.request, response.clone()))
+    if (shouldCache) ctx.waitUntil(putInCache(ctx.request, response.clone()))
 
     return response
 }

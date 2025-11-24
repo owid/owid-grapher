@@ -17,7 +17,10 @@ export async function checkCache(
     if (maybeCached) {
         // Cached responses are immutable, so we have to clone them,
         // so that the corsify middleware can add CORS headers
-        return new Response(maybeCached.body as unknown as BodyInit, maybeCached as unknown as ResponseInit)
+        return new Response(
+            maybeCached.body as unknown as BodyInit,
+            maybeCached as unknown as ResponseInit
+        )
     }
 
     return null
