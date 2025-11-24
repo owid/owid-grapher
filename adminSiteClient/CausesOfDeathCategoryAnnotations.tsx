@@ -1,5 +1,5 @@
 import { PlacedCategory } from "./CausesOfDeathCategoryAnnotationsHelpers.js"
-import { Arrow } from "./Arrow"
+import { BezierArrow } from "./Arrow"
 
 export function CategoryAnnotations({
     placedAnnotations,
@@ -81,7 +81,7 @@ function CategoryAnnotation({
                 ))}
             </text>
 
-            <Arrow
+            <BezierArrow
                 start={arrowStart}
                 end={arrowEnd}
                 startHandleOffset={arrowStartHandleOffset}

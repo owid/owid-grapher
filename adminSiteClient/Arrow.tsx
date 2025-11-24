@@ -1,17 +1,5 @@
-import React, { CSSProperties, useMemo } from "react"
-
-/**
- * Arrow, either as straight line or Bézier curve.
- *
- * CSS variables supported (can be set on the wrapping <g> or ancestors):
- * - `--arrow-color`: color of the arrow (default: black)
- * - `--arrow-width`: stroke width of the arrow (default: 1)
- * - `--arrow-opacity`: opacity of the arrow (default: 1)
- *
- * The rendered markup is composed of:
- * - `.arrow`: group
- * - `.arrow__shape`: path
- */
+import React, { useMemo } from "react"
+import cx from "classnames"
 
 export type Coords = [number, number]
 
@@ -23,12 +11,6 @@ export interface ArrowProps<D = unknown>
     start?: Coords
     /** end coordinates */
     end?: Coords
-
-    /** Optional tuple of data items used with xGet/yGet to derive start & end */
-    data?: [D, D]
-    /** Indexes to pass into xGet/yGet when deriving from data */
-    xIndex?: number
-    yIndex?: number
 
     /** bezier handle offset from start coordinates */
     startHandleOffset?: Coords
@@ -54,10 +36,6 @@ export interface ArrowProps<D = unknown>
 
     /** renders bezier handle points for debugging */
     debug?: boolean
-
-    /** Optional accessors to map data -> coordinates (used when `data` is provided) */
-    xGet?: (d: D, xIndex?: number) => number
-    yGet?: (d: D, yIndex?: number) => number
 }
 
 const dist = (p1: Coords, p2: Coords) =>
@@ -134,12 +112,9 @@ function buildArrow(
     return d
 }
 
-export function Arrow<D = unknown>({
+export function BezierArrow<D = unknown>({
     start = [0, 0],
     end = [50, 0],
-    data,
-    xIndex = 0,
-    yIndex = 0,
     startHandleOffset = [0, 0],
     endHandleOffset = [0, 0],
     startHandle,
@@ -147,86 +122,57 @@ export function Arrow<D = unknown>({
     headAnchor = "end",
     headLength,
     headAngle = 55,
-    width: widthOverride,
-    color: colorOverride,
-    opacity: opacityOverride,
+    width = 1,
+    color = "black",
+    opacity = 1,
     debug = false,
-    xGet,
-    yGet,
     className,
-    style,
     ...rest
 }: ArrowProps<D>) {
-    // Resolve start/end from `data` if accessors are provided
-    const [_start, _end] = useMemo<readonly [Coords, Coords]>(() => {
-        if (data && xGet && yGet) {
-            const s: Coords = [xGet(data[0], xIndex), yGet(data[0], yIndex)]
-            const e: Coords = [xGet(data[1], xIndex), yGet(data[1], yIndex)]
-            return [s, e] as const
-        }
-        return [start, end] as const
-    }, [data, start, end, xGet, yGet, xIndex, yIndex])
+    const startControlPoint = startHandle ?? addOffset(start, startHandleOffset)
+    const endControlPoint = endHandle ?? addOffset(end, endHandleOffset)
 
-    const _startHandle = useMemo<Coords>(
-        () =>
-            startHandle ? startHandle : addOffset(_start, startHandleOffset),
-        [_start, startHandle, startHandleOffset]
-    )
-
-    const _endHandle = useMemo<Coords>(
-        () => (endHandle ? endHandle : addOffset(_end, endHandleOffset)),
-        [_end, endHandle, endHandleOffset]
-    )
-
-    const headOptions = useMemo(
-        () => ({
-            length: headLength ?? clamp(0.08 * dist(_start, _end), 4, 8),
+    const path = useMemo(() => {
+        const headOptions = {
+            length: headLength ?? clamp(0.08 * dist(start, end), 4, 8),
             theta: headAngle,
-        }),
-        [_start, _end, headLength, headAngle]
-    )
+        }
 
-    const d = useMemo(
-        () =>
-            buildArrow(
-                _start,
-                _end,
-                _startHandle,
-                _endHandle,
-                headAnchor,
-                headOptions
-            ),
-        [_start, _end, _startHandle, _endHandle, headAnchor, headOptions]
-    )
-
-    // Support CSS custom properties like the Svelte version
-    const groupStyle: CSSProperties = {
-        ...(style || {}),
-        // Allow overriding via props; empty string leaves inheritance in place
-        ["--_color" as any]: colorOverride ?? "",
-        ["--_width" as any]: widthOverride ?? "",
-        ["--_opacity" as any]: opacityOverride ?? "",
-    }
+        return buildArrow(
+            start,
+            end,
+            startControlPoint,
+            endControlPoint,
+            headAnchor,
+            headOptions
+        )
+    }, [
+        start,
+        end,
+        startControlPoint,
+        endControlPoint,
+        headAnchor,
+        headLength,
+        headAngle,
+    ])
 
     return (
-        <g
-            className={["arrow", className].filter(Boolean).join(" ")}
-            style={groupStyle}
-            {...rest}
-        >
+        <g className={cx("arrow", className)} {...rest}>
             {debug && (
                 <g className="debug">
-                    {[_startHandle, _endHandle].map((coords, i) => (
+                    {[startControlPoint, endControlPoint].map((coords, i) => (
                         <circle
                             key={`c-${i}`}
                             cx={coords[0]}
                             cy={coords[1]}
                             r={5}
+                            fill="none"
+                            stroke="orange"
                         />
                     ))}
                     {[
-                        [_start, _startHandle] as const,
-                        [_end, _endHandle] as const,
+                        [start, startControlPoint],
+                        [end, endControlPoint],
                     ].map(([s, e], i) => (
                         <line
                             key={`l-${i}`}
@@ -234,34 +180,16 @@ export function Arrow<D = unknown>({
                             y1={s[1]}
                             x2={e[0]}
                             y2={e[1]}
+                            stroke="orange"
                         />
                     ))}
                 </g>
             )}
 
             <path
-                className="arrow__shape"
-                d={d}
-                // Mirror the original SCSS variable behavior
-                style={
-                    {
-                        stroke: "var(--_color, var(--arrow-color, var(--c-ui-black, black)))",
-                        strokeWidth: "var(--_width, var(--arrow-width, 1))",
-                        strokeLinejoin: "round",
-                        strokeLinecap: "round",
-                        fill: "none",
-                        opacity: "var(--_opacity, var(--arrow-opacity, 1))",
-                    } as CSSProperties
-                }
+                d={path}
+                style={{ stroke: color, strokeWidth: width, opacity: opacity }}
             />
-
-            {/* Optional basic styles analogous to the Svelte .debug block */}
-            {debug && (
-                <style>{`
-          .debug circle { fill: none; stroke: orange; }
-          .debug line { stroke: orange; }
-        `}</style>
-            )}
         </g>
     )
 }
