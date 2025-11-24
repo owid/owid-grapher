@@ -171,9 +171,9 @@ export class ScatterPlotChart
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
-    @action.bound onLegendMouseOver(color: string): void {
+    @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
         if (isTouchDevice()) return
-        this.hoverColor = color
+        this.hoverColor = bin.color
     }
 
     @action.bound onLegendMouseLeave(): void {
@@ -182,9 +182,11 @@ export class ScatterPlotChart
     }
 
     // When the color legend is clicked, toggle selection fo all associated keys
-    @action.bound onLegendClick(color: string): void {
+    @action.bound onLegendClick(bin: ColorScaleBin): void {
         const { selectionArray } = this.chartState
         if (!this.canAddCountry) return
+
+        const color = bin.color
 
         const keysToToggle = this.series
             .filter((g) => g.color === color)
@@ -299,7 +301,7 @@ export class ScatterPlotChart
         | VerticalColorLegend
         | undefined {
         if (
-            this.legendItems.length === 0 ||
+            this.categoricalLegendData.length === 0 ||
             this.manager.isDisplayedAlongsideComplementaryTable
         )
             return undefined
@@ -480,7 +482,7 @@ export class ScatterPlotChart
         return this.chartState.colorColumn
     }
 
-    @computed get legendItems(): ColorScaleBin[] {
+    @computed get categoricalLegendData(): ColorScaleBin[] {
         return this.colorScale.legendBins.filter(
             (bin) =>
                 this.colorsInUse.includes(bin.color) &&

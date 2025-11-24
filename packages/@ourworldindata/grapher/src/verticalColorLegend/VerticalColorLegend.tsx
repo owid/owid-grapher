@@ -9,14 +9,15 @@ import {
     BASE_FONT_SIZE,
 } from "../core/GrapherConstants"
 import { Color } from "@ourworldindata/types"
+import { ColorScaleBin, NumericBin } from "../color/ColorScaleBin"
 
 export interface VerticalColorLegendManager {
     maxLegendWidth?: number
     fontSize?: number
-    legendItems: LegendItem[]
+    categoricalLegendData: ColorScaleBin[]
     legendTitle?: string
-    onLegendMouseOver?: (color: string) => void
-    onLegendClick?: (color: string) => void
+    onLegendMouseOver?: (bin: ColorScaleBin) => void
+    onLegendClick?: (bin: ColorScaleBin) => void
     onLegendMouseLeave?: () => void
     legendX?: number
     legendY?: number
@@ -25,16 +26,9 @@ export interface VerticalColorLegendManager {
     isStatic?: boolean
 }
 
-export interface LegendItem {
-    label?: string
-    minText?: string
-    maxText?: string
-    color: Color
-}
-
 interface SizedLegendSeries {
+    bin: ColorScaleBin
     textWrap: TextWrap
-    color: Color
     width: number
     height: number
     yOffset: number
@@ -96,17 +90,23 @@ export class VerticalColorLegend extends React.Component<{
         } = this
 
         let runningYOffset = titleHeight
-        return manager.legendItems.map((series) => {
-            let label = series.label
-            // infer label for numeric bins
-            if (!label && series.minText && series.maxText) {
-                label = `${series.minText} – ${series.maxText}`
+        return manager.categoricalLegendData.map((bin) => {
+            // Get label, inferring from minText/maxText for numeric bins if needed
+            let label = bin.text
+            if (
+                !label &&
+                bin instanceof NumericBin &&
+                bin.minText &&
+                bin.maxText
+            ) {
+                label = `${bin.minText} – ${bin.maxText}`
             }
+
             const textWrap = new TextWrap({
                 maxWidth: this.maxLegendWidth,
                 fontSize,
                 lineHeight: 1,
-                text: label ?? "",
+                text: label,
             })
             const width = rectSize + rectPadding + textWrap.width
             const height = Math.max(textWrap.height, rectSize)
@@ -114,13 +114,7 @@ export class VerticalColorLegend extends React.Component<{
 
             runningYOffset += height + lineHeight
 
-            return {
-                textWrap,
-                color: series.color,
-                width,
-                height,
-                yOffset,
-            }
+            return { bin, textWrap, width, height, yOffset }
         })
     }
 
@@ -153,7 +147,8 @@ export class VerticalColorLegend extends React.Component<{
         return (
             <g id={makeIdForHumanConsumption("labels")}>
                 {series.map((series) => {
-                    const isFocus = focusColors?.includes(series.color) ?? false
+                    const isFocus =
+                        focusColors?.includes(series.bin.color) ?? false
 
                     const textX = this.legendX + rectSize + rectPadding
                     const textY = this.legendY + series.yOffset
@@ -185,7 +180,7 @@ export class VerticalColorLegend extends React.Component<{
         return (
             <g id={makeIdForHumanConsumption("swatches")}>
                 {series.map((series) => {
-                    const isActive = activeColors.includes(series.color)
+                    const isActive = activeColors.includes(series.bin.color)
 
                     const textX = this.legendX + rectSize + rectPadding
                     const textY = this.legendY + series.yOffset
@@ -201,7 +196,7 @@ export class VerticalColorLegend extends React.Component<{
                             y={renderedTextPosition[1] - rectSize}
                             width={rectSize}
                             height={rectSize}
-                            fill={isActive ? series.color : "#ccc"}
+                            fill={isActive ? series.bin.color : "#ccc"}
                         />
                     )
                 })}
@@ -215,19 +210,20 @@ export class VerticalColorLegend extends React.Component<{
         return (
             <g>
                 {series.map((series) => {
+                    const label = series.textWrap.text
                     const mouseOver = onLegendMouseOver
-                        ? (): void => onLegendMouseOver(series.color)
+                        ? (): void => onLegendMouseOver(series.bin)
                         : undefined
                     const mouseLeave = onLegendMouseLeave || undefined
                     const click = onLegendClick
-                        ? (): void => onLegendClick(series.color)
+                        ? (): void => onLegendClick(series.bin)
                         : undefined
 
                     const cursor = click ? "pointer" : "default"
 
                     return (
                         <g
-                            key={series.textWrap.text}
+                            key={label}
                             className="legendMark"
                             onMouseOver={mouseOver}
                             onMouseLeave={mouseLeave}
