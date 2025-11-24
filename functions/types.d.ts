@@ -11,3 +11,11 @@ declare module "*.bin" {
     const content: any
     export default content
 }
+
+// Augment the global scope to include Cloudflare Workers specific types that might be missing or conflicting
+declare global {
+    interface CacheStorage {
+        default: any
+    }
+}
+

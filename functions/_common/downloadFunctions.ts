@@ -35,6 +35,7 @@ import {
     RichDataVariant,
 } from "./search/constructSearchResultJson.js"
 import { checkCache } from "./reusableHandlers.js"
+import { getCache } from "./cache.js"
 
 export async function fetchMetadataForGrapher(
     identifier: GrapherIdentifier,
@@ -99,7 +100,7 @@ export async function fetchZipForGrapher(
     ]
     const content = await createZip(zipContent)
     console.log("Generated content, returning response")
-    return new Response(content as any, {
+    return new Response(content.buffer as ArrayBuffer, {
         headers: {
             "Content-Type": "application/zip",
         },
@@ -261,7 +262,7 @@ export async function fetchDataValuesForGrapher(
 
     // Cache the response
     if (shouldCache)
-        ctx.waitUntil((caches as any).default.put(ctx.request, response.clone()))
+        ctx.waitUntil(getCache().put(ctx.request, response.clone()))
 
     return response
 }
@@ -352,7 +353,7 @@ export async function fetchSearchResultDataForGrapher(
 
     // Cache the response
     if (shouldCache)
-        ctx.waitUntil((caches as any).default.put(ctx.request, response.clone()))
+        ctx.waitUntil(getCache().put(ctx.request, response.clone()))
 
     return response
 }

@@ -1,6 +1,7 @@
 import { Env, Etag } from "./env.js"
 import { fetchAndRenderGrapher } from "./grapherRenderer.js"
 import { GrapherIdentifier } from "./grapherTools.js"
+import { getCache } from "./cache.js"
 
 export async function checkCache(
     request: Request,
@@ -9,7 +10,7 @@ export async function checkCache(
     if (!shouldCache) return null
 
     console.log("Checking cache")
-    const cache = (caches as any).default
+    const cache = getCache()
     const maybeCached = await cache.match(request)
 
     console.log("Cache check result", maybeCached ? "hit" : "miss")
@@ -43,7 +44,7 @@ export async function handleThumbnailRequest(
     const resp = await fetchAndRenderGrapher(id, searchParams, extension, env)
     if (shouldCache) {
         resp.headers.set("Cache-Control", "max-age=3600")
-        ctx.waitUntil((caches as any).default.put(ctx.request, resp.clone()))
+        ctx.waitUntil(getCache().put(ctx.request, resp.clone()))
     } else resp.headers.set("Cache-Control", "no-cache")
     return resp
 }

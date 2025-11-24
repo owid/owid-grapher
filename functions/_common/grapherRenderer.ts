@@ -63,7 +63,7 @@ async function fetchAndRenderGrapherToSvg(
             await fetch("https://ourworldindata.org/dods.json")
                 .then((r) => r.json())
                 .then((details) => {
-                    (globalThis as any).window = { details }
+                    (globalThis as any).window = { details: details as any }
                 })
         )
     }

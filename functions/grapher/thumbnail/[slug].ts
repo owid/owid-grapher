@@ -2,6 +2,7 @@ import { Env } from "../../_common/env.js"
 import { fetchAndRenderGrapher } from "../../_common/grapherRenderer.js"
 import { IRequestStrict, Router, error } from "itty-router"
 import { checkCache } from "../../_common/reusableHandlers.js"
+import { getCache } from "../../_common/cache.js"
 
 // TODO: remove the /grapher/thumbnail route two weeks or so after the change to use /grapher/:slug.png is deployed
 // We keep this around for another two weeks so that cached html pages etc can still fetch the correct thumbnail
@@ -56,7 +57,7 @@ export const onRequestGet: PagesFunction = async (ctx) => {
         .then((resp: Response) => {
             if (shouldCache) {
                 resp.headers.set("Cache-Control", "max-age=3600")
-                ctx.waitUntil((caches as any).default.put(request, resp.clone()))
+                ctx.waitUntil(getCache().put(request, resp.clone()))
             } else resp.headers.set("Cache-Control", "no-cache")
             return resp
         })

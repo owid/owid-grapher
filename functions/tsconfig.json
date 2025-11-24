@@ -12,6 +12,7 @@
         "jsx": "react-jsx",
         "resolveJsonModule": true
     },
+    "include": ["**/*.ts", "**/*.tsx", "types.d.ts"],
     "references": [
         { "path": "../packages/@ourworldindata/components" },
         { "path": "../packages/@ourworldindata/core-table" },
