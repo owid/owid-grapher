@@ -7,6 +7,17 @@
         "types": ["@cloudflare/workers-types"],
         "esModuleInterop": true,
 
-        "outDir": "./dist"
-    }
+        "outDir": "./dist",
+        "skipLibCheck": true,
+        "jsx": "react-jsx",
+        "resolveJsonModule": true
+    },
+    "references": [
+        { "path": "../packages/@ourworldindata/components" },
+        { "path": "../packages/@ourworldindata/core-table" },
+        { "path": "../packages/@ourworldindata/explorer" },
+        { "path": "../packages/@ourworldindata/grapher" },
+        { "path": "../packages/@ourworldindata/types" },
+        { "path": "../packages/@ourworldindata/utils" }
+    ]
 }

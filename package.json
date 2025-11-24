@@ -43,6 +43,7 @@
         "test": "vitest",
         "checkRaycastSnippets": "tsx --tsconfig tsconfig.tsx.json devTools/gdocs/raycastSnippets/generateRaycastSnippets.ts --check",
         "typecheck": "yarn tsc -b",
+        "typecheck:functions": "yarn tsc -p functions/tsconfig.json --noEmit",
         "generateDbTypes": "npx @rmp135/sql-ts -c db/sql-ts/sql-ts-config.json",
         "generateRaycastSnippets": "tsx --tsconfig tsconfig.tsx.json devTools/gdocs/raycastSnippets/generateRaycastSnippets.ts",
         "syncGraphersToR2": "tsx --tsconfig tsconfig.tsx.json devTools/syncGraphersToR2/syncGraphersToR2.ts",
