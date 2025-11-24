@@ -131,7 +131,7 @@ function buildDataTableContentForLineChart({
         grapherState
     ) as MapChartState
     const formatValueForTooltip = (value: PrimitiveType): string | undefined =>
-        mapChartState.formatValueForTooltip(value)?.formattedValue
+        mapChartState.formatValueForTooltip(value)?.label
 
     // Group series by name to handle cases where multiple series share the same name,
     // which can happen when projections are included alongside historical data

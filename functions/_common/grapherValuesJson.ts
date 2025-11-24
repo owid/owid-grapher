@@ -49,7 +49,7 @@ export function constructGrapherValuesJson(
         grapherState
     ) as MapChartState
     const formatValueForTooltip = (value: PrimitiveType): string | undefined =>
-        mapChartState.formatValueForTooltip(value)?.formattedValue
+        mapChartState.formatValueForTooltip(value)?.label
 
     const result = omitUndefinedValues({
         entityName,
