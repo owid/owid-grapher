@@ -69,9 +69,9 @@ async function initGrapherForExplorerView(
             options.grapherProps.isSocialMediaExport
     if (options.grapherProps?.variant)
         explorer.grapherState.variant = options.grapherProps.variant
-    if (options.grapherProps?.isDisplayedAlongsideComplementaryTable)
-        explorer.grapherState.isDisplayedAlongsideComplementaryTable =
-            options.grapherProps.isDisplayedAlongsideComplementaryTable
+    if (options.grapherProps?.isMinimalThumbnail)
+        explorer.grapherState.isMinimalThumbnail =
+            options.grapherProps.isMinimalThumbnail
     explorer.grapherState.initialOptions = { baseFontSize: options.fontSize }
 
     return {

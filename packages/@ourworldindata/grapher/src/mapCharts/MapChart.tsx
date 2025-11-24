@@ -515,8 +515,6 @@ export class MapChart
     @computed private get categoryLegend():
         | HorizontalCategoricalColorLegend
         | undefined {
-        if (this.manager.isDisplayedAlongsideComplementaryTable)
-            return undefined
         return this.manager.showLegend && this.categoricalLegendData.length > 1
             ? new HorizontalCategoricalColorLegend({ manager: this })
             : undefined
@@ -525,8 +523,6 @@ export class MapChart
     @computed private get numericLegend():
         | HorizontalNumericColorLegend
         | undefined {
-        if (this.manager.isDisplayedAlongsideComplementaryTable)
-            return undefined
         return this.manager.showLegend && this.numericLegendData.length > 1
             ? new HorizontalNumericColorLegend({ manager: this })
             : undefined
