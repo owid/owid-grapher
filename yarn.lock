@@ -14535,10 +14535,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"preact@npm:^10.10.0, preact@npm:^10.13.2":
+"preact@npm:10.17.0":
   version: 10.17.0
   resolution: "preact@npm:10.17.0"
   checksum: 10/fe8f32702138f98a18b86fc487269ce09b02dfbd964bd1bc1494697697152fc17c917e40cb1e98d2b41d421c67f25f8f0534cae9fc768b536681c5470ba8cc34
+  languageName: node
+  linkType: hard
+
+"preact@patch:preact@npm%3A10.17.0#~/.yarn/patches/preact-npm-10.17.0-e831e619a5.patch":
+  version: 10.17.0
+  resolution: "preact@patch:preact@npm%3A10.17.0#~/.yarn/patches/preact-npm-10.17.0-e831e619a5.patch::version=10.17.0&hash=88efe2"
+  checksum: 10/415db4d35210968cbb9ab5a6f2a4e787131e913dc270051d725ac5ae04ac3a2d1535f3eda44b80d2fa95c4d9ca84726f4fb9748a1abdf53489dc2e218b655fc3
   languageName: node
   linkType: hard
 

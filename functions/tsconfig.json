@@ -1,12 +1,33 @@
 {
     "compilerOptions": {
+        "isolatedModules": true,
+        "composite": true,
+
         "target": "es2023",
-        "module": "commonjs",
-        // "moduleResolution": "node16",
+        "module": "es2022",
+        "moduleResolution": "node",
         "lib": ["esnext"],
         "types": ["@cloudflare/workers-types"],
         "esModuleInterop": true,
 
-        "outDir": "./dist"
-    }
+        "noEmit": true,
+
+        "outDir": "./dist",
+        "skipLibCheck": true,
+        "resolveJsonModule": true,
+
+        "alwaysStrict": true,
+        "allowJs": false,
+        "jsx": "react-jsx",
+
+        "noImplicitOverride": true
+    },
+    "references": [
+        { "path": "../packages/@ourworldindata/components" },
+        { "path": "../packages/@ourworldindata/core-table" },
+        { "path": "../packages/@ourworldindata/explorer" },
+        { "path": "../packages/@ourworldindata/grapher" },
+        { "path": "../packages/@ourworldindata/types" },
+        { "path": "../packages/@ourworldindata/utils" }
+    ]
 }

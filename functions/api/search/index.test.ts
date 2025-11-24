@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest"
+import { describe, it, expect, vi, beforeEach, assert } from "vitest"
 import { onRequestGet } from "./index.js"
 import * as searchApi from "./searchApi.js"
 import type { Env } from "../../_common/env.js"
@@ -88,6 +88,7 @@ describe("Search API endpoint", () => {
 
             expect(response.status).toBe(400)
             const body = await response.json()
+            assert(typeof body === "object" && "error" in body)
             expect(body.error).toBe("Invalid type parameter")
         })
     })
@@ -158,6 +159,7 @@ describe("Search API endpoint", () => {
 
             expect(response.status).toBe(400)
             const body = await response.json()
+            assert(typeof body === "object" && "error" in body)
             expect(body.error).toBe("Invalid page parameter")
         })
 
@@ -172,6 +174,7 @@ describe("Search API endpoint", () => {
 
             expect(response.status).toBe(400)
             const body = await response.json()
+            assert(typeof body === "object" && "error" in body)
             expect(body.error).toBe("Invalid page parameter")
         })
 
@@ -186,6 +189,7 @@ describe("Search API endpoint", () => {
 
             expect(response.status).toBe(400)
             const body = await response.json()
+            assert(typeof body === "object" && "error" in body)
             expect(body.error).toBe("Invalid hitsPerPage parameter")
         })
 
@@ -200,6 +204,7 @@ describe("Search API endpoint", () => {
 
             expect(response.status).toBe(400)
             const body = await response.json()
+            assert(typeof body === "object" && "error" in body)
             expect(body.error).toBe("Invalid hitsPerPage parameter")
         })
     })
@@ -215,6 +220,7 @@ describe("Search API endpoint", () => {
 
             expect(response.status).toBe(500)
             const body = await response.json()
+            assert(typeof body === "object" && "error" in body)
             expect(body.error).toBe(
                 "An error occurred while processing the search request"
             )

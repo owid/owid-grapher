@@ -250,7 +250,9 @@
         "wrangler": "^4.45.4"
     },
     "resolutions": {
-        "whatwg-url": "15.0.0"
+        "whatwg-url": "15.0.0",
+        "preact@npm:^10.13.2": "patch:preact@npm%3A10.17.0#~/.yarn/patches/preact-npm-10.17.0-e831e619a5.patch",
+        "preact@npm:^10.10.0": "patch:preact@npm%3A10.17.0#~/.yarn/patches/preact-npm-10.17.0-e831e619a5.patch"
     },
     "prettier": {
         "trailingComma": "es5",
