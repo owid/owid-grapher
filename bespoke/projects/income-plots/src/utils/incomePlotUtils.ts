@@ -19,7 +19,7 @@ export function formatCurrency(num: number, currency: Currency) {
         if (num >= 1_000) return "$" + Math.round(num / 1_000) + "k"
         if (num >= 10) return "$" + roundSigFig(num, 2)
         if (num >= 1) return "$" + (Math.round(num * 10) / 10).toFixed(2)
-        else return "$" + num.toFixed(2)
+        else return "$" + R.round(num, 1).toFixed(2)
     }
 
     let formatter = currencyFormatterCache.get(currency)
@@ -146,4 +146,9 @@ export const getTimeIntervalStr = (interval: TimeInterval) => {
         case "daily":
             return "day"
     }
+}
+
+export const roundPercentage = (num: number) => {
+    if (num <= 1) return R.round(num, 1)
+    else return Math.round(num)
 }
