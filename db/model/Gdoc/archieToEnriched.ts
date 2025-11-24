@@ -105,14 +105,16 @@ export function generateStickyNav(
 
 export function generateToc(
     body: OwidEnrichedGdocBlock[] | undefined,
-    isTocForSidebar: boolean = false
+    isTocForLinearTopicPage: boolean = false
 ): TocHeadingWithTitleSupertitle[] {
     if (!body) return []
 
     // For linear topic pages, we record only h1s
     // For the sdg-toc, we record h2s & h3s (as it was developed before we decided to use h1s as our top level heading)
     // It would be nice to standardise this but it would require a migration, updating CSS, updating Gdocs, etc.
-    const [primary, secondary] = isTocForSidebar ? [1, undefined] : [2, 3]
+    const [primary, secondary] = isTocForLinearTopicPage
+        ? [1, undefined]
+        : [2, 3]
     const toc: TocHeadingWithTitleSupertitle[] = []
 
     body.forEach((block) =>
@@ -133,7 +135,7 @@ export function generateToc(
                     })
                 }
             }
-            if (!isTocForSidebar) return
+            if (!isTocForLinearTopicPage) return
 
             if (child.type === "all-charts") {
                 toc.push({
