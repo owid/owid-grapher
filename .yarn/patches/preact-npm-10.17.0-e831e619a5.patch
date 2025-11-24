@@ -1,0 +1,16 @@
+diff --git a/src/jsx.d.ts b/src/jsx.d.ts
+index feeed9486d7b5a36a05e16480f5e6ceaa92f92c7..7618a715d3d637b8e8239e45a70915474fd03e00 100644
+--- a/src/jsx.d.ts
++++ b/src/jsx.d.ts
+@@ -1,5 +1,9 @@
+-// Users who only use Preact for SSR might not specify "dom" in their lib in tsconfig.json
+-/// <reference lib="dom" />
++// Patched: Remove the "dom" types reference here (<reference lib="dom" />), because otherwise (transitively) importing this file pollutes the global types with types from lib.dom.d.ts.
++// Even worse, they seem to take priority over the types in @cloudflare/workers-types, and thus cause us type errors inside our Workers projects.
++// In our case, Algolia/instantsearch.js is the package that's importing preact.
++// There doesn't seem to be a better workaround than patching the package.
++// see https://github.com/microsoft/TypeScript/issues/33901 for reference.
++// - @marcelgerber, 2025-11-24
+ 
+ import {
+ 	ClassAttributes,

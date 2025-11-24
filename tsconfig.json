@@ -13,6 +13,7 @@
         { "path": "./packages/@ourworldindata/grapher" },
         { "path": "./packages/@ourworldindata/types" },
         { "path": "./packages/@ourworldindata/utils" },
+        { "path": "./functions" },
 
         { "path": "./adminShared" },
         { "path": "./adminSiteClient" },
