@@ -81,7 +81,10 @@ describe("Search API endpoint", () => {
             const request = new Request(
                 "http://localhost/api/search?q=test&type=invalid"
             )
-            const response = await onRequestGet({ request, env: mockEnv } as any)
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
 
             expect(response.status).toBe(400)
             const body = await response.json()
@@ -148,7 +151,10 @@ describe("Search API endpoint", () => {
             const request = new Request(
                 "http://localhost/api/search?q=test&page=-1"
             )
-            const response = await onRequestGet({ request, env: mockEnv } as any)
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
 
             expect(response.status).toBe(400)
             const body = await response.json()
@@ -159,7 +165,10 @@ describe("Search API endpoint", () => {
             const request = new Request(
                 "http://localhost/api/search?q=test&page=1001"
             )
-            const response = await onRequestGet({ request, env: mockEnv } as any)
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
 
             expect(response.status).toBe(400)
             const body = await response.json()
@@ -170,7 +179,10 @@ describe("Search API endpoint", () => {
             const request = new Request(
                 "http://localhost/api/search?q=test&hitsPerPage=0"
             )
-            const response = await onRequestGet({ request, env: mockEnv } as any)
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
 
             expect(response.status).toBe(400)
             const body = await response.json()
@@ -181,7 +193,10 @@ describe("Search API endpoint", () => {
             const request = new Request(
                 "http://localhost/api/search?q=test&hitsPerPage=101"
             )
-            const response = await onRequestGet({ request, env: mockEnv } as any)
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
 
             expect(response.status).toBe(400)
             const body = await response.json()
@@ -232,7 +247,10 @@ describe("Search API endpoint", () => {
             })
 
             const request = new Request("http://localhost/api/search?q=test")
-            const response = await onRequestGet({ request, env: mockEnv } as any)
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
 
             expect(response.status).toBe(200)
             expect(response.headers.get("Content-Type")).toBe(
@@ -250,7 +268,10 @@ describe("Search API endpoint", () => {
             const request = new Request(
                 "http://localhost/api/search?q=test&type=invalid"
             )
-            const response = await onRequestGet({ request, env: mockEnv } as any)
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
 
             expect(response.status).toBe(400)
             expect(response.headers.get("Access-Control-Allow-Origin")).toBe(

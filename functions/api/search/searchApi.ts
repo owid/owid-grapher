@@ -127,9 +127,7 @@ export function formatTopicFacetFilters(
 /**
  * Fetches available topics from Algolia
  */
-async function getAvailableTopics(
-    config: AlgoliaConfig
-): Promise<string[]> {
+async function getAvailableTopics(config: AlgoliaConfig): Promise<string[]> {
     const indexName = getIndexName(
         SearchIndexName.ExplorerViewsMdimViewsAndCharts,
         config.indexPrefix
