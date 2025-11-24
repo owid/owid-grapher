@@ -202,17 +202,6 @@ function testTreemapProportionality({
             year,
             variable: category.name,
             parentId: "All",
-            value: d3.sum(
-                filteredData
-                    .filter((d) => d.category === category.name)
-                    .map((d) => d.value)
-            ),
-            share:
-                d3.sum(
-                    filteredData
-                        .filter((d) => d.category === category.name)
-                        .map((d) => d.value)
-                ) / numAllDeaths,
         })),
 
         // Data nodes
