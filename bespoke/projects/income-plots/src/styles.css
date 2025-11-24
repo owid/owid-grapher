@@ -59,6 +59,10 @@
                 white-space: nowrap;
             }
         }
+
+        &.--legend-entry--is-world {
+            font-weight: bold;
+        }
     }
 
     /* If there's at least one hovered legend entry, dim all non-highlighted ones */

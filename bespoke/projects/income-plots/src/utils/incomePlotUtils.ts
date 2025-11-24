@@ -6,6 +6,7 @@ import {
     KDE_EXTENT,
     KDE_NUM_BINS,
     TimeInterval,
+    WORLD_ENTITY_NAME,
 } from "./incomePlotConstants.ts"
 import { type RawDataForYearRecord } from "../store.ts"
 import * as R from "remeda"
@@ -90,6 +91,7 @@ export const REGION_COLORS = {
     "North America": OwidDistinctColors.Peach,
     "South Asia": OwidDistinctColors.TealishGreen,
     "Sub-Saharan Africa": OwidDistinctColors.Mauve,
+    World: OwidDistinctColors.Purple,
 }
 
 export const REGION_NAMES = Object.keys(REGION_COLORS)
@@ -103,10 +105,21 @@ export const computePercentageBelowLine = (
 
     const map = new Map(
         [...countriesOrRegions].map((entity) => {
+            const getFilterPredicate = (countryOrRegion: string) => {
+                if (countryOrRegion === WORLD_ENTITY_NAME) {
+                    return (_d: RawDataForYearRecord) => true
+                } else if (REGION_NAMES.includes(countryOrRegion)) {
+                    return (d: RawDataForYearRecord) =>
+                        d.region === countryOrRegion
+                } else {
+                    return (d: RawDataForYearRecord) =>
+                        d.country === countryOrRegion
+                }
+            }
+            const filterPred = getFilterPredicate(entity)
+
             // If it's a country, then this is just a single record and the computation is simpler
-            const records = rawData.filter(
-                (d) => d.country === entity || d.region === entity
-            )
+            const records = rawData.filter(filterPred)
 
             const totalPop = R.sumBy(records, R.prop("pop"))
             const percentagesWeighted = records.map((record) => {
