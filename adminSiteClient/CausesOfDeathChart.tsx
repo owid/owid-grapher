@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { QueryStatus } from "@tanstack/react-query"
 
 import { Time } from "@ourworldindata/types"
@@ -12,8 +12,8 @@ import { CausesOfDeathCaptionedChart } from "./CausesOfDeathCaptionedChart.js"
 import { CausesOfDeathControls } from "./CausesOfDeathControls.js"
 import { CausesOfDeathSpinner } from "./CausesOfDeathSpinner.js"
 
-const DEFAULT_AGE_GROUP = "All ages"
-const DEFAULT_SEX = "Male"
+const DEFAULT_AGE_GROUP = "Children under 5"
+const DEFAULT_SEX = "Both sexes"
 const DEFAULT_ENTITY_NAME = WORLD_ENTITY_NAME
 
 export function CausesOfDeathChart(): React.ReactElement {
@@ -36,6 +36,22 @@ export function CausesOfDeathChart(): React.ReactElement {
         300
     )
 
+    const metadata = metadataResponse.data
+    const entityData = entityDataResponse.data
+
+    const activeAgeGroup = ageGroup
+    const activeSex = sex
+    const activeYear = year ?? metadata?.availableYears.at(-1)
+    const activeData = useMemo(
+        () =>
+            entityData?.filter(
+                (row) =>
+                    row.ageGroup === activeAgeGroup && row.sex === activeSex
+            ),
+        [entityData, activeAgeGroup, activeSex]
+    )
+    const activeEntityName = activeData?.at(0)?.entityName
+
     const loadingStatus = combineStatuses(
         metadataResponse.status,
         entityDataResponse.status
@@ -48,17 +64,6 @@ export function CausesOfDeathChart(): React.ReactElement {
     if (loadingStatus === "pending") {
         return <CausesOfDeathSkeleton />
     }
-
-    const metadata = metadataResponse.data
-    const entityData = entityDataResponse.data
-
-    const activeAgeGroup = ageGroup
-    const activeSex = sex
-    const activeYear = year ?? metadata?.availableYears.at(-1)
-    const activeData = entityData?.filter(
-        (row) => row.ageGroup === activeAgeGroup && row.sex === activeSex
-    )
-    const activeEntityName = activeData?.at(0)?.entityName
 
     // Sanity check
     if (

@@ -1,4 +1,4 @@
-import { useCallback } from "react"
+import { useCallback, useMemo } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLocationArrow } from "@fortawesome/free-solid-svg-icons"
 
@@ -124,21 +124,30 @@ function EntityDropdown({
 }) {
     const { data: userCountryInfo } = useUserCountryInformation()
 
-    const options =
-        availableEntities?.map((entity) => ({
-            value: entity.name,
-            label: entity.name,
-            id: entity.id,
-        })) ?? []
+    const options = useMemo(() => {
+        const baseOptions =
+            availableEntities?.map((entity) => ({
+                value: entity.name,
+                label: entity.name,
+                id: entity.id,
+            })) ?? []
 
-    // Move user's country to the top of the list if it's available
-    const userCountryOptionIndex = options.findIndex(
-        (option) => option.label === userCountryInfo?.name
-    )
-    if (userCountryInfo && userCountryOptionIndex > -1) {
-        const [userCountryOption] = options.splice(userCountryOptionIndex, 1)
-        options.unshift(userCountryOption)
-    }
+        // Move user's country to the top of the list if it's available
+        if (!userCountryInfo) return baseOptions
+
+        const userCountryOptionIndex = baseOptions.findIndex(
+            (option) => option.label === userCountryInfo.name
+        )
+        if (userCountryOptionIndex > -1) {
+            const [userCountryOption] = baseOptions.splice(
+                userCountryOptionIndex,
+                1
+            )
+            baseOptions.unshift(userCountryOption)
+        }
+
+        return baseOptions
+    }, [availableEntities, userCountryInfo])
 
     return (
         <Dropdown
@@ -177,12 +186,15 @@ function AgeGroupDropdown({
     className?: string
     isLoading?: boolean
 }) {
-    const options =
-        availableAgeGroups?.map((ageGroup) => ({
-            value: ageGroup,
-            label: ageGroup,
-            id: ageGroup,
-        })) ?? []
+    const options = useMemo(
+        () =>
+            availableAgeGroups?.map((ageGroup) => ({
+                value: ageGroup,
+                label: ageGroup,
+                id: ageGroup,
+            })) ?? [],
+        [availableAgeGroups]
+    )
 
     return (
         <Dropdown
@@ -260,12 +272,15 @@ function SexDropdown({
     className?: string
     isLoading?: boolean
 }) {
-    const options =
-        availableSexes?.map((sex) => ({
-            value: sex,
-            label: sex,
-            id: sex,
-        })) ?? []
+    const options = useMemo(
+        () =>
+            availableSexes?.map((sex) => ({
+                value: sex,
+                label: sex,
+                id: sex,
+            })) ?? [],
+        [availableSexes]
+    )
 
     return (
         <Dropdown
