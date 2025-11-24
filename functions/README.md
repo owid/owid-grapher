@@ -93,6 +93,12 @@ The analytics system requires these environment variables:
 
 # Our dynamic routes
 
+## `/api/search`
+
+This route provides a search API for both charts and pages (articles, about pages).
+
+For detailed API documentation, including all parameters, response schemas, and examples, see [search-api.openapi.yaml](search-api.openapi.yaml).
+
 ## `/deleted/:slug`
 
 This route is used to handle deleted pages. They are fully baked we just want them to return a 404 status code instead of a 200.

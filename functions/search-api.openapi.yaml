@@ -1,0 +1,409 @@
+openapi: 3.0.4
+info:
+    title: Search API
+    version: 0.1.0
+    description: |
+        Search API for accessing Our World in Data charts and content pages.
+
+        This API allows you to search through:
+
+        - **Charts**: Interactive data visualizations with country-specific filtering
+        - **Pages**: Articles, research papers, and informational pages
+    contact:
+        name: Our World in Data
+        url: https://ourworldindata.org
+    license:
+        name: CC BY 4.0
+        url: https://creativecommons.org/licenses/by/4.0/
+
+servers:
+    - url: https://ourworldindata.org/api
+      description: Site API
+
+paths:
+    /search:
+        get:
+            summary: Search for charts or pages
+            description: |
+                Search through Our World in Data's collection of charts and pages.
+
+                - For **chart search**: Filter by countries, topics, and entity availability
+                - For **page search**: Find articles, research papers, and informational content
+            operationId: search
+            tags:
+                - Search
+            parameters:
+                - name: q
+                  in: query
+                  description: Search query text
+                  required: false
+                  schema:
+                      type: string
+                      default: ""
+                  example: "population"
+
+                - name: type
+                  in: query
+                  description: Type of content to search
+                  required: false
+                  schema:
+                      type: string
+                      enum:
+                          - charts
+                          - pages
+                      default: charts
+                  example: "charts"
+
+                - name: page
+                  in: query
+                  description: Page number for pagination (0-indexed)
+                  required: false
+                  schema:
+                      type: integer
+                      minimum: 0
+                      maximum: 1000
+                      default: 0
+                  example: 0
+
+                - name: hitsPerPage
+                  in: query
+                  description: Number of results per page
+                  required: false
+                  schema:
+                      type: integer
+                      minimum: 1
+                      maximum: 100
+                      default: 20
+                  example: 20
+
+                # Chart-specific parameters
+                - name: countries
+                  in: query
+                  description: |
+                      Country names separated by `~` (tilde). Only applicable when `type=charts`.
+                  required: false
+                  schema:
+                      type: string
+                  example: "United States~China"
+
+                - name: topics
+                  in: query
+                  description: |
+                      Topic name for filtering charts. Only applicable when `type=charts`.
+
+                      [View all available topics](https://datasette-public.owid.io/owid/tags?slug__notnull=1&_sort=createdAt)
+                  required: false
+                  schema:
+                      type: string
+                  example: "Health"
+
+                - name: requireAllCountries
+                  in: query
+                  description: |
+                      If `true`, only return charts that include ALL specified countries.
+                      Only applicable when `type=charts` and `countries` parameter is provided.
+                  required: false
+                  schema:
+                      type: boolean
+                      default: false
+                  example: false
+
+            responses:
+                "200":
+                    description: Successful search response
+                    content:
+                        application/json:
+                            schema:
+                                oneOf:
+                                    - $ref: "#/components/schemas/ChartSearchResponse"
+                                    - $ref: "#/components/schemas/PageSearchResponse"
+                            examples:
+                                chartSearch:
+                                    summary: Chart search results
+                                    x-schema-ref: "#/components/schemas/ChartSearchResponse"
+                                    value:
+                                        query: "gdp"
+                                        results:
+                                            - title: "GDP per capita"
+                                              slug: "gdp-per-capita"
+                                              subtitle: "Gross domestic product per capita adjusted for inflation"
+                                              type: "chart"
+                                              availableEntities:
+                                                  - "United States"
+                                                  - "China"
+                                                  - "India"
+                                              availableTabs:
+                                                  - "LineChart"
+                                                  - "Table"
+                                                  - "WorldMap"
+                                              url: "https://ourworldindata.org/grapher/gdp-per-capita"
+                                        nbHits: 125
+                                        page: 0
+                                        nbPages: 7
+                                        hitsPerPage: 20
+
+                                pageSearch:
+                                    summary: Page search results
+                                    x-schema-ref: "#/components/schemas/PageSearchResponse"
+                                    value:
+                                        query: "climate change"
+                                        results:
+                                            - title: "Climate Change: Evidence and Causes"
+                                              slug: "climate-change-evidence"
+                                              type: "article"
+                                              thumbnailUrl: "https://ourworldindata.org/images/climate-thumbnail.jpg"
+                                              date: "2023-05-15"
+                                              authors:
+                                                  - "Hannah Ritchie"
+                                                  - "Max Roser"
+                                              url: "https://ourworldindata.org/climate-change-evidence"
+                                        nbHits: 42
+                                        offset: 0
+                                        length: 20
+
+                "400":
+                    description: Bad request - invalid parameters
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                error: "Invalid parameter value"
+                                message: "hitsPerPage must be between 1 and 100"
+
+                "500":
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                error: "Internal server error"
+                                message: "An unexpected error occurred"
+
+components:
+    schemas:
+        ChartSearchResponse:
+            type: object
+            description: Response object for chart search queries, containing search results and pagination metadata.
+            required:
+                - query
+                - results
+                - nbHits
+                - page
+                - nbPages
+                - hitsPerPage
+            properties:
+                query:
+                    type: string
+                    description: The search query that was executed
+                    example: "population"
+                results:
+                    type: array
+                    description: Array of chart search results
+                    items:
+                        $ref: "#/components/schemas/ChartResult"
+                nbHits:
+                    type: integer
+                    description: Total number of results found
+                    example: 125
+                page:
+                    type: integer
+                    description: Current page number (0-indexed)
+                    example: 0
+                nbPages:
+                    type: integer
+                    description: Total number of pages available
+                    example: 7
+                hitsPerPage:
+                    type: integer
+                    description: Number of results per page
+                    example: 20
+
+        ChartResult:
+            type: object
+            description: Individual chart search result with metadata about the visualization.
+            required:
+                - title
+                - slug
+                - type
+                - availableEntities
+                - availableTabs
+                - url
+            properties:
+                title:
+                    type: string
+                    description: Chart title
+                    example: "Life expectancy at birth"
+                slug:
+                    type: string
+                    description: URL-friendly identifier for the chart
+                    example: "life-expectancy"
+                subtitle:
+                    type: string
+                    description: Chart subtitle providing additional context
+                    example: "Period life expectancy at birth, measured in years"
+                variantName:
+                    type: string
+                    description: Name of the chart variant (if applicable)
+                    example: "Default"
+                type:
+                    type: string
+                    enum:
+                        - chart
+                        - explorerView
+                        - multiDimView
+                    description: Type of visualization
+                    example: "chart"
+                queryParams:
+                    type: string
+                    description: URL query parameters for explorer or multi-dimensional views
+                    example: "tab=chart&time=2020"
+                availableEntities:
+                    type: array
+                    description: List of countries/entities available in this chart
+                    items:
+                        type: string
+                    example:
+                        - "United States"
+                        - "China"
+                        - "India"
+                originalAvailableEntities:
+                    type: array
+                    description: Original list of entities before filtering
+                    items:
+                        type: string
+                    example:
+                        - "United States"
+                        - "United Kingdom"
+                availableTabs:
+                    type: array
+                    description: Available visualization tabs
+                    items:
+                        type: string
+                        enum:
+                            - Table
+                            - WorldMap
+                            - LineChart
+                            - ScatterPlot
+                            - StackedArea
+                            - DiscreteBar
+                            - StackedDiscreteBar
+                            - SlopeChart
+                            - StackedBar
+                            - Marimekko
+                    example:
+                        - "Table"
+                        - "WorldMap"
+                        - "LineChart"
+                        - "SlopeChart"
+                        - "DiscreteBar"
+                        - "Marimekko"
+                url:
+                    type: string
+                    format: uri
+                    description: Full URL to access the chart
+                    example: "https://ourworldindata.org/grapher/life-expectancy"
+
+        PageSearchResponse:
+            type: object
+            description: Response object for page/article search queries, containing search results and pagination metadata.
+            required:
+                - query
+                - results
+                - nbHits
+                - offset
+                - length
+            properties:
+                query:
+                    type: string
+                    description: The search query that was executed
+                    example: "climate change"
+                results:
+                    type: array
+                    description: Array of page search results
+                    items:
+                        $ref: "#/components/schemas/PageResult"
+                nbHits:
+                    type: integer
+                    description: Total number of results found
+                    example: 42
+                offset:
+                    type: integer
+                    description: Current offset in the result set
+                    example: 0
+                length:
+                    type: integer
+                    description: Number of results returned
+                    example: 20
+
+        PageResult:
+            type: object
+            description: Individual page/article search result with metadata about the content.
+            required:
+                - title
+                - slug
+                - type
+                - url
+            properties:
+                title:
+                    type: string
+                    description: Page title
+                    example: "CO₂ emissions"
+                slug:
+                    type: string
+                    description: URL-friendly identifier for the page
+                    example: "co2-emissions"
+                type:
+                    type: string
+                    enum:
+                        - article
+                        - about-page
+                    description: Type of page content
+                    example: "article"
+                thumbnailUrl:
+                    type: string
+                    format: uri
+                    description: URL to page thumbnail image
+                    example: "https://ourworldindata.org/images/co2-thumbnail.jpg"
+                date:
+                    type: string
+                    format: date
+                    description: Publication or last update date (ISO 8601 format)
+                    example: "2023-05-15"
+                content:
+                    type: string
+                    description: Excerpt or snippet of page content
+                    example: "Carbon dioxide emissions are the primary driver of global climate change..."
+                authors:
+                    type: array
+                    description: List of page authors
+                    items:
+                        type: string
+                    example:
+                        - "Hannah Ritchie"
+                        - "Max Roser"
+                url:
+                    type: string
+                    format: uri
+                    description: Full URL to access the page
+                    example: "https://ourworldindata.org/co2-emissions"
+
+        Error:
+            type: object
+            description: Error response object returned when a request fails.
+            required:
+                - error
+            properties:
+                error:
+                    type: string
+                    description: Error type or category
+                    example: "Invalid parameter"
+                message:
+                    type: string
+                    description: Detailed error message
+                    example: "The 'page' parameter must be between 0 and 1000"
+
+tags:
+    - name: Search
+      description: Search endpoints for charts and pages
