@@ -35,7 +35,7 @@ import {
     RichDataVariant,
 } from "./search/constructSearchResultJson.js"
 import { checkCache } from "./reusableHandlers.js"
-import { getCache } from "./cache.js"
+import { putInCache } from "./cache.js"
 
 export async function fetchMetadataForGrapher(
     identifier: GrapherIdentifier,
@@ -262,7 +262,7 @@ export async function fetchDataValuesForGrapher(
 
     // Cache the response
     if (shouldCache)
-        ctx.waitUntil(getCache().put(ctx.request, response.clone()))
+        ctx.waitUntil(putInCache(ctx.request, response.clone()))
 
     return response
 }
@@ -353,7 +353,7 @@ export async function fetchSearchResultDataForGrapher(
 
     // Cache the response
     if (shouldCache)
-        ctx.waitUntil(getCache().put(ctx.request, response.clone()))
+        ctx.waitUntil(putInCache(ctx.request, response.clone()))
 
     return response
 }

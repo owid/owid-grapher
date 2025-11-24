@@ -33,7 +33,7 @@ import {
 import { assembleMetadata } from "./metadataTools.js"
 import { getDataApiUrl } from "./grapherTools.js"
 import { checkCache } from "./reusableHandlers.js"
-import { getCache } from "./cache.js"
+import { putInCache } from "./cache.js"
 
 async function initGrapherForExplorerView(
     env: Env,
@@ -297,7 +297,7 @@ export async function fetchDataValuesForExplorerView(
 
         // Cache the response
         if (shouldCache)
-            ctx.waitUntil(getCache().put(ctx.request, response.clone()))
+            ctx.waitUntil(putInCache(ctx.request, response.clone()))
 
         return response
     } catch (e) {
@@ -375,7 +375,7 @@ export async function fetchSearchResultDataForExplorerView(
 
         // Cache the response
         if (shouldCache)
-            ctx.waitUntil(getCache().put(ctx.request, response.clone()))
+            ctx.waitUntil(putInCache(ctx.request, response.clone()))
 
         return response
     } catch (e) {
