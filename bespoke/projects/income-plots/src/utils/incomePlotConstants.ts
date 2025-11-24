@@ -2,6 +2,8 @@ import { SeriesPoint } from "d3-shape"
 
 export const INT_POVERTY_LINE = 3.0
 
+export const WORLD_ENTITY_NAME = "World"
+
 export const AVAILABLE_YEARS_RANGE = [1990, 2025] as const
 export const DEFAULT_YEAR = AVAILABLE_YEARS_RANGE[1]
 
