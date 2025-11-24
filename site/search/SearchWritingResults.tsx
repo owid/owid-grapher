@@ -7,7 +7,6 @@ import {
     SearchFlatArticleResponse,
     SearchTopicPageResponse,
     TopicPageHit,
-    SearchTopicType,
 } from "@ourworldindata/types"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import { searchQueryKeys, queryArticles, queryTopicPages } from "./queries.js"
@@ -149,13 +148,10 @@ function MultiColumnResults({
 
 export const SearchWritingResults = ({
     hasTopicPages = true,
-    topicType,
 }: {
     hasTopicPages?: boolean
-    topicType?: SearchTopicType
 }) => {
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
-    const hasLargeTopic = topicType === SearchTopicType.Topic
     const articlesQuery = useInfiniteSearchOffset<
         SearchFlatArticleResponse,
         FlatArticleHit
@@ -183,6 +179,7 @@ export const SearchWritingResults = ({
         enabled: hasTopicPages && !articlesQuery.isLoading,
     })
 
+    const hasLargeTopic = topicsQuery.totalResults === 1
     const totalCount = articlesQuery.totalResults + topicsQuery.totalResults
     const hasNextPage = articlesQuery.hasNextPage || topicsQuery.hasNextPage
     const isFetchingNextPage =
