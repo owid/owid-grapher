@@ -9,7 +9,7 @@ export async function checkCache(
     if (!shouldCache) return null
 
     console.log("Checking cache")
-    const cache = caches.default
+    const cache = (caches as any).default
     const maybeCached = await cache.match(request)
 
     console.log("Cache check result", maybeCached ? "hit" : "miss")
@@ -43,7 +43,7 @@ export async function handleThumbnailRequest(
     const resp = await fetchAndRenderGrapher(id, searchParams, extension, env)
     if (shouldCache) {
         resp.headers.set("Cache-Control", "max-age=3600")
-        ctx.waitUntil(caches.default.put(ctx.request, resp.clone()))
+        ctx.waitUntil((caches as any).default.put(ctx.request, resp.clone()))
     } else resp.headers.set("Cache-Control", "no-cache")
     return resp
 }

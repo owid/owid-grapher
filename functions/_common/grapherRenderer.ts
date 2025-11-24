@@ -20,9 +20,7 @@ import {
 import { fetchInputTableForConfig } from "@ourworldindata/grapher"
 import ReactDOMServer from "react-dom/server"
 
-declare global {
-    var window: any
-}
+
 
 // Lots of defaults; these are mostly the same as they are in owid-grapher.
 // Note, however, that these are not being used for Twitter or Facebook images, these use custom sizes defined below.
@@ -65,7 +63,7 @@ async function fetchAndRenderGrapherToSvg(
             await fetch("https://ourworldindata.org/dods.json")
                 .then((r) => r.json())
                 .then((details) => {
-                    globalThis.window = { details }
+                    (globalThis as any).window = { details }
                 })
         )
     }

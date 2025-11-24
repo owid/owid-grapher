@@ -243,7 +243,7 @@ export async function fetchZipForExplorerView(
         const content = await createZip(zipContent)
         console.log("Generated content, returning response")
 
-        return new Response(content, {
+        return new Response(content as any, {
             headers: {
                 "Content-Type": "application/zip",
                 "Content-Disposition": `attachment; filename="${identifier}.zip"`,
@@ -296,7 +296,7 @@ export async function fetchDataValuesForExplorerView(
 
         // Cache the response
         if (shouldCache)
-            ctx.waitUntil(caches.default.put(ctx.request, response.clone()))
+            ctx.waitUntil((caches as any).default.put(ctx.request, response.clone()))
 
         return response
     } catch (e) {
@@ -374,7 +374,7 @@ export async function fetchSearchResultDataForExplorerView(
 
         // Cache the response
         if (shouldCache)
-            ctx.waitUntil(caches.default.put(ctx.request, response.clone()))
+            ctx.waitUntil((caches as any).default.put(ctx.request, response.clone()))
 
         return response
     } catch (e) {

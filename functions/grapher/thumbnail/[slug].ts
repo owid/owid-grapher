@@ -56,7 +56,7 @@ export const onRequestGet: PagesFunction = async (ctx) => {
         .then((resp: Response) => {
             if (shouldCache) {
                 resp.headers.set("Cache-Control", "max-age=3600")
-                ctx.waitUntil(caches.default.put(request, resp.clone()))
+                ctx.waitUntil((caches as any).default.put(request, resp.clone()))
             } else resp.headers.set("Cache-Control", "no-cache")
             return resp
         })
