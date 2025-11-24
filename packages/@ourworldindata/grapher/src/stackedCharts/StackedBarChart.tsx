@@ -16,7 +16,6 @@ import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
     VerticalColorLegend,
     VerticalColorLegendManager,
-    LegendItem,
 } from "../verticalColorLegend/VerticalColorLegend"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import {
@@ -233,30 +232,18 @@ export class StackedBarChart
         )
     }
 
-    // used by <VerticalColorLegend />
-    @computed get legendItems(): (LegendItem &
-        Required<Pick<LegendItem, "label">>)[] {
-        return this.stackedSeries
-            .map((series) => {
-                return {
-                    label: series.seriesName,
-                    color: series.color,
-                }
-            })
-            .toReversed() // Vertical legend orders things in the opposite direction we want
-    }
-
-    // used by <HorizontalCategoricalColorLegend />
     @computed get categoricalLegendData(): CategoricalBin[] {
-        return this.legendItems.map(
-            (legendItem, index) =>
-                new CategoricalBin({
-                    index,
-                    value: legendItem.label,
-                    label: legendItem.label,
-                    color: legendItem.color,
-                })
-        )
+        return this.stackedSeries
+            .map(
+                (series, index) =>
+                    new CategoricalBin({
+                        index,
+                        value: series.seriesName,
+                        label: series.seriesName,
+                        color: series.color,
+                    })
+            )
+            .toReversed() // Vertical legend orders things in the opposite direction we want
     }
 
     @computed get legendWidth(): number {
@@ -425,12 +412,8 @@ export class StackedBarChart
         )
     }
 
-    // Both legend managers accept a `onLegendMouseOver` property, but define different signatures.
-    // The <HorizontalCategoricalColorLegend /> component expects a string,
-    // the <VerticalColorLegend /> component expects a ColorScaleBin.
-    @action.bound onLegendMouseOver(binOrColor: string | ColorScaleBin): void {
-        this.hoverColor =
-            typeof binOrColor === "string" ? binOrColor : binOrColor.color
+    @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
+        this.hoverColor = bin.color
     }
 
     @action.bound onLegendMouseLeave(): void {
