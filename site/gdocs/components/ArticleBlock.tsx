@@ -643,11 +643,28 @@ function ArticleBlockInternal({
             )
         })
         .with({ type: "ltp-toc" }, (block) => {
+            const layoutClassName = getLayout("ltp-toc", containerType)
+            const tagName = tags[0]?.name
+
+            if (!tagName) {
+                return (
+                    <BlockErrorFallback
+                        className={layoutClassName}
+                        error={{
+                            name: `Error in ${block.type}`,
+                            message:
+                                "Linear topic TOC requires at least one tag on the document.",
+                        }}
+                    />
+                )
+            }
+
             return toc?.length ? (
                 <LTPTableOfContents
                     title={block.title}
                     toc={toc}
-                    className={getLayout("ltp-toc", containerType)}
+                    tagName={tagName}
+                    className={layoutClassName}
                 />
             ) : null
         })

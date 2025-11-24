@@ -4,9 +4,18 @@
     padding: 24px;
     margin: 24px -24px 32px;
     row-gap: 16px;
+    display: grid;
+    align-items: flex-start;
 }
 
-.article-block__ltp-toc__title {
+.article-block__ltp-toc__primary,
+.article-block__ltp-toc__secondary {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.article-block__ltp-toc__primary-title {
     @include h2-bold;
     color: $blue-90;
     margin: 0;
@@ -17,22 +26,95 @@
     }
 }
 
-.article-block__ltp-toc__list {
+.article-block__ltp-toc__primary-list {
     list-style: none;
     display: flex;
     flex-direction: column;
     gap: 16px;
 }
 
-.article-block__ltp-toc__item {
+.article-block__ltp-toc__primary-item {
     @include body-3-medium;
 }
 
-.article-block__ltp-toc__link {
+.article-block__ltp-toc__primary-link {
     color: $blue-90;
     text-decoration: none;
 
     &:hover {
         text-decoration: underline;
     }
+}
+
+.article-block__ltp-toc__secondary {
+    margin-top: 10px;
+}
+
+.article-block__ltp-toc__secondary-title {
+    @include h5-black-caps;
+    color: $blue-65;
+    margin: 0;
+}
+
+.article-block__ltp-toc__secondary-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.article-block__ltp-toc__secondary-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    column-gap: 16px;
+    padding: 16px;
+    background-color: $white;
+    border: 1px solid $blue-10;
+    text-decoration: none;
+    transition: border-color 0.125s ease;
+    cursor: pointer;
+
+    &:hover {
+        border-color: $blue-30;
+    }
+}
+
+.article-block__ltp-toc__secondary-card-content {
+    display: flex;
+    align-items: center;
+    column-gap: 16px;
+}
+
+.article-block__ltp-toc__secondary-card-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 1.32px;
+    background-color: $blue-5;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: $blue-60;
+    font-size: 16px;
+}
+
+.article-block__ltp-toc__secondary-card-title {
+    @include h3-bold;
+    margin: 0;
+    color: $blue-90;
+}
+.article-block__ltp-toc__secondary-card-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.article-block__ltp-toc__secondary-card-description {
+    @include note-13-medium;
+    color: $blue-65;
+}
+
+.article-block__ltp-toc__secondary-card-arrow {
+    color: $blue-90;
+    font-size: 16px;
 }
