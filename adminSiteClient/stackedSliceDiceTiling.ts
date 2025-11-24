@@ -120,7 +120,7 @@ export function stackedSliceDiceTiling<T>({
         const toLayoutSize = (v: number): number => (v / total) * primarySpan
 
         // keepChildren are laid out normally (unless deemed "too thin")
-        const keepChildren: LayoutChild<T>[] = children.map((child, i) => ({
+        let keepChildren: LayoutChild<T>[] = children.map((child, i) => ({
             node: child,
             value: values[i],
             // Calculate the size each child would take in the primary direction
@@ -129,7 +129,7 @@ export function stackedSliceDiceTiling<T>({
 
         // Find children that are too thin with laid out normally
         let cumulativeSize = 0
-        const stackedChildren: LayoutChild<T>[] = []
+        let stackedChildren: LayoutChild<T>[] = []
         while (keepChildren.length > 0) {
             const lastKeepChild = keepChildren[keepChildren.length - 1]
 
@@ -146,6 +146,12 @@ export function stackedSliceDiceTiling<T>({
 
         if (debug) console.log("keep", keepChildren)
         if (debug) console.log("thin", stackedChildren)
+
+        // Layout normally if there are no keep children
+        if (keepChildren.length === 0) {
+            keepChildren = stackedChildren
+            stackedChildren = []
+        }
 
         // Add the values of the children to be stacked to the last keep entry
         let adjustedKeepChildren = undefined
