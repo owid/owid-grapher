@@ -90,7 +90,11 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
 
     override _enrichSubclassContent = (content: Record<string, any>): void => {
         const isTocForSidebar = content["sidebar-toc"]
-        content.toc = generateToc(content.body, isTocForSidebar)
+        const isLinearTopicPage = content.type === OwidGdocType.LinearTopicPage
+        content.toc = generateToc(
+            content.body,
+            isTocForSidebar || isLinearTopicPage
+        )
 
         if (content.summary) {
             content.summary = content.summary.map((html: RawBlockText) =>
