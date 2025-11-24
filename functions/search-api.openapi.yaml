@@ -119,16 +119,24 @@ paths:
                                     - $ref: "#/components/schemas/PageSearchResponse"
                             examples:
                                 chartSearch:
-                                    summary: Chart search results
+                                    summary: Chart search
                                     x-schema-ref: "#/components/schemas/ChartSearchResponse"
+                                    x-request-params:
+                                        q: "gdp"
                                     value:
                                         query: "gdp"
                                         results:
                                             - title: "GDP per capita"
-                                              slug: "gdp-per-capita"
-                                              subtitle: "Gross domestic product per capita adjusted for inflation"
+                                              slug: "gdp-per-capita-worldbank"
+                                              subtitle: "GDP per capita is a country's gross domestic product divided by its population. This data is adjusted for inflation and differences in living costs between countries."
+                                              variantName: "World Bank, constant international-$"
                                               type: "chart"
                                               availableEntities:
+                                                  - "United States"
+                                                  - "China"
+                                                  - "India"
+                                              originalAvailableEntities:
+                                                  - "Bosnia and Herzegovina"
                                                   - "United States"
                                                   - "China"
                                                   - "India"
@@ -136,28 +144,32 @@ paths:
                                                   - "LineChart"
                                                   - "Table"
                                                   - "WorldMap"
-                                              url: "https://ourworldindata.org/grapher/gdp-per-capita"
-                                        nbHits: 125
+                                              url: "https://ourworldindata.org/grapher/gdp-per-capita-worldbank"
+                                        nbHits: 360
                                         page: 0
-                                        nbPages: 7
+                                        nbPages: 18
                                         hitsPerPage: 20
 
                                 pageSearch:
-                                    summary: Page search results
+                                    summary: Page search
                                     x-schema-ref: "#/components/schemas/PageSearchResponse"
+                                    x-request-params:
+                                        q: "climate change"
+                                        type: "pages"
                                     value:
                                         query: "climate change"
                                         results:
-                                            - title: "Climate Change: Evidence and Causes"
-                                              slug: "climate-change-evidence"
-                                              type: "article"
-                                              thumbnailUrl: "https://ourworldindata.org/images/climate-thumbnail.jpg"
-                                              date: "2023-05-15"
+                                            - type: "article"
+                                              slug: "climate-change-support"
+                                              title: "More people care about climate change than you think"
+                                              content: |-
+                                                  You’ll get more clicks by making people angry at others for disagreeing. “Both sides” debates, for example in talk shows, can also give people the impression that they accurately reflect balance among the public. People think that far more people are opposed to climate action as a result.The debate is now about the merits of different solutions, not whether we should actFor decades, the world debated whether climate change was happening, if humans were causing it, and if we should do something. If you look at levels of concern in the UK since the millennium, for example, you find an interesting decline-then-rise. In the first decade of the 2000s, environmental concerns were very high. In 2005/06, 82% of Brits said they were concerned about “global warming”. This was around the time that Al Gore’s film An Inconvenient Truth was released. The Stern Report on the impacts and economics of climate change was published. And not far ahead of the release of the UK’s Climate Change Act.
+                                              date: "2024-03-25T10:48:30.000Z"
+                                              thumbnailUrl: "https://ourworldindata.org/cdn-cgi/imagedelivery/qLq-8BTgXU8yG0N6HnOy8g/e5956f18-560f-4639-ad7e-c18553856600/w=512"
                                               authors:
                                                   - "Hannah Ritchie"
-                                                  - "Max Roser"
-                                              url: "https://ourworldindata.org/climate-change-evidence"
-                                        nbHits: 42
+                                              url: "https://ourworldindata.org/climate-change-support"
+                                        nbHits: 104
                                         offset: 0
                                         length: 20
 
