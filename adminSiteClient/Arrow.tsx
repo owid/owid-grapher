@@ -1,6 +1,8 @@
 import React, { useMemo } from "react"
 import cx from "classnames"
 
+import { DraggableDebugHandles } from "./DraggableDebugHandles"
+
 export type Coords = [number, number]
 
 export type HeadAnchor = "start" | "end" | "both"
@@ -112,7 +114,7 @@ function buildArrow(
     return d
 }
 
-export function BezierArrow<D = unknown>({
+export function BezierArrow({
     start = [0, 0],
     end = [50, 0],
     startHandleOffset = [0, 0],
@@ -129,8 +131,19 @@ export function BezierArrow<D = unknown>({
     className,
     ...rest
 }: ArrowProps) {
-    const startControlPoint = startHandle ?? addOffset(start, startHandleOffset)
-    const endControlPoint = endHandle ?? addOffset(end, endHandleOffset)
+    const [debugOffsets, setDebugOffsets] = React.useState<{
+        start: Coords
+        end: Coords
+    } | null>(null)
+
+    const effectiveStartOffset =
+        debug && debugOffsets ? debugOffsets.start : startHandleOffset
+    const effectiveEndOffset =
+        debug && debugOffsets ? debugOffsets.end : endHandleOffset
+
+    const startControlPoint =
+        startHandle ?? addOffset(start, effectiveStartOffset)
+    const endControlPoint = endHandle ?? addOffset(end, effectiveEndOffset)
 
     const path = useMemo(() => {
         const headOptions = {
@@ -159,31 +172,15 @@ export function BezierArrow<D = unknown>({
     return (
         <g className={cx("arrow", className)} {...rest}>
             {debug && (
-                <g className="debug">
-                    {[startControlPoint, endControlPoint].map((coords, i) => (
-                        <circle
-                            key={`c-${i}`}
-                            cx={coords[0]}
-                            cy={coords[1]}
-                            r={5}
-                            fill="none"
-                            stroke="orange"
-                        />
-                    ))}
-                    {[
-                        [start, startControlPoint],
-                        [end, endControlPoint],
-                    ].map(([s, e], i) => (
-                        <line
-                            key={`l-${i}`}
-                            x1={s[0]}
-                            y1={s[1]}
-                            x2={e[0]}
-                            y2={e[1]}
-                            stroke="orange"
-                        />
-                    ))}
-                </g>
+                <DraggableDebugHandles
+                    start={start}
+                    end={end}
+                    startHandleOffset={startHandleOffset}
+                    endHandleOffset={endHandleOffset}
+                    startHandle={startHandle}
+                    endHandle={endHandle}
+                    onOffsetsChange={setDebugOffsets}
+                />
             )}
 
             <path
