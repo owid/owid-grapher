@@ -1,5 +1,6 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
+    faArrowDown,
     faArrowRight,
     faBook,
     faChartSimple,
@@ -12,7 +13,7 @@ import {
 } from "../../search/searchUtils.js"
 import { searchStateToUrl } from "../../search/searchState.js"
 
-const DEFAULT_TITLE = "Contents"
+const DEFAULT_TITLE = "Sections"
 const SECONDARY_CARDS = [
     {
         id: "data",
@@ -55,10 +56,10 @@ export const LTPTableOfContents = ({
 
     return (
         <nav className={className} aria-label={resolvedTitle}>
-            <div className="article-block__ltp-toc__primary span-cols-5 span-md-cols-6 span-sm-cols-12">
-                <p className="article-block__ltp-toc__primary-title">
-                    {resolvedTitle}
-                </p>
+            <p className="article-block__ltp-toc__title col-start-2 span-cols-10 col-md-start-1 span-md-cols-12 span-sm-cols-12">
+                {resolvedTitle}
+            </p>
+            <div className="article-block__ltp-toc__primary col-start-2 span-cols-7 col-md-start-1 span-md-cols-8 span-sm-cols-12">
                 <ul className="article-block__ltp-toc__primary-list">
                     {toc.map(({ slug, title: headingTitle, text }) => {
                         const displayTitle = headingTitle || text
@@ -68,6 +69,7 @@ export const LTPTableOfContents = ({
                                 key={slug}
                                 className="article-block__ltp-toc__primary-item"
                             >
+                                <FontAwesomeIcon icon={faArrowDown} />
                                 <a
                                     href={`#${slug}`}
                                     className="article-block__ltp-toc__primary-link"
