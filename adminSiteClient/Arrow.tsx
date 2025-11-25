@@ -5,7 +5,7 @@ export type Coords = [number, number]
 
 export type HeadAnchor = "start" | "end" | "both"
 
-export interface ArrowProps<D = unknown>
+export interface ArrowProps
     extends Omit<React.SVGProps<SVGGElement>, "start" | "end"> {
     /** start coordinates */
     start?: Coords
@@ -128,7 +128,7 @@ export function BezierArrow<D = unknown>({
     debug = false,
     className,
     ...rest
-}: ArrowProps<D>) {
+}: ArrowProps) {
     const startControlPoint = startHandle ?? addOffset(start, startHandleOffset)
     const endControlPoint = endHandle ?? addOffset(end, endHandleOffset)
 
