@@ -24,8 +24,8 @@ import {
     Url,
 } from "@ourworldindata/utils"
 import { AttachmentsContext } from "./AttachmentsContext.js"
-import { SubnavItem, subnavs } from "../SiteConstants.js"
-import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
+import { PROD_URL, SubnavItem, subnavs } from "../SiteConstants.js"
+import { BAKED_BASE_URL, IS_ARCHIVE } from "../../settings/clientSettings.js"
 
 const getOrigin = (url: string, base?: string): string | undefined => {
     try {
@@ -92,6 +92,9 @@ export const getLinkedDocumentUrl = (
     originalUrl: string,
     baseUrl: string = BAKED_BASE_URL
 ): string => {
+    if (IS_ARCHIVE) {
+        baseUrl = PROD_URL
+    }
     const canonicalUrl = getCanonicalUrl(baseUrl, {
         slug: linkedDocument.slug,
         content: { type: linkedDocument.type },

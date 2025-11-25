@@ -24,7 +24,6 @@ import {
     excludeUndefined,
     Url,
 } from "@ourworldindata/utils"
-import { BAKED_GRAPHER_URL } from "../../../settings/serverSettings.js"
 import { docs as googleDocs, type docs_v1 } from "@googleapis/docs"
 import { gdocToArchie } from "./gdocToArchie.js"
 import { archieToEnriched } from "./archieToEnriched.js"
@@ -32,7 +31,9 @@ import { getChartConfigById, mapSlugsToIds } from "../Chart.js"
 import {
     BAKED_BASE_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
+    IS_ARCHIVE,
 } from "../../../settings/clientSettings.js"
+import { PROD_URL } from "../../../site/SiteConstants.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { match, P } from "ts-pattern"
 import {
@@ -80,6 +81,8 @@ import { getDods } from "../Dod.js"
 import { getLatestArchivedExplorerPageVersionsIfEnabled } from "../ArchivedExplorerVersion.js"
 import { getLatestArchivedMultiDimPageVersionsIfEnabled } from "../ArchivedMultiDimVersion.js"
 import { getLatestArchivedChartPageVersionsIfEnabled } from "../ArchivedChartVersion.js"
+
+const BASE_URL = IS_ARCHIVE ? PROD_URL : BAKED_BASE_URL
 
 export async function getLinkedIndicatorsForCharts(
     knex: db.KnexReadonlyTransaction,
@@ -1246,7 +1249,7 @@ export async function makeGrapherLinkedChart(
         text: config.subtitle || "",
         fontSize: 12,
     }).plaintext
-    const resolvedUrl = `${BAKED_GRAPHER_URL}/${resolvedSlug}`
+    const resolvedUrl = `${BASE_URL}/grapher/${resolvedSlug}`
     const tab = config.tab ?? GRAPHER_TAB_CONFIG_OPTIONS.chart
     const indicatorId = await getDatapageIndicatorId(knex, config)
     return {
@@ -1282,7 +1285,7 @@ export function makeExplorerLinkedChart(
         originalSlug,
         title: explorer.title ?? "",
         subtitle: explorer.subtitle ?? "",
-        resolvedUrl: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${originalSlug}`,
+        resolvedUrl: `${BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${originalSlug}`,
         thumbnail:
             explorer.thumbnail ||
             `${BAKED_BASE_URL}/${DEFAULT_THUMBNAIL_FILENAME}`,
@@ -1306,7 +1309,7 @@ export function makeMultiDimLinkedChart(
         originalSlug: slug,
         title,
         dimensionSlugs: config.dimensions.map((d) => d.slug),
-        resolvedUrl: `${BAKED_GRAPHER_URL}/${slug}`,
+        resolvedUrl: `${BASE_URL}/grapher/${slug}`,
         tags: [],
         archivedPageVersion,
     }
