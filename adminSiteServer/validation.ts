@@ -37,7 +37,6 @@ async function isSlugUsedInOtherGrapher(
                 JOIN chart_configs cc ON cc.id = c.configId
                 WHERE
                     c.id != ?
-                    AND cc.full ->> "$.isPublished" = "true"
                     AND cc.slug = ?
             `,
         // -1 is a placeholder ID that will never exist; but we cannot use NULL because
@@ -62,7 +61,7 @@ export async function validateNewGrapherSlug(
     }
     if (await isSlugUsedInOtherGrapher(knex, slug, existingConfigId)) {
         throw new JsonError(
-            `This chart slug is in use by another published chart: ${slug}`
+            `This chart slug is in use by another chart: ${slug}`
         )
     }
     if (await multiDimDataPageExists(knex, { slug })) {
@@ -92,7 +91,7 @@ export async function validateMultiDimSlug(
     }
     if (await isSlugUsedInOtherGrapher(knex, slug, existingConfigId)) {
         throw new JsonError(
-            `This chart slug is in use by another published chart: ${slug}`
+            `This chart slug is in use by another chart: ${slug}`
         )
     }
     return slug
