@@ -17,6 +17,12 @@ export function makeOriginalTimeSlugFromColumnSlug(slug: ColumnSlug): string {
     return `${slug}-originalTime`
 }
 
+export function makeOriginalStartTimeSlugFromColumnSlug(
+    slug: ColumnSlug
+): string {
+    return `${slug}-originalStartTime`
+}
+
 export function makeOriginalValueSlugFromColumnSlug(slug: ColumnSlug): string {
     return `${slug}-originalValue`
 }
@@ -27,6 +33,15 @@ export function getOriginalTimeColumnSlug(
 ): ColumnSlug {
     const originalTimeSlug = makeOriginalTimeSlugFromColumnSlug(slug)
     if (table.has(originalTimeSlug)) return originalTimeSlug
+    return table.timeColumn.slug
+}
+
+export function getOriginalStartTimeColumnSlug(
+    table: CoreTable,
+    slug: ColumnSlug
+): ColumnSlug {
+    const originalStartTimeSlug = makeOriginalStartTimeSlugFromColumnSlug(slug)
+    if (table.has(originalStartTimeSlug)) return originalStartTimeSlug
     return table.timeColumn.slug
 }
 
