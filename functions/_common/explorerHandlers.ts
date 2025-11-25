@@ -216,8 +216,10 @@ export async function fetchZipForExplorerView(
 
     try {
         const explorerEnv = stripUrlExtensionFromEnv(env, extensions.zip)
-        const { grapherState, explorerParams } =
-            await initGrapherForExplorerView(explorerEnv, options)
+        const { grapherState } = await initGrapherForExplorerView(
+            explorerEnv,
+            options
+        )
 
         ensureDownloadOfDataAllowed(grapherState)
         const metadata = assembleMetadata(grapherState, searchParams)
@@ -225,19 +227,15 @@ export async function fetchZipForExplorerView(
         const csv = assembleCsv(grapherState, searchParams)
         console.log("Fetched the parts, creating zip file")
 
-        // Make a unique identifier for the given view
+        // Extract explorer slug
         const explorerSlug = explorerEnv.url.pathname.split("/").pop()
-        const viewId = Object.values(explorerParams)
-            .map((value) => value.replace(/\s/g, "_"))
-            .join("__")
-        const identifier = `${explorerSlug}__${viewId}`
 
         const zipContent: File[] = [
             {
-                path: `${identifier}.metadata.json`,
+                path: `${explorerSlug}.metadata.json`,
                 data: JSON.stringify(metadata, undefined, 2),
             },
-            { path: `${identifier}.csv`, data: csv },
+            { path: `${explorerSlug}.csv`, data: csv },
             { path: "readme.md", data: readme },
         ]
         const content = await createZip(zipContent)
@@ -246,7 +244,7 @@ export async function fetchZipForExplorerView(
         return new Response(content, {
             headers: {
                 "Content-Type": "application/zip",
-                "Content-Disposition": `attachment; filename="${identifier}.zip"`,
+                "Content-Disposition": `attachment; filename="${explorerSlug}.zip"`,
             },
         })
     } catch (e) {
