@@ -386,6 +386,21 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
                             .valuesIncludingErrorValues[rowIndex] as number,
                         y: yColumn.originalTimeColumn
                             .valuesIncludingErrorValues[rowIndex] as number,
+                        // Technically, to be more correct, we should support distinct
+                        // start and end times for each axis, but for simplicity we use
+                        // a single span (see getAverageAnnualChangeIndicesByEntity)
+                        span: this.manager.isRelativeMode
+                            ? [
+                                  yColumn.originalStartTimeColumn
+                                      .valuesIncludingErrorValues[
+                                      rowIndex
+                                  ] as number,
+                                  yColumn.originalTimeColumn
+                                      .valuesIncludingErrorValues[
+                                      rowIndex
+                                  ] as number,
+                              ]
+                            : undefined,
                     },
                 }
             })

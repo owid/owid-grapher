@@ -729,6 +729,11 @@ describe("average annual change", () => {
         )
         expect(chart.dualAxis.verticalAxis.scaleType).toEqual(ScaleType.linear)
     })
+
+    it("sets time.span correctly in relative mode", () => {
+        const point = chartState.series[0].points[0]
+        expect(point.time.span).toEqual([2000, 2002])
+    })
 })
 
 describe("scatter plot with xOverrideTime", () => {

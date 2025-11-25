@@ -34,6 +34,7 @@ import {
     getOriginalTimeColumnSlug,
     makeOriginalValueSlugFromColumnSlug,
     makeOriginalTimeSlugFromColumnSlug,
+    makeOriginalStartTimeSlugFromColumnSlug,
     timeColumnSlugFromColumnDef,
     toPercentageColumnDef,
 } from "./OwidTableUtil.js"
@@ -641,30 +642,48 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const rows: OwidRow[] = []
         entityNameToIndices.forEach((indices) => {
             const [startRow, endRow] = this.rowsAt(indices)
-            const newRow: OwidRow = {
-                ...endRow,
-            }
+
+            const newRow: OwidRow = { ...endRow }
             columns.forEach((col) => {
                 const timeSlug = col.originalTimeColumnSlug
-                const yearsElapsed = endRow[timeSlug] - startRow[timeSlug]
-                newRow[col.slug] = cagr(
-                    startRow[col.slug],
-                    endRow[col.slug],
-                    yearsElapsed
+
+                const startTime = startRow[timeSlug]
+                const endTime = endRow[timeSlug]
+                const yearsElapsed = endTime - startTime
+
+                const startValue = startRow[col.slug]
+                const endValue = endRow[col.slug]
+
+                // Update to average annual change
+                newRow[col.slug] = cagr(startValue, endValue, yearsElapsed)
+
+                // Add original start time column
+                const startTimeSlug = makeOriginalStartTimeSlugFromColumnSlug(
+                    col.slug
                 )
+                newRow[startTimeSlug] = startTime
             })
+
             rows.push(newRow)
         })
 
-        const newDefs = replaceDef(
-            this.defs,
-            columns.map((col) =>
-                toPercentageColumnDef(
-                    col.def,
-                    ColumnTypeNames.PercentChangeOverTime
+        const newDefs = [
+            ...replaceDef(
+                this.defs,
+                columns.map((col) =>
+                    toPercentageColumnDef(
+                        col.def,
+                        ColumnTypeNames.PercentChangeOverTime
+                    )
                 )
-            )
-        )
+            ),
+            ...columns.map((col) => {
+                return {
+                    ...this.timeColumn.def,
+                    slug: makeOriginalStartTimeSlugFromColumnSlug(col.slug),
+                }
+            }),
+        ]
 
         return this.transform(
             rows,

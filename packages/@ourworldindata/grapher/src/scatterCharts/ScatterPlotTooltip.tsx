@@ -32,6 +32,7 @@ interface TooltipValueRangeProps {
     points: SeriesPoint[]
     values: SeriesPoint[]
     showSignificanceSuperscript: boolean
+    showOriginalTimes?: boolean
 }
 
 @observer
@@ -63,6 +64,25 @@ export class ScatterPlotTooltip extends React.Component<ScatterPlotTooltipProps>
         // No tolerance notice needed for time scatter plots
         if (isTimeScatter) return undefined
 
+        // Check the time span in relative mode
+        if (manager.isRelativeMode) {
+            const [start, end] = points[0].time.span ?? []
+            const noticeNeeded = hasTimeMismatch({
+                actualStartTime: start,
+                actualEndTime: end,
+                targetStartTime: startTime,
+                targetEndTime: endTime,
+            })
+
+            if (!noticeNeeded) return undefined
+
+            return makeToleranceNotice({
+                startTime,
+                endTime,
+                formatTime: (time) => yColumn.formatTime(time),
+            })
+        }
+
         const { x: xStart, y: yStart } = R.first(values)?.time ?? {}
         const { x: xEnd, y: yEnd } = R.last(values)?.time ?? {}
 
@@ -79,18 +99,13 @@ export class ScatterPlotTooltip extends React.Component<ScatterPlotTooltipProps>
             targetEndTime: endTime,
         })
 
-        if (xNoticeNeeded || yNoticeNeeded) {
-            const targetNotice = _.uniq(excludeNullish([startTime, endTime]))
-                .map((t) => yColumn.formatTime(t))
-                .join(" to ")
+        if (!xNoticeNeeded && !yNoticeNeeded) return undefined
 
-            return {
-                icon: TooltipFooterIcon.Notice,
-                text: makeTooltipToleranceNotice(targetNotice),
-            }
-        }
-
-        return undefined
+        return makeToleranceNotice({
+            startTime,
+            endTime,
+            formatTime: (time) => yColumn.formatTime(time),
+        })
     }
 
     @computed private get roundingNotice(): FooterItem | undefined {
@@ -154,10 +169,13 @@ export class ScatterPlotTooltip extends React.Component<ScatterPlotTooltipProps>
     }
 
     override render(): React.ReactElement | null {
+        const { showSignificanceSuperscript } = this
         const { chartState, tooltipState } = this.props
 
         const { target, position, fading } = tooltipState
         if (!target) return null
+
+        const hasToleranceNotice = this.toleranceNotice !== undefined
 
         return (
             <Tooltip
@@ -178,25 +196,21 @@ export class ScatterPlotTooltip extends React.Component<ScatterPlotTooltipProps>
                     chartState={chartState}
                     points={this.points}
                     values={this.values}
-                    showSignificanceSuperscript={
-                        this.showSignificanceSuperscript
-                    }
+                    showSignificanceSuperscript={showSignificanceSuperscript}
+                    showOriginalTimes={hasToleranceNotice}
                 />
                 <TooltipValueRangeY
                     chartState={chartState}
                     points={this.points}
                     values={this.values}
-                    showSignificanceSuperscript={
-                        this.showSignificanceSuperscript
-                    }
+                    showSignificanceSuperscript={showSignificanceSuperscript}
+                    showOriginalTimes={hasToleranceNotice}
                 />
                 <TooltipValueRangeSize
                     chartState={chartState}
                     points={this.points}
                     values={this.values}
-                    showSignificanceSuperscript={
-                        this.showSignificanceSuperscript
-                    }
+                    showSignificanceSuperscript={showSignificanceSuperscript}
                 />
             </Tooltip>
         )
@@ -208,6 +222,7 @@ function TooltipValueRangeX({
     points,
     values,
     showSignificanceSuperscript,
+    showOriginalTimes,
 }: TooltipValueRangeProps): React.ReactElement | null {
     const { xColumn } = chartState
 
@@ -219,15 +234,17 @@ function TooltipValueRangeX({
         values
     )
 
+    const formattedOriginalTimes = showOriginalTimes
+        ? originalTimes.map((time) => formatTime(time, xColumn))
+        : []
+
     return (
         <TooltipValueRange
             label={xColumn.displayName}
             unit={xColumn.displayUnit}
             values={formatTooltipRangeValues(xValues, xColumn)}
             trend={calculateTrendDirection(...xValues)}
-            originalTimes={originalTimes.map((time) =>
-                formatTime(time, xColumn)
-            )}
+            originalTimes={formattedOriginalTimes}
             isRoundedToSignificantFigures={xColumn.roundsToSignificantFigures}
             showSignificanceSuperscript={showSignificanceSuperscript}
         />
@@ -239,6 +256,7 @@ function TooltipValueRangeY({
     points,
     values,
     showSignificanceSuperscript,
+    showOriginalTimes,
 }: TooltipValueRangeProps): React.ReactElement | null {
     const { yColumn } = chartState
 
@@ -250,15 +268,17 @@ function TooltipValueRangeY({
         values
     )
 
+    const formattedOriginalTimes = showOriginalTimes
+        ? originalTimes.map((time) => formatTime(time, yColumn))
+        : []
+
     return (
         <TooltipValueRange
             label={yColumn.displayName}
             unit={yColumn.displayUnit}
             values={formatTooltipRangeValues(yValues, yColumn)}
             trend={calculateTrendDirection(...yValues)}
-            originalTimes={originalTimes.map((time) =>
-                formatTime(time, yColumn)
-            )}
+            originalTimes={formattedOriginalTimes}
             isRoundedToSignificantFigures={yColumn.roundsToSignificantFigures}
             showSignificanceSuperscript={showSignificanceSuperscript}
         />
@@ -336,6 +356,25 @@ function hasTimeMismatch({
     return startTimesDiffer || endTimesDiffer
 }
 
+function makeToleranceNotice({
+    startTime,
+    endTime,
+    formatTime,
+}: {
+    startTime?: Time
+    endTime?: Time
+    formatTime: (time: Time) => string
+}): FooterItem {
+    const targetNotice = _.uniq(excludeNullish([startTime, endTime]))
+        .map((t) => formatTime(t))
+        .join(" to ")
+
+    return {
+        icon: TooltipFooterIcon.Notice,
+        text: makeTooltipToleranceNotice(targetNotice),
+    }
+}
+
 function getXValuesWithTimes(
     chartState: ScatterPlotChartState,
     points: SeriesPoint[],
@@ -345,7 +384,7 @@ function getXValuesWithTimes(
     originalTimes: (number | undefined)[]
 } {
     const { xColumn, yColumn, manager } = chartState
-    const { startTime, endTime } = manager
+    const { startTime, endTime, isRelativeMode } = manager
 
     const firstValue = R.first(values)
     const lastValue = R.last(values)
@@ -368,6 +407,16 @@ function getXValuesWithTimes(
 
     const xValues = xStart === xEnd ? [firstValue.x] : values.map((v) => v.x)
 
+    if (isRelativeMode) {
+        const originalTimes = getOriginalTimesForRelativeMode({
+            span: firstValue.time.span,
+            startTime,
+            endTime,
+        })
+
+        return { values: xValues, originalTimes }
+    }
+
     // Check if tolerance notice is needed
     const noticeNeeded = hasTimeMismatch({
         actualStartTime: xStart,
@@ -375,7 +424,12 @@ function getXValuesWithTimes(
         targetStartTime: startTime,
         targetEndTime: endTime,
     })
-    const originalTimes = noticeNeeded ? [xStart, xEnd] : []
+
+    const originalTimes = noticeNeeded
+        ? xStart === xEnd
+            ? [xEnd]
+            : [xStart, xEnd]
+        : []
 
     return { values: xValues, originalTimes }
 }
@@ -389,7 +443,7 @@ function getYValuesWithTimes(
     originalTimes: (number | undefined)[]
 } {
     const { xColumn, yColumn, manager } = chartState
-    const { startTime, endTime } = manager
+    const { startTime, endTime, isRelativeMode } = manager
 
     // Handle the special case where the x-axis is time
     if (chartState.isTimeScatter) {
@@ -415,6 +469,16 @@ function getYValuesWithTimes(
 
     const yValues = yStart === yEnd ? [firstValue.y] : values.map((v) => v.y)
 
+    if (isRelativeMode) {
+        const originalTimes = getOriginalTimesForRelativeMode({
+            span: firstValue.time.span,
+            startTime,
+            endTime,
+        })
+
+        return { values: yValues, originalTimes }
+    }
+
     // Check if tolerance notice is needed
     const noticeNeeded = hasTimeMismatch({
         actualStartTime: yStart,
@@ -422,9 +486,40 @@ function getYValuesWithTimes(
         targetStartTime: startTime,
         targetEndTime: endTime,
     })
-    const originalTimes = noticeNeeded ? [yStart, yEnd] : []
+
+    const originalTimes = noticeNeeded
+        ? yStart === yEnd
+            ? [yEnd]
+            : [yStart, yEnd]
+        : []
 
     return { values: yValues, originalTimes }
+}
+
+function getOriginalTimesForRelativeMode({
+    startTime,
+    endTime,
+    span,
+}: {
+    span?: [number, number]
+    startTime?: Time
+    endTime?: Time
+}): (number | undefined)[] {
+    if (!span) return []
+
+    const [spanStart, spanEnd] = span
+    const noticeNeeded = hasTimeMismatch({
+        actualStartTime: spanStart,
+        actualEndTime: spanEnd,
+        targetStartTime: startTime,
+        targetEndTime: endTime,
+    })
+
+    return noticeNeeded
+        ? spanStart === spanEnd
+            ? [spanEnd]
+            : [spanStart, spanEnd]
+        : []
 }
 
 function formatTime(

@@ -35,6 +35,7 @@ import {
 } from "@ourworldindata/types"
 import { ErrorValueTypes, isNotErrorValue } from "./ErrorValues.js"
 import {
+    getOriginalStartTimeColumnSlug,
     getOriginalTimeColumnSlug,
     getOriginalValueColumnSlug,
 } from "./OwidTableUtil.js"
@@ -350,6 +351,14 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     @imemo get originalTimeColumn(): CoreColumn {
         return this.table.get(this.originalTimeColumnSlug)
+    }
+
+    @imemo get originalStartTimeColumnSlug(): string {
+        return getOriginalStartTimeColumnSlug(this.table, this.slug)
+    }
+
+    @imemo get originalStartTimeColumn(): CoreColumn {
+        return this.table.get(this.originalStartTimeColumnSlug)
     }
 
     @imemo get originalTimes(): number[] {
