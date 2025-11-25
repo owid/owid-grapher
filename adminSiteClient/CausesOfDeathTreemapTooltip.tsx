@@ -188,8 +188,8 @@ function CausesOfDeathTooltipSparkline({
     timeRange,
     year,
     color,
-    width = 36,
-    height = 14,
+    width = 40,
+    height = 18,
     dotRadius = 4,
 }: {
     data: SparklineDatapoint[]
@@ -224,7 +224,7 @@ function CausesOfDeathTooltipSparkline({
             width={width}
             height={height}
             viewBox={`0 0 ${width} ${height}`}
-            style={{ marginRight: 8, overflow: "visible" }}
+            style={{ marginRight: 12, overflow: "visible" }}
         >
             {/* Zero line (horizontal reference) */}
             <line
