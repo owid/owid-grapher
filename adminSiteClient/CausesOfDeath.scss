@@ -206,13 +206,19 @@ $black-text: $gray-100;
 }
 
 .causes-of-death-tooltip__value {
-    margin-top: 4px;
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
 }
 
 .causes-of-death-tooltip__value .muted {
     font-weight: 400;
     font-size: 0.8em;
     color: $light-text;
+}
+
+.tooltip-container > .Tooltip .content .variable + .variable {
+    border: none;
 }
 
 .arrow path {
