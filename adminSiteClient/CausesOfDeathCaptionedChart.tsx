@@ -63,7 +63,6 @@ export function CausesOfDeathCaptionedChart({
     )
 }
 
-// TODO: Adapt to age groups
 function CausesOfDeathHeader({
     entityName,
     year,
@@ -77,22 +76,24 @@ function CausesOfDeathHeader({
     numTotalDeaths: number
     isLoading: boolean
 }) {
+    const ageGroupName =
+        ageGroup === "All ages"
+            ? "people"
+            : ageGroup === "Children under 5"
+              ? "children"
+              : ageGroup.toLowerCase()
+
     const location =
         entityName === "World"
             ? "globally"
             : `in ${formatCountryName(entityName)}`
-
-    const title =
-        ageGroup === "Children under 5"
-            ? "What do children die from?"
-            : "What do people die from?"
 
     return (
         <div className="causes-of-death-header">
             <OwidLogo />
             <header className="causes-of-death-header__content">
                 <h1>
-                    {title}{" "}
+                    {`What do ${ageGroupName} die from?`}{" "}
                     <span>
                         Causes of death {location} in {year}
                     </span>
