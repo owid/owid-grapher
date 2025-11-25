@@ -107,14 +107,14 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                 key: DownloadModalTabName.Vis,
                 element: <>Visualization</>,
                 buttonProps: {
-                    "data-track-note": "chart_download_modal_tab_visualization",
+                    dataTrackNote: "chart_download_modal_tab_visualization",
                 },
             },
             {
                 key: DownloadModalTabName.Data,
                 element: <>Data</>,
                 buttonProps: {
-                    "data-track-note": "chart_download_modal_tab_data",
+                    dataTrackNote: "chart_download_modal_tab_data",
                 },
             },
         ]

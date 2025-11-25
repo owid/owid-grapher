@@ -1,6 +1,10 @@
 $active-icon: $blue-50;
 
 @at-root {
+    .ContentSwitchers__Container {
+        position: relative;
+    }
+
     .ContentSwitchers__OverflowMenu {
         border-radius: 4px;
         background-color: #fff;

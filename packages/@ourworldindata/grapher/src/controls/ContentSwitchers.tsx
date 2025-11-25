@@ -126,7 +126,7 @@ export class ContentSwitchers extends React.Component<{
                 element: <>+&#8202;{this.hiddenTabs.length}</>,
                 buttonProps: {
                     className: "ContentSwitchers__OverflowMenuButton",
-                    "aria-label": "Show more chart types",
+                    ariaLabel: "Show more chart types",
                 },
             })
         }
@@ -151,7 +151,8 @@ export class ContentSwitchers extends React.Component<{
 
     @action.bound private onTabChange(selectedKey: TabKey): void {
         if (selectedKey === OVERFLOW_MENU_KEY) {
-            this.showOverflowMenu()
+            // Prevent the click from immediately closing the popover
+            setTimeout(() => this.showOverflowMenu(), 0)
         } else {
             this.setTab(selectedKey as GrapherTabName)
             this.hideOverflowMenu()
@@ -200,14 +201,16 @@ export class ContentSwitchers extends React.Component<{
         if (!this.shouldShow) return null
 
         return (
-            <Tabs
-                variant="slim"
-                className="ContentSwitchers"
-                items={this.tabItems}
-                selectedKey={this.selectedTabKey}
-                onChange={this.onTabChange}
-                slot={this.renderOverflowMenu()}
-            />
+            <div className="ContentSwitchers__Container">
+                <Tabs
+                    variant="slim"
+                    className="ContentSwitchers"
+                    items={this.tabItems}
+                    selectedKey={this.selectedTabKey}
+                    onChange={this.onTabChange}
+                />
+                {this.renderOverflowMenu()}
+            </div>
         )
     }
 }
