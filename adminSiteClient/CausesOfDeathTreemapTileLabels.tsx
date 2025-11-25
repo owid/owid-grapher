@@ -78,8 +78,10 @@ export function CausesOfDeathTreemapTileLabels({
     const dailyValue = formatCount(value / 365, { abbreviate: false })
 
     // Only the largest rectangle gets "died from" text
+    const lowercaseVariable =
+        variable.toUpperCase() === variable ? variable : variable.toLowerCase()
     const labelText = isLargestTile
-        ? `died from ${variable.toLowerCase()}`
+        ? `died from ${lowercaseVariable}`
         : variable
 
     const contentBounds = new Bounds(0, 0, width, height)

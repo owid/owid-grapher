@@ -77,6 +77,8 @@ export function CausesOfDeathChart(): React.ReactElement {
     )
         return <CausesOfDeathChartError />
 
+    console.log(activeData.filter((d) => d.year === activeYear))
+
     return (
         <div className="causes-of-death-chart">
             <CausesOfDeathControls
