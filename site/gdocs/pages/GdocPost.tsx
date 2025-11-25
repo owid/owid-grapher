@@ -16,12 +16,15 @@ import {
     getPhraseForArchivalDate,
 } from "@ourworldindata/utils"
 import { CodeSnippet } from "@ourworldindata/components"
-import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
+import { BAKED_BASE_URL, IS_ARCHIVE } from "../../../settings/clientSettings.js"
 import { OwidGdocHeader } from "../components/OwidGdocHeader.js"
 import StickyNav from "../../blocks/StickyNav.js"
 import { getShortPageCitation } from "../utils.js"
 import { TableOfContents } from "../../TableOfContents.js"
 import { DocumentContext } from "../DocumentContext.js"
+import { PROD_URL } from "../../SiteConstants.js"
+
+const BASE_URL = IS_ARCHIVE ? PROD_URL : ""
 
 const citationDescriptionsByArticleType: Record<
     | OwidGdocType.Article
@@ -220,7 +223,9 @@ export function GdocPost({
                     {!isDeprecated && (
                         <p>
                             All of{" "}
-                            <a href="/faqs#how-can-i-embed-one-of-your-interactive-charts-in-my-website">
+                            <a
+                                href={`${BASE_URL}/faqs#how-can-i-embed-one-of-your-interactive-charts-in-my-website`}
+                            >
                                 our charts can be embedded
                             </a>{" "}
                             in any site.
