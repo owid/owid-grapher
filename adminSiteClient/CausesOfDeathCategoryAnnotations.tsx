@@ -60,16 +60,16 @@ function CategoryAnnotation({
         position === "top" ? bounds.bottom - 3 : bounds.top + 3,
     ]
 
-    const arrowStartHandleOffset: [number, number] = isEndAnchored
-        ? position === "top"
-            ? [20, -5]
-            : [20, 5]
-        : [-20, -5]
-    const arrowEndHandleOffset: [number, number] = isEndAnchored
-        ? position === "top"
-            ? [-5, -20]
-            : [-5, 20]
-        : [5, -20]
+    const horizontalSign = isEndAnchored ? 1 : -1
+    const verticalSign = -direction
+    const arrowStartHandleOffset: [number, number] = [
+        horizontalSign * 20,
+        verticalSign * 5,
+    ]
+    const arrowEndHandleOffset: [number, number] = [
+        horizontalSign * -5,
+        verticalSign * 20,
+    ]
 
     return (
         <g>
