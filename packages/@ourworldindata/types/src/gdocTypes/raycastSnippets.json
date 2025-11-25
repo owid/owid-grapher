@@ -223,5 +223,15 @@
         "name": "sticky-left-with-chart",
         "text": "{ .sticky-left }\n[.+right]\n{.chart}\nurl: \ncaption: \n{}\n[]\n[.+left]\n\n[]\n{}",
         "keyword": "+slwc"
+    },
+    {
+        "name": "socials",
+        "text": "[.socials]\ntext: \nurl: \ntype: x\ntext: \nurl: \ntype: facebook\ntext: \nurl: \n[]",
+        "keyword": "+socials"
+    },
+    {
+        "name": "static-viz",
+        "text": "{.static-viz}\nname: \nsize: \nhasOutline: \n{}",
+        "keyword": "+static-viz"
     }
 ]
