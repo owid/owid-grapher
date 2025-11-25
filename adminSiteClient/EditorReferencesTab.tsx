@@ -145,6 +145,7 @@ export class EditorReferencesTabForChart extends Component<{
                             <ReferencesDataInsights
                                 references={this.references}
                             />
+                            <ReferencesStaticViz references={this.references} />
                         </>
                     ) : (
                         <p>No references found</p>
@@ -511,6 +512,36 @@ const ReferencesNarrativeCharts = (props: {
                         >
                             <strong>{narrativeChart.title}</strong>
                         </a>
+                    </li>
+                ))}
+            </ul>
+        </>
+    )
+}
+
+const ReferencesStaticViz = (props: {
+    references: Pick<References, "staticViz">
+}) => {
+    if (!props.references.staticViz?.length) return null
+    return (
+        <>
+            <p>Static visualizations created from this chart:</p>
+            <ul className="list-group">
+                {props.references.staticViz.map((staticViz) => (
+                    <li key={staticViz.id} className="list-group-item">
+                        <a
+                            href={`/admin/static-viz/${staticViz.id}`}
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            <strong>{staticViz.title}</strong>
+                        </a>
+                        {staticViz.slug && (
+                            <span style={{ color: "#aaa" }}>
+                                {" "}
+                                ({staticViz.slug})
+                            </span>
+                        )}
                     </li>
                 ))}
             </ul>

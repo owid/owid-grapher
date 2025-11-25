@@ -11,6 +11,8 @@ import {
     DbRawChartConfig,
     ChartConfigsTableName,
     DbChartTagJoin,
+    ContentGraphLinkType,
+    StaticVizTableName,
 } from "@ourworldindata/types"
 import {
     diffGrapherConfigs,
@@ -20,7 +22,10 @@ import {
 } from "@ourworldindata/utils"
 import Papa from "papaparse"
 import { uuidv7 } from "uuidv7"
-import { References } from "../../adminSiteClient/AbstractChartEditor.js"
+import {
+    References,
+    StaticVizReference,
+} from "../../adminSiteClient/AbstractChartEditor.js"
 import { NarrativeChartMinimalInformation } from "../../adminSiteClient/ChartEditor.js"
 import { denormalizeLatestCountryData } from "../../baker/countryProfiles.js"
 import {
@@ -93,6 +98,41 @@ export const getReferencesByChartId = async (
         WHERE nc.parentChartId = ?`,
         [chartId]
     )
+    const chartSlugsPromise = db.knexRaw<{ targetSlug: string }>(
+        knex,
+        `-- sql
+        SELECT cc.slug AS targetSlug
+        FROM charts c
+        JOIN chart_configs cc ON c.configId = cc.id
+        WHERE c.id = ?
+
+        UNION ALL
+
+        SELECT cr.slug AS targetSlug
+        FROM chart_slug_redirects cr
+        WHERE cr.chart_id = ?`,
+        [chartId, chartId]
+    )
+    const staticVizPromise = chartSlugsPromise.then((slugRows) => {
+        const uniqueSlugs = Array.from(
+            new Set(slugRows.map((row) => row.targetSlug).filter(Boolean))
+        )
+        if (!uniqueSlugs.length) return [] as StaticVizReference[]
+        const placeholders = uniqueSlugs.map(() => "?").join(", ")
+        return db.knexRaw<StaticVizReference>(
+            knex,
+            `-- sql
+            SELECT
+                sv.id,
+                sv.slug,
+                sv.title,
+                sv.grapherSlug,
+                '${ContentGraphLinkType.StaticViz}' AS type
+            FROM ${StaticVizTableName} sv
+            WHERE sv.grapherSlug IN (${placeholders})`,
+            uniqueSlugs
+        )
+    })
     const dataInsightsPromise = db.knexRaw<DataInsightMinimalInformation>(
         knex,
         `-- sql
@@ -149,12 +189,14 @@ export const getReferencesByChartId = async (
         explorerSlugs,
         narrativeCharts,
         dataInsights,
+        staticVizReferences,
     ] = await Promise.all([
         postsWordpressPromise,
         postGdocsPromise,
         explorerSlugsPromise,
         narrativeChartsPromise,
         dataInsightsPromise,
+        staticVizPromise,
     ])
 
     return {
@@ -165,6 +207,7 @@ export const getReferencesByChartId = async (
         ),
         narrativeCharts,
         dataInsights,
+        staticViz: staticVizReferences,
     }
 }
 

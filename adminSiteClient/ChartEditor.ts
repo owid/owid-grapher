@@ -40,10 +40,26 @@ export interface NarrativeChartMinimalInformation {
 }
 
 export const getFullReferencesCount = (references: References): number => {
-    // Get unique count, because a post can be referenced via the `grapher-url` Data Insight property,
-    // and also in its content directly. We want such cases to appear as one reference.
-    const allRefs = Object.values(references).flat()
-    const uniqueRefs = new Set(allRefs.map((ref) => `${ref.type}:${ref.slug}`))
+    // Get a unique count so double references (e.g. via grapher-url + inline link) are not overcounted.
+    const allRefs = Object.values(
+        references
+    ).flat() as References[keyof References][]
+    const uniqueRefs = new Set(
+        allRefs.map((ref) => {
+            if (typeof ref === "string") return `string:${ref}`
+            if (!ref || typeof ref !== "object") {
+                return `unknown:${String(ref)}`
+            }
+            const typedRef = ref as {
+                type?: string
+                slug?: string
+                id?: string | number
+            }
+            const type = typedRef.type ?? "unknown"
+            const slug = typedRef.slug ?? typedRef.id ?? "unknown"
+            return `${type}:${slug}`
+        })
+    )
     return uniqueRefs.size
 }
 

@@ -6,6 +6,7 @@ import {
     PostReference,
     SeriesName,
 } from "@ourworldindata/utils"
+import { ContentGraphLinkType } from "@ourworldindata/types"
 import { action, computed, observable, when, makeObservable } from "mobx"
 import { EditorFeatures } from "./EditorFeatures.js"
 import { Admin } from "./Admin.js"
@@ -47,6 +48,15 @@ export interface References {
     narrativeCharts?: NarrativeChartMinimalInformation[]
     childCharts?: IndicatorChartInfo[]
     dataInsights?: DataInsightMinimalInformation[]
+    staticViz?: StaticVizReference[]
+}
+
+export interface StaticVizReference {
+    id: number
+    slug: string
+    title: string
+    grapherSlug?: string | null
+    type: ContentGraphLinkType.StaticViz
 }
 
 export abstract class AbstractChartEditor<
