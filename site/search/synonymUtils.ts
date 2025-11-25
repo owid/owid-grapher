@@ -166,6 +166,7 @@ export const synonyms = [
     ["solar", "photovoltaic", "photovoltaics", "pv"],
     ["tb", "tuberculosis"],
     ["ntd", "neglected tropical diseases", "neglected tropical disease"],
+    ["fgm", "female genital mutilation"],
     ["people", "population"],
     ["production", "generation"],
     ["farm", "farming", "agriculture", "food production"],
