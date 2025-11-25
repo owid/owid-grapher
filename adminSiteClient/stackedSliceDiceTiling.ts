@@ -33,6 +33,70 @@ export type TilingFunction<T> = (
 ) => void
 
 /**
+ * Calculate the secondary space available for stacked children
+ *
+ * When children are stacked, they share space with the last keep child.
+ * This function calculates how much of the secondary span would be allocated
+ * to the stacked children.
+ *
+ * @param stackedChildren - Children to be stacked
+ * @param lastKeepChild - The last child in the normal layout
+ * @param secondarySpan - Total available space in secondary direction
+ * @returns Space available for stacked children in secondary direction
+ */
+function calculateStackedSecondarySpace<T>(
+    stackedChildren: LayoutChild<T>[],
+    lastKeepChild: LayoutChild<T>,
+    secondarySpan: number
+): number {
+    const stackedSum = R.sumBy(stackedChildren, (child) => child.value)
+    const lastKeepValue = lastKeepChild.value
+    const totalValue = lastKeepValue + stackedSum
+
+    if (totalValue === 0) return 0
+
+    // The keep child gets its proportional share, stacked get the rest
+    const keepFrac = lastKeepValue / totalValue
+    const keepSize = keepFrac * secondarySpan
+    const stackedSize = secondarySpan - keepSize
+
+    return stackedSize
+}
+
+/**
+ * Check if stacked children would meet the perpendicular minimum constraint
+ *
+ * Simulates laying out the stacked children and checks if each would meet
+ * the minimum size requirement in the perpendicular direction.
+ *
+ * @param stackedChildren - Children to check
+ * @param availableSpace - Space available in perpendicular direction
+ * @param perpendicularMin - Minimum size required in perpendicular direction
+ * @returns true if all stacked children would meet the constraint
+ */
+function wouldStackedChildrenMeetConstraint<T>(
+    stackedChildren: LayoutChild<T>[],
+    availableSpace: number,
+    perpendicularMin: number
+): boolean {
+    if (stackedChildren.length === 0) return true
+    if (availableSpace <= 0) return false
+
+    const total = R.sumBy(stackedChildren, (child) => child.value)
+    if (total === 0) return false
+
+    // Check each child's proportional size in perpendicular direction
+    for (const child of stackedChildren) {
+        const perpendicularSize = (child.value / total) * availableSpace
+        if (perpendicularSize < perpendicularMin) {
+            return false
+        }
+    }
+
+    return true
+}
+
+/**
  * Creates a stacked slice-dice tiling function with smart stacking for thin rectangles.
  *
  * This algorithm combines alternating slice-dice orientation with intelligent stacking:
@@ -70,14 +134,6 @@ export function stackedSliceDiceTiling<T>({
         x1: number,
         y1: number
     ): void {
-        // TODO: Remove debug code
-        // @ts-expect-error ignore
-        const debug =
-            node.data.id === "Maternal, neonatal and nutritional diseases"
-        if (debug) console.log(node.data)
-
-        // console.log(node.data.id)
-
         // Alternating slice/dice:
         // - even depth = columns (vertical strips)
         // - odd depth = rows (horizontal strips)
@@ -103,8 +159,6 @@ export function stackedSliceDiceTiling<T>({
         // Determine primary span based on orientation
         const primarySpan = vertical ? width : height
         const secondarySpan = vertical ? height : width
-        if (debug) console.log("vertical?", vertical)
-        if (debug) console.log("primary span", primarySpan)
 
         // Extract numeric values from each child node (ensuring non-negative values)
         const values = children.map((c) => Math.max(0, c.value || 0))
@@ -112,8 +166,6 @@ export function stackedSliceDiceTiling<T>({
 
         // No values to work with
         if (total === 0) return
-
-        if (debug) console.log("values", values, total)
 
         // Helper: Convert value to proportional layout size
         // Example: If primarySpan=100px, total value=200, child value=50, then layout size=25px
@@ -127,15 +179,44 @@ export function stackedSliceDiceTiling<T>({
             layoutSize: toLayoutSize(values[i]),
         }))
 
-        // Find children that are too thin with laid out normally
+        // Find children that should be stacked
+        // Work backward from smallest children, checking both primary and perpendicular constraints
         let cumulativeSize = 0
         let stackedChildren: LayoutChild<T>[] = []
-        while (keepChildren.length > 0) {
-            const lastKeepChild = keepChildren[keepChildren.length - 1]
 
-            cumulativeSize += lastKeepChild.layoutSize
+        // Try stacking children incrementally from smallest to largest
+        while (keepChildren.length > 0) {
+            const candidate = keepChildren[keepChildren.length - 1]
+            cumulativeSize += candidate.layoutSize
+
+            // If cumulative size meets the minimum, stop stacking
             if (cumulativeSize >= minWidth) break
 
+            // Check if this candidate would meet perpendicular constraint when stacked
+            const candidateStackedChildren = [...stackedChildren, candidate]
+            const lastKeepChild =
+                keepChildren.length > 1
+                    ? keepChildren[keepChildren.length - 2]
+                    : candidate
+            const availableSecondarySpace = calculateStackedSecondarySpace(
+                candidateStackedChildren,
+                lastKeepChild,
+                secondarySpan
+            )
+
+            // Only stack if perpendicular constraint would be met
+            if (
+                !wouldStackedChildrenMeetConstraint(
+                    candidateStackedChildren,
+                    availableSecondarySpace,
+                    vertical ? 0 : 15
+                )
+            ) {
+                // This child and smaller ones can't be safely stacked
+                break
+            }
+
+            // Safe to stack this child
             stackedChildren.unshift(keepChildren.pop()!)
         }
 
@@ -143,9 +224,6 @@ export function stackedSliceDiceTiling<T>({
             stackedChildren,
             (child) => child.value
         )
-
-        if (debug) console.log("keep", keepChildren)
-        if (debug) console.log("thin", stackedChildren)
 
         // Layout normally if there are no keep children
         if (keepChildren.length === 0) {
@@ -170,8 +248,6 @@ export function stackedSliceDiceTiling<T>({
             }))
         }
 
-        if (debug) console.log("adjusted keep", keepChildren)
-
         // Layout the keep children normally
         const layoutChildren = adjustedKeepChildren ?? keepChildren
         const keepSpan = R.sum(layoutChildren.map((d) => d.layoutSize))
@@ -187,8 +263,6 @@ export function stackedSliceDiceTiling<T>({
         // then we need to adjust its rectangle to account for that,
         // and lay out the stacked children within that space
         if (stackedChildren.length > 0) {
-            if (debug) console.log("tmp keep", adjustedKeepChildren)
-
             const lastKeepChild = keepChildren[keepChildren.length - 1].node
             const lastKeepChildValue = lastKeepChild.value ?? 0
             const totalValue = lastKeepChildValue + stackedChildrenSum
