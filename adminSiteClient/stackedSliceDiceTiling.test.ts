@@ -956,7 +956,7 @@ describe(stackedSliceDiceTiling, () => {
                 })
                 const root = createTreemap(data, tiler, 100, 100)
 
-                const grandchildren0 = root.children![0].children!
+                // const grandchildren0 = root.children![0].children!
                 const grandchildren1 = root.children![1].children!
 
                 expectChildrenToHaveProportionalAreas(root)
