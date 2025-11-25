@@ -491,11 +491,11 @@ export const getPublishedGdocsWithTags = async (
         OwidGdocType.TopicPage,
         OwidGdocType.AboutPage,
         OwidGdocType.Announcement,
-    ]
+    ],
+    options: { excludeDeprecated?: boolean } = {}
 ): Promise<DBEnrichedPostGdocWithTags[]> => {
-    return knexRaw<DBRawPostGdocWithTags>(
-        knex,
-        `-- sql
+    const { excludeDeprecated = false } = options
+    const query = `-- sql
         SELECT
         g.manualBreadcrumbs,
         g.content,
@@ -524,12 +524,16 @@ export const getPublishedGdocsWithTags = async (
         g.published = 1
         AND g.type IN (:gdocTypes)
         AND g.publishedAt <= NOW()
-    GROUP BY g.id
-    ORDER BY g.publishedAt DESC`,
-        {
-            gdocTypes,
+        ${
+            excludeDeprecated
+                ? `AND (g.content ->> '$."deprecation-notice"' IS NULL)`
+                : ""
         }
-    ).then((rows) => rows.map(parsePostsGdocsWithTagsRow))
+    GROUP BY g.id
+    ORDER BY g.publishedAt DESC`
+    return knexRaw<DBRawPostGdocWithTags>(knex, query, {
+        gdocTypes,
+    }).then((rows) => rows.map(parsePostsGdocsWithTagsRow))
 }
 
 export const getNonGrapherExplorerViewCount = (

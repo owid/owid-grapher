@@ -367,6 +367,19 @@ export async function getPreviewGdocIndexRecords(
             return payload
         }
 
+        if (
+            "deprecation-notice" in gdocJson.content &&
+            gdocJson.content["deprecation-notice"]
+        ) {
+            const payload: PagesIndexRecordsResponse = {
+                records: [],
+                count: 0,
+                message:
+                    "Gdoc is deprecated (has deprecation-notice) and will not be indexed in Algolia",
+            }
+            return payload
+        }
+
         const records = await getIndividualGdocRecords(gdocJson, trx)
 
         const payload: PagesIndexRecordsResponse = {
