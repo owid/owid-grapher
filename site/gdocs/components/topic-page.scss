@@ -239,7 +239,7 @@
     > h1.article-block__heading {
         text-wrap: unset;
         position: relative;
-        margin-top: 64px;
+        margin-top: 96px;
         @include sm-only {
             font-size: 1.5rem;
             line-height: 2rem;
@@ -247,7 +247,7 @@
         &::before {
             content: "";
             position: absolute;
-            top: -32px;
+            top: -48px;
             border-top: 1px solid $blue-10;
             /* At lg, heading takes up 6 columns, so 200% is 12 columns then we add a missing gutter */
             /* Using percentages instead of absolute values because different browsers calculate the grid size differently */
