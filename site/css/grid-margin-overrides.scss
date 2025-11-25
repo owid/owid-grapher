@@ -73,4 +73,9 @@
     [class*="article-block__"]:has(+ .article-block__chart) {
         margin-bottom: 0;
     }
+
+    /* Set the bottom margin of any element that comes before a table of contents to 0 */
+    [class*="article-block__"]:has(+ .article-block__ltp-toc) {
+        margin-bottom: 0;
+    }
 }

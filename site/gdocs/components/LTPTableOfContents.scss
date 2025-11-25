@@ -1,11 +1,16 @@
 .article-block__ltp-toc {
     background-color: $blue-5;
     border: 1px solid $blue-20;
-    padding: 24px;
-    margin: 24px -24px 32px;
+    padding: 48px 24px;
+    margin: 32px 0px;
     row-gap: 16px;
     display: grid;
     align-items: flex-start;
+
+    @include sm-only {
+        margin: 24px 0;
+        padding: 24px;
+    }
 }
 
 .article-block__ltp-toc__primary,
@@ -15,7 +20,7 @@
     gap: 16px;
 }
 
-.article-block__ltp-toc__primary-title {
+.article-block__ltp-toc__title {
     @include h2-bold;
     color: $blue-90;
     margin: 0;
@@ -34,7 +39,22 @@
 }
 
 .article-block__ltp-toc__primary-item {
-    @include body-3-medium;
+    display: flex;
+    align-items: flex-start;
+    @include body-2-regular;
+
+    @include sm-only {
+        @include body-3-regular;
+    }
+
+    svg {
+        width: 13px;
+        height: 13px;
+        flex-shrink: 0;
+        margin-right: 8px;
+        margin-top: 6px;
+        color: $vermillion;
+    }
 }
 
 .article-block__ltp-toc__primary-link {
@@ -47,7 +67,10 @@
 }
 
 .article-block__ltp-toc__secondary {
-    margin-top: 10px;
+    margin-top: 4px;
+    @include sm-only {
+        margin-top: 24px;
+    }
 }
 
 .article-block__ltp-toc__secondary-title {
