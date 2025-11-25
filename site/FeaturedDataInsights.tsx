@@ -63,7 +63,12 @@ export const FeaturedDataInsights = ({
     return (
         <section className={className} id={FEATURED_DATA_INSIGHTS_ID}>
             <h1 className="article-block__featured-data-insights__title h1-semibold">
-                Data insights on {topicName}
+                <span>Data insights on {topicName}</span>
+                <a
+                    className="deep-link"
+                    aria-labelledby={FEATURED_DATA_INSIGHTS_ID}
+                    href={`#${FEATURED_DATA_INSIGHTS_ID}`}
+                />
             </h1>
             {isLoading ? (
                 <SearchDataInsightsResultsSkeleton />
