@@ -59,7 +59,12 @@ export const FeaturedMetrics = ({
     return (
         <section className={className} id={FEATURED_METRICS_ID}>
             <h1 className="article-block__featured-metrics__title h1-semibold">
-                Featured data on {topicName}
+                <span>Featured data on {topicName}</span>
+                <a
+                    className="deep-link"
+                    aria-labelledby={FEATURED_METRICS_ID}
+                    href={`#${FEATURED_METRICS_ID}`}
+                />
             </h1>
             {isLoading ? (
                 <SearchDataResultsSkeleton />
