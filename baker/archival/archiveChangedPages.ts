@@ -73,6 +73,7 @@ interface Options {
     explorerSlugs?: string[]
     postSlugs?: string[]
     type: "charts" | "multiDims" | "explorers" | "posts" | "all"
+    force?: boolean
 }
 
 interface ArchivalData {
@@ -153,6 +154,10 @@ const getExplorersToArchive = async (
         return explorersToArchive
     }
 
+    if (opts.force) {
+        return await getExplorerChecksumsFromDb(trx)
+    }
+
     return await findChangedExplorerPages(trx)
 }
 
@@ -174,7 +179,7 @@ function makeNarrativeChartsByPostId(
 
 const getPostsToArchive = async (
     trx: db.KnexReadWriteTransaction,
-    { type, postSlugs }: Options
+    { type, postSlugs, force }: Options
 ): Promise<{
     postsToArchive: PostChecksumsObjectWithHash[]
     imagesByPostId: Record<string, ArchivalImage[]>
@@ -192,35 +197,38 @@ const getPostsToArchive = async (
         }
     }
 
-    if (postSlugs && postSlugs.length > 0) {
-        console.log(
-            "Archiving only the following post slugs:",
-            postSlugs.join(", ")
-        )
-
-        const { postChecksums: allChecksums, imagesByPostId } =
+    if ((postSlugs && postSlugs.length > 0) || force) {
+        const { postChecksums: allChecksums, imagesByPostId: allImages } =
             await getPostChecksumsFromDb(trx)
-        const postsToArchive = allChecksums.filter((checksum) =>
-            postSlugs.includes(checksum.postSlug)
-        )
 
-        if (postSlugs.length !== postsToArchive.length) {
-            throw new Error(
-                `Not all post slugs were found in the database. Found ${postsToArchive.length} out of ${postSlugs.length}.`
+        let postsToArchive = allChecksums
+        if (postSlugs && postSlugs.length > 0) {
+            console.log(
+                "Archiving only the following post slugs:",
+                postSlugs.join(", ")
             )
+            postsToArchive = allChecksums.filter((checksum) =>
+                postSlugs.includes(checksum.postSlug)
+            )
+
+            if (postSlugs.length !== postsToArchive.length) {
+                throw new Error(
+                    `Not all post slugs were found in the database. Found ${postsToArchive.length} out of ${postSlugs.length}.`
+                )
+            }
         }
 
         const postIds = _.uniq(postsToArchive.map((post) => post.postId))
-        const imagesByPostIdToArchive = _.pick(imagesByPostId, postIds)
-        const videosByPostIdToArchive = await getVideosByPostId(trx, postIds)
-        const narrativeChartsByPostIdToArchive =
+        const imagesByPostId = _.pick(allImages, postIds)
+        const videosByPostId = await getVideosByPostId(trx, postIds)
+        const narrativeChartsByPostId =
             makeNarrativeChartsByPostId(postsToArchive)
 
         return {
             postsToArchive,
-            imagesByPostId: imagesByPostIdToArchive,
-            videosByPostId: videosByPostIdToArchive,
-            narrativeChartsByPostId: narrativeChartsByPostIdToArchive,
+            imagesByPostId,
+            videosByPostId,
+            narrativeChartsByPostId,
         }
     }
 
@@ -269,6 +277,10 @@ const getGraphersToArchive = async (
         return graphersToArchive
     }
 
+    if (opts.force) {
+        return await getGrapherChecksumsFromDb(trx)
+    }
+
     return await findChangedGrapherPages(trx)
 }
 
@@ -304,6 +316,10 @@ const getMultiDimsToArchive = async (
         }
 
         return multiDimsToArchive
+    }
+
+    if (opts.force) {
+        return await getMultiDimChecksumsFromDb(trx)
     }
 
     return await findChangedMultiDimPages(trx)
@@ -755,6 +771,11 @@ void yargs(hideBin(process.argv))
                 .option("dryRun", {
                     type: "boolean",
                     description: "Don't actually archive the pages",
+                })
+                .option("force", {
+                    type: "boolean",
+                    description:
+                        "Archive all pages, even if they haven't changed",
                 })
                 .option("chartIds", {
                     type: "array",
