@@ -139,8 +139,7 @@ function HomepageAnnouncement(props: {
 }) {
     const { announcement, index } = props
     const isSpotlight = announcement.spotlight
-    const homepageTitle =
-        announcement["homepage-title"] || announcement.title
+    const homepageTitle = announcement["homepage-title"] || announcement.title
     const announcementPageUrl = `/${announcement.slug}`
     const { linkedChart } = useLinkedChart(announcement.cta?.url || "")
     const { linkedDocument } = useLinkedDocument(announcement.cta?.url || "")

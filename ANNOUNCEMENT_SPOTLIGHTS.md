@@ -31,7 +31,7 @@ When spotlight = true:
 
 1. Homepage link takes you to the page
 2. Feed link takes you to the page
-3. Feed post is truncated in the data we render for the feed and the item is also height-limited via CSS (max-height 300px + overflow: hidden)
+3. Feed post is truncated in the data we render for the feed and the item is also height-limited via CSS
 4. Add `<meta name="robots" content="noindex, follow" />` to the head of the announcement and set `<link rel="canonical">` to the `source-document`
 5. Open Graph/Twitter meta should still reference the announcement URL for sharing previews, even if the canonical points to the source topic page
 
@@ -51,5 +51,5 @@ TODO
 - [x] Add types for spotlight fields (`homepage-title`, `spotlight`, `source-document`)
 - [x] Implement validation in `gdocsValidation.ts` (requirements, CTA exclusion, URL checks)
 - [x] Update homepage latestAnnouncements behaviour for spotlights
-- [ ] Update announcement page rendering for spotlights
-- [x] Update announcement feed rendering for spotlights
+- [x] Update announcement page rendering for spotlights
+- [x] Update announcement feed rendering for spotlights (truncate data + CSS height limit)

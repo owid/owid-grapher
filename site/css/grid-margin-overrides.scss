@@ -12,7 +12,8 @@
 * e.g. .red-if-followed-by-h1:has(+ h1) { color: red }
 **/
 
-.centered-article-container {
+.centered-article-container,
+.announcement-page-content {
     [class*="article-block__"]:has(+ .article-block__side-by-side),
     [class*="article-block__"]:has(+ .article-block__sticky-left),
     [class*="article-block__"]:has(+ .article-block__sticky-right) {

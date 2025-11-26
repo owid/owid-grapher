@@ -256,8 +256,7 @@ export default function OwidGdocPage({
 
     if (isAnnouncement) {
         robots = "noindex, follow"
-        const announcementContent =
-            gdoc.content as OwidGdocAnnouncementContent
+        const announcementContent = gdoc.content as OwidGdocAnnouncementContent
         const sourceDocument = announcementContent["source-document"]
         if (announcementContent.spotlight && sourceDocument) {
             canonicalUrl = sourceDocument

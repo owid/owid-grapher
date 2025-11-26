@@ -14,6 +14,17 @@
     > [class*="article-block__"]:last-child {
         margin-bottom: 0;
     }
+
+    h2.article-block__heading {
+        @include subtitle-1-bold;
+        text-wrap: unset;
+        @include sm-only {
+            @include subtitle-2-bold;
+        }
+    }
+    .article-block__chart {
+        margin: 32px 0;
+    }
 }
 
 .announcement-page-header-meta {
@@ -27,4 +38,8 @@
 
 .announcement-page-heading {
     margin: 8px 0;
+    font-size: 30px;
+    @include sm-only {
+        font-size: 22px;
+    }
 }
