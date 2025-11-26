@@ -17,18 +17,14 @@ export const Tabs = <TabKey extends string = string>({
     items,
     selectedKey,
     onChange,
-    horizontalScroll = false,
-    maxTabWidth,
     className,
     variant = "default",
 }: {
     items: TabItem<TabKey>[]
     selectedKey: TabKey
     onChange: (key: TabKey) => void
-    horizontalScroll?: boolean
-    maxTabWidth?: number // if undefined, don't clip labels
     className?: string
-    variant?: "default" | "slim"
+    variant?: "default" | "slim" | "stretch" | "scroll"
 }) => {
     return (
         <AriaTabs
@@ -38,15 +34,12 @@ export const Tabs = <TabKey extends string = string>({
             }}
         >
             <TabList
-                className={cx("Tabs", "Tabs--variant-" + variant, className, {
-                    "Tabs--horizontal-scroll": horizontalScroll,
-                })}
+                className={cx("Tabs", "Tabs--variant-" + variant, className)}
             >
                 {items.map((item) => (
                     <Tab
                         key={item.key}
                         id={item.key}
-                        style={{ maxWidth: maxTabWidth }}
                         data-track-note={item.buttonProps?.dataTrackNote}
                         aria-label={item.buttonProps?.ariaLabel}
                         className={cx("Tabs__Tab", item.buttonProps?.className)}
