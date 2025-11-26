@@ -35,7 +35,11 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { match as tsMatch, P } from "ts-pattern"
 
-import { useGdocsChanged, useLightningUpdate } from "./gdocsHooks.js"
+import {
+    useCountryProfileSelection,
+    useGdocsChanged,
+    useLightningUpdate,
+} from "./gdocsHooks.js"
 import { getErrors } from "./gdocsValidation.js"
 import { GdocsSaveButtons } from "./GdocsSaveButtons.js"
 import { useGdocsStore } from "./GdocsStoreContext.js"
@@ -89,8 +93,13 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const [isMobilePreviewActive, setIsMobilePreviewActive] = useState(false)
     const [acceptSuggestions, setAcceptSuggestions] = useState(false)
 
-    // For profile previews, track which entity is being previewed (defaults to USA)
-    const [selectedEntity, setSelectedEntity] = useState("USA")
+    // Only used when currentGdoc is a profile
+    const { entitiesInScope, selectedEntity, setSelectedEntity } =
+        useCountryProfileSelection(
+            currentGdoc as OwidGdoc & {
+                content: { type: OwidGdocType.Profile }
+            }
+        )
 
     const iframeRef = useRef<HTMLIFrameElement>(null)
 
@@ -531,6 +540,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                     errors={errors}
                                     selectedEntity={selectedEntity}
                                     setSelectedEntity={setSelectedEntity}
+                                    entitiesInScope={entitiesInScope}
                                 />
                             )
                         )
@@ -591,7 +601,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                         // For profiles, also include selectedEntity so iframe reloads when entity changes
                         key={
                             currentGdoc.content.type === OwidGdocType.Profile
-                                ? `${currentGdoc.revisionId}-${originalGdoc?.updatedAt}-${acceptSuggestions}-${selectedEntity}`
+                                ? `${currentGdoc.revisionId}-${originalGdoc?.updatedAt}-${acceptSuggestions}-${selectedEntity ?? "default"}`
                                 : `${currentGdoc.revisionId}-${originalGdoc?.updatedAt}-${acceptSuggestions}`
                         }
                     />

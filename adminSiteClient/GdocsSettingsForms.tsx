@@ -1,3 +1,4 @@
+import { type Dispatch, type SetStateAction } from "react"
 import {
     OwidGdocPostInterface,
     OwidGdocErrorMessage,
@@ -8,7 +9,6 @@ import {
     OwidGdocAboutInterface,
     OwidGdocAnnouncementInterface,
     OwidGdocProfileInterface,
-    countries,
 } from "@ourworldindata/utils"
 import { Select, Alert } from "antd"
 import { EXCERPT_MAX_LENGTH } from "./gdocsValidation.js"
@@ -382,23 +382,15 @@ export const GdocProfileSettings = ({
     errors,
     selectedEntity,
     setSelectedEntity,
+    entitiesInScope,
 }: {
     gdoc: OwidGdocProfileInterface
     setCurrentGdoc: (gdoc: OwidGdocProfileInterface) => void
     errors?: OwidGdocErrorMessage[]
-    selectedEntity: string
-    setSelectedEntity: (entity: string) => void
+    selectedEntity?: string
+    setSelectedEntity: Dispatch<SetStateAction<string | undefined>>
+    entitiesInScope: { value: string; label: string }[]
 }) => {
-    if (!gdoc || !errors) return null
-
-    const countryOptions = countries
-        .filter((c) => c.code && c.name)
-        .map((c) => ({
-            value: c.code,
-            label: c.name,
-        }))
-        .sort((a, b) => a.label.localeCompare(b.label))
-
     return (
         <form className="GdocsSettingsForm">
             <div
@@ -420,7 +412,7 @@ export const GdocProfileSettings = ({
                     optionFilterProp="label"
                     value={selectedEntity}
                     onChange={setSelectedEntity}
-                    options={countryOptions}
+                    options={entitiesInScope}
                 />
                 <p className="form-text text-muted">
                     Select which country to preview this profile template for.
@@ -429,7 +421,7 @@ export const GdocProfileSettings = ({
                 </p>
             </div>
             <GdocCommonErrors
-                errors={errors}
+                errors={errors || []}
                 errorsToFilter={["scope", "excerpt", "featured-image"]}
             />
             <GdocCommonSettings
