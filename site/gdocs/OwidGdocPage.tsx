@@ -31,6 +31,7 @@ import {
     EnrichedBlockText,
     OwidGdocPostInterface,
     OwidGdocAuthorInterface,
+    OwidGdocAnnouncementContent,
 } from "@ourworldindata/types"
 import { DATA_INSIGHT_ATOM_FEED_PROPS } from "../SiteConstants.js"
 import { Html } from "../Html.js"
@@ -240,13 +241,29 @@ export default function OwidGdocPage({
 
     const pageDesc = getPageDesc(gdoc)
     const featuredImageFilename = getFeaturedImageFilename(gdoc)
-    const canonicalUrl = getCanonicalUrl(baseUrl, gdoc)
     const pageTitle = getPageTitle(gdoc)
     const isOnArchivalPage = archiveContext?.type === "archive-page"
     const assetMaps = isOnArchivalPage ? archiveContext.assets : undefined
     const isDataInsight = gdoc.content.type === OwidGdocType.DataInsight
+    const isAnnouncement = gdoc.content.type === OwidGdocType.Announcement
     const isAuthor = checkIsAuthor(gdoc)
     const isPost = isPostPredicate(gdoc)
+    const announcementPageUrl = getCanonicalUrl(baseUrl, gdoc)
+
+    let canonicalUrl = announcementPageUrl
+    let ogUrl = announcementPageUrl
+    let robots: string | undefined
+
+    if (isAnnouncement) {
+        robots = "noindex, follow"
+        const announcementContent =
+            gdoc.content as OwidGdocAnnouncementContent
+        const sourceDocument = announcementContent["source-document"]
+        if (announcementContent.spotlight && sourceDocument) {
+            canonicalUrl = sourceDocument
+            ogUrl = announcementPageUrl
+        }
+    }
 
     let imageUrl
     if (
@@ -280,11 +297,13 @@ export default function OwidGdocPage({
                 pageTitle={pageTitle}
                 pageDesc={pageDesc}
                 canonicalUrl={canonicalUrl}
+                ogUrl={ogUrl}
                 imageUrl={imageUrl} // uriEncoding is taken care of inside the Head component
                 atom={isDataInsight ? DATA_INSIGHT_ATOM_FEED_PROPS : undefined}
                 baseUrl={baseUrl}
                 staticAssetMap={assetMaps?.static}
                 archiveContext={archiveContext}
+                robots={robots}
             >
                 {!isAuthor && !isDataInsight && (
                     <CitationMeta

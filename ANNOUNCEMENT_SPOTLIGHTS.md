@@ -52,4 +52,4 @@ TODO
 - [x] Implement validation in `gdocsValidation.ts` (requirements, CTA exclusion, URL checks)
 - [x] Update homepage latestAnnouncements behaviour for spotlights
 - [ ] Update announcement page rendering for spotlights
-- [ ] Update announcement feed rendering for spotlights
+- [x] Update announcement feed rendering for spotlights
