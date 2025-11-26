@@ -52,6 +52,7 @@ function* owidArticleToArchieMLStringGenerator(
         yield "[]"
     }
     yield* propertyToArchieMLString("sidebar-toc", article)
+    yield* propertyToArchieMLString("heading-variant", article)
     yield* propertyToArchieMLString("hide-subscribe-banner", article)
     // TODO: inline refs
     yieldMultiBlockPropertyIfDefined("summary", article, article.summary)

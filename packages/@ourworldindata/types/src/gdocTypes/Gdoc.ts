@@ -388,6 +388,7 @@ export interface OwidGdocPostContent {
     "atom-title"?: string
     "atom-excerpt"?: string
     "sidebar-toc"?: boolean
+    "heading-variant"?: "heavy" | "light"
     "hide-subscribe-banner"?: boolean
     "cover-color"?:
         | "sdg-color-1"
