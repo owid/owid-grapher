@@ -40,6 +40,7 @@ export {
     trimObject,
     fetchText,
     fetchJson,
+    fetchWithTimeout,
     getUserCountryInformation,
     stripHTML,
     getRandomNumberGenerator,
