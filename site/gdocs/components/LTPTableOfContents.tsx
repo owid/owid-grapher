@@ -12,6 +12,7 @@ import {
     SEARCH_BASE_PATH,
 } from "../../search/searchUtils.js"
 import { searchStateToUrl } from "../../search/searchState.js"
+import cx from "classnames"
 
 const DEFAULT_TITLE = "Sections"
 const SECONDARY_CARDS = [
@@ -55,24 +56,21 @@ export const LTPTableOfContents = ({
     }))
 
     return (
-        <nav className={className} aria-label={resolvedTitle}>
-            <p className="article-block__ltp-toc__title col-start-2 span-cols-10 col-md-start-1 span-md-cols-12 span-sm-cols-12">
+        <nav className={cx(className, "ltp-toc")} aria-label={resolvedTitle}>
+            <p className="ltp-toc__title col-start-2 span-cols-10 col-md-start-1 span-md-cols-12 span-sm-cols-12">
                 {resolvedTitle}
             </p>
-            <div className="article-block__ltp-toc__primary col-start-2 span-cols-7 col-md-start-1 span-md-cols-8 span-sm-cols-12">
-                <ul className="article-block__ltp-toc__primary-list">
+            <div className="ltp-toc__primary col-start-2 span-cols-7 col-md-start-1 span-md-cols-8 span-sm-cols-12">
+                <ul className="ltp-toc__primary-list">
                     {toc.map(({ slug, title: headingTitle, text }) => {
                         const displayTitle = headingTitle || text
                         if (!slug || !displayTitle) return null
                         return (
-                            <li
-                                key={slug}
-                                className="article-block__ltp-toc__primary-item"
-                            >
+                            <li key={slug} className="ltp-toc__primary-item">
                                 <FontAwesomeIcon icon={faArrowDown} />
                                 <a
                                     href={`#${slug}`}
-                                    className="article-block__ltp-toc__primary-link"
+                                    className="ltp-toc__primary-link"
                                     data-track-note="toc_link"
                                 >
                                     {displayTitle}
@@ -82,37 +80,37 @@ export const LTPTableOfContents = ({
                     })}
                 </ul>
             </div>
-            <div className="article-block__ltp-toc__secondary span-cols-3 span-md-cols-4 span-sm-cols-12">
-                <p className="article-block__ltp-toc__secondary-title">
+            <div className="ltp-toc__secondary span-cols-3 span-md-cols-4 span-sm-cols-12">
+                <p className="ltp-toc__secondary-title">
                     {resourceSectionTitle}
                 </p>
-                <ul className="article-block__ltp-toc__secondary-list">
+                <ul className="ltp-toc__secondary-list">
                     {resourceCards.map(
                         ({ id, title: cardTitle, description, icon, href }) => (
                             <li key={id}>
                                 <a
-                                    className="article-block__ltp-toc__secondary-card"
+                                    className="ltp-toc__secondary-card"
                                     href={href}
                                 >
-                                    <div className="article-block__ltp-toc__secondary-card-content">
+                                    <div className="ltp-toc__secondary-card-content">
                                         <span
-                                            className="article-block__ltp-toc__secondary-card-icon"
+                                            className="ltp-toc__secondary-card-icon"
                                             aria-hidden="true"
                                         >
                                             <FontAwesomeIcon icon={icon} />
                                         </span>
-                                        <div className="article-block__ltp-toc__secondary-card-text">
-                                            <span className="article-block__ltp-toc__secondary-card-title">
+                                        <div className="ltp-toc__secondary-card-text">
+                                            <span className="ltp-toc__secondary-card-title">
                                                 {cardTitle}
                                             </span>
-                                            <span className="article-block__ltp-toc__secondary-card-description">
+                                            <span className="ltp-toc__secondary-card-description">
                                                 {description}
                                             </span>
                                         </div>
                                     </div>
                                     <FontAwesomeIcon
                                         icon={faArrowRight}
-                                        className="article-block__ltp-toc__secondary-card-arrow"
+                                        className="ltp-toc__secondary-card-arrow"
                                         aria-hidden="true"
                                     />
                                 </a>
