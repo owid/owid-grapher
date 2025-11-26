@@ -14,10 +14,7 @@ import {
     MapRegionDropdownManager,
 } from "../MapRegionDropdown"
 import { SettingsMenu, SettingsMenuManager } from "../SettingsMenu"
-import {
-    GRAPHER_FRAME_PADDING_HORIZONTAL,
-    GRAPHER_FRAME_PADDING_VERTICAL,
-} from "../../core/GrapherConstants"
+import { GRAPHER_FRAME_PADDING_HORIZONTAL } from "../../core/GrapherConstants"
 import { MapResetButton, MapResetButtonManager } from "../MapResetButton"
 import {
     DataTableFilterDropdown,
@@ -50,13 +47,13 @@ export interface ControlsRowManager
 interface ControlsRowProps {
     manager: ControlsRowManager
     maxWidth?: number
-    settingsMenuTop?: number
+    popoverMaxWidth?: number
+    popoverMaxHeight?: number
 }
 
 @observer
 export class ControlsRow extends Component<ControlsRowProps> {
     private framePaddingHorizontal = GRAPHER_FRAME_PADDING_HORIZONTAL
-    private framePaddingVertical = GRAPHER_FRAME_PADDING_VERTICAL
 
     constructor(props: ControlsRowProps) {
         super(props)
@@ -70,10 +67,6 @@ export class ControlsRow extends Component<ControlsRowProps> {
 
     @computed private get manager(): ControlsRowManager {
         return this.props.manager
-    }
-
-    @computed private get sidePanelWidth(): number {
-        return this.manager.sidePanelBounds?.width ?? 0
     }
 
     @computed private get showControlsRow(): boolean {
@@ -93,24 +86,14 @@ export class ControlsRow extends Component<ControlsRowProps> {
         )
     }
 
-    @computed private get settingsMenuLayout(): React.CSSProperties {
-        const top = this.props.settingsMenuTop ?? 0
-        const bottom = this.framePaddingVertical
-        const right = this.sidePanelWidth + this.framePaddingHorizontal
-
-        const maxHeight = `calc(100% - ${top + bottom}px)`
-        const maxWidth = `calc(100% - ${2 * right}px)`
-
-        return { maxHeight, maxWidth, top, right }
-    }
-
     private renderChartControls(): React.ReactElement {
         return (
             <div className="controls chart-controls">
                 <EntitySelectionToggle manager={this.manager} />
                 <SettingsMenu
                     manager={this.manager}
-                    popoverStyle={this.settingsMenuLayout}
+                    popoverMaxWidth={this.props.popoverMaxWidth}
+                    popoverMaxHeight={this.props.popoverMaxHeight}
                 />
             </div>
         )

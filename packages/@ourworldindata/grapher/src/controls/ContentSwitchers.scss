@@ -1,10 +1,6 @@
 $active-icon: $blue-50;
 
 @at-root {
-    .ContentSwitchers__Container {
-        position: relative;
-    }
-
     .ContentSwitchers__OverflowMenu {
         border-radius: 4px;
         background-color: #fff;
@@ -22,6 +18,7 @@ $active-icon: $blue-50;
         color: $light-text;
         cursor: pointer;
         width: 100%;
+        background-color: #fff;
 
         &:hover {
             background-color: $gray-10;

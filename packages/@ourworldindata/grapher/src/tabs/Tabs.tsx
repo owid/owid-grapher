@@ -9,6 +9,7 @@ export interface TabItem<TabKey extends string = string> {
         className?: string
         ariaLabel?: string
         dataTrackNote?: string
+        ref?: React.RefObject<HTMLButtonElement | null>
     }
 }
 
@@ -49,6 +50,7 @@ export const Tabs = <TabKey extends string = string>({
                         data-track-note={item.buttonProps?.dataTrackNote}
                         aria-label={item.buttonProps?.ariaLabel}
                         className={cx("Tabs__Tab", item.buttonProps?.className)}
+                        ref={item.buttonProps?.ref}
                     >
                         {item.element}
                     </Tab>
