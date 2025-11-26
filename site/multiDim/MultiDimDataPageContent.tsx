@@ -163,6 +163,8 @@ export function DataPageContent({
             const variableId = newView.indicators?.["y"]?.[0]?.id
             if (!variableId) return
 
+            grapherState.isDataReady = false
+
             const datapageDataPromise = cachedGetVariableMetadata(
                 variableId,
                 Boolean(isPreviewing),
@@ -239,6 +241,8 @@ export function DataPageContent({
                         // The below code needs to run after the data has been loaded, so that it has access
                         // to the table and its time range
                         await loadDataPromise
+
+                        grapherState.isDataReady = true
 
                         // When switching between mdim views, we usually preserve the tab.
                         // However, if the new chart doesn't support the previously selected tab,

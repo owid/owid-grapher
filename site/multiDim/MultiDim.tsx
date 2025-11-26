@@ -125,6 +125,8 @@ export default function MultiDim({
             )
         }
 
+        grapher.isDataReady = false
+
         const variables = newView.indicators?.["y"]
         const adminEditPath =
             variables?.length === 1
@@ -190,6 +192,8 @@ export default function MultiDim({
                 // The below code needs to run after the data has been loaded, so that it has access
                 // to the table and its time range
                 await loadDataPromise
+
+                grapher.isDataReady = true
 
                 // When switching between mdim views, we usually preserve the tab.
                 // However, if the new chart doesn't support the previously selected tab,
