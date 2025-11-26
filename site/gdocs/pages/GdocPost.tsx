@@ -98,8 +98,6 @@ export function GdocPost({
                 {
                     [`centered-article-container--${content.type}`]:
                         content.type,
-                    [`centered-article-container--heading-variant-${headingVariant}`]:
-                        headingVariant,
                 }
             )}
         >
@@ -144,6 +142,7 @@ export function GdocPost({
                     toc={content.toc}
                     blocks={content.body}
                     automaticSubscribeBanner={!shouldHideSubscribeBanner}
+                    headingVariant={headingVariant}
                 />
             ) : null}
             {content.refs && !_.isEmpty(content.refs.definitions) ? (

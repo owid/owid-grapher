@@ -63,6 +63,7 @@ const containerSizes: Record<ImageParentContainer, string> = {
     ["span-6"]: gridSpan6,
     ["span-7"]: gridSpan7,
     ["span-8"]: gridSpan8,
+    ["heading-heavy"]: gridSpan6,
 }
 
 export const LIGHTBOX_IMAGE_CLASS = "lightbox-image"

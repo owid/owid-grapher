@@ -50,7 +50,7 @@ import Person from "./Person.js"
 import NarrativeChart from "./NarrativeChart.js"
 import { Container, getLayout } from "./layout.js"
 import { Expander } from "./Expander.js"
-import { ChartConfigType } from "@ourworldindata/types"
+import { HeadingVariant, ChartConfigType } from "@ourworldindata/types"
 import { useLinkedChart } from "../utils.js"
 import { ResourcePanel } from "./ResourcePanel.js"
 import { Cta } from "./Cta.js"
@@ -67,12 +67,14 @@ function ArticleBlockInternal({
     toc,
     shouldRenderLinks = true,
     interactiveImages = true,
+    headingVariant,
 }: {
     b: OwidEnrichedGdocBlock
     containerType?: Container
     toc?: TocHeadingWithTitleSupertitle[]
     shouldRenderLinks?: boolean
     interactiveImages?: boolean
+    headingVariant?: HeadingVariant
 }) {
     const { tags } = useContext(AttachmentsContext)
     block.type = block.type.toLowerCase() as any // this comes from the user and may not be all lowercase, enforce it here
@@ -288,26 +290,39 @@ function ArticleBlockInternal({
             )
         })
         .with({ type: "simple-text" }, (block) => <>{block.value.text}</>)
-        .with({ type: "heading", level: 1 }, (block) => (
-            <h1
-                className={cx(
-                    "h1-semibold",
-                    getLayout("heading", containerType)
-                )}
-                id={convertHeadingTextToId(block.text)}
-            >
-                <SpanElements
-                    spans={block.text}
-                    shouldRenderLinks={shouldRenderLinks}
-                />
-                {shouldRenderLinks && (
-                    <a
-                        className="deep-link"
-                        href={`#${convertHeadingTextToId(block.text)}`}
+        .with({ type: "heading", level: 1 }, (block) => {
+            const renderH1 = (container: Container) => (
+                <h1
+                    className={cx(
+                        "h1-semibold",
+                        getLayout("heading", container)
+                    )}
+                    id={convertHeadingTextToId(block.text)}
+                >
+                    <SpanElements
+                        spans={block.text}
+                        shouldRenderLinks={shouldRenderLinks}
                     />
-                )}
-            </h1>
-        ))
+                    {shouldRenderLinks && (
+                        <a
+                            className="deep-link"
+                            href={`#${convertHeadingTextToId(block.text)}`}
+                        />
+                    )}
+                </h1>
+            )
+
+            // Only apply special layout for heavy variant in main article body
+            if (headingVariant === "heavy" && containerType === "default") {
+                return (
+                    <div className={getLayout("heading-heavy")}>
+                        {renderH1("heading-heavy")}
+                    </div>
+                )
+            }
+
+            return renderH1(containerType)
+        })
         .with({ type: "heading", level: 2 }, (block) => {
             const { supertitle, text } = block
 
@@ -903,12 +918,14 @@ export default function ArticleBlock({
     toc,
     shouldRenderLinks = true,
     interactiveImages = true,
+    headingVariant,
 }: {
     b: OwidEnrichedGdocBlock
     containerType?: Container
     toc?: TocHeadingWithTitleSupertitle[]
     shouldRenderLinks?: boolean
     interactiveImages?: boolean
+    headingVariant?: HeadingVariant
 }) {
     return (
         <BlockErrorBoundary className={getLayout("default", containerType)}>
@@ -918,6 +935,7 @@ export default function ArticleBlock({
                 toc={toc}
                 shouldRenderLinks={shouldRenderLinks}
                 interactiveImages={interactiveImages}
+                headingVariant={headingVariant}
             />
         </BlockErrorBoundary>
     )

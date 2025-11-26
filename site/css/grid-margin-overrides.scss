@@ -43,17 +43,19 @@
     }
 
     /*
-    * If a heading directly follows a heading, set its top margin to 0
-    * (so that the bigger heading's bottom margin "trumps" the smaller heading)
+    * If a heading directly follows a heading (or its heavy variant -
+    * article-block__heading-heavy), set its top margin to 0 (so that the bigger
+    * heading's bottom margin "trumps" the smaller heading). A heavy heading
+    * (only h1) below another one is unspecified behavior, and is not covered here.
     **/
-    .article-block__heading + .article-block__heading {
+    [class*="article-block__heading"] + .article-block__heading {
         margin-top: 0;
     }
 
     /* Set the bottom margin of any non-heading, non-horizontal-rule block that comes before a heading to 0 */
-    [class*="article-block__"]:not(.article-block__heading):not(
+    [class*="article-block__"]:not([class*="article-block__heading"]):not(
             .article-block__horizontal-rule
-        ):has(+ .article-block__heading) {
+        ):has(+ [class*="article-block__heading"]) {
         margin-bottom: 0;
     }
 
@@ -62,8 +64,12 @@
         margin-bottom: 0;
     }
 
-    /* Set the top margin of any heading that follows a horizontal-rule to 0 */
-    .article-block__horizontal-rule + .article-block__heading {
+    /* Set the top margin of any heading that follows a horizontal rule to 0.
+     * Horizontal rules above h1s are not supported in linear topic pages, where
+     * headings already have a top border, making the horizontal rule
+     * redundant.
+    */
+    .article-block__horizontal-rule + [class*="article-block__heading"] {
         margin-top: 0;
     }
 

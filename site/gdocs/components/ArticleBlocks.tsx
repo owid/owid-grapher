@@ -1,3 +1,4 @@
+import { HeadingVariant } from "@ourworldindata/types"
 import ArticleBlock from "./ArticleBlock.js"
 import { injectAutomaticSubscribeBanner } from "./gdocComponentUtils.js"
 import { Container } from "./layout.js"
@@ -23,6 +24,7 @@ export const ArticleBlocks = ({
     shouldRenderLinks = true,
     interactiveImages = true,
     automaticSubscribeBanner = false,
+    headingVariant,
 }: {
     blocks: OwidEnrichedGdocBlock[]
     containerType?: Container
@@ -30,6 +32,7 @@ export const ArticleBlocks = ({
     shouldRenderLinks?: boolean
     interactiveImages?: boolean
     automaticSubscribeBanner?: boolean
+    headingVariant?: HeadingVariant
 }) => {
     const blocksToRender = automaticSubscribeBanner
         ? injectAutomaticSubscribeBanner(blocks)
@@ -46,6 +49,7 @@ export const ArticleBlocks = ({
                         toc={toc}
                         shouldRenderLinks={shouldRenderLinks}
                         interactiveImages={interactiveImages}
+                        headingVariant={headingVariant}
                     />
                 )
             })}

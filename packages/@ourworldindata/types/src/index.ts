@@ -386,6 +386,7 @@ export {
     extractGdocIndexItem,
     type NarrativeChartInfo,
     type OwidGdocDataInsightIndexItem,
+    type HeadingVariant,
 } from "./gdocTypes/Gdoc.js"
 
 export {
