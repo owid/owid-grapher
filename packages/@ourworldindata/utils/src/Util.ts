@@ -507,7 +507,8 @@ export async function fetchJson<TResult>(
 // Adapted from https://github.com/sindresorhus/ky/blob/main/source/utils/timeout.ts
 export async function fetchWithTimeout(
     url: string,
-    timeoutMs: number
+    timeoutMs: number,
+    options?: RequestInit
 ): Promise<Response> {
     const abortController = new AbortController()
 
@@ -517,7 +518,7 @@ export async function fetchWithTimeout(
             reject(new Error(`Request timed out: ${url}`))
         }, timeoutMs)
 
-        void fetch(url, { signal: abortController.signal })
+        void fetch(url, { ...options, signal: abortController.signal })
             .then(resolve)
             .catch(reject)
             .finally(() => clearTimeout(timeoutId))

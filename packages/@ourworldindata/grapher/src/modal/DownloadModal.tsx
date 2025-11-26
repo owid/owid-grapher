@@ -6,6 +6,7 @@ import { observer } from "mobx-react"
 import {
     Bounds,
     canWriteToClipboard,
+    fetchWithTimeout,
     formatValue,
     getOriginAttributionFragments,
     getPhraseForProcessingLevel,
@@ -963,7 +964,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
     ])
 
     const onDownloadClick = useCallback(
-        (csvDownloadType: CsvDownloadType) => {
+        async (csvDownloadType: CsvDownloadType) => {
             const ctx = {
                 ...downloadCtx,
                 csvDownloadType,
@@ -976,13 +977,39 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                 shortColNames: false,
             }
             if (serverSideDownloadAvailable) {
-                const fullOrFiltered =
-                    csvDownloadType === CsvDownloadType.Full ? "" : ".filtered"
-                triggerDownloadFromUrl(
-                    ctx.slug + fullOrFiltered + ".zip",
-                    getDownloadUrl("zip", ctx)
-                )
+                try {
+                    const url = getDownloadUrl("zip", ctx)
+                    const response = await fetchWithTimeout(url, 5000, {
+                        method: "GET",
+                        headers: { Accept: "application/zip" },
+                    })
+
+                    if (!response.ok) {
+                        throw new Error(
+                            `Server download failed: ${response.status}`
+                        )
+                    }
+
+                    const blob = await response.blob()
+                    const fullOrFiltered =
+                        csvDownloadType === CsvDownloadType.Full
+                            ? ""
+                            : ".filtered"
+                    triggerDownloadFromBlob(
+                        ctx.slug + fullOrFiltered + ".zip",
+                        blob
+                    )
+                } catch (error) {
+                    // Fallback to client-side CSV download
+                    console.warn(
+                        "Server-side download failed, falling back to client-side",
+                        error
+                    )
+                    const blob = await createCsvBlobLocally(ctx)
+                    triggerDownloadFromBlob(ctx.slug + ".csv", blob)
+                }
             } else {
+                // Direct client-side download
                 void createCsvBlobLocally(ctx).then((blob) => {
                     triggerDownloadFromBlob(ctx.slug + ".csv", blob)
                 })
