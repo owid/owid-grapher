@@ -51,6 +51,7 @@ import {
     EnrichedBlockImage,
     OwidGdocType,
     getRegionBySlug,
+    getEntitiesForProfile,
 } from "@ourworldindata/utils"
 import {
     EXPLORERS_ROUTE_FOLDER,
@@ -705,6 +706,14 @@ getPlainRouteWithROTransaction(
 
             const entity = getRegionBySlug(entityParam)
             if (!entity) {
+                return res.status(404).send(renderNotFoundPage())
+            }
+
+            const entitiesInScope = getEntitiesForProfile(gdoc as GdocProfile)
+            const isEntityInScope = entitiesInScope.some(
+                (profileEntity) => profileEntity.code === entity.code
+            )
+            if (!isEntityInScope) {
                 return res.status(404).send(renderNotFoundPage())
             }
 
