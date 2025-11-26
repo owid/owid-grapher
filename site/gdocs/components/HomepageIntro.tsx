@@ -138,6 +138,10 @@ function HomepageAnnouncement(props: {
     index: number
 }) {
     const { announcement, index } = props
+    const isSpotlight = announcement.spotlight
+    const homepageTitle =
+        announcement["homepage-title"] || announcement.title
+    const announcementPageUrl = `/${announcement.slug}`
     const { linkedChart } = useLinkedChart(announcement.cta?.url || "")
     const { linkedDocument } = useLinkedDocument(announcement.cta?.url || "")
     // If there's not enough space to show all of the third announcement, we link to the latest page, no matter what
@@ -149,12 +153,16 @@ function HomepageAnnouncement(props: {
         announcementRef as RefObject<HTMLElement>
     )
     const latestPageLink = `/latest#${announcement.slug}`
-    const href = isOverflowing
-        ? latestPageLink
-        : linkedChart?.resolvedUrl ||
-          linkedDocument?.url ||
-          announcement.cta?.url ||
-          latestPageLink
+    const ctaHref =
+        linkedChart?.resolvedUrl ||
+        linkedDocument?.url ||
+        announcement.cta?.url ||
+        null
+    const href = isSpotlight
+        ? announcementPageUrl
+        : isOverflowing
+          ? latestPageLink
+          : ctaHref || latestPageLink
 
     const publishedAtDayJs = dayjs(announcement.publishedAt!)
     const publishedAtFormatted = publishedAtDayJs.isToday()
@@ -185,7 +193,7 @@ function HomepageAnnouncement(props: {
                     id={`announcement-${announcement.id}`}
                     className="homepage-intro__announcement-title body-2-bold"
                 >
-                    {announcement.title}
+                    {homepageTitle}
                 </h3>
                 <p className="homepage-intro__excerpt body-3-medium">
                     {announcement.excerpt}

@@ -50,6 +50,6 @@ TODO
 
 - [x] Add types for spotlight fields (`homepage-title`, `spotlight`, `source-document`)
 - [x] Implement validation in `gdocsValidation.ts` (requirements, CTA exclusion, URL checks)
-- [ ] Update homepage latestAnnouncements behaviour for spotlights
+- [x] Update homepage latestAnnouncements behaviour for spotlights
 - [ ] Update announcement page rendering for spotlights
 - [ ] Update announcement feed rendering for spotlights
