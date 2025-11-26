@@ -226,6 +226,13 @@
 
 // Linear topic page customizations
 .centered-article-container--linear-topic-page {
+    .article-block__text,
+    .article-block__list,
+    .article-block__html,
+    .article-block__numbered-list {
+        @include body-2-regular;
+    }
+
     .article-block__horizontal-rule
         + h1.article-block__heading.h1-semibold
         + .article-block__horizontal-rule {
