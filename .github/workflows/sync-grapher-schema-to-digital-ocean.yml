@@ -1,4 +1,4 @@
-name: Upload to DO Spaces
+name: Upload to R2
 on:
     push:
         branches:
@@ -53,12 +53,15 @@ jobs:
               shell: nu {0}
             - run: ls packages/@ourworldindata/grapher/src/schema
               shell: nu {0}
-            # Now upload all files in that folder to digital ocean.
-            - uses: BetaHuhn/do-spaces-action@v2
+            # Now upload all files in that folder to Cloudflare R2.
+            - name: Configure R2 credentials
+              uses: aws-actions/configure-aws-credentials@v4
               with:
-                  access_key: ${{ secrets.DO_ACCESS_KEY}}
-                  secret_key: ${{ secrets.DO_SECRET_KEY }}
-                  space_name: owid-public
-                  space_region: nyc3
-                  source: packages/@ourworldindata/grapher/src/schema
-                  out_dir: schemas
+                  aws-access-key-id: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
+                  aws-region: auto
+
+            - name: Upload to R2
+              run: |
+                  aws s3 sync packages/@ourworldindata/grapher/src/schema s3://owid-public/schemas \
+                    --endpoint-url https://${{ secrets.CLOUDFLARE_R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
