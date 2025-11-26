@@ -20,7 +20,7 @@ import { mockSiteRouter } from "./mockSiteRouter.js"
 import {
     GdocsContentSource,
     OwidGdocType,
-    countries,
+    getEntitiesForProfile,
 } from "@ourworldindata/utils"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import { getAndLoadGdocById } from "../db/model/Gdoc/GdocFactory.js"
@@ -114,14 +114,17 @@ export class OwidAdminApp {
                         req.query.entity
                     ) {
                         const entityCode = req.query.entity as string
-                        const entity = countries.find(
-                            (c) => c.code === entityCode
+                        const entitiesInScope = getEntitiesForProfile(
+                            gdoc as GdocProfile
                         )
-                        if (entity && entity.code) {
+                        const entityInScope = entitiesInScope.find(
+                            (profileEntity) => profileEntity.code === entityCode
+                        )
+                        if (entityInScope) {
                             const instantiatedProfile =
                                 instantiateProfileForEntity(
                                     gdoc as GdocProfile,
-                                    entity
+                                    entityInScope
                                 )
                             res.set("X-Robots-Tag", "noindex")
                             res.send(
@@ -133,6 +136,13 @@ export class OwidAdminApp {
                                         isPreviewing
                                     />
                                 )
+                            )
+                            return
+                        }
+
+                        if (!entityInScope) {
+                            res.status(404).send(
+                                "Profile preview not available for this entity."
                             )
                             return
                         }
