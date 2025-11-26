@@ -74,6 +74,7 @@ export function GdocPost({
     )
     const citationText = `${shortPageCitation} Published online at OurWorldinData.org. Retrieved from: '${citationUrl}' [Online Resource]${archivalPhrase ? ` ${archivalPhrase}` : ""}`
     const hasSidebarToc = content["sidebar-toc"]
+    const headingVariant = content["heading-variant"] ?? "light"
     const shouldHideSubscribeBanner =
         content["hide-subscribe-banner"] || postType === OwidGdocType.TopicPage
     const isDeprecated =
@@ -97,6 +98,8 @@ export function GdocPost({
                 {
                     [`centered-article-container--${content.type}`]:
                         content.type,
+                    [`centered-article-container--heading-variant-${headingVariant}`]:
+                        headingVariant,
                 }
             )}
         >
