@@ -18,7 +18,6 @@ import {
     makeAtomFeed,
     feedbackPage,
     renderNotFoundPage,
-    flushCache as siteBakingFlushCache,
     renderPost,
     renderGdoc,
     makeAtomFeedNoTopicPages,
@@ -1238,7 +1237,6 @@ export class SiteBaker {
     private flushCache() {
         this.progressBar.tick({ name: "Flushing cache" })
         // Clear caches to allow garbage collection while waiting for next run
-        siteBakingFlushCache()
         redirectsFlushCache()
     }
 }
