@@ -81,6 +81,10 @@ $toggle-full-width-breakpoint: 520px;
     white-space: nowrap;
     min-width: 0;
     margin-left: auto;
+
+    @media (max-width: $toggle-full-width-breakpoint) {
+        max-width: none;
+    }
 }
 
 .md-settings__dropdown {
