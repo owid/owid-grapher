@@ -116,6 +116,8 @@ export function FetchingGrapher(
     React.useEffect(() => {
         let isCancelled = false
 
+        grapherState.current.isDataReady = false
+
         async function fetchData(): Promise<void> {
             const inputTable = await fetchInputTableForConfig({
                 dimensions:
@@ -131,6 +133,8 @@ export function FetchingGrapher(
             if (isCancelled) return
 
             if (inputTable) grapherState.current.inputTable = inputTable
+
+            grapherState.current.isDataReady = true
         }
         void fetchData()
 

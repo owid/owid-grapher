@@ -358,9 +358,11 @@ export class GrapherState {
     isEmbeddedInAnOwidPage?: boolean = false
     isEmbeddedInADataPage?: boolean = false
 
-    // This one's explicitly set to `false` if FetchingGrapher or some other
-    // external code is fetching the config
+    // These are explicitly set to `false` if FetchingGrapher or some other
+    // external code is fetching the config and data
     isConfigReady: boolean | undefined = true
+    isDataReady: boolean | undefined = true
+
     /** Whether external grapher controls can be hidden in embeds. */
     canHideExternalControlsInEmbed: boolean = false
 
@@ -478,6 +480,7 @@ export class GrapherState {
             legacyConfigAsAuthored: observable.ref,
             entitySelectorState: observable,
             isConfigReady: observable,
+            isDataReady: observable,
             canHideExternalControlsInEmbed: observable.ref,
             hideExternalControlsInEmbedUrl: observable.ref,
             isExportingToSvgOrPng: observable.ref,
@@ -1316,6 +1319,7 @@ export class GrapherState {
     // Ready to go iff we have retrieved data for every variable associated with the chart
     @computed get isReady(): boolean {
         if (!this.isConfigReady) return false
+        if (!this.isDataReady) return false
         return this.whatAreWeWaitingFor === ""
     }
 

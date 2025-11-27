@@ -106,6 +106,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     isEmbeddedInAnOwidPage?: boolean
     isEmbeddedInADataPage?: boolean
     isConfigReady?: boolean
+    isDataReady?: boolean
     canHideExternalControlsInEmbed?: boolean
 
     narrativeChartInfo?: MinimalNarrativeChartInfo

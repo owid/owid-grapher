@@ -219,7 +219,12 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
     }
 
     private renderLoadingIndicator(): React.ReactElement {
-        return <LoadingIndicator title={this.manager.whatAreWeWaitingFor} />
+        return (
+            <LoadingIndicator
+                title={this.manager.whatAreWeWaitingFor}
+                bounds={this.bounds}
+            />
+        )
     }
 
     private renderTimeline(): React.ReactElement {
