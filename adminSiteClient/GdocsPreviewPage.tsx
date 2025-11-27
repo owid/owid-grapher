@@ -113,9 +113,15 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     )
 
     const handleError = useCallback((error: unknown) => {
-        if (R.isPlainObject(error) && error.status === 500) {
+        if (R.isPlainObject(error)) {
             console.log("Critical error", error)
             setCriticalErrorMessage(error.message as string)
+        } else if (error instanceof Error) {
+            console.log("Critical error", error)
+            setCriticalErrorMessage(error.message)
+        } else {
+            console.log("Critical error", error)
+            setCriticalErrorMessage(String(error))
         }
     }, [])
 
@@ -142,6 +148,19 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                 if (!isMounted || !original || !current) return
                 if (!current.slug && current.content.title) {
                     current.slug = slugify(current.content.title)
+                }
+                // Validate the gdoc type before setting it
+                // so that we don't get ts-pattern runtime crashes
+                const type = current.content.type
+                const validTypes = Object.values(OwidGdocType)
+                if (!type || !validTypes.includes(type)) {
+                    throw new Error(
+                        `Database record for Google Doc with id "${current.id}" has ${
+                            !type
+                                ? "no type"
+                                : `invalid type "${type}". Valid types are: ${validTypes.join(", ")}`
+                        }`
+                    )
                 }
                 setGdoc({ original, current })
             } catch (error) {
