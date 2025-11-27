@@ -484,10 +484,6 @@ ${dataInsights
 export const feedbackPage = () =>
     renderToHtmlPage(<FeedbackPage baseUrl={BAKED_BASE_URL} />)
 
-export const flushCache = () => {
-    /* legacy country profile cache removed */
-}
-
 const renderPostThumbnailBySlug = async (
     knex: KnexReadonlyTransaction,
     slug: string | undefined

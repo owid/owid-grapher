@@ -559,8 +559,6 @@ getPlainRouteNonIdempotentWithRWTransaction(
     "/team/:authorSlug",
     async (req, res, trx) => {
         try {
-            // We assume here that author slugs are unique across all gdocs (not
-            // just author gdocs)
             const page = await renderGdocsPageBySlug(
                 trx,
                 req.params.authorSlug,
