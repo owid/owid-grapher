@@ -3,8 +3,7 @@ import { DataJson, MetadataJson, DataRow } from "./CausesOfDeathConstants"
 import { fetchJson, UserCountryInformation } from "@ourworldindata/utils"
 import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
 
-const BASE_URL =
-    "https://owid-public.owid.io/sophia-bespoke-data-viz-demo-11-2025"
+const BASE_URL = "https://owid-public.owid.io/data/gbd"
 const METADATA_PATH = BASE_URL + "/causes-of-death.metadata.json"
 const DATA_PATH = BASE_URL + "/causes-of-death.{entityId}.data.json"
 

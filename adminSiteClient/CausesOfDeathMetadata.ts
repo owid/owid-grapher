@@ -13,7 +13,7 @@ export class CausesOfDeathMetadata {
     private metadata: MetadataJson
 
     dimensions: MetadataJson["dimensions"]
-    private categories: MetadataJson["categories"]
+    categories: MetadataJson["categories"]
     source: MetadataJson["source"]
     timeRange: MetadataJson["timeRange"]
 
