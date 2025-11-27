@@ -1202,7 +1202,6 @@ export class GdocBase implements OwidGdocBaseInterface {
         await this.loadLinkedCharts(knex)
         await this.loadLinkedIndicators(knex) // depends on linked charts
         await this.loadNarrativeChartsInfo(knex)
-        await this._loadSubclassAttachments(knex)
         await this.loadLinkedStaticViz(knex)
         await this._loadSubclassAttachments(knex) // for GdocHomepage, mutates linkedCharts and linkedDocuments
         await this.validate(knex)

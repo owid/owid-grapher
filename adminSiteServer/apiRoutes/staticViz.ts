@@ -146,10 +146,10 @@ export async function updateStaticViz(
     }
     const updateData = parsedData.data
 
-    const existingStaticViz = await trx
+    const existingStaticViz = (await trx
         .table("static_viz")
         .where("id", staticVizId)
-        .first()
+        .first()) as DbRawStaticViz | undefined
 
     if (!existingStaticViz) {
         throw new JsonError(`No static viz found for id ${staticVizId}`, 404)

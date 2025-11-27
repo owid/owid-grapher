@@ -1,0 +1,30 @@
+metadata:
+    description: |
+        Static visualizations that are not interactive charts. These are typically custom-designed images with desktop and mobile versions.
+        Each static viz must have either a grapher chart as its source (via grapherSlug) or an external source URL, enforced by a check constraint.
+
+fields:
+    id:
+        description: Unique identifier for the static visualization
+    slug:
+        description: Unique URL-safe identifier used in page URLs (must be unique)
+    title:
+        description: Display title of the static visualization
+    description:
+        description: Optional text description of the visualization (supports markdown)
+    grapherSlug:
+        description: Optional slug of the source grapher chart (mutually exclusive with sourceUrl, but one must be set)
+    sourceUrl:
+        description: Optional external source URL (mutually exclusive with grapherSlug, but one must be set)
+    imageId:
+        description: Foreign key to images table for the desktop version of the visualization
+    mobileImageId:
+        description: Optional foreign key to images table for the mobile-optimized version
+    createdBy:
+        description: Foreign key to users table, tracks who created this record
+    updatedBy:
+        description: Foreign key to users table, tracks who last updated this record
+    createdAt:
+        description: Timestamp of when the record was created
+    updatedAt:
+        description: Timestamp of when the record was last updated (automatically maintained)

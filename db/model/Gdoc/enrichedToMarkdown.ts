@@ -67,6 +67,7 @@ const CUSTOM_MARKDOWN_COMPONENTS = {
     KeyIndicator: "KeyIndicator",
     NarrativeChart: "NarrativeChart",
     Video: "Video",
+    StaticViz: "StaticViz",
 }
 
 function markdownComponent(
@@ -199,7 +200,15 @@ ${items}
                 exportComponents
             )
         )
-        .with({ type: "static-viz" }, () => "")
+        .with({ type: "static-viz" }, (b) =>
+            markdownComponent(
+                "StaticViz",
+                {
+                    name: b.name,
+                },
+                exportComponents
+            )
+        )
         .with({ type: "video" }, (b): string | undefined =>
             markdownComponent(
                 "Video",
