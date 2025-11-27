@@ -27,6 +27,7 @@ const BASE_STATIC_VIZ_QUERY = `-- sql
         sv.updatedAt,
         u.fullName AS createdBy,
         u2.fullName AS updatedBy,
+        c.id AS chartId,
         desktopImage.defaultAlt AS desktopImageAlt,
         desktopImage.id AS desktopImageId,
         desktopImage.cloudflareId AS desktopImageCloudflareId,
@@ -45,6 +46,7 @@ const BASE_STATIC_VIZ_QUERY = `-- sql
         ${StaticVizTableName} sv
     LEFT JOIN ${UsersTableName} u ON sv.createdBy = u.id
     LEFT JOIN ${UsersTableName} u2 ON sv.updatedBy = u2.id
+    LEFT JOIN charts c ON c.configId IN (SELECT id FROM chart_configs WHERE slug = sv.grapherSlug)
     INNER JOIN
         ${ImagesTableName} desktopImage ON sv.imageId = desktopImage.id
     LEFT JOIN
@@ -63,6 +65,7 @@ type StaticVizRow = {
     updatedAt: Date
     createdBy: string | null
     updatedBy: string | null
+    chartId: number | null
     desktopImageAlt: string
     desktopImageId: number
     desktopImageCloudflareId: string
@@ -89,6 +92,7 @@ function rowToEnrichedStaticViz(row: StaticVizRow): DbEnrichedStaticViz {
         createdBy: row.createdBy || "",
         description: row.description || "",
         grapherSlug: row.grapherSlug || "",
+        chartId: row.chartId ?? undefined,
         id: row.id,
         slug: row.slug,
         sourceUrl: row.sourceUrl || "",

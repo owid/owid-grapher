@@ -125,15 +125,23 @@ function createColumns({
             key: "source",
             width: 200,
             render: (_, record) => {
-                if (record.grapherSlug) {
+                if (record.chartId) {
                     return (
-                        <a href={`/grapher/${record.grapherSlug}`}>
+                        <a href={`/admin/charts/${record.chartId}/edit`}>
                             {record.grapherSlug}
                         </a>
                     )
                 }
                 if (record.sourceUrl) {
-                    return <a href={record.sourceUrl}>External URL</a>
+                    return (
+                        <a
+                            href={record.sourceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            External URL
+                        </a>
+                    )
                 }
                 return null
             },
