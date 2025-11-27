@@ -164,6 +164,7 @@ $black-text: $gray-100;
         border: none;
         cursor: pointer;
         text-decoration: none;
+        color: inherit;
     }
 
     @at-root .causes-of-death-footer__tooltip {
