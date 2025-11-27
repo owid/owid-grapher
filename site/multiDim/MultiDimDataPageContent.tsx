@@ -110,6 +110,9 @@ export function DataPageContent({
     // within grapher, so we have to initialize it early with
     // a truthy value
     const managerRef = useRef<GrapherManager>({ adminEditPath: "" })
+    // Used to track the latest updateGrapher request to avoid race conditions
+    // when quickly switching between dimension dropdowns on slow connections.
+    const latestRequestIdRef = useRef(0)
     const grapherStateRef = useRef<GrapherState>(
         new GrapherState({
             additionalDataLoaderFn: (varId: number) =>
@@ -164,6 +167,7 @@ export function DataPageContent({
             if (!variableId) return
 
             grapherState.isDataReady = false
+            const requestId = ++latestRequestIdRef.current
 
             const datapageDataPromise = cachedGetVariableMetadata(
                 variableId,
@@ -198,6 +202,9 @@ export function DataPageContent({
 
             void Promise.allSettled([datapageDataPromise, grapherConfigPromise])
                 .then(async ([datapageData, grapherConfig]) => {
+                    // Check if this request is still the latest one.
+                    if (requestId !== latestRequestIdRef.current) return
+
                     if (datapageData.status === "rejected")
                         throw new Error(
                             `Fetching variable by uuid failed: ${grapherConfigUuid}`,
@@ -213,6 +220,8 @@ export function DataPageContent({
                             grapherConfig.value.dimensions!,
                             grapherConfig.value.selectedEntityColors
                         ).then((inputTable) => {
+                            // Check if this request is still the latest one.
+                            if (requestId !== latestRequestIdRef.current) return
                             if (inputTable) grapherState.inputTable = inputTable
                         })
 
@@ -241,6 +250,10 @@ export function DataPageContent({
                         // The below code needs to run after the data has been loaded, so that it has access
                         // to the table and its time range
                         await loadDataPromise
+
+                        // Re-check if this request is still the latest one
+                        // after the data load.
+                        if (requestId !== latestRequestIdRef.current) return
 
                         grapherState.isDataReady = true
 
