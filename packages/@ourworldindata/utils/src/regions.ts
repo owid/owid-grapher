@@ -1,6 +1,7 @@
 import * as _ from "lodash-es"
 import entities from "./regions.json"
 import { lazy } from "./Util.js"
+import { EntityName } from "@ourworldindata/types"
 
 export enum RegionType {
     Country = "country",
@@ -364,49 +365,66 @@ export const getRegionAlternativeNames = (
     return _regionAlternativeNames.get(regionName)!
 }
 
-const getRegionArticle = (region?: Region): string | undefined => {
-    if (!region) return undefined
-    if ("article" in region) {
-        const article = (region as { article?: string }).article
-        if (typeof article === "string") {
-            const trimmed = article.trim()
-            if (trimmed.length > 0) return trimmed
-        }
-    }
-    return undefined
-}
+// Regions that require the definite article "the" before their name
+// Maintained here instead of in the ETL because it's such a specific piece of metadata.
+const regionsWithArticles = new Set([
+    "Aland Islands",
+    "Netherlands Antilles",
+    "United Arab Emirates",
+    "French Southern Territories",
+    "Bahrain",
+    "Bahamas",
+    "Central African Republic",
+    "Cocos Islands",
+    "Democratic Republic of Congo",
+    "Congo",
+    "Cook Islands",
+    "Comoros",
+    "Cayman Islands",
+    "Dominican Republic",
+    "Western Sahara",
+    "Falkland Islands",
+    "Faroe Islands",
+    "United Kingdom",
+    "Gambia",
+    "Heard Island and McDonald Islands",
+    "Isle of Man",
+    "British Indian Ocean Territory",
+    "Maldives",
+    "Marshall Islands",
+    "Northern Mariana Islands",
+    "Netherlands",
+    "Grand Duchy of Baden",
+    "Kingdom of Bavaria",
+    "Democratic Republic of Vietnam",
+    "Kingdom of the Two Sicilies",
+    "Duchy of Modena and Reggio",
+    "Orange Free State",
+    "Duchy of Parma and Piacenza",
+    "Federal Republic of Central America",
+    "Republic of Vietnam",
+    "Kingdom of Sardinia",
+    "Kingdom of Saxony",
+    "Sudan (former)",
+    "Grand Duchy of Tuscany",
+    "USSR",
+    "Kingdom of Wurttemberg",
+    "Yemen Arab Republic",
+    "Yemen People's Republic",
+    "Philippines",
+    "Gaza Strip",
+    "South Georgia and the South Sandwich Islands",
+    "Solomon Islands",
+    "Seychelles",
+    "Turks and Caicos Islands",
+    "United States",
+    "Vatican",
+    "British Virgin Islands",
+    "United States Virgin Islands",
+])
 
-const getArticleForEntity = (entity: string): string | undefined => {
-    const articleFromName = getRegionArticle(
-        getRegionByNameOrVariantName(entity)
-    )
-    if (articleFromName) return articleFromName
-
-    const articleFromCode = getRegionArticle(getRegionByCode(entity))
-    if (articleFromCode) return articleFromCode
-
-    const articleFromSlug = getRegionArticle(getCountryBySlug(entity))
-    if (articleFromSlug) return articleFromSlug
-
-    return undefined
-}
-
-export const articulateEntity = (entityName: string): string => {
-    const trimmedName = entityName.trim()
-    if (!trimmedName) return trimmedName
-
-    const article = getArticleForEntity(trimmedName)
-    if (!article) return trimmedName
-
-    const lowerTrimmedName = trimmedName.toLowerCase()
-    const lowerArticleWithSpace = `${article.toLowerCase()} `
-
-    if (
-        lowerTrimmedName.startsWith(lowerArticleWithSpace) ||
-        lowerTrimmedName === article.toLowerCase()
-    ) {
-        return trimmedName
-    }
-
-    return `${article} ${trimmedName}`
+export const articulateEntity = (entityName: EntityName): string => {
+    return regionsWithArticles.has(entityName)
+        ? `the ${entityName}`
+        : entityName
 }

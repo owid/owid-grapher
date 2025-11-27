@@ -24,12 +24,6 @@ const replaceTokens = (text: string, replacements: ReplacementPair[]): string =>
         text
     )
 
-const applyToOptionalString = (
-    value: string | undefined,
-    replacements: ReplacementPair[]
-): string | undefined =>
-    typeof value === "string" ? replaceTokens(value, replacements) : value
-
 /**
  * Recursively replaces strings in the given array based on the provided replacements.
  * e.g.
@@ -89,26 +83,7 @@ export const instantiateProfile = (
 
     const clonedContent = _.cloneDeep(content)
 
-    clonedContent.title = replaceTokens(clonedContent.title, replacements)
-    clonedContent.subtitle = applyToOptionalString(
-        clonedContent.subtitle,
-        replacements
-    )
-    if (clonedContent.excerpt) {
-        clonedContent.excerpt = replaceTokens(
-            clonedContent.excerpt,
-            replacements
-        )
-    }
-    if (clonedContent.toc) {
-        replaceStringsInObject(clonedContent.toc, replacements)
-    }
-    if (clonedContent.refs) {
-        replaceStringsInObject(clonedContent.refs, replacements)
-    }
-    if (clonedContent.body) {
-        replaceStringsInObject(clonedContent.body, replacements)
-    }
+    replaceStringsInObject(clonedContent, replacements)
 
     const region = getRegionByNameOrVariantName(entity.name)
     if (region) {
