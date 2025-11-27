@@ -35,6 +35,7 @@ export type DbEnrichedStaticViz = Omit<
     slug: string
     title: string
     grapherSlug?: string
+    chartId?: number
     sourceUrl?: string
     description?: string
     createdBy: string
