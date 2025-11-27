@@ -3,6 +3,7 @@ import {
     DbRawStaticViz,
     StaticVizInsertSchema,
     StaticVizUpdateSchema,
+    DbRawPostGdoc,
 } from "@ourworldindata/types"
 import {
     getEnrichedStaticVizById,
@@ -267,10 +268,34 @@ export async function deleteStaticViz(
     const staticViz = await trx
         .table("static_viz")
         .where("id", staticVizId)
-        .first()
+        .first<DbRawStaticViz>()
 
     if (!staticViz) {
         throw new JsonError(`No static viz found for id ${staticVizId}`, 404)
+    }
+
+    // Check if the static viz is referenced in any published gdocs
+    const referencingGdocs = await db.knexRaw<Pick<DbRawPostGdoc, "slug">>(
+        trx,
+        `-- sql
+            SELECT pg.slug
+            FROM posts_gdocs_links pgl
+            JOIN posts_gdocs pg ON pg.id = pgl.sourceId
+            WHERE pgl.target = ?
+              AND pgl.linkType = 'static-viz'
+              AND pg.published = true
+        `,
+        [staticViz.slug]
+    )
+
+    if (referencingGdocs.length > 0) {
+        const gdocsList = lodash
+            .uniq(referencingGdocs.map((gdoc) => `"${gdoc.slug}"`))
+            .join(", ")
+        throw new JsonError(
+            `Cannot delete static viz "${staticViz.slug}" because it is referenced in the following published documents: ${gdocsList}`,
+            400
+        )
     }
 
     await trx.table("static_viz").where("id", staticVizId).delete()
