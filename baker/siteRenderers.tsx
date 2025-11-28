@@ -150,10 +150,10 @@ export function renderDynamicCollectionPage() {
 export const renderGdocsPageBySlug = async (
     knex: KnexReadonlyTransaction,
     slug: string,
-    isPreviewing: boolean = false,
-    type?: OwidGdocType
+    types: OwidGdocType[],
+    isPreviewing: boolean = false
 ): Promise<string | undefined> => {
-    const gdoc = await getAndLoadGdocBySlug(knex, slug, type)
+    const gdoc = await getAndLoadGdocBySlug(knex, slug, types)
     if (!gdoc) {
         throw new Error(`Failed to render an unknown GDocs post: ${slug}.`)
     }
