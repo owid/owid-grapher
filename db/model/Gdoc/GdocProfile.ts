@@ -15,7 +15,6 @@ import {
 } from "@ourworldindata/utils"
 import * as db from "../../db.js"
 import { GdocBase } from "./GdocBase.js"
-import { generateToc } from "./archieToEnriched.js"
 
 const GENERIC_PROFILE_SCOPES = new Set(["countries", "regions", "all"])
 
@@ -64,11 +63,6 @@ export class GdocProfile extends GdocBase implements OwidGdocProfileInterface {
         }
 
         return errors
-    }
-
-    override _enrichSubclassContent = (content: Record<string, any>): void => {
-        const isTocForSidebar = content["sidebar-toc"]
-        content.toc = generateToc(content.body, isTocForSidebar)
     }
 
     private normalisedScopeValues(): string[] {

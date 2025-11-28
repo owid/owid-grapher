@@ -16,12 +16,8 @@ import {
     LinkedAuthor,
     LinkedChart,
 } from "@ourworldindata/types"
-import { excludeNullish, formatDate } from "@ourworldindata/utils"
-import {
-    formatCitation,
-    generateStickyNav,
-    generateToc,
-} from "./archieToEnriched.js"
+import { excludeNullish, formatDate, generateToc } from "@ourworldindata/utils"
+import { formatCitation, generateStickyNav } from "./archieToEnriched.js"
 import { parseFaqs } from "./rawToEnriched.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
 import { GdocBase, getMinimalAuthorsByNames } from "./GdocBase.js"

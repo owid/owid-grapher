@@ -99,6 +99,7 @@ export {
     recursivelyMapArticleContent,
     traverseEnrichedBlock,
     checkNodeIsSpan,
+    generateToc,
     extractLinksFromMarkdown,
     getPaginationPageNumbers,
     spansToUnformattedPlainText,
