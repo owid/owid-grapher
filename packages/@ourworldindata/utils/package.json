@@ -33,6 +33,7 @@
     "timezone-mock": "^1.0.18",
     "ts-pattern": "^5.8.0",
     "url-parse": "^1.5.10",
+    "url-slug": "^4.0.1",
     "uuidv7": "^1.0.1"
   },
   "devDependencies": {
