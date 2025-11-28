@@ -626,6 +626,7 @@ export class Explorer
                 finalGrapherConfig,
                 this.explorerProgram.grapherConfig
             ),
+            baseUrl: this.baseUrl,
             bakedGrapherURL: this.bakedBaseUrl,
             adminBaseUrl: this.adminBaseUrl,
             hideEntityControls: this.showExplorerControls,

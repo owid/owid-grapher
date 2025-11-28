@@ -269,6 +269,11 @@ export async function initGrapher(
         bounds,
         staticBounds: bounds,
         baseFontSize: options.fontSize,
+        manager: {
+            ...options.grapherProps?.manager,
+            // Set the baseUrl to ensure mdims have correct canonical URL in the metadata json
+            baseUrl: `${grapherBaseUrl}/${identifier.id}`,
+        },
         ...options.grapherProps,
     })
     grapherState.isExportingToSvgOrPng = true

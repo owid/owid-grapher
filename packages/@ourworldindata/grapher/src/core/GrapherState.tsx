@@ -2986,15 +2986,14 @@ export class GrapherState {
     // Whether a server-side download is available for the download modal
     @computed get isServerSideDownloadAvailable(): boolean {
         return (
-            // Chart is published (this is false for charts inside explorers, for example)
-            !!this.isPublished &&
             // We're not on an archival grapher page
             !this.isOnArchivalPage &&
             // We're not inside the admin
             window.admin === undefined &&
-            // The slug is set
-            !!this.slug &&
-            !this.narrativeChartInfo // We're not in a narrative chart
+            // We're not in a narrative chart
+            !this.narrativeChartInfo &&
+            // We have a baseUrl to send the request to
+            !!this.baseUrl
         )
     }
     _baseFontSize = BASE_FONT_SIZE
@@ -3240,13 +3239,18 @@ export class GrapherState {
             ...this.externalQueryParams,
         })
     }
+
+    /** Static root URL of the chart, e.g. https://ourworldindata.org/grapher/life-expectancy */
     @computed get baseUrl(): string | undefined {
         if (this.isOnArchivalPage) return this.archiveContext?.archiveUrl
+
+        if (this.manager?.baseUrl) return this.manager.baseUrl
 
         return this.isPublished
             ? `${this.bakedGrapherURL ?? "/grapher"}/${this.displaySlug}`
             : undefined
     }
+
     readonly manager: GrapherManager | undefined = undefined
     @computed get canonicalUrlIfIsNarrativeChart(): string | undefined {
         if (!this.narrativeChartInfo) return undefined
@@ -3263,7 +3267,11 @@ export class GrapherState {
             combinedQueryParams
         )}`
     }
-    // Get the full url representing the canonical location of this grapher state
+
+    /**
+     * Full URL representing the canonical location of this grapher state,
+     * e.g. https://ourworldindata.org/grapher/life-expectancy?tab=map
+     */
     @computed get canonicalUrl(): string | undefined {
         return (
             this.manager?.canonicalUrl ??
