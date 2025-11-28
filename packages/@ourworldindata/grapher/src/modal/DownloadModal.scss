@@ -71,12 +71,11 @@
         text-align: left;
         cursor: pointer;
 
-        &:hover {
-            background-color: $hover-fill;
-        }
-
-        &:active {
-            background-color: $active-fill;
+        &:not(.download-modal__download-button--loading) {
+            &:hover,
+            &:active {
+                background-color: $hover-fill;
+            }
         }
 
         + .download-modal__download-button {
@@ -103,8 +102,27 @@
             flex: 1;
         }
 
-        .download-modal__download-button-description {
+        .download-modal__download-button-description-wrapper {
+            position: relative;
+        }
+
+        .download-modal__download-button-description,
+        .download-modal__download-button-loading-label {
             color: $bluish-grey-text-color;
+        }
+
+        // Hide the description and use an overlay for the 'Downloading...' label
+        // to keep the button height fixed and avoid a layout shift
+        &.download-modal__download-button--loading
+            .download-modal__download-button-description {
+            visibility: hidden;
+        }
+
+        .download-modal__download-button-loading-label {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
         }
 
         .download-modal__download-icon {
@@ -122,6 +140,11 @@
             gap: 4px;
             font-size: 11px;
             width: auto;
+        }
+
+        &.download-modal__download-button--loading {
+            cursor: not-allowed;
+            opacity: 0.8;
         }
     }
 
