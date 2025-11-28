@@ -140,6 +140,35 @@ describe("instantiateProfile", () => {
 
         expect(instantiated.title).toEqual("France Energy Profile")
     })
+
+    it("regenerates the table of contents with replaced tokens", () => {
+        const country = getCountryByName("Canada") as Country
+        const template: OwidGdocProfileContent = {
+            ...buildProfileTemplate(),
+            ["sidebar-toc"]: true,
+            body: [
+                {
+                    type: "heading",
+                    text: [
+                        {
+                            spanType: "span-simple-text",
+                            text: "How much does $entityName emit?",
+                        },
+                    ],
+                    level: 1,
+                    parseErrors: [],
+                },
+            ],
+        }
+
+        const instantiated = instantiateProfile(template, country)
+
+        expect(instantiated.toc?.[0]).toMatchObject({
+            title: "How much does Canada emit?",
+            slug: "how-much-does-canada-emit",
+            isSubheading: false,
+        })
+    })
 })
 
 describe("getEntitiesForProfile", () => {

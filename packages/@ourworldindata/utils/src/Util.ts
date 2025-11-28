@@ -41,10 +41,16 @@ import {
     OwidGdocHomepageInterface,
     PrimitiveType,
     GrapherTrendArrowDirection,
+    TocHeadingWithTitleSupertitle,
+    ALL_CHARTS_ID,
+    FEATURED_DATA_INSIGHTS_ID,
+    EXPLORE_DATA_SECTION_DEFAULT_TITLE,
+    EXPLORE_DATA_SECTION_ID,
 } from "@ourworldindata/types"
 import { PointVector } from "./PointVector.js"
 import * as React from "react"
 import { match, P } from "ts-pattern"
+import urlSlug from "url-slug"
 
 export type NoUndefinedValues<T> = {
     [P in keyof T]: Required<NonNullable<T[P]>>
@@ -1848,6 +1854,77 @@ export function spansToUnformattedPlainText(spans: Span[]): string {
                 .exhaustive()
         )
         .join("")
+}
+
+export function generateToc(
+    body: OwidEnrichedGdocBlock[] | undefined,
+    isTocForLinearTopicPage: boolean = false
+): TocHeadingWithTitleSupertitle[] {
+    if (!body) return []
+
+    // For linear topic pages, we record only h1s
+    // For the sdg-toc, we record h2s & h3s (as it was developed before we decided to use h1s as our top level heading)
+    // It would be nice to standardise this but it would require a migration, updating CSS, updating Gdocs, etc.
+    const [primary, secondary] = isTocForLinearTopicPage
+        ? [1, undefined]
+        : [2, 3]
+    const toc: TocHeadingWithTitleSupertitle[] = []
+
+    body.forEach((block) =>
+        traverseEnrichedBlock(block, (child) => {
+            if (child.type === "heading") {
+                const { level, text, supertitle } = child
+                const titleString = spansToUnformattedPlainText(text)
+                const supertitleString = supertitle
+                    ? spansToUnformattedPlainText(supertitle)
+                    : ""
+                if (titleString && (level === primary || level === secondary)) {
+                    toc.push({
+                        title: titleString,
+                        supertitle: supertitleString,
+                        text: titleString,
+                        slug: urlSlug(`${supertitleString} ${titleString}`),
+                        isSubheading: level === secondary,
+                    })
+                }
+            }
+            if (!isTocForLinearTopicPage) return
+
+            if (child.type === "all-charts") {
+                toc.push({
+                    title: child.heading,
+                    text: child.heading,
+                    slug: ALL_CHARTS_ID,
+                    isSubheading: false,
+                })
+                return
+            }
+
+            if (child.type === "featured-data-insights") {
+                const title = "Data insights"
+                toc.push({
+                    title,
+                    text: title,
+                    slug: FEATURED_DATA_INSIGHTS_ID,
+                    isSubheading: false,
+                })
+                return
+            }
+
+            if (child.type === "explore-data-section") {
+                const title = child.title || EXPLORE_DATA_SECTION_DEFAULT_TITLE
+                toc.push({
+                    title,
+                    text: title,
+                    slug: EXPLORE_DATA_SECTION_ID,
+                    isSubheading: false,
+                })
+                return
+            }
+        })
+    )
+
+    return toc
 }
 
 export function checkIsOwidGdocType(
