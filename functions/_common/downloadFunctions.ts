@@ -35,6 +35,7 @@ import {
     RichDataVariant,
 } from "./search/constructSearchResultJson.js"
 import { checkCache } from "./reusableHandlers.js"
+import { dimensionsToViewId } from "@ourworldindata/utils"
 
 export async function fetchMetadataForGrapher(
     identifier: GrapherIdentifier,
@@ -71,7 +72,7 @@ export async function fetchZipForGrapher(
     searchParams?: URLSearchParams
 ) {
     console.log("preparing to generate zip file")
-    const { grapher } = await initGrapher(
+    const { grapher, multiDimChoices } = await initGrapher(
         identifier,
         TWITTER_OPTIONS,
         searchParams ?? new URLSearchParams(""),
@@ -89,6 +90,13 @@ export async function fetchZipForGrapher(
     const csv = assembleCsv(grapher.grapherState, searchParams)
     console.log("Fetched the parts, creating zip file")
 
+    // For multi-dims, include viewId in the filename (same pattern as explorers)
+    let filename = identifier.id
+    if (identifier.type === "multi-dim-slug" && multiDimChoices) {
+        const viewId = dimensionsToViewId(multiDimChoices)
+        filename = `${identifier.id}__${viewId}`
+    }
+
     const zipContent: File[] = [
         {
             path: `${identifier.id}.metadata.json`,
@@ -102,6 +110,7 @@ export async function fetchZipForGrapher(
     return new Response(content, {
         headers: {
             "Content-Type": "application/zip",
+            "Content-Disposition": `attachment; filename="${filename}.zip"`,
         },
     })
 }

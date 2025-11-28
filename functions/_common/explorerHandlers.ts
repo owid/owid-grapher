@@ -9,7 +9,7 @@ import {
 import { renderSvgToPng } from "./grapherRenderer.js"
 import { error, png } from "itty-router"
 import { createZip, File } from "littlezipper"
-import { Bounds, Url } from "@ourworldindata/utils"
+import { Bounds, dimensionsToViewId, Url } from "@ourworldindata/utils"
 import {
     getEntityNamesParam,
     getSelectedEntityNamesParam,
@@ -216,10 +216,8 @@ export async function fetchZipForExplorerView(
 
     try {
         const explorerEnv = stripUrlExtensionFromEnv(env, extensions.zip)
-        const { grapherState } = await initGrapherForExplorerView(
-            explorerEnv,
-            options
-        )
+        const { grapherState, explorerParams } =
+            await initGrapherForExplorerView(explorerEnv, options)
 
         ensureDownloadOfDataAllowed(grapherState)
         const metadata = assembleMetadata(grapherState, searchParams)
@@ -227,8 +225,9 @@ export async function fetchZipForExplorerView(
         const csv = assembleCsv(grapherState, searchParams)
         console.log("Fetched the parts, creating zip file")
 
-        // Extract explorer slug
         const explorerSlug = explorerEnv.url.pathname.split("/").pop()
+        const viewId = dimensionsToViewId(explorerParams)
+        const filename = `${explorerSlug}__${viewId}`
 
         const zipContent: File[] = [
             {
@@ -244,7 +243,7 @@ export async function fetchZipForExplorerView(
         return new Response(content, {
             headers: {
                 "Content-Type": "application/zip",
-                "Content-Disposition": `attachment; filename="${explorerSlug}.zip"`,
+                "Content-Disposition": `attachment; filename="${filename}.zip"`,
             },
         })
     } catch (e) {

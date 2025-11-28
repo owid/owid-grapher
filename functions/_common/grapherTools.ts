@@ -9,6 +9,8 @@ import {
     MultiDimDataPageConfigEnriched,
     R2GrapherConfigDirectory,
     OwidTableSlugs,
+    ViewEnriched,
+    MultiDimDimensionChoices,
 } from "@ourworldindata/types"
 import {
     excludeUndefined,
@@ -32,6 +34,7 @@ const WORKER_CACHE_TIME_IN_SECONDS = 60
 interface FetchGrapherConfigResult {
     grapherConfig: GrapherInterface | null
     multiDimAvailableDimensions?: string[]
+    multiDimChoices?: Record<string, string>
     status: number
     etag: string | undefined
 }
@@ -139,16 +142,14 @@ export async function fetchUnparsedGrapherConfig(
 }
 
 async function fetchMultiDimGrapherConfig(
-    multiDimConfig: MultiDimDataPageConfigEnriched,
-    searchParams: URLSearchParams,
+    multiDimView: ViewEnriched,
     env: Env
-) {
-    const view = searchParamsToMultiDimView(multiDimConfig, searchParams)
+): Promise<GrapherInterface> {
     const response = await fetchUnparsedGrapherConfig(
-        { type: "uuid", id: view.fullConfigId },
+        { type: "uuid", id: multiDimView.fullConfigId },
         env
     )
-    return await response.json()
+    return response.json()
 }
 
 export async function fetchGrapherConfig({
@@ -190,13 +191,12 @@ export async function fetchGrapherConfig({
     const config = await fetchResponse.json()
     let grapherConfig: GrapherInterface
     let multiDimAvailableDimensions: string[]
+    let multiDimChoices: MultiDimDimensionChoices | undefined
     if (identifier.type === "multi-dim-slug") {
         const multiDimConfig = config as MultiDimDataPageConfigEnriched
-        grapherConfig = await fetchMultiDimGrapherConfig(
-            multiDimConfig,
-            searchParams,
-            env
-        )
+        const view = searchParamsToMultiDimView(multiDimConfig, searchParams)
+        grapherConfig = await fetchMultiDimGrapherConfig(view, env)
+        multiDimChoices = view.dimensions
         multiDimAvailableDimensions = multiDimConfig.dimensions.map(
             (dim) => dim.slug
         )
@@ -211,6 +211,7 @@ export async function fetchGrapherConfig({
     }
     if (identifier.type === "multi-dim-slug") {
         result.multiDimAvailableDimensions = multiDimAvailableDimensions
+        result.multiDimChoices = multiDimChoices
     }
     return result
 }
@@ -223,6 +224,7 @@ export async function initGrapher(
 ): Promise<{
     grapher: Grapher
     multiDimAvailableDimensions?: string[]
+    multiDimChoices?: Record<string, string>
 }> {
     let grapherConfigResponse: FetchGrapherConfigResult
     try {
@@ -284,6 +286,7 @@ export async function initGrapher(
         grapher,
         multiDimAvailableDimensions:
             grapherConfigResponse.multiDimAvailableDimensions,
+        multiDimChoices: grapherConfigResponse.multiDimChoices,
     }
 }
 
