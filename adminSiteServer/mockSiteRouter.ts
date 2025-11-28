@@ -52,6 +52,7 @@ import {
     OwidGdocType,
     getRegionBySlug,
     getEntitiesForProfile,
+    ALL_GDOC_TYPES,
 } from "@ourworldindata/utils"
 import {
     EXPLORERS_ROUTE_FOLDER,
@@ -398,8 +399,8 @@ getPlainRouteWithROTransaction(
                 await renderGdocsPageBySlug(
                     trx,
                     pageNumberOrSlug,
-                    true,
-                    OwidGdocType.DataInsight
+                    [OwidGdocType.DataInsight],
+                    true
                 )
             )
         } catch (e) {
@@ -562,8 +563,8 @@ getPlainRouteNonIdempotentWithRWTransaction(
             const page = await renderGdocsPageBySlug(
                 trx,
                 req.params.authorSlug,
-                true,
-                OwidGdocType.Author
+                [OwidGdocType.Author],
+                true
             )
             res.send(page)
             return
@@ -692,11 +693,9 @@ getPlainRouteWithROTransaction(
         }
 
         try {
-            const gdoc = await getAndLoadGdocBySlug(
-                trx,
-                profileSlug,
-                OwidGdocType.Profile
-            )
+            const gdoc = await getAndLoadGdocBySlug(trx, profileSlug, [
+                OwidGdocType.Profile,
+            ])
 
             if (!gdoc || gdoc.content.type !== OwidGdocType.Profile) {
                 return res.status(404).send(renderNotFoundPage())
@@ -736,7 +735,18 @@ getPlainRouteWithROTransaction(
         const slug = req.path.replace(/^\/|\/$/g, "")
 
         try {
-            const page = await renderGdocsPageBySlug(trx, slug, true)
+            const page = await renderGdocsPageBySlug(
+                trx,
+                slug,
+                // filter out the namespaced types that are handled above
+                ALL_GDOC_TYPES.filter(
+                    (type) =>
+                        type !== OwidGdocType.Profile &&
+                        type !== OwidGdocType.DataInsight &&
+                        type !== OwidGdocType.Author
+                ),
+                true
+            )
             res.send(page)
             return
         } catch (e) {
