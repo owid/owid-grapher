@@ -50,10 +50,10 @@
         margin-top: 0;
     }
 
-    /* Set the bottom margin of any non-heading, non-horizontal-rule block that comes before a heading to 0 */
+    /* Set the bottom margin of any non-heading, non-horizontal-rule, non-LTP TOC block that comes before a heading to 0 */
     [class*="article-block__"]:not(.article-block__heading):not(
             .article-block__horizontal-rule
-        ):has(+ .article-block__heading) {
+        ):not(.article-block__ltp-toc):has(+ .article-block__heading) {
         margin-bottom: 0;
     }
 
