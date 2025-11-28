@@ -3098,6 +3098,7 @@ __metadata:
     ts-pattern: "npm:^5.8.0"
     typescript: "npm:~5.9.2"
     url-parse: "npm:^1.5.10"
+    url-slug: "npm:^4.0.1"
     uuidv7: "npm:^1.0.1"
     vitest: "npm:^4.0.15"
   languageName: unknown
