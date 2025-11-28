@@ -2261,3 +2261,13 @@ export function getDisplayUnit(
 
     return strippedUnit
 }
+
+export function dimensionsToViewId(
+    dimensions: Record<string, string> // Keys: dimension slugs, values: choice slugs
+): string {
+    return Object.entries(dimensions)
+        .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+        .map(([_, value]) => slugify(value))
+        .join("__")
+        .toLowerCase()
+}

@@ -4,6 +4,7 @@ export const ExplorerViewsTableName = "explorer_views"
 export interface DbInsertExplorerView {
     id?: number
     explorerSlug: string
+    viewId: string
     dimensions: JsonString
     chartConfigId?: string // char(36) in database - UUID, nullable when error occurs
     error?: string // error message when configuration extraction fails
