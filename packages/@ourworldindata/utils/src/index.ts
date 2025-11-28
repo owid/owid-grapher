@@ -142,6 +142,7 @@ export {
     calculateTrendDirection,
     getDisplayUnit,
     stripOuterParentheses,
+    dimensionsToViewId,
 } from "./Util.js"
 
 export {
@@ -162,7 +163,7 @@ export {
     getPhraseForArchivalDate,
 } from "./metadataHelpers.js"
 
-export { multiDimDimensionsToViewId, getAllVariableIds } from "./multiDim.js"
+export { getAllVariableIds } from "./multiDim.js"
 
 export { isPresent } from "./isPresent.js"
 

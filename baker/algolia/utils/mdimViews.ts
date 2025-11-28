@@ -6,7 +6,7 @@ import {
     DbRawChartConfig,
     getUniqueNamesFromTagHierarchies,
     merge,
-    multiDimDimensionsToViewId,
+    dimensionsToViewId,
     MultiDimXChartConfigsTableName,
     parseChartConfig,
     queryParamsToStr,
@@ -62,7 +62,7 @@ async function getRecords(
     const relevantVariableMetadata =
         await getRelevantVariableMetadata(relevantVariableIds)
     return multiDim.config.views.map((view) => {
-        const viewId = multiDimDimensionsToViewId(view.dimensions)
+        const viewId = dimensionsToViewId(view.dimensions)
         const id = multiDimXChartConfigIdMap.get(`${multiDim.id}-${viewId}`)
         if (!id) {
             throw new Error(

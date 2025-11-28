@@ -18,8 +18,7 @@ import { transformExplorerProgramToResolveCatalogPaths } from "./ExplorerCatalog
 import { insertChartConfig, updateExistingConfigPair } from "./ChartConfigs.js"
 import { uuidv7 } from "uuidv7"
 import * as _ from "lodash-es"
-import { mergeGrapherConfigs } from "@ourworldindata/utils"
-import { stringify } from "safe-stable-stringify"
+import { mergeGrapherConfigs, dimensionsToViewId } from "@ourworldindata/utils"
 import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
 import {
     ADMIN_BASE_URL,
@@ -185,7 +184,8 @@ async function iterateExplorerViews(
     for (const grapherRow of grapherRows) {
         const view =
             explorerProgram.decisionMatrix.getChoiceParamsForRow(grapherRow)
-        const explorerViewStr = JSON.stringify(view)
+        const dimensionsStr = JSON.stringify(view)
+        const viewId = dimensionsToViewId(view)
 
         try {
             // Set the slide to this specific view - this will update the explorer's state
@@ -214,7 +214,8 @@ async function iterateExplorerViews(
 
             generatedViews.push({
                 explorerSlug: explorerProgram.slug,
-                dimensions: explorerViewStr,
+                viewId,
+                dimensions: dimensionsStr,
                 config: config,
             })
         } catch (error) {
@@ -224,7 +225,8 @@ async function iterateExplorerViews(
 
             generatedViews.push({
                 explorerSlug: explorerProgram.slug,
-                dimensions: explorerViewStr,
+                viewId,
+                dimensions: dimensionsStr,
                 error: errorMessage.slice(0, 500), // Limit error message length
             })
         }
@@ -273,44 +275,21 @@ export async function refreshExplorerViewsForSlug(
     // Fetch existing explorer views with their chart configs
     type ExistingView = Pick<
         DbRawExplorerView,
-        "id" | "dimensions" | "chartConfigId" | "error"
+        "id" | "viewId" | "chartConfigId" | "error"
     > & {
         full: string | null
     }
 
     const existingViews: ExistingView[] = await knex
-        .select(
-            "ev.id",
-            "ev.dimensions",
-            "ev.chartConfigId",
-            "ev.error",
-            "cc.full"
-        )
+        .select("ev.id", "ev.viewId", "ev.chartConfigId", "ev.error", "cc.full")
         .from("explorer_views as ev")
         .leftJoin("chart_configs as cc", "ev.chartConfigId", "cc.id")
         .where("ev.explorerSlug", slug)
 
     // Create a map for efficient lookup of existing views
-    // Use deterministic JSON serialization as the key
     const existingViewsMap = new Map<string, ExistingView>()
-
     for (const view of existingViews) {
-        try {
-            const parsedView: Record<string, string> = JSON.parse(
-                view.dimensions
-            )
-            const deterministicKey = stringify(parsedView)
-            existingViewsMap.set(deterministicKey, view)
-        } catch (ex) {
-            // Skip views with invalid JSON - this indicates a data integrity issue
-            void logErrorAndMaybeCaptureInSentry(
-                new Error(
-                    `Explorer view contains invalid JSON for explorer ${slug}: ${view.dimensions}`,
-                    { cause: ex }
-                )
-            )
-            throw ex
-        }
+        existingViewsMap.set(view.viewId, view)
     }
 
     // init explorer program
@@ -342,17 +321,10 @@ export async function refreshExplorerViewsForSlug(
     const updatedViews: { existing: ExistingView; generated: GeneratedView }[] =
         []
     const newViews: GeneratedView[] = []
-    const generatedViewsSet = new Set<string>()
 
     for (const generatedView of generatedViews) {
-        generatedViewsSet.add(generatedView.dimensions)
-
-        // Find existing view using deterministic serialization for O(1) lookup
-        const generatedViewObj: Record<string, string> = JSON.parse(
-            generatedView.dimensions
-        )
-        const deterministicKey = stringify(generatedViewObj as object)
-        const existingView = existingViewsMap.get(deterministicKey)
+        // Find existing view using the viewId
+        const existingView = existingViewsMap.get(generatedView.viewId)
 
         if (!existingView) {
             // New view that doesn't exist yet
@@ -398,18 +370,10 @@ export async function refreshExplorerViewsForSlug(
     }
 
     // Find views to remove (exist in DB but not in generated views)
-    const generatedViewKeys = new Set<string>()
-    for (const generatedView of generatedViews) {
-        const generatedViewObj: Record<string, string> = JSON.parse(
-            generatedView.dimensions
-        )
-        const deterministicKey = stringify(generatedViewObj)
-        generatedViewKeys.add(deterministicKey)
-    }
-
+    const generatedViewIds = new Set(generatedViews.map((v) => v.viewId))
     const removedViews: ExistingView[] = []
-    for (const [existingKey, existingView] of existingViewsMap) {
-        if (!generatedViewKeys.has(existingKey)) {
+    for (const [existingViewId, existingView] of existingViewsMap) {
+        if (!generatedViewIds.has(existingViewId)) {
             removedViews.push(existingView)
         }
     }
