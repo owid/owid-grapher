@@ -10,8 +10,6 @@ import {
     checkNodeIsSpan,
     EnrichedBlockSimpleText,
     lowercaseObjectKeys,
-    OwidEnrichedGdocBlock,
-    traverseEnrichedBlock,
     ALL_CHARTS_ID,
     KEY_INSIGHTS_ID,
     RESEARCH_AND_WRITING_ID,

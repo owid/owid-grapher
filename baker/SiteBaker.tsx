@@ -1253,7 +1253,7 @@ export const bakeSinglePostPageForArchival = async (
         manifest: PostArchivalManifest
     }
 ) => {
-    const gdoc = await getAndLoadGdocBySlug(knex, slug)
+    const gdoc = await getAndLoadGdocBySlug(knex, slug, [OwidGdocType.Article])
     await gdoc.loadState(knex)
 
     const outPathHtml = `${bakedSiteDir}/${slug}.html`
