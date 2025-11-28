@@ -304,8 +304,11 @@ export async function getPublishedGdocBaseObjectBySlug(
     knex: KnexReadonlyTransaction,
     slug: string,
     fetchLinkedTags: boolean,
-    type?: OwidGdocType
+    types: OwidGdocType[]
 ): Promise<OwidGdocBaseInterface | undefined> {
+    if (types.length === 0) {
+        throw new Error("At least one Gdoc type must be provided")
+    }
     const row = await knexRawFirst<DbRawPostGdoc>(
         knex,
         `-- sql
@@ -314,8 +317,8 @@ export async function getPublishedGdocBaseObjectBySlug(
             WHERE slug = ?
             AND published = 1
             AND publishedAt <= NOW()
-            ${type ? "AND type = ?" : ""}`,
-        type ? [slug, type] : [slug]
+            AND type IN (?)`,
+        [slug, types]
     )
     if (!row) return undefined
     const enrichedRow = parsePostsGdocsRow(row)
@@ -348,13 +351,13 @@ export async function getPublishedGdocBaseObjectBySlug(
 
 /**
  * From a slug, get a Gdoc object with all its metadata and state loaded, in its correct subclass.
- * If type is provided, only fetch the Gdoc if it matches that type.
+ * Only fetch the Gdoc if it matches one of the provided types.
  * (There can be multiple published gdocs with the same slug if they are of different types)
  */
 export async function getAndLoadGdocBySlug(
     knex: KnexReadonlyTransaction,
     slug: string,
-    type?: OwidGdocType
+    types: OwidGdocType[]
 ): Promise<
     | GdocPost
     | GdocDataInsight
@@ -364,11 +367,10 @@ export async function getAndLoadGdocBySlug(
     | GdocAnnouncement
     | GdocProfile
 > {
-    const base = await getPublishedGdocBaseObjectBySlug(knex, slug, true, type)
+    const base = await getPublishedGdocBaseObjectBySlug(knex, slug, true, types)
     if (!base) {
-        const typeMessage = type ? ` with type "${type}"` : ""
         throw new Error(
-            `No published Google Doc with slug "${slug}"${typeMessage} found in the database`
+            `No published Google Doc with slug "${slug}" with types "${types.join(", ")}" found in the database`
         )
     }
     return loadGdocFromGdocBase(knex, base)
