@@ -3,6 +3,7 @@ import { useCallback, useMemo, useState } from "react"
 import * as React from "react"
 import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
+import cx from "classnames"
 import {
     Bounds,
     canWriteToClipboard,
@@ -26,6 +27,7 @@ import {
     faCopy,
     faDownload,
     faInfoCircle,
+    faSpinner,
 } from "@fortawesome/free-solid-svg-icons"
 import {
     OwidColumnDef,
@@ -1134,11 +1136,34 @@ interface DownloadButtonProps {
 }
 
 function DownloadButton(props: DownloadButtonProps): React.ReactElement {
+    const { onClick } = props
+
+    const [isDownloading, setIsDownloading] = useState(false)
+    const [showLoadingUI, setShowLoadingUI] = useState(false)
+
+    const handleClick = useCallback(async () => {
+        setIsDownloading(true)
+
+        // Delay showing the loading UI to prevent flashing for quick downloads
+        const loadingTimeout = setTimeout(() => setShowLoadingUI(true), 300)
+
+        try {
+            await onClick()
+        } finally {
+            clearTimeout(loadingTimeout)
+            setIsDownloading(false)
+            setShowLoadingUI(false)
+        }
+    }, [onClick])
+
     return (
         <button
-            className="download-modal__download-button"
-            onClick={props.onClick}
+            className={cx("download-modal__download-button", {
+                "download-modal__download-button--loading": showLoadingUI,
+            })}
+            onClick={handleClick}
             data-track-note={props.tracking}
+            disabled={isDownloading}
         >
             {props.icon && (
                 <div className="download-modal__option-icon">{props.icon}</div>
@@ -1150,12 +1175,23 @@ function DownloadButton(props: DownloadButtonProps): React.ReactElement {
             )}
             <div className="download-modal__download-button-content">
                 <h4 className="grapher_body-2-semibold">{props.title}</h4>
-                <p className="grapher_label-1-regular download-modal__download-button-description">
-                    {props.description}
-                </p>
+                <div className="download-modal__download-button-description-wrapper">
+                    <p className="grapher_label-1-regular download-modal__download-button-description">
+                        {props.description}
+                    </p>
+                    {showLoadingUI && (
+                        <p className="grapher_label-1-regular download-modal__download-button-loading-label">
+                            Downloading…
+                        </p>
+                    )}
+                </div>
             </div>
             <div className="download-modal__download-icon">
-                <FontAwesomeIcon icon={faDownload} />
+                {showLoadingUI ? (
+                    <FontAwesomeIcon icon={faSpinner} spin />
+                ) : (
+                    <FontAwesomeIcon icon={faDownload} />
+                )}
             </div>
         </button>
     )
