@@ -154,7 +154,7 @@ export function GdocPost({
             {!content["hide-citation"] && (
                 <section
                     id={CITATION_ID}
-                    className="grid grid-cols-12-full-width col-start-1 col-end-limit"
+                    className="grid grid-cols-12-full-width col-start-1 col-end-limit no-dividers"
                 >
                     <div className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
                         <h3

@@ -4,7 +4,7 @@ $rw-margin-bottom-grid-cell: 4px;
     margin-bottom: 40px;
 
     > h1 {
-        margin-bottom: 40px;
+        margin-bottom: $margin-bottom-section-heading-ltp;
     }
 }
 
@@ -14,16 +14,6 @@ $rw-margin-bottom-grid-cell: 4px;
     color: $blue-60;
     @include sm-up {
         margin: 32px 0 24px;
-    }
-}
-
-// Override for linear topic pages, where optional featured blocks are spaced
-// out using bottom margins for consistency
-.centered-article-container--linear-topic-page
-    .article-block__research-and-writing {
-    margin-bottom: 48px;
-    > h1 {
-        margin-top: 0;
     }
 }
 

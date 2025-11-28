@@ -13,6 +13,7 @@ import { getLiteSearchClient } from "./search/searchClients.js"
 import { SearchDataInsightsResultsSkeleton } from "./search/SearchDataInsightsResultsSkeleton.js"
 import { SearchDataInsightHit } from "./search/SearchDataInsightHit.js"
 import { Button } from "@ourworldindata/components"
+import cx from "classnames"
 
 const MAX_DATA_INSIGHTS_RESULTS = 1000 // setting to maximum allowed to get all results
 
@@ -61,8 +62,11 @@ export const FeaturedDataInsights = ({
     if (!isLoading && totalResults === 0) return null
 
     return (
-        <section className={className} id={FEATURED_DATA_INSIGHTS_ID}>
-            <h1 className="article-block__featured-data-insights__title h1-semibold">
+        <section
+            className={cx(className, "needs-dividers")}
+            id={FEATURED_DATA_INSIGHTS_ID}
+        >
+            <h1 className="h1-semibold">
                 <span>Data insights on {topicName}</span>
                 <a
                     className="deep-link"

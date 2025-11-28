@@ -24,7 +24,8 @@ export const ExploreDataSection = ({
             className={cx(
                 className,
                 "explore-data-section",
-                `explore-data-section--${align}`
+                `explore-data-section--${align}`,
+                "no-dividers"
             )}
         >
             <header className="explore-data-section__header col-start-2 span-cols-12">
