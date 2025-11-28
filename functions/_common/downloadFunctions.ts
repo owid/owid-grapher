@@ -35,6 +35,7 @@ import {
     RichDataVariant,
 } from "./search/constructSearchResultJson.js"
 import { checkCache } from "./reusableHandlers.js"
+import { slugify } from "@ourworldindata/utils"
 
 export async function fetchMetadataForGrapher(
     identifier: GrapherIdentifier,
@@ -71,12 +72,13 @@ export async function fetchZipForGrapher(
     searchParams?: URLSearchParams
 ) {
     console.log("preparing to generate zip file")
-    const { grapher } = await initGrapher(
-        identifier,
-        TWITTER_OPTIONS,
-        searchParams ?? new URLSearchParams(""),
-        env
-    )
+    const { grapher, identifierType: effectiveIdentifierType } =
+        await initGrapher(
+            identifier,
+            TWITTER_OPTIONS,
+            searchParams ?? new URLSearchParams(""),
+            env
+        )
     const inputTable = await fetchInputTableForConfig({
         dimensions: grapher.grapherState.dimensions,
         selectedEntityColors: grapher.grapherState.selectedEntityColors,
@@ -89,12 +91,18 @@ export async function fetchZipForGrapher(
     const csv = assembleCsv(grapher.grapherState, searchParams)
     console.log("Fetched the parts, creating zip file")
 
+    // Use the slugified display title as filename for multi-dims
+    let filename = identifier.id
+    if (effectiveIdentifierType === "multi-dim-slug") {
+        filename = slugify(grapher.grapherState.displayTitle)
+    }
+
     const zipContent: File[] = [
         {
-            path: `${identifier.id}.metadata.json`,
+            path: `${filename}.metadata.json`,
             data: JSON.stringify(metadata, undefined, 2),
         },
-        { path: `${identifier.id}.csv`, data: csv },
+        { path: `${filename}.csv`, data: csv },
         { path: "readme.md", data: readme },
     ]
     const content = await createZip(zipContent)
@@ -102,6 +110,7 @@ export async function fetchZipForGrapher(
     return new Response(content, {
         headers: {
             "Content-Type": "application/zip",
+            "Content-Disposition": `attachment; filename="${filename}.zip"`,
         },
     })
 }
