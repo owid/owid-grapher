@@ -28,7 +28,7 @@ export const ExploreDataSection = ({
                 "no-dividers"
             )}
         >
-            <header className="explore-data-section__header col-start-2 span-cols-12">
+            <header className="explore-data-section__header col-start-2 span-cols-12 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
                 <div className="icon" aria-hidden="true">
                     {icon}
                 </div>

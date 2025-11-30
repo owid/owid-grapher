@@ -32,7 +32,6 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    margin-bottom: 24px;
 
     .icon {
         display: flex;
@@ -44,8 +43,28 @@
     }
 }
 
+.explore-data-section--left {
+    .explore-data-section__header {
+        margin-bottom: 40px;
+    }
+
+    // Use the margin bottom from the header 👆
+    > [class*="article-block__sticky"]:first-of-type {
+        margin-top: 0;
+    }
+
+    // Selects sticky article blocks (2nd onwards) that have an h2 as their first child element
+    > [class*="article-block__sticky"]:nth-of-type(n + 2):has(h2:first-child) {
+        margin-top: 32px;
+        padding-top: 32px;
+        border-top: 1px solid $blue-20;
+    }
+}
+
 .explore-data-section--center {
     .explore-data-section__header {
+        gap: 16px;
+        margin-bottom: 24px;
         justify-content: center;
     }
 
