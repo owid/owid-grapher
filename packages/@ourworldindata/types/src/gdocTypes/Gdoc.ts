@@ -257,7 +257,7 @@ export interface OwidGdocProfileContent {
     type: OwidGdocType.Profile
     title: string
     authors: string[]
-    scope: string // e.g. "countries, regions"
+    scope: string // e.g. "countries, continents"
     subtitle?: string
     excerpt?: string
     "featured-image"?: string

@@ -16,7 +16,7 @@ import {
 import * as db from "../../db.js"
 import { GdocBase } from "./GdocBase.js"
 
-const GENERIC_PROFILE_SCOPES = new Set(["countries", "regions", "all"])
+const GENERIC_PROFILE_SCOPES = new Set(["countries", "continents", "all"])
 
 export class GdocProfile extends GdocBase implements OwidGdocProfileInterface {
     declare content: OwidGdocProfileContent
