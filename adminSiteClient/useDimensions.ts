@@ -80,15 +80,15 @@ export const useChartDimensions = <E extends HTMLElement>(options?: {
 
 export const useWindowDimensions = (): { dimensions: WindowDimensions } => {
     const [windowDimensions, setWindowDimensions] = useState<WindowDimensions>({
-        width: typeof window !== "undefined" ? window.innerWidth : 1200,
-        height: typeof window !== "undefined" ? window.innerHeight : 800,
+        width: typeof window !== "undefined" ? window.outerWidth : 1200,
+        height: typeof window !== "undefined" ? window.outerHeight : 800,
     })
 
     useEffect(() => {
         const handleResize = () => {
             setWindowDimensions({
-                width: window.innerWidth,
-                height: window.innerHeight,
+                width: window.outerWidth,
+                height: window.outerHeight,
             })
         }
 

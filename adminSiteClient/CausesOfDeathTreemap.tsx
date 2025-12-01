@@ -24,6 +24,7 @@ import {
     useCausesOfDeathChartContext,
 } from "./CausesOfDeathContext"
 import { placeExternalCategoryAnnotations } from "./CausesOfDeathCategoryAnnotationsHelpers.js"
+import { CausesOfDeathLegend } from "./CauseOfDeathLegend.js"
 
 const SMALL_BREAKPOINT = 550
 
@@ -55,7 +56,7 @@ export function ResponsiveCausesOfDeathTreemap({
     // The treemap should fill the window height on smaller screens
     const isNarrow = dimensions.width < SMALL_BREAKPOINT
     const height = isNarrow
-        ? R.clamp(windowDimensions.height - 16, {
+        ? R.clamp(windowDimensions.height * 0.8, {
               min: config.minHeight,
               max: config.maxHeight,
           })
@@ -64,6 +65,10 @@ export function ResponsiveCausesOfDeathTreemap({
     return (
         <div ref={ref}>
             <CausesOfDeathChartContext.Provider value={{ isMobile: isNarrow }}>
+                {isNarrow && (
+                    <CausesOfDeathLegend metadata={metadata} data={data} />
+                )}
+
                 <CausesOfDeathTreemap
                     data={data}
                     timeSeriesData={timeSeriesData}

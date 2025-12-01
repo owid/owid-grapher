@@ -372,6 +372,34 @@ $black-text: $gray-100;
     }
 }
 
+.causes-of-death-legend {
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 3px;
+    column-gap: 16px;
+    margin-bottom: 10px;
+
+    .causes-of-death-legend__item {
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+        font-size: 0.8125rem;
+        line-height: 1;
+    }
+
+    .causes-of-death-legend__swatch {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+        border-radius: 2px;
+    }
+
+    .causes-of-death-legend__label {
+        position: relative;
+        top: 1px;
+    }
+}
+
 // NEEDS CLEANUP
 
 .causes-of-death-categories-bar-chart {
