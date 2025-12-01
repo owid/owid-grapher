@@ -94,6 +94,7 @@ export function CausesOfDeathChart(): React.ReactElement {
                 data={activeData}
                 metadata={metadata}
                 ageGroup={activeAgeGroup}
+                sex={activeSex}
                 entityName={activeEntityName}
                 year={activeYear}
                 isLoading={isLoadingEntityData}
