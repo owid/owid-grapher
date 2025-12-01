@@ -1,23 +1,27 @@
-import { useAtom } from "jotai"
+import { useAtom, useAtomValue } from "jotai"
 import {
     atomCountriesOrRegionsMode,
     atomCurrentCurrency,
     atomCurrentYear,
+    atomIsInCountryMode,
     atomTimeInterval,
 } from "../store.ts"
 import * as R from "remeda"
 import { useEffect, useState } from "react"
 import { AVAILABLE_YEARS_RANGE } from "../utils/incomePlotConstants.ts"
+import { IncomePlotCountrySelector } from "./IncomePlotCountrySelector.tsx"
 
 export const IncomePlotControlsRowTop = () => {
     const [countriesOrRegionsMode, nextCountriesOrRegionsMode] = useAtom(
         atomCountriesOrRegionsMode
     )
+    const isInCountryMode = useAtomValue(atomIsInCountryMode)
     return (
         <div style={{ marginBottom: 10 }}>
             <button onClick={nextCountriesOrRegionsMode}>
                 {R.toTitleCase(countriesOrRegionsMode)}
             </button>
+            {isInCountryMode && <IncomePlotCountrySelector />}
         </div>
     )
 }
