@@ -220,16 +220,20 @@ export function stackedSliceDiceTiling<T>({
             stackedChildren.unshift(keepChildren.pop()!)
         }
 
-        const stackedChildrenSum = R.sumBy(
-            stackedChildren,
-            (child) => child.value
-        )
-
         // Layout normally if there are no keep children
         if (keepChildren.length === 0) {
             keepChildren = stackedChildren
             stackedChildren = []
         }
+
+        if (keepChildren.length === 1 && stackedChildren.length > 0) {
+            keepChildren.push(stackedChildren.shift()!)
+        }
+
+        const stackedChildrenSum = R.sumBy(
+            stackedChildren,
+            (child) => child.value
+        )
 
         // Add the values of the children to be stacked to the last keep entry
         let adjustedKeepChildren = undefined
