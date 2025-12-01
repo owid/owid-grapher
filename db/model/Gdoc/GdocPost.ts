@@ -326,12 +326,19 @@ export const enrichLatestPageItems = async (
         (images) => images.map((image) => image.filename)
     )
 
+    // Gather author featured image filenames
+    const authorFeaturedImageFilenames = R.pipe(
+        linkedAuthors.map((author) => author.featuredImage),
+        excludeNullish
+    )
+
     // Fetch image metadata
     const imageMetadata = await getAllImages(knex).then((allImages) =>
         pick(keyBy(allImages, "filename"), [
             ...linkedDocumentFeaturedImageFilenames,
             ...articleFeaturedImageFilenames,
             ...announcementAndDataInsightImageFilenames,
+            ...authorFeaturedImageFilenames,
         ])
     )
 
