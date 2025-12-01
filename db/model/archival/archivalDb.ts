@@ -762,6 +762,7 @@ export const getPostChecksumsFromDb = async (
     const posts = await knex<DbRawPostGdoc>(PostsGdocsTableName)
         .select("id", "slug", "contentMd5")
         .where("published", true)
+        .where("publishedAt", "<=", knex.fn.now())
         .where("type", OwidGdocType.Article)
 
     if (posts.length === 0) return { postChecksums: [], imagesByPostId: {} }
