@@ -45,7 +45,7 @@ export function CausesOfDeathTreemapTileLabels({
         ? Math.max(10, treemapBounds.width / 100)
         : Math.max(8, treemapBounds.width / 150) // Minimum font size scales with width
     const maxFontSize = isMobile
-        ? Math.min(20, treemapBounds.width / 20, treemapBounds.height / 25)
+        ? Math.min(20, treemapBounds.width / 16, treemapBounds.height / 25)
         : Math.min(24, treemapBounds.width / 30, treemapBounds.height / 20) // Maximum font size scales with dimensions
 
     // Calculate font size based on rectangle area using d3 scaling
@@ -68,7 +68,7 @@ export function CausesOfDeathTreemapTileLabels({
     const verticalPaddingScale = d3
         .scaleSqrt()
         .domain([0, treemapBounds.height / 2]) // based on rectangle height
-        .range([2, 6]) // vertical padding range from 2px to 6px
+        .range([2, 4]) // vertical padding range from 2px to 6px
         .clamp(true)
     const verticalPadding = Math.round(verticalPaddingScale(height))
 
@@ -93,18 +93,14 @@ export function CausesOfDeathTreemapTileLabels({
     const availableWidth = contentBounds.width
     const availableHeight = contentBounds.height
 
-    const lineHeight = 1
+    const lineHeight = 1.1
 
     const makeLabelWrapForFontSize = (fontSize: number) =>
         MarkdownTextWrap.fromFragments({
             main: { text: formattedPercentage, bold: true },
             secondary: { text: labelText },
             newLine: isLargestTile ? "continue-line" : "avoid-wrap",
-            textWrapProps: {
-                maxWidth: availableWidth,
-                fontSize,
-                lineHeight,
-            },
+            textWrapProps: { maxWidth: availableWidth, fontSize, lineHeight },
         })
 
     const fontSize = calculateOptimalFontSize({
@@ -116,10 +112,10 @@ export function CausesOfDeathTreemapTileLabels({
     })
 
     const descriptionFontSize = fontSize * 0.8
-    const metricsFontSize = fontSize * 0.6
+    const metricsFontSize = isMobile ? fontSize * 0.7 : fontSize * 0.6
 
-    const showMetrics = metricsFontSize >= 8
-    const padding = verticalPadding / 2
+    const showMetrics = metricsFontSize >= (isMobile ? 9 : 10)
+    const padding = verticalPadding
 
     const textWrap = {
         title: makeLabelWrapForFontSize(fontSize),
