@@ -110,7 +110,7 @@ function CausesOfDeathTreemapTooltipCard({
 
     const node = target.node
 
-    const { variable, value, share } = node.data.data
+    const { variable, value, share, description } = node.data.data
 
     // Shouldn't happen
     if (value === undefined || share === undefined) return null
@@ -125,7 +125,7 @@ function CausesOfDeathTreemapTooltipCard({
             offsetX={8}
             offsetY={8}
             title={variable}
-            subtitle={year.toString()}
+            subtitle={description}
             style={{ maxWidth: 300 }}
             containerBounds={containerBounds}
             anchor={anchor}
@@ -143,7 +143,7 @@ function CausesOfDeathTreemapTooltipCard({
                         <span>{formatShare(share)}</span>
                     </div>
                 }
-                label="Share of deaths"
+                label={`Share of deaths in ${year}`}
                 color={categoryColor}
             />
             <TooltipValue
@@ -168,7 +168,7 @@ function CausesOfDeathTreemapTooltipCard({
                         </span>
                     </div>
                 }
-                label="Number of deaths"
+                label={`Number of deaths in ${year}`}
                 color={categoryColor}
             />
         </TooltipCard>
