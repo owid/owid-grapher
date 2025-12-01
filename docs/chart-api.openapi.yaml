@@ -138,14 +138,24 @@ paths:
                       type: integer
                 - name: csvType
                   in: query
-                  description: Type of CSV to return
+                  description: |
+                      Type of CSV to return:
+
+                      - `full` (default): Get the full data, i.e. all time points and all entities
+                      - `filtered`: Get only the data needed to display the visible chart. Different chart types return different subsets of the full data. For a map this will download data for only a single year but all countries, for a line chart it will be the selected time range and visible entities and so on for other chart types.
+
+                      Note: If you use `filtered`, the other query parameters in the URL will change what is downloaded. E.g., `?csvType=filtered&time=1980..2000&country=~ITA`
                   schema:
                       type: string
                       enum: [full, filtered]
                       default: full
                 - name: useColumnShortNames
                   in: query
-                  description: Use short names for columns
+                  description: |
+                      Use short names for columns:
+
+                      - `false` (default): Column names are long, use capitalization and whitespace - e.g. `Period life expectancy at birth - Sex: all - Age: 0`
+                      - `true`: Column names are short and don't use whitespace - e.g. `life_expectancy_0__sex_all__age_0`
                   schema:
                       type: boolean
                       default: true
@@ -159,12 +169,26 @@ paths:
                                 type: string
                             examples:
                                 life-expectancy:
-                                    summary: The first three rows of data from our life expectancy chart
+                                    summary: Life expectancy - full data
+                                    x-request-params:
+                                        slug: "life-expectancy"
                                     value: |
                                         Entity,Code,Year,Period life expectancy at birth - Sex: all - Age: 0
                                         Afghanistan,AFG,1950,27.7275
                                         Afghanistan,AFG,1951,27.9634
                                         Afghanistan,AFG,1952,28.1992
+                                life-expectancy-filtered:
+                                    summary: Life expectancy - filtered by country and time
+                                    x-request-params:
+                                        slug: "life-expectancy"
+                                        csvType: "filtered"
+                                        country: "USA"
+                                        time: "2000..2020"
+                                    value: |
+                                        Entity,Code,Year,Period life expectancy at birth - Sex: all - Age: 0
+                                        United States,USA,2000,76.64
+                                        United States,USA,2010,78.54
+                                        United States,USA,2020,77.28
                 "403":
                     description: Data is non-redistributable
                     content:
@@ -200,6 +224,8 @@ paths:
                             examples:
                                 life-expectancy:
                                     summary: Life expectancy chart metadata
+                                    x-request-params:
+                                        slug: "life-expectancy"
                                     value:
                                         chart:
                                             title: Life expectancy
