@@ -10,6 +10,7 @@
         "jotai": "^2.15.1",
         "jotai-devtools": "^0.13.0",
         "react": "^19.2.0",
+        "react-aria-components": "^1.13.0",
         "react-dom": "^19.2.0",
         "remeda": "^2.32.0"
     },
