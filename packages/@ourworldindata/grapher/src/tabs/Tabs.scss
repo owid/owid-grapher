@@ -29,7 +29,7 @@
             overflow: hidden;
             cursor: pointer;
 
-            &:hover {
+            &[data-hovered] {
                 background-color: $gray-10;
                 border-color: $gray-10;
             }
@@ -86,7 +86,7 @@
             text-overflow: ellipsis;
             overflow: hidden;
 
-            &:hover {
+            &[data-hovered] {
                 background-color: $hover-fill;
             }
 
@@ -110,9 +110,9 @@
 
         // hide separators when a tab is hovered over or when a tab is active
         .Tabs__Tab[data-selected]::before,
-        .Tabs__Tab:hover::before,
+        .Tabs__Tab[data-hovered]::before,
         .Tabs__Tab[data-selected] + .Tabs__Tab::before,
-        .Tabs__Tab:hover + .Tabs__Tab::before {
+        .Tabs__Tab[data-hovered] + .Tabs__Tab::before {
             display: none;
         }
     }

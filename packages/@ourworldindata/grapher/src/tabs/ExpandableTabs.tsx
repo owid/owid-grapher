@@ -47,9 +47,9 @@ export const ExpandableTabs = <TabKey extends string = string>({
                 items={visibleItems}
                 selectedKey={selectedKey}
                 onChange={onChange}
-                slot={showMoreButton}
                 maxTabWidth={maxTabWidth}
             />
+            {showMoreButton}
         </div>
     )
 }
