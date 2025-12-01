@@ -70,13 +70,11 @@ const IncomePlotClipPath = ({ xScale }: IncomePlotClipPathProps) => {
 interface IncomePlotAreasProps {
     colorScale: d3.ScaleOrdinal<string, unknown>
     xScale: d3.ScaleLogarithmic<number, number> | null
-    yScale: d3.ScaleLinear<number, number> | null
 }
 
 const IncomePlotAreasStacked = ({
     colorScale,
     xScale,
-    yScale,
 }: IncomePlotAreasProps) => {
     const ref = useRef<SVGGElement>(null)
 
@@ -110,18 +108,8 @@ const IncomePlotAreasStacked = ({
             return row
         })
 
-        const yMax = d3.max(
-            xValues.map((x) => {
-                const xValues = dataMap.get(x)
-                return d3.sum(Object.values(xValues || {}))
-            })
-        )!
-
         // 2. Stack
-        const stack = d3
-            .stack()
-            .keys(countries)
-            .value((d, k) => d[k] / yMax) // Normalize the resulting stacked values to fall into domain [0, 1]
+        const stack = d3.stack().keys(countries)
 
         const stackedSeries = stack(stackedDataInput)
 
@@ -134,6 +122,18 @@ const IncomePlotAreasStacked = ({
 
         return stackedSeries as unknown as StackedSeriesPoint[]
     }, [points, countryRegionMap, xValues, colorScale])
+
+    const yMax = useMemo(() => {
+        return d3.max(stackedSeries, (series) => d3.max(series, (d) => d[1]))!
+    }, [stackedSeries])
+
+    const yScale = useMemo(() => {
+        if (!xScale) return null
+        return d3
+            .scaleLinear()
+            .domain([0, yMax])
+            .range([PLOT_HEIGHT - 30, 30])
+    }, [xScale, yMax])
 
     // Area Generator
     const area = useMemo(() => {
@@ -483,8 +483,7 @@ export function IncomePlot({
             .range(plotColorScaleConfig.range)
     }, [plotColorScaleConfig])
 
-    const { xScale, yScale } = useMemo(() => {
-        // 3. Scales
+    const xScale = useMemo(() => {
         const xMin = R.first(xValues)
         const xMax = R.last(xValues)
         const xDomain = [xMin, xMax]
@@ -493,12 +492,8 @@ export function IncomePlot({
             .scaleLog()
             .domain(xDomain)
             .range([marginLeft, width - marginRight])
-
-        const yScale = d3
-            .scaleLinear()
-            .range([height - marginBottom, marginTop])
-        return { xScale, yScale }
-    }, [xValues, width, height])
+        return xScale
+    }, [xValues, width])
 
     const onMouseMove = useCallback(
         (event: MouseEvent) => {
@@ -555,7 +550,6 @@ export function IncomePlot({
                 <IncomePlotAreasStacked
                     colorScale={colorScale}
                     xScale={xScale}
-                    yScale={yScale}
                 />
                 <IncomePlotIntPovertyLine
                     xScale={xScale}
