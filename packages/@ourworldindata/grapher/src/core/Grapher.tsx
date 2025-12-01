@@ -78,6 +78,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     queryStr?: string
     bounds?: Bounds
     table?: OwidTable
+    baseUrl?: string
     bakedGrapherURL?: string
     adminBaseUrl?: string
     env?: string
@@ -127,6 +128,7 @@ interface AnalyticsContext {
 }
 
 export interface GrapherManager {
+    baseUrl?: string
     canonicalUrl?: string
     selection?: SelectionArray
     focusArray?: FocusArray

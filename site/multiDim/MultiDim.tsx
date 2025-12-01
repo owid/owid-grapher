@@ -27,7 +27,10 @@ import { useElementBounds } from "../hooks.js"
 import { cachedGetGrapherConfigByUuid } from "./api.js"
 import MultiDimEmbedSettingsPanel from "./MultiDimEmbedSettingsPanel.js"
 import { useBaseGrapherConfig, useMultiDimAnalytics } from "./hooks.js"
-import { DATA_API_URL } from "../../settings/clientSettings.js"
+import {
+    BAKED_GRAPHER_URL,
+    DATA_API_URL,
+} from "../../settings/clientSettings.js"
 
 export default function MultiDim({
     config,
@@ -139,6 +142,7 @@ export default function MultiDim({
         manager.current.adminEditPath = adminEditPath
         manager.current.analyticsContext = analyticsContext
         manager.current.adminCreateNarrativeChartPath = `narrative-charts/create?type=multiDim&chartConfigId=${newView.fullConfigId}`
+        if (slug) manager.current.baseUrl = `${BAKED_GRAPHER_URL}/${slug}`
 
         const newGrapherParams: GrapherQueryParams = {
             ...grapher.changedParams,
