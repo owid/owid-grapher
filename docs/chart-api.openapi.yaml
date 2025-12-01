@@ -111,7 +111,21 @@ paths:
     /grapher/{slug}.csv:
         get:
             summary: Get chart data as CSV
-            description: Returns the data used in the chart as a CSV file.
+            description: |
+                Returns the data used in the chart as a CSV file.
+
+                **CSV Structure:**
+
+                Each row in the CSV file corresponds to an observation for an entity (most often a country or region) at a specific time point (generally a year).
+
+                **Columns:**
+
+                The first two columns in the CSV file are "Entity" and "Code."
+
+                - **Entity**: The name of the entity, typically a country, such as "United States."
+                - **Code**: The OWID internal entity code used for countries or regions. For standard countries, this matches the [:octicons-link-external-16: ISO alpha-3 code](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-3) (e.g., "USA"); for non-standard or historical countries, we use custom codes. Country and region names are standardized across all Our World in Data datasets, allowing you to join multiple datasets using either of these columns.
+                - **Year** or **Day**: If the data is annual, this is "Year" and contains only the year as an integer. If the column is "Day", it contains a date string in the form "YYYY-MM-DD".
+                - **Data columns**: The time series that powers the chart. Simple line charts have a single data column, while more complex charts can have multiple columns.
             operationId: getChartCsv
             tags:
                 - Data
@@ -143,6 +157,14 @@ paths:
                         text/csv:
                             schema:
                                 type: string
+                            examples:
+                                life-expectancy:
+                                    summary: The first three rows of data from our life expectancy chart
+                                    value: |
+                                        Entity,Code,Year,Period life expectancy at birth - Sex: all - Age: 0
+                                        Afghanistan,AFG,1950,27.7275
+                                        Afghanistan,AFG,1951,27.9634
+                                        Afghanistan,AFG,1952,28.1992
                 "403":
                     description: Data is non-redistributable
                     content:
@@ -155,7 +177,13 @@ paths:
     /grapher/{slug}.metadata.json:
         get:
             summary: Get chart metadata
-            description: Returns metadata about the chart configuration and data.
+            description: |
+                Returns metadata about the chart configuration and data.
+
+                The metadata includes:
+                - **chart**: Chart configuration (title, subtitle, citation, etc.)
+                - **columns**: Metadata for each data column (units, timespan, citations, etc.)
+                - **dateDownloaded**: Timestamp of when the data was downloaded
             operationId: getChartMetadata
             tags:
                 - Metadata
@@ -169,6 +197,42 @@ paths:
                         application/json:
                             schema:
                                 type: object
+                            examples:
+                                life-expectancy:
+                                    summary: Life expectancy chart metadata
+                                    value:
+                                        chart:
+                                            title: Life expectancy
+                                            subtitle: The [period life expectancy](#dod:period-life-expectancy) at birth, in a given year.
+                                            citation: UN WPP (2022); HMD (2023); Zijdeman et al. (2015); Riley (2005)
+                                            originalChartUrl: https://ourworldindata.org/grapher/life-expectancy
+                                            selection:
+                                                - World
+                                                - Americas
+                                                - Europe
+                                                - Africa
+                                                - Asia
+                                                - Oceania
+                                        columns:
+                                            "Period life expectancy at birth - Sex: all - Age: 0":
+                                                titleShort: Life expectancy at birth
+                                                titleLong: Life expectancy at birth - Various sources – period tables
+                                                descriptionShort: The period life expectancy at birth, in a given year.
+                                                descriptionKey:
+                                                    - Period life expectancy is a metric that summarizes death rates across all age groups in one particular year.
+                                                    - "..."
+                                                shortUnit: years
+                                                unit: years
+                                                timespan: 1543-2021
+                                                type: Numeric
+                                                owidVariableId: 815383
+                                                shortName: life_expectancy_0__sex_all__age_0
+                                                lastUpdated: "2023-10-10"
+                                                nextUpdate: "2024-11-30"
+                                                citationShort: UN WPP (2022); HMD (2023); Zijdeman et al. (2015); Riley (2005) – with minor processing by Our World in Data
+                                                citationLong: UN WPP (2022); HMD (2023); Zijdeman et al. (2015); Riley (2005) – ...
+                                                fullMetadata: https://api.ourworldindata.org/v1/indicators/815383.metadata.json
+                                        dateDownloaded: "2024-10-30"
                 "404":
                     $ref: "#/components/responses/NotFound"
 
