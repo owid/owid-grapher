@@ -1,8 +1,9 @@
 ---
 tags:
-  - API
+    - API
 icon: material/api
 ---
+
 # Chart API
 
 Our chart API is structured around charts on our website, i.e. at https://ourworldindata.org/grapher/* . You can find charts by searching our data catalog at [https://ourworldindata.org/data](https://ourworldindata.org/data).
@@ -74,7 +75,14 @@ The `.metadata.json` file contains metadata about the data package. The "charts"
         "subtitle": "The [period life expectancy](#dod:period-life-expectancy) at birth, in a given year.",
         "citation": "UN WPP (2022); HMD (2023); Zijdeman et al. (2015); Riley (2005)",
         "originalChartUrl": "https://ourworldindata.org/grapher/life-expectancy",
-        "selection": ["World", "Americas", "Europe", "Africa", "Asia", "Oceania"]
+        "selection": [
+            "World",
+            "Americas",
+            "Europe",
+            "Africa",
+            "Asia",
+            "Oceania"
+        ]
     },
     "columns": {
         "Period life expectancy at birth - Sex: all - Age: 0": {
