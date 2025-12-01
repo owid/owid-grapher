@@ -33,11 +33,11 @@ export const IncomePlotCountrySelector = () => {
 
     const toggleCountry = (country: string) => {
         if (selectedCountryNames.includes(country)) {
-            setSelectedCountryNames((names) =>
-                names.filter((name) => name !== country)
+            setSelectedCountryNames(
+                selectedCountryNames.filter((name) => name !== country)
             )
         } else {
-            setSelectedCountryNames((names) => [...names, country])
+            setSelectedCountryNames([...(selectedCountryNames ?? []), country])
         }
     }
 
@@ -46,7 +46,7 @@ export const IncomePlotCountrySelector = () => {
     const filteredCountriesByName = useMemo(() => {
         return availableCountryNames.filter(
             (country) =>
-                selectedCountryNames.includes(country) ||
+                selectedCountryNames?.includes(country) ||
                 country.toLowerCase().includes(countrySearchQuery.toLowerCase())
         )
     }, [countrySearchQuery, selectedCountryNames, availableCountryNames])

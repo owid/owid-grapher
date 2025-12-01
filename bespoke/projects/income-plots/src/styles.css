@@ -105,6 +105,18 @@
         fill-opacity: 0.8;
     }
 
+    &:has(.income-plot-series[data-selected]) {
+        .income-plot-series {
+            opacity: 0.5;
+        }
+        .income-plot-series[data-selected="true"] {
+            opacity: 1;
+            path {
+                stroke-width: 0.3px;
+            }
+        }
+    }
+
     &:has(.income-plot-series[data-highlighted]) {
         .income-plot-series {
             opacity: 0.35;
