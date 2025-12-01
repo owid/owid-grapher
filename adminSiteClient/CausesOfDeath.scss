@@ -42,24 +42,30 @@ $black-text: $gray-100;
         letter-spacing: 0.15em;
         color: $light-text;
         text-transform: uppercase;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
     }
 
     .causes-of-death-controls__content {
         display: flex;
         flex-direction: column;
-        row-gap: 8px;
+        row-gap: 16px;
+
+        @include sm-only {
+            row-gap: 8px;
+        }
     }
 
     .causes-of-death-controls__row {
         display: flex;
         column-gap: 16px;
-        row-gap: 8px;
+        row-gap: 16px;
         align-items: center;
 
         @include sm-only {
             flex-direction: column;
             align-items: flex-start;
+            row-gap: 8px;
+            column-gap: 8px;
         }
 
         > * {
@@ -107,11 +113,16 @@ $black-text: $gray-100;
         height: 45px;
         width: auto;
         margin: 0 0 15px 15px;
+
+        @include sm-only {
+            height: 38px;
+            margin: 0 0 10px 10px;
+        }
     }
 
     .causes-of-death-header__content h1 {
         color: $black-text;
-        font-size: 1.375rem;
+        font-size: 1.5rem;
         font-weight: 600;
         font-family: $serif-font-stack;
         margin: 0;
@@ -122,7 +133,7 @@ $black-text: $gray-100;
         }
 
         @include sm-only {
-            font-size: 1.15rem;
+            font-size: 1.25rem;
         }
     }
 
