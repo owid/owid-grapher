@@ -219,3 +219,13 @@ export const atomTooltipIsOpen = atom((get) => {
     const hoveredX = get(atomHoveredX)
     return hoveredEntity !== null && hoveredX !== null
 })
+
+export const atomIsInCountryMode = atom((get) => {
+    const mode = get(atomCountriesOrRegionsMode)
+    return mode === "countries"
+})
+export const atomSelectedCountryNames = atom<string[]>([])
+export const atomAvailableCountryNames = atom(async (get) => {
+    const rawData = await get(atomRawDataForYear)
+    return rawData.map((d) => d.country).toSorted()
+})
