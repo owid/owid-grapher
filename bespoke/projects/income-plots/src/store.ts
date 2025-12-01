@@ -240,3 +240,5 @@ export const atomAvailableCountryNames = atom(async (get) => {
     const rawData = await get(atomRawDataForYear)
     return rawData.map((d) => d.country).toSorted()
 })
+
+export const atomSelectedCountriesOnly = atom(false)
