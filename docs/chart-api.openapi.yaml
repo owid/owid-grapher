@@ -1,0 +1,449 @@
+openapi: 3.0.4
+info:
+    title: Grapher Chart API
+    version: 1.0.0
+    description: |
+        API for accessing Our World in Data charts, data exports, and metadata.
+
+        This API allows you to:
+        - Retrieve chart HTML pages
+        - Export charts as PNG or SVG images
+        - Download chart data as CSV or JSON
+        - Access chart metadata and READMEs
+    contact:
+        name: Our World in Data
+        url: https://ourworldindata.org
+    license:
+        name: CC BY 4.0
+        url: https://creativecommons.org/licenses/by/4.0/
+
+servers:
+    - url: https://ourworldindata.org
+      description: Production server
+
+paths:
+    /grapher/{slug}:
+        get:
+            summary: Get chart HTML page
+            description: Returns the full HTML page for a specific chart.
+            operationId: getChartHtml
+            tags:
+                - Charts
+            parameters:
+                - $ref: "#/components/parameters/slug"
+                - $ref: "#/components/parameters/tab"
+                - $ref: "#/components/parameters/country"
+                - $ref: "#/components/parameters/mapSelect"
+                - $ref: "#/components/parameters/time"
+                - $ref: "#/components/parameters/nocache"
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        text/html:
+                            schema:
+                                type: string
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+    /grapher/{slug}.png:
+        get:
+            summary: Get chart as PNG
+            description: Returns a PNG image of the chart.
+            operationId: getChartPng
+            tags:
+                - Images
+            parameters:
+                - $ref: "#/components/parameters/slug"
+                - $ref: "#/components/parameters/imType"
+                - $ref: "#/components/parameters/imWidth"
+                - $ref: "#/components/parameters/imHeight"
+                - $ref: "#/components/parameters/imDetails"
+                - $ref: "#/components/parameters/imFontSize"
+                - $ref: "#/components/parameters/imMinimal"
+                - $ref: "#/components/parameters/imSquareSize"
+                - $ref: "#/components/parameters/nocache"
+                - $ref: "#/components/parameters/tab"
+                - $ref: "#/components/parameters/country"
+                - $ref: "#/components/parameters/time"
+            responses:
+                "200":
+                    description: PNG image
+                    content:
+                        image/png:
+                            schema:
+                                type: string
+                                format: binary
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+    /grapher/{slug}.svg:
+        get:
+            summary: Get chart as SVG
+            description: Returns an SVG image of the chart.
+            operationId: getChartSvg
+            tags:
+                - Images
+            parameters:
+                - $ref: "#/components/parameters/slug"
+                - $ref: "#/components/parameters/imType"
+                - $ref: "#/components/parameters/imWidth"
+                - $ref: "#/components/parameters/imHeight"
+                - $ref: "#/components/parameters/imDetails"
+                - $ref: "#/components/parameters/imFontSize"
+                - $ref: "#/components/parameters/imMinimal"
+                - $ref: "#/components/parameters/imSquareSize"
+                - $ref: "#/components/parameters/nocache"
+                - $ref: "#/components/parameters/tab"
+                - $ref: "#/components/parameters/country"
+                - $ref: "#/components/parameters/time"
+            responses:
+                "200":
+                    description: SVG image
+                    content:
+                        image/svg+xml:
+                            schema:
+                                type: string
+                                format: binary
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+    /grapher/{slug}.csv:
+        get:
+            summary: Get chart data as CSV
+            description: Returns the data used in the chart as a CSV file.
+            operationId: getChartCsv
+            tags:
+                - Data
+            parameters:
+                - $ref: "#/components/parameters/slug"
+                - name: v
+                  in: query
+                  description: Version number (e.g., 1)
+                  schema:
+                      type: integer
+                - name: csvType
+                  in: query
+                  description: Type of CSV to return
+                  schema:
+                      type: string
+                      enum: [full, filtered]
+                      default: full
+                - name: useColumnShortNames
+                  in: query
+                  description: Use short names for columns
+                  schema:
+                      type: boolean
+                      default: true
+                - $ref: "#/components/parameters/nocache"
+            responses:
+                "200":
+                    description: CSV data
+                    content:
+                        text/csv:
+                            schema:
+                                type: string
+                "403":
+                    description: Data is non-redistributable
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+    /grapher/{slug}.metadata.json:
+        get:
+            summary: Get chart metadata
+            description: Returns metadata about the chart configuration and data.
+            operationId: getChartMetadata
+            tags:
+                - Metadata
+            parameters:
+                - $ref: "#/components/parameters/slug"
+                - $ref: "#/components/parameters/nocache"
+            responses:
+                "200":
+                    description: Chart metadata
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+    /grapher/{slug}.readme.md:
+        get:
+            summary: Get chart README
+            description: Returns a README markdown file for the chart data.
+            operationId: getChartReadme
+            tags:
+                - Metadata
+            parameters:
+                - $ref: "#/components/parameters/slug"
+                - $ref: "#/components/parameters/nocache"
+            responses:
+                "200":
+                    description: README file
+                    content:
+                        text/markdown:
+                            schema:
+                                type: string
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+    /grapher/{slug}.zip:
+        get:
+            summary: Get chart data ZIP
+            description: Returns a ZIP file containing CSV data, metadata, and README.
+            operationId: getChartZip
+            tags:
+                - Data
+            parameters:
+                - $ref: "#/components/parameters/slug"
+                - $ref: "#/components/parameters/nocache"
+            responses:
+                "200":
+                    description: ZIP file
+                    content:
+                        application/zip:
+                            schema:
+                                type: string
+                                format: binary
+                "403":
+                    description: Data is non-redistributable
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+    /grapher/{slug}.config.json:
+        get:
+            summary: Get grapher config
+            description: Returns the raw configuration for the grapher chart.
+            operationId: getChartConfig
+            tags:
+                - Metadata
+            parameters:
+                - $ref: "#/components/parameters/slug"
+                - $ref: "#/components/parameters/nocache"
+            responses:
+                "200":
+                    description: Grapher configuration
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+    /grapher/{slug}.values.json:
+        get:
+            summary: Get data values
+            description: Returns data values for a specific entity.
+            operationId: getChartValues
+            tags:
+                - Data
+            parameters:
+                - $ref: "#/components/parameters/slug"
+                - $ref: "#/components/parameters/country"
+                - $ref: "#/components/parameters/nocache"
+            responses:
+                "200":
+                    description: Data values
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+    /grapher/{slug}.searchResult.json:
+        get:
+            summary: Get search results
+            description: Returns search results within the context of the chart.
+            operationId: getChartSearchResults
+            tags:
+                - Search
+            parameters:
+                - $ref: "#/components/parameters/slug"
+                - name: version
+                  in: query
+                  description: API version
+                  schema:
+                      type: integer
+                      default: 1
+                - name: entities
+                  in: query
+                  description: Selected entities
+                  schema:
+                      type: string
+                - name: variant
+                  in: query
+                  description: Data variant (Large or Medium)
+                  schema:
+                      type: string
+                      enum: [Large, Medium]
+                - name: numDataTableRowsPerColumn
+                  in: query
+                  description: Number of rows per column in data table
+                  schema:
+                      type: integer
+                      default: 4
+                - $ref: "#/components/parameters/nocache"
+            responses:
+                "200":
+                    description: Search results
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+components:
+    parameters:
+        slug:
+            name: slug
+            in: path
+            description: The URL slug of the chart
+            required: true
+            schema:
+                type: string
+            example: "population-density"
+
+        tab:
+            name: tab
+            in: query
+            description: Active tab for the chart
+            schema:
+                type: string
+                enum:
+                    - table
+                    - map
+                    - chart
+                    - line
+                    - scatter
+                    - stacked-area
+                    - discrete-bar
+                    - stacked-discrete-bar
+                    - slope
+                    - stacked-bar
+                    - marimekko
+            example: "map"
+
+        country:
+            name: country
+            in: query
+            description: |
+                Selected countries/entities. Can be a single entity or multiple separated by `~` (tilde) or `+` (plus).
+                Also supports special selectors like `~OWID_WRL` (World).
+            schema:
+                type: string
+            example: "United States~China"
+
+        mapSelect:
+            name: mapSelect
+            in: query
+            description: Entity to highlight on the map
+            schema:
+                type: string
+            example: "France"
+
+        time:
+            name: time
+            in: query
+            description: |
+                Time period to display. Can be a single year (`2020`), a range (`2000..2020`), or `latest`.
+            schema:
+                type: string
+            example: "2000..2020"
+
+        nocache:
+            name: nocache
+            in: query
+            description: If present, bypasses the cache
+            schema:
+                type: string
+                nullable: true
+            allowEmptyValue: true
+
+        imType:
+            name: imType
+            in: query
+            description: Image type/preset
+            schema:
+                type: string
+                enum:
+                    - twitter
+                    - og
+                    - thumbnail
+                    - square
+                    - social-media-square
+                    - uncaptioned
+            example: "og"
+
+        imWidth:
+            name: imWidth
+            in: query
+            description: Width of the generated image in pixels
+            schema:
+                type: integer
+
+        imHeight:
+            name: imHeight
+            in: query
+            description: Height of the generated image in pixels
+            schema:
+                type: integer
+
+        imDetails:
+            name: imDetails
+            in: query
+            description: Include details (1 to enable)
+            schema:
+                type: string
+                enum: ["0", "1"]
+
+        imFontSize:
+            name: imFontSize
+            in: query
+            description: Font size for the image
+            schema:
+                type: integer
+
+        imMinimal:
+            name: imMinimal
+            in: query
+            description: Minimal mode (1 to enable). Affects thumbnails and uncaptioned images.
+            schema:
+                type: string
+                enum: ["0", "1"]
+
+        imSquareSize:
+            name: imSquareSize
+            in: query
+            description: Size for square images
+            schema:
+                type: integer
+
+    schemas:
+        Error:
+            type: object
+            required:
+                - error
+            properties:
+                error:
+                    type: string
+                message:
+                    type: string
+
+    responses:
+        NotFound:
+            description: Chart not found
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Error"

@@ -97,7 +97,7 @@ The analytics system requires these environment variables:
 
 This route provides a search API for both charts and pages (articles, about pages).
 
-For detailed API documentation, including all parameters, response schemas, and examples, see [search-api.openapi.yaml](search-api.openapi.yaml).
+For detailed API documentation, including all parameters, response schemas, and examples, see [search-api.openapi.yaml](../docs/search-api.openapi.yaml).
 
 ## `/deleted/:slug`
 
@@ -239,6 +239,8 @@ Our grapher pages are (slightly) dynamic!
 They're still driven by a statically rendered page, but to make dynamic thumbnails work, we need to inject the query params into the `<meta property="og:image">` [^1] and `<meta property="twitter:image">` [^2] tags.
 
 So, for example, if a request is coming in for `/grapher/population?tab=chart&time=1999..2023`, then we need to reflect these query params in the tags for social media preview images, too, and would put something like `<meta property="og:image" content="/grapher/thumbnail/population?tab=chart&time=1999..2023>` so that social media posts will then show the preview for the exact chart configuration.
+
+For detailed API documentation, including all parameters, response schemas, and examples, see [chart-api.openapi.yaml](../docs/chart-api.openapi.yaml).
 
 ## `/grapher/thumbnail/:slug`
 
