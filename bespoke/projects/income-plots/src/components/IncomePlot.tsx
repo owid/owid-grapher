@@ -15,6 +15,7 @@ import {
     atomKdeDataForYear,
     atomKdeXValues,
     atomPlotColorScale,
+    atomSelectedCountryNames,
     atomShowCustomPovertyLine,
 } from "../store.ts"
 import {
@@ -80,6 +81,7 @@ const IncomePlotAreas = ({
     const ref = useRef<SVGGElement>(null)
 
     const countriesOrRegionsMode = useAtomValue(atomCountriesOrRegionsMode)
+    const selectedCountryNames = useAtomValue(atomSelectedCountryNames)
     const [hoveredEntity, setHoveredEntity] = useAtom(atomHoveredEntity)
     const hoveredEntityType = useAtomValue(atomHoveredEntityType)
 
@@ -142,6 +144,12 @@ const IncomePlotAreas = ({
                         ? undefined
                         : series[hoveredEntityType] === hoveredEntity
 
+                const isSelected =
+                    series.country &&
+                    selectedCountryNames.includes(series.country)
+                        ? true
+                        : undefined
+
                 const entityName =
                     countriesOrRegionsMode === "countries"
                         ? series.country
@@ -153,6 +161,7 @@ const IncomePlotAreas = ({
                         className="income-plot-series"
                         data-country={series.country}
                         data-region={series.region}
+                        data-selected={isSelected}
                         data-highlighted={isHighlighted}
                         onMouseEnter={() =>
                             entityName && setHoveredEntity(entityName)
