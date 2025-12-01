@@ -15,6 +15,7 @@ export function CausesOfDeathCaptionedChart({
     data,
     metadata,
     ageGroup,
+    sex,
     entityName,
     year,
     isLoading = false,
@@ -22,6 +23,7 @@ export function CausesOfDeathCaptionedChart({
     data: DataRow[]
     metadata: CausesOfDeathMetadata
     ageGroup: string
+    sex: string
     entityName: EntityName
     year: Time
     isLoading?: boolean
@@ -40,6 +42,7 @@ export function CausesOfDeathCaptionedChart({
         <div className="causes-of-death-captioned-chart">
             <CausesOfDeathHeader
                 ageGroup={ageGroup}
+                sex={sex}
                 entityName={entityName}
                 year={year}
                 numTotalDeaths={numTotalDeaths}
@@ -67,21 +70,18 @@ function CausesOfDeathHeader({
     entityName,
     year,
     ageGroup,
+    sex,
     numTotalDeaths,
     isLoading,
 }: {
     entityName: EntityName
     year: Time
     ageGroup: string
+    sex: string
     numTotalDeaths: number
     isLoading: boolean
 }) {
-    const ageGroupName =
-        ageGroup === "All ages"
-            ? "people"
-            : ageGroup === "Children under 5"
-              ? "children"
-              : ageGroup.toLowerCase()
+    const ageGroupName = getAgeGroupDisplayName({ ageGroup, sex })
 
     const location =
         entityName === "World"
@@ -158,4 +158,33 @@ function OwidLogo() {
             height={29}
         />
     )
+}
+
+function getAgeGroupDisplayName({
+    ageGroup,
+    sex,
+}: {
+    ageGroup: string
+    sex: string
+}): string {
+    const ageGroupName =
+        ageGroup === "All ages"
+            ? "people"
+            : ageGroup === "Children under 5"
+              ? "children"
+              : ageGroup.toLowerCase()
+
+    if (sex === "Male") {
+        return ageGroupName
+            .replace("children", "boys")
+            .replace("adults", "men")
+            .replace("people", "men")
+    } else if (sex === "Female") {
+        return ageGroupName
+            .replace("children", "girls")
+            .replace("adults", "women")
+            .replace("people", "women")
+    }
+
+    return ageGroupName
 }
