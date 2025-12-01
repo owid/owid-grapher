@@ -1,10 +1,13 @@
 import { Fragment } from "react"
 import { BreadcrumbItem } from "@ourworldindata/utils"
 import { SubNavId } from "@ourworldindata/types"
-import { subnavs } from "../SiteConstants.js"
+import { PROD_URL, subnavs } from "../SiteConstants.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons"
 import { getBreadcrumbItems } from "./breadcrumbUtils.js"
+import { BAKED_BASE_URL, IS_ARCHIVE } from "../../settings/clientSettings.js"
+
+const BASE_URL = IS_ARCHIVE ? PROD_URL : BAKED_BASE_URL
 
 export const BreadcrumbsFromSubnav = ({
     subnavId,
@@ -36,7 +39,7 @@ export const Breadcrumbs = ({
     className: string
 }) => (
     <div className={className}>
-        <a href="/">Home</a>
+        <a href={`${BASE_URL}/`}>Home</a>
         <BreadcrumbSeparator />
         {items.map((item, idx) => {
             const isLast = idx === items.length - 1

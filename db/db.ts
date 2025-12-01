@@ -8,6 +8,8 @@ import {
     GRAPHER_DB_PORT,
     BAKED_BASE_URL,
 } from "../settings/serverSettings.js"
+import { IS_ARCHIVE } from "../settings/clientSettings.js"
+import { PROD_URL } from "../site/SiteConstants.js"
 import { registerExitHandler } from "./cleanup.js"
 import { createTagGraph, Url } from "@ourworldindata/utils"
 import {
@@ -710,9 +712,10 @@ export function getBestBreadcrumbs(
         return path.length > best.length ? path : best
     }, [])
 
+    const baseUrl = IS_ARCHIVE ? PROD_URL : BAKED_BASE_URL
     const breadcrumbs = longestPath.map((tag) => ({
         label: tag.name,
-        href: `${BAKED_BASE_URL}/${tag.slug}`,
+        href: `${baseUrl}/${tag.slug}`,
     }))
 
     return breadcrumbs
