@@ -223,7 +223,10 @@ export async function initGrapher(
 ): Promise<{
     grapher: Grapher
     multiDimAvailableDimensions?: string[]
+    identifierType: GrapherIdentifier["type"]
 }> {
+    let effectiveType = identifier.type
+
     let grapherConfigResponse: FetchGrapherConfigResult
     try {
         grapherConfigResponse = await fetchGrapherConfig({
@@ -249,6 +252,7 @@ export async function initGrapher(
                 env,
                 searchParams,
             })
+            effectiveType = "multi-dim-slug"
         } else {
             throw e
         }
@@ -282,6 +286,7 @@ export async function initGrapher(
 
     return {
         grapher,
+        identifierType: effectiveType,
         multiDimAvailableDimensions:
             grapherConfigResponse.multiDimAvailableDimensions,
     }

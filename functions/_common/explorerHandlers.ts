@@ -9,7 +9,7 @@ import {
 import { renderSvgToPng } from "./grapherRenderer.js"
 import { error, png } from "itty-router"
 import { createZip, File } from "littlezipper"
-import { Bounds, Url } from "@ourworldindata/utils"
+import { Bounds, slugify, Url } from "@ourworldindata/utils"
 import {
     getEntityNamesParam,
     getSelectedEntityNamesParam,
@@ -227,15 +227,14 @@ export async function fetchZipForExplorerView(
         const csv = assembleCsv(grapherState, searchParams)
         console.log("Fetched the parts, creating zip file")
 
-        // Extract explorer slug
-        const explorerSlug = explorerEnv.url.pathname.split("/").pop()
+        const filename = slugify(grapherState.displayTitle)
 
         const zipContent: File[] = [
             {
-                path: `${explorerSlug}.metadata.json`,
+                path: `${filename}.metadata.json`,
                 data: JSON.stringify(metadata, undefined, 2),
             },
-            { path: `${explorerSlug}.csv`, data: csv },
+            { path: `${filename}.csv`, data: csv },
             { path: "readme.md", data: readme },
         ]
         const content = await createZip(zipContent)
@@ -244,7 +243,7 @@ export async function fetchZipForExplorerView(
         return new Response(content, {
             headers: {
                 "Content-Type": "application/zip",
-                "Content-Disposition": `attachment; filename="${explorerSlug}.zip"`,
+                "Content-Disposition": `attachment; filename="${filename}.zip"`,
             },
         })
     } catch (e) {
