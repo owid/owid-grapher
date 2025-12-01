@@ -11,8 +11,18 @@
         Lato, "Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif;
 }
 
+/**
+ * This here is super annoying. We need `shape-rendering: crispEdges` to be set in Chrome in order
+ * to avoid pixelated edges, but in Firefox it _causes_ pixelated edges and we don't want to set it.
+ * So we use a Firefox-specific media query to unset it afterwards. Ugh.
+ */
 .income-plot-chart-svg path {
     shape-rendering: crispEdges;
+
+    /* This media query only works in Firefox, and so it's used to apply a style only for Firefox. */
+    @media screen and (min--moz-device-pixel-ratio: 0) {
+        shape-rendering: unset;
+    }
 }
 
 .income-plot-legend {
