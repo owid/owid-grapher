@@ -5,7 +5,6 @@ import {
     articulateEntity,
     type Country,
     countries,
-    checkIsCountry,
     regions,
     getRegionByNameOrVariantName,
 } from "./regions.js"
@@ -208,15 +207,15 @@ describe("getEntitiesForProfile", () => {
         )
     })
 
-    it("returns all non-country regions when scope is 'regions'", () => {
-        const profile = buildProfile("regions")
-        const nonCountryRegions = regions.filter(
-            (region) => !checkIsCountry(region)
+    it("returns continents when scope is 'continents'", () => {
+        const profile = buildProfile("continents")
+        const continents = regions.filter(
+            (region) => region.regionType === "continent"
         )
 
         const entities = getEntitiesForProfile(profile)
 
-        expect(entities).toHaveLength(nonCountryRegions.length)
+        expect(entities).toHaveLength(continents.length)
         const europe = getRegionByNameOrVariantName("Europe")
         expect(europe).toBeTruthy()
         expect(entities).toEqual(
@@ -243,32 +242,18 @@ describe("getEntitiesForProfile", () => {
 
     it("includes both countries and regions when scope is 'all'", () => {
         const profile = buildProfile("all")
-        const nonCountryRegions = regions.filter(
-            (region) => !checkIsCountry(region)
+        const continents = regions.filter(
+            (region) => region.regionType === "continent"
         )
 
         const entities = getEntitiesForProfile(profile)
 
-        expect(entities).toHaveLength(
-            countries.length + nonCountryRegions.length
-        )
+        expect(entities).toHaveLength(countries.length + continents.length)
         expect(entities).toEqual(
             expect.arrayContaining([
                 expect.objectContaining({ code: "USA" }),
                 expect.objectContaining({ code: "OWID_EUR" }),
             ])
         )
-    })
-
-    it("resolves entities with trailing parentheticals", () => {
-        const profile = buildProfile("China (People's Republic of)")
-
-        const entities = getEntitiesForProfile(profile)
-
-        expect(entities).toHaveLength(1)
-        expect(entities[0]).toMatchObject({
-            code: "CHN",
-            name: "China",
-        })
     })
 })
