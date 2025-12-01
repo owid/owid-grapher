@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import * as R from "remeda"
 import {
     Bounds,
     getAttributionFragmentsFromVariable,
@@ -25,7 +26,7 @@ import {
 } from "@ourworldindata/components"
 import * as React from "react"
 import cx from "classnames"
-import { action, computed, makeObservable } from "mobx"
+import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -35,20 +36,19 @@ import { Modal } from "./Modal"
 import { SourcesKeyDataTable } from "./SourcesKeyDataTable"
 import { SourcesDescriptions } from "./SourcesDescriptions"
 import { TabItem, Tabs } from "../tabs/Tabs"
-import { ExpandableTabs } from "../tabs/ExpandableTabs"
+import { TabsWithDropdown } from "../tabs/TabsWithDropdown"
 import {
     DEFAULT_GRAPHER_BOUNDS,
     GrapherModal,
     isContinentsVariableId,
 } from "../core/GrapherConstants"
-import * as R from "remeda"
 
 // keep in sync with variables in SourcesModal.scss
 const MAX_CONTENT_WIDTH = 640
-const TAB_PADDING = 16
+const TAB_PADDING = 8
 const TAB_FONT_SIZE = 13
 const TAB_GAP = 8
-const TAB_TITLE_SPACING = 8
+const TAB_TITLE_SPACING = 6
 
 export interface SourcesModalManager {
     isReady?: boolean
@@ -66,19 +66,25 @@ interface SourcesModalProps {
     manager: SourcesModalManager
 }
 
-interface SourcesModalState {
-    activeTabKey: string
-}
-
 @observer
-export class SourcesModal extends React.Component<
-    SourcesModalProps,
-    SourcesModalState
-> {
+export class SourcesModal extends React.Component<SourcesModalProps> {
+    private container = React.createRef<HTMLDivElement>()
+
+    private activeTabKey = ""
+
     constructor(props: SourcesModalProps) {
         super(props)
-        makeObservable(this)
-        this.state = { activeTabKey: this.tabs[0].label.key }
+        makeObservable<SourcesModal, "activeTabKey">(this, {
+            activeTabKey: observable,
+        })
+    }
+
+    @action override componentDidMount(): void {
+        this.activeTabKey = this.tabs[0]?.label.key ?? ""
+    }
+
+    @action.bound private setActiveTabKey(key: string): void {
+        this.activeTabKey = key
     }
 
     @computed private get manager(): SourcesModalManager {
@@ -167,7 +173,7 @@ export class SourcesModal extends React.Component<
                 column.titlePublicOrDisplayName.attributionShort,
                 column.titlePublicOrDisplayName.titleVariant
             )
-            return measureTabWidth(title, fragments) + TAB_GAP
+            return measureTabWidth(title, fragments)
         })
     }
 
@@ -187,109 +193,90 @@ export class SourcesModal extends React.Component<
     }
 
     private renderTabs(): React.ReactElement {
-        const activeTabKey = this.state.activeTabKey
-        const onChange = (key: string) => {
-            this.setState({ activeTabKey: key })
-        }
-
-        // tabs are clipped to this width
-        const maxTabWidth = 240
-
-        // on mobile, we show a horizontally scrolling tabs
+        // Display horizontally scrolling tabs on mobile
         if (this.manager.isNarrow) {
             return (
                 <Tabs
+                    className="sources-modal-tabs"
                     items={this.tabLabels}
-                    selectedKey={activeTabKey}
-                    onChange={onChange}
-                    horizontalScroll={true}
-                    maxTabWidth={maxTabWidth}
+                    selectedKey={this.activeTabKey}
+                    onChange={this.setActiveTabKey}
+                    variant="scroll"
                 />
             )
         }
 
-        // maximum width available for tabs
-        const maxWidth = Math.min(
-            MAX_CONTENT_WIDTH,
-            this.modalBounds.width - 2 * this.modalPadding - 10 // wiggle room
-        )
-
-        // check if all tab labels fit into a single line
-        if (_.sum(this.tabLabelWidths) <= maxWidth) {
+        // Show all tabs if there are 4 or fewer
+        if (this.tabs.length <= 4) {
             return (
                 <Tabs
+                    className="sources-modal-tabs"
                     items={this.tabLabels}
-                    selectedKey={activeTabKey}
-                    onChange={onChange}
+                    selectedKey={this.activeTabKey}
+                    onChange={this.setActiveTabKey}
+                    variant="scroll"
                 />
             )
         }
 
-        const clippedLabelWidths = this.tabLabelWidths.map((labelWidth) =>
-            Math.min(labelWidth, maxTabWidth + TAB_GAP)
-        )
-
-        // check if all tab labels fit into a single line when they are clipped
-        if (_.sum(clippedLabelWidths) <= maxWidth) {
-            return (
-                <Tabs
-                    items={this.tabLabels}
-                    selectedKey={activeTabKey}
-                    onChange={onChange}
-                    maxTabWidth={maxTabWidth}
-                />
-            )
-        }
-
-        // compute the subset of tabs that fit into a single line
+        // Find the subset of tabs that fit into a single line
         const getVisibleLabels = (labels: TabItem[]): TabItem[] => {
-            // take width of the "Show more" button into account
-            let width =
-                measureTabWidth("Show more") +
-                13 + // icon width
-                6 // icon padding
+            // Maximum width available for tabs
+            const maxWidth = Math.min(
+                MAX_CONTENT_WIDTH,
+                this.modalBounds.width - 2 * this.modalPadding
+            )
+
+            // Hardcoded width of the "More" button
+            const moreButtonWidth = 74
 
             const visibleLabels: TabItem[] = []
+            let currentWidth = moreButtonWidth
             for (const [label, labelWidth] of R.zip(
                 labels,
-                clippedLabelWidths
+                this.tabLabelWidths
             )) {
-                width += labelWidth as number
-                if (width > maxWidth) break
-                visibleLabels.push(label!)
+                currentWidth += labelWidth + TAB_GAP
+                if (currentWidth > maxWidth) break
+                visibleLabels.push(label)
             }
 
             return visibleLabels
         }
 
-        // if only a single label would be visible, we prefer tabs with horizontal scrolling
         const visibleLabels = getVisibleLabels(this.tabLabels)
-        if (visibleLabels.length <= 1) {
+
+        // No need for a dropdown if all tabs are visible
+        if (visibleLabels.length === this.tabLabels.length) {
             return (
                 <Tabs
+                    className="sources-modal-tabs"
                     items={this.tabLabels}
-                    selectedKey={activeTabKey}
-                    onChange={onChange}
-                    horizontalScroll={true}
-                    maxTabWidth={maxTabWidth}
+                    selectedKey={this.activeTabKey}
+                    onChange={this.setActiveTabKey}
+                    variant="scroll"
                 />
             )
         }
 
+        // Ensure at least 3 tabs are visible
+        const numVisibleTabs = Math.max(3, visibleLabels.length)
+
         return (
-            <ExpandableTabs
+            <TabsWithDropdown
+                className="sources-modal-tabs"
                 items={this.tabLabels}
-                selectedKey={activeTabKey}
-                onChange={onChange}
-                getVisibleItems={getVisibleLabels}
-                maxTabWidth={maxTabWidth}
+                selectedKey={this.activeTabKey}
+                onChange={this.setActiveTabKey}
+                numVisibleTabs={numVisibleTabs}
+                portalContainer={this.container.current ?? undefined}
             />
         )
     }
 
     private renderMultipleSources(): React.ReactElement {
         const activeColumn = this.tabs.find(
-            (tab) => tab.label.key === this.state.activeTabKey
+            (tab) => tab.label.key === this.activeTabKey
         )?.column
 
         return (
@@ -321,7 +308,7 @@ export class SourcesModal extends React.Component<
                 isHeightFixed={true}
                 onDismiss={this.onDismiss}
             >
-                <div className="sources-modal-content">
+                <div className="sources-modal-content" ref={this.container}>
                     {this.showStickyHeader ? (
                         <OverlayHeader title="" onDismiss={this.onDismiss} />
                     ) : (

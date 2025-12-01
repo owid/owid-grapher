@@ -1,10 +1,10 @@
 .sources-modal-content {
     // keep in sync with variables in SourcesModal.tsx
     $max-content-width: 640px;
-    $tab-padding: 16px;
+    $tab-padding: 8px;
     $tab-font-size: 13px;
     $tab-gap: 8px;
-    $tab-title-spacing: 8px;
+    $tab-title-spacing: 6px;
 
     $border: $gray-20;
 
@@ -61,19 +61,32 @@
         font-weight: 500;
     }
 
-    .Tabs__Tab {
-        font-size: $tab-font-size;
-        padding: 8px $tab-padding;
-        margin-right: $tab-gap;
+    .sources-modal-tabs {
+        margin-bottom: 16px;
 
-        .attribution {
-            color: $gray-60;
-            margin-left: $tab-title-spacing;
+        .Tabs__Tab {
+            font-size: $tab-font-size;
+            padding: 8px $tab-padding;
+            margin-right: $tab-gap;
+
+            &[data-selected] .attribution {
+                color: $blue-50;
+            }
         }
 
-        &[data-selected] .attribution {
-            color: $blue-50;
+        &.Tabs--variant-scroll .Tabs__Tab {
+            max-width: 220px;
         }
+
+        .TabsWithDropdown__Row,
+        .TabsWithDropdown__MoreButton {
+            gap: $tab-gap;
+        }
+    }
+
+    .attribution {
+        color: $gray-60;
+        margin-left: $tab-title-spacing;
     }
 
     .source {
