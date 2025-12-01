@@ -224,7 +224,18 @@ export const atomIsInCountryMode = atom((get) => {
     const mode = get(atomCountriesOrRegionsMode)
     return mode === "countries"
 })
-export const atomSelectedCountryNames = atom<string[]>([])
+
+const atomCountrySelection = atom<string[]>([])
+export const atomSelectedCountryNames = atom(
+    (get) => {
+        if (!get(atomIsInCountryMode)) return []
+        return get(atomCountrySelection)
+    },
+    (get, set, newValue: string[]) => {
+        set(atomCountrySelection, newValue)
+    }
+)
+
 export const atomAvailableCountryNames = atom(async (get) => {
     const rawData = await get(atomRawDataForYear)
     return rawData.map((d) => d.country).toSorted()
