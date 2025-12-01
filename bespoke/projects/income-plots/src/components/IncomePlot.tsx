@@ -68,22 +68,72 @@ const IncomePlotClipPath = ({ xScale }: IncomePlotClipPathProps) => {
 }
 
 interface IncomePlotAreasProps {
-    stackedSeries: StackedSeriesPoint[]
+    colorScale: d3.ScaleOrdinal<string, unknown>
     xScale: d3.ScaleLogarithmic<number, number> | null
     yScale: d3.ScaleLinear<number, number> | null
 }
 
-const IncomePlotAreas = ({
-    stackedSeries,
+const IncomePlotAreasStacked = ({
+    colorScale,
     xScale,
     yScale,
 }: IncomePlotAreasProps) => {
     const ref = useRef<SVGGElement>(null)
 
+    const points = useAtomValue(atomKdeDataForYear)
+    const xValues = useAtomValue(atomKdeXValues)
+    const countryRegionMap = useAtomValue(atomCountryRegionMap)
     const countriesOrRegionsMode = useAtomValue(atomCountriesOrRegionsMode)
     const selectedCountryNames = useAtomValue(atomSelectedCountryNames)
     const [hoveredEntity, setHoveredEntity] = useAtom(atomHoveredEntity)
     const hoveredEntityType = useAtomValue(atomHoveredEntityType)
+
+    // Prepare Data for Stack
+    const stackedSeries = useMemo(() => {
+        // 1. Group by X and pivot
+        // Create a map for quick lookup: x -> { country: y }
+        const dataMap = new Map<number, { [key: string]: number }>()
+        points.forEach((d) => {
+            if (!dataMap.has(d.x)) dataMap.set(d.x, {})
+            const xMap = dataMap.get(d.x)!
+            xMap[d.country] = d.yScaledByPop
+        })
+
+        const countries = Array.from(countryRegionMap.keys())
+
+        const stackedDataInput = xValues.map((x) => {
+            const row: any = { x }
+            const xValuesMap = dataMap.get(x) || {}
+            countries.forEach((country) => {
+                row[country] = xValuesMap[country] || 0
+            })
+            return row
+        })
+
+        const yMax = d3.max(
+            xValues.map((x) => {
+                const xValues = dataMap.get(x)
+                return d3.sum(Object.values(xValues || {}))
+            })
+        )!
+
+        // 2. Stack
+        const stack = d3
+            .stack()
+            .keys(countries)
+            .value((d, k) => d[k] / yMax) // Normalize the resulting stacked values to fall into domain [0, 1]
+
+        const stackedSeries = stack(stackedDataInput)
+
+        stackedSeries.forEach((s) => {
+            const series = s as unknown as StackedSeriesPoint
+            series.country = series.key
+            series.region = countryRegionMap.get(series.key)!
+            series.color = colorScale(series.region!) as string
+        })
+
+        return stackedSeries as unknown as StackedSeriesPoint[]
+    }, [points, countryRegionMap, xValues, colorScale])
 
     // Area Generator
     const area = useMemo(() => {
@@ -413,10 +463,8 @@ export function IncomePlot({
 }: IncomePlotProps) {
     const svgRef = useRef<SVGSVGElement>(null)
 
-    const points = useAtomValue(atomKdeDataForYear)
     const setPovertyLine = useSetAtom(atomCustomPovertyLine)
     const setShowPovertyLine = useSetAtom(atomShowCustomPovertyLine)
-    const countryRegionMap = useAtomValue(atomCountryRegionMap)
     const xValues = useAtomValue(atomKdeXValues)
     const plotColorScaleConfig = useAtomValue(atomPlotColorScale)
     const setHoveredEntity = useSetAtom(atomHoveredEntity)
@@ -435,43 +483,6 @@ export function IncomePlot({
             .range(plotColorScaleConfig.range)
     }, [plotColorScaleConfig])
 
-    // Prepare Data for Stack
-    const stackedSeries = useMemo(() => {
-        // 1. Group by X and pivot
-        // Create a map for quick lookup: x -> { country: y }
-        const dataMap = new Map<number, { [key: string]: number }>()
-        points.forEach((d) => {
-            if (!dataMap.has(d.x)) dataMap.set(d.x, {})
-            const xMap = dataMap.get(d.x)!
-            xMap[d.country] = d.y
-        })
-
-        const countries = Array.from(countryRegionMap.keys())
-
-        const stackedDataInput = xValues.map((x) => {
-            const row: any = { x }
-            const xValuesMap = dataMap.get(x) || {}
-            countries.forEach((country) => {
-                row[country] = xValuesMap[country] || 0
-            })
-            return row
-        })
-
-        // 2. Stack
-        const stack = d3.stack().keys(countries)
-
-        const stackedSeries = stack(stackedDataInput)
-
-        stackedSeries.forEach((s) => {
-            const series = s as unknown as StackedSeriesPoint
-            series.country = series.key
-            series.region = countryRegionMap.get(series.key)!
-            series.color = colorScale(series.region!) as string
-        })
-
-        return stackedSeries as unknown as StackedSeriesPoint[]
-    }, [points, countryRegionMap, xValues, colorScale])
-
     const { xScale, yScale } = useMemo(() => {
         // 3. Scales
         const xMin = R.first(xValues)
@@ -483,25 +494,21 @@ export function IncomePlot({
             .domain(xDomain)
             .range([marginLeft, width - marginRight])
 
-        const yMax = d3.max(R.last(stackedSeries)!.map((d) => d[1])) || 1
-
         const yScale = d3
             .scaleLinear()
-            .domain([0, yMax])
             .range([height - marginBottom, marginTop])
         return { xScale, yScale }
-    }, [xValues, width, stackedSeries, height])
+    }, [xValues, width, height])
 
     const onMouseMove = useCallback(
         (event: MouseEvent) => {
-            if (!xScale || !yScale || !stackedSeries.length || !svgRef.current)
-                return
+            if (!xScale || !svgRef.current) return
 
             const [mx] = d3.pointer(event, svgRef.current)
             const xVal = xScale.invert(mx)
             setHoveredX(xVal)
         },
-        [xScale, yScale, stackedSeries, setHoveredX]
+        [xScale, setHoveredX]
     )
 
     const onMouseLeave = useCallback(() => {
@@ -545,8 +552,8 @@ export function IncomePlot({
                     marginBottom={marginBottom}
                     marginTop={marginTop}
                 />
-                <IncomePlotAreas
-                    stackedSeries={stackedSeries}
+                <IncomePlotAreasStacked
+                    colorScale={colorScale}
                     xScale={xScale}
                     yScale={yScale}
                 />
