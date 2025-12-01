@@ -1,3 +1,30 @@
+.callout {
+    .article-block__text,
+    .article-block__list,
+    .article-block__html,
+    .article-block__numbered-list {
+        @include body-3-regular;
+        margin-bottom: 0;
+
+        &:not(:last-child) {
+            margin-bottom: 8px;
+        }
+    }
+
+    a {
+        @include owid-link-90;
+    }
+    color: $blue-60;
+    background: $gray-10;
+    padding: 16px 24px;
+    border-radius: 8px;
+    margin: 8px 0 32px;
+
+    + .article-block__horizontal-rule {
+        margin-top: 24px;
+    }
+}
+
 .callout-heading {
     @include h4-semibold;
     margin-top: 0;

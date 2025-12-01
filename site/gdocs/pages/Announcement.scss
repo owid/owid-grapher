@@ -6,24 +6,20 @@
     background-color: #fff;
     padding: 24px;
     margin: 48px 0;
+    display: flex;
+    flex-direction: column;
 
     .data-insight-dateline {
         @include h6-black-caps;
+        margin: 0;
     }
 
     > [class*="article-block__"]:last-child {
         margin-bottom: 0;
     }
 
-    h2.article-block__heading {
-        @include subtitle-1-bold;
-        text-wrap: unset;
-        @include sm-only {
-            @include subtitle-2-bold;
-        }
-    }
     .article-block__chart {
-        margin: 32px 0;
+        margin: 16px 0;
     }
 }
 
@@ -38,8 +34,50 @@
 
 .announcement-page-heading {
     margin: 8px 0;
-    font-size: 30px;
+    font-size: 1.875rem;
+    line-height: 2.125rem;
+    font-weight: 600;
     @include sm-only {
-        font-size: 22px;
+        font-size: 1.375rem;
+        line-height: 1.75rem;
+    }
+}
+
+/* Spotlight specific styles */
+.announcement-page-content--spotlight {
+    .callout {
+        @include body-3-medium;
+        color: $blue-60;
+        background-color: transparent;
+        font-style: italic;
+        border-radius: 0;
+        padding: 0;
+        padding-bottom: 24px;
+        border-bottom: $blue-10 1px solid;
+
+        + h1.article-block__heading {
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-size: 1.5rem;
+            line-height: 2rem;
+
+            @include sm-only {
+                font-size: 1.25rem;
+                line-height: 1.75rem;
+            }
+
+            .deep-link {
+                display: none;
+            }
+        }
+    }
+
+    .article-block__chart + [class*="article-block__"] {
+        margin-top: 16px;
+    }
+
+    h2.article-block__heading,
+    h3.article-block__heading {
+        margin-bottom: 8px;
     }
 }

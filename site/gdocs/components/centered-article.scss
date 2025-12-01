@@ -1042,34 +1042,6 @@ div.raw-html-table__container {
     }
 }
 
-// A small grey block
-.article-block__callout {
-    .article-block__text,
-    .article-block__list,
-    .article-block__html,
-    .article-block__numbered-list {
-        @include body-3-regular;
-        margin-bottom: 0;
-
-        &:not(:last-child) {
-            margin-bottom: 8px;
-        }
-    }
-
-    a {
-        @include owid-link-90;
-    }
-    color: $blue-60;
-    background: $gray-10;
-    padding: 16px 24px;
-    border-radius: 8px;
-    margin: 8px 0 32px;
-
-    + .article-block__horizontal-rule {
-        margin-top: 24px;
-    }
-}
-
 @include column-block-override {
     margin: 48px 0;
 
