@@ -11,7 +11,7 @@ import {
     OwidGdocProfileInterface,
     type OwidGdocProfileContent,
 } from "@ourworldindata/types"
-import { removeTrailingParenthetical, generateToc } from "./Util.js"
+import { generateToc } from "./Util.js"
 
 export type ProfileEntity = Pick<Region, "name" | "code">
 
@@ -122,34 +122,27 @@ export function getEntitiesForProfile(
         }
     }
 
-    const nonCountryRegions = regions.filter(
-        (region) => !checkIsCountry(region)
+    const continents = regions.filter(
+        (region) => region.regionType === "continent"
     )
 
     for (const scopeValue of scopeValues) {
+        // Add all countries
         if (scopeValue === "countries" || scopeValue === "all") {
             for (const country of countries) addEntity(country)
         }
-
-        if (scopeValue === "regions" || scopeValue === "all") {
-            for (const region of nonCountryRegions) addEntity(region)
+        // Add all continents
+        if (scopeValue === "continents" || scopeValue === "all") {
+            for (const region of continents) addEntity(region)
         }
-
+        // Add specific entity by name or code
         if (
-            scopeValue === "countries" ||
-            scopeValue === "regions" ||
-            scopeValue === "all"
+            scopeValue !== "countries" &&
+            scopeValue !== "continents" &&
+            scopeValue !== "all"
         ) {
-            continue
+            addEntity(getRegionByNameOrVariantName(scopeValue))
         }
-
-        const withoutParenthetical = removeTrailingParenthetical(scopeValue)
-        const matchingRegion =
-            getRegionByNameOrVariantName(scopeValue) ??
-            getRegionByNameOrVariantName(withoutParenthetical) ??
-            regions.find((region) => region.code.toLowerCase() === scopeValue)
-
-        addEntity(matchingRegion)
     }
 
     return Array.from(entitiesByCode.values()).sort((a, b) =>
