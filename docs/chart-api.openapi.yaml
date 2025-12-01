@@ -260,7 +260,7 @@ paths:
                 "404":
                     $ref: "#/components/responses/NotFound"
 
-    /grapher/{slug}.searchResult.json:
+    /grapher/{slug}.search-result.json:
         get:
             summary: Get search results
             description: Returns search results within the context of the chart.
