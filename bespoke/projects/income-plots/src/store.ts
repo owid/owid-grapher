@@ -124,7 +124,7 @@ export const atomKdeDataForYear = atom(async (get) => {
         return kdeRes.map((kde) => ({
             ...common,
             ...kde,
-            y: kde.y * common.pop,
+            yScaledByPop: kde.y * common.pop,
         }))
     })
 
