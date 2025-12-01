@@ -4,24 +4,40 @@ import {
     atomCurrentCurrency,
     atomCurrentYear,
     atomIsInCountryMode,
+    atomSelectedCountriesOnly,
+    atomSelectedCountryNames,
     atomTimeInterval,
 } from "../store.ts"
 import * as R from "remeda"
 import { useEffect, useState } from "react"
 import { AVAILABLE_YEARS_RANGE } from "../utils/incomePlotConstants.ts"
 import { IncomePlotCountrySelector } from "./IncomePlotCountrySelector.tsx"
+import { Checkbox } from "@ourworldindata/components"
 
 export const IncomePlotControlsRowTop = () => {
     const [countriesOrRegionsMode, nextCountriesOrRegionsMode] = useAtom(
         atomCountriesOrRegionsMode
     )
     const isInCountryMode = useAtomValue(atomIsInCountryMode)
+    const selectedCountryNames = useAtomValue(atomSelectedCountryNames)
+    const [selectedCountriesOnly, setSelectedCountriesOnly] = useAtom(
+        atomSelectedCountriesOnly
+    )
     return (
         <div style={{ marginBottom: 10 }}>
             <button onClick={nextCountriesOrRegionsMode}>
                 {R.toTitleCase(countriesOrRegionsMode)}
             </button>
             {isInCountryMode && <IncomePlotCountrySelector />}
+            {selectedCountryNames.length > 0 && (
+                <Checkbox
+                    label={`Show selected countries only (${selectedCountryNames.length})`}
+                    checked={selectedCountriesOnly}
+                    onChange={(e) =>
+                        setSelectedCountriesOnly(e.currentTarget.checked)
+                    }
+                ></Checkbox>
+            )}
         </div>
     )
 }
