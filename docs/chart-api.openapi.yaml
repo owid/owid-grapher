@@ -230,7 +230,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                type: object
+                                $ref: "#/components/schemas/ChartMetadata"
                             examples:
                                 life-expectancy:
                                     summary: Life expectancy chart metadata
@@ -356,7 +356,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                type: object
+                                $ref: "#/components/schemas/GrapherValuesJson"
                 "404":
                     $ref: "#/components/responses/NotFound"
 
@@ -399,7 +399,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                type: object
+                                $ref: "#/components/schemas/GrapherSearchResultJson"
                 "404":
                     $ref: "#/components/responses/NotFound"
 
@@ -539,6 +539,429 @@ components:
                     type: string
                 message:
                     type: string
+
+        ChartMetadata:
+            type: object
+            description: Metadata about the chart configuration and data columns.
+            required:
+                - chart
+                - columns
+                - dateDownloaded
+            properties:
+                chart:
+                    $ref: "#/components/schemas/ChartMetadataChart"
+                columns:
+                    type: object
+                    description: Metadata for each data column, keyed by column name.
+                    additionalProperties:
+                        $ref: "#/components/schemas/ChartMetadataColumn"
+                dateDownloaded:
+                    type: string
+                    format: date
+                    description: Date when the data was downloaded (YYYY-MM-DD).
+                    example: "2024-10-30"
+                activeFilters:
+                    type: object
+                    description: Currently active query parameter filters.
+                    additionalProperties:
+                        type: string
+
+        ChartMetadataChart:
+            type: object
+            description: Chart configuration metadata.
+            properties:
+                title:
+                    type: string
+                    description: Chart title.
+                    example: Life expectancy
+                subtitle:
+                    type: string
+                    description: Chart subtitle, may contain markdown.
+                    example: "The [period life expectancy](#dod:period-life-expectancy) at birth, in a given year."
+                note:
+                    type: string
+                    description: Additional note displayed on the chart.
+                xAxisLabel:
+                    type: string
+                    description: Label for the X axis.
+                yAxisLabel:
+                    type: string
+                    description: Label for the Y axis.
+                citation:
+                    type: string
+                    description: Citation/sources line.
+                    example: "UN WPP (2022); HMD (2023); Zijdeman et al. (2015); Riley (2005)"
+                originalChartUrl:
+                    type: string
+                    format: uri
+                    description: Canonical URL of the chart.
+                    example: https://ourworldindata.org/grapher/life-expectancy
+                selection:
+                    type: array
+                    description: Default selected entities.
+                    items:
+                        type: string
+                    example: [World, Americas, Europe, Africa, Asia, Oceania]
+
+        ChartMetadataColumn:
+            type: object
+            description: Metadata for a single data column.
+            properties:
+                titleShort:
+                    type: string
+                    description: Short title for the column.
+                    example: Life expectancy at birth
+                titleLong:
+                    type: string
+                    description: Full title including attribution.
+                    example: "Life expectancy at birth - Various sources – period tables"
+                descriptionShort:
+                    type: string
+                    description: Brief description of the data.
+                descriptionKey:
+                    type: array
+                    description: Key points about the data methodology.
+                    items:
+                        type: string
+                descriptionProcessing:
+                    type: string
+                    description: Description of any processing applied to the data.
+                shortUnit:
+                    type: string
+                    description: Short form of the unit (e.g., "years", "%").
+                    example: years
+                unit:
+                    type: string
+                    description: Full unit name.
+                    example: years
+                timespan:
+                    type: string
+                    description: Time range covered by the data.
+                    example: "1543-2021"
+                tolerance:
+                    type: integer
+                    description: Tolerance for time matching.
+                type:
+                    type: string
+                    description: Data type of the column.
+                    example: Numeric
+                conversionFactor:
+                    type: number
+                    description: Conversion factor applied to values.
+                owidVariableId:
+                    type: integer
+                    description: Internal OWID variable identifier.
+                    example: 815383
+                shortName:
+                    type: string
+                    description: Machine-readable short name.
+                    example: life_expectancy_0__sex_all__age_0
+                lastUpdated:
+                    type: string
+                    format: date
+                    description: Date when the data was last updated.
+                    example: "2023-10-10"
+                nextUpdate:
+                    type: string
+                    format: date
+                    description: Expected date of next update.
+                    example: "2024-11-30"
+                citationShort:
+                    type: string
+                    description: Short citation for the data.
+                    example: "UN WPP (2022); HMD (2023); Zijdeman et al. (2015); Riley (2005) – with minor processing by Our World in Data"
+                citationLong:
+                    type: string
+                    description: Full citation for the data.
+                fullMetadata:
+                    type: string
+                    format: uri
+                    description: URL to the full indicator metadata.
+                    example: https://api.ourworldindata.org/v1/indicators/815383.metadata.json
+
+        GrapherValuesJson:
+            type: object
+            description: Data values for a specific entity from a chart.
+            properties:
+                entityName:
+                    type: string
+                    description: Name of the entity.
+                    example: World
+                startTime:
+                    type: integer
+                    description: Start time of the data range.
+                    example: 1950
+                endTime:
+                    type: integer
+                    description: End time of the data range.
+                    example: 2021
+                columns:
+                    type: object
+                    description: Column metadata, keyed by column slug.
+                    additionalProperties:
+                        $ref: "#/components/schemas/GrapherValuesJsonColumn"
+                startValues:
+                    $ref: "#/components/schemas/GrapherValuesJsonDataPoints"
+                endValues:
+                    $ref: "#/components/schemas/GrapherValuesJsonDataPoints"
+                source:
+                    type: string
+                    description: Sources line for the chart.
+
+        GrapherValuesJsonColumn:
+            type: object
+            description: Metadata for a single column in values response.
+            properties:
+                name:
+                    type: string
+                    description: Display name of the column.
+                unit:
+                    type: string
+                    description: Unit of measurement.
+                shortUnit:
+                    type: string
+                    description: Short form of the unit.
+                isProjection:
+                    type: boolean
+                    description: Whether this column contains projected data.
+                yearIsDay:
+                    type: boolean
+                    description: Whether the time column represents days instead of years.
+
+        GrapherValuesJsonDataPoints:
+            type: object
+            description: Data points for a specific time.
+            properties:
+                y:
+                    type: array
+                    description: Y-axis data points.
+                    items:
+                        $ref: "#/components/schemas/GrapherValuesJsonDataPoint"
+                x:
+                    $ref: "#/components/schemas/GrapherValuesJsonDataPoint"
+
+        GrapherValuesJsonDataPoint:
+            type: object
+            description: A single data point value.
+            required:
+                - columnSlug
+            properties:
+                columnSlug:
+                    type: string
+                    description: Identifier of the column.
+                value:
+                    oneOf:
+                        - type: number
+                        - type: string
+                    description: Raw value.
+                formattedValue:
+                    type: string
+                    description: Human-readable formatted value.
+                formattedValueShort:
+                    type: string
+                    description: Short formatted value.
+                formattedValueShortWithAbbreviations:
+                    type: string
+                    description: Short formatted value with abbreviations (e.g., "1.2B").
+                valueLabel:
+                    type: string
+                    description: Custom label for the value (e.g., from color scheme).
+                time:
+                    type: integer
+                    description: Time of the observation.
+                formattedTime:
+                    type: string
+                    description: Formatted time string.
+
+        GrapherSearchResultJson:
+            type: object
+            description: Search result data for a chart, used for rich search previews.
+            required:
+                - title
+                - source
+                - grapherQueryParams
+                - layout
+                - dataTable
+                - entityType
+                - entityTypePlural
+            properties:
+                title:
+                    type: string
+                    description: Chart title.
+                subtitle:
+                    type: string
+                    description: Chart subtitle (plain text, markdown stripped).
+                source:
+                    type: string
+                    description: Sources line (plain text).
+                grapherQueryParams:
+                    type: object
+                    description: Query parameters to apply to the chart.
+                    additionalProperties:
+                        type: string
+                layout:
+                    type: array
+                    description: Layout slots for displaying chart tabs.
+                    items:
+                        $ref: "#/components/schemas/LayoutSlot"
+                dataTable:
+                    $ref: "#/components/schemas/SearchDataTable"
+                valueDisplay:
+                    $ref: "#/components/schemas/SearchValueDisplay"
+                entityType:
+                    type: string
+                    description: Singular entity type name.
+                    example: country
+                entityTypePlural:
+                    type: string
+                    description: Plural entity type name.
+                    example: countries
+
+        LayoutSlot:
+            type: object
+            description: A slot in the search result layout grid.
+            required:
+                - slotKey
+                - grapherTab
+            properties:
+                slotKey:
+                    type: string
+                    description: Grid slot identifier.
+                    enum:
+                        - single-slot
+                        - double-slot
+                        - triple-slot
+                        - quad-slot
+                        - small-slot-left
+                        - small-slot-right
+                        - full
+                        - left-quad
+                        - right-quad
+                        - right-quad-left-column
+                        - top-right-cell
+                        - bottom-right-cell
+                        - single-cell
+                grapherTab:
+                    type: string
+                    description: The grapher tab to display in this slot.
+                    enum:
+                        - table
+                        - map
+                        - chart
+                        - line
+                        - scatter
+                        - stacked-area
+                        - discrete-bar
+                        - stacked-discrete-bar
+                        - slope
+                        - stacked-bar
+                        - marimekko
+                chartParams:
+                    type: object
+                    description: Additional query params for the chart view.
+                    additionalProperties:
+                        type: string
+                previewParams:
+                    type: object
+                    description: Additional query params for the preview thumbnail.
+                    additionalProperties:
+                        type: string
+
+        SearchDataTable:
+            type: object
+            description: Data table for search result display.
+            required:
+                - rows
+                - title
+            properties:
+                rows:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/SearchDataTableRow"
+                title:
+                    type: string
+                    description: Title for the data table.
+
+        SearchDataTableRow:
+            type: object
+            description: A row in the search result data table.
+            required:
+                - label
+            properties:
+                seriesName:
+                    type: string
+                    description: Name of the data series.
+                label:
+                    type: string
+                    description: Display label for the row.
+                color:
+                    type: string
+                    description: Color associated with this row.
+                value:
+                    type: string
+                    description: Formatted value.
+                startValue:
+                    type: string
+                    description: Formatted start value (for ranges).
+                time:
+                    type: string
+                    description: Formatted time.
+                timePreposition:
+                    type: string
+                    description: Preposition for time display (e.g., "in", "on").
+                muted:
+                    type: boolean
+                    description: Whether the row should be visually muted.
+                striped:
+                    oneOf:
+                        - type: boolean
+                        - type: string
+                          enum: ["no-data"]
+                    description: Whether the row should have striped styling.
+                outlined:
+                    type: boolean
+                    description: Whether the row should have outlined styling.
+                rounded:
+                    type: boolean
+                    description: Whether the row should have rounded corners.
+                trend:
+                    type: string
+                    description: Trend direction indicator.
+                    enum: [up, down, unchanged]
+
+        SearchValueDisplay:
+            type: object
+            description: Large value display for search results.
+            required:
+                - entityName
+                - endValue
+                - time
+            properties:
+                entityName:
+                    type: string
+                    description: Name of the entity.
+                endValue:
+                    type: string
+                    description: Formatted end value.
+                time:
+                    type: string
+                    description: Formatted time.
+                unit:
+                    type: string
+                    description: Unit of measurement.
+                startValue:
+                    type: string
+                    description: Formatted start value (for ranges).
+                trend:
+                    type: string
+                    description: Trend direction indicator.
+                    enum: [up, down, unchanged]
+                showLocationIcon:
+                    type: boolean
+                    description: Whether to show a location icon.
+                numericEndTime:
+                    type: integer
+                    description: Numeric end time value.
 
     responses:
         NotFound:
