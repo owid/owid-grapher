@@ -16,12 +16,28 @@ $lato: $sans-serif-font-stack;
 $indent: 15px;
 $control-row-height: 32px;
 
-.settings-menu-contents {
-    .GrapherPopover__wrapper {
-        width: 300px;
+@at-root .GrapherSettingsPopover {
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0px 4px 23px 4px #0000000f;
+    z-index: $zindex-controls-popup;
+    overflow-y: auto;
+
+    // Sticky header with title and close button
+    .GrapherSettingsPopover__Header {
+        background: white;
+        margin: 0;
+        padding: 9px 15px 3px 15px;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+
+        .overlay-header {
+            padding: 0;
+        }
     }
 
-    .GrapherPopover__content {
+    .GrapherSettingsPopover__Content {
         //
         // shared button coloring & behaviors
         //

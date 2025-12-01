@@ -177,18 +177,31 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
         return ControlsRow.shouldShow(this.manager)
     }
 
+    @computed private get settingsPopoverMaxWidth(): number {
+        const availableWidth =
+            this.bounds.width - 2 * this.framePaddingHorizontal
+
+        // Ensure the popover is at most 300px wide
+        return Math.min(300, Math.floor(availableWidth))
+    }
+
+    @computed private get settingsPopoverMaxHeight(): number {
+        const availableHeight =
+            this.bounds.height -
+            2 * this.framePaddingVertical -
+            this.headerHeightWithPadding -
+            this.controlsRowHeightWithPadding
+
+        return Math.floor(availableHeight)
+    }
+
     private renderControlsRow(): React.ReactElement {
         return (
             <ControlsRow
                 manager={this.manager}
                 maxWidth={this.maxWidth}
-                settingsMenuTop={
-                    this.framePaddingVertical +
-                    this.header.height +
-                    this.verticalPadding +
-                    CONTROLS_ROW_HEIGHT +
-                    4 // margin between button and menu
-                }
+                popoverMaxWidth={this.settingsPopoverMaxWidth}
+                popoverMaxHeight={this.settingsPopoverMaxHeight}
             />
         )
     }
@@ -236,31 +249,45 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
         )
     }
 
-    // The height of the chart area is the total height of the frame minus the height of the header, footer, controls, etc.
-    // Check out the render function for a description of the various components rendered by CaptionedChart
+    @computed private get headerHeightWithPadding(): number {
+        return this.header.height + this.verticalPadding
+    }
+
+    @computed private get footerHeightWithPadding(): number {
+        return this.footer.height + this.verticalPadding
+    }
+
+    @computed private get controlsRowHeightWithPadding(): number {
+        return this.showControlsRow
+            ? CONTROLS_ROW_HEIGHT + this.verticalPaddingSmall
+            : 0
+    }
+
+    @computed private get timelineHeightWithPadding(): number {
+        return this.manager.hasTimeline
+            ? TIMELINE_HEIGHT + this.verticalPaddingSmall
+            : 0
+    }
+
+    @computed private get relatedQuestionHeightWithPadding(): number {
+        return this.showRelatedQuestion
+            ? this.relatedQuestionHeight - this.framePaddingVertical * 0.25
+            : 0
+    }
+
+    /**
+     * The height of the chart area is the total height of the frame minus
+     * the height of the header, footer, controls, etc.
+     */
     @computed protected get chartHeight(): number {
         return Math.floor(
             this.bounds.height -
                 2 * this.framePaddingVertical -
-                // #1 Header
-                this.header.height -
-                this.verticalPadding -
-                // #2 [Controls]
-                (this.showControlsRow
-                    ? CONTROLS_ROW_HEIGHT + this.verticalPaddingSmall
-                    : 0) -
-                // #4 [Timeline]
-                (this.manager.hasTimeline
-                    ? this.verticalPaddingSmall + TIMELINE_HEIGHT
-                    : 0) -
-                // #5 Footer
-                this.verticalPadding -
-                this.footer.height -
-                // #6 [Related question]
-                (this.showRelatedQuestion
-                    ? this.relatedQuestionHeight -
-                      this.framePaddingVertical * 0.25
-                    : 0)
+                this.headerHeightWithPadding -
+                this.controlsRowHeightWithPadding -
+                this.timelineHeightWithPadding -
+                this.footerHeightWithPadding -
+                this.relatedQuestionHeightWithPadding
         )
     }
 

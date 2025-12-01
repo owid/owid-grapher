@@ -19,7 +19,7 @@ export const GRAPHER_PAGE_BODY_CLASS = "StandaloneGrapherOrExplorerPage"
 export const GRAPHER_IS_IN_IFRAME_CLASS = "IsInIframe"
 export const GRAPHER_TIMELINE_CLASS = "timeline-component"
 export const GRAPHER_SIDE_PANEL_CLASS = "side-panel"
-export const GRAPHER_SETTINGS_CLASS = "settings-menu-contents"
+export const GRAPHER_SETTINGS_CLASS = "GrapherSettingsPopover"
 
 // The Figma plugin uses these class names to identify sections of the chart
 export const GRAPHER_CHART_AREA_CLASS = "chart-area"
