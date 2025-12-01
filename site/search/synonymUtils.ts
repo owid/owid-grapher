@@ -273,6 +273,7 @@ export const synonyms = [
         "robotaxis",
     ],
     ["gaza", "palestine", "west bank"],
+    ["hpv", "human papillomavirus"],
 ]
 
 /**
