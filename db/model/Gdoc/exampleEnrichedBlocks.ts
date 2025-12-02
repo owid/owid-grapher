@@ -46,6 +46,7 @@ const enrichedBlockText: EnrichedBlockText = {
 const enrichedChart: EnrichedBlockChart = {
     type: "chart",
     url: "https://ourworldindata.org/grapher/total-cases-covid-19",
+    size: BlockImageSize.Wide,
     parseErrors: [],
 }
 
@@ -117,6 +118,7 @@ export const enrichedBlockExamples: Record<
         height: "400",
         row: "1",
         column: "1",
+        size: BlockImageSize.Wide,
         position: "featured",
         caption: boldLinkExampleText,
         parseErrors: [],
@@ -125,9 +127,8 @@ export const enrichedBlockExamples: Record<
         type: "narrative-chart",
         name: "world-has-become-less-democratic",
         height: "400",
-        row: "1",
-        column: "1",
         position: "featured",
+        size: BlockImageSize.Wide,
         caption: boldLinkExampleText,
         parseErrors: [],
     },
@@ -301,6 +302,7 @@ export const enrichedBlockExamples: Record<
             {
                 type: "chart",
                 url: "https://ourworldindata.org/grapher/life-expectancy",
+                size: BlockImageSize.Wide,
                 parseErrors: [],
             },
             {

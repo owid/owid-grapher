@@ -639,6 +639,7 @@ function cheerioToArchieML(
                             {
                                 type: "chart",
                                 url: src,
+                                size: BlockImageSize.Wide,
                                 parseErrors: [],
                             },
                         ],

@@ -159,6 +159,7 @@ ${items}
                 {
                     url: b.url,
                     caption: b.caption ? spansToMarkdown(b.caption) : undefined,
+                    size: b.size,
                     // Note: truncated
                 },
                 exportComponents
@@ -169,6 +170,7 @@ ${items}
                 "NarrativeChart",
                 {
                     name: b.name,
+                    size: b.size,
                     caption: b.caption ? spansToMarkdown(b.caption) : undefined,
                     // Note: truncated
                 },

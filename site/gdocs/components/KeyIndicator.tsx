@@ -2,6 +2,7 @@ import * as _ from "lodash-es"
 import cx from "classnames"
 
 import {
+    BlockImageSize,
     EnrichedBlockKeyIndicator,
     EnrichedBlockText,
 } from "@ourworldindata/types"
@@ -55,6 +56,7 @@ export default function KeyIndicator({
                 d={{
                     url: d.datapageUrl, // The URL is resolved in the component.
                     type: "chart",
+                    size: BlockImageSize.Wide,
                     parseErrors: [],
                 }}
             />

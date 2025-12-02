@@ -471,11 +471,13 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
     const createError = (
         error: ParseError,
         url: string,
-        caption: Span[] = []
+        caption: Span[] = [],
+        size: BlockImageSize = BlockImageSize.Wide
     ): EnrichedBlockChart => ({
         type: "chart",
         url,
         caption,
+        size,
         parseErrors: [error],
     })
 
@@ -485,6 +487,7 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
         return {
             type: "chart",
             url: val,
+            size: BlockImageSize.Wide,
             parseErrors: [],
         }
     } else {
@@ -503,6 +506,17 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
         const height = val.height
         const row = val.row
         const column = val.column
+        const size = val.size ?? BlockImageSize.Wide
+        if (!checkIsBlockImageSize(size)) {
+            return createError(
+                {
+                    message: `Invalid size property: ${size}`,
+                },
+                url,
+                [],
+                BlockImageSize.Wide
+            )
+        }
         // This property is currently unused, a holdover from @mathisonian's gdocs demo.
         // We will decide soon™️ if we want to use it for something
         let position: ChartPositionChoice | undefined = undefined
@@ -522,6 +536,7 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
             row,
             column,
             position,
+            size,
             caption: caption.length > 0 ? caption : undefined,
             parseErrors: [],
         }) as EnrichedBlockChart
@@ -534,11 +549,13 @@ const parseNarrativeChart = (
     const createError = (
         error: ParseError,
         name: string,
-        caption: Span[] = []
+        caption: Span[] = [],
+        size: BlockImageSize = BlockImageSize.Wide
     ): EnrichedBlockNarrativeChart => ({
         type: "narrative-chart",
         name,
         caption,
+        size,
         parseErrors: [error],
     })
 
@@ -548,6 +565,7 @@ const parseNarrativeChart = (
         return {
             type: "narrative-chart",
             name: val,
+            size: BlockImageSize.Wide,
             parseErrors: [],
         }
     } else {
@@ -562,8 +580,17 @@ const parseNarrativeChart = (
         const warnings: ParseError[] = []
 
         const height = val.height
-        const row = val.row
-        const column = val.column
+        const size = val.size ?? BlockImageSize.Wide
+        if (!checkIsBlockImageSize(size)) {
+            return createError(
+                {
+                    message: `Invalid size property: ${size}`,
+                },
+                val.name,
+                [],
+                BlockImageSize.Wide
+            )
+        }
         // This property is currently unused, a holdover from @mathisonian's gdocs demo.
         // We will decide soon™️ if we want to use it for something
         let position: ChartPositionChoice | undefined = undefined
@@ -580,9 +607,8 @@ const parseNarrativeChart = (
             type: "narrative-chart",
             name: val.name,
             height,
-            row,
-            column,
             position,
+            size,
             caption: caption.length > 0 ? caption : undefined,
             parseErrors: [],
         }) as EnrichedBlockNarrativeChart
@@ -706,7 +732,12 @@ const parseChartStory = (raw: RawBlockChartStory): EnrichedBlockChartStory => {
                 }
             return {
                 narrative: htmlToEnrichedTextBlock(item.narrative),
-                chart: { type: "chart", url: chart, parseErrors: [] },
+                chart: {
+                    type: "chart",
+                    url: chart,
+                    size: BlockImageSize.Wide,
+                    parseErrors: [],
+                },
                 technical: item.technical?.list
                     ? item.technical.list.map(htmlToEnrichedTextBlock)
                     : [],
