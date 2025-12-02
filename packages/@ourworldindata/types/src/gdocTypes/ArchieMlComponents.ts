@@ -138,22 +138,6 @@ export type EnrichedBlockKeyIndicatorCollection = {
     blocks: EnrichedBlockKeyIndicator[]
 } & EnrichedBlockWithParseErrors
 
-export type RawBlockScroller = {
-    type: "scroller"
-    value: OwidRawGdocBlock[] | ArchieMLUnexpectedNonObjectValue
-}
-
-export type EnrichedScrollerItem = {
-    type: "enriched-scroller-item"
-    url: string
-    text: EnrichedBlockText
-}
-
-export type EnrichedBlockScroller = {
-    type: "scroller"
-    blocks: EnrichedScrollerItem[]
-} & EnrichedBlockWithParseErrors
-
 export type RawChartStoryValue = {
     narrative?: string
     chart?: string
@@ -1151,7 +1135,6 @@ export type OwidRawGdocBlock =
     | RawBlockNarrativeChart
     | RawBlockCode
     | RawBlockDonorList
-    | RawBlockScroller
     | RawBlockChartStory
     | RawBlockExplorerTiles
     | RawBlockImage
@@ -1215,7 +1198,6 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockNarrativeChart
     | EnrichedBlockCode
     | EnrichedBlockDonorList
-    | EnrichedBlockScroller
     | EnrichedBlockChartStory
     | EnrichedBlockExplorerTiles
     | EnrichedBlockImage

@@ -165,11 +165,6 @@
         "keyword": "+script"
     },
     {
-        "name": "scroller",
-        "text": "[.+scroller]\nurl: \n\n[]",
-        "keyword": "+scroller"
-    },
-    {
         "name": "sdg-toc",
         "text": "{.sdg-toc}\n{}",
         "keyword": "+sdg-toc"

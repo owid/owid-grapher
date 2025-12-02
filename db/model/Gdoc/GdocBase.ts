@@ -562,27 +562,6 @@ export class GdocBase implements OwidGdocBaseInterface {
 
                 return links
             })
-            .with({ type: "scroller" }, (block) => {
-                const links: DbInsertPostGdocLink[] = []
-
-                block.blocks.forEach(({ url, text }, i) => {
-                    const chartLink = createLinkFromUrl({
-                        url,
-                        sourceId: this.id,
-                        componentType: block.type,
-                        text: `Scroller block ${i + 1}`,
-                    })
-                    links.push(chartLink)
-                    text.value.forEach((span) => {
-                        traverseEnrichedSpan(span, (span) => {
-                            const spanLink = this.extractLinkFromSpan(span)
-                            if (spanLink) links.push(spanLink)
-                        })
-                    })
-                })
-
-                return links
-            })
             .with({ type: "cta" }, (block) => [
                 createLinkFromUrl({
                     url: block.url,

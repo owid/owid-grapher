@@ -189,7 +189,6 @@ ${items}
         .with({ type: "donors" }, (_): string | undefined =>
             markdownComponent("DonorList", {}, exportComponents)
         )
-        .with({ type: "scroller" }, () => undefined) // Note: dropped
         .with(
             { type: "chart-story" },
             () => undefined // Note: dropped

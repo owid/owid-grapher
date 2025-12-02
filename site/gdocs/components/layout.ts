@@ -76,7 +76,6 @@ const layouts: { [key in Container]: Layouts} = {
         ["subscribe-banner--center"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["subscribe-banner--right"]: "col-start-11 span-cols-3 span-rows-3 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["research-and-writing"]: "col-start-2 span-cols-12",
-        ["scroller"]: "grid span-cols-12 col-start-2",
         ["sdg-grid"]: "grid col-start-2 span-cols-12 col-lg-start-3 span-lg-cols-10 span-sm-cols-12 col-sm-start-2",
         ["side-by-side"]: "grid span-cols-12 col-start-2",
         ["sticky-left-left-column"]: "grid grid-cols-7 span-cols-7 span-md-cols-10 grid-md-cols-10 col-md-start-2 span-sm-cols-12 grid-sm-cols-12 col-sm-start-1",

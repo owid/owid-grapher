@@ -262,7 +262,6 @@ export function extractFilenamesFromBlock(
                     "recirc",
                     "subscribe-banner",
                     "resource-panel",
-                    "scroller",
                     "sdg-grid",
                     "sdg-toc",
                     "ltp-toc",

@@ -19,7 +19,6 @@ import {
     type EnrichedTopicPageIntroRelatedTopic,
     type EnrichedTopicPageIntroDownloadButton,
     type EnrichedHybridLink,
-    type EnrichedScrollerItem,
     type OwidGdocPostInterface,
     type OwidGdocDataInsightInterface,
     type OwidGdocAuthorInterface,
@@ -1522,7 +1521,6 @@ export type NodeWithUrl =
     | EnrichedHybridLink
     | EnrichedTopicPageIntroRelatedTopic
     | EnrichedTopicPageIntroDownloadButton
-    | EnrichedScrollerItem
     | EnrichedBlockKeyInsightsSlide
 
 export function recursivelyMapArticleContent(
@@ -1561,8 +1559,6 @@ export function recursivelyMapArticleContent(
         if (downloadButton) callback(downloadButton)
         if (relatedTopics) relatedTopics.forEach(callback)
         content.forEach(callback)
-    } else if (node.type === "scroller") {
-        node.blocks.forEach(callback)
     } else if (node.type === "key-insights") {
         node.insights.forEach((insight) => {
             callback(insight)
@@ -1595,7 +1591,7 @@ export function traverseEnrichedSpan(
 
 // If your node is a OwidEnrichedGdocBlock, the callback will apply to it
 // If your node has children that are Spans, the spanCallback will apply to them
-// If your node has children that aren't OwidEnrichedGdocBlocks or Spans, e.g. EnrichedBlockScroller & EnrichedScrollerItem
+// If your node has children that aren't OwidEnrichedGdocBlocks or Spans
 // you'll have to handle those children yourself in your callback
 export function traverseEnrichedBlock(
     node: OwidEnrichedGdocBlock,
@@ -1798,7 +1794,6 @@ export function traverseEnrichedBlock(
                     "subscribe-banner",
                     "resource-panel",
                     "research-and-writing",
-                    "scroller",
                     "sdg-grid",
                     "sdg-toc",
                     "ltp-toc",
