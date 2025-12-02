@@ -18,7 +18,6 @@ import {
     RawBlockPullQuote,
     RawBlockGuidedChart,
     RawBlockRecirc,
-    RawBlockScroller,
     RawBlockSDGGrid,
     RawBlockText,
     Span,
@@ -181,22 +180,6 @@ export function enrichedBlockToRawBlock(
             (b): RawBlockDonorList => ({
                 type: b.type,
                 value: b.value,
-            })
-        )
-        .with(
-            { type: "scroller" },
-            (b): RawBlockScroller => ({
-                type: b.type,
-                value: b.blocks.flatMap((item) => [
-                    {
-                        type: "url",
-                        value: item.url,
-                    },
-                    {
-                        type: "text",
-                        value: spansToHtmlText(item.text.value),
-                    },
-                ]),
             })
         )
         .with(

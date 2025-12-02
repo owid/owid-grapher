@@ -3,7 +3,6 @@ import { useContext } from "react"
 
 import Callout from "./Callout.js"
 import ChartStory from "./ChartStory.js"
-import Scroller from "./Scroller.js"
 import Chart from "./Chart.js"
 import Donors from "./Donors.js"
 import PullQuote from "./PullQuote.js"
@@ -168,12 +167,6 @@ function ArticleBlockInternal({
         ))
         .with({ type: "donors" }, (_block) => (
             <Donors className={getLayout("donors", containerType)} />
-        ))
-        .with({ type: "scroller" }, (block) => (
-            <Scroller
-                className={getLayout("scroller", containerType)}
-                d={block}
-            />
         ))
         .with({ type: "callout" }, (block) => (
             <Callout
