@@ -34,6 +34,7 @@
     display: none;
     @include md-down {
         display: flex;
+        gap: 24px;
     }
 }
 
@@ -63,8 +64,8 @@
     @include md-down {
         width: 302px;
         height: 100%;
-        &:first-child {
-            margin-right: 24px;
+        &:last-child {
+            margin-right: -24px;
         }
     }
 }
