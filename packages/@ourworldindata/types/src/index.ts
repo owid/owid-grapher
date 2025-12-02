@@ -215,7 +215,6 @@ export {
     type RawBlockPeople,
     type RawBlockPeopleRows,
     type RawBlockPerson,
-    type RawBlockPosition,
     type RawBlockProminentLink,
     type RawBlockPullQuote,
     type RawBlockGuidedChart,

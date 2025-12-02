@@ -466,6 +466,7 @@ export function enrichedBlockToRawBlock(
                 type: b.type,
                 value: {
                     caption: spansToHtmlText(b.caption),
+                    position: b.position,
                 },
             })
         )

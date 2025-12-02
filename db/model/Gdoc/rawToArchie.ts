@@ -17,7 +17,6 @@ import {
     RawBlockVideo,
     RawBlockList,
     RawBlockNumberedList,
-    RawBlockPosition,
     RawBlockProminentLink,
     RawBlockPullQuote,
     RawBlockGuidedChart,
@@ -431,12 +430,6 @@ function* rawBlockUrlToArchieMLString(
     block: RawBlockUrl
 ): Generator<string, void, undefined> {
     yield keyValueToArchieMlString("url", block.value)
-}
-
-function* rawBlockPositionToArchieMLString(
-    block: RawBlockPosition
-): Generator<string, void, undefined> {
-    yield keyValueToArchieMlString("position", block.value)
 }
 
 function* RawBlockHeadingToArchieMLString(
@@ -1037,7 +1030,6 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with({ type: "html" }, rawBlockHtmlToArchieMLString)
         .with({ type: "script" }, rawBlockScriptToArchieMLString)
         .with({ type: "url" }, rawBlockUrlToArchieMLString)
-        .with({ type: "position" }, rawBlockPositionToArchieMLString)
         .with({ type: "heading" }, RawBlockHeadingToArchieMLString)
         .with({ type: "sdg-grid" }, rawBlockSDGGridToArchieMLString)
         .with({ type: "static-viz" }, rawBlockStaticVizToArchieMLString)

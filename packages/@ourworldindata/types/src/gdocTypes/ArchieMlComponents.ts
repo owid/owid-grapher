@@ -464,12 +464,6 @@ export type RawBlockUrl = {
     type: "url"
     value: string
 }
-// There is no EnrichedBlockUrl because Url blocks only exist inside Sliders;
-// they are subsumed into Slider blocks during enrichment
-export type RawBlockPosition = {
-    type: "position"
-    value: string
-}
 
 export type RawBlockHeadingValue = {
     text?: string
@@ -1150,7 +1144,6 @@ export type OwidRawGdocBlock =
     | RawBlockText
     | RawBlockUrl
     | RawBlockResourcePanel
-    | RawBlockPosition
     | RawBlockHeading
     | RawBlockHtml
     | RawBlockScript
