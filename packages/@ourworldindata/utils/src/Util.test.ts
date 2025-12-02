@@ -652,6 +652,7 @@ describe(traverseEnrichedBlock, () => {
         {
             type: "chart",
             url: "https://ourworldindata.org/grapher/population",
+            size: BlockImageSize.Wide,
             parseErrors: [],
         },
         {

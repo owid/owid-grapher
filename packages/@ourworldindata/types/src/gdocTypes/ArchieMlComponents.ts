@@ -36,6 +36,7 @@ export type RawBlockChartValue = {
     height?: string
     row?: string
     column?: string
+    size?: BlockImageSize
     // TODO: position is used as a classname apparently? Should be renamed or split
     position?: string
     caption?: string
@@ -52,6 +53,7 @@ export type EnrichedBlockChart = {
     height?: string
     row?: string
     column?: string
+    size: BlockImageSize
     position?: ChartPositionChoice
     caption?: Span[]
 } & EnrichedBlockWithParseErrors
@@ -63,6 +65,7 @@ export type RawBlockNarrativeChartValue = {
     column?: string
     // TODO: position is used as a classname apparently? Should be renamed or split
     position?: string
+    size?: BlockImageSize
     caption?: string
 }
 
@@ -78,6 +81,7 @@ export type EnrichedBlockNarrativeChart = {
     row?: string
     column?: string
     position?: ChartPositionChoice
+    size: BlockImageSize
     caption?: Span[]
 } & EnrichedBlockWithParseErrors
 

@@ -51,7 +51,7 @@ import Person from "./Person.js"
 import NarrativeChart from "./NarrativeChart.js"
 import { Container, getLayout } from "./layout.js"
 import { Expander } from "./Expander.js"
-import { ChartConfigType } from "@ourworldindata/types"
+import { BlockImageSize, ChartConfigType } from "@ourworldindata/types"
 import { useLinkedChart } from "../utils.js"
 import { ResourcePanel } from "./ResourcePanel.js"
 import { Cta } from "./Cta.js"
@@ -131,20 +131,30 @@ function ArticleBlockInternal({
         .with({ type: "chart" }, (block) => {
             const { isExplorer, queryStr } = Url.fromURL(block.url)
             const areControlsHidden = queryStr.includes("hideControls=true")
+            const size = block.size ?? BlockImageSize.Wide
             const layoutSubtype =
-                isExplorer && !areControlsHidden ? "explorer" : "chart"
+                isExplorer && !areControlsHidden
+                    ? `explorer--${size}`
+                    : `chart--${size}`
             return (
                 <Chart
-                    className={getLayout(layoutSubtype, containerType)}
+                    className={cx(
+                        "article-block__chart",
+                        getLayout(layoutSubtype, containerType)
+                    )}
                     d={block}
                     fullWidthOnMobile={true}
                 />
             )
         })
         .with({ type: "narrative-chart" }, (block) => {
+            const size = block.size ?? BlockImageSize.Wide
             return (
                 <NarrativeChart
-                    className={getLayout("chart", containerType)}
+                    className={cx(
+                        "article-block__chart",
+                        getLayout(`chart--${size}`, containerType)
+                    )}
                     d={block}
                     fullWidthOnMobile={true}
                 />
