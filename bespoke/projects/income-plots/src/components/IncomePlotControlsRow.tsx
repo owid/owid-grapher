@@ -12,7 +12,8 @@ import * as R from "remeda"
 import { useEffect, useState } from "react"
 import { AVAILABLE_YEARS_RANGE } from "../utils/incomePlotConstants.ts"
 import { IncomePlotCountrySelector } from "./IncomePlotCountrySelector.tsx"
-import { Checkbox } from "@ourworldindata/components"
+import { Checkbox, LabeledSwitch } from "@ourworldindata/components"
+import cx from "classnames"
 
 export const IncomePlotControlsRowTop = () => {
     const [countriesOrRegionsMode, nextCountriesOrRegionsMode] = useAtom(
@@ -24,10 +25,35 @@ export const IncomePlotControlsRowTop = () => {
         atomIsInSingleCountryMode
     )
     return (
-        <div style={{ marginBottom: 10 }}>
-            <button onClick={nextCountriesOrRegionsMode}>
-                {R.toTitleCase(countriesOrRegionsMode)}
-            </button>
+        <div className="income-plot-controls-top" style={{ marginBottom: 10 }}>
+            <div className="regions-countries-toggle">
+                <span
+                    className={cx("toggle-label", {
+                        active: countriesOrRegionsMode === "regions",
+                    })}
+                    onClick={() => {
+                        if (countriesOrRegionsMode !== "regions")
+                            nextCountriesOrRegionsMode()
+                    }}
+                >
+                    Show regions
+                </span>
+                <LabeledSwitch
+                    value={countriesOrRegionsMode === "countries"}
+                    onToggle={nextCountriesOrRegionsMode}
+                />
+                <span
+                    className={cx("toggle-label", {
+                        active: countriesOrRegionsMode === "countries",
+                    })}
+                    onClick={() => {
+                        if (countriesOrRegionsMode !== "countries")
+                            nextCountriesOrRegionsMode()
+                    }}
+                >
+                    Show countries
+                </span>
+            </div>
             {isInCountryMode && <IncomePlotCountrySelector />}
             {selectedCountryNames.length > 0 && (
                 <Checkbox
