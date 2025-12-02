@@ -375,7 +375,7 @@ $black-text: $gray-100;
 .causes-of-death-legend {
     display: flex;
     flex-wrap: wrap;
-    row-gap: 3px;
+    row-gap: 4px;
     column-gap: 16px;
     margin-bottom: 10px;
 
@@ -388,15 +388,9 @@ $black-text: $gray-100;
     }
 
     .causes-of-death-legend__swatch {
-        width: 16px;
-        height: 16px;
+        width: 12px;
+        height: 12px;
         flex-shrink: 0;
-        border-radius: 2px;
-    }
-
-    .causes-of-death-legend__label {
-        position: relative;
-        top: 1px;
     }
 }
 
