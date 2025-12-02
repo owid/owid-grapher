@@ -1,6 +1,4 @@
 import {
-    faMapMarkerAlt,
-    faClose,
     faMagnifyingGlass,
     faTimesCircle,
 } from "@fortawesome/free-solid-svg-icons"
@@ -12,8 +10,7 @@ import {
     ListBox,
     ListBoxItem,
     DialogTrigger,
-    SearchField,
-    Input,
+    Pressable,
 } from "react-aria-components"
 import cx from "classnames"
 import { useAtom, useAtomValue } from "jotai"
@@ -21,11 +18,12 @@ import {
     atomAvailableCountryNames,
     atomSelectedCountryNames,
 } from "../store.ts"
+import { Checkbox } from "@ourworldindata/components"
 
 export const IncomePlotCountrySelector = () => {
-    const [isOpen, setIsOpen] = useState(false)
     const [countrySearchQuery, setCountrySearchQuery] = useState("")
-    const listContainerRef = useRef<HTMLDivElement>(null)
+    const [isOpen, setIsOpen] = useState(false)
+    const triggerRef = useRef<HTMLDivElement>(null)
     const [selectedCountryNames, setSelectedCountryNames] = useAtom(
         atomSelectedCountryNames
     )
@@ -41,8 +39,6 @@ export const IncomePlotCountrySelector = () => {
         }
     }
 
-    const handleOpenChange = (isOpen: boolean) => setIsOpen(isOpen)
-
     const filteredCountriesByName = useMemo(() => {
         return availableCountryNames.filter(
             (country) =>
@@ -53,31 +49,28 @@ export const IncomePlotCountrySelector = () => {
 
     return (
         <div className="search-country-selector">
-            <DialogTrigger isOpen={isOpen} onOpenChange={handleOpenChange}>
-                <div>
-                    <Button>
+            <DialogTrigger isOpen={isOpen} onOpenChange={setIsOpen}>
+                <Pressable>
+                    <div
+                        className="search-country-selector-button"
+                        role="button"
+                    >
                         <FontAwesomeIcon
                             className="search-country-selector__search-icon"
                             icon={faMagnifyingGlass}
                         />
                         <input
                             type="text"
-                            placeholder="Search for a country"
+                            placeholder="Search and select countries"
                             className="search-country-selector-search-input body-3-regular"
                             value={countrySearchQuery}
-                            onChange={(e) =>
+                            onChange={(e) => {
                                 setCountrySearchQuery(e.target.value)
-                            }
+                                setIsOpen(true)
+                            }}
+                            onFocus={() => setIsOpen(true)}
+                            onClick={() => setIsOpen(true)}
                         />
-                    </Button>
-                </div>
-                <Popover
-                    className="search-country-selector-list-container"
-                    ref={listContainerRef}
-                    placement="bottom end"
-                    crossOffset={8}
-                >
-                    <div className="search-country-selector-search-container">
                         {countrySearchQuery && (
                             <Button
                                 onPress={() => setCountrySearchQuery("")}
@@ -88,9 +81,34 @@ export const IncomePlotCountrySelector = () => {
                             </Button>
                         )}
                     </div>
+                </Pressable>
+                <Popover
+                    className="search-country-selector-list-container"
+                    placement="bottom start"
+                    isNonModal
+                >
+                    {selectedCountryNames.length > 0 && (
+                        <div className="search-country-selector-clear-container">
+                            <Button
+                                onPress={() => setSelectedCountryNames([])}
+                                className="search-country-selector-clear-all"
+                            >
+                                Clear selection
+                            </Button>
+                        </div>
+                    )}
                     <ListBox
                         className="search-country-selector-list"
                         aria-label="Countries"
+                        selectionMode="multiple"
+                        selectedKeys={selectedCountryNames}
+                        onSelectionChange={(keys) => {
+                            if (keys !== "all") {
+                                setSelectedCountryNames(
+                                    Array.from(keys) as string[]
+                                )
+                            }
+                        }}
                     >
                         {filteredCountriesByName.map((country) => (
                             <ListBoxItem
@@ -106,16 +124,17 @@ export const IncomePlotCountrySelector = () => {
                                     }
                                 )}
                                 textValue={country}
-                                onAction={() => toggleCountry(country)}
                             >
-                                {country}
-                                <input
-                                    type="checkbox"
-                                    checked={selectedCountryNames.includes(
-                                        country
-                                    )}
-                                    readOnly
-                                />
+                                <div className="checkbox-container">
+                                    <Checkbox
+                                        label=""
+                                        checked={selectedCountryNames.includes(
+                                            country
+                                        )}
+                                        onChange={() => void 0}
+                                    />
+                                </div>
+                                <span className="country-name">{country}</span>
                             </ListBoxItem>
                         ))}
                     </ListBox>
