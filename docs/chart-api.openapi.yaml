@@ -150,8 +150,6 @@ paths:
                 - Data
             parameters:
                 - $ref: "#/components/parameters/slug"
-                - $ref: "#/components/parameters/time"
-                - $ref: "#/components/parameters/country"
                 - name: v
                   in: query
                   description: Version number (e.g., 1)
@@ -421,8 +419,22 @@ paths:
                 - Data
             parameters:
                 - $ref: "#/components/parameters/slug"
+                - $ref: "#/components/parameters/tab"
                 - $ref: "#/components/parameters/country"
+                - $ref: "#/components/parameters/mapSelect"
                 - $ref: "#/components/parameters/time"
+                - $ref: "#/components/parameters/focus"
+                - $ref: "#/components/parameters/stackMode"
+                - $ref: "#/components/parameters/zoomToSelection"
+                - $ref: "#/components/parameters/xScale"
+                - $ref: "#/components/parameters/yScale"
+                - $ref: "#/components/parameters/region"
+                - $ref: "#/components/parameters/endpointsOnly"
+                - $ref: "#/components/parameters/facet"
+                - $ref: "#/components/parameters/uniformYAxis"
+                - $ref: "#/components/parameters/showNoDataArea"
+                - $ref: "#/components/parameters/tableFilter"
+                - $ref: "#/components/parameters/tableSearch"
                 - $ref: "#/components/parameters/nocache"
             responses:
                 "200":
@@ -625,7 +637,7 @@ components:
         mapSelect:
             name: mapSelect
             in: query
-            description: Entity to highlight on the map
+            description: Entity to highlight on the map. Can be multiple entities separated by `~` (tilde).
             schema:
                 type: string
             example: "France"
@@ -634,7 +646,7 @@ components:
             name: time
             in: query
             description: |
-                Time period to display. Can be a single year (`2020`), a range (`2000..2020`), or `latest`.
+                Time period to display. Can be a single year (`2020`), a range (`2000..2020`), `latest`, or `earliest`.
             schema:
                 type: string
             example: "2000..2020"
