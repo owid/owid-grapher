@@ -17,7 +17,7 @@ export const SearchDataResults = ({
     isFirstChartLarge: boolean
 }) => {
     const { analytics } = useSearchContext()
-    const selectedRegionNames = useSelectedRegionNames(true)
+    const selectedRegionNames = useSelectedRegionNames()
 
     const query = useInfiniteSearch<SearchChartsResponse, SearchChartHit>({
         queryKey: (state) => searchQueryKeys.charts(state),
