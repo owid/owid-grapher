@@ -4,7 +4,7 @@ import {
     atomCurrentCurrency,
     atomCurrentYear,
     atomIsInCountryMode,
-    atomSelectedCountriesOnly,
+    atomIsInSingleCountryMode,
     atomSelectedCountryNames,
     atomTimeInterval,
 } from "../store.ts"
@@ -21,7 +21,7 @@ export const IncomePlotControlsRowTop = () => {
     const isInCountryMode = useAtomValue(atomIsInCountryMode)
     const selectedCountryNames = useAtomValue(atomSelectedCountryNames)
     const [selectedCountriesOnly, setSelectedCountriesOnly] = useAtom(
-        atomSelectedCountriesOnly
+        atomIsInSingleCountryMode
     )
     return (
         <div style={{ marginBottom: 10 }}>

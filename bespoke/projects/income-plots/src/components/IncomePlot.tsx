@@ -14,10 +14,10 @@ import {
     atomHoveredX,
     atomKdeDataForYear,
     atomKdeXValues,
-    atomPlotColorScale,
-    atomSelectedCountriesOnly,
+    atomIsInSingleCountryMode,
     atomSelectedCountryNames,
     atomShowCustomPovertyLine,
+    atomEntityColorMap,
 } from "../store.ts"
 import {
     INT_POVERTY_LINE,
@@ -69,14 +69,10 @@ const IncomePlotClipPath = ({ xScale }: IncomePlotClipPathProps) => {
 }
 
 interface IncomePlotAreasProps {
-    colorScale: d3.ScaleOrdinal<string, unknown>
     xScale: d3.ScaleLogarithmic<number, number> | null
 }
 
-const IncomePlotAreasStacked = ({
-    colorScale,
-    xScale,
-}: IncomePlotAreasProps) => {
+const IncomePlotAreasStacked = ({ xScale }: IncomePlotAreasProps) => {
     const ref = useRef<SVGGElement>(null)
 
     const points = useAtomValue(atomKdeDataForYear)
@@ -86,6 +82,7 @@ const IncomePlotAreasStacked = ({
     const selectedCountryNames = useAtomValue(atomSelectedCountryNames)
     const [hoveredEntity, setHoveredEntity] = useAtom(atomHoveredEntity)
     const hoveredEntityType = useAtomValue(atomHoveredEntityType)
+    const entityColors = useAtomValue(atomEntityColorMap)
 
     // Prepare Data for Stack
     const stackedSeries = useMemo(() => {
@@ -118,11 +115,11 @@ const IncomePlotAreasStacked = ({
             const series = s as unknown as StackedSeriesPoint
             series.country = series.key
             series.region = countryRegionMap.get(series.key)!
-            series.color = colorScale(series.region!) as string
+            series.color = entityColors.get(series.region)!
         })
 
         return stackedSeries as unknown as StackedSeriesPoint[]
-    }, [points, countryRegionMap, xValues, colorScale])
+    }, [points, countryRegionMap, xValues, entityColors])
 
     const yMax = useMemo(() => {
         return d3.max(stackedSeries, (series) => d3.max(series, (d) => d[1]))!
@@ -244,10 +241,7 @@ const IncomePlotAreasStacked = ({
     )
 }
 
-const IncomePlotAreasUnstacked = ({
-    colorScale,
-    xScale,
-}: IncomePlotAreasProps) => {
+const IncomePlotAreasUnstacked = ({ xScale }: IncomePlotAreasProps) => {
     const ref = useRef<SVGGElement>(null)
 
     const points = useAtomValue(atomKdeDataForYear)
@@ -256,6 +250,7 @@ const IncomePlotAreasUnstacked = ({
     const selectedCountryNames = useAtomValue(atomSelectedCountryNames)
     const [hoveredEntity, setHoveredEntity] = useAtom(atomHoveredEntity)
     const hoveredEntityType = useAtomValue(atomHoveredEntityType)
+    const entityColors = useAtomValue(atomEntityColorMap)
 
     // Prepare Data for Stack
     const filteredData = points.filter((d) =>
@@ -296,11 +291,11 @@ const IncomePlotAreasUnstacked = ({
             return {
                 country,
                 region,
-                color: colorScale(region) as string,
+                color: entityColors.get(country),
                 area: area(points),
             }
         })
-    }, [area, groupedData, countryRegionMap, colorScale])
+    }, [area, groupedData, countryRegionMap, entityColors])
 
     const onMouseLeave = useCallback(
         (entity: string) => {
@@ -585,23 +580,15 @@ export function IncomePlot({
     const setPovertyLine = useSetAtom(atomCustomPovertyLine)
     const setShowPovertyLine = useSetAtom(atomShowCustomPovertyLine)
     const xValues = useAtomValue(atomKdeXValues)
-    const plotColorScaleConfig = useAtomValue(atomPlotColorScale)
     const setHoveredEntity = useSetAtom(atomHoveredEntity)
     const setHoveredX = useSetAtom(atomHoveredX)
-    const showSelectedCountriesOnly = useAtomValue(atomSelectedCountriesOnly)
+    const isSingleCountryMode = useAtomValue(atomIsInSingleCountryMode)
 
     // Margins
     const marginTop = 10
     const marginRight = 20
     const marginBottom = 30
     const marginLeft = 20
-
-    const colorScale = useMemo(() => {
-        return d3
-            .scaleOrdinal()
-            .domain(plotColorScaleConfig.domain)
-            .range(plotColorScaleConfig.range)
-    }, [plotColorScaleConfig])
 
     const xScale = useMemo(() => {
         const xMin = R.first(xValues)
@@ -667,16 +654,10 @@ export function IncomePlot({
                     marginBottom={marginBottom}
                     marginTop={marginTop}
                 />
-                {showSelectedCountriesOnly ? (
-                    <IncomePlotAreasUnstacked
-                        colorScale={colorScale}
-                        xScale={xScale}
-                    />
+                {isSingleCountryMode ? (
+                    <IncomePlotAreasUnstacked xScale={xScale} />
                 ) : (
-                    <IncomePlotAreasStacked
-                        colorScale={colorScale}
-                        xScale={xScale}
-                    />
+                    <IncomePlotAreasStacked xScale={xScale} />
                 )}
                 <IncomePlotIntPovertyLine
                     xScale={xScale}
