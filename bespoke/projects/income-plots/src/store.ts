@@ -241,4 +241,14 @@ export const atomAvailableCountryNames = atom(async (get) => {
     return rawData.map((d) => d.country).toSorted()
 })
 
-export const atomSelectedCountriesOnly = atom(false)
+const atomSelectedOnly = atom(false)
+export const atomSelectedCountriesOnly = atom(
+    (get) => {
+        const isInCountryMode = get(atomIsInCountryMode)
+        if (!isInCountryMode) return false
+        return get(atomSelectedOnly)
+    },
+    (get, set, newValue: boolean) => {
+        set(atomSelectedOnly, newValue)
+    }
+)
