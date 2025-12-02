@@ -21,6 +21,7 @@ export interface TimelineManager {
     endHandleTimeBound: TimeBound
     areHandlesOnSameTimeBeforeAnimation?: boolean
     isSingleTimeSelectionActive?: boolean
+    onlyTimeRangeSelectionPossible?: boolean
     msPerTick?: number
     onPlay?: () => void
     onTimelineClick?: () => void
@@ -130,8 +131,13 @@ export class TimelineController {
         return tickCount
     }
 
+    private get allowHandlesOnSameTime(): boolean {
+        return !this.manager.onlyTimeRangeSelectionPossible
+    }
+
     increaseStartTime(): void {
         const nextTime = this.getNextTime(this.startTime)
+        if (!this.allowHandlesOnSameTime && nextTime >= this.endTime) return
         this.updateStartTime(nextTime)
     }
 
@@ -147,6 +153,7 @@ export class TimelineController {
 
     decreaseEndTime(): void {
         const prevTime = this.getPrevTime(this.endTime)
+        if (!this.allowHandlesOnSameTime && prevTime <= this.startTime) return
         this.updateEndTime(prevTime)
     }
 
@@ -185,6 +192,10 @@ export class TimelineController {
 
     increaseStartTimeByLargeStep(): void {
         const nextTime = this.getLargeStepForward(this.startTime)
+        if (!this.allowHandlesOnSameTime && nextTime >= this.endTime) {
+            this.increaseStartTime()
+            return
+        }
         this.updateStartTime(nextTime)
     }
 
@@ -200,6 +211,10 @@ export class TimelineController {
 
     decreaseEndTimeByLargeStep(): void {
         const prevTime = this.getLargeStepBackward(this.endTime)
+        if (!this.allowHandlesOnSameTime && prevTime <= this.startTime) {
+            this.decreaseEndTime()
+            return
+        }
         this.updateEndTime(prevTime)
     }
 
@@ -283,7 +298,17 @@ export class TimelineController {
     ): TimelineDragTarget {
         const { manager } = this
 
-        const time = this.getTimeBoundFromDrag(inputTime)
+        let time = this.getTimeBoundFromDrag(inputTime)
+
+        // Prevent handles from being on the same time if not allowed
+        if (!this.allowHandlesOnSameTime) {
+            const closestTime = findClosestTime(this.timesAsc, time) ?? time
+            if (handle === "start" && closestTime === this.endTime) {
+                time = this.getPrevTime(this.endTime)
+            } else if (handle === "end" && closestTime === this.startTime) {
+                time = this.getNextTime(this.startTime)
+            }
+        }
 
         const constrainedHandle =
             handle === "start" && time > this.endTime

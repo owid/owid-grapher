@@ -88,7 +88,7 @@ export function SearchChartHitSmall({
                 <div className="search-chart-hit-small__tabs-container">
                     {hit.availableTabs.map((tab) => {
                         const { chartUrl } = constructChartAndPreviewUrlsForTab(
-                            { hit, tab, chartInfo, entities }
+                            { hit, tab, entities }
                         )
 
                         const label = makeLabelForGrapherTab(tab, {
