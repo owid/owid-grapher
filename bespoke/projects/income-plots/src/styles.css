@@ -98,11 +98,22 @@
 }
 
 .income-plot-chart {
-    .income-plot-series .area-bg {
-        fill-opacity: 0.3;
+    .plot-series-stacked {
+        .income-plot-series .area-bg {
+            fill-opacity: 0.3;
+        }
+        .income-plot-series .area-fg {
+            fill-opacity: 0.8;
+        }
     }
-    .income-plot-series .area-fg {
-        fill-opacity: 0.8;
+
+    .plot-series-unstacked {
+        .income-plot-series .area-bg {
+            fill-opacity: 0.15;
+        }
+        .income-plot-series .area-fg {
+            fill-opacity: 0.3;
+        }
     }
 
     &:has(.income-plot-series[data-selected]) {
