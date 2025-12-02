@@ -199,7 +199,7 @@ export default function Image(props: {
             </picture>
             {isInteractive && !shouldHideDownloadButton && (
                 <FloatingDownloadButton
-                    label={`Download ${activeImage.filename}`}
+                    label={`Download`}
                     onClick={() => void handleDownload()}
                 />
             )}
