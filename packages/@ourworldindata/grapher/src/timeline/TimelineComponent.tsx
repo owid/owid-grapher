@@ -594,7 +594,7 @@ const TimelineHandle = ({
         // the numeric representation of a date is meaningless, so we pass the formatted date string instead.
         <div
             className={cx("handle", type)}
-            style={{ left: `${offsetPercent}%` }}
+            style={{ left: `${offsetPercent}%`, zIndex: tooltipZIndex }}
             role="slider"
             tabIndex={isInteractive ? 0 : -1}
             aria-valuemin={castToNumberIfPossible(formattedMinTime)}
@@ -610,16 +610,8 @@ const TimelineHandle = ({
             <div className="icon" />
             {tooltipVisible && (
                 <>
-                    <div
-                        className="handle-label-arrow"
-                        style={{ zIndex: tooltipZIndex }}
-                    />
-                    <div
-                        className="handle-label"
-                        style={{ zIndex: tooltipZIndex }}
-                    >
-                        {formattedCurrTime}
-                    </div>
+                    <div className="handle-label-arrow" />
+                    <div className="handle-label">{formattedCurrTime}</div>
                 </>
             )}
         </div>
