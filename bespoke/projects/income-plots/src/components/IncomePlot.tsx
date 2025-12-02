@@ -15,6 +15,7 @@ import {
     atomKdeDataForYear,
     atomKdeXValues,
     atomPlotColorScale,
+    atomSelectedCountriesOnly,
     atomSelectedCountryNames,
     atomShowCustomPovertyLine,
 } from "../store.ts"
@@ -186,7 +187,7 @@ const IncomePlotAreasStacked = ({
     )
 
     return (
-        <g className="plot-series" ref={ref}>
+        <g className="plot-series-stacked" ref={ref}>
             {seriesWithAreas.map((series) => {
                 if (!series.area) return null
                 const isHighlighted =
@@ -235,6 +236,124 @@ const IncomePlotAreasStacked = ({
                             style={{ pointerEvents: "none" }}
                             strokeWidth={0.1}
                             stroke="white"
+                        />
+                    </g>
+                )
+            })}
+        </g>
+    )
+}
+
+const IncomePlotAreasUnstacked = ({
+    colorScale,
+    xScale,
+}: IncomePlotAreasProps) => {
+    const ref = useRef<SVGGElement>(null)
+
+    const points = useAtomValue(atomKdeDataForYear)
+    const countryRegionMap = useAtomValue(atomCountryRegionMap)
+    const countriesOrRegionsMode = useAtomValue(atomCountriesOrRegionsMode)
+    const selectedCountryNames = useAtomValue(atomSelectedCountryNames)
+    const [hoveredEntity, setHoveredEntity] = useAtom(atomHoveredEntity)
+    const hoveredEntityType = useAtomValue(atomHoveredEntityType)
+
+    // Prepare Data for Stack
+    const filteredData = points.filter((d) =>
+        selectedCountryNames.includes(d.country)
+    )
+
+    const yMax = useMemo(
+        () => d3.max(filteredData, (d) => d.y) || 0,
+        [filteredData]
+    )
+
+    const groupedData = useMemo(() => {
+        return d3.group(filteredData, (d) => d.country)
+    }, [filteredData])
+
+    const yScale = useMemo(() => {
+        if (!xScale) return null
+        return d3
+            .scaleLinear()
+            .domain([0, yMax])
+            .range([PLOT_HEIGHT - 30, 30])
+    }, [xScale, yMax])
+
+    // Area Generator
+    const area = useMemo(() => {
+        if (!xScale || !yScale) return null
+        return d3
+            .area<any>()
+            .x((d) => xScale(d.x))
+            .y0(yScale(0))
+            .y1((d) => yScale(d.y))
+    }, [xScale, yScale])
+
+    const seriesWithAreas = useMemo(() => {
+        if (!area) return []
+        return Array.from(groupedData).map(([country, points]) => {
+            const region = countryRegionMap.get(country) ?? ""
+            return {
+                country,
+                region,
+                color: colorScale(region) as string,
+                area: area(points),
+            }
+        })
+    }, [area, groupedData, countryRegionMap, colorScale])
+
+    const onMouseLeave = useCallback(
+        (entity: string) => {
+            // Only set to null if it hasn't been changed in the meantime
+            setHoveredEntity((current) => (current === entity ? null : current))
+        },
+        [setHoveredEntity]
+    )
+
+    return (
+        <g className="plot-series-unstacked" ref={ref}>
+            {seriesWithAreas.map((series) => {
+                if (!series.area) return null
+                const isHighlighted =
+                    hoveredEntityType === null
+                        ? undefined
+                        : series[hoveredEntityType] === hoveredEntity
+
+                const entityName =
+                    countriesOrRegionsMode === "countries"
+                        ? series.country
+                        : series.region
+
+                return (
+                    <g
+                        key={entityName}
+                        className="income-plot-series"
+                        data-country={series.country}
+                        data-region={series.region}
+                        data-highlighted={isHighlighted}
+                        onMouseEnter={() =>
+                            entityName && setHoveredEntity(entityName)
+                        }
+                        onMouseLeave={() =>
+                            entityName && onMouseLeave(entityName)
+                        }
+                    >
+                        <path
+                            className="area-bg"
+                            fill={series.color}
+                            d={series.area}
+                            strokeWidth={1}
+                            strokeOpacity={0.6}
+                            stroke={series.color}
+                        />
+                        <path
+                            className="area-fg"
+                            fill={series.color}
+                            d={series.area}
+                            clipPath="url(#highlight-clip)"
+                            style={{ pointerEvents: "none" }}
+                            strokeWidth={1}
+                            stroke={series.color}
                         />
                     </g>
                 )
@@ -469,6 +588,7 @@ export function IncomePlot({
     const plotColorScaleConfig = useAtomValue(atomPlotColorScale)
     const setHoveredEntity = useSetAtom(atomHoveredEntity)
     const setHoveredX = useSetAtom(atomHoveredX)
+    const showSelectedCountriesOnly = useAtomValue(atomSelectedCountriesOnly)
 
     // Margins
     const marginTop = 10
@@ -547,10 +667,17 @@ export function IncomePlot({
                     marginBottom={marginBottom}
                     marginTop={marginTop}
                 />
-                <IncomePlotAreasStacked
-                    colorScale={colorScale}
-                    xScale={xScale}
-                />
+                {showSelectedCountriesOnly ? (
+                    <IncomePlotAreasUnstacked
+                        colorScale={colorScale}
+                        xScale={xScale}
+                    />
+                ) : (
+                    <IncomePlotAreasStacked
+                        colorScale={colorScale}
+                        xScale={xScale}
+                    />
+                )}
                 <IncomePlotIntPovertyLine
                     xScale={xScale}
                     marginTop={marginTop}
