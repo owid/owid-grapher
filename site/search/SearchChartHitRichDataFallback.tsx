@@ -127,7 +127,6 @@ export function SearchChartHitRichDataFallback({
                         constructChartAndPreviewUrlsForTab({
                             hit,
                             tab: grapherTab,
-                            chartInfo,
                             entities,
                             hasScatter,
                         })

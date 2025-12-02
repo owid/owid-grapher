@@ -200,7 +200,6 @@ import {
     GRAPHER_FRAME_PADDING_VERTICAL,
     DEFAULT_GRAPHER_BOUNDS,
     GrapherModal,
-    CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME,
     CookieKey,
     GRAPHER_PROD_URL,
     BASE_FONT_SIZE,
@@ -775,54 +774,10 @@ export class GrapherState {
         ) as TimeBounds
     }
 
-    @computed private get shouldShowDiscreteBarWhenSingleTime(): boolean {
-        let { minTime, maxTime } = this
-
-        if (!this.validChartTypeSet.has(GRAPHER_CHART_TYPES.DiscreteBar))
-            return false
-
-        // If we have a time dimension but the timeline is hidden,
-        // we always want to use the authored `minTime` and `maxTime`,
-        // irrespective of the time range the user might have selected
-        // on the table tab
-        if (this.hasTimeDimensionButTimelineIsHidden) {
-            minTime = this.authorsVersion.minTime
-            maxTime = this.authorsVersion.maxTime
-        }
-
-        // This is the easy case: minTime and maxTime are the same, no need to do
-        // more fancy checks
-        if (minTime === maxTime) return true
-
-        // We can have cases where minTime = Infinity and/or maxTime = -Infinity,
-        // but still only a single year is selected.
-        // To check for that we need to look at the times array.
-        const times = this.table.timeColumn.uniqValues
-        const closestMinTime = findClosestTime(times, minTime ?? -Infinity)
-        const closestMaxTime = findClosestTime(times, maxTime ?? Infinity)
-        return closestMinTime !== undefined && closestMinTime === closestMaxTime
-    }
-
     @computed get activeTab(): GrapherTabName {
-        const activeTab = this.mapTabConfigOptionToTabName(this.tab)
-
-        // Switch to the discrete bar chart tab if we're on the line or slope
-        // chart tab and a single time is selected
-        if (
-            CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME.includes(
-                activeTab as any
-            ) &&
-            this.shouldShowDiscreteBarWhenSingleTime &&
-            // Don't switch to a bar chart while the timeline animation is playing.
-            // This is necessary because the time handles are at the same time
-            // at the beginning of the timeline animation
-            !this.isTimelineAnimationActive
-        ) {
-            return GRAPHER_TAB_NAMES.DiscreteBar
-        }
-
-        return activeTab
+        return this.mapTabConfigOptionToTabName(this.tab)
     }
+
     @computed get activeChartType(): GrapherChartType | undefined {
         return isChartTypeName(this.activeTab) ? this.activeTab : undefined
     }
@@ -1434,6 +1389,7 @@ export class GrapherState {
     @computed get endTime(): Time | undefined {
         return findClosestTime(this.times, this.endHandleTimeBound)
     }
+
     @computed get isSingleTimeScatterAnimationActive(): boolean {
         return (
             this.isTimelineAnimationActive &&
@@ -1447,12 +1403,17 @@ export class GrapherState {
         return this.checkOnlySingleTimeSelectionPossible(this.activeTab)
     }
 
+    @computed get onlyTimeRangeSelectionPossible(): boolean {
+        return this.checkOnlyTimeRangeSelectionPossible(this.activeTab)
+    }
+
     @computed get isSingleTimeSelectionActive(): boolean {
         return (
             this.onlySingleTimeSelectionPossible ||
             this.isSingleTimeScatterAnimationActive
         )
     }
+
     @computed get shouldLinkToOwid(): boolean {
         if (
             this.isEmbeddedInAnOwidPage ||
@@ -1527,7 +1488,7 @@ export class GrapherState {
         ].includes(tabName as any)
     }
 
-    private checkStartAndEndTimeSelectionPreferred = (
+    private checkOnlyTimeRangeSelectionPossible = (
         tabName: GrapherTabName
     ): boolean => {
         return [
@@ -1543,7 +1504,7 @@ export class GrapherState {
     ): void {
         if (this.checkOnlySingleTimeSelectionPossible(tab)) {
             this.ensureHandlesAreOnSameTime()
-        } else if (this.checkStartAndEndTimeSelectionPreferred(tab)) {
+        } else if (this.checkOnlyTimeRangeSelectionPossible(tab)) {
             this.ensureHandlesAreOnDifferentTimes()
         }
     }

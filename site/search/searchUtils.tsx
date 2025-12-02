@@ -6,7 +6,6 @@ import {
     GrapherQueryParams,
     GrapherTabName,
     GrapherTabQueryParam,
-    GrapherValuesJson,
     OwidGdocType,
     TagGraphRoot,
     TimeBounds,
@@ -352,35 +351,6 @@ export const constructConfigUrl = ({
             return `${EXPLORER_DYNAMIC_CONFIG_URL}/${hit.slug}.config.json${queryStr}`
         })
         .exhaustive()
-}
-
-// Generates time bounds to force line charts to display properly in previews.
-// When start and end times are the same (single time point), line charts
-// automatically switch to discrete bar charts. To prevent that, we set the start
-// time to -Infinity, which refers to the earliest available data.
-export function getTimeBoundsForChartUrl(
-    chartInfo?: GrapherValuesJson | null
-): { timeBounds: TimeBounds; timeMode: "year" | "day" } | undefined {
-    if (!chartInfo) return undefined
-
-    const { startTime, endTime } = chartInfo
-
-    // When a chart has different start and end times, we don't need to adjust
-    // the time parameter because the chart will naturally display as a line chart.
-    // Note: `chartInfo` is fetched for the _default_ view. If startTime equals
-    // endTime here, it doesn't necessarily mean that the line chart is actually
-    // single-time, since we're looking at the default tab rather than the specific
-    // line chart tab. However, false positives are generally harmless because most
-    // charts don't customize their start time.
-    if (startTime && startTime !== endTime) return undefined
-
-    const columnSlug = chartInfo.endValues?.y.at(0)?.columnSlug ?? ""
-    const columnInfo = chartInfo.columns?.[columnSlug]
-
-    return {
-        timeBounds: [-Infinity, endTime ?? Infinity],
-        timeMode: columnInfo?.yearIsDay ? "day" : "year",
-    }
 }
 
 export const CHARTS_INDEX = getIndexName(
