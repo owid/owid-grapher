@@ -30,7 +30,7 @@ const EXPLORE_LINKS: LinkData[] = [
 ]
 
 const RESOURCE_LINKS: LinkData[] = [
-    { title: "Latest Articles", url: "/latest" },
+    { title: "Latest", url: "/latest" },
     { title: "SDG Tracker", url: "/sdgs" },
     { title: "Teaching with OWID", url: "/teaching" },
 ]
