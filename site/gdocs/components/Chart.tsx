@@ -108,7 +108,7 @@ export default function Chart({
             isMultiDimWithControls || isExplorerWithControls ? "680px" : "600px"
         return (
             <div
-                className={cx(d.position, className, {
+                className={cx(className, {
                     "full-width-on-mobile":
                         !isExplorerWithControls && fullWidthOnMobile,
                 })}
@@ -137,7 +137,7 @@ export default function Chart({
 
     return (
         <div
-            className={cx(d.position, className, {
+            className={cx(className, {
                 "full-width-on-mobile":
                     !isExplorerWithControls && fullWidthOnMobile,
             })}

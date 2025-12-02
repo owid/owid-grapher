@@ -74,7 +74,7 @@ export default function NarrativeChart({
 
     return (
         <div
-            className={cx(d.position, className, {
+            className={cx(className, {
                 "full-width-on-mobile": fullWidthOnMobile,
             })}
             ref={refChartContainer}
