@@ -211,10 +211,11 @@ paths:
     /grapher/{slug}.metadata.json:
         get:
             summary: Get chart metadata
-            description: |
+            description: |-
                 Returns metadata about the chart configuration and data.
 
                 The metadata includes:
+
                 - **chart**: Chart configuration (title, subtitle, citation, etc.)
                 - **columns**: Metadata for each data column (units, timespan, citations, etc.)
                 - **dateDownloaded**: Timestamp of when the data was downloaded
@@ -289,6 +290,25 @@ paths:
                         text/markdown:
                             schema:
                                 type: string
+                            examples:
+                                life-expectancy:
+                                    summary: Life expectancy README
+                                    x-request-params:
+                                        slug: "life-expectancy"
+                                    value: |
+                                        # Life expectancy - Data package
+
+                                        This data package contains the data that powers the chart ["Life expectancy"](https://ourworldindata.org/grapher/life-expectancy) on the Our World in Data website.
+
+                                        ## CSV Structure
+
+                                        The high level structure of the CSV file is that each row is an observation for an entity (usually a country or region) and a timepoint (usually a year).
+
+                                        The first two columns in the CSV file are "Entity" and "Code". "Entity" is the name of the entity (e.g. "United States"). "Code" is the OWID internal entity code that we use if the entity is a country or region.
+
+                                        The third column is either "Year" or "Day". If the data is annual, this is "Year" and contains only the year as an integer. If the column is "Day", the column contains a date string in the form "YYYY-MM-DD".
+
+                                        The final column is the data column, which is the time series that powers the chart.
                 "404":
                     $ref: "#/components/responses/NotFound"
 
@@ -322,7 +342,10 @@ paths:
     /grapher/{slug}.config.json:
         get:
             summary: Get grapher config
-            description: Returns the raw configuration for the grapher chart.
+            description: |-
+                Returns the raw configuration for the grapher chart.
+
+                The config follows the [Grapher JSON schema](https://files.ourworldindata.org/schemas/grapher-schema.009.json).
             operationId: getChartConfig
             tags:
                 - Metadata
@@ -336,6 +359,45 @@ paths:
                         application/json:
                             schema:
                                 type: object
+                                description: |-
+                                    Grapher chart configuration object. See the [Grapher JSON schema](https://files.ourworldindata.org/schemas/grapher-schema.009.json) for the full specification.
+                            examples:
+                                life-expectancy:
+                                    summary: Life expectancy config
+                                    x-request-params:
+                                        slug: "life-expectancy"
+                                    value:
+                                        id: 64
+                                        slug: life-expectancy
+                                        title: Life expectancy
+                                        $schema: https://files.ourworldindata.org/schemas/grapher-schema.009.json
+                                        version: 62
+                                        hasMapTab: true
+                                        originUrl: /life-expectancy
+                                        isPublished: true
+                                        variantName: over the long-run
+                                        yAxis:
+                                            min: 0
+                                        map:
+                                            colorScale:
+                                                baseColorScheme: YlGnBu
+                                                binningStrategy: manual
+                                                legendDescription: Life expectancy (at birth)
+                                            timeTolerance: 10
+                                        dimensions:
+                                            - display:
+                                                  unit: years
+                                                  shortUnit: years
+                                                  numDecimalPlaces: 1
+                                              property: y
+                                              variableId: 1118466
+                                        selectedEntityNames:
+                                            - World
+                                            - Americas
+                                            - Europe
+                                            - Africa
+                                            - Asia
+                                            - Oceania
                 "404":
                     $ref: "#/components/responses/NotFound"
 
@@ -357,6 +419,42 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/GrapherValuesJson"
+                            examples:
+                                life-expectancy:
+                                    summary: Life expectancy values for France
+                                    x-request-params:
+                                        slug: "life-expectancy"
+                                        country: "France"
+                                    value:
+                                        entityName: France
+                                        startTime: 1816
+                                        endTime: 2023
+                                        columns:
+                                            "1118466":
+                                                name: Life expectancy
+                                                unit: years
+                                                shortUnit: years
+                                        startValues:
+                                            y:
+                                                - columnSlug: "1118466"
+                                                  value: 40.1
+                                                  formattedValue: "40.1"
+                                                  formattedValueShort: 40.1 years
+                                                  formattedValueShortWithAbbreviations: "40.1"
+                                                  valueLabel: 40.1 years
+                                                  time: 1816
+                                                  formattedTime: "1816"
+                                        endValues:
+                                            y:
+                                                - columnSlug: "1118466"
+                                                  value: 83.3
+                                                  formattedValue: "83.3"
+                                                  formattedValueShort: 83.3 years
+                                                  formattedValueShortWithAbbreviations: "83.3"
+                                                  valueLabel: 83.3 years
+                                                  time: 2023
+                                                  formattedTime: "2023"
+                                        source: "Riley (2005); Zijdeman et al. (2015); HMD (2025); UN WPP (2024)"
                 "404":
                     $ref: "#/components/responses/NotFound"
 
@@ -400,6 +498,74 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/GrapherSearchResultJson"
+                            examples:
+                                life-expectancy:
+                                    summary: Life expectancy search result
+                                    x-request-params:
+                                        slug: "life-expectancy"
+                                        variant: "Medium"
+                                    value:
+                                        title: Life expectancy
+                                        source: "Riley (2005); Zijdeman et al. (2015); HMD (2025); UN WPP (2024)"
+                                        grapherQueryParams:
+                                            country: OWID_WRL~Americas~OWID_EUR~OWID_AFR
+                                            time: 1770..2023
+                                        layout:
+                                            - slotKey: single-slot
+                                              grapherTab: LineChart
+                                            - slotKey: single-slot
+                                              grapherTab: Table
+                                            - slotKey: single-slot
+                                              grapherTab: WorldMap
+                                              chartParams:
+                                                  time: "2023"
+                                              previewParams:
+                                                  time: "2023"
+                                            - slotKey: small-slot-left
+                                              grapherTab: DiscreteBar
+                                        dataTable:
+                                            rows:
+                                                - seriesName: Europe
+                                                  label: Europe
+                                                  color: "#4c6a9c"
+                                                  value: 79.1 years
+                                                  time: "2023"
+                                                  timePreposition: in
+                                                  muted: false
+                                                  striped: false
+                                                - seriesName: Americas
+                                                  label: Americas
+                                                  color: "#c4523e"
+                                                  value: 77.3 years
+                                                  time: "2023"
+                                                  timePreposition: in
+                                                  muted: false
+                                                  striped: false
+                                                - seriesName: World
+                                                  label: World
+                                                  color: "#18470f"
+                                                  value: 73.2 years
+                                                  time: "2023"
+                                                  timePreposition: in
+                                                  muted: false
+                                                  striped: false
+                                                - seriesName: Africa
+                                                  label: Africa
+                                                  color: "#a2559c"
+                                                  value: 63.8 years
+                                                  time: "2023"
+                                                  timePreposition: in
+                                                  muted: false
+                                                  striped: false
+                                            title: In years
+                                        valueDisplay:
+                                            entityName: World
+                                            endValue: 73.2 years
+                                            time: "2023"
+                                            showLocationIcon: false
+                                            numericEndTime: 2023
+                                        entityType: country or region
+                                        entityTypePlural: countries and regions
                 "404":
                     $ref: "#/components/responses/NotFound"
 
