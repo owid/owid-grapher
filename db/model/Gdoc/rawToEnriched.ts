@@ -1,7 +1,6 @@
 import * as _ from "lodash-es"
 import {
     BlockPositionChoice,
-    ChartPositionChoice,
     EnrichedBlockAside,
     EnrichedBlockCallout,
     EnrichedBlockChart,
@@ -501,8 +500,6 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
 
         const url = extractUrl(val.url)
 
-        const warnings: ParseError[] = []
-
         const height = val.height
         const size = val.size ?? BlockSize.Wide
         if (!checkIsBlockSize(size)) {
@@ -515,23 +512,13 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
                 BlockSize.Wide
             )
         }
-        // This property is currently unused, a holdover from @mathisonian's gdocs demo.
-        // We will decide soon™️ if we want to use it for something
-        let position: ChartPositionChoice | undefined = undefined
-        if (val.position)
-            if (val.position === "featured") position = val.position
-            else {
-                warnings.push({
-                    message: "position must be 'featured' or unset",
-                })
-            }
+
         const caption = val.caption ? htmlToSpans(val.caption) : []
 
         return omitUndefinedValues({
             type: "chart",
             url,
             height,
-            position,
             size,
             caption: caption.length > 0 ? caption : undefined,
             parseErrors: [],
@@ -573,8 +560,6 @@ const parseNarrativeChart = (
                 ""
             )
 
-        const warnings: ParseError[] = []
-
         const height = val.height
         const size = val.size ?? BlockSize.Wide
         if (!checkIsBlockSize(size)) {
@@ -587,23 +572,13 @@ const parseNarrativeChart = (
                 BlockSize.Wide
             )
         }
-        // This property is currently unused, a holdover from @mathisonian's gdocs demo.
-        // We will decide soon™️ if we want to use it for something
-        let position: ChartPositionChoice | undefined = undefined
-        if (val.position)
-            if (val.position === "featured") position = val.position
-            else {
-                warnings.push({
-                    message: "position must be 'featured' or unset",
-                })
-            }
+
         const caption = val.caption ? htmlToSpans(val.caption) : []
 
         return omitUndefinedValues({
             type: "narrative-chart",
             name: val.name,
             height,
-            position,
             size,
             caption: caption.length > 0 ? caption : undefined,
             parseErrors: [],

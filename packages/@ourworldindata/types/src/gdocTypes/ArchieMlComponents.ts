@@ -2,7 +2,6 @@ import { HorizontalAlign } from "../domainTypes/Layout.js"
 import { Span, SpanSimpleText } from "./Spans.js"
 
 export type BlockPositionChoice = "right" | "left"
-export type ChartPositionChoice = "featured"
 
 type ArchieMLUnexpectedNonObjectValue = string
 
@@ -50,7 +49,6 @@ export type EnrichedBlockChart = {
     url: string
     height?: string
     size: BlockSize
-    position?: ChartPositionChoice
     caption?: Span[]
 } & EnrichedBlockWithParseErrors
 
@@ -72,7 +70,6 @@ export type EnrichedBlockNarrativeChart = {
     type: "narrative-chart"
     name: string
     height?: string
-    position?: ChartPositionChoice
     size: BlockSize
     caption?: Span[]
 } & EnrichedBlockWithParseErrors

@@ -172,7 +172,6 @@ export {
     type Ref,
     type RefDictionary,
     type BlockPositionChoice,
-    type ChartPositionChoice,
     type OwidEnrichedGdocBlock,
     type OwidRawGdocBlock,
     pullquoteAlignments,
