@@ -5,13 +5,13 @@ import {
     faBook,
     faChartSimple,
 } from "@fortawesome/free-solid-svg-icons"
-import { TocHeadingWithTitleSupertitle, Url } from "@ourworldindata/utils"
+import { TocHeadingWithTitleSupertitle } from "@ourworldindata/utils"
 import { SearchResultType, SearchState } from "@ourworldindata/types"
 import {
     createTopicFilter,
     SEARCH_BASE_PATH,
 } from "../../search/searchUtils.js"
-import { searchStateToUrl } from "../../search/searchState.js"
+import { stateToSearchParams } from "../../search/searchState.js"
 import cx from "classnames"
 
 const DEFAULT_TITLE = "Sections"
@@ -133,6 +133,6 @@ const buildSearchHrefForCard = (
         requireAllCountries: false,
         resultType,
     }
-    const url = Url.fromURL(searchStateToUrl(searchState))
-    return `${SEARCH_BASE_PATH}${url.queryStr}`
+    const params = stateToSearchParams(searchState)
+    return `${SEARCH_BASE_PATH}?${params.toString()}`
 }

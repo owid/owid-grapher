@@ -2,7 +2,6 @@ import { Head } from "../Head.js"
 import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
 import { SiteFooterContext, TagGraphRoot } from "@ourworldindata/utils"
-import { SearchWrapper } from "./SearchWrapper.js"
 import { Html } from "../Html.js"
 import { SEARCH_BASE_PATH } from "./searchUtils.js"
 
@@ -41,7 +40,7 @@ export const SearchPage = (props: {
                     id="search-page-root"
                     className="grid grid-cols-12-full-width"
                 >
-                    <SearchWrapper topicTagGraph={topicTagGraph} />
+                    {/* Search UI is rendered client-side only */}
                 </main>
                 <SiteFooter context={SiteFooterContext.searchPage} />
             </body>

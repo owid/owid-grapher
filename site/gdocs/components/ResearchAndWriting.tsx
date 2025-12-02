@@ -7,7 +7,6 @@ import {
     formatAuthors,
     formatDate,
     slugify,
-    Url,
 } from "@ourworldindata/utils"
 import { useLinkedDocument } from "../utils.js"
 import Image, { ImageParentContainer } from "./Image.js"
@@ -27,7 +26,7 @@ import {
     createTopicFilter,
     SEARCH_BASE_PATH,
 } from "../../search/searchUtils.js"
-import { searchStateToUrl } from "../../search/searchState.js"
+import { stateToSearchParams } from "../../search/searchState.js"
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
 
 function Thumbnail({
@@ -209,8 +208,8 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
             requireAllCountries: false,
             resultType: SearchResultType.WRITING,
         }
-        const url = Url.fromURL(searchStateToUrl(searchState))
-        seeAllResearchHref = `${SEARCH_BASE_PATH}${url.queryStr}`
+        const params = stateToSearchParams(searchState)
+        seeAllResearchHref = `${SEARCH_BASE_PATH}?${params.toString()}`
     }
     // There might be latestWorkLinks available but we only want to show them if
     // a {.latest} block has been added
