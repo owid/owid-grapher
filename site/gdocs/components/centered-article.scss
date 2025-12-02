@@ -930,59 +930,6 @@ div.raw-html-table__container {
     position: sticky;
 }
 
-.article-block__scroller {
-    margin-bottom: 32px;
-    position: relative;
-
-    .scroller__chart {
-        margin: 0;
-    }
-
-    @include sm-up {
-        .scroller__paragraph {
-            height: 50vh;
-            margin: 200px 0;
-
-            &:first-child {
-                margin-top: 0;
-            }
-        }
-        .scroller__chart {
-            position: sticky;
-            top: calc((100vh - 550px) / 2);
-        }
-    }
-
-    @include sm-only {
-        .scroller__paragraph-container {
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        .scroller__chart-container {
-            position: sticky;
-            bottom: 0;
-            z-index: 0;
-        }
-
-        .GrapherComponent {
-            box-shadow: none;
-        }
-
-        .scroller__paragraph-intersection-wrapper {
-            height: 100vh;
-        }
-
-        .scroller__paragraph {
-            @include body-2-regular;
-            background: white;
-            padding: 8px;
-            outline: 1px solid $gray-10;
-            pointer-events: all;
-        }
-    }
-}
-
 .article-block__cookie-notice {
     .cookie-preferences {
         margin: 0;

@@ -21,7 +21,6 @@ import {
     RawBlockProminentLink,
     RawBlockPullQuote,
     RawBlockGuidedChart,
-    RawBlockScroller,
     RawBlockSDGGrid,
     RawBlockLTPToc,
     RawBlockSideBySideContainer,
@@ -169,16 +168,6 @@ function* rawBlockDonorListToArchieMLString(
 ): Generator<string, void, undefined> {
     yield "{.donors}"
     yield "{}"
-}
-
-function* rawBlockScrollerToArchieMLString(
-    block: RawBlockScroller
-): Generator<string, void, undefined> {
-    yield "[.+scroller]"
-    if (typeof block.value !== "string")
-        for (const b of block.value)
-            yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
-    yield "[]"
 }
 
 function* rawBlockChartStoryToArchieMLString(
@@ -1023,7 +1012,6 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         )
         .with({ type: "code" }, rawBlockCodeToArchieMLString)
         .with({ type: "donors" }, rawBlockDonorListToArchieMLString)
-        .with({ type: "scroller" }, rawBlockScrollerToArchieMLString)
         .with({ type: "callout" }, rawBlockCalloutToArchieMLString)
         .with({ type: "chart-story" }, rawBlockChartStoryToArchieMLString)
         .with({ type: "image" }, rawBlockImageToArchieMLString)

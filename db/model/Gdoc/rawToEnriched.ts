@@ -26,7 +26,6 @@ import {
     EnrichedBlockGuidedChart,
     EnrichedBlockRecirc,
     EnrichedBlockSubscribeBanner,
-    EnrichedBlockScroller,
     EnrichedBlockSDGGrid,
     EnrichedBlockSDGToc,
     EnrichedBlockLTPToc,
@@ -37,7 +36,6 @@ import {
     EnrichedBlockText,
     EnrichedChartStoryItem,
     EnrichedHybridLink,
-    EnrichedScrollerItem,
     EnrichedSDGGridItem,
     EnrichedBlockKeyIndicator,
     OwidEnrichedGdocBlock,
@@ -65,7 +63,6 @@ import {
     RawBlockGuidedChart,
     RawBlockRecirc,
     RawBlockSubscribeBanner,
-    RawBlockScroller,
     RawBlockSDGGrid,
     RawBlockSideBySideContainer,
     RawBlockStickyLeftContainer,
@@ -203,7 +200,6 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "narrative-chart" }, parseNarrativeChart)
         .with({ type: "code" }, parseCode)
         .with({ type: "donors" }, parseDonorList)
-        .with({ type: "scroller" }, parseScroller)
         .with({ type: "expander" }, parseExpander)
         .with({ type: "chart-story" }, parseChartStory)
         .with({ type: "image" }, parseImage)
@@ -605,66 +601,6 @@ const parseDonorList = (raw: RawBlockDonorList): EnrichedBlockDonorList => {
     return {
         type: "donors",
         value: raw.value,
-        parseErrors: [],
-    }
-}
-
-const parseScroller = (raw: RawBlockScroller): EnrichedBlockScroller => {
-    const createError = (
-        error: ParseError,
-        blocks: EnrichedScrollerItem[] = []
-    ): EnrichedBlockScroller => ({
-        type: "scroller",
-        blocks,
-        parseErrors: [error],
-    })
-
-    if (typeof raw.value === "string")
-        return createError({
-            message: "Value is a string, not an object with properties",
-        })
-
-    const blocks: EnrichedScrollerItem[] = []
-    let currentBlock: EnrichedScrollerItem = {
-        url: "",
-        type: "enriched-scroller-item",
-        text: { type: "text", value: [], parseErrors: [] },
-    }
-    const warnings: ParseError[] = []
-    for (const block of raw.value) {
-        match(block)
-            .with({ type: "url" }, (url) => {
-                if (currentBlock.url !== "") {
-                    blocks.push(currentBlock)
-                    currentBlock = {
-                        type: "enriched-scroller-item",
-                        url: "",
-                        text: {
-                            type: "text",
-                            value: [],
-                            parseErrors: [],
-                        },
-                    }
-                }
-                currentBlock.url = url.value
-            })
-            .with({ type: "text" }, (text) => {
-                currentBlock.text = htmlToEnrichedTextBlock(text.value)
-            })
-            .otherwise(() =>
-                warnings.push({
-                    message: "scroller items must be of type 'url' or 'text'",
-                    isWarning: true,
-                })
-            )
-    }
-    if (currentBlock.url !== "") {
-        blocks.push(currentBlock)
-    }
-
-    return {
-        type: "scroller",
-        blocks,
         parseErrors: [],
     }
 }

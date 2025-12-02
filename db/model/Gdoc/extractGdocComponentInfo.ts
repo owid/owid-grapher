@@ -359,7 +359,6 @@ export function enumerateGdocComponentsWithoutChildren(
                         "recirc",
                         "resource-panel",
                         "research-and-writing",
-                        "scroller",
                         "sdg-grid",
                         "sdg-toc",
                         "ltp-toc",

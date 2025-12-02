@@ -157,17 +157,6 @@ export const enrichedBlockExamples: Record<
         value: {},
         parseErrors: [],
     },
-    scroller: {
-        type: "scroller",
-        blocks: [
-            {
-                url: "https://ourworldindata.org/grapher/total-cases-covid-19",
-                text: enrichedBlockText,
-                type: "enriched-scroller-item",
-            },
-        ],
-        parseErrors: [],
-    },
     callout: {
         type: "callout",
         parseErrors: [],
