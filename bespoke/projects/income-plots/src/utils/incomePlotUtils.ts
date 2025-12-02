@@ -1,4 +1,5 @@
 import { roundSigFig } from "@ourworldindata/utils"
+import * as d3 from "d3"
 import * as fastKde from "fast-kde"
 import {
     Currency,
@@ -82,6 +83,18 @@ const OwidDistinctColors = {
     Coral: "#d73c50",
 } as const
 
+export const WORLD_COLOR = OwidDistinctColors.Purple
+
+const COLOR_ROTATION = [
+    OwidDistinctColors.Turquoise,
+    OwidDistinctColors.Denim,
+    OwidDistinctColors.DustyCoral,
+    OwidDistinctColors.Camel,
+    OwidDistinctColors.Peach,
+    OwidDistinctColors.TealishGreen,
+    OwidDistinctColors.Mauve,
+]
+
 export const REGION_COLORS = {
     "East Asia and Pacific": OwidDistinctColors.Turquoise,
     "Europe and Central Asia": OwidDistinctColors.Denim,
@@ -91,10 +104,20 @@ export const REGION_COLORS = {
     "North America": OwidDistinctColors.Peach,
     "South Asia": OwidDistinctColors.TealishGreen,
     "Sub-Saharan Africa": OwidDistinctColors.Mauve,
-    World: OwidDistinctColors.Purple,
 }
 
 export const REGION_NAMES = Object.keys(REGION_COLORS)
+
+export const assignColors = (arr: string[]) => {
+    const map = new Map<string, string>(
+        arr.map((entity, index) => [
+            entity,
+            COLOR_ROTATION[index % COLOR_ROTATION.length],
+        ])
+    )
+    map.set(WORLD_ENTITY_NAME, WORLD_COLOR)
+    return map
+}
 
 export const computePercentageBelowLine = (
     rawData: RawDataForYearRecord[],
