@@ -1,0 +1,1138 @@
+openapi: 3.0.4
+info:
+    title: Grapher Chart API
+    version: 1.0.0
+    description: |
+        Our chart API is structured around charts on our website, i.e. at https://ourworldindata.org/grapher/* . You can find charts by searching our data catalog at [https://ourworldindata.org/data](https://ourworldindata.org/data).
+
+        Once you've found the chart with the data you need, simply append ".csv" to the URL to download the data or ".metadata.json" to retrieve the metadata. You can also add ".zip" to download a ZIP file that includes both files, along with a README in markdown format describing the data.
+
+        An example for our life expectancy chart:
+
+        - [https://ourworldindata.org/grapher/life-expectancy](https://ourworldindata.org/grapher/life-expectancy) - the page on our website where you can see the chart
+        - [https://ourworldindata.org/grapher/life-expectancy.csv](https://ourworldindata.org/grapher/life-expectancy.csv) - the data for this chart
+        - [https://ourworldindata.org/grapher/life-expectancy.metadata.json](https://ourworldindata.org/grapher/life-expectancy.metadata.json) - the metadata for this chart, like the chart title, the units, how to cite the data sources
+        - [https://ourworldindata.org/grapher/life-expectancy.zip](https://ourworldindata.org/grapher/life-expectancy.zip) - the above two plus a readme as zip file archive
+
+        !!! example "Example notebooks"
+
+            Check out this list of public example notebooks that demonstrate the use of our chart API:
+
+            - [:octicons-link-external-16: Example python notebook](https://colab.research.google.com/drive/1HDcqCy6ZZ05IznXzaaP9Blvvp3qoPnP8?usp=sharing) on Google Colab using Pandas
+            - [:octicons-link-external-16: ObservableHQ notebook](https://observablehq.com/@owid/recreating-the-life-expectancy-chart) using Javascript to recreate the life expectancy chart
+    contact:
+        name: Our World in Data
+        url: https://ourworldindata.org
+    license:
+        name: CC BY 4.0
+        url: https://creativecommons.org/licenses/by/4.0/
+
+servers:
+    - url: https://ourworldindata.org
+      description: Production server
+
+paths:
+    /grapher/{slug}:
+        get:
+            summary: Get chart HTML page
+            description: Returns the full HTML page for a specific chart.
+            operationId: getChartHtml
+            tags:
+                - Charts
+            parameters:
+                - $ref: "#/components/parameters/slug"
+                - $ref: "#/components/parameters/tab"
+                - $ref: "#/components/parameters/country"
+                - $ref: "#/components/parameters/mapSelect"
+                - $ref: "#/components/parameters/time"
+                - $ref: "#/components/parameters/nocache"
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        text/html:
+                            schema:
+                                type: string
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+    /grapher/{slug}.png:
+        get:
+            summary: Get chart as PNG
+            description: Returns a PNG image of the chart.
+            operationId: getChartPng
+            tags:
+                - Images
+            parameters:
+                - $ref: "#/components/parameters/slug"
+                - $ref: "#/components/parameters/imType"
+                - $ref: "#/components/parameters/imWidth"
+                - $ref: "#/components/parameters/imHeight"
+                - $ref: "#/components/parameters/imDetails"
+                - $ref: "#/components/parameters/imFontSize"
+                - $ref: "#/components/parameters/imMinimal"
+                - $ref: "#/components/parameters/imSquareSize"
+                - $ref: "#/components/parameters/nocache"
+                - $ref: "#/components/parameters/tab"
+                - $ref: "#/components/parameters/country"
+                - $ref: "#/components/parameters/time"
+            responses:
+                "200":
+                    description: PNG image
+                    content:
+                        image/png:
+                            schema:
+                                type: string
+                                format: binary
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+    /grapher/{slug}.svg:
+        get:
+            summary: Get chart as SVG
+            description: Returns an SVG image of the chart.
+            operationId: getChartSvg
+            tags:
+                - Images
+            parameters:
+                - $ref: "#/components/parameters/slug"
+                - $ref: "#/components/parameters/imType"
+                - $ref: "#/components/parameters/imWidth"
+                - $ref: "#/components/parameters/imHeight"
+                - $ref: "#/components/parameters/imDetails"
+                - $ref: "#/components/parameters/imFontSize"
+                - $ref: "#/components/parameters/imMinimal"
+                - $ref: "#/components/parameters/imSquareSize"
+                - $ref: "#/components/parameters/nocache"
+                - $ref: "#/components/parameters/tab"
+                - $ref: "#/components/parameters/country"
+                - $ref: "#/components/parameters/time"
+            responses:
+                "200":
+                    description: SVG image
+                    content:
+                        image/svg+xml:
+                            schema:
+                                type: string
+                                format: binary
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+    /grapher/{slug}.csv:
+        get:
+            summary: Get chart data as CSV
+            description: |
+                Returns the data used in the chart as a CSV file.
+
+                **CSV Structure:**
+
+                Each row in the CSV file corresponds to an observation for an entity (most often a country or region) at a specific time point (generally a year).
+
+                **Columns:**
+
+                The first two columns in the CSV file are "Entity" and "Code."
+
+                - **Entity**: The name of the entity, typically a country, such as "United States."
+                - **Code**: The OWID internal entity code used for countries or regions. For standard countries, this matches the [:octicons-link-external-16: ISO alpha-3 code](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-3) (e.g., "USA"); for non-standard or historical countries, we use custom codes. Country and region names are standardized across all Our World in Data datasets, allowing you to join multiple datasets using either of these columns.
+                - **Year** or **Day**: If the data is annual, this is "Year" and contains only the year as an integer. If the column is "Day", it contains a date string in the form "YYYY-MM-DD".
+                - **Data columns**: The time series that powers the chart. Simple line charts have a single data column, while more complex charts can have multiple columns.
+            operationId: getChartCsv
+            tags:
+                - Data
+            parameters:
+                - $ref: "#/components/parameters/slug"
+                - name: v
+                  in: query
+                  description: Version number (e.g., 1)
+                  schema:
+                      type: integer
+                - name: csvType
+                  in: query
+                  description: |
+                      Type of CSV to return:
+
+                      - `full` (default): Get the full data, i.e. all time points and all entities
+                      - `filtered`: Get only the data needed to display the visible chart. Different chart types return different subsets of the full data. For a map this will download data for only a single year but all countries, for a line chart it will be the selected time range and visible entities and so on for other chart types.
+
+                      Note: If you use `filtered`, the other query parameters in the URL will change what is downloaded. E.g., `?csvType=filtered&time=1980..2000&country=~ITA`
+                  schema:
+                      type: string
+                      enum: [full, filtered]
+                      default: full
+                - name: useColumnShortNames
+                  in: query
+                  description: |
+                      Use short names for columns:
+
+                      - `false` (default): Column names are long, use capitalization and whitespace - e.g. `Period life expectancy at birth - Sex: all - Age: 0`
+                      - `true`: Column names are short and don't use whitespace - e.g. `life_expectancy_0__sex_all__age_0`
+                  schema:
+                      type: boolean
+                      default: true
+                - $ref: "#/components/parameters/nocache"
+            responses:
+                "200":
+                    description: CSV data
+                    content:
+                        text/csv:
+                            schema:
+                                type: string
+                            examples:
+                                life-expectancy:
+                                    summary: Life expectancy - full data
+                                    x-request-params:
+                                        slug: "life-expectancy"
+                                    value: |
+                                        Entity,Code,Year,Period life expectancy at birth - Sex: all - Age: 0
+                                        Afghanistan,AFG,1950,27.7275
+                                        Afghanistan,AFG,1951,27.9634
+                                        Afghanistan,AFG,1952,28.1992
+                                life-expectancy-filtered:
+                                    summary: Life expectancy - filtered by country and time
+                                    x-request-params:
+                                        slug: "life-expectancy"
+                                        csvType: "filtered"
+                                        country: "USA"
+                                        time: "2000..2020"
+                                    value: |
+                                        Entity,Code,Year,Period life expectancy at birth - Sex: all - Age: 0
+                                        United States,USA,2000,76.64
+                                        United States,USA,2010,78.54
+                                        United States,USA,2020,77.28
+                "403":
+                    description: Data is non-redistributable
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+    /grapher/{slug}.metadata.json:
+        get:
+            summary: Get chart metadata
+            description: |-
+                Returns metadata about the chart configuration and data.
+
+                The metadata includes:
+
+                - **chart**: Chart configuration (title, subtitle, citation, etc.)
+                - **columns**: Metadata for each data column (units, timespan, citations, etc.)
+                - **dateDownloaded**: Timestamp of when the data was downloaded
+            operationId: getChartMetadata
+            tags:
+                - Metadata
+            parameters:
+                - $ref: "#/components/parameters/slug"
+                - $ref: "#/components/parameters/nocache"
+            responses:
+                "200":
+                    description: Chart metadata
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ChartMetadata"
+                            examples:
+                                life-expectancy:
+                                    summary: Life expectancy chart metadata
+                                    x-request-params:
+                                        slug: "life-expectancy"
+                                    value:
+                                        chart:
+                                            title: Life expectancy
+                                            subtitle: The [period life expectancy](#dod:period-life-expectancy) at birth, in a given year.
+                                            citation: UN WPP (2022); HMD (2023); Zijdeman et al. (2015); Riley (2005)
+                                            originalChartUrl: https://ourworldindata.org/grapher/life-expectancy
+                                            selection:
+                                                - World
+                                                - Americas
+                                                - Europe
+                                                - Africa
+                                                - Asia
+                                                - Oceania
+                                        columns:
+                                            "Period life expectancy at birth - Sex: all - Age: 0":
+                                                titleShort: Life expectancy at birth
+                                                titleLong: Life expectancy at birth - Various sources – period tables
+                                                descriptionShort: The period life expectancy at birth, in a given year.
+                                                descriptionKey:
+                                                    - Period life expectancy is a metric that summarizes death rates across all age groups in one particular year.
+                                                    - "..."
+                                                shortUnit: years
+                                                unit: years
+                                                timespan: 1543-2021
+                                                type: Numeric
+                                                owidVariableId: 815383
+                                                shortName: life_expectancy_0__sex_all__age_0
+                                                lastUpdated: "2023-10-10"
+                                                nextUpdate: "2024-11-30"
+                                                citationShort: UN WPP (2022); HMD (2023); Zijdeman et al. (2015); Riley (2005) – with minor processing by Our World in Data
+                                                citationLong: UN WPP (2022); HMD (2023); Zijdeman et al. (2015); Riley (2005) – ...
+                                                fullMetadata: https://api.ourworldindata.org/v1/indicators/815383.metadata.json
+                                        dateDownloaded: "2024-10-30"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+    /grapher/{slug}.readme.md:
+        get:
+            summary: Get chart README
+            description: Returns a README markdown file for the chart data.
+            operationId: getChartReadme
+            tags:
+                - Metadata
+            parameters:
+                - $ref: "#/components/parameters/slug"
+                - $ref: "#/components/parameters/nocache"
+            responses:
+                "200":
+                    description: README file
+                    content:
+                        text/markdown:
+                            schema:
+                                type: string
+                            examples:
+                                life-expectancy:
+                                    summary: Life expectancy README
+                                    x-request-params:
+                                        slug: "life-expectancy"
+                                    value: |
+                                        # Life expectancy - Data package
+
+                                        This data package contains the data that powers the chart ["Life expectancy"](https://ourworldindata.org/grapher/life-expectancy) on the Our World in Data website.
+
+                                        ## CSV Structure
+
+                                        The high level structure of the CSV file is that each row is an observation for an entity (usually a country or region) and a timepoint (usually a year).
+
+                                        The first two columns in the CSV file are "Entity" and "Code". "Entity" is the name of the entity (e.g. "United States"). "Code" is the OWID internal entity code that we use if the entity is a country or region.
+
+                                        The third column is either "Year" or "Day". If the data is annual, this is "Year" and contains only the year as an integer. If the column is "Day", the column contains a date string in the form "YYYY-MM-DD".
+
+                                        The final column is the data column, which is the time series that powers the chart.
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+    /grapher/{slug}.zip:
+        get:
+            summary: Get chart data ZIP
+            description: Returns a ZIP file containing CSV data, metadata, and README.
+            operationId: getChartZip
+            tags:
+                - Data
+            parameters:
+                - $ref: "#/components/parameters/slug"
+                - $ref: "#/components/parameters/nocache"
+            responses:
+                "200":
+                    description: ZIP file
+                    content:
+                        application/zip:
+                            schema:
+                                type: string
+                                format: binary
+                "403":
+                    description: Data is non-redistributable
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+    /grapher/{slug}.config.json:
+        get:
+            summary: Get grapher config
+            description: |-
+                Returns the raw configuration for the grapher chart.
+
+                The config follows the [Grapher JSON schema](https://files.ourworldindata.org/schemas/grapher-schema.009.json).
+            operationId: getChartConfig
+            tags:
+                - Metadata
+            parameters:
+                - $ref: "#/components/parameters/slug"
+                - $ref: "#/components/parameters/nocache"
+            responses:
+                "200":
+                    description: Grapher configuration
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                description: |-
+                                    Grapher chart configuration object. See the [Grapher JSON schema](https://files.ourworldindata.org/schemas/grapher-schema.009.json) for the full specification.
+                            examples:
+                                life-expectancy:
+                                    summary: Life expectancy config
+                                    x-request-params:
+                                        slug: "life-expectancy"
+                                    value:
+                                        id: 64
+                                        slug: life-expectancy
+                                        title: Life expectancy
+                                        $schema: https://files.ourworldindata.org/schemas/grapher-schema.009.json
+                                        version: 62
+                                        hasMapTab: true
+                                        originUrl: /life-expectancy
+                                        isPublished: true
+                                        variantName: over the long-run
+                                        yAxis:
+                                            min: 0
+                                        map:
+                                            colorScale:
+                                                baseColorScheme: YlGnBu
+                                                binningStrategy: manual
+                                                legendDescription: Life expectancy (at birth)
+                                            timeTolerance: 10
+                                        dimensions:
+                                            - display:
+                                                  unit: years
+                                                  shortUnit: years
+                                                  numDecimalPlaces: 1
+                                              property: y
+                                              variableId: 1118466
+                                        selectedEntityNames:
+                                            - World
+                                            - Americas
+                                            - Europe
+                                            - Africa
+                                            - Asia
+                                            - Oceania
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+    /grapher/{slug}.values.json:
+        get:
+            summary: Get data values
+            description: Returns data values for a specific entity.
+            operationId: getChartValues
+            tags:
+                - Data
+            parameters:
+                - $ref: "#/components/parameters/slug"
+                - $ref: "#/components/parameters/country"
+                - $ref: "#/components/parameters/nocache"
+            responses:
+                "200":
+                    description: Data values
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/GrapherValuesJson"
+                            examples:
+                                life-expectancy:
+                                    summary: Life expectancy values for France
+                                    x-request-params:
+                                        slug: "life-expectancy"
+                                        country: "France"
+                                    value:
+                                        entityName: France
+                                        startTime: 1816
+                                        endTime: 2023
+                                        columns:
+                                            "1118466":
+                                                name: Life expectancy
+                                                unit: years
+                                                shortUnit: years
+                                        startValues:
+                                            y:
+                                                - columnSlug: "1118466"
+                                                  value: 40.1
+                                                  formattedValue: "40.1"
+                                                  formattedValueShort: 40.1 years
+                                                  formattedValueShortWithAbbreviations: "40.1"
+                                                  valueLabel: 40.1 years
+                                                  time: 1816
+                                                  formattedTime: "1816"
+                                        endValues:
+                                            y:
+                                                - columnSlug: "1118466"
+                                                  value: 83.3
+                                                  formattedValue: "83.3"
+                                                  formattedValueShort: 83.3 years
+                                                  formattedValueShortWithAbbreviations: "83.3"
+                                                  valueLabel: 83.3 years
+                                                  time: 2023
+                                                  formattedTime: "2023"
+                                        source: "Riley (2005); Zijdeman et al. (2015); HMD (2025); UN WPP (2024)"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+    /grapher/{slug}.search-result.json:
+        get:
+            summary: Get search results
+            description: Returns search results within the context of the chart.
+            operationId: getChartSearchResults
+            tags:
+                - Search
+            parameters:
+                - $ref: "#/components/parameters/slug"
+                - name: version
+                  in: query
+                  description: API version
+                  schema:
+                      type: integer
+                      default: 1
+                - name: entities
+                  in: query
+                  description: Selected entities
+                  schema:
+                      type: string
+                - name: variant
+                  in: query
+                  description: Data variant (Large or Medium)
+                  schema:
+                      type: string
+                      enum: [Large, Medium]
+                - name: numDataTableRowsPerColumn
+                  in: query
+                  description: Number of rows per column in data table
+                  schema:
+                      type: integer
+                      default: 4
+                - $ref: "#/components/parameters/nocache"
+            responses:
+                "200":
+                    description: Search results
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/GrapherSearchResultJson"
+                            examples:
+                                life-expectancy:
+                                    summary: Life expectancy search result
+                                    x-request-params:
+                                        slug: "life-expectancy"
+                                        variant: "Medium"
+                                    value:
+                                        title: Life expectancy
+                                        source: "Riley (2005); Zijdeman et al. (2015); HMD (2025); UN WPP (2024)"
+                                        grapherQueryParams:
+                                            country: OWID_WRL~Americas~OWID_EUR~OWID_AFR
+                                            time: 1770..2023
+                                        layout:
+                                            - slotKey: single-slot
+                                              grapherTab: LineChart
+                                            - slotKey: single-slot
+                                              grapherTab: Table
+                                            - slotKey: single-slot
+                                              grapherTab: WorldMap
+                                              chartParams:
+                                                  time: "2023"
+                                              previewParams:
+                                                  time: "2023"
+                                            - slotKey: small-slot-left
+                                              grapherTab: DiscreteBar
+                                        dataTable:
+                                            rows:
+                                                - seriesName: Europe
+                                                  label: Europe
+                                                  color: "#4c6a9c"
+                                                  value: 79.1 years
+                                                  time: "2023"
+                                                  timePreposition: in
+                                                  muted: false
+                                                  striped: false
+                                                - seriesName: Americas
+                                                  label: Americas
+                                                  color: "#c4523e"
+                                                  value: 77.3 years
+                                                  time: "2023"
+                                                  timePreposition: in
+                                                  muted: false
+                                                  striped: false
+                                                - seriesName: World
+                                                  label: World
+                                                  color: "#18470f"
+                                                  value: 73.2 years
+                                                  time: "2023"
+                                                  timePreposition: in
+                                                  muted: false
+                                                  striped: false
+                                                - seriesName: Africa
+                                                  label: Africa
+                                                  color: "#a2559c"
+                                                  value: 63.8 years
+                                                  time: "2023"
+                                                  timePreposition: in
+                                                  muted: false
+                                                  striped: false
+                                            title: In years
+                                        valueDisplay:
+                                            entityName: World
+                                            endValue: 73.2 years
+                                            time: "2023"
+                                            showLocationIcon: false
+                                            numericEndTime: 2023
+                                        entityType: country or region
+                                        entityTypePlural: countries and regions
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+components:
+    parameters:
+        slug:
+            name: slug
+            in: path
+            description: The URL slug of the chart
+            required: true
+            schema:
+                type: string
+            example: "population-density"
+
+        tab:
+            name: tab
+            in: query
+            description: Active tab for the chart
+            schema:
+                type: string
+                enum:
+                    - table
+                    - map
+                    - chart
+                    - line
+                    - scatter
+                    - stacked-area
+                    - discrete-bar
+                    - stacked-discrete-bar
+                    - slope
+                    - stacked-bar
+                    - marimekko
+            example: "map"
+
+        country:
+            name: country
+            in: query
+            description: |
+                Selected countries/entities. Can be a single entity or multiple separated by `~` (tilde) or `+` (plus).
+                Also supports special selectors like `~OWID_WRL` (World).
+            schema:
+                type: string
+            example: "United States~China"
+
+        mapSelect:
+            name: mapSelect
+            in: query
+            description: Entity to highlight on the map
+            schema:
+                type: string
+            example: "France"
+
+        time:
+            name: time
+            in: query
+            description: |
+                Time period to display. Can be a single year (`2020`), a range (`2000..2020`), or `latest`.
+            schema:
+                type: string
+            example: "2000..2020"
+
+        nocache:
+            name: nocache
+            in: query
+            description: If present, bypasses the cache
+            schema:
+                type: string
+                nullable: true
+            allowEmptyValue: true
+
+        imType:
+            name: imType
+            in: query
+            description: Image type/preset
+            schema:
+                type: string
+                enum:
+                    - twitter
+                    - og
+                    - thumbnail
+                    - square
+                    - social-media-square
+                    - uncaptioned
+            example: "og"
+
+        imWidth:
+            name: imWidth
+            in: query
+            description: Width of the generated image in pixels
+            schema:
+                type: integer
+
+        imHeight:
+            name: imHeight
+            in: query
+            description: Height of the generated image in pixels
+            schema:
+                type: integer
+
+        imDetails:
+            name: imDetails
+            in: query
+            description: Include details (1 to enable)
+            schema:
+                type: string
+                enum: ["0", "1"]
+
+        imFontSize:
+            name: imFontSize
+            in: query
+            description: Font size for the image
+            schema:
+                type: integer
+
+        imMinimal:
+            name: imMinimal
+            in: query
+            description: Minimal mode (1 to enable). Affects thumbnails and uncaptioned images.
+            schema:
+                type: string
+                enum: ["0", "1"]
+
+        imSquareSize:
+            name: imSquareSize
+            in: query
+            description: Size for square images
+            schema:
+                type: integer
+
+    schemas:
+        Error:
+            type: object
+            required:
+                - error
+            properties:
+                error:
+                    type: string
+                message:
+                    type: string
+
+        ChartMetadata:
+            type: object
+            description: Metadata about the chart configuration and data columns.
+            required:
+                - chart
+                - columns
+                - dateDownloaded
+            properties:
+                chart:
+                    $ref: "#/components/schemas/ChartMetadataChart"
+                columns:
+                    type: object
+                    description: Metadata for each data column, keyed by column name.
+                    additionalProperties:
+                        $ref: "#/components/schemas/ChartMetadataColumn"
+                dateDownloaded:
+                    type: string
+                    format: date
+                    description: Date when the data was downloaded (YYYY-MM-DD).
+                    example: "2024-10-30"
+                activeFilters:
+                    type: object
+                    description: Currently active query parameter filters.
+                    additionalProperties:
+                        type: string
+
+        ChartMetadataChart:
+            type: object
+            description: Chart configuration metadata.
+            properties:
+                title:
+                    type: string
+                    description: Chart title.
+                    example: Life expectancy
+                subtitle:
+                    type: string
+                    description: Chart subtitle, may contain markdown.
+                    example: "The [period life expectancy](#dod:period-life-expectancy) at birth, in a given year."
+                note:
+                    type: string
+                    description: Additional note displayed on the chart.
+                xAxisLabel:
+                    type: string
+                    description: Label for the X axis.
+                yAxisLabel:
+                    type: string
+                    description: Label for the Y axis.
+                citation:
+                    type: string
+                    description: Citation/sources line.
+                    example: "UN WPP (2022); HMD (2023); Zijdeman et al. (2015); Riley (2005)"
+                originalChartUrl:
+                    type: string
+                    format: uri
+                    description: Canonical URL of the chart.
+                    example: https://ourworldindata.org/grapher/life-expectancy
+                selection:
+                    type: array
+                    description: Default selected entities.
+                    items:
+                        type: string
+                    example: [World, Americas, Europe, Africa, Asia, Oceania]
+
+        ChartMetadataColumn:
+            type: object
+            description: Metadata for a single data column.
+            properties:
+                titleShort:
+                    type: string
+                    description: Short title for the column.
+                    example: Life expectancy at birth
+                titleLong:
+                    type: string
+                    description: Full title including attribution.
+                    example: "Life expectancy at birth - Various sources – period tables"
+                descriptionShort:
+                    type: string
+                    description: Brief description of the data.
+                descriptionKey:
+                    type: array
+                    description: Key points about the data methodology.
+                    items:
+                        type: string
+                descriptionProcessing:
+                    type: string
+                    description: Description of any processing applied to the data.
+                shortUnit:
+                    type: string
+                    description: Short form of the unit (e.g., "years", "%").
+                    example: years
+                unit:
+                    type: string
+                    description: Full unit name.
+                    example: years
+                timespan:
+                    type: string
+                    description: Time range covered by the data.
+                    example: "1543-2021"
+                tolerance:
+                    type: integer
+                    description: Tolerance for time matching.
+                type:
+                    type: string
+                    description: Data type of the column.
+                    example: Numeric
+                conversionFactor:
+                    type: number
+                    description: Conversion factor applied to values.
+                owidVariableId:
+                    type: integer
+                    description: Internal OWID variable identifier.
+                    example: 815383
+                shortName:
+                    type: string
+                    description: Machine-readable short name.
+                    example: life_expectancy_0__sex_all__age_0
+                lastUpdated:
+                    type: string
+                    format: date
+                    description: Date when the data was last updated.
+                    example: "2023-10-10"
+                nextUpdate:
+                    type: string
+                    format: date
+                    description: Expected date of next update.
+                    example: "2024-11-30"
+                citationShort:
+                    type: string
+                    description: Short citation for the data.
+                    example: "UN WPP (2022); HMD (2023); Zijdeman et al. (2015); Riley (2005) – with minor processing by Our World in Data"
+                citationLong:
+                    type: string
+                    description: Full citation for the data.
+                fullMetadata:
+                    type: string
+                    format: uri
+                    description: URL to the full indicator metadata.
+                    example: https://api.ourworldindata.org/v1/indicators/815383.metadata.json
+
+        GrapherValuesJson:
+            type: object
+            description: Data values for a specific entity from a chart.
+            properties:
+                entityName:
+                    type: string
+                    description: Name of the entity.
+                    example: World
+                startTime:
+                    type: integer
+                    description: Start time of the data range.
+                    example: 1950
+                endTime:
+                    type: integer
+                    description: End time of the data range.
+                    example: 2021
+                columns:
+                    type: object
+                    description: Column metadata, keyed by column slug.
+                    additionalProperties:
+                        $ref: "#/components/schemas/GrapherValuesJsonColumn"
+                startValues:
+                    $ref: "#/components/schemas/GrapherValuesJsonDataPoints"
+                endValues:
+                    $ref: "#/components/schemas/GrapherValuesJsonDataPoints"
+                source:
+                    type: string
+                    description: Sources line for the chart.
+
+        GrapherValuesJsonColumn:
+            type: object
+            description: Metadata for a single column in values response.
+            properties:
+                name:
+                    type: string
+                    description: Display name of the column.
+                unit:
+                    type: string
+                    description: Unit of measurement.
+                shortUnit:
+                    type: string
+                    description: Short form of the unit.
+                isProjection:
+                    type: boolean
+                    description: Whether this column contains projected data.
+                yearIsDay:
+                    type: boolean
+                    description: Whether the time column represents days instead of years.
+
+        GrapherValuesJsonDataPoints:
+            type: object
+            description: Data points for a specific time.
+            properties:
+                y:
+                    type: array
+                    description: Y-axis data points.
+                    items:
+                        $ref: "#/components/schemas/GrapherValuesJsonDataPoint"
+                x:
+                    $ref: "#/components/schemas/GrapherValuesJsonDataPoint"
+
+        GrapherValuesJsonDataPoint:
+            type: object
+            description: A single data point value.
+            required:
+                - columnSlug
+            properties:
+                columnSlug:
+                    type: string
+                    description: Identifier of the column.
+                value:
+                    oneOf:
+                        - type: number
+                        - type: string
+                    description: Raw value.
+                formattedValue:
+                    type: string
+                    description: Human-readable formatted value.
+                formattedValueShort:
+                    type: string
+                    description: Short formatted value.
+                formattedValueShortWithAbbreviations:
+                    type: string
+                    description: Short formatted value with abbreviations (e.g., "1.2B").
+                valueLabel:
+                    type: string
+                    description: Custom label for the value (e.g., from color scheme).
+                time:
+                    type: integer
+                    description: Time of the observation.
+                formattedTime:
+                    type: string
+                    description: Formatted time string.
+
+        GrapherSearchResultJson:
+            type: object
+            description: Search result data for a chart, used for rich search previews.
+            required:
+                - title
+                - source
+                - grapherQueryParams
+                - layout
+                - dataTable
+                - entityType
+                - entityTypePlural
+            properties:
+                title:
+                    type: string
+                    description: Chart title.
+                subtitle:
+                    type: string
+                    description: Chart subtitle (plain text, markdown stripped).
+                source:
+                    type: string
+                    description: Sources line (plain text).
+                grapherQueryParams:
+                    type: object
+                    description: Query parameters to apply to the chart.
+                    additionalProperties:
+                        type: string
+                layout:
+                    type: array
+                    description: Layout slots for displaying chart tabs.
+                    items:
+                        $ref: "#/components/schemas/LayoutSlot"
+                dataTable:
+                    $ref: "#/components/schemas/SearchDataTable"
+                valueDisplay:
+                    $ref: "#/components/schemas/SearchValueDisplay"
+                entityType:
+                    type: string
+                    description: Singular entity type name.
+                    example: country
+                entityTypePlural:
+                    type: string
+                    description: Plural entity type name.
+                    example: countries
+
+        LayoutSlot:
+            type: object
+            description: A slot in the search result layout grid.
+            required:
+                - slotKey
+                - grapherTab
+            properties:
+                slotKey:
+                    type: string
+                    description: Grid slot identifier.
+                    enum:
+                        - single-slot
+                        - double-slot
+                        - triple-slot
+                        - quad-slot
+                        - small-slot-left
+                        - small-slot-right
+                        - full
+                        - left-quad
+                        - right-quad
+                        - right-quad-left-column
+                        - top-right-cell
+                        - bottom-right-cell
+                        - single-cell
+                grapherTab:
+                    type: string
+                    description: The grapher tab to display in this slot.
+                    enum:
+                        - table
+                        - map
+                        - chart
+                        - line
+                        - scatter
+                        - stacked-area
+                        - discrete-bar
+                        - stacked-discrete-bar
+                        - slope
+                        - stacked-bar
+                        - marimekko
+                chartParams:
+                    type: object
+                    description: Additional query params for the chart view.
+                    additionalProperties:
+                        type: string
+                previewParams:
+                    type: object
+                    description: Additional query params for the preview thumbnail.
+                    additionalProperties:
+                        type: string
+
+        SearchDataTable:
+            type: object
+            description: Data table for search result display.
+            required:
+                - rows
+                - title
+            properties:
+                rows:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/SearchDataTableRow"
+                title:
+                    type: string
+                    description: Title for the data table.
+
+        SearchDataTableRow:
+            type: object
+            description: A row in the search result data table.
+            required:
+                - label
+            properties:
+                seriesName:
+                    type: string
+                    description: Name of the data series.
+                label:
+                    type: string
+                    description: Display label for the row.
+                color:
+                    type: string
+                    description: Color associated with this row.
+                value:
+                    type: string
+                    description: Formatted value.
+                startValue:
+                    type: string
+                    description: Formatted start value (for ranges).
+                time:
+                    type: string
+                    description: Formatted time.
+                timePreposition:
+                    type: string
+                    description: Preposition for time display (e.g., "in", "on").
+                muted:
+                    type: boolean
+                    description: Whether the row should be visually muted.
+                striped:
+                    oneOf:
+                        - type: boolean
+                        - type: string
+                          enum: ["no-data"]
+                    description: Whether the row should have striped styling.
+                outlined:
+                    type: boolean
+                    description: Whether the row should have outlined styling.
+                rounded:
+                    type: boolean
+                    description: Whether the row should have rounded corners.
+                trend:
+                    type: string
+                    description: Trend direction indicator.
+                    enum: [up, down, unchanged]
+
+        SearchValueDisplay:
+            type: object
+            description: Large value display for search results.
+            required:
+                - entityName
+                - endValue
+                - time
+            properties:
+                entityName:
+                    type: string
+                    description: Name of the entity.
+                endValue:
+                    type: string
+                    description: Formatted end value.
+                time:
+                    type: string
+                    description: Formatted time.
+                unit:
+                    type: string
+                    description: Unit of measurement.
+                startValue:
+                    type: string
+                    description: Formatted start value (for ranges).
+                trend:
+                    type: string
+                    description: Trend direction indicator.
+                    enum: [up, down, unchanged]
+                showLocationIcon:
+                    type: boolean
+                    description: Whether to show a location icon.
+                numericEndTime:
+                    type: integer
+                    description: Numeric end time value.
+
+    responses:
+        NotFound:
+            description: Chart not found
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Error"

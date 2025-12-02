@@ -3,12 +3,16 @@ info:
     title: Search API
     version: 0.1.0
     description: |
-        Search API for accessing Our World in Data charts and content pages.
+        Search API for accessing Our World in Data charts and content pages powered by Algolia.
 
         This API allows you to search through:
 
         - **Charts**: Interactive data visualizations with country-specific filtering
         - **Pages**: Articles, research papers, and informational pages
+
+        !!! tip "Semantic Search"
+
+            We also offer semantic search for indicators via the [Data API](../data/index.md#indicator-search). This allows natural language queries like "deaths from air pollution" to find relevant indicators.
     contact:
         name: Our World in Data
         url: https://ourworldindata.org
