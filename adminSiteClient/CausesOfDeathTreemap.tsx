@@ -8,7 +8,7 @@ import {
 } from "./CausesOfDeathConstants"
 import { useMemo, useState, useCallback, useRef } from "react"
 import * as d3 from "d3"
-import { useChartDimensions, useWindowDimensions } from "./useDimensions"
+import { useChartDimensions, useScreenDimensions } from "./useDimensions"
 import { Bounds, getRelativeMouse } from "@ourworldindata/utils"
 
 import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
@@ -51,7 +51,7 @@ export function ResponsiveCausesOfDeathTreemap({
     }
 
     const { ref, dimensions } = useChartDimensions<HTMLDivElement>({ config })
-    const { dimensions: windowDimensions } = useWindowDimensions()
+    const { dimensions: windowDimensions } = useScreenDimensions()
 
     // The treemap should fill the window height on smaller screens
     const isNarrow = dimensions.width < SMALL_BREAKPOINT
