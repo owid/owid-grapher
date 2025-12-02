@@ -150,8 +150,6 @@ paths:
                 - Data
             parameters:
                 - $ref: "#/components/parameters/slug"
-                - $ref: "#/components/parameters/time"
-                - $ref: "#/components/parameters/country"
                 - name: v
                   in: query
                   description: Version number (e.g., 1)
