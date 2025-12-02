@@ -233,7 +233,6 @@ export function parseRawBlocksToEnrichedBlocks(
             })
         )
         .with({ type: "script" }, parseScript)
-        .with({ type: "url" }, () => null) // url blocks should only occur inside of chart stories etc
         .with({ type: "heading" }, parseHeading)
         .with({ type: "sdg-grid" }, parseSdgGrid)
         .with({ type: "sticky-left" }, parseStickyLeft)
