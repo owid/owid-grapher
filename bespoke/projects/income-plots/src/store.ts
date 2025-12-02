@@ -5,10 +5,12 @@ import {
     DEFAULT_YEAR,
     TIME_INTERVAL_FACTORS,
     TIME_INTERVALS,
+    WORLD_ENTITY_NAME,
 } from "./utils/incomePlotConstants.ts"
 import data from "./data/incomeBins.json"
 import { sleep } from "@ourworldindata/utils"
 import {
+    assignColors,
     formatCurrency,
     kdeLog,
     REGION_COLORS,
@@ -70,7 +72,7 @@ export const atomTimeIntervalFactor = atom((get) => {
 })
 
 const atomCountriesOrRegionsModeInternal = atom<"countries" | "regions">(
-    "regions"
+    "countries"
 )
 export const atomCountriesOrRegionsMode = atom(
     (get) => get(atomCountriesOrRegionsModeInternal),
@@ -160,22 +162,23 @@ export const atomKdeDataForYearGroupedByRegion = atom(async (get) => {
 })
 
 // Legend
-const atomEntityColors = atom(() =>
-    Object.values(REGION_COLORS).map((color, idx) => ({
-        name: Object.keys(REGION_COLORS)[idx],
-        color: color,
-    }))
-)
-
-export const atomLegendEntries = atomEntityColors
-
-export const atomPlotColorScale = atom((get) => {
-    const legendEntries = get(atomLegendEntries)
-
-    return {
-        domain: legendEntries.map((entry) => entry.name),
-        range: legendEntries.map((entry) => entry.color),
-    }
+export const atomLegendEntries = atom((get) => {
+    const currentEntities = get(atomCurrentEntitiesSorted)
+    const entityColors = get(atomEntityColorMap)
+    const hasPovertyLine = get(atomCustomPovertyLine) !== null
+    const map = currentEntities.map((entity) => {
+        const colorEntry = entityColors.get(entity)
+        return {
+            name: entity,
+            color: colorEntry,
+        }
+    })
+    if (hasPovertyLine)
+        map.push({
+            name: WORLD_ENTITY_NAME,
+            color: entityColors.get(WORLD_ENTITY_NAME),
+        })
+    return map
 })
 
 // Hover state of the chart
@@ -184,8 +187,8 @@ export const atomHoveredEntityType = atom((get) => {
     const hoveredEntity = get(atomHoveredEntity)
     if (!hoveredEntity) return null
 
-    const legendEntries = get(atomLegendEntries)
-    const entry = legendEntries.find((e) => e.name === hoveredEntity)
+    const regionNames = Object.keys(REGION_COLORS)
+    const entry = regionNames.includes(hoveredEntity)
     if (entry) return "region"
     return "country"
 })
@@ -225,7 +228,7 @@ export const atomIsInCountryMode = atom((get) => {
     return mode === "countries"
 })
 
-const atomCountrySelection = atom<string[]>([])
+const atomCountrySelection = atom<string[]>(["China", "India", "United States"])
 export const atomSelectedCountryNames = atom(
     (get) => {
         if (!get(atomIsInCountryMode)) return []
@@ -242,7 +245,7 @@ export const atomAvailableCountryNames = atom(async (get) => {
 })
 
 const atomSelectedOnly = atom(false)
-export const atomSelectedCountriesOnly = atom(
+export const atomIsInSingleCountryMode = atom(
     (get) => {
         const isInCountryMode = get(atomIsInCountryMode)
         if (!isInCountryMode) return false
@@ -252,3 +255,19 @@ export const atomSelectedCountriesOnly = atom(
         set(atomSelectedOnly, newValue)
     }
 )
+
+export const atomCurrentEntitiesSorted = atom((get) => {
+    const isSingleCountryMode = get(atomIsInSingleCountryMode)
+    const selectedCountryNames = get(atomSelectedCountryNames)
+
+    if (isSingleCountryMode) {
+        return selectedCountryNames.toSorted()
+    } else {
+        return [...Object.keys(REGION_COLORS)]
+    }
+})
+
+export const atomEntityColorMap = atom((get) => {
+    const currentEntities = get(atomCurrentEntitiesSorted)
+    return assignColors(currentEntities)
+})
