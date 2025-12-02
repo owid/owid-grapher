@@ -1322,6 +1322,10 @@ div.raw-html-table__container {
         width: calc(100% - 56px);
         overflow: hidden;
         text-overflow: ellipsis;
+        // Explicit line-height to prevent Safari from clipping descenders (g,
+        // y, p, etc.) with overflow: hidden. The taller line box gives room for
+        // descenders inside the clipping boundary.
+        line-height: 1.4;
     }
 
     .aa-Form {
