@@ -576,20 +576,6 @@ class StringColumn extends AbstractCoreColumn<string> {
 
 class SeriesAnnotationColumn extends StringColumn {}
 class CategoricalColumn extends StringColumn {}
-class RegionColumn extends CategoricalColumn {}
-class ContinentColumn extends RegionColumn {}
-class ColorColumn extends CategoricalColumn {}
-class BooleanColumn extends AbstractCoreColumn<boolean> {
-    jsType = JsTypes.boolean
-
-    formatValue(value: unknown): "true" | "false" {
-        return value ? "true" : "false"
-    }
-
-    override parse(val: unknown): boolean {
-        return !!val
-    }
-}
 
 class OrdinalColumn extends CategoricalColumn {
     @imemo get allowedValuesSorted(): string[] | undefined {
@@ -600,6 +586,22 @@ class OrdinalColumn extends CategoricalColumn {
         return this.allowedValuesSorted
             ? this.allowedValuesSorted
             : super.sortedUniqNonEmptyStringVals
+    }
+}
+
+class RegionColumn extends OrdinalColumn {}
+class ContinentColumn extends RegionColumn {}
+class ColorColumn extends CategoricalColumn {}
+
+class BooleanColumn extends AbstractCoreColumn<boolean> {
+    jsType = JsTypes.boolean
+
+    formatValue(value: unknown): "true" | "false" {
+        return value ? "true" : "false"
+    }
+
+    override parse(val: unknown): boolean {
+        return !!val
     }
 }
 
