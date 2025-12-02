@@ -26,7 +26,6 @@ import {
     RawBlockStickyLeftContainer,
     RawBlockStickyRightContainer,
     RawBlockText,
-    RawBlockUrl,
     RawBlockAdditionalCharts,
     RawBlockAllCharts,
     RawBlockCallout,
@@ -424,12 +423,6 @@ function* rawBlockScriptToArchieMLString(
         yield* rawBlockTextToArchieMLString(text)
     }
     yield "[]"
-}
-
-function* rawBlockUrlToArchieMLString(
-    block: RawBlockUrl
-): Generator<string, void, undefined> {
-    yield keyValueToArchieMlString("url", block.value)
 }
 
 function* RawBlockHeadingToArchieMLString(
@@ -1029,7 +1022,6 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with({ type: "text" }, rawBlockTextToArchieMLString)
         .with({ type: "html" }, rawBlockHtmlToArchieMLString)
         .with({ type: "script" }, rawBlockScriptToArchieMLString)
-        .with({ type: "url" }, rawBlockUrlToArchieMLString)
         .with({ type: "heading" }, RawBlockHeadingToArchieMLString)
         .with({ type: "sdg-grid" }, rawBlockSDGGridToArchieMLString)
         .with({ type: "static-viz" }, rawBlockStaticVizToArchieMLString)
