@@ -1,18 +1,30 @@
-import { FilterType, SearchState } from "@ourworldindata/types"
+import {
+    FilterType,
+    SearchState,
+    Filter,
+    SearchResultType,
+    SearchActions,
+} from "@ourworldindata/types"
 import {
     getFilterNamesOfType,
     getSelectedTopic,
     getPaginationOffsetAndLength,
     getNbPaginatedItemsRequested,
+    createCountryFilter,
+    createTopicFilter,
+    removeMatchedWordsWithStopWords,
+    splitIntoWords,
 } from "./searchUtils.js"
+import { searchParamsToState, stateToSearchParams } from "./searchState.js"
 import { useSearchContext } from "./SearchContext.js"
-import { flattenNonTopicNodes, Url } from "@ourworldindata/utils"
+import { flattenNonTopicNodes } from "@ourworldindata/utils"
 import { useInfiniteQuery } from "@tanstack/react-query"
 import { LiteClient } from "algoliasearch/lite"
 import type { SearchResponse } from "instantsearch.js"
 import { useState, useEffect, useMemo, useCallback } from "react"
-import { urlToSearchState, searchStateToUrl } from "./searchState.js"
 import type { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
+import { useSearchParams } from "react-router-dom-v5-compat"
+import * as R from "remeda"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 
 export const useSelectedTopic = (
@@ -66,88 +78,22 @@ export function useTagGraphTopics(topicTagGraph: TagGraphRoot | null): {
 }
 
 /**
- * Handles analytics tracking for search state changes
+ * Handles analytics tracking for search state changes.
  */
-export function useSearchStateAnalytics(
+export function useSearchAnalytics(
     state: SearchState,
-    analytics: SiteAnalytics,
-    isInitialUrlStateLoaded: boolean
+    analytics: SiteAnalytics
 ): void {
-    const stateAsUrl = searchStateToUrl(state)
+    // Serialize state to string to use as effect dependency without
+    // triggering on every render
+    const stateKey = useMemo(
+        () => stateToSearchParams(state).toString(),
+        [state]
+    )
 
     useEffect(() => {
-        // Do not log analytics until the initial URL state has been loaded.
-        if (!isInitialUrlStateLoaded) return
-        // Reconstructing state from the `stateAsUrl` serialization to avoid a
-        // `state` dependency in this effect, which would cause it to run on
-        // every state change (even no-ops)
-        const state = urlToSearchState(Url.fromURL(stateAsUrl))
         analytics.logSearch(state)
-    }, [stateAsUrl, isInitialUrlStateLoaded, analytics])
-}
-
-/**
- * Handles bidirectional synchronization between search state and browser URL.
- *
- * - Reads initial URL state on mount (URL → state)
- * - Syncs state changes to URL (state → URL)
- * - Handles browser back/forward navigation (URL → state)
- *
- * Returns true when the initial URL state has been loaded. This flag prevents
- * firing default search queries unnecessarily. These default queries would only
- * be used if the loaded template happened to exactly match the default state
- * (no topic, no country, no query - see getInitialSearchState()). In most
- * cases, the URL will correspond to a different template, requiring a different
- * set of queries.
- */
-export function useUrlSync(
-    state: SearchState,
-    setState: (state: SearchState) => void
-): boolean {
-    const [isInitialUrlStateLoaded, setIsInitialUrlStateLoaded] =
-        useState(false)
-
-    const getCurrentUrlData = useCallback(() => {
-        const currentUrl = window.location.href
-        const url = Url.fromURL(currentUrl)
-        return {
-            urlState: urlToSearchState(url),
-            currentUrl,
-        }
-    }, [])
-
-    // URL → State: Read initial URL state on mount
-    useEffect(() => {
-        const { urlState } = getCurrentUrlData()
-        setState(urlState)
-        setIsInitialUrlStateLoaded(true)
-    }, [setState, getCurrentUrlData])
-
-    // State → URL: Sync state changes to browser URL
-    useEffect(() => {
-        const stateAsUrl = searchStateToUrl(state)
-        const { currentUrl } = getCurrentUrlData()
-        // Do not push the transitory default state URL on page load. Also, only
-        // set the url if it's different from the current url. When the user
-        // navigates back, we derive the state from the url and set it so the
-        // url is already identical to the state - we don't need to push it
-        // again.
-        if (isInitialUrlStateLoaded && currentUrl !== stateAsUrl) {
-            window.history.pushState({}, "", stateAsUrl)
-        }
-    }, [state, getCurrentUrlData, isInitialUrlStateLoaded])
-
-    // URL → State: Handle browser back/forward navigation
-    useEffect(() => {
-        const handlePopState = () => {
-            const { urlState } = getCurrentUrlData()
-            setState(urlState)
-        }
-        window.addEventListener("popstate", handlePopState)
-        return () => window.removeEventListener("popstate", handlePopState)
-    }, [setState, getCurrentUrlData])
-
-    return isInitialUrlStateLoaded
+    }, [stateKey, analytics, state])
 }
 
 type QueryKeyState = Pick<
@@ -296,4 +242,204 @@ export const useTopicTagGraph = () => {
     }, [tagGraph, setTagGraph])
 
     return tagGraph
+}
+
+/**
+ * Hook that manages search state via URL search params.
+ *
+ * Key design principle: URL is the source of truth. State is derived
+ * synchronously from URL params.
+ */
+export function useSearchParamsState(): {
+    state: SearchState
+    actions: SearchActions
+} {
+    const [searchParams, setSearchParams] = useSearchParams()
+
+    // Derive state from URL
+    const state = useMemo(
+        () => searchParamsToState(searchParams),
+        [searchParams]
+    )
+
+    // Helper to update params atomically
+    const updateParams = useCallback(
+        (updater: (current: SearchState) => SearchState) => {
+            setSearchParams((prev) => {
+                const currentState = searchParamsToState(prev)
+                const newState = updater(currentState)
+                return stateToSearchParams(newState)
+            })
+        },
+        [setSearchParams]
+    )
+
+    const actions = useMemo<SearchActions>(
+        () => ({
+            setQuery: (query: string) => {
+                updateParams((s) => ({ ...s, query: query.trim() }))
+            },
+
+            addCountry: (country: string) => {
+                updateParams((s) => {
+                    const exists = s.filters.some(
+                        (f) =>
+                            f.type === FilterType.COUNTRY && f.name === country
+                    )
+                    if (exists) return s
+                    return {
+                        ...s,
+                        filters: [...s.filters, createCountryFilter(country)],
+                    }
+                })
+            },
+
+            addCountryAndSetQuery: (country: string, query: string) => {
+                updateParams((s) => {
+                    const exists = s.filters.some(
+                        (f) =>
+                            f.type === FilterType.COUNTRY && f.name === country
+                    )
+                    return {
+                        ...s,
+                        query: query.trim(),
+                        filters: exists
+                            ? s.filters
+                            : [...s.filters, createCountryFilter(country)],
+                    }
+                })
+            },
+
+            removeCountry: (country: string) => {
+                updateParams((s) => {
+                    const newFilters = s.filters.filter(
+                        (f) =>
+                            !(
+                                f.type === FilterType.COUNTRY &&
+                                f.name === country
+                            )
+                    )
+                    const hasCountryFilters = newFilters.some(
+                        (f) => f.type === FilterType.COUNTRY
+                    )
+                    return {
+                        ...s,
+                        filters: newFilters,
+                        requireAllCountries: hasCountryFilters
+                            ? s.requireAllCountries
+                            : false,
+                    }
+                })
+            },
+
+            setTopic: (topic: string) => {
+                updateParams((s) => {
+                    const newFilters = s.filters.filter(
+                        (f) => f.type !== FilterType.TOPIC
+                    )
+                    return {
+                        ...s,
+                        filters: [...newFilters, createTopicFilter(topic)],
+                    }
+                })
+            },
+
+            setTopicAndClearQuery: (topic: string) => {
+                updateParams((s) => {
+                    const newFilters = s.filters.filter(
+                        (f) => f.type !== FilterType.TOPIC
+                    )
+                    return {
+                        ...s,
+                        query: "",
+                        filters: [...newFilters, createTopicFilter(topic)],
+                    }
+                })
+            },
+
+            removeTopic: (topic: string) => {
+                updateParams((s) => ({
+                    ...s,
+                    filters: s.filters.filter(
+                        (f) =>
+                            !(f.type === FilterType.TOPIC && f.name === topic)
+                    ),
+                }))
+            },
+
+            addFilter: (filter: Filter) => {
+                updateParams((s) => {
+                    const exists = s.filters.some(
+                        (f) => f.type === filter.type && f.name === filter.name
+                    )
+                    if (exists) return s
+                    return { ...s, filters: [...s.filters, filter] }
+                })
+            },
+
+            removeFilter: (filter: Filter) => {
+                updateParams((s) => {
+                    const newFilters = s.filters.filter(
+                        (f) =>
+                            !(f.type === filter.type && f.name === filter.name)
+                    )
+                    const hasCountryFilters = newFilters.some(
+                        (f) => f.type === FilterType.COUNTRY
+                    )
+                    return {
+                        ...s,
+                        filters: newFilters,
+                        requireAllCountries:
+                            filter.type === FilterType.COUNTRY &&
+                            !hasCountryFilters
+                                ? false
+                                : s.requireAllCountries,
+                    }
+                })
+            },
+
+            toggleRequireAllCountries: () => {
+                updateParams((s) => ({
+                    ...s,
+                    requireAllCountries: !s.requireAllCountries,
+                }))
+            },
+
+            setResultType: (resultType: SearchResultType) => {
+                updateParams((s) => ({ ...s, resultType }))
+            },
+
+            replaceQueryWithFilters: (
+                filters: Filter[],
+                matchedPositions: number[]
+            ) => {
+                updateParams((s) => {
+                    const queryWords = splitIntoWords(s.query)
+                    const newQuery = removeMatchedWordsWithStopWords(
+                        queryWords,
+                        matchedPositions
+                    )
+
+                    const allFilters = [...s.filters, ...filters]
+                    const uniqueFilters = R.uniqueBy(
+                        allFilters,
+                        (f) => `${f.type}:${f.name}`
+                    )
+
+                    return {
+                        ...s,
+                        query: newQuery.trim(),
+                        filters: uniqueFilters,
+                    }
+                })
+            },
+
+            reset: () => {
+                setSearchParams(new URLSearchParams())
+            },
+        }),
+        [updateParams, setSearchParams]
+    )
+
+    return { state, actions }
 }
