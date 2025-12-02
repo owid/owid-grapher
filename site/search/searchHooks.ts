@@ -248,7 +248,7 @@ export function useInfiniteSearch<T extends SearchResponse<U>, U>({
     ) => Promise<T>
     enabled?: boolean
 }) {
-    const { deferredState: state, liteSearchClient } = useSearchContext()
+    const { state, liteSearchClient } = useSearchContext()
 
     const query = useInfiniteQuery<T, Error>({
         // All paginated subqueries share the same query key
