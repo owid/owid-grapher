@@ -135,6 +135,16 @@
         .income-plot-series[data-highlighted="true"] {
             opacity: 1;
         }
+
+        .plot-series-unstacked {
+            .income-plot-series[data-highlighted="true"] .area-bg {
+                fill-opacity: 0.3;
+            }
+            .income-plot-series[data-highlighted="true"] .area-fg {
+                fill-opacity: 0.5;
+                stroke-opacity: 1;
+            }
+        }
     }
 }
 
