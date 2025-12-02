@@ -460,11 +460,6 @@ export type EnrichedBlockScript = {
     lines: string[]
 } & EnrichedBlockWithParseErrors
 
-export type RawBlockUrl = {
-    type: "url"
-    value: string
-}
-
 export type RawBlockHeadingValue = {
     text?: string
     level?: string
@@ -1142,7 +1137,6 @@ export type OwidRawGdocBlock =
     | RawBlockRecirc
     | RawBlockResearchAndWriting
     | RawBlockText
-    | RawBlockUrl
     | RawBlockResourcePanel
     | RawBlockHeading
     | RawBlockHtml

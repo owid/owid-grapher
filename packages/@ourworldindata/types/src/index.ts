@@ -230,7 +230,6 @@ export {
     type RawBlockStickyRightContainer,
     type RawBlockText,
     type RawBlockTopicPageIntro,
-    type RawBlockUrl,
     type RawBlockResourcePanel,
     type RawBlockKeyIndicator,
     type RawBlockKeyIndicatorCollection,
