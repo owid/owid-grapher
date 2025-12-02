@@ -46,6 +46,22 @@ paths:
                 - $ref: "#/components/parameters/mapSelect"
                 - $ref: "#/components/parameters/time"
                 - $ref: "#/components/parameters/nocache"
+                - $ref: "#/components/parameters/focus"
+                - $ref: "#/components/parameters/overlay"
+                - $ref: "#/components/parameters/stackMode"
+                - $ref: "#/components/parameters/zoomToSelection"
+                - $ref: "#/components/parameters/xScale"
+                - $ref: "#/components/parameters/yScale"
+                - $ref: "#/components/parameters/region"
+                - $ref: "#/components/parameters/endpointsOnly"
+                - $ref: "#/components/parameters/facet"
+                - $ref: "#/components/parameters/uniformYAxis"
+                - $ref: "#/components/parameters/showNoDataArea"
+                - $ref: "#/components/parameters/globe"
+                - $ref: "#/components/parameters/globeRotation"
+                - $ref: "#/components/parameters/globeZoom"
+                - $ref: "#/components/parameters/tableFilter"
+                - $ref: "#/components/parameters/tableSearch"
             responses:
                 "200":
                     description: Successful response
@@ -56,15 +72,22 @@ paths:
                 "404":
                     $ref: "#/components/responses/NotFound"
 
-    /grapher/{slug}.png:
+    /grapher/{slug}.{format}:
         get:
-            summary: Get chart as PNG
-            description: Returns a PNG image of the chart.
-            operationId: getChartPng
+            summary: Get chart as PNG or SVG
+            description: Returns a PNG or SVG image of the chart.
+            operationId: getChartImage
             tags:
                 - Images
             parameters:
                 - $ref: "#/components/parameters/slug"
+                - name: format
+                  in: path
+                  required: true
+                  description: Image format (png or svg)
+                  schema:
+                      type: string
+                      enum: [png, svg]
                 - $ref: "#/components/parameters/imType"
                 - $ref: "#/components/parameters/imWidth"
                 - $ref: "#/components/parameters/imHeight"
@@ -76,41 +99,27 @@ paths:
                 - $ref: "#/components/parameters/tab"
                 - $ref: "#/components/parameters/country"
                 - $ref: "#/components/parameters/time"
+                - $ref: "#/components/parameters/focus"
+                - $ref: "#/components/parameters/stackMode"
+                - $ref: "#/components/parameters/zoomToSelection"
+                - $ref: "#/components/parameters/xScale"
+                - $ref: "#/components/parameters/yScale"
+                - $ref: "#/components/parameters/region"
+                - $ref: "#/components/parameters/endpointsOnly"
+                - $ref: "#/components/parameters/facet"
+                - $ref: "#/components/parameters/uniformYAxis"
+                - $ref: "#/components/parameters/showNoDataArea"
+                - $ref: "#/components/parameters/globe"
+                - $ref: "#/components/parameters/globeRotation"
+                - $ref: "#/components/parameters/globeZoom"
             responses:
                 "200":
-                    description: PNG image
+                    description: Chart image
                     content:
                         image/png:
                             schema:
                                 type: string
                                 format: binary
-                "404":
-                    $ref: "#/components/responses/NotFound"
-
-    /grapher/{slug}.svg:
-        get:
-            summary: Get chart as SVG
-            description: Returns an SVG image of the chart.
-            operationId: getChartSvg
-            tags:
-                - Images
-            parameters:
-                - $ref: "#/components/parameters/slug"
-                - $ref: "#/components/parameters/imType"
-                - $ref: "#/components/parameters/imWidth"
-                - $ref: "#/components/parameters/imHeight"
-                - $ref: "#/components/parameters/imDetails"
-                - $ref: "#/components/parameters/imFontSize"
-                - $ref: "#/components/parameters/imMinimal"
-                - $ref: "#/components/parameters/imSquareSize"
-                - $ref: "#/components/parameters/nocache"
-                - $ref: "#/components/parameters/tab"
-                - $ref: "#/components/parameters/country"
-                - $ref: "#/components/parameters/time"
-            responses:
-                "200":
-                    description: SVG image
-                    content:
                         image/svg+xml:
                             schema:
                                 type: string
@@ -141,6 +150,8 @@ paths:
                 - Data
             parameters:
                 - $ref: "#/components/parameters/slug"
+                - $ref: "#/components/parameters/time"
+                - $ref: "#/components/parameters/country"
                 - name: v
                   in: query
                   description: Version number (e.g., 1)
@@ -411,6 +422,7 @@ paths:
             parameters:
                 - $ref: "#/components/parameters/slug"
                 - $ref: "#/components/parameters/country"
+                - $ref: "#/components/parameters/time"
                 - $ref: "#/components/parameters/nocache"
             responses:
                 "200":
@@ -694,6 +706,129 @@ components:
             description: Size for square images
             schema:
                 type: integer
+
+        focus:
+            name: focus
+            in: query
+            description: Focused series names (separated by ~ or +)
+            schema:
+                type: string
+
+        overlay:
+            name: overlay
+            in: query
+            description: Open a modal overlay
+            schema:
+                type: string
+                enum: [download-data, download-vis, sources]
+
+        stackMode:
+            name: stackMode
+            in: query
+            description: Stacking mode for charts
+            schema:
+                type: string
+                enum: [absolute, relative]
+
+        zoomToSelection:
+            name: zoomToSelection
+            in: query
+            description: Zoom to selected entities
+            schema:
+                type: string
+                enum: ["true"]
+
+        xScale:
+            name: xScale
+            in: query
+            description: X-axis scale type
+            schema:
+                type: string
+                enum: [linear, log]
+
+        yScale:
+            name: yScale
+            in: query
+            description: Y-axis scale type
+            schema:
+                type: string
+                enum: [linear, log]
+
+        region:
+            name: region
+            in: query
+            description: Map region
+            schema:
+                type: string
+                enum: [World, Africa, NorthAmerica, SouthAmerica, Asia, Europe, Oceania]
+
+        endpointsOnly:
+            name: endpointsOnly
+            in: query
+            description: Show only endpoints (1 to enable)
+            schema:
+                type: string
+                enum: ["0", "1"]
+
+        facet:
+            name: facet
+            in: query
+            description: Faceting strategy
+            schema:
+                type: string
+                enum: [none, entity, metric]
+
+        uniformYAxis:
+            name: uniformYAxis
+            in: query
+            description: Use uniform Y axis across facets (1 to enable)
+            schema:
+                type: string
+                enum: ["0", "1"]
+
+        showNoDataArea:
+            name: showNoDataArea
+            in: query
+            description: Show "No data" area in stacked charts (1 to enable)
+            schema:
+                type: string
+                enum: ["0", "1"]
+
+        globe:
+            name: globe
+            in: query
+            description: Enable globe view (1 to enable)
+            schema:
+                type: string
+                enum: ["0", "1"]
+
+        globeRotation:
+            name: globeRotation
+            in: query
+            description: Globe rotation (lat,lon)
+            schema:
+                type: string
+
+        globeZoom:
+            name: globeZoom
+            in: query
+            description: Globe zoom level
+            schema:
+                type: number
+
+        tableFilter:
+            name: tableFilter
+            in: query
+            description: Filter string for the data table
+            schema:
+                type: string
+
+        tableSearch:
+            name: tableSearch
+            in: query
+            description: Search string for the data table
+            schema:
+                type: string
 
     schemas:
         Error:
