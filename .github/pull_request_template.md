@@ -10,6 +10,7 @@ Add if relevant, i.e. might not be necessary when there are no UI changes.
 
 Step-by-step instructions on how to test this change
 
+- [ ] Does the change work in the archive?
 - [ ] Does the staging experience have sign-off from product stakeholders?
 
 **Reminder to annotate the PR diff with design notes, alternatives you considered, and any other helpful context.**
