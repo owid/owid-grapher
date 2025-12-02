@@ -132,8 +132,6 @@ export function enrichedBlockToRawBlock(
                 value: {
                     url: b.url,
                     height: b.height,
-                    row: b.row,
-                    column: b.column,
                     size: b.size,
                     position: b.position,
                     caption: b.caption ? spansToHtmlText(b.caption) : undefined,

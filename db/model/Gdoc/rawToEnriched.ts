@@ -504,8 +504,6 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
         const warnings: ParseError[] = []
 
         const height = val.height
-        const row = val.row
-        const column = val.column
         const size = val.size ?? BlockSize.Wide
         if (!checkIsBlockSize(size)) {
             return createError(
@@ -533,8 +531,6 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
             type: "chart",
             url,
             height,
-            row,
-            column,
             position,
             size,
             caption: caption.length > 0 ? caption : undefined,
