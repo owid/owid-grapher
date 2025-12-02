@@ -134,7 +134,6 @@ function* rawBlockChartToArchieMLString(
         yield* propertyToArchieMLString("url", block.value)
         yield* propertyToArchieMLString("height", block.value)
         yield* propertyToArchieMLString("size", block.value)
-        yield* propertyToArchieMLString("position", block.value)
         yield* propertyToArchieMLString("caption", block.value)
     }
     yield "{}"

@@ -133,7 +133,6 @@ export function enrichedBlockToRawBlock(
                     url: b.url,
                     height: b.height,
                     size: b.size,
-                    position: b.position,
                     caption: b.caption ? spansToHtmlText(b.caption) : undefined,
                 },
             })
@@ -145,7 +144,6 @@ export function enrichedBlockToRawBlock(
                 value: {
                     name: b.name,
                     height: b.height,
-                    position: b.position,
                     size: b.size,
                     caption: b.caption ? spansToHtmlText(b.caption) : undefined,
                 },
@@ -484,7 +482,6 @@ export function enrichedBlockToRawBlock(
             (b): RawBlockAside => ({
                 type: b.type,
                 value: {
-                    position: b.position,
                     caption: spansToHtmlText(b.caption),
                 },
             })
