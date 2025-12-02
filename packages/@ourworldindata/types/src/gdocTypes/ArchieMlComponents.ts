@@ -34,8 +34,6 @@ export type EnrichedBlockAside = {
 export type RawBlockChartValue = {
     url?: string
     height?: string
-    row?: string
-    column?: string
     size?: BlockSize
     // TODO: position is used as a classname apparently? Should be renamed or split
     position?: string
@@ -51,8 +49,6 @@ export type EnrichedBlockChart = {
     type: "chart"
     url: string
     height?: string
-    row?: string
-    column?: string
     size: BlockSize
     position?: ChartPositionChoice
     caption?: Span[]
@@ -61,8 +57,6 @@ export type EnrichedBlockChart = {
 export type RawBlockNarrativeChartValue = {
     name?: string
     height?: string
-    row?: string
-    column?: string
     // TODO: position is used as a classname apparently? Should be renamed or split
     position?: string
     size?: BlockSize
@@ -78,8 +72,6 @@ export type EnrichedBlockNarrativeChart = {
     type: "narrative-chart"
     name: string
     height?: string
-    row?: string
-    column?: string
     position?: ChartPositionChoice
     size: BlockSize
     caption?: Span[]

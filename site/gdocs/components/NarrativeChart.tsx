@@ -77,7 +77,6 @@ export default function NarrativeChart({
             className={cx(d.position, className, {
                 "full-width-on-mobile": fullWidthOnMobile,
             })}
-            style={{ gridRow: d.row, gridColumn: d.column }}
             ref={refChartContainer}
         >
             <figure

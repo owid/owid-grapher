@@ -133,8 +133,6 @@ function* rawBlockChartToArchieMLString(
     if (typeof block.value !== "string") {
         yield* propertyToArchieMLString("url", block.value)
         yield* propertyToArchieMLString("height", block.value)
-        yield* propertyToArchieMLString("row", block.value)
-        yield* propertyToArchieMLString("column", block.value)
         yield* propertyToArchieMLString("size", block.value)
         yield* propertyToArchieMLString("position", block.value)
         yield* propertyToArchieMLString("caption", block.value)
@@ -149,6 +147,7 @@ function* rawBlockNarrativeChartToArchieMLString(
     if (typeof block.value !== "string") {
         yield* propertyToArchieMLString("name", block.value)
         yield* propertyToArchieMLString("height", block.value)
+
         yield* propertyToArchieMLString("size", block.value)
         yield* propertyToArchieMLString("position", block.value)
         yield* propertyToArchieMLString("caption", block.value)

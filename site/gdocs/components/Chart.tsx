@@ -112,7 +112,6 @@ export default function Chart({
                     "full-width-on-mobile":
                         !isExplorerWithControls && fullWidthOnMobile,
                 })}
-                style={{ gridRow: d.row, gridColumn: d.column }}
                 ref={refChartContainer}
             >
                 <iframe
@@ -142,7 +141,6 @@ export default function Chart({
                 "full-width-on-mobile":
                     !isExplorerWithControls && fullWidthOnMobile,
             })}
-            style={{ gridRow: d.row, gridColumn: d.column }}
             ref={refChartContainer}
         >
             {isExplorer ? (

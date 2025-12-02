@@ -116,8 +116,6 @@ export const enrichedBlockExamples: Record<
         type: "chart",
         url: "https://ourworldindata.org/grapher/total-cases-covid-19",
         height: "400",
-        row: "1",
-        column: "1",
         size: BlockSize.Wide,
         position: "featured",
         caption: boldLinkExampleText,
