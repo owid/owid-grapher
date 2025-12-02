@@ -4,12 +4,10 @@ import {
     SynonymMap,
     TemplateConfig,
     TagGraphRoot,
+    SearchActions,
 } from "@ourworldindata/types"
-import { createActions } from "./searchState.js"
 import { LiteClient } from "algoliasearch/lite"
 import { SiteAnalytics } from "../SiteAnalytics.js"
-
-type SearchActions = ReturnType<typeof createActions>
 
 interface SearchContextType {
     state: SearchState
