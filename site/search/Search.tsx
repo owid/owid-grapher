@@ -69,19 +69,20 @@ export const Search = ({
 
     const isFetching = useIsFetching()
 
-    // Derived state for template configuration
-    const topicType = getSelectedTopicType(deferredState.filters, allAreas)
+    // Derived state for template configuration Use immediate state to avoid
+    // firing duplicate queries (one for the current (deferred) template, one for the
+    // target template after deferred value catches up)
+    const topicType = getSelectedTopicType(state.filters, allAreas)
     const templateConfig: TemplateConfig = {
         resultType: getEffectiveResultType(
-            deferredState.filters,
-            deferredState.query,
-            deferredState.resultType
+            state.filters,
+            state.query,
+            state.resultType
         ),
         topicType,
         hasCountry:
-            getFilterNamesOfType(deferredState.filters, FilterType.COUNTRY)
-                .size > 0,
-        hasQuery: deferredState.query.length > 0,
+            getFilterNamesOfType(state.filters, FilterType.COUNTRY).size > 0,
+        hasQuery: state.query.length > 0,
     }
 
     return (
