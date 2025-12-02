@@ -17,7 +17,7 @@ export interface DimensionsConfig {
     maxHeight?: number
 }
 
-interface WindowDimensions {
+interface Dimensions {
     width: number
     height: number
 }
@@ -78,8 +78,8 @@ export const useChartDimensions = <E extends HTMLElement>(options?: {
     return { ref, dimensions }
 }
 
-export const useWindowDimensions = (): { dimensions: WindowDimensions } => {
-    const [windowDimensions, setWindowDimensions] = useState<WindowDimensions>({
+export const useWindowDimensions = (): { dimensions: Dimensions } => {
+    const [windowDimensions, setWindowDimensions] = useState<Dimensions>({
         width: typeof window !== "undefined" ? window.outerWidth : 1200,
         height: typeof window !== "undefined" ? window.outerHeight : 800,
     })
@@ -99,6 +99,15 @@ export const useWindowDimensions = (): { dimensions: WindowDimensions } => {
 
         return () => window.removeEventListener("resize", handleResize)
     }, [])
+
+    return { dimensions: windowDimensions }
+}
+
+export const useScreenDimensions = (): { dimensions: Dimensions } => {
+    const [windowDimensions] = useState<Dimensions>({
+        width: typeof window !== "undefined" ? window.screen.width : 1200,
+        height: typeof window !== "undefined" ? window.screen.height : 800,
+    })
 
     return { dimensions: windowDimensions }
 }
