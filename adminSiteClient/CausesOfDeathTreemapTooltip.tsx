@@ -110,12 +110,14 @@ function CausesOfDeathTreemapTooltipCard({
 
     const node = target.node
 
-    const { variable, value, share, description } = node.data.data
+    const { variable, value, share, description, category } = node.data.data
 
     // Shouldn't happen
     if (value === undefined || share === undefined) return null
 
     const categoryColor = getCategoryColor(node.data.data.category)
+
+    const subtitle = description ? `${description} (${category})` : category
 
     return (
         <TooltipCard
@@ -125,7 +127,7 @@ function CausesOfDeathTreemapTooltipCard({
             offsetX={8}
             offsetY={8}
             title={variable}
-            subtitle={description}
+            subtitle={subtitle}
             style={{ maxWidth: 300 }}
             containerBounds={containerBounds}
             anchor={anchor}
