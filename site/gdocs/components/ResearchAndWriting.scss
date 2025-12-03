@@ -17,6 +17,16 @@ $rw-margin-bottom-grid-cell: 4px;
     }
 }
 
+// Override for linear topic pages, where optional featured blocks are spaced
+// out using bottom margins for consistency
+.centered-article-container--linear-topic-page
+    .article-block__research-and-writing {
+    margin-bottom: 48px;
+    > h1 {
+        margin-top: 0;
+    }
+}
+
 .research-and-writing-row__heading {
     // The assumption here is that the last item of the cell always has a
     // margin-bottom of $rw-margin-bottom-grid-cell, whether it is author names
@@ -28,6 +38,14 @@ $rw-margin-bottom-grid-cell: 4px;
     color: $blue-60;
 }
 
+.research-and-writing__heading--featured,
+.research-and-writing-row__heading--featured {
+    color: $blue-90;
+    @include sm-up {
+        text-align: center;
+    }
+}
+
 .research-and-writing-row__heading--divider {
     margin: 24px - $rw-margin-bottom-grid-cell 0 16px;
     padding-top: 24px;
@@ -35,6 +53,18 @@ $rw-margin-bottom-grid-cell: 4px;
     @include sm-up {
         margin: 40px - $rw-margin-bottom-grid-cell 0 24px;
         padding-top: 40px;
+    }
+}
+
+.research-and-writing-row__links--featured {
+    display: flex;
+    align-items: start;
+    gap: var(--grid-gap);
+    // In the featured variant on sm-up screens, links are centered, not aligned
+    // to the grid.
+    @include sm-up {
+        justify-content: center;
+        flex-wrap: wrap;
     }
 }
 
@@ -56,18 +86,13 @@ $rw-margin-bottom-grid-cell: 4px;
     @include sm-only {
         display: flex;
         overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
         scrollbar-width: thin;
-        margin-right: calc(
-            -1 * var(--grid-gap)
-        ); // pull the carousel to the right edge of the viewport...
 
         .research-and-writing-link {
             flex: 1 0 80%;
-            &:last-child {
-                margin-right: var(
-                    --grid-gap
-                ); // ... and bring back some breathing space to the right edge of the last thumbnail
-            }
+            scroll-snap-align: start;
         }
     }
 }
@@ -105,6 +130,31 @@ $rw-margin-bottom-grid-cell: 4px;
     @include sm-only {
         figure {
             display: none;
+        }
+    }
+}
+
+.research-and-writing-link--featured {
+    @include sm-up {
+        @include flex-item-width-for-row-of(2);
+    }
+
+    @include md-up {
+        @include flex-item-width-for-row-of(3);
+    }
+
+    @include lg-up {
+        @include flex-item-width-for-row-of(4);
+    }
+
+    border: 1px solid $blue-10;
+    padding: 16px;
+    transition: border-color 0.125s;
+
+    &:hover {
+        border-color: $blue-30;
+        .research-and-writing-link__title {
+            text-decoration: none;
         }
     }
 }
@@ -161,4 +211,10 @@ $rw-margin-bottom-grid-cell: 4px;
 .article-block__gray-section + .article-block__research-and-writing {
     // Compensating for non-collapsing margins
     margin-top: -32px;
+}
+
+.research-and-writing__see-all {
+    display: flex;
+    justify-content: center;
+    margin-top: 32px;
 }

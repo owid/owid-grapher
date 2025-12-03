@@ -7,18 +7,28 @@ import {
     formatAuthors,
     formatDate,
     slugify,
+    Url,
 } from "@ourworldindata/utils"
 import { useLinkedDocument } from "../utils.js"
 import Image, { ImageParentContainer } from "./Image.js"
 import { DocumentContext } from "../DocumentContext.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
+import { Button } from "@ourworldindata/components"
 import {
     ARCHIVED_THUMBNAIL_FILENAME,
     DEFAULT_GDOC_FEATURED_IMAGE,
     DEFAULT_THUMBNAIL_FILENAME,
     DbEnrichedLatestWork,
     RESEARCH_AND_WRITING_DEFAULT_HEADING,
+    SearchResultType,
+    SearchState,
 } from "@ourworldindata/types"
+import {
+    createTopicFilter,
+    SEARCH_BASE_PATH,
+} from "../../search/searchUtils.js"
+import { searchStateToUrl } from "../../search/searchState.js"
+import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
 
 function Thumbnail({
     filename,
@@ -173,6 +183,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
         heading,
         "hide-authors": hideAuthors,
         "hide-date": hideDate,
+        variant,
         primary,
         secondary,
         more,
@@ -188,7 +199,19 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
     const primarySecondaryUrls = [...primary, ...secondary].map(
         (link) => link.value.url
     )
-    const { latestWorkLinks } = useContext(AttachmentsContext)
+    const { latestWorkLinks, tags } = useContext(AttachmentsContext)
+    const topicName = tags?.[0]?.name
+    let seeAllResearchHref: string | undefined
+    if (topicName) {
+        const searchState: SearchState = {
+            query: "",
+            filters: [createTopicFilter(topicName)],
+            requireAllCountries: false,
+            resultType: SearchResultType.WRITING,
+        }
+        const url = Url.fromURL(searchStateToUrl(searchState))
+        seeAllResearchHref = `${SEARCH_BASE_PATH}${url.queryStr}`
+    }
     // There might be latestWorkLinks available but we only want to show them if
     // a {.latest} block has been added
     if (latest && latestWorkLinks) {
@@ -221,10 +244,18 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
 
     const shouldPrimarySecondaryOverflow = primary.length > 0
 
+    const isFeaturedVariant = variant === "featured"
+
     return (
         <div className={cx(className, "grid")}>
             <h1
-                className="article-block__heading span-cols-12 h1-semibold"
+                className={cx(
+                    "article-block__heading span-cols-12 h1-semibold",
+                    {
+                        "research-and-writing__heading--featured":
+                            isFeaturedVariant,
+                    }
+                )}
                 id={slug}
             >
                 <span>{heading || RESEARCH_AND_WRITING_DEFAULT_HEADING}</span>
@@ -236,14 +267,23 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
             </h1>
             <div className="span-cols-12 research-and-writing-row">
                 <div
-                    className={cx("grid research-and-writing-row__links", {
+                    className={cx("research-and-writing-row__links", {
                         "research-and-writing-row__links--overflow":
                             shouldPrimarySecondaryOverflow,
+                        "research-and-writing-row__links--featured":
+                            isFeaturedVariant,
+                        grid: !isFeaturedVariant,
                     })}
                 >
                     {primary.map((link, i) => (
                         <ResearchAndWritingLink
-                            className="span-cols-6 span-sm-cols-12"
+                            className={cx({
+                                "research-and-writing-link--featured":
+                                    isFeaturedVariant,
+                                "span-cols-6 span-sm-cols-12":
+                                    !isFeaturedVariant,
+                            })}
+                            isSmall={isFeaturedVariant}
                             key={i}
                             shouldHideAuthors={hideAuthors}
                             shouldHideDate={hideDate}
@@ -253,7 +293,12 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                     {secondary.map((link, i) => (
                         <ResearchAndWritingLink
                             key={i}
-                            className="span-cols-3 span-md-cols-6 span-sm-cols-12"
+                            className={cx({
+                                "research-and-writing-link--featured":
+                                    isFeaturedVariant,
+                                "span-cols-3 span-md-cols-6 span-sm-cols-12":
+                                    !isFeaturedVariant,
+                            })}
                             isSmall
                             shouldHideAuthors={hideAuthors}
                             shouldHideDate={hideDate}
@@ -264,17 +309,39 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
             </div>
             {rows.map((row, i) => (
                 <div key={i} className="span-cols-12 research-and-writing-row">
-                    <h2 className="h2-bold research-and-writing-row__heading">
+                    <h2
+                        className={cx(
+                            "h2-bold research-and-writing-row__heading",
+                            {
+                                "research-and-writing-row__heading--featured":
+                                    isFeaturedVariant,
+                            }
+                        )}
+                    >
                         {row.heading}
                     </h2>
-                    <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__links research-and-writing-row__links--overflow">
+                    <div
+                        className={cx(
+                            "research-and-writing-row__links research-and-writing-row__links--overflow",
+                            {
+                                "research-and-writing-row__links--featured":
+                                    isFeaturedVariant,
+                                "grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2":
+                                    !isFeaturedVariant,
+                            }
+                        )}
+                    >
                         {row.articles.map((link, i) => (
                             <ResearchAndWritingLink
                                 shouldHideSubtitle
                                 shouldHideAuthors={hideAuthors}
                                 shouldHideDate={hideDate}
                                 isSmall
-                                className="span-cols-1"
+                                className={cx({
+                                    "research-and-writing-link--featured":
+                                        isFeaturedVariant,
+                                    "span-cols-1": !isFeaturedVariant,
+                                })}
                                 key={i}
                                 {...link}
                             />
@@ -284,10 +351,28 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
             ))}
             {more ? (
                 <div className="span-cols-12 research-and-writing-row">
-                    <h2 className="h2-bold research-and-writing-row__heading">
+                    <h2
+                        className={cx(
+                            "h2-bold research-and-writing-row__heading",
+                            {
+                                "research-and-writing-row__heading--featured":
+                                    isFeaturedVariant,
+                            }
+                        )}
+                    >
                         {more.heading}
                     </h2>
-                    <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__links research-and-writing-row__links--condensed-sm research-and-writing-row__links--condensed research-and-writing-row__links--overflow">
+                    <div
+                        className={cx(
+                            "research-and-writing-row__links research-and-writing-row__links--condensed-sm research-and-writing-row__links--condensed research-and-writing-row__links--overflow",
+                            {
+                                "research-and-writing-row__links--featured":
+                                    isFeaturedVariant,
+                                "grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2":
+                                    !isFeaturedVariant,
+                            }
+                        )}
+                    >
                         {more.articles.map((link, i) => (
                             <ResearchAndWritingLink
                                 shouldHideThumbnail
@@ -295,7 +380,11 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                                 shouldHideAuthors={hideAuthors}
                                 shouldHideDate={hideDate}
                                 isSmall
-                                className="span-cols-1"
+                                className={cx({
+                                    "research-and-writing-link--featured":
+                                        isFeaturedVariant,
+                                    "span-cols-1": !isFeaturedVariant,
+                                })}
                                 key={i}
                                 {...link}
                             />
@@ -305,21 +394,56 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
             ) : null}
             {latest?.articles?.length ? (
                 <div className="span-cols-12 research-and-writing-row">
-                    <h2 className="h1-semibold research-and-writing-row__heading research-and-writing-row__heading--divider">
+                    <h2
+                        className={cx(
+                            "h1-semibold research-and-writing-row__heading research-and-writing-row__heading--divider",
+                            {
+                                "research-and-writing-row__heading--featured":
+                                    isFeaturedVariant,
+                            }
+                        )}
+                    >
                         {latest.heading || "Latest work"}
                     </h2>
-                    <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 grid-sm-cols-1 research-and-writing-row__links research-and-writing-row__links--condensed-sm">
+                    <div
+                        className={cx(
+                            "research-and-writing-row__links research-and-writing-row__links--condensed-sm",
+                            {
+                                "research-and-writing-row__links--featured":
+                                    isFeaturedVariant,
+                                "grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 grid-sm-cols-1":
+                                    !isFeaturedVariant,
+                            }
+                        )}
+                    >
                         {latest.articles.map((link, i) => (
                             <ResearchAndWritingLink
                                 isSmall
                                 shouldHideThumbnailSm
                                 shouldHideAuthors={hideAuthors}
                                 shouldHideDate={hideDate}
-                                className="span-cols-1"
+                                className={cx({
+                                    "research-and-writing-link--featured":
+                                        isFeaturedVariant,
+                                    "span-cols-1": !isFeaturedVariant,
+                                })}
                                 key={i}
                                 {...link}
                             />
                         ))}
+                    </div>
+                </div>
+            ) : null}
+            {variant === "featured" && seeAllResearchHref ? (
+                <div className="span-cols-12 research-and-writing-row">
+                    <div className="research-and-writing__see-all">
+                        <Button
+                            theme="solid-vermillion"
+                            text={`See all articles on this topic`}
+                            href={seeAllResearchHref}
+                            icon={faMagnifyingGlass}
+                            iconPosition="left"
+                        />
                     </div>
                 </div>
             ) : null}
