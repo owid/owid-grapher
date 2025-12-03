@@ -263,3 +263,57 @@ $timelineHeight: 32px;
         }
     }
 }
+
+.GrapherTimeline__DateInput {
+    background: white;
+    border: 1px solid $blue-50;
+    color: inherit;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.13px;
+    padding: 8px;
+    margin: 0;
+    text-align: center;
+    outline: none;
+    height: 32px;
+    border-radius: 4px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
+    cursor: text;
+
+    &:focus-within {
+        border-color: $blue-50;
+    }
+
+    .GrapherTimeline__DateInputField {
+        display: flex;
+        gap: 2px;
+        outline: none;
+    }
+
+    .GrapherTimeline__DateInputSegment {
+        padding: 0 2px;
+        font: inherit;
+        color: inherit;
+        outline: none;
+        border-radius: 2px;
+        text-align: center;
+        cursor: text;
+
+        &[data-placeholder] {
+            color: $gray-60;
+        }
+
+        &[data-focused] {
+            background: $blue-20;
+            color: $active-text;
+        }
+
+        &[data-type="literal"] {
+            padding: 0 1px;
+        }
+    }
+}

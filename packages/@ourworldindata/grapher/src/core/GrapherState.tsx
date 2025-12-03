@@ -8,6 +8,8 @@ import {
     BlankOwidTable,
     CoreColumn,
     ColumnTypeMap,
+    TimeColumn,
+    MissingColumn,
 } from "@ourworldindata/core-table"
 import {
     GrapherChartType,
@@ -2761,9 +2763,17 @@ export class GrapherState {
     formatTimeFn(time: Time): string {
         return this.inputTable.timeColumn.formatTime(time)
     }
+
+    @computed get timeColumn(): TimeColumn | undefined {
+        const timeColumn = this.inputTable.timeColumn
+        if (timeColumn instanceof MissingColumn) return undefined
+        return timeColumn
+    }
+
     @computed get availableEntityNames(): EntityName[] {
         return this.tableForSelection.availableEntityNames
     }
+
     @computed get entityRegionTypeGroups(): EntityRegionTypeGroup[] {
         return groupEntityNamesByRegionType(this.availableEntityNames)
     }
