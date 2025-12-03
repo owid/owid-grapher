@@ -35,7 +35,7 @@ import {
     stripOuterParentheses,
 } from "./Util.js"
 import {
-    BlockImageSize,
+    BlockSize,
     OwidEnrichedGdocBlock,
     SortOrder,
     TagGraphRoot,
@@ -652,7 +652,7 @@ describe(traverseEnrichedBlock, () => {
         {
             type: "chart",
             url: "https://ourworldindata.org/grapher/population",
-            size: BlockImageSize.Wide,
+            size: BlockSize.Wide,
             parseErrors: [],
         },
         {
@@ -677,7 +677,7 @@ describe(traverseEnrichedBlock, () => {
                     type: "image",
                     filename: "logo.png",
                     hasOutline: false,
-                    size: BlockImageSize.Narrow,
+                    size: BlockSize.Narrow,
                     parseErrors: [],
                 },
             ],

@@ -1,5 +1,5 @@
 import {
-    BlockImageSize,
+    BlockSize,
     EnrichedBlockChart,
     EnrichedBlockPerson,
     EnrichedBlockText,
@@ -46,7 +46,7 @@ const enrichedBlockText: EnrichedBlockText = {
 const enrichedChart: EnrichedBlockChart = {
     type: "chart",
     url: "https://ourworldindata.org/grapher/total-cases-covid-19",
-    size: BlockImageSize.Wide,
+    size: BlockSize.Wide,
     parseErrors: [],
 }
 
@@ -118,7 +118,7 @@ export const enrichedBlockExamples: Record<
         height: "400",
         row: "1",
         column: "1",
-        size: BlockImageSize.Wide,
+        size: BlockSize.Wide,
         position: "featured",
         caption: boldLinkExampleText,
         parseErrors: [],
@@ -128,7 +128,7 @@ export const enrichedBlockExamples: Record<
         name: "world-has-become-less-democratic",
         height: "400",
         position: "featured",
-        size: BlockImageSize.Wide,
+        size: BlockSize.Wide,
         caption: boldLinkExampleText,
         parseErrors: [],
     },
@@ -232,7 +232,7 @@ export const enrichedBlockExamples: Record<
         hasOutline: true,
         alt: "",
         caption: [spanSimpleText],
-        size: BlockImageSize.Wide,
+        size: BlockSize.Wide,
         parseErrors: [],
     },
     video: {
@@ -247,7 +247,7 @@ export const enrichedBlockExamples: Record<
     "static-viz": {
         type: "static-viz",
         name: "some-static-viz",
-        size: BlockImageSize.Wide,
+        size: BlockSize.Wide,
         hasOutline: true,
         parseErrors: [],
     },
@@ -302,7 +302,7 @@ export const enrichedBlockExamples: Record<
             {
                 type: "chart",
                 url: "https://ourworldindata.org/grapher/life-expectancy",
-                size: BlockImageSize.Wide,
+                size: BlockSize.Wide,
                 parseErrors: [],
             },
             {

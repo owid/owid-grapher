@@ -51,7 +51,7 @@ import Person from "./Person.js"
 import NarrativeChart from "./NarrativeChart.js"
 import { Container, getLayout } from "./layout.js"
 import { Expander } from "./Expander.js"
-import { BlockImageSize, ChartConfigType } from "@ourworldindata/types"
+import { BlockSize, ChartConfigType } from "@ourworldindata/types"
 import { useLinkedChart } from "../utils.js"
 import { ResourcePanel } from "./ResourcePanel.js"
 import { Cta } from "./Cta.js"
@@ -131,7 +131,7 @@ function ArticleBlockInternal({
         .with({ type: "chart" }, (block) => {
             const { isExplorer, queryStr } = Url.fromURL(block.url)
             const areControlsHidden = queryStr.includes("hideControls=true")
-            const size = block.size ?? BlockImageSize.Wide
+            const size = block.size ?? BlockSize.Wide
             const layoutSubtype =
                 isExplorer && !areControlsHidden
                     ? `explorer--${size}`
@@ -148,7 +148,7 @@ function ArticleBlockInternal({
             )
         })
         .with({ type: "narrative-chart" }, (block) => {
-            const size = block.size ?? BlockImageSize.Wide
+            const size = block.size ?? BlockSize.Wide
             return (
                 <NarrativeChart
                     className={cx(
