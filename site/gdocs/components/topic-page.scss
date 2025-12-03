@@ -225,6 +225,7 @@
 }
 
 // Linear topic page customizations
+// See also grid-margin-overrides.scss for linear topic pages margin overrides
 .centered-article-container--linear-topic-page {
     .article-block__text,
     .article-block__list,
@@ -358,46 +359,5 @@
 
     .article-block__chart {
         margin-bottom: 32px;
-    }
-
-    /*** Rule 1: the table of contents is responsible for adding spacing (and dividers) with the surrounding content */
-    // Set the bottom margin of any element that comes before a table of contents to 0 */
-    [class*="article-block__"]:has(+ .article-block__ltp-toc) {
-        margin-bottom: 0;
-    }
-    // Set the top margin of any element that comes after a table of contents to 0 */
-    .article-block__ltp-toc + [class*="article-block__"] {
-        margin-top: 0;
-        &.needs-dividers {
-            // Compensating for extra 48px margin-top coming from the section header
-            margin-top: -48px;
-        }
-    }
-
-    /*** Rule 2: sections are responsible for adding spacing/dividers before themselves (except rule 1) */
-    [class*="article-block__"]:not(.article-block__ltp-toc) {
-        // Set the bottom margin of any non LTP TOC that comes before a section to 0
-        // The section itself has its own top margin
-        &:has(+ section) {
-            margin-bottom: 0;
-        }
-        // Add a section divider to any section.needs-dividers that comes right after
-        // any article-block that is not a section.no-dividers
-        &:not(section.no-dividers) + section.needs-dividers {
-            border-top: 1px solid $blue-10;
-            margin-top: 48px;
-        }
-        // Set the top margin of any section.no-dividers that comes after
-        // any non LTP TOC article-block
-        & + section.no-dividers {
-            margin-top: 48px;
-        }
-    }
-
-    /*** Rule 3: sections are responsible for adding spacing between themselves and the next block of regular content */
-    // Adds bottom margin to sections with the "needs-dividers" class when they are
-    // immediately followed by an article block element that is not a section.
-    section.needs-dividers:has(+ [class*="article-block__"]:not(section)) {
-        margin-bottom: 48px;
     }
 }
