@@ -6,6 +6,7 @@ import {
     EnrichedBlockChart,
     EnrichedBlockChartStory,
     EnrichedBlockDonorList,
+    EnrichedBlockConditionalSection,
     EnrichedBlockGraySection,
     EnrichedBlockExploreDataSection,
     ExploreDataSectionAlignment,
@@ -48,6 +49,7 @@ import {
     RawBlockChart,
     RawBlockChartStory,
     RawBlockDonorList,
+    RawBlockConditionalSection,
     RawBlockGraySection,
     RawBlockExploreDataSection,
     RawBlockHeading,
@@ -159,6 +161,8 @@ import {
     resourcePanelIcons,
     EnrichedBlockCta,
     RawBlockCta,
+    EnrichedBlockScript,
+    RawBlockScript,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -167,6 +171,7 @@ import {
     Url,
     toAsciiQuotes,
     traverseEnrichedBlock,
+    validateConditionalSectionLists,
 } from "@ourworldindata/utils"
 import { checkIsInternalLink, getLinkType } from "@ourworldindata/components"
 import {
@@ -182,10 +187,6 @@ import {
 } from "./htmlToEnriched.js"
 import { P, match } from "ts-pattern"
 import * as R from "remeda"
-import {
-    EnrichedBlockScript,
-    RawBlockScript,
-} from "@ourworldindata/types/src/gdocTypes/ArchieMlComponents.js"
 
 export function parseRawBlocksToEnrichedBlocks(
     block: OwidRawGdocBlock
@@ -240,6 +241,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "side-by-side" }, parseSideBySide)
         .with({ type: "gray-section" }, parseGraySection)
         .with({ type: "explore-data-section" }, parseExploreDataSection)
+        .with({ type: "conditional-section" }, parseConditionalSection)
         .with({ type: "prominent-link" }, parseProminentLink)
         .with({ type: "topic-page-intro" }, parseTopicPageIntro)
         .with({ type: "cookie-notice" }, parseCookieNotice)
@@ -1632,6 +1634,76 @@ function parseExploreDataSection(
         content: _.compact(
             raw.value.content.map(parseRawBlocksToEnrichedBlocks)
         ),
+        parseErrors,
+    }
+}
+
+/**
+ * This is the first pass at validating a conditional section.
+ * There's a second pass once the profile has been instantiated
+ * in instantiateProfile to determine whether to include/exclude
+ * the content based on the profile's entities.
+ */
+function parseConditionalSection(
+    raw: RawBlockConditionalSection
+): EnrichedBlockConditionalSection | null {
+    const baseBlock: EnrichedBlockConditionalSection = {
+        type: "conditional-section",
+        content: [],
+        include: [],
+        exclude: [],
+        parseErrors: [],
+    }
+
+    const parseErrors: ParseError[] = []
+
+    const content = raw.value.content
+    if (!content) {
+        return {
+            ...baseBlock,
+            parseErrors: [
+                {
+                    message: "Conditional section must have content",
+                },
+            ],
+        }
+    }
+
+    const parseEntityList = (
+        rawList: unknown
+    ): { value: string[]; parseErrors: ParseError[] } => {
+        if (!rawList) {
+            return { value: [], parseErrors: [] }
+        }
+        if (typeof rawList === "string") {
+            const value: string[] = rawList.split(",").map((s) => s.trim())
+            return { value, parseErrors: [] }
+        }
+        return {
+            value: [],
+            parseErrors: [
+                {
+                    message:
+                        "Include/exclude must be a comma-separated string of entity names",
+                },
+            ],
+        }
+    }
+    const include = parseEntityList(raw.value.include)
+    const exclude = parseEntityList(raw.value.exclude)
+    parseErrors.push(...include.parseErrors)
+    parseErrors.push(...exclude.parseErrors)
+    parseErrors.push(
+        ...validateConditionalSectionLists(include.value, exclude.value)
+    )
+
+    return {
+        type: "conditional-section",
+        content: content
+            .map(parseRawBlocksToEnrichedBlocks)
+            .filter((block): block is OwidEnrichedGdocBlock => block !== null),
+        include: include.value,
+        exclude: exclude.value,
         parseErrors,
     }
 }

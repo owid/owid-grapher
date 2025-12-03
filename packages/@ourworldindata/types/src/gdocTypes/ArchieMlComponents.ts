@@ -557,6 +557,22 @@ export type RawBlockGraySection = {
     value: OwidRawGdocBlock[]
 }
 
+export type RawBlockConditionalSection = {
+    type: "conditional-section"
+    value: {
+        include?: string
+        exclude?: string
+        content?: OwidRawGdocBlock[]
+    }
+}
+
+export type EnrichedBlockConditionalSection = {
+    type: "conditional-section"
+    include: string[]
+    exclude: string[]
+    content: OwidEnrichedGdocBlock[]
+} & EnrichedBlockWithParseErrors
+
 export type EnrichedBlockGraySection = {
     type: "gray-section"
     items: OwidEnrichedGdocBlock[]
@@ -1148,6 +1164,7 @@ export type OwidRawGdocBlock =
     | RawBlockSideBySideContainer
     | RawBlockGraySection
     | RawBlockExploreDataSection
+    | RawBlockConditionalSection
     | RawBlockProminentLink
     | RawBlockSDGToc
     | RawBlockLTPToc
@@ -1207,6 +1224,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockSideBySideContainer
     | EnrichedBlockGraySection
     | EnrichedBlockExploreDataSection
+    | EnrichedBlockConditionalSection
     | EnrichedBlockProminentLink
     | EnrichedBlockSDGToc
     | EnrichedBlockLTPToc

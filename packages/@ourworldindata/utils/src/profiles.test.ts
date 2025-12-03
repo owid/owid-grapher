@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest"
-import { instantiateProfile, getEntitiesForProfile } from "./profiles.js"
+import {
+    instantiateProfile,
+    getEntitiesForProfile,
+    checkShouldConditionalSectionRender,
+    validateConditionalSectionLists,
+} from "./profiles.js"
 import {
     getCountryByName,
     articulateEntity,
@@ -95,13 +100,12 @@ describe("instantiateProfile", () => {
     it("replaces placeholders with articulated entity name and code", () => {
         const country = getCountryByName("United States") as Country
         const template = buildProfileTemplate()
+        const expectedEntity = articulateEntity(country.name)
 
         const instantiated = instantiateProfile(template, country)
 
         expect(instantiated).not.toBe(template)
-        expect(instantiated.title).toEqual(
-            `${articulateEntity(country.name)} Energy Profile`
-        )
+        expect(instantiated.title).toEqual(`${expectedEntity} Energy Profile`)
         expect(instantiated.excerpt).toEqual(
             `Insights about ${articulateEntity(country.name)}.`
         )
@@ -167,6 +171,58 @@ describe("instantiateProfile", () => {
             slug: "how-much-does-canada-emit",
             isSubheading: false,
         })
+    })
+
+    it("formats possessives for articulated names", () => {
+        const country = getCountryByName("United States") as Country
+        const template: OwidGdocProfileContent = {
+            ...buildProfileTemplate(),
+            title: "$entityName overview",
+            excerpt:
+                "$entityName is unique. What is $entityName’s life expectancy?",
+            body: [
+                {
+                    type: "text",
+                    value: [
+                        {
+                            spanType: "span-simple-text",
+                            text: "$entityName drives growth.\n- $entityName’s innovation sets trends.",
+                        },
+                    ],
+                    parseErrors: [],
+                },
+            ],
+        }
+
+        const instantiated = instantiateProfile(template, country)
+
+        expect(instantiated.title).toEqual("the United States overview")
+        expect(instantiated.excerpt).toEqual(
+            "the United States is unique. What is the United States’ life expectancy?"
+        )
+        expect(instantiated.body[0]).toMatchObject({
+            value: [
+                expect.objectContaining({
+                    text: "the United States drives growth.\n- the United States’ innovation sets trends.",
+                }),
+            ],
+        })
+    })
+
+    it("supports capitalized replacements via $EntityName tokens", () => {
+        const country = getCountryByName("United States") as Country
+        const template: OwidGdocProfileContent = {
+            ...buildProfileTemplate(),
+            title: "$EntityName overview",
+            excerpt: "$EntityName leads $entityName’s examples.",
+        }
+
+        const instantiated = instantiateProfile(template, country)
+
+        expect(instantiated.title).toEqual("The United States overview")
+        expect(instantiated.excerpt).toEqual(
+            "The United States leads the United States’ examples."
+        )
     })
 })
 
@@ -255,5 +311,170 @@ describe("getEntitiesForProfile", () => {
                 expect.objectContaining({ code: "OWID_EUR" }),
             ])
         )
+    })
+})
+
+describe("shouldConditionalSectionRender", () => {
+    it("Can tell when an entity should render when only include is specified", () => {
+        const shouldRender = checkShouldConditionalSectionRender({
+            entity: "Burkina Faso",
+            include: ["Burkina Faso"],
+            exclude: [],
+        })
+
+        expect(shouldRender).toEqual(true)
+    })
+
+    it("Can tell when an entity should render when only exclude is specified", () => {
+        const shouldRender = checkShouldConditionalSectionRender({
+            entity: "Burkina Faso",
+            include: [],
+            exclude: ["Burkina Faso"],
+        })
+        expect(shouldRender).toEqual(false)
+    })
+
+    it("Should hide when entity doesn't match include list", () => {
+        const shouldRender = checkShouldConditionalSectionRender({
+            entity: "Canada",
+            include: ["Burkina Faso"],
+            exclude: [],
+        })
+        expect(shouldRender).toEqual(false)
+    })
+
+    it("Should show when entity doesn't match exclude list", () => {
+        const shouldRender = checkShouldConditionalSectionRender({
+            entity: "Canada",
+            include: [],
+            exclude: ["Burkina Faso"],
+        })
+
+        expect(shouldRender).toEqual(true)
+    })
+
+    it("Matches entity by region membership (continent)", () => {
+        const shouldRender = checkShouldConditionalSectionRender({
+            entity: "Burkina Faso",
+            include: ["Africa"],
+            exclude: [],
+        })
+
+        expect(shouldRender).toEqual(true)
+    })
+
+    it("Matches entity by income group membership", () => {
+        const shouldRender = checkShouldConditionalSectionRender({
+            entity: "Canada",
+            include: ["High-income countries"],
+            exclude: [],
+        })
+
+        expect(shouldRender).toEqual(true)
+    })
+
+    it("Excludes entity by region membership", () => {
+        const shouldRender = checkShouldConditionalSectionRender({
+            entity: "Canada",
+            include: [],
+            exclude: ["High-income countries"],
+        })
+        expect(shouldRender).toEqual(false)
+    })
+
+    it("Handles multiple regions in include list", () => {
+        const shouldRender = checkShouldConditionalSectionRender({
+            entity: "Brazil",
+            include: ["Africa", "South America"],
+            exclude: [],
+        })
+
+        expect(shouldRender).toEqual(true)
+    })
+
+    it("Excludes specific country overrides including region (valid overlap)", () => {
+        const shouldRender = checkShouldConditionalSectionRender({
+            entity: "Canada",
+            include: ["North America"],
+            exclude: ["Canada"],
+        })
+        expect(shouldRender).toEqual(false)
+    })
+
+    it("Exclude specific country overrides include income group (valid overlap)", () => {
+        const shouldRender = checkShouldConditionalSectionRender({
+            entity: "Canada",
+            include: ["High-income countries"],
+            exclude: ["Canada", "United States"],
+        })
+        expect(shouldRender).toEqual(false)
+    })
+
+    it("Shows entity that matches one of multiple include conditions", () => {
+        const shouldRender = checkShouldConditionalSectionRender({
+            entity: "New Zealand",
+            include: ["Australia", "New Zealand", "Fiji"],
+            exclude: [],
+        })
+
+        expect(shouldRender).toEqual(true)
+    })
+
+    it("Entity not in specified region should be hidden", () => {
+        const shouldRender = checkShouldConditionalSectionRender({
+            entity: "Japan",
+            include: ["Africa"],
+            exclude: [],
+        })
+        expect(shouldRender).toEqual(false)
+    })
+
+    it("Returns false when the entity cannot be resolved", () => {
+        const shouldRender = checkShouldConditionalSectionRender({
+            entity: "Atlantis",
+            include: ["Canada"],
+            exclude: [],
+        })
+        expect(shouldRender).toEqual(false)
+    })
+})
+
+describe("validateConditionalSectionLists", () => {
+    it("Returns an error when same entity appears in both include and exclude", () => {
+        const errors = validateConditionalSectionLists(
+            ["Canada", "United States"],
+            ["Canada"]
+        )
+        expect(errors).toHaveLength(1)
+    })
+
+    it("Returns an error when include and exclude are specified but include has a country", () => {
+        const errors = validateConditionalSectionLists(
+            ["Afghanistan"],
+            ["Laos"]
+        )
+        expect(errors).toHaveLength(1)
+    })
+
+    it("Returns an error if an exclude isn't relevant given the includes", () => {
+        const errors = validateConditionalSectionLists(
+            ["Low-income countries"],
+            ["United Kingdom"]
+        )
+        expect(errors).toHaveLength(1)
+    })
+
+    it("Returns an error if an invalid region is provided", () => {
+        const errors = validateConditionalSectionLists(
+            ["not-a-country-or-region"],
+            []
+        )
+
+        expect(errors).toHaveLength(1)
+    })
+
+    it("Returns an error if include and exclude aren't specified", () => {
+        const errors = validateConditionalSectionLists([], [])
+        expect(errors).toHaveLength(1)
     })
 })
