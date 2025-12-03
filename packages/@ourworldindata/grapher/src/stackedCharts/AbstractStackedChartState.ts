@@ -35,7 +35,6 @@ import {
     CategoricalColorMap,
 } from "../color/CategoricalColorAssigner.js"
 import { BinaryMapPaletteE } from "../color/CustomSchemes.js"
-import { checkIsStackingEntitiesSensible } from "./StackedUtils.js"
 import { FocusArray } from "../focus/FocusArray.js"
 import { AxisConfig } from "../axis/AxisConfig.js"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis.js"
@@ -252,10 +251,7 @@ export abstract class AbstractStackedChartState implements ChartState {
             // No facet strategy makes sense if columns are stacked and a single entity is selected
             (!this.isEntitySeries && !areMultipleEntitiesSelected) ||
             // No facet strategy makes sense if entities are stacked and we have a single column
-            (this.isEntitySeries &&
-                !hasMultipleYColumns &&
-                // The stacking must be sensible
-                checkIsStackingEntitiesSensible(selectedEntityNames))
+            (this.isEntitySeries && !hasMultipleYColumns)
         )
             strategies.push(FacetStrategy.none)
 
@@ -271,11 +267,7 @@ export abstract class AbstractStackedChartState implements ChartState {
             // Facetting by column makes sense if we have multiple columns
             hasMultipleYColumns &&
             // Stacking percentages doesn't make sense unless we're in relative mode
-            (!hasPercentageUnit || this.manager.isRelativeMode) &&
-            // Some stacked entity combinations are not allowed, e.g. stacking
-            // countries on top their continent or stacking countries or continents
-            // on top of World
-            checkIsStackingEntitiesSensible(selectedEntityNames)
+            (!hasPercentageUnit || this.manager.isRelativeMode)
         )
             strategies.push(FacetStrategy.metric)
 
