@@ -11,7 +11,7 @@ import {
     slugify,
     KEY_INSIGHTS_ID,
 } from "@ourworldindata/utils"
-import { BlockImageSize } from "@ourworldindata/types"
+import { BlockSize } from "@ourworldindata/types"
 
 import { ArticleBlocks } from "./ArticleBlocks.js"
 import Image from "./Image.js"
@@ -309,7 +309,7 @@ export const KeyInsights = ({
                     d={{
                         url,
                         type: "chart",
-                        size: BlockImageSize.Wide,
+                        size: BlockSize.Wide,
                         parseErrors: [],
                     }}
                     fullWidthOnMobile={true}
@@ -322,7 +322,7 @@ export const KeyInsights = ({
                     d={{
                         name: narrativeChartName,
                         type: "narrative-chart",
-                        size: BlockImageSize.Wide,
+                        size: BlockSize.Wide,
                         parseErrors: [],
                     }}
                     fullWidthOnMobile={true}

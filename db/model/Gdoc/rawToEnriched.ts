@@ -77,8 +77,8 @@ import {
     Span,
     SpanSimpleText,
     EnrichedBlockSimpleText,
-    BlockImageSize,
-    checkIsBlockImageSize,
+    BlockSize,
+    checkIsBlockSize,
     RawBlockTopicPageIntro,
     EnrichedBlockTopicPageIntro,
     EnrichedTopicPageIntroRelatedTopic,
@@ -472,7 +472,7 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
         error: ParseError,
         url: string,
         caption: Span[] = [],
-        size: BlockImageSize = BlockImageSize.Wide
+        size: BlockSize = BlockSize.Wide
     ): EnrichedBlockChart => ({
         type: "chart",
         url,
@@ -487,7 +487,7 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
         return {
             type: "chart",
             url: val,
-            size: BlockImageSize.Wide,
+            size: BlockSize.Wide,
             parseErrors: [],
         }
     } else {
@@ -506,15 +506,15 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
         const height = val.height
         const row = val.row
         const column = val.column
-        const size = val.size ?? BlockImageSize.Wide
-        if (!checkIsBlockImageSize(size)) {
+        const size = val.size ?? BlockSize.Wide
+        if (!checkIsBlockSize(size)) {
             return createError(
                 {
                     message: `Invalid size property: ${size}`,
                 },
                 url,
                 [],
-                BlockImageSize.Wide
+                BlockSize.Wide
             )
         }
         // This property is currently unused, a holdover from @mathisonian's gdocs demo.
@@ -550,7 +550,7 @@ const parseNarrativeChart = (
         error: ParseError,
         name: string,
         caption: Span[] = [],
-        size: BlockImageSize = BlockImageSize.Wide
+        size: BlockSize = BlockSize.Wide
     ): EnrichedBlockNarrativeChart => ({
         type: "narrative-chart",
         name,
@@ -565,7 +565,7 @@ const parseNarrativeChart = (
         return {
             type: "narrative-chart",
             name: val,
-            size: BlockImageSize.Wide,
+            size: BlockSize.Wide,
             parseErrors: [],
         }
     } else {
@@ -580,15 +580,15 @@ const parseNarrativeChart = (
         const warnings: ParseError[] = []
 
         const height = val.height
-        const size = val.size ?? BlockImageSize.Wide
-        if (!checkIsBlockImageSize(size)) {
+        const size = val.size ?? BlockSize.Wide
+        if (!checkIsBlockSize(size)) {
             return createError(
                 {
                     message: `Invalid size property: ${size}`,
                 },
                 val.name,
                 [],
-                BlockImageSize.Wide
+                BlockSize.Wide
             )
         }
         // This property is currently unused, a holdover from @mathisonian's gdocs demo.
@@ -735,7 +735,7 @@ const parseChartStory = (raw: RawBlockChartStory): EnrichedBlockChartStory => {
                 chart: {
                     type: "chart",
                     url: chart,
-                    size: BlockImageSize.Wide,
+                    size: BlockSize.Wide,
                     parseErrors: [],
                 },
                 technical: item.technical?.list
@@ -763,7 +763,7 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
         filename: string = "",
         alt: string = "",
         caption?: Span[],
-        size: BlockImageSize = BlockImageSize.Wide
+        size: BlockSize = BlockSize.Wide
     ): EnrichedBlockImage => ({
         type: "image",
         filename,
@@ -783,8 +783,8 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
     }
 
     // Default to wide
-    const size = image.value.size ?? BlockImageSize.Wide
-    if (!checkIsBlockImageSize(size)) {
+    const size = image.value.size ?? BlockSize.Wide
+    if (!checkIsBlockSize(size)) {
         return createError({
             message: `Invalid size property: ${size}`,
         })
@@ -885,7 +885,7 @@ const parseStaticViz = (raw: RawBlockStaticViz): EnrichedBlockStaticViz => {
     const createError = (
         error: ParseError,
         name: string = "",
-        size: BlockImageSize = BlockImageSize.Wide,
+        size: BlockSize = BlockSize.Wide,
         hasOutline: boolean = true
     ): EnrichedBlockStaticViz => ({
         type: "static-viz",
@@ -902,8 +902,8 @@ const parseStaticViz = (raw: RawBlockStaticViz): EnrichedBlockStaticViz => {
         })
     }
 
-    const size = raw.value.size ?? BlockImageSize.Wide
-    if (!checkIsBlockImageSize(size)) {
+    const size = raw.value.size ?? BlockSize.Wide
+    if (!checkIsBlockSize(size)) {
         return createError(
             {
                 message: `Invalid size property: ${size}`,

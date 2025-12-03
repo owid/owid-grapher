@@ -23,7 +23,7 @@ import {
     EnrichedBlockList,
     EnrichedBlockNumberedList,
     EnrichedBlockProminentLink,
-    BlockImageSize,
+    BlockSize,
     detailOnDemandRegex,
     spansToUnformattedPlainText,
     EnrichedBlockCallout,
@@ -579,7 +579,7 @@ function cheerioToArchieML(
                                 originalWidth: undefined,
                                 hasOutline: false,
                                 caption: figcaptionElement?.value,
-                                size: BlockImageSize.Wide,
+                                size: BlockSize.Wide,
                             },
                         ],
                     }
@@ -639,7 +639,7 @@ function cheerioToArchieML(
                             {
                                 type: "chart",
                                 url: src,
-                                size: BlockImageSize.Wide,
+                                size: BlockSize.Wide,
                                 parseErrors: [],
                             },
                         ],
@@ -667,7 +667,7 @@ function cheerioToArchieML(
                                 parseErrors: [],
                                 hasOutline: false,
                                 originalWidth: undefined,
-                                size: BlockImageSize.Wide,
+                                size: BlockSize.Wide,
                             },
                         ],
                     }

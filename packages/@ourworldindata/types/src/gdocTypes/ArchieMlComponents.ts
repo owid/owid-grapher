@@ -36,7 +36,7 @@ export type RawBlockChartValue = {
     height?: string
     row?: string
     column?: string
-    size?: BlockImageSize
+    size?: BlockSize
     // TODO: position is used as a classname apparently? Should be renamed or split
     position?: string
     caption?: string
@@ -53,7 +53,7 @@ export type EnrichedBlockChart = {
     height?: string
     row?: string
     column?: string
-    size: BlockImageSize
+    size: BlockSize
     position?: ChartPositionChoice
     caption?: Span[]
 } & EnrichedBlockWithParseErrors
@@ -65,7 +65,7 @@ export type RawBlockNarrativeChartValue = {
     column?: string
     // TODO: position is used as a classname apparently? Should be renamed or split
     position?: string
-    size?: BlockImageSize
+    size?: BlockSize
     caption?: string
 }
 
@@ -81,7 +81,7 @@ export type EnrichedBlockNarrativeChart = {
     row?: string
     column?: string
     position?: ChartPositionChoice
-    size: BlockImageSize
+    size: BlockSize
     caption?: Span[]
 } & EnrichedBlockWithParseErrors
 
@@ -205,15 +205,15 @@ export type EnrichedBlockExpander = {
     content: OwidEnrichedGdocBlock[]
 } & EnrichedBlockWithParseErrors
 
-export enum BlockImageSize {
+export enum BlockSize {
     Narrow = "narrow",
     Wide = "wide",
     Widest = "widest",
 }
 
-export function checkIsBlockImageSize(size: unknown): size is BlockImageSize {
+export function checkIsBlockSize(size: unknown): size is BlockSize {
     if (typeof size !== "string") return false
-    return Object.values(BlockImageSize).includes(size as any)
+    return Object.values(BlockSize).includes(size as any)
 }
 
 export type RawBlockImage = {
@@ -223,7 +223,7 @@ export type RawBlockImage = {
         smallFilename?: string
         alt?: string
         caption?: string
-        size?: BlockImageSize
+        size?: BlockSize
         hasOutline?: string
     }
 }
@@ -235,7 +235,7 @@ export type EnrichedBlockImage = {
     alt?: string // optional as we can use the default alt from the file
     caption?: Span[]
     originalWidth?: number
-    size: BlockImageSize
+    size: BlockSize
     hasOutline: boolean
     // Not a real ArchieML prop - we set this to true for Data Insights, as a way to migrate
     // first generation data insights to only use their small image
@@ -267,7 +267,7 @@ export type RawBlockStaticViz = {
     type: "static-viz"
     value: {
         name?: string
-        size?: BlockImageSize
+        size?: BlockSize
         hasOutline?: string
     }
 }
@@ -275,7 +275,7 @@ export type RawBlockStaticViz = {
 export type EnrichedBlockStaticViz = {
     type: "static-viz"
     name: string
-    size: BlockImageSize
+    size: BlockSize
     hasOutline: boolean
 } & EnrichedBlockWithParseErrors
 
