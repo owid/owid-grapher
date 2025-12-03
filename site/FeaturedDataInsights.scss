@@ -1,17 +1,14 @@
-.article-block__featured-data-insights {
-    border-top: 1px solid $blue-10;
-    margin-bottom: 48px;
+.article-block__featured-data-insights > h1 {
+    text-align: center;
+    margin-bottom: $margin-bottom-section-heading-ltp;
 }
 
-.article-block__featured-data-insights__title {
-    text-align: center;
-    margin-top: 32px;
-}
 .article-block__featured-data-insights__hits {
     display: flex;
     flex-direction: row;
     align-items: start;
-    gap: var(--grid-gap);
+    column-gap: var(--grid-gap);
+    row-gap: 32px;
 
     @include sm-only {
         overflow-x: auto;

@@ -77,6 +77,7 @@ export function GdocPost({
     )
     const citationText = `${shortPageCitation} Published online at OurWorldinData.org. Retrieved from: '${citationUrl}' [Online Resource]${archivalPhrase ? ` ${archivalPhrase}` : ""}`
     const hasSidebarToc = content["sidebar-toc"]
+    const headingVariant = content["heading-variant"] ?? "light"
     const shouldHideSubscribeBanner =
         content["hide-subscribe-banner"] || postType === OwidGdocType.TopicPage
     const isDeprecated =
@@ -96,6 +97,7 @@ export function GdocPost({
         <article
             className={cx(
                 "centered-article-container grid grid-cols-12-full-width",
+                `centered-article-container--heading-variant-${headingVariant}`,
                 // Only add this modifier class when content.type is defined
                 {
                     [`centered-article-container--${content.type}`]:
@@ -152,7 +154,7 @@ export function GdocPost({
             {!content["hide-citation"] && (
                 <section
                     id={CITATION_ID}
-                    className="grid grid-cols-12-full-width col-start-1 col-end-limit"
+                    className="grid grid-cols-12-full-width col-start-1 col-end-limit no-dividers"
                 >
                     <div className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
                         <h3

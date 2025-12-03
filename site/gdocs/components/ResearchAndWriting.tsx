@@ -247,15 +247,17 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
     const isFeaturedVariant = variant === "featured"
 
     return (
-        <div className={cx(className, "grid")}>
+        <section
+            className={cx(className, "grid", {
+                "article-block__research-and-writing--featured needs-dividers":
+                    isFeaturedVariant,
+            })}
+        >
             <h1
-                className={cx(
-                    "article-block__heading span-cols-12 h1-semibold",
-                    {
-                        "research-and-writing__heading--featured":
-                            isFeaturedVariant,
-                    }
-                )}
+                className={cx("h1-semibold span-cols-12", {
+                    "research-and-writing__heading--featured":
+                        isFeaturedVariant,
+                })}
                 id={slug}
             >
                 <span>{heading || RESEARCH_AND_WRITING_DEFAULT_HEADING}</span>
@@ -447,6 +449,6 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                     </div>
                 </div>
             ) : null}
-        </div>
+        </section>
     )
 }

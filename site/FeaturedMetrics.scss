@@ -1,10 +1,6 @@
-.article-block__featured-metrics {
-    margin-bottom: 48px;
-}
-
-.article-block__featured-metrics__title {
-    margin-top: 0;
+.article-block__featured-metrics > h1 {
     text-align: center;
+    margin-bottom: $margin-bottom-section-heading-ltp;
 }
 
 .article-block__featured-metrics__see-all {

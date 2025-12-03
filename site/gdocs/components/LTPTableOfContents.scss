@@ -1,15 +1,31 @@
+// This component is responsible for adding a divider line below itself,
+// including the necessary spacing. It assumes that any element that follows it
+// does not have any top margin (see grid-margin-overrides.scss).
 .ltp-toc {
     background-color: $blue-5;
     border: 1px solid $blue-20;
     padding: 48px 24px;
-    margin: 32px 0px;
+    margin: 40px 0px 97px; // odd number to make space for the 1px bottom border of the pseudo-element positioned halfway below
     row-gap: 16px;
     display: grid;
     align-items: flex-start;
+    position: relative;
+
+    &::after {
+        content: "";
+        position: absolute;
+        bottom: -50px; // round(margin-bottom (97) / 2) + border-width of ltp-toc (1)
+        left: 0;
+        right: 0;
+        border-bottom: 1px solid $blue-10;
+    }
 
     @include sm-only {
-        margin: 24px 0;
+        margin: 24px 0 81px; // odd number to make space for the 1px bottom border of the pseudo-element positioned halfway below
         padding: 24px;
+        &::after {
+            bottom: -42px; // round(margin-bottom (81) / 2) + border-width of ltp-toc (1)
+        }
     }
 }
 

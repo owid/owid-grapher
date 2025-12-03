@@ -1204,12 +1204,12 @@ div.raw-html-table__container {
     }
 }
 
-@include sm-only {
-    .article-block__text + .article-block__prominent-link {
+.article-block__text + .article-block__prominent-link {
+    margin-top: 16px; // makes 32px gap with the default 16px bottom margin of text blocks, for symmetry with bottom margin 👆
+    @include sm-only {
         margin-top: 8px;
     }
 }
-
 .article-block__key-insights {
     .slide[data-active="true"] {
         // Have to override the WP styles, which we can undo once they're removed

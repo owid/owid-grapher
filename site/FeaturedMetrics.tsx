@@ -14,6 +14,7 @@ import { Button } from "@ourworldindata/components"
 import { searchStateToUrl } from "./search/searchState.js"
 import { Url } from "@ourworldindata/utils"
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
+import cx from "classnames"
 
 const MAX_MEDIUM_RESULTS = 4
 const MAX_SMALL_RESULTS = 5
@@ -57,8 +58,11 @@ export const FeaturedMetrics = ({
     const searchHref = `${SEARCH_BASE_PATH}${url.queryStr}`
 
     return (
-        <section className={className} id={FEATURED_METRICS_ID}>
-            <h1 className="article-block__featured-metrics__title h1-semibold">
+        <section
+            className={cx(className, "needs-dividers")}
+            id={FEATURED_METRICS_ID}
+        >
+            <h1 className="h1-semibold">
                 <span>Featured data on {topicName}</span>
                 <a
                     className="deep-link"
