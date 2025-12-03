@@ -111,8 +111,8 @@ export class ContentSwitchers extends React.Component<{
                 ),
                 buttonProps: {
                     className: cx({ active: tab === this.activeTab }),
-                    "data-track-note": "chart_click_" + tab,
-                    "aria-label": makeLabelForGrapherTab(tab, {
+                    dataTrackNote: "chart_click_" + tab,
+                    ariaLabel: makeLabelForGrapherTab(tab, {
                         useGenericChartLabel: !hasMultipleChartTypes,
                     }),
                 },
