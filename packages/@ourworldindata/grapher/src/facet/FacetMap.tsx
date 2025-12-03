@@ -277,6 +277,7 @@ export class FacetMap
             shouldPinTooltipToBottom,
             projectionColumnInfoBySlug,
             isFaceted,
+            yColumnSlug,
         } = manager
 
         return series.map((series, index) => {
@@ -304,6 +305,7 @@ export class FacetMap
                 highlightedTimesInTooltip: targetTimes,
                 mapViewport,
                 isFaceted,
+                yColumnSlug,
                 ...series.manager,
             }
 
