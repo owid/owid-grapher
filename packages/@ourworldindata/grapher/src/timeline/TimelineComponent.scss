@@ -98,30 +98,6 @@ $timelineHeight: 32px;
             transform: scale(1);
             transition: transform 0.1s ease-out;
         }
-
-        > .handle-label {
-            position: absolute;
-            top: -32px;
-            left: 50%;
-            transform: translate(-50%, 0);
-            padding: 8px;
-            font-size: 12px;
-            line-height: 16px;
-            background-color: $tooltip-fill;
-            color: $tooltip-text;
-            border-radius: 4px;
-            width: max-content;
-        }
-
-        > .handle-label-arrow {
-            width: 6px;
-            height: 6px;
-            background-color: $tooltip-fill;
-            top: -3px;
-            position: absolute;
-            left: 50%;
-            transform: translate(-50%, 0) rotate(45deg);
-        }
     }
 
     .interval {

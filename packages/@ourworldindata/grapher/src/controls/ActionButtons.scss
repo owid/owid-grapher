@@ -94,19 +94,4 @@ div.ActionButton {
             background-color: var(--active-fill);
         }
     }
-
-    .hover-label {
-        width: max-content;
-        position: absolute;
-        top: -100%;
-        left: 50%;
-        transform: translate(-50%, -4px);
-        padding: 8px;
-        background-color: $tooltip-fill;
-        color: $tooltip-text;
-        border-radius: 4px;
-        font-size: 12px;
-        line-height: 16px;
-        z-index: $zindex-Tooltip;
-    }
 }
