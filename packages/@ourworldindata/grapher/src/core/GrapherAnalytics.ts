@@ -11,9 +11,11 @@ import {
 
 const DEBUG = false
 
+type GAEventWithClear = GAEvent & { _clear: boolean }
+
 // Add type information for dataLayer global provided by Google Tag Manager
 type WindowWithDataLayer = Window & {
-    dataLayer?: (GAEvent | GAConsent)[]
+    dataLayer?: (GAEventWithClear | GAConsent)[]
 }
 declare const window: WindowWithDataLayer
 
@@ -179,7 +181,14 @@ export class GrapherAnalytics {
             console.log("Analytics.logToGA", event)
             return
         }
-        if (typeof window !== "undefined") window.dataLayer?.push(event)
+        if (typeof window !== "undefined") {
+            // It's very important that we clear (_clear) the data layer whenever we push an event,
+            // otherwise it will retain all properties from previous events which can lead to
+            // confusing and incorrect events data being sent.
+            // See https://www.simoahava.com/analytics/two-simple-data-model-tricks/.
+            // see also https://github.com/google/data-layer-helper/blob/4a65b385db1fac710d33bf5d1345e598e3d117fc/README.md#preventing-default-recursive-merge
+            window.dataLayer?.push({ ...event, _clear: true })
+        }
     }
 
     updateGAConsentSettings(consent: GAConsentParams): void {
