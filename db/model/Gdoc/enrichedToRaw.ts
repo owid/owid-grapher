@@ -8,6 +8,7 @@ import {
     RawBlockChartStory,
     RawBlockDonorList,
     RawBlockGraySection,
+    RawBlockExploreDataSection,
     RawBlockHeading,
     RawBlockHtml,
     RawBlockImage,
@@ -421,6 +422,17 @@ export function enrichedBlockToRawBlock(
             (b): RawBlockGraySection => ({
                 type: b.type,
                 value: b.items.map(enrichedBlockToRawBlock),
+            })
+        )
+        .with(
+            { type: "explore-data-section" },
+            (b): RawBlockExploreDataSection => ({
+                type: b.type,
+                value: {
+                    title: b.title,
+                    align: b.align,
+                    content: b.content.map(enrichedBlockToRawBlock),
+                },
             })
         )
         .with(

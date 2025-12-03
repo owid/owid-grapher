@@ -9,6 +9,7 @@ import {
     RawBlockChartStory,
     RawBlockDonorList,
     RawBlockGraySection,
+    RawBlockExploreDataSection,
     RawBlockHomepageIntro,
     RawBlockHorizontalRule,
     RawBlockHtml,
@@ -546,6 +547,21 @@ function* RawBlockGraySectionToArchieMLString(
     yield "[]"
 }
 
+function* RawBlockExploreDataSectionToArchieMLString(
+    block: RawBlockExploreDataSection
+): Generator<string, void, undefined> {
+    yield "{.explore-data-section}"
+    if (typeof block.value !== "string") {
+        yield* propertyToArchieMLString("title", block.value)
+        yield* propertyToArchieMLString("align", block.value)
+        yield "[.+content]"
+        for (const b of block.value.content)
+            yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
+        yield "[]"
+    }
+    yield "{}"
+}
+
 function* RawBlockProminentLinkToArchieMLString(
     block: RawBlockProminentLink
 ): Generator<string, void, undefined> {
@@ -1042,6 +1058,10 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
             RawBlockSideBySideContainerToArchieMLString
         )
         .with({ type: "gray-section" }, RawBlockGraySectionToArchieMLString)
+        .with(
+            { type: "explore-data-section" },
+            RawBlockExploreDataSectionToArchieMLString
+        )
         .with({ type: "prominent-link" }, RawBlockProminentLinkToArchieMLString)
         .with({ type: "sdg-toc" }, rawBlockSDGTocToArchieMLString)
         .with({ type: "missing-data" }, rawBlockMissingDataToArchieMLString)

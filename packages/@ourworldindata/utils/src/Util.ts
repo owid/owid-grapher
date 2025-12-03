@@ -1621,6 +1621,12 @@ export function traverseEnrichedBlock(
                 traverseEnrichedBlock(node, callback, spanCallback)
             )
         })
+        .with({ type: "explore-data-section" }, (exploreDataSection) => {
+            callback(exploreDataSection)
+            exploreDataSection.content.forEach((node) =>
+                traverseEnrichedBlock(node, callback, spanCallback)
+            )
+        })
         .with({ type: "key-insights" }, (keyInsights) => {
             callback(keyInsights)
             keyInsights.insights.forEach((insight) =>

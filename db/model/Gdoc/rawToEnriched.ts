@@ -8,6 +8,9 @@ import {
     EnrichedBlockChartStory,
     EnrichedBlockDonorList,
     EnrichedBlockGraySection,
+    EnrichedBlockExploreDataSection,
+    ExploreDataSectionAlignment,
+    exploreDataSectionAlignments,
     EnrichedBlockHeading,
     EnrichedBlockHorizontalRule,
     EnrichedBlockHtml,
@@ -48,6 +51,7 @@ import {
     RawBlockChartStory,
     RawBlockDonorList,
     RawBlockGraySection,
+    RawBlockExploreDataSection,
     RawBlockHeading,
     RawBlockHtml,
     RawBlockImage,
@@ -240,6 +244,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "sticky-right" }, parseStickyRight)
         .with({ type: "side-by-side" }, parseSideBySide)
         .with({ type: "gray-section" }, parseGraySection)
+        .with({ type: "explore-data-section" }, parseExploreDataSection)
         .with({ type: "prominent-link" }, parseProminentLink)
         .with({ type: "topic-page-intro" }, parseTopicPageIntro)
         .with({ type: "cookie-notice" }, parseCookieNotice)
@@ -1662,6 +1667,33 @@ function parseGraySection(raw: RawBlockGraySection): EnrichedBlockGraySection {
         type: "gray-section",
         items: _.compact(raw.value.map(parseRawBlocksToEnrichedBlocks)),
         parseErrors: [],
+    }
+}
+
+function parseExploreDataSection(
+    raw: RawBlockExploreDataSection
+): EnrichedBlockExploreDataSection {
+    const parseErrors: ParseError[] = []
+    let align: ExploreDataSectionAlignment = "left"
+
+    if (raw.value.align !== undefined) {
+        if (!validateRawEnum(exploreDataSectionAlignments, raw.value.align)) {
+            parseErrors.push({
+                message: `Invalid explore-data-section alignment "${raw.value.align}". Must be one of ${exploreDataSectionAlignments.join(", ")}`,
+            })
+        } else {
+            align = raw.value.align
+        }
+    }
+
+    return {
+        type: "explore-data-section",
+        title: raw.value.title,
+        align,
+        content: _.compact(
+            raw.value.content.map(parseRawBlocksToEnrichedBlocks)
+        ),
+        parseErrors,
     }
 }
 
