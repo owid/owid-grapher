@@ -9,8 +9,6 @@ import {
     atomTimeInterval,
 } from "../store.ts"
 import * as R from "remeda"
-import { useEffect, useState } from "react"
-import { AVAILABLE_YEARS_RANGE } from "../utils/incomePlotConstants.ts"
 import { IncomePlotCountrySelector } from "./IncomePlotCountrySelector.tsx"
 import { Checkbox, LabeledSwitch } from "@ourworldindata/components"
 import cx from "classnames"
@@ -70,36 +68,21 @@ export const IncomePlotControlsRowTop = () => {
 
 export const IncomePlotControlsRowBottom = () => {
     const [timeInterval, nextTimeInterval] = useAtom(atomTimeInterval)
-    const [currentYear, setCurrentYear] = useAtom(atomCurrentYear)
-    const [currentYearLocal, setCurrentYearLocal] = useState(currentYear)
+    const [currentYear] = useAtom(atomCurrentYear)
     const [currentCurrency, nextCurrency] = useAtom(atomCurrentCurrency)
 
-    useEffect(() => {
-        if (currentYearLocal !== currentYear) {
-            if (
-                currentYearLocal >= AVAILABLE_YEARS_RANGE[0] &&
-                currentYearLocal <= AVAILABLE_YEARS_RANGE[1]
-            ) {
-                setCurrentYear(currentYearLocal)
-            }
-        }
-    }, [currentYearLocal, setCurrentYear, currentYear])
-
     return (
-        <div style={{ marginBottom: 10 }}>
-            <button onClick={nextTimeInterval}>
+        <div className="income-plot-controls-bottom">
+            <button onClick={nextTimeInterval} className="control-pill">
                 {R.toTitleCase(timeInterval)}
             </button>
-            &nbsp;income or consumption in&nbsp;
-            <input
-                type="number"
-                value={currentYearLocal}
-                onChange={(e) => setCurrentYearLocal(Number(e.target.value))}
-                style={{ width: 50 }}
-            />
-            &nbsp;in&nbsp;
-            <button onClick={nextCurrency}>
-                {R.toUpperCase(currentCurrency)}
+            <span className="control-text">income or consumption in</span>
+            <button className="control-pill">{currentYear}</button>
+            <span className="control-text">in</span>
+            <button onClick={nextCurrency} className="control-pill">
+                {currentCurrency === "INTD"
+                    ? "international-$"
+                    : R.toUpperCase(currentCurrency)}
             </button>
         </div>
     )
