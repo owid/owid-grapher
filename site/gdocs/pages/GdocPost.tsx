@@ -20,11 +20,11 @@ import { OwidGdocHeader } from "../components/OwidGdocHeader.js"
 import StickyNav from "../../blocks/StickyNav.js"
 import { getShortPageCitation } from "../utils.js"
 import { TableOfContents } from "../../TableOfContents.js"
+import { useContext } from "react"
 import { DocumentContext } from "../DocumentContext.js"
 import { PROD_URL } from "../../SiteConstants.js"
 
 const BASE_URL = IS_ARCHIVE ? PROD_URL : ""
-import { useContext } from "react"
 
 const citationDescriptionsByArticleType: Record<
     | OwidGdocType.Article
