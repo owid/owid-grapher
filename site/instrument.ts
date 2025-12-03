@@ -41,7 +41,6 @@ if (LOAD_SENTRY) {
                 maskAllText: false,
                 maskAllInputs: false,
                 blockAllMedia: false,
-                minReplayDuration: 1000,
                 mask: [".sentry-mask"],
             }),
         ],
