@@ -72,7 +72,7 @@ export const atomTimeIntervalFactor = atom((get) => {
 })
 
 const atomCountriesOrRegionsModeInternal = atom<"countries" | "regions">(
-    "countries"
+    "regions"
 )
 export const atomCountriesOrRegionsMode = atom(
     (get) => get(atomCountriesOrRegionsModeInternal),
@@ -228,7 +228,7 @@ export const atomIsInCountryMode = atom((get) => {
     return mode === "countries"
 })
 
-const atomCountrySelection = atom<string[]>(["China", "India", "United States"])
+const atomCountrySelection = atom<string[]>([])
 export const atomSelectedCountryNames = atom(
     (get) => {
         if (!get(atomIsInCountryMode)) return []
