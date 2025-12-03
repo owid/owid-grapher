@@ -3,6 +3,7 @@ import {
     SearchChartsResponse,
     SearchChartHit,
     SearchResultType,
+    FEATURED_METRICS_ID,
 } from "@ourworldindata/types"
 import { SearchChartHitComponent } from "./search/SearchChartHitComponent.js"
 import { createTopicFilter, SEARCH_BASE_PATH } from "./search/searchUtils.js"
@@ -56,9 +57,14 @@ export const FeaturedMetrics = ({
     const searchHref = `${SEARCH_BASE_PATH}${url.queryStr}`
 
     return (
-        <section className={className}>
+        <section className={className} id={FEATURED_METRICS_ID}>
             <h1 className="article-block__featured-metrics__title h1-semibold">
-                Featured data on {topicName}
+                <span>Featured data on {topicName}</span>
+                <a
+                    className="deep-link"
+                    aria-labelledby={FEATURED_METRICS_ID}
+                    href={`#${FEATURED_METRICS_ID}`}
+                />
             </h1>
             {isLoading ? (
                 <SearchDataResultsSkeleton />

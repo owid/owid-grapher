@@ -1,6 +1,10 @@
 import { PropsWithChildren } from "react"
 import cx from "classnames"
-import { ExploreDataSectionAlignment } from "@ourworldindata/types"
+import {
+    ExploreDataSectionAlignment,
+    EXPLORE_DATA_SECTION_ID,
+    EXPLORE_DATA_SECTION_DEFAULT_TITLE,
+} from "@ourworldindata/types"
 
 type ExploreDataSectionProps = PropsWithChildren<{
     title?: string
@@ -9,13 +13,14 @@ type ExploreDataSectionProps = PropsWithChildren<{
 }>
 
 export const ExploreDataSection = ({
-    title = "Explore the data",
+    title = EXPLORE_DATA_SECTION_DEFAULT_TITLE,
     className,
     align,
     children,
 }: ExploreDataSectionProps) => {
     return (
         <section
+            id={EXPLORE_DATA_SECTION_ID}
             className={cx(
                 className,
                 "explore-data-section",

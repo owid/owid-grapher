@@ -5,6 +5,7 @@ import {
     SearchDataInsightResponse,
     SearchResultType,
     SearchState,
+    FEATURED_DATA_INSIGHTS_ID,
 } from "@ourworldindata/types"
 import { createTopicFilter } from "./search/searchUtils.js"
 import { queryDataInsights, searchQueryKeys } from "./search/queries.js"
@@ -60,9 +61,14 @@ export const FeaturedDataInsights = ({
     if (!isLoading && totalResults === 0) return null
 
     return (
-        <section className={className}>
+        <section className={className} id={FEATURED_DATA_INSIGHTS_ID}>
             <h1 className="article-block__featured-data-insights__title h1-semibold">
-                Data insights on {topicName}
+                <span>Data insights on {topicName}</span>
+                <a
+                    className="deep-link"
+                    aria-labelledby={FEATURED_DATA_INSIGHTS_ID}
+                    href={`#${FEATURED_DATA_INSIGHTS_ID}`}
+                />
             </h1>
             {isLoading ? (
                 <SearchDataInsightsResultsSkeleton />

@@ -60,6 +60,7 @@ import { FeaturedMetrics } from "../../FeaturedMetrics.js"
 import { FeaturedDataInsights } from "../../FeaturedDataInsights.js"
 import { BlockQueryClientProvider } from "./BlockQueryClientProvider.js"
 import { ExploreDataSection } from "./ExploreDataSection.js"
+import { LTPTableOfContents } from "./LTPTableOfContents.js"
 
 function ArticleBlockInternal({
     b: block,
@@ -652,6 +653,32 @@ function ArticleBlockInternal({
                     className={getLayout("toc", containerType)}
                 />
             )
+        })
+        .with({ type: "ltp-toc" }, (block) => {
+            const layoutClassName = getLayout("ltp-toc", containerType)
+            const tagName = tags[0]?.name
+
+            if (!tagName) {
+                return (
+                    <BlockErrorFallback
+                        className={layoutClassName}
+                        error={{
+                            name: `Error in ${block.type}`,
+                            message:
+                                "Linear topic TOC requires at least one tag on the document.",
+                        }}
+                    />
+                )
+            }
+
+            return toc?.length ? (
+                <LTPTableOfContents
+                    title={block.title}
+                    toc={toc}
+                    tagName={tagName}
+                    className={layoutClassName}
+                />
+            ) : null
         })
         .with({ type: "missing-data" }, () => (
             <MissingData className={getLayout("missing-data", containerType)} />

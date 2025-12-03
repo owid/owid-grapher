@@ -30,6 +30,7 @@ import {
     EnrichedBlockScroller,
     EnrichedBlockSDGGrid,
     EnrichedBlockSDGToc,
+    EnrichedBlockLTPToc,
     EnrichedBlockAdditionalCharts,
     EnrichedBlockSideBySideContainer,
     EnrichedBlockStickyLeftContainer,
@@ -70,6 +71,7 @@ import {
     RawBlockSideBySideContainer,
     RawBlockStickyLeftContainer,
     RawBlockStickyRightContainer,
+    RawBlockLTPToc,
     RawBlockText,
     RawBlockKeyIndicator,
     Span,
@@ -259,6 +261,7 @@ export function parseRawBlocksToEnrichedBlocks(
                 parseErrors: [],
             })
         )
+        .with({ type: "ltp-toc" }, parseLtpToc)
         .with(
             { type: "missing-data" },
             (b): EnrichedBlockMissingData => ({
@@ -2383,6 +2386,28 @@ function parseEntrySummary(
     return {
         type: "entry-summary",
         items,
+        parseErrors,
+    }
+}
+
+function parseLtpToc(raw: RawBlockLTPToc): EnrichedBlockLTPToc {
+    const parseErrors: ParseError[] = []
+    let title: string | undefined
+
+    if (raw.value !== undefined) {
+        if (typeof raw.value === "string") {
+            parseErrors.push({
+                message:
+                    "ltp-toc block value is a string, not an object with properties",
+            })
+        } else if (typeof raw.value.title === "string") {
+            title = raw.value.title
+        }
+    }
+
+    return {
+        type: "ltp-toc",
+        title,
         parseErrors,
     }
 }
