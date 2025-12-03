@@ -1802,6 +1802,7 @@ export function traverseEnrichedBlock(
                     "pill-row",
                     "homepage-search",
                     "homepage-intro",
+                    "featured-metrics",
                     "latest-data-insights",
                     "socials",
                     "static-viz"

@@ -44,6 +44,7 @@ import {
     RawBlockPillRow,
     RawBlockHomepageSearch,
     RawBlockHomepageIntro,
+    RawBlockFeaturedMetrics,
     RawBlockHomepageIntroPost,
     RawBlockLatestDataInsights,
     RawBlockSocials,
@@ -681,6 +682,7 @@ export function enrichedBlockToRawBlock(
                 value: {},
             }
         })
+
         .with({ type: "homepage-intro" }, (b): RawBlockHomepageIntro => {
             return {
                 type: "homepage-intro",
@@ -702,6 +704,13 @@ export function enrichedBlockToRawBlock(
                 },
             }
         })
+        .with(
+            { type: "featured-metrics" },
+            (_): RawBlockFeaturedMetrics => ({
+                type: "featured-metrics",
+                value: {},
+            })
+        )
         .with({ type: "socials" }, (b): RawBlockSocials => {
             return {
                 type: "socials",

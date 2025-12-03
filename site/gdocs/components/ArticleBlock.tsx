@@ -1,4 +1,5 @@
 import cx from "classnames"
+import { useContext } from "react"
 
 import Callout from "./Callout.js"
 import ChartStory from "./ChartStory.js"
@@ -54,6 +55,9 @@ import { ChartConfigType } from "@ourworldindata/types"
 import { useLinkedChart } from "../utils.js"
 import { ResourcePanel } from "./ResourcePanel.js"
 import { Cta } from "./Cta.js"
+import { AttachmentsContext } from "../AttachmentsContext.js"
+import { FeaturedMetrics } from "../../FeaturedMetrics.js"
+import { BlockQueryClientProvider } from "./BlockQueryClientProvider.js"
 
 function ArticleBlockInternal({
     b: block,
@@ -68,6 +72,7 @@ function ArticleBlockInternal({
     shouldRenderLinks?: boolean
     interactiveImages?: boolean
 }) {
+    const { tags } = useContext(AttachmentsContext)
     block.type = block.type.toLowerCase() as any // this comes from the user and may not be all lowercase, enforce it here
 
     // Special handling for mdims in side-by-side blocks to align them with
@@ -798,6 +803,32 @@ function ArticleBlockInternal({
                     className={getLayout("homepage-intro")}
                     {...block}
                 />
+            )
+        })
+        .with({ type: "featured-metrics" }, () => {
+            const layoutClassName = getLayout("featured-metrics", containerType)
+            const topicName = tags[0]?.name
+
+            if (!topicName) {
+                return (
+                    <BlockErrorFallback
+                        className={layoutClassName}
+                        error={{
+                            name: `Error in ${block.type}`,
+                            message:
+                                "Featured metrics requires at least one tag on the document.",
+                        }}
+                    />
+                )
+            }
+
+            return (
+                <BlockQueryClientProvider>
+                    <FeaturedMetrics
+                        topicName={topicName}
+                        className={layoutClassName}
+                    />
+                </BlockQueryClientProvider>
             )
         })
         .with({ type: "socials" }, (block) => (

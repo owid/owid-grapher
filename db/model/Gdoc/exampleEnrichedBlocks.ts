@@ -865,6 +865,10 @@ export const enrichedBlockExamples: Record<
         ],
         parseErrors: [],
     },
+    "featured-metrics": {
+        type: "featured-metrics",
+        parseErrors: [],
+    },
     "latest-data-insights": {
         type: "latest-data-insights",
         parseErrors: [],

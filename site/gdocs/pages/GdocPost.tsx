@@ -1,7 +1,6 @@
 import * as _ from "lodash-es"
 import cx from "classnames"
 import { useIntersectionObserver } from "usehooks-ts"
-import { useContext } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBoxArchive } from "@fortawesome/free-solid-svg-icons"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
@@ -25,6 +24,7 @@ import { DocumentContext } from "../DocumentContext.js"
 import { PROD_URL } from "../../SiteConstants.js"
 
 const BASE_URL = IS_ARCHIVE ? PROD_URL : ""
+import { useContext } from "react"
 
 const citationDescriptionsByArticleType: Record<
     | OwidGdocType.Article
@@ -82,7 +82,6 @@ export function GdocPost({
     const isDeprecated =
         postType === OwidGdocType.Article &&
         Boolean(content["deprecation-notice"])
-
     const bibtex = `@article{owid-${slug.replace(/\//g, "-")},
     author = {${formatAuthorsForBibtex(content.authors)}},
     title = {${content.title}},
