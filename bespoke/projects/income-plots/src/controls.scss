@@ -6,6 +6,7 @@
 @import "../../../../packages/@ourworldindata/components/src/Checkbox.scss";
 
 .income-plot-controls-top {
+    height: 30px;
     display: flex;
     align-items: center;
     gap: 24px;
@@ -20,6 +21,10 @@
     display: flex;
     align-items: center;
     gap: 8px;
+
+    .labeled-switch {
+        display: inline;
+    }
 }
 
 .toggle-label {
