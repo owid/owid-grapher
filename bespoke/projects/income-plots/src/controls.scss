@@ -173,3 +173,42 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+.income-plot-controls-bottom {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-family:
+        "Lato", "Helvetica Neue", Helvetica, Arial, "Liberation Sans",
+        sans-serif;
+    font-size: 14px;
+    color: #333;
+}
+
+.control-pill {
+    background: $blue-5;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 4px 14px;
+    font-size: 14px;
+    color: $blue-90;
+    cursor: pointer;
+    font-family:
+        "Lato", "Helvetica Neue", Helvetica, Arial, "Liberation Sans",
+        sans-serif;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+        background: #e8e8e8;
+    }
+
+    &:active {
+        background: #ddd;
+    }
+}
+
+.control-text {
+    color: #555;
+    font-size: 14px;
+}
