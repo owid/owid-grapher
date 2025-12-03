@@ -600,7 +600,7 @@ const getSortFromDimensions = (
 
     const sort = values
         .map((value) => value.name)
-        .filter((name): name is string => name !== undefined)
+        .filter((name) => name !== undefined)
 
     if (sort.length === 0) return
 
@@ -637,15 +637,18 @@ const columnDefFromOwidVariable = (
     const name = variable.name
 
     // The column's type
-    const type = isContinent
-        ? ColumnTypeNames.Continent
-        : variable.type
-          ? variableTypeToColumnType(variable.type)
-          : ColumnTypeNames.NumberOrString
+    const parsedType = variable.type
+        ? variableTypeToColumnType(variable.type)
+        : ColumnTypeNames.NumberOrString
 
-    // Sorted values for ordinal columns
+    // Override the column type for the special Continents variable
+    const type = isContinent ? ColumnTypeNames.Continent : parsedType
+
+    // Extract the sort order for ordinal variables from their dimension metadata.
+    // This preserves the author-specified ordering of categorical values
+    // (e.g., "Low", "Medium", "High").
     const sort =
-        type === ColumnTypeNames.Ordinal
+        parsedType === ColumnTypeNames.Ordinal
             ? getSortFromDimensions(variable.dimensions)
             : undefined
 
