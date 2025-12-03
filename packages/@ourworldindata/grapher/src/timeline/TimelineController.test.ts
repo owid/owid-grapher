@@ -2,7 +2,11 @@ import { expect, it } from "vitest"
 
 import * as _ from "lodash-es"
 import { TimeBoundValue } from "@ourworldindata/utils"
-import { TimelineController, TimelineManager } from "./TimelineController"
+import {
+    TimelineController,
+    TimelineManager,
+    TimelineDragTarget,
+} from "./TimelineController"
 
 it("can play a timeline", async () => {
     let wasPlayed = false
@@ -38,8 +42,8 @@ it("can play a timeline", async () => {
     expect(ticks2).toEqual(9)
 
     // Start handle also resets if replay triggered
-    controller.dragHandleToTime("start", controller.maxTime)
-    controller.dragHandleToTime("end", controller.maxTime)
+    controller.dragHandleToTime(TimelineDragTarget.Start, controller.maxTime)
+    controller.dragHandleToTime(TimelineDragTarget.End, controller.maxTime)
     await controller.play()
     expect(controller.startTimeProgress).toEqual(0)
 
@@ -57,7 +61,7 @@ it("can handle when an end handle is dragged past a start handle", () => {
     }
 
     const controller = new TimelineController(manager)
-    controller.dragHandleToTime("end", 1950)
+    controller.dragHandleToTime(TimelineDragTarget.End, 1950)
     expect(manager.startHandleTimeBound).toEqual(1950)
     expect(manager.endHandleTimeBound).toEqual(2000)
 })
@@ -83,13 +87,13 @@ it("pins time to unboundedLeft or unboundedRight when range is dragged beyond en
 
     const controller = new TimelineController(manager)
 
-    expect(controller.getTimeBoundFromDrag(2009)).toBe(2009)
-    expect(controller.getTimeBoundFromDrag(2009.1)).toBe(
+    expect(controller.clampTimeBound(2009)).toBe(2009)
+    expect(controller.clampTimeBound(2009.1)).toBe(
         TimeBoundValue.positiveInfinity
     )
 
-    expect(controller.getTimeBoundFromDrag(1900)).toBe(1900)
-    expect(controller.getTimeBoundFromDrag(1899.9)).toBe(
+    expect(controller.clampTimeBound(1900)).toBe(1900)
+    expect(controller.clampTimeBound(1899.9)).toBe(
         TimeBoundValue.negativeInfinity
     )
 
@@ -124,18 +128,18 @@ it("prevents handles from being on the same time when onlyTimeRangeSelectionPoss
     const controller = new TimelineController(manager)
 
     // Test dragging start handle towards end handle
-    controller.dragHandleToTime("start", 2005)
+    controller.dragHandleToTime(TimelineDragTarget.Start, 2005)
     expect(manager.startHandleTimeBound).toEqual(2004)
     expect(manager.endHandleTimeBound).toEqual(2005)
 
     // Test dragging end handle towards start handle
-    controller.dragHandleToTime("end", 2004)
+    controller.dragHandleToTime(TimelineDragTarget.End, 2004)
     expect(manager.startHandleTimeBound).toEqual(2004)
     expect(manager.endHandleTimeBound).toEqual(2005)
 
     // Handles can still cross each other - when start is dragged past end,
     // it becomes the end handle and the handles swap positions
-    controller.dragHandleToTime("start", 2006)
+    controller.dragHandleToTime(TimelineDragTarget.Start, 2006)
     expect(manager.startHandleTimeBound).toEqual(2005)
     expect(manager.endHandleTimeBound).toEqual(2006)
 })
@@ -151,7 +155,7 @@ it("allows handles on same time when onlyTimeRangeSelectionPossible is false", (
     const controller = new TimelineController(manager)
 
     // Dragging start handle to same position as end handle should work
-    controller.dragHandleToTime("start", 2005)
+    controller.dragHandleToTime(TimelineDragTarget.Start, 2005)
     expect(manager.startHandleTimeBound).toEqual(2005)
     expect(manager.endHandleTimeBound).toEqual(2005)
 })

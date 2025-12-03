@@ -1,19 +1,21 @@
 $timelineHeight: 32px;
 
-.timeline-component {
-    // diameter of the start and and handle
+.GrapherTimeline {
+    $font-size: 13px;
+
+    // Diameter of the start and and handle
     $handle-diameter: 20px; // keep in sync with HANDLE_DIAMETER in TimelineComponent.tsx
 
-    // start and end handles
+    // Start and end handles
     $default-knob: $gray-60;
     $active-knob: $blue-50;
 
-    // timeline slider and interval
+    // Timeline slider and interval
     $light-timeline: $gray-20;
     $active-timeline: $blue-30;
     $hover-timeline: $default-knob;
 
-    // start/end year label
+    // Start/end year label
     $light-fill: $gray-10;
     $hover-fill: $gray-20;
     $active-fill: $blue-20;
@@ -25,37 +27,25 @@ $timelineHeight: 32px;
     justify-content: center;
     font-size: 1em;
 
-    > div {
-        margin-right: 0.5em;
-        &:last-child {
-            margin-right: 0;
-        }
-    }
-
-    .date {
+    .GrapherTimeline__TimelineEdgeButton {
+        font-size: $font-size;
+        color: $dark-text;
         height: 100%;
-        font-size: 13px;
         font-weight: 400;
         color: $dark-text;
         padding: 0 8px;
-        border-radius: 4px;
-        display: grid;
         place-content: center;
         margin-right: 0;
-        background-color: $light-fill;
+        cursor: pointer;
         user-select: none;
-
-        &:hover {
-            background: $hover-fill;
-        }
-
-        &:active {
-            background: $active-fill;
-            color: $active-text;
-        }
+        border: 1px solid transparent;
     }
 
-    .slider {
+    .GrapherTimeline__PlayButton {
+        margin-right: 7px;
+    }
+
+    .GrapherTimeline__Slider {
         height: 2px;
         flex-grow: 1;
         background: $light-timeline;
@@ -64,11 +54,10 @@ $timelineHeight: 32px;
         align-items: center;
         margin-left: $handle-diameter;
         margin-right: $handle-diameter;
-
         padding: 12px 0;
     }
 
-    .handle {
+    .GrapherTimeline__Handle {
         $handleSidePadding: 6px;
 
         position: absolute;
@@ -79,13 +68,14 @@ $timelineHeight: 32px;
 
         &.hoverMarker {
             cursor: pointer;
+            pointer-events: none;
 
-            > .icon {
+            > .GrapherTimeline__HandleKnob {
                 background: $default-knob;
             }
         }
 
-        > .icon {
+        .GrapherTimeline__HandleKnob {
             height: $handle-diameter;
             width: $handle-diameter;
             border-radius: 100%;
@@ -98,41 +88,164 @@ $timelineHeight: 32px;
             transform: scale(1);
             transition: transform 0.1s ease-out;
         }
+
+        .EditableTimeTooltip {
+            font-size: $font-size;
+            color: $dark-text;
+            white-space: nowrap;
+
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+
+            &.EditableTimeTooltip--left {
+                right: 100%;
+                margin-right: 4px;
+            }
+
+            &.EditableTimeTooltip--right {
+                left: 100%;
+                margin-left: 4px;
+            }
+
+            .EditableTimeTooltip__Text {
+                cursor: text;
+                padding: 8px;
+                background: white;
+                border: 1px solid $gray-20;
+                border-radius: 4px;
+                font-weight: 400;
+                letter-spacing: 0.01em;
+                transition: border-color 0.15s ease;
+
+                &:hover {
+                    border-color: #bed2e7;
+                }
+            }
+
+            // Auto-sizing input using CSS grid trick:
+            // The wrapper and its ::after pseudo-element occupy the same grid cell.
+            // The ::after contains the input's current value (via data-value attribute)
+            // with matching font/padding styles, sizing the grid cell to fit the content.
+            // The input then fills that cell, automatically growing/shrinking with the text.
+            .EditableTimeTooltip__InputWrapper {
+                display: inline-grid;
+                vertical-align: top;
+                align-items: center;
+                position: relative;
+                min-width: 50px;
+                max-width: 140px;
+
+                &::after {
+                    content: attr(data-value) " ";
+                    visibility: hidden;
+                    white-space: pre;
+                    grid-area: 1 / 1 / 2 / 2;
+                    font-size: $font-size;
+                    font-weight: 400;
+                    letter-spacing: 0.01em;
+                    padding: 8px;
+                    border: 1px solid transparent;
+                }
+            }
+
+            .EditableTimeTooltip__Input {
+                grid-area: 1 / 1 / 2 / 2;
+                width: 100%;
+                min-width: 50px;
+                max-width: 140px;
+                background: white;
+                border: 1px solid $blue-50;
+                color: inherit;
+                font-size: $font-size;
+                font-weight: 400;
+                letter-spacing: 0.01em;
+                padding: 8px;
+                margin: 0;
+                text-align: center;
+                outline: none;
+                border-radius: 4px;
+                cursor: text;
+
+                // Hide number input spinners
+                &::-webkit-inner-spin-button,
+                &::-webkit-outer-spin-button {
+                    -webkit-appearance: none;
+                    margin: 0;
+                }
+
+                // Firefox
+                &[type="number"] {
+                    -moz-appearance: textfield;
+                    appearance: textfield;
+                }
+            }
+        }
+
+        .SimpleTimeTooltip {
+            font-size: 12px;
+            line-height: 16px;
+            color: white;
+            white-space: nowrap;
+
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+
+            background-color: $gray-90;
+            padding: 8px;
+            border-radius: 4px;
+            pointer-events: none;
+
+            // Arrow pointing down
+            &::after {
+                content: "";
+                position: absolute;
+                top: 100%;
+                left: 50%;
+                transform: translateX(-50%);
+                border: 4px solid transparent;
+                border-top-color: $gray-90;
+            }
+        }
     }
 
-    .interval {
+    .GrapherTimeline__Interval {
         position: absolute;
         height: 2px;
         background: $active-timeline;
         padding: 10px 0;
+        cursor: grab;
 
         &:hover {
             height: 3px;
         }
 
-        cursor: grab;
         &:active {
             cursor: grabbing;
         }
 
-        &.interval-hover {
+        &.GrapherTimeline__HoverInterval {
             background: $hover-timeline;
+            pointer-events: none;
         }
     }
 
-    .handle,
-    .interval,
-    .slider {
+    .GrapherTimeline__Handle,
+    .GrapherTimeline__Interval,
+    .GrapherTimeline__Slider {
         box-sizing: content-box !important;
         background-clip: content-box !important;
     }
 
     &.hover {
-        .handle > .icon {
+        .GrapherTimeline__Handle > .GrapherTimeline__HandleKnob {
             transform: scale(1.3);
         }
 
-        .handle:not(.hoverMarker) > .icon {
+        .GrapherTimeline__Handle:not(.hoverMarker)
+            > .GrapherTimeline__HandleKnob {
             background: $active-knob;
         }
     }
