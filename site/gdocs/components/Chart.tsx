@@ -39,7 +39,6 @@ export default function Chart({
     // This means we can link to the same chart multiple times with different querystrings
     // and it should all resolve correctly via the same linkedChart
     const { linkedChart } = useLinkedChart(d.url)
-    const url = Url.fromURL(d.url)
     const resolvedUrl = linkedChart?.resolvedUrl ?? ""
     const resolvedUrlParsed = useMemo(
         () => Url.fromURL(resolvedUrl),
@@ -57,7 +56,7 @@ export default function Chart({
     const configType = linkedChart?.configType
     const isExplorer = configType === ChartConfigType.Explorer
     const isMultiDim = configType === ChartConfigType.MultiDim
-    const hasControls = url.queryParams.hideControls !== "true"
+    const hasControls = resolvedUrlParsed.queryParams.hideControls !== "true"
     const isExplorerWithControls = isExplorer && hasControls
     const isMultiDimWithControls = isMultiDim && hasControls
 
@@ -167,7 +166,7 @@ export default function Chart({
                 </figure>
             ) : isMultiDim ? (
                 <MultiDimEmbed
-                    url={d.url}
+                    url={resolvedUrl}
                     chartConfig={chartConfig}
                     isPreviewing={isPreviewing}
                 />

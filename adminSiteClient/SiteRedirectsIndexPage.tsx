@@ -219,13 +219,26 @@ export default function SiteRedirectsIndexPage() {
                             <>
                                 <Typography.Paragraph>
                                     This page is used to create and delete
-                                    redirects for the site. Don't use this page
-                                    to create redirects for charts, use the{" "}
-                                    <Link to="/redirects">
-                                        chart redirects page
-                                    </Link>{" "}
-                                    instead.
+                                    redirects for the site.
                                 </Typography.Paragraph>
+                                <ul>
+                                    <li>
+                                        For redirects to <strong>charts</strong>
+                                        , create redirects on the edit page of
+                                        the target chart ref tab, and delete
+                                        redirects on{" "}
+                                        <Link to="/redirects">
+                                            the chart redirects page
+                                        </Link>
+                                        .
+                                    </li>
+                                    <li>
+                                        For redirects to{" "}
+                                        <strong>multi-dims</strong>,
+                                        create/delete redirects on the edit page
+                                        of the target multi-dim.
+                                    </li>
+                                </ul>
                                 <Typography.Paragraph>
                                     The source has to start with a slash. Any
                                     query parameters (/war-and-peace

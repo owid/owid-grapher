@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-query"
 import { useContext, useEffect, useMemo, useState } from "react"
 import {
+    Button,
     Flex,
     Input,
     Popconfirm,
@@ -250,6 +251,17 @@ function createColumns(
                 </Popconfirm>
             ),
             sorter: (a, b) => Number(b.published) - Number(a.published),
+        },
+        {
+            title: "Actions",
+            key: "actions",
+            width: 100,
+            render: (_, record) =>
+                record.published && (
+                    <Link to={`/multi-dims/${record.id}`}>
+                        <Button type="primary">Edit</Button>
+                    </Link>
+                ),
         },
     ]
 }

@@ -1,7 +1,7 @@
 import { DbPlainRedirect } from "@ourworldindata/types"
 import * as db from "../db"
 
-export const getRedirectsFromDb = async (
+export const getSiteRedirects = async (
     knex: db.KnexReadonlyTransaction
 ): Promise<Pick<DbPlainRedirect, "source" | "target" | "code">[]> => {
     return await db.knexRaw(knex, `SELECT source, target, code FROM redirects`)

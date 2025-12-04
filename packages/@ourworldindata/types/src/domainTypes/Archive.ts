@@ -93,6 +93,18 @@ export interface ExplorerChecksumsObjectWithHash {
     checksumsHashed: string
 }
 
+export interface NarrativeChartChecksums {
+    chartConfigMd5: string
+    queryParamsForParentChartMd5: string
+    indicators: IndicatorChecksums
+}
+
+export interface NarrativeChartChecksumsResult {
+    narrativeChartId: number
+    narrativeChartName: string
+    checksums: NarrativeChartChecksums
+}
+
 export interface PostChecksums {
     postContentMd5: string
     indicators: IndicatorChecksums // Shared across all chart types
