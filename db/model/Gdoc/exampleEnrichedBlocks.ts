@@ -218,6 +218,7 @@ export const enrichedBlockExamples: Record<
         alt: "",
         caption: [spanSimpleText],
         size: BlockSize.Wide,
+        visibility: "desktop",
         parseErrors: [],
     },
     video: {
@@ -227,6 +228,7 @@ export const enrichedBlockExamples: Record<
         caption: boldLinkExampleText,
         shouldLoop: true,
         shouldAutoplay: false,
+        visibility: "mobile",
         parseErrors: [],
     },
     "static-viz": {

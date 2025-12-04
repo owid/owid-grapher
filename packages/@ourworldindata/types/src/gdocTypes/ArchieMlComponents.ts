@@ -37,6 +37,7 @@ export type RawBlockChartValue = {
     // TODO: position is used as a classname apparently? Should be renamed or split
     position?: string
     caption?: string
+    visibility?: string
 }
 
 export type RawBlockChart = {
@@ -50,6 +51,7 @@ export type EnrichedBlockChart = {
     height?: string
     size: BlockSize
     caption?: Span[]
+    visibility?: BlockVisibility
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockNarrativeChartValue = {
@@ -189,6 +191,10 @@ export function checkIsBlockSize(size: unknown): size is BlockSize {
     return Object.values(BlockSize).includes(size as any)
 }
 
+export const blockVisibilitys = ["desktop", "mobile"] as const
+
+export type BlockVisibility = (typeof blockVisibilitys)[number]
+
 export type RawBlockImage = {
     type: "image"
     value: {
@@ -198,6 +204,7 @@ export type RawBlockImage = {
         caption?: string
         size?: BlockSize
         hasOutline?: string
+        visibility?: string
     }
 }
 
@@ -210,6 +217,7 @@ export type EnrichedBlockImage = {
     originalWidth?: number
     size: BlockSize
     hasOutline: boolean
+    visibility?: BlockVisibility
     // Not a real ArchieML prop - we set this to true for Data Insights, as a way to migrate
     // first generation data insights to only use their small image
     // See https://github.com/owid/owid-grapher/issues/4416
@@ -224,6 +232,7 @@ export type RawBlockVideo = {
         shouldLoop?: string
         shouldAutoplay?: string
         filename?: string
+        visibility?: string
     }
 }
 
@@ -234,6 +243,7 @@ export type EnrichedBlockVideo = {
     shouldAutoplay: boolean
     filename: string
     caption?: Span[]
+    visibility?: BlockVisibility
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockStaticViz = {
