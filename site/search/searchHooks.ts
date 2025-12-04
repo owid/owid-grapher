@@ -287,7 +287,10 @@ export function useSearchParamsState(
 
     // Helper to update params atomically
     const updateParams = useCallback(
-        (updater: (current: SearchState) => SearchState) => {
+        (
+            updater: (current: SearchState) => SearchState,
+            options?: { replace?: boolean }
+        ) => {
             setSearchParams((prev) => {
                 const currentState = searchParamsToState(
                     prev,
@@ -296,7 +299,7 @@ export function useSearchParamsState(
                 )
                 const newState = updater(currentState)
                 return stateToSearchParams(newState)
-            })
+            }, options)
         },
         [setSearchParams, validCountries, validTopics]
     )
@@ -440,25 +443,30 @@ export function useSearchParamsState(
                 filters: Filter[],
                 matchedPositions: number[]
             ) => {
-                updateParams((s) => {
-                    const queryWords = splitIntoWords(s.query)
-                    const newQuery = removeMatchedWordsWithStopWords(
-                        queryWords,
-                        matchedPositions
-                    )
+                updateParams(
+                    (s) => {
+                        const queryWords = splitIntoWords(s.query)
+                        const newQuery = removeMatchedWordsWithStopWords(
+                            queryWords,
+                            matchedPositions
+                        )
 
-                    const allFilters = [...s.filters, ...filters]
-                    const uniqueFilters = R.uniqueBy(
-                        allFilters,
-                        (f) => `${f.type}:${f.name}`
-                    )
+                        const allFilters = [...s.filters, ...filters]
+                        const uniqueFilters = R.uniqueBy(
+                            allFilters,
+                            (f) => `${f.type}:${f.name}`
+                        )
 
-                    return {
-                        ...s,
-                        query: newQuery.trim(),
-                        filters: uniqueFilters,
-                    }
-                })
+                        return {
+                            ...s,
+                            query: newQuery.trim(),
+                            filters: uniqueFilters,
+                        }
+                    },
+                    // Use replace: true to avoid creating a phantom history entry
+                    // when auto-applying detected filters after query submission
+                    { replace: true }
+                )
             },
 
             reset: () => {
