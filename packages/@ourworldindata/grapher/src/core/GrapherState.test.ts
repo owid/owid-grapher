@@ -28,6 +28,7 @@ import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
     OwidTable,
+    ErrorValueTypes,
 } from "@ourworldindata/core-table"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 import { setSelectedEntityNamesParam } from "./EntityUrlBuilder"
@@ -1744,5 +1745,156 @@ describe("tableAfterColorAndSizeToleranceApplication", () => {
             value: 200,
             originalTime: 2004,
         })
+    })
+})
+
+describe("tolerance is not applied twice (issue #4891)", () => {
+    // Tolerance should only be applied once during interpolation. With tolerance=3,
+    // data at 2018 should appear at 2015-2021, not beyond. The bug occurred when
+    // filterByTargetTimes applied tolerance a second time. This is normally hidden
+    // unless rows are removed between interpolation and filtering (e.g., showNoDataArea=false).
+
+    const createTable = (): OwidTable => {
+        const years: number[] = []
+        const entityNames: string[] = []
+        const testColumnValues: number[] = []
+
+        // United States provides a continuous range of years (2000-2024) to establish
+        // the full timeline. When complete() runs during interpolation, it creates rows
+        // for all these years for all entities.
+        for (let year = 2000; year <= 2024; year++) {
+            years.push(year)
+            entityNames.push("United States")
+            testColumnValues.push(year * 10)
+        }
+
+        // Belarus has data only at year 2018. With tolerance=3, this should be
+        // interpolated to years 2015-2021 (±3 years), but not to 2014 or earlier.
+        years.push(2018)
+        entityNames.push("Belarus")
+        testColumnValues.push(100)
+
+        return new OwidTable(
+            [
+                ["entityName", "year", "testColumn"],
+                ...years.map((year, i) => [
+                    entityNames[i],
+                    year,
+                    testColumnValues[i],
+                ]),
+            ],
+            [
+                {
+                    slug: "testColumn",
+                    type: ColumnTypeNames.Numeric,
+                    tolerance: 3,
+                },
+            ]
+        )
+    }
+
+    const table = createTable()
+
+    it("does not apply tolerance twice for Marimekko chart", () => {
+        const grapher = new GrapherState({
+            table,
+            chartTypes: [GRAPHER_CHART_TYPES.Marimekko],
+            ySlugs: "testColumn",
+            maxTime: 2014,
+            // showNoDataArea=false causes the chart to filter out rows that
+            // have no data. This creates the scenario where filterByTargetTimes might
+            // not find an exact year match, exposing the bug (if not fixed).
+            showNoDataArea: false,
+        })
+
+        expect(grapher.endTime).toBe(2014)
+        const testColumnValues2014 = grapher.transformedTable
+            .filterByEntityNames(["Belarus"])
+            .get("testColumn").values
+
+        // Belarus should have no valid values at 2014 (outside tolerance=3)
+        expect(testColumnValues2014).toEqual([])
+
+        // But should have a valid value at 2015
+        grapher.maxTime = 2015
+        expect(grapher.endTime).toBe(2015)
+        const testColumnValues2015 = grapher.transformedTable
+            .filterByEntityNames(["Belarus"])
+            .get("testColumn").values
+        expect(testColumnValues2015).toEqual([100])
+    })
+
+    it("does not apply tolerance twice for DiscreteBar chart", () => {
+        const grapher = new GrapherState({
+            table,
+            chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
+            ySlugs: "testColumn",
+            selectedEntityNames: ["Belarus", "United States"],
+            maxTime: 2014,
+        })
+
+        const testColumnValues2014 = grapher.transformedTable
+            .filterByEntityNames(["Belarus"])
+            .get("testColumn").values
+
+        // Belarus should have no valid values at 2014 (outside tolerance=3)
+        expect(testColumnValues2014).toEqual([])
+
+        // But should have a valid value at 2015
+        grapher.maxTime = 2015
+        const testColumnValues2015 = grapher.transformedTable
+            .filterByEntityNames(["Belarus"])
+            .get("testColumn").values
+        expect(testColumnValues2015).toEqual([100])
+    })
+
+    it("does not apply tolerance twice for SlopeChart", () => {
+        const grapher = new GrapherState({
+            table,
+            chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
+            ySlugs: "testColumn",
+            selectedEntityNames: ["Belarus", "United States"],
+            minTime: 2014,
+            maxTime: 2021,
+        })
+
+        const transformedTable = grapher.transformedTable
+        const belarusTable = transformedTable.filterByEntityNames(["Belarus"])
+
+        const allValues =
+            belarusTable.get("testColumn").valuesIncludingErrorValues
+        const validValues = belarusTable.get("testColumn").values
+
+        // Belarus should have a error value at 2014 (outside tolerance=3)
+        // and a valid value at 2021 (within tolerance=3)
+        expect(allValues[0]).toEqual(ErrorValueTypes.NoValueWithinTolerance)
+        expect(allValues[1]).toEqual(100)
+
+        // Only 2021 should have a valid value
+        expect(validValues).toEqual([100])
+    })
+
+    it("does not apply tolerance twice for Map chart", () => {
+        const grapher = new GrapherState({
+            table,
+            hasMapTab: true,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+            ySlugs: "testColumn",
+            map: new MapConfig({ timeTolerance: 3, time: 2014 }),
+        })
+
+        const testColumnValues2014 = grapher.transformedTable
+            .filterByEntityNames(["Belarus"])
+            .get("testColumn").values
+
+        // Year 2014 is outside tolerance range; Belarus should have NO data
+        expect(testColumnValues2014).toEqual([])
+
+        // Year 2015 is within tolerance range; Belarus should have data
+        grapher.map.time = 2015
+        const testColumnValues2015 = grapher.transformedTable
+            .filterByEntityNames(["Belarus"])
+            .get("testColumn").values
+        expect(testColumnValues2015).toEqual([100])
     })
 })

@@ -1147,24 +1147,15 @@ export class GrapherState {
             const targetTimes = this.isFaceted
                 ? [startTime, endTime]
                 : [endTime]
-            const tolerance =
-                this.map.timeTolerance ??
-                table.get(this.mapColumnSlug).tolerance
 
-            return table.filterByTargetTimes(targetTimes, tolerance)
+            return table.filterByTargetTimes(targetTimes)
         }
 
         if (this.isOnDiscreteBarTab || this.isOnMarimekkoTab)
-            return table.filterByTargetTimes(
-                [endTime],
-                table.get(this.yColumnSlugs[0]).tolerance
-            )
+            return table.filterByTargetTimes([endTime])
 
         if (this.isOnSlopeChartTab)
-            return table.filterByTargetTimes(
-                [startTime, endTime],
-                table.get(this.yColumnSlugs[0]).tolerance
-            )
+            return table.filterByTargetTimes([startTime, endTime])
 
         return table.filterByTimeRange(startTime, endTime)
     }
