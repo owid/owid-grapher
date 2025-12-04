@@ -655,13 +655,33 @@ export const getImagesByPostId = async (
         const gdoc = GdocPost.create(gdocBase)
         await gdoc.loadLinkedDocuments(knex)
 
-        const linkedFilenames = gdoc.linkedImageFilenames
-        if (linkedFilenames.length === 0) continue
+        // Collect all image filenames from both regular images and static viz
+        const allFilenames: string[] = [...gdoc.linkedImageFilenames]
 
+        // Also collect images from static viz components
+        const staticVizNames = gdoc.linkedStaticVizNames
+        if (staticVizNames.length > 0) {
+            await gdoc.loadLinkedStaticViz(knex)
+
+            for (const name of staticVizNames) {
+                const staticViz = gdoc.linkedStaticViz?.[name]
+                if (staticViz) {
+                    allFilenames.push(staticViz.desktop.filename)
+                    if (staticViz.mobile) {
+                        allFilenames.push(staticViz.mobile.filename)
+                    }
+                }
+            }
+        }
+
+        // Early exit if no images
+        if (allFilenames.length === 0) continue
+
+        // Single query for all images
         imagesByPostId[postId] = await knex<DbRawImage>(ImagesTableName)
             .select("id", "cloudflareId", "filename", "hash", "originalWidth")
             .where("replacedBy", null)
-            .whereIn("filename", linkedFilenames)
+            .whereIn("filename", allFilenames)
     }
 
     return imagesByPostId
