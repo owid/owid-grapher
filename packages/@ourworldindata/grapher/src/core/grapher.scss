@@ -23,10 +23,6 @@ $dark-text: $gray-80;
 $light-text: $gray-70;
 $active-text: $blue-90;
 
-// tooltip for button label
-$tooltip-fill: $gray-90;
-$tooltip-text: #fff;
-
 // These should be between 0–100 in order to avoid conflicting with
 // site dropdowns, search overlays, etc.
 $zindex-chart: 1;
@@ -211,6 +207,23 @@ $zindex-controls-drawer: 150;
 .tippy-box[data-theme="grapher-explanation"] {
     .tippy-content {
         padding: 15px;
+    }
+}
+
+.tippy-box[data-theme="grapher-dark"] {
+    background-color: $gray-90;
+    color: white;
+    border-radius: 4px;
+    font-size: 12px;
+    line-height: 16px;
+    padding: 8px;
+
+    .tippy-content {
+        padding: 0;
+    }
+
+    .tippy-arrow {
+        color: $gray-90;
     }
 }
 

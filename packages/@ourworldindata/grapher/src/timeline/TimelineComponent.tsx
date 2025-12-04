@@ -2,7 +2,13 @@ import * as _ from "lodash-es"
 import * as React from "react"
 import { select } from "d3-selection"
 import cx from "classnames"
-import { getRelativeMouse, isMobile, Bounds, Time } from "@ourworldindata/utils"
+import {
+    getRelativeMouse,
+    isMobile,
+    Bounds,
+    Time,
+    Tippy,
+} from "@ourworldindata/utils"
 import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { faPlay, faPause } from "@fortawesome/free-solid-svg-icons"
@@ -607,13 +613,15 @@ const TimelineHandle = ({
             onBlur={onBlur}
             onKeyDown={onKeyDown}
         >
-            <div className="icon" />
-            {tooltipVisible && (
-                <>
-                    <div className="handle-label-arrow" />
-                    <div className="handle-label">{formattedCurrTime}</div>
-                </>
-            )}
+            <Tippy
+                content={formattedCurrTime}
+                theme="grapher-dark"
+                placement="top"
+                visible={tooltipVisible}
+                arrow={true}
+            >
+                <div className="icon" />
+            </Tippy>
         </div>
     )
 }
