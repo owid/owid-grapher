@@ -243,7 +243,7 @@
         "sass": "^1.89.2",
         "schema-dts": "^1.1.5",
         "topojson-server": "^3.0.1",
-        "tsx": "^4.19.3",
+        "tsx": "^4.21.0",
         "typescript-eslint": "^8.46.1",
         "vite": "^7.1.11",
         "vitest": "^4.0.1",
