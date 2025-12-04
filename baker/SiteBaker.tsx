@@ -53,7 +53,10 @@ import {
     getEntitiesForProfile,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
-import { getRedirects, flushCache as redirectsFlushCache } from "./redirects.js"
+import {
+    getCloudflarePagesRedirects,
+    flushCache as redirectsFlushCache,
+} from "./redirects.js"
 import { bakeAllChangedGrapherPagesAndDeleteRemovedGraphers } from "./GrapherBaker.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import {
@@ -92,7 +95,10 @@ import { bakeAllMultiDimDataPages } from "./MultiDimBaker.js"
 import { getAllLinkedPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
 import { getPublicDonorNames } from "../db/model/Donor.js"
 import { getNarrativeChartsInfo } from "../db/model/NarrativeChart.js"
-import { getGrapherRedirectsMap } from "./redirectsFromDb.js"
+import {
+    getExplorerToMultiDimRedirects,
+    getGrapherToChartAndMultiDimRedirects,
+} from "./redirectsFromDb.js"
 import * as R from "remeda"
 import { getDods, getParsedDodsDictionary } from "../db/model/Dod.js"
 import { getLatestArchivedChartPageVersionsIfEnabled } from "../db/model/ArchivedChartVersion.js"
@@ -156,10 +162,7 @@ const defaultSteps = new Set(bakeSteps)
 function getProgressBarTotal(bakeSteps: BakeStepConfig): number {
     // There are 2 non-optional steps: flushCache at the beginning and flushCache at the end (again)
     const minimum = 2
-    let total = minimum + bakeSteps.size
-    // Redirects has two progress bar ticks
-    if (bakeSteps.has("redirects")) total++
-    return total
+    return minimum + bakeSteps.size
 }
 
 export class SiteBaker {
@@ -1139,18 +1142,26 @@ export class SiteBaker {
 
     async bakeRedirects(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("redirects")) return
-        this.progressBar.tick({ name: "Baking site redirects" })
-        const redirects = await getRedirects(knex)
+        this.progressBar.tick({ name: "Baking redirects" })
+        const redirects = await getCloudflarePagesRedirects(knex)
         await this.stageWrite(
             path.join(this.bakedSiteDir, `_redirects`),
             redirects.join("\n")
         )
 
-        this.progressBar.tick({ name: "Baking grapher redirects" })
-        const grapherRedirects = await getGrapherRedirectsMap(knex, "")
+        const grapherRedirects = await getGrapherToChartAndMultiDimRedirects(
+            knex,
+            ""
+        )
         await this.stageWrite(
             path.join(this.bakedSiteDir, `grapher/_grapherRedirects.json`),
             JSON.stringify(Object.fromEntries(grapherRedirects), null, 2)
+        )
+
+        const explorerRedirects = await getExplorerToMultiDimRedirects(knex, "")
+        await this.stageWrite(
+            path.join(this.bakedSiteDir, `explorers/_explorerRedirects.json`),
+            JSON.stringify(Object.fromEntries(explorerRedirects), null, 2)
         )
     }
 

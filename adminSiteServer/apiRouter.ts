@@ -50,8 +50,12 @@ import {
 import { getFiles, uploadFileToR2 } from "./apiRoutes/files.js"
 import {
     handlePutMultiDim,
+    handleGetMultiDim,
     handleGetMultiDims,
     handlePatchMultiDim,
+    handleGetMultiDimRedirects,
+    handlePostMultiDimRedirect,
+    handleDeleteMultiDimRedirect,
 } from "./apiRoutes/mdims.js"
 import {
     fetchAllWork,
@@ -368,12 +372,28 @@ getRouteWithROTransaction(apiRouter, "/images/usage", getImageUsageHandler)
 
 // Mdim routes
 getRouteWithROTransaction(apiRouter, "/multi-dims.json", handleGetMultiDims)
+getRouteWithROTransaction(apiRouter, "/multi-dims/:id", handleGetMultiDim)
 putRouteWithRWTransaction(
     apiRouter,
     "/multi-dims/:catalogPath",
     handlePutMultiDim
 )
 patchRouteWithRWTransaction(apiRouter, "/multi-dims/:id", handlePatchMultiDim)
+getRouteWithROTransaction(
+    apiRouter,
+    "/multi-dims/:id/redirects",
+    handleGetMultiDimRedirects
+)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/multi-dims/:id/redirects",
+    handlePostMultiDimRedirect
+)
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/multi-dims/:id/redirects/:redirectId",
+    handleDeleteMultiDimRedirect
+)
 
 // Explorer routes
 getRouteWithROTransaction(apiRouter, "/explorers/:slug", handleGetExplorer)

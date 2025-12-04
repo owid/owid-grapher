@@ -1,15 +1,18 @@
 import * as db from "../db/db.js"
 import { Url } from "@ourworldindata/utils"
 import { isCanonicalInternalUrl } from "./formatting.js"
-import { resolveExplorerRedirect } from "./replaceExplorerRedirects.js"
+import { DEPRECATED_resolveExplorerRedirect } from "./replaceExplorerRedirects.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
-import { getRedirectsFromDb } from "../db/model/Redirect.js"
+import { getSiteRedirects } from "../db/model/Redirect.js"
 import {
-    getGrapherAndWordpressRedirectsMap,
-    getRecentGrapherRedirects,
+    DEPRECATED_getAllRedirectsMap,
+    getRecentChartSlugRedirects,
 } from "./redirectsFromDb.js"
+import { getRecentMultiDimRedirects } from "../db/model/MultiDimRedirects.js"
 
-export const getRedirects = async (knex: db.KnexReadonlyTransaction) => {
+export const getCloudflarePagesRedirects = async (
+    knex: db.KnexReadonlyTransaction
+) => {
     const staticRedirects = [
         // RSS feed
         "/feed /atom.xml 302",
@@ -75,27 +78,38 @@ export const getRedirects = async (knex: db.KnexReadonlyTransaction) => {
 
     // Get redirects from the database (exported from the Wordpress DB)
     // Redirects are assumed to be trailing-slash-free (see syncRedirectsToGrapher.ts)
-    const redirectsFromDb = (await getRedirectsFromDb(knex)).map(
+    const siteRedirects = (await getSiteRedirects(knex)).map(
         (row) => `${row.source} ${row.target} ${row.code}`
     )
 
-    const recentGrapherRedirects = (await getRecentGrapherRedirects(knex)).map(
-        (row) => `/grapher/${row.source} /grapher/${row.target} 302`
-    )
+    // Prevent Cloudflare from serving outdated non-site pages (grapher,
+    // explorers, multi-dims), which can remain in the cache for up to a week.
+    // This is necessary since in the Cloudflare Functions we take into
+    // consideration the grapher and multi-dim redirects only when the route
+    // returns a 404, which won't be the case if the page is still cached.
+    // https://developers.cloudflare.com/pages/configuration/serving-pages/#asset-retention
+    const recentChartSlugRedirects = (
+        await getRecentChartSlugRedirects(knex)
+    ).map((row) => `${row.source} ${row.target} 302`)
+    const recentMultiDimRedirects = (
+        await getRecentMultiDimRedirects(knex)
+    ).map((row) => `${row.source} ${row.target} 302`)
 
     // Add newlines in between so we get some more overview
     return [
         ...staticRedirects,
         "",
-        ...recentGrapherRedirects,
+        ...recentChartSlugRedirects,
         "",
-        ...redirectsFromDb,
+        ...recentMultiDimRedirects,
+        "",
+        ...siteRedirects,
         "",
         ...dynamicRedirects, // Cloudflare requires all dynamic redirects to be at the very end of the _redirects file
     ]
 }
 
-export const resolveRedirectFromMap = async (
+export const DEPRECATED_resolveRedirectFromMap = async (
     url: Url,
     redirectsMap: Map<string, string>
 ): Promise<Url> => {
@@ -131,52 +145,57 @@ export const resolveRedirectFromMap = async (
         }
 
         return _resolveRedirectFromMap(
-            // Pass query params through only if none present on the target (cf.
-            // netlify behaviour)
-            url.queryStr && !targetUrl.queryStr
-                ? targetUrl.setQueryParams(url.queryParams)
+            // Merge query params: target params take precedence, but source
+            // params are preserved for keys not in target. This matches the
+            // Cloudflare runtime redirect behavior in redirectTools.ts
+            url.queryStr
+                ? targetUrl.setQueryParams({
+                      ...url.queryParams,
+                      ...targetUrl.queryParams,
+                  })
                 : targetUrl
         )
     }
     return _resolveRedirectFromMap(url)
 }
 
-export const resolveInternalRedirect = async (
-    url: Url,
-    knex: db.KnexReadonlyTransaction
-): Promise<Url> => {
-    if (!isCanonicalInternalUrl(url)) return url
+// Only used for prominent links in historical wordpress content (at the time of
+// writing, this is limited to topic country profiles and reusable blocks in
+// explorer pages)
+export const DEPRECATED_resolveInternalRedirectForWordpressProminentLinks =
+    async (url: Url, knex: db.KnexReadonlyTransaction): Promise<Url> => {
+        if (!isCanonicalInternalUrl(url)) return url
 
-    // Assumes that redirects in explorer code are final (in line with the
-    // current expectation). This helps keeping complexity at bay, while
-    // avoiding unnecessary processing.
+        // Assumes that redirects in explorer code are final (in line with the
+        // current expectation). This helps keeping complexity at bay, while
+        // avoiding unnecessary processing.
 
-    // In other words, in the following hypothetical redirect chain:
-    // (1) wordpress redirect: /omicron --> /explorers/omicron
-    // (2) wordpress redirect: /explorers/omicron --> /grapher/omicron
-    // (3) grapher admin redirect: /grapher/omicron --> /grapher/omicron-v1
-    // (4) wordpress redirect: /grapher/omicron-v1 --> /grapher/omicron-v2
-    // (5) explorer code redirect: /grapher/omicron-v2 --> /explorers/coronavirus-data-explorer?omicron=true
-    // --- END OF REDIRECTS ---
-    // (6) wordpress redirect: /explorers/coronavirus-data-explorer --> /explorers/covid
+        // In other words, in the following hypothetical redirect chain:
+        // (1) wordpress redirect: /omicron --> /explorers/omicron
+        // (2) wordpress redirect: /explorers/omicron --> /grapher/omicron
+        // (3) grapher admin redirect: /grapher/omicron --> /grapher/omicron-v1
+        // (4) wordpress redirect: /grapher/omicron-v1 --> /grapher/omicron-v2
+        // (5) explorer code redirect: /grapher/omicron-v2 --> /explorers/coronavirus-data-explorer?omicron=true
+        // --- END OF REDIRECTS ---
+        // (6) wordpress redirect: /explorers/coronavirus-data-explorer --> /explorers/covid
 
-    // - The last redirect (6) is not executed because is comes after a redirect
-    //   stored in explorer code.
-    // - If a /grapher/omicron-v2 --> /grapher/omicron-v3 were to be defined in
-    //   wordpress (or grapher admin), it would be resolved before (5), and (5)
-    //   would never execute.
-    // - (2) does not block the redirects chain. Even though an explorer URL is
-    //   redirected, what matters here is where the redirect is stored
-    //   (wordpress), not what is redirected.
+        // - The last redirect (6) is not executed because is comes after a redirect
+        //   stored in explorer code.
+        // - If a /grapher/omicron-v2 --> /grapher/omicron-v3 were to be defined in
+        //   wordpress (or grapher admin), it would be resolved before (5), and (5)
+        //   would never execute.
+        // - (2) does not block the redirects chain. Even though an explorer URL is
+        //   redirected, what matters here is where the redirect is stored
+        //   (wordpress), not what is redirected.
 
-    return resolveExplorerRedirect(
-        await resolveRedirectFromMap(
-            url,
-            await getGrapherAndWordpressRedirectsMap(knex)
+        return DEPRECATED_resolveExplorerRedirect(
+            await DEPRECATED_resolveRedirectFromMap(
+                url,
+                await DEPRECATED_getAllRedirectsMap(knex)
+            )
         )
-    )
-}
+    }
 
 export const flushCache = () => {
-    getGrapherAndWordpressRedirectsMap.cache.clear?.()
+    DEPRECATED_getAllRedirectsMap.cache.clear?.()
 }

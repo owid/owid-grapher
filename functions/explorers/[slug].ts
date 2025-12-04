@@ -1,6 +1,9 @@
 import { Env, Etag, extensions } from "../_common/env.js"
-import { handlePageNotFound } from "../_common/redirectTools.js"
-import { IRequestStrict, Router, error, cors } from "itty-router"
+import {
+    handleExplorerPageNotFound,
+    getRedirectForExplorerUrl,
+} from "../_common/redirectTools.js"
+import { IRequestStrict, Router, StatusError, error, cors } from "itty-router"
 import { rewriteMetaTags } from "../_common/grapherTools.js"
 import {
     fetchCsvForExplorerView,
@@ -117,7 +120,7 @@ async function handleHtmlPageRequest(
     })
 
     if (explorerPage.status === 404) {
-        return handlePageNotFound(env, explorerPage)
+        return handleExplorerPageNotFound(env, explorerPage)
     }
 
     const openGraphThumbnailUrl = `/explorers/${slug}.png?imType=og${
@@ -151,7 +154,18 @@ export const onRequest: PagesFunction<Env> = async (context) => {
             context
         )
         .catch(async (e) => {
-            console.log("Handling 404 for", url.pathname)
-            return error(500, e)
+            // Only check _explorerRedirects.json for redirects if a 404 occurs.
+            // Otherwise, skip the extra fetch in the happy path.
+            console.log("Handling error", e)
+            if (e instanceof StatusError && e.status === 404) {
+                console.log("Handling 404 for", url.pathname)
+                const redirect = await getRedirectForExplorerUrl(
+                    { ...env, url },
+                    url
+                )
+                return redirect || error(404, "Not found")
+            } else if (e instanceof StatusError) {
+                return error(e.status, e.message)
+            } else return error(500, e)
         })
 }
