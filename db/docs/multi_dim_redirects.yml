@@ -1,0 +1,16 @@
+metadata:
+    description: |
+        Redirects from legacy sources (e.g. grapher slugs or other paths) to multi-dim pages. Each row maps a source identifier either to the multi-dim page's default view (when viewConfigId is NULL) or to a specific multi-dim view (identified by its chart config id in chart_configs).
+fields:
+    id:
+        description: Unique identifier for the redirect
+    source:
+        description: Source path that should redirect to a multi-dim page or view (unique)
+    multiDimId:
+        description: Foreign key to multi_dim_data_pages.id identifying the target multi-dim page
+    viewConfigId:
+        description: Optional foreign key to chart_configs.id identifying a specific view config. When NULL, redirects to the multi-dim page's default view.
+    createdAt:
+        description: Timestamp when the redirect was created
+    updatedAt:
+        description: Timestamp when the redirect was last updated

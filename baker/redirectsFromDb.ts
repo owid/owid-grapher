@@ -1,17 +1,26 @@
 import * as _ from "lodash-es"
 import * as db from "../db/db.js"
 import { getRedirectsFromDb } from "../db/model/Redirect.js"
+import {
+    getMultiDimRedirectTargets,
+    getRecentMultiDimRedirects,
+} from "../db/model/MultiDimRedirects.js"
 
-export async function getRecentGrapherRedirects(
+export interface RecentNonSiteRedirect {
+    source: string
+    target: string
+}
+
+export async function getRecentNonSiteRedirects(
     knex: db.KnexReadonlyTransaction
-) {
-    // Prevent Cloudflare from serving outdated grapher pages, which can remain
-    // in the cache for up to a week. This is necessary, since we take into
-    // consideration the grapher redirects only when the route returns a 404,
-    // which won't be the case if the page is still cached.
-    //
+): Promise<RecentNonSiteRedirect[]> {
+    // Prevent Cloudflare from serving outdated non-site pages (grapher,
+    // explorers, multi-dims), which can remain in the cache for up to a week.
+    // This is necessary, since in the Cloudflare Functions we take into
+    // consideration the grapher and multi-dim redirects only when the route
+    // returns a 404, which won't be the case if the page is still cached.
     // https://developers.cloudflare.com/pages/configuration/serving-pages/#asset-retention
-    return await db.knexRaw<{
+    const recentGrapherRedirects = await db.knexRaw<{
         source: string
         target: string
     }>(
@@ -28,12 +37,23 @@ export async function getRecentGrapherRedirects(
             > (NOW() - INTERVAL 1 WEEK)
         `
     )
+
+    const grapherPrefix = "/grapher/"
+    const multiDimRedirects = await getRecentMultiDimRedirects(knex)
+
+    return [
+        ...recentGrapherRedirects.map((row) => ({
+            source: `${grapherPrefix}${row.source}`,
+            target: `${grapherPrefix}${row.target}`,
+        })),
+        ...multiDimRedirects,
+    ]
 }
 
 export const getGrapherRedirectsMap = async (
     knex: db.KnexReadonlyTransaction,
     urlPrefix: string = "/grapher/"
-) => {
+): Promise<Map<string, string>> => {
     const chartRedirectRows = (await db.knexRaw<{
         oldSlug: string
         newSlug: string
@@ -47,7 +67,7 @@ export const getGrapherRedirectsMap = async (
         `
     )) as Array<{ oldSlug: string; newSlug: string }>
 
-    return new Map(
+    const redirects = new Map<string, string>(
         chartRedirectRows
             .filter((row) => row.oldSlug !== row.newSlug)
             .map((row) => [
@@ -55,6 +75,56 @@ export const getGrapherRedirectsMap = async (
                 `${urlPrefix}${row.newSlug}`,
             ])
     )
+
+    const multiDimRedirects = await getGrapherToMultiDimRedirectsMap(
+        knex,
+        urlPrefix
+    )
+    for (const [source, target] of multiDimRedirects.entries()) {
+        redirects.set(source, target)
+    }
+
+    return redirects
+}
+
+export const getGrapherToMultiDimRedirectsMap = async (
+    knex: db.KnexReadonlyTransaction,
+    urlPrefix: string = "/grapher/"
+): Promise<Map<string, string>> => {
+    const redirects = new Map<string, string>()
+    const targets = await getMultiDimRedirectTargets(
+        knex,
+        undefined,
+        "/grapher/"
+    )
+
+    for (const [sourceSlug, target] of targets.entries()) {
+        const targetPath = `${urlPrefix}${target.targetSlug}${
+            target.queryStr ? `?${target.queryStr}` : ""
+        }`
+        redirects.set(`${urlPrefix}${sourceSlug}`, targetPath)
+    }
+    return redirects
+}
+
+export async function getExplorerRedirectsMap(
+    knex: db.KnexReadonlyTransaction,
+    urlPrefix: string = "/explorers/"
+): Promise<Map<string, string>> {
+    const redirects = new Map<string, string>()
+    const targets = await getMultiDimRedirectTargets(
+        knex,
+        undefined,
+        "/explorers/"
+    )
+
+    for (const [sourceSlug, target] of targets.entries()) {
+        const targetPath = `/grapher/${target.targetSlug}${
+            target.queryStr ? `?${target.queryStr}` : ""
+        }`
+        redirects.set(`${urlPrefix}${sourceSlug}`, targetPath)
+    }
+    return redirects
 }
 
 export const getWordpressRedirectsMap = async (
@@ -65,17 +135,21 @@ export const getWordpressRedirectsMap = async (
     return new Map(redirectsFromDb.map((row) => [row.source, row.target]))
 }
 
-export const getGrapherAndWordpressRedirectsMap = _.memoize(
+export const getAllRedirectsMap = _.memoize(
     async (knex: db.KnexReadonlyTransaction): Promise<Map<string, string>> => {
         // source: pathnames only (e.g. /transport)
         // target: pathnames with or without origins (e.g. /transport-new or https://ourworldindata.org/transport-new)
 
         const grapherRedirects = await getGrapherRedirectsMap(knex)
+        const explorerRedirects = await getExplorerRedirectsMap(knex)
         const wordpressRedirects = await getWordpressRedirectsMap(knex)
 
-        // The order the redirects are added to the map is important. Adding the
-        // Wordpress redirects last means that Wordpress redirects can overwrite
-        // grapher redirects.
-        return new Map([...grapherRedirects, ...wordpressRedirects])
+        // The order matters: wordpress redirects can override both grapher and
+        // explorer redirects.
+        return new Map([
+            ...grapherRedirects,
+            ...explorerRedirects,
+            ...wordpressRedirects,
+        ])
     }
 )

@@ -9,10 +9,7 @@ import { KnexReadonlyTransaction } from "../db/db.js"
 
 type ArrayForMap = [string, string][]
 
-const getGrapherAndWordpressRedirectsMap = vi.spyOn(
-    redirectsFromDb,
-    "getGrapherAndWordpressRedirectsMap"
-)
+const getAllRedirectsMap = vi.spyOn(redirectsFromDb, "getAllRedirectsMap")
 
 const getFormattedUrl = (url: string): Url => {
     return Url.fromURL(formatUrls(url))
@@ -26,7 +23,7 @@ it("resolves pathnames", async () => {
     const urlToResolve = getFormattedUrl(src)
     const resolvedUrl = getFormattedUrl(target)
 
-    getGrapherAndWordpressRedirectsMap.mockImplementation(() =>
+    getAllRedirectsMap.mockImplementation(() =>
         Promise.resolve(new Map(redirectsArr))
     )
 
@@ -45,7 +42,7 @@ it("does not support query string in redirects map", async () => {
 
     const urlToResolve = getFormattedUrl(src)
 
-    getGrapherAndWordpressRedirectsMap.mockImplementation(() =>
+    getAllRedirectsMap.mockImplementation(() =>
         Promise.resolve(new Map(redirectsArr))
     )
 
@@ -70,7 +67,7 @@ it("passes query string params when resolving", async () => {
         strToQueryParams(queryString)
     )
 
-    getGrapherAndWordpressRedirectsMap.mockImplementation(() =>
+    getAllRedirectsMap.mockImplementation(() =>
         Promise.resolve(new Map(redirectsArr))
     )
 
@@ -92,7 +89,7 @@ it("does not pass query string params when some present on the target", async ()
     )
     const resolvedUrl = getFormattedUrl(target)
 
-    getGrapherAndWordpressRedirectsMap.mockImplementation(() =>
+    getAllRedirectsMap.mockImplementation(() =>
         Promise.resolve(new Map(redirectsArr))
     )
 
@@ -111,7 +108,7 @@ it("resolves self-redirects", async () => {
 
     const urlToResolve = getFormattedUrl(src)
 
-    getGrapherAndWordpressRedirectsMap.mockImplementation(() =>
+    getAllRedirectsMap.mockImplementation(() =>
         Promise.resolve(new Map(redirectsArr))
     )
 
@@ -133,7 +130,7 @@ it("does not support query params in self-redirects", async () => {
         strToQueryParams("?z=2")
     )
 
-    getGrapherAndWordpressRedirectsMap.mockImplementation(() =>
+    getAllRedirectsMap.mockImplementation(() =>
         Promise.resolve(new Map(redirectsArr))
     )
 
@@ -163,7 +160,7 @@ it("resolves circular redirects", async () => {
 
     const urlToResolve = getFormattedUrl(theKing)
 
-    getGrapherAndWordpressRedirectsMap.mockImplementation(() =>
+    getAllRedirectsMap.mockImplementation(() =>
         Promise.resolve(new Map(redirectsArr))
     )
 
