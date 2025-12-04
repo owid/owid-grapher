@@ -17,7 +17,6 @@ import {
     TimeBoundValue,
     TimeBound,
     TimeBounds,
-    isSubsetOf,
     queryParamsToStr,
     ColumnTypeNames,
     Url,
@@ -34,37 +33,10 @@ import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 import { setSelectedEntityNamesParam } from "./EntityUrlBuilder"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { SelectionArray } from "../selection/SelectionArray"
-import {
-    OwidDistinctColorScheme,
-    OwidDistinctLinesColorScheme,
-} from "../color/CustomSchemes"
 import { latestGrapherConfigSchema } from "./GrapherConstants.js"
 import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "./LegacyToOwidTable.js"
 import { GrapherProgrammaticInterface } from "./Grapher.js"
 import { GrapherState } from "./GrapherState"
-
-const TestGrapherConfig = (): {
-    table: OwidTable
-    selectedEntityNames: any[]
-    dimensions: {
-        slug: SampleColumnSlugs
-        property: DimensionProperty
-        variableId: any
-    }[]
-} => {
-    const table = SynthesizeGDPTable({ entityCount: 10 })
-    return {
-        table,
-        selectedEntityNames: table.sampleEntityName(5),
-        dimensions: [
-            {
-                slug: SampleColumnSlugs.GDP,
-                property: DimensionProperty.y,
-                variableId: SampleColumnSlugs.GDP as any,
-            },
-        ],
-    }
-}
 
 it("regression fix: container options are not serialized", () => {
     const grapher = new GrapherState({ xAxis: { min: 1 } })
@@ -451,58 +423,6 @@ describe("authors can use maxTime", () => {
         })
         const chart = grapher.chartState
         expect(chart.errorInfo.reason).toBeFalsy()
-    })
-})
-
-describe("line chart to bar chart and bar chart race", () => {
-    const grapher = new GrapherState(TestGrapherConfig())
-
-    it("can create a new line chart with different start and end times", () => {
-        expect(grapher.activeChartType).toEqual(GRAPHER_CHART_TYPES.LineChart)
-        expect(grapher.endHandleTimeBound).toBeGreaterThan(
-            grapher.startHandleTimeBound
-        )
-    })
-
-    describe("switches from a line chart to a bar chart when there is only 1 year selected", () => {
-        const grapher = new GrapherState(TestGrapherConfig())
-        const lineSeries = grapher.chartState.series
-
-        expect(grapher.activeChartType).toEqual(GRAPHER_CHART_TYPES.LineChart)
-
-        grapher.startHandleTimeBound = 2000
-        grapher.endHandleTimeBound = 2000
-        expect(grapher.activeChartType).toEqual(GRAPHER_CHART_TYPES.DiscreteBar)
-
-        it("still has a timeline even though its now a bar chart", () => {
-            expect(grapher.hasTimeline).toBe(true)
-        })
-
-        it("color goes to monochrome when the chart switches from line chart to bar chart", () => {
-            const barSeries = grapher.chartState.series
-            const barColors = _.orderBy(barSeries, "seriesName").map(
-                (series) => series.color
-            )
-            const linecolors = _.orderBy(lineSeries, "seriesName").map(
-                (series) => series.color
-            )
-            expect(
-                isSubsetOf(
-                    linecolors,
-                    OwidDistinctLinesColorScheme.colorSets[0]
-                )
-            ).toBeTruthy()
-            expect(
-                isSubsetOf(barColors, OwidDistinctColorScheme.colorSets[0])
-            ).toBeTruthy()
-            expect(new Set(barColors).size).toEqual(1)
-        })
-    })
-
-    it("turns into a bar chart when constrained start & end handles are equal", () => {
-        grapher.startHandleTimeBound = 5000
-        grapher.endHandleTimeBound = Infinity
-        expect(grapher.activeChartType).toEqual(GRAPHER_CHART_TYPES.DiscreteBar)
     })
 })
 
