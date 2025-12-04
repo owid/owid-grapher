@@ -6,10 +6,8 @@ metadata:
 fields:
     id:
         description: Unique identifier for the static visualization
-    slug:
-        description: Unique URL-safe identifier used in page URLs (must be unique)
-    title:
-        description: Display title of the static visualization
+    name:
+        description: Unique identifier/name for the static visualization (must be unique, lowercase with hyphens)
     description:
         description: Optional text description of the visualization (supports markdown)
     grapherSlug:

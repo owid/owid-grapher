@@ -80,7 +80,7 @@ import {
 
 import { indexBy } from "remeda"
 import {
-    getLinkedStaticVizBySlugs,
+    getLinkedStaticVizByNames,
     getEnrichedStaticVizList,
 } from "../StaticViz.js"
 import { getDods } from "../Dod.js"
@@ -913,11 +913,11 @@ export class GdocBase implements OwidGdocBaseInterface {
     }
 
     async loadLinkedStaticViz(knex: db.KnexReadonlyTransaction): Promise<void> {
-        const dbResults = await getLinkedStaticVizBySlugs(
+        const dbResults = await getLinkedStaticVizByNames(
             knex,
             this.linkedStaticVizNames
         )
-        this.linkedStaticViz = _.keyBy(dbResults, "slug")
+        this.linkedStaticViz = _.keyBy(dbResults, "name")
     }
 
     async fetchAndEnrichGdoc(
@@ -1087,11 +1087,11 @@ export class GdocBase implements OwidGdocBaseInterface {
                     },
                     () => {
                         if (
-                            !staticViz.find((viz) => viz.slug === link.target)
+                            !staticViz.find((viz) => viz.name === link.target)
                         ) {
                             linkErrors.push({
                                 property: "content",
-                                message: `Static viz with slug "${link.target}" does not exist`,
+                                message: `Static viz with name "${link.target}" does not exist`,
                                 type: OwidGdocErrorMessageType.Error,
                             })
                         }

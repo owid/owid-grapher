@@ -49,15 +49,15 @@ export async function createStaticViz(
     }
     const parsedData = parseResult.data
 
-    // Check if slug already exists
-    const existingSlug = await trx
+    // Check if name already exists
+    const existingName = await trx
         .table("static_viz")
-        .where("slug", parsedData.slug)
+        .where("name", parsedData.name)
         .first()
 
-    if (existingSlug) {
+    if (existingName) {
         throw new JsonError(
-            `Static viz with slug "${parsedData.slug}" already exists`,
+            `Static viz with name "${parsedData.name}" already exists`,
             400
         )
     }
@@ -157,8 +157,7 @@ export async function updateStaticViz(
     }
 
     const updatableFields = [
-        "slug",
-        "title",
+        "name",
         "description",
         "grapherSlug",
         "sourceUrl",
@@ -172,17 +171,17 @@ export async function updateStaticViz(
         throw new JsonError("No updatable fields provided", 400)
     }
 
-    // Check if slug is being updated and if it conflicts
-    if (updatePayload.slug && updatePayload.slug !== existingStaticViz.slug) {
-        const conflictingSlug = await trx
+    // Check if name is being updated and if it conflicts
+    if (updatePayload.name && updatePayload.name !== existingStaticViz.name) {
+        const conflictingName = await trx
             .table("static_viz")
-            .where("slug", updatePayload.slug)
+            .where("name", updatePayload.name)
             .whereNot("id", staticVizId)
             .first()
 
-        if (conflictingSlug) {
+        if (conflictingName) {
             throw new JsonError(
-                `Static viz with slug "${updatePayload.slug}" already exists`,
+                `Static viz with name "${updatePayload.name}" already exists`,
                 400
             )
         }
@@ -285,7 +284,7 @@ export async function deleteStaticViz(
               AND pgl.linkType = 'static-viz'
               AND pg.published = true
         `,
-        [staticViz.slug]
+        [staticViz.name]
     )
 
     if (referencingGdocs.length > 0) {
@@ -293,7 +292,7 @@ export async function deleteStaticViz(
             .uniq(referencingGdocs.map((gdoc) => `"${gdoc.slug}"`))
             .join(", ")
         throw new JsonError(
-            `Cannot delete static viz "${staticViz.slug}" because it is referenced in the following published documents: ${gdocsList}`,
+            `Cannot delete static viz "${staticViz.name}" because it is referenced in the following published documents: ${gdocsList}`,
             400
         )
     }

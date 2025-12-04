@@ -18,8 +18,7 @@ import { BAKED_GRAPHER_URL } from "../../settings/clientSettings.js"
 const BASE_STATIC_VIZ_QUERY = `-- sql
     SELECT
         sv.id,
-        sv.slug,
-        sv.title,
+        sv.name,
         sv.description,
         sv.grapherSlug,
         sv.sourceUrl,
@@ -56,8 +55,7 @@ const BASE_STATIC_VIZ_QUERY = `-- sql
 /** The type for the query above */
 type StaticVizRow = {
     id: number
-    slug: string
-    title: string
+    name: string
     description: string | null
     grapherSlug: string | null
     sourceUrl: string | null
@@ -94,9 +92,8 @@ function rowToEnrichedStaticViz(row: StaticVizRow): DbEnrichedStaticViz {
         grapherSlug: row.grapherSlug || "",
         chartId: row.chartId ?? undefined,
         id: row.id,
-        slug: row.slug,
+        name: row.name,
         sourceUrl: row.sourceUrl || "",
-        title: row.title,
         updatedAt: row.updatedAt,
         updatedBy: row.updatedBy || "",
         desktop: {
@@ -158,8 +155,7 @@ function rowToLinkedStaticViz(row: StaticVizRow): LinkedStaticViz {
             updatedAt: new Date(row.desktopImageUpdatedAt ?? 0).getTime(),
             defaultAlt: row.desktopImageAlt,
         },
-        slug: row.slug,
-        title: row.title,
+        name: row.name,
         grapherUrl: row.grapherSlug
             ? urlJoin(BAKED_GRAPHER_URL, row.grapherSlug)
             : "",
@@ -179,16 +175,16 @@ function rowToLinkedStaticViz(row: StaticVizRow): LinkedStaticViz {
     return linkedStaticViz
 }
 
-export async function getLinkedStaticVizBySlugs(
+export async function getLinkedStaticVizByNames(
     trx: db.KnexReadonlyTransaction,
-    slugs: string[]
+    names: string[]
 ): Promise<LinkedStaticViz[]> {
-    if (slugs.length === 0) {
+    if (names.length === 0) {
         return []
     }
-    const placeholders = slugs.map(() => "?").join(", ")
-    const query = `${BASE_STATIC_VIZ_QUERY} WHERE sv.slug IN (${placeholders})`
+    const placeholders = names.map(() => "?").join(", ")
+    const query = `${BASE_STATIC_VIZ_QUERY} WHERE sv.name IN (${placeholders})`
 
-    const results = await db.knexRaw<StaticVizRow>(trx, query, slugs)
+    const results = await db.knexRaw<StaticVizRow>(trx, query, names)
     return results.map(rowToLinkedStaticViz)
 }

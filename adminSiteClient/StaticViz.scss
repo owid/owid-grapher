@@ -50,6 +50,15 @@
     margin-top: 48px;
 }
 
+.static-viz-edit-form__description {
+    max-width: 800px;
+}
+
+.StaticVizEditPage .ant-form-item .static-viz-edit-form__description {
+    margin-top: 4px;
+    margin-left: 8px;
+}
+
 .static-viz-edit-form__image-section {
     border: 1px solid #dfdfdf;
     border-radius: 3px;

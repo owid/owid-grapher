@@ -94,27 +94,20 @@ function createColumns({
             },
         },
         {
-            title: "Title",
-            dataIndex: "title",
-            key: "title",
+            title: "Name",
+            dataIndex: "name",
+            key: "name",
             width: 300,
-            sorter: (a, b) => a.title.localeCompare(b.title),
-        },
-        {
-            title: "Slug",
-            dataIndex: "slug",
-            key: "slug",
-            width: 200,
-            sorter: (a, b) => a.slug.localeCompare(b.slug),
-            render: (slug) => {
+            sorter: (a, b) => a.name.localeCompare(b.name),
+            render: (name) => {
                 return (
                     <>
-                        <span>{slug}</span>
+                        <span>{name}</span>
                         <Button
                             type="text"
                             size="small"
                             icon={<FontAwesomeIcon icon={faCopy} size="sm" />}
-                            onClick={() => copyToClipboard(slug)}
+                            onClick={() => copyToClipboard(name)}
                         />
                     </>
                 )
@@ -235,10 +228,9 @@ export function StaticVizIndexPage() {
         return linkedStaticViz.filter((item) => {
             if (!searchValue) return true
             const value = searchValue.toLowerCase()
-            const { title, slug, description, createdBy, updatedBy } = item
+            const { name, description, createdBy, updatedBy } = item
             return (
-                title.toLowerCase().includes(value) ||
-                slug.toLowerCase().includes(value) ||
+                name.toLowerCase().includes(value) ||
                 description?.toLowerCase().includes(value) ||
                 createdBy?.toLowerCase().includes(value) ||
                 updatedBy?.toLowerCase().includes(value)
@@ -256,7 +248,7 @@ export function StaticVizIndexPage() {
             <main className="StaticVizIndexPage">
                 <Flex justify="space-between">
                     <Input
-                        placeholder="Search by title, slug, or description"
+                        placeholder="Search by name or description"
                         value={searchValue}
                         onChange={(e) => setSearchValue(e.target.value)}
                         style={{ width: 500, marginBottom: 20 }}
@@ -270,7 +262,7 @@ export function StaticVizIndexPage() {
                         size="small"
                         columns={columns}
                         dataSource={filteredLinkedStaticViz}
-                        rowKey={(x) => x.slug}
+                        rowKey={(x) => x.name}
                         pagination={{
                             pageSize: 50,
                             showSizeChanger: true,

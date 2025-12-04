@@ -4,8 +4,7 @@ export const StaticVizTableName = "static_viz"
 
 export interface DbRawStaticViz {
     id: number
-    slug: string
-    title: string
+    name: string
     description: string | null
     grapherSlug: string | null
     sourceUrl: string | null
@@ -32,8 +31,7 @@ export type DbEnrichedStaticViz = Omit<
 > & {
     desktop?: StaticVizImage
     mobile?: StaticVizImage
-    slug: string
-    title: string
+    name: string
     grapherSlug?: string
     chartId?: number
     sourceUrl?: string
@@ -43,8 +41,7 @@ export type DbEnrichedStaticViz = Omit<
 }
 
 export const StaticVizInsertSchema = z.object({
-    slug: z.string().min(1),
-    title: z.string().min(1),
+    name: z.string().min(1),
     description: z.string().nullable().optional(),
     grapherSlug: z.string().nullable().optional(),
     sourceUrl: z.string().nullable().optional(),
@@ -55,8 +52,7 @@ export const StaticVizInsertSchema = z.object({
 })
 
 export const StaticVizUpdateSchema = z.object({
-    slug: z.string().min(1).optional(),
-    title: z.string().min(1).optional(),
+    name: z.string().min(1).optional(),
     description: z.string().nullable().optional(),
     grapherSlug: z.string().nullable().optional(),
     sourceUrl: z.string().nullable().optional(),
