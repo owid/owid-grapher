@@ -1025,3 +1025,53 @@ it("can deal with y columns with missing values", () => {
     expect(xPositions[1]).toBeCloseTo(xAxisRange * 0.4, 0)
     expect(xPositions[2]).toBeCloseTo(xAxisRange * 0.5, 0)
 })
+
+it("does not extend time range based on color column data", () => {
+    // The color column has data up to 2023, but the y column only has data up to 2020.
+    // The chart should not show years beyond 2020, even with tolerance.
+    const csv = `year,entityName,maternalMortality,region
+2018,Belarus,4,Europe
+2019,Belarus,3,Europe
+2020,Belarus,2,Europe
+2018,Afghanistan,100,Asia
+2019,Afghanistan,95,Asia
+2020,Afghanistan,90,Asia
+2021,Belarus,,Europe
+2022,Belarus,,Europe
+2023,Belarus,,Europe
+2021,Afghanistan,,Asia
+2022,Afghanistan,,Asia
+2023,Afghanistan,,Asia`
+    const table = new OwidTable(csv, [
+        {
+            slug: "maternalMortality",
+            type: ColumnTypeNames.Numeric,
+            tolerance: 5,
+        },
+        { slug: "region", type: ColumnTypeNames.String },
+        { slug: "year", type: ColumnTypeNames.Year },
+    ])
+
+    const manager = {
+        chartTypes: [GRAPHER_CHART_TYPES.Marimekko],
+        table,
+        selection: table.availableEntityNames,
+        ySlugs: "maternalMortality",
+        categoricalColorColumnSlug: "region",
+        endTime: 2023,
+        showNoDataArea: false,
+    }
+    const grapher = new GrapherState(manager)
+    const chartState = new MarimekkoChartState({ manager: grapher })
+
+    // The transformed table should not include years 2021-2023,
+    // even though the color column has data for those years
+    const transformedTable = chartState.transformedTable
+    const years = transformedTable.timeColumn.uniqValues
+
+    // Years should only go up to 2020 (the last year with maternalMortality data)
+    expect(Math.max(...(years as number[]))).toBeLessThanOrEqual(2020)
+
+    // The chart should show data for 2020, not 2023
+    expect(chartState.series[0].points.every((p) => p.time <= 2020)).toBe(true)
+})
