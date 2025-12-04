@@ -403,7 +403,7 @@ export class ChartEditorView<
             <>
                 {!editor.isNewGrapher && (
                     <Prompt
-                        when={editor.isModified}
+                        when={editor.isModified && !chartEditor?.newChartId}
                         message="Are you sure you want to leave? Unsaved changes will be lost."
                     />
                 )}
