@@ -9,11 +9,12 @@ import {
     deserializeSet,
     createTopicFilter,
     createCountryFilter,
-    isValidResultType,
     serializeSet,
     getFilterNamesOfType,
 } from "./searchUtils.js"
+import { z } from "zod"
 
+/** Default search state - used as single source of truth for defaults */
 export const DEFAULT_SEARCH_STATE: SearchState = {
     query: "",
     filters: [],
@@ -21,38 +22,77 @@ export const DEFAULT_SEARCH_STATE: SearchState = {
     resultType: SearchResultType.DATA,
 }
 
+// Creates a schema that deserializes a string to a Set, then intersects with
+// valid values and returns an array
+const buildValidListSchema = (validValues: Set<string>) =>
+    z
+        .string()
+        .optional()
+        .transform(deserializeSet)
+        .transform((set) => set.intersection(validValues))
+        .transform((set) => [...set])
+
 /**
- * Derives SearchState from URLSearchParams. If parameters are missing, defaults
- * are used.
+ * Creates a Zod schema for validating search URL parameters.
+ * Countries and topics are validated against the provided sets.
+ */
+export const createSearchParamsSchema = (
+    validCountries: Set<string>,
+    validTopics: Set<string>
+) =>
+    z.object({
+        [SearchUrlParam.QUERY]: z.string().default(DEFAULT_SEARCH_STATE.query), // defaults to empty string
+        [SearchUrlParam.COUNTRY]: buildValidListSchema(validCountries), // defaults to empty array
+        [SearchUrlParam.TOPIC]: buildValidListSchema(validTopics), // defaults to empty array
+        [SearchUrlParam.REQUIRE_ALL_COUNTRIES]: z
+            .string()
+            .optional()
+            .transform((val) => val === "true"), // defaults to false
+        [SearchUrlParam.RESULT_TYPE]: z
+            .enum(SearchResultType)
+            .catch(SearchResultType.DATA), // defaults to SearchResultType.DATA
+    } satisfies Record<SearchUrlParam, z.ZodType>)
+
+// Helper to extract all params from URLSearchParams using SearchUrlParam enum
+const extractSearchParams = (searchParams: URLSearchParams) =>
+    Object.fromEntries(
+        Object.values(SearchUrlParam).map((key) => [
+            key,
+            searchParams.get(key) ?? undefined,
+        ])
+    ) as Record<SearchUrlParam, string | undefined>
+
+/**
+ * Derives SearchState from URLSearchParams using Zod validation.
+ * Countries and topics are validated against the provided sets.
+ * Invalid values are filtered out silently.
  */
 export function searchParamsToState(
     searchParams: URLSearchParams,
     validCountries: Set<string>,
     validTopics: Set<string>
 ): SearchState {
-    const topicsSet = deserializeSet(searchParams.get("topics")).intersection(
-        validTopics
-    )
-    const countriesSet = deserializeSet(
-        searchParams.get("countries")
-    ).intersection(validCountries)
+    const schema = createSearchParamsSchema(validCountries, validTopics)
+    const result = schema.safeParse(extractSearchParams(searchParams))
+
+    if (!result.success) {
+        // all params should handled failure individiually in the schema, so
+        // this should never happen
+        return DEFAULT_SEARCH_STATE
+    }
+
+    const parsed = result.data
 
     const filters: Filter[] = [
-        [...topicsSet].map((topic) => createTopicFilter(topic)),
-        [...countriesSet].map((country) => createCountryFilter(country)),
+        parsed.topics.map(createTopicFilter),
+        parsed.countries.map(createCountryFilter),
     ].flat()
 
-    const resultTypeParam = searchParams.get("resultType") ?? undefined
-
     return {
-        query: searchParams.get("q") ?? DEFAULT_SEARCH_STATE.query,
+        query: parsed.q,
         filters,
-        requireAllCountries:
-            searchParams.get("requireAllCountries") === "true" ||
-            DEFAULT_SEARCH_STATE.requireAllCountries,
-        resultType: isValidResultType(resultTypeParam)
-            ? resultTypeParam
-            : DEFAULT_SEARCH_STATE.resultType,
+        requireAllCountries: parsed.requireAllCountries,
+        resultType: parsed.resultType,
     }
 }
 
@@ -62,7 +102,7 @@ export function searchParamsToState(
 export function stateToSearchParams(state: SearchState): URLSearchParams {
     const params = new URLSearchParams()
 
-    if (state.query) {
+    if (state.query !== DEFAULT_SEARCH_STATE.query) {
         params.set(SearchUrlParam.QUERY, state.query)
     }
 
@@ -80,11 +120,15 @@ export function stateToSearchParams(state: SearchState): URLSearchParams {
         params.set(SearchUrlParam.COUNTRY, countries)
     }
 
-    if (state.requireAllCountries) {
-        params.set(SearchUrlParam.REQUIRE_ALL_COUNTRIES, "true")
+    if (
+        state.requireAllCountries !== DEFAULT_SEARCH_STATE.requireAllCountries
+    ) {
+        params.set(
+            SearchUrlParam.REQUIRE_ALL_COUNTRIES,
+            String(state.requireAllCountries)
+        )
     }
 
-    // Only include resultType if not the default
     if (state.resultType !== DEFAULT_SEARCH_STATE.resultType) {
         params.set(SearchUrlParam.RESULT_TYPE, state.resultType)
     }
