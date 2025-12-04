@@ -1434,11 +1434,20 @@ export class GrapherState {
     @computed get endTime(): Time | undefined {
         return findClosestTime(this.times, this.endHandleTimeBound)
     }
+
     @computed get isSingleTimeScatterAnimationActive(): boolean {
         return (
             this.isTimelineAnimationActive &&
             this.isOnScatterTab &&
             !this.isRelativeMode &&
+            !!this.areHandlesOnSameTimeBeforeAnimation
+        )
+    }
+
+    @computed get isSingleTimeMapAnimationActive(): boolean {
+        return (
+            this.isTimelineAnimationActive &&
+            this.isOnMapTab &&
             !!this.areHandlesOnSameTimeBeforeAnimation
         )
     }
@@ -1450,9 +1459,11 @@ export class GrapherState {
     @computed get isSingleTimeSelectionActive(): boolean {
         return (
             this.onlySingleTimeSelectionPossible ||
-            this.isSingleTimeScatterAnimationActive
+            this.isSingleTimeScatterAnimationActive ||
+            this.isSingleTimeMapAnimationActive
         )
     }
+
     @computed get shouldLinkToOwid(): boolean {
         if (
             this.isEmbeddedInAnOwidPage ||
