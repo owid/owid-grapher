@@ -51,6 +51,7 @@ import {
     getMultiDimDataPageBySlug,
     multiDimDataPageExists,
 } from "../MultiDimDataPage.js"
+import { getMultiDimRedirectTargets } from "../MultiDimRedirects.js"
 import {
     ARCHIVED_THUMBNAIL_FILENAME,
     ChartConfigType,
@@ -139,6 +140,8 @@ export async function loadLinkedChartsForSlugs(
         archivedChartVersions,
         archivedMultiDimVersions,
         archivedExplorerVersions,
+        grapherMultiDimRedirects,
+        explorerMultiDimRedirects,
     ] = await Promise.all([
         getLatestArchivedChartPageVersionsIfEnabled(
             knex,
@@ -146,11 +149,32 @@ export async function loadLinkedChartsForSlugs(
         ),
         getLatestArchivedMultiDimPageVersionsIfEnabled(knex),
         getLatestArchivedExplorerPageVersionsIfEnabled(knex, explorerSlugs),
+        getMultiDimRedirectTargets(knex, grapherSlugs, "/grapher/"),
+        getMultiDimRedirectTargets(knex, explorerSlugs, "/explorers/"),
     ])
 
     // TODO: rewrite this as a single query instead of N queries
     const linkedGrapherCharts = await Promise.all(
         grapherSlugs.map(async (originalSlug) => {
+            const multiDimRedirect = grapherMultiDimRedirects.get(originalSlug)
+
+            if (multiDimRedirect) {
+                const targetSlug = multiDimRedirect.targetSlug
+                const multiDim = await getMultiDimDataPageBySlug(
+                    knex,
+                    targetSlug,
+                    { onlyPublished: false }
+                )
+                if (!multiDim) return
+
+                return makeMultiDimLinkedChart(multiDim.config, originalSlug, {
+                    archivedPageVersion:
+                        archivedMultiDimVersions[multiDim.id] || undefined,
+                    queryStr: multiDimRedirect.queryStr,
+                    resolvedSlug: targetSlug,
+                })
+            }
+
             const chartId = slugToIdMap[originalSlug]
             if (chartId) {
                 const chart = await getChartConfigById(knex, chartId)
@@ -184,14 +208,41 @@ export async function loadLinkedChartsForSlugs(
     const publishedExplorersBySlug = await db.getPublishedExplorersBySlug(knex)
 
     const linkedExplorerCharts = excludeNullish(
-        explorerSlugs.map((originalSlug) => {
-            const explorer = publishedExplorersBySlug[originalSlug]
-            if (!explorer) return
-            return makeExplorerLinkedChart(explorer, originalSlug, {
-                archivedPageVersion:
-                    archivedExplorerVersions[originalSlug] || undefined,
+        await Promise.all(
+            explorerSlugs.map(async (originalSlug) => {
+                const multiDimRedirect =
+                    explorerMultiDimRedirects.get(originalSlug)
+
+                if (multiDimRedirect) {
+                    const targetSlug = multiDimRedirect.targetSlug
+                    const multiDim = await getMultiDimDataPageBySlug(
+                        knex,
+                        targetSlug,
+                        { onlyPublished: false }
+                    )
+                    if (!multiDim) return
+
+                    return makeMultiDimLinkedChart(
+                        multiDim.config,
+                        originalSlug,
+                        {
+                            archivedPageVersion:
+                                archivedMultiDimVersions[multiDim.id] ||
+                                undefined,
+                            queryStr: multiDimRedirect.queryStr,
+                            resolvedSlug: targetSlug,
+                        }
+                    )
+                }
+
+                const explorer = publishedExplorersBySlug[originalSlug]
+                if (!explorer) return
+                return makeExplorerLinkedChart(explorer, originalSlug, {
+                    archivedPageVersion:
+                        archivedExplorerVersions[originalSlug] || undefined,
+                })
             })
-        })
+        )
     )
 
     return [...linkedGrapherCharts, ...linkedExplorerCharts]
@@ -1010,12 +1061,24 @@ export class GdocBase implements OwidGdocBaseInterface {
             narrativeChartNames,
             dods,
             staticViz,
+            grapherMultiDimRedirects,
+            explorerMultiDimRedirects,
         ] = await Promise.all([
             mapSlugsToIds(knex),
             db.getPublishedExplorersBySlug(knex),
             getAllNarrativeChartNames(knex),
             getDods(knex).then((dods) => indexBy(dods, (dod) => dod.name)),
             getEnrichedStaticVizList(knex),
+            getMultiDimRedirectTargets(
+                knex,
+                this.linkedChartSlugs.grapher,
+                "/grapher/"
+            ),
+            getMultiDimRedirectTargets(
+                knex,
+                this.linkedChartSlugs.explorer,
+                "/explorers/"
+            ),
         ])
 
         const linkErrors: OwidGdocErrorMessage[] = []
@@ -1038,8 +1101,17 @@ export class GdocBase implements OwidGdocBaseInterface {
                     }
                 })
                 .with({ linkType: ContentGraphLinkType.Grapher }, async () => {
+                    const grapherRedirect = grapherMultiDimRedirects.get(
+                        link.target
+                    )
+                    const hasMultiDimRedirect =
+                        grapherRedirect !== undefined &&
+                        (grapherRedirect.targetSlug !== link.target ||
+                            !!grapherRedirect.queryStr)
+
                     if (
                         !chartIdsBySlug[link.target] &&
+                        !hasMultiDimRedirect &&
                         !(await multiDimDataPageExists(knex, {
                             slug: link.target,
                             published: true,
@@ -1052,8 +1124,23 @@ export class GdocBase implements OwidGdocBaseInterface {
                         })
                     }
                 })
-                .with({ linkType: ContentGraphLinkType.Explorer }, () => {
-                    if (!publishedExplorersBySlug[link.target]) {
+                .with({ linkType: ContentGraphLinkType.Explorer }, async () => {
+                    const explorerRedirect = explorerMultiDimRedirects.get(
+                        link.target
+                    )
+                    const hasMultiDimRedirect =
+                        explorerRedirect !== undefined &&
+                        (explorerRedirect.targetSlug !== link.target ||
+                            !!explorerRedirect.queryStr)
+
+                    if (
+                        !publishedExplorersBySlug[link.target] &&
+                        !hasMultiDimRedirect &&
+                        !(await multiDimDataPageExists(knex, {
+                            slug: link.target,
+                            published: true,
+                        }))
+                    ) {
                         linkErrors.push({
                             property: "content",
                             message: `Explorer chart with slug ${link.target} does not exist or is not published`,
@@ -1333,20 +1420,30 @@ export function makeExplorerLinkedChart(
 
 export function makeMultiDimLinkedChart(
     config: MultiDimDataPageConfigEnriched,
-    slug: string,
-    { archivedPageVersion }: { archivedPageVersion?: ArchivedPageVersion } = {}
+    originalSlug: string,
+    {
+        archivedPageVersion,
+        queryStr,
+        resolvedSlug,
+    }: {
+        archivedPageVersion?: ArchivedPageVersion
+        queryStr?: string
+        resolvedSlug?: string
+    } = {}
 ): LinkedChart {
     let title = config.title.title
     const titleVariant = config.title.titleVariant
     if (titleVariant) {
         title = `${title} ${titleVariant}`
     }
+    const slug = resolvedSlug ?? originalSlug
+    const resolvedUrl = `${BASE_URL}/grapher/${slug}${queryStr ? `?${queryStr}` : ""}`
     return {
         configType: ChartConfigType.MultiDim,
-        originalSlug: slug,
+        originalSlug,
         title,
         dimensionSlugs: config.dimensions.map((d) => d.slug),
-        resolvedUrl: `${BASE_URL}/grapher/${slug}`,
+        resolvedUrl,
         tags: [],
         archivedPageVersion,
     }

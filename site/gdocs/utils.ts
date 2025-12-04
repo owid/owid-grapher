@@ -143,7 +143,8 @@ export const useLinkedChart = (
     const linkType = getLinkType(url)
     if (linkType !== "grapher" && linkType !== "explorer") return {}
 
-    const queryString = Url.fromURL(url).queryStr
+    const parsedOriginalUrl = Url.fromURL(url)
+    const queryString = parsedOriginalUrl.queryStr
     const urlTarget = getUrlTarget(url)
     const linkedChart = linkedCharts?.[urlTarget]
     if (!linkedChart) {
@@ -152,12 +153,20 @@ export const useLinkedChart = (
         }
     }
 
+    const parsedResolvedUrl = Url.fromURL(linkedChart.resolvedUrl)
+    const resolvedUrl = queryString
+        ? parsedResolvedUrl.setQueryParams({
+              ...parsedResolvedUrl.queryParams,
+              ...parsedOriginalUrl.queryParams,
+          }).fullUrl
+        : parsedResolvedUrl.fullUrl
+
     return {
         linkedChart: {
             ...linkedChart,
             // linkedCharts doesn't store any querystring information, because it's indexed by slug
             // Instead we get the querystring from the original URL and append it to resolvedUrl
-            resolvedUrl: `${linkedChart.resolvedUrl}${queryString}`,
+            resolvedUrl,
         },
     }
 }

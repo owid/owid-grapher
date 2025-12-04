@@ -5,8 +5,8 @@ import { resolveExplorerRedirect } from "./replaceExplorerRedirects.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import { getRedirectsFromDb } from "../db/model/Redirect.js"
 import {
-    getGrapherAndWordpressRedirectsMap,
-    getRecentGrapherRedirects,
+    getAllRedirectsMap,
+    getRecentNonSiteRedirects,
 } from "./redirectsFromDb.js"
 
 export const getRedirects = async (knex: db.KnexReadonlyTransaction) => {
@@ -75,15 +75,15 @@ export const getRedirects = async (knex: db.KnexReadonlyTransaction) => {
         (row) => `${row.source} ${row.target} ${row.code}`
     )
 
-    const recentGrapherRedirects = (await getRecentGrapherRedirects(knex)).map(
-        (row) => `/grapher/${row.source} /grapher/${row.target} 302`
+    const recentNonSiteRedirects = (await getRecentNonSiteRedirects(knex)).map(
+        (row) => `${row.source} ${row.target} 302`
     )
 
     // Add newlines in between so we get some more overview
     return [
         ...staticRedirects,
         "",
-        ...recentGrapherRedirects,
+        ...recentNonSiteRedirects,
         "",
         ...redirectsFromDb,
         "",
@@ -166,13 +166,10 @@ export const resolveInternalRedirect = async (
     //   (wordpress), not what is redirected.
 
     return resolveExplorerRedirect(
-        await resolveRedirectFromMap(
-            url,
-            await getGrapherAndWordpressRedirectsMap(knex)
-        )
+        await resolveRedirectFromMap(url, await getAllRedirectsMap(knex))
     )
 }
 
 export const flushCache = () => {
-    getGrapherAndWordpressRedirectsMap.cache.clear?.()
+    getAllRedirectsMap.cache.clear?.()
 }

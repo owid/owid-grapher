@@ -2,6 +2,16 @@
 
 @import "../public/fonts.css";
 @import "bootstrap/scss/bootstrap";
+
+@mixin draft-background {
+    background: repeating-linear-gradient(
+        135deg,
+        #f7f7f7,
+        #f7f7f7 10px,
+        #fff 10px,
+        #fff 20px
+    );
+}
 @import "styles/react-tag-autocomplete";
 
 @import "tippy.js/dist/tippy.css";
@@ -16,6 +26,7 @@
 @import "./DodsIndexPage.scss";
 @import "./SortableList.scss";
 @import "./StaticViz.scss";
+@import "./MultiDimDetailPage.scss";
 
 html {
     font-size: 14px;
@@ -769,7 +780,7 @@ $nav-height: 45px;
     }
 }
 
-main:not(.ChartEditorPage):not(.GdocsEditPage) {
+main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     padding: 2em;
 }
 
@@ -1183,13 +1194,7 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
             rgba(0, 0, 0, 0.24) 0px 1px 2px;
         background: #fff;
         &.draft {
-            background: repeating-linear-gradient(
-                135deg,
-                #f7f7f7,
-                #f7f7f7 10px,
-                #fff 10px,
-                #fff 20px
-            );
+            @include draft-background;
         }
     }
 

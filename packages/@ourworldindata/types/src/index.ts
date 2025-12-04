@@ -565,6 +565,11 @@ export {
     ChartSlugRedirectsTableName,
 } from "./dbTypes/ChartSlugRedirects.js"
 export {
+    type DbPlainMultiDimRedirect,
+    type DbInsertMultiDimRedirect,
+    MultiDimRedirectsTableName,
+} from "./dbTypes/MultiDimRedirects.js"
+export {
     type DbPlainChartTag,
     type DbInsertChartTag,
     ChartTagsTableName,
@@ -885,6 +890,8 @@ export {
     type MultiDimChecksumsObjectWithHash,
     type ExplorerChecksums,
     type ExplorerChecksumsObjectWithHash,
+    type NarrativeChartChecksums,
+    type NarrativeChartChecksumsResult,
     type PostChecksums,
     type PostChecksumsObjectWithHash,
 } from "./domainTypes/Archive.js"
