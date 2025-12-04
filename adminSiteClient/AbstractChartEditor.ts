@@ -53,8 +53,7 @@ export interface References {
 
 export interface StaticVizReference {
     id: number
-    slug: string
-    title: string
+    name: string
     grapherSlug?: string | null
     type: ContentGraphLinkType.StaticViz
 }

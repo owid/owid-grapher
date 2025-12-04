@@ -534,14 +534,8 @@ const ReferencesStaticViz = (props: {
                             target="_blank"
                             rel="noopener"
                         >
-                            <strong>{staticViz.title}</strong>
+                            <strong>{staticViz.name}</strong>
                         </a>
-                        {staticViz.slug && (
-                            <span style={{ color: "#aaa" }}>
-                                {" "}
-                                ({staticViz.slug})
-                            </span>
-                        )}
                     </li>
                 ))}
             </ul>

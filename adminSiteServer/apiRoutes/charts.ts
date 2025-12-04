@@ -124,8 +124,7 @@ export const getReferencesByChartId = async (
             `-- sql
             SELECT
                 sv.id,
-                sv.slug,
-                sv.title,
+                sv.name,
                 sv.grapherSlug,
                 '${ContentGraphLinkType.StaticViz}' AS type
             FROM ${StaticVizTableName} sv
