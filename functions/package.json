@@ -26,6 +26,6 @@
         "@types/lodash-es": "^4",
         "@types/react": "^19.2.2",
         "@types/react-dom": "^19.2.2",
-        "vitest": "^4.0.1"
+        "vitest": "^4.0.15"
     }
 }
