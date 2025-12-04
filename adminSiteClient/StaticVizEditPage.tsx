@@ -82,8 +82,7 @@ function useInitializeForm(
     const { admin } = useContext(AdminAppContext)
 
     const [formData, setFormData] = useState<StaticVizUpdate>({
-        title: "",
-        slug: "",
+        name: "",
         description: "",
         grapherSlug: "",
         sourceUrl: "",
@@ -106,8 +105,7 @@ function useInitializeForm(
     useEffect(() => {
         if (isEdit && data) {
             const initialData: StaticVizUpdate = {
-                title: data.title,
-                slug: data.slug,
+                name: data.name,
                 description: data.description || "",
                 grapherSlug: data.grapherSlug || "",
                 sourceUrl: data.sourceUrl || "",
@@ -208,8 +206,7 @@ export function StaticVizEditPage() {
         // Transform empty strings to null for optional fields
         // We explicitly check all fields to ensure cleared values are sent as null
         const transformedValues: StaticVizUpdate = {
-            title: values.title,
-            slug: values.slug,
+            name: values.name,
             grapherSlug: emptyStringToNull(values.grapherSlug),
             sourceUrl: emptyStringToNull(values.sourceUrl),
             description: emptyStringToNull(values.description),
@@ -231,6 +228,12 @@ export function StaticVizEditPage() {
         <AdminLayout title={currentTitle}>
             <div className="StaticVizEditPage">
                 <h1>{currentTitle}</h1>
+                <p className="static-viz-edit-form__description">
+                    Add additional metadata to our bespoke static
+                    visualizations. You can document how the visualization was
+                    produced and link back to its source data with a grapher
+                    slug or an external URL.
+                </p>
                 <Form
                     className="static-viz-edit-form"
                     form={form}
@@ -239,28 +242,22 @@ export function StaticVizEditPage() {
                     initialValues={initalValues}
                 >
                     <Form.Item
-                        label="Title"
-                        name="title"
+                        label="Name"
+                        name="name"
                         rules={[
-                            { required: true, message: "Please enter a title" },
-                        ]}
-                    >
-                        <Input placeholder="Enter title" />
-                    </Form.Item>
-
-                    <Form.Item
-                        label="Slug"
-                        name="slug"
-                        rules={[
-                            { required: true, message: "Please enter a slug" },
+                            { required: true, message: "Please enter a name" },
                             {
-                                pattern: /^[a-z0-9-]+$/,
+                                pattern: /^[a-z-]+$/,
                                 message:
-                                    "Slug must be lowercase and contain only letters, numbers, and hyphens",
+                                    "Name must be lowercase and contain only letters and hyphens",
                             },
                         ]}
                     >
-                        <Input placeholder="Enter slug" />
+                        <Input placeholder="e.g. ac-adoption-data-insight" />
+                        <p className="static-viz-edit-form__description">
+                            A unique identifier for the static visualization.
+                            Used to refer to it in an ArchieML Gdoc.
+                        </p>
                     </Form.Item>
 
                     <Form.Item label="Description" name="description">
@@ -271,12 +268,19 @@ export function StaticVizEditPage() {
 2. Data was processed via scripts at https://github.com/owid/notebooks/blah
 3. Script output was arranged in Figma`}
                         />
+                        <p className="static-viz-edit-form__description">
+                            A brief description of how the static visualization
+                            was produced, for our readers.
+                        </p>
                     </Form.Item>
 
                     <h3 className="static-viz-edit-form__heading--required">
                         Data
                     </h3>
-                    <p>One of the following two fields must be provided</p>
+                    <p>
+                        The source of the visualization's data. One of the
+                        following two fields must be provided
+                    </p>
                     <Form.Item
                         label="Grapher Slug"
                         name="grapherSlug"
@@ -313,9 +317,10 @@ export function StaticVizEditPage() {
                     </Form.Item>
 
                     <div className="static-viz-edit-form__image-section">
-                        <h3>Main image</h3>
+                        <h3 className="static-viz-edit-form__heading--required">
+                            Main image
+                        </h3>
                         <Form.Item
-                            label="Image"
                             name="imageId"
                             rules={[
                                 {
@@ -351,12 +356,12 @@ export function StaticVizEditPage() {
                         </Form.Item>
                     </div>
                     <div className="static-viz-edit-form__image-section">
-                        <h3>
-                            Mobile image{" "}
-                            <span style={{ opacity: 0.5, fontSize: 16 }}>
-                                (optional)
-                            </span>
-                        </h3>
+                        <h3>Mobile image</h3>
+                        <p className="static-viz-edit-form__description">
+                            If you've created a version of the visualization
+                            specifically for narrow screens, you can specify it
+                            here.
+                        </p>
                         <Form.Item name="mobileImageId">
                             <Select
                                 placeholder="Select a mobile image (optional)"

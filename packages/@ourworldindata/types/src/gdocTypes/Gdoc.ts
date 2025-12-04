@@ -77,8 +77,7 @@ export interface NarrativeChartInfo {
 export interface LinkedStaticViz {
     desktop: ImageMetadata
     mobile?: ImageMetadata
-    slug: string
-    title: string
+    name: string
     grapherUrl?: string
     sourceUrl?: string
     description: string

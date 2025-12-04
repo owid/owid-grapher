@@ -126,7 +126,7 @@ const StaticVizDownloadModal = ({
                 onClick: () =>
                     void downloadImage(
                         staticViz.desktop,
-                        `${staticViz.slug}-desktop.png`
+                        `${staticViz.name}-desktop.png`
                     ),
             },
         ]
@@ -140,7 +140,7 @@ const StaticVizDownloadModal = ({
                 onClick: () =>
                     void downloadImage(
                         staticViz.mobile!,
-                        `${staticViz.slug}-mobile.png`
+                        `${staticViz.name}-mobile.png`
                     ),
             })
         }
@@ -162,7 +162,7 @@ const StaticVizDownloadModal = ({
         if (staticViz.sourceUrl) {
             options.push({
                 key: "source-link",
-                title: "Open source dataset",
+                title: "View source dataset",
                 description:
                     "Visit the external dataset or documentation referenced for this visualization.",
                 href: staticViz.sourceUrl,
