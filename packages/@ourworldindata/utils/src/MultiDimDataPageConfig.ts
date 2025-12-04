@@ -168,6 +168,15 @@ export class MultiDimDataPageConfig {
         )
     }
 
+    findViewDimensionsByConfigId(
+        viewConfigId: string
+    ): MultiDimDimensionChoices | null {
+        const view = this.config.views.find(
+            (v) => v.fullConfigId === viewConfigId
+        )
+        return view?.dimensions ?? null
+    }
+
     static viewToDimensionsConfig(
         view?: View<IndicatorsAfterPreProcessing>
     ): OwidChartDimensionInterface[] {

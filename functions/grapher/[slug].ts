@@ -130,10 +130,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
             context
         )
         .catch(async (e) => {
-            // Here we do a unified after the fact handling of 404s to check
-            // if we have a redirect in the _grapherRedirects.json file.
-            // This is done as a catch handler that checks for 404 pages
-            // so that the common, happy path does not have to fetch the redirects file.
+            // Only check _grapherRedirects.json for redirects if a 404 occurs.
+            // Otherwise, skip the extra fetch in the happy path.
             console.log("Handling error", e)
             if (e instanceof StatusError && e.status === 404) {
                 console.log("Handling 404 for", url.pathname)

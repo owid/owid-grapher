@@ -10,6 +10,7 @@ The most important tables are:
 - dods: Our Detail-on-Demands entry that our website uses to explain many technical terms when hovering over them
 - explorers: Our data explorers (collections of multiple charts with drop-downs to switch between them), published at https://ourworldindata.org/explorers/SLUG
 - multi_dim_data_pages: Our new multi-dim charts that also live under https://ourworldindata.org/grapher/SLUG. Similar to explorers in functionality but support data page features.
+- multi_dim_redirects: Redirects from graphers, explorers or multi-dims to multi-dims. Important to consider when resolving URLs that point to any of the aforementioned types of content.
 - origins: Describe data sources (e.g. a UN division, the WHO, an academic group that published a paper)
 - posts_gdocs: The heart of our CMS. This table stores practically all the text on our website. The original text is written in Google Docs using ArchieML. This table contains the ArchieML content serialized to JSON.
 - posts: legacy wordpress content. This is almost entirely obsolete. Only use this table when you have a good reason - by default you want to query posts_gdocs instead.

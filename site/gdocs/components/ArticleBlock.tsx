@@ -77,6 +77,9 @@ function ArticleBlockInternal({
     const { tags } = useContext(AttachmentsContext)
     block.type = block.type.toLowerCase() as any // this comes from the user and may not be all lowercase, enforce it here
 
+    const { linkedChart } = useLinkedChart(
+        block.type === "chart" ? block.url : ""
+    )
     // Special handling for mdims in side-by-side blocks to align them with
     // other charts.
     const isSideBySide = block.type === "side-by-side"
@@ -128,8 +131,9 @@ function ArticleBlockInternal({
             />
         ))
         .with({ type: "chart" }, (block) => {
-            const { isExplorer, queryStr } = Url.fromURL(block.url)
-            const areControlsHidden = queryStr.includes("hideControls=true")
+            const resolvedUrl = linkedChart?.resolvedUrl ?? block.url
+            const { isExplorer, queryParams } = Url.fromURL(resolvedUrl)
+            const areControlsHidden = queryParams.hideControls === "true"
             const size = block.size ?? BlockSize.Wide
             const layoutSubtype =
                 isExplorer && !areControlsHidden
