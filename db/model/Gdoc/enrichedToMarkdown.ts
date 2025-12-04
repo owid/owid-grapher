@@ -72,6 +72,12 @@ const CUSTOM_MARKDOWN_COMPONENTS = {
     StaticViz: "StaticViz",
 }
 
+// Assumes that the contents of these tags can be removed entirely
+const CUSTOM_MULTILINE_MARKDOWN_COMPONENTS = {
+    AdditionalCharts: "AdditionalCharts",
+    KeyIndicatorCollection: "KeyIndicatorCollection",
+}
+
 function markdownComponent(
     componentName: keyof typeof CUSTOM_MARKDOWN_COMPONENTS,
     attributes: Record<string, string | undefined>,
@@ -86,7 +92,8 @@ function markdownComponent(
 }
 
 /**
- * Strips out <Image />, <Video />, etc. components.
+ * Strips out <Image />, <Video />, etc. components and multiline components like
+ * <AdditionalCharts>...</AdditionalCharts> from the given markdown content.
  * Helpful if trying to get a plaintext version of the content because mdast-util-from-markdown
  * doesn't support these components.
  */
@@ -94,6 +101,15 @@ export function stripCustomMarkdownComponents(content: string): string {
     let strippedContent = content
     for (const componentName of Object.values(CUSTOM_MARKDOWN_COMPONENTS)) {
         const regex = new RegExp(`<${componentName}[^\n]*?/>`, "g")
+        strippedContent = strippedContent.replace(regex, "")
+    }
+    for (const componentName of Object.values(
+        CUSTOM_MULTILINE_MARKDOWN_COMPONENTS
+    )) {
+        const regex = new RegExp(
+            `<${componentName}[\\s\\S]*?<\\/${componentName}>`,
+            "g"
+        )
         strippedContent = strippedContent.replace(regex, "")
     }
     return strippedContent
