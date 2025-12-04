@@ -139,7 +139,11 @@ function ArticleBlockInternal({
                 <Chart
                     className={cx(
                         "article-block__chart",
-                        getLayout(layoutSubtype, containerType)
+                        getLayout(layoutSubtype, containerType),
+                        {
+                            "hide-sm-only": block.visibility === "desktop",
+                            "show-sm-only": block.visibility === "mobile",
+                        }
                     )}
                     d={block}
                     fullWidthOnMobile={true}
@@ -184,7 +188,11 @@ function ArticleBlockInternal({
             <figure
                 className={cx(
                     "article-block__image",
-                    getLayout(`image--${block.size}`, containerType)
+                    getLayout(`image--${block.size}`, containerType),
+                    {
+                        "hide-sm-only": block.visibility === "desktop",
+                        "show-sm-only": block.visibility === "mobile",
+                    }
                 )}
             >
                 <Image
@@ -210,7 +218,10 @@ function ArticleBlockInternal({
         ))
         .with({ type: "video" }, (block) => (
             <Video
-                className={getLayout("video", containerType)}
+                className={cx(getLayout("video", containerType), {
+                    "hide-sm-only": block.visibility === "desktop",
+                    "show-sm-only": block.visibility === "mobile",
+                })}
                 url={block.url}
                 shouldLoop={block.shouldLoop}
                 shouldAutoplay={block.shouldAutoplay}

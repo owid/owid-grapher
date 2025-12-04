@@ -179,6 +179,8 @@ export {
     type EnrichedBlockAlign,
     type RawBlockAlign,
     type ParseError,
+    type BlockVisibility,
+    blockVisibilitys,
     BlockSize,
     checkIsBlockSize,
     type RawBlockAllCharts,

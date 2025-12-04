@@ -133,6 +133,7 @@ export function enrichedBlockToRawBlock(
                     height: b.height,
                     size: b.size,
                     caption: b.caption ? spansToHtmlText(b.caption) : undefined,
+                    visibility: b.visibility ? b.visibility : undefined,
                 },
             })
         )
@@ -208,6 +209,7 @@ export function enrichedBlockToRawBlock(
                     caption: b.caption && spansToHtmlText(b.caption),
                     size: b.size,
                     hasOutline: String(b.hasOutline),
+                    visibility: b.visibility ? b.visibility : undefined,
                 },
             })
         )
@@ -231,6 +233,7 @@ export function enrichedBlockToRawBlock(
                     filename: b.filename,
                     caption: b.caption ? spansToHtmlText(b.caption) : undefined,
                     shouldLoop: String(b.shouldLoop),
+                    visibility: b.visibility ? b.visibility : undefined,
                 },
             })
         )

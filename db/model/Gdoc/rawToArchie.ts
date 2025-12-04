@@ -132,6 +132,7 @@ function* rawBlockChartToArchieMLString(
         yield* propertyToArchieMLString("height", block.value)
         yield* propertyToArchieMLString("size", block.value)
         yield* propertyToArchieMLString("caption", block.value)
+        yield* propertyToArchieMLString("visibility", block.value)
     }
     yield "{}"
 }
@@ -212,6 +213,7 @@ function* rawBlockImageToArchieMLString(
         yield* propertyToArchieMLString("size", block.value)
         yield* propertyToArchieMLString("hasOutline", block.value)
         yield* propertyToArchieMLString("alt", block.value)
+        yield* propertyToArchieMLString("visibility", block.value)
     }
     yield "{}"
 }
@@ -224,6 +226,7 @@ function* rawBlockVideoToArchieMLString(
     yield* propertyToArchieMLString("filename", block.value)
     yield* propertyToArchieMLString("shouldLoop", block.value)
     yield* propertyToArchieMLString("caption", block.value)
+    yield* propertyToArchieMLString("visibility", block.value)
     yield "{}"
 }
 

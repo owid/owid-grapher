@@ -50,13 +50,17 @@ function AtomArticleBlock({
         )
     }
     return match(block)
-        .with({ type: "image" }, (block) => (
-            <Image
-                filename={block.filename}
-                smallFilename={block.smallFilename}
-                alt={block.alt}
-            />
-        ))
+        .with({ type: "image" }, (block) => {
+            // Skip mobile-only blocks in Atom feeds (assuming a desktop image will also be specified)
+            if (block.visibility === "mobile") return null
+            return (
+                <Image
+                    filename={block.filename}
+                    smallFilename={block.smallFilename}
+                    alt={block.alt}
+                />
+            )
+        })
         .otherwise(() => (
             <ArticleBlock b={block} containerType={containerType} />
         ))

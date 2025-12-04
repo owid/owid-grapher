@@ -183,6 +183,7 @@ import {
 import { P, match } from "ts-pattern"
 import * as R from "remeda"
 import {
+    blockVisibilitys,
     EnrichedBlockScript,
     RawBlockScript,
 } from "@ourworldindata/types/src/gdocTypes/ArchieMlComponents.js"
@@ -507,6 +508,16 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
             )
         }
 
+        const visibility = parseOptionalEnum(blockVisibilitys, val.visibility)
+        if (visibility === "invalid") {
+            return createError(
+                {
+                    message: `Invalid visibility property: ${val.visibility}`,
+                },
+                url
+            )
+        }
+
         const caption = val.caption ? htmlToSpans(val.caption) : []
 
         return omitUndefinedValues({
@@ -515,6 +526,7 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
             height,
             size,
             caption: caption.length > 0 ? caption : undefined,
+            visibility,
             parseErrors: [],
         }) as EnrichedBlockChart
     }
@@ -707,6 +719,16 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
         ? image.value.hasOutline === "true"
         : true // Default to true if not specified
 
+    const visibility = parseOptionalEnum(
+        blockVisibilitys,
+        image.value.visibility
+    )
+    if (visibility === "invalid") {
+        return createError({
+            message: `Invalid visibility property: ${image.value.visibility}`,
+        })
+    }
+
     return {
         type: "image",
         filename,
@@ -715,6 +737,7 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
         caption,
         size,
         hasOutline,
+        visibility,
         originalWidth: undefined,
         parseErrors: [],
     }
@@ -771,6 +794,13 @@ const parseVideo = (raw: RawBlockVideo): EnrichedBlockVideo => {
         return createError(shouldAutoplayValidation)
     }
 
+    const visibility = parseOptionalEnum(blockVisibilitys, raw.value.visibility)
+    if (visibility === "invalid") {
+        return createError({
+            message: `Invalid visibility property: ${raw.value.visibility}`,
+        })
+    }
+
     const caption = raw.value.caption
         ? htmlToSpans(raw.value.caption)
         : undefined
@@ -782,6 +812,7 @@ const parseVideo = (raw: RawBlockVideo): EnrichedBlockVideo => {
         caption,
         shouldLoop: raw.value.shouldLoop === "true",
         shouldAutoplay: raw.value.shouldAutoplay === "true",
+        visibility,
         parseErrors: [],
     }
 }
@@ -1264,6 +1295,16 @@ function validateRawEnum<T extends string>(
     value: unknown
 ): value is T {
     return typeof value === "string" && validValues.includes(value as T)
+}
+
+// Returns the enum value if valid, undefined if null/undefined, or "invalid" if not valid
+function parseOptionalEnum<const T extends readonly string[]>(
+    values: T,
+    raw: unknown
+): T[number] | undefined | "invalid" {
+    if (raw === undefined || raw === null) return undefined
+    if (values.includes(raw as T[number])) return raw as T[number]
+    return "invalid"
 }
 
 export const parseTable = (raw: RawBlockTable): EnrichedBlockTable => {

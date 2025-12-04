@@ -40,6 +40,12 @@
     }
 }
 
+.show-sm-only {
+    @include sm-up {
+        display: none !important;
+    }
+}
+
 .hide-sm-up {
     @include sm-up {
         display: none !important;
