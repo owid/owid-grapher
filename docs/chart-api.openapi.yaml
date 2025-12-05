@@ -772,7 +772,16 @@ components:
             description: Map region
             schema:
                 type: string
-                enum: [World, Africa, NorthAmerica, SouthAmerica, Asia, Europe, Oceania]
+                enum:
+                    [
+                        World,
+                        Africa,
+                        NorthAmerica,
+                        SouthAmerica,
+                        Asia,
+                        Europe,
+                        Oceania,
+                    ]
 
         endpointsOnly:
             name: endpointsOnly
