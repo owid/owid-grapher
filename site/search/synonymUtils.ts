@@ -183,7 +183,6 @@ export const synonyms = [
     ["migration", "immigration", "emigration"],
     ["urbanization", "urbanisation", "urban"],
     ["foreign aid", "development assistance", "oda"],
-    ["trade", "imports", "exports"],
     ["climate change", "global warming"],
     ["conflict", "war"],
     ["deforestation", "forest loss", "tree loss"],
