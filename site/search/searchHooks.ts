@@ -4,6 +4,9 @@ import {
     Filter,
     SearchResultType,
     SearchActions,
+    SynonymMap,
+    TagGraphNode,
+    TagGraphRoot,
 } from "@ourworldindata/types"
 import {
     getFilterNamesOfType,
@@ -14,6 +17,7 @@ import {
     createTopicFilter,
     removeMatchedWordsWithStopWords,
     splitIntoWords,
+    hasAutoFilters,
 } from "./searchUtils.js"
 import {
     searchParamsToState,
@@ -27,7 +31,6 @@ import { useInfiniteQuery } from "@tanstack/react-query"
 import { LiteClient } from "algoliasearch/lite"
 import type { SearchResponse } from "instantsearch.js"
 import { useState, useEffect, useMemo, useCallback } from "react"
-import type { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
 import { useSearchParams } from "react-router-dom-v5-compat"
 import * as R from "remeda"
 import { SiteAnalytics } from "../SiteAnalytics.js"
@@ -84,10 +87,15 @@ export function useTagGraphTopics(topicTagGraph: TagGraphRoot | null): {
 
 /**
  * Handles analytics tracking for search state changes.
+ * - Skips logging for the default/empty search state.
+ * - Skips logging for states that have pending automatic filters (e.g., country
+ *   names in the query that will be extracted into filter pills).
  */
 export function useSearchAnalytics(
     state: SearchState,
-    analytics: SiteAnalytics
+    analytics: SiteAnalytics,
+    allTopics: string[],
+    synonymMap: SynonymMap
 ): void {
     // Serialize state to string to use as effect dependency without
     // triggering on every render
@@ -101,11 +109,20 @@ export function useSearchAnalytics(
         []
     )
 
+    // Check if this state has pending auto-filters that will be applied
+    const hasPendingAutoFilters = useMemo(
+        () => hasAutoFilters(state, allTopics, synonymMap),
+        [state, allTopics, synonymMap]
+    )
+
     useEffect(() => {
         // Skip analytics for default/empty search state
         if (stateKey === defaultStateKey) return
+        // Skip analytics for states with pending auto-filters to avoid
+        // logging transient states before filters are extracted from query
+        if (hasPendingAutoFilters) return
         analytics.logSearch(state)
-    }, [stateKey, defaultStateKey, analytics, state])
+    }, [stateKey, defaultStateKey, hasPendingAutoFilters, analytics, state])
 }
 
 type QueryKeyState = Pick<

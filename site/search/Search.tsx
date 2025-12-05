@@ -64,8 +64,7 @@ export const Search = ({
 
     const deferredState = useDeferredValue(state)
 
-    // Handle analytics tracking (skips initial page load)
-    useSearchAnalytics(deferredState, analytics)
+    useSearchAnalytics(deferredState, analytics, allTopics, synonymMap)
 
     const isFetching = useIsFetching()
 

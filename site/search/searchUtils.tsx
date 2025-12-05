@@ -24,6 +24,7 @@ import {
     Ngram,
     WordPositioned,
     ScoredFilterPositioned,
+    SearchState,
 } from "@ourworldindata/types"
 import {
     Url,
@@ -34,6 +35,7 @@ import {
     timeBoundToTimeBoundString,
     queryParamsToStr,
     omitUndefinedValues,
+    listedRegionsNames,
 } from "@ourworldindata/utils"
 import {
     generateSelectedEntityNamesParam,
@@ -814,6 +816,53 @@ export function extractFiltersFromQuery(
     }
 
     return R.uniqueBy(allFilters, (filter) => filter.name)
+}
+
+/**
+ * Extracts automatic filters from a query string.
+ * Automatic filters are exact country matches (threshold = 1) that get
+ * auto-applied without user confirmation.
+ *
+ * This is the single source of truth for what constitutes an "automatic filter".
+ */
+export function getAutoFilters(
+    query: string,
+    allRegionNames: string[],
+    allTopics: string[],
+    filters: Filter[],
+    synonymMap: SynonymMap
+): ScoredFilterPositioned[] {
+    const matches = extractFiltersFromQuery(
+        query,
+        allRegionNames,
+        allTopics,
+        filters,
+        { threshold: 1, limit: 1 },
+        synonymMap
+    )
+    // Only exact country matches are auto-applied
+    return matches.filter((match) => match.type === FilterType.COUNTRY)
+}
+
+/**
+ * Checks if the given state has automatic filters that will be applied.
+ * Used to skip analytics for transient states before auto-filters are applied.
+ */
+export function hasAutoFilters(
+    state: SearchState,
+    allTopics: string[],
+    synonymMap: SynonymMap
+): boolean {
+    const allRegionNames = listedRegionsNames()
+    return (
+        getAutoFilters(
+            state.query,
+            allRegionNames,
+            allTopics,
+            state.filters,
+            synonymMap
+        ).length > 0
+    )
 }
 
 export function createFilter(type: FilterType) {
