@@ -1,5 +1,6 @@
 import { OwidGdocAnnouncementInterface } from "@ourworldindata/utils"
 import * as React from "react"
+import cx from "classnames"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
 import DataInsightDateline from "../components/DataInsightDateline.js"
 import LinkedAuthor from "../components/LinkedAuthor.js"
@@ -14,9 +15,15 @@ type AnnouncementProps = {
 
 export const AnnouncementPageContent = (props: AnnouncementProps) => {
     const { publishedAt } = props
+    const isSpotlight = props.content.spotlight ?? false
     return (
-        <div className="announcement-page-content span-cols-6 col-start-5 span-md-cols-8 col-md-start-4 span-sm-cols-14 col-sm-start-1">
-            <header className="span-cols-6 col-start-5 span-md-cols-8 col-md-start-4 span-sm-cols-14 col-sm-start-1">
+        <div
+            className={cx(
+                "announcement-page-content span-cols-6 col-start-5 span-md-cols-8 col-md-start-4 span-sm-cols-14 col-sm-start-1",
+                { "announcement-page-content--spotlight": isSpotlight }
+            )}
+        >
+            <header className="announcement-page-header span-cols-6 col-start-5 span-md-cols-8 col-md-start-4 span-sm-cols-14 col-sm-start-1">
                 <div className="announcement-page-header-meta">
                     <DataInsightDateline
                         publishedAt={publishedAt}

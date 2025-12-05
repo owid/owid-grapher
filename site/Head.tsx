@@ -37,6 +37,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
 export const Head = (props: {
     canonicalUrl: string
+    ogUrl?: string
     pageTitle?: string
     pageDesc?: string
     imageUrl?: string
@@ -48,8 +49,9 @@ export const Head = (props: {
     }
     staticAssetMap?: AssetMap
     archiveContext?: ArchiveContext
+    robots?: string
 }) => {
-    const { canonicalUrl, baseUrl } = props
+    const { canonicalUrl, baseUrl, ogUrl = canonicalUrl, robots } = props
     const pageTitle = props.pageTitle || `Our World in Data`
     const fullPageTitle = props.pageTitle
         ? `${props.pageTitle} - Our World in Data`
@@ -84,6 +86,7 @@ export const Head = (props: {
             <title>{fullPageTitle}</title>
             <meta name="description" content={pageDesc} />
             <link rel="canonical" href={canonicalUrl} />
+            {robots && <meta name="robots" content={robots} />}
             <link
                 rel="alternate"
                 type="application/atom+xml"
@@ -110,7 +113,7 @@ export const Head = (props: {
                 type="font/woff2"
                 crossOrigin="anonymous"
             />
-            <meta property="og:url" content={canonicalUrl} />
+            <meta property="og:url" content={ogUrl} />
             <meta property="og:title" content={pageTitle} />
             <meta property="og:description" content={pageDesc} />
             <meta property="og:image" content={encodeURI(imageUrl)} />

@@ -3,6 +3,7 @@ import {
     LatestPageItem,
     LinkedAuthor,
     OwidGdocAnnouncementInterface,
+    OwidGdocMinimalPostInterface,
     OwidGdocType,
 } from "@ourworldindata/utils"
 import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
@@ -14,6 +15,7 @@ export interface LatestPageProps {
     posts: LatestPageItem[]
     imageMetadata: Record<string, ImageMetadata>
     linkedAuthors: LinkedAuthor[]
+    linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
 }
 
 const LatestPageAnnouncement = (props: {
@@ -27,7 +29,7 @@ const LatestPageAnnouncement = (props: {
 }
 
 export const LatestPageContent = (props: LatestPageProps) => {
-    const { posts, imageMetadata, linkedAuthors } = props
+    const { posts, imageMetadata, linkedAuthors, linkedDocuments = {} } = props
 
     // Filter only announcements that need hydration (have images with interactive elements)
     const announcements = posts.filter(
@@ -41,7 +43,7 @@ export const LatestPageContent = (props: LatestPageProps) => {
                 imageMetadata,
                 linkedAuthors,
                 linkedCharts: {},
-                linkedDocuments: {},
+                linkedDocuments,
                 linkedIndicators: {},
                 relatedCharts: [],
                 tags: [],

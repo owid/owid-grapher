@@ -152,6 +152,9 @@ export interface OwidGdocMinimalPostInterface {
     "featured-image"?: string // used in prominent links and research & writing block
     kicker?: string // used in homepage announcements
     cta?: { text: string; url: string } // used in homepage announcements
+    "homepage-title"?: string // alternate title for homepage spotlight announcements
+    spotlight?: boolean
+    "source-document"?: string
 }
 
 export type OwidGdocIndexItem = Pick<
@@ -242,6 +245,9 @@ export interface OwidGdocAnnouncementContent {
         text: string
         url: string
     }
+    "homepage-title"?: string
+    spotlight?: boolean
+    "source-document"?: string
 }
 
 export interface OwidGdocAnnouncementInterface extends OwidGdocBaseInterface {
