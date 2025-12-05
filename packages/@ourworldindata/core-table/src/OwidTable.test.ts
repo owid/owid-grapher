@@ -646,3 +646,80 @@ gdp	annotation`
         (table.get("gdp").def as OwidColumnDef).annotationsColumnSlug
     ).toEqual("annotation")
 })
+
+describe("fillColumnByEntity", () => {
+    it("fills missing values based on entity name", () => {
+        const csv = `entityName,entityId,entityCode,year,value,color
+USA,1,us,2019,100,
+USA,1,us,2020,200,
+USA,1,us,2021,300,red
+UK,2,uk,2019,50,blue
+UK,2,uk,2020,60,
+UK,2,uk,2021,70,`
+        const table = new OwidTable(csv)
+        const filledTable = table.fillColumnByEntity("color")
+
+        const colorColumn = filledTable.get("color")
+        const entityNames = filledTable.entityNameColumn.values
+        const colorValues = colorColumn.values
+
+        // USA should have "red" for all rows (from 2021)
+        const usaIndices = entityNames
+            .map((name, i) => (name === "USA" ? i : -1))
+            .filter((i) => i >= 0)
+        usaIndices.forEach((i) => {
+            expect(colorValues[i]).toEqual("red")
+        })
+
+        // UK should have "blue" for all rows (from 2019)
+        const ukIndices = entityNames
+            .map((name, i) => (name === "UK" ? i : -1))
+            .filter((i) => i >= 0)
+        ukIndices.forEach((i) => {
+            expect(colorValues[i]).toEqual("blue")
+        })
+    })
+
+    it("returns the same table when column does not exist", () => {
+        const csv = `entityName,entityId,entityCode,year,value
+USA,1,us,2019,100
+UK,2,uk,2020,200`
+        const table = new OwidTable(csv)
+        const filledTable = table.fillColumnByEntity("nonexistent")
+
+        expect(filledTable.numRows).toEqual(table.numRows)
+        expect(filledTable.columnSlugs).toEqual(table.columnSlugs)
+    })
+
+    it("handles entities without any valid color value", () => {
+        const csv = `entityName,entityId,entityCode,year,value,color
+USA,1,us,2019,100,red
+USA,1,us,2020,200,
+France,3,fr,2019,150,
+France,3,fr,2020,160,`
+        const table = new OwidTable(csv)
+        const filledTable = table.fillColumnByEntity("color")
+
+        const colorColumn = filledTable.get("color")
+        const entityNames = filledTable.entityNameColumn.values
+        const colorValues = colorColumn.valuesIncludingErrorValues
+
+        // USA should have "red" for all rows
+        const usaIndices = entityNames
+            .map((name, i) => (name === "USA" ? i : -1))
+            .filter((i) => i >= 0)
+        usaIndices.forEach((i) => {
+            expect(colorValues[i]).toEqual("red")
+        })
+
+        // France has no valid color value, should keep error values
+        const franceIndices = entityNames
+            .map((name, i) => (name === "France" ? i : -1))
+            .filter((i) => i >= 0)
+        franceIndices.forEach((i) => {
+            expect(colorValues[i]).toEqual(
+                ErrorValueTypes.NoMatchingValueAfterJoin
+            )
+        })
+    })
+})

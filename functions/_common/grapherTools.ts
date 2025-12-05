@@ -375,7 +375,16 @@ export function getGrapherTableWithRelevantColumns(
     const filteredTable = grapherState.isOnTableTab
         ? grapherState.filteredTableForDisplay
         : grapherState.transformedTable
-    const table = options?.shouldUseFilteredTable ? filteredTable : fullTable
+    let table = options?.shouldUseFilteredTable ? filteredTable : fullTable
+
+    // For the full table (not filtered), fill in missing color column values
+    // by entity. This ensures that color column values (like region/continent)
+    // are available for all years in the downloaded CSV, not just the year
+    // where the color variable has data.
+    const colorColumnSlug = grapherState.colorColumnSlug
+    if (!options?.shouldUseFilteredTable && colorColumnSlug) {
+        table = table.fillColumnByEntity(colorColumnSlug)
+    }
 
     // Trim table to only include columns that are relevant to the current
     // grapher view. This filtering is necessary for CSV-based data explorers
