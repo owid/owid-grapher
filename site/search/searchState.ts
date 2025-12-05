@@ -26,12 +26,16 @@ export const DEFAULT_SEARCH_STATE: SearchState = {
  * are used.
  */
 export function searchParamsToState(
-    searchParams: URLSearchParams
+    searchParams: URLSearchParams,
+    validCountries: Set<string>,
+    validTopics: Set<string>
 ): SearchState {
-    const topicsSet = deserializeSet(searchParams.get("topics") ?? undefined)
-    const countriesSet = deserializeSet(
-        searchParams.get("countries") ?? undefined
+    const topicsSet = deserializeSet(searchParams.get("topics")).intersection(
+        validTopics
     )
+    const countriesSet = deserializeSet(
+        searchParams.get("countries")
+    ).intersection(validCountries)
 
     const filters: Filter[] = [
         [...topicsSet].map((topic) => createTopicFilter(topic)),
@@ -86,4 +90,16 @@ export function stateToSearchParams(state: SearchState): URLSearchParams {
     }
 
     return params
+}
+
+/**
+ * Checks if URL params need sanitization (i.e., contain invalid values that
+ * were filtered out during parsing).
+ */
+export function urlNeedsSanitization(
+    searchParams: URLSearchParams,
+    state: SearchState
+): boolean {
+    const sanitizedParams = stateToSearchParams(state)
+    return searchParams.toString() !== sanitizedParams.toString()
 }

@@ -34,6 +34,7 @@ import { SearchDetectedFilters } from "./SearchDetectedFilters.js"
 import { buildSynonymMap } from "./synonymUtils.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { PoweredBy } from "react-instantsearch"
+import { countriesByName } from "@ourworldindata/utils"
 
 export const Search = ({
     topicTagGraph,
@@ -42,11 +43,20 @@ export const Search = ({
     topicTagGraph: TagGraphRoot
     liteSearchClient: LiteClient
 }) => {
-    // State derived from URL - single source of truth
-    const { state, actions } = useSearchParamsState()
-
     // Extract topic and area data from the graph
     const { allAreas, allTopics } = useTagGraphTopics(topicTagGraph)
+
+    const validCountries = useMemo(
+        () => new Set(Object.keys(countriesByName())),
+        []
+    )
+    const validTopics = useMemo(
+        () => new Set([...allAreas, ...allTopics]),
+        [allAreas, allTopics]
+    )
+
+    // State derived from URL - single source of truth
+    const { state, actions } = useSearchParamsState(validCountries, validTopics)
 
     const synonymMap = useMemo(() => buildSynonymMap(), [])
 
