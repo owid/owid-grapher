@@ -4,7 +4,6 @@ import { select } from "d3-selection"
 import cx from "classnames"
 import {
     getRelativeMouse,
-    isMobile,
     Bounds,
     Time,
     parseIntOrUndefined,
@@ -14,7 +13,7 @@ import {
     EPOCH_DATE,
 } from "@ourworldindata/utils"
 import { ColumnTypeMap } from "@ourworldindata/core-table"
-import { observable, computed, action, makeObservable } from "mobx"
+import { observable, computed, action, makeObservable, reaction } from "mobx"
 import { observer } from "mobx-react"
 import { faPlay, faPause } from "@fortawesome/free-solid-svg-icons"
 import {
@@ -34,7 +33,6 @@ import { CalendarDate } from "@internationalized/date"
 export const TIMELINE_HEIGHT = 32 // Keep in sync with $timelineHeight in TimelineComponent.scss
 
 const HANDLE_DIAMETER = 20 // Keep in sync with $handle-diameter in TimelineComponent.scss
-const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
 
 const SLIDER_CLASS = "GrapherTimeline__Slider"
 const PLAY_BUTTON_CLASS = "GrapherTimeline__PlayButton"
@@ -65,6 +63,8 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
     private slider?: Element | HTMLElement | null
     private playButton?: Element | HTMLElement | null
+
+    private disposers: (() => void)[] = []
 
     constructor(props: TimelineComponentProps) {
         super(props)
@@ -143,8 +143,6 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     }
 
     @action.bound private showTooltips(): void {
-        this.hideStartTooltip.cancel()
-        this.hideEndTooltip.cancel()
         this.startTooltipVisible = true
         this.endTooltipVisible = true
 
@@ -222,13 +220,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
         if (this.manager.isPlaying) return
 
-        if (isMobile()) {
-            if (this.startTooltipVisible) this.hideStartTooltip()
-            if (this.endTooltipVisible) this.hideEndTooltip()
-        } else if (!this.mouseHoveringOverTimeline) {
-            this.startTooltipVisible = false
-            this.endTooltipVisible = false
-        }
+        this.hideTooltips()
     }
 
     @computed private get areBothHandlesVisible(): boolean {
@@ -278,11 +270,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     @action.bound private onMouseOverSlider(event: MouseEvent): void {
         this.mouseHoveringOverTimeline = true
 
-        this.hideStartTooltip.cancel()
-        this.startTooltipVisible = true
-
-        this.hideEndTooltip.cancel()
-        this.endTooltipVisible = true
+        this.showTooltips()
 
         this.setHoverTime(event)
     }
@@ -302,12 +290,10 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         if (!this.editHandle) this.resetEditState()
     }
 
-    private hideStartTooltip = _.debounce(() => {
+    @action.bound private hideTooltips(): void {
         this.startTooltipVisible = false
-    }, HANDLE_TOOLTIP_FADE_TIME_MS)
-    private hideEndTooltip = _.debounce(() => {
         this.endTooltipVisible = false
-    }, HANDLE_TOOLTIP_FADE_TIME_MS)
+    }
 
     @action.bound private onPlayTouchEnd(evt: Event): void {
         evt.preventDefault()
@@ -333,6 +319,16 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
             this.slider = current.querySelector(`.${SLIDER_CLASS}`)
             this.playButton = current.querySelector(`.${PLAY_BUTTON_CLASS}`)
         }
+
+        // Watch for when animation stops to hide tooltips
+        this.disposers.push(
+            reaction(
+                () => this.manager.isPlaying,
+                (isPlaying) => {
+                    if (!isPlaying) this.hideTooltips()
+                }
+            )
+        )
 
         document.documentElement.addEventListener("mouseup", this.onMouseUp)
         document.documentElement.addEventListener("mouseleave", this.onMouseUp)
@@ -364,6 +360,8 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         )
         this.slider?.removeEventListener("touchstart", this.onSliderTouchStart)
         this.playButton?.removeEventListener("touchend", this.onPlayTouchEnd)
+
+        this.disposers.forEach((dispose) => dispose())
     }
 
     private formatTime(time: number): string {
@@ -373,6 +371,8 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     }
 
     @action.bound private togglePlay(): void {
+        // Show tooltips when starting to play
+        if (!this.manager.isPlaying) this.showTooltips()
         void this.controller.togglePlay()
     }
 
