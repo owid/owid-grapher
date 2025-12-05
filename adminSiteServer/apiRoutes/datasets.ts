@@ -243,6 +243,88 @@ export async function getDataset(
     )
     dataset.availableTags = availableTags
 
+    // Fetch explorers that use variables or charts from this dataset
+    const explorers = await db.knexRaw<{
+        slug: string
+        title: string
+        isPublished: boolean
+        createdAt: string
+        lastEditedAt: string
+        lastEditedByUserName: string
+        pageviewsPerDay: number
+    }>(
+        trx,
+        `-- sql
+            SELECT DISTINCT
+                e.slug,
+                e.config->>'$.explorerTitle' as title,
+                e.isPublished,
+                e.createdAt,
+                e.lastEditedAt,
+                u.fullName as lastEditedByUserName,
+                ROUND(COALESCE(ap.views_365d, 0) / 365, 1) as pageviewsPerDay
+            FROM explorers e
+            LEFT JOIN users u ON u.id = e.lastEditedByUserId
+            LEFT JOIN analytics_pageviews ap ON ap.url = CONCAT('https://ourworldindata.org/explorers/', e.slug)
+            WHERE e.slug IN (
+                -- Indicator-based explorers
+                SELECT DISTINCT ev.explorerSlug
+                FROM explorer_variables ev
+                JOIN variables v ON v.id = ev.variableId
+                WHERE v.datasetId = ?
+
+                UNION
+
+                -- Chart-based explorers
+                SELECT DISTINCT ec.explorerSlug
+                FROM explorer_charts ec
+                JOIN charts c ON c.id = ec.chartId
+                JOIN chart_dimensions cd ON cd.chartId = c.id
+                JOIN variables v ON v.id = cd.variableId
+                WHERE v.datasetId = ?
+            )
+            ORDER BY pageviewsPerDay DESC
+        `,
+        [datasetId, datasetId]
+    )
+    dataset.explorers = explorers
+
+    // Fetch multi-dimensional data pages that use variables from this dataset
+    const multiDims = await db.knexRaw<{
+        id: number
+        slug: string
+        catalogPath: string
+        title: string
+        titleVariant: string
+        published: boolean
+        createdAt: string
+        updatedAt: string
+        pageviewsPerDay: number
+    }>(
+        trx,
+        `-- sql
+        SELECT
+            mdp.id,
+            mdp.slug,
+            mdp.catalogPath,
+            mdp.config->>'$.title.title' as title,
+            mdp.config->>'$.title.titleVariant' as titleVariant,
+            mdp.published,
+            mdp.createdAt,
+            mdp.updatedAt,
+            ROUND(COALESCE(ap.views_365d, 0) / 365, 1) as pageviewsPerDay
+        FROM multi_dim_data_pages mdp
+        JOIN multi_dim_x_chart_configs mdxcc ON mdxcc.multiDimId = mdp.id
+        JOIN variables v ON v.id = mdxcc.variableId
+        LEFT JOIN analytics_pageviews ap ON ap.url = CONCAT('https://ourworldindata.org/grapher/', mdp.slug)
+        WHERE v.datasetId = ?
+        GROUP BY mdp.id, ap.views_365d
+        ORDER BY pageviewsPerDay DESC
+        `,
+        [datasetId]
+    )
+    dataset.multiDims = multiDims
+
     return { dataset: dataset }
 }
 

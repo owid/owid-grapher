@@ -333,7 +333,7 @@ export class ChartList extends React.Component<ChartListProps> {
                                 style={{ cursor: "pointer" }}
                                 onClick={handleSortClick}
                             >
-                                views/day{getSortIndicator()}
+                                Views per day{getSortIndicator()}
                             </th>
                             <th
                                 style={{ cursor: "pointer" }}
