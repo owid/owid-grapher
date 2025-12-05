@@ -19,6 +19,7 @@ import {
     searchParamsToState,
     stateToSearchParams,
     DEFAULT_SEARCH_STATE,
+    urlNeedsSanitization,
 } from "./searchState.js"
 import { useSearchContext } from "./SearchContext.js"
 import { flattenNonTopicNodes } from "@ourworldindata/utils"
@@ -261,7 +262,10 @@ export const useTopicTagGraph = () => {
  * Key design principle: URL is the source of truth. State is derived
  * synchronously from URL params.
  */
-export function useSearchParamsState(): {
+export function useSearchParamsState(
+    validCountries: Set<string>,
+    validTopics: Set<string>
+): {
     state: SearchState
     actions: SearchActions
 } {
@@ -269,20 +273,32 @@ export function useSearchParamsState(): {
 
     // Derive state from URL
     const state = useMemo(
-        () => searchParamsToState(searchParams),
-        [searchParams]
+        () => searchParamsToState(searchParams, validCountries, validTopics),
+        [searchParams, validCountries, validTopics]
     )
+
+    // Sanitize URL if it contains invalid values (e.g., unknown countries/topics)
+    // Uses replace: true to avoid creating browser history entries
+    useEffect(() => {
+        if (urlNeedsSanitization(searchParams, state)) {
+            setSearchParams(stateToSearchParams(state), { replace: true })
+        }
+    }, [searchParams, state, setSearchParams])
 
     // Helper to update params atomically
     const updateParams = useCallback(
         (updater: (current: SearchState) => SearchState) => {
             setSearchParams((prev) => {
-                const currentState = searchParamsToState(prev)
+                const currentState = searchParamsToState(
+                    prev,
+                    validCountries,
+                    validTopics
+                )
                 const newState = updater(currentState)
                 return stateToSearchParams(newState)
             })
         },
-        [setSearchParams]
+        [setSearchParams, validCountries, validTopics]
     )
 
     const actions = useMemo<SearchActions>(
