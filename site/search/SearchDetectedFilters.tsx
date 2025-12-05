@@ -1,6 +1,10 @@
 import { useCallback, useMemo, useEffect } from "react"
 import { useSearchContext } from "./SearchContext.js"
-import { getFilterIcon, extractFiltersFromQuery } from "./searchUtils.js"
+import {
+    getFilterIcon,
+    extractFiltersFromQuery,
+    getAutoFilters,
+} from "./searchUtils.js"
 import { FilterType, ScoredFilterPositioned } from "@ourworldindata/types"
 import { SearchFilterPill } from "./SearchFilterPill.js"
 import { listedRegionsNames } from "@ourworldindata/utils"
@@ -23,19 +27,17 @@ export const SearchDetectedFilters = ({
 
     const allRegionNames = listedRegionsNames()
 
-    const automaticFilters = useMemo(() => {
-        const matches = extractFiltersFromQuery(
-            query,
-            allRegionNames,
-            allTopics,
-            filters,
-            { threshold: 1, limit: 1 },
-            synonymMap
-        )
-
-        // Only auto-apply exact country matches
-        return matches.filter((match) => match.type === FilterType.COUNTRY)
-    }, [query, allRegionNames, allTopics, filters, synonymMap])
+    const automaticFilters = useMemo(
+        () =>
+            getAutoFilters(
+                query,
+                allRegionNames,
+                allTopics,
+                filters,
+                synonymMap
+            ),
+        [query, allRegionNames, allTopics, filters, synonymMap]
+    )
 
     // Manual filter suggestions are parsed independently to give shorter exact
     // matches priority. Otherwise, a query like "north korea south korea" would
