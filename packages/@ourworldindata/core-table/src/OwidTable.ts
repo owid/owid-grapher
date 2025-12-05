@@ -773,6 +773,62 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
+    /**
+     * Fills missing values in a column by propagating known values for each entity.
+     * This is useful for columns like "continent" or "region" where we only have
+     * one value per entity, but we want to show it for all years.
+     *
+     * For each entity, the first valid value found in the column is used to fill
+     * all rows for that entity where the value is missing/error.
+     */
+    fillColumnByEntity(columnSlug: ColumnSlug): this {
+        if (!this.has(columnSlug)) return this
+
+        const column = this.get(columnSlug)
+        const entityNameColumn = this.entityNameColumn
+        const entityNames =
+            entityNameColumn.valuesIncludingErrorValues as EntityName[]
+        const columnValues = column.valuesIncludingErrorValues.slice()
+
+        // Helper to check if a value is valid (not error value and not empty string)
+        const isValidValue = (value: CoreValueType): boolean =>
+            isNotErrorValue(value) && value !== ""
+
+        // Build a map from entity name to the first valid value
+        const entityValueMap = new Map<EntityName, CoreValueType>()
+        for (let i = 0; i < entityNames.length; i++) {
+            const entityName = entityNames[i]
+            if (
+                !entityValueMap.has(entityName) &&
+                isValidValue(columnValues[i])
+            ) {
+                entityValueMap.set(entityName, columnValues[i])
+            }
+        }
+
+        // Fill missing values based on entity name
+        const newValues = columnValues.map((value, i) => {
+            if (isValidValue(value)) return value
+            const entityName = entityNames[i]
+            const entityValue = entityValueMap.get(entityName)
+            return entityValue !== undefined
+                ? entityValue
+                : ErrorValueTypes.NoMatchingValueAfterJoin
+        })
+
+        const newColumnStore: CoreColumnStore = {
+            ...this.columnStore,
+            [columnSlug]: newValues,
+        }
+
+        return this.transform(
+            newColumnStore,
+            this.defs,
+            `Filled missing values in column ${columnSlug} by entity`,
+            TransformType.UpdateColumnDefs
+        )
+    }
+
     // Retrieves the two columns `columnSlug` and `timeColumnSlug` from the table and
     // passes their values to the respective interpolation method.
     // `withAllRows` is expected to be completed and sorted.
