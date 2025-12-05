@@ -110,6 +110,12 @@ export function getPrefixedGdocPath(
         )
         .with(
             {
+                content: { type: OwidGdocType.Profile },
+            },
+            () => `${prefix}/profile/${gdoc.slug}`
+        )
+        .with(
+            {
                 content: {
                     type: P.optional(P.union(OwidGdocType.Fragment)),
                 },
@@ -167,6 +173,12 @@ export function getPageTitle(gdoc: OwidGdoc) {
                         OwidGdocType.Announcement
                     ),
                 },
+            },
+            (match) => match.content.title
+        )
+        .with(
+            {
+                content: { type: OwidGdocType.Profile },
             },
             (match) => match.content.title
         )

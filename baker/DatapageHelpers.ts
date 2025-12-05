@@ -5,6 +5,7 @@ import {
     GdocsContentSource,
     OwidVariableWithSource,
     gdocIdRegex,
+    OwidGdocType,
 } from "@ourworldindata/utils"
 import {
     getGdocBaseObjectById,
@@ -156,7 +157,8 @@ export const getPrimaryTopic = async (
         const gdoc = await getPublishedGdocBaseObjectBySlug(
             knex,
             topicSlug,
-            true
+            true,
+            [OwidGdocType.TopicPage, OwidGdocType.LinearTopicPage]
         )
         if (gdoc) {
             const citation = getShortPageCitation(

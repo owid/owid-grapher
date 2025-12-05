@@ -31,6 +31,7 @@ import {
     EnrichedBlockText,
     OwidGdocPostInterface,
     OwidGdocAuthorInterface,
+    OwidGdocProfileInterface,
 } from "@ourworldindata/types"
 import { DATA_INSIGHT_ATOM_FEED_PROPS } from "../SiteConstants.js"
 import { Html } from "../Html.js"
@@ -82,6 +83,9 @@ function getPageDesc(gdoc: OwidGdocUnionType): string | undefined {
                   )
                 : undefined
         })
+        .with({ content: { type: OwidGdocType.Profile } }, (gdoc) => {
+            return gdoc.content.excerpt
+        })
         .with(
             {
                 content: {
@@ -97,7 +101,7 @@ type JsonLdAuthor = Person | Organization
 
 function makeJsonLdAuthors(
     baseUrl: string,
-    gdoc: OwidGdocPostInterface
+    gdoc: OwidGdocPostInterface | OwidGdocProfileInterface
 ): JsonLdAuthor[] {
     return gdoc.content.authors.map((gdocAuthor) => {
         if (gdocAuthor.toLowerCase().includes("our world in data")) {
@@ -131,7 +135,7 @@ function JsonLdArticle({
     baseUrl,
     imageUrl,
 }: {
-    gdoc: OwidGdocPostInterface
+    gdoc: OwidGdocPostInterface | OwidGdocProfileInterface
     baseUrl: string
     imageUrl?: string
 }) {
@@ -223,6 +227,18 @@ function isPostPredicate(
     )
 }
 
+function isProfilePredicate(
+    gdoc: OwidGdocUnionType
+): gdoc is OwidGdocProfileInterface {
+    return gdoc.content.type === OwidGdocType.Profile
+}
+
+function isArticleLikePredicate(
+    gdoc: OwidGdocUnionType
+): gdoc is OwidGdocPostInterface | OwidGdocProfileInterface {
+    return isPostPredicate(gdoc) || isProfilePredicate(gdoc)
+}
+
 export default function OwidGdocPage({
     baseUrl,
     gdoc,
@@ -246,7 +262,7 @@ export default function OwidGdocPage({
     const assetMaps = isOnArchivalPage ? archiveContext.assets : undefined
     const isDataInsight = gdoc.content.type === OwidGdocType.DataInsight
     const isAuthor = checkIsAuthor(gdoc)
-    const isPost = isPostPredicate(gdoc)
+    const isArticleLike = isArticleLikePredicate(gdoc)
 
     let imageUrl
     if (
@@ -294,7 +310,7 @@ export default function OwidGdocPage({
                         canonicalUrl={canonicalUrl}
                     />
                 )}
-                {isPost && (
+                {isArticleLike && (
                     <JsonLdArticle
                         gdoc={gdoc}
                         baseUrl={baseUrl}

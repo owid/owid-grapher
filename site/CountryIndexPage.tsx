@@ -21,18 +21,18 @@ export interface CountryProfileKeyStats {
     population: Stat
 }
 
-export interface CountryProfilePageProps {
+export interface CountryIndexPageProps {
     country: Country
     indicators: CountryProfileIndicator[]
     baseUrl: string
 }
 
-export const CountryProfilePage = (props: CountryProfilePageProps) => {
+export const CountryIndexPage = (props: CountryIndexPageProps) => {
     const { country, indicators, baseUrl } = props
 
     // const displayName = defaultTo(variable.display.name, variable.name)
 
-    const script = `window.runCountryProfilePage()`
+    const script = `window.runCountryIndexPage()`
 
     return (
         <Html>
@@ -42,7 +42,7 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
                 pageDesc={`Population, GDP, life expectancy, birth rate and other key metrics for ${country.name}.`}
                 baseUrl={baseUrl}
             />
-            <body className="CountryProfilePage">
+            <body className="CountryIndexPage">
                 <SiteHeader />
                 <main className="wrapper">
                     <header>

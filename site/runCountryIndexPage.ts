@@ -47,10 +47,10 @@ class ChartFilter {
             ".chartsSearchInput"
         ) as HTMLInputElement
         this.sections = Array.from(
-            document.querySelectorAll(".CountryProfilePage main section")
+            document.querySelectorAll(".CountryIndexPage main section")
         ) as HTMLDivElement[]
         const lis = Array.from(
-            document.querySelectorAll(".CountryProfilePage main li")
+            document.querySelectorAll(".CountryIndexPage main li")
         ) as HTMLLIElement[]
         this.chartItems = lis.map((li) => ({
             title:
@@ -150,7 +150,7 @@ class ChartFilter {
     }
 }
 
-export function runCountryProfilePage() {
+export function runCountryIndexPage() {
     const searcher = new ChartFilter()
     searcher.run()
 }

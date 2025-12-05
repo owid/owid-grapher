@@ -52,7 +52,10 @@
         height: 0;
         // Above explorer chrome
         z-index: 3;
-        margin-top: -48px;
+        margin-top: -32px;
+        @include md-down {
+            margin-top: -64px;
+        }
         .entry-sidebar {
             height: 100vh;
             position: absolute;
@@ -107,15 +110,20 @@
 
             .toggle-toc {
                 margin-left: 0;
-                transform: translateX(calc(100% + 16px));
+                transform: translateX(calc(100% + 32px));
                 position: absolute;
                 top: 0;
                 bottom: 0;
                 right: 0;
-                padding: 16px 0;
+                padding: 32px 0;
                 pointer-events: none;
                 display: unset;
                 transition: transform 300ms ease;
+                @include md-down {
+                    padding: 18px 0;
+                    transform: translateX(calc(100% + 16px));
+                }
+
                 button {
                     @include popover-box-button;
                     z-index: 20;
@@ -125,10 +133,10 @@
                     white-space: nowrap;
                     box-shadow: none;
                     background: #fff;
-                    border: 1px solid $blue-20;
-                    line-height: 1.25;
-                    padding: 6px;
-                    border-radius: 4px;
+                    border: 1px solid $blue-65;
+                    padding: 6.5px 16px;
+                    line-height: 16px;
+                    border-radius: 0;
 
                     &:hover {
                         background: #fff;
@@ -143,8 +151,10 @@
                     }
 
                     span {
+                        @include note-12-medium;
+                        line-height: 16px;
                         color: $blue-90;
-                        margin-left: 5px;
+                        margin-left: 8px;
                         position: relative;
                         top: 1px;
                     }

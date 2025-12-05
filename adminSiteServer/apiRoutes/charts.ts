@@ -27,7 +27,7 @@ import {
     StaticVizReference,
 } from "../../adminSiteClient/AbstractChartEditor.js"
 import { NarrativeChartMinimalInformation } from "../../adminSiteClient/ChartEditor.js"
-import { denormalizeLatestCountryData } from "../../baker/countryProfiles.js"
+import { denormalizeLatestCountryData } from "../../baker/countryIndexes.js"
 import {
     getChartConfigById,
     getPatchConfigByChartId,
