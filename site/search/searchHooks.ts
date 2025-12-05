@@ -15,7 +15,11 @@ import {
     removeMatchedWordsWithStopWords,
     splitIntoWords,
 } from "./searchUtils.js"
-import { searchParamsToState, stateToSearchParams } from "./searchState.js"
+import {
+    searchParamsToState,
+    stateToSearchParams,
+    DEFAULT_SEARCH_STATE,
+} from "./searchState.js"
 import { useSearchContext } from "./SearchContext.js"
 import { flattenNonTopicNodes } from "@ourworldindata/utils"
 import { useInfiniteQuery } from "@tanstack/react-query"
@@ -91,9 +95,16 @@ export function useSearchAnalytics(
         [state]
     )
 
+    const defaultStateKey = useMemo(
+        () => stateToSearchParams(DEFAULT_SEARCH_STATE).toString(),
+        []
+    )
+
     useEffect(() => {
+        // Skip analytics for default/empty search state
+        if (stateKey === defaultStateKey) return
         analytics.logSearch(state)
-    }, [stateKey, analytics, state])
+    }, [stateKey, defaultStateKey, analytics, state])
 }
 
 type QueryKeyState = Pick<
