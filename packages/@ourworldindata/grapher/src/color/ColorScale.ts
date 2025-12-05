@@ -276,6 +276,7 @@ export class ColorScale {
             customCategoryColors,
             customCategoryLabels,
             customHiddenCategories,
+            colorScheme,
         } = this
 
         let allCategoricalValues = categoricalValues
@@ -301,7 +302,15 @@ export class ColorScale {
             const boundingOffset = _.isEmpty(bucketThresholds)
                 ? 0
                 : bucketThresholds.length - 1
-            const baseColor = baseColors[index + boundingOffset]
+
+            // Use colorMap if available and the value exists in it
+            let baseColor: Color | undefined
+            if (colorScheme.colorMap && value in colorScheme.colorMap) {
+                baseColor = colorScheme.colorMap[value]
+            } else {
+                baseColor = baseColors[index + boundingOffset]
+            }
+
             const color = customCategoryColors[value] ?? baseColor
             const label = customCategoryLabels[value] ?? value
 

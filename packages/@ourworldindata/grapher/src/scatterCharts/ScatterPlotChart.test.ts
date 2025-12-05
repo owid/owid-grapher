@@ -246,7 +246,7 @@ describe("basic scatterplot", () => {
     it("plots correct series", () => {
         expect(chartState.series).toEqual([
             {
-                color: ContinentColors.Africa, // First "continents" color
+                color: ContinentColors.Europe,
                 isScaleColor: true,
                 label: "UK",
                 points: [
@@ -1103,4 +1103,40 @@ it("applies color tolerance before applying the author timeline filter", () => {
             chartState.transformedTable.get("color").valuesIncludingErrorValues
         )
     ).toEqual(["Europe"])
+})
+
+describe("continent colors remain consistent regardless of data", () => {
+    it("assigns correct colors even when some continents are missing", () => {
+        // Test with only Asia and Europe (missing Africa, which is first in palette)
+        const table1 = new OwidTable(
+            [
+                ["entityId", "entityName", "year", "x", "y", "color"],
+                [1, "China", 2000, 1, 1, "Asia"],
+                [2, "Germany", 2000, 2, 2, "Europe"],
+            ],
+            [
+                { slug: "x", type: ColumnTypeNames.Numeric },
+                { slug: "y", type: ColumnTypeNames.Numeric },
+                { slug: "color", type: ColumnTypeNames.String },
+            ]
+        )
+
+        const manager: ScatterPlotManager = {
+            xColumnSlug: "x",
+            yColumnSlug: "y",
+            categoricalColorColumnSlug: "color",
+            table: table1,
+        }
+
+        const chartState1 = new ScatterPlotChartState({ manager })
+
+        // Asia should get its designated color (Teal), not the first color (Africa's Mauve)
+        expect(chartState1.colorScale.getColor("Asia")).toEqual(
+            ContinentColors.Asia
+        )
+        // Europe should get its designated color (Denim), not the second color (Asia's Teal)
+        expect(chartState1.colorScale.getColor("Europe")).toEqual(
+            ContinentColors.Europe
+        )
+    })
 })
