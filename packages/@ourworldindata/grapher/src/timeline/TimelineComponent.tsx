@@ -4,13 +4,16 @@ import { select } from "d3-selection"
 import cx from "classnames"
 import {
     getRelativeMouse,
-    isMobile,
     Bounds,
     Time,
     parseIntOrUndefined,
     isTouchDevice,
+    convertDaysSinceEpochToDate,
+    diffDateISOStringInDays,
+    EPOCH_DATE,
 } from "@ourworldindata/utils"
-import { observable, computed, action, makeObservable } from "mobx"
+import { ColumnTypeMap } from "@ourworldindata/core-table"
+import { observable, computed, action, makeObservable, reaction } from "mobx"
 import { observer } from "mobx-react"
 import { faPlay, faPause } from "@fortawesome/free-solid-svg-icons"
 import {
@@ -24,11 +27,12 @@ import {
     GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_TIMELINE_CLASS,
 } from "../core/GrapherConstants.js"
+import { DateField, DateInput, DateSegment } from "react-aria-components"
+import { CalendarDate } from "@internationalized/date"
 
 export const TIMELINE_HEIGHT = 32 // Keep in sync with $timelineHeight in TimelineComponent.scss
 
 const HANDLE_DIAMETER = 20 // Keep in sync with $handle-diameter in TimelineComponent.scss
-const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
 
 const SLIDER_CLASS = "GrapherTimeline__Slider"
 const PLAY_BUTTON_CLASS = "GrapherTimeline__PlayButton"
@@ -59,6 +63,8 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
     private slider?: Element | HTMLElement | null
     private playButton?: Element | HTMLElement | null
+
+    private disposers: (() => void)[] = []
 
     constructor(props: TimelineComponentProps) {
         super(props)
@@ -103,6 +109,13 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         return !isTouchDevice()
     }
 
+    @computed private get isDailyData(): boolean {
+        const { timeColumn } = this.manager
+        return (
+            timeColumn !== undefined && timeColumn instanceof ColumnTypeMap.Day
+        )
+    }
+
     private get sliderBounds(): Bounds {
         return this.slider
             ? Bounds.fromRect(this.slider.getBoundingClientRect())
@@ -130,8 +143,6 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     }
 
     @action.bound private showTooltips(): void {
-        this.hideStartTooltip.cancel()
-        this.hideEndTooltip.cancel()
         this.startTooltipVisible = true
         this.endTooltipVisible = true
 
@@ -209,13 +220,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
         if (this.manager.isPlaying) return
 
-        if (isMobile()) {
-            if (this.startTooltipVisible) this.hideStartTooltip()
-            if (this.endTooltipVisible) this.hideEndTooltip()
-        } else if (!this.mouseHoveringOverTimeline) {
-            this.startTooltipVisible = false
-            this.endTooltipVisible = false
-        }
+        this.hideTooltips()
     }
 
     @computed private get areBothHandlesVisible(): boolean {
@@ -265,11 +270,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     @action.bound private onMouseOverSlider(event: MouseEvent): void {
         this.mouseHoveringOverTimeline = true
 
-        this.hideStartTooltip.cancel()
-        this.startTooltipVisible = true
-
-        this.hideEndTooltip.cancel()
-        this.endTooltipVisible = true
+        this.showTooltips()
 
         this.setHoverTime(event)
     }
@@ -289,12 +290,10 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         if (!this.editHandle) this.resetEditState()
     }
 
-    private hideStartTooltip = _.debounce(() => {
+    @action.bound private hideTooltips(): void {
         this.startTooltipVisible = false
-    }, HANDLE_TOOLTIP_FADE_TIME_MS)
-    private hideEndTooltip = _.debounce(() => {
         this.endTooltipVisible = false
-    }, HANDLE_TOOLTIP_FADE_TIME_MS)
+    }
 
     @action.bound private onPlayTouchEnd(evt: Event): void {
         evt.preventDefault()
@@ -320,6 +319,16 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
             this.slider = current.querySelector(`.${SLIDER_CLASS}`)
             this.playButton = current.querySelector(`.${PLAY_BUTTON_CLASS}`)
         }
+
+        // Watch for when animation stops to hide tooltips
+        this.disposers.push(
+            reaction(
+                () => this.manager.isPlaying,
+                (isPlaying) => {
+                    if (!isPlaying) this.hideTooltips()
+                }
+            )
+        )
 
         document.documentElement.addEventListener("mouseup", this.onMouseUp)
         document.documentElement.addEventListener("mouseleave", this.onMouseUp)
@@ -351,6 +360,8 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         )
         this.slider?.removeEventListener("touchstart", this.onSliderTouchStart)
         this.playButton?.removeEventListener("touchend", this.onPlayTouchEnd)
+
+        this.disposers.forEach((dispose) => dispose())
     }
 
     private formatTime(time: number): string {
@@ -360,6 +371,8 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     }
 
     @action.bound private togglePlay(): void {
+        // Show tooltips when starting to play
+        if (!this.manager.isPlaying) this.showTooltips()
         void this.controller.togglePlay()
     }
 
@@ -375,7 +388,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     }
 
     @action.bound private onCompleteYear(year?: number): void {
-        // Only submit if the user has finished typing
+        // Only apply when the user has finished typing
         if (year !== undefined && this.editHandle !== undefined) {
             if (!this.areBothHandlesVisible) {
                 this.controller.setStartAndEndTimeFromInput(year)
@@ -383,6 +396,19 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                 this.controller.setStartTimeFromInput(year)
             } else {
                 this.controller.setEndTimeFromInput(year)
+            }
+        }
+        this.resetEditState()
+    }
+
+    @action.bound private onCompleteDate(date?: CalendarDate): void {
+        // Only apply when the user has finished typing
+        if (date && this.editHandle !== undefined) {
+            const daysSinceEpoch = calendarDateToDaysSinceEpoch(date)
+            if (this.editHandle === MarkerType.Start) {
+                this.controller.setStartTimeFromInput(daysSinceEpoch)
+            } else {
+                this.controller.setEndTimeFromInput(daysSinceEpoch)
             }
         }
         this.resetEditState()
@@ -429,7 +455,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     }
 
     @computed private get startHandleTooltip(): React.ReactNode {
-        const { startTime } = this.controller
+        const { startTime, minTime, maxTime } = this.controller
 
         if (!this.startTooltipVisible || !this.areBothHandlesVisible) {
             return undefined
@@ -441,7 +467,24 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
             return <SimpleTimeTooltip formattedTime={formattedStartTime} />
         }
 
-        return (
+        return this.isDailyData ? (
+            <EditableDateTooltip
+                type={MarkerType.Start}
+                editHandle={this.editHandle}
+                formattedTime={formattedStartTime}
+                currentTime={startTime}
+                minTime={minTime}
+                maxTime={maxTime}
+                onStartEditing={() => this.onStartEditing(MarkerType.Start)}
+                onComplete={this.onCompleteDate}
+                onMouseEnter={action(() => {
+                    this.isEditableTimeTooltipHovered = true
+                })}
+                onMouseLeave={action(() => {
+                    this.isEditableTimeTooltipHovered = false
+                })}
+            />
+        ) : (
             <EditableYearTooltip
                 type={MarkerType.Start}
                 editHandle={this.editHandle}
@@ -460,7 +503,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     }
 
     @computed private get endHandleTooltip(): React.ReactNode {
-        const { endTime } = this.controller
+        const { endTime, minTime, maxTime } = this.controller
 
         if (!this.endTooltipVisible) {
             return undefined
@@ -472,7 +515,25 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
             return <SimpleTimeTooltip formattedTime={formattedEndTime} />
         }
 
-        return (
+        return this.isDailyData ? (
+            <EditableDateTooltip
+                type={MarkerType.End}
+                editHandle={this.editHandle}
+                formattedTime={formattedEndTime}
+                currentTime={endTime}
+                minTime={minTime}
+                maxTime={maxTime}
+                onStartEditing={() => this.onStartEditing(MarkerType.End)}
+                onComplete={this.onCompleteDate}
+                onMouseEnter={action(() => {
+                    this.isEditableTimeTooltipHovered = true
+                    this.hoverTime = undefined
+                })}
+                onMouseLeave={action(() => {
+                    this.isEditableTimeTooltipHovered = false
+                })}
+            />
+        ) : (
             <EditableYearTooltip
                 type={MarkerType.End}
                 editHandle={this.editHandle}
@@ -833,6 +894,109 @@ function EditableYearTooltip({
     )
 }
 
+function EditableDateTooltip({
+    type,
+    editHandle,
+    currentTime,
+    formattedTime,
+    minTime,
+    maxTime,
+    onStartEditing,
+    onMouseEnter,
+    onMouseLeave,
+    onComplete,
+}: {
+    type: Exclude<MarkerType, MarkerType.Hover>
+    editHandle?: Exclude<MarkerType, MarkerType.Hover>
+    currentTime: number
+    formattedTime: string
+    minTime: number
+    maxTime: number
+    onStartEditing?: () => void
+    onMouseEnter?: () => void
+    onMouseLeave?: () => void
+    onComplete: (date?: CalendarDate) => void
+}): React.ReactElement {
+    return (
+        <div
+            className={cx("EditableTimeTooltip", {
+                "EditableTimeTooltip--left": type === MarkerType.Start,
+                "EditableTimeTooltip--right": type === MarkerType.End,
+            })}
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
+        >
+            {editHandle === type ? (
+                <TimelineDateInput
+                    value={daysSinceEpochToCalendarDate(currentTime)}
+                    minValue={daysSinceEpochToCalendarDate(minTime)}
+                    maxValue={daysSinceEpochToCalendarDate(maxTime)}
+                    onComplete={onComplete}
+                    autoFocus={true}
+                />
+            ) : (
+                <span
+                    className="EditableTimeTooltip__Text"
+                    onClick={onStartEditing}
+                >
+                    {formattedTime}
+                </span>
+            )}
+        </div>
+    )
+}
+
+const TimelineDateInput = ({
+    value,
+    minValue,
+    maxValue,
+    onComplete,
+    autoFocus,
+}: {
+    value: CalendarDate
+    minValue: CalendarDate
+    maxValue: CalendarDate
+    onComplete: (date?: CalendarDate) => void
+    autoFocus?: boolean
+}): React.ReactElement => {
+    const [currentValue, setCurrentValue] = React.useState(value)
+
+    const handleKeyDown = (e: React.KeyboardEvent): void => {
+        if (e.key === "Enter") {
+            onComplete(currentValue)
+        } else if (e.key === "Escape") {
+            onComplete()
+        }
+    }
+
+    return (
+        <DateField
+            value={currentValue}
+            minValue={minValue}
+            maxValue={maxValue}
+            onChange={(date) => {
+                if (date) setCurrentValue(date)
+            }}
+            onBlur={() => onComplete(currentValue)}
+            onKeyDown={handleKeyDown}
+            autoFocus={autoFocus}
+            className="GrapherTimeline__DateInput"
+            aria-label="Date input"
+        >
+            <DateInput className="GrapherTimeline__DateInputField">
+                {(segment) => (
+                    <DateSegment
+                        segment={segment}
+                        className="GrapherTimeline__DateInputSegment"
+                    />
+                )}
+            </DateInput>
+        </DateField>
+    )
+}
+
 const TimelineInterval = ({
     startTimeProgress,
     endTimeProgress,
@@ -862,6 +1026,25 @@ function SimpleTimeTooltip({
     formattedTime: string
 }): React.ReactElement {
     return <div className="SimpleTimeTooltip">{formattedTime}</div>
+}
+
+/** Convert days-since-epoch integer to CalendarDate object */
+function daysSinceEpochToCalendarDate(dayAsYear: number): CalendarDate {
+    const date = convertDaysSinceEpochToDate(dayAsYear)
+    return new CalendarDate(
+        date.year(),
+        date.month() + 1, // CalendarDate is 1-indexed, dayjs is 0-indexed
+        date.date()
+    )
+}
+
+/** Convert CalendarDate to days-since-epoch integer */
+function calendarDateToDaysSinceEpoch(date: CalendarDate): number {
+    const year = date.year
+    const month = date.month.toString().padStart(2, "0")
+    const day = date.day.toString().padStart(2, "0")
+    const isoString = `${year}-${month}-${day}`
+    return diffDateISOStringInDays(isoString, EPOCH_DATE)
 }
 
 function castToNumberIfPossible(s: string): string | number {

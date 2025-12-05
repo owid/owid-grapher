@@ -68,6 +68,7 @@
         "@googleapis/docs": "^5.0.1",
         "@googleapis/drive": "^14.1.0",
         "@handsontable/react": "^15.1.0",
+        "@internationalized/date": "^3.10.0",
         "@ourworldindata/components": "workspace:^",
         "@ourworldindata/core-table": "workspace:^",
         "@ourworldindata/explorer": "workspace:^",
