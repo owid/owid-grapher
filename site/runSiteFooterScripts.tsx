@@ -50,11 +50,15 @@ import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import { SUBSCRIBE_PAGE_FORM_CONTAINER_ID } from "@ourworldindata/types"
 
-function hydrateSearchPage() {
+function runSearchPage() {
     const root = document.getElementById("search-page-root")
     const topicTagGraph = window._OWID_TOPIC_TAG_GRAPH as TagGraphRoot
     if (root) {
-        hydrateRoot(root, <SearchWrapper topicTagGraph={topicTagGraph} />)
+        createRoot(root).render(
+            <BrowserRouter>
+                <SearchWrapper topicTagGraph={topicTagGraph} />
+            </BrowserRouter>
+        )
     }
 }
 
@@ -387,7 +391,7 @@ export const runSiteFooterScripts = async (
             await hydrateDataInsightsIndexPage()
         // falls through
         case SiteFooterContext.searchPage:
-            hydrateSearchPage()
+            runSearchPage()
         // falls through
         case SiteFooterContext.subscribePage:
             hydrateSubscribePage()

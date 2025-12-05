@@ -259,67 +259,24 @@ export type SearchState = Readonly<{
     resultType: SearchResultType
 }>
 
-type AddFilterAction = {
-    type: "addFilter"
-    filter: Filter
+export interface SearchActions {
+    setQuery: (query: string) => void
+    addCountry: (country: string) => void
+    addCountryAndSetQuery: (country: string, query: string) => void
+    removeCountry: (country: string) => void
+    setTopic: (topic: string) => void
+    setTopicAndClearQuery: (topic: string) => void
+    removeTopic: (topic: string) => void
+    addFilter: (filter: Filter) => void
+    removeFilter: (filter: Filter) => void
+    toggleRequireAllCountries: () => void
+    setResultType: (resultType: SearchResultType) => void
+    replaceQueryWithFilters: (
+        filters: Filter[],
+        matchedPositions: number[]
+    ) => void
+    reset: () => void
 }
-type RemoveFilterAction = {
-    type: "removeFilter"
-    filter: Filter
-}
-type SetTopicAction = {
-    type: "setTopic"
-    topic: string
-}
-type RemoveTopicAction = {
-    type: "removeTopic"
-    topic: string
-}
-type SetQueryAction = {
-    type: "setQuery"
-    query: string
-}
-type AddCountryAction = {
-    type: "addCountry"
-    country: string
-}
-type RemoveCountryAction = {
-    type: "removeCountry"
-    country: string
-}
-type ToggleRequireAllCountriesAction = {
-    type: "toggleRequireAllCountries"
-}
-type SetStateAction = {
-    type: "setState"
-    state: SearchState
-}
-type ResetAction = {
-    type: "reset"
-}
-type SetResultTypeAction = {
-    type: "setResultType"
-    resultType: SearchResultType
-}
-type ReplaceQueryWithFiltersAction = {
-    type: "replaceQueryWithFilters"
-    filters: Filter[]
-    matchedPositions: number[]
-}
-
-export type SearchAction =
-    | AddFilterAction
-    | RemoveFilterAction
-    | AddCountryAction
-    | SetTopicAction
-    | RemoveCountryAction
-    | RemoveTopicAction
-    | SetQueryAction
-    | SetStateAction
-    | ToggleRequireAllCountriesAction
-    | ResetAction
-    | SetResultTypeAction
-    | ReplaceQueryWithFiltersAction
 
 export enum SearchTopicType {
     Topic = "topic",
