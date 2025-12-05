@@ -1073,7 +1073,12 @@ function makePngUrlForNarrativeChart(
     { cache = false } = {}
 ): string {
     const searchParams = new URLSearchParams({ imType: "square" })
-    if (!cache) searchParams.append("nocache", "true")
+    if (!cache) {
+        searchParams.append("nocache", "true")
+
+        // Force a cache bypass by adding a timestamp
+        searchParams.append("t", Date.now().toString())
+    }
 
     return `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/by-uuid/${configId}.png?${searchParams}`
 }
@@ -1086,7 +1091,12 @@ function makePngUrlForGrapherOrExplorer(
 
     // update search params
     url.searchParams.append("imType", "square")
-    if (!cache) url.searchParams.append("nocache", "true")
+    if (!cache) {
+        url.searchParams.append("nocache", "true")
+
+        // Force a cache bypass by adding a timestamp
+        url.searchParams.append("t", Date.now().toString())
+    }
 
     const pngUrl = `${url.protocol}//${url.host}${url.pathname}.png${url.search}`
 

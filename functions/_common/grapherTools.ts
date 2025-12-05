@@ -73,15 +73,15 @@ export function getDataApiUrl(env: Env) {
 export async function fetchFromR2(
     url: URL,
     etag: string | undefined,
-    fallbackUrl?: URL
+    fallbackUrl?: URL,
+    shouldCache: boolean = true
 ) {
     const headers = new Headers()
     if (etag) headers.set("If-None-Match", etag)
     const init = {
-        cf: {
-            cacheEverything: true,
-            cacheTtl: WORKER_CACHE_TIME_IN_SECONDS,
-        },
+        cf: shouldCache
+            ? { cacheEverything: true, cacheTtl: WORKER_CACHE_TIME_IN_SECONDS }
+            : { cacheEverything: false },
         headers,
     }
     const primaryResponse = await fetch(url.toString(), init)
@@ -96,7 +96,8 @@ export async function fetchFromR2(
 export async function fetchUnparsedGrapherConfig(
     identifier: GrapherIdentifier,
     env: Env,
-    etag?: string
+    etag?: string,
+    shouldCache: boolean = true
 ) {
     // The top level directory is either the bucket path (should be set in dev environments and production)
     // or the branch name on preview staging environments
@@ -135,7 +136,7 @@ export async function fetchUnparsedGrapherConfig(
     }
 
     // Fetch grapher config
-    return fetchFromR2(requestUrl, etag, fallbackUrl)
+    return fetchFromR2(requestUrl, etag, fallbackUrl, shouldCache)
 }
 
 async function fetchMultiDimGrapherConfig(
@@ -144,9 +145,12 @@ async function fetchMultiDimGrapherConfig(
     env: Env
 ) {
     const view = searchParamsToMultiDimView(multiDimConfig, searchParams)
+    const shouldCache = !searchParams.has("nocache")
     const response = await fetchUnparsedGrapherConfig(
         { type: "uuid", id: view.fullConfigId },
-        env
+        env,
+        undefined,
+        shouldCache
     )
     return await response.json()
 }
@@ -162,10 +166,12 @@ export async function fetchGrapherConfig({
     etag?: string
     searchParams?: URLSearchParams
 }): Promise<FetchGrapherConfigResult> {
+    const shouldCache = !searchParams.has("nocache")
     const fetchResponse = await fetchUnparsedGrapherConfig(
         identifier,
         env,
-        etag
+        etag,
+        shouldCache
     )
 
     if (fetchResponse.status === 404) {

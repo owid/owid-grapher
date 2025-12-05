@@ -167,10 +167,16 @@ export abstract class AbstractChartEditor<
     }
 
     @computed get isModified(): boolean {
-        return !_.isEqual(
-            _.omit(this.patchConfig, "version"),
-            _.omit(this.savedPatchConfig, "version")
+        // Serialize and deserialize to remove all MobX proxies
+        // (toJS does not do a deep conversion of nested objects)
+        const currentPatch = JSON.parse(
+            JSON.stringify(_.omit(this.patchConfig, "version"))
         )
+        const savedPatch = JSON.parse(
+            JSON.stringify(_.omit(this.savedPatchConfig, "version"))
+        )
+
+        return !_.isEqual(currentPatch, savedPatch)
     }
 
     @computed get features(): EditorFeatures {
