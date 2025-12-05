@@ -1818,3 +1818,32 @@ describe("tolerance is not applied twice (issue #4891)", () => {
         expect(testColumnValues2015).toEqual([100])
     })
 })
+
+describe("tableAfterAuthorTimelineAndEntityFilter", () => {
+    it("drops entities that have no data in any x or y column", () => {
+        const table = new OwidTable([
+            ["entityName", "year", "x", "y", "color"],
+            ["USA", 2000, 1, 2, "red"],
+            ["Canada", 2000, null, null, "blue"], // No x or y data
+            ["Mexico", 2000, 3, null, "green"], // Has x but no y
+        ])
+
+        const grapher = new GrapherState({
+            table,
+            chartTypes: [GRAPHER_CHART_TYPES.Marimekko],
+            xSlug: "x",
+            ySlugs: "y",
+            colorSlug: "color",
+        })
+
+        const result = grapher.tableAfterAuthorTimelineAndEntityFilter
+        const entityNames = result.availableEntityNames
+
+        // USA should be included (has both x and y data)
+        expect(entityNames).toContain("USA")
+        // Mexico should be included (has x data)
+        expect(entityNames).toContain("Mexico")
+        // Canada should be excluded (has no x or y data, only color)
+        expect(entityNames).not.toContain("Canada")
+    })
+})
