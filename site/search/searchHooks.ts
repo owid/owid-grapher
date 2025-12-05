@@ -289,6 +289,7 @@ export function useSearchParamsState(
     const [searchParams, setSearchParams] = useSearchParams()
 
     // Derive state from URL
+    // Countries and topics are validated against their respective sets
     const state = useMemo(
         () => searchParamsToState(searchParams, validCountries, validTopics),
         [searchParams, validCountries, validTopics]
