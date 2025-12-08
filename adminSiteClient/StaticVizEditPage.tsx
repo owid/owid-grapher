@@ -357,62 +357,62 @@ export function StaticVizEditPage() {
                             readers understand the visualization.
                         </p>
 
-                    <h3>Description</h3>
-                    <Form.Item name="description">
-                        <TextArea
-                            rows={4}
-                            placeholder={`Describe how this visualization was created, e.g.:
+                        <h3>Description</h3>
+                        <Form.Item name="description">
+                            <TextArea
+                                rows={4}
+                                placeholder={`Describe how this visualization was created, e.g.:
 1. The data was downloaded from [source]
 2. It was then processed using scripts stored at https://github.com/owid/notebooks/blah
 3. The output chart was then improved in Figma`}
-                        />
-                        <p className="static-viz-edit-form__description">
-                            Explain how this visualization was created.
+                            />
+                            <p className="static-viz-edit-form__description">
+                                Explain how this visualization was created.
+                            </p>
+                        </Form.Item>
+
+                        <h3 className="static-viz-edit-form__heading--required">
+                            Data source
+                        </h3>
+                        <p>
+                            Provide either a Grapher slug, if your visualization
+                            was directly derived from a Grapher chart; or an
+                            external URL. One of these is required.
                         </p>
-                    </Form.Item>
-
-                    <h3 className="static-viz-edit-form__heading--required">
-                        Data source
-                    </h3>
-                    <p>
-                        Provide either a Grapher slug, if your visualization was
-                        directly derived from a Grapher chart; or an external
-                        URL. One of these is required.
-                    </p>
-                    <h4>Grapher slug</h4>
-                    <Form.Item
-                        name="grapherSlug"
-                        dependencies={["sourceUrl"]}
-                        rules={[requiresGrapherOrSourceRule("sourceUrl")]}
-                    >
-                        <Select
-                            placeholder="e.g. life-expectancy"
-                            loading={!grapherSlugs}
-                            showSearch
-                            allowClear
-                            filterOption={(input, option) =>
-                                option?.children
-                                    ?.toString()
-                                    .toLowerCase()
-                                    .includes(input.toLowerCase()) ?? false
-                            }
+                        <h4>Grapher slug</h4>
+                        <Form.Item
+                            name="grapherSlug"
+                            dependencies={["sourceUrl"]}
+                            rules={[requiresGrapherOrSourceRule("sourceUrl")]}
                         >
-                            {grapherSlugs?.map((slug: string) => (
-                                <Option key={slug} value={slug}>
-                                    {slug}
-                                </Option>
-                            ))}
-                        </Select>
-                    </Form.Item>
+                            <Select
+                                placeholder="e.g. life-expectancy"
+                                loading={!grapherSlugs}
+                                showSearch
+                                allowClear
+                                filterOption={(input, option) =>
+                                    option?.children
+                                        ?.toString()
+                                        .toLowerCase()
+                                        .includes(input.toLowerCase()) ?? false
+                                }
+                            >
+                                {grapherSlugs?.map((slug: string) => (
+                                    <Option key={slug} value={slug}>
+                                        {slug}
+                                    </Option>
+                                ))}
+                            </Select>
+                        </Form.Item>
 
-                    <h4>Source URL</h4>
-                    <Form.Item
-                        name="sourceUrl"
-                        dependencies={["grapherSlug"]}
-                        rules={[requiresGrapherOrSourceRule("grapherSlug")]}
-                    >
-                        <Input placeholder="e.g., https://www.mortality.org/Data/ZippedDataFiles" />
-                    </Form.Item>
+                        <h4>Source URL</h4>
+                        <Form.Item
+                            name="sourceUrl"
+                            dependencies={["grapherSlug"]}
+                            rules={[requiresGrapherOrSourceRule("grapherSlug")]}
+                        >
+                            <Input placeholder="e.g., https://www.mortality.org/Data/ZippedDataFiles" />
+                        </Form.Item>
                     </div>
 
                     <Form.Item style={{ paddingBottom: 24 }}>
