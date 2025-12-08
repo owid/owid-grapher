@@ -41,6 +41,20 @@ $timelineHeight: 32px;
         border: 1px solid transparent;
     }
 
+    &.GrapherTimeline--touch .GrapherTimeline__TimelineEdgeButton {
+        border-radius: 4px;
+        background-color: $light-fill;
+
+        &:hover {
+            background: $hover-fill;
+        }
+
+        &:active {
+            background: $active-fill;
+            color: $active-text;
+        }
+    }
+
     .GrapherTimeline__PlayButton {
         margin-right: 7px;
     }
@@ -239,7 +253,7 @@ $timelineHeight: 32px;
         background-clip: content-box !important;
     }
 
-    &.hover {
+    &.GrapherTimeline--hover {
         .GrapherTimeline__Handle > .GrapherTimeline__HandleKnob {
             transform: scale(1.3);
         }
