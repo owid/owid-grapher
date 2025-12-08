@@ -40,7 +40,7 @@ const requiresGrapherOrSourceRule =
             // Both provided - error
             if (hasValue && hasOtherValue) {
                 return Promise.reject(
-                    new Error("Cannot provide both Grapher Slug and Source URL")
+                    new Error("You cannot provide both a Grapher slug and a source URL")
                 )
             }
 
@@ -51,7 +51,7 @@ const requiresGrapherOrSourceRule =
 
             // Neither provided - error
             return Promise.reject(
-                new Error("Please provide either a Grapher Slug or Source URL")
+                new Error("Please provide either a Grapher slug or a source URL")
             )
         },
     })
@@ -196,7 +196,7 @@ export function StaticVizEditPage() {
     })
 
     const currentMutation = isEditing ? updateMutation : createMutation
-    const currentTitle = isEditing ? "Edit Static Viz" : "Create Static Viz"
+    const currentTitle = isEditing ? "Edit static visualization" : "Create static visualization"
 
     const handleCancel = () => {
         history.push("/static-viz")
@@ -231,7 +231,7 @@ export function StaticVizEditPage() {
                 <p className="static-viz-edit-form__description">
                     Add additional metadata to our bespoke static
                     visualizations. You can document how the visualization was
-                    produced and link back to its source data with a grapher
+                    created and link to its data source using either a Grapher
                     slug or an external URL.
                 </p>
                 <Form
@@ -255,34 +255,34 @@ export function StaticVizEditPage() {
                     >
                         <Input placeholder="e.g. ac-adoption-data-insight" />
                         <p className="static-viz-edit-form__description">
-                            A unique identifier for the static visualization.
-                            Used to refer to it in an ArchieML Gdoc.
+                            A unique identifier used to reference this visualization in ArchieML
+                            documents (use the same {.image} tag as for normal images).
+                            This will not be shown to readers.
                         </p>
                     </Form.Item>
 
                     <Form.Item label="Description" name="description">
                         <TextArea
                             rows={4}
-                            placeholder={`How this data visualization was produced e.g. 
-1. Data was downloaded from [source]
-2. Data was processed via scripts at https://github.com/owid/notebooks/blah
-3. Script output was arranged in Figma`}
+                            placeholder={`Describe how this visualization was created, e.g.:
+1. The data was downloaded from [source]
+2. It was then processed using scripts stored at https://github.com/owid/notebooks/blah
+3. The output chart was then improved in Figma`}
                         />
                         <p className="static-viz-edit-form__description">
-                            A brief description of how the static visualization
-                            was produced, for our readers.
+                            Explain how this visualization was created. This will be shown to readers.
                         </p>
                     </Form.Item>
 
                     <h3 className="static-viz-edit-form__heading--required">
-                        Data
+                        Data source
                     </h3>
                     <p>
-                        The source of the visualization's data. One of the
-                        following two fields must be provided
+                        Provide either a Grapher slug, if your visualization was directly derived
+                        from a Grapher chart; or an external URL. One of these is required.
                     </p>
                     <Form.Item
-                        label="Grapher Slug"
+                        label="Grapher slug"
                         name="grapherSlug"
                         dependencies={["sourceUrl"]}
                         rules={[requiresGrapherOrSourceRule("sourceUrl")]}
@@ -313,7 +313,7 @@ export function StaticVizEditPage() {
                         dependencies={["grapherSlug"]}
                         rules={[requiresGrapherOrSourceRule("grapherSlug")]}
                     >
-                        <Input placeholder="e.g. https://www.mortality.org/Data/ZippedDataFiles" />
+                        <Input placeholder="e.g., https://www.mortality.org/Data/ZippedDataFiles" />
                     </Form.Item>
 
                     <div className="static-viz-edit-form__image-section">
@@ -330,7 +330,7 @@ export function StaticVizEditPage() {
                             ]}
                         >
                             <Select
-                                placeholder="Select an image"
+                                placeholder="Select an image from the library"
                                 loading={isLoadingImages}
                                 showSearch
                                 filterOption={(input, option) =>
@@ -358,13 +358,11 @@ export function StaticVizEditPage() {
                     <div className="static-viz-edit-form__image-section">
                         <h3>Mobile image</h3>
                         <p className="static-viz-edit-form__description">
-                            If you've created a version of the visualization
-                            specifically for narrow screens, you can specify it
-                            here.
+                            Optional: provide a version optimized for narrow screens.
                         </p>
                         <Form.Item name="mobileImageId">
                             <Select
-                                placeholder="Select a mobile image (optional)"
+                                placeholder="Select a mobile image from the library (optional)"
                                 loading={isLoadingImages}
                                 allowClear
                                 showSearch
