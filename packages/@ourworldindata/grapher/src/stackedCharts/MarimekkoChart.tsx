@@ -124,6 +124,10 @@ export class MarimekkoChart
         return this.chartState.xColumn
     }
 
+    @computed private get colorColumn(): CoreColumn | undefined {
+        return this.chartState.colorColumn
+    }
+
     @computed private get latestTime(): number | undefined {
         const times =
             this.manager.tableAfterAuthorTimelineAndActiveChartTransform?.getTimesUniqSortedAscForColumns(
@@ -416,6 +420,7 @@ export class MarimekkoChart
             tooltipItem,
             xColumn,
             yColumns,
+            colorColumn,
             manager: { endTime, xOverrideTime },
             inputTable: { timeColumn },
             tooltipState: { target, position, fading },
@@ -563,6 +568,19 @@ export class MarimekkoChart
                                 showSignificanceSuperscript={superscript}
                             />
                         )}
+                        {colorColumn &&
+                            !colorColumn.isMissing &&
+                            tooltipItem?.entityColor && (
+                                <TooltipValue
+                                    label={
+                                        this.colorScale.legendDescription ??
+                                        colorColumn.displayName
+                                    }
+                                    value={
+                                        tooltipItem.entityColor.colorDomainValue
+                                    }
+                                />
+                            )}
                     </Tooltip>
                 )}
             </g>
