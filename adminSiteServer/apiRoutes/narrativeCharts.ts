@@ -557,7 +557,7 @@ export async function updateNarrativeChart(
         )
     }
 
-    return { success: true }
+    return { success: true, savedPatch: patchConfig }
 }
 
 export async function deleteNarrativeChart(
