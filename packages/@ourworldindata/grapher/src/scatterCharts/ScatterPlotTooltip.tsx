@@ -8,6 +8,7 @@ import {
     excludeUndefined,
     calculateTrendDirection,
     Time,
+    RequiredBy,
 } from "@ourworldindata/utils"
 import { CoreColumn } from "@ourworldindata/core-table"
 import {
@@ -17,6 +18,7 @@ import {
     makeTooltipToleranceNotice,
     makeTooltipRoundingNotice,
     formatTooltipRangeValues,
+    TooltipValue,
 } from "../tooltip/Tooltip"
 import { FooterItem, TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import { ScatterSeries, SeriesPoint } from "./ScatterPlotChartConstants"
@@ -29,9 +31,9 @@ export interface ScatterPlotTooltipProps {
 
 interface TooltipValueRangeProps {
     chartState: ScatterPlotChartState
-    points: SeriesPoint[]
+    points?: SeriesPoint[]
     values: SeriesPoint[]
-    showSignificanceSuperscript: boolean
+    showSignificanceSuperscript?: boolean
     showOriginalTimes?: boolean
 }
 
@@ -208,9 +210,12 @@ export class ScatterPlotTooltip extends React.Component<ScatterPlotTooltipProps>
                 />
                 <TooltipValueRangeSize
                     chartState={chartState}
-                    points={this.points}
                     values={this.values}
                     showSignificanceSuperscript={showSignificanceSuperscript}
+                />
+                <TooltipValueColor
+                    chartState={chartState}
+                    values={this.values}
                 />
             </Tooltip>
         )
@@ -223,7 +228,7 @@ function TooltipValueRangeX({
     values,
     showSignificanceSuperscript,
     showOriginalTimes,
-}: TooltipValueRangeProps): React.ReactElement | null {
+}: RequiredBy<TooltipValueRangeProps, "points">): React.ReactElement | null {
     const { xColumn } = chartState
 
     if (xColumn.isMissing || xColumn.isTimeColumn) return null
@@ -257,7 +262,7 @@ function TooltipValueRangeY({
     values,
     showSignificanceSuperscript,
     showOriginalTimes,
-}: TooltipValueRangeProps): React.ReactElement | null {
+}: RequiredBy<TooltipValueRangeProps, "points">): React.ReactElement | null {
     const { yColumn } = chartState
 
     if (yColumn.isMissing) return null
@@ -306,6 +311,26 @@ function TooltipValueRangeSize({
                 sizeColumn.roundsToSignificantFigures
             }
             showSignificanceSuperscript={showSignificanceSuperscript}
+        />
+    )
+}
+
+function TooltipValueColor({
+    chartState,
+    values,
+}: TooltipValueRangeProps): React.ReactElement | null {
+    const { colorColumn, colorScale } = chartState
+
+    if (colorColumn.isMissing) return null
+
+    const value = values.at(-1)
+    const colorValue = value?.color
+    if (!colorValue) return null
+
+    return (
+        <TooltipValue
+            label={colorScale.legendDescription ?? colorColumn.displayName}
+            value={colorValue.toString()}
         />
     )
 }
