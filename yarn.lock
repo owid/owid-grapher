@@ -3225,7 +3225,6 @@ __metadata:
     "@types/js-cookie": "npm:^3.0.6"
     "@types/lodash-es": "npm:^4.17.12"
     "@types/react": "npm:^19.2.2"
-    "@types/string-pixel-width": "npm:^1.7.2"
     "@types/url-parse": "npm:^1.4.8"
     d3: "npm:^7.9.0"
     dayjs: "npm:^1.11.11"
@@ -3238,7 +3237,6 @@ __metadata:
     mobx-react: "npm:^7.6.0"
     react: "npm:^19.2.0"
     remeda: "npm:^2.32.0"
-    string-pixel-width: "npm:^1.10.0"
     striptags: "npm:^3.2.0"
     timezone-mock: "npm:^1.0.18"
     ts-pattern: "npm:^5.8.0"
@@ -7535,13 +7533,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/string-pixel-width@npm:^1.7.2":
-  version: 1.7.2
-  resolution: "@types/string-pixel-width@npm:1.7.2"
-  checksum: 10/5c90dd1d61b036ec7d095152b126c83bc75f49ad38e2b03803dead500549ce7f876c0f40a68c3ea5659d554e1c44434b3af44c8e0e2813da71448dc27fdbef76
-  languageName: node
-  linkType: hard
-
 "@types/tedious@npm:^4.0.14":
   version: 4.0.14
   resolution: "@types/tedious@npm:4.0.14"
@@ -11608,7 +11599,6 @@ __metadata:
     "@types/react-recaptcha": "npm:^2.3.4"
     "@types/react-router": "npm:^5.1.20"
     "@types/react-router-dom": "npm:5"
-    "@types/string-pixel-width": "npm:^1.7.2"
     "@types/topojson-client": "npm:^3.1.1"
     "@types/topojson-server": "npm:^3.0.1"
     "@types/url-parse": "npm:^1.4.8"
@@ -11710,7 +11700,6 @@ __metadata:
     sharp: "npm:^0.34.5"
     simple-git: "npm:^3.16.1"
     simple-statistics: "npm:^7.8.8"
-    string-pixel-width: "npm:^1.10.0"
     striptags: "npm:^3.2.0"
     timezone-mock: "npm:^1.0.18"
     tinyexec: "npm:^1.0.1"
@@ -13063,13 +13052,6 @@ __metadata:
   version: 4.0.8
   resolution: "lodash.debounce@npm:4.0.8"
   checksum: 10/cd0b2819786e6e80cb9f5cda26b1a8fc073daaf04e48d4cb462fa4663ec9adb3a5387aa22d7129e48eed1afa05b482e2a6b79bfc99b86886364449500cbb00fd
-  languageName: node
-  linkType: hard
-
-"lodash.deburr@npm:^4.1.0":
-  version: 4.1.0
-  resolution: "lodash.deburr@npm:4.1.0"
-  checksum: 10/165ce8f8a051360f98ce977f12bd645fe3faf3cc2452aa36f5a8849e3e69463e2252ff952ed6b7cc33c8f608fcbe56e7d13baf524818da95cb53849d366b62be
   languageName: node
   linkType: hard
 
@@ -16977,15 +16959,6 @@ __metadata:
   version: 0.2.1
   resolution: "string-convert@npm:0.2.1"
   checksum: 10/f3eb484a45d29aa2ba2d9fe0471c971d5a56353633b56a4c8bc3e67237a2cdb1b6437f006a67d489b3d41e0a1c1f02e18d334c161a27fd7219e4aee1a9f68aac
-  languageName: node
-  linkType: hard
-
-"string-pixel-width@npm:^1.10.0":
-  version: 1.10.0
-  resolution: "string-pixel-width@npm:1.10.0"
-  dependencies:
-    lodash.deburr: "npm:^4.1.0"
-  checksum: 10/919ec078fc68d314ce91bf6204e69d81f6510a01b6369f9b0b6c668745ba4bc11ea973d0724b2049ca8f4306e4043bb10088f1b51221ed8e11e5d3324acea36d
   languageName: node
   linkType: hard
 
