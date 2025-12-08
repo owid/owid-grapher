@@ -78,6 +78,7 @@ async function handleConfigRequest(
         identifier: { type: "uuid", id: uuid },
         env,
         etag,
+        searchParams,
     })
 
     if (grapherPageResp.status === 304) {

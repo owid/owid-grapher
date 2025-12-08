@@ -166,7 +166,7 @@ export async function fetchGrapherConfig({
     etag?: string
     searchParams?: URLSearchParams
 }): Promise<FetchGrapherConfigResult> {
-    const shouldCache = !searchParams.has("nocache")
+    const shouldCache = !searchParams?.has("nocache")
     const fetchResponse = await fetchUnparsedGrapherConfig(
         identifier,
         env,
