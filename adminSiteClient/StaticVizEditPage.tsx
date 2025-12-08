@@ -241,6 +241,11 @@ export function StaticVizEditPage() {
                     onFinish={handleSubmit}
                     initialValues={initalValues}
                 >
+                    <h2>Internal metadata</h2>
+                    <p className="static-viz-edit-form__description">
+                        This information is used to reference the visualization in our content management system.
+                    </p>
+
                     <Form.Item
                         label="Name"
                         name="name"
@@ -257,9 +262,87 @@ export function StaticVizEditPage() {
                         <p className="static-viz-edit-form__description">
                             A unique identifier used to reference this visualization in ArchieML
                             documents (use the same {"{.image}"} tag as for normal images).
-                            This will not be shown to readers.
                         </p>
                     </Form.Item>
+
+                    <div className="static-viz-edit-form__image-section">
+                        <h3 className="static-viz-edit-form__heading--required">
+                            Desktop image
+                        </h3>
+                        <Form.Item
+                            name="imageId"
+                            rules={[
+                                {
+                                    required: true,
+                                    message: "Please select an image",
+                                },
+                            ]}
+                        >
+                            <Select
+                                placeholder="Select an image from the library"
+                                loading={isLoadingImages}
+                                showSearch
+                                filterOption={(input, option) =>
+                                    option?.children
+                                        ?.toString()
+                                        .toLowerCase()
+                                        .includes(input.toLowerCase()) ?? false
+                                }
+                            >
+                                {imagesData?.map((image: any) => (
+                                    <Option key={image.id} value={image.id}>
+                                        {image.filename}
+                                    </Option>
+                                ))}
+                            </Select>
+                        </Form.Item>
+
+                        <Form.Item>
+                            <ImagePreview
+                                imagesData={imagesData}
+                                imageId={form.getFieldValue("imageId")}
+                            />
+                        </Form.Item>
+                    </div>
+
+                    <div className="static-viz-edit-form__image-section">
+                        <h3>Mobile image</h3>
+                        <p className="static-viz-edit-form__description">
+                            Optional: provide a version optimized for narrow screens.
+                        </p>
+                        <Form.Item name="mobileImageId">
+                            <Select
+                                placeholder="Select a mobile image from the library (optional)"
+                                loading={isLoadingImages}
+                                allowClear
+                                showSearch
+                                filterOption={(input, option) =>
+                                    option?.children
+                                        ?.toString()
+                                        .toLowerCase()
+                                        .includes(input.toLowerCase()) ?? false
+                                }
+                            >
+                                {imagesData?.map((image: any) => (
+                                    <Option key={image.id} value={image.id}>
+                                        {image.filename}
+                                    </Option>
+                                ))}
+                            </Select>
+                        </Form.Item>
+
+                        <Form.Item>
+                            <ImagePreview
+                                imagesData={imagesData}
+                                imageId={form.getFieldValue("mobileImageId")}
+                            />
+                        </Form.Item>
+                    </div>
+
+                    <h2 style={{ marginTop: 40 }}>Information for readers</h2>
+                    <p className="static-viz-edit-form__description">
+                        This information will be displayed publicly to help readers understand the visualization.
+                    </p>
 
                     <Form.Item label="Description" name="description">
                         <TextArea
@@ -270,7 +353,7 @@ export function StaticVizEditPage() {
 3. The output chart was then improved in Figma`}
                         />
                         <p className="static-viz-edit-form__description">
-                            Explain how this visualization was created. This will be shown to readers.
+                            Explain how this visualization was created.
                         </p>
                     </Form.Item>
 
@@ -315,79 +398,6 @@ export function StaticVizEditPage() {
                     >
                         <Input placeholder="e.g., https://www.mortality.org/Data/ZippedDataFiles" />
                     </Form.Item>
-
-                    <div className="static-viz-edit-form__image-section">
-                        <h3 className="static-viz-edit-form__heading--required">
-                            Main image
-                        </h3>
-                        <Form.Item
-                            name="imageId"
-                            rules={[
-                                {
-                                    required: true,
-                                    message: "Please select an image",
-                                },
-                            ]}
-                        >
-                            <Select
-                                placeholder="Select an image from the library"
-                                loading={isLoadingImages}
-                                showSearch
-                                filterOption={(input, option) =>
-                                    option?.children
-                                        ?.toString()
-                                        .toLowerCase()
-                                        .includes(input.toLowerCase()) ?? false
-                                }
-                            >
-                                {imagesData?.map((image: any) => (
-                                    <Option key={image.id} value={image.id}>
-                                        {image.filename}
-                                    </Option>
-                                ))}
-                            </Select>
-                        </Form.Item>
-
-                        <Form.Item>
-                            <ImagePreview
-                                imagesData={imagesData}
-                                imageId={form.getFieldValue("imageId")}
-                            />
-                        </Form.Item>
-                    </div>
-                    <div className="static-viz-edit-form__image-section">
-                        <h3>Mobile image</h3>
-                        <p className="static-viz-edit-form__description">
-                            Optional: provide a version optimized for narrow screens.
-                        </p>
-                        <Form.Item name="mobileImageId">
-                            <Select
-                                placeholder="Select a mobile image from the library (optional)"
-                                loading={isLoadingImages}
-                                allowClear
-                                showSearch
-                                filterOption={(input, option) =>
-                                    option?.children
-                                        ?.toString()
-                                        .toLowerCase()
-                                        .includes(input.toLowerCase()) ?? false
-                                }
-                            >
-                                {imagesData?.map((image: any) => (
-                                    <Option key={image.id} value={image.id}>
-                                        {image.filename}
-                                    </Option>
-                                ))}
-                            </Select>
-                        </Form.Item>
-
-                        <Form.Item>
-                            <ImagePreview
-                                imagesData={imagesData}
-                                imageId={form.getFieldValue("mobileImageId")}
-                            />
-                        </Form.Item>
-                    </div>
 
                     <Form.Item style={{ paddingBottom: 24 }}>
                         <Button
