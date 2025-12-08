@@ -40,7 +40,9 @@ const requiresGrapherOrSourceRule =
             // Both provided - error
             if (hasValue && hasOtherValue) {
                 return Promise.reject(
-                    new Error("You cannot provide both a Grapher slug and a source URL")
+                    new Error(
+                        "You cannot provide both a Grapher slug and a source URL"
+                    )
                 )
             }
 
@@ -51,7 +53,9 @@ const requiresGrapherOrSourceRule =
 
             // Neither provided - error
             return Promise.reject(
-                new Error("Please provide either a Grapher slug or a source URL")
+                new Error(
+                    "Please provide either a Grapher slug or a source URL"
+                )
             )
         },
     })
@@ -196,7 +200,9 @@ export function StaticVizEditPage() {
     })
 
     const currentMutation = isEditing ? updateMutation : createMutation
-    const currentTitle = isEditing ? "Edit static visualization" : "Create static visualization"
+    const currentTitle = isEditing
+        ? "Edit static visualization"
+        : "Create static visualization"
 
     const handleCancel = () => {
         history.push("/static-viz")
@@ -243,7 +249,8 @@ export function StaticVizEditPage() {
                 >
                     <h2>Internal metadata</h2>
                     <p className="static-viz-edit-form__description">
-                        This information is used to reference the visualization in our content management system.
+                        This information is used to reference the visualization
+                        in our content management system.
                     </p>
 
                     <Form.Item
@@ -260,8 +267,9 @@ export function StaticVizEditPage() {
                     >
                         <Input placeholder="e.g. ac-adoption-data-insight" />
                         <p className="static-viz-edit-form__description">
-                            A unique identifier used to reference this visualization in ArchieML
-                            documents (use the same {"{.image}"} tag as for normal images).
+                            A unique identifier used to reference this
+                            visualization in ArchieML documents (use the same{" "}
+                            {"{.image}"} tag as for normal images).
                         </p>
                     </Form.Item>
 
@@ -308,7 +316,8 @@ export function StaticVizEditPage() {
                     <div className="static-viz-edit-form__image-section">
                         <h3>Mobile image</h3>
                         <p className="static-viz-edit-form__description">
-                            Optional: provide a version optimized for narrow screens.
+                            Optional: provide a version optimized for narrow
+                            screens.
                         </p>
                         <Form.Item name="mobileImageId">
                             <Select
@@ -341,7 +350,8 @@ export function StaticVizEditPage() {
 
                     <h2 style={{ marginTop: 40 }}>Information for readers</h2>
                     <p className="static-viz-edit-form__description">
-                        This information will be displayed publicly to help readers understand the visualization.
+                        This information will be displayed publicly to help
+                        readers understand the visualization.
                     </p>
 
                     <Form.Item label="Description" name="description">
@@ -361,8 +371,9 @@ export function StaticVizEditPage() {
                         Data source
                     </h3>
                     <p>
-                        Provide either a Grapher slug, if your visualization was directly derived
-                        from a Grapher chart; or an external URL. One of these is required.
+                        Provide either a Grapher slug, if your visualization was
+                        directly derived from a Grapher chart; or an external
+                        URL. One of these is required.
                     </p>
                     <Form.Item
                         label="Grapher slug"
