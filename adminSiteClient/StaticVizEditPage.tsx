@@ -253,9 +253,9 @@ export function StaticVizEditPage() {
                         in our content management system.
                     </p>
 
-                    <h3 className="static-viz-edit-form__heading--required">
+                    <h4 className="static-viz-edit-form__heading--required">
                         Name
-                    </h3>
+                    </h4>
                     <Form.Item
                         name="name"
                         rules={[
@@ -276,9 +276,9 @@ export function StaticVizEditPage() {
                     </Form.Item>
 
                     <div className="static-viz-edit-form__image-section">
-                        <h3 className="static-viz-edit-form__heading--required">
+                        <h4 className="static-viz-edit-form__heading--required">
                             Desktop image
-                        </h3>
+                        </h4>
                         <Form.Item
                             name="imageId"
                             rules={[
@@ -316,7 +316,7 @@ export function StaticVizEditPage() {
                     </div>
 
                     <div className="static-viz-edit-form__image-section">
-                        <h3>Mobile image</h3>
+                        <h4>Mobile image</h4>
                         <p className="static-viz-edit-form__description">
                             Optional: provide a version optimized for narrow
                             screens.
@@ -357,7 +357,7 @@ export function StaticVizEditPage() {
                             readers understand the visualization.
                         </p>
 
-                    <h3>Description</h3>
+                    <h4>Description</h4>
                     <Form.Item name="description">
                         <TextArea
                             rows={4}
@@ -371,15 +371,15 @@ export function StaticVizEditPage() {
                         </p>
                     </Form.Item>
 
-                    <h3 className="static-viz-edit-form__heading--required">
+                    <h4 className="static-viz-edit-form__heading--required">
                         Data source
-                    </h3>
+                    </h4>
                     <p>
                         Provide either a Grapher slug, if your visualization was
                         directly derived from a Grapher chart; or an external
                         URL. One of these is required.
                     </p>
-                    <h4>Grapher slug</h4>
+                    <h6>Grapher slug</h6>
                     <Form.Item
                         name="grapherSlug"
                         dependencies={["sourceUrl"]}
@@ -405,7 +405,7 @@ export function StaticVizEditPage() {
                         </Select>
                     </Form.Item>
 
-                    <h4>Source URL</h4>
+                    <h6>Source URL</h6>
                     <Form.Item
                         name="sourceUrl"
                         dependencies={["grapherSlug"]}
