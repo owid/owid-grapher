@@ -253,8 +253,10 @@ export function StaticVizEditPage() {
                         in our content management system.
                     </p>
 
+                    <h3 className="static-viz-edit-form__heading--required">
+                        Name
+                    </h3>
                     <Form.Item
-                        label="Name"
                         name="name"
                         rules={[
                             { required: true, message: "Please enter a name" },
@@ -354,7 +356,8 @@ export function StaticVizEditPage() {
                         readers understand the visualization.
                     </p>
 
-                    <Form.Item label="Description" name="description">
+                    <h3>Description</h3>
+                    <Form.Item name="description">
                         <TextArea
                             rows={4}
                             placeholder={`Describe how this visualization was created, e.g.:
@@ -375,8 +378,8 @@ export function StaticVizEditPage() {
                         directly derived from a Grapher chart; or an external
                         URL. One of these is required.
                     </p>
+                    <h4>Grapher slug</h4>
                     <Form.Item
-                        label="Grapher slug"
                         name="grapherSlug"
                         dependencies={["sourceUrl"]}
                         rules={[requiresGrapherOrSourceRule("sourceUrl")]}
@@ -401,8 +404,8 @@ export function StaticVizEditPage() {
                         </Select>
                     </Form.Item>
 
+                    <h4>Source URL</h4>
                     <Form.Item
-                        label="Source URL"
                         name="sourceUrl"
                         dependencies={["grapherSlug"]}
                         rules={[requiresGrapherOrSourceRule("grapherSlug")]}
