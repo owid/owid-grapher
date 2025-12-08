@@ -248,7 +248,7 @@ export function StaticVizEditPage() {
                     initialValues={initalValues}
                 >
                     <div className="static-viz-edit-form__section">
-                        <h2>Internal metadata</h2>
+                        <h2>Internal references</h2>
                         <p className="static-viz-edit-form__description">
                             This information is used to reference the visualization
                             in our content management system.
