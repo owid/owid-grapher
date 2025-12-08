@@ -18,19 +18,19 @@ import { getGrapherTableWithRelevantColumns } from "./grapherTools.js"
 type MetadataColumn = {
     titleShort: string
     titleLong: string
-    descriptionShort: string
-    descriptionKey: string[]
-    descriptionProcessing: string
-    shortUnit: string
-    unit: string
-    timespan: string
-    tolerance: number
-    type: string
-    conversionFactor: number
-    owidVariableId: number
-    shortName: string
-    lastUpdated: string
-    nextUpdate: string
+    descriptionShort?: string
+    descriptionKey?: string[]
+    descriptionProcessing?: string
+    shortUnit?: string
+    unit?: string
+    timespan?: string
+    tolerance?: number
+    type?: string
+    conversionFactor?: number
+    owidVariableId?: number
+    shortName?: string
+    lastUpdated?: string
+    nextUpdate?: string
     citationShort: string
     citationLong: string
     fullMetadata: string
@@ -158,7 +158,7 @@ export function assembleMetadata(
         const titleLong = `${col.titlePublicOrDisplayName.title}${titleModifier}`
 
         return [
-            useShortNames ? shortName : col.name,
+            useShortNames && shortName ? shortName : col.name,
             {
                 titleShort,
                 titleLong,

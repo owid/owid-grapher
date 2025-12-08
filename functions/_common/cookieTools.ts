@@ -42,7 +42,7 @@ export function extractClientIdFromGACookie(
     return cookieValue // fallback to using the whole value
 }
 
-export function getAnalyticsConsentValue(request) {
+export function getAnalyticsConsentValue(request: Request) {
     const parsedCookies = parseCookies(request)
     const preferencesRaw = parsedCookies["cookie_preferences"]
     let value = false

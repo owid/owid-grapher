@@ -108,7 +108,7 @@ export async function handleThumbnailRequestForExplorerView(
         }
     } catch (e) {
         console.error(e)
-        return error(500, e)
+        return error(500, e instanceof Error ? e.message : String(e))
     }
 }
 
@@ -132,7 +132,7 @@ export async function handleConfigRequestForExplorerView(
         })
     } catch (e) {
         console.error(e)
-        return error(500, e)
+        return error(500, e instanceof Error ? e.message : String(e))
     }
 }
 
@@ -162,7 +162,7 @@ export async function fetchCsvForExplorerView(
         })
     } catch (e) {
         console.error(e)
-        return error(500, e)
+        return error(500, e instanceof Error ? e.message : String(e))
     }
 }
 
@@ -182,7 +182,7 @@ export async function fetchMetadataForExplorerView(
         return Response.json(metadata)
     } catch (e) {
         console.error(e)
-        return error(500, e)
+        return error(500, e instanceof Error ? e.message : String(e))
     }
 }
 
@@ -204,7 +204,7 @@ export async function fetchReadmeForExplorerView(
         })
     } catch (e) {
         console.error(e)
-        return error(500, e)
+        return error(500, e instanceof Error ? e.message : String(e))
     }
 }
 
@@ -248,7 +248,7 @@ export async function fetchZipForExplorerView(
         })
     } catch (e) {
         console.error(e)
-        return error(500, e)
+        return error(500, e instanceof Error ? e.message : String(e))
     }
 }
 
@@ -281,7 +281,7 @@ export async function fetchDataValuesForExplorerView(
         const entityNames = getEntityNamesParam(
             searchParams.get("country") ?? undefined
         )
-        if (entityNames?.length > 0)
+        if (entityNames && entityNames.length > 0)
             grapherState.selection.setSelectedEntities(entityNames)
 
         const dataValues = assembleDataValues(grapherState, entityName)
@@ -298,7 +298,7 @@ export async function fetchDataValuesForExplorerView(
         return response
     } catch (e) {
         console.error(e)
-        return error(500, e)
+        return error(500, e instanceof Error ? e.message : String(e))
     }
 }
 
@@ -315,7 +315,7 @@ export async function fetchSearchResultDataForExplorerView(
     const supportedVersions = [1]
     const version = parseVersionParam(
         searchParams.get("version"),
-        supportedVersions.at(-1)
+        supportedVersions.at(-1)!
     )
 
     // Validate version
@@ -376,7 +376,7 @@ export async function fetchSearchResultDataForExplorerView(
         return response
     } catch (e) {
         console.error(e)
-        return error(500, e)
+        return error(500, e instanceof Error ? e.message : String(e))
     }
 }
 

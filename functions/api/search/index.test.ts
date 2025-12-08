@@ -88,7 +88,7 @@ describe("Search API endpoint", () => {
 
             expect(response.status).toBe(400)
             const body = await response.json()
-            assert(typeof body === "object" && "error" in body)
+            assert(typeof body === "object" && body !== null && "error" in body)
             expect(body.error).toBe("Invalid type parameter")
         })
     })
@@ -159,7 +159,7 @@ describe("Search API endpoint", () => {
 
             expect(response.status).toBe(400)
             const body = await response.json()
-            assert(typeof body === "object" && "error" in body)
+            assert(typeof body === "object" && body !== null && "error" in body)
             expect(body.error).toBe("Invalid page parameter")
         })
 
@@ -174,7 +174,7 @@ describe("Search API endpoint", () => {
 
             expect(response.status).toBe(400)
             const body = await response.json()
-            assert(typeof body === "object" && "error" in body)
+            assert(typeof body === "object" && body !== null && "error" in body)
             expect(body.error).toBe("Invalid page parameter")
         })
 
@@ -189,7 +189,7 @@ describe("Search API endpoint", () => {
 
             expect(response.status).toBe(400)
             const body = await response.json()
-            assert(typeof body === "object" && "error" in body)
+            assert(typeof body === "object" && body !== null && "error" in body)
             expect(body.error).toBe("Invalid hitsPerPage parameter")
         })
 
@@ -204,14 +204,17 @@ describe("Search API endpoint", () => {
 
             expect(response.status).toBe(400)
             const body = await response.json()
-            assert(typeof body === "object" && "error" in body)
+            assert(typeof body === "object" && body !== null && "error" in body)
             expect(body.error).toBe("Invalid hitsPerPage parameter")
         })
     })
 
     describe("environment variables", () => {
         it("returns error when ALGOLIA_ID is missing", async () => {
-            const envWithoutId = { ...mockEnv, ALGOLIA_ID: undefined } as Env
+            const envWithoutId = {
+                ...mockEnv,
+                ALGOLIA_ID: undefined,
+            } as unknown as Env
             const request = new Request("http://localhost/api/search?q=test")
             const response = await onRequestGet({
                 request,
@@ -220,7 +223,7 @@ describe("Search API endpoint", () => {
 
             expect(response.status).toBe(500)
             const body = await response.json()
-            assert(typeof body === "object" && "error" in body)
+            assert(typeof body === "object" && body !== null && "error" in body)
             expect(body.error).toBe(
                 "An error occurred while processing the search request"
             )
@@ -230,7 +233,7 @@ describe("Search API endpoint", () => {
             const envWithoutKey = {
                 ...mockEnv,
                 ALGOLIA_SEARCH_KEY: undefined,
-            } as Env
+            } as unknown as Env
             const request = new Request("http://localhost/api/search?q=test")
             const response = await onRequestGet({
                 request,

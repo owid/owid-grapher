@@ -41,10 +41,10 @@ export async function createCheckoutSession(
         cancelUrl,
     } = donation
 
-    const amountRoundedCents = Math.floor(amount) * 100
+    const amountRoundedCents = Math.floor(amount!) * 100
 
     const metadata: Stripe.Metadata = {
-        name,
+        name: name ?? "",
         // showOnList is not strictly necessary since we could just rely on the
         // presence of a name to indicate the willingness to be shown on the
         // list (a name can only be filled in if showOnList is true). It might
@@ -170,7 +170,7 @@ export async function createCheckoutSession(
         return await stripe.checkout.sessions.create(options)
     } catch (error) {
         throw new JsonError(
-            `Error from our payments processor: ${error.message}`,
+            `Error from our payments processor: ${error instanceof Error ? error.message : String(error)}`,
             500
         )
     }

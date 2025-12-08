@@ -175,7 +175,7 @@ export function getAttribution(def: OwidColumnDef): string {
         getAttributionFragmentsFromVariable(def) ?? producers
     const attribution = attributionFragments.join(", ")
     if (attribution === "") {
-        return def.sourceName
+        return def.sourceName ?? ""
     } else return attribution
 }
 

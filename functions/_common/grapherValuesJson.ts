@@ -72,7 +72,7 @@ export function constructGrapherValuesJson(
     })
 
     if (selectionWasModified) {
-        grapherState.selection.setSelectedEntities(originalSelection)
+        grapherState.selection.setSelectedEntities(originalSelection ?? [])
     }
 
     return result
