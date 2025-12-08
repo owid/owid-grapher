@@ -10,7 +10,7 @@ export function createRedirectResponse(
     })
 }
 
-export async function getRedirectForUrl(env: Env, url: URL): Promise<Response> {
+export async function getRedirectForUrl(env: Env, url: URL) {
     const fullslug = url.pathname.split("/").pop()
 
     const allExtensions = Object.values(extensions)
@@ -20,8 +20,8 @@ export async function getRedirectForUrl(env: Env, url: URL): Promise<Response> {
         `^(?<slug>.*?)(?<extension>${allExtensions})?$`
     )
 
-    const matchResult = fullslug.match(regexForKnownExtensions)
-    const slug = matchResult?.groups?.slug ?? fullslug
+    const matchResult = fullslug?.match(regexForKnownExtensions)
+    const slug = matchResult?.groups?.slug ?? fullslug ?? ""
     const extension = matchResult?.groups?.extension ?? ""
 
     if (slug.toLowerCase() !== slug)

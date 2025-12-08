@@ -1,4 +1,3 @@
-import * as _ from "lodash-es"
 import {
     GrapherProgrammaticInterface,
     GRAPHER_SQUARE_SIZE,
@@ -45,7 +44,7 @@ const OPEN_GRAPH_OPTIONS: Readonly<ImageOptions> = {
     details: false,
     fontSize: 21,
 }
-const SQUARE_OPTIONS: Readonly<ImageOptions> = {
+const SQUARE_OPTIONS = {
     pngWidth: 4 * GRAPHER_SQUARE_SIZE,
     pngHeight: 4 * GRAPHER_SQUARE_SIZE,
     svgWidth: GRAPHER_SQUARE_SIZE,
@@ -55,9 +54,9 @@ const SQUARE_OPTIONS: Readonly<ImageOptions> = {
     grapherProps: {
         isSocialMediaExport: false,
         staticBounds: DEFAULT_GRAPHER_BOUNDS_SQUARE,
-    },
-}
-const THUMBNAIL_OPTIONS: Readonly<ImageOptions> = {
+    } as Partial<GrapherProgrammaticInterface>,
+} satisfies Readonly<ImageOptions>
+const THUMBNAIL_OPTIONS = {
     pngWidth: 4 * GRAPHER_THUMBNAIL_WIDTH,
     pngHeight: 4 * GRAPHER_THUMBNAIL_HEIGHT,
     svgWidth: GRAPHER_THUMBNAIL_WIDTH,
@@ -73,8 +72,8 @@ const THUMBNAIL_OPTIONS: Readonly<ImageOptions> = {
             GRAPHER_THUMBNAIL_HEIGHT
         ),
         variant: GrapherVariant.Thumbnail,
-    },
-}
+    } as Partial<GrapherProgrammaticInterface>,
+} satisfies Readonly<ImageOptions>
 
 export const extractOptions = (params: URLSearchParams): ImageOptions => {
     const options: Partial<ImageOptions> = {}
@@ -84,7 +83,7 @@ export const extractOptions = (params: URLSearchParams): ImageOptions => {
     if (imType === "twitter") return TWITTER_OPTIONS
     else if (imType === "og") return OPEN_GRAPH_OPTIONS
     else if (imType === "thumbnail") {
-        const thumbnailOptions = _.cloneDeep(THUMBNAIL_OPTIONS) as ImageOptions
+        const thumbnailOptions = structuredClone(THUMBNAIL_OPTIONS)
         if (params.has("imMinimal")) {
             thumbnailOptions.grapherProps.isDisplayedAlongsideComplementaryTable =
                 params.get("imMinimal")! === "1"
@@ -103,7 +102,7 @@ export const extractOptions = (params: URLSearchParams): ImageOptions => {
         )
         return thumbnailOptions
     } else if (imType === "square" || imType === "social-media-square") {
-        const squareOptions = _.cloneDeep(SQUARE_OPTIONS) as ImageOptions
+        const squareOptions = structuredClone(SQUARE_OPTIONS)
         if (imType === "social-media-square") {
             squareOptions.grapherProps.isSocialMediaExport = true
         }

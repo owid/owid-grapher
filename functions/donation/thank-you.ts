@@ -182,33 +182,38 @@ export const onRequestPost: PagesFunction<Env> = async ({
         const requestBodyRaw = await request.text()
 
         // Construct the event from the signed request payload
+        const stripeSignature = request.headers.get("stripe-signature")
+        if (!stripeSignature) {
+            return new Response(null, { status: 400 })
+        }
         const event = await stripe.webhooks.constructEventAsync(
             requestBodyRaw,
-            request.headers.get("stripe-signature"),
+            stripeSignature,
             env.STRIPE_WEBHOOK_SECRET
         )
 
         switch (event.type) {
             case "checkout.session.completed": {
                 const session = event.data.object
+                const email = session.customer_details?.email ?? ""
+                const metadata = session.metadata ?? {}
                 waitUntil(
                     sendThankYouEmail(env, {
-                        email: session.customer_details.email,
+                        email,
                         customerId: session.customer as string,
                         // We support two checkout modes: "payment" (for one-time payments) and "subscription"
                         // These are set when creating the checkout session, in checkout.ts
                         // see https://stripe.com/docs/api/checkout/sessions/object#checkout_session_object-mode
                         isSubscription: session.mode === "subscription",
-                        name: session.metadata.name,
-                        showOnList: session.metadata.showOnList === "true",
+                        name: metadata.name,
+                        showOnList: metadata.showOnList === "true",
                     }).catch(Sentry.captureException)
                 )
-                if (session.metadata.subscribeToDonorNewsletter === "true") {
+                if (metadata.subscribeToDonorNewsletter === "true") {
                     waitUntil(
-                        subscribeToNewsletter(
-                            env,
-                            session.customer_details.email
-                        ).catch(Sentry.captureException)
+                        subscribeToNewsletter(env, email).catch(
+                            Sentry.captureException
+                        )
                     )
                 }
                 break
@@ -227,7 +232,13 @@ export const onRequestPost: PagesFunction<Env> = async ({
         // Using "waitUntil" to make sure the worker doesn't exit before the
         // request to Slack is complete. Not using "await" to avoid delaying
         // sending the response to the client.
-        waitUntil(logError(error, filePath, env))
+        waitUntil(
+            logError(
+                stringifyUnknownError(error) ?? "Unknown error",
+                filePath,
+                env
+            )
+        )
         if (!(error instanceof JsonError) || error.status >= 500) {
             Sentry.captureException(error)
         }
@@ -235,7 +246,7 @@ export const onRequestPost: PagesFunction<Env> = async ({
             JSON.stringify({ error: stringifyUnknownError(error) }),
             {
                 headers: DEFAULT_HEADERS,
-                status: +error.status || 500,
+                status: error instanceof JsonError ? error.status : 500,
             }
         )
     }

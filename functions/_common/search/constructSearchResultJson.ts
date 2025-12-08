@@ -152,6 +152,7 @@ export function constructSearchResultJson(
         maxRows,
     })
     if (!dataTableContent) return undefined
+    if (!layout) return undefined
 
     // Some charts and preview thumbnails need specific grapher query params
     const enrichedLayout = layout.map(({ slotKey, grapherTab }) => {
@@ -412,9 +413,12 @@ async function pickDisplayEntitiesForScatterPlot({
     const getY = (series: ScatterSeries) => series.points.at(0)?.y ?? 0
 
     // Color of the entity picked by the user
-    const pickedColor = grapherState.table
-        .get(colorColumnSlug)
-        .owidRowsByEntityName.get(entity)?.[0]?.value
+    const pickedColor =
+        colorColumnSlug && entity
+            ? grapherState.table
+                  .get(colorColumnSlug)
+                  .owidRowsByEntityName.get(entity)?.[0]?.value
+            : undefined
     const isDifferentFromPickedColor = (series: ScatterSeries) =>
         !pickedColor || getColor(series) !== pickedColor
 
@@ -428,7 +432,7 @@ async function pickDisplayEntitiesForScatterPlot({
 
     // When only the color dimension is available, select the entity with the
     // largest population from each color group
-    if (colorColumnSlug) {
+    if (colorColumnSlug && dataApiUrl) {
         const populationByEntityName = await fetchLatestPopulationData({
             dataApiUrl,
         })
@@ -487,9 +491,12 @@ async function pickDisplayEntitiesForMarimekko({
     const getY = (item: MarimekkoItem) => item.bars[0]?.yPoint?.value ?? 0
 
     // Color of the entity picked by the user
-    const pickedColor = grapherState.table
-        .get(colorColumnSlug)
-        .owidRowsByEntityName.get(entity)?.[0]?.value
+    const pickedColor =
+        colorColumnSlug && entity
+            ? grapherState.table
+                  .get(colorColumnSlug)
+                  .owidRowsByEntityName.get(entity)?.[0]?.value
+            : undefined
     const isDifferentFromPickedColor = (item: MarimekkoItem) =>
         !pickedColor || getColor(item) !== pickedColor
 
@@ -503,7 +510,7 @@ async function pickDisplayEntitiesForMarimekko({
 
     // When only the color dimension is available, select the entity with the
     // largest population from each color group
-    if (colorColumnSlug) {
+    if (colorColumnSlug && dataApiUrl) {
         const populationByEntityName = await fetchLatestPopulationData({
             dataApiUrl,
         })
@@ -629,6 +636,7 @@ async function fetchLatestPopulationData({
         ],
         dataApiUrl,
     })
+    if (!table) return undefined
 
     // Filter to the most recent year
     const maxTime = table.maxTime ?? 0
@@ -1035,6 +1043,7 @@ function getGrapherQueryParamsForMap(grapherState: GrapherState): {
 } {
     // The map.time setting is ignored on purpose for consistency between the different views
     const mapTime = grapherState.endTime
+    if (mapTime === undefined) return {}
     const params = { time: formatGrapherTimeParam(grapherState, mapTime) }
     return { chartParams: params, previewParams: params }
 }

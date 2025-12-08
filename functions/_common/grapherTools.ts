@@ -152,7 +152,7 @@ async function fetchMultiDimGrapherConfig(
         undefined,
         shouldCache
     )
-    return await response.json()
+    return (await response.json()) as GrapherInterface
 }
 
 export async function fetchGrapherConfig({
@@ -189,31 +189,31 @@ export async function fetchGrapherConfig({
         return {
             grapherConfig: null,
             status: fetchResponse.status,
-            etag: fetchResponse.headers.get("etag"),
+            etag: fetchResponse.headers.get("etag") ?? undefined,
         }
     }
 
-    const config = await fetchResponse.json()
+    const config: unknown = await fetchResponse.json()
     let grapherConfig: GrapherInterface
-    let multiDimAvailableDimensions: string[]
+    let multiDimAvailableDimensions: string[] | undefined
     if (identifier.type === "multi-dim-slug") {
         const multiDimConfig = config as MultiDimDataPageConfigEnriched
         grapherConfig = await fetchMultiDimGrapherConfig(
             multiDimConfig,
-            searchParams,
+            searchParams ?? new URLSearchParams(),
             env
         )
         multiDimAvailableDimensions = multiDimConfig.dimensions.map(
             (dim) => dim.slug
         )
     } else {
-        grapherConfig = config
+        grapherConfig = config as GrapherInterface
     }
     console.log("grapher title", grapherConfig.title)
     const result: FetchGrapherConfigResult = {
         grapherConfig,
         status: 200,
-        etag: fetchResponse.headers.get("etag"),
+        etag: fetchResponse.headers.get("etag") ?? undefined,
     }
     if (identifier.type === "multi-dim-slug") {
         result.multiDimAvailableDimensions = multiDimAvailableDimensions
@@ -333,11 +333,13 @@ export function rewriteMetaTags(
             // Replace canonical URL, otherwise the preview image will not include the search parameters.
             element: (element) => {
                 const canonicalUrl = element.getAttribute("content")
-                element.setAttribute("content", canonicalUrl + url.search)
-                try {
-                    origin = new URL(canonicalUrl).origin
-                } catch (e) {
-                    console.error("Error parsing canonical URL", e)
+                if (canonicalUrl) {
+                    element.setAttribute("content", canonicalUrl + url.search)
+                    try {
+                        origin = new URL(canonicalUrl).origin
+                    } catch (e) {
+                        console.error("Error parsing canonical URL", e)
+                    }
                 }
             },
         })
@@ -399,12 +401,12 @@ export function getGrapherTableWithRelevantColumns(
         OwidTableSlugs.day,
         table.timeColumn.slug,
     ]
-    const valueSlugs = [
+    const valueSlugs = excludeUndefined([
         ...grapherState.yColumnSlugs,
         grapherState.xColumnSlug,
         grapherState.colorColumnSlug,
         grapherState.sizeColumnSlug,
-    ]
+    ])
     const extraSlugs = valueSlugs.flatMap((slug) => [
         makeAnnotationsSlug(slug),
         makeOriginalTimeSlugFromColumnSlug(slug),
@@ -415,7 +417,7 @@ export function getGrapherTableWithRelevantColumns(
         ...timeSlugs,
         ...valueSlugs,
         ...extraSlugs,
-    ].filter((slug) => slug && table.has(slug))
+    ].filter((slug) => slug && table.has(slug)) as string[]
 
     const uniqueSlugs = _.uniq(slugs)
 

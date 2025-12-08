@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import * as R from "remeda"
 import { match } from "ts-pattern"
 import {
     GrapherState,
@@ -135,7 +136,7 @@ function buildDataTableContentForLineChart({
 
     // Group series by name to handle cases where multiple series share the same name,
     // which can happen when projections are included alongside historical data
-    const groupedSeries = _.groupBy(
+    const groupedSeries = R.groupBy(
         chartState.series,
         (series) => series.seriesName
     )
@@ -143,13 +144,13 @@ function buildDataTableContentForLineChart({
     let rows = Object.values(groupedSeries)
         .map((seriesList) => {
             // Pick the series with the latest time
-            const series = _.maxBy(
-                seriesList,
-                (series) => _.last(series.points)?.x ?? 0
-            )
+            const series = R.firstBy(seriesList, [
+                (series) => R.last(series.points)?.x ?? 0,
+                "desc",
+            ])
 
             // Pick the data point with the latest time
-            const point = _.maxBy(series.points, (point) => point.x)
+            const point = R.firstBy(series.points, [(point) => point.x, "desc"])
             if (!point) return undefined
 
             const color =
@@ -197,7 +198,7 @@ function buildDataTableContentForLineChart({
     rows = _.orderBy(rows, [(row) => row.point.y], "desc")
 
     // Take the first X rows if maxRows is specified
-    if (maxRows > 0) rows = _.take(rows, maxRows)
+    if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
 
     return {
         rows: rows.map((row) => _.omit(row, ["series", "point"])),
@@ -224,7 +225,7 @@ function buildDataTableContentForDiscreteBarChart({
     }))
 
     // Take the first X rows if maxRows is specified
-    if (maxRows > 0) rows = _.take(rows, maxRows)
+    if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
 
     return {
         rows: rows.map((row) => _.omit(row, ["series"])),
@@ -270,7 +271,7 @@ function buildDataTableContentForSlopeChart({
     rows = _.orderBy(rows, [(row) => row.endValue], "desc")
 
     // Take the first X rows if maxRows is specified
-    if (maxRows > 0) rows = _.take(rows, maxRows)
+    if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
 
     const title = makeTableTitle(grapherState, chartState, formatColumn)
 
@@ -314,7 +315,7 @@ function buildDataTableContentForStackedDiscreteBarChart({
             rows = _.orderBy(rows, [(row) => row.point.value], ["desc"])
 
             // Take the first X rows if maxRows is specified
-            if (maxRows > 0) rows = _.take(rows, maxRows)
+            if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
 
             const columnName = getColumnNameForDisplay(formatColumn)
             const unit = getDisplayUnit(formatColumn)
@@ -393,7 +394,7 @@ function buildDataTableContentForStackedDiscreteBarChart({
             }
 
             // Take the first X rows if maxRows is specified
-            if (maxRows > 0) rows = _.take(rows, maxRows)
+            if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
 
             return {
                 rows: rows.map((row) =>
@@ -464,7 +465,7 @@ function buildDataTableContentForStackedAreaAndBarChart({
     rows = _.reverse(rows)
 
     // Take the first X rows if maxRows is specified
-    if (maxRows > 0) rows = _.take(rows, maxRows)
+    if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
 
     const title = makeTableTitle(grapherState, chartState, formatColumn)
 
@@ -511,7 +512,7 @@ function buildDataTableContentForMarimekkoChart({
     rows = _.orderBy(rows, [(row) => row.point.value], "desc")
 
     // Take the first X rows if maxRows is specified
-    if (maxRows > 0) rows = _.take(rows, maxRows)
+    if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
 
     return {
         rows: rows.map((row) => _.omit(row, ["point"])),
@@ -571,7 +572,7 @@ function buildDataTableContentForScatterPlot({
     rows = _.orderBy(rows, [(row) => row.yValue, "desc"])
 
     // Take the first X rows if maxRows is specified
-    if (maxRows > 0) rows = _.take(rows, maxRows)
+    if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
 
     const title = isTimeScatter ? yLabel : `${yLabel} vs. ${xLabel}`
 
@@ -626,7 +627,7 @@ function buildDataTableContentForWorldMap({
     }
 
     // Take the first X rows if maxRows is specified
-    if (maxRows > 0) rows = _.take(rows, maxRows)
+    if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
 
     return {
         rows: rows.map((row) =>
@@ -666,7 +667,7 @@ function buildDataTableContentForTableTab({
     }))
 
     // Take the first X rows if maxRows is specified
-    if (maxRows > 0) tableRows = _.take(tableRows, maxRows)
+    if (maxRows && maxRows > 0) tableRows = _.take(tableRows, maxRows)
 
     return { rows: tableRows, title }
 }

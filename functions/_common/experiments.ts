@@ -6,6 +6,7 @@ import {
 } from "@ourworldindata/utils"
 import * as cookie from "cookie"
 import { SerializeOptions } from "cookie"
+import { Env } from "./env.js"
 
 export interface ServerCookie {
     name: string
@@ -13,7 +14,9 @@ export interface ServerCookie {
     options?: SerializeOptions
 }
 
-export const experimentsMiddleware = (context) => {
+export const experimentsMiddleware = (
+    context: EventContext<Env, string, Record<string, unknown>>
+) => {
     if (shouldSkipExperiments(context.request.url)) {
         return context.next()
     }
