@@ -247,48 +247,53 @@ export function StaticVizEditPage() {
                     onFinish={handleSubmit}
                     initialValues={initalValues}
                 >
-                    <h2>Internal metadata</h2>
-                    <p className="static-viz-edit-form__description">
-                        This information is used to reference the visualization
-                        in our content management system.
-                    </p>
-
-                    <h4 className="static-viz-edit-form__heading--required">
-                        Name
-                    </h4>
-                    <Form.Item
-                        name="name"
-                        rules={[
-                            { required: true, message: "Please enter a name" },
-                            {
-                                pattern: /^[a-z-]+$/,
-                                message:
-                                    "Name must be lowercase and contain only letters and hyphens",
-                            },
-                        ]}
-                    >
-                        <Input placeholder="e.g. ac-adoption-data-insight" />
+                    <div className="static-viz-edit-form__section">
+                        <h2>Internal metadata</h2>
                         <p className="static-viz-edit-form__description">
-                            A unique identifier used to reference this
-                            visualization in ArchieML documents (use the same{" "}
-                            {"{.image}"} tag as for normal images).
+                            This information is used to reference the visualization
+                            in our content management system.
                         </p>
-                    </Form.Item>
 
-                    <div className="static-viz-edit-form__image-section">
                         <h4 className="static-viz-edit-form__heading--required">
-                            Desktop image
+                            Name
                         </h4>
                         <Form.Item
-                            name="imageId"
+                            name="name"
                             rules={[
+                                { required: true, message: "Please enter a name" },
                                 {
-                                    required: true,
-                                    message: "Please select an image",
+                                    pattern: /^[a-z-]+$/,
+                                    message:
+                                        "Name must be lowercase and contain only letters and hyphens",
                                 },
                             ]}
                         >
-                            <Select
+                            <p className="static-viz-edit-form__description">
+                                A unique identifier used to reference this
+                                visualization in ArchieML documents (use the same{" "}
+                                {"{.image}"} tag as for normal images).
+                            </p>
+                            <Input placeholder="e.g. ac-adoption-data-insight" />
+                        </Form.Item>
+
+                        <div className="static-viz-edit-form__image-section">
+                            <h4 className="static-viz-edit-form__heading--required">
+                                Desktop image
+                            </h4>
+                            <Form.Item
+                                name="imageId"
+                                rules={[
+                                    {
+                                        required: true,
+                                        message: "Please select an image",
+                                    },
+                                ]}
+                            >
+                                <p className="static-viz-edit-form__description">
+                                    Link this metadata to an existing image in our
+                                    library.
+                                </p>
+                                <Select
                                 placeholder="Select an image from the library"
                                 loading={isLoadingImages}
                                 showSearch
@@ -305,23 +310,23 @@ export function StaticVizEditPage() {
                                     </Option>
                                 ))}
                             </Select>
-                        </Form.Item>
+                            </Form.Item>
 
-                        <Form.Item>
-                            <ImagePreview
-                                imagesData={imagesData}
-                                imageId={form.getFieldValue("imageId")}
-                            />
-                        </Form.Item>
-                    </div>
+                            <Form.Item>
+                                <ImagePreview
+                                    imagesData={imagesData}
+                                    imageId={form.getFieldValue("imageId")}
+                                />
+                            </Form.Item>
+                        </div>
 
-                    <div className="static-viz-edit-form__image-section">
-                        <h4>Mobile image</h4>
-                        <p className="static-viz-edit-form__description">
-                            Optional: provide a version optimized for narrow
-                            screens.
-                        </p>
-                        <Form.Item name="mobileImageId">
+                        <div className="static-viz-edit-form__image-section">
+                            <h4>Mobile image</h4>
+                            <p className="static-viz-edit-form__description">
+                                Optional: also link the same metadata to a version
+                                optimized for narrow screens.
+                            </p>
+                            <Form.Item name="mobileImageId">
                             <Select
                                 placeholder="Select a mobile image from the library (optional)"
                                 loading={isLoadingImages}
@@ -340,14 +345,15 @@ export function StaticVizEditPage() {
                                     </Option>
                                 ))}
                             </Select>
-                        </Form.Item>
+                            </Form.Item>
 
-                        <Form.Item>
-                            <ImagePreview
-                                imagesData={imagesData}
-                                imageId={form.getFieldValue("mobileImageId")}
-                            />
-                        </Form.Item>
+                            <Form.Item>
+                                <ImagePreview
+                                    imagesData={imagesData}
+                                    imageId={form.getFieldValue("mobileImageId")}
+                                />
+                            </Form.Item>
+                        </div>
                     </div>
 
                     <div className="static-viz-edit-form__section">
@@ -359,16 +365,15 @@ export function StaticVizEditPage() {
 
                     <h4>Description</h4>
                     <Form.Item name="description">
-                        <TextArea
-                            rows={4}
-                            placeholder={`Describe how this visualization was created, e.g.:
-1. The data was downloaded from [source]
-2. It was then processed using scripts stored at https://github.com/owid/notebooks/blah
-3. The output chart was then improved in Figma`}
-                        />
                         <p className="static-viz-edit-form__description">
                             Explain how this visualization was created.
                         </p>
+                        <TextArea
+                            rows={3}
+                            placeholder={`1. The data was downloaded from [source]
+2. It was then processed using scripts stored at https://github.com/owid/notebooks/blah
+3. The output chart was then improved in Figma`}
+                        />
                     </Form.Item>
 
                     <h4 className="static-viz-edit-form__heading--required">
