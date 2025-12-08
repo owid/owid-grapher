@@ -350,11 +350,12 @@ export function StaticVizEditPage() {
                         </Form.Item>
                     </div>
 
-                    <h2 style={{ marginTop: 40 }}>Information for readers</h2>
-                    <p className="static-viz-edit-form__description">
-                        This information will be displayed publicly to help
-                        readers understand the visualization.
-                    </p>
+                    <div className="static-viz-edit-form__section">
+                        <h2>Information for readers</h2>
+                        <p className="static-viz-edit-form__description">
+                            This information will be displayed publicly to help
+                            readers understand the visualization.
+                        </p>
 
                     <h3>Description</h3>
                     <Form.Item name="description">
@@ -412,6 +413,7 @@ export function StaticVizEditPage() {
                     >
                         <Input placeholder="e.g., https://www.mortality.org/Data/ZippedDataFiles" />
                     </Form.Item>
+                    </div>
 
                     <Form.Item style={{ paddingBottom: 24 }}>
                         <Button
