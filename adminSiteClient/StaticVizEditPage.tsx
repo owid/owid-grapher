@@ -256,7 +256,7 @@ export function StaticVizEditPage() {
                         <Input placeholder="e.g. ac-adoption-data-insight" />
                         <p className="static-viz-edit-form__description">
                             A unique identifier used to reference this visualization in ArchieML
-                            documents (use the same {.image} tag as for normal images).
+                            documents (use the same {"{.image}"} tag as for normal images).
                             This will not be shown to readers.
                         </p>
                     </Form.Item>
