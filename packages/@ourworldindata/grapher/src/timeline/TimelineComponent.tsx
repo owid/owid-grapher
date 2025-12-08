@@ -538,7 +538,10 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
             <div
                 ref={this.base}
                 className={cx(GRAPHER_TIMELINE_CLASS, {
-                    hover: this.mouseHoveringOverTimeline,
+                    [`${GRAPHER_TIMELINE_CLASS}--hover`]:
+                        this.mouseHoveringOverTimeline,
+                    [`${GRAPHER_TIMELINE_CLASS}--touch`]:
+                        !this.canEditTimeViaTooltip,
                 })}
                 style={{ padding: `0 ${GRAPHER_FRAME_PADDING_HORIZONTAL}px` }}
                 role="group"
