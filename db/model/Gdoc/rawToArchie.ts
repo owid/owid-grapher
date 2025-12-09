@@ -59,6 +59,7 @@ import {
     RawBlockCta,
     RawBlockScript,
     RawBlockStaticViz,
+    RawBlockConditionalSection,
 } from "@ourworldindata/types"
 import { match } from "ts-pattern"
 
@@ -536,6 +537,21 @@ function* RawBlockExploreDataSectionToArchieMLString(
             yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
         yield "[]"
     }
+    yield "{}"
+}
+
+function* RawBlockConditionalSectionToArchieMLString(
+    block: RawBlockConditionalSection
+): Generator<string, void, undefined> {
+    yield "{.conditional-section}"
+    yield* propertyToArchieMLString("include", block.value)
+    yield* propertyToArchieMLString("exclude", block.value)
+    yield "[.+content]"
+    if (block.value.content) {
+        for (const b of block.value.content)
+            yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
+    }
+    yield "[]"
     yield "{}"
 }
 
@@ -1045,6 +1061,10 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with(
             { type: "explore-data-section" },
             RawBlockExploreDataSectionToArchieMLString
+        )
+        .with(
+            { type: "conditional-section" },
+            RawBlockConditionalSectionToArchieMLString
         )
         .with({ type: "prominent-link" }, RawBlockProminentLinkToArchieMLString)
         .with({ type: "sdg-toc" }, rawBlockSDGTocToArchieMLString)
