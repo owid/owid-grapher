@@ -180,8 +180,8 @@ function createColumns({
                         <Button type="text">Edit</Button>
                     </Link>
                     <Popconfirm
-                        title="Are you sure?"
-                        description="This will permanently delete this static viz entry."
+                        title="Delete this visualization?"
+                        description="This will permanently delete this entry."
                         onConfirm={() => onDelete(staticViz)}
                         okText="Yes"
                         cancelText="No"
@@ -254,7 +254,7 @@ export function StaticVizIndexPage() {
                         style={{ width: 500, marginBottom: 20 }}
                     />
                     <Link to="/static-viz/new">
-                        <Button type="primary">Create New Static Viz</Button>
+                        <Button type="primary">Create new visualization</Button>
                     </Link>
                 </Flex>
                 <Spin spinning={isLoading}>

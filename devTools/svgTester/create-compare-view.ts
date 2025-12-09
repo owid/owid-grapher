@@ -176,6 +176,12 @@ function createComparisonView(
     const referenceFilename = path.join(referenceDir, svgFilename)
     const differencesFilename = path.join(differencesDir, svgFilename)
 
+    // To obtain proper, usable URLs, we need to get rid of the "../owid-grapher-svgs" prefix
+    const [referenceFilenameUrl, differencesFilenameUrl] = [
+        referenceFilename,
+        differencesFilename,
+    ].map((filename) => filename.replace("../owid-grapher-svgs/", "./"))
+
     const queryStr = svgRecord.queryStr ? `?${svgRecord.queryStr}` : ""
 
     return `<section data-slug="${slug}">
@@ -191,8 +197,8 @@ function createComparisonView(
         </div>
         ${createTabControls()}
         <div class="tab-content">
-            ${createSideBySideView(svgRecord, referenceFilename, differencesFilename, compareGrapherUrl)}
-            ${createSliderView(referenceFilename, differencesFilename)}
+            ${createSideBySideView(svgRecord, referenceFilenameUrl, differencesFilenameUrl, compareGrapherUrl)}
+            ${createSliderView(referenceFilenameUrl, differencesFilenameUrl)}
             ${createCodeDiffView(referenceFilename, differencesFilename, svgFilename)}
         </div>
     </section>`
