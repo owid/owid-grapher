@@ -40,7 +40,6 @@ import { ChartList, ChartListItem } from "./ChartList.js"
 import { OriginList } from "./OriginList.js"
 import { SourceList } from "./SourceList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { Base64 } from "js-base64"
 import {
     GRAPHER_TAB_CONFIG_OPTIONS,
     GrapherInterface,
@@ -181,6 +180,14 @@ class VariableEditor extends Component<{
             JSON.stringify(this.newVariable) !==
             JSON.stringify(new VariableEditable(this.props.variable))
         )
+    }
+
+    @computed get configUrlParams() {
+        if (!this.grapherState) return undefined
+
+        const grapherConfigJson = JSON.stringify(this.grapherState.object)
+        const params = new URLSearchParams({ config: grapherConfigJson })
+        return params.toString()
     }
 
     override render() {
@@ -371,11 +378,7 @@ class VariableEditor extends Component<{
                                     <h3>Preview</h3>
                                     <Link
                                         className="btn btn-secondary"
-                                        to={`/charts/create/${Base64.encode(
-                                            JSON.stringify(
-                                                this.grapherState.object
-                                            )
-                                        )}`}
+                                        to={`/charts/create?${this.configUrlParams}`}
                                     >
                                         Edit as new chart
                                     </Link>
