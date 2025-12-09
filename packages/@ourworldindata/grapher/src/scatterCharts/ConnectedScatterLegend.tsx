@@ -4,6 +4,7 @@ import { Triangle } from "./Triangle"
 import { TextWrap } from "@ourworldindata/components"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 import { makeIdForHumanConsumption } from "@ourworldindata/utils"
+import * as _ from "lodash-es"
 
 export interface ConnectedScatterLegendManager {
     sidebarWidth: number
@@ -131,10 +132,10 @@ export class ConnectedScatterLegend {
                     cx={lineRight}
                     cy={lineY}
                     r={3}
+                    rotation={90}
                     fill="#666"
                     stroke="#ccc"
                     strokeWidth={0.2}
-                    transform={`rotate(${90}, ${lineRight}, ${lineY})`}
                 />
             </g>
         )
