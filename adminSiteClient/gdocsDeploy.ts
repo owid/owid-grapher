@@ -52,6 +52,7 @@ export const checkIsLightningUpdate = (
         linkedCharts: true,
         linkedNarrativeCharts: true,
         linkedIndicators: true,
+        linkedCallouts: true,
         linkedDocuments: true,
         linkedStaticViz: true,
         relatedCharts: true,

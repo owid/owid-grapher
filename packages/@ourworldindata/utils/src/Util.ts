@@ -1284,6 +1284,7 @@ export function extractGdocPageData(gdoc: OwidGdoc) {
         "linkedCharts",
         "linkedNarrativeCharts",
         "linkedIndicators",
+        "linkedCallouts",
         "imageMetadata",
         "relatedCharts",
     ])
@@ -1784,6 +1785,7 @@ export function traverseEnrichedBlock(
                 type: P.union(
                     "chart-story",
                     "chart",
+                    "data-callout",
                     "narrative-chart",
                     "code",
                     "cookie-notice",
@@ -1836,6 +1838,7 @@ export function spansToUnformattedPlainText(spans: Span[]): string {
                     {
                         spanType: P.union(
                             "span-link",
+                            "span-callout",
                             "span-italic",
                             "span-bold",
                             "span-fallback",
@@ -1965,6 +1968,17 @@ export function lowercaseObjectKeys(
 export const detailOnDemandRegex = /#dod:([\w\-_]+)/
 
 export const guidedChartRegex = /#guide:(https?:\/\/[^\s]+)/
+
+/**
+ * Matches callout function syntax in link anchors:
+ * #callout:latestYear(Column Name)
+ * #callout:latestValue(Column Name)
+ * #callout:entity
+ *
+ * Group 1: function name (e.g., "latestYear", "latestValue", "entity")
+ * Group 2: parameters (e.g., "Column Name") - may be undefined for parameterless functions like "entity"
+ */
+export const calloutFunctionRegex = /#callout:(\w+)(?:\(([^)]+)\))?/
 
 export function extractDetailsFromSyntax(str: string): string[] {
     return [...str.matchAll(new RegExp(detailOnDemandRegex, "g"))].map(

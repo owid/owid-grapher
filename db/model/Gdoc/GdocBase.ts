@@ -73,11 +73,13 @@ import {
     DbRawPostGdoc,
     PostsGdocsTableName,
     LinkedStaticViz,
+    LinkedCallouts,
 } from "@ourworldindata/types"
 import {
     getAllNarrativeChartNames,
     getNarrativeChartsInfo,
 } from "../NarrativeChart.js"
+import { loadLinkedCalloutsForBlocks } from "./fetchCalloutValues.js"
 
 import { indexBy } from "remeda"
 import {
@@ -274,6 +276,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     latestDataInsights: LatestDataInsight[] = []
     linkedNarrativeCharts?: Record<string, NarrativeChartInfo> = {}
     linkedStaticViz?: Record<string, LinkedStaticViz> = {}
+    linkedCallouts: LinkedCallouts = {}
     _omittableFields: string[] = []
 
     constructor(id?: string) {
@@ -478,6 +481,13 @@ export class GdocBase implements OwidGdocBaseInterface {
         return { grapher: [...grapher], explorer: [...explorer] }
     }
 
+    // e.g. ["life-expectancy?time=earliest..1970", "population"]
+    get linkedCalloutUrls(): string[] {
+        return this.links
+            .filter((link) => link.componentType === "data-callout")
+            .map((link) => `${link.target}${link.queryString}`)
+    }
+
     get linkedNarrativeChartNames(): string[] {
         const filteredLinks = this.links
             .filter(
@@ -559,6 +569,13 @@ export class GdocBase implements OwidGdocBaseInterface {
                 }),
             ])
             .with({ type: "chart" }, (block) => [
+                createLinkFromUrl({
+                    url: block.url,
+                    sourceId: this.id,
+                    componentType: block.type,
+                }),
+            ])
+            .with({ type: "data-callout" }, (block) => [
                 createLinkFromUrl({
                     url: block.url,
                     sourceId: this.id,
@@ -972,6 +989,17 @@ export class GdocBase implements OwidGdocBaseInterface {
         this.linkedStaticViz = _.keyBy(dbResults, "name")
     }
 
+    /**
+     * Load data for all data-callout blocks.
+     * For each callout, we fetch the chart config and construct the values JSON.
+     */
+    async loadLinkedCallouts(knex: db.KnexReadonlyTransaction): Promise<void> {
+        this.linkedCallouts = await loadLinkedCalloutsForBlocks(
+            knex,
+            this.linkedCalloutUrls
+        )
+    }
+
     async fetchAndEnrichGdoc(
         acceptSuggestions: boolean = false
     ): Promise<void> {
@@ -1274,6 +1302,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         await this.loadLinkedIndicators(knex) // depends on linked charts
         await this.loadNarrativeChartsInfo(knex)
         await this.loadLinkedStaticViz(knex)
+        await this.loadLinkedCallouts(knex)
         await this._loadSubclassAttachments(knex) // for GdocHomepage, mutates linkedCharts and linkedDocuments
         await this.validate(knex)
     }

@@ -1,6 +1,7 @@
 import { createContext } from "react"
 import {
     LinkedAuthor,
+    LinkedCallouts,
     LinkedChart,
     LinkedIndicator,
     OwidGdocMinimalPostInterface,
@@ -28,6 +29,7 @@ export type Attachments = {
     linkedNarrativeCharts?: Record<string, NarrativeChartInfo>
     linkedStaticViz?: Record<string, LinkedStaticViz>
     tags: MinimalTag[]
+    linkedCallouts?: LinkedCallouts
 }
 
 export const AttachmentsContext = createContext<Attachments>({
@@ -43,4 +45,5 @@ export const AttachmentsContext = createContext<Attachments>({
     linkedNarrativeCharts: {},
     linkedStaticViz: {},
     tags: [],
+    linkedCallouts: {},
 })
