@@ -748,8 +748,9 @@ export function enrichedBlockToRawBlock(
             type: "data-callout" as const,
             value: {
                 url: b.url,
-                entity: b.entity,
-                content: b.content.map(enrichedBlockToRawBlock) as RawBlockText[],
+                content: b.content.map(
+                    enrichedBlockToRawBlock
+                ) as RawBlockText[],
             },
         }))
         .exhaustive()

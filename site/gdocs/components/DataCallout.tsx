@@ -1,6 +1,4 @@
-import { useContext } from "react"
 import { EnrichedBlockDataCallout } from "@ourworldindata/types"
-import { AttachmentsContext } from "../AttachmentsContext.js"
 import { Container, getLayout } from "./layout.js"
 import ArticleBlock from "./ArticleBlock.js"
 import { DataCalloutContext, DataCalloutContextType } from "../utils.js"
@@ -16,12 +14,8 @@ export function DataCallout({
     block: EnrichedBlockDataCallout
     containerType?: Container
 }) {
-    const { linkedCallouts = {} } = useContext(AttachmentsContext)
-
     const contextValue: DataCalloutContextType = {
         url: block.url,
-        entity: block.entity,
-        linkedCallouts,
     }
 
     return (

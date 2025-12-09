@@ -924,6 +924,7 @@ export {
     type GrapherValuesJson,
     type GrapherValuesJsonDataPoints,
     type GrapherValuesJsonDataPoint,
+    type GrapherValuesJsonDimension,
 } from "./endpointTypes/GrapherValuesJson.js"
 
 export {

@@ -10,23 +10,13 @@ import { spansToUnformattedPlainText } from "@ourworldindata/utils"
 import cx from "classnames"
 import { useCalloutValue } from "../utils.js"
 
-/**
- * Renders a span-callout by looking up the value from the DataCallout context.
- * If no value is found, renders nothing.
- */
 function SpanCalloutElement({
     span,
 }: {
     span: SpanCallout
 }): React.ReactElement {
     const value = useCalloutValue(span.functionName, span.parameters)
-
-    // If we have a value, render it; otherwise render nothing
-    if (value !== undefined) {
-        return <span className="span-callout">{value}</span>
-    }
-
-    return <></>
+    return value ? <span className="span-callout">{value}</span> : <></>
 }
 
 export default function SpanElement({

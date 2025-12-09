@@ -649,7 +649,6 @@ export type RawBlockDataCallout = {
     type: "data-callout"
     value: {
         url?: string
-        entity?: string
         content?: RawBlockText[]
     }
 }
@@ -657,7 +656,6 @@ export type RawBlockDataCallout = {
 export type EnrichedBlockDataCallout = {
     type: "data-callout"
     url: string
-    entity: string
     content: EnrichedBlockText[]
 } & EnrichedBlockWithParseErrors
 

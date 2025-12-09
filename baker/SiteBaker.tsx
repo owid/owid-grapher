@@ -52,6 +52,7 @@ import {
     OwidGdocType,
     getEntitiesForProfile,
     Url,
+    makeCalloutGrapherStateKey,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { getRedirects, flushCache as redirectsFlushCache } from "./redirects.js"
@@ -72,14 +73,9 @@ import {
     instantiateProfileForEntity,
 } from "../db/model/Gdoc/GdocProfile.js"
 import {
-    generateCalloutKey,
-    generateChartKey,
-    extractDataCalloutBlocks,
     prepareCalloutChart,
-    getCalloutValuesForEntity,
-    PreparedCalloutChart,
+    CalloutGrapherState,
 } from "../db/model/Gdoc/fetchCalloutValues.js"
-import { LinkedCallouts } from "@ourworldindata/types"
 import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 import {
     gdocFromJSON,
@@ -129,9 +125,8 @@ type PrefetchedAttachments = {
     }
     linkedIndicators: Record<number, LinkedIndicator>
     linkedNarrativeCharts: Record<string, NarrativeChartInfo>
-    /** Prepared chart data for data-callouts, keyed by chart URL key.
-     *  Use getCalloutValuesForEntity() to generate values for a specific entity. */
-    preparedCalloutCharts: Record<string, PreparedCalloutChart>
+    // Prepared chart data for data-callouts, keyed by chart URL key (minus country param)
+    calloutGrapherStates: Record<string, CalloutGrapherState>
 }
 
 // These aren't all "wordpress" steps
@@ -215,9 +210,6 @@ export class SiteBaker {
 
         if (profileTemplates.length === 0) return
 
-        const tagHierarchiesByChildName =
-            await db.getTagHierarchiesByChildName(knex)
-
         for (const profileTemplate of profileTemplates) {
             const attachments = await this.getPrefetchedGdocAttachments(knex, [
                 profileTemplate.content.authors,
@@ -240,57 +232,17 @@ export class SiteBaker {
             profileTemplate.linkedNarrativeCharts =
                 attachments.linkedNarrativeCharts
 
-            if (
-                !profileTemplate.manualBreadcrumbs?.length &&
-                profileTemplate.tags?.length
-            ) {
-                profileTemplate.breadcrumbs = db.getBestBreadcrumbs(
-                    profileTemplate.tags,
-                    tagHierarchiesByChildName
-                )
-            }
-
             const entities = getEntitiesForProfile(profileTemplate)
 
             for (const entity of entities) {
-                const instantiatedProfile = instantiateProfileForEntity(
+                const instantiatedProfile = await instantiateProfileForEntity(
                     profileTemplate,
-                    entity
-                )
-
-                // Generate callout data for this instantiated profile using prefetched chart data
-                const calloutBlocks = extractDataCalloutBlocks(
-                    instantiatedProfile.content.body
-                )
-
-                if (calloutBlocks.length > 0) {
-                    const linkedCallouts: LinkedCallouts = {}
-                    for (const block of calloutBlocks) {
-                        const calloutKey = generateCalloutKey(
-                            block.url,
-                            block.entity
-                        )
-                        if (linkedCallouts[calloutKey]) continue
-
-                        // Look up the prepared chart from prefetched data
-                        const chartKey = generateChartKey(block.url)
-                        const preparedChart =
-                            attachments.preparedCalloutCharts[chartKey]
-                        if (!preparedChart) continue
-
-                        // Generate values for this entity (fast - no network calls)
-                        const values = getCalloutValuesForEntity(
-                            preparedChart,
-                            block.entity
-                        )
-
-                        linkedCallouts[calloutKey] = {
-                            id: calloutKey,
-                            values: values || { source: "" },
-                        }
+                    entity,
+                    {
+                        prefetchedCalloutGrapherStates:
+                            attachments.calloutGrapherStates,
                     }
-                    instantiatedProfile.linkedCallouts = linkedCallouts
-                }
+                )
 
                 const html = renderGdoc(instantiatedProfile)
                 const outPath = path.join(
@@ -377,14 +329,7 @@ export class SiteBaker {
     _prefetchedAttachmentsCache: PrefetchedAttachments | undefined = undefined
     private async getPrefetchedGdocAttachments(
         knex: db.KnexReadonlyTransaction,
-        picks?: [
-            string[],
-            string[],
-            string[],
-            string[],
-            string[],
-            string[],
-        ]
+        picks?: [string[], string[], string[], string[], string[], string[]]
     ): Promise<PrefetchedAttachments> {
         if (!this._prefetchedAttachmentsCache) {
             console.log("Prefetching donors")
@@ -529,10 +474,10 @@ export class SiteBaker {
                 `✅ Prefetched ${narrativeChartsInfo.length} narrative charts`
             )
 
-            console.log("Prefetching callout charts")
+            console.log("Prefetching callout Grapher charts")
             // Get all unique callout chart URLs from published gdocs
-            const calloutChartUrls =
-                await db.getCalloutChartUrlsForPublishedGdocs(knex)
+            const calloutGrapherUrls =
+                await db.getCalloutGrapherUrlsForPublishedGdocs(knex)
 
             // Build a map of slug → config from publishedChartsRaw
             const chartConfigsBySlug = Object.fromEntries(
@@ -540,27 +485,28 @@ export class SiteBaker {
             )
 
             // Prepare each chart (fetches data once for all entities)
-            const preparedCalloutCharts: Record<string, PreparedCalloutChart> =
-                {}
-            for (const { url, slug } of calloutChartUrls) {
-                const chartKey = generateChartKey(url)
-                if (preparedCalloutCharts[chartKey]) continue
+            const calloutGrapherStates: Record<string, CalloutGrapherState> = {}
+            for (const stringUrl of calloutGrapherUrls) {
+                const key = makeCalloutGrapherStateKey(stringUrl)
+                const url = Url.fromURL(stringUrl)
+                if (calloutGrapherStates[key]) continue
+                if (!url.slug) continue
 
                 // Get chart config
-                const chartConfig = chartConfigsBySlug[slug]
+                const chartConfig = chartConfigsBySlug[url.slug]
                 if (!chartConfig) continue
 
-                const parsedUrl = Url.fromURL(url)
                 const prepared = await prepareCalloutChart(
                     chartConfig,
-                    parsedUrl.queryStr || undefined
+                    url.queryStr
                 )
+
                 if (prepared) {
-                    preparedCalloutCharts[chartKey] = prepared
+                    calloutGrapherStates[key] = prepared
                 }
             }
             console.log(
-                `✅ Prefetched ${Object.keys(preparedCalloutCharts).length} callout charts`
+                `✅ Prefetched ${Object.keys(calloutGrapherStates).length} callout charts`
             )
 
             const prefetchedAttachments = {
@@ -578,7 +524,7 @@ export class SiteBaker {
                 },
                 linkedIndicators: datapageIndicatorsById,
                 linkedNarrativeCharts: narrativeChartsInfoByName,
-                preparedCalloutCharts,
+                calloutGrapherStates,
             }
             this._prefetchedAttachmentsCache = prefetchedAttachments
         }
@@ -647,9 +593,10 @@ export class SiteBaker {
                     this._prefetchedAttachmentsCache.linkedNarrativeCharts,
                     linkedNarrativeChartNames
                 ),
-                // Not picking prepared charts - they're global and don't depend on specific gdocs
-                preparedCalloutCharts:
-                    this._prefetchedAttachmentsCache.preparedCalloutCharts,
+                // We don't need to pick these. They don't get attached to the gdoc,
+                // that happens when linkedCallouts is set.
+                calloutGrapherStates:
+                    this._prefetchedAttachmentsCache.calloutGrapherStates,
             }
         }
         return this._prefetchedAttachmentsCache

@@ -21,6 +21,7 @@ import { TagGraphRoot } from "../domainTypes/ContentGraph.js"
 import { DbRawImage } from "../dbTypes/Images.js"
 import { DbPlainNarrativeChart } from "../dbTypes/NarrativeCharts.js"
 import { ArchivedPageVersion } from "../domainTypes/Archive.js"
+import { GrapherValuesJson } from "../endpointTypes/GrapherValuesJson.js"
 
 export enum OwidGdocPublicationContext {
     unlisted = "unlisted",
@@ -100,10 +101,9 @@ export interface LinkedIndicator {
  * The key is generated from the normalized URL + entity name.
  */
 export interface LinkedCallout {
-    /** Normalized URL path + entity, e.g. "grapher/co2-emissions+United States" */
-    id: string
+    url: string
     /** The data values for this chart/entity combination */
-    values: import("../endpointTypes/GrapherValuesJson.js").GrapherValuesJson
+    values: GrapherValuesJson
 }
 
 export type LinkedCallouts = Record<string, LinkedCallout>

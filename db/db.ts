@@ -49,6 +49,7 @@ import {
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import { rawGdocToMinimalPost } from "./model/Gdoc/GdocBase.js"
+import urlJoin from "url-join"
 
 /**
  * TEMPORARY: Transaction-scoped caching helper for baking performance
@@ -842,16 +843,19 @@ export async function getGrapherLinkTargets(
 
 /**
  * Get all chart URLs from data-callout blocks in published gdocs.
- * Returns both the URL (which may include query params) and the slug for chart lookup.
  */
-export async function getCalloutChartUrlsForPublishedGdocs(
+export async function getCalloutGrapherUrlsForPublishedGdocs(
     knex: KnexReadonlyTransaction
-): Promise<{ url: string; slug: string }[]> {
+): Promise<string[]> {
     // Query links from data-callout components in published gdocs
-    const links = await knexRaw<{ target: string; queryString: string | null }>(
+    const links = await knexRaw<{
+        target: string
+        queryString: string | null
+        linkType: ContentGraphLinkType
+    }>(
         knex,
         `-- sql
-        SELECT DISTINCT l.target, l.queryString
+        SELECT DISTINCT l.target, l.queryString, l.linkType
         FROM posts_gdocs_links l
         JOIN posts_gdocs pg ON l.sourceId = pg.id
         WHERE l.componentType = 'data-callout'
@@ -860,12 +864,9 @@ export async function getCalloutChartUrlsForPublishedGdocs(
         `
     )
 
-    return links.map((link) => {
-        const url = link.queryString
-            ? `${link.target}?${link.queryString}`
-            : link.target
-        return { url, slug: link.target }
-    })
+    return links.map((link) =>
+        urlJoin("/", link.linkType, link.target, link.queryString || "")
+    )
 }
 
 /**

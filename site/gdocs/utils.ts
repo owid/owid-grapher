@@ -1,6 +1,5 @@
 import { useContext, createContext } from "react"
 import {
-    LinkedCallouts,
     GrapherValuesJson,
     CalloutFunction,
     ImageMetadata,
@@ -24,6 +23,7 @@ import {
 } from "@ourworldindata/components"
 import {
     formatAuthors,
+    makeLinkedCalloutKey,
     traverseEnrichedBlock,
     Url,
 } from "@ourworldindata/utils"
@@ -215,8 +215,6 @@ export const useLinkedStaticViz = (
  */
 export interface DataCalloutContextType {
     url: string
-    entity: string
-    linkedCallouts: LinkedCallouts
 }
 
 export const DataCalloutContext = createContext<DataCalloutContextType | null>(
@@ -269,68 +267,22 @@ export function getCalloutValue(
         .exhaustive()
 }
 
-/**
- * Hook to get the callout value for a span-callout.
- * Must be called within a DataCallout component.
- */
 export function useCalloutValue(
     functionName: CalloutFunction,
     parameters: string[]
 ): string | undefined {
-    const context = useContext(DataCalloutContext)
-    const { linkedCallouts: allLinkedCallouts } = useContext(AttachmentsContext)
+    const { linkedCallouts = {} } = useContext(AttachmentsContext)
+    const calloutContext = useContext(DataCalloutContext)
 
-    if (!context) {
-        // Not inside a DataCallout context, fall back to global linkedCallouts
-        // This shouldn't happen in normal usage
-        return undefined
-    }
+    if (!calloutContext) return undefined
 
-    // Use context's linkedCallouts if available, otherwise fall back to global
-    const linkedCallouts = context.linkedCallouts ?? allLinkedCallouts ?? {}
+    const key = makeLinkedCalloutKey(calloutContext.url)
 
-    // Generate the key for this URL+entity combination
-    const calloutKey = generateCalloutKeyForLookup(context.url, context.entity)
-    const linkedCallout = linkedCallouts[calloutKey]
+    const linkedCallout = linkedCallouts[key]
 
-    if (!linkedCallout?.values) {
-        return undefined
-    }
+    if (!linkedCallout?.values) return undefined
 
     return getCalloutValue(linkedCallout.values, functionName, parameters)
-}
-
-/**
- * Generate a key for looking up callout values.
- * Must match the key generation in fetchCalloutValues.ts.
- */
-function generateCalloutKeyForLookup(url: string, entity: string): string {
-    // Simplified key generation that matches the server-side logic
-    // The server uses: `${generateChartKey(url)}+${entity}`
-    // generateChartKey normalizes the URL to path + sorted query params
-
-    try {
-        const parsedUrl = new URL(url, "https://ourworldindata.org")
-        const path = parsedUrl.pathname || ""
-
-        // Sort query parameters alphabetically
-        const entries = Array.from(parsedUrl.searchParams.entries()).sort(
-            ([a], [b]) => a.localeCompare(b)
-        )
-
-        const queryString = entries
-            .map(
-                ([key, value]) =>
-                    `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
-            )
-            .join("&")
-
-        const chartKey = queryString ? `${path}?${queryString}` : path
-        return `${chartKey}+${entity}`
-    } catch {
-        // If URL parsing fails, just concatenate as-is
-        return `${url}+${entity}`
-    }
 }
 
 export function getShortPageCitation(

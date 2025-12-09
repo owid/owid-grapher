@@ -1832,14 +1832,11 @@ function parseCallout(raw: RawBlockCallout): EnrichedBlockCallout {
     }
 }
 
-function parseDataCallout(
-    raw: RawBlockDataCallout
-): EnrichedBlockDataCallout {
+function parseDataCallout(raw: RawBlockDataCallout): EnrichedBlockDataCallout {
     const createError = (error: ParseError): EnrichedBlockDataCallout => ({
         type: "data-callout",
         parseErrors: [error],
         url: "",
-        entity: "",
         content: [],
     })
 
@@ -1859,10 +1856,12 @@ function parseDataCallout(
                 "data-callout url must be a grapher or explorer link (e.g. https://ourworldindata.org/grapher/...)",
         })
     }
-
-    if (!raw.value.entity) {
+    const countryQueryParams = url.queryParams["country"]
+    const country = countryQueryParams?.split("~")[0]
+    if (!country) {
         return createError({
-            message: "Missing entity for data-callout block",
+            message:
+                "data-callout url must specify a country using the 'country' query parameter",
         })
     }
 
@@ -1898,7 +1897,6 @@ function parseDataCallout(
     return {
         type: "data-callout",
         url: raw.value.url,
-        entity: raw.value.entity,
         content: enrichedContent,
         parseErrors,
     }

@@ -235,6 +235,8 @@ export {
     type ProfileEntity,
     getEntitiesForProfile,
     validateConditionalSectionLists,
+    makeCalloutGrapherStateKey,
+    makeLinkedCalloutKey,
 } from "./profiles.js"
 
 export {

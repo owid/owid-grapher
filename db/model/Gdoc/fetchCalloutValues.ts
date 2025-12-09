@@ -2,91 +2,65 @@ import {
     GrapherState,
     fetchInputTableForConfig,
     constructGrapherValuesJson,
+    getEntityNamesParam,
 } from "@ourworldindata/grapher"
 import {
     GrapherInterface,
     GrapherValuesJson,
     EntityName,
     OwidEnrichedGdocBlock,
-    EnrichedBlockDataCallout,
+    LinkedCallouts,
 } from "@ourworldindata/types"
-import { Url, traverseEnrichedBlock } from "@ourworldindata/utils"
+import {
+    makeCalloutGrapherStateKey,
+    makeLinkedCalloutKey,
+    Url,
+    traverseEnrichedBlock,
+} from "@ourworldindata/utils"
 import { DATA_API_URL } from "../../../settings/serverSettings.js"
+import * as db from "../../db.js"
+import { mapSlugsToIds, getChartConfigById } from "../Chart.js"
 
 /**
  * Extract all data-callout blocks from an array of enriched blocks.
  * This is useful for both GdocBase (via the getter) and for baking
  * instantiated profiles.
  */
-export function extractDataCalloutBlocks(
+export function extractDataCalloutUrls(
     body: OwidEnrichedGdocBlock[]
-): EnrichedBlockDataCallout[] {
-    const callouts: EnrichedBlockDataCallout[] = []
+): string[] {
+    const callouts: Set<string> = new Set()
     for (const block of body) {
         traverseEnrichedBlock(block, (b) => {
             if (b.type === "data-callout") {
-                callouts.push(b)
+                callouts.add(b.url)
             }
         })
     }
-    return callouts
-}
-
-/**
- * Generate a unique key for a callout based on URL and entity.
- * The key is used for deduplication and caching.
- *
- * Normalization rules:
- * - Remove base domain (just keep path + query)
- * - Sort query parameters alphabetically
- */
-export function generateCalloutKey(url: string, entity: EntityName): string {
-    return `${generateChartKey(url)}+${entity}`
-}
-
-/**
- * Generate a unique key for a chart URL (without entity).
- * Used for caching prepared GrapherStates.
- */
-export function generateChartKey(url: string): string {
-    const parsedUrl = Url.fromURL(url)
-    const path = parsedUrl.pathname || ""
-
-    // Convert QueryParams to entries, filtering out undefined values
-    const entries = Object.entries(parsedUrl.queryParams)
-        .filter((entry): entry is [string, string] => entry[1] !== undefined)
-        .sort(([a], [b]) => a.localeCompare(b))
-
-    const queryString = entries
-        .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-        .join("&")
-
-    return queryString ? `${path}?${queryString}` : path
+    return [...callouts].map((urlStr) => {
+        const url = Url.fromURL(urlStr)
+        return url.pathname + url.queryStr
+    })
 }
 
 /**
  * A prepared GrapherState with data already loaded.
- * Can be used to efficiently generate GrapherValuesJson for any entity.
+ * Can be used to efficiently generate GrapherValuesJson for any (available) entity.
  */
-export interface PreparedCalloutChart {
+export interface CalloutGrapherState {
     grapherState: GrapherState
     availableEntityNames: EntityName[]
-    sourcesLine: string
 }
 
 /**
  * Prepare a GrapherState for a chart config by fetching its data.
- * The returned PreparedCalloutChart can be used to generate values for any entity
+ * The returned CalloutGrapherState can be used to generate values for any entity
  * without additional network requests.
- *
- * @param config - The grapher chart configuration
- * @param queryStr - Optional query string (for multi-dim views)
- * @returns PreparedCalloutChart or undefined if data cannot be fetched
  */
 export async function prepareCalloutChart(
     config: GrapherInterface,
     queryStr?: string
-): Promise<PreparedCalloutChart | undefined> {
+): Promise<CalloutGrapherState | undefined> {
     try {
         // Create GrapherState with the chart config
         const grapherState = new GrapherState({
@@ -108,7 +82,6 @@ export async function prepareCalloutChart(
         return {
             grapherState,
             availableEntityNames: grapherState.availableEntityNames,
-            sourcesLine: grapherState.sourcesLine,
         }
     } catch (error) {
         console.error(`Failed to prepare callout chart:`, error)
@@ -117,36 +90,10 @@ export async function prepareCalloutChart(
 }
 
 /**
- * Generate GrapherValuesJson for a specific entity using a prepared chart.
- * This is fast as all data is already loaded.
- *
- * @param preparedChart - The prepared chart with data loaded
- * @param entity - The entity name to generate values for
- * @returns GrapherValuesJson or undefined if entity has no data
- */
-export function getCalloutValuesForEntity(
-    preparedChart: PreparedCalloutChart,
-    entity: EntityName
-): GrapherValuesJson | undefined {
-    // Check if the entity exists in the chart
-    if (!preparedChart.availableEntityNames.includes(entity)) {
-        // Entity not available - return values with just source
-        return { source: preparedChart.sourcesLine }
-    }
-
-    return constructGrapherValuesJson(preparedChart.grapherState, entity)
-}
-
-/**
  * Fetch callout values for a single chart + entity combination.
  * This fetches data and constructs values in one call.
  * Use this for one-off requests (like admin preview or CF functions).
  * For batch processing (like baking profiles), use prepareCalloutChart + getCalloutValuesForEntity.
- *
- * @param config - The grapher chart configuration
- * @param entity - The entity name to fetch data for
- * @param queryStr - Optional query string (for multi-dim views)
- * @returns The GrapherValuesJson or undefined if data cannot be fetched
  */
 export async function fetchCalloutValuesForConfig(
     config: GrapherInterface,
@@ -156,5 +103,97 @@ export async function fetchCalloutValuesForConfig(
     const preparedChart = await prepareCalloutChart(config, queryStr)
     if (!preparedChart) return undefined
 
-    return getCalloutValuesForEntity(preparedChart, entity)
+    return constructGrapherValuesJson(preparedChart.grapherState, entity)
+}
+
+/**
+ * Load LinkedCallouts for a list of data-callout blocks.
+ * This is the unified function used by GdocBase.loadLinkedCallouts,
+ * appClass.tsx profile preview, and can be used elsewhere.
+ */
+export async function loadLinkedCalloutsForBlocks(
+    knex: db.KnexReadonlyTransaction,
+    calloutUrls: string[]
+): Promise<LinkedCallouts> {
+    if (calloutUrls.length === 0) return {}
+
+    const linkedCallouts: LinkedCallouts = {}
+    const slugToIdMap = await mapSlugsToIds(knex)
+
+    for (const calloutUrl of calloutUrls) {
+        if (linkedCallouts[calloutUrl]) continue
+
+        // Extract slug from URL (grapher only for now)
+        const url = Url.fromURL(calloutUrl)
+        const slug = url.slug
+        if (!slug) continue
+
+        // Get chart config from database
+        const chartId = slugToIdMap[slug]
+        if (!chartId) continue
+
+        const chartRecord = await getChartConfigById(knex, chartId)
+        if (!chartRecord) continue
+
+        const entityNames = getEntityNamesParam(url.queryParams["country"])
+        if (!entityNames) continue
+        const entityName = entityNames[0]
+
+        // Fetch the callout values
+        const values = await fetchCalloutValuesForConfig(
+            chartRecord.config,
+            entityName,
+            url.queryStr || undefined
+        )
+
+        if (!values) continue
+
+        linkedCallouts[calloutUrl] = {
+            url: calloutUrl,
+            values: values,
+        }
+    }
+
+    return linkedCallouts
+}
+
+/**
+ * Generate LinkedCallouts from data-callout blocks using pre-fetched CalloutGrapherStates.
+ * Used with instantiated profiles during baking to avoid redundant data fetching.
+ */
+export function generateLinkedCalloutsFromPreparedCharts(
+    calloutUrls: string[],
+    calloutGrapherStates: Record<string, CalloutGrapherState>
+): LinkedCallouts {
+    if (calloutUrls.length === 0) return {}
+
+    const linkedCallouts: LinkedCallouts = {}
+
+    for (const stringUrl of calloutUrls) {
+        const statesKey = makeCalloutGrapherStateKey(stringUrl)
+        const linkedCalloutsKey = makeLinkedCalloutKey(stringUrl)
+        const url = Url.fromURL(stringUrl)
+        // Skip if we already have this callout (deduplication)
+        if (linkedCallouts[linkedCalloutsKey]) continue
+
+        // Look up the prepared chart from prefetched data
+        const state = calloutGrapherStates[statesKey]
+        if (!state) continue
+
+        const entityNames = getEntityNamesParam(url.queryParams["country"])
+        if (!entityNames) continue
+        const entityName = entityNames[0]
+
+        const values = constructGrapherValuesJson(
+            state.grapherState,
+            entityName
+        )
+
+        linkedCallouts[linkedCalloutsKey] = {
+            url: stringUrl,
+            values: values,
+        }
+    }
+
+    return linkedCallouts
 }

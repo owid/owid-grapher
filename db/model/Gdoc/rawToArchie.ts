@@ -1006,7 +1006,6 @@ function* rawBlockDataCalloutToArchieMLString(
     yield "{.data-callout}"
     if (typeof block.value !== "string") {
         yield* propertyToArchieMLString("url", block.value)
-        yield* propertyToArchieMLString("entity", block.value)
         if (block.value.content) {
             yield "[.+content]"
             for (const textBlock of block.value.content) {
