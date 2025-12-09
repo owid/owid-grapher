@@ -1,4 +1,3 @@
-import * as _ from "lodash-es"
 import {
     EntityName,
     GRAPHER_MAP_TYPE,
@@ -11,11 +10,9 @@ import {
 } from "@ourworldindata/types"
 import { excludeUndefined, omitUndefinedValues } from "@ourworldindata/utils"
 import { CoreColumn } from "@ourworldindata/core-table"
-import {
-    GrapherState,
-    makeChartState,
-    MapChartState,
-} from "@ourworldindata/grapher"
+import { GrapherState } from "./GrapherState"
+import { makeChartState } from "../chart/ChartTypeMap"
+import { MapChartState } from "../mapCharts/MapChartState"
 
 export function constructGrapherValuesJson(
     grapherState: GrapherState,
