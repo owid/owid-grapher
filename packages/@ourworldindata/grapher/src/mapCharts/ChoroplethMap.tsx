@@ -150,7 +150,19 @@ export class ChoroplethMap extends React.Component<{
         const newOffsetX = boundsCenterX - newCenterX
         const newOffsetY = boundsCenterY - newCenterY
 
-        const matrixStr = `matrix(${viewportScale},0,0,${viewportScale},${newOffsetX},${newOffsetY})`
+        const matrixComponents = [
+            viewportScale,
+            0,
+            0,
+            viewportScale,
+            newOffsetX,
+            newOffsetY,
+        ]
+        const matrixComponentsRounded = matrixComponents.map((c) =>
+            _.round(c, 4)
+        )
+
+        const matrixStr = `matrix(${matrixComponentsRounded.join(",")})`
         return matrixStr
     }
 
