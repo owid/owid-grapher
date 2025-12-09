@@ -135,9 +135,11 @@ export class ScatterLine extends React.Component<ScatterLineProps> {
                     style={{ transition: "stroke 250ms" }}
                 />
                 <Triangle
-                    transform={`rotate(${rotation}, ${lastValue.position.x.toFixed(
-                        2
-                    )}, ${lastValue.position.y.toFixed(2)})`}
+                    rotation={[
+                        rotation,
+                        lastValue.position.x,
+                        lastValue.position.y,
+                    ]}
                     cx={lastValue.position.x}
                     cy={lastValue.position.y}
                     r={1.5 + lastValue.size}
