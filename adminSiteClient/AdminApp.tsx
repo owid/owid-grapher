@@ -155,21 +155,13 @@ export class AdminApp extends React.Component<{
                                 <Route
                                     exact
                                     path="/charts/:chartId/edit"
-                                    render={({ match, location }) => {
-                                        const params = new URLSearchParams(
-                                            location.search
-                                        )
-                                        const configParam = params.get("config")
-                                        const grapherConfig = configParam
-                                            ? JSON.parse(configParam)
-                                            : undefined
+                                    render={({ match }) => {
                                         return (
                                             <ChartEditorPage
                                                 key={match.params.chartId}
                                                 grapherId={parseInt(
                                                     match.params.chartId
                                                 )}
-                                                grapherConfig={grapherConfig}
                                             />
                                         )
                                     }}
