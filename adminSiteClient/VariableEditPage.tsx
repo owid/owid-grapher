@@ -40,7 +40,6 @@ import { ChartList, ChartListItem } from "./ChartList.js"
 import { OriginList } from "./OriginList.js"
 import { SourceList } from "./SourceList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { Base64 } from "js-base64"
 import {
     GRAPHER_TAB_CONFIG_OPTIONS,
     GrapherInterface,
@@ -371,7 +370,7 @@ class VariableEditor extends Component<{
                                     <h3>Preview</h3>
                                     <Link
                                         className="btn btn-secondary"
-                                        to={`/charts/create/${Base64.encode(
+                                        to={`/charts/create?config=${encodeURIComponent(
                                             JSON.stringify(
                                                 this.grapherState.object
                                             )

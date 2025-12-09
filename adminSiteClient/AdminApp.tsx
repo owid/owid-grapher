@@ -32,7 +32,6 @@ import {
 } from "react-router-dom"
 import { LoadingBlocker, Modal } from "./Forms.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import { Base64 } from "js-base64"
 import { ExplorerCreatePage } from "./ExplorerCreatePage.js"
 import { ExplorersIndexPage } from "./ExplorersListPage.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
@@ -137,46 +136,47 @@ export class AdminApp extends React.Component<{
                             <Switch>
                                 <Route
                                     exact
-                                    path="/charts/create/:config"
-                                    render={({ match }) => (
-                                        <ChartEditorPage
-                                            grapherConfig={JSON.parse(
-                                                Base64.decode(
-                                                    match.params.config
-                                                )
-                                            )}
-                                        />
-                                    )}
-                                />
-                                <Route
-                                    exact
                                     path="/charts/create"
-                                    component={ChartEditorPage}
+                                    render={({ location }) => {
+                                        const params = new URLSearchParams(
+                                            location.search
+                                        )
+                                        const config = params.get("config")
+                                        const grapherConfig = config
+                                            ? JSON.parse(
+                                                  decodeURIComponent(config)
+                                              )
+                                            : undefined
+                                        return (
+                                            <ChartEditorPage
+                                                grapherConfig={grapherConfig}
+                                            />
+                                        )
+                                    }}
                                 />
                                 <Route
                                     exact
                                     path="/charts/:chartId/edit"
-                                    render={({ match }) => (
-                                        <ChartEditorPage
-                                            key={match.params.chartId}
-                                            grapherId={parseInt(
-                                                match.params.chartId
-                                            )}
-                                        />
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path="/charts/:chartId/edit/:config"
-                                    render={({ match }) => (
-                                        <ChartEditorPage
-                                            grapherConfig={JSON.parse(
-                                                Base64.decode(
-                                                    match.params.config
-                                                )
-                                            )}
-                                        />
-                                    )}
+                                    render={({ match, location }) => {
+                                        const params = new URLSearchParams(
+                                            location.search
+                                        )
+                                        const config = params.get("config")
+                                        const grapherConfig = config
+                                            ? JSON.parse(
+                                                  decodeURIComponent(config)
+                                              )
+                                            : undefined
+                                        return (
+                                            <ChartEditorPage
+                                                key={match.params.chartId}
+                                                grapherId={parseInt(
+                                                    match.params.chartId
+                                                )}
+                                                grapherConfig={grapherConfig}
+                                            />
+                                        )
+                                    }}
                                 />
                                 <Route
                                     exact

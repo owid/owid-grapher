@@ -11623,7 +11623,6 @@ __metadata:
     ini: "npm:^5.0.0"
     instantsearch.js: "npm:^4.81.0"
     jose: "npm:^6.0.12"
-    js-base64: "npm:^3.7.7"
     js-cookie: "npm:^3.0.5"
     json8-pointer: "npm:^1.0.6"
     knex: "npm:^3.1.0"
@@ -12713,13 +12712,6 @@ __metadata:
   version: 6.0.12
   resolution: "jose@npm:6.0.12"
   checksum: 10/48b7aee43a88e157eb973c7e950f5835175264ecda01a7fcb1750ad6cc02672153e2bd486b65db969841b38c01b1596d86cb71f65e2ccb5311b67127ba4f8549
-  languageName: node
-  linkType: hard
-
-"js-base64@npm:^3.7.7":
-  version: 3.7.7
-  resolution: "js-base64@npm:3.7.7"
-  checksum: 10/185e34c536a6b1c4e1ad8bd96d25b49a9ea4e6803e259eaaaca95f1b392a0d590b2933c5ca8580c776f7279507944b81ff1faf889d84baa5e31f026e96d676a5
   languageName: node
   linkType: hard
 
