@@ -2,6 +2,7 @@ import * as _ from "lodash-es"
 import * as R from "remeda"
 import { match } from "ts-pattern"
 import {
+    constructGrapherValuesJson,
     fetchInputTableForConfig,
     generateFocusedSeriesNamesParam,
     generateSelectedEntityNamesParam,
@@ -31,7 +32,6 @@ import {
     GrapherSearchResultJson,
 } from "@ourworldindata/types"
 import { constructSearchResultDataTableContent } from "./constructSearchResultDataTableContent"
-import { constructGrapherValuesJson } from "../grapherValuesJson"
 import {
     buildChartHitDataDisplayProps,
     checkIsCountry,
