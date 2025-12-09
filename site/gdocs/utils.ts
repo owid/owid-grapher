@@ -1,11 +1,8 @@
-import { useContext } from "react"
-
+import { useContext, createContext } from "react"
 import {
-    getCanonicalUrl,
-    getLinkType,
-    getUrlTarget,
-} from "@ourworldindata/components"
-import {
+    LinkedCallouts,
+    GrapherValuesJson,
+    CalloutFunction,
     ImageMetadata,
     LinkedChart,
     OwidGdocPostContent,
@@ -19,6 +16,12 @@ import {
     OwidEnrichedGdocBlockTypeMap,
     LinkedStaticViz,
 } from "@ourworldindata/types"
+
+import {
+    getCanonicalUrl,
+    getLinkType,
+    getUrlTarget,
+} from "@ourworldindata/components"
 import {
     formatAuthors,
     traverseEnrichedBlock,
@@ -27,6 +30,7 @@ import {
 import { AttachmentsContext } from "./AttachmentsContext.js"
 import { PROD_URL, SubnavItem, subnavs } from "../SiteConstants.js"
 import { BAKED_BASE_URL, IS_ARCHIVE } from "../../settings/clientSettings.js"
+import { match } from "ts-pattern"
 
 const getOrigin = (url: string, base?: string): string | undefined => {
     try {
@@ -202,6 +206,131 @@ export const useLinkedStaticViz = (
 ): LinkedStaticViz | undefined => {
     const { linkedStaticViz } = useContext(AttachmentsContext)
     return linkedStaticViz?.[name]
+}
+
+/**
+ * Context provided to span-callout spans within a data-callout block.
+ * Contains the URL and entity from the parent data-callout, and the
+ * linked callout data from attachments.
+ */
+export interface DataCalloutContextType {
+    url: string
+    entity: string
+    linkedCallouts: LinkedCallouts
+}
+
+export const DataCalloutContext = createContext<DataCalloutContextType | null>(
+    null
+)
+
+/**
+ * Look up a value from GrapherValuesJson based on the callout function name.
+ * Returns the formatted value or undefined if not found.
+ */
+export function getCalloutValue(
+    values: GrapherValuesJson,
+    functionName: CalloutFunction,
+    parameters: string[]
+): string | undefined {
+    return match(functionName)
+        .with("latestValue", () => {
+            const columnName = parameters[0]
+            const columnSlug = values.columns
+                ? Object.entries(values.columns).find(
+                      ([_, col]) => col.name === columnName
+                  )?.[0]
+                : undefined
+            if (!columnSlug) return undefined
+
+            // Find the column with matching name in endValues.y
+            const dataPoint = values.endValues?.y?.find((dp) => {
+                return dp.columnSlug === String(columnSlug)
+            })
+
+            return dataPoint?.formattedValue
+        })
+        .with("latestYear", () => {
+            const columnName = parameters[0]
+            const columnSlug = values.columns
+                ? Object.entries(values.columns).find(
+                      ([_, col]) => col.name === columnName
+                  )?.[0]
+                : undefined
+            if (!columnSlug) return undefined
+
+            // Find the column with matching name in endValues.y
+            const dataPoint = values.endValues?.y?.find((dp) => {
+                return dp.columnSlug === String(columnSlug)
+            })
+
+            return dataPoint?.formattedTime
+        })
+        .with("entity", () => values.entityName)
+        .exhaustive()
+}
+
+/**
+ * Hook to get the callout value for a span-callout.
+ * Must be called within a DataCallout component.
+ */
+export function useCalloutValue(
+    functionName: CalloutFunction,
+    parameters: string[]
+): string | undefined {
+    const context = useContext(DataCalloutContext)
+    const { linkedCallouts: allLinkedCallouts } = useContext(AttachmentsContext)
+
+    if (!context) {
+        // Not inside a DataCallout context, fall back to global linkedCallouts
+        // This shouldn't happen in normal usage
+        return undefined
+    }
+
+    // Use context's linkedCallouts if available, otherwise fall back to global
+    const linkedCallouts = context.linkedCallouts ?? allLinkedCallouts ?? {}
+
+    // Generate the key for this URL+entity combination
+    const calloutKey = generateCalloutKeyForLookup(context.url, context.entity)
+    const linkedCallout = linkedCallouts[calloutKey]
+
+    if (!linkedCallout?.values) {
+        return undefined
+    }
+
+    return getCalloutValue(linkedCallout.values, functionName, parameters)
+}
+
+/**
+ * Generate a key for looking up callout values.
+ * Must match the key generation in fetchCalloutValues.ts.
+ */
+function generateCalloutKeyForLookup(url: string, entity: string): string {
+    // Simplified key generation that matches the server-side logic
+    // The server uses: `${generateChartKey(url)}+${entity}`
+    // generateChartKey normalizes the URL to path + sorted query params
+
+    try {
+        const parsedUrl = new URL(url, "https://ourworldindata.org")
+        const path = parsedUrl.pathname || ""
+
+        // Sort query parameters alphabetically
+        const entries = Array.from(parsedUrl.searchParams.entries()).sort(
+            ([a], [b]) => a.localeCompare(b)
+        )
+
+        const queryString = entries
+            .map(
+                ([key, value]) =>
+                    `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+            )
+            .join("&")
+
+        const chartKey = queryString ? `${path}?${queryString}` : path
+        return `${chartKey}+${entity}`
+    } catch {
+        // If URL parsing fails, just concatenate as-is
+        return `${url}+${entity}`
+    }
 }
 
 export function getShortPageCitation(

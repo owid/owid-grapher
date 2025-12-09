@@ -1,4 +1,4 @@
-import { Span } from "@ourworldindata/types"
+import { Span, SpanCallout } from "@ourworldindata/types"
 import * as React from "react"
 import { match } from "ts-pattern"
 import LinkedA from "./LinkedA.js"
@@ -8,6 +8,26 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEye } from "@fortawesome/free-solid-svg-icons"
 import { spansToUnformattedPlainText } from "@ourworldindata/utils"
 import cx from "classnames"
+import { useCalloutValue } from "../utils.js"
+
+/**
+ * Renders a span-callout by looking up the value from the DataCallout context.
+ * If no value is found, renders nothing.
+ */
+function SpanCalloutElement({
+    span,
+}: {
+    span: SpanCallout
+}): React.ReactElement {
+    const value = useCalloutValue(span.functionName, span.parameters)
+
+    // If we have a value, render it; otherwise render nothing
+    if (value !== undefined) {
+        return <span className="span-callout">{value}</span>
+    }
+
+    return <></>
+}
 
 export default function SpanElement({
     span,
@@ -165,14 +185,8 @@ export default function SpanElement({
                 />
             </span>
         ))
-        // TODO: Implement span-callout rendering with data from LinkedCallouts context
         .with({ spanType: "span-callout" }, (span) => (
-            <span>
-                <SpanElements
-                    spans={span.children}
-                    shouldRenderLinks={shouldRenderLinks}
-                />
-            </span>
+            <SpanCalloutElement span={span} />
         ))
         .exhaustive()
 }

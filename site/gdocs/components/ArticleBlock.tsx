@@ -60,6 +60,7 @@ import { FeaturedDataInsights } from "../../FeaturedDataInsights.js"
 import { BlockQueryClientProvider } from "./BlockQueryClientProvider.js"
 import { ExploreDataSection } from "./ExploreDataSection.js"
 import { LTPTableOfContents } from "./LTPTableOfContents.js"
+import { DataCallout } from "./DataCallout.js"
 
 function ArticleBlockInternal({
     b: block,
@@ -934,8 +935,9 @@ function ArticleBlockInternal({
                 links={block.links}
             />
         ))
-        // TODO: Implement DataCallout component rendering
-        .with({ type: "data-callout" }, () => null)
+        .with({ type: "data-callout" }, (block) => (
+            <DataCallout block={block} containerType={containerType} />
+        ))
         .exhaustive()
 }
 
