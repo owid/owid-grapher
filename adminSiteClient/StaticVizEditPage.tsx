@@ -40,7 +40,9 @@ const requiresGrapherOrSourceRule =
             // Both provided - error
             if (hasValue && hasOtherValue) {
                 return Promise.reject(
-                    new Error("Cannot provide both Grapher Slug and Source URL")
+                    new Error(
+                        "You cannot provide both a Grapher slug and a source URL"
+                    )
                 )
             }
 
@@ -51,7 +53,9 @@ const requiresGrapherOrSourceRule =
 
             // Neither provided - error
             return Promise.reject(
-                new Error("Please provide either a Grapher Slug or Source URL")
+                new Error(
+                    "Please provide either a Grapher slug or a source URL"
+                )
             )
         },
     })
@@ -139,7 +143,10 @@ export function StaticVizEditPage() {
     useEffect(() => {
         form.validateFields({ validateOnly: true })
             .then(() => setIsValid(true))
-            .catch(() => setIsValid(false))
+            .catch((e) => {
+                console.error("Validation error:", e)
+                setIsValid(false)
+            })
     }, [form, values])
 
     const { data: imagesData, isLoading: isLoadingImages } = useQuery<
@@ -196,7 +203,9 @@ export function StaticVizEditPage() {
     })
 
     const currentMutation = isEditing ? updateMutation : createMutation
-    const currentTitle = isEditing ? "Edit Static Viz" : "Create Static Viz"
+    const currentTitle = isEditing
+        ? "Edit static visualization"
+        : "Create static visualization"
 
     const handleCancel = () => {
         history.push("/static-viz")
@@ -231,7 +240,7 @@ export function StaticVizEditPage() {
                 <p className="static-viz-edit-form__description">
                     Add additional metadata to our bespoke static
                     visualizations. You can document how the visualization was
-                    produced and link back to its source data with a grapher
+                    created and link to its data source using either a Grapher
                     slug or an external URL.
                 </p>
                 <Form
@@ -241,133 +250,161 @@ export function StaticVizEditPage() {
                     onFinish={handleSubmit}
                     initialValues={initalValues}
                 >
-                    <Form.Item
-                        label="Name"
-                        name="name"
-                        rules={[
-                            { required: true, message: "Please enter a name" },
-                            {
-                                pattern: /^[a-z-]+$/,
-                                message:
-                                    "Name must be lowercase and contain only letters and hyphens",
-                            },
-                        ]}
-                    >
-                        <Input placeholder="e.g. ac-adoption-data-insight" />
+                    <div className="static-viz-edit-form__section">
+                        <h2>Internal references</h2>
                         <p className="static-viz-edit-form__description">
-                            A unique identifier for the static visualization.
-                            Used to refer to it in an ArchieML Gdoc.
+                            This information is used to reference the
+                            visualization in our content management system.
                         </p>
-                    </Form.Item>
 
-                    <Form.Item label="Description" name="description">
-                        <TextArea
-                            rows={4}
-                            placeholder={`How this data visualization was produced e.g. 
-1. Data was downloaded from [source]
-2. Data was processed via scripts at https://github.com/owid/notebooks/blah
-3. Script output was arranged in Figma`}
-                        />
+                        <h4 className="static-viz-edit-form__heading--required">
+                            Name
+                        </h4>
                         <p className="static-viz-edit-form__description">
-                            A brief description of how the static visualization
-                            was produced, for our readers.
+                            A unique identifier used to reference this
+                            visualization in ArchieML documents (with the{" "}
+                            {"{.static-viz}"} tag).
                         </p>
-                    </Form.Item>
-
-                    <h3 className="static-viz-edit-form__heading--required">
-                        Data
-                    </h3>
-                    <p>
-                        The source of the visualization's data. One of the
-                        following two fields must be provided
-                    </p>
-                    <Form.Item
-                        label="Grapher Slug"
-                        name="grapherSlug"
-                        dependencies={["sourceUrl"]}
-                        rules={[requiresGrapherOrSourceRule("sourceUrl")]}
-                    >
-                        <Select
-                            placeholder="e.g. life-expectancy"
-                            loading={!grapherSlugs}
-                            showSearch
-                            allowClear
-                            filterOption={(input, option) =>
-                                option?.children
-                                    ?.toString()
-                                    .toLowerCase()
-                                    .includes(input.toLowerCase()) ?? false
-                            }
-                        >
-                            {grapherSlugs?.map((slug: string) => (
-                                <Option key={slug} value={slug}>
-                                    {slug}
-                                </Option>
-                            ))}
-                        </Select>
-                    </Form.Item>
-
-                    <Form.Item
-                        label="Source URL"
-                        name="sourceUrl"
-                        dependencies={["grapherSlug"]}
-                        rules={[requiresGrapherOrSourceRule("grapherSlug")]}
-                    >
-                        <Input placeholder="e.g. https://www.mortality.org/Data/ZippedDataFiles" />
-                    </Form.Item>
-
-                    <div className="static-viz-edit-form__image-section">
-                        <h3 className="static-viz-edit-form__heading--required">
-                            Main image
-                        </h3>
                         <Form.Item
-                            name="imageId"
+                            name="name"
                             rules={[
                                 {
                                     required: true,
-                                    message: "Please select an image",
+                                    message: "Please enter a name",
+                                },
+                                {
+                                    pattern: /^[a-z-]+$/,
+                                    message:
+                                        "Name must be lowercase and contain only letters and hyphens",
                                 },
                             ]}
                         >
-                            <Select
-                                placeholder="Select an image"
-                                loading={isLoadingImages}
-                                showSearch
-                                filterOption={(input, option) =>
-                                    option?.children
-                                        ?.toString()
-                                        .toLowerCase()
-                                        .includes(input.toLowerCase()) ?? false
-                                }
-                            >
-                                {imagesData?.map((image: any) => (
-                                    <Option key={image.id} value={image.id}>
-                                        {image.filename}
-                                    </Option>
-                                ))}
-                            </Select>
+                            <Input placeholder="e.g. ac-adoption-data-insight" />
                         </Form.Item>
 
-                        <Form.Item>
-                            <ImagePreview
-                                imagesData={imagesData}
-                                imageId={form.getFieldValue("imageId")}
-                            />
-                        </Form.Item>
+                        <div className="static-viz-edit-form__image-section">
+                            <h4 className="static-viz-edit-form__heading--required">
+                                Desktop image
+                            </h4>
+                            <p className="static-viz-edit-form__description">
+                                Link this metadata to an existing image in our
+                                library.
+                            </p>
+                            <Form.Item
+                                name="imageId"
+                                rules={[
+                                    {
+                                        required: true,
+                                        message: "Please select an image",
+                                    },
+                                ]}
+                            >
+                                <Select
+                                    placeholder="Select an image from the library"
+                                    loading={isLoadingImages}
+                                    showSearch
+                                    filterOption={(input, option) =>
+                                        option?.children
+                                            ?.toString()
+                                            .toLowerCase()
+                                            .includes(input.toLowerCase()) ??
+                                        false
+                                    }
+                                >
+                                    {imagesData?.map((image: any) => (
+                                        <Option key={image.id} value={image.id}>
+                                            {image.filename}
+                                        </Option>
+                                    ))}
+                                </Select>
+                            </Form.Item>
+
+                            <Form.Item>
+                                <ImagePreview
+                                    imagesData={imagesData}
+                                    imageId={form.getFieldValue("imageId")}
+                                />
+                            </Form.Item>
+                        </div>
+
+                        <div className="static-viz-edit-form__image-section">
+                            <h4>Mobile image</h4>
+                            <p className="static-viz-edit-form__description">
+                                Optional: also link the same metadata to a
+                                version optimized for narrow screens.
+                            </p>
+                            <Form.Item name="mobileImageId">
+                                <Select
+                                    placeholder="Select a mobile image from the library (optional)"
+                                    loading={isLoadingImages}
+                                    allowClear
+                                    showSearch
+                                    filterOption={(input, option) =>
+                                        option?.children
+                                            ?.toString()
+                                            .toLowerCase()
+                                            .includes(input.toLowerCase()) ??
+                                        false
+                                    }
+                                >
+                                    {imagesData?.map((image: any) => (
+                                        <Option key={image.id} value={image.id}>
+                                            {image.filename}
+                                        </Option>
+                                    ))}
+                                </Select>
+                            </Form.Item>
+
+                            <Form.Item>
+                                <ImagePreview
+                                    imagesData={imagesData}
+                                    imageId={form.getFieldValue(
+                                        "mobileImageId"
+                                    )}
+                                />
+                            </Form.Item>
+                        </div>
                     </div>
-                    <div className="static-viz-edit-form__image-section">
-                        <h3>Mobile image</h3>
+
+                    <div className="static-viz-edit-form__section">
+                        <h2>Information for readers</h2>
                         <p className="static-viz-edit-form__description">
-                            If you've created a version of the visualization
-                            specifically for narrow screens, you can specify it
-                            here.
+                            This information will be displayed publicly to help
+                            readers understand the visualization.
                         </p>
-                        <Form.Item name="mobileImageId">
+
+                        <h4>Description</h4>
+                        <p className="static-viz-edit-form__description">
+                            Explain how this visualization was created.
+                        </p>
+                        <Form.Item name="description">
+                            <TextArea
+                                rows={3}
+                                placeholder={`1. The data was downloaded from [source](https://example.org)
+2. It was then processed using scripts stored at https://github.com/owid/notebooks/blah
+3. The output chart was then improved in Figma`}
+                            />
+                        </Form.Item>
+
+                        <h4 className="static-viz-edit-form__heading--required">
+                            Data source
+                        </h4>
+                        <p>
+                            Provide either a Grapher slug, if your visualization
+                            was directly derived from a Grapher chart; or an
+                            external URL. One of these is required.
+                        </p>
+                        <h6>Grapher slug</h6>
+                        <Form.Item
+                            name="grapherSlug"
+                            dependencies={["sourceUrl"]}
+                            rules={[requiresGrapherOrSourceRule("sourceUrl")]}
+                        >
                             <Select
-                                placeholder="Select a mobile image (optional)"
-                                loading={isLoadingImages}
-                                allowClear
+                                placeholder="e.g. life-expectancy"
+                                loading={!grapherSlugs}
                                 showSearch
+                                allowClear
                                 filterOption={(input, option) =>
                                     option?.children
                                         ?.toString()
@@ -375,19 +412,21 @@ export function StaticVizEditPage() {
                                         .includes(input.toLowerCase()) ?? false
                                 }
                             >
-                                {imagesData?.map((image: any) => (
-                                    <Option key={image.id} value={image.id}>
-                                        {image.filename}
+                                {grapherSlugs?.map((slug: string) => (
+                                    <Option key={slug} value={slug}>
+                                        {slug}
                                     </Option>
                                 ))}
                             </Select>
                         </Form.Item>
 
-                        <Form.Item>
-                            <ImagePreview
-                                imagesData={imagesData}
-                                imageId={form.getFieldValue("mobileImageId")}
-                            />
+                        <h6>Source URL</h6>
+                        <Form.Item
+                            name="sourceUrl"
+                            dependencies={["grapherSlug"]}
+                            rules={[requiresGrapherOrSourceRule("grapherSlug")]}
+                        >
+                            <Input placeholder="e.g., https://www.mortality.org/Data/ZippedDataFiles" />
                         </Form.Item>
                     </div>
 
