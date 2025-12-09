@@ -3,7 +3,7 @@ $timelineHeight: 32px;
 .GrapherTimeline {
     $font-size: 13px;
 
-    // Diameter of the start and and handle
+    // Diameter of the start and end handle
     $handle-diameter: 20px; // keep in sync with HANDLE_DIAMETER in TimelineComponent.tsx
 
     // Start and end handles
@@ -32,7 +32,6 @@ $timelineHeight: 32px;
         color: $dark-text;
         height: 100%;
         font-weight: 400;
-        color: $dark-text;
         padding: 0 8px;
         place-content: center;
         margin-right: 0;
@@ -122,7 +121,7 @@ $timelineHeight: 32px;
                 margin-left: 4px;
             }
 
-            .EditableTimeTooltip__Text {
+            .EditableTimeTooltip__Button {
                 cursor: text;
                 padding: 8px;
                 background: white;
