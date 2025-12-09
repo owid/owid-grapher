@@ -5,6 +5,7 @@
 **Goal**: Replace the current `Google Docs AST → ArchieML text → Enriched Blocks` pipeline with a direct `Google Docs AST ↔ Enriched Blocks` transformation, enabling paragraph-level round-tripping for selective updates.
 
 **Verdict**: Feasible with structural adaptations. The main work involves:
+
 1. Creating an intermediate `GdocParagraph` structure that preserves source positions
 2. Implementing custom ArchieML-aware parsing to group paragraphs into blocks
 3. Adding metadata to track which source paragraphs map to which enriched blocks
@@ -15,6 +16,7 @@
 ## Current Pipeline
 
 ### Read Path (Today)
+
 ```
 Google Docs JSON (docs_v1.Schema$Document)
     ↓ gdocToArchie.ts - converts paragraphs to ArchieML text string, spans to HTML
@@ -26,6 +28,7 @@ OwidEnrichedGdocBlock[] (with Span trees)
 ```
 
 ### Write Path (Today)
+
 ```
 OwidEnrichedGdocBlock[]
     ↓ enrichedToRaw.ts → rawToArchie.ts → archieToGdoc.ts
@@ -53,12 +56,14 @@ More body text here.              ← Paragraph 6
 ```
 
 This becomes 4 `EnrichedBlock` objects:
+
 1. `EnrichedBlockChart` (from paragraphs 1-3, via ArchieML syntax)
 2. `EnrichedBlockText` (from paragraph 4)
 3. `EnrichedBlockHeading` (from paragraph 5, via native Google Docs heading style)
 4. `EnrichedBlockText` (from paragraph 6)
 
 **Two mechanisms for block creation:**
+
 - **ArchieML syntax**: Most components use `{.blockType}...{}` markers spanning multiple paragraphs
 - **Native paragraph styles**: Headings use Google Docs' built-in HEADING_1, HEADING_2, etc. styles (1 paragraph = 1 block)
 
@@ -69,16 +74,19 @@ This becomes 4 `EnrichedBlock` objects:
 ## Google Docs API Constraints
 
 ### Positioning
+
 - **No stable paragraph IDs**: Elements identified by `startIndex`/`endIndex` (UTF-16 offsets)
 - **Indices shift on edits**: Insertions increment all higher indices
 - **Best practice**: Process write operations in reverse index order
 
 ### Suggestions (Docs API)
+
 - Built into document structure via `suggestedInsertionIds` and `suggestedDeletionIds` on text runs
 - Three view modes: `SUGGESTIONS_INLINE`, `PREVIEW_WITHOUT_SUGGESTIONS`, `PREVIEW_WITH_SUGGESTIONS`
 - Reading is well-supported; programmatic creation is limited
 
 ### Comments (Drive API - separate!)
+
 - Fetched via Drive API (`drive.comments.list`), not Docs API
 - Anchors are JSON strings with `revisionID` and `region`
 - **Anchors are immutable** - position cannot be guaranteed across revisions
@@ -90,15 +98,15 @@ This becomes 4 `EnrichedBlock` objects:
 
 Current spans map directly to Google Docs:
 
-| Span Type | Google Docs Equivalent |
-|-----------|----------------------|
-| `span-simple-text` | `TextRun.content` |
-| `span-bold` | `TextStyle.bold: true` |
-| `span-italic` | `TextStyle.italic: true` |
-| `span-link` | `TextStyle.link.url` |
+| Span Type          | Google Docs Equivalent                    |
+| ------------------ | ----------------------------------------- |
+| `span-simple-text` | `TextRun.content`                         |
+| `span-bold`        | `TextStyle.bold: true`                    |
+| `span-italic`      | `TextStyle.italic: true`                  |
+| `span-link`        | `TextStyle.link.url`                      |
 | `span-superscript` | `TextStyle.baselineOffset: "SUPERSCRIPT"` |
-| `span-subscript` | `TextStyle.baselineOffset: "SUBSCRIPT"` |
-| `span-underline` | `TextStyle.underline: true` |
+| `span-subscript`   | `TextStyle.baselineOffset: "SUBSCRIPT"`   |
+| `span-underline`   | `TextStyle.underline: true`               |
 
 **Good news**: `gdocToArchie.ts` already builds `Span` trees directly from Google Docs AST (lines 23-49, 277-339). This logic can be reused.
 
@@ -131,17 +139,18 @@ Modified OwidEnrichedGdocBlock[]
 // Represents a single Google Docs paragraph with preserved source info
 interface GdocParagraph {
     // Content
-    text: string                    // Plain text (for ArchieML parsing)
-    spans: Span[]                   // Rich formatting (for text blocks)
+    text: string // Plain text (for ArchieML parsing)
+    spans: Span[] // Rich formatting (for text blocks)
 
     // Source tracking (for write-back)
-    index: number                   // Position in document.body.content[]
-    startIndex: number              // UTF-16 offset start
-    endIndex: number                // UTF-16 offset end
+    index: number // Position in document.body.content[]
+    startIndex: number // UTF-16 offset start
+    endIndex: number // UTF-16 offset end
 
     // Paragraph metadata
-    paragraphStyle?: string         // "HEADING_1", "HEADING_2", etc.
-    bullet?: {                      // If this is a list item
+    paragraphStyle?: string // "HEADING_1", "HEADING_2", etc.
+    bullet?: {
+        // If this is a list item
         nestingLevel: number
         listId: string
     }
@@ -165,20 +174,21 @@ interface ParsedBlock {
     type: "freeform" | "object" | "array"
 
     // For objects like {.chart}...{}
-    blockType?: string              // "chart", "heading", etc.
+    blockType?: string // "chart", "heading", etc.
     properties?: Record<string, string | GdocParagraph[]>
 
     // For freeform text (paragraphs between blocks)
     paragraphs?: GdocParagraph[]
 
     // Source tracking
-    sourceParagraphs: GdocParagraph[]   // All paragraphs that make up this block
-    startIndex: number                   // First paragraph's startIndex
-    endIndex: number                     // Last paragraph's endIndex
+    sourceParagraphs: GdocParagraph[] // All paragraphs that make up this block
+    startIndex: number // First paragraph's startIndex
+    endIndex: number // Last paragraph's endIndex
 }
 ```
 
 **Parsing logic:**
+
 1. Check paragraph style first - if HEADING_1/HEADING_2/etc., emit `EnrichedBlockHeading` immediately (1 paragraph = 1 block)
 2. Detect ArchieML block start markers: `{.chart}`, `{.image}`, `[.list]`, etc.
 3. Detect block end markers: `{}`, `[]`
@@ -232,7 +242,7 @@ type SpanComment = {
     author?: string
     resolved: boolean
     replies?: Array<{ author: string; content: string }>
-    children: Span[]  // The commented text
+    children: Span[] // The commented text
 }
 ```
 
@@ -243,22 +253,26 @@ type SpanComment = {
 ### Phase 1: Intermediate Structure + Direct Parser (Read Path)
 
 **1a. Create GdocParagraph conversion**
+
 - Convert `docs_v1.Schema$Paragraph` → `GdocParagraph`
 - Preserve spans, indices, paragraph styles
 - Handle suggestions by wrapping in new span types
 
 **1b. Implement custom ArchieML parser**
+
 - Parse paragraph sequence for block markers
 - Group paragraphs into logical blocks
 - Handle nested structures (arrays, objects)
 - Track source paragraph ranges
 
 **1c. Convert to EnrichedBlocks**
+
 - Map parsed blocks to `OwidEnrichedGdocBlock` types
 - Apply semantic transformations (`{ref}` syntax, URL patterns, etc.)
 - Attach `_source` metadata
 
 **Files**:
+
 - `db/model/Gdoc/GdocParagraph.ts` (NEW) - intermediate structure + conversion
 - `db/model/Gdoc/archieMLParser.ts` (NEW) - custom ArchieML parsing
 - `db/model/Gdoc/gdocAstToEnriched.ts` (NEW) - orchestrates the pipeline
@@ -267,21 +281,25 @@ type SpanComment = {
 ### Phase 2: Selective Write-Back
 
 **2a. Paragraph alignment**
+
 - Re-fetch document, convert to `GdocParagraph[]`
 - Match enriched blocks to current paragraphs by fingerprint
 - Detect insertions, deletions, modifications
 
 **2b. Block-to-paragraphs conversion**
+
 - Convert modified `EnrichedBlock` back to ArchieML text
 - Split into paragraph-sized chunks
 - Generate Docs API requests for the paragraph range
 
 **2c. Batch update generation**
+
 - Compute `DeleteContentRange` + `InsertText` operations
 - Process in reverse index order
 - Handle conflicts (document edited since parse)
 
 **Files**:
+
 - `db/model/Gdoc/gdocDiff.ts` (NEW) - paragraph alignment + diff
 - `db/model/Gdoc/enrichedToGdocAst.ts` (NEW) - block → paragraph conversion
 - `db/model/Gdoc/archieToGdoc.ts` (modify) - support selective updates
@@ -294,6 +312,7 @@ type SpanComment = {
 4. Warn when writing to paragraphs with comments
 
 **Files**:
+
 - `db/model/Gdoc/gdocAstToEnriched.ts` (extend)
 - `packages/@ourworldindata/types/src/gdocTypes/Spans.ts` (add comment span)
 
@@ -308,18 +327,21 @@ type SpanComment = {
 ## Migration Strategy
 
 ### Parallel Operation
+
 1. Keep existing `gdocToArchie.ts` pipeline working
 2. Build new direct parser alongside
 3. Add feature flag to switch between pipelines
 4. Compare outputs during testing to ensure parity
 
 ### Testing Strategy
+
 - Parse same documents with both pipelines
 - Compare resulting `EnrichedBlock[]` structures
 - Verify all block types, spans, and metadata match
 - Round-trip tests: parse → modify → write → parse again
 
 ### Backward Compatibility
+
 - Existing `OwidEnrichedGdocBlock` types unchanged (new `_source` field is optional)
 - New suggestion/comment spans gracefully degrade (render children only if not supported)
 
@@ -327,13 +349,13 @@ type SpanComment = {
 
 ## Risk Assessment
 
-| Risk | Mitigation |
-|------|------------|
-| Custom ArchieML parser doesn't match library behavior | Comprehensive test suite comparing both parsers |
-| Semantic transformations missed in new parser | Test suite comparing old vs new parser output |
-| Index drift during concurrent editing | Re-fetch before write, use content matching, fail gracefully |
-| Multi-paragraph blocks harder to diff | Use paragraph-range fingerprints, not individual paragraphs |
-| Comment anchors become invalid | Warn user, offer to remove/recreate comments |
+| Risk                                                  | Mitigation                                                   |
+| ----------------------------------------------------- | ------------------------------------------------------------ |
+| Custom ArchieML parser doesn't match library behavior | Comprehensive test suite comparing both parsers              |
+| Semantic transformations missed in new parser         | Test suite comparing old vs new parser output                |
+| Index drift during concurrent editing                 | Re-fetch before write, use content matching, fail gracefully |
+| Multi-paragraph blocks harder to diff                 | Use paragraph-range fingerprints, not individual paragraphs  |
+| Comment anchors become invalid                        | Warn user, offer to remove/recreate comments                 |
 
 ---
 
