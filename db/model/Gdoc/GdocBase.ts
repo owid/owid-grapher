@@ -79,6 +79,10 @@ import {
     getAllNarrativeChartNames,
     getNarrativeChartsInfo,
 } from "../NarrativeChart.js"
+import {
+    fetchCalloutValuesForConfig,
+    generateCalloutKey,
+} from "./fetchCalloutValues.js"
 
 import { indexBy } from "remeda"
 import {
@@ -949,6 +953,51 @@ export class GdocBase implements OwidGdocBaseInterface {
         this.linkedStaticViz = _.keyBy(dbResults, "name")
     }
 
+    /**
+     * Load data for all data-callout blocks.
+     * For each callout, we fetch the chart config and construct the values JSON.
+     */
+    async loadLinkedCallouts(knex: db.KnexReadonlyTransaction): Promise<void> {
+        const calloutBlocks = this.dataCalloutBlocks
+        if (calloutBlocks.length === 0) return
+
+        const linkedCallouts: LinkedCallouts = {}
+        const slugToIdMap = await mapSlugsToIds(knex)
+
+        for (const block of calloutBlocks) {
+            const calloutKey = generateCalloutKey(block.url, block.entity)
+
+            // Skip if we already have this callout (deduplication)
+            if (linkedCallouts[calloutKey]) continue
+
+            // Extract slug from URL
+            const url = Url.fromURL(block.url)
+            const slug = url.slug
+            if (!slug) continue
+
+            // Get chart config from database
+            const chartId = slugToIdMap[slug]
+            if (!chartId) continue
+
+            const chartRecord = await getChartConfigById(knex, chartId)
+            if (!chartRecord) continue
+
+            // Fetch the callout values using the shared helper
+            const values = await fetchCalloutValuesForConfig(
+                chartRecord.config,
+                block.entity,
+                url.queryStr || undefined
+            )
+
+            linkedCallouts[calloutKey] = {
+                id: calloutKey,
+                values: values || { source: "" },
+            }
+        }
+
+        this.linkedCallouts = linkedCallouts
+    }
+
     async fetchAndEnrichGdoc(
         acceptSuggestions: boolean = false
     ): Promise<void> {
@@ -1215,6 +1264,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         await this.loadLinkedIndicators(knex) // depends on linked charts
         await this.loadNarrativeChartsInfo(knex)
         await this.loadLinkedStaticViz(knex)
+        await this.loadLinkedCallouts(knex)
         await this._loadSubclassAttachments(knex) // for GdocHomepage, mutates linkedCharts and linkedDocuments
         await this.validate(knex)
     }
