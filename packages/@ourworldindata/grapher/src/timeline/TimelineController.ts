@@ -5,8 +5,9 @@ import {
     TimeBoundValue,
     sleep,
     findClosestTime,
+    rollingMap,
 } from "@ourworldindata/utils"
-import { action } from "mobx"
+import { action, computed } from "mobx"
 import { TimeColumn } from "@ourworldindata/core-table"
 
 export enum TimelineDragTarget {
@@ -41,7 +42,7 @@ export class TimelineController {
         this.manager = manager
     }
 
-    private get timesAsc(): number[] {
+    get timesAsc(): number[] {
         // Note: assumes times is sorted in asc
         return this.manager.times
     }
@@ -65,16 +66,78 @@ export class TimelineController {
         return R.last(this.timesAsc)!
     }
 
-    calculateProgress(time: Time): number {
-        return (time - this.minTime) / (this.maxTime - this.minTime)
+    get timespan(): number {
+        return this.maxTime - this.minTime
+    }
+
+    /**
+     * Determines whether to use equal or proportional spacing for the timeline slider.
+     *
+     * When using equal spacing, each time point is given equal visual space on the slider.
+     * When using proportional spacing, time points are spaced based on their actual values.
+     */
+    @computed get shouldUseEqualSpacing(): boolean {
+        // Few time points always use continuous scale
+        if (this.timesAsc.length < 20) return false
+
+        // Short timespans always use continuous scale
+        if (this.timespan <= 500) return false
+
+        // Calculate gaps between consecutive time points
+        const gaps = rollingMap(this.timesAsc, (a, b) => b - a)
+
+        const topDecileSum = R.pipe(
+            gaps,
+            R.takeFirstBy(gaps.length * 0.1, [R.identity(), "desc"]),
+            R.sum()
+        )
+
+        return topDecileSum > this.timespan * 0.5
+    }
+
+    /**
+     * Converts a time value to a normalized progress value (0-1) representing
+     * its position on the timeline slider
+     */
+    timeToProgress(time: Time): number {
+        if (this.shouldUseEqualSpacing) {
+            // Equal spacing: each time point gets equal visual space
+            const index = this.timesAsc.indexOf(time)
+            if (index === -1) return 0
+            return this.timesAsc.length > 1
+                ? index / (this.timesAsc.length - 1)
+                : 0
+        } else {
+            // Proportional spacing: linear mapping based on time value
+            if (this.timespan === 0) return 0 // Handle single time point
+            return (time - this.minTime) / this.timespan
+        }
+    }
+
+    /**
+     * Converts a normalized progress value (0-1) to the corresponding time
+     * value on the timeline
+     */
+    progressToTime(progress: number): number {
+        if (this.shouldUseEqualSpacing) {
+            // Equal spacing: map progress to the nearest time index
+            if (this.timesAsc.length <= 1) return this.timesAsc[0]
+            const index = Math.round(progress * (this.timesAsc.length - 1))
+            return this.timesAsc[
+                R.clamp(index, { min: 0, max: this.timesAsc.length - 1 })
+            ]
+        } else {
+            // Proportional spacing: linear mapping based on time value
+            return this.minTime + progress * this.timespan
+        }
     }
 
     get startTimeProgress(): number {
-        return this.calculateProgress(this.startTime)
+        return this.timeToProgress(this.startTime)
     }
 
     get endTimeProgress(): number {
-        return this.calculateProgress(this.endTime)
+        return this.timeToProgress(this.endTime)
     }
 
     // Finds the index of `time` in the `timesAsc` array.
