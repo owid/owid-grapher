@@ -14,7 +14,7 @@ import { useSelectedRegionNames } from "./searchHooks.js"
 
 export const Searchbar = ({ allTopics }: { allTopics: string[] }) => {
     const {
-        state: { filters, query, requireAllCountries },
+        state,
         actions: {
             setQuery,
             addCountry,
@@ -25,14 +25,17 @@ export const Searchbar = ({ allTopics }: { allTopics: string[] }) => {
         },
     } = useSearchContext()
 
-    //
+    const { filters, query, requireAllCountries } = state
+
     const selectedRegionNames = useSelectedRegionNames(true)
     // Storing this in local state so that query params don't update during typing
     const [localQuery, setLocalQuery] = useState(query)
-    // sync local query with global query when browser navigation occurs
+    // Sync local query with global query when state changes (browser navigation,
+    // auto-filters applied, etc.). Using state object as dependency since it's
+    // memoized and only changes when URL actually changes.
     useEffect(() => {
         setLocalQuery(query)
-    }, [query])
+    }, [query, state])
 
     const inputRef = useRef<HTMLInputElement>(null)
 

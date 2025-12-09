@@ -271,10 +271,7 @@ export interface SearchActions {
     removeFilter: (filter: Filter) => void
     toggleRequireAllCountries: () => void
     setResultType: (resultType: SearchResultType) => void
-    replaceQueryWithFilters: (
-        filters: Filter[],
-        matchedPositions: number[]
-    ) => void
+    replaceQueryWithFilter: (filter: ScoredFilterPositioned) => void
     reset: () => void
 }
 
