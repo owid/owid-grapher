@@ -74,20 +74,6 @@ function LineWithDots({
 }): React.ReactElement {
     return (
         <g id={id} opacity={opacity} className="slope">
-            <circle
-                id={makeIdForHumanConsumption("start-point")}
-                cx={startPoint.x}
-                cy={startPoint.y}
-                r={radius}
-                fill={color}
-            />
-            <circle
-                id={makeIdForHumanConsumption("end-point")}
-                cx={endPoint.x}
-                cy={endPoint.y}
-                r={radius}
-                fill={color}
-            />
             <line
                 id={makeIdForHumanConsumption("line")}
                 x1={startPoint.x}
