@@ -4,6 +4,7 @@ import {
     GrapherValuesJson,
     GrapherValuesJsonDataPoints,
     GrapherValuesJsonDataPoint,
+    GrapherValuesJsonDimension,
     OwidVariableRow,
     PrimitiveType,
     Time,
@@ -94,7 +95,9 @@ const makeColumnInfoForRelevantSlugs = (
     return dimInfo
 }
 
-const makeColumnInfo = (column: CoreColumn) => {
+const makeColumnInfo = (
+    column: CoreColumn
+): GrapherValuesJsonDimension | undefined => {
     if (column.isMissing) return undefined
 
     return omitUndefinedValues({
@@ -175,5 +178,7 @@ const makeDimensionValueForColumnAndTime = (
  * applied to grapherState.transformedTable (e.g. relative mode in
  * line charts).
  */
-const getTransformedColumn = (grapherState: GrapherState, slug?: string) =>
-    grapherState.chartState.transformedTable.get(slug)
+const getTransformedColumn = (
+    grapherState: GrapherState,
+    slug?: string
+): CoreColumn => grapherState.chartState.transformedTable.get(slug)

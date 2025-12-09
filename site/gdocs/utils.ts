@@ -1,11 +1,7 @@
-import { useContext } from "react"
-
+import { useContext, createContext } from "react"
 import {
-    getCanonicalUrl,
-    getLinkType,
-    getUrlTarget,
-} from "@ourworldindata/components"
-import {
+    GrapherValuesJson,
+    CalloutFunction,
     ImageMetadata,
     LinkedChart,
     OwidGdocPostContent,
@@ -19,14 +15,22 @@ import {
     OwidEnrichedGdocBlockTypeMap,
     LinkedStaticViz,
 } from "@ourworldindata/types"
+
+import {
+    getCanonicalUrl,
+    getLinkType,
+    getUrlTarget,
+} from "@ourworldindata/components"
 import {
     formatAuthors,
+    makeLinkedCalloutKey,
     traverseEnrichedBlock,
     Url,
 } from "@ourworldindata/utils"
 import { AttachmentsContext } from "./AttachmentsContext.js"
 import { PROD_URL, SubnavItem, subnavs } from "../SiteConstants.js"
 import { BAKED_BASE_URL, IS_ARCHIVE } from "../../settings/clientSettings.js"
+import { match } from "ts-pattern"
 
 const getOrigin = (url: string, base?: string): string | undefined => {
     try {
@@ -202,6 +206,83 @@ export const useLinkedStaticViz = (
 ): LinkedStaticViz | undefined => {
     const { linkedStaticViz } = useContext(AttachmentsContext)
     return linkedStaticViz?.[name]
+}
+
+/**
+ * Context provided to span-callout spans within a data-callout block.
+ * Contains the URL and entity from the parent data-callout, and the
+ * linked callout data from attachments.
+ */
+export interface DataCalloutContextType {
+    url: string
+}
+
+export const DataCalloutContext = createContext<DataCalloutContextType | null>(
+    null
+)
+
+/**
+ * Look up a value from GrapherValuesJson based on the callout function name.
+ * Returns the formatted value or undefined if not found.
+ */
+export function getCalloutValue(
+    values: GrapherValuesJson,
+    functionName: CalloutFunction,
+    parameters: string[]
+): string | undefined {
+    return match(functionName)
+        .with("latestValue", () => {
+            const columnName = parameters[0]
+            const columnSlug = values.columns
+                ? Object.entries(values.columns).find(
+                      ([_, col]) => col.name === columnName
+                  )?.[0]
+                : undefined
+            if (!columnSlug) return undefined
+
+            // Find the column with matching name in endValues.y
+            const dataPoint = values.endValues?.y?.find((dp) => {
+                return dp.columnSlug === String(columnSlug)
+            })
+
+            return dataPoint?.formattedValue
+        })
+        .with("latestYear", () => {
+            const columnName = parameters[0]
+            const columnSlug = values.columns
+                ? Object.entries(values.columns).find(
+                      ([_, col]) => col.name === columnName
+                  )?.[0]
+                : undefined
+            if (!columnSlug) return undefined
+
+            // Find the column with matching name in endValues.y
+            const dataPoint = values.endValues?.y?.find((dp) => {
+                return dp.columnSlug === String(columnSlug)
+            })
+
+            return dataPoint?.formattedTime
+        })
+        .with("entity", () => values.entityName)
+        .exhaustive()
+}
+
+export function useCalloutValue(
+    functionName: CalloutFunction,
+    parameters: string[]
+): string | undefined {
+    const { linkedCallouts = {} } = useContext(AttachmentsContext)
+    const calloutContext = useContext(DataCalloutContext)
+
+    if (!calloutContext) return undefined
+
+    const key = makeLinkedCalloutKey(calloutContext.url)
+
+    const linkedCallout = linkedCallouts[key]
+
+    if (!linkedCallout?.values) return undefined
+
+    return getCalloutValue(linkedCallout.values, functionName, parameters)
 }
 
 export function getShortPageCitation(

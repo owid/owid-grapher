@@ -645,6 +645,20 @@ export type EnrichedBlockCallout = {
     text: (EnrichedBlockText | EnrichedBlockHeading | EnrichedBlockList)[]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockDataCallout = {
+    type: "data-callout"
+    value: {
+        url?: string
+        content?: RawBlockText[]
+    }
+}
+
+export type EnrichedBlockDataCallout = {
+    type: "data-callout"
+    url: string
+    content: EnrichedBlockText[]
+} & EnrichedBlockWithParseErrors
+
 export type RawBlockTopicPageIntro = {
     type: "topic-page-intro"
     value: {
@@ -1145,6 +1159,7 @@ export type OwidRawGdocBlock =
     | RawBlockAllCharts
     | RawBlockAside
     | RawBlockCallout
+    | RawBlockDataCallout
     | RawBlockChart
     | RawBlockExpander
     | RawBlockNarrativeChart
@@ -1207,6 +1222,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockText
     | EnrichedBlockAside
     | EnrichedBlockCallout
+    | EnrichedBlockDataCallout
     | EnrichedBlockChart
     | EnrichedBlockExpander
     | EnrichedBlockNarrativeChart

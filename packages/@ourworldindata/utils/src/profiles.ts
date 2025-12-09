@@ -17,6 +17,7 @@ import {
 } from "@ourworldindata/types"
 
 import { generateToc, traverseEnrichedBlock } from "./Util.js"
+import { Url } from "./urls/Url.js"
 
 export type ProfileEntity = Pick<Region, "name" | "code">
 
@@ -402,4 +403,25 @@ export function checkShouldConditionalSectionRender({
     const { resolved: excludeRegions } = resolveRegionList(exclude)
 
     return calculateRenderLogic(entityRegion, includeRegions, excludeRegions)
+}
+
+/**
+ * Data callout utils
+ */
+
+// Generate a key for storing/retrieving CalloutGrapherState based on URL without country param
+export function makeCalloutGrapherStateKey(fullUrl: string): string {
+    const url = Url.fromURL(fullUrl)
+    const withoutCountry = url.updateQueryParams({
+        country: undefined,
+    })
+    const key = withoutCountry.pathname + withoutCountry.queryStr
+    return key
+}
+
+// Generate a key for LinkedCallouts based on full URL (including country param)
+export function makeLinkedCalloutKey(fullUrl: string): string {
+    const url = Url.fromURL(fullUrl)
+    const key = url.pathname + url.queryStr
+    return key
 }

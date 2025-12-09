@@ -122,10 +122,12 @@ export class OwidAdminApp {
                         )
                         if (entityInScope) {
                             const instantiatedProfile =
-                                instantiateProfileForEntity(
+                                await instantiateProfileForEntity(
                                     gdoc as GdocProfile,
-                                    entityInScope
+                                    entityInScope,
+                                    { knex }
                                 )
+
                             res.set("X-Robots-Tag", "noindex")
                             res.send(
                                 renderToHtmlPage(

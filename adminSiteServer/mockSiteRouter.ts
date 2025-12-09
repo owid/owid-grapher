@@ -714,9 +714,10 @@ getPlainRouteWithROTransaction(
                 return res.status(404).send(renderNotFoundPage())
             }
 
-            const instantiatedProfile = instantiateProfileForEntity(
+            const instantiatedProfile = await instantiateProfileForEntity(
                 gdoc as GdocProfile,
-                entity
+                entity,
+                { knex: trx }
             )
 
             return res.send(renderGdoc(instantiatedProfile, true))

@@ -744,6 +744,15 @@ export function enrichedBlockToRawBlock(
                 })),
             }
         })
+        .with({ type: "data-callout" }, (b) => ({
+            type: "data-callout" as const,
+            value: {
+                url: b.url,
+                content: b.content.map(
+                    enrichedBlockToRawBlock
+                ) as RawBlockText[],
+            },
+        }))
         .exhaustive()
 }
 

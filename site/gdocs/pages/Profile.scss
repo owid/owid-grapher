@@ -2,4 +2,9 @@
     h1.article-block__heading {
         @include h1-hr;
     }
+
+    // Whichever block comes before the citation footer
+    > [class*="article-block__"]:has(+ #article-citation) {
+        margin-bottom: 48px;
+    }
 }
