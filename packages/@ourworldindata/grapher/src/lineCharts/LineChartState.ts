@@ -383,14 +383,6 @@ export class LineChartState implements ChartState, ColorScaleManager {
     @computed get errorInfo(): ChartErrorInfo {
         const message = getDefaultFailMessage(this.manager)
         if (message) return { reason: message }
-        if (
-            this.manager.startTime !== undefined &&
-            this.manager.startTime === this.manager.endTime
-        )
-            return {
-                reason: "Two time points needed",
-                help: "Click the timeline to select a second time point",
-            }
 
         const { entityTypePlural = "entities" } = this.manager
         if (!this.series.length)
