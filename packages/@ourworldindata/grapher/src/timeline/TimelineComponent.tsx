@@ -4,13 +4,12 @@ import { select } from "d3-selection"
 import cx from "classnames"
 import {
     getRelativeMouse,
-    isMobile,
     Bounds,
     Time,
     parseIntOrUndefined,
     isTouchDevice,
 } from "@ourworldindata/utils"
-import { observable, computed, action, makeObservable } from "mobx"
+import { observable, computed, action, makeObservable, reaction } from "mobx"
 import { observer } from "mobx-react"
 import { faPlay, faPause } from "@fortawesome/free-solid-svg-icons"
 import {
@@ -28,7 +27,7 @@ import {
 export const TIMELINE_HEIGHT = 32 // Keep in sync with $timelineHeight in TimelineComponent.scss
 
 const HANDLE_DIAMETER = 20 // Keep in sync with $handle-diameter in TimelineComponent.scss
-const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
+const HANDLE_TOOLTIP_FADE_TIME_MS_MOBILE = 1000 // Brief delay after drag on mobile
 
 const SLIDER_CLASS = "GrapherTimeline__Slider"
 const PLAY_BUTTON_CLASS = "GrapherTimeline__PlayButton"
@@ -59,6 +58,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
     private slider?: Element | HTMLElement | null
     private playButton?: Element | HTMLElement | null
+    private disposers: (() => void)[] = []
 
     constructor(props: TimelineComponentProps) {
         super(props)
@@ -99,8 +99,12 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         return this.props.timelineController
     }
 
+    @computed private get isTouchDevice(): boolean {
+        return isTouchDevice()
+    }
+
     @computed private get canEditTimeViaTooltip(): boolean {
-        return !isTouchDevice()
+        return !this.isTouchDevice
     }
 
     private get sliderBounds(): Bounds {
@@ -129,11 +133,19 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         this.showTooltips()
     }
 
-    @action.bound private showTooltips(): void {
-        this.hideStartTooltip.cancel()
-        this.hideEndTooltip.cancel()
+    @action.bound private showStartTooltip(): void {
+        this.hideStartTooltipWithDelay.cancel()
         this.startTooltipVisible = true
+    }
+
+    @action.bound private showEndTooltip(): void {
+        this.hideEndTooltipWithDelay.cancel()
         this.endTooltipVisible = true
+    }
+
+    @action.bound private showTooltips(): void {
+        this.showStartTooltip()
+        this.showEndTooltip()
 
         if (this.dragTarget === "start")
             this.lastUpdatedTooltip = MarkerType.Start
@@ -209,13 +221,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
         if (this.manager.isPlaying) return
 
-        if (isMobile()) {
-            if (this.startTooltipVisible) this.hideStartTooltip()
-            if (this.endTooltipVisible) this.hideEndTooltip()
-        } else if (!this.mouseHoveringOverTimeline) {
-            this.startTooltipVisible = false
-            this.endTooltipVisible = false
-        }
+        this.hideTooltipsAfterInteraction()
     }
 
     @computed private get areBothHandlesVisible(): boolean {
@@ -265,11 +271,8 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     @action.bound private onMouseOverSlider(event: MouseEvent): void {
         this.mouseHoveringOverTimeline = true
 
-        this.hideStartTooltip.cancel()
-        this.startTooltipVisible = true
-
-        this.hideEndTooltip.cancel()
-        this.endTooltipVisible = true
+        this.showStartTooltip()
+        this.showEndTooltip()
 
         this.setHoverTime(event)
     }
@@ -289,16 +292,35 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         if (!this.editHandle) this.resetEditState()
     }
 
-    private hideStartTooltip = _.debounce(() => {
+    private hideStartTooltipWithDelay = _.debounce(() => {
         this.startTooltipVisible = false
-    }, HANDLE_TOOLTIP_FADE_TIME_MS)
-    private hideEndTooltip = _.debounce(() => {
+    }, HANDLE_TOOLTIP_FADE_TIME_MS_MOBILE)
+    private hideEndTooltipWithDelay = _.debounce(() => {
         this.endTooltipVisible = false
-    }, HANDLE_TOOLTIP_FADE_TIME_MS)
+    }, HANDLE_TOOLTIP_FADE_TIME_MS_MOBILE)
+
+    @action.bound private hideTooltipsAfterInteraction(): void {
+        if (this.isTouchDevice) {
+            // On mobile, hide after a brief delay so user can see final values
+            this.hideStartTooltipWithDelay()
+            this.hideEndTooltipWithDelay()
+        } else if (!this.mouseHoveringOverTimeline) {
+            // On desktop, hide immediately if not hovering
+            this.startTooltipVisible = false
+            this.endTooltipVisible = false
+        }
+    }
 
     @action.bound private onPlayTouchEnd(evt: Event): void {
         evt.preventDefault()
         evt.stopPropagation()
+
+        // Show tooltips when starting playback
+        if (!this.manager.isPlaying) {
+            this.showStartTooltip()
+            this.showEndTooltip()
+        }
+
         void this.controller.togglePlay()
     }
 
@@ -332,6 +354,17 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         this.playButton?.addEventListener("touchend", this.onPlayTouchEnd, {
             passive: false,
         })
+
+        // Hide tooltips when playback stops
+        this.disposers.push(
+            reaction(
+                () => this.manager.isPlaying,
+                (isPlaying, wasPlaying) => {
+                    if (wasPlaying && !isPlaying)
+                        this.hideTooltipsAfterInteraction()
+                }
+            )
+        )
     }
 
     override componentWillUnmount(): void {
@@ -351,6 +384,8 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         )
         this.slider?.removeEventListener("touchstart", this.onSliderTouchStart)
         this.playButton?.removeEventListener("touchend", this.onPlayTouchEnd)
+
+        this.disposers.forEach((dispose) => dispose())
     }
 
     private formatTime(time: number): string {
@@ -540,8 +575,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                 className={cx(GRAPHER_TIMELINE_CLASS, {
                     [`${GRAPHER_TIMELINE_CLASS}--hover`]:
                         this.mouseHoveringOverTimeline,
-                    [`${GRAPHER_TIMELINE_CLASS}--touch`]:
-                        !this.canEditTimeViaTooltip,
+                    [`${GRAPHER_TIMELINE_CLASS}--touch`]: this.isTouchDevice,
                 })}
                 style={{ padding: `0 ${GRAPHER_FRAME_PADDING_HORIZONTAL}px` }}
                 role="group"
