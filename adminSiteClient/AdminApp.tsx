@@ -141,11 +141,9 @@ export class AdminApp extends React.Component<{
                                         const params = new URLSearchParams(
                                             location.search
                                         )
-                                        const config = params.get("config")
-                                        const grapherConfig = config
-                                            ? JSON.parse(
-                                                  decodeURIComponent(config)
-                                              )
+                                        const configParam = params.get("config")
+                                        const grapherConfig = configParam
+                                            ? JSON.parse(configParam)
                                             : undefined
                                         return (
                                             <ChartEditorPage
@@ -161,11 +159,9 @@ export class AdminApp extends React.Component<{
                                         const params = new URLSearchParams(
                                             location.search
                                         )
-                                        const config = params.get("config")
-                                        const grapherConfig = config
-                                            ? JSON.parse(
-                                                  decodeURIComponent(config)
-                                              )
+                                        const configParam = params.get("config")
+                                        const grapherConfig = configParam
+                                            ? JSON.parse(configParam)
                                             : undefined
                                         return (
                                             <ChartEditorPage

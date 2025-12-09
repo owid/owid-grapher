@@ -182,6 +182,14 @@ class VariableEditor extends Component<{
         )
     }
 
+    @computed get configUrlParams() {
+        if (!this.grapherState) return undefined
+
+        const grapherConfigJson = JSON.stringify(this.grapherState.object)
+        const params = new URLSearchParams({ config: grapherConfigJson })
+        return params.toString()
+    }
+
     override render() {
         const { variable } = this.props
         const { newVariable, isV2MetadataVariable } = this
@@ -370,11 +378,7 @@ class VariableEditor extends Component<{
                                     <h3>Preview</h3>
                                     <Link
                                         className="btn btn-secondary"
-                                        to={`/charts/create?config=${encodeURIComponent(
-                                            JSON.stringify(
-                                                this.grapherState.object
-                                            )
-                                        )}`}
+                                        to={`/charts/create?${this.configUrlParams}`}
                                     >
                                         Edit as new chart
                                     </Link>
