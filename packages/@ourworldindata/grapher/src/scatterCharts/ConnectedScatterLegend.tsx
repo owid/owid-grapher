@@ -132,10 +132,10 @@ export class ConnectedScatterLegend {
                     cx={lineRight}
                     cy={lineY}
                     r={3}
+                    rotation={90}
                     fill="#666"
                     stroke="#ccc"
                     strokeWidth={0.2}
-                    rotation={[90, lineRight, lineY]}
                 />
             </g>
         )

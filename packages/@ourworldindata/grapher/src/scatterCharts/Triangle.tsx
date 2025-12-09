@@ -8,7 +8,7 @@ type TriangleProps = Readonly<{
     fill?: string
     stroke?: string
     strokeWidth?: number
-    rotation?: [number, number, number]
+    rotation?: number
 }> &
     React.SVGProps<SVGPolygonElement>
 
@@ -21,7 +21,9 @@ export const Triangle = (props: TriangleProps): React.ReactElement => {
         [x + (r * 2) / 2, y],
         [x + r * 2, y + r * 2],
     ]
-    const rotationRounded = rotation?.map((v) => _.round(v, 2))
+    const rotationRounded = rotation
+        ? [rotation, cx, cy].map((v) => _.round(v, 2))
+        : undefined
 
     return (
         <polygon
@@ -33,7 +35,7 @@ export const Triangle = (props: TriangleProps): React.ReactElement => {
                     ? `rotate(${rotationRounded.join(", ")})`
                     : undefined
             }
-            {...props}
+            {..._.omit(props, "rotation")}
         />
     )
 }

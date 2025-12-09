@@ -574,14 +574,10 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                                     ))}
                             {!hideConnectedScatterLines && (
                                 <Triangle
-                                    rotation={[
-                                        rotation,
-                                        lastPoint.position.x,
-                                        lastPoint.position.y,
-                                    ]}
                                     cx={lastPoint.position.x}
                                     cy={lastPoint.position.y}
                                     r={1.5 + strokeWidth}
+                                    rotation={rotation}
                                     fill={lastPoint.color}
                                     opacity={opacity}
                                 />
