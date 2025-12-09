@@ -1,4 +1,4 @@
-import { expect, it } from "vitest"
+import { describe, expect, it } from "vitest"
 
 import * as _ from "lodash-es"
 import { TimeBoundValue } from "@ourworldindata/utils"
@@ -209,4 +209,45 @@ it("prevents large step keyboard navigation from putting handles on same time wh
     controller.decreaseEndTimeByLargeStep()
     // Should not move to 2003 or before
     expect(manager.endHandleTimeBound).toEqual(initialEnd)
+})
+
+describe("progress calculations", () => {
+    const proportionalController = new TimelineController({
+        times: [1950, 1990, 2000, 2010, 2020],
+        startHandleTimeBound: 1950,
+        endHandleTimeBound: 2020,
+    })
+    const equalSpacingController = new TimelineController({
+        times: [..._.range(-10000, -8000, 20), ..._.range(1900, 2021, 1)],
+        startHandleTimeBound: -10000,
+        endHandleTimeBound: 2020,
+    })
+
+    it("progressToTime works correctly with proportional spacing", () => {
+        expect(proportionalController.shouldUseEqualSpacing).toBe(false)
+        expect(proportionalController.progressToTime(0.5)).toBeCloseTo(1985)
+    })
+
+    it("progressToTime works correctly with equal spacing", () => {
+        expect(equalSpacingController.shouldUseEqualSpacing).toBe(true)
+        expect(equalSpacingController.progressToTime(0.5)).toBe(1910)
+    })
+
+    it("progress calculation is reversible with proportional spacing", () => {
+        for (const time of proportionalController.timesAsc) {
+            const progress = proportionalController.timeToProgress(time)
+            const timeFromProgress =
+                proportionalController.progressToTime(progress)
+            expect(timeFromProgress).toBeCloseTo(time)
+        }
+    })
+
+    it("progress calculation is reversible with equal spacing", () => {
+        for (const time of equalSpacingController.timesAsc) {
+            const progress = equalSpacingController.timeToProgress(time)
+            const timeFromProgress =
+                equalSpacingController.progressToTime(progress)
+            expect(timeFromProgress).toBe(time)
+        }
+    })
 })
