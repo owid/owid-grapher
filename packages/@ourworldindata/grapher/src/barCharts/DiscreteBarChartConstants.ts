@@ -12,18 +12,25 @@ export interface DiscreteBarSeries extends ChartSeries {
     value: number
     time: Time
     colorValue?: CoreValueType
-    label?: TextWrap
+    annotation?: string
     focus: InteractionState
 }
 
-export interface PlacedDiscreteBarSeries extends DiscreteBarSeries {
+export interface SizedDiscreteBarSeries extends DiscreteBarSeries {
+    label: TextWrap
+    annotationTextWrap?: TextWrap
+}
+
+export interface PlacedDiscreteBarSeries extends SizedDiscreteBarSeries {
     // data bar
     barX: number
     barY: number
     barWidth: number
 
-    // entity and value labels
+    // entity label, annotation, and value label positions
     entityLabelX: number
+    entityLabelY: number
+    annotationY?: number
     valueLabelX: number
 }
 
@@ -41,6 +48,12 @@ export interface DiscreteBarItem {
     time: number
     colorValue?: CoreValueType
     color?: Color
+}
+
+export interface FontSettings {
+    fontSize: number
+    fontWeight: number
+    lineHeight: number
 }
 
 export const BACKGROUND_COLOR = "#fff"

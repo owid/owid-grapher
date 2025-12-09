@@ -30,7 +30,9 @@ import {
     BAR_SPACING_FACTOR,
     DiscreteBarChartManager,
     DiscreteBarSeries,
+    FontSettings,
     PlacedDiscreteBarSeries,
+    SizedDiscreteBarSeries,
 } from "./DiscreteBarChartConstants"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import {
@@ -55,6 +57,9 @@ const GAP__ENTITY_LABEL__BAR = 5
 
 /** The gap between the the entity label and negative value label */
 const GAP__ENTITY_LABEL__VALUE_LABEL = 10
+
+/** The vertical padding between the entity label and the annotation */
+const ANNOTATION_PADDING = 2
 
 export interface Label {
     valueString: string
@@ -112,11 +117,7 @@ export class DiscreteBarChart
         )
     }
 
-    @computed private get entityLabelStyle(): {
-        fontSize: number
-        fontWeight: number
-        lineHeight: number
-    } {
+    @computed private get entityLabelStyle(): FontSettings {
         return {
             fontSize: this.labelFontSize,
             fontWeight: 700,
@@ -124,21 +125,27 @@ export class DiscreteBarChart
         }
     }
 
-    @computed get sizedSeries(): DiscreteBarSeries[] {
+    @computed private get entityAnnotationStyle(): FontSettings {
+        return {
+            fontSize: this.labelFontSize * 0.9,
+            fontWeight: 300,
+            lineHeight: 1,
+        }
+    }
+
+    @computed get sizedSeries(): SizedDiscreteBarSeries[] {
         return enrichSeriesWithLabels({
             series: this.series,
             availableHeightPerSeries: this.bounds.height / this.barCount,
             minLabelWidth: 0.3 * this.bounds.width,
             maxLabelWidth: 0.66 * this.bounds.width,
             fontSettings: this.entityLabelStyle,
+            annotationFontSettings: this.entityAnnotationStyle,
         })
     }
 
-    @computed private get valueLabelStyle(): {
-        fontSize: number
-        fontWeight: number
-    } {
-        return { fontSize: this.labelFontSize, fontWeight: 400 }
+    @computed private get valueLabelStyle(): FontSettings {
+        return { fontSize: this.labelFontSize, fontWeight: 400, lineHeight: 1 }
     }
 
     @computed private get hasPositive(): boolean {
@@ -205,18 +212,23 @@ export class DiscreteBarChart
     /**
      * The maximum width needed for labels positioned on the left side of the chart.
      *
-     * For positive values, returns the width of entity labels only.
-     * For negative values, returns the entity label width, value label width
+     * For positive values, returns the width of entity labels and annotations.
+     * For negative values, returns the entity label width, annotation width, value label width
      * and the padding between them.
      */
     @computed private get leftLabelsWidth(): number {
         const labelWidths = this.sizedSeries.map((series) => {
             const labelWidth = series.label?.width ?? 0
+            const annotationWidth = series.annotationTextWrap?.width ?? 0
+
+            // Use the maximum width between label and annotation
+            const textWidth = Math.max(labelWidth, annotationWidth)
+
             if (series.value < 0) {
                 const valueWidth = this.formatValue(series).width
-                return labelWidth + valueWidth + GAP__ENTITY_LABEL__VALUE_LABEL
+                return textWidth + valueWidth + GAP__ENTITY_LABEL__VALUE_LABEL
             } else {
-                return labelWidth
+                return textWidth
             }
         })
 
@@ -280,6 +292,7 @@ export class DiscreteBarChart
                 ? this.yAxis.place(this.x0) - barX
                 : this.yAxis.place(series.value) - barX
             const label = this.formatValue(series)
+
             const entityLabelX = isNegative
                 ? barX - label.width - GAP__ENTITY_LABEL__VALUE_LABEL
                 : barX - GAP__ENTITY_LABEL__BAR
@@ -287,12 +300,24 @@ export class DiscreteBarChart
                 this.yAxis.place(series.value) +
                 (isNegative ? -GAP__ENTITY_LABEL__BAR : GAP__ENTITY_LABEL__BAR)
 
+            const annotationHeight = series.annotationTextWrap
+                ? ANNOTATION_PADDING + series.annotationTextWrap.height
+                : 0
+            const totalLabelHeight = series.label.height + annotationHeight
+
+            const entityLabelY = barY - totalLabelHeight / 2
+            const annotationY = series.annotationTextWrap
+                ? entityLabelY + series.label.height + ANNOTATION_PADDING
+                : undefined
+
             return {
                 ...series,
                 barX,
                 barY,
                 barWidth,
                 entityLabelX,
+                entityLabelY,
+                annotationY,
                 valueLabelX,
             }
         })
@@ -382,7 +407,6 @@ export class DiscreteBarChart
     }
 
     private renderEntityLabels(): React.ReactElement {
-        const style = { fill: "#555", textAnchor: "end" } as const
         return (
             <g id={makeIdForHumanConsumption("entity-labels")}>
                 {this.placedSeries.map((series) => {
@@ -391,10 +415,11 @@ export class DiscreteBarChart
                             <React.Fragment key={series.seriesName}>
                                 {series.label.renderSVG(
                                     series.entityLabelX,
-                                    series.barY - series.label.height / 2,
+                                    series.entityLabelY,
                                     {
                                         textProps: {
-                                            ...style,
+                                            fill: "#555",
+                                            textAnchor: "end",
                                             opacity: series.focus.background
                                                 ? GRAPHER_OPACITY_MUTE
                                                 : 1,
@@ -403,6 +428,41 @@ export class DiscreteBarChart
                                 )}
                             </React.Fragment>
                         )
+                    )
+                })}
+            </g>
+        )
+    }
+
+    private renderEntityAnnotations(): React.ReactElement | null {
+        const hasAnnotations = this.placedSeries.some(
+            (series) =>
+                series.annotationTextWrap && series.annotationY !== undefined
+        )
+        if (!hasAnnotations) return null
+
+        return (
+            <g id={makeIdForHumanConsumption("entity-annotations")}>
+                {this.placedSeries.map((series) => {
+                    if (!series.annotationTextWrap || !series.annotationY)
+                        return null
+
+                    return (
+                        <React.Fragment key={`${series.seriesName}-annotation`}>
+                            {series.annotationTextWrap.renderSVG(
+                                series.entityLabelX,
+                                series.annotationY,
+                                {
+                                    textProps: {
+                                        fill: "#333",
+                                        textAnchor: "end",
+                                        opacity: series.focus.background
+                                            ? GRAPHER_OPACITY_MUTE
+                                            : 1,
+                                    },
+                                }
+                            )}
+                        </React.Fragment>
                     )
                 })}
             </g>
@@ -498,6 +558,7 @@ export class DiscreteBarChart
                 {this.renderBars()}
                 {this.renderValueLabels()}
                 {this.renderEntityLabels()}
+                {this.renderEntityAnnotations()}
             </>
         )
     }
