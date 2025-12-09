@@ -1,5 +1,7 @@
+import { runInAction } from "mobx"
 import {
     EnrichedBlockGuidedChart,
+    GrapherQueryParams,
     MultiDimDimensionChoices,
 } from "@ourworldindata/types"
 import { Container } from "./layout.js"
@@ -33,7 +35,10 @@ export default function GuidedChart({
     const chartRef = useRef<HTMLDivElement | null>(null)
     const [multiDimData, setMultiDimData] = useState<{
         config: MultiDimDataPageConfig
-        onSettingsChange: (newSettings: MultiDimDimensionChoices) => void
+        onSettingsChange: (
+            newSettings: MultiDimDimensionChoices,
+            queryParams: GrapherQueryParams
+        ) => void
         grapherContainerRef: React.RefObject<HTMLDivElement | null>
     } | null>(null)
     const { announce } = useAriaAnnouncer()
@@ -82,18 +87,20 @@ export default function GuidedChart({
                             searchParams.set(key, value)
                         }
                     })
-
-                    // Extract MultiDim choices from the guided chart link and update the MultiDim component
                     const choices = extractMultiDimChoicesFromSearchParams(
                         searchParams,
                         multiDimData.config
                     )
-                    multiDimData.onSettingsChange(choices)
+                    // MultiDim must set the query params itself only after it
+                    // sets the config of the selected view.
+                    multiDimData.onSettingsChange(choices, url.queryParams)
+                } else {
+                    // Update the grapher state with the new params (e.g. countries, tab, etc)
+                    runInAction(() => {
+                        grapherState.clearQueryParams()
+                        grapherState.populateFromQueryParams(url.queryParams)
+                    })
                 }
-
-                // Update the grapher state with the new params (e.g. countries, tab, etc)
-                grapherState.clearQueryParams()
-                grapherState.populateFromQueryParams(url.queryParams)
                 didUpdateChart = true
             }
 
@@ -128,7 +135,8 @@ export default function GuidedChart({
                 registerMultiDim: (registrationData: {
                     config: MultiDimDataPageConfig
                     onSettingsChange: (
-                        newSettings: MultiDimDimensionChoices
+                        newSettings: MultiDimDimensionChoices,
+                        queryParams: GrapherQueryParams
                     ) => void
                     grapherContainerRef: React.RefObject<HTMLDivElement | null>
                 }) => {

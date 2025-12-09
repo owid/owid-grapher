@@ -3,6 +3,7 @@ import { GrapherProgrammaticInterface } from "../core/Grapher.js"
 import { GrapherState } from "../core/GrapherState.js"
 import { MultiDimDataPageConfig, Url } from "@ourworldindata/utils"
 import {
+    GrapherQueryParams,
     MultiDimDimensionChoices,
     ChartConfigType,
 } from "@ourworldindata/types"
@@ -23,7 +24,10 @@ export interface GuidedChartContextValue {
     ) => () => void
     registerMultiDim?: (registrationData: {
         config: MultiDimDataPageConfig
-        onSettingsChange: (newSettings: MultiDimDimensionChoices) => void
+        onSettingsChange: (
+            newSettings: MultiDimDimensionChoices,
+            queryParams: GrapherQueryParams
+        ) => void
         grapherContainerRef: React.RefObject<HTMLDivElement | null>
     }) => void
 }
