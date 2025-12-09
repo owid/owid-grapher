@@ -82,6 +82,7 @@ import {
 import {
     fetchCalloutValuesForConfig,
     generateCalloutKey,
+    extractDataCalloutBlocks,
 } from "./fetchCalloutValues.js"
 
 import { indexBy } from "remeda"
@@ -458,13 +459,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     get dataCalloutBlocks(): EnrichedBlockDataCallout[] {
         const callouts: EnrichedBlockDataCallout[] = []
         for (const enrichedBlockSource of this.enrichedBlockSources) {
-            for (const block of enrichedBlockSource) {
-                traverseEnrichedBlock(block, (block) => {
-                    if (block.type === "data-callout") {
-                        callouts.push(block)
-                    }
-                })
-            }
+            callouts.push(...extractDataCalloutBlocks(enrichedBlockSource))
         }
         return callouts
     }

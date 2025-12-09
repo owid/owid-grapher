@@ -7,18 +7,29 @@ import {
     GrapherInterface,
     GrapherValuesJson,
     EntityName,
+    OwidEnrichedGdocBlock,
+    EnrichedBlockDataCallout,
 } from "@ourworldindata/types"
-import { Url } from "@ourworldindata/utils"
+import { Url, traverseEnrichedBlock } from "@ourworldindata/utils"
 import { DATA_API_URL } from "../../../settings/serverSettings.js"
 
 /**
- * Information needed to fetch callout values for a single data-callout block.
+ * Extract all data-callout blocks from an array of enriched blocks.
+ * This is useful for both GdocBase (via the getter) and for baking
+ * instantiated profiles.
  */
-export interface CalloutFetchInfo {
-    /** The chart URL (can include query params for multi-dim) */
-    url: string
-    /** The entity name to fetch data for */
-    entity: EntityName
+export function extractDataCalloutBlocks(
+    body: OwidEnrichedGdocBlock[]
+): EnrichedBlockDataCallout[] {
+    const callouts: EnrichedBlockDataCallout[] = []
+    for (const block of body) {
+        traverseEnrichedBlock(block, (b) => {
+            if (b.type === "data-callout") {
+                callouts.push(b)
+            }
+        })
+    }
+    return callouts
 }
 
 /**
@@ -30,6 +41,14 @@ export interface CalloutFetchInfo {
  * - Sort query parameters alphabetically
  */
 export function generateCalloutKey(url: string, entity: EntityName): string {
+    return `${generateChartKey(url)}+${entity}`
+}
+
+/**
+ * Generate a unique key for a chart URL (without entity).
+ * Used for caching prepared GrapherStates.
+ */
+export function generateChartKey(url: string): string {
     const parsedUrl = Url.fromURL(url)
     const path = parsedUrl.pathname || ""
 
@@ -42,14 +61,87 @@ export function generateCalloutKey(url: string, entity: EntityName): string {
         .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
         .join("&")
 
-    const normalizedUrl = queryString ? `${path}?${queryString}` : path
-    return `${normalizedUrl}+${entity}`
+    return queryString ? `${path}?${queryString}` : path
+}
+
+/**
+ * A prepared GrapherState with data already loaded.
+ * Can be used to efficiently generate GrapherValuesJson for any entity.
+ */
+export interface PreparedCalloutChart {
+    grapherState: GrapherState
+    availableEntityNames: EntityName[]
+    sourcesLine: string
+}
+
+/**
+ * Prepare a GrapherState for a chart config by fetching its data.
+ * The returned PreparedCalloutChart can be used to generate values for any entity
+ * without additional network requests.
+ *
+ * @param config - The grapher chart configuration
+ * @param queryStr - Optional query string (for multi-dim views)
+ * @returns PreparedCalloutChart or undefined if data cannot be fetched
+ */
+export async function prepareCalloutChart(
+    config: GrapherInterface,
+    queryStr?: string
+): Promise<PreparedCalloutChart | undefined> {
+    try {
+        // Create GrapherState with the chart config
+        const grapherState = new GrapherState({
+            ...config,
+            queryStr: queryStr || "",
+        })
+
+        // Fetch the input table (this contains ALL entity data)
+        const inputTable = await fetchInputTableForConfig({
+            dimensions: grapherState.dimensions,
+            selectedEntityColors: grapherState.selectedEntityColors,
+            dataApiUrl: DATA_API_URL,
+        })
+
+        if (inputTable) {
+            grapherState.inputTable = inputTable
+        }
+
+        return {
+            grapherState,
+            availableEntityNames: grapherState.availableEntityNames,
+            sourcesLine: grapherState.sourcesLine,
+        }
+    } catch (error) {
+        console.error(`Failed to prepare callout chart:`, error)
+        return undefined
+    }
+}
+
+/**
+ * Generate GrapherValuesJson for a specific entity using a prepared chart.
+ * This is fast as all data is already loaded.
+ *
+ * @param preparedChart - The prepared chart with data loaded
+ * @param entity - The entity name to generate values for
+ * @returns GrapherValuesJson or undefined if entity has no data
+ */
+export function getCalloutValuesForEntity(
+    preparedChart: PreparedCalloutChart,
+    entity: EntityName
+): GrapherValuesJson | undefined {
+    // Check if the entity exists in the chart
+    if (!preparedChart.availableEntityNames.includes(entity)) {
+        // Entity not available - return values with just source
+        return { source: preparedChart.sourcesLine }
+    }
+
+    return constructGrapherValuesJson(preparedChart.grapherState, entity)
 }
 
 /**
  * Fetch callout values for a single chart + entity combination.
- * This is the core function that initializes a GrapherState, fetches data,
- * and constructs the values JSON.
+ * This fetches data and constructs values in one call.
+ * Use this for one-off requests (like admin preview or CF functions).
+ * For batch processing (like baking profiles), use prepareCalloutChart + getCalloutValuesForEntity.
  *
  * @param config - The grapher chart configuration
  * @param entity - The entity name to fetch data for
@@ -61,37 +153,8 @@ export async function fetchCalloutValuesForConfig(
     entity: EntityName,
     queryStr?: string
 ): Promise<GrapherValuesJson | undefined> {
-    try {
-        // Create GrapherState with the chart config
-        const grapherState = new GrapherState({
-            ...config,
-            queryStr: queryStr || "",
-        })
+    const preparedChart = await prepareCalloutChart(config, queryStr)
+    if (!preparedChart) return undefined
 
-        // Fetch the input table
-        const inputTable = await fetchInputTableForConfig({
-            dimensions: grapherState.dimensions,
-            selectedEntityColors: grapherState.selectedEntityColors,
-            dataApiUrl: DATA_API_URL,
-        })
-
-        if (inputTable) {
-            grapherState.inputTable = inputTable
-        }
-
-        // Check if the entity exists in the chart
-        if (!grapherState.availableEntityNames.includes(entity)) {
-            // Entity not available - return values with just source
-            return { source: grapherState.sourcesLine }
-        }
-
-        // Construct and return the values JSON
-        return constructGrapherValuesJson(grapherState, entity)
-    } catch (error) {
-        console.error(
-            `Failed to fetch callout values for entity "${entity}":`,
-            error
-        )
-        return undefined
-    }
+    return getCalloutValuesForEntity(preparedChart, entity)
 }

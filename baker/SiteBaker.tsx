@@ -51,6 +51,7 @@ import {
     ArchiveContext,
     OwidGdocType,
     getEntitiesForProfile,
+    Url,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { getRedirects, flushCache as redirectsFlushCache } from "./redirects.js"
@@ -70,6 +71,15 @@ import {
     GdocProfile,
     instantiateProfileForEntity,
 } from "../db/model/Gdoc/GdocProfile.js"
+import {
+    generateCalloutKey,
+    generateChartKey,
+    extractDataCalloutBlocks,
+    prepareCalloutChart,
+    getCalloutValuesForEntity,
+    PreparedCalloutChart,
+} from "../db/model/Gdoc/fetchCalloutValues.js"
+import { LinkedCallouts } from "@ourworldindata/types"
 import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 import {
     gdocFromJSON,
@@ -119,6 +129,9 @@ type PrefetchedAttachments = {
     }
     linkedIndicators: Record<number, LinkedIndicator>
     linkedNarrativeCharts: Record<string, NarrativeChartInfo>
+    /** Prepared chart data for data-callouts, keyed by chart URL key.
+     *  Use getCalloutValuesForEntity() to generate values for a specific entity. */
+    preparedCalloutCharts: Record<string, PreparedCalloutChart>
 }
 
 // These aren't all "wordpress" steps
@@ -244,6 +257,41 @@ export class SiteBaker {
                     profileTemplate,
                     entity
                 )
+
+                // Generate callout data for this instantiated profile using prefetched chart data
+                const calloutBlocks = extractDataCalloutBlocks(
+                    instantiatedProfile.content.body
+                )
+
+                if (calloutBlocks.length > 0) {
+                    const linkedCallouts: LinkedCallouts = {}
+                    for (const block of calloutBlocks) {
+                        const calloutKey = generateCalloutKey(
+                            block.url,
+                            block.entity
+                        )
+                        if (linkedCallouts[calloutKey]) continue
+
+                        // Look up the prepared chart from prefetched data
+                        const chartKey = generateChartKey(block.url)
+                        const preparedChart =
+                            attachments.preparedCalloutCharts[chartKey]
+                        if (!preparedChart) continue
+
+                        // Generate values for this entity (fast - no network calls)
+                        const values = getCalloutValuesForEntity(
+                            preparedChart,
+                            block.entity
+                        )
+
+                        linkedCallouts[calloutKey] = {
+                            id: calloutKey,
+                            values: values || { source: "" },
+                        }
+                    }
+                    instantiatedProfile.linkedCallouts = linkedCallouts
+                }
+
                 const html = renderGdoc(instantiatedProfile)
                 const outPath = path.join(
                     this.bakedSiteDir,
@@ -329,7 +377,14 @@ export class SiteBaker {
     _prefetchedAttachmentsCache: PrefetchedAttachments | undefined = undefined
     private async getPrefetchedGdocAttachments(
         knex: db.KnexReadonlyTransaction,
-        picks?: [string[], string[], string[], string[], string[], string[]]
+        picks?: [
+            string[],
+            string[],
+            string[],
+            string[],
+            string[],
+            string[],
+        ]
     ): Promise<PrefetchedAttachments> {
         if (!this._prefetchedAttachmentsCache) {
             console.log("Prefetching donors")
@@ -474,6 +529,40 @@ export class SiteBaker {
                 `✅ Prefetched ${narrativeChartsInfo.length} narrative charts`
             )
 
+            console.log("Prefetching callout charts")
+            // Get all unique callout chart URLs from published gdocs
+            const calloutChartUrls =
+                await db.getCalloutChartUrlsForPublishedGdocs(knex)
+
+            // Build a map of slug → config from publishedChartsRaw
+            const chartConfigsBySlug = Object.fromEntries(
+                publishedChartsRaw.map((c) => [c.slug, c.config])
+            )
+
+            // Prepare each chart (fetches data once for all entities)
+            const preparedCalloutCharts: Record<string, PreparedCalloutChart> =
+                {}
+            for (const { url, slug } of calloutChartUrls) {
+                const chartKey = generateChartKey(url)
+                if (preparedCalloutCharts[chartKey]) continue
+
+                // Get chart config
+                const chartConfig = chartConfigsBySlug[slug]
+                if (!chartConfig) continue
+
+                const parsedUrl = Url.fromURL(url)
+                const prepared = await prepareCalloutChart(
+                    chartConfig,
+                    parsedUrl.queryStr || undefined
+                )
+                if (prepared) {
+                    preparedCalloutCharts[chartKey] = prepared
+                }
+            }
+            console.log(
+                `✅ Prefetched ${Object.keys(preparedCalloutCharts).length} callout charts`
+            )
+
             const prefetchedAttachments = {
                 donors,
                 linkedAuthors: publishedAuthors,
@@ -489,6 +578,7 @@ export class SiteBaker {
                 },
                 linkedIndicators: datapageIndicatorsById,
                 linkedNarrativeCharts: narrativeChartsInfoByName,
+                preparedCalloutCharts,
             }
             this._prefetchedAttachmentsCache = prefetchedAttachments
         }
@@ -557,6 +647,9 @@ export class SiteBaker {
                     this._prefetchedAttachmentsCache.linkedNarrativeCharts,
                     linkedNarrativeChartNames
                 ),
+                // Not picking prepared charts - they're global and don't depend on specific gdocs
+                preparedCalloutCharts:
+                    this._prefetchedAttachmentsCache.preparedCalloutCharts,
             }
         }
         return this._prefetchedAttachmentsCache

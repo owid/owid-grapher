@@ -841,6 +841,34 @@ export async function getGrapherLinkTargets(
 }
 
 /**
+ * Get all chart URLs from data-callout blocks in published gdocs.
+ * Returns both the URL (which may include query params) and the slug for chart lookup.
+ */
+export async function getCalloutChartUrlsForPublishedGdocs(
+    knex: KnexReadonlyTransaction
+): Promise<{ url: string; slug: string }[]> {
+    // Query links from data-callout components in published gdocs
+    const links = await knexRaw<{ target: string; queryString: string | null }>(
+        knex,
+        `-- sql
+        SELECT DISTINCT l.target, l.queryString
+        FROM posts_gdocs_links l
+        JOIN posts_gdocs pg ON l.sourceId = pg.id
+        WHERE l.componentType = 'data-callout'
+          AND l.linkType = '${ContentGraphLinkType.Grapher}'
+          AND pg.published = TRUE
+        `
+    )
+
+    return links.map((link) => {
+        const url = link.queryString
+            ? `${link.target}?${link.queryString}`
+            : link.target
+        return { url, slug: link.target }
+    })
+}
+
+/**
  * Get the slugs of all datapages that are linked to in KeyIndicator blocks
  * Optionally exclude homepage KeyIndicator blocks, because for prefetching (the one current usecase for this function)
  * the SiteBaker fetches the indicator metadata separately
