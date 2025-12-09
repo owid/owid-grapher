@@ -67,12 +67,14 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
             TimelineComponent,
             | "startTooltipVisible"
             | "endTooltipVisible"
+            | "lastUpdatedTooltip"
             | "hoverTime"
             | "editHandle"
             | "isEditableTimeTooltipHovered"
         >(this, {
             startTooltipVisible: observable,
             endTooltipVisible: observable,
+            lastUpdatedTooltip: observable,
             hoverTime: observable,
             editHandle: observable,
             isEditableTimeTooltipHovered: observable,
@@ -486,9 +488,14 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                 onComplete={this.onCompleteYear}
                 onMouseEnter={action(() => {
                     this.isEditableTimeTooltipHovered = true
+                    this.hoverTime = undefined
                 })}
                 onMouseLeave={action(() => {
                     this.isEditableTimeTooltipHovered = false
+                })}
+                onBlur={action(() => {
+                    this.startTooltipVisible = false
+                    this.endTooltipVisible = false
                 })}
             />
         )
@@ -519,6 +526,10 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                 })}
                 onMouseLeave={action(() => {
                     this.isEditableTimeTooltipHovered = false
+                })}
+                onBlur={action(() => {
+                    this.startTooltipVisible = false
+                    this.endTooltipVisible = false
                 })}
             />
         )
@@ -645,13 +656,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
                             this.updateStartTimeOnKeyDown(e.key)
                         })}
-                        onFocus={action(() => {
-                            this.showTooltips()
-                        })}
-                        onBlur={action(() => {
-                            this.startTooltipVisible = false
-                            this.endTooltipVisible = false
-                        })}
+                        onFocus={action(() => this.showTooltips())}
                         tooltip={this.startHandleTooltip}
                         zIndex={
                             this.lastUpdatedTooltip === MarkerType.Start ? 2 : 1
@@ -694,13 +699,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
                             this.updateEndTimeOnKeyDown(e.key)
                         })}
-                        onFocus={action(() => {
-                            this.showTooltips()
-                        })}
-                        onBlur={action(() => {
-                            this.startTooltipVisible = false
-                            this.endTooltipVisible = false
-                        })}
+                        onFocus={action(() => this.showTooltips())}
                         tooltip={this.endHandleTooltip}
                         zIndex={
                             this.lastUpdatedTooltip === MarkerType.End ? 2 : 1
@@ -820,6 +819,7 @@ function EditableYearTooltip({
     onComplete,
     onMouseEnter,
     onMouseLeave,
+    onBlur,
 }: {
     type: Exclude<MarkerType, MarkerType.Hover>
     editHandle?: Exclude<MarkerType, MarkerType.Hover>
@@ -829,6 +829,7 @@ function EditableYearTooltip({
     onComplete?: (year?: number) => void
     onMouseEnter?: () => void
     onMouseLeave?: () => void
+    onBlur?: () => void
 }): React.ReactElement {
     const [inputValue, setInputValue] = React.useState(currentTime.toString())
 
@@ -880,12 +881,14 @@ function EditableYearTooltip({
                     />
                 </div>
             ) : (
-                <span
-                    className="EditableTimeTooltip__Text"
+                <button
+                    type="button"
+                    className="EditableTimeTooltip__Button"
                     onClick={onStartEditing}
+                    onBlur={onBlur}
                 >
                     {formattedTime}
-                </span>
+                </button>
             )}
         </div>
     )
