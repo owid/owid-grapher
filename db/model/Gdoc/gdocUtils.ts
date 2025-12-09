@@ -27,7 +27,8 @@ export function spanToSimpleString(s: Span): string {
                     "span-subscript",
                     "span-superscript",
                     "span-quote",
-                    "span-fallback"
+                    "span-fallback",
+                    "span-callout"
                 ),
             },
             (other) => other.children.map(spanToSimpleString).join("")
@@ -94,6 +95,11 @@ export function spanToHtmlString(s: Span): string {
         .with(
             { spanType: "span-fallback" },
             (span) => `<span>${spansToHtmlString(span.children)}</span>`
+        )
+        .with(
+            { spanType: "span-callout" },
+            (span) =>
+                `<span data-callout-function="${span.functionName}" data-callout-params="${span.parameters.join(",")}">${spansToHtmlString(span.children)}</span>`
         )
         .exhaustive()
 }
@@ -274,7 +280,8 @@ export function extractFilenamesFromBlock(
                     "sticky-right",
                     "table",
                     "text",
-                    "topic-page-intro"
+                    "topic-page-intro",
+                    "data-callout"
                 ),
             },
             _.noop

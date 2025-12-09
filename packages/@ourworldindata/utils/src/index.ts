@@ -136,6 +136,7 @@ export {
     lowercaseObjectKeys,
     detailOnDemandRegex,
     guidedChartRegex,
+    calloutFunctionRegex,
     extractDetailsFromSyntax,
     parseFloatOrUndefined,
     bind,

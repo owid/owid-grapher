@@ -13,6 +13,7 @@ import {
     SpanUnderline,
     SpanRef,
     SpanDod,
+    SpanCallout,
     EnrichedBlockSimpleText,
     SpanSimpleText,
     OwidEnrichedGdocBlock,
@@ -30,7 +31,10 @@ import {
     EnrichedBlockBlockquote,
     traverseEnrichedSpan,
     guidedChartRegex,
+    calloutFunctionRegex,
     SpanGuidedChartLink,
+    CalloutFunction,
+    CALLOUT_FUNCTIONS,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import * as cheerio from "cheerio"
@@ -147,7 +151,12 @@ function cheerioToSpan(element: AnyNode): Span | undefined {
         return match(element.tagName)
             .with(
                 "a",
-                (): SpanLink | SpanRef | SpanDod | SpanGuidedChartLink => {
+                ():
+                    | SpanLink
+                    | SpanRef
+                    | SpanDod
+                    | SpanGuidedChartLink
+                    | SpanCallout => {
                     const url: string | undefined = element.attribs.href
                     const className = element.attribs.class
                     const children =
@@ -165,6 +174,24 @@ function cheerioToSpan(element: AnyNode): Span | undefined {
                             spanType: "span-guided-chart-link",
                             children,
                             url: guide[1],
+                        }
+                    }
+                    const callout = url?.match(calloutFunctionRegex)
+                    if (callout) {
+                        const functionName = callout[1] as CalloutFunction
+                        const paramString = callout[2] // may be undefined for "entity"
+                        // Only accept valid function names
+                        if (
+                            CALLOUT_FUNCTIONS.includes(
+                                functionName as CalloutFunction
+                            )
+                        ) {
+                            return {
+                                spanType: "span-callout",
+                                functionName,
+                                parameters: paramString ? [paramString] : [],
+                                children,
+                            }
                         }
                     }
                     return { spanType: "span-link", children, url }

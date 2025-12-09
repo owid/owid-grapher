@@ -909,4 +909,11 @@ export const enrichedBlockExamples: Record<
         ],
         parseErrors: [],
     },
+    "data-callout": {
+        type: "data-callout",
+        url: "https://ourworldindata.org/grapher/co2-emissions",
+        entity: "United States",
+        content: [enrichedBlockText],
+        parseErrors: [],
+    },
 }

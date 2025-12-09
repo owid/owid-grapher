@@ -165,5 +165,14 @@ export default function SpanElement({
                 />
             </span>
         ))
+        // TODO: Implement span-callout rendering with data from LinkedCallouts context
+        .with({ spanType: "span-callout" }, (span) => (
+            <span>
+                <SpanElements
+                    spans={span.children}
+                    shouldRenderLinks={shouldRenderLinks}
+                />
+            </span>
+        ))
         .exhaustive()
 }

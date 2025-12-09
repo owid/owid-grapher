@@ -72,6 +72,8 @@ import {
     DbRawPostGdoc,
     PostsGdocsTableName,
     LinkedStaticViz,
+    LinkedCallouts,
+    EnrichedBlockDataCallout,
 } from "@ourworldindata/types"
 import {
     getAllNarrativeChartNames,
@@ -223,6 +225,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     latestDataInsights: LatestDataInsight[] = []
     linkedNarrativeCharts?: Record<string, NarrativeChartInfo> = {}
     linkedStaticViz?: Record<string, LinkedStaticViz> = {}
+    linkedCallouts: LinkedCallouts = {}
     _omittableFields: string[] = []
 
     constructor(id?: string) {
@@ -444,6 +447,24 @@ export class GdocBase implements OwidGdocBaseInterface {
         return filteredLinks
     }
 
+    /**
+     * Extract all data-callout blocks from the enriched block sources.
+     * Returns a list of callout blocks with their url and entity.
+     */
+    get dataCalloutBlocks(): EnrichedBlockDataCallout[] {
+        const callouts: EnrichedBlockDataCallout[] = []
+        for (const enrichedBlockSource of this.enrichedBlockSources) {
+            for (const block of enrichedBlockSource) {
+                traverseEnrichedBlock(block, (block) => {
+                    if (block.type === "data-callout") {
+                        callouts.push(block)
+                    }
+                })
+            }
+        }
+        return callouts
+    }
+
     get hasAllChartsBlock(): boolean {
         let hasAllChartsBlock = false
         for (const enrichedBlockSource of this.enrichedBlockSources) {
@@ -508,6 +529,13 @@ export class GdocBase implements OwidGdocBaseInterface {
                 }),
             ])
             .with({ type: "chart" }, (block) => [
+                createLinkFromUrl({
+                    url: block.url,
+                    sourceId: this.id,
+                    componentType: block.type,
+                }),
+            ])
+            .with({ type: "data-callout" }, (block) => [
                 createLinkFromUrl({
                     url: block.url,
                     sourceId: this.id,

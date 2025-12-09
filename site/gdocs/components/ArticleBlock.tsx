@@ -934,6 +934,8 @@ function ArticleBlockInternal({
                 links={block.links}
             />
         ))
+        // TODO: Implement DataCallout component rendering
+        .with({ type: "data-callout" }, () => null)
         .exhaustive()
 }
 
