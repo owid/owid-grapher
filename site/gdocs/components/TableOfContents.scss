@@ -30,6 +30,26 @@
         grid-column-start: 2;
     }
 
+    // Use a grid trick to animate height changes smoothly
+    // see https://keithjgrant.com/posts/2023/04/transitioning-to-height-auto/#with-grid
+    .toc-content {
+        display: grid;
+        grid-template-rows: 0fr;
+        transition:
+            grid-template-rows 0.5s,
+            opacity 0.5s;
+        opacity: 0;
+
+        &--open {
+            grid-template-rows: 1fr;
+            opacity: 1;
+        }
+
+        > ul {
+            overflow: hidden;
+        }
+    }
+
     ul {
         margin-top: 24px;
         list-style-type: none;

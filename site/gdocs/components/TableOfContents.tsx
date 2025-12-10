@@ -3,7 +3,6 @@ import { TocHeadingWithTitleSupertitle } from "@ourworldindata/utils"
 import { faArrowDown, faPlus, faMinus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import cx from "classnames"
-import AnimateHeight from "react-animate-height"
 
 // See ARIA roles: https://w3c.github.io/aria-practices/examples/menu-button/menu-button-links.html
 
@@ -16,11 +15,10 @@ export default function TableOfContents({
     className?: string
     title: string
 }) {
-    const [height, setHeight] = useState<"auto" | 0>(0)
     const [isOpen, setIsOpen] = useState(false)
 
     const toggleIsOpen = () => {
-        setHeight(height === 0 ? "auto" : 0)
+        setIsOpen(!isOpen)
     }
 
     return (
@@ -46,16 +44,11 @@ export default function TableOfContents({
                     <FontAwesomeIcon icon={isOpen ? faMinus : faPlus} />
                 </span>
             </button>
-            <AnimateHeight
-                className="toc-content span-cols-6 span-md-cols-8 span-sm-cols-10"
-                height={height}
-                onHeightAnimationStart={(newHeight) => {
-                    if (newHeight !== 0) setIsOpen(true)
-                }}
-                onHeightAnimationEnd={(newHeight) => {
-                    if (newHeight === 0) setIsOpen(false)
-                }}
-                animateOpacity
+            <div
+                className={cx(
+                    "toc-content span-cols-6 span-md-cols-8 span-sm-cols-10",
+                    { "toc-content--open": isOpen }
+                )}
             >
                 <ul id="toc-menu" role="menu" aria-labelledby="toc-menu-button">
                     {toc.map(
@@ -90,7 +83,7 @@ export default function TableOfContents({
                         )
                     )}
                 </ul>
-            </AnimateHeight>
+            </div>
         </nav>
     )
 }

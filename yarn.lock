@@ -11645,7 +11645,6 @@ __metadata:
     prettier: "npm:^3.6.0"
     progress: "npm:^2.0.3"
     react: "npm:^19.2.0"
-    react-animate-height: "npm:^3.2.3"
     react-aria-components: "npm:^1.13.0"
     react-color: "npm:^2.18.1"
     react-diff-viewer-continued: "npm:^3.4.0"
@@ -15418,16 +15417,6 @@ __metadata:
     react: ">=16.9.0"
     react-dom: ">=16.9.0"
   checksum: 10/8e15b1f6f2e34aef26ffa981b8d894bd3c1d560f9fde4c27f7972488f2ae0a33e298b264168d5e755a48acbd92c4c7bbf5b7e0389afcaeb3df491c814e2ec2f3
-  languageName: node
-  linkType: hard
-
-"react-animate-height@npm:^3.2.3":
-  version: 3.2.3
-  resolution: "react-animate-height@npm:3.2.3"
-  peerDependencies:
-    react: ">=16.8.0"
-    react-dom: ">=16.8.0"
-  checksum: 10/a733feb83657de85d1ae62ec1e42f03ebceb06bb0649b6a89c89982b9bc9b29806e1e06d801500832651c85df2ff2e5d58b3b598932313a9be215854118dfea0
   languageName: node
   linkType: hard
 
