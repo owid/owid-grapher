@@ -82,11 +82,10 @@ export class MapChartState implements ChartState, ColorScaleManager {
     ): OwidTable {
         return table
             .dropRowsWithErrorValuesForColumn(mapColumnInfo.slug)
-            .interpolateColumnWithTolerance(
-                mapColumnInfo.slug,
-                this.mapConfig.timeTolerance,
-                this.mapConfig.toleranceStrategy
-            )
+            .interpolateColumnWithTolerance(mapColumnInfo.slug, {
+                toleranceOverride: this.mapConfig.timeTolerance,
+                toleranceStrategyOverride: this.mapConfig.toleranceStrategy,
+            })
     }
 
     private transformTableForCombinedMapColumn(
@@ -97,16 +96,14 @@ export class MapChartState implements ChartState, ColorScaleManager {
 
         // Interpolate both columns separately
         table = table
-            .interpolateColumnWithTolerance(
-                projectedSlug,
-                this.mapConfig.timeTolerance,
-                this.mapConfig.toleranceStrategy
-            )
-            .interpolateColumnWithTolerance(
-                historicalSlug,
-                this.mapConfig.timeTolerance,
-                this.mapConfig.toleranceStrategy
-            )
+            .interpolateColumnWithTolerance(projectedSlug, {
+                toleranceOverride: this.mapConfig.timeTolerance,
+                toleranceStrategyOverride: this.mapConfig.toleranceStrategy,
+            })
+            .interpolateColumnWithTolerance(historicalSlug, {
+                toleranceOverride: this.mapConfig.timeTolerance,
+                toleranceStrategyOverride: this.mapConfig.toleranceStrategy,
+            })
 
         // Combine the projection column with its historical stem into one column
         table = combineHistoricalAndProjectionColumns(table, mapColumnInfo, {
