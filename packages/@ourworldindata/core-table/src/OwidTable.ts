@@ -787,7 +787,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     ): { values: number[]; times: number[] } {
         const groupBoundaries = withAllRows.groupBoundaries(this.entityNameSlug)
         const col = withAllRows.get(columnSlug)
-        const validIndices = col.validRowIndices.slice()
+        const validIndices = col.validRowIndices
         const newValues = col.valuesIncludingErrorValues.slice()
         const newTimes = withAllRows
             .get(timeColumnSlug)
