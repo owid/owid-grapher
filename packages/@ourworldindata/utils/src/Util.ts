@@ -939,21 +939,6 @@ export const sortNumeric = <T>(
             : (a: T, b: T): number => sortByFn(b) - sortByFn(a)
     )
 
-// Adapted from lodash baseFindIndex which is ~2x as fast as the wrapped findIndex
-export const findIndexFast = (
-    array: unknown[],
-    predicate: (value: unknown, index: number) => boolean,
-    fromIndex = 0,
-    toIndex = array.length
-): number => {
-    let index = fromIndex
-    while (index < toIndex) {
-        if (predicate(array[index], index)) return index
-        index++
-    }
-    return -1
-}
-
 export function getClosestTimePairs(
     sortedTimesA: Time[],
     sortedTimesB: Time[],

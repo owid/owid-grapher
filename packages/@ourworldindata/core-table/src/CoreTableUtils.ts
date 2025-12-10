@@ -1,12 +1,7 @@
 import * as _ from "lodash-es"
 import * as Papa from "papaparse"
 import * as R from "remeda"
-import {
-    findIndexFast,
-    sampleFrom,
-    slugifySameCase,
-    ColumnSlug,
-} from "@ourworldindata/utils"
+import { sampleFrom, slugifySameCase, ColumnSlug } from "@ourworldindata/utils"
 import {
     CoreColumnStore,
     CoreRow,
@@ -220,23 +215,33 @@ export function linearInterpolation(
 ): void {
     if (!valuesSortedByTimeAsc.length) return
 
+    const startIndexInValidIndices = R.sortedIndex(validIndices, start)
+    const endIndexInValidIndices = R.sortedIndex(validIndices, end)
+
+    if (startIndexInValidIndices === endIndexInValidIndices) {
+        // No valid values in this range, we can short-circuit
+        for (let index = start; index < end; index++) {
+            valuesSortedByTimeAsc[index] =
+                ErrorValueTypes.NoValueForInterpolation
+        }
+        return
+    }
+
     let prevNonBlankIndex = -1
     let nextNonBlankIndex = -1
+
+    let currentValidIndexPointer = startIndexInValidIndices
 
     for (let index = start; index < end; index++) {
         const currentValue = valuesSortedByTimeAsc[index]
         if (isNotErrorValueOrEmptyCell(currentValue)) {
             prevNonBlankIndex = index
+            currentValidIndexPointer++
             continue
         }
 
         if (nextNonBlankIndex === -1 || nextNonBlankIndex <= index) {
-            nextNonBlankIndex = findIndexFast(
-                valuesSortedByTimeAsc,
-                (val) => isNotErrorValueOrEmptyCell(val),
-                index + 1,
-                end
-            )
+            nextNonBlankIndex = validIndices[currentValidIndexPointer] ?? -1
         }
 
         const prevValue = valuesSortedByTimeAsc[prevNonBlankIndex]
