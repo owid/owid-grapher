@@ -204,6 +204,7 @@ export interface ToleranceInterpolationContext extends InterpolationContext {
 export type InterpolationProvider<C extends InterpolationContext> = (
     valuesSortedByTimeAsc: (number | ErrorValue)[],
     timesAsc: Time[],
+    validIndices: number[],
     context: C,
     start: number,
     end: number
