@@ -133,6 +133,8 @@ export {
     type ProjectionColumnInfo,
     GrapherVariant,
     type ChartErrorInfo,
+    type ToleranceOptions,
+    ToleranceJoinType,
 } from "./grapherTypes/GrapherTypes.js"
 
 export {

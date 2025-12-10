@@ -27,6 +27,8 @@ import {
     OwidRow,
     OwidTableSlugs,
     ErrorValue,
+    ToleranceJoinType,
+    ToleranceOptions,
 } from "@ourworldindata/types"
 import { CoreTable } from "./CoreTable.js"
 import { ErrorValueTypes, isNotErrorValue } from "./ErrorValues.js"
@@ -46,7 +48,6 @@ import {
     InterpolationContext,
 } from "./CoreTableUtils.js"
 import { CoreColumn, ColumnTypeMap } from "./CoreTableColumns.js"
-import { ToleranceOptions } from "@ourworldindata/types/src/grapherTypes/GrapherTypes.js"
 
 // An OwidTable is a subset of Table. An OwidTable always has EntityName, EntityCode, EntityId, and Time columns,
 // and value column(s). Whether or not we need in the long run is uncertain and it may just be a stepping stone
@@ -811,7 +812,11 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     // There are finicky details in both of them that complicate this
     interpolateColumnWithTolerance(
         columnSlug: ColumnSlug,
-        { toleranceStrategyOverride, toleranceOverride }: ToleranceOptions = {}
+        {
+            toleranceStrategyOverride,
+            toleranceOverride,
+            toleranceJoinType = ToleranceJoinType.outer,
+        }: ToleranceOptions = {}
     ): this {
         // If the column doesn't exist, return the table unchanged.
         if (!this.has(columnSlug)) return this
@@ -837,10 +842,18 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
         let columnStore: CoreColumnStore
         if (tolerance) {
-            const withAllRows = this.complete([
-                this.entityNameSlug,
-                timeColumnOfTable.slug,
-            ]).sortBy([this.entityNameSlug, timeColumnOfTable.slug])
+            let table: this
+            if (toleranceJoinType === ToleranceJoinType.left) {
+                table = this.sortBy([
+                    this.entityNameSlug,
+                    timeColumnOfTable.slug,
+                ])
+            } else {
+                table = this.complete([
+                    this.entityNameSlug,
+                    timeColumnOfTable.slug,
+                ]).sortBy([this.entityNameSlug, timeColumnOfTable.slug])
+            }
 
             const interpolateInBothDirections =
                 !toleranceStrategy ||
@@ -853,7 +866,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 toleranceStrategy === ToleranceStrategy.forwards
 
             const interpolationResult = this.interpolate(
-                withAllRows,
+                table,
                 columnSlug,
                 timeColumnOfValue.slug,
                 toleranceInterpolation,
@@ -866,7 +879,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             )
 
             columnStore = {
-                ...withAllRows.columnStore,
+                ...table.columnStore,
                 [columnSlug]: interpolationResult.values,
                 [originalTimeSlug]: interpolationResult.times,
             }

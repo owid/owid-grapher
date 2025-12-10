@@ -134,9 +134,15 @@ export enum ToleranceStrategy {
     forwards = "forwards",
 }
 
+export enum ToleranceJoinType {
+    outer = "outer", // default
+    left = "left",
+}
+
 export interface ToleranceOptions {
     toleranceOverride?: number
     toleranceStrategyOverride?: ToleranceStrategy
+    toleranceJoinType?: ToleranceJoinType
 }
 
 export enum AxisMinMaxValueStr {

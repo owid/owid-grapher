@@ -63,6 +63,7 @@ import {
     GlobeRegionName,
     GrapherWindowType,
     MapRegionName,
+    ToleranceJoinType,
 } from "@ourworldindata/types"
 import {
     objectWithPersistablesToObject,
@@ -988,6 +989,7 @@ export class GrapherState {
                 table.get(this.sizeColumnSlug)?.display?.tolerance ?? Infinity
             table = table.interpolateColumnWithTolerance(this.sizeColumnSlug, {
                 toleranceOverride: tolerance,
+                toleranceJoinType: ToleranceJoinType.left,
             })
         }
 
@@ -1000,7 +1002,10 @@ export class GrapherState {
                     ?.tolerance ?? Infinity
             table = table.interpolateColumnWithTolerance(
                 this.categoricalColorColumnSlug,
-                { toleranceOverride: tolerance }
+                {
+                    toleranceOverride: tolerance,
+                    toleranceJoinType: ToleranceJoinType.left,
+                }
             )
         }
 
