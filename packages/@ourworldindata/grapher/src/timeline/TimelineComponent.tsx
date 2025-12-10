@@ -452,17 +452,19 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
     @action.bound private onCompleteDate(date?: CalendarDate): void {
         // Only apply when the user has finished typing
-        if (date && this.editHandle !== undefined) {
-            const daysSinceEpoch = calendarDateToDaysSinceEpoch(date)
-            if (!this.areBothHandlesVisible) {
-                this.controller.setStartAndEndTimeFromInput(daysSinceEpoch)
-            } else if (this.editHandle === MarkerType.Start) {
-                this.controller.setStartTimeFromInput(daysSinceEpoch)
-            } else {
-                this.controller.setEndTimeFromInput(daysSinceEpoch)
-            }
-        }
+        if (date && this.editHandle !== undefined) this.onChangeDate(date)
         this.resetEditState()
+    }
+
+    @action.bound private onChangeDate(date: CalendarDate): void {
+        const daysSinceEpoch = calendarDateToDaysSinceEpoch(date)
+        if (!this.areBothHandlesVisible) {
+            this.controller.setStartAndEndTimeFromInput(daysSinceEpoch)
+        } else if (this.editHandle === MarkerType.Start) {
+            this.controller.setStartTimeFromInput(daysSinceEpoch)
+        } else {
+            this.controller.setEndTimeFromInput(daysSinceEpoch)
+        }
     }
 
     @action.bound private getStartTimeForNavigationKey(
@@ -575,6 +577,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                 maxTime={maxTime}
                 onStartEditing={() => this.onStartEditing(MarkerType.Start)}
                 onComplete={this.onCompleteDate}
+                onChange={this.onChangeDate}
             />
         ) : (
             <EditableYearTooltip
@@ -625,6 +628,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                 maxTime={maxTime}
                 onStartEditing={() => this.onStartEditing(MarkerType.End)}
                 onComplete={this.onCompleteDate}
+                onChange={this.onChangeDate}
                 onMouseEnter={action(() => {
                     this.hoverTime = undefined
                 })}
@@ -1028,6 +1032,7 @@ function EditableDateTooltip({
     onMouseEnter,
     onMouseLeave,
     onComplete,
+    onChange,
 }: {
     type: Exclude<MarkerType, MarkerType.Hover>
     editHandle?: Exclude<MarkerType, MarkerType.Hover>
@@ -1039,6 +1044,7 @@ function EditableDateTooltip({
     onMouseEnter?: () => void
     onMouseLeave?: () => void
     onComplete: (date?: CalendarDate) => void
+    onChange: (date: CalendarDate) => void
 }): React.ReactElement {
     return (
         <div
@@ -1056,6 +1062,7 @@ function EditableDateTooltip({
                     minValue={daysSinceEpochToCalendarDate(minTime)}
                     maxValue={daysSinceEpochToCalendarDate(maxTime)}
                     onComplete={onComplete}
+                    onChange={onChange}
                 />
             ) : (
                 <button
@@ -1076,19 +1083,40 @@ const TimelineDateInput = ({
     minValue,
     maxValue,
     onComplete,
+    onChange,
 }: {
     value: CalendarDate
     minValue: CalendarDate
     maxValue: CalendarDate
     onComplete: (date?: CalendarDate) => void
+    onChange?: (date: CalendarDate) => void
 }): React.ReactElement => {
     const [currentValue, setCurrentValue] = React.useState(value)
+    const [shouldApplyImmediately, setShouldApplyImmediately] =
+        React.useState(false)
 
     const handleKeyDown = (e: React.KeyboardEvent): void => {
         if (e.key === "Enter") {
             onComplete(currentValue)
         } else if (e.key === "Escape") {
             onComplete()
+        } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+            // Apply immediately on arrow key changes
+            setShouldApplyImmediately(true)
+        }
+        e.stopPropagation()
+    }
+
+    const handleChange = (date: CalendarDate | null): void => {
+        if (!date) return
+
+        setCurrentValue(date)
+
+        // If this change was triggered by arrow keys,
+        // apply immediately without exiting edit mode
+        if (shouldApplyImmediately) {
+            onChange?.(date)
+            setShouldApplyImmediately(false)
         }
     }
 
@@ -1097,9 +1125,7 @@ const TimelineDateInput = ({
             value={currentValue}
             minValue={minValue}
             maxValue={maxValue}
-            onChange={(date) => {
-                if (date) setCurrentValue(date)
-            }}
+            onChange={handleChange}
             onBlur={() => onComplete(currentValue)}
             onKeyDown={handleKeyDown}
             className="GrapherTimeline__DateInput"
