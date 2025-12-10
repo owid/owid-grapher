@@ -46,6 +46,7 @@ import {
     InterpolationContext,
 } from "./CoreTableUtils.js"
 import { CoreColumn, ColumnTypeMap } from "./CoreTableColumns.js"
+import { ToleranceOptions } from "@ourworldindata/types/src/grapherTypes/GrapherTypes.js"
 
 // An OwidTable is a subset of Table. An OwidTable always has EntityName, EntityCode, EntityId, and Time columns,
 // and value column(s). Whether or not we need in the long run is uncertain and it may just be a stepping stone
@@ -810,8 +811,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     // There are finicky details in both of them that complicate this
     interpolateColumnWithTolerance(
         columnSlug: ColumnSlug,
-        toleranceOverride?: number,
-        toleranceStrategyOverride?: ToleranceStrategy
+        { toleranceStrategyOverride, toleranceOverride }: ToleranceOptions = {}
     ): this {
         // If the column doesn't exist, return the table unchanged.
         if (!this.has(columnSlug)) return this

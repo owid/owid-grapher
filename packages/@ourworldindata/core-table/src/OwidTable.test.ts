@@ -511,7 +511,9 @@ describe("tolerance", () => {
     )
 
     function applyTolerance(table: OwidTable): OwidTable {
-        return table.interpolateColumnWithTolerance("gdp", 1)
+        return table.interpolateColumnWithTolerance("gdp", {
+            toleranceOverride: 1,
+        })
     }
 
     // Applying the tolerance twice to ensure operation is idempotent.
@@ -593,7 +595,9 @@ describe("tolerance", () => {
                 { slug: "year", type: ColumnTypeNames.Year },
             ]
         )
-        const toleranceTable = table.interpolateColumnWithTolerance("gdp", 1)
+        const toleranceTable = table.interpolateColumnWithTolerance("gdp", {
+            toleranceOverride: 1,
+        })
         // tests assume sorted by [entityName, year]
         expect(
             toleranceTable.get("entityName")?.valuesIncludingErrorValues
@@ -613,7 +617,9 @@ it("assigns originalTime as 'originalTime' in owidRows", () => {
     const csv = `gdp,year,entityName,entityId,entityCode
 1000,2019,USA,,
 1001,2020,UK,,`
-    const table = new OwidTable(csv).interpolateColumnWithTolerance("gdp", 1)
+    const table = new OwidTable(csv).interpolateColumnWithTolerance("gdp", {
+        toleranceOverride: 1,
+    })
     const owidRows = table.get("gdp").owidRows
     expect(owidRows).toEqual(
         expect.not.arrayContaining([

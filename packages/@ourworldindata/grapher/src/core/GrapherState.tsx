@@ -986,10 +986,9 @@ export class GrapherState {
         if (this.hasScatter && this.sizeColumnSlug) {
             const tolerance =
                 table.get(this.sizeColumnSlug)?.display?.tolerance ?? Infinity
-            table = table.interpolateColumnWithTolerance(
-                this.sizeColumnSlug,
-                tolerance
-            )
+            table = table.interpolateColumnWithTolerance(this.sizeColumnSlug, {
+                toleranceOverride: tolerance,
+            })
         }
 
         if (
@@ -1001,7 +1000,7 @@ export class GrapherState {
                     ?.tolerance ?? Infinity
             table = table.interpolateColumnWithTolerance(
                 this.categoricalColorColumnSlug,
-                tolerance
+                { toleranceOverride: tolerance }
             )
         }
 
