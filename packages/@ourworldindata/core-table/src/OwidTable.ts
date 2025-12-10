@@ -802,9 +802,9 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         context: K
     ): { values: number[]; times: number[] } {
         const groupBoundaries = withAllRows.groupBoundaries(this.entityNameSlug)
-        const newValues = withAllRows
-            .get(columnSlug)
-            .valuesIncludingErrorValues.slice() as number[]
+        const col = withAllRows.get(columnSlug)
+        const validIndices = col.validRowIndices
+        const newValues = col.valuesIncludingErrorValues.slice()
         const newTimes = withAllRows
             .get(timeColumnSlug)
             .valuesIncludingErrorValues.slice() as Time[]
@@ -812,6 +812,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             interpolation(
                 newValues,
                 newTimes,
+                validIndices,
                 context,
                 groupBoundaries[index],
                 groupBoundaries[index + 1]
