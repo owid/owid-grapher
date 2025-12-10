@@ -78,6 +78,10 @@ class SaveButtonsForChart extends Component<SaveButtonsProps<ChartEditor>> {
         else this.props.editor.publishGrapher()
     }
 
+    @action.bound onDeleteChart() {
+        void this.props.editor.deleteGrapher()
+    }
+
     @computed get editingErrors(): string[] {
         const { errorMessages, errorMessagesForDimensions } = this.props
         return excludeUndefined([
@@ -143,6 +147,12 @@ class SaveButtonsForChart extends Component<SaveButtonsProps<ChartEditor>> {
                                 {grapherState.isPublished
                                     ? "Unpublish"
                                     : "Publish"}
+                            </button>{" "}
+                            <button
+                                className="btn btn-danger"
+                                onClick={this.onDeleteChart}
+                            >
+                                Delete
                             </button>
                         </>
                     )}
