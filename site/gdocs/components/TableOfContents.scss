@@ -7,12 +7,12 @@
 
     // Red line on the left, only visible when expanded
     &:has(.toc-details-wrapper[open])::before {
-            grid-column: span 1;
-            grid-row: span 2;
-            content: "";
-            border-right: 1px solid #ffd3d3;
-            margin-right: var(--grid-gap);
-        }
+        grid-column: span 1;
+        grid-row: span 2;
+        content: "";
+        border-right: 1px solid #ffd3d3;
+        margin-right: var(--grid-gap);
+    }
 
     .toc-details-wrapper {
         grid-column-start: 2;
