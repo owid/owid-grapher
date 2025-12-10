@@ -134,6 +134,11 @@ export enum ToleranceStrategy {
     forwards = "forwards",
 }
 
+export interface ToleranceOptions {
+    toleranceOverride?: number
+    toleranceStrategyOverride?: ToleranceStrategy
+}
+
 export enum AxisMinMaxValueStr {
     auto = "auto",
 }
