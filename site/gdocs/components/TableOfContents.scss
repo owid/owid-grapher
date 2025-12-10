@@ -1,15 +1,30 @@
 .toc {
+    --expand-collapse-animation-duration: 0.5s;
+
     padding: 40px 0;
     margin: 32px 0;
     background-color: $beige;
-    cursor: pointer;
 
-    &.open::before {
+    // Red line on the left, only visible when expanded
+    &:has(.toc-details-wrapper[open])::before {
         grid-column: span 1;
         grid-row: span 2;
         content: "";
         border-right: 1px solid #ffd3d3;
         margin-right: var(--grid-gap);
+    }
+
+    .toc-details-wrapper {
+        grid-column-start: 2;
+
+        // ::details-content is quite new (Baseline September 2025), but if it's not supported,
+        // the block is simply not animated, which is acceptable.
+        &::details-content {
+            // Delay making content invisible until after collapse animation is done
+            // see https://developer.chrome.com/blog/styling-details#animating_the_details-content_pseudo
+            transition: content-visibility
+                var(--expand-collapse-animation-duration) allow-discrete;
+        }
     }
 
     .toc-toggle {
@@ -19,18 +34,57 @@
         display: flex;
         justify-content: space-between;
         cursor: pointer;
-        border: none;
+        list-style: none;
         color: $blue-90;
-        background-color: transparent;
+
+        // Hide default marker
+        &::marker,
+        &::-webkit-details-marker {
+            display: none;
+        }
     }
 
-    // Have to hard-code this because the span-cols-x overrides col-start-x
-    .toc-toggle,
+    .toc-toggle-icon {
+        .icon-open {
+            display: none;
+        }
+    }
+
+    .toc-details-wrapper[open] {
+        .toc-toggle-icon {
+            .icon-closed {
+                display: none;
+            }
+            .icon-open {
+                display: inline;
+            }
+        }
+    }
+
+    // Use a grid trick to animate height changes smoothly
+    // see https://keithjgrant.com/posts/2023/04/transitioning-to-height-auto/#with-grid
     .toc-content {
-        grid-column-start: 2;
+        display: grid;
+
+        grid-template-rows: 0fr;
+        opacity: 0;
+        transition:
+            grid-template-rows var(--expand-collapse-animation-duration),
+            opacity var(--expand-collapse-animation-duration);
+    }
+
+    .toc-details-wrapper[open] .toc-content {
+        @starting-style {
+            grid-template-rows: 0fr;
+            opacity: 0;
+        }
+
+        grid-template-rows: 1fr;
+        opacity: 1;
     }
 
     ul {
+        overflow: hidden; // needed for the grid-template-rows trick
         margin-top: 24px;
         list-style-type: none;
     }
