@@ -3174,7 +3174,7 @@ __metadata:
     react-flip-toolkit: "npm:^7.2.4"
     react-move: "npm:^6.5.0"
     remeda: "npm:^2.32.0"
-    simple-statistics: "npm:^7.3.2"
+    simple-statistics: "npm:^7.8.8"
     topojson-client: "npm:^3.1.0"
     ts-pattern: "npm:^5.8.0"
     typescript: "npm:~5.9.2"
@@ -3228,7 +3228,7 @@ __metadata:
     react-move: "npm:^6.5.0"
     react-select: "npm:^5.10.2"
     remeda: "npm:^2.32.0"
-    simple-statistics: "npm:^7.3.2"
+    simple-statistics: "npm:^7.8.8"
     topojson-client: "npm:^3.1.0"
     ts-pattern: "npm:^5.8.0"
     typescript: "npm:~5.9.2"
@@ -11671,7 +11671,7 @@ __metadata:
     schema-dts: "npm:^1.1.5"
     sharp: "npm:^0.33.5"
     simple-git: "npm:^3.16.1"
-    simple-statistics: "npm:^7.3.2"
+    simple-statistics: "npm:^7.8.8"
     string-pixel-width: "npm:^1.10.0"
     striptags: "npm:^3.2.0"
     timezone-mock: "npm:^1.0.18"
@@ -16679,10 +16679,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"simple-statistics@npm:^7.3.2":
-  version: 7.3.2
-  resolution: "simple-statistics@npm:7.3.2"
-  checksum: 10/61e3d402f3cd1c466d6fd56b145401589e275eb41108b7e5329c902f56b578da954b438bb412a7d07e4c7ca30251280b316b21bbb853539f254a74dea9d7fde6
+"simple-statistics@npm:^7.8.8":
+  version: 7.8.8
+  resolution: "simple-statistics@npm:7.8.8"
+  checksum: 10/48f519a1278e5d5e81ced21288b27929271fed8b7b9052392596cc131923f85b91ea0be4d68fded2d50ad8ca5388ff9313109b682728f9d509e71cb635475558
   languageName: node
   linkType: hard
 
