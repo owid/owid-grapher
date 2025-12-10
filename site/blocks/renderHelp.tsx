@@ -2,7 +2,7 @@ import ReactDOMServer from "react-dom/server"
 import { Help } from "./Help.js"
 import { CheerioAPI } from "cheerio"
 
-export const renderHelp = (cheerioEl: CheerioAPI) =>
+export const renderHelp = (cheerioEl: CheerioAPI) => {
     cheerioEl("block[type='help']").each((_i, el) => {
         const $block = cheerioEl(el)
         const title = $block.find("h4").remove().text() || null
@@ -16,3 +16,4 @@ export const renderHelp = (cheerioEl: CheerioAPI) =>
         $block.after(rendered)
         $block.remove()
     })
+}
