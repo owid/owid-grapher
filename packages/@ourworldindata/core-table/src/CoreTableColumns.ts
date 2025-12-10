@@ -335,14 +335,23 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @imemo get validRowIndices(): number[] {
-        return this.valuesIncludingErrorValues
-            .map((value, index) => (isNotErrorValue(value) ? index : undefined))
-            .filter(isPresent)
+        const indices: number[] = []
+        for (let i = 0; i < this.valuesIncludingErrorValues.length; i++) {
+            const value = this.valuesIncludingErrorValues[i]
+            if (isNotErrorValue(value)) indices.push(i)
+        }
+        return indices
     }
 
     @imemo get values(): JS_TYPE[] {
-        const values = this.valuesIncludingErrorValues
-        return this.validRowIndices.map((index) => values[index]) as JS_TYPE[]
+        const values: JS_TYPE[] = []
+
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
+        for (let i = 0; i < this.valuesIncludingErrorValues.length; i++) {
+            const value = this.valuesIncludingErrorValues[i]
+            if (isNotErrorValue(value)) values.push(value as JS_TYPE)
+        }
+        return values
     }
 
     @imemo get originalTimeColumnSlug(): string {
