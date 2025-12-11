@@ -15,12 +15,12 @@ export interface BaseRegion {
     name: string
     code: string
     slug: string
+    shortName?: string
 }
 
 export interface Country extends BaseRegion {
     regionType: RegionType.Country | RegionType.Other
     shortCode?: string
-    shortName?: string
     isMappable?: boolean
     isHistorical?: boolean
     isUnlisted?: boolean
