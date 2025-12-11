@@ -638,12 +638,12 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                 <div
                     className={`${SLIDER_CLASS} clickable`}
                     role="group"
-                    aria-label="Timeline slider"
+                    aria-label="Time range slider"
                     onMouseDown={(event) => this.onMouseDown(event.nativeEvent)}
                 >
                     <TimelineHandle
                         className={MarkerType.Start}
-                        ariaLabel="Start time"
+                        ariaLabel={`Start time: ${formattedStartTime}`}
                         offsetPercent={startTimeProgress * 100}
                         formattedMinTime={formattedMinTime}
                         formattedMaxTime={formattedMaxTime}
@@ -686,7 +686,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                     )}
                     <TimelineHandle
                         className={MarkerType.End}
-                        ariaLabel="End time"
+                        ariaLabel={`End time: ${formattedEndTime}`}
                         offsetPercent={endTimeProgress * 100}
                         formattedMinTime={formattedMinTime}
                         formattedMaxTime={formattedMaxTime}
@@ -757,6 +757,7 @@ const TimelineEdgeButton = ({
             onClick={onClick}
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
+            aria-label={`Jump to ${formattedTime}`}
         >
             {formattedTime}
         </button>
@@ -803,6 +804,7 @@ function TimelineHandle({
             aria-valuemax={castToNumberIfPossible(formattedMaxTime)}
             aria-valuetext={formattedCurrTime}
             aria-label={ariaLabel}
+            aria-description="Use arrow keys to adjust by one step, Page Up/Down for larger steps, Home/End to jump to minimum/maximum."
             aria-orientation="horizontal"
             onFocus={onFocus}
             onBlur={onBlur}
@@ -902,6 +904,7 @@ function EditableYearTooltip({
                         onKeyDown={handleKeyDown}
                         onFocus={(e) => e.target.select()}
                         autoFocus
+                        aria-label="Edit year"
                     />
                 </div>
             ) : (
@@ -910,6 +913,7 @@ function EditableYearTooltip({
                     className="EditableTimeTooltip__Button"
                     onClick={onStartEditing}
                     onBlur={onBlur}
+                    aria-label={`Current year: ${formattedTime}. Click to edit.`}
                 >
                     {formattedTime}
                 </button>
