@@ -357,13 +357,56 @@ export class TimelineController {
         else await this.play()
     }
 
+    /**
+     * Stores the offset between the drag start position and the handle positions.
+     * Used when dragging the range (both handles together) to preserve their relative spacing.
+     *
+     * Depends on the spacing mode:
+     * - In proportional spacing mode: stores time offsets (e.g., [-5, +10] for years)
+     * - In equal spacing mode: stores index offsets (e.g., [-2, +3] for array positions)
+     */
     private dragOffsets: [number, number] = [0, 0]
 
     private get isSingleDragMarker(): boolean {
         return this.dragOffsets[0] === this.dragOffsets[1]
     }
 
+    private timeToIndex(time: Time): number {
+        return R.sortedIndex(this.timesAsc, time)
+    }
+
+    private indexToTimeBound(index: number): TimeBound {
+        const minIndex = 0
+        const maxIndex = this.timesAsc.length - 1
+        const clampedIndex = R.clamp(index, { min: minIndex, max: maxIndex })
+        const time = this.timesAsc[clampedIndex]
+
+        // Convert to infinity at the edges
+        if (index <= minIndex) return TimeBoundValue.negativeInfinity
+        if (index >= maxIndex) return TimeBoundValue.positiveInfinity
+
+        return time
+    }
+
     setDragOffsets(inputTime: number): void {
+        if (this.shouldUseEqualSpacing) {
+            this.setDragOffsetsEqualSpacing(inputTime)
+        } else {
+            this.setDragOffsetsProportional(inputTime)
+        }
+    }
+
+    private setDragOffsetsEqualSpacing(inputTime: number): void {
+        const closestTime =
+            findClosestTime(this.timesAsc, inputTime) ?? inputTime
+        const clickIndex = this.timeToIndex(closestTime)
+        const startIndex = this.timeToIndex(this.startTime)
+        const endIndex = this.timeToIndex(this.endTime)
+
+        this.dragOffsets = [startIndex - clickIndex, endIndex - clickIndex]
+    }
+
+    private setDragOffsetsProportional(inputTime: number): void {
         const closestTime =
             findClosestTime(this.timesAsc, inputTime) ?? inputTime
         this.dragOffsets = [
@@ -381,6 +424,46 @@ export class TimelineController {
     }
 
     private dragRangeToTime(time: Time): void {
+        if (this.shouldUseEqualSpacing) {
+            this.dragRangeToTimeEqualSpacing(time)
+        } else {
+            this.dragRangeToTimeProportional(time)
+        }
+    }
+
+    private dragRangeToTimeEqualSpacing(time: Time): void {
+        const closestTime = findClosestTime(this.timesAsc, time) ?? time
+        const currentIndex = this.timeToIndex(closestTime)
+
+        // Apply index offsets
+        let startIndex = currentIndex + this.dragOffsets[0]
+        let endIndex = currentIndex + this.dragOffsets[1]
+
+        const minIndex = 0
+        const maxIndex = this.timesAsc.length - 1
+
+        // Handle edge clamping for ranges
+        if (!this.isSingleDragMarker) {
+            const indexSpan = this.dragOffsets[1] - this.dragOffsets[0]
+
+            if (startIndex < minIndex) {
+                startIndex = minIndex
+                endIndex = minIndex + indexSpan
+            } else if (endIndex > maxIndex) {
+                endIndex = maxIndex
+                startIndex = maxIndex - indexSpan
+            }
+        }
+
+        // Convert indices to TimeBounds
+        const startTimeBound = this.indexToTimeBound(startIndex)
+        const endTimeBound = this.indexToTimeBound(endIndex)
+
+        this.updateStartTime(startTimeBound)
+        this.updateEndTime(endTimeBound)
+    }
+
+    private dragRangeToTimeProportional(time: Time): void {
         const { minTime, maxTime } = this
 
         let startTime = this.clampTimeBound(this.dragOffsets[0] + time)
