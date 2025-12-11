@@ -327,10 +327,14 @@ function TooltipValueColor({
     const colorValue = value?.color
     if (!colorValue) return null
 
+    // Get the legend label for this color value
+    const bin = colorScale.getBinForValue(colorValue)
+    const displayValue = bin?.label ?? colorValue.toString()
+
     return (
         <TooltipValue
             label={colorScale.legendDescription ?? colorColumn.displayName}
-            value={colorValue.toString()}
+            value={displayValue}
         />
     )
 }

@@ -421,6 +421,7 @@ export class MarimekkoChart
             xColumn,
             yColumns,
             colorColumn,
+            colorScale,
             manager: { endTime, xOverrideTime },
             inputTable: { timeColumn },
             tooltipState: { target, position, fading },
@@ -573,10 +574,14 @@ export class MarimekkoChart
                             tooltipItem?.entityColor && (
                                 <TooltipValue
                                     label={
-                                        this.colorScale.legendDescription ??
+                                        colorScale.legendDescription ??
                                         colorColumn.displayName
                                     }
                                     value={
+                                        colorScale.getBinForValue(
+                                            tooltipItem.entityColor
+                                                .colorDomainValue
+                                        )?.label ??
                                         tooltipItem.entityColor.colorDomainValue
                                     }
                                 />
