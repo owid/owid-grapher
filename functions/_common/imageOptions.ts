@@ -26,6 +26,7 @@ export interface ImageOptions {
     fontSize: number | undefined
     grapherProps?: Partial<GrapherProgrammaticInterface>
 }
+
 export const TWITTER_OPTIONS: Readonly<ImageOptions> = {
     // Twitter cards are 1.91:1 in aspect ratio, and 800x418 is the recommended size
     pngWidth: 800,
@@ -44,36 +45,82 @@ const OPEN_GRAPH_OPTIONS: Readonly<ImageOptions> = {
     details: false,
     fontSize: 21,
 }
-const SQUARE_OPTIONS = {
-    pngWidth: 4 * GRAPHER_SQUARE_SIZE,
-    pngHeight: 4 * GRAPHER_SQUARE_SIZE,
-    svgWidth: GRAPHER_SQUARE_SIZE,
-    svgHeight: GRAPHER_SQUARE_SIZE,
-    details: false,
-    fontSize: undefined,
-    grapherProps: {
-        isSocialMediaExport: false,
-        staticBounds: DEFAULT_GRAPHER_BOUNDS_SQUARE,
-    } as Partial<GrapherProgrammaticInterface>,
-} satisfies Readonly<ImageOptions>
-const THUMBNAIL_OPTIONS = {
-    pngWidth: 4 * GRAPHER_THUMBNAIL_WIDTH,
-    pngHeight: 4 * GRAPHER_THUMBNAIL_HEIGHT,
-    svgWidth: GRAPHER_THUMBNAIL_WIDTH,
-    svgHeight: GRAPHER_THUMBNAIL_HEIGHT,
-    details: false,
-    fontSize: 14,
-    grapherProps: {
-        isSocialMediaExport: false,
-        staticBounds: new Bounds(
-            0,
-            0,
-            GRAPHER_THUMBNAIL_WIDTH,
-            GRAPHER_THUMBNAIL_HEIGHT
-        ),
-        variant: GrapherVariant.Thumbnail,
-    } as Partial<GrapherProgrammaticInterface>,
-} satisfies Readonly<ImageOptions>
+
+const getSquareOptions = (params: URLSearchParams): ImageOptions => {
+    const options = {
+        pngWidth: 4 * GRAPHER_SQUARE_SIZE,
+        pngHeight: 4 * GRAPHER_SQUARE_SIZE,
+        svgWidth: GRAPHER_SQUARE_SIZE,
+        svgHeight: GRAPHER_SQUARE_SIZE,
+        details: false,
+        fontSize: undefined,
+        grapherProps: {
+            isSocialMediaExport: false,
+            staticBounds: DEFAULT_GRAPHER_BOUNDS_SQUARE,
+        } as Partial<GrapherProgrammaticInterface>,
+    }
+
+    const imType = params.get("imType")
+
+    if (imType === "social-media-square") {
+        if (!options.grapherProps) options.grapherProps = {}
+        options.grapherProps.isSocialMediaExport = true
+    }
+
+    if (params.has("imSquareSize")) {
+        const size = parseInt(params.get("imSquareSize")!)
+        options.pngWidth = size
+        options.pngHeight = size
+    }
+
+    return options
+}
+
+const getThumbnailOptions = (params: URLSearchParams): ImageOptions => {
+    const options = {
+        pngWidth: 4 * GRAPHER_THUMBNAIL_WIDTH,
+        pngHeight: 4 * GRAPHER_THUMBNAIL_HEIGHT,
+        svgWidth: GRAPHER_THUMBNAIL_WIDTH,
+        svgHeight: GRAPHER_THUMBNAIL_HEIGHT,
+        details: false,
+        fontSize: 14,
+        grapherProps: {
+            isSocialMediaExport: false,
+            staticBounds: new Bounds(
+                0,
+                0,
+                GRAPHER_THUMBNAIL_WIDTH,
+                GRAPHER_THUMBNAIL_HEIGHT
+            ),
+            variant: GrapherVariant.Thumbnail,
+        } as Partial<GrapherProgrammaticInterface>,
+    }
+
+    if (params.has("imMinimal")) {
+        if (!options.grapherProps) options.grapherProps = {}
+        options.grapherProps.isDisplayedAlongsideComplementaryTable =
+            params.get("imMinimal")! === "1"
+    }
+
+    if (params.has("imFontSize"))
+        options.fontSize = parseInt(params.get("imFontSize")!)
+
+    if (params.has("imWidth"))
+        options.pngWidth = parseInt(params.get("imWidth")!)
+
+    if (params.has("imHeight"))
+        options.pngHeight = parseInt(params.get("imHeight")!)
+
+    if (!options.grapherProps) options.grapherProps = {}
+    options.grapherProps.staticBounds = new Bounds(
+        0,
+        0,
+        options.pngWidth / 4,
+        options.pngHeight / 4
+    )
+
+    return options
+}
 
 export const extractOptions = (params: URLSearchParams): ImageOptions => {
     const options: Partial<ImageOptions> = {}
@@ -82,37 +129,11 @@ export const extractOptions = (params: URLSearchParams): ImageOptions => {
     // We have some special images types specified via the `imType` query param:
     if (imType === "twitter") return TWITTER_OPTIONS
     else if (imType === "og") return OPEN_GRAPH_OPTIONS
-    else if (imType === "thumbnail") {
-        const thumbnailOptions = structuredClone(THUMBNAIL_OPTIONS)
-        if (params.has("imMinimal")) {
-            thumbnailOptions.grapherProps.isDisplayedAlongsideComplementaryTable =
-                params.get("imMinimal")! === "1"
-        }
-        if (params.has("imFontSize"))
-            thumbnailOptions.fontSize = parseInt(params.get("imFontSize")!)
-        if (params.has("imWidth"))
-            thumbnailOptions.pngWidth = parseInt(params.get("imWidth")!)
-        if (params.has("imHeight"))
-            thumbnailOptions.pngHeight = parseInt(params.get("imHeight")!)
-        thumbnailOptions.grapherProps.staticBounds = new Bounds(
-            0,
-            0,
-            thumbnailOptions.pngWidth / 4,
-            thumbnailOptions.pngHeight / 4
-        )
-        return thumbnailOptions
-    } else if (imType === "square" || imType === "social-media-square") {
-        const squareOptions = structuredClone(SQUARE_OPTIONS)
-        if (imType === "social-media-square") {
-            squareOptions.grapherProps.isSocialMediaExport = true
-        }
-        if (params.has("imSquareSize")) {
-            const size = parseInt(params.get("imSquareSize")!)
-            squareOptions.pngWidth = size
-            squareOptions.pngHeight = size
-        }
-        return squareOptions
-    } else if (imType === "uncaptioned") {
+    else if (imType === "thumbnail") return getThumbnailOptions(params)
+    else if (imType === "square" || imType === "social-media-square")
+        return getSquareOptions(params)
+
+    if (imType === "uncaptioned") {
         if (!options.grapherProps) options.grapherProps = {}
         options.grapherProps.variant = GrapherVariant.Uncaptioned
         if (params.has("imMinimal")) {
