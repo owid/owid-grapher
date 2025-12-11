@@ -21,6 +21,11 @@ import {
     makeSelectionArray,
 } from "../chart/ChartUtils"
 import {
+    AnnotationsMap,
+    getAnnotationsForSeries,
+    getAnnotationsMap,
+} from "../lineCharts/LineChartHelpers"
+import {
     ChartErrorInfo,
     ColorScaleConfigInterface,
     ColorSchemeName,
@@ -114,6 +119,12 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
 
     @computed get formatColumn(): CoreColumn {
         return this.yColumns[0]
+    }
+
+    @computed get annotationsMap(): AnnotationsMap | undefined {
+        const yColumnSlug = this.yColumnSlugs[0]
+        if (!yColumnSlug) return undefined
+        return getAnnotationsMap(this.inputTable, yColumnSlug)
     }
 
     @computed get hasProjectedData(): boolean {
@@ -286,6 +297,10 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
                 seriesName,
                 entityName: seriesName,
                 shortEntityName: getShortNameForEntity(seriesName),
+                annotation: getAnnotationsForSeries(
+                    this.annotationsMap,
+                    seriesName
+                ),
                 // the error color should never be used but I prefer it here instead of throwing an exception if something goes wrong
                 color:
                     color ??
