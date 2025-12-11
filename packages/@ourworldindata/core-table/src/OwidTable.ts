@@ -783,7 +783,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         timeColumnSlug: ColumnSlug,
         interpolation: InterpolationProvider<K>,
         context: K
-    ): { values: number[]; times: number[] } {
+    ): { values: CoreValueType[]; times: number[] } {
         const groupBoundaries = withAllRows.groupBoundaries(this.entityNameSlug)
         const col = withAllRows.get(columnSlug)
         const validIndices = col.validRowIndices

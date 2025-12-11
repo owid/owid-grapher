@@ -197,7 +197,7 @@ export interface ToleranceInterpolationContext extends InterpolationContext {
 }
 
 export type InterpolationProvider<C extends InterpolationContext> = (
-    valuesSortedByTimeAsc: (number | ErrorValue)[],
+    valuesSortedByTimeAsc: CoreValueType[],
     timesAsc: Time[],
     validIndices: number[],
     context: C,
@@ -206,7 +206,7 @@ export type InterpolationProvider<C extends InterpolationContext> = (
 ) => void
 
 export function linearInterpolation(
-    valuesSortedByTimeAsc: (number | ErrorValue)[],
+    valuesSortedByTimeAsc: CoreValueType[],
     timesAsc: Time[],
     validIndices: number[],
     context: LinearInterpolationContext,
@@ -251,10 +251,7 @@ export function linearInterpolation(
         const nextValue = valuesSortedByTimeAsc[nextNonBlankIndex]
 
         let value
-        if (
-            isNotErrorValueOrEmptyCell(prevValue) &&
-            isNotErrorValueOrEmptyCell(nextValue)
-        ) {
+        if (typeof prevValue === "number" && typeof nextValue === "number") {
             const distLeft = timesAsc[index] - timesAsc[prevNonBlankIndex]
             const distRight = timesAsc[nextNonBlankIndex] - timesAsc[index]
             value =
@@ -279,7 +276,7 @@ export function linearInterpolation(
 }
 
 export function toleranceInterpolation(
-    valuesSortedByTimeAsc: (number | ErrorValue)[],
+    valuesSortedByTimeAsc: CoreValueType[],
     timesAsc: Time[],
     validIndices: number[],
     context: ToleranceInterpolationContext,
