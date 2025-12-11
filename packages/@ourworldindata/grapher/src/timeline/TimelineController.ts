@@ -162,7 +162,7 @@ export class TimelineController {
     }
 
     // Jump forward by ~10% of available times
-    private getLargeStepForward(currentTime: number, fraction = 0.1): number {
+    getLargeStepForward(currentTime: number, fraction = 0.1): number {
         const currentIndex = this.timesAsc.indexOf(currentTime)
         if (currentIndex === -1) return this.maxTime
 
@@ -180,7 +180,7 @@ export class TimelineController {
     }
 
     // Jump backward by ~10% of available times
-    private getLargeStepBackward(currentTime: number, fraction = 0.1): number {
+    getLargeStepBackward(currentTime: number, fraction = 0.1): number {
         const currentIndex = this.timesAsc.indexOf(currentTime)
         if (currentIndex === -1) return this.minTime
 
