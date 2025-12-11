@@ -242,6 +242,9 @@ export function linearInterpolation(
 
         if (nextNonBlankIndex === -1 || nextNonBlankIndex <= index) {
             nextNonBlankIndex = validIndices[currentValidIndexPointer] ?? -1
+            if (nextNonBlankIndex > end) {
+                nextNonBlankIndex = -1
+            }
         }
 
         const prevValue = valuesSortedByTimeAsc[prevNonBlankIndex]
@@ -340,6 +343,9 @@ export function toleranceInterpolation(
             (nextNonBlankIndex === undefined || nextNonBlankIndex <= index)
         ) {
             nextNonBlankIndex = validIndices[currentValidIndexPointer] ?? -1
+            if (nextNonBlankIndex > end) {
+                nextNonBlankIndex = -1
+            }
         }
 
         const timeOfCurrent = timesAsc[index]
