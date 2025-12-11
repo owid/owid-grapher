@@ -242,7 +242,7 @@ export function linearInterpolation(
 
         if (nextNonBlankIndex === -1 || nextNonBlankIndex <= index) {
             nextNonBlankIndex = validIndices[currentValidIndexPointer] ?? -1
-            if (nextNonBlankIndex > end) {
+            if (nextNonBlankIndex >= end) {
                 nextNonBlankIndex = -1
             }
         }
@@ -340,7 +340,7 @@ export function toleranceInterpolation(
             (nextNonBlankIndex === undefined || nextNonBlankIndex <= index)
         ) {
             nextNonBlankIndex = validIndices[currentValidIndexPointer] ?? -1
-            if (nextNonBlankIndex > end) {
+            if (nextNonBlankIndex >= end) {
                 nextNonBlankIndex = -1
             }
         }
