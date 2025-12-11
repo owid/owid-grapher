@@ -307,6 +307,7 @@ export abstract class AbstractStackedChartState implements ChartState {
                     isAllZeros: points.every((point) => point.value === 0),
                     color: this.categoricalColorAssigner.assign(seriesName),
                     focus: series.focus,
+                    shortEntityName: series.shortEntityName,
                 }
             })
     }

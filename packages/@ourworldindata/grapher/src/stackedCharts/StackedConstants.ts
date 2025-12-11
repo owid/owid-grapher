@@ -74,6 +74,7 @@ export interface StackedRawSeries<
     isProjection?: boolean
     rows: OwidVariableRow<PositionType>[]
     focus: InteractionState
+    shortEntityName?: string
 }
 
 export interface Bar {

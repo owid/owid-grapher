@@ -2,7 +2,7 @@ import * as React from "react"
 import {
     Box,
     excludeUndefined,
-    getCountryByName,
+    getRegionByName,
     Url,
 } from "@ourworldindata/utils"
 import {
@@ -144,8 +144,8 @@ export function isElementInteractive(element: HTMLElement): boolean {
 }
 
 export function getShortNameForEntity(entityName: string): string | undefined {
-    const country = getCountryByName(entityName)
-    return country?.shortName
+    const region = getRegionByName(entityName)
+    return region?.shortName
 }
 
 export function isTargetOutsideElement(
