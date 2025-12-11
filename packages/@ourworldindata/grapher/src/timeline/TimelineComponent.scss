@@ -123,12 +123,12 @@ $timelineHeight: 32px;
 
             .EditableTimeTooltip__Button {
                 cursor: text;
-                padding: 8px;
+                padding: 0 8px;
+                height: $timelineHeight;
                 background: white;
                 border: 1px solid $gray-20;
                 border-radius: 4px;
                 font-weight: 400;
-                letter-spacing: 0.01em;
                 transition: border-color 0.15s ease;
 
                 &:hover {
@@ -156,8 +156,8 @@ $timelineHeight: 32px;
                     grid-area: 1 / 1 / 2 / 2;
                     font-size: $font-size;
                     font-weight: 400;
-                    letter-spacing: 0.01em;
-                    padding: 8px;
+                    padding: 0 8px;
+                    height: $timelineHeight;
                     border: 1px solid transparent;
                 }
             }
@@ -167,13 +167,13 @@ $timelineHeight: 32px;
                 width: 100%;
                 min-width: 50px;
                 max-width: 140px;
+                height: $timelineHeight;
                 background: white;
                 border: 1px solid $blue-50;
                 color: inherit;
                 font-size: $font-size;
                 font-weight: 400;
-                letter-spacing: 0.01em;
-                padding: 8px;
+                padding: 0 8px;
                 margin: 0;
                 text-align: center;
                 outline: none;
