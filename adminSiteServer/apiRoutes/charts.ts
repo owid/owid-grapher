@@ -139,14 +139,14 @@ export const getReferencesByChartId = async (
             SELECT cc.slug as main_slug, c.id as chart_id
             FROM charts c
             JOIN chart_configs cc ON c.configId = cc.id
-            WHERE c.id = ?
+            WHERE c.id = ? AND cc.slug != '' AND cc.slug IS NOT NULL
 
             UNION ALL
 
             SELECT cr.slug as main_slug, c.id as chart_id
             FROM charts c
             JOIN chart_slug_redirects cr ON cr.chart_id = c.id
-            WHERE c.id = ?
+            WHERE c.id = ? AND cr.slug != '' AND cr.slug IS NOT NULL
         ),
         gdoc_grapher_slugs AS (
             SELECT
