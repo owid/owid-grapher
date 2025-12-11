@@ -412,17 +412,20 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     }
 
     @action.bound private onCompleteYear(year?: number): void {
-        // Only submit if the user has finished typing
-        if (year !== undefined && this.editHandle !== undefined) {
-            if (!this.areBothHandlesVisible) {
-                this.controller.setStartAndEndTimeFromInput(year)
-            } else if (this.editHandle === MarkerType.Start) {
-                this.controller.setStartTimeFromInput(year)
-            } else {
-                this.controller.setEndTimeFromInput(year)
-            }
-        }
+        // Only apply when the user has finished typing
+        if (year !== undefined && this.editHandle !== undefined)
+            this.onChangeYear(year)
         this.resetEditState()
+    }
+
+    @action.bound private onChangeYear(year: number): void {
+        if (!this.areBothHandlesVisible) {
+            this.controller.setStartAndEndTimeFromInput(year)
+        } else if (this.editHandle === MarkerType.Start) {
+            this.controller.setStartTimeFromInput(year)
+        } else {
+            this.controller.setEndTimeFromInput(year)
+        }
     }
 
     @action.bound updateStartTimeOnKeyDown(key: string): void {
@@ -486,6 +489,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                 formattedTime={formattedStartTime}
                 onStartEditing={() => this.onStartEditing(MarkerType.Start)}
                 onComplete={this.onCompleteYear}
+                onChange={this.onChangeYear}
                 onMouseEnter={action(() => {
                     this.isEditableTimeTooltipHovered = true
                     this.hoverTime = undefined
@@ -520,6 +524,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                 formattedTime={formattedEndTime}
                 onStartEditing={() => this.onStartEditing(MarkerType.End)}
                 onComplete={this.onCompleteYear}
+                onChange={this.onChangeYear}
                 onMouseEnter={action(() => {
                     this.isEditableTimeTooltipHovered = true
                     this.hoverTime = undefined
@@ -817,6 +822,7 @@ function EditableYearTooltip({
     formattedTime,
     onStartEditing,
     onComplete,
+    onChange,
     onMouseEnter,
     onMouseLeave,
     onBlur,
@@ -827,11 +833,14 @@ function EditableYearTooltip({
     formattedTime: string
     onStartEditing?: () => void
     onComplete?: (year?: number) => void
+    onChange?: (year: number) => void
     onMouseEnter?: () => void
     onMouseLeave?: () => void
     onBlur?: () => void
 }): React.ReactElement {
     const [inputValue, setInputValue] = React.useState(currentTime.toString())
+    const [shouldApplyImmediately, setShouldApplyImmediately] =
+        React.useState(false)
 
     const isEditing = editHandle === type
 
@@ -845,8 +854,24 @@ function EditableYearTooltip({
             onComplete?.(parsed)
         } else if (e.key === "Escape") {
             onComplete?.()
+        } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+            // Apply immediately on arrow key changes
+            setShouldApplyImmediately(true)
         }
         e.stopPropagation()
+    }
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        const newValue = e.target.value
+        setInputValue(newValue)
+
+        // If this change was triggered by arrow keys,
+        // apply immediately without exiting edit mode
+        if (shouldApplyImmediately) {
+            const parsed = parseIntOrUndefined(newValue.trim())
+            if (parsed !== undefined) onChange?.(parsed)
+            setShouldApplyImmediately(false)
+        }
     }
 
     const handleBlur = (): void => {
@@ -873,7 +898,7 @@ function EditableYearTooltip({
                         type="number"
                         className="EditableTimeTooltip__Input"
                         value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
+                        onChange={handleChange}
                         onBlur={handleBlur}
                         onKeyDown={handleKeyDown}
                         onFocus={(e) => e.target.select()}
