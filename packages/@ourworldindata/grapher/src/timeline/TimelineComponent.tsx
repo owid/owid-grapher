@@ -428,6 +428,26 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         }
     }
 
+    @action.bound private handleYearKeyboardNavigation(
+        key: string,
+        currentTime: number
+    ): number {
+        const { controller } = this
+        if (key === "ArrowUp") {
+            return controller.getNextTime(currentTime)
+        } else if (key === "ArrowDown") {
+            return controller.getPrevTime(currentTime)
+        } else if (key === "PageUp") {
+            return controller.getLargeStepForward(currentTime)
+        } else if (key === "PageDown") {
+            return controller.getLargeStepBackward(currentTime)
+        } else if (key === "Home") {
+            return controller.minTime
+        } else {
+            return controller.maxTime
+        }
+    }
+
     @action.bound updateStartTimeOnKeyDown(key: string): void {
         const { controller } = this
         if (key === "Home") {
@@ -490,6 +510,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                 onStartEditing={() => this.onStartEditing(MarkerType.Start)}
                 onComplete={this.onCompleteYear}
                 onChange={this.onChangeYear}
+                onKeyboardNavigation={this.handleYearKeyboardNavigation}
                 onMouseEnter={action(() => {
                     this.isEditableTimeTooltipHovered = true
                     this.hoverTime = undefined
@@ -525,6 +546,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                 onStartEditing={() => this.onStartEditing(MarkerType.End)}
                 onComplete={this.onCompleteYear}
                 onChange={this.onChangeYear}
+                onKeyboardNavigation={this.handleYearKeyboardNavigation}
                 onMouseEnter={action(() => {
                     this.isEditableTimeTooltipHovered = true
                     this.hoverTime = undefined
@@ -825,6 +847,7 @@ function EditableYearTooltip({
     onStartEditing,
     onComplete,
     onChange,
+    onKeyboardNavigation,
     onMouseEnter,
     onMouseLeave,
     onBlur,
@@ -836,13 +859,12 @@ function EditableYearTooltip({
     onStartEditing?: () => void
     onComplete?: (year?: number) => void
     onChange?: (year: number) => void
+    onKeyboardNavigation?: (key: string, currentTime: number) => number
     onMouseEnter?: () => void
     onMouseLeave?: () => void
     onBlur?: () => void
 }): React.ReactElement {
     const [inputValue, setInputValue] = React.useState(currentTime.toString())
-    const [shouldApplyImmediately, setShouldApplyImmediately] =
-        React.useState(false)
 
     const isEditing = editHandle === type
 
@@ -856,9 +878,21 @@ function EditableYearTooltip({
             onComplete?.(parsed)
         } else if (e.key === "Escape") {
             onComplete?.()
-        } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-            // Apply immediately on arrow key changes
-            setShouldApplyImmediately(true)
+        } else if (
+            onKeyboardNavigation &&
+            (e.key === "ArrowUp" ||
+                e.key === "ArrowDown" ||
+                e.key === "PageUp" ||
+                e.key === "PageDown" ||
+                e.key === "Home" ||
+                e.key === "End")
+        ) {
+            // Prevent default browser increment/decrement behavior
+            e.preventDefault()
+
+            const newTime = onKeyboardNavigation(e.key, currentTime)
+            setInputValue(newTime.toString())
+            onChange?.(newTime)
         }
         e.stopPropagation()
     }
@@ -866,14 +900,6 @@ function EditableYearTooltip({
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         const newValue = e.target.value
         setInputValue(newValue)
-
-        // If this change was triggered by arrow keys,
-        // apply immediately without exiting edit mode
-        if (shouldApplyImmediately) {
-            const parsed = parseIntOrUndefined(newValue.trim())
-            if (parsed !== undefined) onChange?.(parsed)
-            setShouldApplyImmediately(false)
-        }
     }
 
     const handleBlur = (): void => {
