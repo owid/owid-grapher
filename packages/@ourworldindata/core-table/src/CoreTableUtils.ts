@@ -307,9 +307,9 @@ export function toleranceInterpolation(
             const timeDiff = timeOfOnlyValid - timeOfCurrent
             if (
                 (timeDiff < 0 &&
-                    Math.abs(timeDiff) <= context.timeToleranceForwards) ||
+                    Math.abs(timeDiff) <= context.timeToleranceBackwards) ||
                 (timeDiff > 0 &&
-                    Math.abs(timeDiff) <= context.timeToleranceBackwards)
+                    Math.abs(timeDiff) <= context.timeToleranceForwards)
             ) {
                 valuesSortedByTimeAsc[index] =
                     valuesSortedByTimeAsc[onlyValidIndex]
