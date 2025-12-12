@@ -18,8 +18,6 @@ import {
     makeAtomFeed,
     feedbackPage,
     renderNotFoundPage,
-    renderCountryProfile,
-    flushCache as siteBakingFlushCache,
     renderPost,
     renderGdoc,
     makeAtomFeedNoTopicPages,
@@ -34,9 +32,8 @@ import {
     renderSubscribePage,
 } from "../baker/siteRenderers.js"
 import { makeSitemap } from "../baker/sitemap.js"
-import { bakeCountries } from "../baker/countryProfiles.js"
+import { bakeCountryIndexes } from "./countryIndexes.js"
 import {
-    countries,
     FullPost,
     LinkedAuthor,
     LinkedChart,
@@ -53,9 +50,9 @@ import {
     NarrativeChartInfo,
     ArchiveContext,
     OwidGdocType,
+    getEntitiesForProfile,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
-import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { getRedirects, flushCache as redirectsFlushCache } from "./redirects.js"
 import { bakeAllChangedGrapherPagesAndDeleteRemovedGraphers } from "./GrapherBaker.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
@@ -69,6 +66,10 @@ import { generateEmbedSnippet } from "../site/viteUtils.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import { mapSlugsToConfigs } from "../db/model/Chart.js"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
+import {
+    GdocProfile,
+    instantiateProfileForEntity,
+} from "../db/model/Gdoc/GdocProfile.js"
 import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 import {
     gdocFromJSON,
@@ -126,7 +127,7 @@ const wordpressSteps = ["assets", "blogIndex", "redirects", "rss"] as const
 
 const nonWordpressSteps = [
     "specialPages",
-    "countries",
+    "countryIndexes",
     "countryProfiles",
     "explorers",
     "charts",
@@ -188,35 +189,69 @@ export class SiteBaker {
 
     private async bakeCountryProfiles(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("countryProfiles")) return
-        this.progressBar.tick({ name: "Baking country profiles" })
-        await Promise.all(
-            countryProfileSpecs.map(async (spec) => {
-                // Delete all country profiles before regenerating them
-                await fs.remove(`${this.bakedSiteDir}/${spec.rootPath}`)
+        this.progressBar.tick({ name: "Baking profile pages" })
 
-                // Not necessary, as this is done by stageWrite already
-                // await this.ensureDir(profile.rootPath)
-                for (const country of countries) {
-                    const html = await renderCountryProfile(
-                        spec,
-                        country,
-                        knex
-                    ).catch(() =>
-                        console.error(
-                            `${country.name} country profile not baked for project "${spec.project}". Check that both pages "${spec.landingPageSlug}" and "${spec.genericProfileSlug}" exist and are published.`
-                        )
-                    )
-
-                    if (html) {
-                        const outPath = path.join(
-                            this.bakedSiteDir,
-                            `${spec.rootPath}/${country.slug}.html`
-                        )
-                        await this.stageWrite(outPath, html)
-                    }
-                }
-            })
+        const profileTemplates = (
+            await db
+                .getPublishedGdocsWithTags(knex, [OwidGdocType.Profile])
+                .then((gdocs) => gdocs.map(gdocFromJSON))
+        ).filter(
+            (gdoc): gdoc is GdocProfile =>
+                gdoc.content.type === OwidGdocType.Profile
         )
+
+        if (profileTemplates.length === 0) return
+
+        const tagHierarchiesByChildName =
+            await db.getTagHierarchiesByChildName(knex)
+
+        for (const profileTemplate of profileTemplates) {
+            const attachments = await this.getPrefetchedGdocAttachments(knex, [
+                profileTemplate.content.authors,
+                profileTemplate.linkedDocumentIds,
+                profileTemplate.linkedImageFilenames,
+                profileTemplate.linkedChartSlugs.grapher,
+                profileTemplate.linkedChartSlugs.explorer,
+                profileTemplate.linkedNarrativeChartNames,
+            ])
+
+            profileTemplate.donors = attachments.donors
+            profileTemplate.linkedAuthors = attachments.linkedAuthors
+            profileTemplate.linkedDocuments = attachments.linkedDocuments
+            profileTemplate.imageMetadata = attachments.imageMetadata
+            profileTemplate.linkedCharts = {
+                ...attachments.linkedCharts.graphers,
+                ...attachments.linkedCharts.explorers,
+            }
+            profileTemplate.linkedIndicators = attachments.linkedIndicators
+            profileTemplate.linkedNarrativeCharts =
+                attachments.linkedNarrativeCharts
+
+            if (
+                !profileTemplate.manualBreadcrumbs?.length &&
+                profileTemplate.tags?.length
+            ) {
+                profileTemplate.breadcrumbs = db.getBestBreadcrumbs(
+                    profileTemplate.tags,
+                    tagHierarchiesByChildName
+                )
+            }
+
+            const entities = getEntitiesForProfile(profileTemplate)
+
+            for (const entity of entities) {
+                const instantiatedProfile = instantiateProfileForEntity(
+                    profileTemplate,
+                    entity
+                )
+                const html = renderGdoc(instantiatedProfile)
+                const outPath = path.join(
+                    this.bakedSiteDir,
+                    `${instantiatedProfile.slug}.html`
+                )
+                await this.stageWrite(outPath, html)
+            }
+        }
     }
 
     // Bake an individual post/page
@@ -272,12 +307,8 @@ export class SiteBaker {
                     !path.startsWith("uploads") &&
                     !path.startsWith("grapher") &&
                     !path.startsWith("countries") &&
-                    !path.startsWith("country") &&
                     !path.startsWith("latest") &&
                     !path.startsWith("explore") &&
-                    !countryProfileSpecs.some((spec) =>
-                        path.startsWith(spec.rootPath)
-                    ) &&
                     path !== "donate" &&
                     path !== "feedback" &&
                     path !== "charts" &&
@@ -1131,8 +1162,8 @@ export class SiteBaker {
     }
 
     private async _bakeNonWordpressPages(knex: db.KnexReadonlyTransaction) {
-        if (this.bakeSteps.has("countries")) {
-            await bakeCountries(this, knex)
+        if (this.bakeSteps.has("countryIndexes")) {
+            await bakeCountryIndexes(this, knex)
         }
         await this.bakeSpecialPages(knex)
         await this.bakeCountryProfiles(knex)
@@ -1206,7 +1237,6 @@ export class SiteBaker {
     private flushCache() {
         this.progressBar.tick({ name: "Flushing cache" })
         // Clear caches to allow garbage collection while waiting for next run
-        siteBakingFlushCache()
         redirectsFlushCache()
     }
 }
@@ -1223,7 +1253,7 @@ export const bakeSinglePostPageForArchival = async (
         manifest: PostArchivalManifest
     }
 ) => {
-    const gdoc = await getAndLoadGdocBySlug(knex, slug)
+    const gdoc = await getAndLoadGdocBySlug(knex, slug, [OwidGdocType.Article])
     await gdoc.loadState(knex)
 
     const outPathHtml = `${bakedSiteDir}/${slug}.html`

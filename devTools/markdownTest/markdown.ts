@@ -3,13 +3,22 @@ import { getPostRawBySlug } from "../../db/model/Post.js"
 import { enrichedBlocksToMarkdown } from "../../db/model/Gdoc/enrichedToMarkdown.js"
 
 import parseArgs from "minimist"
-import { OwidEnrichedGdocBlock, parsePostArchieml } from "@ourworldindata/utils"
+import {
+    ALL_GDOC_TYPES,
+    OwidEnrichedGdocBlock,
+    OwidGdocType,
+    parsePostArchieml,
+} from "@ourworldindata/utils"
 import { getAndLoadGdocBySlug } from "../../db/model/Gdoc/GdocFactory.js"
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
         await knexReadonlyTransaction(async (trx) => {
-            const gdoc = await getAndLoadGdocBySlug(trx, parsedArgs._[0])
+            const gdoc = await getAndLoadGdocBySlug(
+                trx,
+                parsedArgs._[0],
+                ALL_GDOC_TYPES.filter((type) => type !== OwidGdocType.Profile)
+            )
             let archieMlContent: OwidEnrichedGdocBlock[] | null
             let contentToShowOnError: any
             if (!gdoc) {
