@@ -133,6 +133,9 @@ export const checkIsLightningUpdate = (
         excerpt: false,
         "featured-image": false,
         cta: false,
+        "homepage-title": false,
+        spotlight: false,
+        "source-document": false,
     }
     const authorLightningPropContentConfigMap: Record<
         keyof OwidGdocAuthorContent,

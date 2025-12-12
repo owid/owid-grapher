@@ -1,3 +1,4 @@
+import cx from "classnames"
 import { EnrichedBlockCallout } from "@ourworldindata/types"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -16,7 +17,7 @@ export default function Callout({
 }) {
     const icon = block.icon ? iconMap[block.icon] : null
     return (
-        <div className={className}>
+        <div className={cx("callout", className)}>
             {block.title ? (
                 <h4 className="callout-heading">
                     {icon && (

@@ -15,6 +15,7 @@ import {
     DbEnrichedImage,
     LinkedAuthor,
     LinkedChart,
+    OwidGdocAnnouncementInterface,
 } from "@ourworldindata/types"
 import { excludeNullish, formatDate } from "@ourworldindata/utils"
 import {
@@ -233,9 +234,20 @@ function gdocToLatestItem(
             },
         }
     } else {
+        const announcementJson = gdoc.toJSON() as OwidGdocAnnouncementInterface
+        const isSpotlight = announcementJson.content.spotlight
+        const body = isSpotlight
+            ? announcementJson.content.body.slice(0, 4)
+            : announcementJson.content.body
         return {
             type: OwidGdocType.Announcement,
-            data: gdoc,
+            data: {
+                ...announcementJson,
+                content: {
+                    ...announcementJson.content,
+                    body,
+                },
+            },
         }
     }
 }
@@ -314,12 +326,19 @@ export const enrichLatestPageItems = async (
         (images) => images.map((image) => image.filename)
     )
 
+    // Gather author featured image filenames
+    const authorFeaturedImageFilenames = R.pipe(
+        linkedAuthors.map((author) => author.featuredImage),
+        excludeNullish
+    )
+
     // Fetch image metadata
     const imageMetadata = await getAllImages(knex).then((allImages) =>
         pick(keyBy(allImages, "filename"), [
             ...linkedDocumentFeaturedImageFilenames,
             ...articleFeaturedImageFilenames,
             ...announcementAndDataInsightImageFilenames,
+            ...authorFeaturedImageFilenames,
         ])
     )
 

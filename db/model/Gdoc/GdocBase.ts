@@ -1231,6 +1231,9 @@ export function rawGdocToMinimalPost(
         "featured-image": featuredImage,
         kicker: content.kicker,
         cta: content.cta,
+        "homepage-title": content["homepage-title"],
+        spotlight: content.spotlight,
+        "source-document": content["source-document"],
     }
 }
 

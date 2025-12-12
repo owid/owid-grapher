@@ -8,6 +8,7 @@ import {
     traverseEnrichedBlock,
     OwidGdocErrorMessageProperty,
     OwidGdoc,
+    OwidGdocAnnouncementInterface,
     checkIsGdocPost,
     checkIsDataInsight,
     OwidGdocDataInsightInterface,
@@ -288,6 +289,53 @@ function validateSocials(
     )
 }
 
+function validateAnnouncement(
+    gdoc: OwidGdocAnnouncementInterface,
+    errors: OwidGdocErrorMessage[]
+) {
+    const spotlight = gdoc.content.spotlight
+    const homepageTitle = gdoc.content["homepage-title"]
+    const sourceDocument = gdoc.content["source-document"]
+    const { cta, kicker } = gdoc.content
+
+    if (!kicker) {
+        errors.push({
+            property: "kicker",
+            type: OwidGdocErrorMessageType.Error,
+            message: "Announcement must have a kicker.",
+        })
+    }
+
+    if (spotlight) {
+        if (!homepageTitle) {
+            errors.push({
+                property: "homepage-title",
+                type: OwidGdocErrorMessageType.Error,
+                message:
+                    "Spotlight announcements require a homepage-title for the homepage listing.",
+            })
+        }
+
+        if (!sourceDocument) {
+            errors.push({
+                property: "source-document",
+                type: OwidGdocErrorMessageType.Error,
+                message:
+                    "Spotlight announcements must specify a source-document URL for the canonical target.",
+            })
+        }
+
+        if (cta) {
+            errors.push({
+                property: "spotlight",
+                type: OwidGdocErrorMessageType.Error,
+                message:
+                    "Spotlight announcements cannot include a CTA. Remove spotlight or remove the CTA.",
+            })
+        }
+    }
+}
+
 export const getErrors = (gdoc: OwidGdoc): OwidGdocErrorMessage[] => {
     const errors: OwidGdocErrorMessage[] = []
 
@@ -312,6 +360,8 @@ export const getErrors = (gdoc: OwidGdoc): OwidGdocErrorMessage[] => {
         validateDataInsightImage(gdoc, errors)
     } else if (checkIsAuthor(gdoc)) {
         validateSocials(gdoc, errors)
+    } else if (gdoc.content.type === OwidGdocType.Announcement) {
+        validateAnnouncement(gdoc as OwidGdocAnnouncementInterface, errors)
     }
 
     return errors

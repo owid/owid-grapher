@@ -204,11 +204,44 @@
 
 /* Announcement */
 .latest-page__announcement {
+    background-color: #fff;
     .announcement-page-content {
         margin: 0;
         @include sm-only {
             padding-left: 16px;
             padding-right: 16px;
         }
+    }
+}
+.latest-page__announcement--spotlight {
+    .announcement-page-content {
+        > [class*="article-block__"]:last-child {
+            position: relative;
+            &::before {
+                content: "";
+                position: absolute;
+                pointer-events: none;
+                bottom: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 2;
+                background: linear-gradient(
+                    180deg,
+                    rgba(255, 255, 255, 0) 50%,
+                    #ffffff 100%
+                );
+            }
+        }
+    }
+}
+
+.latest-page__spotlight-cta {
+    margin-left: 24px;
+    // margin-top: -16px;
+    @include md-down {
+        @include body-2-regular;
+    }
+    @include sm-only {
+        margin-left: 16px;
     }
 }

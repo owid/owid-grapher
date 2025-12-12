@@ -15,7 +15,10 @@ import {
 import { Html } from "./Html.js"
 import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import { AnnouncementPageContent } from "./gdocs/pages/Announcement.js"
-import { getPrefixedGdocPath } from "@ourworldindata/components"
+import {
+    getCanonicalUrl,
+    getPrefixedGdocPath,
+} from "@ourworldindata/components"
 import Image from "./gdocs/components/Image.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import DataInsightDateline from "./gdocs/components/DataInsightDateline.js"
@@ -23,6 +26,8 @@ import cx from "classnames"
 import { Pagination } from "./Pagination.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import { NewsletterSignupBlock } from "./NewsletterSignupBlock.js"
+import { Cta } from "./gdocs/components/Cta.js"
+import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 
 const COMMON_CLASSES =
     "grid grid-cols-6 span-cols-6 col-start-5 span-md-cols-10 col-md-start-2 span-sm-cols-14 col-sm-start-1"
@@ -129,14 +134,29 @@ const LatestPageArticle = (props: { data: OwidGdocMinimalPostInterface }) => {
 const LatestPageAnnouncement = (props: {
     data: OwidGdocAnnouncementInterface
 }) => {
+    const isSpotlight = props.data.content.spotlight
     return (
         <article
             id={props.data.slug}
             className={cx(
-                "latest-page__announcement span-cols-6 col-start-5 span-md-cols-10 col-md-start-2 span-sm-cols-14 col-sm-start-1"
+                "latest-page__announcement span-cols-6 col-start-5 span-md-cols-10 col-md-start-2 span-sm-cols-14 col-sm-start-1",
+                {
+                    "latest-page__announcement--spotlight": isSpotlight,
+                }
             )}
         >
             <AnnouncementPageContent {...props.data} />
+            {isSpotlight && (
+                <Cta
+                    shouldRenderLinks
+                    className="latest-page__spotlight-cta"
+                    text="Continue reading"
+                    url={getCanonicalUrl(BAKED_BASE_URL, {
+                        slug: props.data.slug,
+                        content: { type: OwidGdocType.Announcement },
+                    })}
+                />
+            )}
         </article>
     )
 }
