@@ -57,7 +57,6 @@ export const SearchInput = forwardRef(
             if (e.key === "Backspace" && value === "") {
                 e.preventDefault()
                 onBackspaceEmpty()
-                setActiveIndex(-1)
                 return
             }
 
@@ -136,7 +135,6 @@ export const SearchInput = forwardRef(
                             setLocalQuery(e.target.value)
                             if (e.target.value === "") {
                                 setGlobalQuery("")
-                                setActiveIndex(-1) // not highlighting the first default search
                             } else {
                                 setShowSuggestions(true)
                                 setActiveIndex(0)
@@ -148,7 +146,7 @@ export const SearchInput = forwardRef(
                             // This prevents showing suggestions on initial autofocus
                             if (hasUserInteracted.current) {
                                 setShowSuggestions(true)
-                                setActiveIndex(value ? 0 : -1)
+                                setActiveIndex(0)
                             }
                         }}
                         onBlur={() => {
