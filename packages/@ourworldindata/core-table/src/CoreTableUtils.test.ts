@@ -24,7 +24,7 @@ describe(toleranceInterpolation, () => {
     it("handles empty array", () => {
         const valArr: number[] = []
         const timesArr: Time[] = []
-        toleranceInterpolation(valArr, timesArr, {
+        toleranceInterpolation(valArr, timesArr, [], {
             timeToleranceBackwards: 2,
             timeToleranceForwards: 2,
         })
@@ -35,7 +35,7 @@ describe(toleranceInterpolation, () => {
         // This is an edge case that can cause problems
         const valArr = [undefined]
         const timesArr = [0]
-        toleranceInterpolation(valArr as any[], timesArr, {
+        toleranceInterpolation(valArr as any[], timesArr, [], {
             timeToleranceBackwards: Infinity,
             timeToleranceForwards: Infinity,
         })
@@ -45,7 +45,10 @@ describe(toleranceInterpolation, () => {
     it("leaves array unchanged if tolerance = 0", () => {
         const valArr = [1, undefined, undefined, 3]
         const timesArr = [0, 1, 2, 3]
-        toleranceInterpolation(valArr as any[], timesArr, {
+        const validIndices = valArr.flatMap((v, i) =>
+            typeof v === "number" ? [i] : []
+        )
+        toleranceInterpolation(valArr as any[], timesArr, validIndices, {
             timeToleranceBackwards: 0,
             timeToleranceForwards: 0,
         })
@@ -59,7 +62,10 @@ describe(toleranceInterpolation, () => {
     it("fills in gaps in simple case", () => {
         const valArr = [1, undefined, undefined, 3]
         const timesArr = [0, 1, 2, 3]
-        toleranceInterpolation(valArr as any[], timesArr, {
+        const validIndices = valArr.flatMap((v, i) =>
+            typeof v === "number" ? [i] : []
+        )
+        toleranceInterpolation(valArr as any[], timesArr, validIndices, {
             timeToleranceBackwards: 2,
             timeToleranceForwards: 2,
         })
@@ -78,7 +84,10 @@ describe(toleranceInterpolation, () => {
             undefined,
         ]
         const timesArr = [0, 1, 2, 3, 4, 5, 6, 7]
-        toleranceInterpolation(valArr as any[], timesArr, {
+        const validIndices = valArr.flatMap((v, i) =>
+            typeof v === "number" ? [i] : []
+        )
+        toleranceInterpolation(valArr as any[], timesArr, validIndices, {
             timeToleranceBackwards: 1,
             timeToleranceForwards: 1,
         })
@@ -103,7 +112,10 @@ describe(toleranceInterpolation, () => {
             undefined,
         ]
         const timesArr = [0, 1, 2, 3, 4]
-        toleranceInterpolation(valArr as any[], timesArr, {
+        const validIndices = valArr.flatMap((v, i) =>
+            typeof v === "number" ? [i] : []
+        )
+        toleranceInterpolation(valArr as any[], timesArr, validIndices, {
             timeToleranceBackwards: Infinity,
             timeToleranceForwards: Infinity,
         })
@@ -119,10 +131,14 @@ describe(toleranceInterpolation, () => {
             2,
         ]
         const timesAsc = [0, 1, 2, 3]
+        const validIndices = valuesAsc.flatMap((v, i) =>
+            typeof v === "number" ? [i] : []
+        )
         const tolerance = 1
         toleranceInterpolation(
             valuesAsc,
             timesAsc,
+            validIndices,
             {
                 timeToleranceForwards: tolerance,
                 timeToleranceBackwards: tolerance,
@@ -148,8 +164,11 @@ describe(toleranceInterpolation, () => {
             ErrorValueTypes.MissingValuePlaceholder,
         ]
         const timesAsc = [0, 1, 2, 3, 4, 5]
+        const validIndices = valuesAsc.flatMap((v, i) =>
+            typeof v === "number" ? [i] : []
+        )
         const tolerance = 1
-        toleranceInterpolation(valuesAsc, timesAsc, {
+        toleranceInterpolation(valuesAsc, timesAsc, validIndices, {
             timeToleranceForwards: tolerance,
             timeToleranceBackwards: tolerance,
         })
@@ -166,8 +185,11 @@ describe(toleranceInterpolation, () => {
             ErrorValueTypes.MissingValuePlaceholder,
         ]
         const timesAsc = [0, 1, 2, 3, 4, 5]
+        const validIndices = valuesAsc.flatMap((v, i) =>
+            typeof v === "number" ? [i] : []
+        )
         const tolerance = 1
-        toleranceInterpolation(valuesAsc, timesAsc, {
+        toleranceInterpolation(valuesAsc, timesAsc, validIndices, {
             timeToleranceForwards: 0,
             timeToleranceBackwards: tolerance,
         })
@@ -191,8 +213,11 @@ describe(toleranceInterpolation, () => {
             ErrorValueTypes.MissingValuePlaceholder,
         ]
         const timesAsc = [0, 1, 2, 3, 4, 5]
+        const validIndices = valuesAsc.flatMap((v, i) =>
+            typeof v === "number" ? [i] : []
+        )
         const tolerance = 1
-        toleranceInterpolation(valuesAsc, timesAsc, {
+        toleranceInterpolation(valuesAsc, timesAsc, validIndices, {
             timeToleranceForwards: tolerance,
             timeToleranceBackwards: 0,
         })
@@ -217,7 +242,10 @@ describe(linearInterpolation, () => {
             ErrorValueTypes.MissingValuePlaceholder,
         ]
         const timesAsc = [0, 1, 2, 3, 4]
-        linearInterpolation(values, timesAsc, {
+        const validIndices = values.flatMap((v, i) =>
+            typeof v === "number" ? [i] : []
+        )
+        linearInterpolation(values, timesAsc, validIndices, {
             extrapolateAtStart: true,
             extrapolateAtEnd: true,
         })
@@ -233,7 +261,10 @@ describe(linearInterpolation, () => {
             ErrorValueTypes.MissingValuePlaceholder,
         ]
         const timesAsc = [0, 1, 2, 3, 4]
-        linearInterpolation(values, timesAsc, {})
+        const validIndices = values.flatMap((v, i) =>
+            typeof v === "number" ? [i] : []
+        )
+        linearInterpolation(values, timesAsc, validIndices, {})
         expect(values).toEqual([
             4,
             3,
@@ -246,7 +277,10 @@ describe(linearInterpolation, () => {
     it("interpolates with uneven time spacing", () => {
         const values = [4, ErrorValueTypes.MissingValuePlaceholder, 1]
         const timesAsc = [1900, 1919, 1920]
-        linearInterpolation(values, timesAsc, {})
+        const validIndices = values.flatMap((v, i) =>
+            typeof v === "number" ? [i] : []
+        )
+        linearInterpolation(values, timesAsc, validIndices, {})
         // For 1919: should be 4 + (1-4) * (1919-1900)/(1920-1900) = 4 + (-3) * 19/20 = 4 - 2.85 = 1.15
         expect(values).toEqual([4, 1.15, 1])
     })

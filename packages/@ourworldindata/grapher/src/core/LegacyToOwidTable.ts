@@ -201,7 +201,9 @@ export const legacyToOwidTableAndDimensions = (
                     valueColumnDef.display?.tolerance
                 )
                 // Interpolate with 0 to add originalTimes column
-                .interpolateColumnWithTolerance(valueColumnDef.slug, 0)
+                .interpolateColumnWithTolerance(valueColumnDef.slug, {
+                    toleranceOverride: 0,
+                })
                 .dropColumns([timeColumnDef.slug])
             // We keep variables that have a targetTime set in a special bucket and will join them
             // on entity only (disregarding the year since we already filtered all other years out for

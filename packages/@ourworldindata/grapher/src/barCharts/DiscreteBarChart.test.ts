@@ -97,7 +97,7 @@ describe("barcharts with columns as the series", () => {
 1002,2020,UK,,`
 
         const table = new OwidTable(csv)
-            .interpolateColumnWithTolerance("gdp", 1)
+            .interpolateColumnWithTolerance("gdp", { toleranceOverride: 1 })
             .filterByTargetTimes([2020])
         const manager = {
             table,

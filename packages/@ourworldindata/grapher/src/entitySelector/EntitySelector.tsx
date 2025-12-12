@@ -453,11 +453,10 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
 
     private interpolateSortColumn(slug: ColumnSlug): CoreColumn {
         return this.inputTable
-            .interpolateColumnWithTolerance(
-                slug,
-                this.toleranceOverride.value,
-                this.toleranceOverride.strategy
-            )
+            .interpolateColumnWithTolerance(slug, {
+                toleranceOverride: this.toleranceOverride.value,
+                toleranceStrategyOverride: this.toleranceOverride.strategy,
+            })
             .get(slug)
     }
 
@@ -468,16 +467,14 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
 
         // Interpolate the historical and projected columns separately
         const table = this.table
-            .interpolateColumnWithTolerance(
-                historicalSlug,
-                this.toleranceOverride.value,
-                this.toleranceOverride.strategy
-            )
-            .interpolateColumnWithTolerance(
-                projectedSlug,
-                this.toleranceOverride.value,
-                this.toleranceOverride.strategy
-            )
+            .interpolateColumnWithTolerance(historicalSlug, {
+                toleranceOverride: this.toleranceOverride.value,
+                toleranceStrategyOverride: this.toleranceOverride.strategy,
+            })
+            .interpolateColumnWithTolerance(projectedSlug, {
+                toleranceOverride: this.toleranceOverride.value,
+                toleranceStrategyOverride: this.toleranceOverride.strategy,
+            })
 
         // Combine the interpolated columns
         return combineHistoricalAndProjectionColumns(table, info, {
@@ -1266,7 +1263,9 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
             const variableTable = buildVariableTable(variable)
             const column = variableTable
                 .filterByEntityNames(this.inputTable.availableEntityNames)
-                .interpolateColumnWithTolerance(slug, Infinity)
+                .interpolateColumnWithTolerance(slug, {
+                    toleranceOverride: Infinity,
+                })
                 .get(slug)
             if (column) this.setInterpolatedSortColumn(column)
         } catch {
