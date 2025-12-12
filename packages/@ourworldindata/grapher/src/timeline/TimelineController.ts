@@ -7,6 +7,7 @@ import {
     findClosestTime,
 } from "@ourworldindata/utils"
 import { action } from "mobx"
+import { TimeColumn } from "@ourworldindata/core-table"
 
 export enum TimelineDragTarget {
     Start = "start",
@@ -17,6 +18,7 @@ export enum TimelineDragTarget {
 export interface TimelineManager {
     disablePlay?: boolean
     formatTimeFn?: (time: Time) => string
+    timeColumn?: TimeColumn
     isPlaying?: boolean
     isTimelineAnimationActive?: boolean
     animationStartTime?: Time
