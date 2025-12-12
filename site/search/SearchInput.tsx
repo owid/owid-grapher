@@ -1,4 +1,4 @@
-import { ReactNode, forwardRef, ForwardedRef } from "react"
+import { ReactNode, forwardRef, ForwardedRef, useRef } from "react"
 import { useMediaQuery } from "usehooks-ts"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import {
@@ -29,6 +29,7 @@ export const SearchInput = forwardRef(
         inputRef: ForwardedRef<HTMLInputElement>
     ) => {
         const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
+        const hasUserInteracted = useRef(false)
         const {
             activeIndex,
             setActiveIndex,
@@ -131,6 +132,7 @@ export const SearchInput = forwardRef(
                         aria-activedescendant={activeOptionId}
                         aria-autocomplete="list"
                         onChange={(e) => {
+                            hasUserInteracted.current = true
                             setLocalQuery(e.target.value)
                             if (e.target.value === "") {
                                 setGlobalQuery("")
@@ -142,8 +144,12 @@ export const SearchInput = forwardRef(
                         }}
                         onKeyDown={handleKeyDown}
                         onFocus={() => {
-                            setShowSuggestions(true)
-                            setActiveIndex(value ? 0 : -1)
+                            // Only show suggestions on focus if the user has actually interacted
+                            // This prevents showing suggestions on initial autofocus
+                            if (hasUserInteracted.current) {
+                                setShowSuggestions(true)
+                                setActiveIndex(value ? 0 : -1)
+                            }
                         }}
                         onBlur={() => {
                             setShowSuggestions(false)
