@@ -1,0 +1,91 @@
+.MultiDimDetailPage {
+    .admin-bar {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+
+        &.draft {
+            @include draft-background;
+        }
+    }
+
+    .content-container {
+        display: flex;
+        height: calc(100% - 56px);
+    }
+
+    .redirects-sidebar {
+        min-width: 340px;
+        padding: 16px;
+        overflow-y: auto;
+        flex: 1;
+
+        .target-view-button {
+            padding: 0;
+            margin: 0;
+            white-space: normal;
+            word-break: break-all;
+            text-align: left;
+            height: auto;
+        }
+    }
+
+    .preview-container {
+        flex: 2;
+        display: flex;
+        justify-content: center;
+        background: #f2f2f2;
+        padding: 16px;
+        overflow: auto;
+
+        .preview-wrapper {
+            width: 100%;
+            max-width: 850px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .dimension-selectors {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            background: white;
+            padding: 16px;
+        }
+
+        .dimension-selector {
+            flex: 1;
+            min-width: 180px;
+            max-width: 280px;
+
+            &__label {
+                display: block;
+                font-size: 12px;
+                font-weight: 600;
+                color: #666;
+                margin-bottom: 4px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+        }
+
+        .preview-iframe {
+            width: 100%;
+            height: 660px;
+            border: none;
+            background: white;
+        }
+    }
+
+    .not-found,
+    .error {
+        padding: 32px;
+        text-align: center;
+        color: #666;
+    }
+
+    .error {
+        color: #ff4d4f;
+    }
+}
