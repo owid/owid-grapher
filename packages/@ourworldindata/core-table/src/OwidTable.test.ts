@@ -646,3 +646,55 @@ gdp	annotation`
         (table.get("gdp").def as OwidColumnDef).annotationsColumnSlug
     ).toEqual("annotation")
 })
+
+describe("dropEntitiesThatHaveNoDataInAllColumns", () => {
+    it("drops only entities missing data in every specified column", () => {
+        const csv = `year,entityName,gdp,population,lifeExpectancy
+2020,USA,1000,330,78
+2020,China,2000,1400,76
+2020,OnlyGDP,500,,
+2020,OnlyPopulation,,100,
+2020,OnlyLifeExpectancy,,,80
+2020,NoDataAtAll,,,`
+        const table = new OwidTable(csv, [
+            { slug: "gdp", type: ColumnTypeNames.Numeric },
+            { slug: "population", type: ColumnTypeNames.Numeric },
+            { slug: "lifeExpectancy", type: ColumnTypeNames.Numeric },
+            { slug: "year", type: ColumnTypeNames.Year },
+        ])
+
+        const result = table.dropEntitiesThatHaveNoDataInAllColumns([
+            "gdp",
+            "population",
+            "lifeExpectancy",
+        ])
+
+        // Should keep all entities except NoDataAtAll
+        expect(result.availableEntityNames).toEqual([
+            "USA",
+            "China",
+            "OnlyGDP",
+            "OnlyPopulation",
+            "OnlyLifeExpectancy",
+        ])
+    })
+
+    it("filters correctly when checking a subset of columns", () => {
+        const csv = `year,entityName,gdp,population,continent
+2020,USA,1000,330,North America
+2020,China,,1400,Asia
+2020,India,,500,Asia`
+        const table = new OwidTable(csv, [
+            { slug: "gdp", type: ColumnTypeNames.Numeric },
+            { slug: "population", type: ColumnTypeNames.Numeric },
+            { slug: "year", type: ColumnTypeNames.Year },
+            { slug: "continent", type: ColumnTypeNames.Continent },
+        ])
+
+        const result = table.dropEntitiesThatHaveNoDataInAllColumns(["gdp"])
+
+        // Only USA should remain when checking just GDP
+        expect(result.availableEntityNames).toEqual(["USA"])
+        expect(result.numRows).toEqual(1)
+    })
+})
