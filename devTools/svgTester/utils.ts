@@ -463,7 +463,7 @@ const replaceRegexes = [/id="react-select-\d+-.+"/g]
 async function prepareSvgForComparison(svg: string): Promise<string> {
     let current = svg
     for (const replaceRegex of replaceRegexes) {
-        current = svg.replace(replaceRegex, "")
+        current = current.replace(replaceRegex, "")
     }
     return await formatSvg(current)
 }
