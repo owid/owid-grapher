@@ -3,7 +3,6 @@ import { useEffect, useCallback, useState } from "react"
 import { match } from "ts-pattern"
 import {
     suggestFiltersFromQuerySuffix,
-    createQueryFilter,
     getSearchAutocompleteId,
     getSearchAutocompleteItemId,
     getFilterAriaLabel,
@@ -16,15 +15,6 @@ import { Filter, FilterType } from "@ourworldindata/types"
 import { useSearchContext } from "./SearchContext.js"
 import { listedRegionsNames } from "@ourworldindata/utils"
 import { useDebounceValue } from "usehooks-ts"
-
-// Default search suggestions to show when there's no query or filters
-const DEFAULT_SEARCHES = [
-    "gdp per capita",
-    "co2 emissions",
-    "life expectancy",
-    "child mortality",
-    "energy consumption",
-]
 
 export const SearchAutocomplete = ({
     localQuery,
@@ -58,12 +48,6 @@ export const SearchAutocomplete = ({
     } = useSearchAutocomplete()
 
     useEffect(() => {
-        if (!debouncedLocalQuery && !filters.length) {
-            setSuggestions(DEFAULT_SEARCHES.map(createQueryFilter))
-            setUnmatchedQuery("")
-            return
-        }
-
         const result = suggestFiltersFromQuerySuffix(
             debouncedLocalQuery,
             listedRegionsNames(),
