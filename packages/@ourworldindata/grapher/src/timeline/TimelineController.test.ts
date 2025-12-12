@@ -1,4 +1,4 @@
-import { expect, it } from "vitest"
+import { describe, expect, it } from "vitest"
 
 import * as _ from "lodash-es"
 import { TimeBoundValue } from "@ourworldindata/utils"
@@ -209,4 +209,261 @@ it("prevents large step keyboard navigation from putting handles on same time wh
     controller.decreaseEndTimeByLargeStep()
     // Should not move to 2003 or before
     expect(manager.endHandleTimeBound).toEqual(initialEnd)
+})
+
+describe("setStartAndEndTimeFromInput", () => {
+    it("sets both handles to the same time", () => {
+        const manager: TimelineManager = {
+            times: _.range(2000, 2010),
+            startHandleTimeBound: 2000,
+            endHandleTimeBound: 2005,
+        }
+        const controller = new TimelineController(manager)
+
+        controller.setStartAndEndTimeFromInput(2003)
+        expect(manager.startHandleTimeBound).toEqual(2003)
+        expect(manager.endHandleTimeBound).toEqual(2003)
+    })
+
+    it("clamps to positive infinity when beyond max time", () => {
+        const manager: TimelineManager = {
+            times: _.range(2000, 2010),
+            startHandleTimeBound: 2000,
+            endHandleTimeBound: 2005,
+        }
+        const controller = new TimelineController(manager)
+
+        controller.setStartAndEndTimeFromInput(3000)
+        expect(manager.startHandleTimeBound).toEqual(
+            TimeBoundValue.positiveInfinity
+        )
+        expect(manager.endHandleTimeBound).toEqual(
+            TimeBoundValue.positiveInfinity
+        )
+    })
+
+    it("clamps to negative infinity when below min time", () => {
+        const manager: TimelineManager = {
+            times: _.range(2000, 2010),
+            startHandleTimeBound: 2000,
+            endHandleTimeBound: 2005,
+        }
+        const controller = new TimelineController(manager)
+
+        controller.setStartAndEndTimeFromInput(1000)
+        expect(manager.startHandleTimeBound).toEqual(
+            TimeBoundValue.negativeInfinity
+        )
+        expect(manager.endHandleTimeBound).toEqual(
+            TimeBoundValue.negativeInfinity
+        )
+    })
+})
+
+describe("setStartTimeFromInput", () => {
+    it("sets start time to valid value within range", () => {
+        const manager: TimelineManager = {
+            times: _.range(2000, 2010),
+            startHandleTimeBound: 2000,
+            endHandleTimeBound: 2005,
+        }
+        const controller = new TimelineController(manager)
+
+        controller.setStartTimeFromInput(2003)
+        expect(manager.startHandleTimeBound).toEqual(2003)
+        expect(manager.endHandleTimeBound).toEqual(2005)
+    })
+
+    it("clamps to positive infinity when beyond max time", () => {
+        const manager: TimelineManager = {
+            times: _.range(2000, 2010),
+            startHandleTimeBound: 2000,
+            endHandleTimeBound: 2005,
+        }
+        const controller = new TimelineController(manager)
+
+        controller.setStartTimeFromInput(3000)
+        expect(manager.startHandleTimeBound).toEqual(2005)
+        expect(manager.endHandleTimeBound).toEqual(
+            TimeBoundValue.positiveInfinity
+        )
+    })
+
+    it("clamps to negative infinity when below min time", () => {
+        const manager: TimelineManager = {
+            times: _.range(2000, 2010),
+            startHandleTimeBound: 2003,
+            endHandleTimeBound: 2005,
+        }
+        const controller = new TimelineController(manager)
+
+        controller.setStartTimeFromInput(1000)
+        expect(manager.startHandleTimeBound).toEqual(
+            TimeBoundValue.negativeInfinity
+        )
+        expect(manager.endHandleTimeBound).toEqual(2005)
+    })
+
+    it("prevents setting start time equal to end time when onlyTimeRangeSelectionPossible is true", () => {
+        const manager: TimelineManager = {
+            times: _.range(2000, 2010),
+            startHandleTimeBound: 2000,
+            endHandleTimeBound: 2005,
+            onlyTimeRangeSelectionPossible: true,
+        }
+        const controller = new TimelineController(manager)
+
+        // Try to set start time to same as end time
+        controller.setStartTimeFromInput(2005)
+        // Should be set to previous time instead
+        expect(manager.startHandleTimeBound).toEqual(2004)
+        expect(manager.endHandleTimeBound).toEqual(2005)
+    })
+
+    it("allows setting start time equal to end time when onlyTimeRangeSelectionPossible is false", () => {
+        const manager: TimelineManager = {
+            times: _.range(2000, 2010),
+            startHandleTimeBound: 2000,
+            endHandleTimeBound: 2005,
+            onlyTimeRangeSelectionPossible: false,
+        }
+        const controller = new TimelineController(manager)
+
+        controller.setStartTimeFromInput(2005)
+        expect(manager.startHandleTimeBound).toEqual(2005)
+        expect(manager.endHandleTimeBound).toEqual(2005)
+    })
+
+    it("swaps handles when start time is set beyond end time", () => {
+        const manager: TimelineManager = {
+            times: _.range(2000, 2010),
+            startHandleTimeBound: 2000,
+            endHandleTimeBound: 2005,
+        }
+        const controller = new TimelineController(manager)
+
+        controller.setStartTimeFromInput(2007)
+        expect(manager.startHandleTimeBound).toEqual(2005)
+        expect(manager.endHandleTimeBound).toEqual(2007)
+    })
+
+    it("swaps handles even when onlyTimeRangeSelectionPossible is true", () => {
+        const manager: TimelineManager = {
+            times: _.range(2000, 2010),
+            startHandleTimeBound: 2000,
+            endHandleTimeBound: 2004,
+            onlyTimeRangeSelectionPossible: true,
+        }
+        const controller = new TimelineController(manager)
+
+        // Set start time beyond end time
+        controller.setStartTimeFromInput(2006)
+        // Handles should swap
+        expect(manager.startHandleTimeBound).toEqual(2004)
+        expect(manager.endHandleTimeBound).toEqual(2006)
+    })
+})
+
+describe("setEndTimeFromInput", () => {
+    it("sets end time to valid value within range", () => {
+        const manager: TimelineManager = {
+            times: _.range(2000, 2010),
+            startHandleTimeBound: 2000,
+            endHandleTimeBound: 2005,
+        }
+        const controller = new TimelineController(manager)
+
+        controller.setEndTimeFromInput(2007)
+        expect(manager.startHandleTimeBound).toEqual(2000)
+        expect(manager.endHandleTimeBound).toEqual(2007)
+    })
+
+    it("clamps to positive infinity when beyond max time", () => {
+        const manager: TimelineManager = {
+            times: _.range(2000, 2010),
+            startHandleTimeBound: 2000,
+            endHandleTimeBound: 2005,
+        }
+        const controller = new TimelineController(manager)
+
+        controller.setEndTimeFromInput(3000)
+        expect(manager.startHandleTimeBound).toEqual(2000)
+        expect(manager.endHandleTimeBound).toEqual(
+            TimeBoundValue.positiveInfinity
+        )
+    })
+
+    it("clamps to negative infinity when below min time", () => {
+        const manager: TimelineManager = {
+            times: _.range(2000, 2010),
+            startHandleTimeBound: 2003,
+            endHandleTimeBound: 2005,
+        }
+        const controller = new TimelineController(manager)
+
+        controller.setEndTimeFromInput(1000)
+        expect(manager.startHandleTimeBound).toEqual(
+            TimeBoundValue.negativeInfinity
+        )
+        expect(manager.endHandleTimeBound).toEqual(2003)
+    })
+
+    it("prevents setting end time equal to start time when onlyTimeRangeSelectionPossible is true", () => {
+        const manager: TimelineManager = {
+            times: _.range(2000, 2010),
+            startHandleTimeBound: 2005,
+            endHandleTimeBound: 2009,
+            onlyTimeRangeSelectionPossible: true,
+        }
+        const controller = new TimelineController(manager)
+
+        // Try to set end time to same as start time
+        controller.setEndTimeFromInput(2005)
+        // Should be set to next time instead
+        expect(manager.startHandleTimeBound).toEqual(2005)
+        expect(manager.endHandleTimeBound).toEqual(2006)
+    })
+
+    it("allows setting end time equal to start time when onlyTimeRangeSelectionPossible is false", () => {
+        const manager: TimelineManager = {
+            times: _.range(2000, 2010),
+            startHandleTimeBound: 2005,
+            endHandleTimeBound: 2009,
+            onlyTimeRangeSelectionPossible: false,
+        }
+        const controller = new TimelineController(manager)
+
+        controller.setEndTimeFromInput(2005)
+        expect(manager.startHandleTimeBound).toEqual(2005)
+        expect(manager.endHandleTimeBound).toEqual(2005)
+    })
+
+    it("swaps handles when end time is set below start time", () => {
+        const manager: TimelineManager = {
+            times: _.range(2000, 2010),
+            startHandleTimeBound: 2005,
+            endHandleTimeBound: 2009,
+        }
+        const controller = new TimelineController(manager)
+
+        controller.setEndTimeFromInput(2003)
+        expect(manager.startHandleTimeBound).toEqual(2003)
+        expect(manager.endHandleTimeBound).toEqual(2005)
+    })
+
+    it("swaps handles even when onlyTimeRangeSelectionPossible is true", () => {
+        const manager: TimelineManager = {
+            times: _.range(2000, 2010),
+            startHandleTimeBound: 2006,
+            endHandleTimeBound: 2009,
+            onlyTimeRangeSelectionPossible: true,
+        }
+        const controller = new TimelineController(manager)
+
+        // Set end time below start time
+        controller.setEndTimeFromInput(2004)
+        // Handles should swap
+        expect(manager.startHandleTimeBound).toEqual(2004)
+        expect(manager.endHandleTimeBound).toEqual(2006)
+    })
 })
