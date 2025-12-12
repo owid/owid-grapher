@@ -93,6 +93,38 @@ export class TimelineController {
         return this.timesAsc[index - 1] ?? this.minTime
     }
 
+    getNextValidTime(time: number, avoidTime?: number): number {
+        const nextTime = this.getNextTime(time)
+
+        // If handles can't be on the same time and next time equals the avoid time,
+        // don't move (return current time)
+        if (
+            !this.allowHandlesOnSameTime &&
+            avoidTime !== undefined &&
+            nextTime === avoidTime
+        ) {
+            return time
+        }
+
+        return nextTime
+    }
+
+    getPrevValidTime(time: number, avoidTime?: number): number {
+        const prevTime = this.getPrevTime(time)
+
+        // If handles can't be on the same time and prev time equals the avoid time,
+        // don't move (return current time)
+        if (
+            !this.allowHandlesOnSameTime &&
+            avoidTime !== undefined &&
+            prevTime === avoidTime
+        ) {
+            return time
+        }
+
+        return prevTime
+    }
+
     // By default, play means extend the endTime to the right. Toggle this to play one time unit at a time.
     private rangeMode = true
     toggleRangeMode(): this {
