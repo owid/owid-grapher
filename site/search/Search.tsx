@@ -1,17 +1,13 @@
 import {
     TagGraphRoot,
-    SearchState,
     FilterType,
     TemplateConfig,
     SearchResultType,
 } from "@ourworldindata/types"
 import { LiteClient } from "algoliasearch/lite"
-import { useReducer, useMemo, useDeferredValue } from "react"
+import { useMemo, useDeferredValue } from "react"
 import { match } from "ts-pattern"
 import { useIsFetching } from "@tanstack/react-query"
-
-// Search state and types
-import { searchReducer, createActions } from "./searchState.js"
 
 // Utils and hooks
 import {
@@ -20,9 +16,9 @@ import {
     getEffectiveResultType,
 } from "./searchUtils.js"
 import {
-    useUrlSync,
     useTagGraphTopics,
-    useSearchStateAnalytics,
+    useSearchParamsState,
+    useSearchAnalytics,
 } from "./searchHooks.js"
 
 // Components
@@ -40,17 +36,14 @@ import { SiteAnalytics } from "../SiteAnalytics.js"
 import { PoweredBy } from "react-instantsearch"
 
 export const Search = ({
-    initialState,
     topicTagGraph,
     liteSearchClient,
 }: {
-    initialState: SearchState
     topicTagGraph: TagGraphRoot
     liteSearchClient: LiteClient
 }) => {
-    // State management
-    const [state, dispatch] = useReducer(searchReducer, initialState)
-    const actions = useMemo(() => createActions(dispatch), [dispatch])
+    // State derived from URL - single source of truth
+    const { state, actions } = useSearchParamsState()
 
     // Extract topic and area data from the graph
     const { allAreas, allTopics } = useTagGraphTopics(topicTagGraph)
@@ -61,11 +54,8 @@ export const Search = ({
 
     const deferredState = useDeferredValue(state)
 
-    // Bidirectional URL synchronization
-    const isInitialUrlStateLoaded = useUrlSync(deferredState, actions.setState)
-
-    // Handle analytics tracking
-    useSearchStateAnalytics(deferredState, analytics, isInitialUrlStateLoaded)
+    // Handle analytics tracking (skips initial page load)
+    useSearchAnalytics(deferredState, analytics)
 
     const isFetching = useIsFetching()
 
