@@ -433,10 +433,19 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         currentTime: number
     ): number {
         const { controller } = this
+
+        // Determine which time to avoid based on which handle is being edited
+        const avoidTime =
+            this.editHandle === MarkerType.Start
+                ? controller.endTime
+                : this.editHandle === MarkerType.End
+                  ? controller.startTime
+                  : undefined
+
         if (key === "ArrowUp") {
-            return controller.getNextTime(currentTime)
+            return controller.getNextValidTime(currentTime, avoidTime)
         } else if (key === "ArrowDown") {
-            return controller.getPrevTime(currentTime)
+            return controller.getPrevValidTime(currentTime, avoidTime)
         } else if (key === "PageUp") {
             return controller.getLargeStepForward(currentTime)
         } else if (key === "PageDown") {
