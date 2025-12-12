@@ -190,7 +190,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         const targetEl = select(event.target as Element)
 
         const inputTime = this.getInputTimeFromMouse(event)
-        if (!inputTime) return
+        if (inputTime === undefined) return
 
         this.manager.timelineDragTarget = this.getDragTarget(
             inputTime,
@@ -214,7 +214,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
         this.queuedDrag = true
         const inputTime = this.getInputTimeFromMouse(event)
-        if (inputTime) this.onDrag(inputTime)
+        if (inputTime !== undefined) this.onDrag(inputTime)
         this.queuedDrag = false
     }
 
@@ -244,7 +244,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         if (!this.shouldShowHoverTimeHandle) return
 
         const inputTime = this.getInputTimeFromMouse(event)
-        if (!inputTime) return
+        if (inputTime === undefined) return
 
         if (!this.slider) return
         const mouseX = getRelativeMouse(this.slider, event).x
