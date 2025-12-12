@@ -2,6 +2,7 @@ import * as _ from "lodash-es"
 import * as React from "react"
 import { select } from "d3-selection"
 import cx from "classnames"
+import { match } from "ts-pattern"
 import {
     getRelativeMouse,
     Bounds,
@@ -37,6 +38,19 @@ enum MarkerType {
     End = "endMarker",
     Hover = "hoverMarker",
 }
+
+const NAVIGATION_KEYS = [
+    "ArrowUp",
+    "ArrowDown",
+    "ArrowLeft",
+    "ArrowRight",
+    "PageUp",
+    "PageDown",
+    "Home",
+    "End",
+] as const
+
+type NavigationKey = (typeof NAVIGATION_KEYS)[number]
 
 interface TimelineComponentProps {
     timelineController: TimelineController
@@ -428,67 +442,70 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         }
     }
 
-    @action.bound private handleYearKeyboardNavigation(
-        key: string,
-        currentTime: number
+    @action.bound private getStartTimeForNavigationKey(
+        key: NavigationKey
     ): number {
         const { controller } = this
+        const { startTime, endTime } = controller
 
-        // Determine which time to avoid based on which handle is being edited
-        const avoidTime =
-            this.editHandle === MarkerType.Start
-                ? controller.endTime
-                : this.editHandle === MarkerType.End
-                  ? controller.startTime
-                  : undefined
-
-        if (key === "ArrowUp") {
-            return controller.getNextValidTime(currentTime, avoidTime)
-        } else if (key === "ArrowDown") {
-            return controller.getPrevValidTime(currentTime, avoidTime)
-        } else if (key === "PageUp") {
-            return controller.getLargeStepForward(currentTime)
-        } else if (key === "PageDown") {
-            return controller.getLargeStepBackward(currentTime)
-        } else if (key === "Home") {
-            return controller.minTime
-        } else {
-            return controller.maxTime
-        }
+        return match(key)
+            .with("ArrowUp", "ArrowRight", () =>
+                controller.getNextValidTime(startTime, endTime)
+            )
+            .with("ArrowDown", "ArrowLeft", () =>
+                controller.getPrevValidTime(startTime, endTime)
+            )
+            .with("PageUp", () => controller.getLargeStepForward(startTime))
+            .with("PageDown", () => controller.getLargeStepBackward(startTime))
+            .with("Home", () => controller.minTime)
+            .with("End", () => controller.maxTime)
+            .exhaustive()
     }
 
-    @action.bound updateStartTimeOnKeyDown(key: string): void {
+    @action.bound private getEndTimeForNavigationKey(
+        key: NavigationKey
+    ): number {
         const { controller } = this
-        if (key === "Home") {
-            controller.resetStartToMin()
-        } else if (key === "End") {
-            controller.setStartToMax()
-        } else if (key === "ArrowLeft" || key === "ArrowDown") {
-            controller.decreaseStartTime()
-        } else if (key === "ArrowRight" || key === "ArrowUp") {
-            controller.increaseStartTime()
-        } else if (key === "PageUp") {
-            controller.increaseStartTimeByLargeStep()
-        } else if (key === "PageDown") {
-            controller.decreaseStartTimeByLargeStep()
-        }
+        const { startTime, endTime } = controller
+
+        return match(key)
+            .with("ArrowUp", "ArrowRight", () =>
+                controller.getNextValidTime(endTime, startTime)
+            )
+            .with("ArrowDown", "ArrowLeft", () =>
+                controller.getPrevValidTime(endTime, startTime)
+            )
+            .with("PageUp", () => controller.getLargeStepForward(endTime))
+            .with("PageDown", () => controller.getLargeStepBackward(endTime))
+            .with("Home", () => controller.minTime)
+            .with("End", () => controller.maxTime)
+            .exhaustive()
     }
 
-    @action.bound updateEndTimeOnKeyDown(key: string): void {
+    @action.bound updateStartTimeOnKeyDown(key: NavigationKey): void {
         const { controller } = this
-        if (key === "Home") {
-            controller.setEndToMin()
-        } else if (key === "End") {
-            controller.resetEndToMax()
-        } else if (key === "ArrowLeft" || key === "ArrowDown") {
-            controller.decreaseEndTime()
-        } else if (key === "ArrowRight" || key === "ArrowUp") {
-            controller.increaseEndTime()
-        } else if (key === "PageUp") {
-            controller.increaseEndTimeByLargeStep()
-        } else if (key === "PageDown") {
-            controller.decreaseEndTimeByLargeStep()
-        }
+        match(key)
+            .with("Home", () => controller.resetStartToMin())
+            .with("End", () => controller.setStartToMax())
+            .with("ArrowLeft", "ArrowDown", () =>
+                controller.decreaseStartTime()
+            )
+            .with("ArrowRight", "ArrowUp", () => controller.increaseStartTime())
+            .with("PageUp", () => controller.increaseStartTimeByLargeStep())
+            .with("PageDown", () => controller.decreaseStartTimeByLargeStep())
+            .exhaustive()
+    }
+
+    @action.bound updateEndTimeOnKeyDown(key: NavigationKey): void {
+        const { controller } = this
+        match(key)
+            .with("Home", () => controller.setEndToMin())
+            .with("End", () => controller.resetEndToMax())
+            .with("ArrowLeft", "ArrowDown", () => controller.decreaseEndTime())
+            .with("ArrowRight", "ArrowUp", () => controller.increaseEndTime())
+            .with("PageUp", () => controller.increaseEndTimeByLargeStep())
+            .with("PageDown", () => controller.decreaseEndTimeByLargeStep())
+            .exhaustive()
     }
 
     convertToTime(time: number): number {
@@ -513,13 +530,13 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         return (
             <EditableYearTooltip
                 type={MarkerType.Start}
-                editHandle={this.editHandle}
+                isEditing={this.editHandle === MarkerType.Start}
                 currentTime={startTime}
                 formattedTime={formattedStartTime}
                 onStartEditing={() => this.onStartEditing(MarkerType.Start)}
                 onComplete={this.onCompleteYear}
                 onChange={this.onChangeYear}
-                onKeyboardNavigation={this.handleYearKeyboardNavigation}
+                getTimeForKey={this.getStartTimeForNavigationKey}
                 onMouseEnter={action(() => {
                     this.isEditableTimeTooltipHovered = true
                     this.hoverTime = undefined
@@ -549,13 +566,13 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         return (
             <EditableYearTooltip
                 type={MarkerType.End}
-                editHandle={this.editHandle}
+                isEditing={this.editHandle === MarkerType.End}
                 currentTime={endTime}
                 formattedTime={formattedEndTime}
                 onStartEditing={() => this.onStartEditing(MarkerType.End)}
                 onComplete={this.onCompleteYear}
                 onChange={this.onChangeYear}
-                onKeyboardNavigation={this.handleYearKeyboardNavigation}
+                getTimeForKey={this.getEndTimeForNavigationKey}
                 onMouseEnter={action(() => {
                     this.isEditableTimeTooltipHovered = true
                     this.hoverTime = undefined
@@ -681,16 +698,10 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                         formattedCurrTime={formattedStartTime}
                         tabIndex={this.areBothHandlesVisible ? 0 : -1}
                         onKeyDown={action((e) => {
-                            // Prevent scrolling
-                            if (
-                                e.key === "Home" ||
-                                e.key === "End" ||
-                                e.key === "PageUp" ||
-                                e.key === "PageDown"
-                            )
-                                e.preventDefault()
-
-                            this.updateStartTimeOnKeyDown(e.key)
+                            if (isRelevantNavigationKey(e.key)) {
+                                e.preventDefault() // Prevent scrolling
+                                this.updateStartTimeOnKeyDown(e.key)
+                            }
                         })}
                         onFocus={action(() => this.showTooltips())}
                         tooltip={this.startHandleTooltip}
@@ -724,16 +735,10 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                         formattedMaxTime={formattedMaxTime}
                         formattedCurrTime={formattedEndTime}
                         onKeyDown={action((e) => {
-                            // prevent browser to scroll to the top or bottom of the page
-                            if (
-                                e.key === "Home" ||
-                                e.key === "End" ||
-                                e.key === "PageUp" ||
-                                e.key === "PageDown"
-                            )
-                                e.preventDefault()
-
-                            this.updateEndTimeOnKeyDown(e.key)
+                            if (isRelevantNavigationKey(e.key)) {
+                                e.preventDefault() // prevent scrolling
+                                this.updateEndTimeOnKeyDown(e.key)
+                            }
                         })}
                         onFocus={action(() => this.showTooltips())}
                         tooltip={this.endHandleTooltip}
@@ -850,32 +855,30 @@ function TimelineHandle({
 
 function EditableYearTooltip({
     type,
-    editHandle,
+    isEditing = false,
     currentTime,
     formattedTime,
     onStartEditing,
     onComplete,
     onChange,
-    onKeyboardNavigation,
+    getTimeForKey,
     onMouseEnter,
     onMouseLeave,
     onBlur,
 }: {
     type: Exclude<MarkerType, MarkerType.Hover>
-    editHandle?: Exclude<MarkerType, MarkerType.Hover>
+    isEditing?: boolean
     currentTime: number
     formattedTime: string
     onStartEditing?: () => void
     onComplete?: (year?: number) => void
     onChange?: (year: number) => void
-    onKeyboardNavigation?: (key: string, currentTime: number) => number
+    getTimeForKey?: (key: NavigationKey) => number
     onMouseEnter?: () => void
     onMouseLeave?: () => void
     onBlur?: () => void
 }): React.ReactElement {
     const [inputValue, setInputValue] = React.useState(currentTime.toString())
-
-    const isEditing = editHandle === type
 
     React.useEffect(() => {
         if (isEditing) setInputValue(currentTime.toString())
@@ -887,19 +890,11 @@ function EditableYearTooltip({
             onComplete?.(parsed)
         } else if (e.key === "Escape") {
             onComplete?.()
-        } else if (
-            onKeyboardNavigation &&
-            (e.key === "ArrowUp" ||
-                e.key === "ArrowDown" ||
-                e.key === "PageUp" ||
-                e.key === "PageDown" ||
-                e.key === "Home" ||
-                e.key === "End")
-        ) {
+        } else if (getTimeForKey && isRelevantNavigationKey(e.key)) {
             // Prevent default browser increment/decrement behavior
             e.preventDefault()
 
-            const newTime = onKeyboardNavigation(e.key, currentTime)
+            const newTime = getTimeForKey(e.key)
             setInputValue(newTime.toString())
             onChange?.(newTime)
         }
@@ -987,6 +982,10 @@ function SimpleTimeTooltip({
     formattedTime: string
 }): React.ReactElement {
     return <div className="SimpleTimeTooltip">{formattedTime}</div>
+}
+
+function isRelevantNavigationKey(key: string): key is NavigationKey {
+    return NAVIGATION_KEYS.includes(key as NavigationKey)
 }
 
 function castToNumberIfPossible(s: string): string | number {
