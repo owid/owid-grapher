@@ -229,7 +229,9 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                     targetTime,
                     tolerance
                 )
-                if (index !== undefined) matchingIndices.add(indices[index])
+                const closest =
+                    index === undefined ? undefined : allTimesAsc[index]
+                if (closest !== undefined) matchingIndices.add(closest.index)
             })
         })
 
