@@ -46,6 +46,10 @@ import {
     HorizontalColorLegendManager,
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
+import {
+    LegendInteractionState,
+    LegendStyleConfig,
+} from "../legend/LegendItemState"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { ColorScale } from "../color/ColorScale"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -288,10 +292,6 @@ export class MarimekkoChart
         return this.bounds.top
     }
 
-    @computed get legendOpacity(): number {
-        return 0.7
-    }
-
     @computed get legendWidth(): number {
         return this.bounds.width
     }
@@ -322,6 +322,31 @@ export class MarimekkoChart
             })
         }
         return []
+    }
+
+    getLegendBinState(bin: ColorScaleBin): LegendInteractionState {
+        const { focusColorBin } = this
+
+        // If nothing is focused, all items are active
+        if (!focusColorBin && this.hoverColors.length === 0)
+            return LegendInteractionState.Default
+
+        const isHovered = this.hoverColors?.includes(bin.color)
+        if (isHovered) return LegendInteractionState.Focused
+
+        // Check if this bin matches the focused color bin
+        const isFocused = focusColorBin && bin.equals(focusColorBin)
+        return isFocused
+            ? LegendInteractionState.Hovered
+            : LegendInteractionState.Muted
+    }
+
+    legendStyleConfig: LegendStyleConfig = {
+        marker: {
+            default: { opacity: 0.7 },
+            muted: { opacity: 0.2 },
+        },
+        text: { default: { opacity: 0.7 } },
     }
 
     @computed get hoverColors(): string[] {

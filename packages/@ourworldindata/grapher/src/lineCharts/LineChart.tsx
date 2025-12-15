@@ -9,7 +9,6 @@ import {
     excludeUndefined,
     isMobile,
     Bounds,
-    Color,
     HorizontalAlign,
     isTouchDevice,
 } from "@ourworldindata/utils"
@@ -84,6 +83,7 @@ import { LineChartState } from "./LineChartState.js"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { InteractionState } from "../interaction/InteractionState"
+import { LegendStyleConfig } from "../legend/LegendItemState"
 
 export type LineChartProps = ChartComponentProps<LineChartState>
 
@@ -783,12 +783,32 @@ export class LineChart
     }
 
     numericBinSize = 6
-    numericBinStrokeWidth = 1
-    legendTextColor = "#555"
     legendTickSize = 1
 
-    @computed get numericBinStroke(): Color {
-        return this.manager.backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT
+    categoricalLegendStyleConfig: LegendStyleConfig = {
+        marker: {
+            default: { opacity: 1.0 },
+            muted: { opacity: GRAPHER_OPACITY_MUTE },
+        },
+        text: {
+            default: { opacity: 1.0, color: "#555" },
+            muted: { opacity: 0.7 },
+        },
+    }
+
+    numericLegendStyleConfig: LegendStyleConfig = {
+        marker: {
+            default: {
+                stroke: "#ffffff",
+                strokeWidth: 1,
+                opacity: 1,
+            },
+            muted: { opacity: GRAPHER_OPACITY_MUTE },
+        },
+        text: {
+            default: { opacity: 1.0, color: "#555" },
+            muted: { opacity: 0.7 },
+        },
     }
 
     @computed private get numericLegend():
@@ -953,13 +973,12 @@ export class LineChart
                   )
             return {
                 legendTitle: this.legendTitle,
-                legendTextColor: this.legendTextColor,
                 legendTickSize: this.legendTickSize,
                 numericBinSize: this.numericBinSize,
-                numericBinStroke: this.numericBinStroke,
-                numericBinStrokeWidth: this.numericBinStrokeWidth,
                 numericLegendData,
                 categoricalLegendData,
+                categoricalLegendStyleConfig: this.categoricalLegendStyleConfig,
+                numericLegendStyleConfig: this.numericLegendStyleConfig,
             }
         }
         return undefined

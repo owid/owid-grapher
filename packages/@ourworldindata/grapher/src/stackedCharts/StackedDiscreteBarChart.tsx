@@ -26,6 +26,10 @@ import {
     HorizontalColorLegendManager,
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
+import {
+    LegendInteractionState,
+    LegendStyleConfig,
+} from "../legend/LegendItemState"
 import { StackedDiscreteBarChartState } from "./StackedDiscreteBarChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { StackedDiscreteBars } from "./StackedDiscreteBars"
@@ -135,10 +139,34 @@ export class StackedDiscreteBarChart
         return this.showLegend ? this.legendBins : []
     }
 
+    getLegendBinState(bin: ColorScaleBin): LegendInteractionState {
+        const { focusSeriesName } = this
+
+        // If nothing is focused, all items are active
+        if (!focusSeriesName) {
+            return LegendInteractionState.Default
+        }
+
+        // Check if this bin contains the focused series
+        const isFocused = bin.contains(focusSeriesName)
+        return isFocused
+            ? LegendInteractionState.Hovered
+            : LegendInteractionState.Muted
+    }
+
+    legendStyleConfig: LegendStyleConfig = {
+        marker: {
+            default: { opacity: 1 }, // TODO: GRAPHER_AREA_OPACITY_DEFAULT
+            muted: { opacity: 0.1 },
+        },
+        text: { muted: { opacity: 0.7 } },
+    }
+
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
         if (!this.showLegend) {
             return {
                 categoricalLegendData: this.legendBins,
+                legendStyleConfig: this.legendStyleConfig,
             }
         }
         return undefined

@@ -55,6 +55,10 @@ import {
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
 import { ColorScaleBin } from "../color/ColorScaleBin"
 import {
+    LegendInteractionState,
+    LegendStyleConfig,
+} from "../legend/LegendItemState"
+import {
     ScatterSizeLegend,
     ScatterSizeLegendManager,
 } from "./ScatterSizeLegend"
@@ -64,6 +68,7 @@ import { ScatterPlotChartState } from "./ScatterPlotChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { toSizeRange } from "./ScatterUtils.js"
 import { ScatterPlotTooltip } from "./ScatterPlotTooltip"
+import { GRAY_100, GRAY_60 } from "../color/ColorConstants"
 
 export type ScatterPlotChartProps = ChartComponentProps<ScatterPlotChartState>
 
@@ -92,6 +97,11 @@ export class ScatterPlotChart
     tooltipState = new TooltipState<{
         series: ScatterSeries
     }>()
+
+    legendStyleConfig: LegendStyleConfig = {
+        marker: { muted: { fill: "#ccc" } }, // TODO: INACTIVE_SCATTER_POINT_COLOR
+        text: { muted: { color: GRAY_60 }, focused: { color: GRAY_100 } },
+    }
 
     @computed get chartState(): ScatterPlotChartState {
         return this.props.chartState
@@ -150,12 +160,14 @@ export class ScatterPlotChart
             this.manager.tableAfterAuthorTimelineAndActiveChartTransform?.get(
                 this.colorColumnSlug
             )?.valuesIncludingErrorValues ?? []
+
         // Need to convert InvalidCell to undefined for color scale to assign correct color
         const colorValues = _.uniq(
             allValues.map((value: any) =>
                 isNotErrorValue(value) ? value : undefined
             )
         ) as (string | number)[]
+
         return excludeUndefined(
             colorValues.map((colorValue) =>
                 this.colorScale.getColor(colorValue)
@@ -181,6 +193,8 @@ export class ScatterPlotChart
         this.hoverColor = undefined
     }
 
+    legendCursor = "pointer"
+
     // When the color legend is clicked, toggle selection fo all associated keys
     @action.bound onLegendClick(bin: ColorScaleBin): void {
         const { selectionArray } = this.chartState
@@ -188,37 +202,30 @@ export class ScatterPlotChart
 
         const color = bin.color
 
-        const keysToToggle = this.series
+        // Find all entities that match the clicked color
+        const colorMatchingSeriesNames = this.series
             .filter((g) => g.color === color)
             .map((g) => g.seriesName)
-        const allKeysActive =
-            intersection(keysToToggle, this.selectedEntityNames).length ===
-            keysToToggle.length
-        if (allKeysActive)
+
+        // Check if all these entities are already selected
+        const allColorMatchingSeriesAreSelected =
+            intersection(colorMatchingSeriesNames, this.selectedEntityNames)
+                .length === colorMatchingSeriesNames.length
+
+        // If all matching entities are selected, deselect them;
+        // Otherwise select them
+        if (allColorMatchingSeriesAreSelected)
             selectionArray.setSelectedEntities(
-                _.without(this.selectedEntityNames, ...keysToToggle)
+                _.without(this.selectedEntityNames, ...colorMatchingSeriesNames)
             )
         else
             selectionArray.setSelectedEntities(
-                _.uniq(this.selectedEntityNames.concat(keysToToggle))
+                _.uniq(
+                    this.selectedEntityNames.concat(colorMatchingSeriesNames)
+                )
             )
     }
 
-    // Colors on the legend for which every matching series is focused
-    @computed get focusColors(): string[] {
-        const { colorsInUse } = this
-        return colorsInUse.filter((color) => {
-            const matchingKeys = this.series
-                .filter((g) => g.color === color)
-                .map((g) => g.seriesName)
-            return (
-                intersection(matchingKeys, this.selectedEntityNames).length ===
-                matchingKeys.length
-            )
-        })
-    }
-
-    // All currently hovered series keys, combining the legend and the main UI
     @computed private get hoveredSeriesNames(): string[] {
         const { hoverColor, tooltipState } = this
 
@@ -236,10 +243,6 @@ export class ScatterPlotChart
         }
 
         return hoveredSeriesNames
-    }
-
-    @computed private get focusedEntityNames(): string[] {
-        return this.selectedEntityNames
     }
 
     @computed private get selectedEntityNames(): string[] {
@@ -360,22 +363,34 @@ export class ScatterPlotChart
             !this.compareEndPointsOnly || undefined
     }
 
-    // Colors currently on the chart and not greyed out
+    /** Legend colors that are currently highlighted (either hovered or have at least one selected series) */
     @computed get activeColors(): string[] {
-        const { hoveredSeriesNames, focusedEntityNames } = this
-        const activeKeys = hoveredSeriesNames.concat(focusedEntityNames)
+        const { hoveredSeriesNames, selectedEntityNames } = this
 
-        let series = this.series
+        const activeSeriesNames = hoveredSeriesNames.concat(selectedEntityNames)
 
-        if (activeKeys.length)
-            series = series.filter((g) => activeKeys.includes(g.seriesName))
+        if (activeSeriesNames.length === 0) return this.colorsInUse
+
+        let activeSeries = this.series
+        if (activeSeriesNames.length)
+            activeSeries = activeSeries.filter((g) =>
+                activeSeriesNames.includes(g.seriesName)
+            )
 
         const colorValues = _.uniq(
-            series.flatMap((s) => s.points.map((p) => p.color))
+            activeSeries.flatMap((s) => s.points.map((p) => p.color))
         )
+
         return excludeUndefined(
             colorValues.map((color) => this.colorScale.getColor(color))
         )
+    }
+
+    getLegendBinState(bin: ColorScaleBin): LegendInteractionState {
+        const isActive = this.activeColors.includes(bin.color)
+        return isActive
+            ? LegendInteractionState.Focused
+            : LegendInteractionState.Muted
     }
 
     @computed private get hideConnectedScatterLines(): boolean {
@@ -460,7 +475,7 @@ export class ScatterPlotChart
                 sizeScale={this.sizeScale}
                 fontScale={this.fontScale}
                 baseFontSize={this.fontSize}
-                focusedSeriesNames={this.focusedEntityNames}
+                focusedSeriesNames={this.selectedEntityNames}
                 hoveredSeriesNames={this.hoveredSeriesNames}
                 tooltipSeriesName={this.tooltipSeries?.seriesName}
                 disableIntroAnimation={this.manager.disableIntroAnimation}

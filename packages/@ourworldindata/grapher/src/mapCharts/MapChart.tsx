@@ -19,10 +19,10 @@ import { MapTooltip } from "./MapTooltip"
 import { TooltipState } from "../tooltip/Tooltip.js"
 import { CoreColumn } from "@ourworldindata/core-table"
 import {
+    BLUR_FILL_OPACITY,
     GeoFeature,
     MapBracket,
     MapChartManager,
-    DEFAULT_STROKE_COLOR,
     ChoroplethSeriesByName,
     ChoroplethMapManager,
     MAP_CHART_CLASSNAME,
@@ -48,6 +48,10 @@ import {
     isProjectedDataBin,
     NumericBin,
 } from "../color/ColorScaleBin"
+import {
+    LegendInteractionState,
+    LegendStyleConfig,
+} from "../legend/LegendItemState"
 import {
     ColumnSlug,
     GrapherVariant,
@@ -225,20 +229,17 @@ export class MapChart
     }
 
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
-        const {
-            numericLegendData,
-            categoricalLegendData,
-            categoricalBinStroke,
-            legendMaxWidth,
-        } = this
+        const { numericLegendData, categoricalLegendData, legendMaxWidth } =
+            this
 
         if (this.manager.showLegend) return undefined
 
         return {
             numericLegendData,
             categoricalLegendData,
-            categoricalBinStroke,
             legendMaxWidth,
+            categoricalLegendStyleConfig: this.categoricalLegendStyleConfig,
+            numericLegendStyleConfig: this.numericLegendStyleConfig,
         }
     }
 
@@ -477,18 +478,42 @@ export class MapChart
         return undefined
     }
 
-    // Renamed so that it's picked up by the legend component
-    @computed get categoricalFocusBracket(): CategoricalBin | undefined {
-        return this.categoricalHoverBracket
+    getLegendBinState(bin: ColorScaleBin): LegendInteractionState {
+        if (!this.categoricalHoverBracket && !this.numericHoverBracket)
+            return LegendInteractionState.Default
+
+        // Check if this bin is being hovered
+        if (
+            this.categoricalHoverBracket &&
+            bin.equals(this.categoricalHoverBracket)
+        ) {
+            return LegendInteractionState.Focused
+        }
+        if (this.numericHoverBracket && bin.equals(this.numericHoverBracket)) {
+            return LegendInteractionState.Focused
+        }
+        return LegendInteractionState.Muted
     }
 
-    // Renamed so that it's picked up by the legend component
-    @computed get numericFocusBracket(): ColorScaleBin | undefined {
-        return this.numericHoverBracket
+    categoricalLegendStyleConfig: LegendStyleConfig = {
+        marker: {
+            default: { stroke: "#333" },
+            muted: { opacity: BLUR_FILL_OPACITY },
+        },
+        text: {
+            muted: { opacity: 0.7 },
+        },
     }
 
-    @computed get categoricalBinStroke(): Color {
-        return DEFAULT_STROKE_COLOR
+    numericLegendStyleConfig: LegendStyleConfig = {
+        marker: {
+            default: { stroke: "#333" },
+            muted: { opacity: BLUR_FILL_OPACITY },
+        },
+        text: {
+            default: { color: "#111" },
+            muted: { opacity: 0.7 },
+        },
     }
 
     @computed get legendMaxWidth(): number {

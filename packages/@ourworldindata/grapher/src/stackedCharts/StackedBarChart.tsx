@@ -31,8 +31,12 @@ import {
 } from "../core/GrapherConstants"
 import { StackedBarChartState } from "./StackedBarChartState.js"
 import { BAR_OPACITY, StackedPoint, StackedSeries } from "./StackedConstants"
+import {
+    LegendInteractionState,
+    LegendStyleConfig,
+} from "../legend/LegendItemState"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
-import { HorizontalAlign } from "@ourworldindata/types"
+import { HorizontalAlign, SeriesName } from "@ourworldindata/types"
 import { makeClipPath } from "../chart/ChartUtils"
 import {
     HorizontalCategoricalColorLegend,
@@ -87,6 +91,16 @@ export class StackedBarChart
         bar: StackedPoint<number>
         series: StackedSeries<number>
     }>()
+
+    legendStyleConfig: LegendStyleConfig = {
+        marker: {
+            default: { opacity: 1 }, // TODO: BAR_OPACITY.DEFAULT
+            hovered: { opacity: BAR_OPACITY.FOCUS },
+            muted: { opacity: BAR_OPACITY.MUTE },
+            focused: { opacity: BAR_OPACITY.FOCUS },
+        },
+        text: { muted: { opacity: 0.7 } },
+    }
 
     @computed get chartState(): StackedBarChartState {
         return this.props.chartState
@@ -193,12 +207,11 @@ export class StackedBarChart
             : 0
     }
 
-    // All currently hovered group keys, combining the legend and the main UI
-    @computed private get hoverKeys(): string[] {
+    @computed private get hoveredSeriesNames(): SeriesName[] {
         const { hoverColor, manager } = this
         const { externalLegendHoverBin } = manager
 
-        const hoverKeys =
+        const hoveredSeriesNames =
             hoverColor === undefined
                 ? []
                 : _.uniq(
@@ -207,19 +220,20 @@ export class StackedBarChart
                           .map((g) => g.seriesName)
                   )
         if (externalLegendHoverBin) {
-            hoverKeys.push(
+            hoveredSeriesNames.push(
                 ...this.chartState.rawSeries
                     .map((g) => g.seriesName)
                     .filter((name) => externalLegendHoverBin.contains(name))
             )
         }
 
-        return hoverKeys
+        return hoveredSeriesNames
     }
 
     @computed get activeColors(): string[] {
-        const { hoverKeys } = this
-        const activeKeys = hoverKeys.length > 0 ? hoverKeys : []
+        const { hoveredSeriesNames } = this
+        const activeKeys =
+            hoveredSeriesNames.length > 0 ? hoveredSeriesNames : []
 
         if (!activeKeys.length)
             // No hover means they're all active by default
@@ -230,6 +244,13 @@ export class StackedBarChart
                 .filter((g) => activeKeys.indexOf(g.seriesName) !== -1)
                 .map((g) => g.color)
         )
+    }
+
+    getLegendBinState(bin: ColorScaleBin): LegendInteractionState {
+        const isActive = this.activeColors?.includes(bin.color)
+        return isActive
+            ? LegendInteractionState.Focused
+            : LegendInteractionState.Muted
     }
 
     @computed get categoricalLegendData(): CategoricalBin[] {
@@ -308,7 +329,11 @@ export class StackedBarChart
                         })
                 )
                 .toReversed()
-            return { categoricalLegendData }
+
+            return {
+                categoricalLegendData,
+                legendStyleConfig: this.legendStyleConfig,
+            }
         }
         return undefined
     }
@@ -477,7 +502,7 @@ export class StackedBarChart
                 dualAxis={this.dualAxis}
                 series={this.stackedSeries}
                 formatColumn={this.chartState.formatColumn}
-                hoveredSeriesNames={this.hoverKeys}
+                hoveredSeriesNames={this.hoveredSeriesNames}
                 hoveredBar={this.tooltipState.target?.bar}
                 onBarMouseOver={this.onBarMouseOver}
                 onBarMouseLeave={this.onBarMouseLeave}

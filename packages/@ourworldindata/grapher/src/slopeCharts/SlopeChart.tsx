@@ -23,6 +23,7 @@ import {
     GRAPHER_FONT_SCALE_11,
     GRAPHER_FONT_SCALE_12,
     GRAPHER_TEXT_OUTLINE_FACTOR,
+    GRAPHER_OPACITY_MUTE,
 } from "../core/GrapherConstants"
 import {
     SeriesName,
@@ -62,6 +63,7 @@ import { TooltipFooterIcon } from "../tooltip/TooltipProps"
 import { Halo } from "@ourworldindata/components"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
+import { LegendStyleConfig } from "../legend/LegendItemState"
 import {
     GRAPHER_BACKGROUND_DEFAULT,
     GRAPHER_DARK_TEXT,
@@ -325,6 +327,16 @@ export class SlopeChart
         }).width
     }
 
+    legendStyleConfig: LegendStyleConfig = {
+        marker: {
+            default: { opacity: 1.0 },
+            muted: { opacity: GRAPHER_OPACITY_MUTE },
+        },
+        text: {
+            muted: { opacity: 0.7 },
+        },
+    }
+
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
         if (!this.manager.showLegend) {
             const categoricalLegendData = this.series.map(
@@ -336,7 +348,10 @@ export class SlopeChart
                         color: series.color,
                     })
             )
-            return { categoricalLegendData }
+            return {
+                categoricalLegendData,
+                legendStyleConfig: this.legendStyleConfig,
+            }
         }
         return undefined
     }

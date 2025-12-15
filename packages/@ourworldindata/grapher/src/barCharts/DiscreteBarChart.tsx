@@ -39,6 +39,7 @@ import {
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
 } from "../horizontalColorLegend/HorizontalColorLegends"
+import { LegendStyleConfig } from "../legend/LegendItemState"
 import { DiscreteBarChartState } from "./DiscreteBarChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import {
@@ -642,10 +643,30 @@ export class DiscreteBarChart
         return DEFAULT_PROJECTED_DATA_COLOR_IN_LEGEND
     }
 
+    legendStyleConfig: LegendStyleConfig = {
+        marker: {
+            default: {
+                opacity: GRAPHER_AREA_OPACITY_DEFAULT,
+                stroke: BACKGROUND_COLOR,
+                strokeWidth: 1,
+            },
+            hovered: { opacity: 1 },
+            muted: { opacity: GRAPHER_OPACITY_MUTE },
+            focused: { opacity: 1 },
+        },
+        text: {
+            default: { opacity: GRAPHER_AREA_OPACITY_DEFAULT, color: "#555" },
+            hovered: { opacity: 1.0 },
+            muted: { opacity: GRAPHER_OPACITY_MUTE },
+            focused: { opacity: 1.0, fontWeight: 700 },
+        },
+    }
+
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
         if (this.hasColorLegend) {
             return {
                 numericLegendData: this.numericLegendData,
+                legendStyleConfig: this.legendStyleConfig,
             }
         }
         return undefined
@@ -655,9 +676,6 @@ export class DiscreteBarChart
         return 0.625 * this.fontSize
     }
 
-    numericBinStroke = BACKGROUND_COLOR
-    numericBinStrokeWidth = 1
-    legendTextColor = "#555"
     legendTickSize = 1
 
     @computed private get numericLegend():

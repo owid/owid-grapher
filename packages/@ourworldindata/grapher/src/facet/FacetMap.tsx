@@ -42,6 +42,10 @@ import {
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { GRAPHER_DARK_TEXT, GRAY_30 } from "../color/ColorConstants"
 import {
+    LegendInteractionState,
+    LegendStyleConfig,
+} from "../legend/LegendItemState"
+import {
     MAP_LEGEND_MAX_WIDTH_RATIO,
     MapChart,
     PADDING_BELOW_MAP_LEGEND,
@@ -409,10 +413,6 @@ export class FacetMap
         return this.externalLegend?.categoricalLegendData ?? []
     }
 
-    @computed get categoricalBinStroke(): Color | undefined {
-        return this.externalLegend?.categoricalBinStroke
-    }
-
     @computed private get numericLegendHeight(): number {
         return this.numericLegend ? this.numericLegend.height : 0
     }
@@ -449,9 +449,26 @@ export class FacetMap
             : undefined
     }
 
-    // Renamed so that it's picked up by the legend component
-    @computed get numericFocusBracket(): ColorScaleBin | undefined {
-        return this.legendHoverBin
+    getLegendBinState(bin: ColorScaleBin): LegendInteractionState {
+        // Check if this bin is being hovered
+        if (this.legendHoverBin && bin.equals(this.legendHoverBin)) {
+            return LegendInteractionState.Focused
+        }
+        return LegendInteractionState.Default
+    }
+
+    @computed get legendStyleConfig(): LegendStyleConfig | undefined {
+        return this.externalLegend?.legendStyleConfig
+    }
+
+    @computed get numericLegendStyleConfig(): LegendStyleConfig | undefined {
+        return this.externalLegend?.numericLegendStyleConfig
+    }
+
+    @computed get categoricalLegendStyleConfig():
+        | LegendStyleConfig
+        | undefined {
+        return this.externalLegend?.categoricalLegendStyleConfig
     }
 
     override componentDidMount(): void {

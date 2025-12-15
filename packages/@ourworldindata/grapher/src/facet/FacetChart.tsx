@@ -65,6 +65,10 @@ import {
 } from "../color/ColorScaleBin"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import { FocusArray } from "../focus/FocusArray"
+import {
+    LegendInteractionState,
+    LegendStyleConfig,
+} from "../legend/LegendItemState"
 
 const SHARED_X_AXIS_MIN_FACET_COUNT = 12
 
@@ -718,32 +722,12 @@ export class FacetChart
         return this.getExternalLegendProp("legendHeight")
     }
 
-    @computed get legendOpacity(): number | undefined {
-        return this.getExternalLegendProp("legendOpacity")
-    }
-
-    @computed get legendTextColor(): Color | undefined {
-        return this.getExternalLegendProp("legendTextColor")
-    }
-
     @computed get legendTickSize(): number | undefined {
         return this.getExternalLegendProp("legendTickSize")
     }
 
-    @computed get categoricalBinStroke(): Color | undefined {
-        return this.getExternalLegendProp("categoricalBinStroke")
-    }
-
     @computed get numericBinSize(): number | undefined {
         return this.getExternalLegendProp("numericBinSize")
-    }
-
-    @computed get numericBinStroke(): Color | undefined {
-        return this.getExternalLegendProp("numericBinStroke")
-    }
-
-    @computed get numericBinStrokeWidth(): number | undefined {
-        return this.getExternalLegendProp("numericBinStrokeWidth")
     }
 
     @computed get hoverColors(): Color[] | undefined {
@@ -832,7 +816,35 @@ export class FacetChart
                     .map((series) => series.seriesName)
             )
         )
+
         this.manager.focusArray.toggle(...seriesNames)
+    }
+
+    getLegendBinState(bin: ColorScaleBin): LegendInteractionState {
+        if (!this.activeColors && !this.hoverColors)
+            return LegendInteractionState.Default
+
+        const isHovered = this.hoverColors?.includes(bin.color)
+        if (isHovered) return LegendInteractionState.Hovered
+
+        const isActive = this.activeColors?.includes(bin.color)
+        return isActive
+            ? LegendInteractionState.Focused
+            : LegendInteractionState.Muted
+    }
+
+    @computed get legendStyleConfig(): LegendStyleConfig | undefined {
+        return this.externalLegends[0]?.legendStyleConfig
+    }
+
+    @computed get numericLegendStyleConfig(): LegendStyleConfig | undefined {
+        return this.externalLegends[0]?.numericLegendStyleConfig
+    }
+
+    @computed get categoricalLegendStyleConfig():
+        | LegendStyleConfig
+        | undefined {
+        return this.externalLegends[0]?.categoricalLegendStyleConfig
     }
 
     // end of legend props
