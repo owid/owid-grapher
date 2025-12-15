@@ -32,7 +32,7 @@ import {
 } from "@ourworldindata/types"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import { getShortNameForEntity } from "../chart/ChartUtils"
-import { StackedSeries } from "./StackedConstants"
+import { MARIMEKKO_BAR_OPACITY, StackedSeries } from "./StackedConstants"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import {
     Tooltip,
@@ -332,7 +332,7 @@ export class MarimekkoChart
             return LegendInteractionState.Default
 
         const isHovered = this.hoverColors?.includes(bin.color)
-        if (isHovered) return LegendInteractionState.Focused
+        if (isHovered) return LegendInteractionState.Hovered
 
         // Check if this bin matches the focused color bin
         const isFocused = focusColorBin && bin.equals(focusColorBin)
@@ -343,10 +343,11 @@ export class MarimekkoChart
 
     legendStyleConfig: LegendStyleConfig = {
         marker: {
-            default: { opacity: 0.7 },
-            muted: { opacity: 0.2 },
+            default: { opacity: MARIMEKKO_BAR_OPACITY.DEFAULT },
+            muted: { opacity: MARIMEKKO_BAR_OPACITY.MUTE },
+            hovered: { opacity: MARIMEKKO_BAR_OPACITY.FOCUS },
         },
-        text: { default: { opacity: 0.7 } },
+        text: { muted: { opacity: MARIMEKKO_BAR_OPACITY.MUTE } },
     }
 
     @computed get hoverColors(): string[] {
