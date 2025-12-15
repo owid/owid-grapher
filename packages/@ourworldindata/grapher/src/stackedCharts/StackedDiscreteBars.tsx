@@ -18,7 +18,6 @@ import { ScaleType, SeriesName, VerticalAlign } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
-    GRAPHER_AREA_OPACITY_DEFAULT,
     GRAPHER_FONT_SCALE_12,
     GRAPHER_OPACITY_MUTE,
 } from "../core/GrapherConstants"
@@ -42,6 +41,7 @@ import {
 } from "../tooltip/Tooltip"
 import {
     Bar,
+    BAR_OPACITY,
     PlacedItem,
     SizedItem,
     StackedPoint,
@@ -511,6 +511,12 @@ export class StackedDiscreteBars
             labelBounds.height < 0.85 * barHeight
         const labelColor = isDarkColor(bar.color) ? "#fff" : "#000"
 
+        const opacity = isHover
+            ? BAR_OPACITY.FOCUS
+            : isFaint
+              ? BAR_OPACITY.MUTE
+              : BAR_OPACITY.DEFAULT
+
         return (
             <g
                 id={makeIdForHumanConsumption(bar.seriesName)}
@@ -527,16 +533,8 @@ export class StackedDiscreteBars
                     width={barWidth}
                     height={barHeight}
                     fill={bar.color}
-                    opacity={
-                        isHover
-                            ? 1
-                            : isFaint
-                              ? 0.1
-                              : GRAPHER_AREA_OPACITY_DEFAULT
-                    }
-                    style={{
-                        transition: "height 200ms ease",
-                    }}
+                    opacity={opacity}
+                    style={{ transition: "height 200ms ease" }}
                 />
                 {showLabelInsideBar && (
                     <text

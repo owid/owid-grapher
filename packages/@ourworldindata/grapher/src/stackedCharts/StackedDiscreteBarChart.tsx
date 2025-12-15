@@ -20,7 +20,7 @@ import { NoDataModal } from "../noDataModal/NoDataModal"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import { TooltipState } from "../tooltip/Tooltip"
-import { StackedSeries } from "./StackedConstants"
+import { BAR_OPACITY, StackedSeries } from "./StackedConstants"
 import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
@@ -156,10 +156,12 @@ export class StackedDiscreteBarChart
 
     legendStyleConfig: LegendStyleConfig = {
         marker: {
-            default: { opacity: 1 }, // TODO: GRAPHER_AREA_OPACITY_DEFAULT
-            muted: { opacity: 0.1 },
+            default: { opacity: BAR_OPACITY.DEFAULT },
+            hovered: { opacity: BAR_OPACITY.FOCUS },
+            muted: { opacity: BAR_OPACITY.MUTE },
+            focused: { opacity: BAR_OPACITY.FOCUS },
         },
-        text: { muted: { opacity: 0.7 } },
+        text: { muted: { opacity: BAR_OPACITY.MUTE } },
     }
 
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
