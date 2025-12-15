@@ -26,7 +26,6 @@ import { HorizontalAxisZeroLine } from "../axis/AxisViews"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
-    BACKGROUND_COLOR,
     BAR_SPACING_FACTOR,
     DiscreteBarChartManager,
     DiscreteBarSeries,
@@ -643,30 +642,16 @@ export class DiscreteBarChart
         return DEFAULT_PROJECTED_DATA_COLOR_IN_LEGEND
     }
 
-    legendStyleConfig: LegendStyleConfig = {
-        marker: {
-            default: {
-                opacity: GRAPHER_AREA_OPACITY_DEFAULT,
-                stroke: BACKGROUND_COLOR,
-                strokeWidth: 1,
-            },
-            hovered: { opacity: 1 },
-            muted: { opacity: GRAPHER_OPACITY_MUTE },
-            focused: { opacity: 1 },
-        },
-        text: {
-            default: { opacity: GRAPHER_AREA_OPACITY_DEFAULT, color: "#555" },
-            hovered: { opacity: 1.0 },
-            muted: { opacity: GRAPHER_OPACITY_MUTE },
-            focused: { opacity: 1.0, fontWeight: 700 },
-        },
+    // Used when the bars are colored by a numeric scale
+    numericLegendStyleConfig: LegendStyleConfig = {
+        marker: { default: { stroke: "#ffffff", strokeWidth: 1 } },
     }
 
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
         if (this.hasColorLegend) {
             return {
                 numericLegendData: this.numericLegendData,
-                legendStyleConfig: this.legendStyleConfig,
+                numericLegendStyleConfig: this.numericLegendStyleConfig,
             }
         }
         return undefined

@@ -785,30 +785,18 @@ export class LineChart
     numericBinSize = 6
     legendTickSize = 1
 
+    // Used when faceted
     categoricalLegendStyleConfig: LegendStyleConfig = {
         marker: {
-            default: { opacity: 1.0 },
+            default: { opacity: 1 },
             muted: { opacity: GRAPHER_OPACITY_MUTE },
         },
-        text: {
-            default: { opacity: 1.0, color: "#555" },
-            muted: { opacity: 0.7 },
-        },
+        text: { muted: { opacity: GRAPHER_OPACITY_MUTE } },
     }
 
+    // Used when the lines are colored by a numeric scale
     numericLegendStyleConfig: LegendStyleConfig = {
-        marker: {
-            default: {
-                stroke: "#ffffff",
-                strokeWidth: 1,
-                opacity: 1,
-            },
-            muted: { opacity: GRAPHER_OPACITY_MUTE },
-        },
-        text: {
-            default: { opacity: 1.0, color: "#555" },
-            muted: { opacity: 0.7 },
-        },
+        marker: { default: { stroke: "#ffffff", strokeWidth: 1 } },
     }
 
     @computed private get numericLegend():

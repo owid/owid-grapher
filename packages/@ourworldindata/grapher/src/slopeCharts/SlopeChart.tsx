@@ -327,14 +327,13 @@ export class SlopeChart
         }).width
     }
 
-    legendStyleConfig: LegendStyleConfig = {
+    // Used when faceted
+    categoricalLegendStyleConfig: LegendStyleConfig = {
         marker: {
-            default: { opacity: 1.0 },
+            default: { opacity: 1 },
             muted: { opacity: GRAPHER_OPACITY_MUTE },
         },
-        text: {
-            muted: { opacity: 0.7 },
-        },
+        text: { muted: { opacity: GRAPHER_OPACITY_MUTE } },
     }
 
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
@@ -350,7 +349,7 @@ export class SlopeChart
             )
             return {
                 categoricalLegendData,
-                legendStyleConfig: this.legendStyleConfig,
+                categoricalLegendStyleConfig: this.categoricalLegendStyleConfig,
             }
         }
         return undefined
