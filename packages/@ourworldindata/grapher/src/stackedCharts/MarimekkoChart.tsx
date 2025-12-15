@@ -32,7 +32,10 @@ import {
 } from "@ourworldindata/types"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import { getShortNameForEntity } from "../chart/ChartUtils"
-import { MARIMEKKO_BAR_OPACITY, StackedSeries } from "./StackedConstants"
+import {
+    LEGEND_STYLE_FOR_STACKED_CHARTS,
+    StackedSeries,
+} from "./StackedConstants"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import {
     Tooltip,
@@ -341,14 +344,7 @@ export class MarimekkoChart
             : LegendInteractionState.Muted
     }
 
-    legendStyleConfig: LegendStyleConfig = {
-        marker: {
-            default: { opacity: MARIMEKKO_BAR_OPACITY.DEFAULT },
-            muted: { opacity: MARIMEKKO_BAR_OPACITY.MUTE },
-            hovered: { opacity: MARIMEKKO_BAR_OPACITY.FOCUS },
-        },
-        text: { muted: { opacity: MARIMEKKO_BAR_OPACITY.MUTE } },
-    }
+    legendStyleConfig: LegendStyleConfig = LEGEND_STYLE_FOR_STACKED_CHARTS
 
     @computed get hoverColors(): string[] {
         if (this.focusColorBin) return [this.focusColorBin.color]

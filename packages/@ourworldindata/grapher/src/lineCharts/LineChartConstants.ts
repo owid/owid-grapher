@@ -4,24 +4,40 @@ import { CoreValueType, EntityName, Time } from "@ourworldindata/types"
 import { ChartSeries } from "../chart/ChartInterface"
 import { Color } from "@ourworldindata/utils"
 import { InteractionState } from "../interaction/InteractionState"
+import { LegendStyleConfig } from "../legend/LegendItemState"
+import { GRAPHER_OPACITY_MUTE } from "../core/GrapherConstants"
 
 export const LINE_CHART_CLASS_NAME = "LineChart"
 
-// line color
+// Line color
 export const DEFAULT_LINE_COLOR = "#000"
-// stroke width
+
+// Stroke width
 export const DEFAULT_STROKE_WIDTH = 1.5
 export const VARIABLE_COLOR_STROKE_WIDTH = 2.5
-// marker radius
+
+// Marker radius
 export const DEFAULT_MARKER_RADIUS = 1.8
 export const VARIABLE_COLOR_MARKER_RADIUS = 2.2
 export const DISCONNECTED_DOTS_MARKER_RADIUS = 2.6
 export const STATIC_SMALL_MARKER_RADIUS = 3
-// line outline
+
+// Line outline
 export const DEFAULT_LINE_OUTLINE_WIDTH = 0.5
 export const VARIABLE_COLOR_LINE_OUTLINE_WIDTH = 1.0
-// legend
+
+// Legend
 export const LEGEND_PADDING = 25
+export const NUMERIC_LEGEND_STYLE: LegendStyleConfig = {
+    marker: { default: { stroke: "#ffffff", strokeWidth: 1 } },
+}
+export const CATEGORICAL_LEGEND_STYLE: LegendStyleConfig = {
+    marker: {
+        default: { opacity: 1 },
+        muted: { opacity: GRAPHER_OPACITY_MUTE },
+    },
+    text: { muted: { opacity: GRAPHER_OPACITY_MUTE } },
+}
 
 export interface LinePoint {
     x: number

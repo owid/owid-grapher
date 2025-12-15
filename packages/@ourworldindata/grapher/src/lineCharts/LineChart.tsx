@@ -42,6 +42,8 @@ import {
     LinePoint,
     PlacedLineChartSeries,
     RenderLineChartSeries,
+    CATEGORICAL_LEGEND_STYLE,
+    NUMERIC_LEGEND_STYLE,
     LEGEND_PADDING,
     VARIABLE_COLOR_STROKE_WIDTH,
     DEFAULT_STROKE_WIDTH,
@@ -786,18 +788,10 @@ export class LineChart
     legendTickSize = 1
 
     // Used when faceted
-    categoricalLegendStyleConfig: LegendStyleConfig = {
-        marker: {
-            default: { opacity: 1 },
-            muted: { opacity: GRAPHER_OPACITY_MUTE },
-        },
-        text: { muted: { opacity: GRAPHER_OPACITY_MUTE } },
-    }
+    categoricalLegendStyleConfig: LegendStyleConfig = CATEGORICAL_LEGEND_STYLE
 
     // Used when the lines are colored by a numeric scale
-    numericLegendStyleConfig: LegendStyleConfig = {
-        marker: { default: { stroke: "#ffffff", strokeWidth: 1 } },
-    }
+    numericLegendStyleConfig = NUMERIC_LEGEND_STYLE
 
     @computed private get numericLegend():
         | HorizontalNumericColorLegend

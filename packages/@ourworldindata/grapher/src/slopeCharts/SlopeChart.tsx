@@ -23,7 +23,6 @@ import {
     GRAPHER_FONT_SCALE_11,
     GRAPHER_FONT_SCALE_12,
     GRAPHER_TEXT_OUTLINE_FACTOR,
-    GRAPHER_OPACITY_MUTE,
 } from "../core/GrapherConstants"
 import {
     SeriesName,
@@ -63,7 +62,6 @@ import { TooltipFooterIcon } from "../tooltip/TooltipProps"
 import { Halo } from "@ourworldindata/components"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
-import { LegendStyleConfig } from "../legend/LegendItemState"
 import {
     GRAPHER_BACKGROUND_DEFAULT,
     GRAPHER_DARK_TEXT,
@@ -81,6 +79,7 @@ import {
 } from "./SlopeChartHelpers"
 import { Slope } from "./Slope"
 import { MarkX } from "./MarkX"
+import { CATEGORICAL_LEGEND_STYLE } from "../lineCharts/LineChartConstants"
 
 type SVGMouseOrTouchEvent =
     | React.MouseEvent<SVGGElement>
@@ -327,15 +326,6 @@ export class SlopeChart
         }).width
     }
 
-    // Used when faceted
-    categoricalLegendStyleConfig: LegendStyleConfig = {
-        marker: {
-            default: { opacity: 1 },
-            muted: { opacity: GRAPHER_OPACITY_MUTE },
-        },
-        text: { muted: { opacity: GRAPHER_OPACITY_MUTE } },
-    }
-
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
         if (!this.manager.showLegend) {
             const categoricalLegendData = this.series.map(
@@ -349,7 +339,7 @@ export class SlopeChart
             )
             return {
                 categoricalLegendData,
-                categoricalLegendStyleConfig: this.categoricalLegendStyleConfig,
+                categoricalLegendStyleConfig: CATEGORICAL_LEGEND_STYLE,
             }
         }
         return undefined

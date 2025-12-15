@@ -20,16 +20,16 @@ import { NoDataModal } from "../noDataModal/NoDataModal"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import { TooltipState } from "../tooltip/Tooltip"
-import { BAR_OPACITY, StackedSeries } from "./StackedConstants"
+import {
+    LEGEND_STYLE_FOR_STACKED_CHARTS,
+    StackedSeries,
+} from "./StackedConstants"
 import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
-import {
-    LegendInteractionState,
-    LegendStyleConfig,
-} from "../legend/LegendItemState"
+import { LegendInteractionState } from "../legend/LegendItemState"
 import { StackedDiscreteBarChartState } from "./StackedDiscreteBarChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { StackedDiscreteBars } from "./StackedDiscreteBars"
@@ -154,15 +154,7 @@ export class StackedDiscreteBarChart
             : LegendInteractionState.Muted
     }
 
-    legendStyleConfig: LegendStyleConfig = {
-        marker: {
-            default: { opacity: BAR_OPACITY.DEFAULT },
-            hovered: { opacity: BAR_OPACITY.FOCUS },
-            muted: { opacity: BAR_OPACITY.MUTE },
-            focused: { opacity: BAR_OPACITY.FOCUS },
-        },
-        text: { muted: { opacity: BAR_OPACITY.MUTE } },
-    }
+    legendStyleConfig = LEGEND_STYLE_FOR_STACKED_CHARTS
 
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
         if (!this.showLegend) {

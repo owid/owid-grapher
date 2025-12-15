@@ -30,11 +30,13 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
 } from "../core/GrapherConstants"
 import { StackedBarChartState } from "./StackedBarChartState.js"
-import { BAR_OPACITY, StackedPoint, StackedSeries } from "./StackedConstants"
 import {
-    LegendInteractionState,
-    LegendStyleConfig,
-} from "../legend/LegendItemState"
+    BAR_OPACITY,
+    LEGEND_STYLE_FOR_STACKED_CHARTS,
+    StackedPoint,
+    StackedSeries,
+} from "./StackedConstants"
+import { LegendInteractionState } from "../legend/LegendItemState"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { HorizontalAlign, SeriesName } from "@ourworldindata/types"
 import { makeClipPath } from "../chart/ChartUtils"
@@ -92,15 +94,7 @@ export class StackedBarChart
         series: StackedSeries<number>
     }>()
 
-    legendStyleConfig: LegendStyleConfig = {
-        marker: {
-            default: { opacity: BAR_OPACITY.DEFAULT },
-            hovered: { opacity: BAR_OPACITY.FOCUS },
-            muted: { opacity: BAR_OPACITY.MUTE },
-            focused: { opacity: BAR_OPACITY.FOCUS },
-        },
-        text: { muted: { opacity: BAR_OPACITY.MUTE } },
-    }
+    legendStyleConfig = LEGEND_STYLE_FOR_STACKED_CHARTS
 
     @computed get chartState(): StackedBarChartState {
         return this.props.chartState

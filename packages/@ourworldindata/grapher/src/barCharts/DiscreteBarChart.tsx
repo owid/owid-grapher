@@ -38,7 +38,6 @@ import {
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
 } from "../horizontalColorLegend/HorizontalColorLegends"
-import { LegendStyleConfig } from "../legend/LegendItemState"
 import { DiscreteBarChartState } from "./DiscreteBarChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import {
@@ -49,6 +48,7 @@ import { OwidTable } from "@ourworldindata/core-table"
 import { HorizontalAxis } from "../axis/Axis"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import type { BaseType, Selection } from "d3-selection"
+import { NUMERIC_LEGEND_STYLE } from "../lineCharts/LineChartConstants"
 
 const DEFAULT_PROJECTED_DATA_COLOR_IN_LEGEND = "#787878"
 
@@ -643,9 +643,7 @@ export class DiscreteBarChart
     }
 
     // Used when the bars are colored by a numeric scale
-    numericLegendStyleConfig: LegendStyleConfig = {
-        marker: { default: { stroke: "#ffffff", strokeWidth: 1 } },
-    }
+    numericLegendStyleConfig = NUMERIC_LEGEND_STYLE
 
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
         if (this.hasColorLegend) {

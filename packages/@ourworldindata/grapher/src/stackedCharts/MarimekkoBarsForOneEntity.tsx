@@ -7,7 +7,7 @@ import {
     MarimekkoBarProps,
 } from "./MarimekkoChartConstants"
 import { InteractionState } from "../interaction/InteractionState.js"
-import { MARIMEKKO_BAR_OPACITY } from "./StackedConstants"
+import { BAR_OPACITY } from "./StackedConstants"
 
 interface MarimekkoBarsProps {
     entityName: string
@@ -124,14 +124,14 @@ function MarimekkoBar({
     const strokeWidth = isHovered || isSelected ? 1 : 0.5
     const strokeOpacity = isPlaceholder ? 0.8 : isFaint ? 0.2 : 1.0
     const fillOpacity = isHovered
-        ? MARIMEKKO_BAR_OPACITY.FOCUS
+        ? BAR_OPACITY.FOCUS
         : isFaint
-          ? MARIMEKKO_BAR_OPACITY.MUTE
+          ? BAR_OPACITY.MUTE
           : isSelected
             ? isPlaceholder
                 ? 0.3
-                : MARIMEKKO_BAR_OPACITY.DEFAULT
-            : MARIMEKKO_BAR_OPACITY.DEFAULT
+                : BAR_OPACITY.DEFAULT
+            : BAR_OPACITY.DEFAULT
     const overalOpacity = isPlaceholder ? 0.2 : 1.0
 
     let barY: number = 0
