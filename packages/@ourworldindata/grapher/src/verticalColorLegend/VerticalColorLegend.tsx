@@ -9,10 +9,12 @@ import {
     BASE_FONT_SIZE,
 } from "../core/GrapherConstants"
 import { ColorScaleBin, NumericBin } from "../color/ColorScaleBin"
+import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import {
     LegendInteractionState,
     LegendStyleConfig,
     LegendMarkerStyle,
+    LegendTextStyle,
 } from "../legend/LegendItemState"
 
 export interface VerticalColorLegendManager {
@@ -159,6 +161,14 @@ export class VerticalColorLegend extends React.Component<{
         )
     }
 
+    private getTextStyleConfig(bin: ColorScaleBin): LegendTextStyle {
+        const state = this.getBinState(bin)
+        const styleConfig = this.legendStyleConfig?.text
+        const defaultStyle = styleConfig?.default
+        const currentStyle = styleConfig?.[state]
+        return { color: GRAPHER_DARK_TEXT, ...defaultStyle, ...currentStyle }
+    }
+
     private getMarkerStyleConfig(bin: ColorScaleBin): LegendMarkerStyle {
         const state = this.getBinState(bin)
         const styleConfig = this.legendStyleConfig?.marker
@@ -173,13 +183,16 @@ export class VerticalColorLegend extends React.Component<{
         return (
             <g id={makeIdForHumanConsumption("labels")}>
                 {series.map((series) => {
+                    const style = this.getTextStyleConfig(series.bin)
+
                     const textX = this.legendX + rectSize + rectPadding
                     const textY = this.legendY + series.yOffset
 
                     return (
                         <React.Fragment key={series.textWrap.text}>
-                            {/* TODO: apply text legend style */}
-                            {series.textWrap.renderSVG(textX, textY)}
+                            {series.textWrap.renderSVG(textX, textY, {
+                                textProps: { fill: style.color, ...style },
+                            })}
                         </React.Fragment>
                     )
                 })}
@@ -208,9 +221,7 @@ export class VerticalColorLegend extends React.Component<{
                             y={renderedTextPosition[1] - rectSize}
                             width={rectSize}
                             height={rectSize}
-                            fill={style.fill}
-                            stroke={style.stroke}
-                            strokeWidth={style.strokeWidth}
+                            style={style}
                         />
                     )
                 })}

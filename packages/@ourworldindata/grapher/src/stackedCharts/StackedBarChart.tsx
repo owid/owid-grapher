@@ -94,12 +94,12 @@ export class StackedBarChart
 
     legendStyleConfig: LegendStyleConfig = {
         marker: {
-            default: { opacity: 1 }, // TODO: BAR_OPACITY.DEFAULT
+            default: { opacity: BAR_OPACITY.DEFAULT },
             hovered: { opacity: BAR_OPACITY.FOCUS },
             muted: { opacity: BAR_OPACITY.MUTE },
             focused: { opacity: BAR_OPACITY.FOCUS },
         },
-        text: { muted: { opacity: 0.7 } },
+        text: { muted: { opacity: BAR_OPACITY.MUTE } },
     }
 
     @computed get chartState(): StackedBarChartState {
@@ -231,25 +231,26 @@ export class StackedBarChart
     }
 
     @computed get activeColors(): string[] {
-        const { hoveredSeriesNames } = this
-        const activeKeys =
-            hoveredSeriesNames.length > 0 ? hoveredSeriesNames : []
+        const { hoveredSeriesNames = [], hoverColor } = this
 
-        if (!activeKeys.length)
-            // No hover means they're all active by default
-            return _.uniq(this.stackedSeries.map((g) => g.color))
-
-        return _.uniq(
-            this.stackedSeries
-                .filter((g) => activeKeys.indexOf(g.seriesName) !== -1)
-                .map((g) => g.color)
+        const hoveredColors = this.stackedSeries
+            .filter((g) => hoveredSeriesNames.indexOf(g.seriesName) !== -1)
+            .map((g) => g.color)
+        const activeColors = _.uniq(
+            excludeUndefined([...hoveredColors, hoverColor])
         )
+
+        return activeColors
     }
 
     getLegendBinState(bin: ColorScaleBin): LegendInteractionState {
         const isActive = this.activeColors?.includes(bin.color)
+
+        if (this.activeColors.length === 0)
+            return LegendInteractionState.Default
+
         return isActive
-            ? LegendInteractionState.Focused
+            ? LegendInteractionState.Hovered
             : LegendInteractionState.Muted
     }
 
