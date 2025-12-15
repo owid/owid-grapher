@@ -154,14 +154,23 @@ function createCodeDiffView(
         ""
     )
 
+    // Truncate large diffs to avoid bloating HTML file
+    const MAX_DIFF_LINES = 500
+    const diffLines = unifiedDiff.split("\n")
+    const isTruncated = diffLines.length > MAX_DIFF_LINES
+    const truncatedDiff = isTruncated
+        ? diffLines.slice(0, MAX_DIFF_LINES).join("\n") +
+          `\n\n... (diff truncated: showing ${MAX_DIFF_LINES} of ${diffLines.length} lines)`
+        : unifiedDiff
+
     // Escape the diff for embedding in HTML (escape backticks and backslashes for template literal)
-    const escapedDiff = unifiedDiff
+    const escapedDiff = truncatedDiff
         .replace(/\\/g, "\\\\")
         .replace(/`/g, "\\`")
         .replace(/\$/g, "\\$")
 
     return `<div class="tab-pane" data-pane="code-diff">
-        <div class="code-diff-container" data-diff="${escapedDiff.replace(/"/g, "&quot;")}"></div>
+        <div class="code-diff-container" data-diff="${escapedDiff.replace(/"/g, "&quot;")}" data-truncated="${isTruncated}"></div>
     </div>`
 }
 
@@ -533,6 +542,15 @@ function createHtml(content: string) {
                     // Only render once per section
                     if (diffContainer && !renderedDiffs.has(diffId)) {
                         const diffString = diffContainer.dataset.diff;
+                        const isTruncated = diffContainer.dataset.truncated === 'true';
+
+                        // Add truncation warning if needed
+                        if (isTruncated) {
+                            const warning = document.createElement('div');
+                            warning.style.cssText = 'background: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 12px; margin-bottom: 12px; border-radius: 6px; text-align: center; font-size: 0.9rem;';
+                            warning.innerHTML = '<strong>Note:</strong> This diff is very large and has been truncated';
+                            diffContainer.parentElement.insertBefore(warning, diffContainer);
+                        }
 
                         // Create Diff2Html UI instance
                         const diff2htmlUi = new Diff2HtmlUI(diffContainer, diffString, {
