@@ -600,39 +600,37 @@ export const getIdealGridParams = ({
 }
 
 export const findClosestTimeIndex = (
-    times: Time[],
+    timesAsc: Time[],
     targetTime: Time,
     tolerance?: number // When not specified, the tolerance is infinite
 ): Time | undefined => {
-    // try to find an exact match first
-    const exactMatchIndex = times.indexOf(targetTime)
-    if (exactMatchIndex !== -1) return exactMatchIndex
+    const closestIndex = R.sortedIndex(timesAsc, targetTime)
+
+    // This value is >= targetTime, or undefined in case there is no such value in the arr
+    const higherOrEqualVal = timesAsc.at(closestIndex)
+    if (higherOrEqualVal === targetTime) return closestIndex
 
     // if tolerance is set to 0, and no exact match was found, return undefined
     if (tolerance === 0) return undefined
 
-    let closest: Time | undefined
-    let closestIndex: number | undefined
-    for (let index = 0; index < times.length; index++) {
-        const time = times[index]
-        const currentTimeDist = Math.abs(time - targetTime)
-        if (currentTimeDist === 0) return index // Found the winner, stop searching.
-        if (tolerance !== undefined && currentTimeDist > tolerance) continue
+    // This value is < targetTime, or undefined in case there is no such value in the arr
+    const lowerVal = timesAsc[closestIndex - 1] as Time | undefined
+    const lowerDiff = lowerVal !== undefined ? targetTime - lowerVal : Infinity
+    const higherDiff =
+        higherOrEqualVal !== undefined
+            ? higherOrEqualVal - targetTime
+            : Infinity
 
-        const closestTimeDist =
-            closest !== undefined ? Math.abs(closest - targetTime) : Infinity
+    if (lowerDiff === Infinity && higherDiff === Infinity) return undefined
 
-        if (
-            closest === undefined ||
-            closestTimeDist > currentTimeDist ||
-            // Prefer later times, e.g. if targetTime is 2010, prefer 2011 to 2009
-            (closestTimeDist === currentTimeDist && time > closest)
-        ) {
-            closest = time
-            closestIndex = index
-        }
+    // Prefer later times, e.g. if targetTime is 2010, prefer 2011 to 2009
+    if (higherDiff <= lowerDiff) {
+        if (tolerance !== undefined && higherDiff > tolerance) return undefined
+        return closestIndex
+    } else {
+        if (tolerance !== undefined && lowerDiff > tolerance) return undefined
+        return closestIndex - 1
     }
-    return closestIndex
 }
 
 export const isNegativeInfinity = (
@@ -644,14 +642,14 @@ export const isPositiveInfinity = (
 ): timeBound is TimeBoundValue => timeBound === TimeBoundValue.positiveInfinity
 
 export const findClosestTime = (
-    times: Time[],
+    timesAsc: Time[],
     targetTime: Time,
     tolerance?: number
 ): Time | undefined => {
-    if (isNegativeInfinity(targetTime)) return _.min(times)
-    if (isPositiveInfinity(targetTime)) return _.max(times)
-    const index = findClosestTimeIndex(times, targetTime, tolerance)
-    return index !== undefined ? times[index] : undefined
+    if (isNegativeInfinity(targetTime)) return timesAsc.at(0)
+    if (isPositiveInfinity(targetTime)) return timesAsc.at(-1)
+    const index = findClosestTimeIndex(timesAsc, targetTime, tolerance)
+    return index !== undefined ? timesAsc[index] : undefined
 }
 
 // _.mapValues() equivalent for ES6 Maps
@@ -675,9 +673,9 @@ const valuesAtTimes = (
     targetTimes: Time[],
     tolerance = 0
 ): { time: number | undefined; value: string | number | undefined }[] => {
-    const times = Array.from(valueByTime.keys())
+    const timesAsc = sortNumeric(Array.from(valueByTime.keys()))
     return targetTimes.map((targetTime) => {
-        const time = findClosestTime(times, targetTime, tolerance)
+        const time = findClosestTime(timesAsc, targetTime, tolerance)
         const value = time === undefined ? undefined : valueByTime.get(time)
         return {
             time,
