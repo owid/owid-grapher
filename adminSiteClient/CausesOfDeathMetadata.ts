@@ -119,7 +119,7 @@ export class CausesOfDeathMetadata {
 
     variablesForAgeGroup(ageGroupName: string): VariableMetadata[] {
         return this.dimensions.variables.filter((variable) =>
-            variable.ageGroups.some(
+            variable.ageGroup.some(
                 (ageGroupId) =>
                     this.ageGroupById.get(ageGroupId)?.name === ageGroupName
             )

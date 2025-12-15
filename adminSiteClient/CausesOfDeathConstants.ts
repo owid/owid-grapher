@@ -14,7 +14,7 @@ export type EntityMetadata = BasicEntry
 export type VariableMetadata = BasicEntry & {
     description: string
     category: NumericId
-    ageGroups: NumericId[]
+    ageGroup: NumericId[]
 }
 export type AgeGroupMetadata = BasicEntry
 
