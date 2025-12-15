@@ -117,17 +117,18 @@ export class CausesOfDeathMetadata {
         return this._categoryNameByVariableName
     }
 
-    categoriesForAgeGroup(ageGroupName: string): CategoryMetadata[] {
-        const variablesForAgeGroup = this.dimensions.variables.filter(
-            (variable) =>
-                variable.ageGroups.some(
-                    (ageGroupId) =>
-                        this.ageGroupById.get(ageGroupId)?.name === ageGroupName
-                )
+    variablesForAgeGroup(ageGroupName: string): VariableMetadata[] {
+        return this.dimensions.variables.filter((variable) =>
+            variable.ageGroups.some(
+                (ageGroupId) =>
+                    this.ageGroupById.get(ageGroupId)?.name === ageGroupName
+            )
         )
+    }
 
+    categoriesForAgeGroup(ageGroupName: string): CategoryMetadata[] {
         const categoryIds = R.unique(
-            variablesForAgeGroup.map((v) => v.category)
+            this.variablesForAgeGroup(ageGroupName).map((v) => v.category)
         )
 
         return categoryIds

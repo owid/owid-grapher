@@ -39,6 +39,12 @@ export function CausesOfDeathChart(): React.ReactElement {
     const metadata = metadataResponse.data
     const entityData = entityDataResponse.data
 
+    const validVariablesForAgeGroup = useMemo(() => {
+        return new Set(
+            metadata?.variablesForAgeGroup(ageGroup).map((v) => v.name) ?? []
+        )
+    }, [metadata, ageGroup])
+
     const activeAgeGroup = ageGroup
     const activeSex = sex
     const activeYear = year ?? metadata?.availableYears.at(-1)
@@ -46,9 +52,11 @@ export function CausesOfDeathChart(): React.ReactElement {
         () =>
             entityData?.filter(
                 (row) =>
-                    row.ageGroup === activeAgeGroup && row.sex === activeSex
+                    row.ageGroup === activeAgeGroup &&
+                    row.sex === activeSex &&
+                    validVariablesForAgeGroup.has(row.variable)
             ),
-        [entityData, activeAgeGroup, activeSex]
+        [entityData, activeAgeGroup, activeSex, validVariablesForAgeGroup]
     )
     const activeEntityName = activeData?.at(0)?.entityName
 
