@@ -10,17 +10,20 @@ export class ColorScheme implements ColorSchemeInterface {
     colorSets: Color[][]
     singleColorScale: boolean
     isDistinct: boolean
+    colorMap?: Record<string, Color>
 
     constructor(
         name: string,
         colorSets: Color[][],
         singleColorScale?: boolean,
-        isDistinct?: boolean
+        isDistinct?: boolean,
+        colorMap?: Record<string, Color>
     ) {
         this.name = name
         this.colorSets = []
         this.singleColorScale = !!singleColorScale
         this.isDistinct = !!isDistinct
+        this.colorMap = colorMap
         colorSets.forEach((set) => (this.colorSets[set.length] = set))
     }
 
