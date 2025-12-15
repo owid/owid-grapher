@@ -602,8 +602,15 @@ export const getIdealGridParams = ({
 export const findClosestTimeIndex = (
     times: Time[],
     targetTime: Time,
-    tolerance?: number
+    tolerance?: number // When not specified, the tolerance is infinite
 ): Time | undefined => {
+    // try to find an exact match first
+    const exactMatchIndex = times.indexOf(targetTime)
+    if (exactMatchIndex !== -1) return exactMatchIndex
+
+    // if tolerance is set to 0, and no exact match was found, return undefined
+    if (tolerance === 0) return undefined
+
     let closest: Time | undefined
     let closestIndex: number | undefined
     for (let index = 0; index < times.length; index++) {
