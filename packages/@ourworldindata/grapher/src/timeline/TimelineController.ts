@@ -71,13 +71,22 @@ export class TimelineController {
         return this.calculateProgress(this.endTime)
     }
 
+    // Finds the index of `time` in the `timesAsc` array.
+    // Assumes the input time to be present in the array, and will throw otherwise.
+    private findIndexOfTime(time: number): number {
+        const index = R.sortedIndex(this.timesAsc, time)
+        if (this.timesAsc[index] === time) return index
+        else throw new Error(`Time ${time} not found in available times`)
+    }
+
     getNextTime(time: number): number {
-        // Todo: speed up?
-        return this.timesAsc[this.timesAsc.indexOf(time) + 1] ?? this.maxTime
+        const index = this.findIndexOfTime(time)
+        return this.timesAsc[index + 1] ?? this.maxTime
     }
 
     getPrevTime(time: number): number {
-        return this.timesAsc[this.timesAsc.indexOf(time) - 1] ?? this.minTime
+        const index = this.findIndexOfTime(time)
+        return this.timesAsc[index - 1] ?? this.minTime
     }
 
     // By default, play means extend the endTime to the right. Toggle this to play one time unit at a time.
@@ -159,7 +168,7 @@ export class TimelineController {
 
     // Jump forward by ~10% of available times
     private getLargeStepForward(currentTime: number, fraction = 0.1): number {
-        const currentIndex = this.timesAsc.indexOf(currentTime)
+        const currentIndex = this.findIndexOfTime(currentTime)
         if (currentIndex === -1) return this.maxTime
 
         const stepSize = Math.max(
@@ -177,7 +186,7 @@ export class TimelineController {
 
     // Jump backward by ~10% of available times
     private getLargeStepBackward(currentTime: number, fraction = 0.1): number {
-        const currentIndex = this.timesAsc.indexOf(currentTime)
+        const currentIndex = this.findIndexOfTime(currentTime)
         if (currentIndex === -1) return this.minTime
 
         const stepSize = Math.max(
