@@ -241,12 +241,12 @@ export class StackedAreaChart
                 categoricalLegendData,
                 legendStyleConfig: {
                     marker: {
-                        default: { opacity: 1 }, // TODO: AREA_OPACITY.DEFAULT
+                        default: { opacity: AREA_OPACITY.DEFAULT },
                         hovered: { opacity: AREA_OPACITY.FOCUS },
                         muted: { opacity: AREA_OPACITY.MUTE },
                         focused: { opacity: AREA_OPACITY.FOCUS },
                     },
-                    text: { muted: { opacity: 0.7 } },
+                    text: { muted: { opacity: AREA_OPACITY.MUTE } },
                 },
             }
         }
