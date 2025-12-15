@@ -219,13 +219,13 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const matchingIndices = new Set<number>()
         this.availableEntityNames.forEach((entityName) => {
             const indices = entityNameToIndices.get(entityName) || []
-            const allTimesAsc = sortNumeric(
-                indices.map((index) => timeValues[index] as number)
-            )
+            const allTimesAsc = indices
+                .map((index) => ({ time: timeValues[index] as number, index }))
+                .sort((a, b) => a.time - b.time)
 
             targetTimes.forEach((targetTime) => {
                 const index = findClosestTimeIndex(
-                    allTimesAsc,
+                    allTimesAsc.map((t) => t.time),
                     targetTime,
                     tolerance
                 )
