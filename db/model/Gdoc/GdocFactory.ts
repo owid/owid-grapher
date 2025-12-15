@@ -439,6 +439,12 @@ export async function loadGdocFromGdocBase(
     if (contentSource === GdocsContentSource.Gdocs) {
         // TODO: if we get here via fromJSON then we have already done this - optimize that?
         await gdoc.fetchAndEnrichGdoc(acceptSuggestions)
+        const updatedType = _.get(gdoc, "content.type") as unknown
+        if (!checkIsOwidGdocType(updatedType)) {
+            throw new Error(
+                `Fetched Google Doc with id "${gdoc.id}" has invalid type "${updatedType}"`
+            )
+        }
     }
 
     if (shouldLoadState) {
