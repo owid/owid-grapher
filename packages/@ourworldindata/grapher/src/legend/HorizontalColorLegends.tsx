@@ -553,12 +553,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                                     fill={fill}
                                     stroke={style.stroke}
                                     strokeWidth={style.strokeWidth}
-                                    // TODO: simplify
-                                    opacity={
-                                        style.opacity && style.opacity < 1
-                                            ? style.opacity
-                                            : undefined
-                                    }
+                                    opacity={style.opacity}
                                     isOpenLeft={
                                         bin instanceof NumericBin
                                             ? bin.props.isOpenLeft
@@ -595,7 +590,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                                 // do with some rough positioning.
                                 dy={dyFromAlign(VerticalAlign.bottom)}
                                 fontSize={label.fontSize}
-                                fill={style.color}
+                                style={{ fill: style.color, ...style }}
                             >
                                 {label.text}
                             </text>
@@ -795,7 +790,12 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
         const styleConfig = this.legendStyleConfig?.marker
         const defaultStyle = styleConfig?.default
         const currentStyle = styleConfig?.[state]
-        return { fill: bin.color, ...defaultStyle, ...currentStyle }
+        return {
+            fill: bin.color,
+            strokeWidth: 0.4,
+            ...defaultStyle,
+            ...currentStyle,
+        }
     }
 
     renderLabels(): React.ReactElement {
@@ -817,14 +817,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                             dy={dyFromAlign(VerticalAlign.middle)}
                             fontSize={mark.label.fontSize}
                             fontWeight={style.fontWeight}
-                            // TODO: simplify
-                            opacity={
-                                style.opacity && style.opacity < 1
-                                    ? style.opacity
-                                    : undefined
-                            }
-                            // TODO: apply color
-                            // fill={style.color ?? DEFAULT_TEXT_COLOR}
+                            style={{ fill: style.color, ...style }}
                         >
                             {mark.label.text}
                         </text>
@@ -842,7 +835,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                 {marks.map((mark, index) => {
                     const style = this.getMarkerStyleConfig(mark.bin)
 
-                    const color = mark.bin.patternRef
+                    const fill = mark.bin.patternRef
                         ? `url(#${mark.bin.patternRef})`
                         : style.fill
 
@@ -854,15 +847,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                             y={this.categoryLegendY + mark.y}
                             width={mark.rectSize}
                             height={mark.rectSize}
-                            fill={color}
-                            stroke={style.stroke}
-                            strokeWidth={style.strokeWidth ?? 0.4}
-                            // TODO: simplify
-                            opacity={
-                                style.opacity && style.opacity < 1
-                                    ? style.opacity
-                                    : undefined
-                            }
+                            style={{ ...style, fill }}
                         />
                     )
                 })}

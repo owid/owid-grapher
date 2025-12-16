@@ -6,9 +6,9 @@ import { Color } from "@ourworldindata/types"
 export enum LegendInteractionState {
     /** No interaction, default state */
     Default = "default",
-    /** Item is de-emphasized (e.g., when another item is hovered) */
+    /** Bin is de-emphasized (e.g. when another bin is hovered) */
     Muted = "muted",
-    /** Item is highlighted */
+    /** Bin is highlighted (e.g. when hovered) */
     Focused = "focused",
 }
 
