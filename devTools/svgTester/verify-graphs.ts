@@ -29,8 +29,8 @@ async function main(args: ReturnType<typeof parseArguments>) {
             "differences"
         )
 
-        // Charts to process
-        const targetGrapherIds = args.ids
+        // charts to process
+        const targetViewIds = args.viewIds
         const targetChartTypes = args.chartTypes
         const randomCount = args.random
 
@@ -51,7 +51,7 @@ async function main(args: ReturnType<typeof parseArguments>) {
         if (!fs.existsSync(differencesDir)) fs.mkdirSync(differencesDir)
 
         const chartIdsToProcess = await utils.selectChartIdsToProcess(dataDir, {
-            grapherIds: targetGrapherIds,
+            viewIds: targetViewIds,
             chartTypes: targetChartTypes,
             randomCount,
         })
@@ -68,19 +68,19 @@ async function main(args: ReturnType<typeof parseArguments>) {
         const referenceData = await utils.parseReferenceCsv(referencesDir)
         const referenceDataByChartKey = new Map(
             referenceData.map((record) => [
-                grapherSlugToExportFileKey(record.slug, record.queryStr),
+                grapherSlugToExportFileKey(record.viewId, record.queryStr),
                 record,
             ])
         )
 
         const verifyJobs: utils.RenderJobDescription[] =
             chartViewsToGenerate.map((chart) => {
-                const { id, slug, queryStr } = chart
-                const key = grapherSlugToExportFileKey(slug, queryStr)
+                const { viewId, queryStr } = chart
+                const key = grapherSlugToExportFileKey(viewId, queryStr)
                 const referenceEntry = referenceDataByChartKey.get(key)!
-                const pathToProcess = path.join(dataDir, id.toString())
+                const pathToProcess = path.join(dataDir, viewId)
                 return {
-                    dir: { chartId: chart.id, pathToProcess },
+                    dir: { viewId: chart.viewId, pathToProcess },
                     referenceEntry,
                     referenceDir: referencesDir,
                     outDir: differencesDir,
@@ -156,12 +156,12 @@ function parseArguments() {
         })
         .parserConfiguration({ "camel-case-expansion": true })
         .options({
-            ids: {
+            "view-ids": {
                 alias: "c",
-                type: "number",
+                type: "string",
                 array: true,
                 description:
-                    "A space-separated list of config IDs, e.g. '2 4 8 10'",
+                    "A space-separated list of grapher IDs or mdim view ids, e.g. '2 4 8 10'",
             },
             chartTypes: {
                 alias: "t",

@@ -40,14 +40,15 @@ async function getMostViewedGraphers(
     const allGraphers = await getPublishedGraphersBySlug(trx)
 
     const relevantGraphers = chartIds
-        .map((chartId) => ({
-            id: chartId.toString(),
-            config: allGraphers.graphersById.get(chartId),
-        }))
-        .filter(
-            (chart): chart is { id: string; config: GrapherInterface } =>
-                chart.config !== undefined
-        )
+        .map((chartId) => {
+            const config = allGraphers.graphersById.get(chartId)
+            if (!config) return undefined
+            return {
+                id: config.slug!, // All published graphers have slugs
+                config,
+            }
+        })
+        .filter((chart) => chart !== undefined)
 
     return relevantGraphers
 }
@@ -57,7 +58,7 @@ async function getAllPublishedGraphers(
 ): Promise<{ id: string; config: GrapherInterface }[]> {
     const allGraphers = await getPublishedGraphersBySlug(trx)
     return [...allGraphers.graphersBySlug.values()].map((config) => ({
-        id: config.id!.toString(),
+        id: config.slug!, // All published graphers have slugs
         config,
     }))
 }
