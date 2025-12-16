@@ -37,7 +37,7 @@ import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import {
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
-} from "../horizontalColorLegend/HorizontalColorLegends"
+} from "../legend/HorizontalColorLegends"
 import { DiscreteBarChartState } from "./DiscreteBarChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import {

@@ -38,7 +38,7 @@ import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
-} from "../horizontalColorLegend/HorizontalColorLegends"
+} from "../legend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { GRAPHER_DARK_TEXT, GRAY_30 } from "../color/ColorConstants"
 import {

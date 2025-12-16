@@ -57,7 +57,7 @@ import {
     HorizontalColorLegend,
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
-} from "../horizontalColorLegend/HorizontalColorLegends"
+} from "../legend/HorizontalColorLegends"
 import {
     CategoricalBin,
     ColorScaleBin,

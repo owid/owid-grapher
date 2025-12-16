@@ -8,7 +8,7 @@ import {
 } from "@ourworldindata/types"
 import { ColorScale } from "../color/ColorScale"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
-import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
+import { HorizontalColorLegendManager } from "../legend/HorizontalColorLegends"
 import { SelectionArray } from "../selection/SelectionArray"
 import { FocusArray } from "../focus/FocusArray"
 

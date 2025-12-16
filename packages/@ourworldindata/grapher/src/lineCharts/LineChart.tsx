@@ -70,7 +70,7 @@ import { darkenColorForLine } from "../color/ColorUtils"
 import {
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
-} from "../horizontalColorLegend/HorizontalColorLegends"
+} from "../legend/HorizontalColorLegends"
 import {
     AnnotationsMap,
     getAnnotationsForSeries,

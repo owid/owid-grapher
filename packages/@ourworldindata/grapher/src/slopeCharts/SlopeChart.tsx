@@ -60,7 +60,7 @@ import {
 import { TooltipFooterIcon } from "../tooltip/TooltipProps"
 
 import { Halo } from "@ourworldindata/components"
-import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
+import { HorizontalColorLegendManager } from "../legend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import {
     GRAPHER_BACKGROUND_DEFAULT,

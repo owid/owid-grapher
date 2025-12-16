@@ -16,7 +16,7 @@ import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
     VerticalColorLegend,
     VerticalColorLegendManager,
-} from "../verticalColorLegend/VerticalColorLegend"
+} from "../legend/VerticalColorLegend"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import {
     Tooltip,
@@ -43,7 +43,7 @@ import { makeClipPath } from "../chart/ChartUtils"
 import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
-} from "../horizontalColorLegend/HorizontalColorLegends"
+} from "../legend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig.js"
 import { easeLinear } from "d3-ease"

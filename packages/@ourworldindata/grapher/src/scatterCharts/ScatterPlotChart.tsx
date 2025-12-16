@@ -34,7 +34,7 @@ import {
 import {
     VerticalColorLegend,
     VerticalColorLegendManager,
-} from "../verticalColorLegend/VerticalColorLegend"
+} from "../legend/VerticalColorLegend"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 

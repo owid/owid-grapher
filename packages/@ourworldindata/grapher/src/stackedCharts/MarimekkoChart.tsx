@@ -47,7 +47,7 @@ import {
 import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
-} from "../horizontalColorLegend/HorizontalColorLegends"
+} from "../legend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import {
     LegendInteractionState,
