@@ -12,6 +12,7 @@ import {
     NarrativeChartInfo,
     MinimalTag,
     LinkedStaticViz,
+    LinkedCallouts,
 } from "@ourworldindata/types"
 
 export type Attachments = {
@@ -27,6 +28,7 @@ export type Attachments = {
     latestWorkLinks?: DbEnrichedLatestWork[]
     linkedNarrativeCharts?: Record<string, NarrativeChartInfo>
     linkedStaticViz?: Record<string, LinkedStaticViz>
+    linkedCallouts?: LinkedCallouts
     tags: MinimalTag[]
 }
 
@@ -42,5 +44,6 @@ export const AttachmentsContext = createContext<Attachments>({
     latestWorkLinks: [],
     linkedNarrativeCharts: {},
     linkedStaticViz: {},
+    linkedCallouts: {},
     tags: [],
 })

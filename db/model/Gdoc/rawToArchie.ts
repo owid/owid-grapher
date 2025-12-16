@@ -60,6 +60,7 @@ import {
     RawBlockScript,
     RawBlockStaticViz,
     RawBlockConditionalSection,
+    RawBlockDataCallout,
 } from "@ourworldindata/types"
 import { match } from "ts-pattern"
 
@@ -999,6 +1000,23 @@ function* rawBlockSocialsToArchieMLString(
     yield "[]"
 }
 
+function* rawBlockDataCalloutToArchieMLString(
+    block: RawBlockDataCallout
+): Generator<string, void, undefined> {
+    yield "{.data-callout}"
+    if (typeof block.value !== "string") {
+        yield* propertyToArchieMLString("url", block.value)
+        if (block.value.content) {
+            yield "[.+content]"
+            for (const textBlock of block.value.content) {
+                yield* OwidRawGdocBlockToArchieMLStringGenerator(textBlock)
+            }
+            yield "[]"
+        }
+    }
+    yield "{}"
+}
+
 export function* OwidRawGdocBlockToArchieMLStringGenerator(
     block: OwidRawGdocBlock | RawBlockTableRow
 ): Generator<string, void, undefined> {
@@ -1115,6 +1133,7 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
             rawBlockFeaturedDataInsightsToArchieMLString
         )
         .with({ type: "socials" }, rawBlockSocialsToArchieMLString)
+        .with({ type: "data-callout" }, rawBlockDataCalloutToArchieMLString)
         .exhaustive()
     yield* content
 }

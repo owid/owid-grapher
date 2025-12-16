@@ -1,21 +1,19 @@
-import * as _ from "lodash-es"
 import {
     EntityName,
     GRAPHER_MAP_TYPE,
     GrapherValuesJson,
     GrapherValuesJsonDataPoints,
     GrapherValuesJsonDataPoint,
+    GrapherValuesJsonDimension,
     OwidVariableRow,
     PrimitiveType,
     Time,
 } from "@ourworldindata/types"
 import { excludeUndefined, omitUndefinedValues } from "@ourworldindata/utils"
 import { CoreColumn } from "@ourworldindata/core-table"
-import {
-    GrapherState,
-    makeChartState,
-    MapChartState,
-} from "@ourworldindata/grapher"
+import { GrapherState } from "./GrapherState"
+import { makeChartState } from "../chart/ChartTypeMap"
+import { MapChartState } from "../mapCharts/MapChartState"
 
 export function constructGrapherValuesJson(
     grapherState: GrapherState,
@@ -97,7 +95,9 @@ const makeColumnInfoForRelevantSlugs = (
     return dimInfo
 }
 
-const makeColumnInfo = (column: CoreColumn) => {
+const makeColumnInfo = (
+    column: CoreColumn
+): GrapherValuesJsonDimension | undefined => {
     if (column.isMissing) return undefined
 
     return omitUndefinedValues({
@@ -178,5 +178,7 @@ const makeDimensionValueForColumnAndTime = (
  * applied to grapherState.transformedTable (e.g. relative mode in
  * line charts).
  */
-const getTransformedColumn = (grapherState: GrapherState, slug?: string) =>
-    grapherState.chartState.transformedTable.get(slug)
+const getTransformedColumn = (
+    grapherState: GrapherState,
+    slug?: string
+): CoreColumn => grapherState.chartState.transformedTable.get(slug)

@@ -12,9 +12,16 @@ import {
     instantiateProfile,
     ProfileEntity,
     slugify,
+    filterIncompleteDataCallouts,
 } from "@ourworldindata/utils"
 import * as db from "../../db.js"
 import { GdocBase } from "./GdocBase.js"
+import {
+    CalloutGrapherState,
+    extractDataCalloutUrls,
+    generateLinkedCalloutsFromPreparedCharts,
+    loadLinkedCalloutsForBlocks,
+} from "./dataCallouts.js"
 
 const GENERIC_PROFILE_SCOPES = new Set(["countries", "continents", "all"])
 
@@ -91,21 +98,61 @@ export class GdocProfile extends GdocBase implements OwidGdocProfileInterface {
 /**
  * Renders a profile template for a specific entity by replacing template tokens
  * with entity-specific values.
+ *
+ * For bulk baking (SiteBaker), pass prefetchedCalloutGrapherStates to avoid
+ * redundant data fetching. For one-off rendering (admin preview, dev server),
+ * pass knex and the function will load callout values itself.
+ *
+ * @param profileTemplate - The profile template to instantiate
+ * @param entity - The entity to instantiate the profile for
+ * @param options - Either prefetched callout states (for bulk baking) or knex transaction (for one-off rendering)
  */
-
-export function instantiateProfileForEntity(
+export async function instantiateProfileForEntity(
     profileTemplate: GdocProfile,
-    entity: ProfileEntity
-): OwidGdocProfileInterface {
+    entity: ProfileEntity,
+    options?:
+        | {
+              prefetchedCalloutGrapherStates: Record<
+                  string,
+                  CalloutGrapherState
+              >
+          }
+        | { knex: db.KnexReadonlyTransaction }
+): Promise<OwidGdocProfileInterface> {
     // Instantiate the content with entity-specific values
     const instantiatedContent = instantiateProfile(
         profileTemplate.content,
         entity
     )
 
+    const calloutUrls = extractDataCalloutUrls(instantiatedContent.body)
+
+    // Generate linkedCallouts based on what was provided
+    let linkedCallouts
+    if (options && "prefetchedCalloutGrapherStates" in options) {
+        // Bulk baking path: use prefetched data
+        linkedCallouts = generateLinkedCalloutsFromPreparedCharts(
+            calloutUrls,
+            options.prefetchedCalloutGrapherStates
+        )
+    } else if (options && "knex" in options) {
+        // One-off rendering path: fetch data on demand
+        linkedCallouts = await loadLinkedCalloutsForBlocks(
+            options.knex,
+            calloutUrls
+        )
+    } else {
+        // No callout data available
+        linkedCallouts = {}
+    }
+
+    // Filter out data-callout blocks that have incomplete data
+    filterIncompleteDataCallouts(instantiatedContent, linkedCallouts)
+
     return {
         ...profileTemplate,
         content: instantiatedContent,
+        linkedCallouts,
         slug: getSlugForProfileEntity(profileTemplate, entity),
     }
 }

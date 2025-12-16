@@ -3,6 +3,7 @@ import {
     BlockPositionChoice,
     EnrichedBlockAside,
     EnrichedBlockCallout,
+    EnrichedBlockDataCallout,
     EnrichedBlockChart,
     EnrichedBlockChartStory,
     EnrichedBlockDonorList,
@@ -46,6 +47,7 @@ import {
     RawBlockAdditionalCharts,
     RawBlockAside,
     RawBlockCallout,
+    RawBlockDataCallout,
     RawBlockChart,
     RawBlockChartStory,
     RawBlockDonorList,
@@ -198,6 +200,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "aside" }, parseAside)
         .with({ type: "blockquote" }, parseBlockquote)
         .with({ type: "callout" }, parseCallout)
+        .with({ type: "data-callout" }, parseDataCallout)
         .with({ type: "chart" }, parseChart)
         .with({ type: "narrative-chart" }, parseNarrativeChart)
         .with({ type: "code" }, parseCode)
@@ -1826,6 +1829,76 @@ function parseCallout(raw: RawBlockCallout): EnrichedBlockCallout {
         parseErrors: [],
         text: excludeNullish(enrichedTextBlocks),
         title: raw.value.title,
+    }
+}
+
+function parseDataCallout(raw: RawBlockDataCallout): EnrichedBlockDataCallout {
+    const createError = (error: ParseError): EnrichedBlockDataCallout => ({
+        type: "data-callout",
+        parseErrors: [error],
+        url: "",
+        content: [],
+    })
+
+    if (!raw.value.url) {
+        return createError({
+            message: "Missing url for data-callout block",
+        })
+    }
+
+    // Validate that the URL is a grapher or explorer link
+    const url = Url.fromURL(raw.value.url)
+    const isGrapherUrl = url.pathname?.startsWith("/grapher/")
+    const isExplorerUrl = url.pathname?.startsWith("/explorers/")
+    if (!isGrapherUrl && !isExplorerUrl) {
+        return createError({
+            message:
+                "data-callout url must be a grapher or explorer link (e.g. https://ourworldindata.org/grapher/...)",
+        })
+    }
+    const countryQueryParams = url.queryParams["country"]
+    const country = countryQueryParams?.split("~")[0]
+    if (!country) {
+        return createError({
+            message:
+                "data-callout url must specify a country using the 'country' query parameter",
+        })
+    }
+
+    if (!raw.value.content) {
+        return createError({
+            message: "Missing content for data-callout block",
+        })
+    }
+
+    if (!_.isArray(raw.value.content)) {
+        return createError({
+            message:
+                "Content must be provided as an array e.g. inside a [.+content] block",
+        })
+    }
+
+    const parseErrors: ParseError[] = []
+    const enrichedContent = raw.value.content
+        .map(parseRawBlocksToEnrichedBlocks)
+        .filter((block): block is EnrichedBlockText => {
+            if (block === null) return false
+            if (block.type !== "text") {
+                parseErrors.push({
+                    message:
+                        "Data callout content can only contain text blocks",
+                    isWarning: true,
+                })
+                return false
+            }
+            return true
+        })
+
+    return {
+        type: "data-callout",
+        url: raw.value.url,
+        content: enrichedContent,
+        parseErrors,
     }
 }
 
