@@ -29,7 +29,7 @@ import {
     LegendStyleConfig,
     LegendTextStyle,
     LegendMarkerStyle,
-} from "../legend/LegendItemState"
+} from "../legend/LegendInteractionState"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 
 export interface PositionedBin {

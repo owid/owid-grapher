@@ -4,7 +4,7 @@ import { CoreValueType, EntityName, Time } from "@ourworldindata/types"
 import { ChartSeries } from "../chart/ChartInterface"
 import { Color } from "@ourworldindata/utils"
 import { InteractionState } from "../interaction/InteractionState"
-import { LegendStyleConfig } from "../legend/LegendItemState"
+import { LegendStyleConfig } from "../legend/LegendInteractionState"
 import { GRAPHER_OPACITY_MUTE } from "../core/GrapherConstants"
 
 export const LINE_CHART_CLASS_NAME = "LineChart"

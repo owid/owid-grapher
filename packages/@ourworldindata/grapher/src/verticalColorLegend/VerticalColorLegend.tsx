@@ -15,7 +15,7 @@ import {
     LegendStyleConfig,
     LegendMarkerStyle,
     LegendTextStyle,
-} from "../legend/LegendItemState"
+} from "../legend/LegendInteractionState"
 
 export interface VerticalColorLegendManager {
     maxLegendWidth?: number

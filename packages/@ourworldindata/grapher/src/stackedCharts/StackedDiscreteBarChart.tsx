@@ -29,7 +29,7 @@ import {
     HorizontalColorLegendManager,
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
-import { LegendInteractionState } from "../legend/LegendItemState"
+import { LegendInteractionState } from "../legend/LegendInteractionState"
 import { StackedDiscreteBarChartState } from "./StackedDiscreteBarChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { StackedDiscreteBars } from "./StackedDiscreteBars"

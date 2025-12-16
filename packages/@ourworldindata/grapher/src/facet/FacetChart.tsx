@@ -68,7 +68,7 @@ import { FocusArray } from "../focus/FocusArray"
 import {
     LegendInteractionState,
     LegendStyleConfig,
-} from "../legend/LegendItemState"
+} from "../legend/LegendInteractionState"
 
 const SHARED_X_AXIS_MIN_FACET_COUNT = 12
 

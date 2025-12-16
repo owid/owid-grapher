@@ -52,7 +52,7 @@ import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import {
     LegendInteractionState,
     LegendStyleConfig,
-} from "../legend/LegendItemState"
+} from "../legend/LegendInteractionState"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { ColorScale } from "../color/ColorScale"
 import { SelectionArray } from "../selection/SelectionArray"

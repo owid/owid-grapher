@@ -58,7 +58,7 @@ import { ColorScaleBin } from "../color/ColorScaleBin"
 import {
     LegendInteractionState,
     LegendStyleConfig,
-} from "../legend/LegendItemState"
+} from "../legend/LegendInteractionState"
 import {
     ScatterSizeLegend,
     ScatterSizeLegendManager,

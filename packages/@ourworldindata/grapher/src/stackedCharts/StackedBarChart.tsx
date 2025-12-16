@@ -36,7 +36,7 @@ import {
     StackedPoint,
     StackedSeries,
 } from "./StackedConstants"
-import { LegendInteractionState } from "../legend/LegendItemState"
+import { LegendInteractionState } from "../legend/LegendInteractionState"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { HorizontalAlign, SeriesName } from "@ourworldindata/types"
 import { makeClipPath } from "../chart/ChartUtils"

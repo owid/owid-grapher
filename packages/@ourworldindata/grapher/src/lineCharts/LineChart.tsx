@@ -85,7 +85,7 @@ import { LineChartState } from "./LineChartState.js"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { InteractionState } from "../interaction/InteractionState"
-import { LegendStyleConfig } from "../legend/LegendItemState"
+import { LegendStyleConfig } from "../legend/LegendInteractionState"
 
 export type LineChartProps = ChartComponentProps<LineChartState>
 

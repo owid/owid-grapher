@@ -12,7 +12,7 @@ import {
 } from "../core/GrapherConstants"
 import { TextWrap } from "@ourworldindata/components"
 import { InteractionState } from "../interaction/InteractionState.js"
-import { LegendStyleConfig } from "../legend/LegendItemState"
+import { LegendStyleConfig } from "../legend/LegendInteractionState"
 
 export const AREA_OPACITY = {
     DEFAULT: GRAPHER_AREA_OPACITY_DEFAULT,

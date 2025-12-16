@@ -53,7 +53,7 @@ import {
 import {
     LegendInteractionState,
     LegendStyleConfig,
-} from "../legend/LegendItemState"
+} from "../legend/LegendInteractionState"
 import {
     ColumnSlug,
     GrapherVariant,

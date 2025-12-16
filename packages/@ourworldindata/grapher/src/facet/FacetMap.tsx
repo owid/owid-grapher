@@ -44,7 +44,7 @@ import { GRAPHER_DARK_TEXT, GRAY_30 } from "../color/ColorConstants"
 import {
     LegendInteractionState,
     LegendStyleConfig,
-} from "../legend/LegendItemState"
+} from "../legend/LegendInteractionState"
 import {
     MAP_LEGEND_MAX_WIDTH_RATIO,
     MapChart,
