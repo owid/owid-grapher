@@ -35,7 +35,7 @@ import ReactDOMServer from "react-dom/server"
 
 export const SVG_REPO_PATH = "../owid-grapher-svgs"
 
-export const TEST_SUITES = ["graphers", "grapher-views"] as const
+export const TEST_SUITES = ["graphers", "grapher-views", "mdims"] as const
 export type TestSuite = (typeof TEST_SUITES)[number]
 
 const CONFIG_FILENAME = "config.json"
@@ -316,6 +316,7 @@ export async function writeToFile(data: unknown, filename: string) {
 
 export interface SaveGrapherSchemaAndDataJob {
     config: GrapherInterface
+    id: string
     outDir: string
 }
 export async function saveGrapherSchemaAndData(
@@ -323,7 +324,7 @@ export async function saveGrapherSchemaAndData(
 ): Promise<void> {
     const config = jobDescription.config
     const outDir = jobDescription.outDir
-    const dataDir = path.join(outDir, config.id?.toString() ?? "")
+    const dataDir = path.join(outDir, jobDescription.id ?? "")
     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir)
     const configPath = path.join(dataDir, CONFIG_FILENAME)
     const promise1 = writeToFile(config, configPath)
