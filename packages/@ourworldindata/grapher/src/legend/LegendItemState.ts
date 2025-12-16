@@ -6,8 +6,6 @@ import { Color } from "@ourworldindata/types"
 export enum LegendInteractionState {
     /** No interaction, default state */
     Default = "default",
-    /** Item is being hovered over */
-    Hovered = "hovered",
     /** Item is de-emphasized (e.g., when another item is hovered) */
     Muted = "muted",
     /** Item is highlighted */
@@ -37,16 +35,6 @@ export interface LegendMarkerStyle {
  * Complete style configuration for all possible legend item states.
  */
 export interface LegendStyleConfig {
-    text?: {
-        default?: LegendTextStyle
-        hovered?: LegendTextStyle
-        muted?: LegendTextStyle
-        focused?: LegendTextStyle
-    }
-    marker?: {
-        default?: LegendMarkerStyle
-        hovered?: LegendMarkerStyle
-        muted?: LegendMarkerStyle
-        focused?: LegendMarkerStyle
-    }
+    text?: Partial<Record<LegendInteractionState, LegendTextStyle>>
+    marker?: Partial<Record<LegendInteractionState, LegendMarkerStyle>>
 }

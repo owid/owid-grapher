@@ -335,12 +335,12 @@ export class MarimekkoChart
             return LegendInteractionState.Default
 
         const isHovered = this.hoverColors?.includes(bin.color)
-        if (isHovered) return LegendInteractionState.Hovered
+        if (isHovered) return LegendInteractionState.Focused
 
         // Check if this bin matches the focused color bin
         const isFocused = focusColorBin && bin.equals(focusColorBin)
         return isFocused
-            ? LegendInteractionState.Hovered
+            ? LegendInteractionState.Focused
             : LegendInteractionState.Muted
     }
 

@@ -242,9 +242,8 @@ export class StackedAreaChart
                 legendStyleConfig: {
                     marker: {
                         default: { opacity: AREA_OPACITY.DEFAULT },
-                        hovered: { opacity: AREA_OPACITY.FOCUS },
-                        muted: { opacity: AREA_OPACITY.MUTE },
                         focused: { opacity: AREA_OPACITY.FOCUS },
+                        muted: { opacity: AREA_OPACITY.MUTE },
                     },
                     text: { muted: { opacity: AREA_OPACITY.MUTE } },
                 },

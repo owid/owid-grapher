@@ -462,7 +462,7 @@ export class FacetMap
 
         // Check if this bin is being hovered
         if (this.legendHoverBin && bin.equals(this.legendHoverBin)) {
-            return LegendInteractionState.Hovered
+            return LegendInteractionState.Focused
         }
 
         // Check if a country is being hovered and matches this bin
@@ -473,7 +473,7 @@ export class FacetMap
                 )
             )
             if (series.some((s) => s?.color === bin.color))
-                return LegendInteractionState.Hovered
+                return LegendInteractionState.Focused
         }
 
         return LegendInteractionState.Muted

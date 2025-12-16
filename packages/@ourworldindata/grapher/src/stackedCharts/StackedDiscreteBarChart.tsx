@@ -150,7 +150,7 @@ export class StackedDiscreteBarChart
         // Check if this bin contains the focused series
         const isFocused = bin.contains(focusSeriesName)
         return isFocused
-            ? LegendInteractionState.Hovered
+            ? LegendInteractionState.Focused
             : LegendInteractionState.Muted
     }
 

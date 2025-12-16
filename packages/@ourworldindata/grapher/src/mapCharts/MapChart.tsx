@@ -492,10 +492,10 @@ export class MapChart
             this.categoricalHoverBracket &&
             bin.equals(this.categoricalHoverBracket)
         ) {
-            return LegendInteractionState.Hovered
+            return LegendInteractionState.Focused
         }
         if (this.numericHoverBracket && bin.equals(this.numericHoverBracket)) {
-            return LegendInteractionState.Hovered
+            return LegendInteractionState.Focused
         }
 
         return LegendInteractionState.Muted
@@ -504,7 +504,7 @@ export class MapChart
     legendStyleConfig: LegendStyleConfig = {
         marker: {
             default: { stroke: DEFAULT_STROKE_COLOR },
-            hovered: {
+            focused: {
                 stroke: HOVER_STROKE_COLOR,
                 strokeWidth: HOVER_STROKE_WIDTH,
             },

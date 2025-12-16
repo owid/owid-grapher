@@ -244,7 +244,7 @@ export class StackedBarChart
             return LegendInteractionState.Default
 
         return isActive
-            ? LegendInteractionState.Hovered
+            ? LegendInteractionState.Focused
             : LegendInteractionState.Muted
     }
 

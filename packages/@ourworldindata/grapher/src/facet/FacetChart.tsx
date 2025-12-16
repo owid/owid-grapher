@@ -825,7 +825,7 @@ export class FacetChart
             return LegendInteractionState.Default
 
         const isHovered = this.hoverColors?.includes(bin.color)
-        if (isHovered) return LegendInteractionState.Hovered
+        if (isHovered) return LegendInteractionState.Focused
 
         const isActive = this.activeColors?.includes(bin.color)
         return isActive

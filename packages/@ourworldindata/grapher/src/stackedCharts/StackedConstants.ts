@@ -36,9 +36,8 @@ export const BORDER_WIDTH = {
 export const LEGEND_STYLE_FOR_STACKED_CHARTS: LegendStyleConfig = {
     marker: {
         default: { opacity: AREA_OPACITY.DEFAULT },
-        hovered: { opacity: AREA_OPACITY.FOCUS },
-        muted: { opacity: AREA_OPACITY.MUTE },
         focused: { opacity: AREA_OPACITY.FOCUS },
+        muted: { opacity: AREA_OPACITY.MUTE },
     },
     text: {
         muted: { opacity: AREA_OPACITY.MUTE },
