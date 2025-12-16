@@ -161,6 +161,12 @@ export const AdminSidebar = (): React.ReactElement => (
                 </Link>
             </li>
             <li>
+                <Link to="/multi-dim-redirects">
+                    <FontAwesomeIcon icon={faArrowRight} fixedWidth />{" "}
+                    <span style={{ fontSize: 12 }}>Multi-dim redirects</span>
+                </Link>
+            </li>
+            <li>
                 <Link to="/site-redirects">
                     <FontAwesomeIcon icon={faArrowRight} fixedWidth /> Site
                     Redirects
