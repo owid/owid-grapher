@@ -911,7 +911,7 @@ export const enrichedBlockExamples: Record<
     },
     "data-callout": {
         type: "data-callout",
-        url: "https://ourworldindata.org/grapher/co2-emissions?country=~USA",
+        url: "https://ourworldindata.org/grapher/co2-emissions?country=USA",
         content: [enrichedBlockText],
         parseErrors: [],
     },

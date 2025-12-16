@@ -75,7 +75,7 @@ import {
 import {
     prepareCalloutChart,
     CalloutGrapherState,
-} from "../db/model/Gdoc/fetchCalloutValues.js"
+} from "../db/model/Gdoc/dataCallouts.js"
 import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 import {
     gdocFromJSON,

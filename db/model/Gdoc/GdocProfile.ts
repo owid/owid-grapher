@@ -21,7 +21,7 @@ import {
     extractDataCalloutUrls,
     generateLinkedCalloutsFromPreparedCharts,
     loadLinkedCalloutsForBlocks,
-} from "./fetchCalloutValues.js"
+} from "./dataCallouts.js"
 
 const GENERIC_PROFILE_SCOPES = new Set(["countries", "continents", "all"])
 
