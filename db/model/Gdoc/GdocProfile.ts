@@ -12,6 +12,7 @@ import {
     instantiateProfile,
     ProfileEntity,
     slugify,
+    filterIncompleteDataCallouts,
 } from "@ourworldindata/utils"
 import * as db from "../../db.js"
 import { GdocBase } from "./GdocBase.js"
@@ -144,6 +145,9 @@ export async function instantiateProfileForEntity(
         // No callout data available
         linkedCallouts = {}
     }
+
+    // Filter out data-callout blocks that have incomplete data
+    filterIncompleteDataCallouts(instantiatedContent, linkedCallouts)
 
     return {
         ...profileTemplate,

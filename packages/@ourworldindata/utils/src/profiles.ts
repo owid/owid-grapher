@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import { match } from "ts-pattern"
 import {
     articulateEntity,
     checkHasMembers,
@@ -10,13 +11,22 @@ import {
     type Region,
 } from "./regions.js"
 import {
+    CalloutFunction,
     EnrichedBlockConditionalSection,
+    EnrichedBlockDataCallout,
+    GrapherValuesJson,
+    LinkedCallouts,
     OwidGdocProfileInterface,
     ParseError,
+    SpanCallout,
     type OwidGdocProfileContent,
 } from "@ourworldindata/types"
 
-import { generateToc, traverseEnrichedBlock } from "./Util.js"
+import {
+    generateToc,
+    traverseEnrichedBlock,
+    traverseEnrichedSpan,
+} from "./Util.js"
 import { Url } from "./urls/Url.js"
 
 export type ProfileEntity = Pick<Region, "name" | "code">
@@ -424,4 +434,120 @@ export function makeLinkedCalloutKey(fullUrl: string): string {
     const url = Url.fromURL(fullUrl)
     const key = url.pathname + url.queryStr
     return key
+}
+
+/**
+ * Check if a data-callout block has all required values available.
+ * Returns true if all span-callout spans in the block have values in linkedCallouts.
+ */
+export function checkShouldDataCalloutRender(
+    block: EnrichedBlockDataCallout,
+    linkedCallouts: LinkedCallouts
+): boolean {
+    const key = makeLinkedCalloutKey(block.url)
+    const linkedCallout = linkedCallouts[key]
+
+    // If no callout data is available, we can't render
+    if (!linkedCallout?.values) return false
+
+    // Collect all span-callout spans from the content
+    const calloutSpans: SpanCallout[] = []
+    for (const textBlock of block.content) {
+        for (const span of textBlock.value) {
+            traverseEnrichedSpan(span, (s) => {
+                if (s.spanType === "span-callout") {
+                    calloutSpans.push(s as SpanCallout)
+                }
+            })
+        }
+    }
+
+    // If there are no callout spans, we still render the block
+    // (it might be a static block that just uses the URL for linking)
+    if (calloutSpans.length === 0) return true
+
+    // Check if all callout values are available
+    const values = linkedCallout.values
+    for (const calloutSpan of calloutSpans) {
+        const value = getCalloutValue(
+            values,
+            calloutSpan.functionName,
+            calloutSpan.parameters
+        )
+        if (value === undefined) {
+            return false
+        }
+    }
+
+    return true
+}
+
+/**
+ * Look up a value from GrapherValuesJson based on the callout function name.
+ * Returns the formatted value or undefined if not found.
+ */
+export function getCalloutValue(
+    values: GrapherValuesJson,
+    functionName: CalloutFunction,
+    parameters: string[]
+): string | undefined {
+    return match(functionName)
+        .with("latestValue", () => {
+            const columnName = parameters[0]
+            const columnSlug = values.columns
+                ? Object.entries(values.columns).find(
+                      ([_, col]) => col.name === columnName
+                  )?.[0]
+                : undefined
+            if (!columnSlug) return undefined
+
+            const dataPoint = values.endValues?.y?.find((dp) => {
+                return dp.columnSlug === String(columnSlug)
+            })
+
+            return dataPoint?.formattedValue
+        })
+        .with("latestYear", () => {
+            const columnName = parameters[0]
+            const columnSlug = values.columns
+                ? Object.entries(values.columns).find(
+                      ([_, col]) => col.name === columnName
+                  )?.[0]
+                : undefined
+            if (!columnSlug) return undefined
+
+            const dataPoint = values.endValues?.y?.find((dp) => {
+                return dp.columnSlug === String(columnSlug)
+            })
+
+            return dataPoint?.formattedTime
+        })
+        .with("entity", () => values.entityName)
+        .exhaustive()
+}
+
+/**
+ * Filter out data-callout blocks that have incomplete data.
+ * This should be called after linkedCallouts are generated.
+ * Similar to how conditional sections are handled in parseInstantiatedConditionalSection.
+ */
+export function filterIncompleteDataCallouts(
+    content: OwidGdocProfileContent,
+    linkedCallouts: LinkedCallouts
+): void {
+    content.body.forEach((node) => {
+        traverseEnrichedBlock(node, (block) => {
+            if (block.type === "data-callout") {
+                const dataCalloutBlock = block as EnrichedBlockDataCallout
+                const shouldRender = checkShouldDataCalloutRender(
+                    dataCalloutBlock,
+                    linkedCallouts
+                )
+                if (!shouldRender) {
+                    // Clear the content so it renders as empty
+                    dataCalloutBlock.content = []
+                }
+            }
+        })
+    })
 }

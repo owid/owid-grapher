@@ -237,6 +237,9 @@ export {
     validateConditionalSectionLists,
     makeCalloutGrapherStateKey,
     makeLinkedCalloutKey,
+    filterIncompleteDataCallouts,
+    checkShouldDataCalloutRender,
+    getCalloutValue,
 } from "./profiles.js"
 
 export {
