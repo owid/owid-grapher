@@ -19,12 +19,14 @@ import { MapTooltip } from "./MapTooltip"
 import { TooltipState } from "../tooltip/Tooltip.js"
 import { CoreColumn } from "@ourworldindata/core-table"
 import {
-    BLUR_FILL_OPACITY,
     GeoFeature,
     MapBracket,
     MapChartManager,
     ChoroplethSeriesByName,
     ChoroplethMapManager,
+    DEFAULT_STROKE_COLOR,
+    HOVER_STROKE_COLOR,
+    HOVER_STROKE_WIDTH,
     MAP_CHART_CLASSNAME,
     MapColumnInfo,
     PROJECTED_DATA_LEGEND_COLOR,
@@ -229,8 +231,12 @@ export class MapChart
     }
 
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
-        const { numericLegendData, categoricalLegendData, legendMaxWidth } =
-            this
+        const {
+            numericLegendData,
+            categoricalLegendData,
+            legendMaxWidth,
+            legendStyleConfig,
+        } = this
 
         if (this.manager.showLegend) return undefined
 
@@ -238,8 +244,7 @@ export class MapChart
             numericLegendData,
             categoricalLegendData,
             legendMaxWidth,
-            categoricalLegendStyleConfig: this.categoricalLegendStyleConfig,
-            numericLegendStyleConfig: this.numericLegendStyleConfig,
+            legendStyleConfig,
         }
     }
 
@@ -487,32 +492,22 @@ export class MapChart
             this.categoricalHoverBracket &&
             bin.equals(this.categoricalHoverBracket)
         ) {
-            return LegendInteractionState.Focused
+            return LegendInteractionState.Hovered
         }
         if (this.numericHoverBracket && bin.equals(this.numericHoverBracket)) {
-            return LegendInteractionState.Focused
+            return LegendInteractionState.Hovered
         }
+
         return LegendInteractionState.Muted
     }
 
-    categoricalLegendStyleConfig: LegendStyleConfig = {
+    legendStyleConfig: LegendStyleConfig = {
         marker: {
-            default: { stroke: "#333" },
-            muted: { opacity: BLUR_FILL_OPACITY },
-        },
-        text: {
-            muted: { opacity: 0.7 },
-        },
-    }
-
-    numericLegendStyleConfig: LegendStyleConfig = {
-        marker: {
-            default: { stroke: "#333" },
-            muted: { opacity: BLUR_FILL_OPACITY },
-        },
-        text: {
-            default: { color: "#111" },
-            muted: { opacity: 0.7 },
+            default: { stroke: DEFAULT_STROKE_COLOR },
+            hovered: {
+                stroke: HOVER_STROKE_COLOR,
+                strokeWidth: HOVER_STROKE_WIDTH,
+            },
         },
     }
 
