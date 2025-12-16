@@ -49,6 +49,7 @@ import { FilesIndexPage } from "./FilesIndexPage.js"
 import { DataInsightIndexPage } from "./DataInsightIndexPage.js"
 import { MultiDimIndexPage } from "./MultiDimIndexPage.js"
 import { MultiDimDetailPage } from "./MultiDimDetailPage.js"
+import MultiDimRedirectsIndexPage from "./MultiDimRedirectsIndexPage.js"
 import { FeaturedMetricsPage } from "./FeaturedMetricsPage.js"
 import { DodsIndexPage } from "./DodsIndexPage.js"
 import { StaticVizIndexPage } from "./StaticVizIndexPage.js"
@@ -212,6 +213,11 @@ export class AdminApp extends React.Component<{
                                             id={parseInt(match.params.id)}
                                         />
                                     )}
+                                />
+                                <Route
+                                    exact
+                                    path="/multi-dim-redirects"
+                                    component={MultiDimRedirectsIndexPage}
                                 />
                                 <Route path="/dods" component={DodsIndexPage} />
 

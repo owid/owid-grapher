@@ -234,9 +234,13 @@ export default function SiteRedirectsIndexPage() {
                                     </li>
                                     <li>
                                         For redirects to{" "}
-                                        <strong>multi-dims</strong>,
-                                        create/delete redirects on the edit page
-                                        of the target multi-dim.
+                                        <strong>multi-dims</strong>, create
+                                        redirects on the edit page of the target
+                                        multi-dim, and view all redirects on{" "}
+                                        <Link to="/multi-dim-redirects">
+                                            the multi-dim redirects page
+                                        </Link>
+                                        .
                                     </li>
                                 </ul>
                                 <Typography.Paragraph>
