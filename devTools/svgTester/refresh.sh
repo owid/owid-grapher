@@ -6,7 +6,6 @@ set -o pipefail  # treats pipeline command as failed when one command in the pip
 
 SVGS_REPO=../owid-grapher-svgs
 
-
 usage() {
   echo -e "Usage: ./$(basename "$0") [-h | --help]
 
@@ -52,6 +51,7 @@ main() {
 
     refresh graphers
     refresh grapher-views
+    refresh mdims
 }
 
 # show help
