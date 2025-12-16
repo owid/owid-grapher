@@ -87,14 +87,14 @@ export class ScatterPlotChart
     constructor(props: ScatterPlotChartProps) {
         super(props)
 
-        makeObservable<ScatterPlotChart, "hoverColor">(this, {
-            hoverColor: observable,
+        makeObservable<ScatterPlotChart, "hoveredLegendColor">(this, {
+            hoveredLegendColor: observable,
             tooltipState: observable,
         })
     }
 
     // currently hovered legend color
-    private hoverColor: Color | undefined = undefined
+    private hoveredLegendColor: Color | undefined = undefined
     // current hovered individual series + tooltip position
     tooltipState = new TooltipState<{
         series: ScatterSeries
@@ -190,12 +190,12 @@ export class ScatterPlotChart
 
     @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
         if (isTouchDevice()) return
-        this.hoverColor = bin.color
+        this.hoveredLegendColor = bin.color
     }
 
     @action.bound onLegendMouseLeave(): void {
         if (isTouchDevice()) return
-        this.hoverColor = undefined
+        this.hoveredLegendColor = undefined
     }
 
     legendCursor = "pointer"
@@ -232,14 +232,14 @@ export class ScatterPlotChart
     }
 
     @computed private get hoveredSeriesNames(): string[] {
-        const { hoverColor, tooltipState } = this
+        const { hoveredLegendColor, tooltipState } = this
 
         const hoveredSeriesNames =
-            hoverColor === undefined
+            hoveredLegendColor === undefined
                 ? []
                 : _.uniq(
                       this.series
-                          .filter((g) => g.color === hoverColor)
+                          .filter((g) => g.color === hoveredLegendColor)
                           .map((g) => g.seriesName)
                   )
 
@@ -248,6 +248,15 @@ export class ScatterPlotChart
         }
 
         return hoveredSeriesNames
+    }
+
+    @computed private get isHoverModeActive(): boolean {
+        const { hoveredLegendColor, tooltipState } = this
+        return !!(
+            hoveredLegendColor !== undefined ||
+            this.hoveredSeriesNames.length > 0 ||
+            tooltipState.target
+        )
     }
 
     @computed private get selectedEntityNames(): string[] {
@@ -370,25 +379,34 @@ export class ScatterPlotChart
 
     /** Legend colors that are currently highlighted (either hovered or have at least one selected series) */
     @computed get activeColors(): string[] {
-        const { hoveredSeriesNames, selectedEntityNames } = this
+        const { hoveredSeriesNames, selectedEntityNames, hoveredLegendColor } =
+            this
 
+        const activeColorsSet = new Set<string>()
+
+        if (hoveredLegendColor !== undefined)
+            activeColorsSet.add(hoveredLegendColor)
+
+        // Add colors from selected/hovered series
         const activeSeriesNames = hoveredSeriesNames.concat(selectedEntityNames)
-
-        if (activeSeriesNames.length === 0) return this.colorsInUse
-
-        let activeSeries = this.series
-        if (activeSeriesNames.length)
-            activeSeries = activeSeries.filter((g) =>
+        if (activeSeriesNames.length > 0) {
+            const activeSeries = this.series.filter((g) =>
                 activeSeriesNames.includes(g.seriesName)
             )
 
-        const colorValues = _.uniq(
-            activeSeries.flatMap((s) => s.points.map((p) => p.color))
-        )
+            const colorValues = _.uniq(
+                activeSeries.flatMap((s) => s.points.map((p) => p.color))
+            )
 
-        return excludeUndefined(
-            colorValues.map((color) => this.colorScale.getColor(color))
-        )
+            excludeUndefined(
+                colorValues.map((color) => this.colorScale.getColor(color))
+            ).forEach((color) => activeColorsSet.add(color))
+        }
+
+        // If nothing is active (no hover, no selection), show all colors
+        if (activeColorsSet.size === 0) return this.colorsInUse
+
+        return Array.from(activeColorsSet)
     }
 
     getLegendBinState(bin: ColorScaleBin): LegendInteractionState {
@@ -482,6 +500,7 @@ export class ScatterPlotChart
                 baseFontSize={this.fontSize}
                 focusedSeriesNames={this.selectedEntityNames}
                 hoveredSeriesNames={this.hoveredSeriesNames}
+                isHoverModeActive={this.isHoverModeActive}
                 tooltipSeriesName={this.tooltipSeries?.seriesName}
                 disableIntroAnimation={this.manager.disableIntroAnimation}
                 hideScatterLabels={this.hideScatterLabels}

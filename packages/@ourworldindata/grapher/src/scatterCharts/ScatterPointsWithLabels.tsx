@@ -93,6 +93,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
         return (
             this.focusedSeriesNames.length > 0 ||
             this.hoveredSeriesNames.length > 0 ||
+            this.props.isHoverModeActive ||
             // if the user has selected entities that are not in the chart,
             // we want to move all entities into the background
             ((this.props.focusedSeriesNames ?? []).length > 0 &&
