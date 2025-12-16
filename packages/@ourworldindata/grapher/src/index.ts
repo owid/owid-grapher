@@ -8,6 +8,7 @@ export { FetchingGrapher } from "./core/FetchingGrapher"
 export {
     fetchInputTableForConfig,
     getCachingInputTableFetcher,
+    type FetchInputTableForConfigFn,
 } from "./core/loadGrapherTableHelpers.js"
 export { loadVariableDataAndMetadata } from "./core/loadVariable.js"
 export {

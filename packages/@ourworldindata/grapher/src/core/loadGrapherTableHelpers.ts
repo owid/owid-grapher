@@ -12,14 +12,18 @@ import {
 } from "./loadVariable.js"
 import { toJS } from "mobx"
 
-export async function fetchInputTableForConfig(args: {
+export type FetchInputTableForConfigFn = (args: {
     dimensions?: OwidChartDimensionInterface[]
     selectedEntityColors?: { [entityName: string]: string | undefined }
     dataApiUrl: string
     archiveContext?: ArchiveContext
     noCache?: boolean
     loadMetadataOnly?: boolean
-}): Promise<OwidTable | undefined> {
+}) => Promise<OwidTable | undefined>
+
+export const fetchInputTableForConfig: FetchInputTableForConfigFn = async (
+    args
+) => {
     if (!args.dimensions || args.dimensions.length === 0) return undefined
     const variables = args.dimensions.map((d) => d.variableId)
     const variablesDataMap = await loadVariablesDataSite(

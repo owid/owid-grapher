@@ -6,12 +6,136 @@ import fs from "fs-extra"
 import path from "path"
 import workerpool from "workerpool"
 import * as _ from "lodash-es"
+import { match } from "ts-pattern"
 
 import * as utils from "./utils.js"
 import { grapherSlugToExportFileKey } from "../../baker/GrapherBakingUtils.js"
-import { ALL_GRAPHER_CHART_TYPES } from "@ourworldindata/types"
+import { ALL_GRAPHER_CHART_TYPES, ExplorerType } from "@ourworldindata/types"
+import { queryParamsToStr } from "@ourworldindata/utils"
+import { ExplorerProgram } from "@ourworldindata/explorer"
 
-async function main(args: ReturnType<typeof parseArguments>) {
+async function buildExplorerVerifyJobs(params: {
+    explorerDir: string
+    explorerSlug: string
+    referenceDataByViewId: Map<string, utils.SvgRecord>
+    referencesDir: string
+    differencesDir: string
+    verbose: boolean
+    rmOnError: boolean
+}): Promise<utils.RenderExplorerJobDescription[]> {
+    // Load explorer config
+    const configPath = path.join(params.explorerDir, "config.tsv")
+    const tsvContent = await fs.readFile(configPath, "utf-8")
+    const explorerProgram = new ExplorerProgram(params.explorerSlug, tsvContent)
+
+    // Get all choice combinations
+    const allChoices = explorerProgram.decisionMatrix.allDecisionsAsQueryParams()
+
+    // Build jobs
+    const jobs: utils.RenderExplorerJobDescription[] = []
+    for (const choiceParams of allChoices) {
+        const queryStr = queryParamsToStr(choiceParams).replace("?", "")
+        const viewId = `${params.explorerSlug}?${queryStr}`
+
+        const referenceEntry = params.referenceDataByViewId.get(viewId)
+        if (!referenceEntry) {
+            console.warn(`No reference found for ${viewId}`)
+            continue
+        }
+
+        jobs.push({
+            explorerDir: params.explorerDir,
+            explorerSlug: params.explorerSlug,
+            choiceParams,
+            viewId,
+            referenceEntry,
+            referenceDir: params.referencesDir,
+            outDir: params.differencesDir,
+            verbose: params.verbose,
+            rmOnError: params.rmOnError,
+        })
+    }
+
+    return jobs
+}
+
+async function verifyExplorers(args: ReturnType<typeof parseArguments>) {
+    const testSuite = args.testSuite as utils.TestSuite
+
+    // Input and output directories
+    const dataDir = path.join(utils.SVG_REPO_PATH, testSuite, "data")
+    const referencesDir = path.join(utils.SVG_REPO_PATH, testSuite, "references")
+    const differencesDir = path.join(
+        utils.SVG_REPO_PATH,
+        testSuite,
+        "differences"
+    )
+
+    if (!fs.existsSync(dataDir))
+        throw `Input directory does not exist ${dataDir}`
+    if (!fs.existsSync(referencesDir))
+        throw `Reference directory does not exist ${referencesDir}`
+    if (!fs.existsSync(differencesDir))
+        fs.mkdirSync(differencesDir, { recursive: true })
+
+    // Load reference CSV
+    const referenceData = await utils.parseReferenceCsv(referencesDir)
+    const referenceDataByViewId = new Map(
+        referenceData.map((record) => [record.viewId, record])
+    )
+
+    // Iterate through explorer directories
+    const allVerifyJobs: utils.RenderExplorerJobDescription[] = []
+    const dir = await fs.opendir(dataDir)
+    for await (const entry of dir) {
+        if (!entry.isDirectory()) continue
+
+        const explorerDir = path.join(dataDir, entry.name)
+        const explorerSlug = entry.name
+
+        // Build job list for this explorer
+        const jobs = await buildExplorerVerifyJobs({
+            explorerDir,
+            explorerSlug,
+            referenceDataByViewId,
+            referencesDir,
+            differencesDir,
+            verbose: args.verbose,
+            rmOnError: args.rmOnError,
+        })
+
+        allVerifyJobs.push(...jobs)
+    }
+
+    // Log how many SVGs we're going to verify
+    const jobCount = allVerifyJobs.length
+    if (jobCount === 0) {
+        utils.logIfVerbose(args.verbose, "No matching configs found")
+        process.exit(0)
+    } else {
+        utils.logIfVerbose(
+            args.verbose,
+            `Verifying ${jobCount} explorer view${jobCount > 1 ? "s" : ""}...`
+        )
+    }
+
+    // Run verification sequentially (no workerpool for now)
+    const validationResults: utils.VerifyResult[] = []
+    for (const job of allVerifyJobs) {
+        const result = await utils.renderExplorerViewAndVerify(job)
+        validationResults.push(result)
+    }
+
+    utils.logIfVerbose(args.verbose, "Verifications completed")
+
+    const exitCode = utils.displayVerifyResultsAndGetExitCode(
+        validationResults,
+        args.verbose
+    )
+    process.exit(exitCode)
+}
+
+async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
     try {
         // Test suite
         const testSuite = args.testSuite as utils.TestSuite
@@ -137,6 +261,17 @@ async function main(args: ReturnType<typeof parseArguments>) {
         // was not required before introducing the multiprocessing library.
         process.exit(-1)
     }
+}
+
+async function main(args: ReturnType<typeof parseArguments>) {
+    const testSuite = args.testSuite as utils.TestSuite
+
+    await match(testSuite)
+        .with("graphers", () => verifyGraphers(args))
+        .with("grapher-views", () => verifyGraphers(args))
+        .with("mdims", () => verifyGraphers(args))
+        .with("explorers", () => verifyExplorers(args))
+        .exhaustive()
 }
 
 function parseArguments() {

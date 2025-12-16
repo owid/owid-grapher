@@ -1,5 +1,7 @@
 #! /usr/bin/env node
 
+import * as _ from "lodash-es"
+import { match } from "ts-pattern"
 import fs from "fs-extra"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
@@ -9,7 +11,7 @@ import workerpool from "workerpool"
 import * as utils from "./utils.js"
 import { ALL_GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 
-async function main(args: ReturnType<typeof parseArguments>) {
+async function exportGraphers(args: ReturnType<typeof parseArguments>) {
     try {
         // Test suite
         const testSuite = args.testSuite as utils.TestSuite
@@ -126,6 +128,47 @@ async function main(args: ReturnType<typeof parseArguments>) {
         // was not required before introducing the multiprocessing library.
         process.exit(-1)
     }
+}
+
+async function exportExplorers(args: ReturnType<typeof parseArguments>) {
+    const testSuite = args.testSuite as utils.TestSuite
+
+    // Input and output directories
+    const dataDir = path.join(utils.SVG_REPO_PATH, testSuite, "data")
+    const outDir = path.join(utils.SVG_REPO_PATH, testSuite, "references")
+
+    if (!fs.existsSync(dataDir))
+        throw `Input directory does not exist ${dataDir}`
+    if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
+
+    const allSvgRecords: utils.SvgRecord[] = []
+
+    const dir = await fs.opendir(dataDir)
+    for await (const entry of dir) {
+        if (!entry.isDirectory()) continue
+
+        const explorerDataDir = path.join(dataDir, entry.name)
+
+        const svgRecords = await utils.renderExplorerViewsToSVGsAndSave({
+            dir: explorerDataDir,
+            outDir,
+        })
+
+        allSvgRecords.push(...svgRecords)
+    }
+
+    await utils.writeReferenceCsv(outDir, allSvgRecords)
+}
+
+async function main(args: ReturnType<typeof parseArguments>) {
+    const testSuite = args.testSuite as utils.TestSuite
+
+    await match(testSuite)
+        .with("graphers", () => exportGraphers(args))
+        .with("grapher-views", () => exportGraphers(args))
+        .with("mdims", () => exportGraphers(args))
+        .with("explorers", () => exportExplorers(args))
+        .exhaustive()
 }
 
 function parseArguments() {
