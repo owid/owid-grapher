@@ -24,7 +24,6 @@ async function main(args: parseArgs.ParsedArgs) {
             utils.parseArgAsList(args["chart-types"] ?? args["t"])
         )
         const randomCount = utils.parseRandomCount(args["random"] ?? args["d"])
-        const chartIdsFile: string = args["ids-from-file"] ?? args["f"]
 
         // chart configurations to test
         const grapherQueryString: string = args["query-str"] ?? args["q"]
@@ -42,7 +41,6 @@ async function main(args: parseArgs.ParsedArgs) {
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
 
         const chartIdsToProcess = await utils.selectChartIdsToProcess(inDir, {
-            chartIdsFile,
             grapherIds: targetGrapherIds,
             chartTypes: targetChartTypes,
             randomCount,
@@ -138,7 +136,7 @@ if (parsedArgs["h"] || parsedArgs["help"]) {
     console.log(`Check if grapher SVG renderings have changed vs the reference export
 
 Usage:
-    verify-graphs.js [-i] [-r] [-o] [-c | --ids] [-t | --chart-types] [-d | --random] [-f | --ids-from-file] [-q | --query-str] [--all-views] [-s | --suffix] [--rm-on-error] [--verbose] [--help | -h]
+    verify-graphs.js [-i] [-r] [-o] [-c | --ids] [-t | --chart-types] [-d | --random] [-q | --query-str] [--all-views] [-s | --suffix] [--rm-on-error] [--verbose] [--help | -h]
 
 Inputs and outputs:
     -i      Input directory containing Grapher configs and data. [default: ${utils.DEFAULT_CONFIGS_DIR}]
@@ -149,7 +147,6 @@ Charts to process:
     --ids, -c               A comma-separated list of config IDs and config ID ranges, e.g. 2,4-8,10
     --chart-types, -t       A comma-separated list of chart types, e.g. LineChart,ScatterPlot
     --random, -d            Verify SVGs for a random set of configs, optionally specify a count
-    --ids-from-file, -f     Verify SVGs for a set of configs read from a file with one config ID per line
 
 Chart configurations to test:
     --query-str, -q     Grapher query string to verify charts with a specific configuration, e.g. tab=chart&stackMode=relative

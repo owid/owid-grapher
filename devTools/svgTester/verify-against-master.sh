@@ -8,7 +8,6 @@ Export Grapher charts from master and verify them against the current branch.
 Charts to process:
     --ids, -c               Config IDs passed to export-graphs.ts and verify-graphs.ts
     --chart-types, -t       Chart types passed to export-graphs.ts and verify-graphs.ts
-    --ids-from-file, -f     File with chart IDs passed to export-graphs.ts and verify-graphs.ts
 
 Chart configurations to test:
     --query-str, -q     Grapher query string passed to export-graphs.ts and verify-graphs.ts
@@ -25,7 +24,7 @@ Other options:
 TMP_FILE=tmp-verify-against-master
 
 # public constants
-CONFIGS_DIR=../owid-grapher-svgs/configs
+CONFIGS_DIR=../owid-grapher-svgs/graphers/data
 LOCAL_REFERENCE_DIR=../owid-grapher-svgs/local/svg
 LOCAL_DIFFERENCES_DIR=../owid-grapher-svgs/local/differences
 REPORT_FILE=../owid-grapher-svgs/local/differences.html
@@ -33,7 +32,6 @@ REPORT_FILE=../owid-grapher-svgs/local/differences.html
 # parameter defaults
 CONFIG_IDS_ARG=""
 CHART_TYPES_ARG=""
-IDS_FROM_FILE_ARG=""
 GRAPHER_QUERY_STRING_ARG=""
 ALL_VIEWS_ARG=""
 SKIP_EXPORT=false
@@ -54,9 +52,6 @@ parseArgs() {
                 ;;
             -t | --chart-types)
                 CHART_TYPES_ARG=$([ -z "$VALUE" ] || echo "--chart-types $VALUE")
-                ;;
-            -f | --ids-from-file)
-                IDS_FROM_FILE_ARG=$([ -z "$VALUE" ] || echo "--ids-from-file $VALUE")
                 ;;
             -q | --query-str)
                 GRAPHER_QUERY_STRING_ARG=$([ -z "$VALUE" ] || echo "--query-str $VALUE")
@@ -114,7 +109,6 @@ runExportScript() {
         -o $LOCAL_REFERENCE_DIR\
         $CONFIG_IDS_ARG\
         $CHART_TYPES_ARG\
-        $IDS_FROM_FILE_ARG\
         $GRAPHER_QUERY_STRING_ARG\
         $ALL_VIEWS_ARG
 }
@@ -127,7 +121,6 @@ runVerifyScript() {
         -o $LOCAL_DIFFERENCES_DIR\
         $CONFIG_IDS_ARG\
         $CHART_TYPES_ARG\
-        $IDS_FROM_FILE_ARG\
         $GRAPHER_QUERY_STRING_ARG\
         $ALL_VIEWS_ARG\
         --verbose

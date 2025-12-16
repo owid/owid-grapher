@@ -21,7 +21,6 @@ async function main(args: parseArgs.ParsedArgs) {
             utils.parseArgAsList(args["chart-types"] ?? args["t"])
         )
         const randomCount = utils.parseRandomCount(args["random"] ?? args["d"])
-        const chartIdsFile: string = args["ids-from-file"] ?? args["f"]
 
         // chart configurations to test
         const grapherQueryString: string = args["query-str"] ?? args["q"]
@@ -54,7 +53,6 @@ async function main(args: parseArgs.ParsedArgs) {
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
 
         const chartIdsToProcess = await utils.selectChartIdsToProcess(inDir, {
-            chartIdsFile,
             grapherIds: targetGrapherIds,
             chartTypes: targetChartTypes,
             randomCount,
@@ -161,7 +159,7 @@ if (parsedArgs["h"] || parsedArgs["help"]) {
     console.log(`Export Grapher SVG renderings and a summary CSV file
 
 Usage:
-    export-graphs.js [-i] [-o] [-c | --ids] [-t | --chart-types] [-d | --random] [-f | --ids-from-file] [-q | --query-str] [--all-views] [--compare] [--isolate] [--verbose] [--help | -h]
+    export-graphs.js [-i] [-o] [-c | --ids] [-t | --chart-types] [-d | --random] [-q | --query-str] [--all-views] [--compare] [--isolate] [--verbose] [--help | -h]
 
 Inputs and outputs:
     -i      Input directory containing Grapher configs and data. [default: ${utils.DEFAULT_CONFIGS_DIR}]
@@ -171,12 +169,11 @@ Charts to process:
     --ids, -c               A comma-separated list of config IDs and config ID ranges, e.g. 2,4-8,10
     --chart-types, -t       A comma-separated list of chart types, e.g. LineChart,ScatterPlot
     --random, -d            Generate SVGs for a random set of configs, optionally specify a count
-    --ids-from-file, -f     Generate SVGs for a set of configs read from a file with one config ID per line
 
 Chart configurations to test:
     --query-str, -q     Grapher query string to export charts with a specific configuration, e.g. tab=chart&stackMode=relative
     --all-views         For each Grapher, generate SVGs for all possible chart configurations
-    
+
 Other options:
     --compare       Create a directory containing the old and new SVGs for easy comparison
     --isolate       Run each export in a separate process. This yields accurate heap usage measurements, but is slower.

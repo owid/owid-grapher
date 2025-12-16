@@ -7,26 +7,28 @@ import * as utils from "./utils.js"
 import * as _ from "lodash-es"
 import * as Diff from "diff"
 
-const DEFAULT_REPORT_FILENAME = "../owid-grapher-svgs/differences.html"
-
 const LIVE_GRAPHER_URL = "https://ourworldindata.org/grapher"
 
 const LOCAL_URL = "http://localhost:3030"
 const LOCAL_GRAPHER_URL = LOCAL_URL + "/grapher"
 
+const REFERENCES_DIR_NAME = "references"
+const DIFFERENCES_DIR_NAME = "differences"
+const HTML_OUTPUT_FILENAME = "differences.html"
+
 async function main(args: parseArgs.ParsedArgs) {
     // prepare and check arguments
-    const referenceDir: string = args["r"] ?? utils.DEFAULT_REFERENCE_DIR
-    const differencesDir: string = args["d"] ?? utils.DEFAULT_DIFFERENCES_DIR
-    const outFile: string = args["o"] ?? DEFAULT_REPORT_FILENAME
+    const workingDir: string = args["d"] ?? "../owid-grapher-svgs/graphers"
     const compareUrl: string = args["compare-url"] ?? LOCAL_URL
 
     const compareGrapherUrl = compareUrl + "/grapher"
 
-    if (!fs.existsSync(referenceDir))
-        throw `Reference directory does not exist ${referenceDir}`
-    if (!fs.existsSync(differencesDir))
-        throw `Differences directory does not exist ${differencesDir}`
+    if (!fs.existsSync(workingDir))
+        throw `Working directory does not exist ${workingDir}`
+
+    const referencesDir = path.join(workingDir, REFERENCES_DIR_NAME)
+    const differencesDir = path.join(workingDir, DIFFERENCES_DIR_NAME)
+    const outFile = path.join(workingDir, HTML_OUTPUT_FILENAME)
 
     // collect svg files with differences
     const dir = await fs.opendir(differencesDir)
@@ -38,7 +40,7 @@ async function main(args: parseArgs.ParsedArgs) {
     }
 
     // get reference records for each svg with differences
-    const referenceData = await utils.parseReferenceCsv(referenceDir)
+    const referenceData = await utils.parseReferenceCsv(referencesDir)
     const referenceDataByFilename = new Map(
         referenceData.map((record) => [record.svgFilename, record])
     )
@@ -46,14 +48,14 @@ async function main(args: parseArgs.ParsedArgs) {
         svgFilesWithDifferences.map(
             (filename) => referenceDataByFilename.get(filename)!
         ),
-        "slug"
+        "viewId"
     )
 
     // prepare HTML report
     const sections = svgRecords.map((record) =>
         createComparisonView(
             record,
-            referenceDir,
+            referencesDir,
             differencesDir,
             compareGrapherUrl
         )
@@ -68,12 +70,10 @@ if (parsedArgs["h"] || parsedArgs["help"]) {
     console.log(`create-compare-views.js - utility to create a simple HTML view from a folder of svgs that have differences vs the reference ones
 
 Usage:
-    create-compare-views.js [-d] [-r] [-o] [-u | --compare-url]
+    create-compare-views.js [-d] [-u | --compare-url]
 
 Inputs and outputs:
-    -r DIR   Input directory containing the reference svg files [default: ${utils.DEFAULT_REFERENCE_DIR}]
-    -d DIR   Input directory with the svgs that were found to be different [default: ${utils.DEFAULT_DIFFERENCES_DIR}]
-    -o FILE  HTML Output filename to generate [default: ${DEFAULT_REPORT_FILENAME}]
+    -d DIR   Directory [default: ../owid-grapher-svgs/graphers]
 
 Options:
     --compare-url   Base URL to compare against prod [default: ${LOCAL_URL}]
@@ -176,20 +176,17 @@ function createCodeDiffView(
 
 function createComparisonView(
     svgRecord: utils.SvgRecord,
-    referenceDir: string,
+    referencesDir: string,
     differencesDir: string,
     compareGrapherUrl = LOCAL_GRAPHER_URL
 ) {
     const { svgFilename, slug } = svgRecord
 
-    const referenceFilename = path.join(referenceDir, svgFilename)
-    const differencesFilename = path.join(differencesDir, svgFilename)
+    const referenceFilenameUrl = path.join(REFERENCES_DIR_NAME, svgFilename)
+    const differenceFilenameUrl = path.join(DIFFERENCES_DIR_NAME, svgFilename)
 
-    // To obtain proper, usable URLs, we need to get rid of the "../owid-grapher-svgs" prefix
-    const [referenceFilenameUrl, differencesFilenameUrl] = [
-        referenceFilename,
-        differencesFilename,
-    ].map((filename) => filename.replace("../owid-grapher-svgs/", "./"))
+    const referencesPath = path.join(referencesDir, svgFilename)
+    const differencesPath = path.join(differencesDir, svgFilename)
 
     const queryStr = svgRecord.queryStr ? `?${svgRecord.queryStr}` : ""
 
@@ -206,9 +203,9 @@ function createComparisonView(
         </div>
         ${createTabControls()}
         <div class="tab-content">
-            ${createSideBySideView(svgRecord, referenceFilenameUrl, differencesFilenameUrl, compareGrapherUrl)}
-            ${createSliderView(referenceFilenameUrl, differencesFilenameUrl)}
-            ${createCodeDiffView(referenceFilename, differencesFilename, svgFilename)}
+            ${createSideBySideView(svgRecord, referenceFilenameUrl, differenceFilenameUrl, compareGrapherUrl)}
+            ${createSliderView(referenceFilenameUrl, differenceFilenameUrl)}
+            ${createCodeDiffView(referencesPath, differencesPath, svgFilename)}
         </div>
     </section>`
 }
