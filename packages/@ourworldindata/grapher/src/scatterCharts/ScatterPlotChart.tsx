@@ -48,6 +48,7 @@ import {
     SCATTER_LABEL_DEFAULT_FONT_SIZE_FACTOR,
     SCATTER_LABEL_MAX_FONT_SIZE_FACTOR,
     SCATTER_LABEL_MIN_FONT_SIZE_FACTOR,
+    SCATTER_POINT_OPACITY,
     SeriesPoint,
     ScatterPointQuadtreeNode,
     SCATTER_QUADTREE_SAMPLING_DISTANCE,
@@ -69,6 +70,7 @@ import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { toSizeRange } from "./ScatterUtils.js"
 import { ScatterPlotTooltip } from "./ScatterPlotTooltip"
 import { GRAY_100, GRAY_60 } from "../color/ColorConstants"
+import { INACTIVE_SCATTER_POINT_COLOR } from "./ScatterPoints"
 
 export type ScatterPlotChartProps = ChartComponentProps<ScatterPlotChartState>
 
@@ -99,7 +101,10 @@ export class ScatterPlotChart
     }>()
 
     legendStyleConfig: LegendStyleConfig = {
-        marker: { muted: { fill: "#ccc" } }, // TODO: INACTIVE_SCATTER_POINT_COLOR
+        marker: {
+            default: { opacity: SCATTER_POINT_OPACITY },
+            muted: { fill: INACTIVE_SCATTER_POINT_COLOR },
+        },
         text: { muted: { color: GRAY_60 }, focused: { color: GRAY_100 } },
     }
 
