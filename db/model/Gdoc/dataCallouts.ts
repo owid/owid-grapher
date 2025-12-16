@@ -12,6 +12,8 @@ import {
     OwidEnrichedGdocBlock,
     LinkedCallouts,
     DimensionProperty,
+    DbRawChartConfig,
+    parseChartConfig,
 } from "@ourworldindata/types"
 import {
     makeCalloutGrapherStateKey,
@@ -20,6 +22,7 @@ import {
     traverseEnrichedBlock,
     mergeGrapherConfigs,
     parseIntOrUndefined,
+    searchParamsToMultiDimView,
 } from "@ourworldindata/utils"
 import {
     ExplorerProgram,
@@ -32,6 +35,7 @@ import { knexRaw } from "../../db.js"
 import { mapSlugsToIds, getChartConfigById } from "../Chart.js"
 import { getExplorerBySlug } from "../Explorer.js"
 import { transformExplorerProgramToResolveCatalogPaths } from "../ExplorerCatalogResolver.js"
+import { getMultiDimDataPageBySlug } from "../MultiDimDataPage.js"
 
 /**
  * Extract all data-callout blocks from an array of enriched blocks.
@@ -119,11 +123,62 @@ export async function fetchCalloutValuesForConfig(
 }
 
 /**
+ * Fetch a chart config by its UUID (used for multi-dim view configs).
+ */
+async function getChartConfigByUuid(
+    knex: db.KnexReadonlyTransaction,
+    uuid: string
+): Promise<GrapherInterface | undefined> {
+    const row = await db.knexRawFirst<Pick<DbRawChartConfig, "full">>(
+        knex,
+        `SELECT full FROM chart_configs WHERE id = ?`,
+        [uuid]
+    )
+    if (!row) return undefined
+    return parseChartConfig(row.full)
+}
+
+/**
+ * Fetch callout values for a multi-dimensional chart.
+ * Resolves the view based on query params and fetches values for the entity.
+ */
+export async function fetchCalloutValuesForMultiDim(
+    knex: db.KnexReadonlyTransaction,
+    slug: string,
+    entity: EntityName,
+    queryStr?: string
+): Promise<GrapherValuesJson | undefined> {
+    // Get the multi-dim config from database
+    const multiDimPage = await getMultiDimDataPageBySlug(knex, slug)
+    if (!multiDimPage) {
+        console.error(`Multi-dim data page not found: ${slug}`)
+        return undefined
+    }
+
+    // Resolve the view based on query params
+    const searchParams = new URLSearchParams(queryStr || "")
+    const view = searchParamsToMultiDimView(multiDimPage.config, searchParams)
+
+    // Get the chart config for this view using fullConfigId
+    const chartConfig = await getChartConfigByUuid(knex, view.fullConfigId)
+    if (!chartConfig) {
+        console.error(
+            `Chart config not found for multi-dim view: ${view.fullConfigId}`
+        )
+        return undefined
+    }
+
+    // Fetch and return values using the resolved config
+    return fetchCalloutValuesForConfig(chartConfig, entity, queryStr)
+}
+
+/**
  * Load LinkedCallouts for a list of data-callout blocks.
  * This is the unified function used by GdocBase.loadLinkedCallouts,
  * appClass.tsx profile preview, and can be used elsewhere.
  *
- * Supports both grapher URLs (/grapher/slug) and explorer URLs (/explorers/slug).
+ * Supports grapher URLs (/grapher/slug), explorer URLs (/explorers/slug),
+ * and multi-dimensional data page URLs (/grapher/slug with multi-dim config).
  */
 export async function loadLinkedCalloutsForBlocks(
     knex: db.KnexReadonlyTransaction,
@@ -157,18 +212,28 @@ export async function loadLinkedCalloutsForBlocks(
                 url.queryStr || undefined
             )
         } else {
-            // Handle grapher URLs
+            // Handle grapher URLs (regular charts and multi-dims share the same namespace)
             const chartId = slugToIdMap[slug]
-            if (!chartId) continue
 
-            const chartRecord = await getChartConfigById(knex, chartId)
-            if (!chartRecord) continue
-
-            values = await fetchCalloutValuesForConfig(
-                chartRecord.config,
-                entityName,
-                url.queryStr || undefined
-            )
+            if (chartId) {
+                // Found as regular grapher chart
+                const chartRecord = await getChartConfigById(knex, chartId)
+                if (chartRecord) {
+                    values = await fetchCalloutValuesForConfig(
+                        chartRecord.config,
+                        entityName,
+                        url.queryStr || undefined
+                    )
+                }
+            } else {
+                // Not found as regular chart, try multi-dim
+                values = await fetchCalloutValuesForMultiDim(
+                    knex,
+                    slug,
+                    entityName,
+                    url.queryStr || undefined
+                )
+            }
         }
 
         if (!values) continue
@@ -275,9 +340,7 @@ export async function prepareExplorerCalloutChart(
                 // Get the full grapher config from DB
                 const chartRecord = await getChartConfigById(knex, grapherId)
                 if (!chartRecord) {
-                    console.error(
-                        `Chart not found for grapherId: ${grapherId}`
-                    )
+                    console.error(`Chart not found for grapherId: ${grapherId}`)
                     return undefined
                 }
 
@@ -310,14 +373,18 @@ export async function prepareExplorerCalloutChart(
                 }
 
                 // Get partial grapher configs for the variable IDs
-                const partialConfig = await getPartialGrapherConfigForVariableId(
-                    knex,
-                    yVariableIdsList[0]
-                )
+                const partialConfig =
+                    await getPartialGrapherConfigForVariableId(
+                        knex,
+                        yVariableIdsList[0]
+                    )
 
                 // Build config with dimensions
                 const config: GrapherProgrammaticInterface = {
-                    ...mergeGrapherConfigs(partialConfig, program.grapherConfig),
+                    ...mergeGrapherConfigs(
+                        partialConfig,
+                        program.grapherConfig
+                    ),
                 }
 
                 // Build dimensions from variable IDs

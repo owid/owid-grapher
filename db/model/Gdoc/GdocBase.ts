@@ -79,7 +79,7 @@ import {
     getAllNarrativeChartNames,
     getNarrativeChartsInfo,
 } from "../NarrativeChart.js"
-import { loadLinkedCalloutsForBlocks } from "./fetchCalloutValues.js"
+import { loadLinkedCalloutsForBlocks } from "./dataCallouts.js"
 
 import { indexBy } from "remeda"
 import {
