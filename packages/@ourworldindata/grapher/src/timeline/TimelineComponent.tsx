@@ -885,7 +885,10 @@ function EditableYearTooltip({
     }, [isEditing, currentTime])
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
-        if (e.key === "Enter") {
+        if (e.key === ".") {
+            // Prevent entering decimal points
+            e.preventDefault()
+        } else if (e.key === "Enter") {
             const parsed = parseIntOrUndefined(inputValue.trim())
             onComplete?.(parsed)
         } else if (e.key === "Escape") {
@@ -898,6 +901,7 @@ function EditableYearTooltip({
             setInputValue(newTime.toString())
             onChange?.(newTime)
         }
+
         e.stopPropagation()
     }
 
