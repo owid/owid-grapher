@@ -1,6 +1,7 @@
 #! /usr/bin/env node
 
-import parseArgs from "minimist"
+import yargs from "yargs"
+import { hideBin } from "yargs/helpers"
 import fs from "fs-extra"
 import path from "path"
 import workerpool from "workerpool"
@@ -8,31 +9,28 @@ import * as _ from "lodash-es"
 
 import * as utils from "./utils.js"
 import { grapherSlugToExportFileKey } from "../../baker/GrapherBakingUtils.js"
+import { ALL_GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 
-async function main(args: parseArgs.ParsedArgs) {
+async function main(args: ReturnType<typeof parseArguments>) {
     try {
         // input and output directories
-        const inDir: string = args["i"] ?? utils.DEFAULT_CONFIGS_DIR
-        const referenceDir: string = args["r"] ?? utils.DEFAULT_REFERENCE_DIR
-        const outDir: string = args["o"] ?? utils.DEFAULT_DIFFERENCES_DIR
+        const inDir: string = args.i
+        const referenceDir: string = args.r
+        const outDir: string = args.o
 
         // charts to process
-        const targetGrapherIds = utils.getGrapherIdListFromString(
-            utils.parseArgAsString(args["ids"] ?? args["c"])
-        )
-        const targetChartTypes = utils.validateChartTypes(
-            utils.parseArgAsList(args["chart-types"] ?? args["t"])
-        )
-        const randomCount = utils.parseRandomCount(args["random"] ?? args["d"])
+        const targetGrapherIds = args.ids
+        const targetChartTypes = args.chartTypes
+        const randomCount = args.random
 
         // chart configurations to test
-        const grapherQueryString: string = args["query-str"] ?? args["q"]
-        const shouldTestAllChartViews: boolean = args["all-views"] ?? false
+        const grapherQueryString: string = args.queryStr ?? ""
+        const shouldTestAllChartViews: boolean = args.allViews
 
         // other options
-        const suffix: string = args["suffix"] ?? ""
-        const rmOnError: boolean = args["rm-on-error"] ?? false
-        const verbose: boolean = args["verbose"] ?? false
+        const suffix: string = args.suffix ?? ""
+        const rmOnError: boolean = args.rmOnError
+        const verbose: boolean = args.verbose
 
         if (!fs.existsSync(inDir))
             throw `Input directory does not exist ${inDir}`
@@ -131,34 +129,88 @@ async function main(args: parseArgs.ParsedArgs) {
     }
 }
 
-const parsedArgs = parseArgs(process.argv.slice(2))
-if (parsedArgs["h"] || parsedArgs["help"]) {
-    console.log(`Check if grapher SVG renderings have changed vs the reference export
-
-Usage:
-    verify-graphs.js [-i] [-r] [-o] [-c | --ids] [-t | --chart-types] [-d | --random] [-q | --query-str] [--all-views] [-s | --suffix] [--rm-on-error] [--verbose] [--help | -h]
-
-Inputs and outputs:
-    -i      Input directory containing Grapher configs and data. [default: ${utils.DEFAULT_CONFIGS_DIR}]
-    -r      Input directory containing the results.csv file to check against [default: ${utils.DEFAULT_REFERENCE_DIR}]
-    -o      Output directory that will contain the SVGs that were different [default: ${utils.DEFAULT_DIFFERENCES_DIR}]
-
-Charts to process:
-    --ids, -c               A comma-separated list of config IDs and config ID ranges, e.g. 2,4-8,10
-    --chart-types, -t       A comma-separated list of chart types, e.g. LineChart,ScatterPlot
-    --random, -d            Verify SVGs for a random set of configs, optionally specify a count
-
-Chart configurations to test:
-    --query-str, -q     Grapher query string to verify charts with a specific configuration, e.g. tab=chart&stackMode=relative
-    --all-views         For each Grapher, verify SVGs for all possible chart configurations
-
-Other options:
-    --suffix, -s    Suffix for different SVG files to create <NAME><SUFFIX>.svg files - useful if you want to set output to the same as reference
-    --rm-on-error   Remove output files where we encounter errors, so errors are apparent in diffs
-    --verbose       Verbose mode
-    -h, --help      Display this help and exit
-    `)
-    process.exit(0)
-} else {
-    void main(parsedArgs)
+function parseArguments() {
+    return yargs(hideBin(process.argv))
+        .usage(
+            "Check if grapher SVG renderings have changed vs the reference export"
+        )
+        .parserConfiguration({ "camel-case-expansion": true })
+        .options({
+            i: {
+                type: "string",
+                description:
+                    "Input directory containing Grapher configs and data",
+                default: "../owid-grapher-svgs/graphers/default-views/data",
+            },
+            r: {
+                type: "string",
+                description:
+                    "Input directory containing the results.csv file to check against",
+                default:
+                    "../owid-grapher-svgs/graphers/default-views/references",
+            },
+            o: {
+                type: "string",
+                description:
+                    "Output directory that will contain the SVGs that were different",
+                default:
+                    "../owid-grapher-svgs/graphers/default-views/differences",
+            },
+            ids: {
+                alias: "c",
+                type: "number",
+                array: true,
+                description:
+                    "A space-separated list of config IDs, e.g. '2 4 8 10'",
+            },
+            "chart-types": {
+                alias: "t",
+                type: "string",
+                array: true,
+                choices: ALL_GRAPHER_CHART_TYPES,
+                description:
+                    "A space-separated list of chart types, e.g. 'LineChart ScatterPlot'",
+            },
+            random: {
+                alias: "d",
+                type: "number",
+                description: "Generate SVGs for a random set of configs",
+            },
+            "query-str": {
+                alias: "q",
+                type: "string",
+                description:
+                    "Grapher query string to verify charts with a specific configuration, e.g. tab=chart&stackMode=relative",
+            },
+            "all-views": {
+                type: "boolean",
+                description:
+                    "For each Grapher, verify SVGs for all possible chart configurations",
+                default: false,
+            },
+            suffix: {
+                alias: "s",
+                type: "string",
+                description:
+                    "Suffix for different SVG files to create <NAME><SUFFIX>.svg files",
+            },
+            "rm-on-error": {
+                type: "boolean",
+                description:
+                    "Remove output files where we encounter errors, so errors are apparent in diffs",
+                default: false,
+            },
+            verbose: {
+                type: "boolean",
+                description: "Verbose mode",
+                default: false,
+            },
+        })
+        .help()
+        .alias("help", "h")
+        .version(false)
+        .parseSync()
 }
+
+const argv = parseArguments()
+void main(argv)

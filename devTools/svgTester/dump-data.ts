@@ -15,7 +15,8 @@ import {
 
 import fs from "fs-extra"
 
-import parseArgs from "minimist"
+import yargs from "yargs"
+import { hideBin } from "yargs/helpers"
 import * as utils from "./utils.js"
 import pMap from "p-map"
 
@@ -46,13 +47,11 @@ async function getAllPublishedGraphers(
     return [...allGraphers.graphersBySlug.values()]
 }
 
-async function main(parsedArgs: parseArgs.ParsedArgs) {
+async function main(parsedArgs: ReturnType<typeof parseArguments>) {
     try {
-        const outDir = parsedArgs["o"] ?? utils.DEFAULT_CONFIGS_DIR
-        const topN = parsedArgs["top"] ? parseInt(parsedArgs["top"]) : undefined
-        const concurrency = parsedArgs["concurrency"]
-            ? parseInt(parsedArgs["concurrency"])
-            : 32
+        const outDir = parsedArgs.o
+        const topN = parsedArgs.top
+        const concurrency = parsedArgs.concurrency
 
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
 
@@ -82,27 +81,45 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
     }
 }
 
-const parsedArgs = parseArgs(process.argv.slice(2))
-
-if (parsedArgs["h"] || parsedArgs["help"]) {
-    console.log(`Export configs and data for all graphers
-
-Usage:
-    dump-data.js [-o] [--top N] [--concurrency N]
-
-Options:
-    -o                Output directory. Inside it one dir per grapher will be created. [default: ${utils.DEFAULT_CONFIGS_DIR}]
-    --top N           Export only the top N most-viewed charts per chart type. If not specified, all charts are exported.
-    --concurrency N   Number of charts to export in parallel. [default: 32]
-
-Examples:
-    dump-data.js                           # Export all charts
-    dump-data.js --top 25                  # Export top 25 most-viewed charts per chart type
-    dump-data.js --top 10 -o /tmp          # Export top 10 most-viewed charts per chart type to /tmp
-    dump-data.js --concurrency 16          # Export all charts with concurrency of 16
-    dump-data.js --top 5 --concurrency 8   # Export top 5 charts per type with concurrency of 8
-    `)
-    process.exit(0)
-} else {
-    void main(parsedArgs)
+function parseArguments() {
+    return yargs(hideBin(process.argv))
+        .usage("Export configs and data for all graphers")
+        .options({
+            o: {
+                type: "string",
+                description:
+                    "Output directory. Inside it one dir per grapher will be created.",
+                default: "../owid-grapher-svgs/graphers/default-views/data",
+            },
+            top: {
+                type: "number",
+                description:
+                    "Export only the top N most-viewed charts per chart type. If not specified, all charts are exported.",
+            },
+            concurrency: {
+                type: "number",
+                description: "Number of charts to export in parallel.",
+                default: 32,
+            },
+        })
+        .example([
+            ["$0", "Export all charts"],
+            ["$0 --top 25", "Export top 25 most-viewed charts per chart type"],
+            [
+                "$0 --top 10 -o /tmp",
+                "Export top 10 most-viewed charts per chart type to /tmp",
+            ],
+            ["$0 --concurrency 16", "Export all charts with concurrency of 16"],
+            [
+                "$0 --top 5 --concurrency 8",
+                "Export top 5 charts per type with concurrency of 8",
+            ],
+        ])
+        .help()
+        .alias("help", "h")
+        .version(false)
+        .parseSync()
 }
+
+const argv = parseArguments()
+void main(argv)

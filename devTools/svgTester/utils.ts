@@ -2,7 +2,6 @@ import {
     GRAPHER_CHART_TYPES,
     GrapherChartType,
     GrapherTabName,
-    ALL_GRAPHER_CHART_TYPES,
     GrapherInterface,
 } from "@ourworldindata/types"
 import {
@@ -33,12 +32,6 @@ import prettier from "prettier"
 import { hashMd5 } from "../../serverUtils/hash.js"
 import * as R from "remeda"
 import ReactDOMServer from "react-dom/server"
-
-// the owid-grapher-svgs repo is usually cloned as a sibling to the owid-grapher repo
-export const DEFAULT_CONFIGS_DIR = "../owid-grapher-svgs/graphers/data"
-export const DEFAULT_REFERENCE_DIR = "../owid-grapher-svgs/graphers/references"
-export const DEFAULT_DIFFERENCES_DIR =
-    "../owid-grapher-svgs/graphers/differences"
 
 const CONFIG_FILENAME = "config.json"
 const RESULTS_FILENAME = "results.csv"
@@ -298,22 +291,6 @@ export async function findValidChartIds(
     return validChartIds
 }
 
-export function validateChartTypes(chartTypes: string[]): GrapherChartType[] {
-    const validChartTypes = chartTypes.filter(
-        (chartType): chartType is GrapherChartType =>
-            ALL_GRAPHER_CHART_TYPES.includes(chartType as any)
-    )
-    const invalidChartTypes = chartTypes.filter(
-        (chartType) => !ALL_GRAPHER_CHART_TYPES.includes(chartType as any)
-    )
-    if (invalidChartTypes.length) {
-        console.warn(
-            `Invalid chart types given: ${invalidChartTypes}. Valid chart types are: ${ALL_GRAPHER_CHART_TYPES}`
-        )
-    }
-    return _.uniq(validChartTypes)
-}
-
 export async function parseGrapherConfig(
     chartId: number,
     { inDir }: { inDir: string }
@@ -325,30 +302,6 @@ export async function parseGrapherConfig(
     )
     const grapherConfig = await fs.readJson(grapherConfigPath)
     return grapherConfig
-}
-
-/** Turn a list of comma separated numbers and ranges into an array of numbers */
-export function getGrapherIdListFromString(rawGrapherIds: string): number[] {
-    return rawGrapherIds.split(",").flatMap((item) => {
-        if (item.includes("-")) {
-            const subparts = item.split("-")
-            if (subparts.length !== 2) {
-                console.warn(`Invalid graphid range: ${item}`)
-                return []
-            } else {
-                const first = parseInt(subparts[0])
-                const second = parseInt(subparts[1])
-                return _.range(first, second + 1)
-            }
-        } else {
-            const parsed = parseInt(item)
-            if (isNaN(parsed)) {
-                return []
-            } else {
-                return [parsed]
-            }
-        }
-    })
 }
 
 export async function writeToFile(data: unknown, filename: string) {
@@ -709,45 +662,6 @@ export function displayVerifyResultsAndGetExitCode(
         returnCode = errorResults.length + differenceResults.length
     }
     return returnCode
-}
-
-// minimist turns a single number into a JS number so we do toString to normalize (TS types are misleading)
-export function parseArgAsString(arg: unknown): string {
-    return (arg ?? "").toString()
-}
-
-export function parseArgAsList(arg: unknown): string[] {
-    return parseArgAsString(arg)
-        .split(",")
-        .filter((entry: string) => entry)
-}
-
-// parses a flag with an optional numeric argument:
-//   - if `arg` is not specified, `defaultIfFlagNotSpecified` is returned
-//   - if `arg` is specified without a value (`--arg`), `defaultIfFlagIsSpecified` is returned
-//   - if `arg` is specified with a value (`--arg 50`), the value is parsed as a number and returned
-export function parseArgAsOptionalNumber(
-    arg: unknown,
-    props?: {
-        defaultIfFlagNotSpecified?: number
-        defaultIfFlagIsSpecified?: number
-    }
-): number {
-    const { defaultIfFlagIsSpecified = 1, defaultIfFlagNotSpecified = 0 } =
-        props ?? {}
-    return arg === true
-        ? defaultIfFlagIsSpecified
-        : arg
-          ? parseInt(arg as string)
-          : defaultIfFlagNotSpecified
-}
-
-export function parseRandomCount(arg: unknown) {
-    return (
-        parseArgAsOptionalNumber(arg, {
-            defaultIfFlagIsSpecified: 10,
-        }) || undefined
-    )
 }
 
 export function readLinesFromFile(filename: string): string[] {
