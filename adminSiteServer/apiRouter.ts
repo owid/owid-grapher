@@ -56,6 +56,7 @@ import {
     handleGetMultiDimRedirects,
     handlePostMultiDimRedirect,
     handleDeleteMultiDimRedirect,
+    handleGetAllMultiDimRedirects,
 } from "./apiRoutes/mdims.js"
 import {
     fetchAllWork,
@@ -379,6 +380,11 @@ putRouteWithRWTransaction(
     handlePutMultiDim
 )
 patchRouteWithRWTransaction(apiRouter, "/multi-dims/:id", handlePatchMultiDim)
+getRouteWithROTransaction(
+    apiRouter,
+    "/multi-dim-redirects.json",
+    handleGetAllMultiDimRedirects
+)
 getRouteWithROTransaction(
     apiRouter,
     "/multi-dims/:id/redirects",

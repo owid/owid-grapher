@@ -491,3 +491,59 @@ export async function handleDeleteMultiDimRedirect(
 
     return { success: true }
 }
+
+export async function handleGetAllMultiDimRedirects(
+    _req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const rows = await db.knexRaw<{
+        id: number
+        source: string
+        viewConfigId: string | null
+        multiDimId: number
+        multiDimSlug: string
+        multiDimTitle: string
+        multiDimConfig: string
+    }>(
+        trx,
+        `-- sql
+        SELECT
+            mdr.id,
+            mdr.source,
+            mdr.viewConfigId,
+            mddp.id as multiDimId,
+            mddp.slug as multiDimSlug,
+            mddp.config->>'$.title.title' as multiDimTitle,
+            mddp.config as multiDimConfig
+        FROM ${MultiDimRedirectsTableName} mdr
+        JOIN ${MultiDimDataPagesTableName} mddp ON mddp.id = mdr.multiDimId
+        WHERE mddp.published = 1 AND mddp.slug IS NOT NULL
+        ORDER BY mddp.slug, mdr.source`
+    )
+
+    const redirects = rows.map((row) => {
+        let targetQueryStr: string | null = null
+        if (row.viewConfigId) {
+            const config = MultiDimDataPageConfig.fromObject(
+                JSON.parse(row.multiDimConfig)
+            )
+            const dimensions = config.findViewDimensionsByConfigId(
+                row.viewConfigId
+            )
+            if (dimensions) {
+                targetQueryStr = queryParamsToStr(dimensions)
+            }
+        }
+        return {
+            id: row.id,
+            source: row.source,
+            multiDimId: row.multiDimId,
+            multiDimSlug: row.multiDimSlug,
+            multiDimTitle: row.multiDimTitle,
+            targetQueryStr,
+        }
+    })
+
+    return { redirects }
+}
