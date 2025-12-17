@@ -40,7 +40,6 @@ async function main(args: ReturnType<typeof parseArguments>) {
             args.allViews ?? testSuite === "grapher-views"
 
         // Other options
-        const suffix = args.suffix
         const rmOnError = args.rmOnError
         const verbose = args.verbose
 
@@ -86,7 +85,6 @@ async function main(args: ReturnType<typeof parseArguments>) {
                     outDir: differencesDir,
                     queryStr,
                     verbose,
-                    suffix,
                     rmOnError,
                 }
             })
@@ -155,7 +153,7 @@ function parseArguments() {
         })
         .parserConfiguration({ "camel-case-expansion": true })
         .options({
-            "view-ids": {
+            viewIds: {
                 alias: "c",
                 type: "string",
                 array: true,
@@ -171,7 +169,7 @@ function parseArguments() {
                     "A space-separated list of chart types, e.g. 'LineChart ScatterPlot'",
             },
             random: {
-                alias: "d",
+                alias: "r",
                 type: "number",
                 description: "Generate SVGs for a random set of configs",
             },
@@ -185,13 +183,6 @@ function parseArguments() {
                 type: "boolean",
                 description:
                     "For each Grapher, verify SVGs for all possible chart configurations. Default depends on the test suite.",
-            },
-            suffix: {
-                alias: "s",
-                type: "string",
-                description:
-                    "Suffix for different SVG files to create <NAME><SUFFIX>.svg files",
-                default: "",
             },
             rmOnError: {
                 type: "boolean",

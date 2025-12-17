@@ -16,7 +16,7 @@ async function main(args: ReturnType<typeof parseArguments>) {
 
         // Input and output directories
         const dataDir = path.join(utils.SVG_REPO_PATH, testSuite, "data")
-        let outDir = path.join(utils.SVG_REPO_PATH, testSuite, "references")
+        const outDir = path.join(utils.SVG_REPO_PATH, testSuite, "references")
 
         // Charts to process
         const targetViewIds = args.viewIds
@@ -29,7 +29,6 @@ async function main(args: ReturnType<typeof parseArguments>) {
             args.allViews ?? testSuite === "grapher-views"
 
         // Other options
-        const enableComparisons = args.compare
         const isolate = args.isolate
         const verbose = args.verbose
 
@@ -43,11 +42,6 @@ async function main(args: ReturnType<typeof parseArguments>) {
                 verbose,
                 "Not running in 'isolate'. Reported heap usage readouts will be inaccurate. Run in --isolate mode (way slower!) for accurate heap usage readouts."
             )
-        }
-
-        // create a directory that contains the old and new svgs for easy comparing
-        if (enableComparisons) {
-            outDir = path.join(outDir, "comparisons")
         }
 
         if (!fs.existsSync(dataDir))
@@ -122,31 +116,6 @@ async function main(args: ReturnType<typeof parseArguments>) {
             }
         }
 
-        // Copy over copies from master for easy comparing
-        if (enableComparisons) {
-            const comparisonDir = await fs.opendir(outDir)
-            const filenames: string[] = []
-            for await (const file of comparisonDir) {
-                if (file.name.includes("svg")) {
-                    filenames.push(file.name)
-                }
-            }
-            const svgPath = path.join(dataDir, "..", "svg")
-            const masterDir = await fs.opendir(svgPath)
-            for await (const file of masterDir) {
-                if (filenames.includes(file.name)) {
-                    await fs.copyFile(
-                        path.join(svgPath, file.name),
-                        path.join(outDir, file.name.replace(".svg", "_old.svg"))
-                    )
-                    await fs.copyFile(
-                        path.join(outDir, file.name),
-                        path.join(svgPath, file.name)
-                    )
-                }
-            }
-        }
-
         await utils.writeReferenceCsv(outDir, svgRecords)
         // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
         // was not required before introducing the multiprocessing library.
@@ -187,7 +156,7 @@ function parseArguments() {
                     "A space-separated list of chart types, e.g. 'LineChart ScatterPlot'",
             },
             random: {
-                alias: "d",
+                alias: "r",
                 type: "number",
                 description: "Generate SVGs for a random set of configs",
             },
@@ -201,12 +170,6 @@ function parseArguments() {
                 type: "boolean",
                 description:
                     "For each Grapher, generate SVGs for all possible chart configurations. Default depends on the test suite.",
-            },
-            compare: {
-                type: "boolean",
-                description:
-                    "Create a directory containing the old and new SVGs for easy comparison",
-                default: false,
             },
             isolate: {
                 type: "boolean",
