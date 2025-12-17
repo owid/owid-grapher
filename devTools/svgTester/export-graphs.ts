@@ -165,8 +165,7 @@ function parseArguments() {
         .command("$0 [testSuite]", false)
         .positional("testSuite", {
             type: "string",
-            description:
-                "Test suite to run: 'graphers' for default Grapher views, 'grapher-views' for all views of a subset of Graphers",
+            description: utils.TEST_SUITE_DESCRIPTION,
             default: "graphers",
             choices: utils.TEST_SUITES,
         })

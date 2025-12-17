@@ -38,6 +38,9 @@ export const SVG_REPO_PATH = "../owid-grapher-svgs"
 export const TEST_SUITES = ["graphers", "grapher-views", "mdims"] as const
 export type TestSuite = (typeof TEST_SUITES)[number]
 
+export const TEST_SUITE_DESCRIPTION =
+    "Test suite to run: 'graphers' for default Grapher views, 'grapher-views' for all views of a subset of Graphers. 'mdims' for all multi-dim views."
+
 const CONFIG_FILENAME = "config.json"
 const RESULTS_FILENAME = "results.csv"
 
