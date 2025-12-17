@@ -1093,64 +1093,6 @@ div.raw-html-table__container {
     }
 }
 
-.article-block__prominent-link {
-    margin-bottom: 8px;
-    color: $blue-90;
-    background-color: $gray-5;
-    padding: 16px;
-
-    > .prominent-link__image {
-        height: 100%;
-        width: 100%;
-        margin-top: 4px;
-    }
-
-    .prominent-link__image--centered,
-    .prominent-link__text--centered {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-    }
-
-    .prominent-link__heading-wrapper {
-        display: flex;
-        justify-content: space-between;
-        gap: 8px;
-    }
-
-    .prominent-link__icon-external {
-        color: $blue-60;
-        margin-top: 4px;
-    }
-
-    &:hover .prominent-link__icon-external {
-        color: $blue-90;
-    }
-
-    p {
-        margin: 0;
-        @include sm-only {
-            overflow: hidden;
-            display: -webkit-box;
-            -webkit-box-orient: vertical;
-            -webkit-line-clamp: 3;
-        }
-    }
-
-    h3 {
-        display: inline-block;
-        margin: 0 0 4px 0;
-        &:hover {
-            text-decoration: underline;
-        }
-    }
-
-    // Last consecutive sibling.
-    &:has(+ :not(.article-block__prominent-link)) {
-        margin-bottom: 32px;
-    }
-}
-
 .article-block__text + .article-block__prominent-link {
     margin-top: 16px; // makes 32px gap with the default 16px bottom margin of text blocks, for symmetry with bottom margin 👆
     @include sm-only {

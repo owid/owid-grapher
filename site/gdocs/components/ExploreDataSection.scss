@@ -24,7 +24,7 @@
     }
 
     .article-block__prominent-link {
-        @include prominent-link-dark-style;
+        background-color: $blue-20;
     }
 }
 

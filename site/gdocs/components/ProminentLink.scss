@@ -1,0 +1,16 @@
+.prominent-link {
+    --thumbnail-width: 70px;
+    background-color: $gray-5;
+    padding: 16px;
+    padding-bottom: 8px;
+    align-self: start;
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    grid-row: span 10;
+
+    // Last consecutive sibling.
+    &:has(+ :not(.prominent-link)) {
+        margin-bottom: 32px;
+    }
+}

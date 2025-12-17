@@ -152,7 +152,7 @@ $slide-content-height: $grapher-height;
 }
 
 .article-block__key-insights-content-column {
-    p {
+    @include text-block-override {
         @include body-2-regular;
     }
 }
