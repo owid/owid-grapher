@@ -6,8 +6,9 @@ import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import { getRedirectsFromDb } from "../db/model/Redirect.js"
 import {
     getAllRedirectsMap,
-    getRecentNonSiteRedirects,
+    getRecentGrapherRedirects,
 } from "./redirectsFromDb.js"
+import { getRecentMultiDimRedirects } from "../db/model/MultiDimRedirects.js"
 
 export const getRedirects = async (knex: db.KnexReadonlyTransaction) => {
     const staticRedirects = [
@@ -75,15 +76,26 @@ export const getRedirects = async (knex: db.KnexReadonlyTransaction) => {
         (row) => `${row.source} ${row.target} ${row.code}`
     )
 
-    const recentNonSiteRedirects = (await getRecentNonSiteRedirects(knex)).map(
+    // Prevent Cloudflare from serving outdated non-site pages (grapher,
+    // explorers, multi-dims), which can remain in the cache for up to a week.
+    // This is necessary since in the Cloudflare Functions we take into
+    // consideration the grapher and multi-dim redirects only when the route
+    // returns a 404, which won't be the case if the page is still cached.
+    // https://developers.cloudflare.com/pages/configuration/serving-pages/#asset-retention
+    const recentGrapherRedirects = (await getRecentGrapherRedirects(knex)).map(
         (row) => `${row.source} ${row.target} 302`
     )
+    const recentMultiDimRedirects = (
+        await getRecentMultiDimRedirects(knex)
+    ).map((row) => `${row.source} ${row.target} 302`)
 
     // Add newlines in between so we get some more overview
     return [
         ...staticRedirects,
         "",
-        ...recentNonSiteRedirects,
+        ...recentGrapherRedirects,
+        "",
+        ...recentMultiDimRedirects,
         "",
         ...redirectsFromDb,
         "",

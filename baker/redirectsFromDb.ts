@@ -1,26 +1,17 @@
 import * as _ from "lodash-es"
 import * as db from "../db/db.js"
 import { getRedirectsFromDb } from "../db/model/Redirect.js"
-import {
-    getMultiDimRedirectTargets,
-    getRecentMultiDimRedirects,
-} from "../db/model/MultiDimRedirects.js"
+import { getMultiDimRedirectTargets } from "../db/model/MultiDimRedirects.js"
 
-export interface RecentNonSiteRedirect {
-    source: string
-    target: string
-}
-
-export async function getRecentNonSiteRedirects(
+// Prevent Cloudflare from serving outdated pages, which can remain in the
+// cache for up to a week. This is necessary since in the Cloudflare Functions
+// we take into consideration the grapher and multi-dim redirects only when the
+// route returns a 404, which won't be the case if the page is still cached.
+// https://developers.cloudflare.com/pages/configuration/serving-pages/#asset-retention
+export async function getRecentGrapherRedirects(
     knex: db.KnexReadonlyTransaction
-): Promise<RecentNonSiteRedirect[]> {
-    // Prevent Cloudflare from serving outdated non-site pages (grapher,
-    // explorers, multi-dims), which can remain in the cache for up to a week.
-    // This is necessary, since in the Cloudflare Functions we take into
-    // consideration the grapher and multi-dim redirects only when the route
-    // returns a 404, which won't be the case if the page is still cached.
-    // https://developers.cloudflare.com/pages/configuration/serving-pages/#asset-retention
-    const grapherRedirects = await db.knexRaw<{
+): Promise<Array<{ source: string; target: string }>> {
+    return db.knexRaw<{
         source: string
         target: string
     }>(
@@ -37,8 +28,6 @@ export async function getRecentNonSiteRedirects(
             > (NOW() - INTERVAL 1 WEEK)
         `
     )
-    const multiDimRedirects = await getRecentMultiDimRedirects(knex)
-    return [...grapherRedirects, ...multiDimRedirects]
 }
 
 export const getGrapherRedirectsMap = async (
