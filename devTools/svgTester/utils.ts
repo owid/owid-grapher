@@ -555,7 +555,6 @@ export interface RenderJobDescription {
     outDir: string
     queryStr?: string
     verbose: boolean
-    suffix?: string
     rmOnError?: boolean
 }
 
@@ -566,7 +565,6 @@ export async function renderAndVerifySvg({
     outDir,
     queryStr,
     verbose,
-    suffix,
     rmOnError,
 }: RenderJobDescription): Promise<VerifyResult> {
     try {
@@ -593,7 +591,7 @@ export async function renderAndVerifySvg({
                 const pathFragments = path.parse(svgRecord.svgFilename)
                 const outputPath = path.join(
                     outDir,
-                    pathFragments.name + suffix + pathFragments.ext
+                    pathFragments.name + pathFragments.ext
                 )
                 const cleanedSvg = await prepareSvgForComparison(svg)
                 await fs.writeFile(outputPath, cleanedSvg)
