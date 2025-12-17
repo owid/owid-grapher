@@ -3,14 +3,16 @@ import { Url } from "@ourworldindata/utils"
 import { isCanonicalInternalUrl } from "./formatting.js"
 import { DEPRECATED_resolveExplorerRedirect } from "./replaceExplorerRedirects.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
-import { getRedirectsFromDb } from "../db/model/Redirect.js"
+import { getSiteRedirects } from "../db/model/Redirect.js"
 import {
     DEPRECATED_getAllRedirectsMap,
-    getRecentGrapherRedirects,
+    getRecentChartSlugRedirects,
 } from "./redirectsFromDb.js"
 import { getRecentMultiDimRedirects } from "../db/model/MultiDimRedirects.js"
 
-export const getRedirects = async (knex: db.KnexReadonlyTransaction) => {
+export const getCloudflarePagesRedirects = async (
+    knex: db.KnexReadonlyTransaction
+) => {
     const staticRedirects = [
         // RSS feed
         "/feed /atom.xml 302",
@@ -72,7 +74,7 @@ export const getRedirects = async (knex: db.KnexReadonlyTransaction) => {
 
     // Get redirects from the database (exported from the Wordpress DB)
     // Redirects are assumed to be trailing-slash-free (see syncRedirectsToGrapher.ts)
-    const redirectsFromDb = (await getRedirectsFromDb(knex)).map(
+    const siteRedirects = (await getSiteRedirects(knex)).map(
         (row) => `${row.source} ${row.target} ${row.code}`
     )
 
@@ -82,9 +84,9 @@ export const getRedirects = async (knex: db.KnexReadonlyTransaction) => {
     // consideration the grapher and multi-dim redirects only when the route
     // returns a 404, which won't be the case if the page is still cached.
     // https://developers.cloudflare.com/pages/configuration/serving-pages/#asset-retention
-    const recentGrapherRedirects = (await getRecentGrapherRedirects(knex)).map(
-        (row) => `${row.source} ${row.target} 302`
-    )
+    const recentChartSlugRedirects = (
+        await getRecentChartSlugRedirects(knex)
+    ).map((row) => `${row.source} ${row.target} 302`)
     const recentMultiDimRedirects = (
         await getRecentMultiDimRedirects(knex)
     ).map((row) => `${row.source} ${row.target} 302`)
@@ -93,11 +95,11 @@ export const getRedirects = async (knex: db.KnexReadonlyTransaction) => {
     return [
         ...staticRedirects,
         "",
-        ...recentGrapherRedirects,
+        ...recentChartSlugRedirects,
         "",
         ...recentMultiDimRedirects,
         "",
-        ...redirectsFromDb,
+        ...siteRedirects,
         "",
         ...dynamicRedirects, // Cloudflare requires all dynamic redirects to be at the very end of the _redirects file
     ]

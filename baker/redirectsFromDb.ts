@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as db from "../db/db.js"
-import { getRedirectsFromDb } from "../db/model/Redirect.js"
+import { getSiteRedirects } from "../db/model/Redirect.js"
 import { getMultiDimRedirectTargets } from "../db/model/MultiDimRedirects.js"
 
 // Prevent Cloudflare from serving outdated pages, which can remain in the
@@ -8,7 +8,7 @@ import { getMultiDimRedirectTargets } from "../db/model/MultiDimRedirects.js"
 // we take into consideration the grapher and multi-dim redirects only when the
 // route returns a 404, which won't be the case if the page is still cached.
 // https://developers.cloudflare.com/pages/configuration/serving-pages/#asset-retention
-export async function getRecentGrapherRedirects(
+export async function getRecentChartSlugRedirects(
     knex: db.KnexReadonlyTransaction
 ): Promise<Array<{ source: string; target: string }>> {
     return db.knexRaw<{
@@ -30,26 +30,23 @@ export async function getRecentGrapherRedirects(
     )
 }
 
-export const getGrapherRedirectsMap = async (
+export const getGrapherToChartAndMultiDimRedirects = async (
     knex: db.KnexReadonlyTransaction,
     urlPrefix: string = "/grapher/"
 ): Promise<Map<string, string>> => {
-    const grapherToGrapherRedirects = await getGrapherToGrapherRedirectsMap(
+    const grapherToChartRedirects = await getGrapherToChartRedirects(
         knex,
         urlPrefix
     )
-    const grapherToMultiDimRedirects = await getGrapherToMultiDimRedirectsMap(
+    const grapherToMultiDimRedirects = await getGrapherToMultiDimRedirects(
         knex,
         urlPrefix
     )
 
-    return new Map([
-        ...grapherToGrapherRedirects,
-        ...grapherToMultiDimRedirects,
-    ])
+    return new Map([...grapherToChartRedirects, ...grapherToMultiDimRedirects])
 }
 
-export const getGrapherToGrapherRedirectsMap = async (
+export const getGrapherToChartRedirects = async (
     knex: db.KnexReadonlyTransaction,
     urlPrefix: string = "/grapher/"
 ): Promise<Map<string, string>> => {
@@ -76,7 +73,7 @@ export const getGrapherToGrapherRedirectsMap = async (
     )
 }
 
-export const getGrapherToMultiDimRedirectsMap = async (
+export const getGrapherToMultiDimRedirects = async (
     knex: db.KnexReadonlyTransaction,
     urlPrefix: string = "/grapher/"
 ): Promise<Map<string, string>> => {
@@ -96,7 +93,7 @@ export const getGrapherToMultiDimRedirectsMap = async (
     return redirects
 }
 
-export async function getExplorerRedirectsMap(
+export async function getExplorerToMultiDimRedirects(
     knex: db.KnexReadonlyTransaction,
     urlPrefix: string = "/explorers/"
 ): Promise<Map<string, string>> {
@@ -116,10 +113,12 @@ export async function getExplorerRedirectsMap(
     return redirects
 }
 
-export const getSiteRedirectsMap = async (knex: db.KnexReadonlyTransaction) => {
-    const redirectsFromDb = await getRedirectsFromDb(knex)
+export const DEPRECATED_getSiteRedirectsMap = async (
+    knex: db.KnexReadonlyTransaction
+) => {
+    const siteRedirects = await getSiteRedirects(knex)
 
-    return new Map(redirectsFromDb.map((row) => [row.source, row.target]))
+    return new Map(siteRedirects.map((row) => [row.source, row.target]))
 }
 
 export const DEPRECATED_getAllRedirectsMap = _.memoize(
@@ -127,16 +126,17 @@ export const DEPRECATED_getAllRedirectsMap = _.memoize(
         // source: pathnames only (e.g. /transport)
         // target: pathnames with or without origins (e.g. /transport-new or https://ourworldindata.org/transport-new)
 
-        const grapherRedirects = await getGrapherRedirectsMap(knex)
-        const explorerRedirects = await getExplorerRedirectsMap(knex)
-        const wordpressRedirects = await getSiteRedirectsMap(knex)
+        const grapherRedirects =
+            await getGrapherToChartAndMultiDimRedirects(knex)
+        const explorerRedirects = await getExplorerToMultiDimRedirects(knex)
+        const siteRedirects = await DEPRECATED_getSiteRedirectsMap(knex)
 
-        // The order matters: wordpress redirects can override both grapher and
+        // The order matters: site redirects can override both grapher and
         // explorer redirects.
         return new Map([
             ...grapherRedirects,
             ...explorerRedirects,
-            ...wordpressRedirects,
+            ...siteRedirects,
         ])
     }
 )

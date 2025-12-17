@@ -56,7 +56,10 @@ import {
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
-import { getRedirects, flushCache as redirectsFlushCache } from "./redirects.js"
+import {
+    getCloudflarePagesRedirects,
+    flushCache as redirectsFlushCache,
+} from "./redirects.js"
 import { bakeAllChangedGrapherPagesAndDeleteRemovedGraphers } from "./GrapherBaker.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import {
@@ -92,8 +95,8 @@ import { getAllLinkedPublishedMultiDimDataPages } from "../db/model/MultiDimData
 import { getPublicDonorNames } from "../db/model/Donor.js"
 import { getNarrativeChartsInfo } from "../db/model/NarrativeChart.js"
 import {
-    getExplorerRedirectsMap,
-    getGrapherRedirectsMap,
+    getExplorerToMultiDimRedirects,
+    getGrapherToChartAndMultiDimRedirects,
 } from "./redirectsFromDb.js"
 import * as R from "remeda"
 import { getDods, getParsedDodsDictionary } from "../db/model/Dod.js"
@@ -1109,19 +1112,22 @@ export class SiteBaker {
     async bakeRedirects(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("redirects")) return
         this.progressBar.tick({ name: "Baking redirects" })
-        const redirects = await getRedirects(knex)
+        const redirects = await getCloudflarePagesRedirects(knex)
         await this.stageWrite(
             path.join(this.bakedSiteDir, `_redirects`),
             redirects.join("\n")
         )
 
-        const grapherRedirects = await getGrapherRedirectsMap(knex, "")
+        const grapherRedirects = await getGrapherToChartAndMultiDimRedirects(
+            knex,
+            ""
+        )
         await this.stageWrite(
             path.join(this.bakedSiteDir, `grapher/_grapherRedirects.json`),
             JSON.stringify(Object.fromEntries(grapherRedirects), null, 2)
         )
 
-        const explorerRedirects = await getExplorerRedirectsMap(knex, "")
+        const explorerRedirects = await getExplorerToMultiDimRedirects(knex, "")
         await this.stageWrite(
             path.join(this.bakedSiteDir, `explorers/_explorerRedirects.json`),
             JSON.stringify(Object.fromEntries(explorerRedirects), null, 2)
