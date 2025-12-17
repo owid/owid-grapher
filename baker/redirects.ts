@@ -1,11 +1,11 @@
 import * as db from "../db/db.js"
 import { Url } from "@ourworldindata/utils"
 import { isCanonicalInternalUrl } from "./formatting.js"
-import { resolveExplorerRedirect } from "./replaceExplorerRedirects.js"
+import { DEPRECATED_resolveExplorerRedirect } from "./replaceExplorerRedirects.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import { getRedirectsFromDb } from "../db/model/Redirect.js"
 import {
-    getAllRedirectsMap,
+    DEPRECATED_getAllRedirectsMap,
     getRecentGrapherRedirects,
 } from "./redirectsFromDb.js"
 import { getRecentMultiDimRedirects } from "../db/model/MultiDimRedirects.js"
@@ -103,7 +103,7 @@ export const getRedirects = async (knex: db.KnexReadonlyTransaction) => {
     ]
 }
 
-export const resolveRedirectFromMap = async (
+export const DEPRECATED_resolveRedirectFromMap = async (
     url: Url,
     redirectsMap: Map<string, string>
 ): Promise<Url> => {
@@ -149,39 +149,43 @@ export const resolveRedirectFromMap = async (
     return _resolveRedirectFromMap(url)
 }
 
-export const resolveInternalRedirect = async (
-    url: Url,
-    knex: db.KnexReadonlyTransaction
-): Promise<Url> => {
-    if (!isCanonicalInternalUrl(url)) return url
+// Only used for prominent links in historical wordpress content (at the time of
+// writing, this is limited to topic country profiles and reusable blocks in
+// explorer pages)
+export const DEPRECATED_resolveInternalRedirectForWordpressProminentLinks =
+    async (url: Url, knex: db.KnexReadonlyTransaction): Promise<Url> => {
+        if (!isCanonicalInternalUrl(url)) return url
 
-    // Assumes that redirects in explorer code are final (in line with the
-    // current expectation). This helps keeping complexity at bay, while
-    // avoiding unnecessary processing.
+        // Assumes that redirects in explorer code are final (in line with the
+        // current expectation). This helps keeping complexity at bay, while
+        // avoiding unnecessary processing.
 
-    // In other words, in the following hypothetical redirect chain:
-    // (1) wordpress redirect: /omicron --> /explorers/omicron
-    // (2) wordpress redirect: /explorers/omicron --> /grapher/omicron
-    // (3) grapher admin redirect: /grapher/omicron --> /grapher/omicron-v1
-    // (4) wordpress redirect: /grapher/omicron-v1 --> /grapher/omicron-v2
-    // (5) explorer code redirect: /grapher/omicron-v2 --> /explorers/coronavirus-data-explorer?omicron=true
-    // --- END OF REDIRECTS ---
-    // (6) wordpress redirect: /explorers/coronavirus-data-explorer --> /explorers/covid
+        // In other words, in the following hypothetical redirect chain:
+        // (1) wordpress redirect: /omicron --> /explorers/omicron
+        // (2) wordpress redirect: /explorers/omicron --> /grapher/omicron
+        // (3) grapher admin redirect: /grapher/omicron --> /grapher/omicron-v1
+        // (4) wordpress redirect: /grapher/omicron-v1 --> /grapher/omicron-v2
+        // (5) explorer code redirect: /grapher/omicron-v2 --> /explorers/coronavirus-data-explorer?omicron=true
+        // --- END OF REDIRECTS ---
+        // (6) wordpress redirect: /explorers/coronavirus-data-explorer --> /explorers/covid
 
-    // - The last redirect (6) is not executed because is comes after a redirect
-    //   stored in explorer code.
-    // - If a /grapher/omicron-v2 --> /grapher/omicron-v3 were to be defined in
-    //   wordpress (or grapher admin), it would be resolved before (5), and (5)
-    //   would never execute.
-    // - (2) does not block the redirects chain. Even though an explorer URL is
-    //   redirected, what matters here is where the redirect is stored
-    //   (wordpress), not what is redirected.
+        // - The last redirect (6) is not executed because is comes after a redirect
+        //   stored in explorer code.
+        // - If a /grapher/omicron-v2 --> /grapher/omicron-v3 were to be defined in
+        //   wordpress (or grapher admin), it would be resolved before (5), and (5)
+        //   would never execute.
+        // - (2) does not block the redirects chain. Even though an explorer URL is
+        //   redirected, what matters here is where the redirect is stored
+        //   (wordpress), not what is redirected.
 
-    return resolveExplorerRedirect(
-        await resolveRedirectFromMap(url, await getAllRedirectsMap(knex))
-    )
-}
+        return DEPRECATED_resolveExplorerRedirect(
+            await DEPRECATED_resolveRedirectFromMap(
+                url,
+                await DEPRECATED_getAllRedirectsMap(knex)
+            )
+        )
+    }
 
 export const flushCache = () => {
-    getAllRedirectsMap.cache.clear?.()
+    DEPRECATED_getAllRedirectsMap.cache.clear?.()
 }

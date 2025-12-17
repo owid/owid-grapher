@@ -116,22 +116,20 @@ export async function getExplorerRedirectsMap(
     return redirects
 }
 
-export const getWordpressRedirectsMap = async (
-    knex: db.KnexReadonlyTransaction
-) => {
+export const getSiteRedirectsMap = async (knex: db.KnexReadonlyTransaction) => {
     const redirectsFromDb = await getRedirectsFromDb(knex)
 
     return new Map(redirectsFromDb.map((row) => [row.source, row.target]))
 }
 
-export const getAllRedirectsMap = _.memoize(
+export const DEPRECATED_getAllRedirectsMap = _.memoize(
     async (knex: db.KnexReadonlyTransaction): Promise<Map<string, string>> => {
         // source: pathnames only (e.g. /transport)
         // target: pathnames with or without origins (e.g. /transport-new or https://ourworldindata.org/transport-new)
 
         const grapherRedirects = await getGrapherRedirectsMap(knex)
         const explorerRedirects = await getExplorerRedirectsMap(knex)
-        const wordpressRedirects = await getWordpressRedirectsMap(knex)
+        const wordpressRedirects = await getSiteRedirectsMap(knex)
 
         // The order matters: wordpress redirects can override both grapher and
         // explorer redirects.

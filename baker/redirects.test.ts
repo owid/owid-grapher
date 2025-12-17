@@ -3,13 +3,16 @@ import { vi, it, expect } from "vitest"
 import { Url, strToQueryParams } from "@ourworldindata/utils"
 import { formatUrls } from "../site/formatting.js"
 import * as redirectsFromDb from "./redirectsFromDb.js"
-import { resolveInternalRedirect } from "./redirects.js"
+import { DEPRECATED_resolveInternalRedirectForWordpressProminentLinks } from "./redirects.js"
 
 import { KnexReadonlyTransaction } from "../db/db.js"
 
 type ArrayForMap = [string, string][]
 
-const getAllRedirectsMap = vi.spyOn(redirectsFromDb, "getAllRedirectsMap")
+const getAllRedirectsMap = vi.spyOn(
+    redirectsFromDb,
+    "DEPRECATED_getAllRedirectsMap"
+)
 
 const getFormattedUrl = (url: string): Url => {
     return Url.fromURL(formatUrls(url))
@@ -28,7 +31,7 @@ it("resolves pathnames", async () => {
     )
 
     expect(
-        await resolveInternalRedirect(
+        await DEPRECATED_resolveInternalRedirectForWordpressProminentLinks(
             urlToResolve,
             {} as KnexReadonlyTransaction
         )
@@ -47,7 +50,7 @@ it("does not support query string in redirects map", async () => {
     )
 
     expect(
-        await resolveInternalRedirect(
+        await DEPRECATED_resolveInternalRedirectForWordpressProminentLinks(
             urlToResolve,
             {} as KnexReadonlyTransaction
         )
@@ -72,7 +75,7 @@ it("passes query string params when resolving", async () => {
     )
 
     expect(
-        await resolveInternalRedirect(
+        await DEPRECATED_resolveInternalRedirectForWordpressProminentLinks(
             urlToResolve,
             {} as KnexReadonlyTransaction
         )
@@ -94,7 +97,7 @@ it("does not pass query string params when some present on the target", async ()
     )
 
     expect(
-        await resolveInternalRedirect(
+        await DEPRECATED_resolveInternalRedirectForWordpressProminentLinks(
             urlToResolve,
             {} as KnexReadonlyTransaction
         )
@@ -113,7 +116,7 @@ it("resolves self-redirects", async () => {
     )
 
     expect(
-        await resolveInternalRedirect(
+        await DEPRECATED_resolveInternalRedirectForWordpressProminentLinks(
             urlToResolve,
             {} as KnexReadonlyTransaction
         )
@@ -135,13 +138,13 @@ it("does not support query params in self-redirects", async () => {
     )
 
     expect(
-        await resolveInternalRedirect(
+        await DEPRECATED_resolveInternalRedirectForWordpressProminentLinks(
             urlToResolve,
             {} as KnexReadonlyTransaction
         )
     ).toEqual(urlToResolve)
     expect(
-        await resolveInternalRedirect(
+        await DEPRECATED_resolveInternalRedirectForWordpressProminentLinks(
             urlToResolveWithQueryParam,
             {} as KnexReadonlyTransaction
         )
@@ -165,7 +168,7 @@ it("resolves circular redirects", async () => {
     )
 
     expect(
-        await resolveInternalRedirect(
+        await DEPRECATED_resolveInternalRedirectForWordpressProminentLinks(
             urlToResolve,
             {} as KnexReadonlyTransaction
         )

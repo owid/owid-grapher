@@ -7,7 +7,7 @@ import { FormattedPost, FullPost, TocHeading, Url } from "@ourworldindata/utils"
 import { Footnote } from "../site/Footnote.js"
 import { PROMINENT_LINK_CLASSNAME } from "../site/blocks/ProminentLink.js"
 import { DEEP_LINK_CLASS, formatImages } from "./formatting.js"
-import { replaceIframesWithExplorerRedirectsInWordPressPost } from "./replaceExplorerRedirects.js"
+import { DEPRECATED_replaceIframesWithExplorerRedirectsInWordPressPost } from "./replaceExplorerRedirects.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { renderHelp } from "../site/blocks/renderHelp.js"
 import { formatUrls, getBodyHtml } from "../site/formatting.js"
@@ -89,7 +89,7 @@ export const formatWordpressPost = async (
     }
 
     // Replace URLs pointing to Explorer redirect URLs with the destination URLs
-    replaceIframesWithExplorerRedirectsInWordPressPost(cheerioEl)
+    DEPRECATED_replaceIframesWithExplorerRedirectsInWordPressPost(cheerioEl)
 
     const grapherIframes = cheerioEl("iframe")
         .toArray()
