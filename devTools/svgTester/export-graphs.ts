@@ -11,23 +11,27 @@ import { ALL_GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 
 async function main(args: ReturnType<typeof parseArguments>) {
     try {
-        // input and output directories
-        const inDir: string = args.i
-        let outDir: string = args.o
+        // Test suite
+        const testSuite = args.testSuite as utils.TestSuite
 
-        // charts to process
+        // Input and output directories
+        const dataDir = path.join(utils.SVG_REPO_PATH, testSuite, "data")
+        let outDir = path.join(utils.SVG_REPO_PATH, testSuite, "references")
+
+        // Charts to process
         const targetGrapherIds = args.ids
         const targetChartTypes = args.chartTypes
         const randomCount = args.random
 
-        // chart configurations to test
-        const grapherQueryString: string = args.queryStr ?? ""
-        const shouldTestAllChartViews: boolean = args.allViews
+        // Chart configurations to test
+        const grapherQueryString = args.queryStr
+        const shouldTestAllChartViews =
+            args.allViews ?? testSuite === "grapher-views"
 
-        // other options
-        const enableComparisons: boolean = args.compare
-        const isolate: boolean = args.isolate
-        const verbose: boolean = args.verbose
+        // Other options
+        const enableComparisons = args.compare
+        const isolate = args.isolate
+        const verbose = args.verbose
 
         if (isolate) {
             utils.logIfVerbose(
@@ -46,18 +50,18 @@ async function main(args: ReturnType<typeof parseArguments>) {
             outDir = path.join(outDir, "comparisons")
         }
 
-        if (!fs.existsSync(inDir))
-            throw `Input directory does not exist ${inDir}`
+        if (!fs.existsSync(dataDir))
+            throw `Input directory does not exist ${dataDir}`
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
 
-        const chartIdsToProcess = await utils.selectChartIdsToProcess(inDir, {
+        const chartIdsToProcess = await utils.selectChartIdsToProcess(dataDir, {
             grapherIds: targetGrapherIds,
             chartTypes: targetChartTypes,
             randomCount,
         })
 
         const chartViewsToGenerate = await utils.findChartViewsToGenerate(
-            inDir,
+            dataDir,
             chartIdsToProcess,
             {
                 queryStr: grapherQueryString,
@@ -67,7 +71,7 @@ async function main(args: ReturnType<typeof parseArguments>) {
 
         const jobDescriptions: utils.RenderSvgAndSaveJobDescription[] =
             chartViewsToGenerate.map((chart: utils.ChartWithQueryStr) => ({
-                dir: path.join(inDir, chart.id.toString()),
+                dir: path.join(dataDir, chart.id.toString()),
                 queryStr: chart.queryStr,
                 outDir,
             }))
@@ -124,7 +128,7 @@ async function main(args: ReturnType<typeof parseArguments>) {
                     filenames.push(file.name)
                 }
             }
-            const svgPath = path.join(inDir, "..", "svg")
+            const svgPath = path.join(dataDir, "..", "svg")
             const masterDir = await fs.opendir(svgPath)
             for await (const file of masterDir) {
                 if (filenames.includes(file.name)) {
@@ -155,21 +159,16 @@ async function main(args: ReturnType<typeof parseArguments>) {
 function parseArguments() {
     return yargs(hideBin(process.argv))
         .usage("Export Grapher SVG renderings and a summary CSV file")
+        .command("$0 [testSuite]", false)
+        .positional("testSuite", {
+            type: "string",
+            description:
+                "Test suite to run: 'graphers' for default Grapher views, 'grapher-views' for all views of a subset of Graphers",
+            default: "graphers",
+            choices: utils.TEST_SUITES,
+        })
         .parserConfiguration({ "camel-case-expansion": true })
         .options({
-            i: {
-                type: "string",
-                description:
-                    "Input directory containing Grapher configs and data",
-                default: "../owid-grapher-svgs/graphers/default-views/data",
-            },
-            o: {
-                type: "string",
-                description:
-                    "Output directory that will contain the CSV file and one SVG file per grapher",
-                default:
-                    "../owid-grapher-svgs/graphers/default-views/references",
-            },
             ids: {
                 alias: "c",
                 type: "number",
@@ -177,7 +176,7 @@ function parseArguments() {
                 description:
                     "A space-separated list of config IDs, e.g. '2 4 8 10'",
             },
-            "chart-types": {
+            chartTypes: {
                 alias: "t",
                 type: "string",
                 array: true,
@@ -190,17 +189,16 @@ function parseArguments() {
                 type: "number",
                 description: "Generate SVGs for a random set of configs",
             },
-            "query-str": {
+            queryStr: {
                 alias: "q",
                 type: "string",
                 description:
                     "Grapher query string to export charts with a specific configuration, e.g. tab=chart&stackMode=relative",
             },
-            "all-views": {
+            allViews: {
                 type: "boolean",
                 description:
-                    "For each Grapher, generate SVGs for all possible chart configurations",
-                default: false,
+                    "For each Grapher, generate SVGs for all possible chart configurations. Default depends on the test suite.",
             },
             compare: {
                 type: "boolean",

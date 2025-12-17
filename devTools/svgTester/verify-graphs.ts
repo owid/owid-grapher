@@ -13,39 +13,51 @@ import { ALL_GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 
 async function main(args: ReturnType<typeof parseArguments>) {
     try {
-        // input and output directories
-        const inDir: string = args.i
-        const referenceDir: string = args.r
-        const outDir: string = args.o
+        // Test suite
+        const testSuite = args.testSuite as utils.TestSuite
 
-        // charts to process
+        // Input and output directories
+        const dataDir = path.join(utils.SVG_REPO_PATH, testSuite, "data")
+        const referencesDir = path.join(
+            utils.SVG_REPO_PATH,
+            testSuite,
+            "references"
+        )
+        const differencesDir = path.join(
+            utils.SVG_REPO_PATH,
+            testSuite,
+            "differences"
+        )
+
+        // Charts to process
         const targetGrapherIds = args.ids
         const targetChartTypes = args.chartTypes
         const randomCount = args.random
 
-        // chart configurations to test
-        const grapherQueryString: string = args.queryStr ?? ""
-        const shouldTestAllChartViews: boolean = args.allViews
+        // Chart configurations to test
+        const grapherQueryString = args.queryStr
+        const shouldTestAllChartViews =
+            args.allViews ?? testSuite === "grapher-views"
 
-        // other options
-        const suffix: string = args.suffix ?? ""
-        const rmOnError: boolean = args.rmOnError
-        const verbose: boolean = args.verbose
+        // Other options
+        const suffix = args.suffix
+        const rmOnError = args.rmOnError
+        const verbose = args.verbose
 
-        if (!fs.existsSync(inDir))
-            throw `Input directory does not exist ${inDir}`
-        if (!fs.existsSync(referenceDir))
-            throw `Reference directory does not exist ${inDir}`
-        if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
+        if (!fs.existsSync(dataDir))
+            throw `Input directory does not exist ${dataDir}`
+        if (!fs.existsSync(referencesDir))
+            throw `Reference directory does not exist ${dataDir}`
+        if (!fs.existsSync(differencesDir)) fs.mkdirSync(differencesDir)
 
-        const chartIdsToProcess = await utils.selectChartIdsToProcess(inDir, {
+        const chartIdsToProcess = await utils.selectChartIdsToProcess(dataDir, {
             grapherIds: targetGrapherIds,
             chartTypes: targetChartTypes,
             randomCount,
         })
 
         const chartViewsToGenerate = await utils.findChartViewsToGenerate(
-            inDir,
+            dataDir,
             chartIdsToProcess,
             {
                 queryStr: grapherQueryString,
@@ -53,7 +65,7 @@ async function main(args: ReturnType<typeof parseArguments>) {
             }
         )
 
-        const referenceData = await utils.parseReferenceCsv(referenceDir)
+        const referenceData = await utils.parseReferenceCsv(referencesDir)
         const referenceDataByChartKey = new Map(
             referenceData.map((record) => [
                 grapherSlugToExportFileKey(record.slug, record.queryStr),
@@ -66,12 +78,12 @@ async function main(args: ReturnType<typeof parseArguments>) {
                 const { id, slug, queryStr } = chart
                 const key = grapherSlugToExportFileKey(slug, queryStr)
                 const referenceEntry = referenceDataByChartKey.get(key)!
-                const pathToProcess = path.join(inDir, id.toString())
+                const pathToProcess = path.join(dataDir, id.toString())
                 return {
                     dir: { chartId: chart.id, pathToProcess },
                     referenceEntry,
-                    referenceDir,
-                    outDir,
+                    referenceDir: referencesDir,
+                    outDir: differencesDir,
                     queryStr,
                     verbose,
                     suffix,
@@ -134,28 +146,16 @@ function parseArguments() {
         .usage(
             "Check if grapher SVG renderings have changed vs the reference export"
         )
+        .command("$0 [testSuite]", false)
+        .positional("testSuite", {
+            type: "string",
+            description:
+                "Test suite to run: 'graphers' for default Grapher views, 'grapher-views' for all views of a subset of Graphers",
+            default: "graphers",
+            choices: utils.TEST_SUITES,
+        })
         .parserConfiguration({ "camel-case-expansion": true })
         .options({
-            i: {
-                type: "string",
-                description:
-                    "Input directory containing Grapher configs and data",
-                default: "../owid-grapher-svgs/graphers/default-views/data",
-            },
-            r: {
-                type: "string",
-                description:
-                    "Input directory containing the results.csv file to check against",
-                default:
-                    "../owid-grapher-svgs/graphers/default-views/references",
-            },
-            o: {
-                type: "string",
-                description:
-                    "Output directory that will contain the SVGs that were different",
-                default:
-                    "../owid-grapher-svgs/graphers/default-views/differences",
-            },
             ids: {
                 alias: "c",
                 type: "number",
@@ -163,7 +163,7 @@ function parseArguments() {
                 description:
                     "A space-separated list of config IDs, e.g. '2 4 8 10'",
             },
-            "chart-types": {
+            chartTypes: {
                 alias: "t",
                 type: "string",
                 array: true,
@@ -176,25 +176,25 @@ function parseArguments() {
                 type: "number",
                 description: "Generate SVGs for a random set of configs",
             },
-            "query-str": {
+            queryStr: {
                 alias: "q",
                 type: "string",
                 description:
                     "Grapher query string to verify charts with a specific configuration, e.g. tab=chart&stackMode=relative",
             },
-            "all-views": {
+            allViews: {
                 type: "boolean",
                 description:
-                    "For each Grapher, verify SVGs for all possible chart configurations",
-                default: false,
+                    "For each Grapher, verify SVGs for all possible chart configurations. Default depends on the test suite.",
             },
             suffix: {
                 alias: "s",
                 type: "string",
                 description:
                     "Suffix for different SVG files to create <NAME><SUFFIX>.svg files",
+                default: "",
             },
-            "rm-on-error": {
+            rmOnError: {
                 type: "boolean",
                 description:
                     "Remove output files where we encounter errors, so errors are apparent in diffs",

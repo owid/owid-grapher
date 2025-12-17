@@ -15,35 +15,29 @@ Make sure to run \`make refresh\` and \`make refresh.pageviews\` before running 
 }
 
 refresh() {
-    local dir=$1
-    local dump_flags=${2:-}
-    local export_flags=${3:-}
+    local testSuite=$1
+    local path=$SVGS_REPO/$testSuite
 
-    local path=$SVGS_REPO/$dir
-
-    echo "=> Dumping configs and data ($dir)"
+    echo "=> Dumping configs and data ($testSuite)"
     rm -rf $path/data
     yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/dump-data.ts \
-        -o $path/data \
-        $dump_flags
+        $testSuite
 
-    echo "=> Committing configs and chart ids ($dir)"
+    echo "=> Committing configs and chart ids ($testSuite)"
     cd $SVGS_REPO \
         && git add --all \
-        && git commit -m "chore: update configs and chart ids ($dir)" \
+        && git commit -m "chore: update configs and chart ids ($testSuite)" \
         && cd -
 
-    echo "=> Generating reference SVGs ($dir)"
+    echo "=> Generating reference SVGs ($testSuite)"
     rm -rf $path/references
     yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/export-graphs.ts \
-        -i $path/data \
-        -o $path/references \
-        $export_flags
+        $testSuite
 
-    echo "=> Committing reference SVGs ($dir)"
+    echo "=> Committing reference SVGs ($testSuite)"
     cd $SVGS_REPO \
         && git add --all \
-        && git commit -m "chore: update reference svgs ($dir)" \
+        && git commit -m "chore: update reference svgs ($testSuite)" \
         && cd -
 }
 
@@ -57,7 +51,7 @@ main() {
         && cd -
 
     refresh graphers
-    refresh grapher-views "--top 25" "--all-views"
+    refresh grapher-views
 }
 
 # show help

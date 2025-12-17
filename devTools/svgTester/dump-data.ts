@@ -19,6 +19,8 @@ import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import * as utils from "./utils.js"
 import pMap from "p-map"
+import path from "path"
+import { match } from "ts-pattern"
 
 async function getMostViewedGraphers(
     trx: KnexReadonlyTransaction,
@@ -47,19 +49,20 @@ async function getAllPublishedGraphers(
     return [...allGraphers.graphersBySlug.values()]
 }
 
-async function main(parsedArgs: ReturnType<typeof parseArguments>) {
+async function main(args: ReturnType<typeof parseArguments>) {
     try {
-        const outDir = parsedArgs.o
-        const topN = parsedArgs.top
-        const concurrency = parsedArgs.concurrency
+        const testSuite = args.testSuite as utils.TestSuite
+        const outDir = path.join(utils.SVG_REPO_PATH, testSuite, "data")
+        const concurrency = args.concurrency
 
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
 
         const graphers = await knexReadonlyTransaction(
             async (trx) =>
-                topN !== undefined
-                    ? getMostViewedGraphers(trx, topN)
-                    : getAllPublishedGraphers(trx),
+                match(testSuite)
+                    .with("graphers", () => getAllPublishedGraphers(trx))
+                    .with("grapher-views", () => getMostViewedGraphers(trx, 25))
+                    .exhaustive(),
             TransactionCloseMode.Close
         )
         console.log(`Exporting ${graphers.length} charts...`)
@@ -84,37 +87,22 @@ async function main(parsedArgs: ReturnType<typeof parseArguments>) {
 function parseArguments() {
     return yargs(hideBin(process.argv))
         .usage("Export configs and data for all graphers")
+        .command("$0 [testSuite]", false)
+        .positional("testSuite", {
+            type: "string",
+            description:
+                "Test suite to run: 'graphers' for default Grapher views, 'grapher-views' for all views of a subset of Graphers",
+            default: "graphers",
+            choices: utils.TEST_SUITES,
+        })
+        .parserConfiguration({ "camel-case-expansion": true })
         .options({
-            o: {
-                type: "string",
-                description:
-                    "Output directory. Inside it one dir per grapher will be created.",
-                default: "../owid-grapher-svgs/graphers/default-views/data",
-            },
-            top: {
-                type: "number",
-                description:
-                    "Export only the top N most-viewed charts per chart type. If not specified, all charts are exported.",
-            },
             concurrency: {
                 type: "number",
                 description: "Number of charts to export in parallel.",
                 default: 32,
             },
         })
-        .example([
-            ["$0", "Export all charts"],
-            ["$0 --top 25", "Export top 25 most-viewed charts per chart type"],
-            [
-                "$0 --top 10 -o /tmp",
-                "Export top 10 most-viewed charts per chart type to /tmp",
-            ],
-            ["$0 --concurrency 16", "Export all charts with concurrency of 16"],
-            [
-                "$0 --top 5 --concurrency 8",
-                "Export top 5 charts per type with concurrency of 8",
-            ],
-        ])
         .help()
         .alias("help", "h")
         .version(false)

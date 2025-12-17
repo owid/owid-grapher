@@ -18,10 +18,10 @@ const DIFFERENCES_DIR_NAME = "differences"
 const HTML_OUTPUT_FILENAME = "differences.html"
 
 async function main(args: ReturnType<typeof parseArguments>) {
-    // prepare and check arguments
-    const workingDir: string = args.d
-    const compareUrl: string = args.compareUrl
+    const testSuite = args.testSuite as utils.TestSuite
+    const workingDir = path.join(utils.SVG_REPO_PATH, testSuite)
 
+    const compareUrl = args.compareUrl
     const compareGrapherUrl = compareUrl + "/grapher"
 
     if (!fs.existsSync(workingDir))
@@ -71,13 +71,16 @@ function parseArguments() {
         .usage(
             "Create a simple HTML view from a folder of SVGs that have differences vs the reference ones"
         )
+        .command("$0 [testSuite]", false)
+        .positional("testSuite", {
+            type: "string",
+            description:
+                "Test suite to run: 'graphers' for default Grapher views, 'grapher-views' for all views of a subset of Graphers",
+            default: "graphers",
+            choices: utils.TEST_SUITES,
+        })
         .parserConfiguration({ "camel-case-expansion": true })
         .options({
-            d: {
-                type: "string",
-                description: "Working directory",
-                default: "../owid-grapher-svgs/graphers",
-            },
             "compare-url": {
                 type: "string",
                 description: "Base URL to compare against prod",

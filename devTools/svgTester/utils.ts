@@ -33,6 +33,11 @@ import { hashMd5 } from "../../serverUtils/hash.js"
 import * as R from "remeda"
 import ReactDOMServer from "react-dom/server"
 
+export const SVG_REPO_PATH = "../owid-grapher-svgs"
+
+export const TEST_SUITES = ["graphers", "grapher-views"] as const
+export type TestSuite = (typeof TEST_SUITES)[number]
+
 const CONFIG_FILENAME = "config.json"
 const RESULTS_FILENAME = "results.csv"
 
