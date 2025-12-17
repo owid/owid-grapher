@@ -492,7 +492,7 @@ export class FacetMap
         // Move the label closer to the map if there is vertical padding
         if (mapHeight < bounds.height) {
             const shiftY = (bounds.height - mapHeight) / 2
-            labelY += shiftY - 3 * labelPadding
+            labelY = Math.max(labelY, labelY + shiftY - 3 * labelPadding)
         }
 
         return { x: labelX, y: labelY }
