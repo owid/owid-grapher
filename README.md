@@ -1,7 +1,5 @@
 # owid-grapher
 
-[![Actions Status](https://github.com/owid/owid-grapher/workflows/Continuous%20Integration/badge.svg)](https://github.com/owid/owid-grapher/actions)
-
 The monorepo we use at [Our World in Data](https://ourworldindata.org) to create and publish embeddable, interactive visualizations like this one:
 
 [![A Grapher chart showing world-wide life expectancy at birth. Click for interactive.](https://ourworldindata.org/grapher/life-expectancy.svg)](https://ourworldindata.org/grapher/life-expectancy)
