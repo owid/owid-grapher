@@ -34,7 +34,26 @@ export const getGrapherRedirectsMap = async (
     knex: db.KnexReadonlyTransaction,
     urlPrefix: string = "/grapher/"
 ): Promise<Map<string, string>> => {
-    const chartRedirectRows = (await db.knexRaw<{
+    const grapherToGrapherRedirects = await getGrapherToGrapherRedirectsMap(
+        knex,
+        urlPrefix
+    )
+    const grapherToMultiDimRedirects = await getGrapherToMultiDimRedirectsMap(
+        knex,
+        urlPrefix
+    )
+
+    return new Map([
+        ...grapherToGrapherRedirects,
+        ...grapherToMultiDimRedirects,
+    ])
+}
+
+export const getGrapherToGrapherRedirectsMap = async (
+    knex: db.KnexReadonlyTransaction,
+    urlPrefix: string = "/grapher/"
+): Promise<Map<string, string>> => {
+    const chartRedirectRows = await db.knexRaw<{
         oldSlug: string
         newSlug: string
     }>(
@@ -45,9 +64,9 @@ export const getGrapherRedirectsMap = async (
             INNER JOIN charts ON charts.id=chart_id
             INNER JOIN chart_configs ON chart_configs.id=charts.configId
         `
-    )) as Array<{ oldSlug: string; newSlug: string }>
+    )
 
-    const redirects = new Map<string, string>(
+    return new Map(
         chartRedirectRows
             .filter((row) => row.oldSlug !== row.newSlug)
             .map((row) => [
@@ -55,16 +74,6 @@ export const getGrapherRedirectsMap = async (
                 `${urlPrefix}${row.newSlug}`,
             ])
     )
-
-    const multiDimRedirects = await getGrapherToMultiDimRedirectsMap(
-        knex,
-        urlPrefix
-    )
-    for (const [source, target] of multiDimRedirects.entries()) {
-        redirects.set(source, target)
-    }
-
-    return redirects
 }
 
 export const getGrapherToMultiDimRedirectsMap = async (
