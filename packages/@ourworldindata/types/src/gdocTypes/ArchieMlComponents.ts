@@ -388,6 +388,7 @@ export type EnrichedHybridLink = {
     url: string
     title?: string
     subtitle?: string
+    thumbnail?: string
     type: "hybrid-link"
 }
 

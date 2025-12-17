@@ -11,7 +11,8 @@ function HybridGdocLink(props: EnrichedHybridLink) {
     if (!linkedDocument?.slug) return null
 
     const title = props.title || linkedDocument.title
-    const subtitle = props.subtitle || linkedDocument.subtitle
+    const subtitle =
+        props.subtitle || linkedDocument.excerpt || linkedDocument.subtitle
 
     return (
         <li className="hybrid-link-item">
@@ -56,6 +57,12 @@ function HybridExternalLink(props: EnrichedHybridLink) {
     return (
         <li className="hybrid-link-item hybrid-link-item--external">
             <a href={props.url}>
+                {props.thumbnail && (
+                    <Thumbnail
+                        thumbnail={props.thumbnail}
+                        className="hybrid-link-thumbnail"
+                    />
+                )}
                 <div className="hybrid-link-item-text">
                     <h4>
                         {props.title}
