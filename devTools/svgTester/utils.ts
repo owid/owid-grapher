@@ -94,7 +94,6 @@ export type SvgRenderPerformance = {
 export type SvgRecord = {
     viewId: string
     chartType: GrapherTabName | undefined
-    url: string
     queryStr?: string
     md5: string
     svgFilename: string
@@ -518,7 +517,6 @@ export async function parseReferenceCsv(
         viewId: d.viewId,
         chartType: d.chartType,
         queryStr: d.queryStr,
-        url: d.url,
         md5: d.md5,
         svgFilename: d.svgFilename,
         performance: {
@@ -540,7 +538,6 @@ export async function writeReferenceCsv(
             viewId: record.viewId,
             chartType: record.chartType,
             queryStr: record.queryStr,
-            url: record.url,
             md5: record.md5,
             svgFilename: record.svgFilename,
             durationReceiveData: record.performance?.durationReceiveData,

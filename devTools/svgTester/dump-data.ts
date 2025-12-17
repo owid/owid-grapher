@@ -16,7 +16,7 @@ import {
     ChartConfigsTableName,
     DbRawChartConfig,
 } from "@ourworldindata/types"
-import { parseChartConfig, dimensionsToViewId } from "@ourworldindata/utils"
+import { parseChartConfig, queryParamsToStr } from "@ourworldindata/utils"
 
 import fs from "fs-extra"
 
@@ -92,10 +92,10 @@ async function getAllPublishedMultiDimViews(
             const config = chartConfigsById.get(view.fullConfigId)
             if (!config) continue
 
-            const viewId = dimensionsToViewId(view.dimensions)
-            const compositeId = `${multiDim.slug}__${viewId}`
+            const queryStr = queryParamsToStr(view.dimensions)
+            const id = `${multiDim.slug}${queryStr}`
 
-            chartConfigs.push({ id: compositeId, config })
+            chartConfigs.push({ id, config })
         }
     }
 

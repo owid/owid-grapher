@@ -114,22 +114,19 @@ function createSideBySideView(
     differencesFilename: string,
     compareGrapherUrl: string
 ) {
-    const { url } = svgRecord
-
-    const { pathname: urlPathName, search: queryStr } = new URL(url)
-    const urlPath = urlPathName + queryStr
+    const { viewId } = svgRecord
 
     return `<div class="tab-pane active" data-pane="side-by-side">
         <div class="side-by-side">
             <div class="comparison-item deleted">
                 <div class="comparison-header">Deleted</div>
-                <a href="${LIVE_GRAPHER_URL}/${urlPath}" target="_blank" class="comparison-image-wrapper">
+                <a href="${LIVE_GRAPHER_URL}/${viewId}" target="_blank" class="comparison-image-wrapper">
                     <img src="${escapeQuestionMark(referenceFilename)}" loading="lazy" alt="Reference (live)">
                 </a>
             </div>
             <div class="comparison-item added">
                 <div class="comparison-header">Added</div>
-                <a href="${compareGrapherUrl}/${urlPath}" target="_blank" class="comparison-image-wrapper">
+                <a href="${compareGrapherUrl}/${viewId}" target="_blank" class="comparison-image-wrapper">
                     <img src="${escapeQuestionMark(differencesFilename)}" loading="lazy" alt="Current (local)">
                 </a>
             </div>
@@ -196,7 +193,7 @@ function createComparisonView(
     differencesDir: string,
     compareGrapherUrl = LOCAL_GRAPHER_URL
 ) {
-    const { svgFilename, url } = svgRecord
+    const { svgFilename, viewId } = svgRecord
 
     const referenceFilenameUrl = path.join(REFERENCES_DIR_NAME, svgFilename)
     const differenceFilenameUrl = path.join(DIFFERENCES_DIR_NAME, svgFilename)
@@ -204,13 +201,10 @@ function createComparisonView(
     const referencesPath = path.join(referencesDir, svgFilename)
     const differencesPath = path.join(differencesDir, svgFilename)
 
-    const { pathname: urlPathName, search: queryStr } = new URL(url)
-    const urlPath = urlPathName + queryStr
-
-    return `<section data-slug="${urlPath}">
+    return `<section data-slug="${viewId}">
         <div class="header-with-actions">
-            <h2>${urlPath}</h2>
-            <button class="copy-slug-btn" data-slug="${urlPath}" title="Copy to clipboard">
+            <h2>${viewId}</h2>
+            <button class="copy-slug-btn" data-slug="${viewId}" title="Copy to clipboard">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <path d="M10.5 2h-8A1.5 1.5 0 001 3.5v8A1.5 1.5 0 002.5 13h8a1.5 1.5 0 001.5-1.5v-8A1.5 1.5 0 0010.5 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                     <path d="M5 2V1.5A1.5 1.5 0 016.5 0h8A1.5 1.5 0 0116 1.5v8A1.5 1.5 0 0114.5 11H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
