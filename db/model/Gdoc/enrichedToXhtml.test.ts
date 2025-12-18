@@ -765,9 +765,10 @@ describe("round-trip: block serialization and deserialization", () => {
 
 describe("comprehensive round-trip tests for all block types", () => {
     it.each(Object.values(enrichedBlockExamples))(
-        "XHTML round-trip should be equal for block type $type",
+        "XHTML round-trip (with prettification) should be equal for block type $type",
         (example) => {
-            const xhtml = enrichedBlockToXhtml(example)
+            // Use the full document flow to ensure prettification is tested
+            const xhtml = enrichedBlocksToXhtmlDocument([example])
             const rawBlocks = xhtmlToRawBlocks(xhtml)
 
             expect(rawBlocks).toHaveLength(1)
