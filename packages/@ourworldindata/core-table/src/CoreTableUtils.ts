@@ -214,12 +214,19 @@ export function linearInterpolation(
     const startIndexInValidIndices = R.sortedIndex(validIndices, start)
     const endIndexInValidIndices = R.sortedIndex(validIndices, end)
 
-    if (startIndexInValidIndices === endIndexInValidIndices) {
+    const distBetweenStartAndEnd =
+        endIndexInValidIndices - startIndexInValidIndices
+
+    if (distBetweenStartAndEnd === 0) {
         // No valid values in this range, we can short-circuit
         for (let index = start; index < end; index++) {
             valuesSortedByTimeAsc[index] =
                 ErrorValueTypes.NoValueForInterpolation
         }
+        return
+    }
+    // All values in this range are already valid, we don't need to do anything
+    else if (distBetweenStartAndEnd === end - start) {
         return
     }
 
@@ -296,8 +303,11 @@ export function toleranceInterpolation(
     const startIndexInValidIndices = R.sortedIndex(validIndices, start)
     const endIndexInValidIndices = R.sortedIndex(validIndices, end)
 
+    const distBetweenStartAndEnd =
+        endIndexInValidIndices - startIndexInValidIndices
+
     // If the two indices are the same, then there are no valid values in this range.
-    if (startIndexInValidIndices === endIndexInValidIndices) {
+    if (distBetweenStartAndEnd === 0) {
         // No valid values in this range, we can short-circuit
         for (let index = start; index < end; index++) {
             valuesSortedByTimeAsc[index] =
@@ -305,8 +315,12 @@ export function toleranceInterpolation(
         }
         return
     }
+    // All values in this range are valid, we can short-circuit
+    else if (distBetweenStartAndEnd === end - start) {
+        return
+    }
     // If the two indices differ by 1, then there is only one valid value in this range.
-    else if (startIndexInValidIndices + 1 === endIndexInValidIndices) {
+    else if (distBetweenStartAndEnd === 1) {
         // Only one valid value in this range, we can short-circuit
         const onlyValidIndex = validIndices[startIndexInValidIndices]
         const timeOfOnlyValid = timesAsc[onlyValidIndex]
