@@ -15,6 +15,8 @@ import {
     OwidVariableWithSourceAndDimension,
     queryParamsToStr,
     TESTING_ONLY_disable_guid,
+    PromiseCache,
+    CoreTableInputOption,
 } from "@ourworldindata/utils"
 import fs, { stat } from "fs-extra"
 import path from "path"
@@ -680,7 +682,8 @@ export async function renderExplorerViewAndVerify({
         const bounds = new Bounds(0, 0, width, height)
 
         // Load partial grapher configs
-        const partialGrapherConfigs = await loadPartialGrapherConfigs(explorerDir)
+        const partialGrapherConfigs =
+            await loadPartialGrapherConfigs(explorerDir)
 
         const explorerProps: ExplorerProps = {
             slug: explorerSlug,
@@ -905,6 +908,28 @@ async function loadPartialGrapherConfigs(
     return partialGrapherConfigs
 }
 
+// Patch ExplorerProgram's static tableDataLoader to support file:// URLs
+// This allows us to load CSV files from disk during testing without
+// modifying global fetch or requiring network access
+function patchExplorerTableLoader(): void {
+    ;(ExplorerProgram as any).tableDataLoader = new PromiseCache(
+        async (url: string): Promise<CoreTableInputOption> => {
+            if (url.startsWith("file://")) {
+                const filePath = url.replace("file://", "")
+                const content = await fs.readFile(filePath, "utf-8")
+                return content
+            }
+
+            const response = await fetch(url)
+            if (!response.ok) throw new Error(response.statusText)
+            const tableInput: CoreTableInputOption = url.endsWith(".json")
+                ? await response.json()
+                : await response.text()
+            return tableInput
+        }
+    )
+}
+
 export async function renderExplorerViewsToSVGsAndSave({
     dir,
     outDir,
@@ -912,6 +937,9 @@ export async function renderExplorerViewsToSVGsAndSave({
     dir: string
     outDir: string
 }): Promise<SvgRecord[]> {
+    // Set up file-aware table loader for local CSV files
+    patchExplorerTableLoader()
+
     const configPath = path.join(dir, "config.tsv")
     const tsvContent = await fs.readFile(configPath, "utf-8")
 
@@ -1017,6 +1045,9 @@ export async function verifyExplorerViews({
     verbose: boolean
     rmOnError: boolean
 }): Promise<VerifyResult[]> {
+    // Set up file-aware table loader for local CSV files
+    patchExplorerTableLoader()
+
     // Convert array to map for efficient lookup
     const referenceDataByViewId = new Map(
         referenceDataArray.map((record) => [record.viewId, record])
@@ -1028,7 +1059,8 @@ export async function verifyExplorerViews({
     const explorerProgram = new ExplorerProgram(explorerSlug, tsvContent)
 
     // Get all choice combinations
-    const allChoices = explorerProgram.decisionMatrix.allDecisionsAsQueryParams()
+    const allChoices =
+        explorerProgram.decisionMatrix.allDecisionsAsQueryParams()
 
     console.log(
         `Verifying ${allChoices.length} views for explorer: ${explorerSlug}`
