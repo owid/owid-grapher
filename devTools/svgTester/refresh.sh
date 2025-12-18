@@ -26,7 +26,7 @@ refresh() {
     echo "=> Committing configs and chart ids ($testSuite)"
     cd $SVGS_REPO \
         && git add --all \
-        && git commit -m "chore: update configs and chart ids ($testSuite)" \
+        && git commit -m "chore: update configs and data ($testSuite)" \
         && cd -
 
     echo "=> Generating reference SVGs ($testSuite)"
