@@ -679,6 +679,7 @@ export class Grapher extends React.Component<GrapherProps> {
             leading: true,
         })
 
+        // test
         if (typeof window !== "undefined") {
             updateWindowDimensions()
             window.addEventListener("resize", onResize)

@@ -163,6 +163,8 @@ async function exportExplorers(args: ReturnType<typeof parseArguments>) {
         )
     }
 
+    // update
+
     const pool = workerpool.pool(__dirname + "/worker.ts", {
         minWorkers: 2,
         maxWorkers: 12,

@@ -1986,6 +1986,7 @@ export class GrapherState {
         )
     }
 
+    // dummy change
     @computed get currentTitle(): string {
         let text = this.displayTitle.trim()
         if (text.length === 0) return text
