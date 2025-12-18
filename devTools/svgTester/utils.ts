@@ -46,6 +46,7 @@ import * as R from "remeda"
 import ReactDOMServer from "react-dom/server"
 import {
     Explorer,
+    ExplorerChartCreationMode,
     ExplorerProgram,
     ExplorerProps,
     GrapherGrammar,
@@ -711,6 +712,13 @@ export async function renderExplorerViewAndVerify({
             choiceParams
         )
 
+        // Skip if this is a grapher id based row
+        if (
+            explorer.explorerProgram.chartCreationMode ===
+            ExplorerChartCreationMode.FromGrapherId
+        )
+            return { kind: "ok" }
+
         // Update the explorer
         const oldRow = explorer.explorerProgram.currentlySelectedGrapherRow || 0
         await explorer.reactToUserChangingSelection(oldRow)
@@ -990,6 +998,13 @@ export async function renderExplorerViewsToSVGsAndSave({
         explorer.explorerProgram.decisionMatrix.setValuesFromChoiceParams(
             choiceParams
         )
+
+        // Skip if this is a grapher id based row
+        if (
+            explorer.explorerProgram.chartCreationMode ===
+            ExplorerChartCreationMode.FromGrapherId
+        )
+            continue
 
         // Update the explorer
         const oldRow = explorer.explorerProgram.currentlySelectedGrapherRow || 0
