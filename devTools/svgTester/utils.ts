@@ -406,7 +406,7 @@ export async function renderSvg({
             height,
             queryStr,
         },
-        { shouldHashQueryStr: false, separator: "?" }
+        { shouldHashQueryStr: true }
     )
 
     grapher.grapherState.inputTable = legacyToOwidTableAndDimensions(
@@ -737,7 +737,7 @@ export async function renderExplorerViewAndVerify({
                 height,
                 queryStr,
             },
-            { shouldHashQueryStr: false, separator: "?" }
+            { shouldHashQueryStr: true }
         )
 
         const svgRecord: SvgRecord = {
@@ -1027,7 +1027,7 @@ export async function renderExplorerViewsToSVGsAndSave({
                 height,
                 queryStr,
             },
-            { shouldHashQueryStr: false, separator: "?" }
+            { shouldHashQueryStr: true }
         )
 
         await fs.writeFile(path.join(outDir, outFilename), cleanedSvg)
