@@ -51,6 +51,7 @@ describe(findClosestTime, () => {
             it("returns undefined", () => {
                 const years = [2010, 2015, 2017]
                 expect(findClosestTime(years, 2014, 0)).toEqual(undefined)
+                expect(findClosestTime([], 2014)).toEqual(undefined)
             })
 
             it("can also get the index", () => {
@@ -81,6 +82,9 @@ describe(findClosestTime, () => {
             const years = [1990, 2016]
             expect(findClosestTime(years, 2013)).toEqual(2016)
             expect(findClosestTime(years, 2002)).toEqual(1990)
+            expect(findClosestTime(years, 1980)).toEqual(1990)
+            expect(findClosestTime(years, 2020)).toEqual(2016)
+            expect(findClosestTimeIndex([], 2020)).toEqual(undefined)
         })
     })
 

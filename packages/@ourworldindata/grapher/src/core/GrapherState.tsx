@@ -98,6 +98,7 @@ import {
     checkIsOwidContinent,
     checkIsIncomeGroup,
     checkHasMembers,
+    sortNumeric,
 } from "@ourworldindata/utils"
 import Cookies from "js-cookie"
 import * as _ from "lodash-es"
@@ -2038,7 +2039,7 @@ export class GrapherState {
     }
 
     @computed private get areHandlesOnSameTime(): boolean {
-        const times = this.table.timeColumn.uniqValues
+        const times = sortNumeric(this.table.timeColumn.uniqValues.slice())
         const [start, end] = this.timelineHandleTimeBounds.map((time) =>
             findClosestTime(times, time)
         )
@@ -3443,8 +3444,9 @@ export class GrapherState {
     @computed get animationEndTime(): Time {
         const { timeColumn } = this.table
         if (this.timelineMaxTime) {
+            const timesAsc = sortNumeric(timeColumn.uniqValues.slice())
             return (
-                findClosestTime(timeColumn.uniqValues, this.timelineMaxTime) ??
+                findClosestTime(timesAsc, this.timelineMaxTime) ??
                 timeColumn.maxTime
             )
         }

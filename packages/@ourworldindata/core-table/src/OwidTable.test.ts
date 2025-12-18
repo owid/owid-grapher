@@ -276,6 +276,31 @@ usa,1,usa,-5,1`
 
         expect(table2.filterByTargetTimes([2000, 2007], 1).numRows).toBe(1)
     })
+
+    it("keeps the correct row when entity times are unsorted and tolerance is used", () => {
+        const table = new OwidTable([
+            {
+                entityName: "usa",
+                entityId: 1,
+                entityCode: "usa",
+                time: 2001,
+                value: 1,
+            },
+            {
+                entityName: "usa",
+                entityId: 1,
+                entityCode: "usa",
+                time: 2000,
+                value: 2,
+            },
+        ])
+
+        const filtered = table.filterByTargetTimes([2000], 1)
+
+        expect(filtered.numRows).toBe(1)
+        expect(filtered.get("time").values[0]).toBe(2000)
+        expect(filtered.get("value").values[0]).toBe(2)
+    })
 })
 
 describe("rolling averages", () => {

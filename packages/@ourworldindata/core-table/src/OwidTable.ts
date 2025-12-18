@@ -200,21 +200,38 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     filterByTargetTimes(targetTimes: Time[], tolerance = 0): this {
         const timeColumn = this.timeColumn!
         const timeValues = timeColumn.valuesIncludingErrorValues
+
+        // The common case here is that the tolerance is set to 0, in which case we can simply filter
+        // the time column for the target times.
+        if (tolerance === 0) {
+            const targetTimesSet = new Set(targetTimes)
+            return this.columnFilter(
+                timeColumn.slug,
+                (time) => targetTimesSet.has(time as number),
+                `Keep only rows with time equal to one of the target times: ${targetTimes.join(
+                    ", "
+                )}`
+            )
+        }
+
+        // If tolerance isn't 0, then we need to find the closest time for each entity, while incorporating the tolerance.
         const entityNameToIndices = this.rowIndicesByEntityName
         const matchingIndices = new Set<number>()
         this.availableEntityNames.forEach((entityName) => {
             const indices = entityNameToIndices.get(entityName) || []
-            const allTimes = indices.map(
-                (index) => timeValues[index]
-            ) as number[]
+            const allTimesAsc = indices
+                .map((index) => ({ time: timeValues[index] as number, index }))
+                .sort((a, b) => a.time - b.time)
 
             targetTimes.forEach((targetTime) => {
                 const index = findClosestTimeIndex(
-                    allTimes,
+                    allTimesAsc.map((t) => t.time),
                     targetTime,
                     tolerance
                 )
-                if (index !== undefined) matchingIndices.add(indices[index])
+                const closest =
+                    index === undefined ? undefined : allTimesAsc[index]
+                if (closest !== undefined) matchingIndices.add(closest.index)
             })
         })
 
