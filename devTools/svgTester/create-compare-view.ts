@@ -207,12 +207,12 @@ function createComparisonView(
     return `<section data-slug="${slug}">
         <div class="header-with-actions">
             <h2>${slug}${queryStr}</h2>
-            <button class="copy-slug-btn" data-slug="${slug}" title="Copy slug to clipboard">
+            <button class="copy-slug-btn" data-slug="${slug}" title="Copy to clipboard">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <path d="M10.5 2h-8A1.5 1.5 0 001 3.5v8A1.5 1.5 0 002.5 13h8a1.5 1.5 0 001.5-1.5v-8A1.5 1.5 0 0010.5 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                     <path d="M5 2V1.5A1.5 1.5 0 016.5 0h8A1.5 1.5 0 0116 1.5v8A1.5 1.5 0 0114.5 11H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                <span class="copy-text">Copy slug</span>
+                <span class="copy-text">Copy</span>
             </button>
         </div>
         ${createTabControls()}
