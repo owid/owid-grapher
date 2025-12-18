@@ -16,11 +16,7 @@ import {
     OwidEntityNameColumnDef,
     OwidTableSlugs,
 } from "@ourworldindata/types"
-import {
-    ErrorValueTypes,
-    isNotErrorValueOrEmptyCell,
-    DroppedForTesting,
-} from "./ErrorValues.js"
+import { ErrorValueTypes, DroppedForTesting } from "./ErrorValues.js"
 
 export const columnStoreToRows = (
     columnStore: CoreColumnStore
@@ -227,49 +223,49 @@ export function linearInterpolation(
         return
     }
 
-    let prevNonBlankIndex = -1
-    let nextNonBlankIndex = -1
-
     let currentValidIndexPointer = startIndexInValidIndices
+    let prevNonBlankIndex: number | undefined = undefined
+    let nextNonBlankIndex: number | undefined = undefined
+
+    let timeOfPrevIndex: number = -Infinity
+    let timeOfNextIndex: number = Infinity
 
     for (let index = start; index < end; index++) {
-        const currentValue = valuesSortedByTimeAsc[index]
-        if (isNotErrorValueOrEmptyCell(currentValue)) {
-            prevNonBlankIndex = index
-            currentValidIndexPointer++
-            continue
-        }
-
-        if (nextNonBlankIndex === -1 || nextNonBlankIndex <= index) {
+        if (
+            nextNonBlankIndex !== -1 &&
+            (nextNonBlankIndex === undefined || nextNonBlankIndex <= index)
+        ) {
             nextNonBlankIndex = validIndices[currentValidIndexPointer] ?? -1
             if (nextNonBlankIndex >= end) {
                 nextNonBlankIndex = -1
             }
+            timeOfNextIndex = timesAsc[nextNonBlankIndex] ?? Infinity
         }
+
+        if (index === nextNonBlankIndex) {
+            prevNonBlankIndex = index
+            timeOfPrevIndex = timesAsc[index]
+            currentValidIndexPointer++
+            continue
+        }
+
+        const timeOfCurrent = timesAsc[index]
 
         const prevValue = valuesSortedByTimeAsc[prevNonBlankIndex]
         const nextValue = valuesSortedByTimeAsc[nextNonBlankIndex]
 
         let value
         if (typeof prevValue === "number" && typeof nextValue === "number") {
-            const distLeft = timesAsc[index] - timesAsc[prevNonBlankIndex]
-            const distRight = timesAsc[nextNonBlankIndex] - timesAsc[index]
+            const distLeft = timeOfCurrent - timeOfPrevIndex
+            const distRight = timeOfNextIndex - timeOfCurrent
             value =
                 (prevValue * distRight + nextValue * distLeft) /
                 (distLeft + distRight)
-        } else if (
-            isNotErrorValueOrEmptyCell(prevValue) &&
-            context.extrapolateAtEnd
-        )
+        } else if (typeof prevValue === "number" && context.extrapolateAtEnd)
             value = prevValue
-        else if (
-            isNotErrorValueOrEmptyCell(nextValue) &&
-            context.extrapolateAtStart
-        )
+        else if (typeof nextValue === "number" && context.extrapolateAtStart)
             value = nextValue
         else value = ErrorValueTypes.NoValueForInterpolation
-
-        prevNonBlankIndex = index
 
         valuesSortedByTimeAsc[index] = value
     }
