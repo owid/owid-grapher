@@ -873,10 +873,67 @@ export function enrichedBlocksToXhtml(blocks: OwidEnrichedGdocBlock[]): string {
 }
 
 /**
+ * Pretty-print XHTML with proper indentation.
+ * Self-closing tags and inline content stay on one line.
+ */
+export function prettyPrintXhtml(xhtml: string, indentSize = 2): string {
+    const lines: string[] = []
+    let depth = 0
+    const indent = (): string => " ".repeat(depth * indentSize)
+
+    // Split into tokens: tags and text content
+    const tokens = xhtml.split(/(<[^>]+>)/g).filter((t) => t.length > 0)
+
+    for (const token of tokens) {
+        if (!token.startsWith("<")) {
+            // Text content - always append to last line (inline with opening tag)
+            const trimmed = token.trim()
+            if (trimmed && lines.length > 0) {
+                lines[lines.length - 1] += token
+            }
+            continue
+        }
+
+        const isClosingTag = token.startsWith("</")
+        const isSelfClosing = token.endsWith("/>")
+        const isXmlDeclaration = token.startsWith("<?")
+
+        if (isXmlDeclaration) {
+            lines.push(token)
+        } else if (isClosingTag) {
+            depth = Math.max(0, depth - 1)
+            // Check if the last line contains the opening tag or content for this element
+            const lastLine = lines[lines.length - 1] || ""
+            const tagName = token.match(/<\/([a-z-]+)>/i)?.[1]
+            if (
+                tagName &&
+                lastLine.includes(`<${tagName}`) &&
+                !lastLine.includes(`</${tagName}>`)
+            ) {
+                // Inline the closing tag with the opening tag/content
+                lines[lines.length - 1] += token
+            } else {
+                lines.push(indent() + token)
+            }
+        } else if (isSelfClosing) {
+            lines.push(indent() + token)
+        } else {
+            // Opening tag
+            lines.push(indent() + token)
+            depth++
+        }
+    }
+
+    return lines.join("\n")
+}
+
+/**
  * Convert an array of enriched blocks to a complete XHTML document.
+ * Output is pretty-printed with proper indentation.
  */
 export function enrichedBlocksToXhtmlDocument(
     blocks: OwidEnrichedGdocBlock[]
 ): string {
-    return `${XML_DECLARATION}\n<gdoc xmlns="${GDOC_NAMESPACE}">\n${enrichedBlocksToXhtml(blocks)}\n</gdoc>`
+    const raw = `${XML_DECLARATION}<gdoc xmlns="${GDOC_NAMESPACE}">${enrichedBlocksToXhtml(blocks)}</gdoc>`
+    return prettyPrintXhtml(raw)
 }

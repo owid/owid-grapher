@@ -169,17 +169,45 @@ export function xhtmlToSpans(xhtml: string): Span[] {
 }
 
 /**
+ * Check if a text string is only whitespace (spaces, tabs, newlines).
+ */
+function isWhitespaceOnly(text: string): boolean {
+    return /^\s*$/.test(text)
+}
+
+/**
+ * Normalize whitespace in text content.
+ * Collapses sequences of whitespace (including newlines from pretty-printing) into single spaces.
+ */
+function normalizeWhitespace(text: string): string {
+    return text.replace(/\s+/g, " ")
+}
+
+/**
  * Get text content of an element, converting spans to HTML for raw blocks.
  * This is needed because raw blocks store spans as HTML strings that get parsed later.
+ * Handles whitespace normalization to support pretty-printed XHTML input.
  */
 function getSpanContent(element: Element): string {
-    // Convert our XHTML span format back to HTML format expected by htmlToSpans
-    const convertSpans = (el: Element): string => {
-        const children = el.children ?? []
-        const childContent = children
-            .map((child) => {
+    // Helper to process children with whitespace normalization
+    const processChildren = (children: AnyNode[]): string => {
+        return children
+            .map((child, index, arr) => {
                 if (child.type === "text") {
-                    return (child as unknown as { data: string }).data
+                    const text = (child as unknown as { data: string }).data
+                    // Skip whitespace-only text nodes between elements (from pretty-printing)
+                    if (isWhitespaceOnly(text)) {
+                        const prevIsTag =
+                            index > 0 && arr[index - 1].type === "tag"
+                        const nextIsTag =
+                            index < arr.length - 1 &&
+                            arr[index + 1].type === "tag"
+                        if (prevIsTag || nextIsTag) {
+                            return ""
+                        }
+                    }
+                    // Normalize whitespace within text content
+                    return normalizeWhitespace(text)
                 }
                 if (child.type === "tag") {
                     return convertSpans(child as Element)
@@ -187,6 +215,12 @@ function getSpanContent(element: Element): string {
                 return ""
             })
             .join("")
+    }
+
+    // Convert our XHTML span format back to HTML format expected by htmlToSpans
+    const convertSpans = (el: Element): string => {
+        const children = el.children ?? []
+        const childContent = processChildren(children)
 
         const tag = el.tagName?.toLowerCase()
         if (!tag) return childContent
@@ -221,17 +255,9 @@ function getSpanContent(element: Element): string {
             .otherwise(() => childContent)
     }
 
-    return (element.children ?? [])
-        .map((child) => {
-            if (child.type === "text") {
-                return (child as unknown as { data: string }).data
-            }
-            if (child.type === "tag") {
-                return convertSpans(child as Element)
-            }
-            return ""
-        })
-        .join("")
+    const result = processChildren(element.children ?? [])
+    // Trim leading/trailing whitespace from the overall result
+    return result.trim()
 }
 
 /**
