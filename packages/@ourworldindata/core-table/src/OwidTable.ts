@@ -27,6 +27,7 @@ import {
     OwidRow,
     OwidTableSlugs,
     ErrorValue,
+    ToleranceOptions,
 } from "@ourworldindata/types"
 import { CoreTable } from "./CoreTable.js"
 import { ErrorValueTypes, isNotErrorValue } from "./ErrorValues.js"
@@ -46,7 +47,6 @@ import {
     InterpolationContext,
 } from "./CoreTableUtils.js"
 import { CoreColumn, ColumnTypeMap } from "./CoreTableColumns.js"
-import { ToleranceOptions } from "@ourworldindata/types/src/grapherTypes/GrapherTypes.js"
 
 // An OwidTable is a subset of Table. An OwidTable always has EntityName, EntityCode, EntityId, and Time columns,
 // and value column(s). Whether or not we need in the long run is uncertain and it may just be a stepping stone
