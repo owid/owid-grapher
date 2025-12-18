@@ -224,11 +224,13 @@ export function linearInterpolation(
     }
 
     let currentValidIndexPointer = startIndexInValidIndices
-    let prevNonBlankIndex: number | undefined = undefined
     let nextNonBlankIndex: number | undefined = undefined
 
     let timeOfPrevIndex: number = -Infinity
     let timeOfNextIndex: number = Infinity
+
+    let prevValue: number | undefined = undefined
+    let nextValue: number | undefined = undefined
 
     for (let index = start; index < end; index++) {
         if (
@@ -240,19 +242,19 @@ export function linearInterpolation(
                 nextNonBlankIndex = -1
             }
             timeOfNextIndex = timesAsc[nextNonBlankIndex] ?? Infinity
+            nextValue = valuesSortedByTimeAsc[nextNonBlankIndex] as
+                | number
+                | undefined
         }
 
         if (index === nextNonBlankIndex) {
-            prevNonBlankIndex = index
             timeOfPrevIndex = timesAsc[index]
+            prevValue = valuesSortedByTimeAsc[index] as number
             currentValidIndexPointer++
             continue
         }
 
         const timeOfCurrent = timesAsc[index]
-
-        const prevValue = valuesSortedByTimeAsc[prevNonBlankIndex]
-        const nextValue = valuesSortedByTimeAsc[nextNonBlankIndex]
 
         let value
         if (typeof prevValue === "number" && typeof nextValue === "number") {
