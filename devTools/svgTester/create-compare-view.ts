@@ -1,6 +1,7 @@
 #! /usr/bin/env node
 
-import parseArgs from "minimist"
+import yargs from "yargs"
+import { hideBin } from "yargs/helpers"
 import fs from "fs-extra"
 import path from "path"
 import * as utils from "./utils.js"
@@ -16,11 +17,11 @@ const REFERENCES_DIR_NAME = "references"
 const DIFFERENCES_DIR_NAME = "differences"
 const HTML_OUTPUT_FILENAME = "differences.html"
 
-async function main(args: parseArgs.ParsedArgs) {
-    // prepare and check arguments
-    const workingDir: string = args["d"] ?? "../owid-grapher-svgs/graphers"
-    const compareUrl: string = args["compare-url"] ?? LOCAL_URL
+async function main(args: ReturnType<typeof parseArguments>) {
+    const testSuite = args.testSuite as utils.TestSuite
+    const workingDir = path.join(utils.SVG_REPO_PATH, testSuite)
 
+    const compareUrl = args.compareUrl
     const compareGrapherUrl = compareUrl + "/grapher"
 
     if (!fs.existsSync(workingDir))
@@ -65,22 +66,35 @@ async function main(args: parseArgs.ParsedArgs) {
     await fs.writeFile(outFile, createHtml(content))
 }
 
-const parsedArgs = parseArgs(process.argv.slice(2))
-if (parsedArgs["h"] || parsedArgs["help"]) {
-    console.log(`create-compare-views.js - utility to create a simple HTML view from a folder of svgs that have differences vs the reference ones
-
-Usage:
-    create-compare-views.js [-d] [-u | --compare-url]
-
-Inputs and outputs:
-    -d DIR   Directory [default: ../owid-grapher-svgs/graphers]
-
-Options:
-    --compare-url   Base URL to compare against prod [default: ${LOCAL_URL}]
-    `)
-} else {
-    void main(parsedArgs)
+function parseArguments() {
+    return yargs(hideBin(process.argv))
+        .usage(
+            "Create a simple HTML view from a folder of SVGs that have differences vs the reference ones"
+        )
+        .command("$0 [testSuite]", false)
+        .positional("testSuite", {
+            type: "string",
+            description:
+                "Test suite to run: 'graphers' for default Grapher views, 'grapher-views' for all views of a subset of Graphers",
+            default: "graphers",
+            choices: utils.TEST_SUITES,
+        })
+        .parserConfiguration({ "camel-case-expansion": true })
+        .options({
+            "compare-url": {
+                type: "string",
+                description: "Base URL to compare against prod",
+                default: LOCAL_URL,
+            },
+        })
+        .help()
+        .alias("help", "h")
+        .version(false)
+        .parseSync()
 }
+
+const argv = parseArguments()
+void main(argv)
 
 function escapeQuestionMark(str: string) {
     return str.replace(/\?/g, "%3F")

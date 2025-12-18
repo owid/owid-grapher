@@ -1,35 +1,37 @@
 #! /usr/bin/env node
 
 import fs from "fs-extra"
-import parseArgs from "minimist"
+import yargs from "yargs"
+import { hideBin } from "yargs/helpers"
 import path from "path"
 import workerpool from "workerpool"
 
 import * as utils from "./utils.js"
+import { ALL_GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 
-async function main(args: parseArgs.ParsedArgs) {
+async function main(args: ReturnType<typeof parseArguments>) {
     try {
-        // input and output directories
-        const inDir: string = args["i"] ?? utils.DEFAULT_CONFIGS_DIR
-        let outDir: string = args["o"] ?? utils.DEFAULT_REFERENCE_DIR
+        // Test suite
+        const testSuite = args.testSuite as utils.TestSuite
 
-        // charts to process
-        const targetGrapherIds = utils.getGrapherIdListFromString(
-            utils.parseArgAsString(args["ids"] ?? args["c"])
-        )
-        const targetChartTypes = utils.validateChartTypes(
-            utils.parseArgAsList(args["chart-types"] ?? args["t"])
-        )
-        const randomCount = utils.parseRandomCount(args["random"] ?? args["d"])
+        // Input and output directories
+        const dataDir = path.join(utils.SVG_REPO_PATH, testSuite, "data")
+        let outDir = path.join(utils.SVG_REPO_PATH, testSuite, "references")
 
-        // chart configurations to test
-        const grapherQueryString: string = args["query-str"] ?? args["q"]
-        const shouldTestAllChartViews: boolean = args["all-views"] ?? false
+        // Charts to process
+        const targetGrapherIds = args.ids
+        const targetChartTypes = args.chartTypes
+        const randomCount = args.random
 
-        // other options
-        const enableComparisons: boolean = args["compare"] ?? false
-        const isolate: boolean = args["isolate"] ?? false
-        const verbose: boolean = args["verbose"] ?? false
+        // Chart configurations to test
+        const grapherQueryString = args.queryStr
+        const shouldTestAllChartViews =
+            args.allViews ?? testSuite === "grapher-views"
+
+        // Other options
+        const enableComparisons = args.compare
+        const isolate = args.isolate
+        const verbose = args.verbose
 
         if (isolate) {
             utils.logIfVerbose(
@@ -48,18 +50,18 @@ async function main(args: parseArgs.ParsedArgs) {
             outDir = path.join(outDir, "comparisons")
         }
 
-        if (!fs.existsSync(inDir))
-            throw `Input directory does not exist ${inDir}`
+        if (!fs.existsSync(dataDir))
+            throw `Input directory does not exist ${dataDir}`
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
 
-        const chartIdsToProcess = await utils.selectChartIdsToProcess(inDir, {
+        const chartIdsToProcess = await utils.selectChartIdsToProcess(dataDir, {
             grapherIds: targetGrapherIds,
             chartTypes: targetChartTypes,
             randomCount,
         })
 
         const chartViewsToGenerate = await utils.findChartViewsToGenerate(
-            inDir,
+            dataDir,
             chartIdsToProcess,
             {
                 queryStr: grapherQueryString,
@@ -69,7 +71,7 @@ async function main(args: parseArgs.ParsedArgs) {
 
         const jobDescriptions: utils.RenderSvgAndSaveJobDescription[] =
             chartViewsToGenerate.map((chart: utils.ChartWithQueryStr) => ({
-                dir: path.join(inDir, chart.id.toString()),
+                dir: path.join(dataDir, chart.id.toString()),
                 queryStr: chart.queryStr,
                 outDir,
             }))
@@ -126,7 +128,7 @@ async function main(args: parseArgs.ParsedArgs) {
                     filenames.push(file.name)
                 }
             }
-            const svgPath = path.join(inDir, "..", "svg")
+            const svgPath = path.join(dataDir, "..", "svg")
             const masterDir = await fs.opendir(svgPath)
             for await (const file of masterDir) {
                 if (filenames.includes(file.name)) {
@@ -154,33 +156,73 @@ async function main(args: parseArgs.ParsedArgs) {
     }
 }
 
-const parsedArgs = parseArgs(process.argv.slice(2))
-if (parsedArgs["h"] || parsedArgs["help"]) {
-    console.log(`Export Grapher SVG renderings and a summary CSV file
-
-Usage:
-    export-graphs.js [-i] [-o] [-c | --ids] [-t | --chart-types] [-d | --random] [-q | --query-str] [--all-views] [--compare] [--isolate] [--verbose] [--help | -h]
-
-Inputs and outputs:
-    -i      Input directory containing Grapher configs and data. [default: ${utils.DEFAULT_CONFIGS_DIR}]
-    -o      Output directory that will contain the CSV file and one SVG file per grapher [default: ${utils.DEFAULT_REFERENCE_DIR}]
-
-Charts to process:
-    --ids, -c               A comma-separated list of config IDs and config ID ranges, e.g. 2,4-8,10
-    --chart-types, -t       A comma-separated list of chart types, e.g. LineChart,ScatterPlot
-    --random, -d            Generate SVGs for a random set of configs, optionally specify a count
-
-Chart configurations to test:
-    --query-str, -q     Grapher query string to export charts with a specific configuration, e.g. tab=chart&stackMode=relative
-    --all-views         For each Grapher, generate SVGs for all possible chart configurations
-
-Other options:
-    --compare       Create a directory containing the old and new SVGs for easy comparison
-    --isolate       Run each export in a separate process. This yields accurate heap usage measurements, but is slower.
-    --verbose       Verbose mode
-    -h, --help      Display this help and exit
-    `)
-    process.exit(0)
-} else {
-    void main(parsedArgs)
+function parseArguments() {
+    return yargs(hideBin(process.argv))
+        .usage("Export Grapher SVG renderings and a summary CSV file")
+        .command("$0 [testSuite]", false)
+        .positional("testSuite", {
+            type: "string",
+            description:
+                "Test suite to run: 'graphers' for default Grapher views, 'grapher-views' for all views of a subset of Graphers",
+            default: "graphers",
+            choices: utils.TEST_SUITES,
+        })
+        .parserConfiguration({ "camel-case-expansion": true })
+        .options({
+            ids: {
+                alias: "c",
+                type: "number",
+                array: true,
+                description:
+                    "A space-separated list of config IDs, e.g. '2 4 8 10'",
+            },
+            chartTypes: {
+                alias: "t",
+                type: "string",
+                array: true,
+                choices: ALL_GRAPHER_CHART_TYPES,
+                description:
+                    "A space-separated list of chart types, e.g. 'LineChart ScatterPlot'",
+            },
+            random: {
+                alias: "d",
+                type: "number",
+                description: "Generate SVGs for a random set of configs",
+            },
+            queryStr: {
+                alias: "q",
+                type: "string",
+                description:
+                    "Grapher query string to export charts with a specific configuration, e.g. tab=chart&stackMode=relative",
+            },
+            allViews: {
+                type: "boolean",
+                description:
+                    "For each Grapher, generate SVGs for all possible chart configurations. Default depends on the test suite.",
+            },
+            compare: {
+                type: "boolean",
+                description:
+                    "Create a directory containing the old and new SVGs for easy comparison",
+                default: false,
+            },
+            isolate: {
+                type: "boolean",
+                description:
+                    "Run each export in a separate process. This yields accurate heap usage measurements, but is slower.",
+                default: false,
+            },
+            verbose: {
+                type: "boolean",
+                description: "Verbose mode",
+                default: false,
+            },
+        })
+        .help()
+        .alias("help", "h")
+        .version(false)
+        .parseSync()
 }
+
+const argv = parseArguments()
+void main(argv)
