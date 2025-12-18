@@ -289,6 +289,10 @@ svgtest.full: ../owid-grapher-svgs node_modules
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/export-graphs.ts mdims \
 		&& yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts mdims
 
+	@# run test suite for explorers
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/export-graphs.ts explorers \
+		&& yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts explorers
+
 node_modules: package.json yarn.lock yarn.config.cjs
 	@echo '==> Installing packages'
 	yarn install
