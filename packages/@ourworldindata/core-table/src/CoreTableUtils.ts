@@ -224,13 +224,8 @@ export function linearInterpolation(
     }
 
     let currentValidIndexPointer = startIndexInValidIndices
+    let prevNonBlankIndex: number | undefined = undefined
     let nextNonBlankIndex: number | undefined = undefined
-
-    let timeOfPrevIndex: number = -Infinity
-    let timeOfNextIndex: number = Infinity
-
-    let prevValue: number | undefined = undefined
-    let nextValue: number | undefined = undefined
 
     for (let index = start; index < end; index++) {
         if (
@@ -241,20 +236,32 @@ export function linearInterpolation(
             if (nextNonBlankIndex >= end) {
                 nextNonBlankIndex = -1
             }
-            timeOfNextIndex = timesAsc[nextNonBlankIndex] ?? Infinity
-            nextValue = valuesSortedByTimeAsc[nextNonBlankIndex] as
-                | number
-                | undefined
         }
 
+        // Check whether the current index has a valid value
         if (index === nextNonBlankIndex) {
-            timeOfPrevIndex = timesAsc[index]
-            prevValue = valuesSortedByTimeAsc[index] as number
+            prevNonBlankIndex = index
             currentValidIndexPointer++
             continue
         }
 
         const timeOfCurrent = timesAsc[index]
+
+        const timeOfPrevIndex =
+            prevNonBlankIndex !== undefined
+                ? (timesAsc[prevNonBlankIndex] ?? -Infinity)
+                : -Infinity
+        const timeOfNextIndex = timesAsc[nextNonBlankIndex] ?? Infinity
+
+        const prevValue: number | undefined =
+            prevNonBlankIndex !== undefined
+                ? (valuesSortedByTimeAsc[prevNonBlankIndex] as
+                      | number
+                      | undefined)
+                : undefined
+        const nextValue: number | undefined = valuesSortedByTimeAsc[
+            nextNonBlankIndex
+        ] as number | undefined
 
         let value
         if (typeof prevValue === "number" && typeof nextValue === "number") {
@@ -330,9 +337,6 @@ export function toleranceInterpolation(
     let prevNonBlankIndex: number | undefined = undefined
     let nextNonBlankIndex: number | undefined = undefined
 
-    let timeOfPrevIndex: number = -Infinity
-    let timeOfNextIndex: number = Infinity
-
     for (let index = start; index < end; index++) {
         if (
             nextNonBlankIndex !== -1 &&
@@ -342,17 +346,22 @@ export function toleranceInterpolation(
             if (nextNonBlankIndex >= end) {
                 nextNonBlankIndex = -1
             }
-            timeOfNextIndex = timesAsc[nextNonBlankIndex] ?? Infinity
         }
 
+        // Check whether the current index has a valid value
         if (index === nextNonBlankIndex) {
             prevNonBlankIndex = index
-            timeOfPrevIndex = timesAsc[index]
             currentValidIndexPointer++
             continue
         }
 
         const timeOfCurrent = timesAsc[index]
+
+        const timeOfPrevIndex =
+            prevNonBlankIndex !== undefined
+                ? (timesAsc[prevNonBlankIndex] ?? -Infinity)
+                : -Infinity
+        const timeOfNextIndex = timesAsc[nextNonBlankIndex] ?? Infinity
 
         const prevTimeDiff = timeOfCurrent - timeOfPrevIndex
         const nextTimeDiff = timeOfNextIndex - timeOfCurrent
