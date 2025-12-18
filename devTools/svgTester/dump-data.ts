@@ -135,8 +135,8 @@ async function dumpExplorerWithData(
     const explorerSlug = explorerProgram.slug
     const explorerType = utils.getExplorerType(explorerProgram)
 
-    // For now, only indicator-based explorers are supported
-    if (explorerType !== ExplorerType.Indicator) return
+    // Skip grapher based explorers (already tested via grapher SVG tester)
+    if (explorerType === ExplorerType.Grapher) return
 
     console.log(`Exporting explorer: ${explorerSlug} (${explorerType})`)
 
@@ -167,6 +167,49 @@ async function dumpExplorerWithData(
                     explorerDir,
                     knex
                 )
+        })
+        .with(ExplorerType.Csv, async () => {
+            const tableSlugs = explorerProgram.tableSlugs
+            const urlReplacements = new Map<string, string>()
+
+            for (const tableSlug of tableSlugs) {
+                const tableDef = explorerProgram.getTableDef(tableSlug)
+                if (!tableDef || tableDef.inlineData || !tableDef.url) continue
+
+                const tableName = tableSlug || "default"
+
+                try {
+                    const response = await fetch(tableDef.url)
+                    if (!response.ok) {
+                        throw new Error(
+                            `Failed to fetch ${tableDef.url}: ${response.status} ${response.statusText}`
+                        )
+                    }
+                    const csvContent = await response.text()
+                    const csvPath = path.join(explorerDir, `${tableName}.csv`)
+                    await fs.writeFile(csvPath, csvContent)
+
+                    // Track the URL replacement for updating TSV
+                    urlReplacements.set(tableDef.url, `file://${csvPath}`)
+                } catch (error) {
+                    console.error(
+                        `Error fetching table ${tableName}:`,
+                        error instanceof Error ? error.message : error
+                    )
+                }
+            }
+
+            // Replace remote URLs with local file paths in the TSV
+            if (urlReplacements.size > 0) {
+                let modifiedTsvContent = explorerProgram.toString()
+                for (const [originalUrl, localPath] of urlReplacements) {
+                    modifiedTsvContent = modifiedTsvContent.replaceAll(
+                        originalUrl,
+                        localPath
+                    )
+                }
+                await fs.writeFile(tsvPath, modifiedTsvContent)
+            }
         })
         .exhaustive()
 }
@@ -225,7 +268,7 @@ async function main(args: ReturnType<typeof parseArguments>) {
                     const explorersToExport = rawExplorers.filter(
                         (explorer) => {
                             const type = utils.getExplorerType(explorer)
-                            return type === ExplorerType.Indicator
+                            return type !== ExplorerType.Grapher
                         }
                     )
 
