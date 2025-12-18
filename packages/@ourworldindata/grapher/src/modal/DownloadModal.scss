@@ -108,7 +108,7 @@
 
         .download-modal__download-button-description,
         .download-modal__download-button-loading-label {
-            color: $bluish-grey-text-color;
+            color: $blue-60;
         }
 
         // Hide the description and use an overlay for the 'Downloading...' label
@@ -177,7 +177,7 @@
         // Example column name
         code {
             background-color: $gray-10;
-            color: $gray-70;
+            color: $gray-80;
             padding: 2px 4px;
             font-family: $monospace-font-stack;
             // Fix broken "fi" ligature in Menlo.
@@ -282,7 +282,7 @@
         }
 
         p {
-            color: $gray-60;
+            color: $gray-70;
             margin: 0;
         }
 
