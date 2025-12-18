@@ -1000,6 +1000,71 @@ export async function renderExplorerViewsToSVGsAndSave({
     return svgRecords
 }
 
+export async function verifyExplorerViews({
+    explorerDir,
+    explorerSlug,
+    referenceDataArray,
+    referencesDir,
+    differencesDir,
+    verbose,
+    rmOnError,
+}: {
+    explorerDir: string
+    explorerSlug: string
+    referenceDataArray: SvgRecord[]
+    referencesDir: string
+    differencesDir: string
+    verbose: boolean
+    rmOnError: boolean
+}): Promise<VerifyResult[]> {
+    // Convert array to map for efficient lookup
+    const referenceDataByViewId = new Map(
+        referenceDataArray.map((record) => [record.viewId, record])
+    )
+
+    // Load explorer config
+    const configPath = path.join(explorerDir, "config.tsv")
+    const tsvContent = await fs.readFile(configPath, "utf-8")
+    const explorerProgram = new ExplorerProgram(explorerSlug, tsvContent)
+
+    // Get all choice combinations
+    const allChoices = explorerProgram.decisionMatrix.allDecisionsAsQueryParams()
+
+    console.log(
+        `Verifying ${allChoices.length} views for explorer: ${explorerSlug}`
+    )
+
+    const results: VerifyResult[] = []
+
+    // Process all views for this explorer sequentially to reuse loaded data
+    for (const choiceParams of allChoices) {
+        const queryStr = queryParamsToStr(choiceParams).replace("?", "")
+        const viewId = `${explorerSlug}?${queryStr}`
+
+        const referenceEntry = referenceDataByViewId.get(viewId)
+        if (!referenceEntry) {
+            console.warn(`No reference found for ${viewId}`)
+            continue
+        }
+
+        const result = await renderExplorerViewAndVerify({
+            explorerDir,
+            explorerSlug,
+            choiceParams,
+            viewId,
+            referenceEntry,
+            referenceDir: referencesDir,
+            outDir: differencesDir,
+            verbose,
+            rmOnError,
+        })
+
+        results.push(result)
+    }
+
+    return results
+}
+
 export async function savePartialGrapherConfigs(
     variableIds: number[],
     outDir: string,
