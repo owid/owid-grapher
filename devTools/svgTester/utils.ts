@@ -35,9 +35,10 @@ import * as R from "remeda"
 import ReactDOMServer from "react-dom/server"
 
 // the owid-grapher-svgs repo is usually cloned as a sibling to the owid-grapher repo
-export const DEFAULT_CONFIGS_DIR = "../owid-grapher-svgs/configs"
-export const DEFAULT_REFERENCE_DIR = "../owid-grapher-svgs/svg"
-export const DEFAULT_DIFFERENCES_DIR = "../owid-grapher-svgs/differences"
+export const DEFAULT_CONFIGS_DIR = "../owid-grapher-svgs/graphers/data"
+export const DEFAULT_REFERENCE_DIR = "../owid-grapher-svgs/graphers/references"
+export const DEFAULT_DIFFERENCES_DIR =
+    "../owid-grapher-svgs/graphers/differences"
 
 const CONFIG_FILENAME = "config.json"
 const RESULTS_FILENAME = "results.csv"
@@ -186,7 +187,6 @@ export async function verifySvg(
 export async function selectChartIdsToProcess(
     inDir: string,
     options: {
-        chartIdsFile?: string
         grapherIds?: number[]
         chartTypes?: GrapherChartType[]
         randomCount?: number
@@ -240,11 +240,9 @@ export async function findChartViewsToGenerate(
 export async function findValidChartIds(
     inDir: string,
     {
-        chartIdsFile,
         grapherIds = [],
         chartTypes = [],
     }: {
-        chartIdsFile?: string
         grapherIds?: number[]
         chartTypes?: GrapherChartType[]
     }
@@ -252,7 +250,7 @@ export async function findValidChartIds(
     const validChartIds: number[] = []
 
     // If nothing is specified, scan all directories in the inDir folder
-    if (grapherIds.length === 0 && chartTypes.length === 0 && !chartIdsFile) {
+    if (grapherIds.length === 0 && chartTypes.length === 0) {
         const dir = await fs.opendir(inDir)
         for await (const entry of dir) {
             if (entry.isDirectory()) {
@@ -261,13 +259,6 @@ export async function findValidChartIds(
             }
         }
         return validChartIds
-    }
-
-    if (chartIdsFile) {
-        const chartIdsFromFile = readLinesFromFile(chartIdsFile)
-            .map((line) => parseInt(line))
-            .filter((id) => !isNaN(id))
-        grapherIds.push(...chartIdsFromFile)
     }
 
     // If grapher ids were given check which ones exist in inDir and filter to those
