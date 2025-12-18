@@ -285,9 +285,13 @@ export function toleranceInterpolation(
 ): void {
     if (!valuesSortedByTimeAsc.length) return
 
+    // `validIndices` contains the indexes of all non-error values in `valuesSortedByTimeAsc`.
+    // Here, we find the *indexes* of where `start` and `end` appear in `validIndices` (note that
+    // `start` and `end` themselves are indexes into `valuesSortedByTimeAsc`).
     const startIndexInValidIndices = R.sortedIndex(validIndices, start)
     const endIndexInValidIndices = R.sortedIndex(validIndices, end)
 
+    // If the two indices are the same, then there are no valid values in this range.
     if (startIndexInValidIndices === endIndexInValidIndices) {
         // No valid values in this range, we can short-circuit
         for (let index = start; index < end; index++) {
@@ -295,7 +299,9 @@ export function toleranceInterpolation(
                 ErrorValueTypes.NoValueWithinTolerance
         }
         return
-    } else if (startIndexInValidIndices + 1 === endIndexInValidIndices) {
+    }
+    // If the two indices differ by 1, then there is only one valid value in this range.
+    else if (startIndexInValidIndices + 1 === endIndexInValidIndices) {
         // Only one valid value in this range, we can short-circuit
         const onlyValidIndex = validIndices[startIndexInValidIndices]
         const timeOfOnlyValid = timesAsc[onlyValidIndex]
@@ -326,16 +332,11 @@ export function toleranceInterpolation(
     let prevNonBlankIndex: number | undefined = undefined
     let nextNonBlankIndex: number | undefined = undefined
 
-    for (let index = start; index < end; index++) {
-        const currentValue = valuesSortedByTimeAsc[index]
-        if (isNotErrorValueOrEmptyCell(currentValue)) {
-            prevNonBlankIndex = index
-            currentValidIndexPointer++
-            continue
-        }
+    let timeOfPrevIndex: number = -Infinity
+    let timeOfNextIndex: number = Infinity
 
+    for (let index = start; index < end; index++) {
         if (
-            context.timeToleranceForwards > 0 &&
             nextNonBlankIndex !== -1 &&
             (nextNonBlankIndex === undefined || nextNonBlankIndex <= index)
         ) {
@@ -343,20 +344,20 @@ export function toleranceInterpolation(
             if (nextNonBlankIndex >= end) {
                 nextNonBlankIndex = -1
             }
+            timeOfNextIndex = timesAsc[nextNonBlankIndex] ?? Infinity
+        }
+
+        if (index === nextNonBlankIndex) {
+            prevNonBlankIndex = index
+            timeOfPrevIndex = timesAsc[index]
+            currentValidIndexPointer++
+            continue
         }
 
         const timeOfCurrent = timesAsc[index]
-        const timeOfPrevIndex =
-            prevNonBlankIndex !== undefined
-                ? timesAsc[prevNonBlankIndex]
-                : -Infinity
-        const timeOfNextIndex =
-            nextNonBlankIndex !== undefined && nextNonBlankIndex !== -1
-                ? timesAsc[nextNonBlankIndex]
-                : Infinity
 
-        const prevTimeDiff = Math.abs(timeOfPrevIndex - timeOfCurrent)
-        const nextTimeDiff = Math.abs(timeOfNextIndex - timeOfCurrent)
+        const prevTimeDiff = timeOfCurrent - timeOfPrevIndex
+        const nextTimeDiff = timeOfNextIndex - timeOfCurrent
 
         if (
             nextNonBlankIndex !== undefined &&
