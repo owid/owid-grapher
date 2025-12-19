@@ -176,27 +176,21 @@ function isWhitespaceOnly(text: string): boolean {
 }
 
 /**
- * Normalize whitespace in text content.
- * Collapses sequences of whitespace (including newlines from pretty-printing) into single spaces.
- */
-function normalizeWhitespace(text: string): string {
-    return text.replace(/\s+/g, " ")
-}
-
-/**
  * Get text content of an element, converting spans to HTML for raw blocks.
  * This is needed because raw blocks store spans as HTML strings that get parsed later.
  * Handles whitespace normalization to support pretty-printed XHTML input.
  */
 function getSpanContent(element: Element): string {
-    // Helper to process children with whitespace normalization
+    // Helper to process children with whitespace handling for pretty-printed XHTML
     const processChildren = (children: AnyNode[]): string => {
         return children
             .map((child, index, arr) => {
                 if (child.type === "text") {
                     const text = (child as unknown as { data: string }).data
-                    // Skip whitespace-only text nodes between elements (from pretty-printing)
-                    if (isWhitespaceOnly(text)) {
+                    // Skip whitespace-only text nodes that contain newlines between elements.
+                    // These are artifacts of pretty-printing indentation.
+                    // Preserve single spaces between elements as they may be actual content.
+                    if (isWhitespaceOnly(text) && text.includes("\n")) {
                         const prevIsTag =
                             index > 0 && arr[index - 1].type === "tag"
                         const nextIsTag =
@@ -206,8 +200,9 @@ function getSpanContent(element: Element): string {
                             return ""
                         }
                     }
-                    // Normalize whitespace within text content
-                    return normalizeWhitespace(text)
+                    // Preserve text content as-is (don't normalize whitespace)
+                    // to maintain round-trip fidelity with the original content
+                    return text
                 }
                 if (child.type === "tag") {
                     return convertSpans(child as Element)
@@ -255,9 +250,10 @@ function getSpanContent(element: Element): string {
             .otherwise(() => childContent)
     }
 
-    const result = processChildren(element.children ?? [])
-    // Trim leading/trailing whitespace from the overall result
-    return result.trim()
+    // Don't trim the result - trailing/leading spaces may be intentional content.
+    // Pretty-printing whitespace is already handled by skipping whitespace-only
+    // nodes that contain newlines.
+    return processChildren(element.children ?? [])
 }
 
 /**
@@ -359,8 +355,10 @@ function elementToRawBlock(element: Element): OwidRawGdocBlock {
             (): RawBlockHeading => ({
                 type: "heading",
                 value: {
+                    // The raw format uses \v (vertical tab) to separate supertitle from title
+                    // Format: supertitle\vtitle (supertitle comes first)
                     text: attribs.supertitle
-                        ? `${getSpanContent(element)}\v${attribs.supertitle}`
+                        ? `${attribs.supertitle}\v${getSpanContent(element)}`
                         : getSpanContent(element),
                     level: attribs.level,
                 },
@@ -859,8 +857,14 @@ function elementToRawBlock(element: Element): OwidRawGdocBlock {
                 type: "research-and-writing",
                 value: {
                     heading: attribs.heading,
-                    "hide-authors": attribs["hide-authors"],
-                    "hide-date": attribs["hide-date"],
+                    // Only include hide-authors/hide-date if they exist in the XHTML
+                    // to avoid validation errors for undefined values
+                    ...(attribs["hide-authors"] !== undefined && {
+                        "hide-authors": attribs["hide-authors"],
+                    }),
+                    ...(attribs["hide-date"] !== undefined && {
+                        "hide-date": attribs["hide-date"],
+                    }),
                     variant: attribs.variant as
                         | ResearchAndWritingVariant
                         | undefined,
