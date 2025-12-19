@@ -1,10 +1,12 @@
 import {
+    EntityName,
     OwidGdocBaseInterface,
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
     OwidGdocProfileContent,
     OwidGdocProfileInterface,
     OwidGdocProfileEntitySummary,
+    OwidGdocProfileScope,
 } from "@ourworldindata/types"
 import {
     getRegionByNameOrVariantName,
@@ -17,13 +19,33 @@ import {
 import * as db from "../../db.js"
 import { GdocBase } from "./GdocBase.js"
 import {
-    CalloutGrapherState,
     extractDataCalloutUrls,
-    generateLinkedCalloutsFromPreparedCharts,
     loadLinkedCalloutsForBlocks,
 } from "./dataCallouts.js"
 
-const GENERIC_PROFILE_SCOPES = new Set(["countries", "continents", "all"])
+const GENERIC_PROFILE_SCOPES = new Set<OwidGdocProfileScope>([
+    "countries",
+    "continents",
+    "all",
+])
+
+export function checkIsValidGenericScope(
+    scope: string
+): scope is OwidGdocProfileScope {
+    const normalisedScope = scope.toLowerCase()
+    return GENERIC_PROFILE_SCOPES.has(normalisedScope as OwidGdocProfileScope)
+}
+
+export function checkIsEntityNameScope(scope: string): boolean {
+    const normalisedScope = scope.toLowerCase()
+    const scopeWithoutParenthetical =
+        removeTrailingParenthetical(normalisedScope)
+
+    return (
+        !!getRegionByNameOrVariantName(normalisedScope) ||
+        !!getRegionByNameOrVariantName(scopeWithoutParenthetical)
+    )
+}
 
 export class GdocProfile extends GdocBase implements OwidGdocProfileInterface {
     declare content: OwidGdocProfileContent
@@ -81,17 +103,7 @@ export class GdocProfile extends GdocBase implements OwidGdocProfileInterface {
     }
 
     private scopeIsRecognised(scope: string): boolean {
-        const normalisedScope = scope.toLowerCase()
-        if (GENERIC_PROFILE_SCOPES.has(normalisedScope)) return true
-
-        // Allow scopes that match entity names, including variations with trailing parentheticals
-        const scopeWithoutParenthetical = removeTrailingParenthetical(scope)
-
-        return (
-            !!getRegionByNameOrVariantName(scope) ||
-            (!!scopeWithoutParenthetical &&
-                !!getRegionByNameOrVariantName(scopeWithoutParenthetical))
-        )
+        return checkIsValidGenericScope(scope) || checkIsEntityNameScope(scope)
     }
 }
 
@@ -99,25 +111,17 @@ export class GdocProfile extends GdocBase implements OwidGdocProfileInterface {
  * Renders a profile template for a specific entity by replacing template tokens
  * with entity-specific values.
  *
- * For bulk baking (SiteBaker), pass prefetchedCalloutGrapherStates to avoid
- * redundant data fetching. For one-off rendering (admin preview, dev server),
- * pass knex and the function will load callout values itself.
+ * For bulk baking (SiteBaker) and previews, pass knex so callout values can be
+ * loaded from the database instead of recomputing.
  *
  * @param profileTemplate - The profile template to instantiate
  * @param entity - The entity to instantiate the profile for
- * @param options - Either prefetched callout states (for bulk baking) or knex transaction (for one-off rendering)
+ * @param options - Optional knex transaction for loading callout values
  */
 export async function instantiateProfileForEntity(
     profileTemplate: GdocProfile,
     entity: ProfileEntity,
-    options?:
-        | {
-              prefetchedCalloutGrapherStates: Record<
-                  string,
-                  CalloutGrapherState
-              >
-          }
-        | { knex: db.KnexReadonlyTransaction }
+    options?: { knex: db.KnexReadonlyTransaction }
 ): Promise<OwidGdocProfileInterface> {
     // Instantiate the content with entity-specific values
     const instantiatedContent = instantiateProfile(
@@ -127,24 +131,10 @@ export async function instantiateProfileForEntity(
 
     const calloutUrls = extractDataCalloutUrls(instantiatedContent.body)
 
-    // Generate linkedCallouts based on what was provided
-    let linkedCallouts
-    if (options && "prefetchedCalloutGrapherStates" in options) {
-        // Bulk baking path: use prefetched data
-        linkedCallouts = generateLinkedCalloutsFromPreparedCharts(
-            calloutUrls,
-            options.prefetchedCalloutGrapherStates
-        )
-    } else if (options && "knex" in options) {
-        // One-off rendering path: fetch data on demand
-        linkedCallouts = await loadLinkedCalloutsForBlocks(
-            options.knex,
-            calloutUrls
-        )
-    } else {
-        // No callout data available
-        linkedCallouts = {}
-    }
+    // Load precomputed callout values from the database when available
+    const linkedCallouts = options?.knex
+        ? await loadLinkedCalloutsForBlocks(options.knex, calloutUrls)
+        : {}
 
     // Filter out data-callout blocks that have incomplete data
     filterIncompleteDataCallouts(instantiatedContent, linkedCallouts)

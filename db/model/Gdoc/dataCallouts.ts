@@ -14,15 +14,17 @@ import {
     DimensionProperty,
     DbRawChartConfig,
     parseChartConfig,
+    ChartCalloutValuesTableName,
+    DbPlainChartCalloutValue,
 } from "@ourworldindata/types"
 import {
-    makeCalloutGrapherStateKey,
     makeLinkedCalloutKey,
     Url,
     traverseEnrichedBlock,
     mergeGrapherConfigs,
     parseIntOrUndefined,
     searchParamsToMultiDimView,
+    makeCalloutGrapherStateKey,
 } from "@ourworldindata/utils"
 import {
     ExplorerProgram,
@@ -36,6 +38,7 @@ import { mapSlugsToIds, getChartConfigById } from "../Chart.js"
 import { getExplorerBySlug } from "../Explorer.js"
 import { transformExplorerProgramToResolveCatalogPaths } from "../ExplorerCatalogResolver.js"
 import { getMultiDimDataPageBySlug } from "../MultiDimDataPage.js"
+import { getChartConfigByUuid } from "../ChartConfigs.js"
 
 /**
  * Extract all data-callout blocks from an array of enriched blocks.
@@ -59,29 +62,62 @@ export function extractDataCalloutUrls(
     })
 }
 
-/**
- * A prepared GrapherState with data already loaded.
- * Can be used to efficiently generate GrapherValuesJson for any (available) entity.
- */
-export interface CalloutGrapherState {
-    grapherState: GrapherState
-    availableEntityNames: EntityName[]
+export function constructCalloutValuesFromPreparedState(
+    state: GrapherState,
+    entity: EntityName
+): GrapherValuesJson {
+    return constructGrapherValuesJson(state, entity)
+}
+
+export function normalizeCalloutUrlForDb(calloutUrl: string): string {
+    const key = makeLinkedCalloutKey(calloutUrl)
+    return key.startsWith("/") ? key : `/${key}`
+}
+
+async function getCalloutValuesFromDb(
+    knex: db.KnexReadonlyTransaction,
+    calloutUrls: string[]
+): Promise<Record<string, GrapherValuesJson>> {
+    const ids = Array.from(
+        new Set(
+            calloutUrls.flatMap((url) => {
+                const normalized = normalizeCalloutUrlForDb(url)
+                const withoutLeadingSlash = normalized.startsWith("/")
+                    ? normalized.slice(1)
+                    : normalized
+                return [normalized, withoutLeadingSlash]
+            })
+        )
+    )
+    if (ids.length === 0) return {}
+
+    const rows = await knex<DbPlainChartCalloutValue>(
+        ChartCalloutValuesTableName
+    )
+        .select("id", "value")
+        .whereIn("id", ids)
+
+    const valuesByKey: Record<string, GrapherValuesJson> = {}
+    for (const row of rows) {
+        const key = normalizeCalloutUrlForDb(row.id)
+        valuesByKey[key] = row.value
+    }
+
+    return valuesByKey
 }
 
 /**
  * Prepare a GrapherState for a chart config by fetching its data.
- * The returned CalloutGrapherState can be used to generate values for any entity
+ * The returned GrapherState can be used to generate values for any entity
  * without additional network requests.
  */
 export async function prepareCalloutChart(
-    config: GrapherInterface,
-    queryStr?: string
-): Promise<CalloutGrapherState | undefined> {
+    config: GrapherInterface
+): Promise<GrapherState | undefined> {
     try {
         // Create GrapherState with the chart config
         const grapherState = new GrapherState({
             ...config,
-            queryStr: queryStr || "",
         })
 
         // Fetch the input table (this contains ALL entity data)
@@ -95,10 +131,7 @@ export async function prepareCalloutChart(
             grapherState.inputTable = inputTable
         }
 
-        return {
-            grapherState,
-            availableEntityNames: grapherState.availableEntityNames,
-        }
+        return grapherState
     } catch (error) {
         console.error(`Failed to prepare callout chart:`, error)
         return undefined
@@ -113,30 +146,17 @@ export async function prepareCalloutChart(
  */
 export async function fetchCalloutValuesForConfig(
     config: GrapherInterface,
-    entity: EntityName,
-    queryStr?: string
+    entity: EntityName
 ): Promise<GrapherValuesJson | undefined> {
-    const preparedChart = await prepareCalloutChart(config, queryStr)
-    if (!preparedChart) return undefined
+    const grapherState = await prepareCalloutChart(config)
+    if (!grapherState) return undefined
 
-    return constructGrapherValuesJson(preparedChart.grapherState, entity)
+    return constructGrapherValuesJson(grapherState, entity)
 }
 
 /**
  * Fetch a chart config by its UUID (used for multi-dim view configs).
  */
-async function getChartConfigByUuid(
-    knex: db.KnexReadonlyTransaction,
-    uuid: string
-): Promise<GrapherInterface | undefined> {
-    const row = await db.knexRawFirst<Pick<DbRawChartConfig, "full">>(
-        knex,
-        `SELECT full FROM chart_configs WHERE id = ?`,
-        [uuid]
-    )
-    if (!row) return undefined
-    return parseChartConfig(row.full)
-}
 
 /**
  * Fetch callout values for a multi-dimensional chart.
@@ -169,7 +189,87 @@ export async function fetchCalloutValuesForMultiDim(
     }
 
     // Fetch and return values using the resolved config
-    return fetchCalloutValuesForConfig(chartConfig, entity, queryStr)
+    return fetchCalloutValuesForConfig(chartConfig, entity)
+}
+
+export async function fetchCalloutValuesForUrl(
+    knex: db.KnexReadonlyTransaction,
+    calloutUrl: string,
+    slugToIdMap?: Record<string, number>
+): Promise<GrapherValuesJson | undefined> {
+    const url = Url.fromURL(calloutUrl)
+    const slug = url.slug
+    if (!slug) return undefined
+
+    const entityNames = getEntityNamesParam(url.queryParams["country"])
+    if (!entityNames) return undefined
+    const entityName = entityNames[0]
+
+    if (url.isExplorer) {
+        return fetchCalloutValuesForExplorer(
+            knex,
+            slug,
+            entityName,
+            url.queryParams as ExplorerChoiceParams,
+            url.queryStr || undefined
+        )
+    }
+
+    const map = slugToIdMap ?? (await mapSlugsToIds(knex))
+    const chartId = map[slug]
+
+    if (chartId) {
+        const chartRecord = await getChartConfigById(knex, chartId)
+        if (chartRecord) {
+            return fetchCalloutValuesForConfig(chartRecord.config, entityName)
+        }
+    }
+
+    return fetchCalloutValuesForMultiDim(
+        knex,
+        slug,
+        entityName,
+        url.queryStr || undefined
+    )
+}
+
+export async function prepareCalloutStateForUrl(
+    knex: db.KnexReadonlyTransaction,
+    calloutUrl: string,
+    slugToIdMap?: Record<string, number>
+): Promise<GrapherState | undefined> {
+    const url = Url.fromURL(calloutUrl)
+    const slug = url.slug
+    if (!slug) return undefined
+
+    if (url.isExplorer) {
+        return prepareExplorerCalloutChart(
+            knex,
+            slug,
+            url.queryParams as ExplorerChoiceParams,
+            url.queryStr || undefined
+        )
+    }
+
+    const map = slugToIdMap ?? (await mapSlugsToIds(knex))
+    const chartId = map[slug]
+
+    if (chartId) {
+        const chartRecord = await getChartConfigById(knex, chartId)
+        if (chartRecord) {
+            return prepareCalloutChart(chartRecord.config)
+        }
+    }
+
+    const multiDimPage = await getMultiDimDataPageBySlug(knex, slug)
+    if (!multiDimPage) return undefined
+
+    const searchParams = new URLSearchParams(url.queryStr || "")
+    const view = searchParamsToMultiDimView(multiDimPage.config, searchParams)
+    const chartConfig = await getChartConfigByUuid(knex, view.fullConfigId)
+    if (!chartConfig) return undefined
+
+    return prepareCalloutChart(chartConfig)
 }
 
 /**
@@ -187,58 +287,40 @@ export async function loadLinkedCalloutsForBlocks(
     if (calloutUrls.length === 0) return {}
 
     const linkedCallouts: LinkedCallouts = {}
-    const slugToIdMap = await mapSlugsToIds(knex)
+    const uniqueCalloutUrls = Array.from(new Set(calloutUrls))
+    const valuesFromDb = await getCalloutValuesFromDb(knex, uniqueCalloutUrls)
+    const missingCallouts: string[] = []
 
-    for (const calloutUrl of calloutUrls) {
-        if (linkedCallouts[calloutUrl]) continue
-
-        const url = Url.fromURL(calloutUrl)
-        const slug = url.slug
-        if (!slug) continue
-
-        const entityNames = getEntityNamesParam(url.queryParams["country"])
-        if (!entityNames) continue
-        const entityName = entityNames[0]
-
-        let values: GrapherValuesJson | undefined
-
-        if (url.isExplorer) {
-            // Handle explorer URLs
-            values = await fetchCalloutValuesForExplorer(
-                knex,
-                slug,
-                entityName,
-                url.queryParams as ExplorerChoiceParams,
-                url.queryStr || undefined
-            )
-        } else {
-            // Handle grapher URLs (regular charts and multi-dims share the same namespace)
-            const chartId = slugToIdMap[slug]
-
-            if (chartId) {
-                // Found as regular grapher chart
-                const chartRecord = await getChartConfigById(knex, chartId)
-                if (chartRecord) {
-                    values = await fetchCalloutValuesForConfig(
-                        chartRecord.config,
-                        entityName,
-                        url.queryStr || undefined
-                    )
-                }
-            } else {
-                // Not found as regular chart, try multi-dim
-                values = await fetchCalloutValuesForMultiDim(
-                    knex,
-                    slug,
-                    entityName,
-                    url.queryStr || undefined
-                )
+    for (const calloutUrl of uniqueCalloutUrls) {
+        const linkedCalloutsKey = makeLinkedCalloutKey(calloutUrl)
+        const cachedValue = valuesFromDb[linkedCalloutsKey]
+        if (cachedValue) {
+            linkedCallouts[linkedCalloutsKey] = {
+                url: calloutUrl,
+                values: cachedValue,
             }
+            continue
         }
 
+        missingCallouts.push(calloutUrl)
+    }
+
+    if (missingCallouts.length === 0) return linkedCallouts
+
+    const slugToIdMap = await mapSlugsToIds(knex)
+
+    for (const calloutUrl of missingCallouts) {
+        const values = await fetchCalloutValuesForUrl(
+            knex,
+            calloutUrl,
+            slugToIdMap
+        )
         if (!values) continue
 
-        linkedCallouts[calloutUrl] = {
+        const linkedCalloutsKey = makeLinkedCalloutKey(calloutUrl)
+        if (linkedCallouts[linkedCalloutsKey]) continue
+
+        linkedCallouts[linkedCalloutsKey] = {
             url: calloutUrl,
             values: values,
         }
@@ -253,7 +335,7 @@ export async function loadLinkedCalloutsForBlocks(
  */
 export function generateLinkedCalloutsFromPreparedCharts(
     calloutUrls: string[],
-    calloutGrapherStates: Record<string, CalloutGrapherState>
+    calloutGrapherStates: Record<string, GrapherState>
 ): LinkedCallouts {
     if (calloutUrls.length === 0) return {}
 
@@ -274,10 +356,7 @@ export function generateLinkedCalloutsFromPreparedCharts(
         if (!entityNames) continue
         const entityName = entityNames[0]
 
-        const values = constructGrapherValuesJson(
-            state.grapherState,
-            entityName
-        )
+        const values = constructGrapherValuesJson(state, entityName)
 
         linkedCallouts[linkedCalloutsKey] = {
             url: stringUrl,
@@ -300,7 +379,7 @@ export async function prepareExplorerCalloutChart(
     explorerSlug: string,
     queryParams: ExplorerChoiceParams,
     queryStr?: string
-): Promise<CalloutGrapherState | undefined> {
+): Promise<GrapherState | undefined> {
     try {
         // Get explorer from database
         const explorerRecord = await getExplorerBySlug(knex, explorerSlug)
@@ -465,10 +544,7 @@ export async function prepareExplorerCalloutChart(
             grapherState.inputTable = inputTable
         }
 
-        return {
-            grapherState,
-            availableEntityNames: grapherState.availableEntityNames,
-        }
+        return grapherState
     } catch (error) {
         console.error(
             `Failed to prepare explorer callout chart for ${explorerSlug}:`,
@@ -489,15 +565,15 @@ export async function fetchCalloutValuesForExplorer(
     queryParams: ExplorerChoiceParams,
     queryStr?: string
 ): Promise<GrapherValuesJson | undefined> {
-    const preparedChart = await prepareExplorerCalloutChart(
+    const grapherState = await prepareExplorerCalloutChart(
         knex,
         explorerSlug,
         queryParams,
         queryStr
     )
-    if (!preparedChart) return undefined
+    if (!grapherState) return undefined
 
-    return constructGrapherValuesJson(preparedChart.grapherState, entity)
+    return constructGrapherValuesJson(grapherState, entity)
 }
 
 /**

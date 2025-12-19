@@ -14,6 +14,8 @@ import {
     CalloutFunction,
     EnrichedBlockConditionalSection,
     EnrichedBlockDataCallout,
+    GRAPHER_QUERY_PARAM_KEYS,
+    GrapherQueryParams,
     GrapherValuesJson,
     LinkedCallouts,
     OwidGdocProfileInterface,
@@ -146,10 +148,7 @@ export const instantiateProfile = (
     return clonedContent
 }
 
-export function getEntitiesForProfile(
-    profileTemplate: OwidGdocProfileInterface
-): ProfileEntity[] {
-    const scopeRaw = profileTemplate.content.scope
+export function getEntitiesForProfile(scopeRaw: string): ProfileEntity[] {
     if (!scopeRaw) return []
 
     const scopeValues = scopeRaw
@@ -419,13 +418,22 @@ export function checkShouldConditionalSectionRender({
  * Data callout utils
  */
 
-// Generate a key for storing/retrieving CalloutGrapherState based on URL without country param
+// Remove all grapher query params from a URL string
+// What remains is the base URL without any grapher-specific query params
+// e.g. only indicator-specifying query params remain
+export function stripGrapherQueryParams(url: string): string {
+    const urlObj = Url.fromURL(url)
+    const emptyParams = Object.fromEntries(
+        GRAPHER_QUERY_PARAM_KEYS.map((key) => [key, undefined])
+    )
+    const strippedUrl = urlObj.updateQueryParams(emptyParams)
+    return strippedUrl.fullUrl
+}
+
+// "/grapher/life-expectancy?time=2022" and "/grapher/life-expectancy?time=2020"
+// both refer to the same grapher state, so they should have the same key
 export function makeCalloutGrapherStateKey(fullUrl: string): string {
-    const url = Url.fromURL(fullUrl)
-    const withoutCountry = url.updateQueryParams({
-        country: undefined,
-    })
-    const key = withoutCountry.pathname + withoutCountry.queryStr
+    const key = stripGrapherQueryParams(fullUrl)
     return key
 }
 

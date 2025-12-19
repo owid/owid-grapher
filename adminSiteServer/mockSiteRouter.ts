@@ -704,7 +704,7 @@ getPlainRouteWithROTransaction(
                 return res.status(404).send(renderNotFoundPage())
             }
 
-            const entitiesInScope = getEntitiesForProfile(gdoc as GdocProfile)
+            const entitiesInScope = getEntitiesForProfile(gdoc.content.scope)
             const isEntityInScope = entitiesInScope.some(
                 (profileEntity) => profileEntity.code === entity.code
             )

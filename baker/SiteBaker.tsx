@@ -52,8 +52,8 @@ import {
     OwidGdocType,
     getEntitiesForProfile,
     LinkedStaticViz,
-    Url,
-    makeCalloutGrapherStateKey,
+     Url,
+     makeCalloutGrapherStateKey,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import {
@@ -76,10 +76,6 @@ import {
     GdocProfile,
     instantiateProfileForEntity,
 } from "../db/model/Gdoc/GdocProfile.js"
-import {
-    prepareCalloutChart,
-    CalloutGrapherState,
-} from "../db/model/Gdoc/dataCallouts.js"
 import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 import {
     gdocFromJSON,
@@ -134,8 +130,8 @@ type PrefetchedAttachments = {
     linkedIndicators: Record<number, LinkedIndicator>
     linkedNarrativeCharts: Record<string, NarrativeChartInfo>
     linkedStaticViz: Record<string, LinkedStaticViz>
-    // Prepared chart data for data-callouts, keyed by chart URL key (minus country param)
-    calloutGrapherStates: Record<string, CalloutGrapherState>
+     // Prepared chart data for data-callouts, keyed by chart URL key (minus country param)
+     calloutGrapherStates: Record<string, CalloutGrapherState>
 }
 
 // These aren't all "wordpress" steps
@@ -240,16 +236,26 @@ export class SiteBaker {
                 attachments.linkedNarrativeCharts
             profileTemplate.linkedStaticViz = attachments.linkedStaticViz
 
-            const entities = getEntitiesForProfile(profileTemplate)
+
+            if (
+                !profileTemplate.manualBreadcrumbs?.length &&
+                profileTemplate.tags?.length
+            ) {
+                profileTemplate.breadcrumbs = db.getBestBreadcrumbs(
+                    profileTemplate.tags,
+                    tagHierarchiesByChildName
+                )
+            }
+
+            const entities = getEntitiesForProfile(
+                profileTemplate.content.scope
+            )
 
             for (const entity of entities) {
                 const instantiatedProfile = await instantiateProfileForEntity(
                     profileTemplate,
                     entity,
-                    {
-                        prefetchedCalloutGrapherStates:
-                            attachments.calloutGrapherStates,
-                    }
+                    { knex }
                 )
 
                 const html = renderGdoc(instantiatedProfile)

@@ -76,6 +76,42 @@ export function constructGrapherValuesJson(
     return result
 }
 
+export function isValuesJsonValid(valuesJson: GrapherValuesJson): boolean {
+    const columns = valuesJson.columns
+
+    if (!columns || Object.keys(columns).length === 0) return false
+
+    const isDataPointComplete = (
+        dataPoint: GrapherValuesJsonDataPoint | undefined
+    ): boolean => {
+        if (!dataPoint) return false
+        if (!columns[dataPoint.columnSlug]) return false
+        if (dataPoint.value === undefined) return false
+        if (dataPoint.time === undefined) return false
+        return true
+    }
+
+    const areDataPointsComplete = (
+        dataPoints: GrapherValuesJsonDataPoints | undefined
+    ): boolean => {
+        if (!dataPoints?.y?.length) return false
+        if (!dataPoints.y.every(isDataPointComplete)) return false
+        if (dataPoints.x && !isDataPointComplete(dataPoints.x)) return false
+        return true
+    }
+
+    if (valuesJson.startTime !== undefined && !valuesJson.startValues)
+        return false
+    if (valuesJson.endTime !== undefined && !valuesJson.endValues) return false
+
+    if (valuesJson.startValues && !areDataPointsComplete(valuesJson.startValues))
+        return false
+    if (valuesJson.endValues && !areDataPointsComplete(valuesJson.endValues))
+        return false
+
+    return true
+}
+
 const makeColumnInfoForRelevantSlugs = (
     grapherState: GrapherState
 ): GrapherValuesJson["columns"] => {

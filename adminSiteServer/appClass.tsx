@@ -119,7 +119,7 @@ export class OwidAdminApp {
                     ) {
                         const entityCode = req.query.entity as string
                         const entitiesInScope = getEntitiesForProfile(
-                            gdoc as GdocProfile
+                            gdoc.content.scope
                         )
                         const entityInScope = entitiesInScope.find(
                             (profileEntity) => profileEntity.code === entityCode
