@@ -68,7 +68,6 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     private lastUpdatedTooltip?: MarkerType
 
     private editHandle?: Exclude<MarkerType, MarkerType.Hover>
-    private isEditableTimeTooltipHovered: boolean = false
 
     private slider?: Element | HTMLElement | null
     private playButton?: Element | HTMLElement | null
@@ -84,14 +83,12 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
             | "lastUpdatedTooltip"
             | "hoverTime"
             | "editHandle"
-            | "isEditableTimeTooltipHovered"
         >(this, {
             startTooltipVisible: observable,
             endTooltipVisible: observable,
             lastUpdatedTooltip: observable,
             hoverTime: observable,
             editHandle: observable,
-            isEditableTimeTooltipHovered: observable,
         })
     }
 
@@ -249,8 +246,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
             !this.manager.isSingleTimeSelectionActive &&
             !this.isDragging &&
             !this.areBothHandlesVisible &&
-            !this.editHandle &&
-            !this.isEditableTimeTooltipHovered
+            !this.editHandle
         )
     }
 
@@ -422,7 +418,6 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
     @action.bound private resetEditState(): void {
         this.editHandle = undefined
-        this.isEditableTimeTooltipHovered = false
     }
 
     @action.bound private onCompleteYear(year?: number): void {
@@ -544,7 +539,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
         return (
             <EditableYearTooltip
-                type={MarkerType.Start}
+                position="left"
                 isEditing={this.editHandle === MarkerType.Start}
                 currentTime={startTime}
                 formattedTime={formattedStartTime}
@@ -553,11 +548,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                 onChange={this.onChangeYear}
                 getTimeForKey={this.getStartTimeForNavigationKey}
                 onMouseEnter={action(() => {
-                    this.isEditableTimeTooltipHovered = true
                     this.hoverTime = undefined
-                })}
-                onMouseLeave={action(() => {
-                    this.isEditableTimeTooltipHovered = false
                 })}
                 onBlur={action(() => {
                     this.startTooltipVisible = false
@@ -578,9 +569,16 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
             return <SimpleTimeTooltip formattedTime={formattedEndTime} />
         }
 
+        // Avoid overlap with the hover tooltip when hovering to the right of the handle
+        const position =
+            this.hoverTime !== undefined &&
+            this.hoverTime > this.controller.endTime
+                ? "left"
+                : "right"
+
         return (
             <EditableYearTooltip
-                type={MarkerType.End}
+                position={position}
                 isEditing={this.editHandle === MarkerType.End}
                 currentTime={endTime}
                 formattedTime={formattedEndTime}
@@ -589,11 +587,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                 onChange={this.onChangeYear}
                 getTimeForKey={this.getEndTimeForNavigationKey}
                 onMouseEnter={action(() => {
-                    this.isEditableTimeTooltipHovered = true
                     this.hoverTime = undefined
-                })}
-                onMouseLeave={action(() => {
-                    this.isEditableTimeTooltipHovered = false
                 })}
                 onBlur={action(() => {
                     this.startTooltipVisible = false
@@ -613,17 +607,15 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
             return <SimpleTimeTooltip formattedTime={formattedHoverTime} />
         }
 
-        // Show to the left if hovering over start handle, right if hovering over end handle
-        const type =
-            hoverTime < this.controller.endTime
-                ? MarkerType.Start
-                : MarkerType.End
+        // Show on the left if hovering to the left of the existing handle,
+        // right if hovering to the right of the existing handle
+        const position = hoverTime < this.controller.endTime ? "left" : "right"
 
         // The hover tooltip is not editable (since it's impossible to click on
         // the tooltip), but it uses the same component for consistent styling
         return (
             <EditableYearTooltip
-                type={type}
+                position={position}
                 currentTime={hoverTime}
                 formattedTime={formattedHoverTime}
             />
@@ -869,7 +861,7 @@ function TimelineHandle({
 }
 
 function EditableYearTooltip({
-    type,
+    position,
     isEditing = false,
     currentTime,
     formattedTime,
@@ -881,7 +873,7 @@ function EditableYearTooltip({
     onMouseLeave,
     onBlur,
 }: {
-    type: Exclude<MarkerType, MarkerType.Hover>
+    position: "left" | "right"
     isEditing?: boolean
     currentTime: number
     formattedTime: string
@@ -933,8 +925,8 @@ function EditableYearTooltip({
     return (
         <div
             className={cx("EditableTimeTooltip", {
-                "EditableTimeTooltip--left": type === MarkerType.Start,
-                "EditableTimeTooltip--right": type === MarkerType.End,
+                "EditableTimeTooltip--left": position === "left",
+                "EditableTimeTooltip--right": position === "right",
             })}
             onMouseDown={(e) => e.stopPropagation()}
             onMouseEnter={onMouseEnter}
