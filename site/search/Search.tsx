@@ -15,11 +15,8 @@ import {
     getSelectedTopicType,
     getEffectiveResultType,
 } from "./searchUtils.js"
-import {
-    useTagGraphTopics,
-    useSearchParamsState,
-    useSearchAnalytics,
-} from "./searchHooks.js"
+import { useTagGraphTopics, useSearchAnalytics } from "./searchHooks.js"
+import { useSearchParamsState } from "./searchState.js"
 
 // Components
 import { Searchbar } from "./Searchbar.js"
@@ -44,18 +41,23 @@ export const Search = ({
     liteSearchClient: LiteClient
 }) => {
     // Extract topic and area data from the graph
-    const { allAreas, allTopics } = useTagGraphTopics(topicTagGraph)
+    const { allAreas: eligibleAreas, allTopics: eligibleTopics } =
+        useTagGraphTopics(topicTagGraph)
 
-    const validRegions = useMemo(() => new Set(listedRegionsNames()), [])
-    const validTopics = useMemo(
-        () => new Set([...allAreas, ...allTopics]),
-        [allAreas, allTopics]
+    const eligibleRegionNames = useMemo(() => listedRegionsNames(), [])
+    const eligibleTopicsAndAreas = useMemo(
+        () => [...eligibleAreas, ...eligibleTopics],
+        [eligibleAreas, eligibleTopics]
     )
 
-    // State derived from URL - single source of truth
-    const { state, actions } = useSearchParamsState(validRegions, validTopics)
-
     const synonymMap = useMemo(() => buildSynonymMap(), [])
+
+    // State derived from URL - single source of truth (includes automatic filter detection)
+    const { state, actions } = useSearchParamsState(
+        eligibleRegionNames,
+        eligibleTopicsAndAreas,
+        synonymMap
+    )
 
     const analytics = useMemo(() => new SiteAnalytics(), [])
 
@@ -69,7 +71,7 @@ export const Search = ({
     // Derived state for template configuration Use immediate state to avoid
     // firing duplicate queries (one for the current (deferred) template, one for the
     // target template after deferred value catches up)
-    const topicType = getSelectedTopicType(state.filters, allAreas)
+    const topicType = getSelectedTopicType(state.filters, eligibleAreas)
     const templateConfig: TemplateConfig = {
         resultType: getEffectiveResultType(
             state.filters,
@@ -96,8 +98,10 @@ export const Search = ({
             }}
         >
             <div className="search-controls-container span-cols-12 col-start-2">
-                <Searchbar allTopics={allTopics} />
-                <SearchDetectedFilters allTopics={allTopics} />
+                <Searchbar key={state.query} allTopics={eligibleTopics} />
+                <SearchDetectedFilters
+                    eligibleRegionNames={eligibleRegionNames}
+                />
             </div>
             <div className="search-filters span-cols-12 col-start-2">
                 <SearchTopicsRefinementList topicType={topicType} />
