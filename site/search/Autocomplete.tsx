@@ -275,59 +275,55 @@ const createFiltersSource = (
             synonymMap
         )
 
-        const items: {
-            filter: Filter
-            unmatchedQuery: string
-            slug: string
-        }[] = []
-
-        suggestions.suggestions.forEach((filter) => {
-            items.push({
-                filter,
-                unmatchedQuery: suggestions.unmatchedQuery,
-                slug: getItemUrlForFilter(filter, suggestions.unmatchedQuery),
-            })
-        })
-        return items
+        return (
+            suggestions.suggestions
+                // Suggestions must now be explicitly selected by the user
+                // (opt-out by default). Pressing "enter" will search for the
+                // current query directly, so we no longer need to include an
+                // extra query suggestion here.
+                .filter((filter) => filter.type !== FilterType.QUERY)
+                .map((filter) => ({
+                    filter,
+                    unmatchedQuery: suggestions.unmatchedQuery,
+                    slug: getItemUrlForFilter(
+                        filter,
+                        suggestions.unmatchedQuery
+                    ),
+                }))
+        )
     },
     templates: {
         item: ({ item }) => {
             const filter = item.filter as Filter
             const unmatchedQuery = item.unmatchedQuery as string
 
-            return match(filter.type)
-                .with(FilterType.QUERY, () => (
-                    <span className="autocomplete-item-contents">
-                        <span className="autocomplete-item-contents__type-icon">
-                            <FontAwesomeIcon icon={faSearch} />
+            return (
+                match(filter.type)
+                    .with(FilterType.COUNTRY, () => (
+                        <span className="autocomplete-item-contents">
+                            <span className="autocomplete-item-contents__type-icon">
+                                <FontAwesomeIcon icon={faSearch} />
+                            </span>
+                            <span className="autocomplete-item-contents__query autocomplete-item-contents__query--unmatched">
+                                {unmatchedQuery} {filter.name.toLowerCase()}
+                            </span>
                         </span>
-                        <span className="autocomplete-item-contents__query autocomplete-item-contents__query--only autocomplete-item-contents__query--highlighted">
-                            {filter.name}
+                    ))
+                    .with(FilterType.TOPIC, () => (
+                        <span className="autocomplete-item-contents">
+                            <span className="autocomplete-item-contents__type-icon">
+                                <FontAwesomeIcon icon={faSearch} />
+                            </span>
+                            <SearchFilterPill
+                                name={filter.name}
+                                icon={getFilterIcon(filter)}
+                            />
                         </span>
-                    </span>
-                ))
-                .with(FilterType.COUNTRY, () => (
-                    <span className="autocomplete-item-contents">
-                        <span className="autocomplete-item-contents__type-icon">
-                            <FontAwesomeIcon icon={faSearch} />
-                        </span>
-                        <span className="autocomplete-item-contents__query autocomplete-item-contents__query--unmatched">
-                            {unmatchedQuery} {filter.name.toLowerCase()}
-                        </span>
-                    </span>
-                ))
-                .with(FilterType.TOPIC, () => (
-                    <span className="autocomplete-item-contents">
-                        <span className="autocomplete-item-contents__type-icon">
-                            <FontAwesomeIcon icon={faSearch} />
-                        </span>
-                        <SearchFilterPill
-                            name={filter.name}
-                            icon={getFilterIcon(filter)}
-                        />
-                    </span>
-                ))
-                .exhaustive()
+                    ))
+                    // query filters are filtered out in getItems
+                    .with(FilterType.QUERY, () => <></>)
+                    .exhaustive()
+            )
         },
     },
 })
@@ -371,7 +367,6 @@ export function Autocomplete({
                 panel: panelClassName,
             },
             openOnFocus: true,
-            defaultActiveItemId: 0,
             onStateChange({ state, prevState }) {
                 if (onActivate && !prevState.isOpen && state.isOpen) {
                     onActivate()
