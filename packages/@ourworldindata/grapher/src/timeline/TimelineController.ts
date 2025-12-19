@@ -178,7 +178,7 @@ export class TimelineController {
         return tickCount
     }
 
-    private get allowHandlesOnSameTime(): boolean {
+    get allowHandlesOnSameTime(): boolean {
         return !this.manager.onlyTimeRangeSelectionPossible
     }
 
