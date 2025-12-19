@@ -1107,6 +1107,9 @@ const TimelineDateInput = ({
         } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
             // Apply immediately on arrow key changes
             setShouldApplyImmediately(true)
+        } else {
+            // Reset flag when typing (any other key)
+            setShouldApplyImmediately(false)
         }
         e.stopPropagation()
     }
