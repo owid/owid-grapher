@@ -8,8 +8,14 @@ import {
     GRAPHER_FONT_SCALE_11_2,
     BASE_FONT_SIZE,
 } from "../core/GrapherConstants"
-import { Color } from "@ourworldindata/types"
 import { ColorScaleBin, NumericBin } from "../color/ColorScaleBin"
+import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
+import {
+    LegendInteractionState,
+    LegendStyleConfig,
+    LegendMarkerStyle,
+    LegendTextStyle,
+} from "../legend/LegendInteractionState"
 
 export interface VerticalColorLegendManager {
     maxLegendWidth?: number
@@ -21,9 +27,10 @@ export interface VerticalColorLegendManager {
     onLegendMouseLeave?: () => void
     legendX?: number
     legendY?: number
-    activeColors: Color[]
-    focusColors?: Color[]
     isStatic?: boolean
+    getLegendBinState?: (bin: ColorScaleBin) => LegendInteractionState
+    legendStyleConfig?: LegendStyleConfig
+    categoricalLegendStyleConfig?: LegendStyleConfig
 }
 
 interface SizedLegendSeries {
@@ -140,32 +147,52 @@ export class VerticalColorLegend extends React.Component<{
         return this.manager.legendY ?? 0
     }
 
+    @computed private get legendStyleConfig(): LegendStyleConfig | undefined {
+        return (
+            this.manager.categoricalLegendStyleConfig ??
+            this.manager.legendStyleConfig
+        )
+    }
+
+    private getBinState(bin: ColorScaleBin): LegendInteractionState {
+        return (
+            this.manager.getLegendBinState?.(bin) ??
+            LegendInteractionState.Default
+        )
+    }
+
+    private getTextStyleConfig(bin: ColorScaleBin): LegendTextStyle {
+        const state = this.getBinState(bin)
+        const styleConfig = this.legendStyleConfig?.text
+        const defaultStyle = styleConfig?.default
+        const currentStyle = styleConfig?.[state]
+        return { color: GRAPHER_DARK_TEXT, ...defaultStyle, ...currentStyle }
+    }
+
+    private getMarkerStyleConfig(bin: ColorScaleBin): LegendMarkerStyle {
+        const state = this.getBinState(bin)
+        const styleConfig = this.legendStyleConfig?.marker
+        const defaultStyle = styleConfig?.default
+        const currentStyle = styleConfig?.[state]
+        return { fill: bin.color, ...defaultStyle, ...currentStyle }
+    }
+
     renderLabels(): React.ReactElement {
-        const { series, manager, rectSize, rectPadding } = this
-        const { focusColors } = manager
+        const { series, rectSize, rectPadding } = this
 
         return (
             <g id={makeIdForHumanConsumption("labels")}>
                 {series.map((series) => {
-                    const isFocus =
-                        focusColors?.includes(series.bin.color) ?? false
+                    const style = this.getTextStyleConfig(series.bin)
 
                     const textX = this.legendX + rectSize + rectPadding
                     const textY = this.legendY + series.yOffset
 
                     return (
                         <React.Fragment key={series.textWrap.text}>
-                            {series.textWrap.renderSVG(
-                                textX,
-                                textY,
-                                isFocus
-                                    ? {
-                                          textProps: {
-                                              style: { fontWeight: "bold" },
-                                          },
-                                      }
-                                    : undefined
-                            )}
+                            {series.textWrap.renderSVG(textX, textY, {
+                                textProps: { fill: style.color, ...style },
+                            })}
                         </React.Fragment>
                     )
                 })}
@@ -174,17 +201,15 @@ export class VerticalColorLegend extends React.Component<{
     }
 
     renderSwatches(): React.ReactElement {
-        const { manager, series, rectSize, rectPadding } = this
-        const { activeColors } = manager
+        const { series, rectSize, rectPadding } = this
 
         return (
             <g id={makeIdForHumanConsumption("swatches")}>
                 {series.map((series) => {
-                    const isActive = activeColors.includes(series.bin.color)
+                    const style = this.getMarkerStyleConfig(series.bin)
 
                     const textX = this.legendX + rectSize + rectPadding
                     const textY = this.legendY + series.yOffset
-
                     const renderedTextPosition =
                         series.textWrap.getPositionForSvgRendering(textX, textY)
 
@@ -196,7 +221,7 @@ export class VerticalColorLegend extends React.Component<{
                             y={renderedTextPosition[1] - rectSize}
                             width={rectSize}
                             height={rectSize}
-                            fill={isActive ? series.bin.color : "#ccc"}
+                            style={style}
                         />
                     )
                 })}

@@ -127,6 +127,7 @@ export interface ScatterPointsWithLabelsProps {
     seriesArray: ScatterSeries[]
     hoveredSeriesNames?: SeriesName[]
     focusedSeriesNames?: SeriesName[]
+    isHoverModeActive?: boolean
     tooltipSeriesName?: SeriesName
     dualAxis: DualAxis
     colorScale?: ColorScale

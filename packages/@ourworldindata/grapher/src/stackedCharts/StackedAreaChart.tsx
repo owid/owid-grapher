@@ -42,7 +42,7 @@ import { select, type BaseType, type Selection } from "d3-selection"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import { StackedAreas } from "./StackedAreas"
-import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
+import { HorizontalColorLegendManager } from "../legend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { InteractionState } from "../interaction/InteractionState"
@@ -236,7 +236,18 @@ export class StackedAreaChart
                         })
                 )
                 .toReversed()
-            return { categoricalLegendData }
+
+            return {
+                categoricalLegendData,
+                legendStyleConfig: {
+                    marker: {
+                        default: { opacity: AREA_OPACITY.DEFAULT },
+                        focused: { opacity: AREA_OPACITY.FOCUS },
+                        muted: { opacity: AREA_OPACITY.MUTE },
+                    },
+                    text: { muted: { opacity: AREA_OPACITY.MUTE } },
+                },
+            }
         }
         return undefined
     }

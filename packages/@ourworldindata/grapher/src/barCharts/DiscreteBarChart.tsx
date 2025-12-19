@@ -26,7 +26,6 @@ import { HorizontalAxisZeroLine } from "../axis/AxisViews"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
-    BACKGROUND_COLOR,
     BAR_SPACING_FACTOR,
     DiscreteBarChartManager,
     DiscreteBarSeries,
@@ -38,7 +37,7 @@ import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import {
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
-} from "../horizontalColorLegend/HorizontalColorLegends"
+} from "../legend/HorizontalColorLegends"
 import { DiscreteBarChartState } from "./DiscreteBarChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import {
@@ -49,6 +48,7 @@ import { OwidTable } from "@ourworldindata/core-table"
 import { HorizontalAxis } from "../axis/Axis"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import type { BaseType, Selection } from "d3-selection"
+import { NUMERIC_LEGEND_STYLE } from "../lineCharts/LineChartConstants"
 
 const DEFAULT_PROJECTED_DATA_COLOR_IN_LEGEND = "#787878"
 
@@ -642,10 +642,14 @@ export class DiscreteBarChart
         return DEFAULT_PROJECTED_DATA_COLOR_IN_LEGEND
     }
 
+    // Used when the bars are colored by a numeric scale
+    numericLegendStyleConfig = NUMERIC_LEGEND_STYLE
+
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
         if (this.hasColorLegend) {
             return {
                 numericLegendData: this.numericLegendData,
+                numericLegendStyleConfig: this.numericLegendStyleConfig,
             }
         }
         return undefined
@@ -655,9 +659,6 @@ export class DiscreteBarChart
         return 0.625 * this.fontSize
     }
 
-    numericBinStroke = BACKGROUND_COLOR
-    numericBinStrokeWidth = 1
-    legendTextColor = "#555"
     legendTickSize = 1
 
     @computed private get numericLegend():

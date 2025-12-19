@@ -60,7 +60,7 @@ import {
 import { TooltipFooterIcon } from "../tooltip/TooltipProps"
 
 import { Halo } from "@ourworldindata/components"
-import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
+import { HorizontalColorLegendManager } from "../legend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import {
     GRAPHER_BACKGROUND_DEFAULT,
@@ -79,6 +79,7 @@ import {
 } from "./SlopeChartHelpers"
 import { Slope } from "./Slope"
 import { MarkX } from "./MarkX"
+import { CATEGORICAL_LEGEND_STYLE } from "../lineCharts/LineChartConstants"
 
 type SVGMouseOrTouchEvent =
     | React.MouseEvent<SVGGElement>
@@ -336,7 +337,10 @@ export class SlopeChart
                         color: series.color,
                     })
             )
-            return { categoricalLegendData }
+            return {
+                categoricalLegendData,
+                categoricalLegendStyleConfig: CATEGORICAL_LEGEND_STYLE,
+            }
         }
         return undefined
     }

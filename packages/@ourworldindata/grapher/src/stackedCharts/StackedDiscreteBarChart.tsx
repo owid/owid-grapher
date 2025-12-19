@@ -20,12 +20,16 @@ import { NoDataModal } from "../noDataModal/NoDataModal"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import { TooltipState } from "../tooltip/Tooltip"
-import { StackedSeries } from "./StackedConstants"
+import {
+    LEGEND_STYLE_FOR_STACKED_CHARTS,
+    StackedSeries,
+} from "./StackedConstants"
 import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
-} from "../horizontalColorLegend/HorizontalColorLegends"
+} from "../legend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
+import { LegendInteractionState } from "../legend/LegendInteractionState"
 import { StackedDiscreteBarChartState } from "./StackedDiscreteBarChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { StackedDiscreteBars } from "./StackedDiscreteBars"
@@ -135,10 +139,28 @@ export class StackedDiscreteBarChart
         return this.showLegend ? this.legendBins : []
     }
 
+    getLegendBinState(bin: ColorScaleBin): LegendInteractionState {
+        const { focusSeriesName } = this
+
+        // If nothing is focused, all items are active
+        if (!focusSeriesName) {
+            return LegendInteractionState.Default
+        }
+
+        // Check if this bin contains the focused series
+        const isFocused = bin.contains(focusSeriesName)
+        return isFocused
+            ? LegendInteractionState.Focused
+            : LegendInteractionState.Muted
+    }
+
+    legendStyleConfig = LEGEND_STYLE_FOR_STACKED_CHARTS
+
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
         if (!this.showLegend) {
             return {
                 categoricalLegendData: this.legendBins,
+                legendStyleConfig: this.legendStyleConfig,
             }
         }
         return undefined

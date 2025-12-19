@@ -32,7 +32,10 @@ import {
 } from "@ourworldindata/types"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import { getShortNameForEntity } from "../chart/ChartUtils"
-import { StackedSeries } from "./StackedConstants"
+import {
+    LEGEND_STYLE_FOR_STACKED_CHARTS,
+    StackedSeries,
+} from "./StackedConstants"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import {
     Tooltip,
@@ -44,8 +47,12 @@ import {
 import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
-} from "../horizontalColorLegend/HorizontalColorLegends"
+} from "../legend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
+import {
+    LegendInteractionState,
+    LegendStyleConfig,
+} from "../legend/LegendInteractionState"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { ColorScale } from "../color/ColorScale"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -288,10 +295,6 @@ export class MarimekkoChart
         return this.bounds.top
     }
 
-    @computed get legendOpacity(): number {
-        return 0.7
-    }
-
     @computed get legendWidth(): number {
         return this.bounds.width
     }
@@ -323,6 +326,25 @@ export class MarimekkoChart
         }
         return []
     }
+
+    getLegendBinState(bin: ColorScaleBin): LegendInteractionState {
+        const { focusColorBin } = this
+
+        // If nothing is focused, all items are active
+        if (!focusColorBin && this.hoverColors.length === 0)
+            return LegendInteractionState.Default
+
+        const isHovered = this.hoverColors?.includes(bin.color)
+        if (isHovered) return LegendInteractionState.Focused
+
+        // Check if this bin matches the focused color bin
+        const isFocused = focusColorBin && bin.equals(focusColorBin)
+        return isFocused
+            ? LegendInteractionState.Focused
+            : LegendInteractionState.Muted
+    }
+
+    legendStyleConfig: LegendStyleConfig = LEGEND_STYLE_FOR_STACKED_CHARTS
 
     @computed get hoverColors(): string[] {
         if (this.focusColorBin) return [this.focusColorBin.color]

@@ -16,7 +16,7 @@ import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
     VerticalColorLegend,
     VerticalColorLegendManager,
-} from "../verticalColorLegend/VerticalColorLegend"
+} from "../legend/VerticalColorLegend"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import {
     Tooltip,
@@ -30,14 +30,20 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
 } from "../core/GrapherConstants"
 import { StackedBarChartState } from "./StackedBarChartState.js"
-import { BAR_OPACITY, StackedPoint, StackedSeries } from "./StackedConstants"
+import {
+    BAR_OPACITY,
+    LEGEND_STYLE_FOR_STACKED_CHARTS,
+    StackedPoint,
+    StackedSeries,
+} from "./StackedConstants"
+import { LegendInteractionState } from "../legend/LegendInteractionState"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
-import { HorizontalAlign } from "@ourworldindata/types"
+import { HorizontalAlign, SeriesName } from "@ourworldindata/types"
 import { makeClipPath } from "../chart/ChartUtils"
 import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
-} from "../horizontalColorLegend/HorizontalColorLegends"
+} from "../legend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig.js"
 import { easeLinear } from "d3-ease"
@@ -87,6 +93,8 @@ export class StackedBarChart
         bar: StackedPoint<number>
         series: StackedSeries<number>
     }>()
+
+    legendStyleConfig = LEGEND_STYLE_FOR_STACKED_CHARTS
 
     @computed get chartState(): StackedBarChartState {
         return this.props.chartState
@@ -193,12 +201,11 @@ export class StackedBarChart
             : 0
     }
 
-    // All currently hovered group keys, combining the legend and the main UI
-    @computed private get hoverKeys(): string[] {
+    @computed private get hoveredSeriesNames(): SeriesName[] {
         const { hoverColor, manager } = this
         const { externalLegendHoverBin } = manager
 
-        const hoverKeys =
+        const hoveredSeriesNames =
             hoverColor === undefined
                 ? []
                 : _.uniq(
@@ -207,29 +214,38 @@ export class StackedBarChart
                           .map((g) => g.seriesName)
                   )
         if (externalLegendHoverBin) {
-            hoverKeys.push(
+            hoveredSeriesNames.push(
                 ...this.chartState.rawSeries
                     .map((g) => g.seriesName)
                     .filter((name) => externalLegendHoverBin.contains(name))
             )
         }
 
-        return hoverKeys
+        return hoveredSeriesNames
     }
 
     @computed get activeColors(): string[] {
-        const { hoverKeys } = this
-        const activeKeys = hoverKeys.length > 0 ? hoverKeys : []
+        const { hoveredSeriesNames = [], hoverColor } = this
 
-        if (!activeKeys.length)
-            // No hover means they're all active by default
-            return _.uniq(this.stackedSeries.map((g) => g.color))
-
-        return _.uniq(
-            this.stackedSeries
-                .filter((g) => activeKeys.indexOf(g.seriesName) !== -1)
-                .map((g) => g.color)
+        const hoveredColors = this.stackedSeries
+            .filter((g) => hoveredSeriesNames.indexOf(g.seriesName) !== -1)
+            .map((g) => g.color)
+        const activeColors = _.uniq(
+            excludeUndefined([...hoveredColors, hoverColor])
         )
+
+        return activeColors
+    }
+
+    getLegendBinState(bin: ColorScaleBin): LegendInteractionState {
+        const isActive = this.activeColors?.includes(bin.color)
+
+        if (this.activeColors.length === 0)
+            return LegendInteractionState.Default
+
+        return isActive
+            ? LegendInteractionState.Focused
+            : LegendInteractionState.Muted
     }
 
     @computed get categoricalLegendData(): CategoricalBin[] {
@@ -308,7 +324,11 @@ export class StackedBarChart
                         })
                 )
                 .toReversed()
-            return { categoricalLegendData }
+
+            return {
+                categoricalLegendData,
+                legendStyleConfig: this.legendStyleConfig,
+            }
         }
         return undefined
     }
@@ -477,7 +497,7 @@ export class StackedBarChart
                 dualAxis={this.dualAxis}
                 series={this.stackedSeries}
                 formatColumn={this.chartState.formatColumn}
-                hoveredSeriesNames={this.hoverKeys}
+                hoveredSeriesNames={this.hoveredSeriesNames}
                 hoveredBar={this.tooltipState.target?.bar}
                 onBarMouseOver={this.onBarMouseOver}
                 onBarMouseLeave={this.onBarMouseLeave}

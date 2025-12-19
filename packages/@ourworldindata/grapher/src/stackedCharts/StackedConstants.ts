@@ -12,18 +12,15 @@ import {
 } from "../core/GrapherConstants"
 import { TextWrap } from "@ourworldindata/components"
 import { InteractionState } from "../interaction/InteractionState.js"
-
-export const BAR_OPACITY = {
-    DEFAULT: GRAPHER_AREA_OPACITY_DEFAULT,
-    FOCUS: GRAPHER_AREA_OPACITY_FOCUS,
-    MUTE: GRAPHER_AREA_OPACITY_MUTE,
-}
+import { LegendStyleConfig } from "../legend/LegendInteractionState"
 
 export const AREA_OPACITY = {
     DEFAULT: GRAPHER_AREA_OPACITY_DEFAULT,
     FOCUS: GRAPHER_AREA_OPACITY_FOCUS,
     MUTE: GRAPHER_AREA_OPACITY_MUTE,
 } as const
+
+export const BAR_OPACITY = AREA_OPACITY
 
 export const BORDER_OPACITY = {
     DEFAULT: 0.7,
@@ -35,6 +32,17 @@ export const BORDER_WIDTH = {
     DEFAULT: 0.5,
     FOCUS: 1.5,
 } as const
+
+export const LEGEND_STYLE_FOR_STACKED_CHARTS: LegendStyleConfig = {
+    marker: {
+        default: { opacity: AREA_OPACITY.DEFAULT },
+        focused: { opacity: AREA_OPACITY.FOCUS },
+        muted: { opacity: AREA_OPACITY.MUTE },
+    },
+    text: {
+        muted: { opacity: AREA_OPACITY.MUTE },
+    },
+}
 
 export type StackedPointPositionType = string | number
 

@@ -38,9 +38,13 @@ import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
-} from "../horizontalColorLegend/HorizontalColorLegends"
+} from "../legend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { GRAPHER_DARK_TEXT, GRAY_30 } from "../color/ColorConstants"
+import {
+    LegendInteractionState,
+    LegendStyleConfig,
+} from "../legend/LegendInteractionState"
 import {
     MAP_LEGEND_MAX_WIDTH_RATIO,
     MapChart,
@@ -318,6 +322,18 @@ export class FacetMap
         })
     }
 
+    @computed private get intermediateMapInstances(): MapChart[] {
+        return this.intermediatePlacedSeries.map(
+            ({ bounds, manager }) =>
+                makeChartInstance({
+                    manager,
+                    bounds,
+                    chartType: GRAPHER_MAP_TYPE,
+                    variant: this.manager.variant,
+                }) as MapChart
+        )
+    }
+
     /**
      * Used to construct the shared legend for all map facets.
      *
@@ -325,13 +341,7 @@ export class FacetMap
      * the legend since all facets share the same legend.
      */
     @computed get intermediateMapInstance(): MapChart {
-        const { bounds, manager } = this.intermediatePlacedSeries[0]
-        return makeChartInstance({
-            manager,
-            bounds,
-            chartType: GRAPHER_MAP_TYPE,
-            variant: this.manager.variant,
-        }) as MapChart
+        return this.intermediateMapInstances[0]
     }
 
     @computed private get gridParams(): GridParameters {
@@ -409,10 +419,6 @@ export class FacetMap
         return this.externalLegend?.categoricalLegendData ?? []
     }
 
-    @computed get categoricalBinStroke(): Color | undefined {
-        return this.externalLegend?.categoricalBinStroke
-    }
-
     @computed private get numericLegendHeight(): number {
         return this.numericLegend ? this.numericLegend.height : 0
     }
@@ -449,9 +455,32 @@ export class FacetMap
             : undefined
     }
 
-    // Renamed so that it's picked up by the legend component
-    @computed get numericFocusBracket(): ColorScaleBin | undefined {
-        return this.legendHoverBin
+    getLegendBinState(bin: ColorScaleBin): LegendInteractionState {
+        if (!this.legendHoverBin && !this.mapConfig.hoverCountry) {
+            return LegendInteractionState.Default
+        }
+
+        // Check if this bin is being hovered
+        if (this.legendHoverBin && bin.equals(this.legendHoverBin)) {
+            return LegendInteractionState.Focused
+        }
+
+        // Check if a country is being hovered and matches this bin
+        if (this.mapConfig.hoverCountry) {
+            const series = this.intermediateMapInstances.map((mapChart) =>
+                mapChart.chartState.series.find(
+                    (s) => s.seriesName === this.mapConfig.hoverCountry
+                )
+            )
+            if (series.some((s) => s?.color === bin.color))
+                return LegendInteractionState.Focused
+        }
+
+        return LegendInteractionState.Muted
+    }
+
+    @computed get legendStyleConfig(): LegendStyleConfig | undefined {
+        return this.externalLegend?.legendStyleConfig
     }
 
     override componentDidMount(): void {

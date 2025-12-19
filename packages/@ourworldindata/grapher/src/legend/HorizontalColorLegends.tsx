@@ -7,7 +7,6 @@ import {
     dyFromAlign,
     removeAllWhitespace,
     Bounds,
-    Color,
     HorizontalAlign,
     VerticalAlign,
     makeIdForHumanConsumption,
@@ -23,9 +22,15 @@ import {
     GRAPHER_FONT_SCALE_12,
     GRAPHER_FONT_SCALE_12_8,
     GRAPHER_FONT_SCALE_14,
-    GRAPHER_OPACITY_MUTE,
 } from "../core/GrapherConstants"
 import { darkenColorForLine } from "../color/ColorUtils"
+import {
+    LegendInteractionState,
+    LegendStyleConfig,
+    LegendTextStyle,
+    LegendMarkerStyle,
+} from "../legend/LegendInteractionState"
+import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 
 export interface PositionedBin {
     x: number
@@ -40,6 +45,7 @@ interface NumericLabel {
     priority?: boolean
     hidden: boolean
     raised: boolean
+    bin: ColorScaleBin
 }
 
 interface CategoricalMark {
@@ -73,25 +79,20 @@ export interface HorizontalColorLegendManager {
     legendWidth?: number
     legendMaxWidth?: number
     legendHeight?: number
-    legendOpacity?: number
-    legendTextColor?: Color
     legendTickSize?: number
+    legendCursor?: "pointer" | "default"
     categoricalLegendData?: CategoricalBin[]
-    categoricalFocusBracket?: CategoricalBin
-    categoricalBinStroke?: Color
     numericLegendData?: ColorScaleBin[]
-    numericFocusBracket?: ColorScaleBin
     numericBinSize?: number
-    numericBinStroke?: Color
-    numericBinStrokeWidth?: number
     onLegendMouseEnter?: (d: ColorScaleBin) => void
     onLegendMouseLeave?: () => void
     onLegendMouseOver?: (d: ColorScaleBin) => void
     onLegendClick?: (d: ColorScaleBin) => void
-    activeColors?: string[] // inactive colors are muted
-    focusColors?: string[] // focused colors are bolded
-    hoverColors?: string[] // non-hovered colors are muted
     isStatic?: boolean
+    getLegendBinState?: (bin: ColorScaleBin) => LegendInteractionState
+    legendStyleConfig?: LegendStyleConfig
+    categoricalLegendStyleConfig?: LegendStyleConfig
+    numericLegendStyleConfig?: LegendStyleConfig
 }
 
 const DEFAULT_NUMERIC_BIN_SIZE = 10
@@ -101,7 +102,6 @@ const DEFAULT_TEXT_COLOR = "#111"
 const DEFAULT_TICK_SIZE = 3
 
 const CATEGORICAL_BIN_MIN_WIDTH = 20
-const FOCUS_BORDER_COLOR = "#111"
 const SPACE_BETWEEN_CATEGORICAL_BINS = 7
 const MINIMUM_LABEL_DISTANCE = 5
 
@@ -146,12 +146,15 @@ export abstract class HorizontalColorLegend extends React.Component<{
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
-    @computed protected get legendTextColor(): Color {
-        return this.manager.legendTextColor ?? DEFAULT_TEXT_COLOR
-    }
-
     @computed protected get legendTickSize(): number {
         return this.manager.legendTickSize ?? DEFAULT_TICK_SIZE
+    }
+
+    protected getBinState(bin: ColorScaleBin): LegendInteractionState {
+        return (
+            this.manager.getLegendBinState?.(bin) ??
+            LegendInteractionState.Default
+        )
     }
 
     abstract get height(): number
@@ -184,17 +187,6 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
 
     @computed private get numericBinSize(): number {
         return this.props.manager.numericBinSize ?? DEFAULT_NUMERIC_BIN_SIZE
-    }
-
-    @computed private get numericBinStroke(): Color {
-        return this.props.manager.numericBinStroke ?? DEFAULT_NUMERIC_BIN_STROKE
-    }
-
-    @computed private get numericBinStrokeWidth(): number {
-        return (
-            this.props.manager.numericBinStrokeWidth ??
-            DEFAULT_NUMERIC_BIN_STROKE_WIDTH
-        )
     }
 
     @computed private get tickFontSize(): number {
@@ -387,6 +379,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                 bounds: labelBounds.set({ x: x, y: y }),
                 hidden: false,
                 raised: false,
+                bin: bin.bin,
             }
         }
 
@@ -404,6 +397,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                 priority: true,
                 hidden: false,
                 raised: false,
+                bin: bin.bin,
             }
         }
 
@@ -469,19 +463,42 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         )
     }
 
-    override render(): React.ReactElement {
-        const {
-            manager,
-            numericLabels,
-            numericBinSize,
-            positionedBins,
-            height,
-        } = this
-        const { numericFocusBracket } = manager
+    @computed private get legendStyleConfig(): LegendStyleConfig | undefined {
+        return (
+            this.manager.numericLegendStyleConfig ??
+            this.manager.legendStyleConfig
+        )
+    }
 
-        const stroke = this.numericBinStroke
-        const strokeWidth = this.numericBinStrokeWidth
+    private getTextStyleConfig(bin: ColorScaleBin): LegendTextStyle {
+        const state = this.getBinState(bin)
+        const styleConfig = this.legendStyleConfig?.text
+        const defaultStyle = styleConfig?.default
+        const currentStyle = styleConfig?.[state]
+        return { color: GRAPHER_DARK_TEXT, ...defaultStyle, ...currentStyle }
+    }
+
+    private getMarkerStyleConfig(bin: ColorScaleBin): LegendMarkerStyle {
+        const state = this.getBinState(bin)
+        const styleConfig = this.legendStyleConfig?.marker
+        const defaultStyle = styleConfig?.default
+        const current = styleConfig?.[state]
+        return {
+            fill: bin.color,
+            stroke: DEFAULT_NUMERIC_BIN_STROKE,
+            strokeWidth: DEFAULT_NUMERIC_BIN_STROKE_WIDTH,
+            ...defaultStyle,
+            ...current,
+        }
+    }
+
+    override render(): React.ReactElement {
+        const { numericLabels, numericBinSize, positionedBins, height } = this
+
         const bottomY = this.numericLegendY + height
+
+        const textColor =
+            this.legendStyleConfig?.text?.default?.color ?? DEFAULT_TEXT_COLOR
 
         return (
             <g
@@ -490,32 +507,42 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                 className="numericColorLegend"
             >
                 <g id={makeIdForHumanConsumption("lines")}>
-                    {numericLabels.map((label, index) => (
-                        <line
-                            key={index}
-                            id={makeIdForHumanConsumption(label.text)}
-                            x1={label.bounds.x + label.bounds.width / 2}
-                            y1={bottomY - numericBinSize}
-                            x2={label.bounds.x + label.bounds.width / 2}
-                            y2={bottomY + label.bounds.y + label.bounds.height}
-                            // if we use a light color for stroke (e.g. white), we want it to stay
-                            // "invisible", except for raised labels, where we want *some* contrast.
-                            stroke={
-                                label.raised
-                                    ? darkenColorForLine(stroke)
-                                    : stroke
-                            }
-                            strokeWidth={strokeWidth}
-                        />
-                    ))}
+                    {numericLabels.map((label, index) => {
+                        const style = this.getMarkerStyleConfig(label.bin)
+                        return (
+                            <line
+                                key={index}
+                                id={makeIdForHumanConsumption(label.text)}
+                                x1={label.bounds.x + label.bounds.width / 2}
+                                y1={bottomY - numericBinSize}
+                                x2={label.bounds.x + label.bounds.width / 2}
+                                y2={
+                                    bottomY +
+                                    label.bounds.y +
+                                    label.bounds.height
+                                }
+                                // if we use a light color for stroke (e.g. white), we want it to stay
+                                // "invisible", except for raised labels, where we want *some* contrast.
+                                stroke={
+                                    label.raised && style.stroke
+                                        ? darkenColorForLine(style.stroke)
+                                        : style.stroke
+                                }
+                                strokeWidth={style.strokeWidth}
+                            />
+                        )
+                    })}
                 </g>
                 <g id={makeIdForHumanConsumption("swatches")}>
                     {_.sortBy(
                         positionedBins.map((positionedBin, index) => {
                             const bin = positionedBin.bin
-                            const isFocus =
-                                numericFocusBracket &&
-                                bin.equals(numericFocusBracket)
+                            const style = this.getMarkerStyleConfig(bin)
+
+                            const fill = bin.patternRef
+                                ? `url(#${bin.patternRef})`
+                                : style.fill
+
                             return (
                                 <NumericBinRect
                                     key={index}
@@ -523,16 +550,10 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                                     y={bottomY - numericBinSize}
                                     width={positionedBin.width}
                                     height={numericBinSize}
-                                    fill={
-                                        bin.patternRef
-                                            ? `url(#${bin.patternRef})`
-                                            : bin.color
-                                    }
-                                    opacity={manager.legendOpacity} // defaults to undefined which removes the prop
-                                    stroke={
-                                        isFocus ? FOCUS_BORDER_COLOR : stroke
-                                    }
-                                    strokeWidth={isFocus ? 2 : strokeWidth}
+                                    fill={fill}
+                                    stroke={style.stroke}
+                                    strokeWidth={style.strokeWidth}
+                                    opacity={style.opacity}
                                     isOpenLeft={
                                         bin instanceof NumericBin
                                             ? bin.props.isOpenLeft
@@ -557,21 +578,24 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                     )}
                 </g>
                 <g id={makeIdForHumanConsumption("labels")}>
-                    {numericLabels.map((label, index) => (
-                        <text
-                            key={index}
-                            x={label.bounds.x}
-                            y={bottomY + label.bounds.y}
-                            // we can't use dominant-baseline to do proper alignment since our svg-to-png library Sharp
-                            // doesn't support that (https://github.com/lovell/sharp/issues/1996), so we'll have to make
-                            // do with some rough positioning.
-                            dy={dyFromAlign(VerticalAlign.bottom)}
-                            fontSize={label.fontSize}
-                            fill={this.legendTextColor}
-                        >
-                            {label.text}
-                        </text>
-                    ))}
+                    {numericLabels.map((label, index) => {
+                        const style = this.getTextStyleConfig(label.bin)
+                        return (
+                            <text
+                                key={index}
+                                x={label.bounds.x}
+                                y={bottomY + label.bounds.y}
+                                // we can't use dominant-baseline to do proper alignment since our svg-to-png library Sharp
+                                // doesn't support that (https://github.com/lovell/sharp/issues/1996), so we'll have to make
+                                // do with some rough positioning.
+                                dy={dyFromAlign(VerticalAlign.bottom)}
+                                fontSize={label.fontSize}
+                                style={{ fill: style.color, ...style }}
+                            >
+                                {label.text}
+                            </text>
+                        )
+                    })}
                 </g>
                 {this.legendTitle?.renderSVG(
                     this.x,
@@ -580,7 +604,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                         height -
                         this.legendTitle.height +
                         this.legendTitleFontSize * 0.2,
-                    { textProps: { fill: this.legendTextColor } }
+                    { textProps: { fill: textColor } }
                 )}
             </g>
         )
@@ -746,28 +770,41 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
         return _.max(this.marks.map((mark) => mark.y + mark.rectSize)) ?? 0
     }
 
-    private isInForeground(mark: CategoricalMark): boolean {
-        const { activeColors, hoverColors = [] } = this.manager
+    @computed private get legendStyleConfig(): LegendStyleConfig | undefined {
+        return (
+            this.manager.categoricalLegendStyleConfig ??
+            this.manager.legendStyleConfig
+        )
+    }
 
-        const isIdle = activeColors === undefined && hoverColors.length === 0
-        const isActive = activeColors?.includes(mark.bin.color)
-        const isHovered = hoverColors.includes(mark.bin.color)
+    private getTextStyleConfig(bin: ColorScaleBin): LegendTextStyle {
+        const state = this.getBinState(bin)
+        const styleConfig = this.legendStyleConfig?.text
+        const defaultStyle = styleConfig?.default
+        const currentStyle = styleConfig?.[state]
+        return { color: GRAPHER_DARK_TEXT, ...defaultStyle, ...currentStyle }
+    }
 
-        return !!(isIdle || isHovered || isActive)
+    protected getMarkerStyleConfig(bin: ColorScaleBin): LegendMarkerStyle {
+        const state = this.getBinState(bin)
+        const styleConfig = this.legendStyleConfig?.marker
+        const defaultStyle = styleConfig?.default
+        const currentStyle = styleConfig?.[state]
+        return {
+            fill: bin.color,
+            strokeWidth: 0.4,
+            ...defaultStyle,
+            ...currentStyle,
+        }
     }
 
     renderLabels(): React.ReactElement {
-        const { manager, marks } = this
-        const { focusColors } = manager
+        const { marks } = this
 
         return (
             <g id={makeIdForHumanConsumption("labels")}>
                 {marks.map((mark, index) => {
-                    const isFocus = focusColors?.includes(mark.bin.color)
-
-                    const opacity = this.isInForeground(mark)
-                        ? manager.legendOpacity
-                        : GRAPHER_OPACITY_MUTE
+                    const style = this.getTextStyleConfig(mark.bin)
 
                     return (
                         <text
@@ -779,8 +816,8 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                             // do with some rough positioning.
                             dy={dyFromAlign(VerticalAlign.middle)}
                             fontSize={mark.label.fontSize}
-                            fontWeight={isFocus ? "bold" : undefined}
-                            opacity={opacity}
+                            fontWeight={style.fontWeight}
+                            style={{ fill: style.color, ...style }}
                         >
                             {mark.label.text}
                         </text>
@@ -791,18 +828,16 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
     }
 
     renderSwatches(): React.ReactElement {
-        const { manager, marks } = this
+        const { marks } = this
 
         return (
             <g id={makeIdForHumanConsumption("swatches")}>
                 {marks.map((mark, index) => {
-                    const color = mark.bin.patternRef
-                        ? `url(#${mark.bin.patternRef})`
-                        : mark.bin.color
+                    const style = this.getMarkerStyleConfig(mark.bin)
 
-                    const opacity = this.isInForeground(mark)
-                        ? manager.legendOpacity
-                        : GRAPHER_OPACITY_MUTE
+                    const fill = mark.bin.patternRef
+                        ? `url(#${mark.bin.patternRef})`
+                        : style.fill
 
                     return (
                         <rect
@@ -812,10 +847,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                             y={this.categoryLegendY + mark.y}
                             width={mark.rectSize}
                             height={mark.rectSize}
-                            fill={color}
-                            stroke={manager.categoricalBinStroke}
-                            strokeWidth={0.4}
-                            opacity={opacity}
+                            style={{ ...style, fill }}
                         />
                     )
                 })}
@@ -845,8 +877,6 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                         ? (): void => manager.onLegendClick?.(mark.bin)
                         : undefined
 
-                    const cursor = click ? "pointer" : "default"
-
                     return (
                         <g
                             key={`${mark.label}-${index}`}
@@ -854,7 +884,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                             onMouseOver={mouseOver}
                             onMouseLeave={mouseLeave}
                             onClick={click}
-                            style={{ cursor }}
+                            style={{ cursor: manager.legendCursor }}
                         >
                             {/* for hover interaction */}
                             <rect

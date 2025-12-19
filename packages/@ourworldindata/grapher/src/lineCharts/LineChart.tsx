@@ -9,7 +9,6 @@ import {
     excludeUndefined,
     isMobile,
     Bounds,
-    Color,
     HorizontalAlign,
     isTouchDevice,
 } from "@ourworldindata/utils"
@@ -43,6 +42,8 @@ import {
     LinePoint,
     PlacedLineChartSeries,
     RenderLineChartSeries,
+    CATEGORICAL_LEGEND_STYLE,
+    NUMERIC_LEGEND_STYLE,
     LEGEND_PADDING,
     VARIABLE_COLOR_STROKE_WIDTH,
     DEFAULT_STROKE_WIDTH,
@@ -69,7 +70,7 @@ import { darkenColorForLine } from "../color/ColorUtils"
 import {
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
-} from "../horizontalColorLegend/HorizontalColorLegends"
+} from "../legend/HorizontalColorLegends"
 import {
     AnnotationsMap,
     getAnnotationsForSeries,
@@ -84,6 +85,7 @@ import { LineChartState } from "./LineChartState.js"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { InteractionState } from "../interaction/InteractionState"
+import { LegendStyleConfig } from "../legend/LegendInteractionState"
 
 export type LineChartProps = ChartComponentProps<LineChartState>
 
@@ -783,13 +785,13 @@ export class LineChart
     }
 
     numericBinSize = 6
-    numericBinStrokeWidth = 1
-    legendTextColor = "#555"
     legendTickSize = 1
 
-    @computed get numericBinStroke(): Color {
-        return this.manager.backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT
-    }
+    // Used when faceted
+    categoricalLegendStyleConfig: LegendStyleConfig = CATEGORICAL_LEGEND_STYLE
+
+    // Used when the lines are colored by a numeric scale
+    numericLegendStyleConfig = NUMERIC_LEGEND_STYLE
 
     @computed private get numericLegend():
         | HorizontalNumericColorLegend
@@ -953,13 +955,12 @@ export class LineChart
                   )
             return {
                 legendTitle: this.legendTitle,
-                legendTextColor: this.legendTextColor,
                 legendTickSize: this.legendTickSize,
                 numericBinSize: this.numericBinSize,
-                numericBinStroke: this.numericBinStroke,
-                numericBinStrokeWidth: this.numericBinStrokeWidth,
                 numericLegendData,
                 categoricalLegendData,
+                categoricalLegendStyleConfig: this.categoricalLegendStyleConfig,
+                numericLegendStyleConfig: this.numericLegendStyleConfig,
             }
         }
         return undefined
