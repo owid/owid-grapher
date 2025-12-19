@@ -595,18 +595,6 @@ export interface RenderJobDescription {
     rmOnError?: boolean
 }
 
-export interface RenderExplorerJobDescription {
-    explorerDir: string
-    explorerSlug: string
-    choiceParams: Record<string, string>
-    viewId: string
-    referenceEntry: SvgRecord
-    referenceDir: string
-    outDir: string
-    verbose: boolean
-    rmOnError?: boolean
-}
-
 export async function renderAndVerifySvg({
     dir,
     referenceEntry,
@@ -657,127 +645,6 @@ export async function renderAndVerifySvg({
             })
         }
         return Promise.resolve(resultError(referenceEntry.viewId, err as Error))
-    }
-}
-
-export async function renderExplorerViewAndVerify({
-    explorerDir,
-    explorerSlug,
-    choiceParams,
-    viewId,
-    referenceEntry,
-    referenceDir,
-    outDir,
-    verbose,
-    rmOnError,
-}: RenderExplorerJobDescription): Promise<VerifyResult> {
-    try {
-        logIfVerbose(verbose, `Verifying explorer view ${viewId}`)
-
-        // Load explorer config
-        const configPath = path.join(explorerDir, "config.tsv")
-        const tsvContent = await fs.readFile(configPath, "utf-8")
-
-        const width = DEFAULT_GRAPHER_WIDTH
-        const height = DEFAULT_GRAPHER_HEIGHT
-        const bounds = new Bounds(0, 0, width, height)
-
-        // Load partial grapher configs
-        const partialGrapherConfigs =
-            await loadPartialGrapherConfigs(explorerDir)
-
-        const explorerProps: ExplorerProps = {
-            slug: explorerSlug,
-            program: tsvContent,
-            isEmbeddedInAnOwidPage: true,
-            adminBaseUrl: "https://ourworldindata.org",
-            bakedBaseUrl: "https://ourworldindata.org",
-            bakedGrapherUrl: "https://ourworldindata.org/grapher",
-            dataApiUrl: "https://api.ourworldindata.org/v1/indicators", // Unused
-            partialGrapherConfigs,
-            bounds,
-            staticBounds: bounds,
-            loadInputTableForConfig: (args) =>
-                loadInputTableForConfig(explorerDir, args),
-        }
-
-        // Reset GUID for deterministic output
-        TESTING_ONLY_disable_guid()
-
-        // Create Explorer instance for this view
-        const explorer = new Explorer(explorerProps)
-
-        // Set the explorer to this specific choice combination
-        explorer.explorerProgram.decisionMatrix.setValuesFromChoiceParams(
-            choiceParams
-        )
-
-        // Skip if this is a grapher id based row
-        if (
-            explorer.explorerProgram.chartCreationMode ===
-            ExplorerChartCreationMode.FromGrapherId
-        )
-            return { kind: "ok" }
-
-        // Update the explorer
-        const oldRow = explorer.explorerProgram.currentlySelectedGrapherRow || 0
-        await explorer.reactToUserChangingSelection(oldRow)
-
-        // Generate SVG for this view
-        const svg = explorer.grapherState.generateStaticSvg(
-            ReactDOMServer.renderToStaticMarkup
-        )
-
-        const queryStr = queryParamsToStr(choiceParams).replace("?", "")
-        const outFilename = buildSvgOutFilename(
-            {
-                slug: explorerSlug,
-                version: 0, // Explorers don't have versions
-                width,
-                height,
-                queryStr,
-            },
-            { shouldHashQueryStr: true }
-        )
-
-        const svgRecord: SvgRecord = {
-            viewId,
-            chartType: explorer.grapherState.activeTab,
-            md5: await processSvgAndCalculateHash(svg),
-            svgFilename: outFilename,
-        }
-
-        // Verify against reference
-        const validationResult = await verifySvg(
-            svg,
-            svgRecord,
-            referenceEntry,
-            referenceDir,
-            verbose
-        )
-
-        // If there was a difference, write the SVG
-        if (validationResult.kind === "difference") {
-            if (verbose) logDifferencesToConsole(svgRecord, validationResult)
-            const pathFragments = path.parse(svgRecord.svgFilename)
-            const outputPath = path.join(
-                outDir,
-                pathFragments.name + pathFragments.ext
-            )
-            const cleanedSvg = await prepareSvgForComparison(svg)
-            await fs.writeFile(outputPath, cleanedSvg)
-        }
-
-        return Promise.resolve(validationResult)
-    } catch (err) {
-        console.error(`Threw error for ${viewId}:`, err)
-        if (rmOnError) {
-            const outPath = path.join(outDir, referenceEntry.svgFilename)
-            await fs.unlink(outPath).catch(() => {
-                /* ignore ENOENT */
-            })
-        }
-        return Promise.resolve(resultError(viewId, err as Error))
     }
 }
 
@@ -1046,7 +913,6 @@ export async function renderExplorerViewsToSVGsAndSave({
 export async function verifyExplorerViews({
     explorerDir,
     explorerSlug,
-    referenceDataArray,
     referencesDir,
     differencesDir,
     verbose,
@@ -1054,7 +920,6 @@ export async function verifyExplorerViews({
 }: {
     explorerDir: string
     explorerSlug: string
-    referenceDataArray: SvgRecord[]
     referencesDir: string
     differencesDir: string
     verbose: boolean
@@ -1063,19 +928,46 @@ export async function verifyExplorerViews({
     // Set up file-aware table loader for local CSV files
     patchExplorerTableLoader()
 
-    // Convert array to map for efficient lookup
+    // Load reference CSV in the worker to avoid passing massive arrays between processes
+    const referenceData = await parseReferenceCsv(referencesDir)
     const referenceDataByViewId = new Map(
-        referenceDataArray.map((record) => [record.viewId, record])
+        referenceData.map((record) => [record.viewId, record])
     )
 
-    // Load explorer config
+    // Load explorer config ONCE
     const configPath = path.join(explorerDir, "config.tsv")
     const tsvContent = await fs.readFile(configPath, "utf-8")
     const explorerProgram = new ExplorerProgram(explorerSlug, tsvContent)
+    const explorerType = getExplorerType(explorerProgram)
+
+    // Skip Grapher explorers
+    if (explorerType === ExplorerType.Grapher) return []
+
+    const width = DEFAULT_GRAPHER_WIDTH
+    const height = DEFAULT_GRAPHER_HEIGHT
+    const bounds = new Bounds(0, 0, width, height)
+
+    // Load partial grapher configs ONCE
+    const partialGrapherConfigs = await loadPartialGrapherConfigs(explorerDir)
+
+    // Set up explorer props to reuse
+    const explorerProps: ExplorerProps = {
+        slug: explorerSlug,
+        program: tsvContent,
+        isEmbeddedInAnOwidPage: true,
+        adminBaseUrl: "https://ourworldindata.org",
+        bakedBaseUrl: "https://ourworldindata.org",
+        bakedGrapherUrl: "https://ourworldindata.org/grapher",
+        dataApiUrl: "https://api.ourworldindata.org/v1/indicators", // Unused
+        partialGrapherConfigs,
+        bounds,
+        staticBounds: bounds,
+        loadInputTableForConfig: (args) =>
+            loadInputTableForConfig(explorerDir, args),
+    }
 
     // Get all choice combinations
-    const allChoices =
-        explorerProgram.decisionMatrix.allDecisionsAsQueryParams()
+    const allChoices = explorerProgram.decisionMatrix.allDecisionsAsQueryParams()
 
     console.log(
         `Verifying ${allChoices.length} views for explorer: ${explorerSlug}`
@@ -1094,19 +986,88 @@ export async function verifyExplorerViews({
             continue
         }
 
-        const result = await renderExplorerViewAndVerify({
-            explorerDir,
-            explorerSlug,
-            choiceParams,
-            viewId,
-            referenceEntry,
-            referenceDir: referencesDir,
-            outDir: differencesDir,
-            verbose,
-            rmOnError,
-        })
+        try {
+            logIfVerbose(verbose, `Verifying explorer view ${viewId}`)
 
-        results.push(result)
+            // Reset GUID for deterministic output
+            TESTING_ONLY_disable_guid()
+
+            // Create a fresh Explorer instance for this view, reusing shared config
+            const explorer = new Explorer(explorerProps)
+
+            // Set the explorer to this specific choice combination
+            explorer.explorerProgram.decisionMatrix.setValuesFromChoiceParams(
+                choiceParams
+            )
+
+            // Skip if this is a grapher id based row
+            if (
+                explorer.explorerProgram.chartCreationMode ===
+                ExplorerChartCreationMode.FromGrapherId
+            ) {
+                results.push({ kind: "ok" })
+                continue
+            }
+
+            // Update the explorer
+            const oldRow = explorer.explorerProgram.currentlySelectedGrapherRow || 0
+            await explorer.reactToUserChangingSelection(oldRow)
+
+            // Generate SVG for this view
+            const svg = explorer.grapherState.generateStaticSvg(
+                ReactDOMServer.renderToStaticMarkup
+            )
+
+            const outFilename = buildSvgOutFilename(
+                {
+                    slug: explorerSlug,
+                    version: 0, // Explorers don't have versions
+                    width,
+                    height,
+                    queryStr,
+                },
+                { shouldHashQueryStr: true }
+            )
+
+            const svgRecord: SvgRecord = {
+                viewId,
+                chartType: explorer.grapherState.activeTab,
+                md5: await processSvgAndCalculateHash(svg),
+                svgFilename: outFilename,
+            }
+
+            // Verify against reference
+            const validationResult = await verifySvg(
+                svg,
+                svgRecord,
+                referenceEntry,
+                referencesDir,
+                verbose
+            )
+
+            // If there was a difference, write the SVG
+            if (validationResult.kind === "difference") {
+                if (verbose) logDifferencesToConsole(svgRecord, validationResult)
+                const pathFragments = path.parse(svgRecord.svgFilename)
+                const outputPath = path.join(
+                    differencesDir,
+                    pathFragments.name + pathFragments.ext
+                )
+                const cleanedSvg = await prepareSvgForComparison(svg)
+                await fs.writeFile(outputPath, cleanedSvg)
+            }
+
+            results.push(validationResult)
+        } catch (err) {
+            console.error(`Threw error for ${viewId}:`, err)
+            if (rmOnError) {
+                const outPath = path.join(differencesDir, referenceEntry.svgFilename)
+                await fs.unlink(outPath).catch(() => {
+                    /* ignore ENOENT */
+                })
+            }
+            results.push(resultError(viewId, err as Error))
+        }
     }
 
     return results

@@ -32,14 +32,10 @@ async function verifyExplorers(args: ReturnType<typeof parseArguments>) {
     if (!fs.existsSync(differencesDir))
         fs.mkdirSync(differencesDir, { recursive: true })
 
-    // Load reference CSV
-    const referenceData = await utils.parseReferenceCsv(referencesDir)
-
     // Collect all explorer directories
     const explorerJobs: {
         explorerDir: string
         explorerSlug: string
-        referenceDataArray: utils.SvgRecord[]
         referencesDir: string
         differencesDir: string
         verbose: boolean
@@ -56,7 +52,6 @@ async function verifyExplorers(args: ReturnType<typeof parseArguments>) {
         explorerJobs.push({
             explorerDir,
             explorerSlug,
-            referenceDataArray: referenceData,
             referencesDir,
             differencesDir,
             verbose: args.verbose,
