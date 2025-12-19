@@ -567,10 +567,12 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
             return <SimpleTimeTooltip formattedTime={formattedStartTime} />
         }
 
+        const isEditing = this.editHandle === MarkerType.Start
+
         return this.isDailyData ? (
             <EditableDateTooltip
-                type={MarkerType.Start}
-                editHandle={this.editHandle}
+                position="left"
+                isEditing={isEditing}
                 formattedTime={formattedStartTime}
                 currentTime={startTime}
                 minTime={minTime}
@@ -582,7 +584,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         ) : (
             <EditableYearTooltip
                 position="left"
-                isEditing={this.editHandle === MarkerType.Start}
+                isEditing={isEditing}
                 currentTime={startTime}
                 formattedTime={formattedStartTime}
                 onStartEditing={() => this.onStartEditing(MarkerType.Start)}
@@ -618,10 +620,12 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                 ? "left"
                 : "right"
 
+        const isEditing = this.editHandle === MarkerType.End
+
         return this.isDailyData ? (
             <EditableDateTooltip
-                type={MarkerType.End}
-                editHandle={this.editHandle}
+                position={position}
+                isEditing={isEditing}
                 formattedTime={formattedEndTime}
                 currentTime={endTime}
                 minTime={minTime}
@@ -636,7 +640,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         ) : (
             <EditableYearTooltip
                 position={position}
-                isEditing={this.editHandle === MarkerType.End}
+                isEditing={isEditing}
                 currentTime={endTime}
                 formattedTime={formattedEndTime}
                 onStartEditing={() => this.onStartEditing(MarkerType.End)}
@@ -1022,8 +1026,8 @@ function EditableYearTooltip({
 }
 
 function EditableDateTooltip({
-    type,
-    editHandle,
+    position,
+    isEditing = false,
     currentTime,
     formattedTime,
     minTime,
@@ -1034,8 +1038,8 @@ function EditableDateTooltip({
     onComplete,
     onChange,
 }: {
-    type: Exclude<MarkerType, MarkerType.Hover>
-    editHandle?: Exclude<MarkerType, MarkerType.Hover>
+    position: "left" | "right"
+    isEditing?: boolean
     currentTime: number
     formattedTime: string
     minTime: number
@@ -1049,14 +1053,14 @@ function EditableDateTooltip({
     return (
         <div
             className={cx("EditableTimeTooltip", {
-                "EditableTimeTooltip--left": type === MarkerType.Start,
-                "EditableTimeTooltip--right": type === MarkerType.End,
+                "EditableTimeTooltip--left": position === "left",
+                "EditableTimeTooltip--right": position === "right",
             })}
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
             onMouseDown={(e) => e.stopPropagation()}
         >
-            {editHandle === type ? (
+            {isEditing ? (
                 <TimelineDateInput
                     value={daysSinceEpochToCalendarDate(currentTime)}
                     minValue={daysSinceEpochToCalendarDate(minTime)}
