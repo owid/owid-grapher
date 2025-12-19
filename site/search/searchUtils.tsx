@@ -421,7 +421,7 @@ export function serializeSet(set: Set<string>) {
     return set.size ? [...set].join("~") : undefined
 }
 
-export function deserializeSet(str?: string): Set<string> {
+export function deserializeSet(str: string | null): Set<string> {
     return str ? new Set(str.split("~")) : new Set()
 }
 
