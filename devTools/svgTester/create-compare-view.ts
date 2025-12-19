@@ -27,8 +27,11 @@ async function main(args: ReturnType<typeof parseArguments>) {
     if (!fs.existsSync(workingDir))
         throw `Working directory does not exist ${workingDir}`
 
-    const referencesDir = path.join(workingDir, REFERENCES_DIR_NAME)
-    const differencesDir = path.join(workingDir, DIFFERENCES_DIR_NAME)
+    const referencesDirName = args.r
+    const differencesDirName = args.d
+
+    const referencesDir = path.join(workingDir, referencesDirName)
+    const differencesDir = path.join(workingDir, differencesDirName)
     const outFile = path.join(workingDir, HTML_OUTPUT_FILENAME)
 
     // collect svg files with differences
@@ -54,12 +57,13 @@ async function main(args: ReturnType<typeof parseArguments>) {
 
     // prepare HTML report
     const sections = svgRecords.map((record) =>
-        createComparisonView(
-            record,
-            referencesDir,
-            differencesDir,
-            compareGrapherUrl
-        )
+        createComparisonView({
+            svgRecord: record,
+            workingDir,
+            referencesDirName,
+            differencesDirName,
+            compareGrapherUrl,
+        })
     )
     const summary = `<p class="summary">Number of differences: ${sections.length}</p>`
     const content = summary + sections.join("\n")
@@ -81,7 +85,17 @@ function parseArguments() {
         })
         .parserConfiguration({ "camel-case-expansion": true })
         .options({
-            "compare-url": {
+            r: {
+                type: "string",
+                description: "Name of the references folder",
+                default: REFERENCES_DIR_NAME,
+            },
+            d: {
+                type: "string",
+                description: "Name of the differences folder",
+                default: DIFFERENCES_DIR_NAME,
+            },
+            compareUrl: {
                 type: "string",
                 description: "Base URL to compare against prod",
                 default: LOCAL_URL,
@@ -187,19 +201,32 @@ function createCodeDiffView(
     </div>`
 }
 
-function createComparisonView(
-    svgRecord: utils.SvgRecord,
-    referencesDir: string,
-    differencesDir: string,
-    compareGrapherUrl = LOCAL_GRAPHER_URL
-) {
-    const { svgFilename, viewId } = svgRecord
+function createComparisonView(args: {
+    svgRecord: utils.SvgRecord
+    workingDir: string
+    referencesDirName: string
+    differencesDirName: string
+    compareGrapherUrl?: string
+}) {
+    const { svgRecord, compareGrapherUrl = LOCAL_GRAPHER_URL } = args
+    const { svgFilename, viewId } = args.svgRecord
 
-    const referenceFilenameUrl = path.join(REFERENCES_DIR_NAME, svgFilename)
-    const differenceFilenameUrl = path.join(DIFFERENCES_DIR_NAME, svgFilename)
+    const referenceFilenameUrl = path.join(args.referencesDirName, svgFilename)
+    const differenceFilenameUrl = path.join(
+        args.differencesDirName,
+        svgFilename
+    )
 
-    const referencesPath = path.join(referencesDir, svgFilename)
-    const differencesPath = path.join(differencesDir, svgFilename)
+    const referencesPath = path.join(
+        args.workingDir,
+        args.referencesDirName,
+        svgFilename
+    )
+    const differencesPath = path.join(
+        args.workingDir,
+        args.differencesDirName,
+        svgFilename
+    )
 
     return `<section data-slug="${viewId}">
         <div class="header-with-actions">
