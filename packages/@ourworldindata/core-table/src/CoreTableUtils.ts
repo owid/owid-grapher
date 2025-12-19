@@ -1,12 +1,7 @@
 import * as _ from "lodash-es"
 import * as Papa from "papaparse"
 import * as R from "remeda"
-import {
-    findIndexFast,
-    sampleFrom,
-    slugifySameCase,
-    ColumnSlug,
-} from "@ourworldindata/utils"
+import { sampleFrom, slugifySameCase, ColumnSlug } from "@ourworldindata/utils"
 import {
     CoreColumnStore,
     CoreRow,
@@ -21,11 +16,7 @@ import {
     OwidEntityNameColumnDef,
     OwidTableSlugs,
 } from "@ourworldindata/types"
-import {
-    ErrorValueTypes,
-    isNotErrorValueOrEmptyCell,
-    DroppedForTesting,
-} from "./ErrorValues.js"
+import { ErrorValueTypes, DroppedForTesting } from "./ErrorValues.js"
 
 export const columnStoreToRows = (
     columnStore: CoreColumnStore
@@ -202,116 +193,192 @@ export interface ToleranceInterpolationContext extends InterpolationContext {
 }
 
 export type InterpolationProvider<C extends InterpolationContext> = (
-    valuesSortedByTimeAsc: (number | ErrorValue)[],
+    valuesSortedByTimeAsc: CoreValueType[],
     timesAsc: Time[],
+    validIndices: number[],
     context: C,
     start: number,
     end: number
 ) => void
 
 export function linearInterpolation(
-    valuesSortedByTimeAsc: (number | ErrorValue)[],
+    valuesSortedByTimeAsc: CoreValueType[],
     timesAsc: Time[],
+    validIndices: number[],
     context: LinearInterpolationContext,
     start: number = 0,
     end: number = valuesSortedByTimeAsc.length
 ): void {
     if (!valuesSortedByTimeAsc.length) return
 
-    let prevNonBlankIndex = -1
-    let nextNonBlankIndex = -1
+    const startIndexInValidIndices = R.sortedIndex(validIndices, start)
+    const endIndexInValidIndices = R.sortedIndex(validIndices, end)
+
+    const distBetweenStartAndEnd =
+        endIndexInValidIndices - startIndexInValidIndices
+
+    if (distBetweenStartAndEnd === 0) {
+        // No valid values in this range, we can short-circuit
+        for (let index = start; index < end; index++) {
+            valuesSortedByTimeAsc[index] =
+                ErrorValueTypes.NoValueForInterpolation
+        }
+        return
+    }
+    // All values in this range are already valid, we don't need to do anything
+    else if (distBetweenStartAndEnd === end - start) {
+        return
+    }
+
+    let currentValidIndexPointer = startIndexInValidIndices
+    let prevNonBlankIndex: number | undefined = undefined
+    let nextNonBlankIndex: number | undefined = undefined
 
     for (let index = start; index < end; index++) {
-        const currentValue = valuesSortedByTimeAsc[index]
-        if (isNotErrorValueOrEmptyCell(currentValue)) {
+        if (
+            nextNonBlankIndex !== -1 &&
+            (nextNonBlankIndex === undefined || nextNonBlankIndex <= index)
+        ) {
+            nextNonBlankIndex = validIndices[currentValidIndexPointer] ?? -1
+            if (nextNonBlankIndex >= end) {
+                nextNonBlankIndex = -1
+            }
+        }
+
+        // Check whether the current index has a valid value
+        if (index === nextNonBlankIndex) {
             prevNonBlankIndex = index
+            currentValidIndexPointer++
             continue
         }
 
-        if (nextNonBlankIndex === -1 || nextNonBlankIndex <= index) {
-            nextNonBlankIndex = findIndexFast(
-                valuesSortedByTimeAsc,
-                (val) => isNotErrorValueOrEmptyCell(val),
-                index + 1,
-                end
-            )
-        }
+        const timeOfCurrent = timesAsc[index]
 
-        const prevValue = valuesSortedByTimeAsc[prevNonBlankIndex]
-        const nextValue = valuesSortedByTimeAsc[nextNonBlankIndex]
+        const timeOfPrevIndex =
+            prevNonBlankIndex !== undefined
+                ? (timesAsc[prevNonBlankIndex] ?? -Infinity)
+                : -Infinity
+        const timeOfNextIndex = timesAsc[nextNonBlankIndex] ?? Infinity
+
+        const prevValue: number | undefined =
+            prevNonBlankIndex !== undefined
+                ? (valuesSortedByTimeAsc[prevNonBlankIndex] as
+                      | number
+                      | undefined)
+                : undefined
+        const nextValue: number | undefined = valuesSortedByTimeAsc[
+            nextNonBlankIndex
+        ] as number | undefined
 
         let value
-        if (
-            isNotErrorValueOrEmptyCell(prevValue) &&
-            isNotErrorValueOrEmptyCell(nextValue)
-        ) {
-            const distLeft = timesAsc[index] - timesAsc[prevNonBlankIndex]
-            const distRight = timesAsc[nextNonBlankIndex] - timesAsc[index]
+        if (typeof prevValue === "number" && typeof nextValue === "number") {
+            const distLeft = timeOfCurrent - timeOfPrevIndex
+            const distRight = timeOfNextIndex - timeOfCurrent
             value =
                 (prevValue * distRight + nextValue * distLeft) /
                 (distLeft + distRight)
-        } else if (
-            isNotErrorValueOrEmptyCell(prevValue) &&
-            context.extrapolateAtEnd
-        )
+        } else if (typeof prevValue === "number" && context.extrapolateAtEnd)
             value = prevValue
-        else if (
-            isNotErrorValueOrEmptyCell(nextValue) &&
-            context.extrapolateAtStart
-        )
+        else if (typeof nextValue === "number" && context.extrapolateAtStart)
             value = nextValue
         else value = ErrorValueTypes.NoValueForInterpolation
-
-        prevNonBlankIndex = index
 
         valuesSortedByTimeAsc[index] = value
     }
 }
 
 export function toleranceInterpolation(
-    valuesSortedByTimeAsc: (number | ErrorValue)[],
+    valuesSortedByTimeAsc: CoreValueType[],
     timesAsc: Time[],
+    validIndices: number[],
     context: ToleranceInterpolationContext,
     start: number = 0,
     end: number = valuesSortedByTimeAsc.length
 ): void {
     if (!valuesSortedByTimeAsc.length) return
 
+    // `validIndices` contains the indexes of all non-error values in `valuesSortedByTimeAsc`.
+    // Here, we find the *indexes* of where `start` and `end` appear in `validIndices` (note that
+    // `start` and `end` themselves are indexes into `valuesSortedByTimeAsc`).
+    const startIndexInValidIndices = R.sortedIndex(validIndices, start)
+    const endIndexInValidIndices = R.sortedIndex(validIndices, end)
+
+    const distBetweenStartAndEnd =
+        endIndexInValidIndices - startIndexInValidIndices
+
+    // If the two indices are the same, then there are no valid values in this range.
+    if (distBetweenStartAndEnd === 0) {
+        // No valid values in this range, we can short-circuit
+        for (let index = start; index < end; index++) {
+            valuesSortedByTimeAsc[index] =
+                ErrorValueTypes.NoValueWithinTolerance
+        }
+        return
+    }
+    // All values in this range are valid, we can short-circuit
+    else if (distBetweenStartAndEnd === end - start) {
+        return
+    }
+    // If the two indices differ by 1, then there is only one valid value in this range.
+    else if (distBetweenStartAndEnd === 1) {
+        // Only one valid value in this range, we can short-circuit
+        const onlyValidIndex = validIndices[startIndexInValidIndices]
+        const timeOfOnlyValid = timesAsc[onlyValidIndex]
+
+        for (let index = start; index < end; index++) {
+            if (index === onlyValidIndex) continue
+
+            const timeOfCurrent = timesAsc[index]
+            const timeDiff = timeOfOnlyValid - timeOfCurrent
+            if (
+                (timeDiff < 0 &&
+                    Math.abs(timeDiff) <= context.timeToleranceBackwards) ||
+                (timeDiff > 0 &&
+                    Math.abs(timeDiff) <= context.timeToleranceForwards)
+            ) {
+                valuesSortedByTimeAsc[index] =
+                    valuesSortedByTimeAsc[onlyValidIndex]
+                timesAsc[index] = timeOfOnlyValid
+            } else {
+                valuesSortedByTimeAsc[index] =
+                    ErrorValueTypes.NoValueWithinTolerance
+            }
+        }
+        return
+    }
+
+    let currentValidIndexPointer = startIndexInValidIndices
     let prevNonBlankIndex: number | undefined = undefined
     let nextNonBlankIndex: number | undefined = undefined
 
     for (let index = start; index < end; index++) {
-        const currentValue = valuesSortedByTimeAsc[index]
-        if (isNotErrorValueOrEmptyCell(currentValue)) {
-            prevNonBlankIndex = index
-            continue
-        }
-
         if (
-            context.timeToleranceForwards > 0 &&
             nextNonBlankIndex !== -1 &&
             (nextNonBlankIndex === undefined || nextNonBlankIndex <= index)
         ) {
-            nextNonBlankIndex = findIndexFast(
-                valuesSortedByTimeAsc,
-                isNotErrorValueOrEmptyCell,
-                index + 1,
-                end
-            )
+            nextNonBlankIndex = validIndices[currentValidIndexPointer] ?? -1
+            if (nextNonBlankIndex >= end) {
+                nextNonBlankIndex = -1
+            }
+        }
+
+        // Check whether the current index has a valid value
+        if (index === nextNonBlankIndex) {
+            prevNonBlankIndex = index
+            currentValidIndexPointer++
+            continue
         }
 
         const timeOfCurrent = timesAsc[index]
+
         const timeOfPrevIndex =
             prevNonBlankIndex !== undefined
-                ? timesAsc[prevNonBlankIndex]
+                ? (timesAsc[prevNonBlankIndex] ?? -Infinity)
                 : -Infinity
-        const timeOfNextIndex =
-            nextNonBlankIndex !== undefined && nextNonBlankIndex !== -1
-                ? timesAsc[nextNonBlankIndex]
-                : Infinity
+        const timeOfNextIndex = timesAsc[nextNonBlankIndex] ?? Infinity
 
-        const prevTimeDiff = Math.abs(timeOfPrevIndex - timeOfCurrent)
-        const nextTimeDiff = Math.abs(timeOfNextIndex - timeOfCurrent)
+        const prevTimeDiff = timeOfCurrent - timeOfPrevIndex
+        const nextTimeDiff = timeOfNextIndex - timeOfCurrent
 
         if (
             nextNonBlankIndex !== undefined &&

@@ -68,7 +68,6 @@ export {
     mapNullToUndefined,
     lowerCaseFirstLetterUnlessAbbreviation,
     sortNumeric,
-    findIndexFast,
     getClosestTimePairs,
     omitUndefinedValues,
     isInIFrame,

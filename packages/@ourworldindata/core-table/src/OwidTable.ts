@@ -27,6 +27,7 @@ import {
     OwidRow,
     OwidTableSlugs,
     ErrorValue,
+    ToleranceOptions,
 } from "@ourworldindata/types"
 import { CoreTable } from "./CoreTable.js"
 import { ErrorValueTypes, isNotErrorValue } from "./ErrorValues.js"
@@ -799,11 +800,11 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         timeColumnSlug: ColumnSlug,
         interpolation: InterpolationProvider<K>,
         context: K
-    ): { values: number[]; times: number[] } {
+    ): { values: CoreValueType[]; times: number[] } {
         const groupBoundaries = withAllRows.groupBoundaries(this.entityNameSlug)
-        const newValues = withAllRows
-            .get(columnSlug)
-            .valuesIncludingErrorValues.slice() as number[]
+        const col = withAllRows.get(columnSlug)
+        const validIndices = col.validRowIndices
+        const newValues = col.valuesIncludingErrorValues.slice()
         const newTimes = withAllRows
             .get(timeColumnSlug)
             .valuesIncludingErrorValues.slice() as Time[]
@@ -811,6 +812,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             interpolation(
                 newValues,
                 newTimes,
+                validIndices,
                 context,
                 groupBoundaries[index],
                 groupBoundaries[index + 1]
@@ -827,8 +829,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     // There are finicky details in both of them that complicate this
     interpolateColumnWithTolerance(
         columnSlug: ColumnSlug,
-        toleranceOverride?: number,
-        toleranceStrategyOverride?: ToleranceStrategy
+        { toleranceStrategyOverride, toleranceOverride }: ToleranceOptions = {}
     ): this {
         // If the column doesn't exist, return the table unchanged.
         if (!this.has(columnSlug)) return this
