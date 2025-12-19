@@ -38,10 +38,10 @@ export function GrapherFigureView(
 
     const config: GrapherProgrammaticInterface = useMemo(() => {
         return {
+            enableKeyboardShortcuts: true,
             ...props.config,
             bakedGrapherURL: BAKED_GRAPHER_URL,
             adminBaseUrl: ADMIN_BASE_URL,
-            enableKeyboardShortcuts: true,
             isEmbeddedInAnOwidPage: props.isEmbeddedInAnOwidPage,
             isEmbeddedInADataPage: props.isEmbeddedInADataPage,
         }
