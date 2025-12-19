@@ -7,12 +7,11 @@ import {
 } from "@ourworldindata/types"
 import { SearchChartHitComponent } from "./search/SearchChartHitComponent.js"
 import { createTopicFilter, SEARCH_BASE_PATH } from "./search/searchUtils.js"
+import { stateToSearchParams } from "./search/searchState.js"
 import { queryCharts, searchQueryKeys } from "./search/queries.js"
 import { getLiteSearchClient } from "./search/searchClients.js"
 import { SearchDataResultsSkeleton } from "./search/SearchDataResultsSkeleton.js"
 import { Button } from "@ourworldindata/components"
-import { searchStateToUrl } from "./search/searchState.js"
-import { Url } from "@ourworldindata/utils"
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
 import cx from "classnames"
 
@@ -54,8 +53,8 @@ export const FeaturedMetrics = ({
 
     if (!isLoading && hits.length === 0) return null
 
-    const url = Url.fromURL(searchStateToUrl(searchState))
-    const searchHref = `${SEARCH_BASE_PATH}${url.queryStr}`
+    const params = stateToSearchParams(searchState)
+    const searchHref = `${SEARCH_BASE_PATH}?${params.toString()}`
 
     return (
         <section
