@@ -555,7 +555,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     }
 
     @computed private get startHandleTooltip(): React.ReactNode {
-        const { startTime, minTime, maxTime } = this.controller
+        const { startTime } = this.controller
 
         if (!this.startTooltipVisible || !this.areBothHandlesVisible) {
             return undefined
@@ -569,14 +569,20 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
         const isEditing = this.editHandle === MarkerType.Start
 
+        const isDateValid = (date: CalendarDate): boolean => {
+            const { minTime, endTime, allowHandlesOnSameTime } = this.controller
+            const time = calendarDateToDaysSinceEpoch(date)
+            if (time < minTime) return false
+            return allowHandlesOnSameTime ? time <= endTime : time < endTime
+        }
+
         return this.isDailyData ? (
             <EditableDateTooltip
                 position="left"
                 isEditing={isEditing}
                 formattedTime={formattedStartTime}
                 currentTime={startTime}
-                minTime={minTime}
-                maxTime={maxTime}
+                isDateValid={isDateValid}
                 onStartEditing={() => this.onStartEditing(MarkerType.Start)}
                 onComplete={this.onCompleteDate}
                 onChange={this.onChangeDate}
@@ -603,7 +609,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     }
 
     @computed private get endHandleTooltip(): React.ReactNode {
-        const { endTime, minTime, maxTime } = this.controller
+        const { endTime } = this.controller
 
         if (!this.endTooltipVisible) return undefined
 
@@ -622,14 +628,21 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
         const isEditing = this.editHandle === MarkerType.End
 
+        const isDateValid = (date: CalendarDate): boolean => {
+            const { maxTime, startTime, allowHandlesOnSameTime } =
+                this.controller
+            const time = calendarDateToDaysSinceEpoch(date)
+            if (time > maxTime) return false
+            return allowHandlesOnSameTime ? time >= startTime : time > startTime
+        }
+
         return this.isDailyData ? (
             <EditableDateTooltip
                 position={position}
                 isEditing={isEditing}
                 formattedTime={formattedEndTime}
                 currentTime={endTime}
-                minTime={minTime}
-                maxTime={maxTime}
+                isDateValid={isDateValid}
                 onStartEditing={() => this.onStartEditing(MarkerType.End)}
                 onComplete={this.onCompleteDate}
                 onChange={this.onChangeDate}
@@ -1030,8 +1043,7 @@ function EditableDateTooltip({
     isEditing = false,
     currentTime,
     formattedTime,
-    minTime,
-    maxTime,
+    isDateValid = (): boolean => true,
     onStartEditing,
     onMouseEnter,
     onMouseLeave,
@@ -1042,8 +1054,7 @@ function EditableDateTooltip({
     isEditing?: boolean
     currentTime: number
     formattedTime: string
-    minTime: number
-    maxTime: number
+    isDateValid?: (date: CalendarDate) => boolean
     onStartEditing?: () => void
     onMouseEnter?: () => void
     onMouseLeave?: () => void
@@ -1063,8 +1074,7 @@ function EditableDateTooltip({
             {isEditing ? (
                 <TimelineDateInput
                     value={daysSinceEpochToCalendarDate(currentTime)}
-                    minValue={daysSinceEpochToCalendarDate(minTime)}
-                    maxValue={daysSinceEpochToCalendarDate(maxTime)}
+                    isDateValid={isDateValid}
                     onComplete={onComplete}
                     onChange={onChange}
                 />
@@ -1084,14 +1094,12 @@ function EditableDateTooltip({
 
 const TimelineDateInput = ({
     value,
-    minValue,
-    maxValue,
+    isDateValid,
     onComplete,
     onChange,
 }: {
     value: CalendarDate
-    minValue: CalendarDate
-    maxValue: CalendarDate
+    isDateValid: (date: CalendarDate) => boolean
     onComplete: (date?: CalendarDate) => void
     onChange?: (date: CalendarDate) => void
 }): React.ReactElement => {
@@ -1122,6 +1130,7 @@ const TimelineDateInput = ({
         // If this change was triggered by arrow keys,
         // apply immediately without exiting edit mode
         if (shouldApplyImmediately) {
+            if (!isDateValid(date)) return
             onChange?.(date)
             setShouldApplyImmediately(false)
         }
@@ -1130,8 +1139,6 @@ const TimelineDateInput = ({
     return (
         <DateField
             value={currentValue}
-            minValue={minValue}
-            maxValue={maxValue}
             onChange={handleChange}
             onBlur={() => onComplete(currentValue)}
             onKeyDown={handleKeyDown}
