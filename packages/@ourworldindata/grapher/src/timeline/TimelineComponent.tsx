@@ -498,13 +498,28 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
     @action.bound updateEndTimeOnKeyDown(key: NavigationKey): void {
         const { controller } = this
+        const shouldMoveBothHandles = !this.areBothHandlesVisible
         match(key)
             .with("Home", () => controller.setEndToMin())
             .with("End", () => controller.resetEndToMax())
-            .with("ArrowLeft", "ArrowDown", () => controller.decreaseEndTime())
-            .with("ArrowRight", "ArrowUp", () => controller.increaseEndTime())
-            .with("PageUp", () => controller.increaseEndTimeByLargeStep())
-            .with("PageDown", () => controller.decreaseEndTimeByLargeStep())
+            .with("ArrowLeft", "ArrowDown", () => {
+                controller.decreaseEndTime()
+                if (shouldMoveBothHandles) controller.decreaseStartTime()
+            })
+            .with("ArrowRight", "ArrowUp", () => {
+                controller.increaseEndTime()
+                if (shouldMoveBothHandles) controller.increaseStartTime()
+            })
+            .with("PageUp", () => {
+                controller.increaseEndTimeByLargeStep()
+                if (shouldMoveBothHandles)
+                    controller.increaseStartTimeByLargeStep()
+            })
+            .with("PageDown", () => {
+                controller.decreaseEndTimeByLargeStep()
+                if (shouldMoveBothHandles)
+                    controller.decreaseStartTimeByLargeStep()
+            })
             .exhaustive()
     }
 
