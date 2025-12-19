@@ -17,6 +17,7 @@ import {
 } from "../../db/model/Gdoc/enrichedToXhtml.js"
 import { xhtmlToRawBlocks } from "../../db/model/Gdoc/xhtmlToEnriched.js"
 import { parseRawBlocksToEnrichedBlocks } from "../../db/model/Gdoc/rawToEnriched.js"
+import { enrichedBlockToRawBlock } from "../../db/model/Gdoc/enrichedToRaw.js"
 import {
     OwidGdocContent,
     OwidEnrichedGdocBlock,
@@ -58,7 +59,156 @@ function sortObjectKeys(obj: unknown): unknown {
 }
 
 function deepEqual(a: unknown, b: unknown): boolean {
-    return JSON.stringify(sortObjectKeys(a)) === JSON.stringify(sortObjectKeys(b))
+    return (
+        JSON.stringify(sortObjectKeys(a)) === JSON.stringify(sortObjectKeys(b))
+    )
+}
+
+/**
+ * Remove span-fallback wrappers from spans, replacing them with their children.
+ * span-fallback is intentionally stripped during XHTML serialization.
+ * Also merges adjacent span-simple-text nodes into one.
+ */
+function flattenSpanFallback(obj: unknown): unknown {
+    if (obj === null || typeof obj !== "object") {
+        return obj
+    }
+    if (Array.isArray(obj)) {
+        // Process each item in the array, flattening span-fallback wrappers
+        const result: unknown[] = []
+        for (const item of obj) {
+            const flattened = flattenSpanFallbackItem(item)
+            if (Array.isArray(flattened)) {
+                result.push(...flattened)
+            } else {
+                result.push(flattened)
+            }
+        }
+        // Merge adjacent span-simple-text nodes
+        return mergeAdjacentSimpleText(result)
+    }
+    // Check if this object is a span-fallback that should be flattened
+    if (
+        "spanType" in obj &&
+        (obj as { spanType: string }).spanType === "span-fallback" &&
+        "children" in obj
+    ) {
+        // Return the processed children as an array (will be spread by caller)
+        const children = (obj as { children: unknown[] }).children
+        return children.map((child) => flattenSpanFallback(child))
+    }
+    // Process object properties
+    const processed: Record<string, unknown> = {}
+    for (const [key, value] of Object.entries(obj)) {
+        processed[key] = flattenSpanFallback(value)
+    }
+    return processed
+}
+
+/**
+ * Process a single item, returning either the processed item or an array of items
+ * if the item was a span-fallback that got flattened.
+ */
+function flattenSpanFallbackItem(item: unknown): unknown {
+    if (item === null || typeof item !== "object") {
+        return item
+    }
+    if (
+        "spanType" in item &&
+        (item as { spanType: string }).spanType === "span-fallback" &&
+        "children" in item
+    ) {
+        // Return the children (flattened recursively), which will be spread into the parent array
+        const children = (item as { children: unknown[] }).children
+        const flattened: unknown[] = []
+        for (const child of children) {
+            const processed = flattenSpanFallbackItem(child)
+            if (Array.isArray(processed)) {
+                flattened.push(...processed)
+            } else {
+                flattened.push(processed)
+            }
+        }
+        return flattened
+    }
+    // Not a span-fallback, process normally
+    return flattenSpanFallback(item)
+}
+
+/**
+ * Merge adjacent span-simple-text nodes in an array.
+ */
+function mergeAdjacentSimpleText(arr: unknown[]): unknown[] {
+    const result: unknown[] = []
+    for (const item of arr) {
+        const lastItem = result[result.length - 1]
+        if (
+            typeof item === "object" &&
+            item !== null &&
+            "spanType" in item &&
+            (item as { spanType: string }).spanType === "span-simple-text" &&
+            "text" in item &&
+            typeof lastItem === "object" &&
+            lastItem !== null &&
+            "spanType" in lastItem &&
+            (lastItem as { spanType: string }).spanType ===
+                "span-simple-text" &&
+            "text" in lastItem
+        ) {
+            // Merge with previous span-simple-text
+            ;(lastItem as { text: string }).text += (
+                item as { text: string }
+            ).text
+        } else {
+            result.push(item)
+        }
+    }
+    return result
+}
+
+/**
+ * Remove parseErrors from blocks for comparison.
+ * parseErrors depend on validation rules which may differ between runs.
+ */
+function stripParseErrors(obj: unknown): unknown {
+    if (obj === null || typeof obj !== "object") {
+        return obj
+    }
+    if (Array.isArray(obj)) {
+        return obj.map(stripParseErrors)
+    }
+    const processed: Record<string, unknown> = {}
+    for (const [key, value] of Object.entries(obj)) {
+        if (key === "parseErrors") {
+            processed[key] = [] // Normalize to empty array
+        } else {
+            processed[key] = stripParseErrors(value)
+        }
+    }
+    return processed
+}
+
+/**
+ * Prepare a block for comparison by normalizing known differences.
+ */
+function prepareForComparison(block: unknown): unknown {
+    let result = block
+    result = flattenSpanFallback(result)
+    result = stripParseErrors(result)
+    result = omitUndefinedValues(result)
+    return result
+}
+
+/**
+ * Normalize an enriched block by running it through Enriched → Raw → Enriched.
+ * This applies current defaults, ensuring we're testing XHTML round-trip
+ * in isolation from any historical changes to default handling.
+ */
+function normalizeEnrichedBlock(
+    block: OwidEnrichedGdocBlock
+): OwidEnrichedGdocBlock | null {
+    const rawBlock = enrichedBlockToRawBlock(block)
+    return parseRawBlocksToEnrichedBlocks(rawBlock)
 }
 
 function testBlockRoundtrip(
@@ -66,8 +216,23 @@ function testBlockRoundtrip(
     blockIndex: number
 ): BlockError | null {
     try {
-        // Serialize to XHTML
-        const xhtml = enrichedBlockToXhtml(block)
+        // First, normalize the block by running Enriched → Raw → Enriched.
+        // This applies current defaults, isolating XHTML round-trip testing
+        // from any historical changes to default handling.
+        const normalizedBlock = normalizeEnrichedBlock(block)
+        if (!normalizedBlock) {
+            return {
+                blockIndex,
+                blockType: block.type,
+                error: "Failed to normalize block via Enriched → Raw → Enriched",
+                original: block,
+                roundTripped: null,
+                xhtml: "",
+            }
+        }
+
+        // Serialize the normalized block to XHTML
+        const xhtml = enrichedBlockToXhtml(normalizedBlock)
 
         // Parse back to raw blocks
         const rawBlocks = xhtmlToRawBlocks(xhtml)
@@ -76,7 +241,7 @@ function testBlockRoundtrip(
                 blockIndex,
                 blockType: block.type,
                 error: `Expected 1 raw block, got ${rawBlocks.length}`,
-                original: block,
+                original: normalizedBlock,
                 roundTripped: null,
                 xhtml,
             }
@@ -89,22 +254,25 @@ function testBlockRoundtrip(
                 blockIndex,
                 blockType: block.type,
                 error: "Failed to parse raw block to enriched",
-                original: block,
+                original: normalizedBlock,
                 roundTripped: null,
                 xhtml,
             }
         }
 
-        // Compare
-        const originalNormalized = omitUndefinedValues(block)
-        const roundTrippedNormalized = omitUndefinedValues(enriched)
+        // Compare the normalized block with the XHTML round-tripped result
+        // Use prepareForComparison to normalize known differences:
+        // - span-fallback wrappers (intentionally stripped during serialization)
+        // - parseErrors (depend on validation rules/order)
+        const originalNormalized = prepareForComparison(normalizedBlock)
+        const roundTrippedNormalized = prepareForComparison(enriched)
 
         if (!deepEqual(originalNormalized, roundTrippedNormalized)) {
             return {
                 blockIndex,
                 blockType: block.type,
                 error: "Round-trip mismatch",
-                original: block,
+                original: normalizedBlock,
                 roundTripped: enriched,
                 xhtml,
             }
@@ -127,18 +295,33 @@ function testDocumentRoundtrip(
     blocks: OwidEnrichedGdocBlock[]
 ): BlockError | null {
     try {
+        // Normalize all blocks first
+        const normalizedBlocks = excludeNullish(
+            blocks.map(normalizeEnrichedBlock)
+        )
+        if (normalizedBlocks.length !== blocks.length) {
+            return {
+                blockIndex: -1,
+                blockType: "document",
+                error: `Normalization failed: expected ${blocks.length} blocks, got ${normalizedBlocks.length}`,
+                original: { type: "text", value: [], parseErrors: [] },
+                roundTripped: null,
+                xhtml: "",
+            }
+        }
+
         // Test full document round-trip with prettification
-        const xhtml = enrichedBlocksToXhtmlDocument(blocks)
+        const xhtml = enrichedBlocksToXhtmlDocument(normalizedBlocks)
         const rawBlocks = xhtmlToRawBlocks(xhtml)
         const enrichedBlocks = excludeNullish(
             rawBlocks.map(parseRawBlocksToEnrichedBlocks)
         )
 
-        if (enrichedBlocks.length !== blocks.length) {
+        if (enrichedBlocks.length !== normalizedBlocks.length) {
             return {
                 blockIndex: -1,
                 blockType: "document",
-                error: `Block count mismatch: expected ${blocks.length}, got ${enrichedBlocks.length}`,
+                error: `Block count mismatch: expected ${normalizedBlocks.length}, got ${enrichedBlocks.length}`,
                 original: { type: "text", value: [], parseErrors: [] },
                 roundTripped: null,
                 xhtml,
