@@ -547,6 +547,11 @@ export {
     ArchivedPostVersionsTableName,
 } from "./dbTypes/ArchivedPostVersion.js"
 export {
+    type DbInsertChartCalloutValue,
+    type DbPlainChartCalloutValue,
+    ChartCalloutValuesTableName,
+} from "./dbTypes/ChartCalloutValues.js"
+export {
     type DbInsertChartConfig,
     type DbRawChartConfig,
     type DbEnrichedChartConfig,
