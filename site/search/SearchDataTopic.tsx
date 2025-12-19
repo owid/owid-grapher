@@ -17,7 +17,7 @@ export const SearchDataTopic = ({
         analytics,
     } = useSearchContext()
 
-    const selectedRegionNames = useSelectedRegionNames(true)
+    const selectedRegionNames = useSelectedRegionNames()
 
     if (charts.nbHits === 0) return null
     const titleLabel = title.replaceAll(" and ", " & ")
