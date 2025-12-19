@@ -186,7 +186,7 @@ function getSpanContent(element: Element): string {
         return children
             .map((child, index, arr) => {
                 if (child.type === "text") {
-                    const text = (child as unknown as { data: string }).data
+                    let text = (child as unknown as { data: string }).data
                     // Skip whitespace-only text nodes that contain newlines between elements.
                     // These are artifacts of pretty-printing indentation.
                     // Preserve single spaces between elements as they may be actual content.
@@ -200,8 +200,27 @@ function getSpanContent(element: Element): string {
                             return ""
                         }
                     }
-                    // Preserve text content as-is (don't normalize whitespace)
-                    // to maintain round-trip fidelity with the original content
+                    // Trim trailing newline+indentation when followed by a tag or at end of parent.
+                    // This handles pretty-printing artifacts like "text \n    <b>" or "text\n  </p>".
+                    // We only strip newline followed by whitespace (indentation), not bare newlines
+                    // which may be intentional content like "text\n".
+                    const nextIsTag =
+                        index < arr.length - 1 && arr[index + 1].type === "tag"
+                    const isLastChild = index === arr.length - 1
+                    if ((nextIsTag || isLastChild) && text.includes("\n")) {
+                        // Only strip if newline is followed by whitespace (pretty-printing)
+                        text = text.replace(/\n\s+$/, "")
+                    }
+                    // Trim leading indentation+newline when preceded by a tag or at start of parent.
+                    // This handles pretty-printing artifacts like "</b>\n    text" or "<p>\n    text".
+                    // We only strip whitespace followed by newline (indentation), not bare newlines
+                    // which may be intentional content.
+                    const prevIsTag = index > 0 && arr[index - 1].type === "tag"
+                    const isFirstChild = index === 0
+                    if ((prevIsTag || isFirstChild) && text.includes("\n")) {
+                        // Only strip if there's whitespace before the newline (pretty-printing)
+                        text = text.replace(/^\s+\n/, "")
+                    }
                     return text
                 }
                 if (child.type === "tag") {
