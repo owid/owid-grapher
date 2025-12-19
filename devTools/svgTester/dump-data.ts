@@ -28,6 +28,7 @@ import { hideBin } from "yargs/helpers"
 import * as utils from "./utils.js"
 import pMap from "p-map"
 import { ExplorerAdminServer } from "../../explorerAdminServer/ExplorerAdminServer.js"
+import { getAnalyticsPageviewsByUrlObj } from "../../db/model/Pageview.js"
 import { transformExplorerProgramToResolveCatalogPaths } from "../../db/model/ExplorerCatalogResolver.js"
 
 interface ChartInfo {
@@ -127,10 +128,97 @@ async function saveGrapherSchemaAndData(
     console.log(`Successfully exported ${charts.length} charts`)
 }
 
+interface ExplorerViewManifest {
+    totalViews: number
+    selectedViews: number
+    explorerPageviews: number
+    viewsToTest: Array<{
+        index: number
+        queryStr: string
+    }>
+}
+
+function calculateViewsToTest(
+    totalViews: number,
+    explorerPageviews: number,
+    totalPageviews: number,
+    targetTotal: number
+): number {
+    const MIN_VIEWS = 10
+
+    // Allocate based on popularity
+    const pageviewRatio =
+        totalPageviews > 0 ? explorerPageviews / totalPageviews : 0
+    console.log(`  Pageview ratio: ${(pageviewRatio * 100).toFixed(2)}%`)
+    const allocated = Math.floor(targetTotal * pageviewRatio)
+
+    // Apply constraints
+    return Math.max(MIN_VIEWS, Math.min(allocated, totalViews))
+}
+
+function selectViewsToTest(
+    allChoices: Array<Record<string, string>>,
+    targetCount: number
+): Array<{ index: number; choiceParams: Record<string, string> }> {
+    if (targetCount >= allChoices.length) {
+        // Test all views
+        return allChoices.map((params, index) => ({
+            index,
+            choiceParams: params,
+        }))
+    }
+
+    // Always include first view (default)
+    const selected = [{ index: 0, choiceParams: allChoices[0] }]
+
+    // Random sample for remaining
+    const remaining = targetCount - 1
+    const availableIndices = Array.from(
+        { length: allChoices.length },
+        (_, i) => i
+    ).filter((i) => i !== 0)
+
+    const sampledIndices = _.sampleSize(availableIndices, remaining)
+
+    for (const index of sampledIndices) {
+        selected.push({ index, choiceParams: allChoices[index] })
+    }
+
+    return _.sortBy(selected, "index")
+}
+
+async function writeViewsManifest(
+    explorerSlug: string,
+    totalViews: number,
+    selectedViews: Array<{
+        index: number
+        choiceParams: Record<string, string>
+    }>,
+    explorerPageviews: number,
+    explorerDir: string
+): Promise<void> {
+    const manifest: ExplorerViewManifest = {
+        totalViews,
+        selectedViews: selectedViews.length,
+        explorerPageviews,
+        viewsToTest: selectedViews.map((v) => ({
+            index: v.index,
+            queryStr: queryParamsToStr(v.choiceParams).replace("?", ""),
+        })),
+    }
+
+    const manifestPath = path.join(explorerDir, "manifest.json")
+    await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2))
+}
+
 async function dumpExplorerWithData(
     explorerProgram: ExplorerProgram,
     outDir: string,
-    knex: KnexReadonlyTransaction
+    knex: KnexReadonlyTransaction,
+    explorerPageviews: number,
+    totalPageviews: number,
+    targetTotalViews: number,
+    enableSampling: boolean
 ) {
     const explorerSlug = explorerProgram.slug
     const explorerType = utils.getExplorerType(explorerProgram)
@@ -148,6 +236,48 @@ async function dumpExplorerWithData(
     // Save the explorer config
     const tsvPath = path.join(explorerDir, "config.tsv")
     await fs.writeFile(tsvPath, explorerProgram.toString())
+
+    // Determine which views to test (with sampling if enabled)
+    const allChoices =
+        explorerProgram.decisionMatrix.allDecisionsAsQueryParams()
+    const totalViews = allChoices.length
+
+    let selectedViews: Array<{
+        index: number
+        choiceParams: Record<string, string>
+    }>
+    let samplingApplied = false
+
+    if (enableSampling && totalViews > 0) {
+        const targetViews = calculateViewsToTest(
+            totalViews,
+            explorerPageviews,
+            totalPageviews,
+            targetTotalViews
+        )
+        selectedViews = selectViewsToTest(allChoices, targetViews)
+        samplingApplied = targetViews < totalViews
+
+        console.log(
+            `  Sampling ${selectedViews.length}/${totalViews} views (${Math.round((selectedViews.length / totalViews) * 100)}%)`
+        )
+    } else {
+        // No sampling - test all views
+        selectedViews = allChoices.map((params, index) => ({
+            index,
+            choiceParams: params,
+        }))
+        console.log(`  Testing all ${totalViews} views`)
+    }
+
+    // Write manifest
+    await writeViewsManifest(
+        explorerSlug,
+        totalViews,
+        selectedViews,
+        explorerPageviews,
+        explorerDir
+    )
 
     await match(explorerType)
         .with(ExplorerType.Indicator, async () => {
@@ -217,15 +347,63 @@ async function dumpExplorerWithData(
 async function saveExplorerConfigAndData(
     explorers: ExplorerProgram[],
     outDir: string,
-    knex: KnexReadonlyTransaction
+    knex: KnexReadonlyTransaction,
+    pageviewsByUrl: { [url: string]: { views_365d: number } },
+    targetTotalViews: number,
+    enableSampling: boolean
 ): Promise<void> {
     console.log(`Exporting ${explorers.length} explorers...`)
 
+    // Calculate total pageviews for all explorers
+    const explorerPageviews = explorers.map((explorer) => {
+        const url = `/explorers/${explorer.slug}`
+        return pageviewsByUrl[url]?.views_365d ?? 0
+    })
+
+    // Exclude COVID from allocation calculation as it's an outlier (pandemic-related spike)
+    // COVID explorer gets all its views tested anyway since it's small (87 views)
+    const covidIndex = explorers.findIndex((e) => e.slug === "covid")
+    const totalPageviewsForAllocation = explorerPageviews.reduce(
+        (sum, pv, i) => (i === covidIndex ? sum : sum + pv),
+        0
+    )
+
+    for (let i = 0; i < explorers.length; i++) {
+        const explorer = explorers[i]
+        const pageviews = explorerPageviews[i]
+
+        // For COVID, always test all views (it's small anyway)
+        // For others, use the allocation calculation excluding COVID
+        const totalForCalculation =
+            i === covidIndex
+                ? pageviews // Use COVID's own pageviews so it gets 100% allocation
+                : totalPageviewsForAllocation
+
+        await dumpExplorerWithData(
+            explorer,
+            outDir,
+            knex,
+            pageviews,
+            totalForCalculation,
+            targetTotalViews,
+            enableSampling
+        )
+    }
+
+    // Count total views across all explorers by reading manifests
+    let totalViewsAcrossAllExplorers = 0
     for (const explorer of explorers) {
-        await dumpExplorerWithData(explorer, outDir, knex)
+        const explorerDir = path.join(outDir, explorer.slug)
+        const manifestPath = path.join(explorerDir, "manifest.json")
+        if (await fs.pathExists(manifestPath)) {
+            const manifest: ExplorerViewManifest =
+                await fs.readJson(manifestPath)
+            totalViewsAcrossAllExplorers += manifest.selectedViews
+        }
     }
 
     console.log(`Successfully exported ${explorers.length} explorers`)
+    console.log(`Total explorer views to test: ${totalViewsAcrossAllExplorers}`)
 }
 
 async function main(args: ReturnType<typeof parseArguments>) {
@@ -260,8 +438,14 @@ async function main(args: ReturnType<typeof parseArguments>) {
             })
             .with("explorers", async () => {
                 const explorerAdminServer = new ExplorerAdminServer()
+                const targetTotalViews = args.targetViews
+                const enableSampling = !args.noSampling
 
                 await knexReadonlyTransaction(async (trx) => {
+                    // Fetch pageview data for all explorers
+                    const pageviewsByUrl =
+                        await getAnalyticsPageviewsByUrlObj(trx)
+
                     const rawExplorers =
                         await explorerAdminServer.getAllPublishedExplorers(trx)
 
@@ -283,7 +467,14 @@ async function main(args: ReturnType<typeof parseArguments>) {
                         })
                     )
 
-                    await saveExplorerConfigAndData(explorers, outDir, trx)
+                    await saveExplorerConfigAndData(
+                        explorers,
+                        outDir,
+                        trx,
+                        pageviewsByUrl,
+                        targetTotalViews,
+                        enableSampling
+                    )
                 }, TransactionCloseMode.Close)
             })
             .exhaustive()
@@ -311,6 +502,18 @@ function parseArguments() {
                 type: "number",
                 description: "Number of charts to export in parallel.",
                 default: 32,
+            },
+            targetViews: {
+                type: "number",
+                description:
+                    "Target total number of explorer views to test (for explorers test suite). Views are allocated proportionally based on pageviews.",
+                default: 2000,
+            },
+            noSampling: {
+                type: "boolean",
+                description:
+                    "Disable sampling for explorers - dump all views instead of sampling based on pageviews.",
+                default: false,
             },
         })
         .help()

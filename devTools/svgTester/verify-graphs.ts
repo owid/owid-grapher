@@ -18,7 +18,11 @@ async function verifyExplorers(args: ReturnType<typeof parseArguments>) {
 
     // Input and output directories
     const dataDir = path.join(utils.SVG_REPO_PATH, testSuite, "data")
-    const referencesDir = path.join(utils.SVG_REPO_PATH, testSuite, "references")
+    const referencesDir = path.join(
+        utils.SVG_REPO_PATH,
+        testSuite,
+        "references"
+    )
     const differencesDir = path.join(
         utils.SVG_REPO_PATH,
         testSuite,

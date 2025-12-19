@@ -805,6 +805,45 @@ function patchExplorerTableLoader(): void {
     )
 }
 
+interface ExplorerViewManifest {
+    totalViews: number
+    selectedViews: number
+    explorerPageviews: number
+    viewsToTest: Array<{
+        index: number
+        queryStr: string
+    }>
+}
+
+async function loadViewsManifest(
+    explorerDir: string
+): Promise<ExplorerViewManifest | null> {
+    const manifestPath = path.join(explorerDir, "manifest.json")
+    if (!(await fs.pathExists(manifestPath))) {
+        return null
+    }
+    return await fs.readJson(manifestPath)
+}
+
+async function getChoicesToTest(
+    explorerDir: string,
+    explorerProgram: ExplorerProgram
+): Promise<Array<Record<string, string>>> {
+    const allChoices =
+        explorerProgram.decisionMatrix.allDecisionsAsQueryParams()
+
+    // Load manifest to determine which views to test
+    const manifest = await loadViewsManifest(explorerDir)
+
+    if (manifest) {
+        // Use manifest to select which views to test
+        return manifest.viewsToTest.map((v) => allChoices[v.index])
+    } else {
+        // No manifest - test all views
+        return allChoices
+    }
+}
+
 export async function renderExplorerViewsToSVGsAndSave({
     dir,
     outDir,
@@ -846,15 +885,11 @@ export async function renderExplorerViewsToSVGsAndSave({
         loadInputTableForConfig: (args) => loadInputTableForConfig(dir, args),
     }
 
-    const choices = explorerProgram.decisionMatrix.allDecisionsAsQueryParams()
-
-    console.log(
-        `Rendering ${choices.length} views for explorer: ${explorerSlug}`
-    )
+    const choicesToTest = await getChoicesToTest(dir, explorerProgram)
 
     const svgRecords: SvgRecord[] = []
 
-    for (const choiceParams of choices) {
+    for (const choiceParams of choicesToTest) {
         // Reset GUID for each view to ensure deterministic output
         TESTING_ONLY_disable_guid()
 
@@ -966,17 +1001,12 @@ export async function verifyExplorerViews({
             loadInputTableForConfig(explorerDir, args),
     }
 
-    // Get all choice combinations
-    const allChoices = explorerProgram.decisionMatrix.allDecisionsAsQueryParams()
-
-    console.log(
-        `Verifying ${allChoices.length} views for explorer: ${explorerSlug}`
-    )
+    const choicesToTest = await getChoicesToTest(explorerDir, explorerProgram)
 
     const results: VerifyResult[] = []
 
     // Process all views for this explorer sequentially to reuse loaded data
-    for (const choiceParams of allChoices) {
+    for (const choiceParams of choicesToTest) {
         const queryStr = queryParamsToStr(choiceParams).replace("?", "")
         const viewId = `${explorerSlug}?${queryStr}`
 
@@ -1010,7 +1040,8 @@ export async function verifyExplorerViews({
             }
 
             // Update the explorer
-            const oldRow = explorer.explorerProgram.currentlySelectedGrapherRow || 0
+            const oldRow =
+                explorer.explorerProgram.currentlySelectedGrapherRow || 0
             await explorer.reactToUserChangingSelection(oldRow)
 
             // Generate SVG for this view
@@ -1047,7 +1078,8 @@ export async function verifyExplorerViews({
 
             // If there was a difference, write the SVG
             if (validationResult.kind === "difference") {
-                if (verbose) logDifferencesToConsole(svgRecord, validationResult)
+                if (verbose)
+                    logDifferencesToConsole(svgRecord, validationResult)
                 const pathFragments = path.parse(svgRecord.svgFilename)
                 const outputPath = path.join(
                     differencesDir,
@@ -1061,7 +1093,10 @@ export async function verifyExplorerViews({
         } catch (err) {
             console.error(`Threw error for ${viewId}:`, err)
             if (rmOnError) {
-                const outPath = path.join(differencesDir, referenceEntry.svgFilename)
+                const outPath = path.join(
+                    differencesDir,
+                    referenceEntry.svgFilename
+                )
                 await fs.unlink(outPath).catch(() => {
                     /* ignore ENOENT */
                 })
