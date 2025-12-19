@@ -36,7 +36,7 @@ const booleanOptions = Object.values(Boolean)
 const VIEW_MATRIX_BY_CHART_TYPE: Record<GrapherChartType, ViewMatrix> = {
     [GRAPHER_CHART_TYPES.LineChart]: {
         tab: ["chart"],
-        time: timeOptionsAll,
+        time: timeSpan,
         stackMode: stackModeOptions,
         yScale: scaleTypeOptions,
         facet: facetOptions,
