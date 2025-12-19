@@ -164,8 +164,11 @@ async function exportExplorers(args: ReturnType<typeof parseArguments>) {
     }
 
     // Process explorers in parallel using workerpool
+    // Note: We use fewer workers for explorers than graphers because each explorer
+    // processes many views and can be memory-intensive
     const pool = workerpool.pool(__dirname + "/worker.ts", {
         minWorkers: 2,
+        maxWorkers: 4,
         workerThreadOpts: {
             execArgv: ["--require", "tsx"],
         },
