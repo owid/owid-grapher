@@ -2,16 +2,21 @@
 
 import { getPublishedGraphersBySlug } from "../../baker/GrapherImageBaker.js"
 
+import { match } from "ts-pattern"
 import {
     TransactionCloseMode,
     knexReadonlyTransaction,
     type KnexReadonlyTransaction,
 } from "../../db/db.js"
 import { getMostViewedGrapherIdsByChartType } from "../../db/model/Chart.js"
+import { getAllPublishedMultiDimDataPages } from "../../db/model/MultiDimDataPage.js"
 import {
     ALL_GRAPHER_CHART_TYPES,
     GrapherInterface,
+    ChartConfigsTableName,
+    DbRawChartConfig,
 } from "@ourworldindata/types"
+import { parseChartConfig, queryParamsToStr } from "@ourworldindata/utils"
 
 import fs from "fs-extra"
 
@@ -20,12 +25,11 @@ import { hideBin } from "yargs/helpers"
 import * as utils from "./utils.js"
 import pMap from "p-map"
 import path from "path"
-import { match } from "ts-pattern"
 
 async function getMostViewedGraphers(
     trx: KnexReadonlyTransaction,
     topN: number
-): Promise<GrapherInterface[]> {
+): Promise<{ id: string; config: GrapherInterface }[]> {
     console.log(`Fetching top ${topN} most-viewed charts per chart type...`)
 
     const promises = ALL_GRAPHER_CHART_TYPES.map((chartType) =>
@@ -36,17 +40,66 @@ async function getMostViewedGraphers(
     const allGraphers = await getPublishedGraphersBySlug(trx)
 
     const relevantGraphers = chartIds
-        .map((chartId) => allGraphers.graphersById.get(chartId))
-        .filter((grapher) => grapher !== undefined)
+        .map((chartId) => {
+            const config = allGraphers.graphersById.get(chartId)
+            if (!config) return undefined
+            return {
+                id: config.slug!, // All published graphers have slugs
+                config,
+            }
+        })
+        .filter((chart) => chart !== undefined)
 
     return relevantGraphers
 }
 
 async function getAllPublishedGraphers(
     trx: KnexReadonlyTransaction
-): Promise<GrapherInterface[]> {
+): Promise<{ id: string; config: GrapherInterface }[]> {
     const allGraphers = await getPublishedGraphersBySlug(trx)
-    return [...allGraphers.graphersBySlug.values()]
+    return [...allGraphers.graphersBySlug.values()].map((config) => ({
+        id: config.slug!, // All published graphers have slugs
+        config,
+    }))
+}
+
+async function getAllPublishedMultiDimViews(
+    trx: KnexReadonlyTransaction
+): Promise<{ id: string; config: GrapherInterface }[]> {
+    const multiDims = await getAllPublishedMultiDimDataPages(trx)
+
+    // Collect all unique chart config IDs from all views
+    const chartConfigIds = new Set<string>()
+    for (const multiDim of multiDims) {
+        for (const view of multiDim.config.views) {
+            chartConfigIds.add(view.fullConfigId)
+        }
+    }
+
+    // Fetch all chart configs
+    const rows = await trx<DbRawChartConfig>(ChartConfigsTableName)
+        .select("id", "full")
+        .whereIn("id", [...chartConfigIds])
+
+    const chartConfigsById = new Map(
+        rows.map((row) => [row.id, parseChartConfig(row.full)])
+    )
+
+    // Create a config for each view with slug + viewId as the ID
+    const chartConfigs: { id: string; config: GrapherInterface }[] = []
+    for (const multiDim of multiDims) {
+        for (const view of multiDim.config.views) {
+            const config = chartConfigsById.get(view.fullConfigId)
+            if (!config) continue
+
+            const queryStr = queryParamsToStr(view.dimensions)
+            const id = `${multiDim.slug}${queryStr}`
+
+            chartConfigs.push({ id, config })
+        }
+    }
+
+    return chartConfigs
 }
 
 async function main(args: ReturnType<typeof parseArguments>) {
@@ -57,25 +110,26 @@ async function main(args: ReturnType<typeof parseArguments>) {
 
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
 
-        const graphers = await knexReadonlyTransaction(
+        const charts = await knexReadonlyTransaction(
             async (trx) =>
                 match(testSuite)
                     .with("graphers", () => getAllPublishedGraphers(trx))
                     .with("grapher-views", () => getMostViewedGraphers(trx, 25))
+                    .with("mdims", () => getAllPublishedMultiDimViews(trx))
                     .exhaustive(),
             TransactionCloseMode.Close
         )
-        console.log(`Exporting ${graphers.length} charts...`)
+        console.log(`Exporting ${charts.length} charts...`)
 
-        const saveJobs: utils.SaveGrapherSchemaAndDataJob[] = graphers.map(
-            (grapher) => ({ config: grapher, outDir })
+        const saveJobs: utils.SaveGrapherSchemaAndDataJob[] = charts.map(
+            (grapher) => ({ id: grapher.id, config: grapher.config, outDir })
         )
 
         await pMap(saveJobs, utils.saveGrapherSchemaAndData, {
             concurrency,
         })
 
-        console.log(`Successfully exported ${graphers.length} charts`)
+        console.log(`Successfully exported ${charts.length} charts`)
     } catch (error) {
         console.error("Encountered an error: ", error)
         // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
@@ -90,8 +144,7 @@ function parseArguments() {
         .command("$0 [testSuite]", false)
         .positional("testSuite", {
             type: "string",
-            description:
-                "Test suite to run: 'graphers' for default Grapher views, 'grapher-views' for all views of a subset of Graphers",
+            description: utils.TEST_SUITE_DESCRIPTION,
             default: "graphers",
             choices: utils.TEST_SUITES,
         })

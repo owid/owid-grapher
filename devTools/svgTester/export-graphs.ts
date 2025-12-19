@@ -19,7 +19,7 @@ async function main(args: ReturnType<typeof parseArguments>) {
         let outDir = path.join(utils.SVG_REPO_PATH, testSuite, "references")
 
         // Charts to process
-        const targetGrapherIds = args.ids
+        const targetViewIds = args.viewIds
         const targetChartTypes = args.chartTypes
         const randomCount = args.random
 
@@ -55,7 +55,7 @@ async function main(args: ReturnType<typeof parseArguments>) {
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
 
         const chartIdsToProcess = await utils.selectChartIdsToProcess(dataDir, {
-            grapherIds: targetGrapherIds,
+            viewIds: targetViewIds,
             chartTypes: targetChartTypes,
             randomCount,
         })
@@ -71,7 +71,10 @@ async function main(args: ReturnType<typeof parseArguments>) {
 
         const jobDescriptions: utils.RenderSvgAndSaveJobDescription[] =
             chartViewsToGenerate.map((chart: utils.ChartWithQueryStr) => ({
-                dir: path.join(dataDir, chart.id.toString()),
+                dir: {
+                    viewId: chart.viewId,
+                    pathToProcess: path.join(dataDir, chart.viewId),
+                },
                 queryStr: chart.queryStr,
                 outDir,
             }))
@@ -162,19 +165,18 @@ function parseArguments() {
         .command("$0 [testSuite]", false)
         .positional("testSuite", {
             type: "string",
-            description:
-                "Test suite to run: 'graphers' for default Grapher views, 'grapher-views' for all views of a subset of Graphers",
+            description: utils.TEST_SUITE_DESCRIPTION,
             default: "graphers",
             choices: utils.TEST_SUITES,
         })
         .parserConfiguration({ "camel-case-expansion": true })
         .options({
-            ids: {
+            viewIds: {
                 alias: "c",
-                type: "number",
+                type: "string",
                 array: true,
                 description:
-                    "A space-separated list of config IDs, e.g. '2 4 8 10'",
+                    "A space-separated list of grapher IDs or mdim view ids, e.g. '2 4 8 10'",
             },
             chartTypes: {
                 alias: "t",
