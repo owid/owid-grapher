@@ -12,6 +12,7 @@ type ButtonCommonProps = {
         | "solid-dark-blue"
         | "solid-light-blue"
         | "outline-vermillion"
+        | "outline-dark-blue"
         | "outline-light-blue"
         | "outline-white"
     /** Set to null to hide the icon */
