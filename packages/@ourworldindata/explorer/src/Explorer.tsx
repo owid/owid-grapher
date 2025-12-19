@@ -679,15 +679,16 @@ export class Explorer
             .split(" ")
             .map(parseIntOrUndefined)
             .filter((item) => item !== undefined)
-        const ySlugList = ySlugs.split(" ")
+        // const ySlugList = ySlugs.split(" ")
 
-        const partialGrapherConfig =
-            this.partialGrapherConfigsByVariableId.get(yVariableIdsList[0]) ??
-            // if ySlug references a column that duplicates an indicator via the
-            // `duplicate` transform, make sure the partial grapher config for
-            // that indicator is pulled in
-            this.partialGrapherConfigsBySlug.get(ySlugList[0]) ??
-            {}
+        // const partialGrapherConfig =
+        //     this.partialGrapherConfigsByVariableId.get(yVariableIdsList[0]) ??
+        //     // if ySlug references a column that duplicates an indicator via the
+        //     // `duplicate` transform, make sure the partial grapher config for
+        //     // that indicator is pulled in
+        //     this.partialGrapherConfigsBySlug.get(ySlugList[0]) ??
+        //     {}
+        const partialGrapherConfig = {}
 
         const config: GrapherProgrammaticInterface = {
             ...mergeGrapherConfigs(
