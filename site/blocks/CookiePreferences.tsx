@@ -86,7 +86,7 @@ export const CookiePreferences = ({
             id="cookie-preferences"
             className="cookie-preferences"
         >
-            <h2>Cookie Preferences</h2>
+            <h2 id="cookie-preferences">Cookie Preferences</h2>
             <CookiePreference
                 title="Necessary cookies"
                 name="necessary"

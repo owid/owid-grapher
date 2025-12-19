@@ -23,6 +23,7 @@
         }
 
         &.owid-btn--outline-vermillion,
+        &.owid-btn--outline-dark-blue,
         &.owid-btn--outline-white {
             color: $blue-40;
             border-color: $blue-40;
@@ -106,5 +107,16 @@
     &:hover {
         background-color: $white;
         color: $blue-90;
+    }
+}
+
+.owid-btn--outline-dark-blue {
+    background-color: transparent;
+    border-color: $blue-95;
+    color: $blue-95;
+
+    &:hover {
+        border-color: #164377;
+        color: #164377;
     }
 }
