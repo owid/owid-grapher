@@ -53,7 +53,10 @@ export const RelatedCharts = ({
             enablePopulatingUrlParams={true}
             isEmbeddedInAnOwidPage={true}
             isEmbeddedInADataPage={false}
-            config={{ archiveContext: activeChart.archiveContext }}
+            config={{
+                archiveContext: activeChart.archiveContext,
+                enableKeyboardShortcuts: false,
+            }}
             isPreviewing={isPreviewing}
         />
     )
