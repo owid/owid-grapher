@@ -180,7 +180,17 @@ export function getPageTitle(gdoc: OwidGdoc) {
             {
                 content: { type: OwidGdocType.Profile },
             },
-            (match) => match.content.title
+            (match) => {
+                const entityName = match.content.instantiatedEntity?.name
+                const isCountry = match.content.instantiatedEntity?.isCountry
+                const profileType = isCountry ? "Country" : "Region"
+                // e.g. "Energy Country Profile"
+                const profileTitle = `${match.content.title} ${profileType} Profile`
+
+                return entityName
+                    ? `${entityName} - ${profileTitle}`
+                    : ` ${profileTitle}`
+            }
         )
         .with(
             {
