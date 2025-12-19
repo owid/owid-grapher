@@ -384,14 +384,10 @@ export async function renderSvg({
     )
     const durationTotal = Date.now() - timeStart
 
-    // TODO: Does not work for mdims
-    const url = grapher.grapherState.canonicalUrl ?? ""
-
-    const svgRecord = {
+    const svgRecord: SvgRecord = {
         viewId: dir.viewId,
         chartType: grapher.grapherState.activeTab,
         queryStr,
-        url,
         md5: await processSvgAndCalculateHash(svg),
         svgFilename: outFilename,
         performance: {
