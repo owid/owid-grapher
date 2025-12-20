@@ -13,6 +13,7 @@ import {
     SpanUnderline,
     SpanRef,
     SpanDod,
+    SpanCommentRef,
     EnrichedBlockSimpleText,
     SpanSimpleText,
     OwidEnrichedGdocBlock,
@@ -32,10 +33,14 @@ import {
     guidedChartRegex,
     SpanGuidedChartLink,
 } from "@ourworldindata/utils"
+
 import { match, P } from "ts-pattern"
 import * as cheerio from "cheerio"
 import { spansToSimpleString } from "./gdocUtils.js"
 import type { AnyNode } from "domhandler"
+
+// Regex to match comment references in the format #comment:commentId
+const commentRefRegex = /^#comment:(.+)$/
 
 //#region Spans
 function spanFallback(element: AnyNode): SpanFallback {
@@ -147,7 +152,12 @@ function cheerioToSpan(element: AnyNode): Span | undefined {
         return match(element.tagName)
             .with(
                 "a",
-                (): SpanLink | SpanRef | SpanDod | SpanGuidedChartLink => {
+                ():
+                    | SpanLink
+                    | SpanRef
+                    | SpanDod
+                    | SpanGuidedChartLink
+                    | SpanCommentRef => {
                     const url: string | undefined = element.attribs.href
                     const className = element.attribs.class
                     const children =
@@ -165,6 +175,14 @@ function cheerioToSpan(element: AnyNode): Span | undefined {
                             spanType: "span-guided-chart-link",
                             children,
                             url: guide[1],
+                        }
+                    }
+                    const comment = url?.match(commentRefRegex)
+                    if (comment) {
+                        return {
+                            spanType: "span-comment-ref",
+                            children,
+                            commentId: comment[1],
                         }
                     }
                     return { spanType: "span-link", children, url }

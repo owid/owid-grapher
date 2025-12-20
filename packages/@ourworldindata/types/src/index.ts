@@ -408,6 +408,7 @@ export {
 export {
     type Span,
     type SpanBold,
+    type SpanCommentRef,
     type SpanDod,
     type SpanGuidedChartLink,
     type SpanFallback,
@@ -422,6 +423,12 @@ export {
     type SpanUnderline,
     type UnformattedSpan,
 } from "./gdocTypes/Spans.js"
+
+export {
+    type CommentReply,
+    type CommentThread,
+    type GdocComments,
+} from "./gdocTypes/Comments.js"
 
 export type { ImageMetadata } from "./gdocTypes/Image.js"
 export {
@@ -726,6 +733,8 @@ export {
     serializePostGdocContent,
     parsePostsGdocsBreadcrumbs,
     serializePostsGdocsBreadcrumbs,
+    parsePostsGdocsComments,
+    serializePostsGdocsComments,
     parsePostsGdocsRow,
     parsePostsGdocsWithTagsRow,
     serializePostsGdocsRow,

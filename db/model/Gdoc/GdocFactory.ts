@@ -731,6 +731,7 @@ export function getDbEnrichedGdocFromOwidGdoc(
         createdAt: gdoc.createdAt,
         id: gdoc.id,
         markdown: gdoc.markdown,
+        comments: "comments" in gdoc ? (gdoc.comments ?? null) : null,
         publicationContext: gdoc.publicationContext,
         published: gdoc.published,
         publishedAt: gdoc.publishedAt,

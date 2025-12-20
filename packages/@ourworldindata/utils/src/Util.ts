@@ -1845,7 +1845,8 @@ export function spansToUnformattedPlainText(spans: Span[]): string {
                             "span-underline",
                             "span-ref",
                             "span-dod",
-                            "span-guided-chart-link"
+                            "span-guided-chart-link",
+                            "span-comment-ref"
                         ),
                     },
                     (span) => spansToUnformattedPlainText(span.children)

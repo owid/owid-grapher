@@ -52,3 +52,8 @@ fields:
         description: Custom breadcrumb navigation overrides
     markdown:
         description: Post content converted to Markdown format
+    comments:
+        description: |
+            Google Docs comments fetched via Drive API, stored as JSON. Contains comment threads
+            with their quoted text, authors, timestamps, and replies. Used for internal bookkeeping
+            and XHTML tooling - NOT rendered on the website. Structure: { threads: CommentThread[], fetchedAt: string }
