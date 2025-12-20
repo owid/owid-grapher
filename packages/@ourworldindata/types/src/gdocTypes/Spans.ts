@@ -65,6 +65,13 @@ export type SpanQuote = {
     spanType: "span-quote"
     children: Span[]
 }
+
+export type SpanCommentRef = {
+    spanType: "span-comment-ref"
+    commentId: string
+    children: Span[]
+}
+
 export type UnformattedSpan = SpanSimpleText | SpanNewline
 
 export type Span =
@@ -80,4 +87,5 @@ export type Span =
     | SpanSubscript
     | SpanSuperscript
     | SpanQuote
+    | SpanCommentRef
     | SpanFallback

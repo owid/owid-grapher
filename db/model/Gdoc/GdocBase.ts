@@ -57,6 +57,7 @@ import {
     NarrativeChartInfo,
     ContentGraphLinkType,
     DEFAULT_THUMBNAIL_FILENAME,
+    GdocComments,
     GrapherInterface,
     LatestDataInsight,
     LinkedAuthor,
@@ -87,6 +88,7 @@ import { getDods } from "../Dod.js"
 import { getLatestArchivedExplorerPageVersionsIfEnabled } from "../ArchivedExplorerVersion.js"
 import { getLatestArchivedMultiDimPageVersionsIfEnabled } from "../ArchivedMultiDimVersion.js"
 import { getLatestArchivedChartPageVersionsIfEnabled } from "../ArchivedChartVersion.js"
+import { fetchGdocComments } from "./fetchGdocComments.js"
 
 const BASE_URL = IS_ARCHIVE ? PROD_URL : BAKED_BASE_URL
 
@@ -208,6 +210,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     updatedAt: Date | null = null
     revisionId: string | null = null
     markdown: string | null = null
+    comments: GdocComments | null = null
     publicationContext: OwidGdocPublicationContext =
         OwidGdocPublicationContext.listed
     breadcrumbs: BreadcrumbItem[] | null = null
@@ -934,10 +937,16 @@ export class GdocBase implements OwidGdocBaseInterface {
             ? "SUGGESTIONS_INLINE"
             : "PREVIEW_WITHOUT_SUGGESTIONS"
 
-        const { data } = await docsClient.documents.get({
-            documentId: this.id,
-            suggestionsViewMode,
-        })
+        // Fetch document and comments in parallel
+        const [{ data }, comments] = await Promise.all([
+            docsClient.documents.get({
+                documentId: this.id,
+                suggestionsViewMode,
+            }),
+            fetchGdocComments(this.id),
+        ])
+
+        this.comments = comments
 
         const normalizedDocument: docs_v1.Schema$Document = acceptSuggestions
             ? acceptAllGdocSuggestions(data)

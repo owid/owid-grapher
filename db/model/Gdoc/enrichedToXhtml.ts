@@ -6,6 +6,7 @@ import {
     EnrichedBlockSimpleText,
     EnrichedBlockPerson,
     BlockSize,
+    GdocComments,
 } from "@ourworldindata/utils"
 
 const XML_DECLARATION = '<?xml version="1.0" encoding="UTF-8"?>'
@@ -101,6 +102,13 @@ export function spanToXhtml(span: Span): string {
         )
         .with({ spanType: "span-quote" }, (s) =>
             xmlElement("q", {}, spansToXhtml(s.children))
+        )
+        .with({ spanType: "span-comment-ref" }, (s) =>
+            xmlElement(
+                "comment-ref",
+                { id: s.commentId },
+                spansToXhtml(s.children)
+            )
         )
         .with({ spanType: "span-fallback" }, (s) => spansToXhtml(s.children))
         .exhaustive()
@@ -942,12 +950,80 @@ export function prettyPrintXhtml(xhtml: string, indentSize = 2): string {
 }
 
 /**
+ * Convert a single comment thread to XHTML.
+ *
+ * Format:
+ * <comment id="c1" author="email" time="..." resolved="false">
+ *   <content>Comment text</content>
+ *   <reply id="r1" author="..." time="...">Reply text</reply>
+ * </comment>
+ */
+function commentThreadToXhtml(thread: {
+    id: string
+    author: string
+    content: string
+    createdTime: string
+    resolved: boolean
+    replies: Array<{
+        id: string
+        author: string
+        content: string
+        createdTime: string
+    }>
+}): string {
+    const replies = thread.replies
+        .map((reply) =>
+            xmlElement(
+                "reply",
+                {
+                    id: reply.id,
+                    author: reply.author,
+                    time: reply.createdTime,
+                },
+                escapeXml(reply.content)
+            )
+        )
+        .join("")
+
+    return xmlElement(
+        "comment",
+        {
+            id: thread.id,
+            author: thread.author,
+            time: thread.createdTime,
+            resolved: thread.resolved,
+        },
+        xmlElement("content", {}, escapeXml(thread.content)) + replies
+    )
+}
+
+/**
+ * Convert comments to XHTML block.
+ *
+ * Format:
+ * <comments>
+ *   <comment id="c1" ...>...</comment>
+ *   <comment id="c2" ...>...</comment>
+ * </comments>
+ */
+export function commentsToXhtml(comments: GdocComments): string {
+    if (!comments.threads.length) return ""
+
+    const threads = comments.threads.map(commentThreadToXhtml).join("")
+    return xmlElement("comments", {}, threads)
+}
+
+/**
  * Convert an array of enriched blocks to a complete XHTML document.
  * Output is pretty-printed with proper indentation.
+ * Optionally includes comments at the end of the document.
  */
 export function enrichedBlocksToXhtmlDocument(
-    blocks: OwidEnrichedGdocBlock[]
+    blocks: OwidEnrichedGdocBlock[],
+    comments?: GdocComments | null
 ): string {
-    const raw = `${XML_DECLARATION}<gdoc xmlns="${GDOC_NAMESPACE}">${enrichedBlocksToXhtml(blocks)}</gdoc>`
+    const blocksXhtml = enrichedBlocksToXhtml(blocks)
+    const commentsXhtml = comments ? commentsToXhtml(comments) : ""
+    const raw = `${XML_DECLARATION}<gdoc xmlns="${GDOC_NAMESPACE}">${blocksXhtml}${commentsXhtml}</gdoc>`
     return prettyPrintXhtml(raw)
 }

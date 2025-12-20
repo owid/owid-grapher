@@ -46,7 +46,8 @@ export function spanToMarkdown(s: Span): string {
                     "span-subscript",
                     "span-superscript",
                     "span-quote",
-                    "span-fallback"
+                    "span-fallback",
+                    "span-comment-ref"
                 ),
             },
             (other) => spansToMarkdown(other.children)

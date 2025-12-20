@@ -67,6 +67,9 @@ import {
     BlockSize,
     ResearchAndWritingVariant,
     excludeNullish,
+    GdocComments,
+    CommentThread,
+    CommentReply,
 } from "@ourworldindata/utils"
 import { parseRawBlocksToEnrichedBlocks } from "./rawToEnriched.js"
 
@@ -138,6 +141,11 @@ function nodeToSpan(node: AnyNode): Span | undefined {
         }))
         .with("q", () => ({
             spanType: "span-quote" as const,
+            children: nodesToSpans(children),
+        }))
+        .with("comment-ref", () => ({
+            spanType: "span-comment-ref" as const,
+            commentId: element.attribs.id ?? "",
             children: nodesToSpans(children),
         }))
         .with("br", () => ({
@@ -266,6 +274,12 @@ function getSpanContent(element: Element): string {
                     `<a href="#guide:${el.attribs.url ?? ""}">${childContent}</a>`
             )
             .with("q", () => `<q>${childContent}</q>`)
+            .with(
+                "comment-ref",
+                () =>
+                    // Convert to a special anchor format for raw block parsing
+                    `<a href="#comment:${el.attribs.id ?? ""}">${childContent}</a>`
+            )
             .with("br", () => "<br>")
             .otherwise(() => childContent)
     }
@@ -1149,4 +1163,84 @@ export function xhtmlToRawBlocks(xhtml: string): OwidRawGdocBlock[] {
 export function xhtmlToEnrichedBlocks(xhtml: string): OwidEnrichedGdocBlock[] {
     const rawBlocks = xhtmlToRawBlocks(xhtml)
     return excludeNullish(rawBlocks.map(parseRawBlocksToEnrichedBlocks))
+}
+
+/**
+ * Parse a single comment element to a CommentThread.
+ */
+function parseCommentElement(element: Element): CommentThread {
+    const replies = getChildElements(element, "reply").map(
+        (reply): CommentReply => ({
+            id: reply.attribs.id ?? "",
+            author: reply.attribs.author ?? "",
+            content: getDirectTextContent(reply),
+            createdTime: reply.attribs.time ?? "",
+            modifiedTime: reply.attribs.time ?? "", // Use time as modifiedTime for round-trip
+        })
+    )
+
+    const contentEl = getChildElement(element, "content")
+    const content = contentEl ? getDirectTextContent(contentEl) : ""
+
+    return {
+        id: element.attribs.id ?? "",
+        author: element.attribs.author ?? "",
+        content,
+        quotedText: "", // quotedText is not serialized in XHTML, reconstructed from document
+        createdTime: element.attribs.time ?? "",
+        modifiedTime: element.attribs.time ?? "", // Use time as modifiedTime for round-trip
+        resolved: element.attribs.resolved === "true",
+        replies,
+    }
+}
+
+/**
+ * Parse a comments element to an array of CommentThreads.
+ */
+function parseCommentsElement(element: Element): CommentThread[] {
+    return getChildElements(element, "comment").map(parseCommentElement)
+}
+
+/**
+ * Parse XHTML string to enriched blocks and comments.
+ * Returns both blocks and comments separately for storage/processing.
+ */
+export function xhtmlToEnrichedWithComments(xhtml: string): {
+    blocks: OwidEnrichedGdocBlock[]
+    comments: GdocComments | null
+} {
+    const $ = cheerio.load(xhtml, { xml: true })
+
+    // Find the root content - either inside <gdoc> or at root level
+    const gdoc = $("gdoc")
+    const rootElements = (
+        gdoc.length > 0 ? gdoc.children() : $.root().children()
+    ).toArray() as Element[]
+
+    // Separate content blocks from comments blocks
+    const contentElements: Element[] = []
+    const commentThreads: CommentThread[] = []
+
+    for (const el of rootElements) {
+        if (el.type !== "tag") continue
+
+        if (el.tagName.toLowerCase() === "comments") {
+            commentThreads.push(...parseCommentsElement(el))
+        } else {
+            contentElements.push(el)
+        }
+    }
+
+    const rawBlocks = contentElements.map(elementToRawBlock)
+    const blocks = excludeNullish(rawBlocks.map(parseRawBlocksToEnrichedBlocks))
+
+    const comments: GdocComments | null =
+        commentThreads.length > 0
+            ? {
+                  threads: commentThreads,
+                  fetchedAt: new Date().toISOString(),
+              }
+            : null
+
+    return { blocks, comments }
 }

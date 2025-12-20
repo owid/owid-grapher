@@ -49,3 +49,5 @@ archive/*
 tmp/
 # Sentry Config File
 .env.sentry-build-plugin
+# Gdocs investigation output (temporary investigation data)
+devTools/gdocs/gdoc-investigation/
