@@ -7,10 +7,155 @@ import {
     EnrichedBlockPerson,
     BlockSize,
     GdocComments,
+    CommentThread,
 } from "@ourworldindata/utils"
 
 const XML_DECLARATION = '<?xml version="1.0" encoding="UTF-8"?>'
 const GDOC_NAMESPACE = "urn:owid:gdoc:v1"
+
+/**
+ * Collect all comment IDs referenced in an array of spans.
+ */
+function collectCommentIdsFromSpans(spans: Span[]): Set<string> {
+    const ids = new Set<string>()
+    for (const span of spans) {
+        if (span.spanType === "span-comment-ref") {
+            ids.add(span.commentId)
+        }
+        if ("children" in span && span.children) {
+            for (const id of collectCommentIdsFromSpans(span.children)) {
+                ids.add(id)
+            }
+        }
+    }
+    return ids
+}
+
+/**
+ * Collect all comment IDs referenced in a block (recursively).
+ */
+function collectCommentIdsFromBlock(block: OwidEnrichedGdocBlock): Set<string> {
+    const ids = new Set<string>()
+
+    const addSpans = (spans: Span[] | undefined): void => {
+        if (spans) {
+            for (const id of collectCommentIdsFromSpans(spans)) {
+                ids.add(id)
+            }
+        }
+    }
+
+    const addBlocks = (blocks: OwidEnrichedGdocBlock[] | undefined): void => {
+        if (blocks) {
+            for (const b of blocks) {
+                for (const id of collectCommentIdsFromBlock(b)) {
+                    ids.add(id)
+                }
+            }
+        }
+    }
+
+    match(block)
+        .with({ type: "text" }, (b) => addSpans(b.value))
+        .with({ type: "simple-text" }, () => {})
+        .with({ type: "heading" }, (b) => {
+            addSpans(b.text)
+            addSpans(b.supertitle)
+        })
+        .with({ type: "horizontal-rule" }, () => {})
+        .with({ type: "chart" }, (b) => addSpans(b.caption))
+        .with({ type: "narrative-chart" }, (b) => addSpans(b.caption))
+        .with({ type: "image" }, (b) => addSpans(b.caption))
+        .with({ type: "video" }, (b) => addSpans(b.caption))
+        .with({ type: "static-viz" }, () => {})
+        .with({ type: "list" }, (b) =>
+            b.items.forEach((i) => addSpans(i.value))
+        )
+        .with({ type: "numbered-list" }, (b) =>
+            b.items.forEach((i) => addSpans(i.value))
+        )
+        .with({ type: "aside" }, (b) => addSpans(b.caption))
+        .with({ type: "callout" }, (b) => addBlocks(b.text))
+        .with({ type: "blockquote" }, (b) => addBlocks(b.text))
+        .with({ type: "pull-quote" }, (b) => addBlocks(b.content))
+        .with({ type: "code" }, () => {})
+        .with({ type: "html" }, () => {})
+        .with({ type: "script" }, () => {})
+        .with({ type: "table" }, (b) => {
+            addSpans(b.caption)
+            b.rows.forEach((row) =>
+                row.cells.forEach((cell) => addBlocks(cell.content))
+            )
+        })
+        .with({ type: "side-by-side" }, (b) => {
+            addBlocks(b.left)
+            addBlocks(b.right)
+        })
+        .with({ type: "sticky-left" }, (b) => {
+            addBlocks(b.left)
+            addBlocks(b.right)
+        })
+        .with({ type: "sticky-right" }, (b) => {
+            addBlocks(b.left)
+            addBlocks(b.right)
+        })
+        .with({ type: "gray-section" }, (b) => addBlocks(b.items))
+        .with({ type: "explore-data-section" }, (b) => addBlocks(b.content))
+        .with({ type: "align" }, (b) => addBlocks(b.content))
+        .with({ type: "expandable-paragraph" }, (b) => addBlocks(b.items))
+        .with({ type: "expander" }, (b) => addBlocks(b.content))
+        .with({ type: "guided-chart" }, (b) => addBlocks(b.content))
+        .with({ type: "prominent-link" }, () => {})
+        .with({ type: "recirc" }, () => {})
+        .with({ type: "key-insights" }, (b) =>
+            b.insights.forEach((slide) => addBlocks(slide.content))
+        )
+        .with({ type: "key-indicator" }, (b) => addBlocks(b.text))
+        .with({ type: "key-indicator-collection" }, (b) => addBlocks(b.blocks))
+        .with({ type: "additional-charts" }, (b) =>
+            b.items.forEach((item) => addSpans(item))
+        )
+        .with({ type: "all-charts" }, () => {})
+        .with({ type: "donors" }, () => {})
+        .with({ type: "sdg-grid" }, () => {})
+        .with({ type: "sdg-toc" }, () => {})
+        .with({ type: "ltp-toc" }, () => {})
+        .with({ type: "missing-data" }, () => {})
+        .with({ type: "chart-story" }, (b) =>
+            b.items.forEach((item) => {
+                addSpans(item.narrative.value)
+                for (const id of collectCommentIdsFromBlock(item.chart)) {
+                    ids.add(id)
+                }
+                item.technical.forEach((t) => addSpans(t.value))
+            })
+        )
+        .with({ type: "topic-page-intro" }, (b) => addBlocks(b.content))
+        .with({ type: "research-and-writing" }, () => {})
+        .with({ type: "entry-summary" }, () => {})
+        .with({ type: "explorer-tiles" }, () => {})
+        .with({ type: "pill-row" }, () => {})
+        .with({ type: "homepage-search" }, () => {})
+        .with({ type: "homepage-intro" }, () => {})
+        .with({ type: "featured-metrics" }, () => {})
+        .with({ type: "featured-data-insights" }, () => {})
+        .with({ type: "latest-data-insights" }, () => {})
+        .with({ type: "cookie-notice" }, () => {})
+        .with({ type: "subscribe-banner" }, () => {})
+        .with({ type: "cta" }, () => {})
+        .with({ type: "socials" }, () => {})
+        .with({ type: "people" }, (b) =>
+            b.items.forEach((p) => addBlocks(p.text))
+        )
+        .with({ type: "people-rows" }, (b) =>
+            b.people.forEach((p) => addBlocks(p.text))
+        )
+        .with({ type: "person" }, (b) => addBlocks(b.text))
+        .with({ type: "resource-panel" }, () => {})
+        .exhaustive()
+
+    return ids
+}
 
 /**
  * Options for XHTML serialization.
@@ -1008,19 +1153,7 @@ export function prettyPrintXhtml(xhtml: string, indentSize = 2): string {
  *   <reply id="r1" author="..." time="...">Reply text</reply>
  * </comment>
  */
-function commentThreadToXhtml(thread: {
-    id: string
-    author: string
-    content: string
-    createdTime: string
-    resolved: boolean
-    replies: Array<{
-        id: string
-        author: string
-        content: string
-        createdTime: string
-    }>
-}): string {
+function commentThreadToXhtml(thread: CommentThread): string {
     const replies = thread.replies
         .map((reply) =>
             xmlElement(
@@ -1066,10 +1199,11 @@ export function commentsToXhtml(comments: GdocComments): string {
 /**
  * Convert an array of enriched blocks to a complete XHTML document.
  * Output is pretty-printed with proper indentation.
- * Optionally includes comments at the end of the document.
+ * When comments are included, each comment is placed immediately after
+ * the top-level block that contains its reference.
  *
  * @param blocks - The enriched blocks to convert
- * @param comments - Optional comments to include at the end
+ * @param comments - Optional comments to interleave after blocks
  * @param options - Serialization options (includeComments defaults to true)
  */
 export function enrichedBlocksToXhtmlDocument(
@@ -1078,9 +1212,40 @@ export function enrichedBlocksToXhtmlDocument(
     options: XhtmlSerializationOptions = {}
 ): string {
     const { includeComments = true } = options
-    const blocksXhtml = enrichedBlocksToXhtml(blocks, options)
-    const commentsXhtml =
-        includeComments && comments ? commentsToXhtml(comments) : ""
-    const raw = `${XML_DECLARATION}<gdoc xmlns="${GDOC_NAMESPACE}">${blocksXhtml}${commentsXhtml}</gdoc>`
+
+    let blocksXhtml: string
+    if (includeComments && comments && comments.threads.length > 0) {
+        // Build a map from comment ID to thread for quick lookup
+        const threadById = new Map<string, CommentThread>()
+        for (const thread of comments.threads) {
+            threadById.set(thread.id, thread)
+        }
+
+        // Track which comment IDs have been output to avoid duplicates
+        const outputCommentIds = new Set<string>()
+
+        // Serialize each block followed by its referenced comments
+        const parts: string[] = []
+        for (const block of blocks) {
+            parts.push(enrichedBlockToXhtml(block, options))
+
+            // Find all comment IDs referenced in this block
+            const referencedIds = collectCommentIdsFromBlock(block)
+            for (const id of referencedIds) {
+                if (!outputCommentIds.has(id)) {
+                    const thread = threadById.get(id)
+                    if (thread) {
+                        parts.push(commentThreadToXhtml(thread))
+                        outputCommentIds.add(id)
+                    }
+                }
+            }
+        }
+        blocksXhtml = parts.join("")
+    } else {
+        blocksXhtml = enrichedBlocksToXhtml(blocks, options)
+    }
+
+    const raw = `${XML_DECLARATION}<gdoc xmlns="${GDOC_NAMESPACE}">${blocksXhtml}</gdoc>`
     return prettyPrintXhtml(raw)
 }
