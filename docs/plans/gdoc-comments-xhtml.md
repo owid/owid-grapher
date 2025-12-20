@@ -660,3 +660,200 @@ This requires careful tree restructuring while preserving existing formatting.
     - Multiple comments
     - Overlapping comments
 3. Test with real document from Phase 2
+
+---
+
+# Phase 4: Cross-Span Comment Anchoring
+
+**Status**: Pending
+
+## Problem
+
+The Phase 3 implementation correctly handles comments within a single span or within a single nested span tree, but fails when a comment spans across sibling spans at any level.
+
+### Example of the Bug
+
+Given this span structure:
+
+```xml
+<bold><italic><link>Some test in link</link></italic></bold><link>some more test</link>
+```
+
+If a comment quotes "in link some more", the Phase 3 implementation produces:
+
+```xml
+<bold>
+  <italic>
+    <link>
+      Some test
+      <comment-ref id="c1">in link</comment-ref>  <!-- WRONG: nested inside link -->
+    </link>
+  </italic>
+</bold>
+<link>
+  <comment-ref id="c1">some more</comment-ref>  <!-- WRONG: second comment-ref -->
+  test
+</link>
+```
+
+The correct output should be:
+
+```xml
+<bold><italic><link>Some test </link></italic></bold>
+<comment-ref id="c1">
+  <bold><italic><link>in link</link></italic></bold>
+  <link>some more</link>
+</comment-ref>
+<link> test</link>
+```
+
+## Simplifying Assumption
+
+**Comment refs must be non-overlapping or fully nested.** That is:
+
+- Two comments may not partially overlap (e.g., "Hello wor" and "world today")
+- One comment may be fully inside another (e.g., "Hello world" containing "world")
+- If overlapping comments are detected, only the first one is anchored; subsequent overlapping comments are skipped
+
+This matches typical Google Docs behavior where overlapping comments are rare.
+
+## Implementation Plan
+
+### 4.1 Create `splitSpanAtPosition` Function
+
+Split a span tree at a given text position, returning "before" and "after" parts with preserved nesting.
+
+```typescript
+interface SplitResult {
+    before: Span[] // Spans/content before the split point
+    after: Span[] // Spans/content after the split point
+}
+
+function splitSpansAtPosition(spans: Span[], position: number): SplitResult
+```
+
+**Algorithm**:
+
+1. Walk through spans accumulating text position
+2. When the split position falls within a `SpanSimpleText`, split the text
+3. When the split position falls within a span with children, recurse and reconstruct wrapper spans for both sides
+4. Spans entirely before the position go to `before`
+5. Spans entirely after the position go to `after`
+
+**Example**: Splitting `<bold><italic>Hello world</italic></bold>` at position 6:
+
+```
+before: [<bold><italic>Hello </italic></bold>]
+after:  [<bold><italic>world</italic></bold>]
+```
+
+### 4.2 Create `extractSpanRange` Function
+
+Extract a range of text from spans as a new span array, preserving formatting.
+
+```typescript
+function extractSpanRange(
+    spans: Span[],
+    startPos: number,
+    endPos: number
+): Span[]
+```
+
+**Algorithm**:
+
+1. Split at `startPos` to get `{before: _, after: afterStart}`
+2. Split `afterStart` at `(endPos - startPos)` to get `{before: extracted, after: _}`
+3. Return `extracted`
+
+### 4.3 Rewrite `wrapSpansWithCommentRef`
+
+Replace the current implementation with one that:
+
+1. Finds match start and end positions in the flattened text
+2. Uses `splitSpansAtPosition` to split at match boundaries
+3. Wraps the extracted middle portion in a single `SpanCommentRef`
+4. Reconstructs the span array: `[...before, commentRef, ...after]`
+
+```typescript
+function wrapSpansWithCommentRef(
+    spans: Span[],
+    startIndex: number,
+    endIndex: number,
+    commentId: string
+): Span[] {
+    const { before, after: rest } = splitSpansAtPosition(spans, startIndex)
+    const matchLength = endIndex - startIndex
+    const { before: matched, after } = splitSpansAtPosition(rest, matchLength)
+
+    const commentRef: SpanCommentRef = {
+        spanType: "span-comment-ref",
+        commentId,
+        children: matched,
+    }
+
+    return [...before, commentRef, ...after]
+}
+```
+
+### 4.4 Handle Nested Comments
+
+When processing multiple comments, sort by start position and process from last to first (reverse order) to preserve positions. Skip comments that would overlap with already-processed ones.
+
+```typescript
+function anchorCommentsToSpans(spans: Span[], matches: CommentMatch[]): Span[] {
+    // Sort by start position descending (process last match first)
+    const sorted = [...matches].sort((a, b) => b.startIndex - a.startIndex)
+
+    let result = spans
+    let lastStart = Infinity // Track to detect overlaps
+
+    for (const match of sorted) {
+        // Skip if this match overlaps with a previously processed one
+        if (match.endIndex > lastStart) {
+            continue // Overlapping, skip
+        }
+
+        result = wrapSpansWithCommentRef(
+            result,
+            match.startIndex,
+            match.endIndex,
+            match.commentId
+        )
+        lastStart = match.startIndex
+    }
+
+    return result
+}
+```
+
+## Test Cases
+
+### Cross-Span Cases
+
+1. **Match spans two siblings**: `<b>Hello </b><i>world</i>` with quote "o wo"
+2. **Match spans nested into sibling**: `<b><i>Hello</i></b><u>world</u>` with quote "llo wor"
+3. **Match spans from deep nesting to shallow**: `<b><i><u>deep</u></i></b><span>shallow</span>` with quote "eep sha"
+4. **Match spans entire nested structure plus partial sibling**
+
+### Nested Comment Cases
+
+5. **Outer contains inner**: "Hello world" contains "world"
+6. **Multiple non-overlapping**: "Hello" and "world" in "Hello beautiful world"
+
+### Edge Cases
+
+7. **Match at exact span boundary**: `<b>Hello</b><i>world</i>` with quote "Hello"
+8. **Match crosses multiple siblings**: `<b>A</b><i>B</i><u>C</u>` with quote "ABC"
+9. **Empty spans in the middle**: Handle gracefully
+
+## Files to Modify
+
+| File                                     | Change                                  |
+| ---------------------------------------- | --------------------------------------- |
+| `db/model/Gdoc/anchorCommentsToSpans.ts` | Add split functions, rewrite wrap logic |
+
+## Notes
+
+- The split operation must handle `SpanNewline` correctly (doesn't contribute to text position)
+- Empty spans after splitting should be filtered out
+- The implementation should be pure (no mutation of input spans)
