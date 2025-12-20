@@ -34,6 +34,7 @@ Use a lightweight anchor span in the text, with the full comment thread as a sib
 ```
 
 **Benefits:**
+
 - Prose remains readable - you see "important" naturally in context
 - Comment thread follows immediately after the block, maintaining locality
 - LLMs can easily understand the relationship via id linking
@@ -44,6 +45,7 @@ Use a lightweight anchor span in the text, with the full comment thread as a sib
 Comments are fetched via Drive API (`drive.comments.list`), not Docs API.
 
 **Comment Resource** ([API docs](https://developers.google.com/drive/api/reference/rest/v3/comments)):
+
 ```typescript
 {
   id: string,                    // Unique comment ID
@@ -151,8 +153,8 @@ During deserialization (XHTML → enriched blocks):
 
 ```typescript
 interface XhtmlSerializationOptions {
-  includeComments?: boolean          // default: true
-  includeResolvedComments?: boolean  // default: true
+    includeComments?: boolean // default: true
+    includeResolvedComments?: boolean // default: true
 }
 ```
 
@@ -161,25 +163,25 @@ interface XhtmlSerializationOptions {
 ```typescript
 // New span type for comment anchors
 type SpanCommentRef = {
-  spanType: "span-comment-ref"
-  commentId: string
-  children: Span[]  // The commented text
+    spanType: "span-comment-ref"
+    commentId: string
+    children: Span[] // The commented text
 }
 
 // Comment thread structure (for attachment/context)
 interface CommentThread {
-  id: string
-  author: string
-  time: string        // RFC 3339
-  resolved: boolean
-  content: string
-  replies: CommentReply[]
+    id: string
+    author: string
+    time: string // RFC 3339
+    resolved: boolean
+    content: string
+    replies: CommentReply[]
 }
 
 interface CommentReply {
-  author: string
-  time: string
-  content: string
+    author: string
+    time: string
+    content: string
 }
 ```
 
