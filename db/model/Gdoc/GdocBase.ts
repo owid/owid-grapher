@@ -89,6 +89,7 @@ import { getLatestArchivedExplorerPageVersionsIfEnabled } from "../ArchivedExplo
 import { getLatestArchivedMultiDimPageVersionsIfEnabled } from "../ArchivedMultiDimVersion.js"
 import { getLatestArchivedChartPageVersionsIfEnabled } from "../ArchivedChartVersion.js"
 import { fetchGdocComments } from "./fetchGdocComments.js"
+import { anchorCommentsToContent } from "./anchorCommentsToSpans.js"
 
 const BASE_URL = IS_ARCHIVE ? PROD_URL : BAKED_BASE_URL
 
@@ -959,6 +960,11 @@ export class GdocBase implements OwidGdocBaseInterface {
 
         // Convert the ArchieML to our enriched JSON structure
         this.content = archieToEnriched(text, this._enrichSubclassContent)
+
+        // Anchor comments to text spans based on quotedText matching
+        if (this.comments) {
+            this.content = anchorCommentsToContent(this.content, this.comments)
+        }
     }
 
     async validate(knex: db.KnexReadonlyTransaction): Promise<void> {

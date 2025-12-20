@@ -277,8 +277,8 @@ function getSpanContent(element: Element): string {
             .with(
                 "comment-ref",
                 () =>
-                    // Convert to a special anchor format for raw block parsing
-                    `<a href="#comment:${el.attribs.id ?? ""}">${childContent}</a>`
+                    // Output as a comment-ref element directly (handled by cheerioToSpan)
+                    `<comment-ref id="${el.attribs.id ?? ""}">${childContent}</comment-ref>`
             )
             .with("br", () => "<br>")
             .otherwise(() => childContent)

@@ -13,7 +13,6 @@ import {
     SpanUnderline,
     SpanRef,
     SpanDod,
-    SpanCommentRef,
     EnrichedBlockSimpleText,
     SpanSimpleText,
     OwidEnrichedGdocBlock,
@@ -38,9 +37,6 @@ import { match, P } from "ts-pattern"
 import * as cheerio from "cheerio"
 import { spansToSimpleString } from "./gdocUtils.js"
 import type { AnyNode } from "domhandler"
-
-// Regex to match comment references in the format #comment:commentId
-const commentRefRegex = /^#comment:(.+)$/
 
 //#region Spans
 function spanFallback(element: AnyNode): SpanFallback {
@@ -152,12 +148,7 @@ function cheerioToSpan(element: AnyNode): Span | undefined {
         return match(element.tagName)
             .with(
                 "a",
-                ():
-                    | SpanLink
-                    | SpanRef
-                    | SpanDod
-                    | SpanGuidedChartLink
-                    | SpanCommentRef => {
+                (): SpanLink | SpanRef | SpanDod | SpanGuidedChartLink => {
                     const url: string | undefined = element.attribs.href
                     const className = element.attribs.class
                     const children =
@@ -175,14 +166,6 @@ function cheerioToSpan(element: AnyNode): Span | undefined {
                             spanType: "span-guided-chart-link",
                             children,
                             url: guide[1],
-                        }
-                    }
-                    const comment = url?.match(commentRefRegex)
-                    if (comment) {
-                        return {
-                            spanType: "span-comment-ref",
-                            children,
-                            commentId: comment[1],
                         }
                     }
                     return { spanType: "span-link", children, url }
@@ -238,6 +221,15 @@ function cheerioToSpan(element: AnyNode): Span | undefined {
                 const children =
                     _.compact(element.children?.map(cheerioToSpan)) ?? []
                 return { spanType: "span-underline", children }
+            })
+            .with("comment-ref", () => {
+                const children =
+                    _.compact(element.children?.map(cheerioToSpan)) ?? []
+                return {
+                    spanType: "span-comment-ref" as const,
+                    commentId: element.attribs.id ?? "",
+                    children,
+                }
             })
             .with("wbr", () => spanFallback(element))
             .otherwise(() => {
