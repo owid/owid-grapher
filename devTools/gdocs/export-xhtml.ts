@@ -4,11 +4,14 @@
  * Export a Google Doc post as XHTML.
  *
  * Usage:
- *   yarn exportGdocXhtml <slug> [--no-comments]
+ *   yarn exportGdocXhtml <identifier> [--no-comments]
+ *
+ * The identifier can be either a slug or a Google Doc ID.
  *
  * Examples:
- *   yarn exportGdocXhtml poverty                # With comments
- *   yarn exportGdocXhtml poverty --no-comments  # Without comments
+ *   yarn exportGdocXhtml poverty                          # By slug
+ *   yarn exportGdocXhtml 1abc123def456                    # By Google Doc ID
+ *   yarn exportGdocXhtml poverty --no-comments            # Without comments
  */
 
 import yargs from "yargs"
@@ -22,35 +25,76 @@ import { fetchGdocComments } from "../../db/model/Gdoc/fetchGdocComments.js"
 import { anchorCommentsToContent } from "../../db/model/Gdoc/anchorCommentsToSpans.js"
 import { OwidGdocContent, GdocComments } from "@ourworldindata/types"
 
+interface GdocRow {
+    id: string
+    slug: string
+    type: string
+    content: string
+}
+
+/**
+ * Try to find a gdoc by slug first, then by ID.
+ */
+async function findGdoc(identifier: string): Promise<GdocRow | null> {
+    // First try by slug
+    const bySlug = await dataSource.query(
+        `SELECT id, slug, type, content FROM posts_gdocs WHERE slug = ?`,
+        [identifier]
+    )
+
+    if (bySlug && bySlug.length > 0) {
+        console.error(`Found document by slug: "${identifier}"`)
+        return bySlug[0]
+    }
+
+    // Then try by ID
+    const byId = await dataSource.query(
+        `SELECT id, slug, type, content FROM posts_gdocs WHERE id = ?`,
+        [identifier]
+    )
+
+    if (byId && byId.length > 0) {
+        console.error(
+            `Found document by ID: "${identifier}" (slug: "${byId[0].slug}")`
+        )
+        return byId[0]
+    }
+
+    return null
+}
+
 async function main() {
     const argv = yargs(hideBin(process.argv))
-        .command("$0 <slug>", "Export a Google Doc post as XHTML", (yargs) => {
-            yargs
-                .positional("slug", {
-                    describe: "The slug of the post to export",
-                    type: "string",
-                    demandOption: true,
-                })
-                .option("comments", {
-                    describe: "Include comments in the output",
-                    type: "boolean",
-                    default: true,
-                })
-        })
-        .example("$0 poverty", "Export the poverty article with comments")
-        .example(
-            "$0 poverty --no-comments",
-            "Export the poverty article without comments"
+        .command(
+            "$0 <identifier>",
+            "Export a Google Doc post as XHTML",
+            (yargs) => {
+                yargs
+                    .positional("identifier", {
+                        describe:
+                            "The slug or Google Doc ID of the post to export",
+                        type: "string",
+                        demandOption: true,
+                    })
+                    .option("comments", {
+                        describe: "Include comments in the output",
+                        type: "boolean",
+                        default: true,
+                    })
+            }
         )
+        .example("$0 poverty", "Export by slug with comments")
+        .example("$0 1abc123def456", "Export by Google Doc ID")
+        .example("$0 poverty --no-comments", "Export without comments")
         .help()
         .alias("h", "help")
         .parseSync()
 
-    const slug = argv.slug as string
+    const identifier = argv.identifier as string
     const includeComments = argv.comments as boolean
 
-    if (!slug) {
-        console.error("Error: slug is required")
+    if (!identifier) {
+        console.error("Error: identifier is required")
         process.exit(1)
     }
 
@@ -58,24 +102,22 @@ async function main() {
         // Initialize the database connection
         await dataSource.initialize()
 
-        // Query for the post by slug
-        const result = await dataSource.query(
-            `SELECT id, slug, type, content FROM posts_gdocs WHERE slug = ?`,
-            [slug]
-        )
+        // Find the document by slug or ID
+        const row = await findGdoc(identifier)
 
-        if (!result || result.length === 0) {
-            console.error(`Error: No post found with slug "${slug}"`)
+        if (!row) {
+            console.error(
+                `Error: No post found with slug or ID "${identifier}"`
+            )
             process.exit(1)
         }
 
-        const row = result[0]
         let content: OwidGdocContent = JSON.parse(row.content)
         const documentId = row.id
 
         if (!content.body || !Array.isArray(content.body)) {
             console.error(
-                `Error: Post "${slug}" has no body content or body is not an array`
+                `Error: Post "${row.slug}" has no body content or body is not an array`
             )
             process.exit(1)
         }
