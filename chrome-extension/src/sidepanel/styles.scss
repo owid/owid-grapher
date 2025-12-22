@@ -1,0 +1,227 @@
+// OWID Preview Extension Styles
+
+// Variables
+$primary-color: #002147;
+$secondary-color: #5b9bd5;
+$error-color: #c0392b;
+$warning-color: #f39c12;
+$success-color: #27ae60;
+$background-color: #ffffff;
+$border-color: #e0e0e0;
+$text-color: #333333;
+$text-muted: #666666;
+
+// Reset
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+        Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: $text-color;
+    background-color: $background-color;
+}
+
+// Main container
+.owid-preview-extension {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+// Toolbar
+.toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background-color: $primary-color;
+    border-bottom: 1px solid $border-color;
+    gap: 8px;
+}
+
+.toolbar-left {
+    display: flex;
+    gap: 8px;
+}
+
+.toolbar-right {
+    display: flex;
+    align-items: center;
+}
+
+.toolbar-button {
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: $primary-color;
+    background-color: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover:not(:disabled) {
+        background-color: #f5f5f5;
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+.toolbar-button-secondary {
+    color: #ffffff;
+    background-color: transparent;
+    border-color: rgba(255, 255, 255, 0.5);
+
+    &:hover:not(:disabled) {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+}
+
+.auto-refresh-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #ffffff;
+    font-size: 13px;
+    cursor: pointer;
+
+    input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+}
+
+// Loading state
+.loading-state {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    color: $text-muted;
+
+    p {
+        margin: 0;
+    }
+}
+
+// Error states
+.error-state,
+.auth-error {
+    padding: 24px;
+    text-align: center;
+
+    h2 {
+        margin: 0 0 12px;
+        font-size: 18px;
+        color: $error-color;
+    }
+
+    p {
+        margin: 0 0 16px;
+        color: $text-muted;
+    }
+}
+
+.login-link {
+    display: inline-block;
+    margin-bottom: 12px;
+    padding: 10px 20px;
+    color: #ffffff;
+    background-color: $primary-color;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 500;
+
+    &:hover {
+        background-color: lighten($primary-color, 10%);
+    }
+}
+
+.retry-button {
+    display: inline-block;
+    padding: 8px 16px;
+    color: $primary-color;
+    background-color: transparent;
+    border: 1px solid $primary-color;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+
+    &:hover {
+        background-color: rgba($primary-color, 0.1);
+    }
+}
+
+// Preview container
+.preview-container {
+    flex: 1;
+    overflow-y: auto;
+}
+
+// Preview errors
+.preview-errors {
+    padding: 12px 16px;
+    margin: 8px;
+    background-color: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 4px;
+
+    h4 {
+        margin: 0 0 8px;
+        font-size: 14px;
+        color: darken($warning-color, 10%);
+    }
+
+    ul {
+        margin: 0;
+        padding-left: 20px;
+
+        li {
+            margin-bottom: 4px;
+            font-size: 13px;
+
+            &.error-error {
+                color: $error-color;
+            }
+
+            &.error-warning {
+                color: darken($warning-color, 10%);
+            }
+        }
+    }
+}
+
+// Preview content
+.preview-content {
+    padding: 16px;
+
+    // Override OWID styles for sidepanel context
+    .article-block {
+        max-width: 100%;
+    }
+
+    // Scale down some elements for narrow sidepanel
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+}
+
+// Import OWID styles when available
+// @import "@owid/site/owid.scss";
