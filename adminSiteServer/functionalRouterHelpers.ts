@@ -2,6 +2,18 @@ import { FunctionalRouter } from "./FunctionalRouter.js"
 import { Request, Response } from "express"
 import * as db from "../db/db.js"
 
+/**
+ * Register a GET route without any database transaction.
+ * Use for endpoints that don't need database access.
+ */
+export function getRouteWithoutTransaction<T>(
+    router: FunctionalRouter,
+    targetPath: string,
+    handler: (req: Request, res: Response) => Promise<T>
+) {
+    return router.get(targetPath, handler)
+}
+
 export function getRouteWithROTransaction<T>(
     router: FunctionalRouter,
     targetPath: string,
