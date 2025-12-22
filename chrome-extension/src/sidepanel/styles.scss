@@ -1,43 +1,21 @@
 // OWID Preview Extension Styles
+// These styles ONLY apply to the extension UI (toolbar, errors, etc.)
+// The preview content uses OWID site styles from owid.scss
 
-// Variables
-$primary-color: #002147;
-$secondary-color: #5b9bd5;
-$error-color: #c0392b;
-$warning-color: #f39c12;
-$success-color: #27ae60;
-$background-color: #ffffff;
-$border-color: #e0e0e0;
-$text-color: #333333;
-$text-muted: #666666;
+// Variables for extension UI only
+$extension-primary-color: #002147;
+$extension-error-color: #c0392b;
+$extension-warning-color: #f39c12;
+$extension-text-muted: #666666;
 
-// Reset
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
-}
-
-html,
-body {
-    margin: 0;
-    padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-        Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-    font-size: 14px;
-    line-height: 1.5;
-    color: $text-color;
-    background-color: $background-color;
-}
-
-// Main container
+// Main container for the extension
 .owid-preview-extension {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
 }
 
-// Toolbar
+// Toolbar - extension UI element
 .toolbar {
     position: sticky;
     top: 0;
@@ -46,8 +24,8 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 8px 12px;
-    background-color: $primary-color;
-    border-bottom: 1px solid $border-color;
+    background-color: $extension-primary-color;
+    border-bottom: 1px solid #e0e0e0;
     gap: 8px;
 }
 
@@ -65,7 +43,7 @@ body {
     padding: 6px 12px;
     font-size: 13px;
     font-weight: 500;
-    color: $primary-color;
+    color: $extension-primary-color;
     background-color: #ffffff;
     border: 1px solid #ffffff;
     border-radius: 4px;
@@ -107,20 +85,20 @@ body {
     }
 }
 
-// Loading state
+// Loading state - extension UI element
 .loading-state {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 200px;
-    color: $text-muted;
+    color: $extension-text-muted;
 
     p {
         margin: 0;
     }
 }
 
-// Error states
+// Error states - extension UI elements
 .error-state,
 .auth-error {
     padding: 24px;
@@ -129,12 +107,12 @@ body {
     h2 {
         margin: 0 0 12px;
         font-size: 18px;
-        color: $error-color;
+        color: $extension-error-color;
     }
 
     p {
         margin: 0 0 16px;
-        color: $text-muted;
+        color: $extension-text-muted;
     }
 }
 
@@ -143,38 +121,32 @@ body {
     margin-bottom: 12px;
     padding: 10px 20px;
     color: #ffffff;
-    background-color: $primary-color;
+    background-color: $extension-primary-color;
     border-radius: 4px;
     text-decoration: none;
     font-weight: 500;
 
     &:hover {
-        background-color: lighten($primary-color, 10%);
+        background-color: lighten($extension-primary-color, 10%);
     }
 }
 
 .retry-button {
     display: inline-block;
     padding: 8px 16px;
-    color: $primary-color;
+    color: $extension-primary-color;
     background-color: transparent;
-    border: 1px solid $primary-color;
+    border: 1px solid $extension-primary-color;
     border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
 
     &:hover {
-        background-color: rgba($primary-color, 0.1);
+        background-color: rgba($extension-primary-color, 0.1);
     }
 }
 
-// Preview container
-.preview-container {
-    flex: 1;
-    overflow-y: auto;
-}
-
-// Preview errors
+// Preview errors - extension UI element
 .preview-errors {
     padding: 12px 16px;
     margin: 8px;
@@ -185,7 +157,7 @@ body {
     h4 {
         margin: 0 0 8px;
         font-size: 14px;
-        color: darken($warning-color, 10%);
+        color: darken($extension-warning-color, 10%);
     }
 
     ul {
@@ -197,31 +169,21 @@ body {
             font-size: 13px;
 
             &.error-error {
-                color: $error-color;
+                color: $extension-error-color;
             }
 
             &.error-warning {
-                color: darken($warning-color, 10%);
+                color: darken($extension-warning-color, 10%);
             }
         }
     }
 }
 
-// Preview content
-.preview-content {
-    padding: 16px;
-
-    // Override OWID styles for sidepanel context
-    .article-block {
-        max-width: 100%;
-    }
-
-    // Scale down some elements for narrow sidepanel
+// Minimal adjustments for sidepanel context
+// Keep OWID styles intact but ensure images don't overflow
+#owid-document-root {
     img {
         max-width: 100%;
         height: auto;
     }
 }
-
-// Import OWID styles when available
-// @import "@owid/site/owid.scss";

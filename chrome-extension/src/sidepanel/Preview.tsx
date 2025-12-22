@@ -1,7 +1,11 @@
 import React from "react"
-import type { OwidGdocContent, OwidGdocErrorMessage } from "@ourworldindata/types"
+import type {
+    OwidGdocContent,
+    OwidGdocErrorMessage,
+} from "@ourworldindata/types"
 import type { Attachments } from "../shared/types.js"
 import { OwidGdoc } from "@owid/site/gdocs/OwidGdoc.js"
+import { DebugProvider } from "@owid/site/gdocs/DebugProvider.js"
 
 interface PreviewProps {
     content: OwidGdocContent
@@ -38,22 +42,26 @@ export function Preview({ content, attachments, errors }: PreviewProps) {
     }
 
     return (
-        <div className="preview-container">
+        <>
             {errors.length > 0 && (
                 <div className="preview-errors">
                     <h4>Validation Errors</h4>
                     <ul>
                         {errors.map((error, index) => (
                             <li key={index} className={`error-${error.type}`}>
-                                <strong>{error.property}:</strong> {error.message}
+                                <strong>{error.property}:</strong>{" "}
+                                {error.message}
                             </li>
                         ))}
                     </ul>
                 </div>
             )}
-            <div className="preview-content">
-                <OwidGdoc {...gdocProps} isPreviewing={true} />
+            {/* Match the structure from OwidGdocPage.tsx */}
+            <div id="owid-document-root">
+                <DebugProvider debug={true}>
+                    <OwidGdoc {...gdocProps} isPreviewing={true} />
+                </DebugProvider>
             </div>
-        </div>
+        </>
     )
 }
