@@ -207,7 +207,7 @@ async function writeViewsManifest(
         })),
     }
 
-    const manifestPath = path.join(explorerDir, "manifest.json")
+    const manifestPath = path.join(explorerDir, "top.manifest.json")
     await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2))
 }
 
@@ -217,8 +217,7 @@ async function dumpExplorerWithData(
     knex: KnexReadonlyTransaction,
     explorerPageviews: number,
     totalPageviews: number,
-    targetTotalViews: number,
-    enableSampling: boolean
+    targetTotalViews: number
 ) {
     const explorerSlug = explorerProgram.slug
     const explorerType = utils.getExplorerType(explorerProgram)
@@ -246,9 +245,8 @@ async function dumpExplorerWithData(
         index: number
         choiceParams: Record<string, string>
     }>
-    let samplingApplied = false
 
-    if (enableSampling && totalViews > 0) {
+    if (totalViews > 0) {
         const targetViews = calculateViewsToTest(
             totalViews,
             explorerPageviews,
@@ -256,7 +254,6 @@ async function dumpExplorerWithData(
             targetTotalViews
         )
         selectedViews = selectViewsToTest(allChoices, targetViews)
-        samplingApplied = targetViews < totalViews
 
         console.log(
             `  Sampling ${selectedViews.length}/${totalViews} views (${Math.round((selectedViews.length / totalViews) * 100)}%)`
@@ -349,8 +346,7 @@ async function saveExplorerConfigAndData(
     outDir: string,
     knex: KnexReadonlyTransaction,
     pageviewsByUrl: { [url: string]: { views_365d: number } },
-    targetTotalViews: number,
-    enableSampling: boolean
+    targetTotalViews: number
 ): Promise<void> {
     console.log(`Exporting ${explorers.length} explorers...`)
 
@@ -385,8 +381,7 @@ async function saveExplorerConfigAndData(
             knex,
             pageviews,
             totalForCalculation,
-            targetTotalViews,
-            enableSampling
+            targetTotalViews
         )
     }
 
@@ -394,7 +389,7 @@ async function saveExplorerConfigAndData(
     let totalViewsAcrossAllExplorers = 0
     for (const explorer of explorers) {
         const explorerDir = path.join(outDir, explorer.slug)
-        const manifestPath = path.join(explorerDir, "manifest.json")
+        const manifestPath = path.join(explorerDir, "top.manifest.json")
         if (await fs.pathExists(manifestPath)) {
             const manifest: ExplorerViewManifest =
                 await fs.readJson(manifestPath)
@@ -439,7 +434,6 @@ async function main(args: ReturnType<typeof parseArguments>) {
             .with("explorers", async () => {
                 const explorerAdminServer = new ExplorerAdminServer()
                 const targetTotalViews = args.targetViews
-                const enableSampling = !args.noSampling
 
                 await knexReadonlyTransaction(async (trx) => {
                     // Fetch pageview data for all explorers
@@ -472,8 +466,7 @@ async function main(args: ReturnType<typeof parseArguments>) {
                         outDir,
                         trx,
                         pageviewsByUrl,
-                        targetTotalViews,
-                        enableSampling
+                        targetTotalViews
                     )
                 }, TransactionCloseMode.Close)
             })
@@ -508,12 +501,7 @@ function parseArguments() {
                 description:
                     "Target total number of explorer views to test (for explorers test suite). Views are allocated proportionally based on pageviews.",
                 default: 2000,
-            },
-            noSampling: {
-                type: "boolean",
-                description:
-                    "Disable sampling for explorers - dump all views instead of sampling based on pageviews.",
-                default: false,
+                implies: { testSuite: "explorers" },
             },
         })
         .help()

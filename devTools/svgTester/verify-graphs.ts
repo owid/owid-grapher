@@ -15,6 +15,7 @@ import { ALL_GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 async function verifyExplorers(args: ReturnType<typeof parseArguments>) {
     const testSuite = args.testSuite as utils.TestSuite
     const verbose = args.verbose
+    const manifest = args.manifest
 
     // Input and output directories
     const dataDir = path.join(utils.SVG_REPO_PATH, testSuite, "data")
@@ -44,6 +45,7 @@ async function verifyExplorers(args: ReturnType<typeof parseArguments>) {
         differencesDir: string
         verbose: boolean
         rmOnError: boolean
+        manifestFilename?: string
     }[] = []
 
     const dir = await fs.opendir(dataDir)
@@ -60,6 +62,7 @@ async function verifyExplorers(args: ReturnType<typeof parseArguments>) {
             differencesDir,
             verbose: args.verbose,
             rmOnError: args.rmOnError,
+            manifestFilename: manifest,
         })
     }
 
@@ -286,6 +289,12 @@ function parseArguments() {
                 type: "boolean",
                 description:
                     "For each Grapher, verify SVGs for all possible chart configurations. Default depends on the test suite.",
+            },
+            manifest: {
+                type: "string",
+                description:
+                    "Manifest filename specifying which explorer views to test (for explorers test suite only). If not provided, all views are tested.",
+                implies: { testSuite: "explorers" },
             },
             rmOnError: {
                 type: "boolean",

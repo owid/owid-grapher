@@ -816,9 +816,10 @@ interface ExplorerViewManifest {
 }
 
 async function loadViewsManifest(
-    explorerDir: string
+    explorerDir: string,
+    filename: string
 ): Promise<ExplorerViewManifest | null> {
-    const manifestPath = path.join(explorerDir, "manifest.json")
+    const manifestPath = path.join(explorerDir, filename)
     if (!(await fs.pathExists(manifestPath))) {
         return null
     }
@@ -827,21 +828,23 @@ async function loadViewsManifest(
 
 async function getChoicesToTest(
     explorerDir: string,
-    explorerProgram: ExplorerProgram
+    explorerProgram: ExplorerProgram,
+    manifestFilename?: string
 ): Promise<Array<Record<string, string>>> {
     const allChoices =
         explorerProgram.decisionMatrix.allDecisionsAsQueryParams()
 
-    // Load manifest to determine which views to test
-    const manifest = await loadViewsManifest(explorerDir)
-
-    if (manifest) {
-        // Use manifest to select which views to test
-        return manifest.viewsToTest.map((v) => allChoices[v.index])
-    } else {
-        // No manifest - test all views
-        return allChoices
+    // Only load manifest if explicitly provided
+    if (manifestFilename) {
+        const manifest = await loadViewsManifest(explorerDir, manifestFilename)
+        if (manifest) {
+            // Use manifest to select which views to test
+            return manifest.viewsToTest.map((v) => allChoices[v.index])
+        }
     }
+
+    // No manifest provided or found - test all views
+    return allChoices
 }
 
 export async function renderExplorerViewsToSVGsAndSave({
@@ -952,6 +955,7 @@ export async function verifyExplorerViews({
     differencesDir,
     verbose,
     rmOnError,
+    manifestFilename,
 }: {
     explorerDir: string
     explorerSlug: string
@@ -959,6 +963,7 @@ export async function verifyExplorerViews({
     differencesDir: string
     verbose: boolean
     rmOnError: boolean
+    manifestFilename?: string
 }): Promise<VerifyResult[]> {
     // Set up file-aware table loader for local CSV files
     patchExplorerTableLoader()
@@ -1001,7 +1006,11 @@ export async function verifyExplorerViews({
             loadInputTableForConfig(explorerDir, args),
     }
 
-    const choicesToTest = await getChoicesToTest(explorerDir, explorerProgram)
+    const choicesToTest = await getChoicesToTest(
+        explorerDir,
+        explorerProgram,
+        manifestFilename
+    )
 
     const results: VerifyResult[] = []
 
