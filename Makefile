@@ -31,8 +31,9 @@ help:
 	@echo '  make migrate                (while up) run any outstanding db migrations'
 	@echo '  make test                   run full suite (except db tests) of CI checks including unit tests'
 	@echo '  make dbtest                 run db test suite that needs a running mysql db'
-	@echo '  make svgtest                compare current rendering against reference SVGs'
+	@echo '  make svgtest                generate an SVG test report for graphers'
 	@echo '  make svgtest.full           generate a full SVG test report'
+    @echo '  make svgtest.explorers      generate an SVG test report for explorers only'
 	@echo '  make local-bake             do a full local site bake'
 	@echo '  make archive                create an archived version of our charts'
 	@echo
@@ -262,7 +263,7 @@ unittest: node_modules
 	cd .. && git clone git@github.com:owid/owid-grapher-svgs
 
 svgtest: ../owid-grapher-svgs node_modules
-	@echo '==> Comparing against reference SVGs'
+	@echo '==> Generating SVG test report for graphers'
 
 	@# get ../owid-grapher-svgs reliably to a base state at origin/master
 	cd ../owid-grapher-svgs && git fetch && git checkout -f master && git reset --hard origin/master && git clean -fd
@@ -278,19 +279,29 @@ svgtest.full: ../owid-grapher-svgs node_modules
 	cd ../owid-grapher-svgs && git fetch && git checkout -f master && git reset --hard origin/master && git clean -fd
 
 	@# run test suite for stand-alone graphers
-	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/export-graphs.ts \
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts \
 		&& yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts
 
 	@# run test suite for grapher views
-	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/export-graphs.ts grapher-views \
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts grapher-views \
 		&& yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts grapher-views
 
 	@# run test suite for mdims
-	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/export-graphs.ts mdims \
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts mdims \
 		&& yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts mdims
 
 	@# run test suite for explorers
-	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/export-graphs.ts explorers \
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts explorers --manifest top.manifest.json \
+		&& yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts explorers
+
+svgtest.explorers: ../owid-grapher-svgs node_modules
+	@echo '==> Generating SVG test report for explorers'
+
+	@# get ../owid-grapher-svgs reliably to a base state at origin/master
+	cd ../owid-grapher-svgs && git fetch && git checkout -f master && git reset --hard origin/master && git clean -fd
+
+	@# run test suite for explorers
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts explorers \
 		&& yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts explorers
 
 node_modules: package.json yarn.lock yarn.config.cjs
