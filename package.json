@@ -247,6 +247,7 @@
     "workspaces": [
         "functions",
         "packages/@ourworldindata/*",
+        "chrome-extension",
         "."
     ],
     "license": "SEE LICENSE IN LICENSE.md"

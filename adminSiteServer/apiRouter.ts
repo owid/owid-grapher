@@ -48,6 +48,8 @@ import {
     deleteGdoc,
     setGdocTags,
     getPreviewGdocIndexRecords,
+    getGdocRaw,
+    getGdocAttachments,
     getPublishedGdocTopicSlugs,
 } from "./apiRoutes/gdocs.js"
 import {
@@ -137,6 +139,7 @@ import {
     deleteRouteWithRWTransaction,
     getRouteNonIdempotentWithRWTransaction,
     postFileUploadWithRWTransaction,
+    getRouteWithoutTransaction,
 } from "./functionalRouterHelpers.js"
 import {
     getChartsJson,
@@ -389,6 +392,13 @@ getRouteWithROTransaction(
     apiRouter,
     "/gdocs/:id/records",
     getPreviewGdocIndexRecords
+)
+// Chrome extension endpoints
+getRouteWithoutTransaction(apiRouter, "/gdocs/:id/raw", getGdocRaw)
+getRouteWithROTransaction(
+    apiRouter,
+    "/gdocs/:id/attachments",
+    getGdocAttachments
 )
 putRouteWithRWTransaction(apiRouter, "/gdocs/:id", createOrUpdateGdoc)
 deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", deleteGdoc)

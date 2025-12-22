@@ -1,0 +1,28 @@
+{
+    "name": "@owid/chrome-extension",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "vite build --watch",
+        "build": "vite build",
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@ourworldindata/components": "workspace:*",
+        "@ourworldindata/types": "workspace:*",
+        "@ourworldindata/utils": "workspace:*",
+        "react": "^19.0.0",
+        "react-dom": "^19.0.0"
+    },
+    "devDependencies": {
+        "@googleapis/docs": "^4.0.1",
+        "@types/chrome": "^0.0.287",
+        "@types/react": "^19.0.0",
+        "@types/react-dom": "^19.0.0",
+        "@vitejs/plugin-react": "^4.3.4",
+        "sass": "^1.83.0",
+        "typescript": "^5.7.2",
+        "vite": "^6.0.5"
+    }
+}
