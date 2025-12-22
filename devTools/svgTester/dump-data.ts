@@ -115,7 +115,7 @@ async function getAllPublishedMultiDimViews(
 async function saveGrapherSchemaAndData(
     charts: ChartInfo[],
     outDir: string,
-    concurrency: number
+    { concurrency }: { concurrency: number }
 ): Promise<void> {
     console.log(`Exporting ${charts.length} charts...`)
 
@@ -131,29 +131,31 @@ async function saveGrapherSchemaAndData(
 interface ExplorerViewManifest {
     totalViews: number
     selectedViews: number
-    explorerPageviews: number
     viewsToTest: Array<{
         index: number
         queryStr: string
     }>
 }
 
-function calculateViewsToTest(
-    totalViews: number,
-    explorerPageviews: number,
-    totalPageviews: number,
-    targetTotal: number
-): number {
-    const MIN_VIEWS = 10
-
+function allocateViewCount({
+    totalViews,
+    pageviews,
+    totalPageviews,
+    targetTotalViews,
+    minViews = 10,
+}: {
+    totalViews: number
+    pageviews: number
+    totalPageviews: number
+    targetTotalViews: number
+    minViews?: number
+}): number {
     // Allocate based on popularity
-    const pageviewRatio =
-        totalPageviews > 0 ? explorerPageviews / totalPageviews : 0
-    console.log(`  Pageview ratio: ${(pageviewRatio * 100).toFixed(2)}%`)
-    const allocated = Math.floor(targetTotal * pageviewRatio)
+    const pageviewRatio = totalPageviews > 0 ? pageviews / totalPageviews : 0
+    const allocated = Math.floor(targetTotalViews * pageviewRatio)
 
     // Apply constraints
-    return Math.max(MIN_VIEWS, Math.min(allocated, totalViews))
+    return Math.max(minViews, Math.min(allocated, totalViews))
 }
 
 function selectViewsToTest(
@@ -173,10 +175,7 @@ function selectViewsToTest(
 
     // Random sample for remaining
     const remaining = targetCount - 1
-    const availableIndices = Array.from(
-        { length: allChoices.length },
-        (_, i) => i
-    ).filter((i) => i !== 0)
+    const availableIndices = _.range(1, allChoices.length)
 
     const sampledIndices = _.sampleSize(availableIndices, remaining)
 
@@ -187,42 +186,52 @@ function selectViewsToTest(
     return _.sortBy(selected, "index")
 }
 
-async function writeViewsManifest(
-    explorerSlug: string,
-    totalViews: number,
+async function writeManifestFile({
+    totalViews,
+    selectedViews,
+    explorerDir,
+    manifestFilename = "top.manifest.json",
+}: {
+    totalViews: number
     selectedViews: Array<{
         index: number
         choiceParams: Record<string, string>
-    }>,
-    explorerPageviews: number,
+    }>
     explorerDir: string
-): Promise<void> {
+    manifestFilename?: string
+}): Promise<void> {
     const manifest: ExplorerViewManifest = {
         totalViews,
         selectedViews: selectedViews.length,
-        explorerPageviews,
         viewsToTest: selectedViews.map((v) => ({
             index: v.index,
             queryStr: queryParamsToStr(v.choiceParams).replace("?", ""),
         })),
     }
 
-    const manifestPath = path.join(explorerDir, "top.manifest.json")
+    const manifestPath = path.join(explorerDir, manifestFilename)
     await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2))
 }
 
-async function dumpExplorerWithData(
-    explorerProgram: ExplorerProgram,
-    outDir: string,
-    knex: KnexReadonlyTransaction,
-    explorerPageviews: number,
-    totalPageviews: number,
+async function dumpExplorerWithData({
+    knex,
+    explorerProgram,
+    outDir,
+    pageviews,
+    totalPageviews,
+    targetTotalViews,
+}: {
+    knex: KnexReadonlyTransaction
+    explorerProgram: ExplorerProgram
+    outDir: string
+    pageviews: number
+    totalPageviews: number
     targetTotalViews: number
-) {
+}) {
     const explorerSlug = explorerProgram.slug
     const explorerType = utils.getExplorerType(explorerProgram)
 
-    // Skip grapher based explorers (already tested via grapher SVG tester)
+    // Skip grapher based explorers (already tested via the graphers suite)
     if (explorerType === ExplorerType.Grapher) return
 
     console.log(`Exporting explorer: ${explorerSlug} (${explorerType})`)
@@ -236,45 +245,27 @@ async function dumpExplorerWithData(
     const tsvPath = path.join(explorerDir, "config.tsv")
     await fs.writeFile(tsvPath, explorerProgram.toString())
 
-    // Determine which views to test (with sampling if enabled)
-    const allChoices =
-        explorerProgram.decisionMatrix.allDecisionsAsQueryParams()
-    const totalViews = allChoices.length
+    // Determine which views to test
+    if (pageviews > 0) {
+        const allChoices =
+            explorerProgram.decisionMatrix.allDecisionsAsQueryParams()
+        const totalViews = allChoices.length
 
-    let selectedViews: Array<{
-        index: number
-        choiceParams: Record<string, string>
-    }>
-
-    if (totalViews > 0) {
-        const targetViews = calculateViewsToTest(
+        const numViewsToTest = allocateViewCount({
             totalViews,
-            explorerPageviews,
+            pageviews,
             totalPageviews,
-            targetTotalViews
-        )
-        selectedViews = selectViewsToTest(allChoices, targetViews)
+            targetTotalViews,
+        })
+        const selectedViews = selectViewsToTest(allChoices, numViewsToTest)
 
         console.log(
             `  Sampling ${selectedViews.length}/${totalViews} views (${Math.round((selectedViews.length / totalViews) * 100)}%)`
         )
-    } else {
-        // No sampling - test all views
-        selectedViews = allChoices.map((params, index) => ({
-            index,
-            choiceParams: params,
-        }))
-        console.log(`  Testing all ${totalViews} views`)
-    }
 
-    // Write manifest
-    await writeViewsManifest(
-        explorerSlug,
-        totalViews,
-        selectedViews,
-        explorerPageviews,
-        explorerDir
-    )
+        // Write manifest json file
+        await writeManifestFile({ totalViews, selectedViews, explorerDir })
+    }
 
     await match(explorerType)
         .with(ExplorerType.Indicator, async () => {
@@ -342,47 +333,53 @@ async function dumpExplorerWithData(
 }
 
 async function saveExplorerConfigAndData(
+    knex: KnexReadonlyTransaction,
     explorers: ExplorerProgram[],
     outDir: string,
-    knex: KnexReadonlyTransaction,
-    pageviewsByUrl: { [url: string]: { views_365d: number } },
-    targetTotalViews: number
+    {
+        pageviewsByUrl,
+        targetTotalViews,
+    }: {
+        pageviewsByUrl: { [url: string]: { views_365d: number } }
+        targetTotalViews: number
+    }
 ): Promise<void> {
     console.log(`Exporting ${explorers.length} explorers...`)
 
     // Calculate total pageviews for all explorers
-    const explorerPageviews = explorers.map((explorer) => {
-        const url = `/explorers/${explorer.slug}`
-        return pageviewsByUrl[url]?.views_365d ?? 0
-    })
-
-    // Exclude COVID from allocation calculation as it's an outlier (pandemic-related spike)
-    // COVID explorer gets all its views tested anyway since it's small (87 views)
-    const covidIndex = explorers.findIndex((e) => e.slug === "covid")
-    const totalPageviewsForAllocation = explorerPageviews.reduce(
-        (sum, pv, i) => (i === covidIndex ? sum : sum + pv),
-        0
+    const explorerPageviewsBySlug = new Map(
+        explorers.map((explorer) => {
+            const url = `/explorers/${explorer.slug}`
+            return [explorer.slug, pageviewsByUrl[url]?.views_365d ?? 0]
+        })
     )
 
-    for (let i = 0; i < explorers.length; i++) {
-        const explorer = explorers[i]
-        const pageviews = explorerPageviews[i]
+    const totalPageviews = _.sum(
+        explorers.map(
+            (explorer) => explorerPageviewsBySlug.get(explorer.slug) ?? 0
+        )
+    )
+    const totalPageviewsExcludingCovid =
+        totalPageviews - (explorerPageviewsBySlug.get("covid") ?? 0)
 
-        // For COVID, always test all views (it's small anyway)
-        // For others, use the allocation calculation excluding COVID
-        const totalForCalculation =
-            i === covidIndex
+    for (const explorer of explorers) {
+        const pageviews = explorerPageviewsBySlug.get(explorer.slug) ?? 0
+
+        // For COVID, always test all views
+        // For others, use the allocation calculation (excluding COVID pageviews)
+        const totalPageviews =
+            explorer.slug === "covid"
                 ? pageviews // Use COVID's own pageviews so it gets 100% allocation
-                : totalPageviewsForAllocation
+                : totalPageviewsExcludingCovid
 
-        await dumpExplorerWithData(
-            explorer,
+        await dumpExplorerWithData({
+            explorerProgram: explorer,
             outDir,
             knex,
             pageviews,
-            totalForCalculation,
-            targetTotalViews
-        )
+            totalPageviews,
+            targetTotalViews,
+        })
     }
 
     // Count total views across all explorers by reading manifests
@@ -415,21 +412,23 @@ async function main(args: ReturnType<typeof parseArguments>) {
                     getAllPublishedGraphers,
                     TransactionCloseMode.Close
                 )
-                await saveGrapherSchemaAndData(charts, outDir, concurrency)
+                await saveGrapherSchemaAndData(charts, outDir, { concurrency })
             })
             .with("grapher-views", async () => {
                 const charts = await knexReadonlyTransaction(
                     getMostViewedGraphers,
                     TransactionCloseMode.Close
                 )
-                await saveGrapherSchemaAndData(charts, outDir, concurrency)
+                await saveGrapherSchemaAndData(charts, outDir, { concurrency })
             })
             .with("mdims", async () => {
                 const mdimViews = await knexReadonlyTransaction(
                     getAllPublishedMultiDimViews,
                     TransactionCloseMode.Close
                 )
-                await saveGrapherSchemaAndData(mdimViews, outDir, concurrency)
+                await saveGrapherSchemaAndData(mdimViews, outDir, {
+                    concurrency,
+                })
             })
             .with("explorers", async () => {
                 const explorerAdminServer = new ExplorerAdminServer()
@@ -443,6 +442,8 @@ async function main(args: ReturnType<typeof parseArguments>) {
                     const rawExplorers =
                         await explorerAdminServer.getAllPublishedExplorers(trx)
 
+                    // Ignore explorers that are Grapher ID based
+                    // (they are covered by the grapher tests)
                     const explorersToExport = rawExplorers.filter(
                         (explorer) => {
                             const type = utils.getExplorerType(explorer)
@@ -450,6 +451,7 @@ async function main(args: ReturnType<typeof parseArguments>) {
                         }
                     )
 
+                    // Resolve catalog paths in explorer programs
                     const explorers = await Promise.all(
                         explorersToExport.map(async (explorer) => {
                             const result =
@@ -461,13 +463,10 @@ async function main(args: ReturnType<typeof parseArguments>) {
                         })
                     )
 
-                    await saveExplorerConfigAndData(
-                        explorers,
-                        outDir,
-                        trx,
+                    await saveExplorerConfigAndData(trx, explorers, outDir, {
                         pageviewsByUrl,
-                        targetTotalViews
-                    )
+                        targetTotalViews,
+                    })
                 }, TransactionCloseMode.Close)
             })
             .exhaustive()
@@ -501,7 +500,6 @@ function parseArguments() {
                 description:
                     "Target total number of explorer views to test (for explorers test suite). Views are allocated proportionally based on pageviews.",
                 default: 2000,
-                implies: { testSuite: "explorers" },
             },
         })
         .help()
