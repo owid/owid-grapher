@@ -398,12 +398,10 @@ export const runSiteFooterScripts = async (
         // falls through
         default:
             // Features that were not ported over to gdocs, are only being run on WP pages:
-            // - global entity selector
             // - country-aware prominent links
             // - embedding charts through MultiEmbedderSingleton.embedAll()
             runSiteNavigation(hideDonationFlag)
             hydrateCodeSnippets()
-            MultiEmbedderSingleton.setUpGlobalEntitySelectorForEmbeds()
             MultiEmbedderSingleton.embedAll(isPreviewing)
             runAllGraphersLoadedListener()
             hydrateProminentLink(MultiEmbedderSingleton.selection)
