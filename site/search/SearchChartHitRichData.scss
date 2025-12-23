@@ -1,3 +1,5 @@
+@use "sass:math";
+
 .search-chart-hit-rich-data {
     // Keep in sync with SCATTER_THUMBNAIL_WIDTH and SCATTER_THUMBNAIL_HEIGHT
     $scatter-thumbnail-width: 300px;
@@ -188,7 +190,10 @@
 
             .search-chart-hit-table-wrapper {
                 @include aspect-ratio(
-                    $grapher-thumbnail-width / $grapher-thumbnail-height
+                    math.div(
+                        $grapher-thumbnail-width,
+                        $grapher-thumbnail-height
+                    )
                 );
             }
 
@@ -203,8 +208,10 @@
 
             .search-chart-hit-table-wrapper {
                 @include aspect-ratio(
-                    (2 * $grapher-thumbnail-width + 1 * $grid-gap) /
+                    math.div(
+                        2 * $grapher-thumbnail-width + 1 * $grid-gap,
                         $grapher-thumbnail-height
+                    )
                 );
             }
 
@@ -219,8 +226,10 @@
 
             .search-chart-hit-table-wrapper {
                 @include aspect-ratio(
-                    (3 * $grapher-thumbnail-width + 2 * $grid-gap) /
+                    math.div(
+                        3 * $grapher-thumbnail-width + 2 * $grid-gap,
                         $grapher-thumbnail-height
+                    )
                 );
             }
 
@@ -295,7 +304,10 @@
         .medium-variant__single-slot {
             .search-chart-hit-table-wrapper {
                 @include aspect-ratio(
-                    $scatter-thumbnail-width / $scatter-thumbnail-height
+                    math.div(
+                        $scatter-thumbnail-width,
+                        $scatter-thumbnail-height
+                    )
                 );
             }
         }
@@ -303,8 +315,10 @@
         .medium-variant__double-slot {
             .search-chart-hit-table-wrapper {
                 @include aspect-ratio(
-                    (2 * $scatter-thumbnail-width + 1 * $grid-gap) /
+                    math.div(
+                        2 * $scatter-thumbnail-width + 1 * $grid-gap,
                         $scatter-thumbnail-height
+                    )
                 );
             }
         }
@@ -312,8 +326,10 @@
         .medium-variant__triple-slot {
             .search-chart-hit-table-wrapper {
                 @include aspect-ratio(
-                    (3 * $scatter-thumbnail-width + 2 * $grid-gap) /
+                    math.div(
+                        3 * $scatter-thumbnail-width + 2 * $grid-gap,
                         $scatter-thumbnail-height
+                    )
                 );
             }
         }
