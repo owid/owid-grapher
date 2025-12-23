@@ -129,6 +129,10 @@ $rw-margin-bottom-grid-cell: 4px;
 }
 
 .research-and-writing-link--featured {
+    border: 1px solid $blue-10;
+    padding: 16px;
+    transition: border-color 0.125s;
+
     @include sm-up {
         @include flex-item-width-for-row-of(2);
     }
@@ -140,10 +144,6 @@ $rw-margin-bottom-grid-cell: 4px;
     @include lg-up {
         @include flex-item-width-for-row-of(4);
     }
-
-    border: 1px solid $blue-10;
-    padding: 16px;
-    transition: border-color 0.125s;
 
     &:hover {
         border-color: $blue-30;
@@ -170,8 +170,10 @@ $rw-margin-bottom-grid-cell: 4px;
     @include md-up {
         @include h2-bold;
         // Resetting the margins to the base style, as they are overridden by the mixin
-        margin-top: 0;
-        margin-bottom: $rw-margin-bottom-grid-cell;
+        & {
+            margin-top: 0;
+            margin-bottom: $rw-margin-bottom-grid-cell;
+        }
     }
 }
 

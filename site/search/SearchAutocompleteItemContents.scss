@@ -12,10 +12,10 @@
 
     .search-filter-pill--active,
     .search-filter-pill--more-filters {
+        visibility: hidden;
         @include sm-only {
             display: none;
         }
-        visibility: hidden;
     }
     > span:last-child,
     > span.search-filter-pill--more-filters {

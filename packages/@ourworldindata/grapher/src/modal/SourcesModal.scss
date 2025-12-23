@@ -119,10 +119,12 @@
 
         h2 {
             @include h1-semibold;
-            font-size: 24px;
-            margin-top: 0;
-            margin-bottom: 8px;
-            color: $dark-text;
+            & {
+                font-size: 24px;
+                margin-top: 0;
+                margin-bottom: 8px;
+                color: $dark-text;
+            }
 
             @include sm-up {
                 font-size: 24px;

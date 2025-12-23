@@ -55,7 +55,9 @@
 
 .person-heading {
     @include h2-bold;
-    margin: 0;
+    & {
+        margin: 0;
+    }
 
     @include sm-only {
         @include h3-bold;

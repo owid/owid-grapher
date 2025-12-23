@@ -185,11 +185,11 @@
 @mixin h3-style {
     font-family: $serif-font-stack;
     font-size: 1.75rem;
+    font-weight: 400;
+    line-height: 1.25em;
     @include md-up {
         font-size: 2.25rem;
     }
-    font-weight: 400;
-    line-height: 1.25em;
 }
 
 @mixin h4-style {
@@ -451,7 +451,9 @@
 
 @mixin datapage-section-title {
     @include h2-bold;
-    margin: 0 0 24px;
+    & {
+        margin: 0 0 24px;
+    }
     @include sm-up {
         margin: 0 0 32px;
     }
@@ -460,9 +462,6 @@
 @mixin expandable-paragraph__expand-button--full {
     display: block;
     height: 40px;
-    @include sm-up {
-        display: inline-block;
-    }
     padding: 8px 24px;
     @include body-3-medium;
     text-align: center;
@@ -471,6 +470,9 @@
     cursor: pointer;
     border: none;
     transition: background-color 0.1s ease-in-out;
+    @include sm-up {
+        display: inline-block;
+    }
 
     &:hover {
         background-color: $blue-10;
@@ -613,10 +615,10 @@
 
 /* Add a light gray line above a heading when it's in the main article body (i.e. not an all-charts block, or in a two-column section) */
 @mixin h1-hr {
-    @include heading-variant-base;
     text-wrap: unset;
     position: relative;
     margin-top: 96px;
+    @include heading-variant-base;
 
     &::before {
         content: "";

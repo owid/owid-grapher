@@ -274,9 +274,9 @@
             --pseudo-element-padding: 0;
         }
         > h1.article-block__heading {
-            @include heading-variant-base;
             margin-top: calc(80px + var(--pseudo-element-padding));
             margin-bottom: calc(40px + var(--pseudo-element-padding));
+            @include heading-variant-base;
 
             &::before {
                 content: "";

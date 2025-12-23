@@ -1,6 +1,6 @@
 .wrapper {
-    @include wrapper-x-spacing;
     max-width: $wrapper-max-width;
+    @include wrapper-x-spacing;
 }
 
 .flex-row {

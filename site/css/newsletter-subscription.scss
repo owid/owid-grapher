@@ -1,8 +1,8 @@
 .newsletter-subscription-form {
     display: flex;
     flex-wrap: wrap;
-    @include row-gap(16px);
     @include body-3-medium;
+    @include row-gap(16px);
 }
 
 // hidden by default, shown on the /subscribe page

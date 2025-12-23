@@ -28,15 +28,15 @@
 }
 
 .front-matter .btn-secondary {
-    @include md-down {
-        margin-top: 24px;
-    }
     padding: 8px 24px;
     border: 1px solid $vermillion;
     display: inline-block;
     cursor: pointer;
     line-height: 30px;
     text-align: center;
+    @include md-down {
+        margin-top: 24px;
+    }
 
     &:hover {
         border-color: $accent-vermillion;

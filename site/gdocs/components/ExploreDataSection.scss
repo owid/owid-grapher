@@ -12,7 +12,9 @@
 
     h1 {
         @include h1-semibold;
-        margin: 0;
+        & {
+            margin: 0;
+        }
     }
 
     @include md-down {
@@ -35,11 +37,11 @@
 
     .icon {
         display: flex;
+        padding: 8px;
+        background-color: $blue-20;
         @include sm-only {
             display: none;
         }
-        padding: 8px;
-        background-color: $blue-20;
     }
 }
 

@@ -38,8 +38,10 @@
 
     .header__title {
         @include display-2-semibold;
-        display: inline;
-        margin: 0 16px 0 0;
+        & {
+            display: inline;
+            margin: 0 16px 0 0;
+        }
 
         @include sm-only {
             font-size: 2rem;
@@ -92,10 +94,10 @@
 
     .GrapherWithFallback {
         margin-bottom: 24px;
+        @include grid(12);
         @include sm-up {
             margin-bottom: 40px;
         }
-        @include grid(12);
 
         figure[data-grapher-src],
         figure.GrapherWithFallback__fallback,
@@ -285,7 +287,9 @@ $experiments: (
 
             .insight-links__title {
                 @include h2-bold;
-                margin: 24px 0 16px;
+                & {
+                    margin: 24px 0 16px;
+                }
 
                 @include sm-up {
                     margin: 24px 0 24px;
