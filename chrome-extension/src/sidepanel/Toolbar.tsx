@@ -1,4 +1,5 @@
-interface ToolbarProps {
+type PreviewToolbarProps = {
+    variant: "preview"
     onRefreshContent: () => void
     onRefreshAttachments: () => void
     autoRefresh: boolean
@@ -7,14 +8,41 @@ interface ToolbarProps {
     attachmentsLoading: boolean
 }
 
-export function Toolbar({
-    onRefreshContent,
-    onRefreshAttachments,
-    autoRefresh,
-    onToggleAutoRefresh,
-    contentLoading,
-    attachmentsLoading,
-}: ToolbarProps) {
+type ComponentsToolbarProps = {
+    variant: "components"
+    searchQuery: string
+    onSearchChange: (query: string) => void
+}
+
+type ToolbarProps = PreviewToolbarProps | ComponentsToolbarProps
+
+export function Toolbar(props: ToolbarProps) {
+    if (props.variant === "components") {
+        return (
+            <div className="toolbar">
+                <div className="toolbar-search">
+                    <input
+                        type="text"
+                        placeholder="Search components..."
+                        value={props.searchQuery}
+                        onChange={(e) => props.onSearchChange(e.target.value)}
+                        className="toolbar-search-input"
+                    />
+                </div>
+            </div>
+        )
+    }
+
+    // Preview variant
+    const {
+        onRefreshContent,
+        onRefreshAttachments,
+        autoRefresh,
+        onToggleAutoRefresh,
+        contentLoading,
+        attachmentsLoading,
+    } = props
+
     return (
         <div className="toolbar">
             <div className="toolbar-left">

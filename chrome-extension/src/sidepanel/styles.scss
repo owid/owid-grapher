@@ -187,3 +187,131 @@ $extension-text-muted: #666666;
         height: auto;
     }
 }
+
+// Tab bar - extension UI element
+.tab-bar {
+    display: flex;
+    background-color: darken($extension-primary-color, 5%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tab-button {
+    flex: 1;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.7);
+    background-color: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+        color: #ffffff;
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    &--active {
+        color: #ffffff;
+        border-bottom-color: #ffffff;
+    }
+}
+
+// Toolbar search input
+.toolbar-search {
+    flex: 1;
+}
+
+.toolbar-search-input {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: $extension-primary-color;
+    background-color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    outline: none;
+
+    &::placeholder {
+        color: $extension-text-muted;
+    }
+
+    &:focus {
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+    }
+}
+
+// Component gallery
+.component-gallery {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.component-gallery__empty {
+    padding: 40px 20px;
+    text-align: center;
+    color: $extension-text-muted;
+    font-size: 14px;
+}
+
+// Component card
+.component-card {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.component-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.component-card__title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: $extension-primary-color;
+    font-family: monospace;
+}
+
+.component-card__copy-button {
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: $extension-primary-color;
+    background-color: #ffffff;
+    border: 1px solid $extension-primary-color;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+        background-color: $extension-primary-color;
+        color: #ffffff;
+    }
+
+    &--copied {
+        background-color: #27ae60;
+        border-color: #27ae60;
+        color: #ffffff;
+    }
+}
+
+.component-card__preview {
+    padding: 16px;
+    overflow-x: auto;
+
+    // Ensure images in preview don't overflow
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+}

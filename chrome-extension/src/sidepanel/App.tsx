@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import { Toolbar } from "./Toolbar.js"
 import { Preview } from "./Preview.js"
+import { TabBar, type TabType } from "./TabBar.js"
+import { ComponentGallery } from "./ComponentGallery.js"
 import {
     getGdocRaw,
     getGdocAttachments,
@@ -62,6 +64,8 @@ const getDocIdFromUrl = (url: string | undefined): string | null => {
 export function App() {
     const [state, setState] = useState<AppState>(initialState)
     const [autoRefresh, setAutoRefresh] = useState(false)
+    const [activeTab, setActiveTab] = useState<TabType>("preview")
+    const [searchQuery, setSearchQuery] = useState("")
     const [adminBaseUrl, setAdminBaseUrl] = useState<string>("")
     const contentIntervalRef = useRef<number | null>(null)
     const attachmentsIntervalRef = useRef<number | null>(null)
@@ -270,10 +274,28 @@ export function App() {
         setAutoRefresh((prev) => !prev)
     }, [])
 
+    // Components tab is always available, even without a document
+    if (activeTab === "components") {
+        return (
+            <div className="owid-preview-extension">
+                <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+                <Toolbar
+                    variant="components"
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
+                />
+                <ComponentGallery searchQuery={searchQuery} />
+            </div>
+        )
+    }
+
+    // Preview tab - requires authentication and document
+
     // Render auth error state
     if (state.authError) {
         return (
             <div className="owid-preview-extension">
+                <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
                 <div className="auth-error">
                     <h2>Authentication Required</h2>
                     <p>Please log in to the OWID admin to preview documents.</p>
@@ -300,6 +322,7 @@ export function App() {
     if (state.error && !state.parsedContent) {
         return (
             <div className="owid-preview-extension">
+                <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
                 <div className="error-state">
                     <h2>Error</h2>
                     <p>{state.error}</p>
@@ -321,6 +344,7 @@ export function App() {
     ) {
         return (
             <div className="owid-preview-extension">
+                <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
                 <div className="loading-state">
                     <p>Loading preview...</p>
                 </div>
@@ -330,7 +354,9 @@ export function App() {
 
     return (
         <div className="owid-preview-extension">
+            <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
             <Toolbar
+                variant="preview"
                 onRefreshContent={handleRefreshContent}
                 onRefreshAttachments={handleRefreshAttachments}
                 autoRefresh={autoRefresh}
