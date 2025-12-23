@@ -60,19 +60,12 @@ export {
     isProjectedDataBin,
 } from "./color/ColorScaleBin"
 export {
-    GLOBAL_ENTITY_SELECTOR_DATA_ATTR,
-    GLOBAL_ENTITY_SELECTOR_ELEMENT,
-    GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY,
-} from "./controls/globalEntitySelector/GlobalEntitySelectorConstants"
-export { GlobalEntitySelector } from "./controls/globalEntitySelector/GlobalEntitySelector"
-export {
     Grapher,
     type GrapherProgrammaticInterface,
     type GrapherManager,
 } from "./core/Grapher"
 export { GrapherState } from "./core/GrapherState"
 export { GrapherAnalytics } from "./core/GrapherAnalytics"
-export { hydrateGlobalEntitySelectorIfAny } from "./controls/globalEntitySelector/GlobalEntitySelector"
 export { legacyToCurrentGrapherUrl } from "./core/GrapherUrlMigrations"
 export {
     legacyToOwidTableAndDimensions,

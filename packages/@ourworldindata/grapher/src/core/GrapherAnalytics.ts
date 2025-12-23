@@ -1,7 +1,6 @@
 import {
     EventCategory,
     GrapherErrorAction,
-    type EntityControlEvent,
     type EntitySelectorEvent,
     type GrapherImageDownloadEvent,
     type GrapherInteractionEvent,
@@ -73,15 +72,6 @@ export class GrapherAnalytics {
             event: EventCategory.ExplorerView,
             explorerPath: `/explorers/${slug}`,
             explorerView: JSON.stringify(view),
-        })
-    }
-
-    /** Logs events for the globel entity selector used on country pages */
-    logGlobalEntitySelector(action: EntityControlEvent, note?: string): void {
-        this.logToGA({
-            event: EventCategory.GlobalEntitySelectorUsage,
-            eventAction: action,
-            eventContext: note,
         })
     }
 
