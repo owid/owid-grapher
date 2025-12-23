@@ -1,8 +1,8 @@
-import React from "react"
 import type {
     OwidGdocContent,
     OwidGdocErrorMessage,
 } from "@ourworldindata/types"
+import type { OwidGdocPageProps } from "@ourworldindata/utils"
 import type { Attachments } from "../shared/types.js"
 import { OwidGdoc } from "@owid/site/gdocs/OwidGdoc.js"
 import { DebugProvider } from "@owid/site/gdocs/DebugProvider.js"
@@ -26,6 +26,7 @@ export function Preview({ content, attachments, errors }: PreviewProps) {
         revisionId: null,
         markdown: null,
         breadcrumbs: null,
+        manualBreadcrumbs: null,
         tags: attachments.tags,
         linkedAuthors: attachments.linkedAuthors,
         linkedCharts: attachments.linkedCharts,
@@ -59,7 +60,10 @@ export function Preview({ content, attachments, errors }: PreviewProps) {
             {/* Match the structure from OwidGdocPage.tsx */}
             <div id="owid-document-root">
                 <DebugProvider debug={true}>
-                    <OwidGdoc {...gdocProps} isPreviewing={true} />
+                    <OwidGdoc
+                        {...(gdocProps as OwidGdocPageProps)}
+                        isPreviewing={true}
+                    />
                 </DebugProvider>
             </div>
         </>
