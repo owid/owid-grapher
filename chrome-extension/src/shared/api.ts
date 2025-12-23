@@ -1,3 +1,4 @@
+import type { DetailDictionary } from "@ourworldindata/types"
 import type { Attachments, RawGdocDocument } from "./types.js"
 
 // For development: use localhost. For production: use admin.owid.io
@@ -64,6 +65,12 @@ export async function getGdocRaw(docId: string): Promise<RawGdocDocument> {
 export async function getGdocAttachments(docId: string): Promise<Attachments> {
     return fetchWithAuth<Attachments>(
         `${ADMIN_BASE_URL}/admin/api/gdocs/${docId}/attachments`
+    )
+}
+
+export async function getParsedDods(): Promise<DetailDictionary> {
+    return fetchWithAuth<DetailDictionary>(
+        `${ADMIN_BASE_URL}/admin/api/parsed-dods.json`
     )
 }
 
