@@ -733,8 +733,6 @@ export {
     serializePostGdocContent,
     parsePostsGdocsBreadcrumbs,
     serializePostsGdocsBreadcrumbs,
-    parsePostsGdocsComments,
-    serializePostsGdocsComments,
     parsePostsGdocsRow,
     parsePostsGdocsWithTagsRow,
     serializePostsGdocsRow,
