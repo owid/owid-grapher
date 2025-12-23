@@ -480,7 +480,7 @@ export async function getGdocRaw(
         })
 
         res.set("Cache-Control", "no-store")
-        res.json(data)
+        return data
     } catch (error) {
         console.error("Error fetching raw gdoc", error)
         if (
@@ -512,7 +512,7 @@ export async function getGdocAttachments(
     if (!gdocBase) {
         // If not in DB, return empty attachments - the doc may be new
         res.set("Cache-Control", "no-store")
-        return res.json({
+        return {
             linkedAuthors: [],
             linkedCharts: {},
             linkedIndicators: {},
@@ -522,7 +522,7 @@ export async function getGdocAttachments(
             linkedNarrativeCharts: {},
             linkedStaticViz: {},
             tags: [],
-        })
+        }
     }
 
     // Load the full gdoc with all attachments
@@ -534,7 +534,7 @@ export async function getGdocAttachments(
 
     // Return only attachment context
     res.set("Cache-Control", "no-store")
-    return res.json({
+    return {
         linkedAuthors: gdoc.linkedAuthors,
         linkedCharts: gdoc.linkedCharts,
         linkedIndicators: gdoc.linkedIndicators,
@@ -557,7 +557,7 @@ export async function getGdocAttachments(
         linkedNarrativeCharts: gdoc.linkedNarrativeCharts ?? {},
         linkedStaticViz: gdoc.linkedStaticViz ?? {},
         tags: gdoc.tags ?? [],
-    })
+    }
 }
 
 /**

@@ -10,23 +10,45 @@ interface ApiError {
     status?: number
 }
 
+interface ApiResponseSuccess<T> {
+    success: true
+    data: T
+}
+
+interface ApiResponseError {
+    success: false
+    error?: string
+    status?: number
+}
+
+type ApiResponse<T> = ApiResponseSuccess<T> | ApiResponseError
+
 // Route fetch through background script which has access to chrome.cookies
 async function fetchWithAuth<T>(url: string): Promise<T> {
-    const response = await chrome.runtime.sendMessage({
+    const response = (await chrome.runtime.sendMessage({
         type: "FETCH_API",
         url,
-    })
+    })) as ApiResponse<T> | undefined
+
+    if (!response) {
+        throw {
+            message: "No response from background script",
+            status: 500,
+        } as ApiError
+    }
 
     if (!response.success) {
+        const status = response.status
         const errorMsg = response.error || "Unknown error"
-        if (errorMsg.includes("401") || errorMsg.includes("403") || errorMsg.includes("Unauthorized")) {
+        if (status === 401 || status === 403) {
             throw {
                 message: "Please log in to OWID admin",
-                status: 401,
+                status,
             } as ApiError
         }
         throw {
             message: errorMsg,
+            status,
         } as ApiError
     }
 
