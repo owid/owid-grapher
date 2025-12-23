@@ -6,10 +6,170 @@ import {
     EnrichedBlockSimpleText,
     EnrichedBlockPerson,
     BlockSize,
+    GdocComments,
+    CommentThread,
 } from "@ourworldindata/utils"
 
 const XML_DECLARATION = '<?xml version="1.0" encoding="UTF-8"?>'
 const GDOC_NAMESPACE = "urn:owid:gdoc:v1"
+
+/**
+ * Collect all comment IDs referenced in an array of spans.
+ */
+function collectCommentIdsFromSpans(spans: Span[]): Set<string> {
+    const ids = new Set<string>()
+    for (const span of spans) {
+        if (span.spanType === "span-comment-ref") {
+            ids.add(span.commentId)
+        }
+        if ("children" in span && span.children) {
+            for (const id of collectCommentIdsFromSpans(span.children)) {
+                ids.add(id)
+            }
+        }
+    }
+    return ids
+}
+
+/**
+ * Collect all comment IDs referenced in a block (recursively).
+ */
+function collectCommentIdsFromBlock(block: OwidEnrichedGdocBlock): Set<string> {
+    const ids = new Set<string>()
+
+    const addSpans = (spans: Span[] | undefined): void => {
+        if (spans) {
+            for (const id of collectCommentIdsFromSpans(spans)) {
+                ids.add(id)
+            }
+        }
+    }
+
+    const addBlocks = (blocks: OwidEnrichedGdocBlock[] | undefined): void => {
+        if (blocks) {
+            for (const b of blocks) {
+                for (const id of collectCommentIdsFromBlock(b)) {
+                    ids.add(id)
+                }
+            }
+        }
+    }
+
+    match(block)
+        .with({ type: "text" }, (b) => addSpans(b.value))
+        .with({ type: "simple-text" }, () => {})
+        .with({ type: "heading" }, (b) => {
+            addSpans(b.text)
+            addSpans(b.supertitle)
+        })
+        .with({ type: "horizontal-rule" }, () => {})
+        .with({ type: "chart" }, (b) => addSpans(b.caption))
+        .with({ type: "narrative-chart" }, (b) => addSpans(b.caption))
+        .with({ type: "image" }, (b) => addSpans(b.caption))
+        .with({ type: "video" }, (b) => addSpans(b.caption))
+        .with({ type: "static-viz" }, () => {})
+        .with({ type: "list" }, (b) =>
+            b.items.forEach((i) => addSpans(i.value))
+        )
+        .with({ type: "numbered-list" }, (b) =>
+            b.items.forEach((i) => addSpans(i.value))
+        )
+        .with({ type: "aside" }, (b) => addSpans(b.caption))
+        .with({ type: "callout" }, (b) => addBlocks(b.text))
+        .with({ type: "blockquote" }, (b) => addBlocks(b.text))
+        .with({ type: "pull-quote" }, (b) => addBlocks(b.content))
+        .with({ type: "code" }, () => {})
+        .with({ type: "html" }, () => {})
+        .with({ type: "script" }, () => {})
+        .with({ type: "table" }, (b) => {
+            addSpans(b.caption)
+            b.rows.forEach((row) =>
+                row.cells.forEach((cell) => addBlocks(cell.content))
+            )
+        })
+        .with({ type: "side-by-side" }, (b) => {
+            addBlocks(b.left)
+            addBlocks(b.right)
+        })
+        .with({ type: "sticky-left" }, (b) => {
+            addBlocks(b.left)
+            addBlocks(b.right)
+        })
+        .with({ type: "sticky-right" }, (b) => {
+            addBlocks(b.left)
+            addBlocks(b.right)
+        })
+        .with({ type: "gray-section" }, (b) => addBlocks(b.items))
+        .with({ type: "explore-data-section" }, (b) => addBlocks(b.content))
+        .with({ type: "align" }, (b) => addBlocks(b.content))
+        .with({ type: "expandable-paragraph" }, (b) => addBlocks(b.items))
+        .with({ type: "expander" }, (b) => addBlocks(b.content))
+        .with({ type: "guided-chart" }, (b) => addBlocks(b.content))
+        .with({ type: "prominent-link" }, () => {})
+        .with({ type: "recirc" }, () => {})
+        .with({ type: "key-insights" }, (b) =>
+            b.insights.forEach((slide) => addBlocks(slide.content))
+        )
+        .with({ type: "key-indicator" }, (b) => addBlocks(b.text))
+        .with({ type: "key-indicator-collection" }, (b) => addBlocks(b.blocks))
+        .with({ type: "additional-charts" }, (b) =>
+            b.items.forEach((item) => addSpans(item))
+        )
+        .with({ type: "all-charts" }, () => {})
+        .with({ type: "donors" }, () => {})
+        .with({ type: "sdg-grid" }, () => {})
+        .with({ type: "sdg-toc" }, () => {})
+        .with({ type: "ltp-toc" }, () => {})
+        .with({ type: "missing-data" }, () => {})
+        .with({ type: "chart-story" }, (b) =>
+            b.items.forEach((item) => {
+                addSpans(item.narrative.value)
+                for (const id of collectCommentIdsFromBlock(item.chart)) {
+                    ids.add(id)
+                }
+                item.technical.forEach((t) => addSpans(t.value))
+            })
+        )
+        .with({ type: "topic-page-intro" }, (b) => addBlocks(b.content))
+        .with({ type: "research-and-writing" }, () => {})
+        .with({ type: "entry-summary" }, () => {})
+        .with({ type: "explorer-tiles" }, () => {})
+        .with({ type: "pill-row" }, () => {})
+        .with({ type: "homepage-search" }, () => {})
+        .with({ type: "homepage-intro" }, () => {})
+        .with({ type: "featured-metrics" }, () => {})
+        .with({ type: "featured-data-insights" }, () => {})
+        .with({ type: "latest-data-insights" }, () => {})
+        .with({ type: "cookie-notice" }, () => {})
+        .with({ type: "subscribe-banner" }, () => {})
+        .with({ type: "cta" }, () => {})
+        .with({ type: "socials" }, () => {})
+        .with({ type: "people" }, (b) =>
+            b.items.forEach((p) => addBlocks(p.text))
+        )
+        .with({ type: "people-rows" }, (b) =>
+            b.people.forEach((p) => addBlocks(p.text))
+        )
+        .with({ type: "person" }, (b) => addBlocks(b.text))
+        .with({ type: "resource-panel" }, () => {})
+        .exhaustive()
+
+    return ids
+}
+
+/**
+ * Options for XHTML serialization.
+ */
+export interface XhtmlSerializationOptions {
+    /**
+     * Whether to include comments in the output.
+     * When false:
+     * - <comments> blocks are omitted
+     * - <comment-ref> elements transparently output their children
+     * Default: true
+     */
+    includeComments?: boolean
+}
 
 /**
  * Escape text for safe inclusion in XML content.
@@ -67,58 +227,81 @@ function xmlElement(
  * - span-quote -> <q>
  * - span-newline -> <br/>
  * - span-fallback -> children only (wrapper stripped)
+ * - span-comment-ref -> <comment-ref id="..."> or children only if comments disabled
  */
-export function spanToXhtml(span: Span): string {
+export function spanToXhtml(
+    span: Span,
+    options: XhtmlSerializationOptions = {}
+): string {
+    const { includeComments = true } = options
+    const toXhtml = (spans: Span[]): string => spansToXhtml(spans, options)
+
     return match(span)
         .with({ spanType: "span-simple-text" }, (s) => escapeXml(s.text))
         .with({ spanType: "span-newline" }, () => "<br/>")
         .with({ spanType: "span-bold" }, (s) =>
-            xmlElement("b", {}, spansToXhtml(s.children))
+            xmlElement("b", {}, toXhtml(s.children))
         )
         .with({ spanType: "span-italic" }, (s) =>
-            xmlElement("i", {}, spansToXhtml(s.children))
+            xmlElement("i", {}, toXhtml(s.children))
         )
         .with({ spanType: "span-underline" }, (s) =>
-            xmlElement("u", {}, spansToXhtml(s.children))
+            xmlElement("u", {}, toXhtml(s.children))
         )
         .with({ spanType: "span-subscript" }, (s) =>
-            xmlElement("sub", {}, spansToXhtml(s.children))
+            xmlElement("sub", {}, toXhtml(s.children))
         )
         .with({ spanType: "span-superscript" }, (s) =>
-            xmlElement("sup", {}, spansToXhtml(s.children))
+            xmlElement("sup", {}, toXhtml(s.children))
         )
         .with({ spanType: "span-link" }, (s) =>
-            xmlElement("a", { href: s.url }, spansToXhtml(s.children))
+            xmlElement("a", { href: s.url }, toXhtml(s.children))
         )
         .with({ spanType: "span-ref" }, (s) =>
-            xmlElement("ref", { url: s.url }, spansToXhtml(s.children))
+            xmlElement("ref", { url: s.url }, toXhtml(s.children))
         )
         .with({ spanType: "span-dod" }, (s) =>
-            xmlElement("dod", { id: s.id }, spansToXhtml(s.children))
+            xmlElement("dod", { id: s.id }, toXhtml(s.children))
         )
         .with({ spanType: "span-guided-chart-link" }, (s) =>
-            xmlElement("glink", { url: s.url }, spansToXhtml(s.children))
+            xmlElement("glink", { url: s.url }, toXhtml(s.children))
         )
         .with({ spanType: "span-quote" }, (s) =>
-            xmlElement("q", {}, spansToXhtml(s.children))
+            xmlElement("q", {}, toXhtml(s.children))
         )
-        .with({ spanType: "span-fallback" }, (s) => spansToXhtml(s.children))
+        .with({ spanType: "span-comment-ref" }, (s) =>
+            // When comments are disabled, just output children (like span-fallback)
+            includeComments
+                ? xmlElement(
+                      "comment-ref",
+                      { id: s.commentId },
+                      toXhtml(s.children)
+                  )
+                : toXhtml(s.children)
+        )
+        .with({ spanType: "span-fallback" }, (s) => toXhtml(s.children))
         .exhaustive()
 }
 
 /**
  * Convert an array of spans to XHTML.
  */
-export function spansToXhtml(spans: Span[]): string {
-    return spans.map(spanToXhtml).join("")
+export function spansToXhtml(
+    spans: Span[],
+    options: XhtmlSerializationOptions = {}
+): string {
+    return spans.map((s) => spanToXhtml(s, options)).join("")
 }
 
 /**
  * Convert an optional array of spans to XHTML, returning undefined if empty.
  */
-function optionalSpansToXhtml(spans: Span[] | undefined): string | undefined {
+function optionalSpansToXhtml(
+    spans: Span[] | undefined,
+    options: XhtmlSerializationOptions = {}
+): string | undefined {
     if (!spans || spans.length === 0) return undefined
-    return spansToXhtml(spans)
+    return spansToXhtml(spans, options)
 }
 
 /**
@@ -131,8 +314,11 @@ function sizeIfNotWide(size: BlockSize): string | undefined {
 /**
  * Convert an enriched text block to XHTML.
  */
-function textBlockToXhtml(block: EnrichedBlockText): string {
-    return xmlElement("text", {}, spansToXhtml(block.value))
+function textBlockToXhtml(
+    block: EnrichedBlockText,
+    options: XhtmlSerializationOptions = {}
+): string {
+    return xmlElement("text", {}, spansToXhtml(block.value, options))
 }
 
 /**
@@ -145,9 +331,18 @@ function simpleTextBlockToXhtml(block: EnrichedBlockSimpleText): string {
 /**
  * Convert a single enriched block to XHTML.
  */
-export function enrichedBlockToXhtml(block: OwidEnrichedGdocBlock): string {
+export function enrichedBlockToXhtml(
+    block: OwidEnrichedGdocBlock,
+    options: XhtmlSerializationOptions = {}
+): string {
+    const toSpansXhtml = (spans: Span[]): string => spansToXhtml(spans, options)
+    const toBlocksXhtml = (blocks: OwidEnrichedGdocBlock[]): string =>
+        enrichedBlocksToXhtml(blocks, options)
+    const optSpansToXhtml = (spans: Span[] | undefined): string | undefined =>
+        optionalSpansToXhtml(spans, options)
+
     return match(block)
-        .with({ type: "text" }, textBlockToXhtml)
+        .with({ type: "text" }, (b) => textBlockToXhtml(b, options))
         .with({ type: "simple-text" }, simpleTextBlockToXhtml)
         .with({ type: "heading" }, (b) =>
             xmlElement(
@@ -155,17 +350,17 @@ export function enrichedBlockToXhtml(block: OwidEnrichedGdocBlock): string {
                 {
                     level: b.level,
                     supertitle: b.supertitle
-                        ? spansToXhtml(b.supertitle)
+                        ? toSpansXhtml(b.supertitle)
                         : undefined,
                 },
-                spansToXhtml(b.text)
+                toSpansXhtml(b.text)
             )
         )
         .with({ type: "horizontal-rule" }, () =>
             xmlElement("horizontal-rule", {}, "", true)
         )
         .with({ type: "chart" }, (b) => {
-            const caption = optionalSpansToXhtml(b.caption)
+            const caption = optSpansToXhtml(b.caption)
             return xmlElement(
                 "chart",
                 {
@@ -179,7 +374,7 @@ export function enrichedBlockToXhtml(block: OwidEnrichedGdocBlock): string {
             )
         })
         .with({ type: "narrative-chart" }, (b) => {
-            const caption = optionalSpansToXhtml(b.caption)
+            const caption = optSpansToXhtml(b.caption)
             return xmlElement(
                 "narrative-chart",
                 {
@@ -192,7 +387,7 @@ export function enrichedBlockToXhtml(block: OwidEnrichedGdocBlock): string {
             )
         })
         .with({ type: "image" }, (b) => {
-            const caption = optionalSpansToXhtml(b.caption)
+            const caption = optSpansToXhtml(b.caption)
             return xmlElement(
                 "image",
                 {
@@ -209,7 +404,7 @@ export function enrichedBlockToXhtml(block: OwidEnrichedGdocBlock): string {
             )
         })
         .with({ type: "video" }, (b) => {
-            const caption = optionalSpansToXhtml(b.caption)
+            const caption = optSpansToXhtml(b.caption)
             return xmlElement(
                 "video",
                 {
@@ -243,7 +438,7 @@ export function enrichedBlockToXhtml(block: OwidEnrichedGdocBlock): string {
                 {},
                 b.items
                     .map((item) =>
-                        xmlElement("li", {}, spansToXhtml(item.value))
+                        xmlElement("li", {}, toSpansXhtml(item.value))
                     )
                     .join("")
             )
@@ -254,7 +449,7 @@ export function enrichedBlockToXhtml(block: OwidEnrichedGdocBlock): string {
                 {},
                 b.items
                     .map((item) =>
-                        xmlElement("li", {}, spansToXhtml(item.value))
+                        xmlElement("li", {}, toSpansXhtml(item.value))
                     )
                     .join("")
             )
@@ -263,28 +458,28 @@ export function enrichedBlockToXhtml(block: OwidEnrichedGdocBlock): string {
             xmlElement(
                 "aside",
                 { position: b.position },
-                spansToXhtml(b.caption)
+                toSpansXhtml(b.caption)
             )
         )
         .with({ type: "callout" }, (b) =>
             xmlElement(
                 "callout",
                 { icon: b.icon, title: b.title },
-                enrichedBlocksToXhtml(b.text)
+                toBlocksXhtml(b.text)
             )
         )
         .with({ type: "blockquote" }, (b) =>
             xmlElement(
                 "blockquote",
                 { citation: b.citation },
-                enrichedBlocksToXhtml(b.text)
+                toBlocksXhtml(b.text)
             )
         )
         .with({ type: "pull-quote" }, (b) =>
             xmlElement(
                 "pull-quote",
                 { align: b.align, quote: b.quote },
-                enrichedBlocksToXhtml(b.content)
+                toBlocksXhtml(b.content)
             )
         )
         .with({ type: "code" }, (b) =>
@@ -312,7 +507,7 @@ export function enrichedBlockToXhtml(block: OwidEnrichedGdocBlock): string {
             )
         )
         .with({ type: "table" }, (b) => {
-            const caption = optionalSpansToXhtml(b.caption)
+            const caption = optSpansToXhtml(b.caption)
             const rows = b.rows
                 .map((row) =>
                     xmlElement(
@@ -323,7 +518,7 @@ export function enrichedBlockToXhtml(block: OwidEnrichedGdocBlock): string {
                                 xmlElement(
                                     "cell",
                                     {},
-                                    enrichedBlocksToXhtml(cell.content)
+                                    toBlocksXhtml(cell.content)
                                 )
                             )
                             .join("")
@@ -344,28 +539,28 @@ export function enrichedBlockToXhtml(block: OwidEnrichedGdocBlock): string {
             xmlElement(
                 "side-by-side",
                 {},
-                xmlElement("left", {}, enrichedBlocksToXhtml(b.left)) +
-                    xmlElement("right", {}, enrichedBlocksToXhtml(b.right))
+                xmlElement("left", {}, toBlocksXhtml(b.left)) +
+                    xmlElement("right", {}, toBlocksXhtml(b.right))
             )
         )
         .with({ type: "sticky-left" }, (b) =>
             xmlElement(
                 "sticky-left",
                 {},
-                xmlElement("left", {}, enrichedBlocksToXhtml(b.left)) +
-                    xmlElement("right", {}, enrichedBlocksToXhtml(b.right))
+                xmlElement("left", {}, toBlocksXhtml(b.left)) +
+                    xmlElement("right", {}, toBlocksXhtml(b.right))
             )
         )
         .with({ type: "sticky-right" }, (b) =>
             xmlElement(
                 "sticky-right",
                 {},
-                xmlElement("left", {}, enrichedBlocksToXhtml(b.left)) +
-                    xmlElement("right", {}, enrichedBlocksToXhtml(b.right))
+                xmlElement("left", {}, toBlocksXhtml(b.left)) +
+                    xmlElement("right", {}, toBlocksXhtml(b.right))
             )
         )
         .with({ type: "gray-section" }, (b) =>
-            xmlElement("gray-section", {}, enrichedBlocksToXhtml(b.items))
+            xmlElement("gray-section", {}, toBlocksXhtml(b.items))
         )
         .with({ type: "explore-data-section" }, (b) =>
             xmlElement(
@@ -374,22 +569,18 @@ export function enrichedBlockToXhtml(block: OwidEnrichedGdocBlock): string {
                     title: b.title,
                     align: b.align !== "left" ? b.align : undefined,
                 },
-                enrichedBlocksToXhtml(b.content)
+                toBlocksXhtml(b.content)
             )
         )
         .with({ type: "align" }, (b) =>
             xmlElement(
                 "align",
                 { alignment: b.alignment },
-                enrichedBlocksToXhtml(b.content)
+                toBlocksXhtml(b.content)
             )
         )
         .with({ type: "expandable-paragraph" }, (b) =>
-            xmlElement(
-                "expandable-paragraph",
-                {},
-                enrichedBlocksToXhtml(b.items)
-            )
+            xmlElement("expandable-paragraph", {}, toBlocksXhtml(b.items))
         )
         .with({ type: "expander" }, (b) =>
             xmlElement(
@@ -400,11 +591,11 @@ export function enrichedBlockToXhtml(block: OwidEnrichedGdocBlock): string {
                     heading: b.heading,
                     subtitle: b.subtitle,
                 },
-                enrichedBlocksToXhtml(b.content)
+                toBlocksXhtml(b.content)
             )
         )
         .with({ type: "guided-chart" }, (b) =>
-            xmlElement("guided-chart", {}, enrichedBlocksToXhtml(b.content))
+            xmlElement("guided-chart", {}, toBlocksXhtml(b.content))
         )
         .with({ type: "prominent-link" }, (b) =>
             xmlElement(
@@ -456,7 +647,7 @@ export function enrichedBlockToXhtml(block: OwidEnrichedGdocBlock): string {
                                 filename: slide.filename,
                                 narrativeChartName: slide.narrativeChartName,
                             },
-                            enrichedBlocksToXhtml(slide.content)
+                            toBlocksXhtml(slide.content)
                         )
                     )
                     .join("")
@@ -470,14 +661,16 @@ export function enrichedBlockToXhtml(block: OwidEnrichedGdocBlock): string {
                     title: b.title,
                     source: b.source,
                 },
-                enrichedBlocksToXhtml(b.text)
+                toBlocksXhtml(b.text)
             )
         )
         .with({ type: "key-indicator-collection" }, (b) =>
             xmlElement(
                 "key-indicator-collection",
                 {},
-                b.blocks.map(enrichedBlockToXhtml).join("")
+                b.blocks
+                    .map((block) => enrichedBlockToXhtml(block, options))
+                    .join("")
             )
         )
         .with({ type: "additional-charts" }, (b) =>
@@ -485,7 +678,7 @@ export function enrichedBlockToXhtml(block: OwidEnrichedGdocBlock): string {
                 "additional-charts",
                 {},
                 b.items
-                    .map((item) => xmlElement("item", {}, spansToXhtml(item)))
+                    .map((item) => xmlElement("item", {}, toSpansXhtml(item)))
                     .join("")
             )
         )
@@ -536,9 +729,9 @@ export function enrichedBlockToXhtml(block: OwidEnrichedGdocBlock): string {
                             xmlElement(
                                 "narrative",
                                 {},
-                                spansToXhtml(item.narrative.value)
+                                toSpansXhtml(item.narrative.value)
                             ) +
-                                enrichedBlockToXhtml(item.chart) +
+                                enrichedBlockToXhtml(item.chart, options) +
                                 (item.technical.length > 0
                                     ? xmlElement(
                                           "technical",
@@ -548,7 +741,7 @@ export function enrichedBlockToXhtml(block: OwidEnrichedGdocBlock): string {
                                                   xmlElement(
                                                       "text",
                                                       {},
-                                                      spansToXhtml(t.value)
+                                                      toSpansXhtml(t.value)
                                                   )
                                               )
                                               .join("")
@@ -590,7 +783,7 @@ export function enrichedBlockToXhtml(block: OwidEnrichedGdocBlock): string {
                                   .join("")
                           )
                         : "") +
-                    xmlElement("content", {}, enrichedBlocksToXhtml(b.content))
+                    xmlElement("content", {}, toBlocksXhtml(b.content))
             )
         )
         .with({ type: "research-and-writing" }, (b) =>
@@ -769,16 +962,20 @@ export function enrichedBlockToXhtml(block: OwidEnrichedGdocBlock): string {
             )
         )
         .with({ type: "people" }, (b) =>
-            xmlElement("people", {}, b.items.map(personToXhtml).join(""))
+            xmlElement(
+                "people",
+                {},
+                b.items.map((p) => personToXhtml(p, options)).join("")
+            )
         )
         .with({ type: "people-rows" }, (b) =>
             xmlElement(
                 "people-rows",
                 { columns: b.columns },
-                b.people.map(personToXhtml).join("")
+                b.people.map((p) => personToXhtml(p, options)).join("")
             )
         )
-        .with({ type: "person" }, personToXhtml)
+        .with({ type: "person" }, (b) => personToXhtml(b, options))
         .with({ type: "resource-panel" }, (b) =>
             xmlElement(
                 "resource-panel",
@@ -836,7 +1033,10 @@ function researchAndWritingLinkToXhtml(link: {
 /**
  * Helper for person block serialization.
  */
-function personToXhtml(b: EnrichedBlockPerson): string {
+function personToXhtml(
+    b: EnrichedBlockPerson,
+    options: XhtmlSerializationOptions = {}
+): string {
     return xmlElement(
         "person",
         {
@@ -845,7 +1045,7 @@ function personToXhtml(b: EnrichedBlockPerson): string {
             title: b.title,
             url: b.url,
         },
-        (b.text.length > 0 ? enrichedBlocksToXhtml(b.text) : "") +
+        (b.text.length > 0 ? enrichedBlocksToXhtml(b.text, options) : "") +
             (b.socials && b.socials.length > 0
                 ? xmlElement(
                       "socials",
@@ -868,8 +1068,11 @@ function personToXhtml(b: EnrichedBlockPerson): string {
 /**
  * Convert an array of enriched blocks to XHTML.
  */
-export function enrichedBlocksToXhtml(blocks: OwidEnrichedGdocBlock[]): string {
-    return blocks.map(enrichedBlockToXhtml).join("")
+export function enrichedBlocksToXhtml(
+    blocks: OwidEnrichedGdocBlock[],
+    options: XhtmlSerializationOptions = {}
+): string {
+    return blocks.map((b) => enrichedBlockToXhtml(b, options)).join("")
 }
 
 /**
@@ -928,12 +1131,107 @@ export function prettyPrintXhtml(xhtml: string, indentSize = 2): string {
 }
 
 /**
+ * Convert a single comment thread to XHTML.
+ *
+ * Format:
+ * <comment id="c1" author="email" time="..." resolved="false">
+ *   <content>Comment text</content>
+ *   <reply id="r1" author="..." time="...">Reply text</reply>
+ * </comment>
+ */
+function commentThreadToXhtml(thread: CommentThread): string {
+    const replies = thread.replies
+        .map((reply) =>
+            xmlElement(
+                "reply",
+                {
+                    id: reply.id,
+                    author: reply.author,
+                    time: reply.createdTime,
+                },
+                escapeXml(reply.content)
+            )
+        )
+        .join("")
+
+    return xmlElement(
+        "comment",
+        {
+            id: thread.id,
+            author: thread.author,
+            time: thread.createdTime,
+            resolved: thread.resolved,
+        },
+        xmlElement("content", {}, escapeXml(thread.content)) + replies
+    )
+}
+
+/**
+ * Convert comments to XHTML block.
+ *
+ * Format:
+ * <comments>
+ *   <comment id="c1" ...>...</comment>
+ *   <comment id="c2" ...>...</comment>
+ * </comments>
+ */
+export function commentsToXhtml(comments: GdocComments): string {
+    if (!comments.threads.length) return ""
+
+    const threads = comments.threads.map(commentThreadToXhtml).join("")
+    return xmlElement("comments", {}, threads)
+}
+
+/**
  * Convert an array of enriched blocks to a complete XHTML document.
  * Output is pretty-printed with proper indentation.
+ * When comments are included, each comment is placed immediately after
+ * the top-level block that contains its reference.
+ *
+ * @param blocks - The enriched blocks to convert
+ * @param comments - Optional comments to interleave after blocks
+ * @param options - Serialization options (includeComments defaults to true)
  */
 export function enrichedBlocksToXhtmlDocument(
-    blocks: OwidEnrichedGdocBlock[]
+    blocks: OwidEnrichedGdocBlock[],
+    comments?: GdocComments | null,
+    options: XhtmlSerializationOptions = {}
 ): string {
-    const raw = `${XML_DECLARATION}<gdoc xmlns="${GDOC_NAMESPACE}">${enrichedBlocksToXhtml(blocks)}</gdoc>`
+    const { includeComments = true } = options
+
+    let blocksXhtml: string
+    if (includeComments && comments && comments.threads.length > 0) {
+        // Build a map from comment ID to thread for quick lookup
+        const threadById = new Map<string, CommentThread>()
+        for (const thread of comments.threads) {
+            threadById.set(thread.id, thread)
+        }
+
+        // Track which comment IDs have been output to avoid duplicates
+        const outputCommentIds = new Set<string>()
+
+        // Serialize each block followed by its referenced comments
+        const parts: string[] = []
+        for (const block of blocks) {
+            parts.push(enrichedBlockToXhtml(block, options))
+
+            // Find all comment IDs referenced in this block
+            const referencedIds = collectCommentIdsFromBlock(block)
+            for (const id of referencedIds) {
+                if (!outputCommentIds.has(id)) {
+                    const thread = threadById.get(id)
+                    if (thread) {
+                        parts.push(commentThreadToXhtml(thread))
+                        outputCommentIds.add(id)
+                    }
+                }
+            }
+        }
+        blocksXhtml = parts.join("")
+    } else {
+        blocksXhtml = enrichedBlocksToXhtml(blocks, options)
+    }
+
+    const raw = `${XML_DECLARATION}<gdoc xmlns="${GDOC_NAMESPACE}">${blocksXhtml}</gdoc>`
     return prettyPrintXhtml(raw)
 }

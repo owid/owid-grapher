@@ -32,6 +32,7 @@ import {
     guidedChartRegex,
     SpanGuidedChartLink,
 } from "@ourworldindata/utils"
+
 import { match, P } from "ts-pattern"
 import * as cheerio from "cheerio"
 import { spansToSimpleString } from "./gdocUtils.js"
@@ -220,6 +221,15 @@ function cheerioToSpan(element: AnyNode): Span | undefined {
                 const children =
                     _.compact(element.children?.map(cheerioToSpan)) ?? []
                 return { spanType: "span-underline", children }
+            })
+            .with("comment-ref", () => {
+                const children =
+                    _.compact(element.children?.map(cheerioToSpan)) ?? []
+                return {
+                    spanType: "span-comment-ref" as const,
+                    commentId: element.attribs.id ?? "",
+                    children,
+                }
             })
             .with("wbr", () => spanFallback(element))
             .otherwise(() => {
