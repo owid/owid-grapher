@@ -57,7 +57,6 @@ import {
     NarrativeChartInfo,
     ContentGraphLinkType,
     DEFAULT_THUMBNAIL_FILENAME,
-    GdocComments,
     GrapherInterface,
     LatestDataInsight,
     LinkedAuthor,
@@ -211,7 +210,6 @@ export class GdocBase implements OwidGdocBaseInterface {
     updatedAt: Date | null = null
     revisionId: string | null = null
     markdown: string | null = null
-    comments: GdocComments | null = null
     publicationContext: OwidGdocPublicationContext =
         OwidGdocPublicationContext.listed
     breadcrumbs: BreadcrumbItem[] | null = null
@@ -947,8 +945,6 @@ export class GdocBase implements OwidGdocBaseInterface {
             fetchGdocComments(this.id),
         ])
 
-        this.comments = comments
-
         const normalizedDocument: docs_v1.Schema$Document = acceptSuggestions
             ? acceptAllGdocSuggestions(data)
             : data
@@ -962,8 +958,8 @@ export class GdocBase implements OwidGdocBaseInterface {
         this.content = archieToEnriched(text, this._enrichSubclassContent)
 
         // Anchor comments to text spans based on quotedText matching
-        if (this.comments) {
-            this.content = anchorCommentsToContent(this.content, this.comments)
+        if (comments) {
+            this.content = anchorCommentsToContent(this.content, comments)
         }
     }
 

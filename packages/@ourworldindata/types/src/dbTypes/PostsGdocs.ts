@@ -1,6 +1,5 @@
 import { BreadcrumbItem } from "../domainTypes/Site.js"
 import { JsonString } from "../domainTypes/Various.js"
-import { GdocComments } from "../gdocTypes/Comments.js"
 import {
     OwidGdocContent,
     OwidGdocPublicationContext,
@@ -14,7 +13,6 @@ export interface DbInsertPostGdoc {
     content: JsonString
     id: string
     markdown?: string | null
-    comments?: JsonString | null
     publicationContext?: OwidGdocPublicationContext
     published: number
     publishedAt?: Date | null
@@ -30,13 +28,12 @@ export type DbRawPostGdoc = Required<DbInsertPostGdoc> & {
 }
 export type DbEnrichedPostGdoc = Omit<
     DbRawPostGdoc,
-    "content" | "manualBreadcrumbs" | "published" | "authors" | "comments"
+    "content" | "manualBreadcrumbs" | "published" | "authors"
 > & {
     content: OwidGdocContent
     manualBreadcrumbs: BreadcrumbItem[] | null
     published: boolean
     authors?: string[]
-    comments: GdocComments | null
 }
 
 export type DBRawPostGdocWithTags = DbRawPostGdoc & {
@@ -73,18 +70,6 @@ export function serializePostsGdocsBreadcrumbs(
     return breadcrumbs ? JSON.stringify(breadcrumbs) : null
 }
 
-export function parsePostsGdocsComments(
-    comments: JsonString | null
-): GdocComments | null {
-    return comments ? JSON.parse(comments) : null
-}
-
-export function serializePostsGdocsComments(
-    comments: GdocComments | null
-): JsonString | null {
-    return comments ? JSON.stringify(comments) : null
-}
-
 export function parsePostsGdocsRow(row: DbRawPostGdoc): DbEnrichedPostGdoc {
     return {
         ...row,
@@ -92,7 +77,6 @@ export function parsePostsGdocsRow(row: DbRawPostGdoc): DbEnrichedPostGdoc {
         manualBreadcrumbs: parsePostsGdocsBreadcrumbs(row.manualBreadcrumbs),
         published: !!row.published,
         authors: parsePostGdocsAuthors(row.authors),
-        comments: parsePostsGdocsComments(row.comments),
     }
 }
 
@@ -130,7 +114,6 @@ export function serializePostsGdocsRow(
         manualBreadcrumbs: serializePostsGdocsBreadcrumbs(
             row.manualBreadcrumbs
         ),
-        comments: serializePostsGdocsComments(row.comments),
         published: row.published ? 1 : 0,
     }
 }
