@@ -37,19 +37,19 @@ $slide-content-height: $grapher-height;
 
         &.left {
             left: 0;
+            border-right: 1px solid $blue-10;
+            clip-path: inset(0 -2.5rem 0 0);
             @include lg-up {
                 left: -48px;
             }
-            border-right: 1px solid $blue-10;
-            clip-path: inset(0 -2.5rem 0 0);
         }
         &.right {
             right: 0;
+            border-left: 1px solid $blue-10;
+            clip-path: inset(0 0 0 -2.5rem);
             @include lg-up {
                 right: -48px;
             }
-            border-left: 1px solid $blue-10;
-            clip-path: inset(0 0 0 -2.5rem);
         }
     }
 
@@ -148,7 +148,9 @@ $slide-content-height: $grapher-height;
 
 .key-insights-title {
     @include h2-bold;
-    margin: 0 0 $vertical-spacing;
+    & {
+        margin: 0 0 $vertical-spacing;
+    }
 }
 
 .article-block__key-insights-content-column {

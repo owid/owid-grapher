@@ -1,9 +1,13 @@
 .donate-page__title {
     @include display-2-semibold;
-    margin-top: 0;
+    & {
+        margin-top: 0;
+    }
     @include md-up {
         @include display-1-semibold;
-        margin-top: 0;
+        & {
+            margin-top: 0;
+        }
     }
 }
 

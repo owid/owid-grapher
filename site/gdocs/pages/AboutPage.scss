@@ -52,14 +52,18 @@
 
     h2.article-block__heading {
         @include h1-semibold;
-        color: $blue-60;
-        margin-top: 0;
+        & {
+            color: $blue-60;
+            margin-top: 0;
+        }
     }
 
     h3.article-block__heading {
         @include h2-bold;
-        margin-bottom: 16px;
-        margin-top: 16px;
+        & {
+            margin-bottom: 16px;
+            margin-top: 16px;
+        }
     }
 
     h4.article-block__heading {

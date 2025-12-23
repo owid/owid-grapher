@@ -3,14 +3,16 @@
 
     blockquote {
         @include h2-bold;
-        color: $blue-65;
-        margin: 0;
-        padding-top: 16px;
-        padding-bottom: 16px;
-        position: relative;
-        align-self: start;
-        text-wrap: balance;
-        margin-top: 8px;
+        & {
+            color: $blue-65;
+            margin: 0;
+            padding-top: 16px;
+            padding-bottom: 16px;
+            position: relative;
+            align-self: start;
+            text-wrap: balance;
+            margin-top: 8px;
+        }
         &::before {
             content: "";
             border-top: 1px solid $vermillion;

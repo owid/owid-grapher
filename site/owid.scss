@@ -411,18 +411,18 @@ h6 {
 
     /* Subsections e.g. I.1 Historical perspective */
     > h3 {
-        @include h3-style;
         margin-top: 5rem;
         margin-bottom: 2.5rem;
         padding-top: 2.5rem;
         border-top: 1px solid $blue-20;
+        @include h3-style;
     }
 
     // e.g. see "Sector by sector: where do global greenhouse gas emissions come from?"
     .wp-block-column > h3 {
-        @include h3-style;
         margin-bottom: 1.5rem;
         margin-top: 2.5rem;
+        @include h3-style;
     }
 
     > .section-heading + h3 {
@@ -432,9 +432,9 @@ h6 {
 
     /* Intratext headings e.g. How different are countries in terms of central government involvement in the economy? */
     .wp-block-columns h4 {
-        @include h4-style;
         margin-top: 2.75rem;
         margin-bottom: $vertical-spacing;
+        @include h4-style;
     }
 
     .wp-block-columns h5 {
@@ -461,47 +461,48 @@ h6 {
 
 /* Major sections e.g. I. Empirical View */
 .article-content .section-heading {
-    .wrapper {
-        @include content-wrapper;
-    }
     @include full-width;
     padding-top: 2.5rem;
     padding-bottom: 2.5rem;
     margin-bottom: 2rem;
+    background-color: $blue-20;
     @include md-up {
         padding-top: 4 * $vertical-spacing;
         padding-bottom: 4 * $vertical-spacing;
         margin-bottom: 5rem;
     }
-    background-color: $blue-20;
 
     @include xxlg-up {
         width: calc(100vw - #{2 * $padding-x-md});
         margin-left: calc(50% - 50vw - #{$padding-x-md});
     }
 
+    .wrapper {
+        @include content-wrapper;
+    }
+
     h2 {
         margin: 0;
         font-family: $serif-font-stack;
         font-size: 2.5rem;
+        font-weight: 400;
+        line-height: 1.25em;
         @include md-up {
             font-size: 3rem;
         }
-        font-weight: 400;
-        line-height: 1.25em;
     }
 
     .in-this-section {
         display: flex;
         align-items: center;
         margin: 1.5 * $vertical-spacing 0 $vertical-spacing;
-        @include md-up {
-            margin-top: 2 * $vertical-spacing;
-        }
         text-transform: uppercase;
         font-size: 0.9rem;
         font-weight: bold;
         color: $blue-40;
+        @include md-up {
+            margin-top: 2 * $vertical-spacing;
+        }
         .border {
             margin-left: 1rem;
             background-color: $blue-30;

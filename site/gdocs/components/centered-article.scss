@@ -452,9 +452,6 @@ h3.article-block__heading.has-supertitle {
 .centered-article-header__breadcrumbs-container {
     .centered-article-header__breadcrumbs {
         @include body-3-regular;
-        @include sm-only {
-            @include note-1-medium;
-        }
         &.breadcrumbs-white {
             color: $white;
         }
@@ -468,12 +465,16 @@ h3.article-block__heading.has-supertitle {
         // unless the breadcrumbs are longer than a single line.
         --header-breadcrumb-margin-top: 40px;
 
+        margin-top: var(--header-breadcrumb-margin-top);
+        margin-bottom: calc(-1.6em - var(--header-breadcrumb-margin-top));
+
+        @include sm-only {
+            @include note-1-medium;
+        }
+
         @include md-down {
             --header-breadcrumb-margin-top: 18px;
         }
-
-        margin-top: var(--header-breadcrumb-margin-top);
-        margin-bottom: calc(-1.6em - var(--header-breadcrumb-margin-top));
 
         a {
             @include owid-link-90;
@@ -502,15 +503,19 @@ h3.article-block__heading.has-supertitle {
 
     .centered-article-header__title {
         @include display-2-semibold;
-        margin-top: 0;
-        margin-bottom: 24px;
-        color: $blue-90;
-        text-wrap: balance;
+        & {
+            margin-top: 0;
+            margin-bottom: 24px;
+            color: $blue-90;
+            text-wrap: balance;
+        }
 
         @include md-down {
             @include h2-bold;
-            margin: 0 16px;
-            margin-bottom: 8px;
+            & {
+                margin: 0 16px;
+                margin-bottom: 8px;
+            }
         }
     }
 }

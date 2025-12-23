@@ -1,14 +1,17 @@
 .cookie-notice {
-    @include content-wrapper;
     background-color: $amber;
     position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
     z-index: $zindex-cookie-notice;
-    padding: 16px;
     // to avoid flash before animation
     display: none;
+    @include content-wrapper;
+
+    & {
+        padding: 16px;
+    }
 
     &.open {
         display: block;

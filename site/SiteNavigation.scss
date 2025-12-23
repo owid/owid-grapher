@@ -46,8 +46,8 @@
         > ul {
             display: flex;
             flex-direction: row;
-            @include column-gap(24px);
             align-items: center;
+            @include column-gap(24px);
             > li {
                 list-style-type: none;
                 white-space: nowrap;
@@ -156,26 +156,26 @@
                 top: calc(100% + $header-border-height);
                 right: 0;
                 width: 411px; // see popover-box-styles mixin
+                padding: 32px 40px;
+                background-color: $accent-pale-blue;
                 @include sm-only {
                     margin-right: -16px;
                     width: 100vw;
                     padding: 16px;
                 }
-                padding: 32px 40px;
-                background-color: $accent-pale-blue;
             }
         }
         a.donate {
             display: flex;
-            @include sm-only {
-                display: none;
-            }
             align-items: center;
             height: $search-cta-height;
             color: $white;
             @include body-3-medium;
             padding: 0 24px;
             background-color: $vermillion;
+            @include sm-only {
+                display: none;
+            }
             &:hover {
                 background-color: $accent-vermillion;
             }

@@ -34,6 +34,8 @@
     list-style-type: none;
     padding: 0;
     margin: 0 0 3rem;
+    font-size: 14px;
+    line-height: 1.2;
 
     @include md-down {
         display: flex;
@@ -96,9 +98,6 @@
     a:hover img {
         @include image-hover;
     }
-
-    font-size: 14px;
-    line-height: 1.2;
 }
 
 .related-charts__chart {

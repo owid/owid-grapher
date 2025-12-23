@@ -26,6 +26,10 @@
     // We only leave space for the mobile header and fill the rest.
     height: calc(100vh - $header-height-sm);
 
+    // Needed so the absolutely-positioned <LoadingIndicator> on /grapher pages is centered
+    // inside <figure>
+    position: relative;
+
     @include md-up {
         // On larger viewports, we want to leave more space at the bottom to make the entry link
         // more visible. It doesn't need to be fully visible, just enough to pop out to the user.
@@ -44,10 +48,6 @@
         max-width: $max-width;
         max-height: $max-height;
     }
-
-    // Needed so the absolutely-positioned <LoadingIndicator> on /grapher pages is centered
-    // inside <figure>
-    position: relative;
 }
 
 #fallback {
@@ -73,10 +73,9 @@
 
 .StandaloneGrapherOrExplorerPage main {
     .related-research-data {
-        @include block-spacing;
-        margin-top: $vertical-spacing;
         background-color: $blue-10;
         max-width: 800px;
+        @include block-spacing;
         & > :first-child {
             margin-top: 0;
         }

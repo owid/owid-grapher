@@ -6,8 +6,10 @@
     > h2:first-child {
         grid-column: 1 / 13;
         @include h1-semibold;
-        text-align: center;
-        margin: 48px 0;
+        & {
+            text-align: center;
+            margin: 48px 0;
+        }
     }
 
     // Category headings
@@ -81,9 +83,11 @@
         .title {
             @include owid-link-90;
             @include h2-bold;
-            margin-top: 16px;
-            margin-bottom: 8px;
-            text-decoration: none;
+            & {
+                margin-top: 16px;
+                margin-bottom: 8px;
+                text-decoration: none;
+            }
         }
         .description {
             @include body-1-regular;

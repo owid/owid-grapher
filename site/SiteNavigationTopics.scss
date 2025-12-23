@@ -10,13 +10,13 @@
     @include grid(12);
     .categories {
         grid-column: 1 / span 6;
-        @include sm-up {
-            grid-column-end: span 5;
-        }
         margin-left: -$padding-x-md;
         padding: 32px 0;
         padding-left: $padding-x-md;
         background-color: $accent-pale-blue;
+        @include sm-up {
+            grid-column-end: span 5;
+        }
 
         .heading {
             @include overline-black-caps;

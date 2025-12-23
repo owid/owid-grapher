@@ -38,8 +38,10 @@
 
 .ltp-toc__title {
     @include h2-bold;
-    color: $blue-90;
-    margin: 0;
+    & {
+        color: $blue-90;
+        margin: 0;
+    }
 
     @include sm-only {
         @include h3-bold;

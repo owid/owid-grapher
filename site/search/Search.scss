@@ -1,9 +1,10 @@
 #search-page-root {
     min-height: calc(100vh - $header-height-md);
+    margin-bottom: 80px;
+
     @include sm-only {
         min-height: calc(100vh - $header-height-sm);
     }
-    margin-bottom: 80px;
 }
 
 .search-heading {
@@ -92,10 +93,11 @@
     display: flex;
     flex-wrap: wrap;
     margin: 8px 0;
+    gap: 8px;
+
     @include sm-up {
         margin: 10px 0;
     }
-    gap: 8px;
 }
 
 .search-input-row {
@@ -107,9 +109,6 @@
 .search-input {
     background-color: white;
     height: 32px;
-    @include sm-up {
-        height: 28px;
-    }
     border: none;
     padding: 0;
     flex: 1 0 auto;
@@ -125,6 +124,10 @@
     &:placeholder-shown {
         text-overflow: ellipsis;
         color: $blue-50;
+    }
+
+    @include sm-up {
+        height: 28px;
     }
 
     @include sm-only {
