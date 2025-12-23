@@ -26,10 +26,72 @@ declare global {
 }
 
 const siteAnalytics = new SiteAnalytics()
+let listenersAttached = false
+
+const showDod = (id: string, element: Tippyfied<Element>): void => {
+    const dod = window.details?.[id]
+    if (!dod) return
+
+    if (element._tippy) {
+        element._tippy.show()
+    } else {
+        const content = reactRenderToStringClientOnly(
+            <div className="dod-container">
+                <MarkdownTextWrap
+                    text={dod.text}
+                    fontSize={12}
+                    lineHeight={1.55}
+                />
+            </div>
+        )
+
+        tippy(element, {
+            content,
+            allowHTML: true,
+            // Add hide delay to allow users reaching the tooltip with
+            // a mouse before it hides in tricky edge cases, e.g. when
+            // the DOD spans multiple lines.
+            delay: [null, 200],
+            interactive: true,
+            hideOnClick: false,
+            arrow: false,
+            theme: "light dod",
+            appendTo: document.body,
+            aria: {
+                content: "labelledby",
+            },
+        })
+    }
+}
+
+const handleEvent = (event: MouseEvent | TouchEvent): void => {
+    const target = event.target as Tippyfied<Node>
+    if (!(target instanceof Element)) return
+
+    if (target.classList.contains("dod-span")) {
+        const id = target.attributes.getNamedItem("data-id")?.nodeValue
+        if (!id) return
+        showDod(id, target)
+        siteAnalytics.logDodShown(id)
+    }
+}
+
+const attachListeners = (): void => {
+    if (listenersAttached) return
+    document.addEventListener("mouseover", handleEvent, { passive: true })
+    document.addEventListener("touchstart", handleEvent, { passive: true })
+    listenersAttached = true
+}
 
 type RunDetailsOnDemandOptions = {
     shouldFetchFromAdminApi?: boolean
 }
+
+export function runDetailsOnDemandWithDetails(details: DetailDictionary): void {
+    window.details = details
+    attachListeners()
+}
+
 export async function runDetailsOnDemand(
     options: RunDetailsOnDemandOptions = {}
 ) {
@@ -47,7 +109,7 @@ export async function runDetailsOnDemand(
               fallback: `${BAKED_BASE_URL}/dods.json`,
           })
 
-    window.details = await fetchWithRetry(dodFetchUrl, {
+    const details = await fetchWithRetry(dodFetchUrl, {
         method: "GET",
         credentials: "same-origin",
         headers: {
@@ -55,54 +117,5 @@ export async function runDetailsOnDemand(
         },
     }).then((res) => res.json())
 
-    document.addEventListener("mouseover", handleEvent, { passive: true })
-    document.addEventListener("touchstart", handleEvent, { passive: true })
-
-    function handleEvent(event: MouseEvent | TouchEvent) {
-        const target = event.target as Tippyfied<Node>
-        if (!(target instanceof Element)) return
-
-        if (target.classList.contains("dod-span")) {
-            const id = target.attributes.getNamedItem("data-id")?.nodeValue
-            if (!id) return
-            showDod(id, target)
-            siteAnalytics.logDodShown(id)
-        }
-    }
-
-    function showDod(id: string, element: Tippyfied<Element>) {
-        const dod = window.details?.[id]
-        if (!dod) return
-
-        if (element._tippy) {
-            element._tippy.show()
-        } else {
-            const content = reactRenderToStringClientOnly(
-                <div className="dod-container">
-                    <MarkdownTextWrap
-                        text={dod.text}
-                        fontSize={12}
-                        lineHeight={1.55}
-                    />
-                </div>
-            )
-
-            tippy(element, {
-                content,
-                allowHTML: true,
-                // Add hide delay to allow users reaching the tooltip with
-                // a mouse before it hides in tricky edge cases, e.g. when
-                // the DOD spans multiple lines.
-                delay: [null, 200],
-                interactive: true,
-                hideOnClick: false,
-                arrow: false,
-                theme: "light dod",
-                appendTo: document.body,
-                aria: {
-                    content: "labelledby",
-                },
-            })
-        }
-    }
+    runDetailsOnDemandWithDetails(details)
 }
