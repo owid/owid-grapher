@@ -1,3 +1,4 @@
+@use "sass:map";
 @use "sass:math";
 
 .DataPageContent__grapher-for-embed {
@@ -272,7 +273,7 @@ $experiments: (
 
 // styles specific to experiment exp-data-page-insight-btns-2
 .exp-data-page-insight-btns-2 {
-    $arms: map-get($experiments, exp-data-page-insight-btns-2);
+    $arms: map.get($experiments, exp-data-page-insight-btns-2);
     @each $a in $arms {
         &--#{$a} .DataPageContent {
             .chart-key-info {
