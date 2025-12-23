@@ -1,8 +1,17 @@
-import React, { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { Toolbar } from "./Toolbar.js"
 import { Preview } from "./Preview.js"
-import { getGdocRaw, getGdocAttachments, isAuthError, getErrorMessage } from "../shared/api.js"
-import type { Attachments, RawGdocDocument, ParsedContent } from "../shared/types.js"
+import {
+    getGdocRaw,
+    getGdocAttachments,
+    isAuthError,
+    getErrorMessage,
+} from "../shared/api.js"
+import type {
+    Attachments,
+    RawGdocDocument,
+    ParsedContent,
+} from "../shared/types.js"
 import { gdocToArchie } from "@owid/db/model/Gdoc/gdocToArchie.js"
 import { archieToEnriched } from "@owid/db/model/Gdoc/archieToEnriched.js"
 
@@ -43,6 +52,12 @@ const emptyAttachments: Attachments = {
     tags: [],
 }
 
+const getDocIdFromUrl = (url: string | undefined): string | null => {
+    if (!url) return null
+    const match = url.match(/\/document\/d\/([a-zA-Z0-9_-]+)/)
+    return match ? match[1] : null
+}
+
 export function App() {
     const [state, setState] = useState<AppState>(initialState)
     const [autoRefresh, setAutoRefresh] = useState(false)
@@ -50,25 +65,53 @@ export function App() {
     const attachmentsIntervalRef = useRef<number | null>(null)
 
     // Get doc ID directly from the active tab's URL
-    const fetchDocId = useCallback(async () => {
+    const fetchDocId = useCallback(async (): Promise<void> => {
         try {
-            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
-            if (tab?.url) {
-                const match = tab.url.match(/\/document\/d\/([a-zA-Z0-9_-]+)/)
-                if (match) {
-                    setState((prev) => ({ ...prev, docId: match[1] }))
-                    return
-                }
+            const [tab] = await chrome.tabs.query({
+                active: true,
+                currentWindow: true,
+            })
+            const docId = getDocIdFromUrl(tab?.url)
+            if (docId) {
+                setState((prev) => {
+                    if (prev.docId === docId) return prev
+                    return {
+                        ...prev,
+                        docId,
+                        rawDoc: null,
+                        parsedContent: null,
+                        attachments: null,
+                        contentLoadingState: "idle",
+                        attachmentsLoadingState: "idle",
+                        error: null,
+                        authError: false,
+                    }
+                })
+                return
             }
             setState((prev) => ({
                 ...prev,
+                docId: null,
+                rawDoc: null,
+                parsedContent: null,
+                attachments: null,
+                contentLoadingState: "idle",
+                attachmentsLoadingState: "idle",
                 error: "Could not get document ID. Make sure you're on a Google Doc.",
+                authError: false,
             }))
         } catch (error) {
             console.error("Error getting doc ID:", error)
             setState((prev) => ({
                 ...prev,
+                docId: null,
+                rawDoc: null,
+                parsedContent: null,
+                attachments: null,
+                contentLoadingState: "idle",
+                attachmentsLoadingState: "idle",
                 error: "Could not get tab URL. Try refreshing.",
+                authError: false,
             }))
         }
     }, [])
@@ -142,14 +185,45 @@ export function App() {
 
     // Initialize: get doc ID
     useEffect(() => {
-        fetchDocId()
+        void fetchDocId()
+    }, [fetchDocId])
+
+    // Update doc ID when navigating between tabs or docs
+    useEffect(() => {
+        const handleActivated = (
+            activeInfo: chrome.tabs.TabActiveInfo
+        ): void => {
+            if (activeInfo.tabId >= 0) {
+                void fetchDocId()
+            }
+        }
+
+        const handleUpdated = (
+            tabId: number,
+            changeInfo: chrome.tabs.TabChangeInfo,
+            tab: chrome.tabs.Tab
+        ): void => {
+            if (!tab.active) return
+            if (tab.id !== undefined && tab.id !== tabId) return
+            if (changeInfo.url || changeInfo.status === "complete") {
+                void fetchDocId()
+            }
+        }
+
+        chrome.tabs.onActivated.addListener(handleActivated)
+        chrome.tabs.onUpdated.addListener(handleUpdated)
+
+        return () => {
+            chrome.tabs.onActivated.removeListener(handleActivated)
+            chrome.tabs.onUpdated.removeListener(handleUpdated)
+        }
     }, [fetchDocId])
 
     // When doc ID is available, fetch content and attachments
     useEffect(() => {
         if (state.docId) {
-            fetchContent()
-            fetchAttachments()
+            void fetchContent()
+            void fetchAttachments()
         }
     }, [state.docId, fetchContent, fetchAttachments])
 
@@ -158,12 +232,12 @@ export function App() {
         if (autoRefresh && state.docId) {
             // Content refresh every 3 seconds
             contentIntervalRef.current = window.setInterval(() => {
-                fetchContent()
+                void fetchContent()
             }, 3000)
 
             // Attachments refresh every 60 seconds
             attachmentsIntervalRef.current = window.setInterval(() => {
-                fetchAttachments()
+                void fetchAttachments()
             }, 60000)
         }
 
@@ -178,11 +252,11 @@ export function App() {
     }, [autoRefresh, state.docId, fetchContent, fetchAttachments])
 
     const handleRefreshContent = useCallback(() => {
-        fetchContent()
+        void fetchContent()
     }, [fetchContent])
 
     const handleRefreshAttachments = useCallback(() => {
-        fetchAttachments()
+        void fetchAttachments()
     }, [fetchAttachments])
 
     const handleToggleAutoRefresh = useCallback(() => {
@@ -204,7 +278,10 @@ export function App() {
                     >
                         Log in to OWID Admin
                     </a>
-                    <button onClick={handleRefreshContent} className="retry-button">
+                    <button
+                        onClick={handleRefreshContent}
+                        className="retry-button"
+                    >
                         Retry
                     </button>
                 </div>
@@ -219,7 +296,10 @@ export function App() {
                 <div className="error-state">
                     <h2>Error</h2>
                     <p>{state.error}</p>
-                    <button onClick={handleRefreshContent} className="retry-button">
+                    <button
+                        onClick={handleRefreshContent}
+                        className="retry-button"
+                    >
                         Retry
                     </button>
                 </div>
@@ -228,7 +308,10 @@ export function App() {
     }
 
     // Render loading state
-    if (!state.docId || state.contentLoadingState === "loading" && !state.parsedContent) {
+    if (
+        !state.docId ||
+        (state.contentLoadingState === "loading" && !state.parsedContent)
+    ) {
         return (
             <div className="owid-preview-extension">
                 <div className="loading-state">

@@ -9,6 +9,7 @@
         "typecheck": "tsc --noEmit"
     },
     "dependencies": {
+        "@noble/hashes": "^2.0.1",
         "@ourworldindata/components": "workspace:*",
         "@ourworldindata/types": "workspace:*",
         "@ourworldindata/utils": "workspace:*",

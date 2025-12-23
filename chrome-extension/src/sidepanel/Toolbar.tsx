@@ -1,5 +1,3 @@
-import React from "react"
-
 interface ToolbarProps {
     onRefreshContent: () => void
     onRefreshAttachments: () => void
