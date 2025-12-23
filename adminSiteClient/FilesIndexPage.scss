@@ -1,3 +1,5 @@
+@use "sass:color";
+
 .file-upload-label {
     display: inline-block;
     padding: 6px 16px;
@@ -9,7 +11,7 @@
     cursor: pointer;
 
     &:hover {
-        background-color: darken(#1890ff, 5%);
+        background-color: color.scale(#1890ff, $lightness: -5%);
     }
 
     &.is-uploading {
