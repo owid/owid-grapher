@@ -13,6 +13,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     DATA_API_URL,
+    GRAPHER_DYNAMIC_CONFIG_URL,
     MULTI_DIM_DYNAMIC_CONFIG_URL,
 } from "../../settings/clientSettings.js"
 
@@ -40,7 +41,7 @@ export const cachedGetGrapherConfigByUuid = _.memoize(
         assetMap?: AssetMap
     ): Promise<GrapherInterface> => {
         const configFileName = `${grapherConfigUuid}.config.json`
-        const fallbackUrl = `/grapher/by-uuid/${configFileName}${isPreviewing ? "?nocache" : ""}`
+        const fallbackUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${configFileName}${isPreviewing ? "?nocache" : ""}`
         const url = readFromAssetMap(assetMap, {
             path: configFileName,
             fallback: fallbackUrl,
