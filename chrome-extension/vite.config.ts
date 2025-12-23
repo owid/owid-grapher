@@ -1,7 +1,13 @@
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
 import { resolve } from "path"
-import { copyFileSync, mkdirSync, existsSync, readFileSync, writeFileSync } from "fs"
+import {
+    copyFileSync,
+    mkdirSync,
+    existsSync,
+    readFileSync,
+    writeFileSync,
+} from "fs"
 
 // Plugin to copy static files after build
 function copyStaticFiles() {
@@ -37,7 +43,10 @@ function copyStaticFiles() {
             }
 
             // Copy icons from parent public folder
-            const sourceIcon = resolve(__dirname, "../public/owid-logo-square.png")
+            const sourceIcon = resolve(
+                __dirname,
+                "../public/owid-logo-square.png"
+            )
             if (existsSync(sourceIcon)) {
                 copyFileSync(sourceIcon, resolve(iconsDir, "icon16.png"))
                 copyFileSync(sourceIcon, resolve(iconsDir, "icon48.png"))
@@ -68,7 +77,10 @@ export default defineConfig({
         target: ["chrome114"], // Sidepanel API minimum
         rollupOptions: {
             input: {
-                "sidepanel/sidepanel": resolve(__dirname, "src/sidepanel/index.html"),
+                "sidepanel/sidepanel": resolve(
+                    __dirname,
+                    "src/sidepanel/index.html"
+                ),
                 "background/service-worker": resolve(
                     __dirname,
                     "src/background/service-worker.ts"
@@ -98,10 +110,10 @@ export default defineConfig({
             "https://ourworldindata.org/grapher"
         ),
         "process.env.DATA_API_URL": JSON.stringify(
-            "https://api.ourworldindata.org/v1"
+            "https://api.ourworldindata.org/v1/indicators"
         ),
         "process.env.CLOUDFLARE_IMAGES_URL": JSON.stringify(
-            "https://images.ourworldindata.org/public"
+            "https://ourworldindata.org/cdn-cgi/imagedelivery/qLq-8BTgXU8yG0N6HnOy8g"
         ),
         // Stub out Node.js globals
         "process.env.NODE_ENV": JSON.stringify("production"),
