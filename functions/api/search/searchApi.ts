@@ -85,6 +85,8 @@ const DATA_CATALOG_ATTRIBUTES = [
     "availableEntities",
     "originalAvailableEntities",
     "availableTabs",
+    "publishedAt",
+    "updatedAt",
 ]
 
 function getFilterNamesOfType(
@@ -300,6 +302,7 @@ const PAGE_ATTRIBUTES = [
     "type",
     "content",
     "authors",
+    "modifiedDate",
 ]
 
 export async function searchPages(
