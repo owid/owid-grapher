@@ -91,7 +91,7 @@ $grid-responsive: (lg, md, sm);
 // // Spans Cols
 @each $span in $grid-col-spans {
     .span-cols-#{$span} {
-        grid-column: span list.slash($span, span) #{$span};
+        grid-column: list.slash(span #{$span}, span #{$span});
     }
 }
 
@@ -123,7 +123,7 @@ $grid-responsive: (lg, md, sm);
             @if $grid-col-row-breakpoint == $breakpoint {
                 @each $span in $grid-col-spans {
                     .span-#{$breakpoint}-cols-#{$span} {
-                        grid-column: span list.slash($span, span) #{$span};
+                        grid-column: list.slash(span #{$span}, span #{$span});
                     }
                 }
                 @each $span in $grid-row-spans {
