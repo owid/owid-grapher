@@ -17,6 +17,8 @@ import {
     PostChecksums,
     PostChecksumsObjectWithHash,
     IndicatorChecksums,
+    NarrativeChartChecksums,
+    NarrativeChartChecksumsResult,
     ExplorerVariablesTableName,
     DbPlainExplorerVariable,
     VariablesTableName,
@@ -40,6 +42,7 @@ import { getLatestArchivedMultiDimVersionHashes } from "../ArchivedMultiDimVersi
 import { getLatestArchivedPostVersionHashes } from "../ArchivedPostVersion.js"
 import { getGdocBaseObjectById } from "../Gdoc/GdocFactory.js"
 import { GdocPost } from "../Gdoc/GdocPost.js"
+import { getMultiDimRedirectTargets } from "../MultiDimRedirects.js"
 
 export interface ArchivalImage {
     id: number
@@ -472,15 +475,7 @@ export const getExplorerChecksumsFromDb = async (
 export const getNarrativeChartChecksumsFromDb = async (
     knex: db.KnexReadonlyTransaction,
     names?: string[]
-): Promise<
-    {
-        narrativeChartId: number
-        narrativeChartName: string
-        chartConfigMd5: string
-        queryParamsForParentChartMd5: string
-        indicators: IndicatorChecksums
-    }[]
-> => {
+): Promise<NarrativeChartChecksumsResult[]> => {
     type NarrativeChartRow = {
         id: number
         name: string
@@ -553,12 +548,16 @@ export const getNarrativeChartChecksumsFromDb = async (
             }
         }
 
-        return {
-            narrativeChartId: chart.id,
-            narrativeChartName: chart.name,
+        const checksums: NarrativeChartChecksums = {
             chartConfigMd5: chart.chartConfigMd5,
             queryParamsForParentChartMd5: chart.queryParamsForParentChartMd5,
             indicators,
+        }
+
+        return {
+            narrativeChartId: chart.id,
+            narrativeChartName: chart.name,
+            checksums,
         }
     })
 }
@@ -594,10 +593,16 @@ interface ChartsByPost {
     narrativeChart: Set<string>
 }
 
-const getLinkedChartsFromPosts = async (
+// Represents the resolved type and target slug after following redirects
+type ResolvedSlug =
+    | { type: "grapher"; slug: string }
+    | { type: "multiDim"; slug: string }
+    | { type: "explorer"; slug: string }
+
+async function getLinkedChartsFromPosts(
     knex: db.KnexReadonlyTransaction,
     postIds: string[]
-): Promise<LinkedChart[]> => {
+): Promise<LinkedChart[]> {
     if (postIds.length === 0) return []
     return await knex<DbPlainPostGdocLink>(PostsGdocsLinksTableName)
         .distinct("sourceId", "linkType", "target")
@@ -610,10 +615,10 @@ const getLinkedChartsFromPosts = async (
         .whereIn("componentType", ["chart", "narrative-chart"])
 }
 
-const groupLinkedChartsByPost = (
+function groupLinkedChartsByPost(
     posts: Pick<DbRawPostGdoc, "id">[],
     linkedCharts: LinkedChart[]
-): Map<string, ChartsByPost> => {
+): Map<string, ChartsByPost> {
     const chartsByPost = new Map<string, ChartsByPost>()
 
     for (const post of posts) {
@@ -640,10 +645,10 @@ const groupLinkedChartsByPost = (
     return chartsByPost
 }
 
-export const getImagesByPostId = async (
+export async function getImagesByPostId(
     knex: db.KnexReadonlyTransaction,
     postIds: string[]
-): Promise<Record<string, ArchivalImage[]>> => {
+): Promise<Record<string, ArchivalImage[]>> {
     const imagesByPostId: Record<string, ArchivalImage[]> = {}
     if (postIds.length === 0) return imagesByPostId
 
@@ -687,10 +692,10 @@ export const getImagesByPostId = async (
     return imagesByPostId
 }
 
-export const getVideosByPostId = async (
+export async function getVideosByPostId(
     knex: db.KnexReadonlyTransaction,
     postIds: string[]
-): Promise<Record<string, string[]>> => {
+): Promise<Record<string, string[]>> {
     if (postIds.length === 0) return {}
 
     // We only care about video URLs for now and don't support re-archiving when
@@ -716,10 +721,10 @@ export const getVideosByPostId = async (
     )
 }
 
-const getVariableChecksumsForIds = async (
+async function getVariableChecksumsForIds(
     knex: db.KnexReadonlyTransaction,
     variableIds: Set<number>
-): Promise<Map<string, { metadataChecksum: string; dataChecksum: string }>> => {
+): Promise<Map<string, { metadataChecksum: string; dataChecksum: string }>> {
     if (variableIds.size === 0) {
         return new Map()
     }
@@ -739,10 +744,10 @@ const getVariableChecksumsForIds = async (
     )
 }
 
-const resolveGrapherRedirects = async (
+async function resolveGrapherRedirects(
     knex: db.KnexReadonlyTransaction,
     slugs: string[]
-): Promise<Map<string, string>> => {
+): Promise<Map<string, string>> {
     const redirectMap = new Map<string, string>()
     if (slugs.length === 0) return redirectMap
 
@@ -773,12 +778,90 @@ const resolveGrapherRedirects = async (
     return redirectMap
 }
 
-export const getPostChecksumsFromDb = async (
+async function resolveMultiDimRedirects(
+    knex: db.KnexReadonlyTransaction,
+    slugs: string[],
+    sourcePrefix: "/grapher/" | "/explorers/"
+): Promise<Map<string, string>> {
+    const redirects = await getMultiDimRedirectTargets(
+        knex,
+        slugs,
+        sourcePrefix
+    )
+    return new Map(
+        Array.from(redirects, ([slug, redirect]) => [slug, redirect.targetSlug])
+    )
+}
+
+/**
+ * Classifies grapher slugs to their final content type.
+ * A grapher slug may:
+ *
+ * 1. Stay as a grapher (found in grapherChecksumsMap)
+ * 2. Redirect to a multi-dim page (explicit redirect in multiDimRedirectMap)
+ * 3. Not exist as a chart but exist as a multi-dim
+ */
+function classifyGrapherSlugs(
+    slugs: string[],
+    grapherChecksumsMap: Map<string, GrapherChecksumsObjectWithHash>,
+    multiDimRedirectMap: Map<string, string>
+): Map<string, ResolvedSlug> {
+    const result = new Map<string, ResolvedSlug>()
+    for (const slug of slugs) {
+        const multiDimTarget = multiDimRedirectMap.get(slug)
+        if (multiDimTarget && multiDimTarget !== slug) {
+            // Explicit redirect to multi-dim
+            result.set(slug, { type: "multiDim", slug: multiDimTarget })
+        } else if (grapherChecksumsMap.has(slug)) {
+            // Found as a chart
+            result.set(slug, { type: "grapher", slug })
+        } else {
+            // Not found as chart, treat as multi-dim (slug stays the same)
+            result.set(slug, { type: "multiDim", slug })
+        }
+    }
+    return result
+}
+
+/**
+ * Classifies explorer slugs to their final content type.
+ * An explorer slug may:
+ *
+ * 1. Stay as an explorer
+ * 2. Redirect to a multi-dim
+ */
+function classifyExplorerSlugs(
+    slugs: string[],
+    multiDimRedirectMap: Map<string, string>
+): Map<string, ResolvedSlug> {
+    const result = new Map<string, ResolvedSlug>()
+    for (const slug of slugs) {
+        const multiDimTarget = multiDimRedirectMap.get(slug)
+        if (multiDimTarget) {
+            // Explicit redirect to multi-dim
+            result.set(slug, { type: "multiDim", slug: multiDimTarget })
+        } else {
+            // Stays as explorer
+            result.set(slug, { type: "explorer", slug })
+        }
+    }
+    return result
+}
+
+/** Collects all variable IDs referenced in a set of indicator checksums. */
+function collectVariableIdsFromIndicators(
+    indicators: IndicatorChecksums
+): Set<number> {
+    return new Set(Object.keys(indicators).map((id) => parseInt(id)))
+}
+
+export async function getPostChecksumsFromDb(
     knex: db.KnexReadonlyTransaction
 ): Promise<{
     postChecksums: PostChecksumsObjectWithHash[]
     imagesByPostId: Record<string, ArchivalImage[]>
-}> => {
+}> {
+    // Phase 1: Fetch all posts and their linked content
     const posts = await knex<DbRawPostGdoc>(PostsGdocsTableName)
         .select("id", "slug", "contentMd5")
         .where("published", true)
@@ -792,10 +875,11 @@ export const getPostChecksumsFromDb = async (
     const chartsByPost = groupLinkedChartsByPost(posts, linkedCharts)
     const imagesByPostId = await getImagesByPostId(knex, postIds)
 
+    // Collect all unique slugs across all posts
     const allGrapherSlugs = new Set<string>()
     const allExplorerSlugs = new Set<string>()
     const allNarrativeChartNames = new Set<string>()
-    for (const [, charts] of chartsByPost) {
+    for (const charts of chartsByPost.values()) {
         charts.grapher.forEach((slug) => allGrapherSlugs.add(slug))
         charts.explorer.forEach((slug) => allExplorerSlugs.add(slug))
         charts.narrativeChart.forEach((name) =>
@@ -803,113 +887,294 @@ export const getPostChecksumsFromDb = async (
         )
     }
 
-    const grapherSlugRedirects = await resolveGrapherRedirects(
-        knex,
-        Array.from(allGrapherSlugs)
-    )
-
-    // Replace original slugs with resolved slugs.
-    for (const [, charts] of chartsByPost) {
-        charts.grapher = new Set(
-            charts.grapher
-                .values()
-                .map((slug) => grapherSlugRedirects.get(slug) ?? slug)
+    // Phase 2: Resolve redirects and classify content types
+    const { grapherChecksumsMap, multiDimChecksumsMap, grapherResolutions } =
+        await resolveGrapherSlugsAndFetchChecksums(
+            knex,
+            Array.from(allGrapherSlugs)
         )
-    }
 
-    const resolvedGrapherSlugs = new Set(
-        chartsByPost.values().flatMap((charts) => charts.grapher)
-    )
+    const { explorerChecksumsMap, explorerResolutions } =
+        await resolveExplorerSlugsAndFetchChecksums(
+            knex,
+            Array.from(allExplorerSlugs),
+            multiDimChecksumsMap
+        )
 
-    const grapherChecksums = await getGrapherChecksumsFromDb(
-        knex,
-        Array.from(resolvedGrapherSlugs)
-    )
-    const grapherChecksumsMap = new Map(
-        grapherChecksums.map((c) => [c.chartSlug, c])
-    )
-
-    const multiDimSlugs = Array.from(resolvedGrapherSlugs).filter(
-        (slug) => !grapherChecksumsMap.has(slug)
-    )
-    const multiDimChecksums = await getMultiDimChecksumsFromDb(
-        knex,
-        multiDimSlugs
-    )
-    const multiDimChecksumsMap = new Map(
-        multiDimChecksums.map((m) => [m.multiDimSlug, m])
-    )
-
-    const explorerChecksums = await getExplorerChecksumsFromDb(
-        knex,
-        Array.from(allExplorerSlugs)
-    )
-    const explorerChecksumsMap = new Map(
-        explorerChecksums.map((e) => [e.explorerSlug, e])
-    )
-
-    const narrativeChartChecksums = await getNarrativeChartChecksumsFromDb(
+    const narrativeChartChecksumsMap = await fetchNarrativeChartChecksums(
         knex,
         Array.from(allNarrativeChartNames)
     )
-    const narrativeChartChecksumsMap = new Map(
-        narrativeChartChecksums.map((nc) => [nc.narrativeChartName, nc])
+
+    // Phase 3: Collect all variable IDs and fetch their checksums
+    const allVariableIds = collectAllVariableIds(
+        grapherChecksumsMap,
+        multiDimChecksumsMap,
+        explorerChecksumsMap,
+        narrativeChartChecksumsMap
     )
-
-    const allVariableIds = new Set<number>()
-    for (const grapher of grapherChecksums) {
-        Object.keys(grapher.checksums.indicators).forEach((id) =>
-            allVariableIds.add(parseInt(id))
-        )
-    }
-    for (const multiDim of multiDimChecksums) {
-        Object.keys(multiDim.checksums.indicators).forEach((id) =>
-            allVariableIds.add(parseInt(id))
-        )
-    }
-    for (const explorer of explorerChecksums) {
-        Object.keys(explorer.checksums.indicators).forEach((id) =>
-            allVariableIds.add(parseInt(id))
-        )
-    }
-    for (const narrativeChart of narrativeChartChecksums) {
-        Object.keys(narrativeChart.indicators).forEach((id) =>
-            allVariableIds.add(parseInt(id))
-        )
-    }
-
     const variableChecksumsMap = await getVariableChecksumsForIds(
         knex,
         allVariableIds
     )
 
-    const postChecksums = posts.map((post) => {
-        const postCharts = chartsByPost.get(post.id)!
+    // Phase 4: Build checksums for each post
+    const postChecksums = posts.map((post) =>
+        buildPostChecksums(
+            post,
+            chartsByPost.get(post.id)!,
+            grapherResolutions,
+            explorerResolutions,
+            grapherChecksumsMap,
+            multiDimChecksumsMap,
+            explorerChecksumsMap,
+            narrativeChartChecksumsMap,
+            variableChecksumsMap,
+            imagesByPostId[post.id] ?? []
+        )
+    )
 
-        const graphers: Record<
-            string,
-            { slug: string; chartConfigMd5: string }
-        > = {}
-        for (const slug of postCharts.grapher) {
-            const checksum = grapherChecksumsMap.get(slug)
+    return { postChecksums, imagesByPostId }
+}
+
+/**
+ * Resolves grapher slugs through redirects, then classifies each as either a
+ * grapher or multi-dim page. Returns checksums for both types.
+ */
+async function resolveGrapherSlugsAndFetchChecksums(
+    knex: db.KnexReadonlyTransaction,
+    originalSlugs: string[]
+): Promise<{
+    grapherChecksumsMap: Map<string, GrapherChecksumsObjectWithHash>
+    multiDimChecksumsMap: Map<string, MultiDimChecksumsObjectWithHash>
+    grapherResolutions: Map<string, ResolvedSlug>
+}> {
+    if (originalSlugs.length === 0) {
+        return {
+            grapherChecksumsMap: new Map(),
+            multiDimChecksumsMap: new Map(),
+            grapherResolutions: new Map(),
+        }
+    }
+
+    // Step 1: Follow chart slug redirects (e.g., old-slug -> new-slug)
+    const chartRedirects = await resolveGrapherRedirects(knex, originalSlugs)
+    const slugsAfterChartRedirects = new Set(
+        originalSlugs.map((slug) => chartRedirects.get(slug) ?? slug)
+    )
+
+    // Step 2: Check for multi-dim redirects on the resolved slugs
+    const multiDimRedirects = await resolveMultiDimRedirects(
+        knex,
+        Array.from(slugsAfterChartRedirects),
+        "/grapher/"
+    )
+
+    // Step 3: Identify which slugs explicitly redirect to multi-dims
+    const slugsRedirectingToMultiDim = new Set(
+        Array.from(slugsAfterChartRedirects).filter((slug) =>
+            multiDimRedirects.has(slug)
+        )
+    )
+
+    // Step 4: Fetch chart checksums for slugs that don't redirect to multi-dims
+    const slugsForChartLookup = Array.from(slugsAfterChartRedirects).filter(
+        (slug) => !slugsRedirectingToMultiDim.has(slug)
+    )
+    const grapherChecksums = await getGrapherChecksumsFromDb(
+        knex,
+        slugsForChartLookup
+    )
+    const grapherChecksumsMap = new Map(
+        grapherChecksums.map((c) => [c.chartSlug, c])
+    )
+
+    // Step 5: Classify each resolved slug and fetch multi-dim checksums
+    const grapherResolutions = classifyGrapherSlugs(
+        Array.from(slugsAfterChartRedirects),
+        grapherChecksumsMap,
+        multiDimRedirects
+    )
+
+    // Collect all multi-dim slugs (both from redirects and unresolved graphers)
+    const multiDimSlugs = new Set<string>()
+    for (const resolved of grapherResolutions.values()) {
+        if (resolved.type === "multiDim") {
+            multiDimSlugs.add(resolved.slug)
+        }
+    }
+
+    const multiDimChecksums = await getMultiDimChecksumsFromDb(
+        knex,
+        Array.from(multiDimSlugs)
+    )
+    const multiDimChecksumsMap = new Map(
+        multiDimChecksums.map((m) => [m.multiDimSlug, m])
+    )
+
+    // Build resolution map from original slugs to resolved content
+    const finalResolutions = new Map<string, ResolvedSlug>()
+    for (const originalSlug of originalSlugs) {
+        const afterChartRedirect =
+            chartRedirects.get(originalSlug) ?? originalSlug
+        const resolved = grapherResolutions.get(afterChartRedirect)
+        if (resolved) {
+            finalResolutions.set(originalSlug, resolved)
+        }
+    }
+
+    return {
+        grapherChecksumsMap,
+        multiDimChecksumsMap,
+        grapherResolutions: finalResolutions,
+    }
+}
+
+/**
+ * Resolves explorer slugs, checking for multi-dim redirects.
+ * Returns checksums and adds any new multi-dims to the provided map.
+ */
+async function resolveExplorerSlugsAndFetchChecksums(
+    knex: db.KnexReadonlyTransaction,
+    originalSlugs: string[],
+    existingMultiDimMap: Map<string, MultiDimChecksumsObjectWithHash>
+): Promise<{
+    explorerChecksumsMap: Map<string, ExplorerChecksumsObjectWithHash>
+    explorerResolutions: Map<string, ResolvedSlug>
+}> {
+    if (originalSlugs.length === 0) {
+        return {
+            explorerChecksumsMap: new Map(),
+            explorerResolutions: new Map(),
+        }
+    }
+
+    // Check for multi-dim redirects
+    const multiDimRedirects = await resolveMultiDimRedirects(
+        knex,
+        originalSlugs,
+        "/explorers/"
+    )
+
+    const slugsRedirectingToMultiDim = new Set(
+        originalSlugs.filter((slug) => multiDimRedirects.has(slug))
+    )
+
+    // Fetch explorer checksums for non-redirected slugs
+    const slugsForExplorerLookup = originalSlugs.filter(
+        (slug) => !slugsRedirectingToMultiDim.has(slug)
+    )
+    const explorerChecksums = await getExplorerChecksumsFromDb(
+        knex,
+        slugsForExplorerLookup
+    )
+    const explorerChecksumsMap = new Map(
+        explorerChecksums.map((e) => [e.explorerSlug, e])
+    )
+
+    // Fetch any new multi-dim checksums for redirected explorers
+    const newMultiDimSlugs = Array.from(slugsRedirectingToMultiDim)
+        .map((slug) => multiDimRedirects.get(slug)!)
+        .filter((slug) => !existingMultiDimMap.has(slug))
+
+    if (newMultiDimSlugs.length > 0) {
+        const additionalMultiDims = await getMultiDimChecksumsFromDb(
+            knex,
+            newMultiDimSlugs
+        )
+        for (const checksum of additionalMultiDims) {
+            existingMultiDimMap.set(checksum.multiDimSlug, checksum)
+        }
+    }
+
+    // Build resolution map
+    const explorerResolutions = classifyExplorerSlugs(
+        originalSlugs,
+        multiDimRedirects
+    )
+
+    return { explorerChecksumsMap, explorerResolutions }
+}
+
+async function fetchNarrativeChartChecksums(
+    knex: db.KnexReadonlyTransaction,
+    names: string[]
+): Promise<Map<string, NarrativeChartChecksumsResult>> {
+    const checksums = await getNarrativeChartChecksumsFromDb(knex, names)
+    return new Map(checksums.map((nc) => [nc.narrativeChartName, nc]))
+}
+
+function collectAllVariableIds(
+    grapherMap: Map<string, GrapherChecksumsObjectWithHash>,
+    multiDimMap: Map<string, MultiDimChecksumsObjectWithHash>,
+    explorerMap: Map<string, ExplorerChecksumsObjectWithHash>,
+    narrativeChartMap: Map<string, NarrativeChartChecksumsResult>
+): Set<number> {
+    const allIds = new Set<number>()
+    for (const grapher of grapherMap.values()) {
+        collectVariableIdsFromIndicators(grapher.checksums.indicators).forEach(
+            (id) => allIds.add(id)
+        )
+    }
+    for (const multiDim of multiDimMap.values()) {
+        collectVariableIdsFromIndicators(multiDim.checksums.indicators).forEach(
+            (id) => allIds.add(id)
+        )
+    }
+    for (const explorer of explorerMap.values()) {
+        collectVariableIdsFromIndicators(explorer.checksums.indicators).forEach(
+            (id) => allIds.add(id)
+        )
+    }
+    for (const narrativeChart of narrativeChartMap.values()) {
+        collectVariableIdsFromIndicators(
+            narrativeChart.checksums.indicators
+        ).forEach((id) => allIds.add(id))
+    }
+    return allIds
+}
+
+function buildPostChecksums(
+    post: Pick<DbRawPostGdoc, "id" | "slug" | "contentMd5">,
+    postCharts: ChartsByPost,
+    grapherResolutions: Map<string, ResolvedSlug>,
+    explorerResolutions: Map<string, ResolvedSlug>,
+    grapherChecksumsMap: Map<string, GrapherChecksumsObjectWithHash>,
+    multiDimChecksumsMap: Map<string, MultiDimChecksumsObjectWithHash>,
+    explorerChecksumsMap: Map<string, ExplorerChecksumsObjectWithHash>,
+    narrativeChartChecksumsMap: Map<string, NarrativeChartChecksumsResult>,
+    variableChecksumsMap: Map<
+        string,
+        { metadataChecksum: string; dataChecksum: string }
+    >,
+    images: ArchivalImage[]
+): PostChecksumsObjectWithHash {
+    const graphers: Record<string, { slug: string; chartConfigMd5: string }> =
+        {}
+    const multiDims: Record<
+        string,
+        {
+            slug: string
+            multiDimConfigMd5: string
+            chartConfigs: Record<string, string>
+        }
+    > = {}
+
+    // Process grapher slugs based on their resolved type
+    for (const originalSlug of postCharts.grapher) {
+        const resolved = grapherResolutions.get(originalSlug)
+        if (!resolved) continue
+
+        if (resolved.type === "grapher") {
+            const checksum = grapherChecksumsMap.get(resolved.slug)
             if (checksum) {
                 graphers[checksum.chartId.toString()] = {
                     slug: checksum.chartSlug,
                     chartConfigMd5: checksum.checksums.chartConfigMd5,
                 }
             }
-        }
-
-        const multiDims: Record<
-            string,
-            {
-                slug: string
-                multiDimConfigMd5: string
-                chartConfigs: Record<string, string>
-            }
-        > = {}
-        for (const slug of postCharts.grapher) {
-            const checksum = multiDimChecksumsMap.get(slug)
+        } else if (resolved.type === "multiDim") {
+            const checksum = multiDimChecksumsMap.get(resolved.slug)
             if (checksum) {
                 multiDims[checksum.multiDimId.toString()] = {
                     slug: checksum.multiDimSlug,
@@ -918,136 +1183,171 @@ export const getPostChecksumsFromDb = async (
                 }
             }
         }
+    }
 
-        const explorers: Record<
-            string,
-            {
-                explorerConfigMd5: string
-                chartConfigs: Record<string, string>
-            }
-        > = {}
-        for (const slug of postCharts.explorer) {
-            const checksum = explorerChecksumsMap.get(slug)
+    // Process explorer slugs (may also resolve to multi-dims)
+    const explorers: Record<
+        string,
+        { explorerConfigMd5: string; chartConfigs: Record<string, string> }
+    > = {}
+
+    for (const originalSlug of postCharts.explorer) {
+        const resolved = explorerResolutions.get(originalSlug)
+        if (!resolved) continue
+
+        if (resolved.type === "explorer") {
+            const checksum = explorerChecksumsMap.get(resolved.slug)
             if (checksum) {
-                explorers[slug] = {
+                explorers[resolved.slug] = {
                     explorerConfigMd5: checksum.checksums.explorerConfigMd5,
                     chartConfigs: checksum.checksums.chartConfigs,
                 }
             }
-        }
-
-        const narrativeCharts: Record<
-            string,
-            {
-                name: string
-                chartConfigMd5: string
-                queryParamsForParentChartMd5: string
-            }
-        > = {}
-        for (const name of postCharts.narrativeChart) {
-            const checksum = narrativeChartChecksumsMap.get(name)
+        } else if (resolved.type === "multiDim") {
+            const checksum = multiDimChecksumsMap.get(resolved.slug)
             if (checksum) {
-                narrativeCharts[checksum.narrativeChartId.toString()] = {
-                    name: checksum.narrativeChartName,
-                    chartConfigMd5: checksum.chartConfigMd5,
-                    queryParamsForParentChartMd5:
-                        checksum.queryParamsForParentChartMd5,
+                multiDims[checksum.multiDimId.toString()] = {
+                    slug: checksum.multiDimSlug,
+                    multiDimConfigMd5: checksum.checksums.multiDimConfigMd5,
+                    chartConfigs: checksum.checksums.chartConfigs,
                 }
             }
         }
+    }
 
-        const postIndicators: Record<
-            string,
-            { metadataChecksum: string; dataChecksum: string }
-        > = {}
-        for (const slug of postCharts.grapher) {
-            const grapherChecksum = grapherChecksumsMap.get(slug)
-            if (grapherChecksum) {
-                for (const id of Object.keys(
-                    grapherChecksum.checksums.indicators
-                )) {
-                    const variableChecksum = variableChecksumsMap.get(id)
-                    if (variableChecksum) {
-                        postIndicators[id] = variableChecksum
-                    }
-                }
-            }
-            const multiDimChecksum = multiDimChecksumsMap.get(slug)
-            if (multiDimChecksum) {
-                for (const id of Object.keys(
-                    multiDimChecksum.checksums.indicators
-                )) {
-                    const variableChecksum = variableChecksumsMap.get(id)
-                    if (variableChecksum) {
-                        postIndicators[id] = variableChecksum
-                    }
-                }
-            }
+    // Process narrative charts
+    const narrativeCharts: Record<
+        string,
+        {
+            name: string
+            chartConfigMd5: string
+            queryParamsForParentChartMd5: string
         }
-        for (const slug of postCharts.explorer) {
-            const explorerChecksum = explorerChecksumsMap.get(slug)
-            if (explorerChecksum) {
-                for (const id of Object.keys(
-                    explorerChecksum.checksums.indicators
-                )) {
-                    const variableChecksum = variableChecksumsMap.get(id)
-                    if (variableChecksum) {
-                        postIndicators[id] = variableChecksum
-                    }
-                }
-            }
-        }
-        for (const name of postCharts.narrativeChart) {
-            const narrativeChartChecksum = narrativeChartChecksumsMap.get(name)
-            if (narrativeChartChecksum) {
-                for (const id of Object.keys(
-                    narrativeChartChecksum.indicators
-                )) {
-                    const variableChecksum = variableChecksumsMap.get(id)
-                    if (variableChecksum) {
-                        postIndicators[id] = variableChecksum
-                    }
-                }
-            }
-        }
+    > = {}
 
-        const checksums: PostChecksums = {
-            postContentMd5: post.contentMd5,
-            indicators: postIndicators,
-            graphers,
-            explorers,
-            multiDims,
-            narrativeCharts,
-            images: _.mapValues(
-                _.keyBy(imagesByPostId[post.id], "id"),
-                (image) => ({
-                    filename: image.filename,
-                    hash: image.hash,
-                })
-            ),
+    for (const name of postCharts.narrativeChart) {
+        const checksum = narrativeChartChecksumsMap.get(name)
+        if (checksum) {
+            narrativeCharts[checksum.narrativeChartId.toString()] = {
+                name: checksum.narrativeChartName,
+                chartConfigMd5: checksum.checksums.chartConfigMd5,
+                queryParamsForParentChartMd5:
+                    checksum.checksums.queryParamsForParentChartMd5,
+            }
         }
+    }
 
-        return {
-            postId: post.id,
-            postSlug: post.slug,
-            checksums,
-            checksumsHashed: hashPostChecksumsObj(checksums),
-        }
-    })
+    // Collect all indicators referenced by this post's content
+    const postIndicators = collectPostIndicators(
+        postCharts,
+        grapherResolutions,
+        explorerResolutions,
+        grapherChecksumsMap,
+        multiDimChecksumsMap,
+        explorerChecksumsMap,
+        narrativeChartChecksumsMap,
+        variableChecksumsMap
+    )
+
+    const checksums: PostChecksums = {
+        postContentMd5: post.contentMd5,
+        indicators: postIndicators,
+        graphers,
+        explorers,
+        multiDims,
+        narrativeCharts,
+        images: _.mapValues(_.keyBy(images, "id"), (image) => ({
+            filename: image.filename,
+            hash: image.hash,
+        })),
+    }
 
     return {
-        postChecksums,
-        imagesByPostId,
+        postId: post.id,
+        postSlug: post.slug,
+        checksums,
+        checksumsHashed: hashPostChecksumsObj(checksums),
     }
 }
 
-export const findChangedPostPages = async (
+function collectPostIndicators(
+    postCharts: ChartsByPost,
+    grapherResolutions: Map<string, ResolvedSlug>,
+    explorerResolutions: Map<string, ResolvedSlug>,
+    grapherChecksumsMap: Map<string, GrapherChecksumsObjectWithHash>,
+    multiDimChecksumsMap: Map<string, MultiDimChecksumsObjectWithHash>,
+    explorerChecksumsMap: Map<string, ExplorerChecksumsObjectWithHash>,
+    narrativeChartChecksumsMap: Map<string, NarrativeChartChecksumsResult>,
+    variableChecksumsMap: Map<
+        string,
+        { metadataChecksum: string; dataChecksum: string }
+    >
+): IndicatorChecksums {
+    const postIndicators: IndicatorChecksums = {}
+
+    function addIndicatorsFromChecksums(indicators: IndicatorChecksums): void {
+        for (const id of Object.keys(indicators)) {
+            const checksum = variableChecksumsMap.get(id)
+            if (checksum) {
+                postIndicators[id] = checksum
+            }
+        }
+    }
+
+    // From grapher slugs (which may resolve to graphers or multi-dims)
+    for (const originalSlug of postCharts.grapher) {
+        const resolved = grapherResolutions.get(originalSlug)
+        if (!resolved) continue
+
+        if (resolved.type === "grapher") {
+            const checksum = grapherChecksumsMap.get(resolved.slug)
+            if (checksum) {
+                addIndicatorsFromChecksums(checksum.checksums.indicators)
+            }
+        } else if (resolved.type === "multiDim") {
+            const checksum = multiDimChecksumsMap.get(resolved.slug)
+            if (checksum) {
+                addIndicatorsFromChecksums(checksum.checksums.indicators)
+            }
+        }
+    }
+
+    // From explorer slugs (which may resolve to explorers or multi-dims)
+    for (const originalSlug of postCharts.explorer) {
+        const resolved = explorerResolutions.get(originalSlug)
+        if (!resolved) continue
+
+        if (resolved.type === "explorer") {
+            const checksum = explorerChecksumsMap.get(resolved.slug)
+            if (checksum) {
+                addIndicatorsFromChecksums(checksum.checksums.indicators)
+            }
+        } else if (resolved.type === "multiDim") {
+            const checksum = multiDimChecksumsMap.get(resolved.slug)
+            if (checksum) {
+                addIndicatorsFromChecksums(checksum.checksums.indicators)
+            }
+        }
+    }
+
+    // From narrative charts
+    for (const name of postCharts.narrativeChart) {
+        const checksum = narrativeChartChecksumsMap.get(name)
+        if (checksum) {
+            addIndicatorsFromChecksums(checksum.checksums.indicators)
+        }
+    }
+
+    return postIndicators
+}
+
+export async function findChangedPostPages(
     knex: db.KnexReadonlyTransaction
 ): Promise<{
     postChecksums: PostChecksumsObjectWithHash[]
     imagesByPostId: Record<string, ArchivalImage[]>
     videosByPostId: Record<string, string[]>
-}> => {
+}> {
     const { postChecksums: allPostChecksums, imagesByPostId } =
         await getPostChecksumsFromDb(knex)
 

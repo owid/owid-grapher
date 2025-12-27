@@ -3,15 +3,15 @@ import { vi, it, expect } from "vitest"
 import { Url, strToQueryParams } from "@ourworldindata/utils"
 import { formatUrls } from "../site/formatting.js"
 import * as redirectsFromDb from "./redirectsFromDb.js"
-import { resolveInternalRedirect } from "./redirects.js"
+import { DEPRECATED_resolveInternalRedirectForWordpressProminentLinks } from "./redirects.js"
 
 import { KnexReadonlyTransaction } from "../db/db.js"
 
 type ArrayForMap = [string, string][]
 
-const getGrapherAndWordpressRedirectsMap = vi.spyOn(
+const getAllRedirectsMap = vi.spyOn(
     redirectsFromDb,
-    "getGrapherAndWordpressRedirectsMap"
+    "DEPRECATED_getAllRedirectsMap"
 )
 
 const getFormattedUrl = (url: string): Url => {
@@ -26,12 +26,12 @@ it("resolves pathnames", async () => {
     const urlToResolve = getFormattedUrl(src)
     const resolvedUrl = getFormattedUrl(target)
 
-    getGrapherAndWordpressRedirectsMap.mockImplementation(() =>
+    getAllRedirectsMap.mockImplementation(() =>
         Promise.resolve(new Map(redirectsArr))
     )
 
     expect(
-        await resolveInternalRedirect(
+        await DEPRECATED_resolveInternalRedirectForWordpressProminentLinks(
             urlToResolve,
             {} as KnexReadonlyTransaction
         )
@@ -45,12 +45,12 @@ it("does not support query string in redirects map", async () => {
 
     const urlToResolve = getFormattedUrl(src)
 
-    getGrapherAndWordpressRedirectsMap.mockImplementation(() =>
+    getAllRedirectsMap.mockImplementation(() =>
         Promise.resolve(new Map(redirectsArr))
     )
 
     expect(
-        await resolveInternalRedirect(
+        await DEPRECATED_resolveInternalRedirectForWordpressProminentLinks(
             urlToResolve,
             {} as KnexReadonlyTransaction
         )
@@ -70,19 +70,19 @@ it("passes query string params when resolving", async () => {
         strToQueryParams(queryString)
     )
 
-    getGrapherAndWordpressRedirectsMap.mockImplementation(() =>
+    getAllRedirectsMap.mockImplementation(() =>
         Promise.resolve(new Map(redirectsArr))
     )
 
     expect(
-        await resolveInternalRedirect(
+        await DEPRECATED_resolveInternalRedirectForWordpressProminentLinks(
             urlToResolve,
             {} as KnexReadonlyTransaction
         )
     ).toEqual(resolvedUrl)
 })
 
-it("does not pass query string params when some present on the target", async () => {
+it("merges source query string params with target params", async () => {
     const src = "/hello"
     const target = "/world?q=1"
     const redirectsArr: ArrayForMap = [[src, target]]
@@ -90,14 +90,43 @@ it("does not pass query string params when some present on the target", async ()
     const urlToResolve = getFormattedUrl(src).setQueryParams(
         strToQueryParams("?z=2")
     )
-    const resolvedUrl = getFormattedUrl(target)
+    // Source params (z=2) should be merged with target params (q=1)
+    const resolvedUrl = getFormattedUrl("/world").setQueryParams(
+        strToQueryParams("?z=2&q=1")
+    )
 
-    getGrapherAndWordpressRedirectsMap.mockImplementation(() =>
+    getAllRedirectsMap.mockImplementation(() =>
         Promise.resolve(new Map(redirectsArr))
     )
 
     expect(
-        await resolveInternalRedirect(
+        await DEPRECATED_resolveInternalRedirectForWordpressProminentLinks(
+            urlToResolve,
+            {} as KnexReadonlyTransaction
+        )
+    ).toEqual(resolvedUrl)
+})
+
+it("target params take precedence over source params on conflict", async () => {
+    const src = "/hello"
+    const target = "/world?tab=chart"
+    const redirectsArr: ArrayForMap = [[src, target]]
+
+    // Source has tab=map, but target has tab=chart
+    const urlToResolve = getFormattedUrl(src).setQueryParams(
+        strToQueryParams("?tab=map&other=value")
+    )
+    // Target param tab=chart should win, but other=value should be preserved
+    const resolvedUrl = getFormattedUrl("/world").setQueryParams(
+        strToQueryParams("?tab=chart&other=value")
+    )
+
+    getAllRedirectsMap.mockImplementation(() =>
+        Promise.resolve(new Map(redirectsArr))
+    )
+
+    expect(
+        await DEPRECATED_resolveInternalRedirectForWordpressProminentLinks(
             urlToResolve,
             {} as KnexReadonlyTransaction
         )
@@ -111,12 +140,12 @@ it("resolves self-redirects", async () => {
 
     const urlToResolve = getFormattedUrl(src)
 
-    getGrapherAndWordpressRedirectsMap.mockImplementation(() =>
+    getAllRedirectsMap.mockImplementation(() =>
         Promise.resolve(new Map(redirectsArr))
     )
 
     expect(
-        await resolveInternalRedirect(
+        await DEPRECATED_resolveInternalRedirectForWordpressProminentLinks(
             urlToResolve,
             {} as KnexReadonlyTransaction
         )
@@ -133,18 +162,18 @@ it("does not support query params in self-redirects", async () => {
         strToQueryParams("?z=2")
     )
 
-    getGrapherAndWordpressRedirectsMap.mockImplementation(() =>
+    getAllRedirectsMap.mockImplementation(() =>
         Promise.resolve(new Map(redirectsArr))
     )
 
     expect(
-        await resolveInternalRedirect(
+        await DEPRECATED_resolveInternalRedirectForWordpressProminentLinks(
             urlToResolve,
             {} as KnexReadonlyTransaction
         )
     ).toEqual(urlToResolve)
     expect(
-        await resolveInternalRedirect(
+        await DEPRECATED_resolveInternalRedirectForWordpressProminentLinks(
             urlToResolveWithQueryParam,
             {} as KnexReadonlyTransaction
         )
@@ -163,12 +192,12 @@ it("resolves circular redirects", async () => {
 
     const urlToResolve = getFormattedUrl(theKing)
 
-    getGrapherAndWordpressRedirectsMap.mockImplementation(() =>
+    getAllRedirectsMap.mockImplementation(() =>
         Promise.resolve(new Map(redirectsArr))
     )
 
     expect(
-        await resolveInternalRedirect(
+        await DEPRECATED_resolveInternalRedirectForWordpressProminentLinks(
             urlToResolve,
             {} as KnexReadonlyTransaction
         )
