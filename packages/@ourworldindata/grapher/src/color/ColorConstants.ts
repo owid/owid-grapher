@@ -2,7 +2,7 @@
 export const GRAY_100 = "#2d2e2d"
 export const GRAY_90 = "#4e4e4e"
 export const GRAY_80 = "#5b5b5b"
-export const GRAY_70 = "#858585"
+export const GRAY_70 = "#767676"
 export const GRAY_60 = "#a1a1a1"
 export const GRAY_50 = "#c6c6c6"
 export const GRAY_30 = "#dadada"
