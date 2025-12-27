@@ -1,12 +1,7 @@
 import * as _ from "lodash-es"
 import {
-    getSelectedEntityNamesParam,
-    GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY,
-    GLOBAL_ENTITY_SELECTOR_ELEMENT,
     GrapherProgrammaticInterface,
     GRAPHER_EMBEDDED_FIGURE_ATTR,
-    hydrateGlobalEntitySelectorIfAny,
-    migrateSelectedEntityNamesParam,
     SelectionArray,
     migrateGrapherConfigToLatestVersion,
     GRAPHER_NARRATIVE_CHART_CONFIG_FIGURE_ATTR,
@@ -14,7 +9,6 @@ import {
 } from "@ourworldindata/grapher"
 import {
     fetchText,
-    getWindowUrl,
     isPresent,
     Url,
     fetchWithRetry,
@@ -54,12 +48,6 @@ const figuresFromDOM = (
     Array.from(
         container.querySelectorAll<HTMLElement>(`*[${selector}]`)
     ).filter(isPresent)
-
-// const pageContainsGlobalEntitySelector = () =>
-//     globalEntitySelectorElement() !== null
-
-const globalEntitySelectorElement = () =>
-    document.querySelector(GLOBAL_ENTITY_SELECTOR_ELEMENT)
 
 class MultiEmbedder {
     private figuresObserver: IntersectionObserver | undefined
@@ -335,33 +323,6 @@ class MultiEmbedder {
             )
             .with("grapher", () => this.renderGrapherIntoFigure(figure))
             .exhaustive()
-    }
-
-    setUpGlobalEntitySelectorForEmbeds() {
-        const element = globalEntitySelectorElement()
-        if (!element) return
-
-        const embeddedDefaultCountriesParam = element.getAttribute(
-            GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY
-        )
-
-        const [defaultEntityNames, windowEntityNames] = [
-            Url.fromQueryParams({
-                country: embeddedDefaultCountriesParam || undefined,
-            }),
-            getWindowUrl(),
-        ]
-            .map(migrateSelectedEntityNamesParam)
-            .map(getSelectedEntityNamesParam)
-
-        this.selection = new SelectionArray(
-            windowEntityNames ?? defaultEntityNames
-        )
-
-        hydrateGlobalEntitySelectorIfAny(
-            this.selection,
-            this.graphersAndExplorersToUpdate
-        )
     }
 }
 

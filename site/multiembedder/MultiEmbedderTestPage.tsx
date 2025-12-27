@@ -1,7 +1,4 @@
-import {
-    GLOBAL_ENTITY_SELECTOR_DATA_ATTR,
-    GRAPHER_EMBEDDED_FIGURE_ATTR,
-} from "@ourworldindata/grapher"
+import { GRAPHER_EMBEDDED_FIGURE_ATTR } from "@ourworldindata/grapher"
 import { EXPLORER_EMBEDDED_FIGURE_SELECTOR } from "@ourworldindata/explorer"
 import { Head } from "../../site/Head.js"
 import { SiteFooter } from "../../site/SiteFooter.js"
@@ -9,7 +6,6 @@ import { SiteHeader } from "../../site/SiteHeader.js"
 import { Html } from "../Html.js"
 
 export const MultiEmbedderTestPage = (
-    globalEntitySelector = false,
     slug = "embed-test-page",
     title = "MultiEmbedderTestPage"
 ) => {
@@ -29,16 +25,6 @@ export const MultiEmbedderTestPage = (
             <body>
                 <SiteHeader />
                 <main style={{ padding: "1rem" }}>
-                    {globalEntitySelector ? (
-                        <div
-                            {...{ [GLOBAL_ENTITY_SELECTOR_DATA_ATTR]: true }}
-                        ></div>
-                    ) : null}
-                    <p>
-                        <a href="?globalEntitySelector=true">
-                            With Global Entity Control
-                        </a>
-                    </p>
                     <h1>A grapher about sharks</h1>
                     <figure
                         data-test="within-bounds"
