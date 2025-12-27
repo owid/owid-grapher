@@ -249,40 +249,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return slugs.some((slug) => this.get(slug).numValues === 0)
     }
 
-    dropAllRows(): this {
-        return this.dropRowsAt(this.indices, "Drop all rows")
-    }
-
-    dropRowsWithErrorValuesForColumn(slug: ColumnSlug): this {
-        return this.columnFilter(
-            slug,
-            (value) => isNotErrorValue(value),
-            `Drop rows with empty or ErrorValues in ${slug} column`
-        )
-    }
-
-    // TODO rewrite with column ops
-    // TODO move to CoreTable
-    dropRowsWithErrorValuesForAnyColumn(slugs: ColumnSlug[]): this {
-        return this.rowFilter(
-            (row) => slugs.every((slug) => isNotErrorValue(row[slug])),
-            `Drop rows with empty or ErrorValues in any column: ${slugs.join(
-                ", "
-            )}`
-        )
-    }
-
-    // TODO rewrite with column ops
-    // TODO move to CoreTable
-    dropRowsWithErrorValuesForAllColumns(slugs: ColumnSlug[]): this {
-        return this.rowFilter(
-            (row) => slugs.some((slug) => isNotErrorValue(row[slug])),
-            `Drop rows with empty or ErrorValues in every column: ${slugs.join(
-                ", "
-            )}`
-        )
-    }
-
     // Drop _all rows_ for an entity if there is any column that has no valid values for that entity.
     dropEntitiesThatHaveNoDataInSomeColumn(columnSlugs: ColumnSlug[]): this {
         const indexesByEntityName = this.rowIndicesByEntityName
@@ -334,6 +300,64 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             this.entityNameSlug,
             (rowEntityName) => entityNamesToKeep.has(rowEntityName as string),
             `Drop ${entityNamesToDrop.size} entities that have no data in some column: ${columnSlugs.join(", ")}.\nDropped entities: ${droppedEntitiesStr}`
+        )
+    }
+
+    /**
+     * Drop _all rows_ for an entity if the entity has no data in ALL of the specified columns.
+     * An entity is kept if it has at least one valid value in ANY of the columns.
+     */
+    dropEntitiesThatHaveNoDataInAllColumns(columnSlugs: ColumnSlug[]): this {
+        const indexesByEntityName = this.rowIndicesByEntityName
+
+        // Start with all entities and remove those that have no data in ALL columns
+        const entityNamesToKeep = new Set(indexesByEntityName.keys())
+
+        for (const entityName of indexesByEntityName.keys()) {
+            const indicesForEntityName = indexesByEntityName.get(entityName)
+            if (!indicesForEntityName)
+                throw new Error("Unexpected: entity not found in index map")
+
+            // Check if the entity has at least one valid value in ANY column
+            let hasValidValueInAnyColumn = false
+
+            for (const slug of columnSlugs) {
+                const col = this.get(slug)
+
+                const hasSomeValidValueForEntityInCol =
+                    indicesForEntityName.some((index) =>
+                        isNotErrorValue(col.valuesIncludingErrorValues[index])
+                    )
+
+                if (hasSomeValidValueForEntityInCol) {
+                    hasValidValueInAnyColumn = true
+                    break // No need to check other columns for this entity
+                }
+            }
+
+            // If the entity has no valid value in any column, drop it
+            if (!hasValidValueInAnyColumn) entityNamesToKeep.delete(entityName)
+        }
+
+        const entityNamesToDrop = differenceOfSets([
+            this.availableEntityNameSet,
+            entityNamesToKeep,
+        ])
+        const droppedEntitiesStr =
+            entityNamesToDrop.size > 0
+                ? [...entityNamesToDrop].join(", ")
+                : "(None)"
+
+        if (entityNamesToDrop.size === 0) {
+            return this.noopTransform(
+                `Drop entities that have no data in all columns`
+            )
+        }
+
+        return this.columnFilter(
+            this.entityNameSlug,
+            (rowEntityName) => entityNamesToKeep.has(rowEntityName as string),
+            `Drop ${entityNamesToDrop.size} entities that have no data in all columns: ${columnSlugs.join(", ")}.\nDropped entities: ${droppedEntitiesStr}`
         )
     }
 
