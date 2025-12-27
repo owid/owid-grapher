@@ -33,6 +33,7 @@ import {
     GrapherState,
     fetchInputTableForConfig,
     loadVariableDataAndMetadata,
+    FetchInputTableForConfigFn,
 } from "@ourworldindata/grapher"
 import {
     Bounds,
@@ -95,6 +96,7 @@ export interface ExplorerProps extends SerializedGridProgram {
     throwOnMissingGrapher?: boolean
     setupGrapher?: boolean
     archiveContext?: ArchiveContext
+    loadInputTableForConfig?: FetchInputTableForConfigFn
 }
 
 const LivePreviewComponent = (props: ExplorerProps) => {
@@ -476,9 +478,7 @@ export class Explorer
     > = new Map()
 
     // todo: break this method up and unit test more. this is pretty ugly right now.
-    @action.bound private async reactToUserChangingSelection(
-        oldSelectedRow: number
-    ) {
+    @action.bound async reactToUserChangingSelection(oldSelectedRow: number) {
         if (!this.explorerProgram.currentlySelectedGrapherRow) return
         this.initSlideshow()
 
@@ -643,7 +643,9 @@ export class Explorer
         grapherState.inputTable = BlankOwidTable()
         grapherState.updateFromObject(config)
         if (!config.table) {
-            const inputTable = fetchInputTableForConfig({
+            const loadFn =
+                this.props.loadInputTableForConfig ?? fetchInputTableForConfig
+            const inputTable = loadFn({
                 dimensions: config.dimensions,
                 selectedEntityColors: config.selectedEntityColors,
                 dataApiUrl: this.props.dataApiUrl,
@@ -831,7 +833,9 @@ export class Explorer
             // so we don't end up confusingly showing stale data from a previous chart
             grapherState.inputTable = BlankOwidTable()
         } else {
-            const inputTable = fetchInputTableForConfig({
+            const loadFn =
+                this.props.loadInputTableForConfig ?? fetchInputTableForConfig
+            const inputTable = loadFn({
                 dimensions: config.dimensions,
                 selectedEntityColors: config.selectedEntityColors,
                 archiveContext: this.props.archiveContext,

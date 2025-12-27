@@ -65,3 +65,5 @@ export {
     type CellPosition,
     type ParsedCell,
 } from "./gridLang/GridLangConstants.js"
+
+export { GrapherGrammar } from "./GrapherGrammar.js"

@@ -485,7 +485,7 @@ export class ExplorerProgram extends GridProgram {
         const inlineData = this.getBlock(tableDefRow)
         let url = inlineData ? undefined : this.lines[tableDefRow][1]
 
-        if (url && !url.startsWith("http")) {
+        if (url && !url.includes("://")) {
             const owidDatasetSlug = encodeURIComponent(url)
             url = `https://raw.githubusercontent.com/owid/owid-datasets/master/datasets/${owidDatasetSlug}/${owidDatasetSlug}.csv`
         }

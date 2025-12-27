@@ -8,10 +8,8 @@ import * as utils from "./utils.js"
 import * as _ from "lodash-es"
 import * as Diff from "diff"
 
-const LIVE_GRAPHER_URL = "https://ourworldindata.org/grapher"
-
+const LIVE_URL = "https://ourworldindata.org"
 const LOCAL_URL = "http://localhost:3030"
-const LOCAL_GRAPHER_URL = LOCAL_URL + "/grapher"
 
 const REFERENCES_DIR_NAME = "references"
 const DIFFERENCES_DIR_NAME = "differences"
@@ -22,7 +20,14 @@ async function main(args: ReturnType<typeof parseArguments>) {
     const workingDir = path.join(utils.SVG_REPO_PATH, testSuite)
 
     const compareUrl = args.compareUrl
-    const compareGrapherUrl = compareUrl + "/grapher"
+
+    const isExplorer = testSuite === "explorers"
+    const compareChartUrl = isExplorer
+        ? compareUrl + "/explorers"
+        : compareUrl + "/grapher"
+    const liveChartUrl = isExplorer
+        ? LIVE_URL + "/explorers"
+        : LIVE_URL + "/grapher"
 
     if (!fs.existsSync(workingDir))
         throw `Working directory does not exist ${workingDir}`
@@ -62,7 +67,8 @@ async function main(args: ReturnType<typeof parseArguments>) {
             workingDir,
             referencesDirName,
             differencesDirName,
-            compareGrapherUrl,
+            compareChartUrl,
+            liveChartUrl,
         })
     )
     const summary = `<p class="summary">Number of differences: ${sections.length}</p>`
@@ -78,8 +84,7 @@ function parseArguments() {
         .command("$0 [testSuite]", false)
         .positional("testSuite", {
             type: "string",
-            description:
-                "Test suite to run: 'graphers' for default Grapher views, 'grapher-views' for all views of a subset of Graphers",
+            description: utils.TEST_SUITE_DESCRIPTION,
             default: "graphers",
             choices: utils.TEST_SUITES,
         })
@@ -126,7 +131,8 @@ function createSideBySideView(
     svgRecord: utils.SvgRecord,
     referenceFilename: string,
     differencesFilename: string,
-    compareGrapherUrl: string
+    compareChartUrl: string,
+    liveChartUrl: string
 ) {
     const { viewId } = svgRecord
 
@@ -134,13 +140,13 @@ function createSideBySideView(
         <div class="side-by-side">
             <div class="comparison-item deleted">
                 <div class="comparison-header">Deleted</div>
-                <a href="${LIVE_GRAPHER_URL}/${viewId}" target="_blank" class="comparison-image-wrapper">
+                <a href="${liveChartUrl}/${viewId}" target="_blank" class="comparison-image-wrapper">
                     <img src="${escapeQuestionMark(referenceFilename)}" loading="lazy" alt="Reference (live)">
                 </a>
             </div>
             <div class="comparison-item added">
                 <div class="comparison-header">Added</div>
-                <a href="${compareGrapherUrl}/${viewId}" target="_blank" class="comparison-image-wrapper">
+                <a href="${compareChartUrl}/${viewId}" target="_blank" class="comparison-image-wrapper">
                     <img src="${escapeQuestionMark(differencesFilename)}" loading="lazy" alt="Current (local)">
                 </a>
             </div>
@@ -206,9 +212,10 @@ function createComparisonView(args: {
     workingDir: string
     referencesDirName: string
     differencesDirName: string
-    compareGrapherUrl?: string
+    compareChartUrl: string
+    liveChartUrl: string
 }) {
-    const { svgRecord, compareGrapherUrl = LOCAL_GRAPHER_URL } = args
+    const { svgRecord, compareChartUrl, liveChartUrl } = args
     const { svgFilename, viewId } = args.svgRecord
 
     const referenceFilenameUrl = path.join(args.referencesDirName, svgFilename)
@@ -241,7 +248,7 @@ function createComparisonView(args: {
         </div>
         ${createTabControls()}
         <div class="tab-content">
-            ${createSideBySideView(svgRecord, referenceFilenameUrl, differenceFilenameUrl, compareGrapherUrl)}
+            ${createSideBySideView(svgRecord, referenceFilenameUrl, differenceFilenameUrl, compareChartUrl, liveChartUrl)}
             ${createSliderView(referenceFilenameUrl, differenceFilenameUrl)}
             ${createCodeDiffView(referencesPath, differencesPath, svgFilename)}
         </div>

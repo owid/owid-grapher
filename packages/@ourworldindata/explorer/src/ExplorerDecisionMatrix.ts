@@ -27,6 +27,13 @@ import {
 import { trimAndParseObject } from "./ExplorerProgram.js"
 import { GrapherGrammar } from "./GrapherGrammar.js"
 
+function parseVariableIds(value: string): number[] {
+    return value
+        .split(" ")
+        .map((id) => parseInt(id, 10))
+        .filter((id) => !isNaN(id))
+}
+
 // todo: cleanup
 const makeChoicesMap = (delimited: string) => {
     const headerLine = delimited.split("\n")[0]
@@ -131,19 +138,31 @@ export class DecisionMatrix {
         return this.table.get(GrapherGrammar.grapherId.keyword).uniqValues
     }
 
+    /**
+     * Unique variable IDs requiring partial Grapher config to be loaded.
+     * Extracts the first (primary) variable ID from the y-dimension of each
+     * decision matrix row.
+     */
     get requiredVariableIds() {
-        // only the first partial Grapher config of the y-dimension is taken into account
         return _.uniq(
             this.table
                 .get(GrapherGrammar.yVariableIds.keyword)
-                .values.map((value: string) =>
-                    value
-                        .split(" ")
-                        .map((id) => parseInt(id, 10))
-                        .filter((id) => !isNaN(id))
-                )
+                .values.map((value) => parseVariableIds(value))
                 .map((ids: number[]) => ids[0])
                 .filter(_.identity)
+        )
+    }
+
+    /** All variable IDs referenced in the explorer config */
+    get allVariableIds() {
+        return _.uniq(
+            DecisionMatrix.allColumnSlugsWithIndicatorIdsOrCatalogPaths.flatMap(
+                (slug) =>
+                    this.table
+                        .get(slug)
+                        .values.flatMap((value) => parseVariableIds(value))
+                        .filter(_.identity)
+            )
         )
     }
 
