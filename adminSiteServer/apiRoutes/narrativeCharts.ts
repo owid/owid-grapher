@@ -306,6 +306,10 @@ export async function getNarrativeChartById(
         throw new JsonError(`No narrative chart found for id ${id}`, 404)
     }
 
+    const patchConfig = parseChartConfig(row.configPatch)
+    const parentConfig = parseChartConfig(row.parentConfigFull)
+    const mergedConfig = mergeGrapherConfigs(parentConfig, patchConfig)
+
     return {
         id: row.id,
         name: row.name,
@@ -313,9 +317,10 @@ export async function getNarrativeChartById(
         lastEditedByUser: row.lastEditedByUser,
         chartConfigId: row.chartConfigId,
         configFull: parseChartConfig(row.configFull),
-        configPatch: parseChartConfig(row.configPatch),
+        configPatch: patchConfig,
+        mergedConfig,
         parentType: row.parentChartId ? "chart" : "multiDim",
-        parentConfigFull: parseChartConfig(row.parentConfigFull),
+        parentConfigFull: parentConfig,
         parentUrl: makeParentUrl(
             row.parentChartId,
             row.parentCatalogPath,
