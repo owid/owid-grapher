@@ -2,12 +2,13 @@
 
 import parseArgs from "minimist"
 import { docs as googleDocs } from "@googleapis/docs"
-import { type Span } from "@ourworldindata/types"
+import { BlockSize, type Span } from "@ourworldindata/types"
 import { type OwidGdocPostContent } from "@ourworldindata/utils"
 import { OwidGoogleAuth } from "../../db/OwidGoogleAuth.js"
 import { gdocAstToEnriched } from "../../db/model/Gdoc/gdocAstToEnriched.js"
 import { documentToParagraphs } from "../../db/model/Gdoc/gdocAstToParagraphs.js"
 import { applyGdocWriteBack } from "../../db/model/Gdoc/gdocWriteBack.js"
+import { spansToSimpleString } from "../../db/model/Gdoc/gdocUtils.js"
 
 const DEFAULT_DOC_ID = "1uYNGqwIjsZAv7qKDLc8LitQkKjLVkGCSByCfga0QPok"
 const BOOLEAN_KEYS = new Set([
@@ -15,6 +16,7 @@ const BOOLEAN_KEYS = new Set([
     "hide-subscribe-banner",
     "hide-citation",
 ])
+const DEFAULT_CHART_SIZE = BlockSize.Wide
 
 function parseDocId(raw: string | undefined): string | null {
     if (!raw) return null
@@ -27,6 +29,27 @@ function parseDocId(raw: string | undefined): string | null {
 
 function toSimpleSpans(text: string): Span[] {
     return [{ spanType: "span-simple-text", text }]
+}
+
+function appendToTextBlock(
+    content: OwidGdocPostContent,
+    targetText: string,
+    suffix: string
+): string | null {
+    if (!content.body) return "No body blocks found."
+    const block = content.body.find(
+        (item) =>
+            item.type === "text" &&
+            spansToSimpleString(item.value) === targetText
+    )
+    if (!block || block.type !== "text") {
+        return `No text block found for "${targetText}".`
+    }
+    block.value = [
+        ...block.value,
+        { spanType: "span-simple-text", text: suffix },
+    ]
+    return null
 }
 
 function parseSetPairs(
@@ -162,6 +185,9 @@ Options:
   --set key=value               Set frontmatter key (repeatable)
   --set-body "text"             Replace first text/heading block
   --body-index N                Target body block index for --set-body
+  --append-test                 Append ", really" to the text block "This is the DI text"
+  --insert-chart URL            Insert a chart block with the given URL
+  --insert-index N              Body index for insertion (defaults to append)
   --apply                       Apply changes (default is dry-run)
   --print-plan                  Print planned replacements (default)
 `)
@@ -188,9 +214,7 @@ Options:
     const content = gdocAstToEnriched(document)
     const pairs = parseSetPairs(parsedArgs.set)
     const bodyText = parsedArgs["set-body"]
-    const bodyIndex = Number(
-        parsedArgs["body-index"] ?? parsedArgs.bodyIndex
-    )
+    const bodyIndex = Number(parsedArgs["body-index"] ?? parsedArgs.bodyIndex)
     const parsedBodyIndex = Number.isFinite(bodyIndex) ? bodyIndex : null
 
     applyFrontmatterEdits(content, pairs)
@@ -200,6 +224,36 @@ Options:
         if (error) {
             console.warn(error)
         }
+    }
+
+    if (parsedArgs["append-test"]) {
+        const error = appendToTextBlock(
+            content,
+            "This is the DI text",
+            ", really"
+        )
+        if (error) {
+            console.warn(error)
+        }
+    }
+
+    const insertChartUrl = parsedArgs["insert-chart"]
+    if (insertChartUrl) {
+        const rawIndex = Number(
+            parsedArgs["insert-index"] ?? parsedArgs.insertIndex
+        )
+        const insertIndex =
+            Number.isFinite(rawIndex) && rawIndex >= 0
+                ? rawIndex
+                : (content.body?.length ?? 0)
+        const nextBody = [...(content.body ?? [])]
+        nextBody.splice(insertIndex, 0, {
+            type: "chart",
+            url: String(insertChartUrl),
+            size: DEFAULT_CHART_SIZE,
+            parseErrors: [],
+        })
+        content.body = nextBody
     }
 
     const apply = Boolean(parsedArgs.apply)

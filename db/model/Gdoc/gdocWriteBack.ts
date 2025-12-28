@@ -5,12 +5,14 @@ import {
 } from "@ourworldindata/utils"
 import {
     type GdocParagraph,
+    type GdocParagraphRange,
     type OwidRawGdocBlock,
     type Span,
 } from "@ourworldindata/types"
 import { OwidGoogleAuth } from "../../OwidGoogleAuth.js"
 import {
     getParagraphContentLines,
+    parseScopeMarkerParagraph,
     parseScopeMarkerLine,
     type ArchieScopeMarker,
     whitespacePattern,
@@ -66,11 +68,17 @@ interface FrontmatterLineLocation {
     lineIndex: number
 }
 
+interface TextStyleFragment {
+    text: string
+    style: docs_v1.Schema$TextStyle
+}
+
 export interface GdocTextReplacement {
     startIndex: number
     endIndex: number
     newText: string
     reason: string
+    styleFragments?: TextStyleFragment[]
 }
 
 export interface GdocWriteBackPlan {
@@ -96,6 +104,185 @@ function normalizeParagraphText(text: string): string {
 
 function normalizeReplacementText(text: string): string {
     return normalizeParagraphText(text)
+}
+
+function ensureTrailingNewline(text: string): string {
+    if (!text) return "\n"
+    return text.endsWith("\n") ? text : `${text}\n`
+}
+
+const defaultTextStyle: docs_v1.Schema$TextStyle = {
+    bold: false,
+    italic: false,
+    underline: false,
+    strikethrough: false,
+    baselineOffset: "NONE",
+    link: undefined,
+}
+
+function mergeStyleStack(
+    styleStack: docs_v1.Schema$TextStyle[]
+): docs_v1.Schema$TextStyle {
+    return styleStack.reduce(
+        (acc, style) => ({
+            ...acc,
+            ...style,
+        }),
+        { ...defaultTextStyle }
+    )
+}
+
+function spansToTextFragments(
+    spans: Span[],
+    styleStack: docs_v1.Schema$TextStyle[] = []
+): TextStyleFragment[] {
+    const fragments: TextStyleFragment[] = []
+
+    for (const span of spans) {
+        switch (span.spanType) {
+            case "span-simple-text": {
+                if (span.text) {
+                    fragments.push({
+                        text: span.text,
+                        style: mergeStyleStack(styleStack),
+                    })
+                }
+                break
+            }
+            case "span-newline": {
+                fragments.push({
+                    text: "\n",
+                    style: mergeStyleStack(styleStack),
+                })
+                break
+            }
+            case "span-link": {
+                const nextStack = [
+                    ...styleStack,
+                    {
+                        link: {
+                            url: span.url ?? "",
+                        },
+                    },
+                ]
+                fragments.push(
+                    ...spansToTextFragments(span.children, nextStack)
+                )
+                break
+            }
+            case "span-italic": {
+                const nextStack = [...styleStack, { italic: true }]
+                fragments.push(
+                    ...spansToTextFragments(span.children, nextStack)
+                )
+                break
+            }
+            case "span-bold": {
+                const nextStack = [...styleStack, { bold: true }]
+                fragments.push(
+                    ...spansToTextFragments(span.children, nextStack)
+                )
+                break
+            }
+            case "span-underline": {
+                const nextStack = [...styleStack, { underline: true }]
+                fragments.push(
+                    ...spansToTextFragments(span.children, nextStack)
+                )
+                break
+            }
+            case "span-subscript": {
+                const nextStack = [
+                    ...styleStack,
+                    { baselineOffset: "SUBSCRIPT" },
+                ]
+                fragments.push(
+                    ...spansToTextFragments(span.children, nextStack)
+                )
+                break
+            }
+            case "span-superscript": {
+                const nextStack = [
+                    ...styleStack,
+                    { baselineOffset: "SUPERSCRIPT" },
+                ]
+                fragments.push(
+                    ...spansToTextFragments(span.children, nextStack)
+                )
+                break
+            }
+            case "span-quote":
+            case "span-fallback": {
+                fragments.push(
+                    ...spansToTextFragments(span.children, styleStack)
+                )
+                break
+            }
+            default: {
+                if ("children" in span && Array.isArray(span.children)) {
+                    fragments.push(
+                        ...spansToTextFragments(span.children, styleStack)
+                    )
+                }
+                break
+            }
+        }
+    }
+
+    return fragments
+}
+
+function mergeAdjacentFragments(
+    fragments: TextStyleFragment[]
+): TextStyleFragment[] {
+    const merged: TextStyleFragment[] = []
+    for (const fragment of fragments) {
+        if (!fragment.text) continue
+        const last = merged[merged.length - 1]
+        if (last && isEqual(last.style, fragment.style)) {
+            last.text += fragment.text
+            continue
+        }
+        merged.push({ ...fragment })
+    }
+    return merged
+}
+
+function isDefaultStyle(style: docs_v1.Schema$TextStyle): boolean {
+    return (
+        !style.bold &&
+        !style.italic &&
+        !style.underline &&
+        !style.strikethrough &&
+        (style.baselineOffset === undefined ||
+            style.baselineOffset === "NONE") &&
+        (!style.link || !style.link.url)
+    )
+}
+
+function trimFragmentsToLength(
+    fragments: TextStyleFragment[],
+    length: number
+): TextStyleFragment[] {
+    if (length <= 0) return []
+    const trimmed: TextStyleFragment[] = []
+    let remaining = length
+
+    for (const fragment of fragments) {
+        if (remaining <= 0) break
+        if (fragment.text.length <= remaining) {
+            trimmed.push(fragment)
+            remaining -= fragment.text.length
+            continue
+        }
+        trimmed.push({
+            ...fragment,
+            text: fragment.text.slice(0, remaining),
+        })
+        remaining = 0
+    }
+
+    return trimmed
 }
 
 function isBodyMarker(marker: ArchieScopeMarker | undefined): boolean {
@@ -219,7 +406,10 @@ function getFrontmatterValue(
     if (typeof value === "number") return String(value)
     if (typeof value === "boolean") return value ? "true" : "false"
 
-    if (Array.isArray(value) && value.every((item) => typeof item === "string")) {
+    if (
+        Array.isArray(value) &&
+        value.every((item) => typeof item === "string")
+    ) {
         return value.join(", ")
     }
 
@@ -304,7 +494,8 @@ function buildTextReplacementForParagraph(
     paragraph: GdocParagraph,
     newText: string,
     reason: string,
-    warnings: string[]
+    warnings: string[],
+    options: { allowSameText?: boolean } = {}
 ): GdocTextReplacement | null {
     if (paragraph.type !== "paragraph") {
         warnings.push(`Skipping ${reason} because paragraph is not text.`)
@@ -326,7 +517,7 @@ function buildTextReplacementForParagraph(
 
     const normalizedNew = normalizeReplacementText(newText)
     const existing = normalizeParagraphText(paragraph.text)
-    if (normalizedNew === existing) return null
+    if (normalizedNew === existing && !options.allowSameText) return null
 
     return {
         startIndex: range.startIndex,
@@ -359,10 +550,7 @@ function buildTextReplacementForRange(
         return null
     }
 
-    const rangeParagraphs = paragraphs.slice(
-        paragraphStart,
-        paragraphEnd + 1
-    )
+    const rangeParagraphs = paragraphs.slice(paragraphStart, paragraphEnd + 1)
     if (rangeParagraphs.some(paragraphHasUnsupportedContent)) {
         warnings.push(
             `Skipping ${reason} because the range has unsupported content.`
@@ -373,7 +561,10 @@ function buildTextReplacementForRange(
     const normalizedNew = normalizeReplacementText(newText)
     return {
         startIndex: startParagraph.startIndex,
-        endIndex: Math.max(startParagraph.startIndex, endParagraph.endIndex - 1),
+        endIndex: Math.max(
+            startParagraph.startIndex,
+            endParagraph.endIndex - 1
+        ),
         newText: normalizedNew,
         reason,
     }
@@ -510,10 +701,220 @@ function buildOriginalBlockLookup(
     return lookup
 }
 
+function getSourceKey(block: OwidEnrichedGdocBlock | undefined): string | null {
+    const source = block?._source
+    if (
+        !source ||
+        source.paragraphStart === undefined ||
+        source.paragraphEnd === undefined
+    ) {
+        return null
+    }
+    return `${source.paragraphStart}:${source.paragraphEnd}`
+}
+
+function buildSourceKeySequence(
+    blocks: OwidEnrichedGdocBlock[] | undefined
+): string[] {
+    if (!blocks) return []
+    return blocks
+        .map((block) => getSourceKey(block))
+        .filter((key): key is string => Boolean(key))
+}
+
+function computeStableSourceKeys(
+    originalBlocks: OwidEnrichedGdocBlock[] | undefined,
+    updatedBlocks: OwidEnrichedGdocBlock[] | undefined
+): Set<string> {
+    const updatedKeys = buildSourceKeySequence(updatedBlocks)
+    if (!originalBlocks || !updatedBlocks) {
+        return new Set(updatedKeys)
+    }
+
+    const originalKeys = buildSourceKeySequence(originalBlocks)
+    const dp: number[][] = Array.from({ length: originalKeys.length + 1 }, () =>
+        new Array<number>(updatedKeys.length + 1).fill(0)
+    )
+
+    for (let i = originalKeys.length - 1; i >= 0; i--) {
+        for (let j = updatedKeys.length - 1; j >= 0; j--) {
+            if (originalKeys[i] === updatedKeys[j]) {
+                dp[i][j] = dp[i + 1][j + 1] + 1
+            } else {
+                dp[i][j] = Math.max(dp[i + 1][j], dp[i][j + 1])
+            }
+        }
+    }
+
+    const lcsKeys: string[] = []
+    let i = 0
+    let j = 0
+    while (i < originalKeys.length && j < updatedKeys.length) {
+        if (originalKeys[i] === updatedKeys[j]) {
+            lcsKeys.push(originalKeys[i])
+            i += 1
+            j += 1
+            continue
+        }
+        if (dp[i + 1][j] >= dp[i][j + 1]) {
+            i += 1
+        } else {
+            j += 1
+        }
+    }
+
+    return new Set(lcsKeys)
+}
+
+function getBodyClosingMarkerIndex(
+    paragraphs: GdocParagraph[],
+    bodyRange: GdocParagraphRange | undefined,
+    hasBodyMarker: boolean
+): number | null {
+    if (!hasBodyMarker || !bodyRange) return null
+    const candidateIndex = bodyRange.paragraphEnd + 1
+    const paragraph = paragraphs[candidateIndex]
+    if (!paragraph) return null
+    const marker = parseScopeMarkerParagraph(paragraph)
+    if (!marker) return null
+    if (marker.bracket === "[" && marker.slug === "") {
+        return candidateIndex
+    }
+    return null
+}
+
+function getInsertionIndex(
+    paragraphs: GdocParagraph[],
+    bodyRange: GdocParagraphRange | undefined,
+    hasBodyMarker: boolean,
+    previousSource: GdocParagraphRange | undefined,
+    nextSource: GdocParagraphRange | undefined
+): number | null {
+    if (nextSource) {
+        const nextParagraph = paragraphs[nextSource.paragraphStart]
+        return nextParagraph?.startIndex ?? null
+    }
+
+    const closingMarkerIndex = getBodyClosingMarkerIndex(
+        paragraphs,
+        bodyRange,
+        hasBodyMarker
+    )
+    if (closingMarkerIndex !== null) {
+        return paragraphs[closingMarkerIndex]?.startIndex ?? null
+    }
+
+    if (previousSource) {
+        const lastParagraph = paragraphs[previousSource.paragraphEnd]
+        return lastParagraph?.endIndex ?? null
+    }
+
+    if (bodyRange) {
+        const firstBodyParagraph = paragraphs[bodyRange.paragraphStart]
+        return firstBodyParagraph?.startIndex ?? null
+    }
+
+    return paragraphs[0]?.startIndex ?? null
+}
+
+function mergeInsertions(
+    replacements: GdocTextReplacement[]
+): GdocTextReplacement[] {
+    const merged: GdocTextReplacement[] = []
+    const insertions = new Map<number, GdocTextReplacement>()
+
+    for (const replacement of replacements) {
+        const isInsertion = replacement.startIndex === replacement.endIndex
+        if (!isInsertion) {
+            merged.push(replacement)
+            continue
+        }
+
+        const existing = insertions.get(replacement.startIndex)
+        if (existing) {
+            existing.newText += replacement.newText
+            existing.reason = `${existing.reason},${replacement.reason}`
+            continue
+        }
+
+        insertions.set(replacement.startIndex, { ...replacement })
+    }
+
+    merged.push(...insertions.values())
+    return merged
+}
+
+function buildDeletionReplacement(
+    paragraphs: GdocParagraph[],
+    paragraphStart: number,
+    paragraphEnd: number,
+    reason: string,
+    warnings: string[]
+): GdocTextReplacement | null {
+    const startParagraph = paragraphs[paragraphStart]
+    const endParagraph = paragraphs[paragraphEnd]
+    if (!startParagraph || !endParagraph) {
+        warnings.push(`Skipping ${reason} because the range is missing.`)
+        return null
+    }
+    if (
+        startParagraph.startIndex === undefined ||
+        endParagraph.endIndex === undefined
+    ) {
+        warnings.push(
+            `Skipping ${reason} because the range indices are missing.`
+        )
+        return null
+    }
+    if (endParagraph.endIndex <= startParagraph.startIndex) {
+        warnings.push(`Skipping ${reason} because the range is empty.`)
+        return null
+    }
+    return {
+        startIndex: startParagraph.startIndex,
+        endIndex: endParagraph.endIndex,
+        newText: "",
+        reason,
+    }
+}
+
+function buildBodyDeletions(
+    originalBlocks: OwidEnrichedGdocBlock[] | undefined,
+    updatedBlocks: OwidEnrichedGdocBlock[] | undefined,
+    paragraphs: GdocParagraph[],
+    warnings: string[],
+    stableSourceKeys: Set<string>
+): GdocTextReplacement[] {
+    if (!originalBlocks || originalBlocks.length === 0) return []
+
+    const deletions: GdocTextReplacement[] = []
+
+    originalBlocks.forEach((block, index) => {
+        const key = getSourceKey(block)
+        if (!key || stableSourceKeys.has(key)) return
+        const source = block._source
+        if (!source) return
+
+        const deletion = buildDeletionReplacement(
+            paragraphs,
+            source.paragraphStart,
+            source.paragraphEnd,
+            `body[${index}]:delete:${block.type}`,
+            warnings
+        )
+        if (deletion) deletions.push(deletion)
+    })
+
+    return deletions
+}
+
 function buildBodyReplacements(
     blocks: OwidEnrichedGdocBlock[] | undefined,
     paragraphs: GdocParagraph[],
     originalBlocks: OwidEnrichedGdocBlock[] | undefined,
+    bodyRange: GdocParagraphRange | undefined,
+    hasBodyMarker: boolean,
+    stableSourceKeys: Set<string>,
     warnings: string[],
     skipped: string[]
 ): GdocTextReplacement[] {
@@ -521,25 +922,90 @@ function buildBodyReplacements(
 
     const replacements: GdocTextReplacement[] = []
     const originalLookup = buildOriginalBlockLookup(originalBlocks)
+    const nextAnchorByIndex = new Array<number>(blocks.length)
+    let nextAnchorIndex: number | null = null
+
+    for (let i = blocks.length - 1; i >= 0; i--) {
+        nextAnchorByIndex[i] = nextAnchorIndex ?? -1
+        const sourceKey = getSourceKey(blocks[i])
+        if (sourceKey && stableSourceKeys.has(sourceKey)) {
+            nextAnchorIndex = i
+        }
+    }
+
+    let lastAnchorBlockIndex: number | null = null
 
     blocks.forEach((block, index) => {
         const source = block._source
+        const sourceKey = getSourceKey(block)
+        const isStableAnchor =
+            sourceKey !== null && stableSourceKeys.has(sourceKey)
+
         if (
             !source ||
             source.paragraphStart === undefined ||
-            source.paragraphEnd === undefined
+            source.paragraphEnd === undefined ||
+            !isStableAnchor
         ) {
-            skipped.push(`body[${index}]: missing source range`)
+            const nextAnchorBlock =
+                nextAnchorByIndex[index] >= 0
+                    ? blocks[nextAnchorByIndex[index]]
+                    : undefined
+            const previousAnchorBlock =
+                lastAnchorBlockIndex !== null
+                    ? blocks[lastAnchorBlockIndex]
+                    : undefined
+            const insertionIndex = getInsertionIndex(
+                paragraphs,
+                bodyRange,
+                hasBodyMarker,
+                previousAnchorBlock?._source,
+                nextAnchorBlock?._source
+            )
+
+            if (insertionIndex === null) {
+                warnings.push(
+                    `Skipping body[${index}] insertion because insertion index is missing.`
+                )
+                return
+            }
+
+            let insertionText = blockToArchieText(block)
+            if (
+                source &&
+                source.paragraphStart !== undefined &&
+                source.paragraphEnd !== undefined
+            ) {
+                const rangeParagraphs = paragraphs.slice(
+                    source.paragraphStart,
+                    source.paragraphEnd + 1
+                )
+                const currentRaw = parseRawBlockFromParagraphs(rangeParagraphs)
+                if (currentRaw && sourceKey) {
+                    const originalBlock = originalLookup.get(sourceKey)
+                    if (originalBlock) {
+                        const originalRaw =
+                            enrichedBlockToRawBlock(originalBlock)
+                        const updatedRaw = enrichedBlockToRawBlock(block)
+                        const mergedRaw = mergeRawBlocks(
+                            currentRaw,
+                            originalRaw,
+                            updatedRaw
+                        )
+                        insertionText = rawBlockToArchieText(mergedRaw)
+                    }
+                }
+            }
+
+            const normalizedInsertion = ensureTrailingNewline(insertionText)
+            replacements.push({
+                startIndex: insertionIndex,
+                endIndex: insertionIndex,
+                newText: normalizedInsertion,
+                reason: `body[${index}]:insert:${block.type}`,
+            })
             return
         }
-
-        if (!source.fingerprint) {
-            skipped.push(`body[${index}]: missing source fingerprint`)
-            return
-        }
-
-        const nextFingerprint = computeBlockFingerprint(block)
-        if (nextFingerprint === source.fingerprint) return
 
         const paragraphStart = source.paragraphStart
         const paragraphEnd = source.paragraphEnd
@@ -553,6 +1019,16 @@ function buildBodyReplacements(
             )
             return
         }
+
+        const nextFingerprint = computeBlockFingerprint(block)
+        lastAnchorBlockIndex = index
+
+        if (!source.fingerprint) {
+            skipped.push(`body[${index}]: missing source fingerprint`)
+            return
+        }
+
+        if (nextFingerprint === source.fingerprint) return
         const rangeParagraphs = paragraphs.slice(
             paragraphStart,
             paragraphEnd + 1
@@ -577,14 +1053,42 @@ function buildBodyReplacements(
                 return
             }
             const paragraph = rangeParagraphs[0]
-            const text = spansToSimpleString(block.value)
+            if (paragraph.type !== "paragraph") {
+                warnings.push(
+                    `Skipping body[${index}] text because paragraph is not text.`
+                )
+                return
+            }
+            const fragments = mergeAdjacentFragments(
+                spansToTextFragments(block.value)
+            )
+            const text = fragments.map((fragment) => fragment.text).join("")
+            const normalizedText = normalizeReplacementText(text)
+            const trimmedFragments = trimFragmentsToLength(
+                fragments,
+                normalizedText.length
+            )
+            const textMatches =
+                normalizedText === normalizeParagraphText(paragraph.text)
+            const spansMatch = isEqual(paragraph.spans, block.value)
+            if (textMatches && spansMatch) return
             const replacement = buildTextReplacementForParagraph(
                 paragraph,
-                text,
+                normalizedText,
                 `body[${index}]:text`,
-                warnings
+                warnings,
+                { allowSameText: textMatches && !spansMatch }
             )
-            if (replacement) replacements.push(replacement)
+            if (replacement) {
+                if (
+                    trimmedFragments.some(
+                        (fragment) => !isDefaultStyle(fragment.style)
+                    )
+                ) {
+                    replacement.styleFragments = trimmedFragments
+                }
+                replacements.push(replacement)
+            }
             return
         }
 
@@ -593,6 +1097,13 @@ function buildBodyReplacements(
                 ? spansToSimpleString(block.supertitle)
                 : undefined
             const title = spansToSimpleString(block.text)
+            const combinedSpans = block.supertitle
+                ? [
+                      ...block.supertitle,
+                      { spanType: "span-simple-text", text: "\u000b" } as Span,
+                      ...block.text,
+                  ]
+                : block.text
             if (
                 spansContainUnsupportedMarkup(block.text) ||
                 (block.supertitle &&
@@ -610,14 +1121,42 @@ function buildBodyReplacements(
                 return
             }
             const paragraph = rangeParagraphs[0]
+            if (paragraph.type !== "paragraph") {
+                warnings.push(
+                    `Skipping body[${index}] heading because paragraph is not text.`
+                )
+                return
+            }
             const text = supertitle ? `${supertitle}\u000b${title}` : title
+            const fragments = mergeAdjacentFragments(
+                spansToTextFragments(combinedSpans)
+            )
+            const normalizedText = normalizeReplacementText(text)
+            const trimmedFragments = trimFragmentsToLength(
+                fragments,
+                normalizedText.length
+            )
+            const textMatches =
+                normalizedText === normalizeParagraphText(paragraph.text)
+            const spansMatch = isEqual(paragraph.spans, combinedSpans)
+            if (textMatches && spansMatch) return
             const replacement = buildTextReplacementForParagraph(
                 paragraph,
-                text,
+                normalizedText,
                 `body[${index}]:heading`,
-                warnings
+                warnings,
+                { allowSameText: textMatches && !spansMatch }
             )
-            if (replacement) replacements.push(replacement)
+            if (replacement) {
+                if (
+                    trimmedFragments.some(
+                        (fragment) => !isDefaultStyle(fragment.style)
+                    )
+                ) {
+                    replacement.styleFragments = trimmedFragments
+                }
+                replacements.push(replacement)
+            }
             return
         }
 
@@ -642,14 +1181,42 @@ function buildBodyReplacements(
             items.forEach((item, itemIndex) => {
                 const paragraph = rangeParagraphs[itemIndex]
                 if (!paragraph) return
-                const text = spansToSimpleString(item.value)
+                if (paragraph.type !== "paragraph") {
+                    warnings.push(
+                        `Skipping body[${index}] list item because paragraph is not text.`
+                    )
+                    return
+                }
+                const fragments = mergeAdjacentFragments(
+                    spansToTextFragments(item.value)
+                )
+                const text = fragments.map((fragment) => fragment.text).join("")
+                const normalizedText = normalizeReplacementText(text)
+                const trimmedFragments = trimFragmentsToLength(
+                    fragments,
+                    normalizedText.length
+                )
+                const textMatches =
+                    normalizedText === normalizeParagraphText(paragraph.text)
+                const spansMatch = isEqual(paragraph.spans, item.value)
+                if (textMatches && spansMatch) return
                 const replacement = buildTextReplacementForParagraph(
                     paragraph,
-                    text,
+                    normalizedText,
                     `body[${index}]:list:${itemIndex}`,
-                    warnings
+                    warnings,
+                    { allowSameText: textMatches && !spansMatch }
                 )
-                if (replacement) replacements.push(replacement)
+                if (replacement) {
+                    if (
+                        trimmedFragments.some(
+                            (fragment) => !isDefaultStyle(fragment.style)
+                        )
+                    ) {
+                        replacement.styleFragments = trimmedFragments
+                    }
+                    replacements.push(replacement)
+                }
             })
             return
         }
@@ -685,13 +1252,11 @@ function buildBodyReplacements(
         }
     })
 
-    return replacements
+    return mergeInsertions(replacements)
 }
 
 function replacementsOverlap(replacements: GdocTextReplacement[]): boolean {
-    const sorted = [...replacements].sort(
-        (a, b) => a.startIndex - b.startIndex
-    )
+    const sorted = [...replacements].sort((a, b) => a.startIndex - b.startIndex)
 
     for (let i = 1; i < sorted.length; i++) {
         const previous = sorted[i - 1]
@@ -714,10 +1279,18 @@ function buildRequestsFromReplacements(
         return []
     }
 
-    const sorted = [...replacements].sort(
-        (a, b) => b.startIndex - a.startIndex
-    )
+    const sorted = [...replacements].sort((a, b) => b.startIndex - a.startIndex)
     const requests: docs_v1.Schema$Request[] = []
+    const styleFields =
+        "bold,italic,underline,strikethrough,baselineOffset,link"
+    const resetStyle: docs_v1.Schema$TextStyle = {
+        bold: false,
+        italic: false,
+        underline: false,
+        strikethrough: false,
+        baselineOffset: "NONE",
+        link: { url: null },
+    }
 
     for (const replacement of sorted) {
         if (replacement.endIndex > replacement.startIndex) {
@@ -739,6 +1312,42 @@ function buildRequestsFromReplacements(
                 },
             })
         }
+
+        if (replacement.styleFragments) {
+            if (replacement.newText.length > 0) {
+                requests.push({
+                    updateTextStyle: {
+                        range: {
+                            startIndex: replacement.startIndex,
+                            endIndex:
+                                replacement.startIndex +
+                                replacement.newText.length,
+                        },
+                        textStyle: resetStyle,
+                        fields: styleFields,
+                    },
+                })
+            }
+            let offset = 0
+            for (const fragment of replacement.styleFragments) {
+                const length = fragment.text.length
+                if (length <= 0) continue
+                if (!isDefaultStyle(fragment.style)) {
+                    requests.push({
+                        updateTextStyle: {
+                            range: {
+                                startIndex: replacement.startIndex + offset,
+                                endIndex:
+                                    replacement.startIndex + offset + length,
+                            },
+                            textStyle: fragment.style,
+                            fields: styleFields,
+                        },
+                    })
+                }
+                offset += length
+            }
+        }
     }
 
     return requests
@@ -753,22 +1362,38 @@ export function buildGdocWriteBackPlan(
     const skipped: string[] = []
 
     const paragraphs = documentToParagraphs(document)
-    const { bodyRange } = parseBodyParagraphBlocks(paragraphs)
+    const { bodyRange, hasBodyMarker } = parseBodyParagraphBlocks(paragraphs)
+    const stableSourceKeys = computeStableSourceKeys(
+        originalContent?.body,
+        content.body
+    )
 
     const frontmatterParagraphs = bodyRange
         ? paragraphs.slice(0, Math.max(0, bodyRange.paragraphStart))
         : paragraphs
 
     const frontmatterLines = collectFrontmatterLines(frontmatterParagraphs)
+    const bodyReplacements = buildBodyReplacements(
+        content.body,
+        paragraphs,
+        originalContent?.body,
+        bodyRange,
+        hasBodyMarker,
+        stableSourceKeys,
+        warnings,
+        skipped
+    )
+    const bodyDeletions = buildBodyDeletions(
+        originalContent?.body,
+        content.body,
+        paragraphs,
+        warnings,
+        stableSourceKeys
+    )
     const replacements = [
         ...buildFrontmatterReplacements(frontmatterLines, content, warnings),
-        ...buildBodyReplacements(
-            content.body,
-            paragraphs,
-            originalContent?.body,
-            warnings,
-            skipped
-        ),
+        ...bodyReplacements,
+        ...bodyDeletions,
     ]
 
     const requests = buildRequestsFromReplacements(replacements, warnings)
