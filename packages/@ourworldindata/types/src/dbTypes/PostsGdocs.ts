@@ -17,6 +17,7 @@ export interface DbInsertPostGdoc {
     published: number
     publishedAt?: Date | null
     revisionId?: string | null
+    rawGdoc?: JsonString | null
     slug: string
 }
 export type DbRawPostGdoc = Required<DbInsertPostGdoc> & {

@@ -209,6 +209,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     publishedAt: Date | null = null
     updatedAt: Date | null = null
     revisionId: string | null = null
+    rawGdoc: string | null = null
     markdown: string | null = null
     publicationContext: OwidGdocPublicationContext =
         OwidGdocPublicationContext.listed
@@ -944,6 +945,9 @@ export class GdocBase implements OwidGdocBaseInterface {
             }),
             fetchGdocComments(this.id),
         ])
+
+        // Store the raw API response before any normalization
+        this.rawGdoc = JSON.stringify(data)
 
         const normalizedDocument: docs_v1.Schema$Document = acceptSuggestions
             ? acceptAllGdocSuggestions(data)
