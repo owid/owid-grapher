@@ -11,8 +11,13 @@ import {
 } from "@ourworldindata/types"
 import { type GdocParagraphBlock } from "./archieParagraphBlockParser.js"
 import { loadArchieFromLines } from "./archieLineParser.js"
+import { whitespacePattern } from "./archieParagraphParser.js"
 import { paragraphsToArchieText } from "./paragraphsToArchie.js"
-import { replaceRefsInSpans, replaceRefsInText } from "./refSyntax.js"
+import {
+    replaceRefsAcrossTextSegments,
+    replaceRefsInSpans,
+    replaceRefsInText,
+} from "./refSyntax.js"
 import { spansToHtmlString, spansToSimpleString } from "./gdocUtils.js"
 
 const ORDERED_GLYPH_TYPES = new Set([
@@ -29,18 +34,11 @@ function splitArchieLines(text: string): string[] {
 }
 
 function normalizeArchieLinks(text: string): string {
-    const noWSOnlyLinks = text.replace(
-        /(<a[^>]*>)(\s+)(<\/a>)/gims,
-        "$2"
-    )
-    return noWSOnlyLinks.replace(
-        /(<a[^>]*>)(\s+)(.*?)(<\/a>)/gims,
-        "$2$1$3$4"
-    )
+    const noWSOnlyLinks = text.replace(/(<a[^>]*>)(\s+)(<\/a>)/gims, "$2")
+    return noWSOnlyLinks.replace(/(<a[^>]*>)(\s+)(.*?)(<\/a>)/gims, "$2$1$3$4")
 }
 
-const trailingWhitespacePattern =
-    /[\u0000\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u200B\u2028\u2029\u202F\u205F\u3000\uFEFF]+$/g
+const trailingWhitespacePattern = new RegExp(`[${whitespacePattern}]+$`, "g")
 
 function trimHtmlTrailingWhitespace(text: string): string {
     let trimmed = text.replace(trailingWhitespacePattern, "")
@@ -120,6 +118,10 @@ function spansToHtmlWithRefs(
     return trimHtmlTrailingWhitespace(normalizeArchieLinks(withRefs))
 }
 
+function normalizeParagraphOverride(text: string): string {
+    return trimHtmlTrailingWhitespace(normalizeArchieLinks(text))
+}
+
 function normalizeParagraphSpans(
     spans: Span[],
     refIdToNumber: Map<string, number>
@@ -153,8 +155,19 @@ function collectRangeParagraphs(
 
 function toTextBlock(
     paragraph: GdocParagraph,
-    refIdToNumber: Map<string, number>
-): RawBlockText {
+    refIdToNumber: Map<string, number>,
+    refOverrides: Map<number, string | null>
+): RawBlockText | null {
+    if (paragraph.type === "paragraph") {
+        const override = refOverrides.get(paragraph.index)
+        if (override === null) return null
+        if (typeof override === "string") {
+            return {
+                type: "text",
+                value: normalizeParagraphOverride(override),
+            }
+        }
+    }
     const spans = paragraph.type === "paragraph" ? paragraph.spans : []
     return {
         type: "text",
@@ -164,9 +177,23 @@ function toTextBlock(
 
 function toHeadingBlock(
     paragraph: GdocParagraph,
-    refIdToNumber: Map<string, number>
-): RawBlockHeading {
+    refIdToNumber: Map<string, number>,
+    refOverrides: Map<number, string | null>
+): RawBlockHeading | null {
     const level = getHeadingLevel(paragraph)
+    if (paragraph.type === "paragraph") {
+        const override = refOverrides.get(paragraph.index)
+        if (override === null) return null
+        if (typeof override === "string") {
+            return {
+                type: "heading",
+                value: {
+                    text: normalizeParagraphOverride(override),
+                    level,
+                },
+            }
+        }
+    }
     const spans = paragraph.type === "paragraph" ? paragraph.spans : []
     return {
         type: "heading",
@@ -179,24 +206,47 @@ function toHeadingBlock(
 
 function toListBlock(
     paragraphs: GdocParagraph[],
-    refIdToNumber: Map<string, number>
-): RawBlockList | RawBlockNumberedList {
+    refIdToNumber: Map<string, number>,
+    refOverrides: Map<number, string | null>
+): RawBlockList | RawBlockNumberedList | null {
     const listParagraphs = paragraphs.filter(
         (paragraph): paragraph is GdocParagraph & { type: "paragraph" } =>
             paragraph.type === "paragraph"
     )
-    const needsString = listParagraphs.some((paragraph) =>
-        spansContainRefs(paragraph.spans)
-    )
-    const items = needsString
-        ? listParagraphs.map((paragraph) =>
-              spansToHtmlWithRefs(paragraph.spans, refIdToNumber)
-          )
-        : listParagraphs.map((paragraph) =>
-              trimTrailingWhitespace(
-                  replaceRefsInSpans(paragraph.spans, refIdToNumber)
-              )
-          )
+    const needsString = listParagraphs.some((paragraph) => {
+        const override = refOverrides.get(paragraph.index)
+        if (typeof override === "string") return true
+        if (override === null) return false
+        return spansContainRefs(paragraph.spans)
+    })
+    const stringItems: string[] = []
+    const spanItems: Span[][] = []
+
+    listParagraphs.forEach((paragraph) => {
+        const override = refOverrides.get(paragraph.index)
+        if (override === null) return
+
+        if (needsString) {
+            if (typeof override === "string") {
+                stringItems.push(normalizeParagraphOverride(override))
+            } else {
+                stringItems.push(
+                    spansToHtmlWithRefs(paragraph.spans, refIdToNumber)
+                )
+            }
+            return
+        }
+
+        spanItems.push(
+            trimTrailingWhitespace(
+                replaceRefsInSpans(paragraph.spans, refIdToNumber)
+            )
+        )
+    })
+
+    const items: string[] | Span[][] = needsString ? stringItems : spanItems
+
+    if (items.length === 0) return null
 
     const isOrdered = paragraphs.some((paragraph) =>
         isOrderedListParagraph(paragraph)
@@ -227,9 +277,8 @@ function parseMarkerBlock(
     const rawBody = parsed.body
 
     if (!Array.isArray(rawBody)) return []
-    return rawBody.filter(
-        (block): block is OwidRawGdocBlock =>
-            Boolean(block && typeof block === "object" && "type" in block)
+    return rawBody.filter((block): block is OwidRawGdocBlock =>
+        Boolean(block && typeof block === "object" && "type" in block)
     )
 }
 
@@ -239,6 +288,23 @@ export function paragraphBlocksToRawBody(
     refIdToNumber: Map<string, number>
 ): OwidRawGdocBlock[] {
     const rawBlocks: OwidRawGdocBlock[] = []
+    const refOverridesByIndex = replaceRefsAcrossTextSegments(
+        paragraphs.map((paragraph) =>
+            paragraph.type === "paragraph"
+                ? spansToHtmlString(paragraph.spans)
+                : ""
+        ),
+        refIdToNumber
+    )
+    const refOverrides = new Map<number, string | null>()
+    paragraphs.forEach((paragraph, index) => {
+        if (refOverridesByIndex.has(index)) {
+            refOverrides.set(
+                paragraph.index,
+                refOverridesByIndex.get(index) ?? null
+            )
+        }
+    })
 
     for (const block of blocks) {
         const rangeParagraphs = collectRangeParagraphs(paragraphs, block.range)
@@ -247,18 +313,33 @@ export function paragraphBlocksToRawBody(
             case "text": {
                 const paragraph = rangeParagraphs[0]
                 if (!paragraph) break
-                rawBlocks.push(toTextBlock(paragraph, refIdToNumber))
+                const textBlock = toTextBlock(
+                    paragraph,
+                    refIdToNumber,
+                    refOverrides
+                )
+                if (textBlock) rawBlocks.push(textBlock)
                 break
             }
             case "heading": {
                 const paragraph = rangeParagraphs[0]
                 if (!paragraph) break
-                rawBlocks.push(toHeadingBlock(paragraph, refIdToNumber))
+                const headingBlock = toHeadingBlock(
+                    paragraph,
+                    refIdToNumber,
+                    refOverrides
+                )
+                if (headingBlock) rawBlocks.push(headingBlock)
                 break
             }
             case "list": {
                 if (rangeParagraphs.length === 0) break
-                rawBlocks.push(toListBlock(rangeParagraphs, refIdToNumber))
+                const listBlock = toListBlock(
+                    rangeParagraphs,
+                    refIdToNumber,
+                    refOverrides
+                )
+                if (listBlock) rawBlocks.push(listBlock)
                 break
             }
             case "horizontal-rule": {

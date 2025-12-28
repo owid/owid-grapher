@@ -7,12 +7,16 @@ import {
 } from "@ourworldindata/types"
 
 const refPattern = /{ref}(.*?){\/ref}/gims
+const refStartToken = "{ref}"
+const refEndToken = "{/ref}"
 
 type SpanWithChildren = Extract<Span, { children: Span[] }>
 
-function buildRefId(content: string): string {
+export function buildRefId(content: string): string {
     const isInlineRef = content.includes(" ")
-    return isInlineRef ? createHash("sha1").update(content).digest("hex") : content
+    return isInlineRef
+        ? createHash("sha1").update(content).digest("hex")
+        : content
 }
 
 function createRefSpan(footnoteNumber: number): SpanRef {
@@ -30,6 +34,10 @@ function createRefSpan(footnoteNumber: number): SpanRef {
         url: `#note-${footnoteNumber}`,
         children: [superscript],
     }
+}
+
+function createRefAnchor(footnoteNumber: number): string {
+    return `<a class="ref" href="#note-${footnoteNumber}"><sup>${footnoteNumber}</sup></a>`
 }
 
 function cloneSpanWithChildren(
@@ -141,6 +149,98 @@ export function replaceRefsInText(
         const refId = buildRefId(content)
         const footnoteNumber = refIdToNumber.get(refId)
         if (!footnoteNumber) return matchText
-        return `<a class="ref" href="#note-${footnoteNumber}"><sup>${footnoteNumber}</sup></a>`
+        return createRefAnchor(footnoteNumber)
     })
+}
+
+export function replaceRefsAcrossTextSegments(
+    segments: string[],
+    refIdToNumber: Map<string, number>
+): Map<number, string | null> {
+    const replacements = new Map<number, string | null>()
+    const hasRefEndFromIndex = new Array(segments.length + 1).fill(false)
+    for (let i = segments.length - 1; i >= 0; i--) {
+        hasRefEndFromIndex[i] =
+            segments[i].includes(refEndToken) || hasRefEndFromIndex[i + 1]
+    }
+
+    let inRef = false
+    let refBuffer = ""
+    let placeholder = ""
+    let placeholderIndex = -1
+    let placeholderCounter = 0
+
+    for (let i = 0; i < segments.length; i++) {
+        const segment = segments[i] ?? ""
+        if (!segment && !inRef) continue
+
+        let cursor = 0
+        let output = ""
+        let touched = inRef
+
+        while (cursor < segment.length) {
+            if (!inRef) {
+                const startIndex = segment.indexOf(refStartToken, cursor)
+                if (startIndex === -1) {
+                    output += segment.slice(cursor)
+                    break
+                }
+                if (!hasRefEndFromIndex[i]) {
+                    output += segment.slice(cursor)
+                    break
+                }
+
+                output += segment.slice(cursor, startIndex)
+                placeholder = `__REF_PLACEHOLDER_${placeholderCounter}__`
+                placeholderCounter += 1
+                placeholderIndex = i
+                output += placeholder
+                inRef = true
+                refBuffer = ""
+                touched = true
+                cursor = startIndex + refStartToken.length
+                continue
+            }
+
+            const endIndex = segment.indexOf(refEndToken, cursor)
+            if (endIndex === -1) {
+                refBuffer += segment.slice(cursor)
+                cursor = segment.length
+                touched = true
+                break
+            }
+
+            refBuffer += segment.slice(cursor, endIndex)
+            const refId = buildRefId(refBuffer)
+            const footnoteNumber = refIdToNumber.get(refId)
+            const replacement = footnoteNumber
+                ? createRefAnchor(footnoteNumber)
+                : `${refStartToken}${refBuffer}${refEndToken}`
+
+            if (placeholderIndex === i) {
+                output = output.replace(placeholder, replacement)
+            } else if (placeholderIndex >= 0) {
+                const startOutput = replacements.get(placeholderIndex)
+                if (typeof startOutput === "string") {
+                    replacements.set(
+                        placeholderIndex,
+                        startOutput.replace(placeholder, replacement)
+                    )
+                }
+            }
+
+            inRef = false
+            refBuffer = ""
+            placeholder = ""
+            placeholderIndex = -1
+            touched = true
+            cursor = endIndex + refEndToken.length
+        }
+
+        if (touched) {
+            replacements.set(i, output.length === 0 ? null : output)
+        }
+    }
+
+    return replacements
 }
