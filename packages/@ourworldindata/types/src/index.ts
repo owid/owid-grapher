@@ -430,6 +430,15 @@ export {
     type GdocComments,
 } from "./gdocTypes/Comments.js"
 
+export type {
+    GdocHorizontalRuleParagraph,
+    GdocListInfo,
+    GdocParagraph,
+    GdocParagraphBase,
+    GdocTableContext,
+    GdocTextParagraph,
+} from "./gdocTypes/GdocParagraph.js"
+
 export type { ImageMetadata } from "./gdocTypes/Image.js"
 export {
     ALL_CHARTS_ID,
