@@ -112,7 +112,6 @@ Done:
 
 Left to do:
 
-- Write-back pipeline: handle ref/dod/guided spans, list length edits, multiline/complex frontmatter, and comment/suggestion overlap checks.
 - Tests/fixtures for `{.heading}`, `{ref}`, tables, list basics.
 - Warning/telemetry for legacy `{.heading}` blocks.
 - Resolve remaining parity mismatches (whitespace/link spacing, blank lines).
@@ -125,5 +124,8 @@ Write-back progress (branch: new-gdocs-parser):
 - Added generic marker-block write-back: parse current raw block, diff vs original enriched block, and rewrite only changed fields.
 - Added `devTools/gdocs/writeBackTest.ts` to dry-run/apply changes against a live doc and show current vs next text for replacements.
 - Added block-sequence diffing (LCS) to support insert/delete/reorder as delete+insert operations.
-- Added span-aware text updates (bold/italic/link/etc) for text/heading/list replacements, still skipping ref/dod/guided spans.
-- Limitation recap: ref/dod/guided spans still skipped; multiline/complex frontmatter not handled; list length changes skipped.
+- Added span-aware text updates (bold/italic/link/etc) for text/heading/list replacements.
+- Added ref/dod/guided span serialization (`{ref}...{/ref}`, `#dod:`, `#guide:`) and ref token reconstruction from `content.refs`.
+- Added list length diffs via LCS (insert/delete/update list items with style fragments).
+- Added multiline frontmatter replacement (respects `:end` command if present).
+- Added suggestion overlap filtering to avoid touching text ranges with suggestions.
