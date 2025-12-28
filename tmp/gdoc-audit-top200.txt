@@ -1,0 +1,33 @@
+Processed 200 gdocs
+Paragraphs: 47309
+Scope directives: 11426
+Scope directives with trailing text: 5
+Scope directives in multiline paragraphs: 0
+Legacy {.heading} directives: 1111
+Heading-style paragraphs: 1223
+Tables total: 31
+Tables outside {.table}: 19
+Tables inside {.table}: 12
+List paragraphs: 797
+List ids: 197
+List glyph types: unknown=557, GLYPH_TYPE_UNSPECIFIED=213, DECIMAL=27
+Nested list paragraphs: 16
+Inline objects: 265
+Equations: 0
+Footnotes: 0
+Docs with scope markers with trailing text: 4
+  human-development-index, why-do-women-live-longer-than-men, how-many-animals-get-slaughtered-every-day, new-international-poverty-line-3-dollars-per-day
+Docs with scope markers in multiline paragraphs: 0
+Docs with legacy {.heading} directives: 76
+  population-growth, co2-emissions, environmental-impacts-of-food, coronavirus, urbanization, covid-vaccinations, rise-of-social-media, covid-deaths, mass-extinctions, human-height, covid-cases, nuclear-weapons, air-pollution, marriages-and-divorces, agricultural-production, meat-production, fish-and-overfishing, water-use-stress, age-structure, literacy (truncated)
+Docs with tables outside {.table} markers: 19
+  mass-extinctions, births-and-deaths, technology-long-run, brief-history-of-ai, global-land-for-agriculture, land-use-diets, how-many-species-are-there, world-population-cartogram, environmental-impact-milks, world-region-map-definitions, wild-mammals-birds-biomass, most-densely-populated-countries, contributed-most-global-co2, financing-education, carbon-footprint-food-methane, moores-law, pollinator-dependence, co2-dataset-sources, ozone-layer-context
+Docs with inline objects: 44
+  life-expectancy, poverty, urbanization, fertility-rate, deforestation, causes-of-death, baby-boom-seven-charts, child-mortality, electric-car-sales, global-aviation-emissions, global-land-for-agriculture, does-the-news-reflect-what-we-die-from, why-do-women-live-longer-than-men, cancer, vaccination, how-many-animals-get-slaughtered-every-day, wildfires, homelessness, cheap-renewables-growth, where-are-babies-at-lowest-risk-of-dying (truncated)
+Docs with equations: 0
+Docs with footnote references: 0
+Docs with checkbox lists: 0
+Docs with nested lists: 10
+  mass-extinctions, global-land-for-agriculture, how-many-species-are-there, environmental-impact-milks, world-region-map-definitions, contributed-most-global-co2, moores-law, pollinator-dependence, co2-dataset-sources, ozone-layer-context
+Docs with ordered lists: 16
+  covid-vaccinations, mass-extinctions, technology-long-run, brief-history-of-ai, global-land-for-agriculture, how-many-species-are-there, world-population-cartogram, environmental-impact-milks, a-history-of-global-living-conditions, contributed-most-global-co2, moores-law, faqs, pollinator-dependence, co2-dataset-sources, ozone-layer-context, cleanest-air-lessons
