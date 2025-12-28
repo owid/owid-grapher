@@ -30,6 +30,12 @@ const ORDERED_GLYPH_TYPES = new Set([
     "LOWER_ALPHA",
 ])
 
+function sanitizeLinkUrl(url: string): string {
+    const trimmed = url.trim()
+    const match = trimmed.match(/^[^\s"'<>]+/)
+    return match ? match[0] : trimmed
+}
+
 function applyTextStyles(
     textRun: docs_v1.Schema$TextRun,
     baseSpan: SpanSimpleText
@@ -69,7 +75,8 @@ function mergeAdjacentLinkedElements(
 
     while (i < elements.length) {
         const current = elements[i]
-        const currentUrl = current.textRun?.textStyle?.link?.url
+        const rawUrl = current.textRun?.textStyle?.link?.url
+        const currentUrl = rawUrl ? sanitizeLinkUrl(rawUrl) : undefined
 
         if (!currentUrl) {
             merged.push(current)
@@ -78,10 +85,10 @@ function mergeAdjacentLinkedElements(
         }
 
         let j = i + 1
-        while (
-            j < elements.length &&
-            elements[j].textRun?.textStyle?.link?.url === currentUrl
-        ) {
+        while (j < elements.length) {
+            const nextRawUrl = elements[j].textRun?.textStyle?.link?.url
+            const nextUrl = nextRawUrl ? sanitizeLinkUrl(nextRawUrl) : undefined
+            if (nextUrl !== currentUrl) break
             j++
         }
 
@@ -108,7 +115,7 @@ function mergeAdjacentLinkedElements(
 
         const linkSpan: SpanLink = {
             spanType: "span-link",
-            url: currentUrl,
+            url: currentUrl ?? "",
             children,
         }
 
@@ -123,9 +130,7 @@ function mergeAdjacentLinkedElements(
     return merged
 }
 
-function parseParagraphElement(
-    element: MergedParagraphElement
-): Span | null {
+function parseParagraphElement(element: MergedParagraphElement): Span | null {
     if (element.__mergedSpan) {
         return element.__mergedSpan
     }
@@ -140,9 +145,10 @@ function parseParagraphElement(
         if (!textRun.textStyle || content === "\n") return span
 
         if (textRun.textStyle.link?.url) {
+            const url = sanitizeLinkUrl(textRun.textStyle.link.url)
             span = {
                 spanType: "span-link",
-                url: textRun.textStyle.link.url,
+                url,
                 children: [span],
             }
         }
@@ -165,7 +171,7 @@ function parseParagraphElement(
 
     if (element.richLink?.richLinkProperties?.uri) {
         const richLink = element.richLink.richLinkProperties
-        const uri = richLink.uri ?? ""
+        const uri = richLink.uri ? sanitizeLinkUrl(richLink.uri) : ""
         if (!uri) return null
         return {
             spanType: "span-link",
@@ -183,9 +189,7 @@ function parseParagraphElement(
 }
 
 function paragraphToText(elements: docs_v1.Schema$ParagraphElement[]): string {
-    return elements
-        .map((element) => element.textRun?.content ?? "")
-        .join("")
+    return elements.map((element) => element.textRun?.content ?? "").join("")
 }
 
 function getListInfo(
@@ -222,9 +226,7 @@ function paragraphElementsToSpans(
         .filter((span): span is Span => span !== null)
 }
 
-function collectParagraphWarnings(
-    paragraph: docs_v1.Schema$Paragraph
-): {
+function collectParagraphWarnings(paragraph: docs_v1.Schema$Paragraph): {
     inlineObjectIds: string[]
     footnoteReferenceIds: string[]
     hasEquation: boolean

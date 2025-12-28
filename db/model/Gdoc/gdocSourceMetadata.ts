@@ -27,7 +27,7 @@ function normalizeParagraphBlockType(
     return block.type
 }
 
-function computeBlockFingerprint(block: OwidEnrichedGdocBlock): string {
+export function computeBlockFingerprint(block: OwidEnrichedGdocBlock): string {
     const markdown = (enrichedBlockToMarkdown(block, true) ?? "").trim()
     return createHash("sha1").update(markdown).digest("hex")
 }

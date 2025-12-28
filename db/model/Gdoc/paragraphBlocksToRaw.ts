@@ -39,11 +39,26 @@ function normalizeArchieLinks(text: string): string {
 }
 
 const trailingWhitespacePattern = new RegExp(`[${whitespacePattern}]+$`, "g")
+const leadingWhitespacePattern = new RegExp(`^[${whitespacePattern}]+`)
+const whitespaceOnlyPattern = new RegExp(`^[${whitespacePattern}]*$`)
+const lineBreakCollapsePattern = new RegExp(
+    `[${whitespacePattern}]*\\n+[${whitespacePattern}]*`,
+    "g"
+)
 
 function trimHtmlTrailingWhitespace(text: string): string {
     let trimmed = text.replace(trailingWhitespacePattern, "")
     trimmed = trimmed.replace(/(<br\s*\/?>\s*)+$/gims, "")
     return trimmed.replace(trailingWhitespacePattern, "")
+}
+
+function trimHtmlLeadingWhitespace(text: string): string {
+    return text.replace(leadingWhitespacePattern, "")
+}
+
+function trimHtmlParagraphWhitespace(text: string): string {
+    const collapsed = text.replace(lineBreakCollapsePattern, "\n")
+    return trimHtmlTrailingWhitespace(trimHtmlLeadingWhitespace(collapsed))
 }
 
 function trimTrailingWhitespace(
@@ -93,6 +108,83 @@ function trimTrailingWhitespace(
     return result
 }
 
+function normalizeSpanTextWhitespace(spans: Span[]): Span[] {
+    const result: Span[] = []
+
+    for (const span of spans) {
+        if (span.spanType === "span-simple-text") {
+            if (!span.text) continue
+            const normalized = span.text
+                .replace(/\r/g, "")
+                .replace(lineBreakCollapsePattern, "\n")
+            if (normalized.length > 0) {
+                result.push({
+                    spanType: "span-simple-text",
+                    text: normalized,
+                })
+            }
+            continue
+        }
+
+        if ("children" in span && Array.isArray(span.children)) {
+            const normalizedChildren = normalizeSpanTextWhitespace(
+                span.children
+            )
+            if (normalizedChildren.length === 0) continue
+            result.push(
+                cloneSpanWithChildren(
+                    span as SpanWithChildren,
+                    normalizedChildren
+                )
+            )
+            continue
+        }
+
+        result.push(span)
+    }
+
+    return result
+}
+
+function mergeAdjacentSimpleTextSpans(spans: Span[]): Span[] {
+    const result: Span[] = []
+    let buffer = ""
+
+    const flushBuffer = (): void => {
+        if (!buffer) return
+        result.push({ spanType: "span-simple-text", text: buffer })
+        buffer = ""
+    }
+
+    for (const span of spans) {
+        if (span.spanType === "span-simple-text") {
+            buffer += span.text
+            continue
+        }
+
+        flushBuffer()
+
+        if ("children" in span && Array.isArray(span.children)) {
+            const normalizedChildren = mergeAdjacentSimpleTextSpans(
+                span.children
+            )
+            if (normalizedChildren.length === 0) continue
+            result.push(
+                cloneSpanWithChildren(
+                    span as SpanWithChildren,
+                    normalizedChildren
+                )
+            )
+            continue
+        }
+
+        result.push(span)
+    }
+
+    flushBuffer()
+    return result
+}
+
 type SpanWithChildren = Extract<Span, { children: Span[] }>
 
 function cloneSpanWithChildren(
@@ -105,8 +197,195 @@ function cloneSpanWithChildren(
     }
 }
 
+type LinkSpan = Extract<
+    Span,
+    {
+        spanType:
+            | "span-link"
+            | "span-ref"
+            | "span-guided-chart-link"
+            | "span-dod"
+    }
+>
+
+function isLinkSpan(span: Span): span is LinkSpan {
+    return (
+        span.spanType === "span-link" ||
+        span.spanType === "span-ref" ||
+        span.spanType === "span-guided-chart-link" ||
+        span.spanType === "span-dod"
+    )
+}
+
+function trimLeadingWhitespace(spans: Span[]): Span[] {
+    const result = [...spans]
+    while (result.length > 0) {
+        const first = result[0]
+        if (first.spanType === "span-simple-text") {
+            const trimmed = first.text.replace(leadingWhitespacePattern, "")
+            if (trimmed.length > 0) {
+                result[0] = {
+                    spanType: "span-simple-text",
+                    text: trimmed,
+                }
+                break
+            }
+            result.shift()
+            continue
+        }
+        if (first.spanType === "span-newline") {
+            result.shift()
+            continue
+        }
+        if ("children" in first && Array.isArray(first.children)) {
+            const spanWithChildren = first as SpanWithChildren
+            const trimmedChildren = trimLeadingWhitespace(
+                spanWithChildren.children
+            )
+            if (trimmedChildren.length === 0) {
+                result.shift()
+                continue
+            }
+            result[0] = cloneSpanWithChildren(spanWithChildren, trimmedChildren)
+            break
+        }
+        break
+    }
+    return result
+}
+
+function consumeLeadingWhitespace(spans: Span[]): {
+    leading: string
+    remaining: Span[]
+} {
+    let leading = ""
+    const remaining: Span[] = []
+    let consuming = true
+
+    for (const span of spans) {
+        if (!consuming) {
+            remaining.push(span)
+            continue
+        }
+
+        if (span.spanType === "span-simple-text") {
+            const match = span.text.match(leadingWhitespacePattern)
+            if (match) {
+                leading += match[0]
+                const rest = span.text.slice(match[0].length)
+                if (rest.length > 0) {
+                    remaining.push({
+                        spanType: "span-simple-text",
+                        text: rest,
+                    })
+                    consuming = false
+                }
+                continue
+            }
+            remaining.push(span)
+            consuming = false
+            continue
+        }
+
+        if (span.spanType === "span-newline") {
+            leading += "\n"
+            continue
+        }
+
+        if ("children" in span && Array.isArray(span.children)) {
+            const spanWithChildren = span as SpanWithChildren
+            const normalized = consumeLeadingWhitespace(
+                spanWithChildren.children
+            )
+            leading += normalized.leading
+            if (normalized.remaining.length > 0) {
+                remaining.push(
+                    cloneSpanWithChildren(
+                        spanWithChildren,
+                        normalized.remaining
+                    )
+                )
+                consuming = false
+            }
+            continue
+        }
+
+        remaining.push(span)
+        consuming = false
+    }
+
+    return { leading, remaining }
+}
+
+function normalizeLinkWhitespace(spans: Span[]): Span[] {
+    const result: Span[] = []
+
+    for (const span of spans) {
+        if (isLinkSpan(span)) {
+            const normalizedChildren = normalizeLinkWhitespace(span.children)
+            const linkText = spansToSimpleString(normalizedChildren)
+            if (whitespaceOnlyPattern.test(linkText)) {
+                if (linkText.length > 0) {
+                    result.push({
+                        spanType: "span-simple-text",
+                        text: linkText,
+                    })
+                }
+                continue
+            }
+
+            const { leading, remaining } =
+                consumeLeadingWhitespace(normalizedChildren)
+
+            if (leading.length > 0) {
+                result.push({
+                    spanType: "span-simple-text",
+                    text: leading,
+                })
+            }
+
+            if (remaining.length > 0) {
+                result.push({
+                    ...span,
+                    children: remaining,
+                })
+            }
+            continue
+        }
+
+        if ("children" in span && Array.isArray(span.children)) {
+            const normalizedChildren = normalizeLinkWhitespace(span.children)
+            if (normalizedChildren.length === 0) continue
+            result.push(
+                cloneSpanWithChildren(
+                    span as SpanWithChildren,
+                    normalizedChildren
+                )
+            )
+            continue
+        }
+
+        result.push(span)
+    }
+
+    return result
+}
+
 function spansContainRefs(spans: Span[]): boolean {
     return spansToSimpleString(spans).includes("{ref}")
+}
+
+function isWhitespaceOnlyText(text: string): boolean {
+    return whitespaceOnlyPattern.test(text)
+}
+
+function isEmptyRawTextValue(value: string | Span[]): boolean {
+    if (typeof value === "string") {
+        const stripped = value.replace(/<[^>]+>/g, "")
+        return isWhitespaceOnlyText(stripped)
+    }
+    const simple = spansToSimpleString(value)
+    return isWhitespaceOnlyText(simple)
 }
 
 function spansToHtmlWithRefs(
@@ -115,11 +394,11 @@ function spansToHtmlWithRefs(
 ): string {
     const html = spansToHtmlString(spans)
     const withRefs = replaceRefsInText(html, refIdToNumber)
-    return trimHtmlTrailingWhitespace(normalizeArchieLinks(withRefs))
+    return normalizeParagraphOverride(withRefs)
 }
 
 function normalizeParagraphOverride(text: string): string {
-    return trimHtmlTrailingWhitespace(normalizeArchieLinks(text))
+    return trimHtmlParagraphWhitespace(normalizeArchieLinks(text))
 }
 
 function normalizeParagraphSpans(
@@ -130,7 +409,11 @@ function normalizeParagraphSpans(
         return spansToHtmlWithRefs(spans, refIdToNumber)
     }
     const withRefs = replaceRefsInSpans(spans, refIdToNumber)
-    return trimTrailingWhitespace(withRefs)
+    const normalizedLinks = normalizeLinkWhitespace(withRefs)
+    const mergedText = mergeAdjacentSimpleTextSpans(normalizedLinks)
+    const normalizedText = normalizeSpanTextWhitespace(mergedText)
+    const trimmedLeading = trimLeadingWhitespace(normalizedText)
+    return trimTrailingWhitespace(trimmedLeading)
 }
 
 function getHeadingLevel(paragraph: GdocParagraph): string | undefined {
@@ -169,9 +452,13 @@ function toTextBlock(
         }
     }
     const spans = paragraph.type === "paragraph" ? paragraph.spans : []
+    const value = normalizeParagraphSpans(spans, refIdToNumber)
+    if (isEmptyRawTextValue(value)) {
+        return null
+    }
     return {
         type: "text",
-        value: normalizeParagraphSpans(spans, refIdToNumber),
+        value,
     }
 }
 
@@ -195,10 +482,14 @@ function toHeadingBlock(
         }
     }
     const spans = paragraph.type === "paragraph" ? paragraph.spans : []
+    const text = normalizeParagraphSpans(spans, refIdToNumber)
+    if (isEmptyRawTextValue(text)) {
+        return null
+    }
     return {
         type: "heading",
         value: {
-            text: normalizeParagraphSpans(spans, refIdToNumber),
+            text,
             level,
         },
     }
@@ -228,20 +519,29 @@ function toListBlock(
 
         if (needsString) {
             if (typeof override === "string") {
-                stringItems.push(normalizeParagraphOverride(override))
+                const normalized = normalizeParagraphOverride(override)
+                if (!isEmptyRawTextValue(normalized)) {
+                    stringItems.push(normalized)
+                }
             } else {
-                stringItems.push(
-                    spansToHtmlWithRefs(paragraph.spans, refIdToNumber)
+                const normalized = spansToHtmlWithRefs(
+                    paragraph.spans,
+                    refIdToNumber
                 )
+                if (!isEmptyRawTextValue(normalized)) {
+                    stringItems.push(normalized)
+                }
             }
             return
         }
 
-        spanItems.push(
-            trimTrailingWhitespace(
-                replaceRefsInSpans(paragraph.spans, refIdToNumber)
-            )
-        )
+        const normalized = normalizeParagraphSpans(
+            paragraph.spans,
+            refIdToNumber
+        ) as Span[]
+        if (!isEmptyRawTextValue(normalized)) {
+            spanItems.push(normalized)
+        }
     })
 
     const items: string[] | Span[][] = needsString ? stringItems : spanItems

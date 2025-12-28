@@ -1,10 +1,18 @@
 import { docs as googleDocs } from "@googleapis/docs"
 import { diffLines } from "diff"
-import { OwidGdocType } from "@ourworldindata/types"
+import {
+    OwidGdocType,
+    type GdocParagraph,
+    type Span,
+} from "@ourworldindata/types"
 import { OwidGoogleAuth } from "../../db/OwidGoogleAuth.js"
 import { knexRaw, knexReadonlyTransaction } from "../../db/db.js"
 import { gdocToArchie } from "../../db/model/Gdoc/gdocToArchie.js"
-import { archieToEnriched } from "../../db/model/Gdoc/archieToEnriched.js"
+import {
+    archieParsedToEnriched,
+    archieToEnriched,
+    extractRefs,
+} from "../../db/model/Gdoc/archieToEnriched.js"
 import { enrichedBlocksToMarkdown } from "../../db/model/Gdoc/enrichedToMarkdown.js"
 import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
 import { GdocAbout } from "../../db/model/Gdoc/GdocAbout.js"
@@ -14,13 +22,13 @@ import { GdocAnnouncement } from "../../db/model/Gdoc/GdocAnnouncement.js"
 import { GdocDataInsight } from "../../db/model/Gdoc/GdocDataInsight.js"
 import { documentToParagraphs } from "../../db/model/Gdoc/gdocAstToParagraphs.js"
 import { paragraphsToArchieText } from "../../db/model/Gdoc/paragraphsToArchie.js"
-import { archieParsedToEnriched, extractRefs } from "../../db/model/Gdoc/archieToEnriched.js"
 import { loadArchieFromLines } from "../../db/model/Gdoc/archieLineParser.js"
 import { parseBodyParagraphBlocks } from "../../db/model/Gdoc/archieParagraphBlockParser.js"
 import { paragraphBlocksToRawBody } from "../../db/model/Gdoc/paragraphBlocksToRaw.js"
 import { buildRefIdToNumberMap } from "../../db/model/Gdoc/refSyntax.js"
 import { attachSourceMetadata } from "../../db/model/Gdoc/gdocSourceMetadata.js"
 import { parseRawBlocksToEnrichedBlocks } from "../../db/model/Gdoc/rawToEnriched.js"
+import { spansToSimpleString } from "../../db/model/Gdoc/gdocUtils.js"
 
 interface PageRow {
     id: string
@@ -28,9 +36,7 @@ interface PageRow {
     type: OwidGdocType
 }
 
-function getEnricher(
-    row: PageRow
-): (content: Record<string, unknown>) => void {
+function getEnricher(row: PageRow): (content: Record<string, unknown>) => void {
     const type = row.type
     if (
         type === OwidGdocType.Article ||
@@ -69,6 +75,49 @@ function normalizeMarkdown(markdown: string | undefined): string {
     return (markdown ?? "").trim()
 }
 
+const suspiciousUrlPattern = /(loading=|allow=|style=|<iframe|"|'|\/iframe)/i
+
+function collectSuspiciousLinks(
+    spans: Span[],
+    paragraph: GdocParagraph,
+    output: string[]
+): void {
+    for (const span of spans) {
+        if (span.spanType === "span-link") {
+            const url = span.url ?? ""
+            if (suspiciousUrlPattern.test(url)) {
+                const preview = paragraph.text
+                    .replace(/\s+/g, " ")
+                    .trim()
+                    .slice(0, 200)
+                const text = spansToSimpleString(span.children)
+                output.push(
+                    `Paragraph ${paragraph.index} link text="${text}" url="${url}" preview="${preview}"`
+                )
+            }
+        }
+        if ("children" in span && Array.isArray(span.children)) {
+            collectSuspiciousLinks(span.children, paragraph, output)
+        }
+    }
+}
+
+function logSuspiciousLinks(paragraphs: GdocParagraph[]): void {
+    const findings: string[] = []
+    paragraphs.forEach((paragraph) => {
+        if (paragraph.type !== "paragraph") return
+        collectSuspiciousLinks(paragraph.spans, paragraph, findings)
+    })
+
+    if (findings.length === 0) {
+        console.log("No suspicious link URLs found.")
+        return
+    }
+
+    console.log("Suspicious link URLs:")
+    findings.forEach((line) => console.log(line))
+}
+
 function splitArchieLines(text: string): string[] {
     return text.replace(/\r/g, "").split("\n")
 }
@@ -89,10 +138,13 @@ function formatDiff(oldText: string, newText: string): string {
 async function main(): Promise<void> {
     const args = process.argv.slice(2)
     const verbose = args.includes("--verbose")
-    const slug = args.find((arg) => arg !== "--verbose")
+    const scanLinks = args.includes("--scan-links")
+    const slug = args.find(
+        (arg) => arg !== "--verbose" && arg !== "--scan-links"
+    )
     if (!slug)
         throw new Error(
-            "Usage: yarn tsx devTools/gdocs/inspectMarkdownDiff.ts <slug>"
+            "Usage: yarn tsx devTools/gdocs/inspectMarkdownDiff.ts [--scan-links] <slug>"
         )
 
     console.log(`Loading gdoc row for ${slug}...`)
@@ -134,6 +186,7 @@ async function main(): Promise<void> {
     console.log("Running new parser...")
     const paragraphs = documentToParagraphs(document)
     if (verbose) console.log(`Paragraphs: ${paragraphs.length}`)
+    if (scanLinks) logSuspiciousLinks(paragraphs)
     const archieText = paragraphsToArchieText(paragraphs)
     if (verbose) console.log(`Archie text length: ${archieText.length}`)
     const { extractedText, refsByFirstAppearance, rawInlineRefs } =
