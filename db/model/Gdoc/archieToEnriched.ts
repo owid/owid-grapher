@@ -178,31 +178,18 @@ export function extractRefs(text: string): {
     return { extractedText, refsByFirstAppearance, rawInlineRefs }
 }
 
-export const archieToEnriched = (
-    text: string,
+export const archieParsedToEnriched = (
+    parsedUnsanitized: Record<string, unknown>,
+    refsByFirstAppearance: Set<string>,
+    rawInlineRefs: unknown[],
     additionalEnrichmentFunction: (
         content: Record<string, unknown>
     ) => void = _.identity
 ): OwidGdocPostContent => {
-    const { extractedText, refsByFirstAppearance, rawInlineRefs } =
-        extractRefs(text)
-    text = extractedText
-
-    // Replace whitespace-only inside links. We need to keep the WS around, they
-    // just should not be displayed as links
-    const noWSOnlyLinks = text.replace(/(<a[^>]*>)(\s+)(<\/a>)/gims, "$2")
-    // Replace leading whitespace inside links. We need to keep the WS around, they
-    // just should not be displayed as links
-    const noLeadingWSLinks = noWSOnlyLinks.replace(
-        /(<a[^>]*>)(\s+)(.*?)(<\/a>)/gims,
-        "$2$1$3$4"
-    )
-
     // Inside .body all keys will be sanitized to lowercase but
     // for the frontmatter this doesn't happen down there - do it now so
     // that "Title: bla" works as well as "title: bla"
-    const parsed_unsanitized = load(noLeadingWSLinks)
-    const parsed: any = lowercaseObjectKeys(parsed_unsanitized)
+    const parsed: any = lowercaseObjectKeys(parsedUnsanitized)
 
     // Convert "true" and "false" strings in the front matter to booleans
     for (const key of Object.keys(parsed)) {
@@ -242,4 +229,33 @@ export const archieToEnriched = (
     additionalEnrichmentFunction(parsed)
 
     return parsed
+}
+
+export const archieToEnriched = (
+    text: string,
+    additionalEnrichmentFunction: (
+        content: Record<string, unknown>
+    ) => void = _.identity
+): OwidGdocPostContent => {
+    const { extractedText, refsByFirstAppearance, rawInlineRefs } =
+        extractRefs(text)
+    text = extractedText
+
+    // Replace whitespace-only inside links. We need to keep the WS around, they
+    // just should not be displayed as links
+    const noWSOnlyLinks = text.replace(/(<a[^>]*>)(\s+)(<\/a>)/gims, "$2")
+    // Replace leading whitespace inside links. We need to keep the WS around, they
+    // just should not be displayed as links
+    const noLeadingWSLinks = noWSOnlyLinks.replace(
+        /(<a[^>]*>)(\s+)(.*?)(<\/a>)/gims,
+        "$2$1$3$4"
+    )
+
+    const parsedUnsanitized = load(noLeadingWSLinks)
+    return archieParsedToEnriched(
+        parsedUnsanitized,
+        refsByFirstAppearance,
+        rawInlineRefs,
+        additionalEnrichmentFunction
+    )
 }
