@@ -1,9 +1,13 @@
 import { type docs_v1 } from "@googleapis/docs"
 import { type OwidGdocPostContent } from "@ourworldindata/utils"
 import { archieParsedToEnriched, extractRefs } from "./archieToEnriched.js"
+import { parseBodyParagraphBlocks } from "./archieParagraphBlockParser.js"
 import { loadArchieFromLines } from "./archieLineParser.js"
 import { documentToParagraphs } from "./gdocAstToParagraphs.js"
+import { attachSourceMetadata } from "./gdocSourceMetadata.js"
+import { paragraphBlocksToRawBody } from "./paragraphBlocksToRaw.js"
 import { paragraphsToArchieText } from "./paragraphsToArchie.js"
+import { buildRefIdToNumberMap } from "./refSyntax.js"
 
 function splitArchieLines(text: string): string[] {
     const normalized = text.replace(/\r/g, "")
@@ -36,11 +40,22 @@ export function gdocAstToEnriched(
 
     const lines = splitArchieLines(noLeadingWSLinks)
     const parsedUnsanitized = loadArchieFromLines(lines)
+    const refIdToNumber = buildRefIdToNumberMap(refsByFirstAppearance)
+    const { blocks: paragraphBlocks } = parseBodyParagraphBlocks(paragraphs)
+    parsedUnsanitized.body = paragraphBlocksToRawBody(
+        paragraphs,
+        paragraphBlocks,
+        refIdToNumber
+    )
 
-    return archieParsedToEnriched(
+    const content = archieParsedToEnriched(
         parsedUnsanitized,
         refsByFirstAppearance,
         rawInlineRefs,
         additionalEnrichmentFunction
     )
+
+    attachSourceMetadata(content.body, paragraphBlocks)
+
+    return content
 }

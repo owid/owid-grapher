@@ -325,6 +325,8 @@ export {
     type EnrichedBlockKeyIndicator,
     type EnrichedBlockKeyIndicatorCollection,
     type EnrichedBlockWithParseErrors,
+    type RawTextValue,
+    type RawTextListValue,
     type RawBlockResearchAndWritingRow,
     type RawBlockPillRow,
     type EnrichedBlockPillRow,
@@ -341,6 +343,7 @@ export {
     type EnrichedSocialLink,
     type RawBlockNarrativeChart,
     type EnrichedBlockNarrativeChart,
+    type EnrichedBlockSource,
     type OwidEnrichedGdocBlockTypeMap,
 } from "./gdocTypes/ArchieMlComponents.js"
 export {
@@ -435,6 +438,7 @@ export type {
     GdocListInfo,
     GdocParagraph,
     GdocParagraphBase,
+    GdocParagraphRange,
     GdocTableContext,
     GdocTextParagraph,
 } from "./gdocTypes/GdocParagraph.js"

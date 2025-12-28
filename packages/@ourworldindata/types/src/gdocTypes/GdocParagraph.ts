@@ -12,6 +12,13 @@ export interface GdocTableContext {
     columnIndex: number
 }
 
+export interface GdocParagraphRange {
+    paragraphStart: number
+    paragraphEnd: number
+    startIndex?: number
+    endIndex?: number
+}
+
 export interface GdocParagraphBase {
     index: number
     startIndex?: number

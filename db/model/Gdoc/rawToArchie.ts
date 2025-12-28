@@ -1,6 +1,9 @@
 import * as _ from "lodash-es"
 import {
     OwidRawGdocBlock,
+    RawTextListValue,
+    RawTextValue,
+    Span,
     RawBlockHeading,
     RawBlockRecirc,
     RawBlockSubscribeBanner,
@@ -61,6 +64,7 @@ import {
     RawBlockStaticViz,
     RawBlockConditionalSection,
 } from "@ourworldindata/types"
+import { spansToHtmlString } from "./gdocUtils.js"
 import { match } from "ts-pattern"
 
 export function appendDotEndIfMultiline(
@@ -97,6 +101,30 @@ export function keyValueToArchieMlString(
     return ""
 }
 
+function isSpanArray(value: unknown): value is Span[] {
+    return (
+        Array.isArray(value) &&
+        value.every(
+            (item) =>
+                Boolean(item) &&
+                typeof item === "object" &&
+                "spanType" in (item as Span)
+        )
+    )
+}
+
+function rawTextValueToString(value: RawTextValue): string {
+    if (typeof value === "string") return value
+    if (isSpanArray(value)) return spansToHtmlString(value)
+    return ""
+}
+
+function rawTextListValueToStrings(value: RawTextListValue): string[] {
+    if (value.length === 0) return []
+    if (typeof value[0] === "string") return value as string[]
+    return (value as Span[][]).map((item) => rawTextValueToString(item))
+}
+
 // The Record<string, any> here is not ideal - it would be nicer to
 // restrict the field type to string but then it only works if all
 // fields are strings. Maybe there is some TS magic to do this?
@@ -109,8 +137,13 @@ export function* propertyToArchieMLString<T extends Record<string, any>>(
             // This is a case where the user gave a string value instead of an object
             // We assume that this was an error here. Not handling this here would make
             // the serialization code below more complex.
-        } else if (key in value && value[key] !== undefined)
-            yield `${String(key)}: ${appendDotEndIfMultiline(value[key])}`
+        } else if (key in value && value[key] !== undefined) {
+            const rawValue = value[key]
+            const stringValue = isSpanArray(rawValue)
+                ? spansToHtmlString(rawValue)
+                : String(rawValue)
+            yield `${String(key)}: ${appendDotEndIfMultiline(stringValue)}`
+        }
 }
 
 function* rawBlockAsideToArchieMLString(
@@ -232,11 +265,14 @@ function* rawBlockVideoToArchieMLString(
 }
 
 function* listToArchieMLString(
-    items: string[] | string,
+    items: RawTextListValue | string,
     blockName: string
 ): Generator<string, void, undefined> {
     yield `[.${blockName}]`
-    if (typeof items !== "string") for (const item of items) yield `* ${item}`
+    if (typeof items !== "string") {
+        const resolvedItems = rawTextListValueToStrings(items)
+        for (const item of resolvedItems) yield `* ${item}`
+    }
     yield "[]"
 }
 
@@ -403,7 +439,7 @@ function escapeRawText(text: string): string {
 function* rawBlockTextToArchieMLString(
     block: RawBlockText
 ): Generator<string, void, undefined> {
-    yield escapeRawText(block.value)
+    yield escapeRawText(rawTextValueToString(block.value))
 }
 
 function* rawBlockHtmlToArchieMLString(

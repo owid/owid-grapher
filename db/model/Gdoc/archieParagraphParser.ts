@@ -1,6 +1,6 @@
 import { type GdocParagraph } from "@ourworldindata/types"
 
-const whitespacePattern =
+export const whitespacePattern =
     "\\u0000\\u0009\\u000A\\u000B\\u000C\\u000D\\u0020\\u00A0\\u2000\\u2001\\u2002\\u2003\\u2004\\u2005\\u2006\\u2007\\u2008\\u2009\\u200A\\u200B\\u2028\\u2029\\u202F\\u205F\\u3000\\uFEFF"
 const slugBlacklist = `${whitespacePattern}\\u005B\\u005C\\u005D\\u007B\\u007D\\u003A`
 
@@ -92,7 +92,8 @@ export function tokenizeParagraphs(
         }
 
         const lines = getParagraphContentLines(paragraph.text)
-        const marker = lines.length === 1 ? parseScopeMarkerLine(lines[0]) : undefined
+        const marker =
+            lines.length === 1 ? parseScopeMarkerLine(lines[0]) : undefined
 
         if (marker) {
             tokens.push({
