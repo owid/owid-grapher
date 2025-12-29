@@ -28,6 +28,7 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                         "mixed-decls",
                         "slash-div",
                     ],
+                    quietDeps: true,
                     silenceDeprecations: [
                         // We don't want to deal with the import warnings for now.
                         // https://sass-lang.com/documentation/breaking-changes/import/
