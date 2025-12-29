@@ -129,3 +129,11 @@ Write-back progress (branch: new-gdocs-parser):
 - Added list length diffs via LCS (insert/delete/update list items with style fragments).
 - Added multiline frontmatter replacement (respects `:end` command if present).
 - Added suggestion overlap filtering to avoid touching text ranges with suggestions.
+
+## Session Update
+
+- Added default-value stripping during write-back serialization so implicit defaults are not re-emitted unless they were present in the current raw block.
+- Shared raw block parsing/serialization helpers so audit tooling and write-back use identical logic.
+- Enhanced `devTools/gdocs/roundTripRawGdoc.ts` with diff categorization, ignore filters, JSON output, and summary counts; added `--list-all`.
+- Updated the `--all` query path in `roundTripRawGdoc.ts` to avoid MySQL sort-memory errors.
+- Ran `roundTripRawGdoc.ts` for a 200-doc sample with `--ignore whitespace,ref,default,frontmatter --json` and wrote `tmp/roundtrip-summary.json`.

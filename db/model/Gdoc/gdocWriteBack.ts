@@ -59,6 +59,16 @@ const SIMPLE_FRONTMATTER_KEYS = new Set([
 
 const UNSUPPORTED_SPAN_TYPES = new Set<string>()
 const refNotePattern = /#note-(\d+)/
+const DEFAULT_RAW_BLOCK_VALUE_PROPERTIES: Record<
+    string,
+    Record<string, unknown>
+> = {
+    chart: { size: "wide" },
+    "narrative-chart": { size: "wide" },
+    image: { size: "wide", hasOutline: "true" },
+    "static-viz": { size: "wide", hasOutline: "true" },
+    table: { size: "narrow", template: "header-row" },
+}
 
 interface FrontmatterLineLocation {
     key: string
@@ -795,14 +805,54 @@ function buildTextReplacementForRange(
     }
 }
 
-function blockToArchieText(block: OwidEnrichedGdocBlock): string {
-    const rawBlock = enrichedBlockToRawBlock(block)
-    const lines = [...OwidRawGdocBlockToArchieMLStringGenerator(rawBlock)]
-    return lines.join("\n")
+function stripDefaultRawBlockProperties<T extends OwidRawGdocBlock>(
+    block: T,
+    currentRaw?: OwidRawGdocBlock | null
+): T {
+    const defaults = DEFAULT_RAW_BLOCK_VALUE_PROPERTIES[block.type]
+    if (!defaults || !isPlainObject(block.value)) return block
+
+    const currentValue =
+        currentRaw?.type === block.type && isPlainObject(currentRaw.value)
+            ? (currentRaw.value as Record<string, unknown>)
+            : null
+
+    let nextValue = block.value as Record<string, unknown>
+    let didChange = false
+
+    for (const [key, defaultValue] of Object.entries(defaults)) {
+        if (!Object.prototype.hasOwnProperty.call(nextValue, key)) continue
+        if (!isEqual(nextValue[key], defaultValue)) continue
+        const currentHasKey = currentValue
+            ? Object.prototype.hasOwnProperty.call(currentValue, key)
+            : false
+        if (!currentHasKey) {
+            if (!didChange) {
+                nextValue = { ...nextValue }
+            }
+            delete nextValue[key]
+            didChange = true
+        }
+    }
+
+    if (!didChange) return block
+    return { ...block, value: nextValue as T["value"] }
 }
 
-function rawBlockToArchieText(block: OwidRawGdocBlock): string {
-    const lines = [...OwidRawGdocBlockToArchieMLStringGenerator(block)]
+function blockToArchieText(
+    block: OwidEnrichedGdocBlock,
+    currentRaw?: OwidRawGdocBlock | null
+): string {
+    const rawBlock = enrichedBlockToRawBlock(block)
+    return serializeRawBlockToArchieText(rawBlock, currentRaw)
+}
+
+export function serializeRawBlockToArchieText(
+    block: OwidRawGdocBlock,
+    currentRaw?: OwidRawGdocBlock | null
+): string {
+    const stripped = stripDefaultRawBlockProperties(block, currentRaw)
+    const lines = [...OwidRawGdocBlockToArchieMLStringGenerator(stripped)]
     return lines.join("\n")
 }
 
@@ -815,7 +865,7 @@ function isRawBlock(value: unknown): value is OwidRawGdocBlock {
     return Boolean(value && typeof value === "object" && "type" in value)
 }
 
-function parseRawBlockFromParagraphs(
+export function parseRawBlockFromParagraphs(
     paragraphs: GdocParagraph[]
 ): OwidRawGdocBlock | null {
     const archieText = paragraphsToArchieText(paragraphs)
@@ -1294,7 +1344,7 @@ function buildBodyReplacements(
                 return
             }
 
-            let insertionText = blockToArchieText(block)
+            let currentRaw: OwidRawGdocBlock | null = null
             if (
                 source &&
                 source.paragraphStart !== undefined &&
@@ -1304,20 +1354,24 @@ function buildBodyReplacements(
                     source.paragraphStart,
                     source.paragraphEnd + 1
                 )
-                const currentRaw = parseRawBlockFromParagraphs(rangeParagraphs)
-                if (currentRaw && sourceKey) {
-                    const originalBlock = originalLookup.get(sourceKey)
-                    if (originalBlock) {
-                        const originalRaw =
-                            enrichedBlockToRawBlock(originalBlock)
-                        const updatedRaw = enrichedBlockToRawBlock(block)
-                        const mergedRaw = mergeRawBlocks(
-                            currentRaw,
-                            originalRaw,
-                            updatedRaw
-                        )
-                        insertionText = rawBlockToArchieText(mergedRaw)
-                    }
+                currentRaw = parseRawBlockFromParagraphs(rangeParagraphs)
+            }
+
+            let insertionText = blockToArchieText(block, currentRaw)
+            if (currentRaw && sourceKey) {
+                const originalBlock = originalLookup.get(sourceKey)
+                if (originalBlock) {
+                    const originalRaw = enrichedBlockToRawBlock(originalBlock)
+                    const updatedRaw = enrichedBlockToRawBlock(block)
+                    const mergedRaw = mergeRawBlocks(
+                        currentRaw,
+                        originalRaw,
+                        updatedRaw
+                    )
+                    insertionText = serializeRawBlockToArchieText(
+                        mergedRaw,
+                        currentRaw
+                    )
                 }
             }
 
@@ -1733,7 +1787,7 @@ function buildBodyReplacements(
         const updatedRaw = enrichedBlockToRawBlock(block)
         const currentRaw = parseRawBlockFromParagraphs(rangeParagraphs)
 
-        let replacementText = blockToArchieText(block)
+        let replacementText = blockToArchieText(block, currentRaw)
         if (currentRaw && originalBlock) {
             const originalRaw = enrichedBlockToRawBlock(originalBlock)
             const mergedRaw = mergeRawBlocks(
@@ -1741,7 +1795,10 @@ function buildBodyReplacements(
                 originalRaw,
                 updatedRaw
             )
-            replacementText = rawBlockToArchieText(mergedRaw)
+            replacementText = serializeRawBlockToArchieText(
+                mergedRaw,
+                currentRaw
+            )
         }
 
         const replacement = buildTextReplacementForRange(
