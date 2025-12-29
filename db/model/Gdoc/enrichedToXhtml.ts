@@ -101,6 +101,7 @@ function collectCommentIdsFromBlock(block: OwidEnrichedGdocBlock): Set<string> {
         })
         .with({ type: "conditional-section" }, (b) => addBlocks(b.content))
         .with({ type: "gray-section" }, (b) => addBlocks(b.items))
+        .with({ type: "conditional-section" }, (b) => addBlocks(b.content))
         .with({ type: "explore-data-section" }, (b) => addBlocks(b.content))
         .with({ type: "align" }, (b) => addBlocks(b.content))
         .with({ type: "expandable-paragraph" }, (b) => addBlocks(b.items))
@@ -576,6 +577,20 @@ export function enrichedBlockToXhtml(
         )
         .with({ type: "gray-section" }, (b) =>
             xmlElement("gray-section", {}, toBlocksXhtml(b.items))
+        )
+        .with({ type: "conditional-section" }, (b) =>
+            xmlElement(
+                "conditional-section",
+                {
+                    include: b.include.length
+                        ? b.include.join(", ")
+                        : undefined,
+                    exclude: b.exclude.length
+                        ? b.exclude.join(", ")
+                        : undefined,
+                },
+                toBlocksXhtml(b.content)
+            )
         )
         .with({ type: "explore-data-section" }, (b) =>
             xmlElement(
