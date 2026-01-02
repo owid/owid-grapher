@@ -1,6 +1,6 @@
 import { createHash } from "crypto"
 import { type OwidEnrichedGdocBlock } from "@ourworldindata/types"
-import { enrichedBlockToMarkdown } from "./enrichedToMarkdown.js"
+import { enrichedBlockToXhtml } from "./enrichedToXhtml.js"
 import {
     type GdocParagraphBlock,
     type GdocParagraphBlockType,
@@ -28,8 +28,10 @@ function normalizeParagraphBlockType(
 }
 
 export function computeBlockFingerprint(block: OwidEnrichedGdocBlock): string {
-    const markdown = (enrichedBlockToMarkdown(block, true) ?? "").trim()
-    return createHash("sha1").update(markdown).digest("hex")
+    const xhtml = enrichedBlockToXhtml(block, {
+        includeComments: false,
+    }).trim()
+    return createHash("sha1").update(xhtml).digest("hex")
 }
 
 export function attachSourceMetadata(

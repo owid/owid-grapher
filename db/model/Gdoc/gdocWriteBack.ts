@@ -37,6 +37,7 @@ const frontmatterCommandPattern = new RegExp(
     "^\\s*:[ \\t\\r]*(endskip|ignore|skip|end).*?$",
     "i"
 )
+const lineWhitespacePattern = new RegExp(`[${whitespacePattern}]+`, "g")
 
 const SIMPLE_FRONTMATTER_KEYS = new Set([
     "title",
@@ -88,6 +89,14 @@ interface FrontmatterValueLocation {
     endCommandLine?: FrontmatterLineLocation
 }
 
+interface ParagraphLineRange {
+    text: string
+    startIndex?: number
+    endIndex?: number
+    paragraphIndex: number
+    lineIndex: number
+}
+
 interface TextStyleFragment {
     text: string
     style: docs_v1.Schema$TextStyle
@@ -103,6 +112,11 @@ export interface GdocTextReplacement {
     newText: string
     reason: string
     styleFragments?: TextStyleFragment[]
+}
+
+interface LineReplacementResult {
+    replacements: GdocTextReplacement[]
+    applied: boolean
 }
 
 export interface GdocWriteBackPlan {
@@ -133,6 +147,20 @@ function normalizeParagraphText(text: string): string {
 
 function normalizeReplacementText(text: string): string {
     return normalizeParagraphText(text)
+}
+
+function normalizeLineForComparison(line: string): string {
+    const marker = parseScopeMarkerLine(line)
+    if (marker) {
+        const flags = marker.flags.split("").sort().join("")
+        const closer = marker.bracket === "[" ? "]" : "}"
+        return `${marker.bracket}${flags}${marker.slug}${closer}`
+    }
+    return line.replace(lineWhitespacePattern, "")
+}
+
+function isBlankLine(line: string): boolean {
+    return normalizeLineForComparison(line) === ""
 }
 
 function ensureTrailingNewline(text: string): string {
@@ -362,6 +390,43 @@ function mergeAdjacentFragments(
     return merged
 }
 
+function splitFragmentsByLine(
+    fragments: TextStyleFragment[]
+): TextStyleFragment[][] {
+    if (fragments.length === 0) return []
+    const lines: TextStyleFragment[][] = [[]]
+    let lineIndex = 0
+
+    for (const fragment of fragments) {
+        if (!fragment.text) continue
+        let remaining = fragment.text
+        while (remaining.length > 0) {
+            const newlineIndex = remaining.indexOf("\n")
+            if (newlineIndex === -1) {
+                lines[lineIndex]!.push({
+                    ...fragment,
+                    text: remaining,
+                })
+                break
+            }
+            const before = remaining.slice(0, newlineIndex)
+            if (before.length > 0) {
+                lines[lineIndex]!.push({
+                    ...fragment,
+                    text: before,
+                })
+            }
+            lineIndex += 1
+            if (!lines[lineIndex]) {
+                lines[lineIndex] = []
+            }
+            remaining = remaining.slice(newlineIndex + 1)
+        }
+    }
+
+    return lines.map((line) => mergeAdjacentFragments(line))
+}
+
 function hasNonDefaultStyles(fragments: TextStyleFragment[]): boolean {
     return fragments.some((fragment) => !isDefaultStyle(fragment.style))
 }
@@ -480,6 +545,66 @@ function buildParagraphLineRanges(
     }
 
     return lineRanges
+}
+
+function buildParagraphTextLineRanges(
+    paragraph: GdocParagraph
+): ParagraphLineRange[] {
+    if (paragraph.type !== "paragraph") return []
+    const lines = getParagraphContentLines(paragraph.text)
+    const normalizedText = paragraph.text.replace(/\r/g, "")
+    const lineRanges: ParagraphLineRange[] = []
+    let offset = 0
+
+    if (lines.length === 0) {
+        if (paragraph.startIndex === undefined) return []
+        lineRanges.push({
+            text: "",
+            startIndex: paragraph.startIndex,
+            endIndex: paragraph.startIndex,
+            paragraphIndex: paragraph.index,
+            lineIndex: 0,
+        })
+        return lineRanges
+    }
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i] ?? ""
+        const startIndex =
+            paragraph.startIndex !== undefined
+                ? paragraph.startIndex + offset
+                : undefined
+        const endIndex =
+            startIndex !== undefined ? startIndex + line.length : undefined
+
+        lineRanges.push({
+            text: line,
+            startIndex,
+            endIndex,
+            paragraphIndex: paragraph.index,
+            lineIndex: i,
+        })
+
+        offset += line.length + 1
+        if (offset > normalizedText.length) {
+            break
+        }
+    }
+
+    return lineRanges
+}
+
+function collectLineRangesForParagraphs(
+    paragraphs: GdocParagraph[]
+): ParagraphLineRange[] | null {
+    const ranges: ParagraphLineRange[] = []
+    for (const paragraph of paragraphs) {
+        if (paragraph.type !== "paragraph") return null
+        const lineRanges = buildParagraphTextLineRanges(paragraph)
+        if (lineRanges.length === 0) return null
+        ranges.push(...lineRanges)
+    }
+    return ranges
 }
 
 function parseFrontmatterLine(
@@ -762,6 +887,195 @@ function buildTextReplacementForParagraph(
     }
 }
 
+function buildLineReplacements(
+    lineRanges: ParagraphLineRange[],
+    newLines: string[],
+    reason: string,
+    lineFragments?: {
+        existing: TextStyleFragment[][]
+        updated: TextStyleFragment[][]
+    }
+): LineReplacementResult {
+    if (lineRanges.length === 0) {
+        return { replacements: [], applied: true }
+    }
+    if (
+        lineRanges.some(
+            (line) =>
+                line.startIndex === undefined || line.endIndex === undefined
+        )
+    ) {
+        return { replacements: [], applied: false }
+    }
+
+    let alignedLines = newLines
+    let alignedFragments = lineFragments?.updated
+
+    if (lineRanges.length !== newLines.length) {
+        if (lineRanges.length < newLines.length) {
+            return { replacements: [], applied: false }
+        }
+        const paddedLines: string[] = []
+        const paddedFragments: TextStyleFragment[][] = []
+        let updatedIndex = 0
+
+        for (const lineRange of lineRanges) {
+            const currentLine = lineRange.text
+            const newLine = newLines[updatedIndex]
+            const canConsumeNewLine = newLine !== undefined
+            const currentBlank = isBlankLine(currentLine)
+
+            if (currentBlank) {
+                if (canConsumeNewLine && isBlankLine(newLine)) {
+                    paddedLines.push(newLine)
+                    if (alignedFragments) {
+                        paddedFragments.push(
+                            alignedFragments[updatedIndex] ?? []
+                        )
+                    }
+                    updatedIndex += 1
+                } else {
+                    paddedLines.push("")
+                    if (alignedFragments) {
+                        paddedFragments.push([])
+                    }
+                }
+                continue
+            }
+
+            if (!canConsumeNewLine) {
+                return { replacements: [], applied: false }
+            }
+            paddedLines.push(newLine)
+            if (alignedFragments) {
+                paddedFragments.push(alignedFragments[updatedIndex] ?? [])
+            }
+            updatedIndex += 1
+        }
+
+        if (updatedIndex !== newLines.length) {
+            return { replacements: [], applied: false }
+        }
+
+        alignedLines = paddedLines
+        if (alignedFragments) {
+            alignedFragments = paddedFragments
+        }
+    }
+
+    if (
+        lineFragments &&
+        (lineFragments.existing.length !== lineRanges.length ||
+            (alignedFragments?.length ?? 0) !== lineRanges.length)
+    ) {
+        return { replacements: [], applied: false }
+    }
+
+    const replacements: GdocTextReplacement[] = []
+
+    for (let i = 0; i < lineRanges.length; i++) {
+        const lineRange = lineRanges[i]!
+        const existingLine = lineRange.text
+        const newLine = alignedLines[i] ?? ""
+        const textMatches =
+            normalizeLineForComparison(existingLine) ===
+            normalizeLineForComparison(newLine)
+        const existingFragments = lineFragments?.existing[i] ?? []
+        const updatedFragments = alignedFragments?.[i] ?? []
+        const fragmentsMatch = lineFragments
+            ? isEqual(existingFragments, updatedFragments)
+            : true
+
+        if (textMatches && fragmentsMatch) continue
+
+        const replacement: GdocTextReplacement = {
+            startIndex: lineRange.startIndex!,
+            endIndex: lineRange.endIndex!,
+            newText: newLine,
+            reason: `${reason}:line:${i}`,
+        }
+
+        if (
+            lineFragments &&
+            updatedFragments.length > 0 &&
+            (hasNonDefaultStyles(updatedFragments) || !fragmentsMatch)
+        ) {
+            replacement.styleFragments = updatedFragments
+        }
+
+        replacements.push(replacement)
+    }
+
+    return { replacements, applied: true }
+}
+
+function buildTextReplacementsForParagraph(
+    paragraph: GdocParagraph,
+    newText: string,
+    reason: string,
+    warnings: string[],
+    options: {
+        updatedFragments?: TextStyleFragment[]
+        existingFragments?: TextStyleFragment[]
+    } = {}
+): GdocTextReplacement[] {
+    const normalizedNew = normalizeReplacementText(newText)
+    const existingText =
+        paragraph.type === "paragraph"
+            ? normalizeParagraphText(paragraph.text)
+            : ""
+    const updatedFragments = options.updatedFragments
+    const existingFragments =
+        options.existingFragments ??
+        (updatedFragments ? buildFragmentsFromParagraph(paragraph) : [])
+    const textMatches = normalizedNew === existingText
+    const fragmentsMatch = updatedFragments
+        ? isEqual(existingFragments, updatedFragments)
+        : true
+
+    if (textMatches && fragmentsMatch) return []
+
+    if (
+        paragraph.type === "paragraph" &&
+        !paragraphHasUnsupportedContent(paragraph)
+    ) {
+        const lineRanges = buildParagraphTextLineRanges(paragraph)
+        const newLines = getParagraphContentLines(normalizedNew)
+        const lineFragments = updatedFragments
+            ? {
+                  existing: splitFragmentsByLine(existingFragments),
+                  updated: splitFragmentsByLine(updatedFragments),
+              }
+            : undefined
+        const lineResult = buildLineReplacements(
+            lineRanges,
+            newLines,
+            reason,
+            lineFragments
+        )
+        if (lineResult.applied) {
+            return lineResult.replacements
+        }
+    }
+
+    const replacement = buildTextReplacementForParagraph(
+        paragraph,
+        normalizedNew,
+        reason,
+        warnings,
+        { allowSameText: textMatches && !fragmentsMatch }
+    )
+    if (!replacement) return []
+    if (
+        updatedFragments &&
+        updatedFragments.length > 0 &&
+        (hasNonDefaultStyles(updatedFragments) || !fragmentsMatch)
+    ) {
+        replacement.styleFragments = updatedFragments
+    }
+    return [replacement]
+}
+
 function buildTextReplacementForRange(
     paragraphs: GdocParagraph[],
     paragraphStart: number,
@@ -803,6 +1117,46 @@ function buildTextReplacementForRange(
         newText: normalizedNew,
         reason,
     }
+}
+
+function buildTextReplacementsForRange(
+    paragraphs: GdocParagraph[],
+    paragraphStart: number,
+    paragraphEnd: number,
+    newText: string,
+    reason: string,
+    warnings: string[]
+): LineReplacementResult {
+    const rangeParagraphs = paragraphs.slice(paragraphStart, paragraphEnd + 1)
+    if (
+        rangeParagraphs.length > 0 &&
+        !rangeParagraphs.some(paragraphHasUnsupportedContent)
+    ) {
+        const lineRanges = collectLineRangesForParagraphs(rangeParagraphs)
+        if (lineRanges) {
+            const normalizedNew = normalizeReplacementText(newText)
+            const newLines = getParagraphContentLines(normalizedNew)
+            const lineResult = buildLineReplacements(
+                lineRanges,
+                newLines,
+                reason
+            )
+            if (lineResult.applied) return lineResult
+        }
+    }
+
+    const replacement = buildTextReplacementForRange(
+        paragraphs,
+        paragraphStart,
+        paragraphEnd,
+        newText,
+        reason,
+        warnings
+    )
+    if (!replacement) {
+        return { replacements: [], applied: false }
+    }
+    return { replacements: [replacement], applied: true }
 }
 
 function stripDefaultRawBlockProperties<T extends OwidRawGdocBlock>(
@@ -1439,27 +1793,18 @@ function buildBodyReplacements(
             }
             const { normalizedText, trimmedFragments } =
                 buildFragmentsFromSpans(block.value, { refTokens })
-            const textMatches =
-                normalizedText === normalizeParagraphText(paragraph.text)
             const existingFragments = buildFragmentsFromParagraph(paragraph)
-            const fragmentsMatch = isEqual(existingFragments, trimmedFragments)
-            if (textMatches && fragmentsMatch) return
-            const replacement = buildTextReplacementForParagraph(
+            const paragraphReplacements = buildTextReplacementsForParagraph(
                 paragraph,
                 normalizedText,
                 `body[${index}]:text`,
                 warnings,
-                { allowSameText: textMatches && !fragmentsMatch }
-            )
-            if (replacement) {
-                if (
-                    trimmedFragments.length > 0 &&
-                    (hasNonDefaultStyles(trimmedFragments) || !fragmentsMatch)
-                ) {
-                    replacement.styleFragments = trimmedFragments
+                {
+                    updatedFragments: trimmedFragments,
+                    existingFragments,
                 }
-                replacements.push(replacement)
-            }
+            )
+            replacements.push(...paragraphReplacements)
             return
         }
 
@@ -1508,27 +1853,18 @@ function buildBodyReplacements(
                     refTokens,
                 }
             )
-            const textMatches =
-                normalizedText === normalizeParagraphText(paragraph.text)
             const existingFragments = buildFragmentsFromParagraph(paragraph)
-            const fragmentsMatch = isEqual(existingFragments, trimmedFragments)
-            if (textMatches && fragmentsMatch) return
-            const replacement = buildTextReplacementForParagraph(
+            const paragraphReplacements = buildTextReplacementsForParagraph(
                 paragraph,
                 normalizedText,
                 `body[${index}]:heading`,
                 warnings,
-                { allowSameText: textMatches && !fragmentsMatch }
-            )
-            if (replacement) {
-                if (
-                    trimmedFragments.length > 0 &&
-                    (hasNonDefaultStyles(trimmedFragments) || !fragmentsMatch)
-                ) {
-                    replacement.styleFragments = trimmedFragments
+                {
+                    updatedFragments: trimmedFragments,
+                    existingFragments,
                 }
-                replacements.push(replacement)
-            }
+            )
+            replacements.push(...paragraphReplacements)
             return
         }
 
@@ -1585,32 +1921,16 @@ function buildBodyReplacements(
                     )
                     return
                 }
-                const textMatches =
-                    item.normalizedText ===
-                    normalizeParagraphText(paragraph.text)
-                const fragmentsMatch = isEqual(
-                    item.trimmedFragments,
-                    buildFragmentsFromParagraph(paragraph)
-                )
-                if (textMatches && fragmentsMatch) return
-
-                const replacement = buildTextReplacementForParagraph(
+                const itemReplacements = buildTextReplacementsForParagraph(
                     paragraph,
                     item.normalizedText,
                     `body[${index}]:list:${itemIndex}`,
                     warnings,
-                    { allowSameText: textMatches && !fragmentsMatch }
-                )
-                if (replacement) {
-                    if (
-                        item.trimmedFragments.length > 0 &&
-                        (hasNonDefaultStyles(item.trimmedFragments) ||
-                            !fragmentsMatch)
-                    ) {
-                        replacement.styleFragments = item.trimmedFragments
+                    {
+                        updatedFragments: item.trimmedFragments,
                     }
-                    replacements.push(replacement)
-                }
+                )
+                replacements.push(...itemReplacements)
             }
 
             const pushListDeletion = (
@@ -1801,7 +2121,7 @@ function buildBodyReplacements(
             )
         }
 
-        const replacement = buildTextReplacementForRange(
+        const rangeResult = buildTextReplacementsForRange(
             paragraphs,
             paragraphStart,
             paragraphEnd,
@@ -1809,8 +2129,8 @@ function buildBodyReplacements(
             `body[${index}]:${block.type}`,
             warnings
         )
-        if (replacement) {
-            replacements.push(replacement)
+        if (rangeResult.applied) {
+            replacements.push(...rangeResult.replacements)
         } else {
             skipped.push(`body[${index}]: ${block.type} replacement skipped`)
         }

@@ -683,11 +683,6 @@ function* rawBlockTopicPageIntroToArchieMLString(
     block: RawBlockTopicPageIntro
 ): Generator<string, void, undefined> {
     yield "{.topic-page-intro}"
-    yield "[.+content]"
-    for (const content of block.value.content) {
-        yield* OwidRawGdocBlockToArchieMLStringGenerator(content)
-    }
-    yield "[]"
     const downloadButton = block.value["download-button"]
     if (downloadButton) {
         yield "{.download-button}"
@@ -699,11 +694,16 @@ function* rawBlockTopicPageIntroToArchieMLString(
     if (relatedTopics && relatedTopics.length) {
         yield "[.related-topics]"
         for (const relatedTopic of relatedTopics) {
-            yield* propertyToArchieMLString("text", relatedTopic)
             yield* propertyToArchieMLString("url", relatedTopic)
+            yield* propertyToArchieMLString("text", relatedTopic)
         }
         yield "[]"
     }
+    yield "[.+content]"
+    for (const content of block.value.content) {
+        yield* OwidRawGdocBlockToArchieMLStringGenerator(content)
+    }
+    yield "[]"
     yield "{}"
 }
 
