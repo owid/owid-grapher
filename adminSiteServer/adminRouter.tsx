@@ -2,23 +2,13 @@
 import express, { Router } from "express"
 import filenamify from "filenamify"
 import { Writable } from "stream"
-import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil.js"
-import {
-    getSafeRedirectUrl,
-    logInWithCredentials,
-    logOut,
-} from "./authentication.js"
-import { LoginPage } from "./LoginPage.js"
+import { expectInt } from "../serverUtils/serverUtil.js"
+import { logOut } from "./authentication.js"
 import * as db from "../db/db.js"
 import { writeDatasetCSV } from "../db/model/Dataset.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { renderExplorerPage } from "../baker/siteRenderers.js"
-import {
-    JsonError,
-    parseIntOrUndefined,
-    slugify,
-    stringifyUnknownError,
-} from "@ourworldindata/utils"
+import { JsonError, parseIntOrUndefined, slugify } from "@ourworldindata/utils"
 import {
     DefaultNewExplorerSlug,
     EXPLORERS_PREVIEW_ROUTE,
@@ -53,37 +43,6 @@ adminRouter.use(async (req, res, next) => {
 
 adminRouter.get("/", async (req, res) => {
     res.redirect(`/admin/charts`)
-})
-
-adminRouter.get("/login", async (req, res) => {
-    res.send(renderToHtmlPage(<LoginPage next={req.query.next as string} />))
-})
-adminRouter.post("/login", async (req, res) => {
-    try {
-        const session = await logInWithCredentials(
-            req.body.username,
-            req.body.password
-        )
-        // secure cookie when using https
-        // (our staging servers use http and passing insecure cookie wouldn't work)
-        const secure = req.protocol === "https"
-
-        res.cookie("sessionid", session.id, {
-            httpOnly: true,
-            sameSite: "lax",
-            secure: secure,
-        })
-        res.redirect(getSafeRedirectUrl(req.query.next as string | undefined))
-    } catch (err) {
-        res.status(400).send(
-            renderToHtmlPage(
-                <LoginPage
-                    next={req.query.next as string}
-                    errorMessage={stringifyUnknownError(err)}
-                />
-            )
-        )
-    }
 })
 
 adminRouter.get("/logout", logOut)

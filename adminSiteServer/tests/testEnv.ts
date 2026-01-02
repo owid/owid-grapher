@@ -18,7 +18,6 @@ export interface TestEnv {
     serverKnex: Knex<any, unknown[]>
     app: OwidAdminApp
     baseUrl: string
-    cookieId: string
     // Helpers
     fetchJson(path: string): Promise<any>
     request(arg: {
@@ -32,16 +31,8 @@ export interface TestEnv {
 let testKnex: Knex<any, unknown[]> | undefined
 let serverKnex: Knex<any, unknown[]> | undefined
 let app: OwidAdminApp | undefined
-let cookieId = ""
-let adminUserId = 0
 
 const ADMIN_URL = `http://${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}/admin/api`
-
-async function logInAsAdmin(id: number): Promise<string> {
-    const { logInAsUser } = await import("../authentication.js")
-    const result = await logInAsUser({ email: "admin@example.com", id })
-    return result.id
-}
 
 async function seedBaselineData(): Promise<number> {
     // Ensure we have an admin user; do NOT delete users to avoid FK issues
@@ -52,7 +43,8 @@ async function seedBaselineData(): Promise<number> {
     const [id] = await testKnex!("users").insert({
         email: "admin@example.com",
         fullName: "Admin",
-        password: "admin",
+        isActive: 1,
+        isSuperuser: 1,
         createdAt: new Date(),
         updatedAt: new Date(),
     })
@@ -77,7 +69,7 @@ export function getAdminTestEnv(): TestEnv {
     beforeAll(async () => {
         testKnex = knex(dbTestConfig)
         serverKnex = knex(dbTestConfig)
-        adminUserId = await seedBaselineData()
+        await seedBaselineData()
         // Ensure we start from a clean slate for non-user tables
         await knexReadWriteTransaction(
             async (trx) => {
@@ -92,7 +84,6 @@ export function getAdminTestEnv(): TestEnv {
 
         app = new OwidAdminApp({ isDev: true, isTest: true, quiet: true })
         await app.startListening(ADMIN_SERVER_PORT, ADMIN_SERVER_HOST)
-        cookieId = await logInAsAdmin(adminUserId)
     })
 
     afterEach(async () => {
@@ -115,9 +106,7 @@ export function getAdminTestEnv(): TestEnv {
 
     async function fetchJson(p: string): Promise<any> {
         const url = ADMIN_URL + p
-        const response = await fetch(url, {
-            headers: { cookie: `sessionid=${cookieId}` },
-        })
+        const response = await fetch(url)
         expect(response.status).toBe(200)
         return await response.json()
     }
@@ -132,7 +121,6 @@ export function getAdminTestEnv(): TestEnv {
             method: arg.method,
             headers: {
                 "Content-Type": "application/json",
-                cookie: `sessionid=${cookieId}`,
             },
             body: arg.body,
         })
@@ -151,9 +139,6 @@ export function getAdminTestEnv(): TestEnv {
             return app!
         },
         baseUrl: ADMIN_URL,
-        get cookieId() {
-            return cookieId
-        },
         fetchJson,
         request,
         getCount,

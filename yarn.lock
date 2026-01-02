@@ -8438,15 +8438,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bcryptjs@npm:^3.0.2":
-  version: 3.0.2
-  resolution: "bcryptjs@npm:3.0.2"
-  bin:
-    bcrypt: bin/bcrypt
-  checksum: 10/02c37e7298aba74e13e0576d63617cc1c9005efc165e55c11b287dc17192bedce8cd6f6e78180203c2519a211d9eb77ff14b286f962e2f0b93c08d2ada02dc22
-  languageName: node
-  linkType: hard
-
 "bignumber.js@npm:^8 || ^9, bignumber.js@npm:^9.0.0":
   version: 9.1.2
   resolution: "bignumber.js@npm:9.1.2"
@@ -11313,7 +11304,6 @@ __metadata:
     algoliasearch: "npm:^5.42.0"
     antd: "npm:^5.24.0"
     archieml: "npm:^0.5.0"
-    bcryptjs: "npm:^3.0.2"
     bootstrap: "npm:^4.6.1"
     bundlemon: "npm:^3.1.0"
     cheerio: "npm:^1.1.0"

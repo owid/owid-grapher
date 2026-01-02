@@ -764,11 +764,7 @@ export {
     type DbInsertPostTag,
     PostTagsTableName,
 } from "./dbTypes/PostTags.js"
-export {
-    type DbPlainSession,
-    type DbInsertSession,
-    SessionsTableName,
-} from "./dbTypes/Sessions.js"
+export { SessionsTableName } from "./dbTypes/Sessions.js"
 
 export {
     type DbInsertSource,
