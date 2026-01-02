@@ -22,6 +22,7 @@ import {
 import { parseBodyParagraphBlocks } from "./archieParagraphBlockParser.js"
 import { loadArchieFromLines } from "./archieLineParser.js"
 import { documentToParagraphs } from "./gdocAstToParagraphs.js"
+import { htmlToSpans } from "./htmlToEnriched.js"
 import { paragraphsToArchieText } from "./paragraphsToArchie.js"
 import { spansToSimpleString } from "./gdocUtils.js"
 import { computeBlockFingerprint } from "./gdocSourceMetadata.js"
@@ -38,6 +39,7 @@ const frontmatterCommandPattern = new RegExp(
     "i"
 )
 const lineWhitespacePattern = new RegExp(`[${whitespacePattern}]+`, "g")
+const htmlTagPattern = /<\/?[a-zA-Z][^>]*>/
 
 const SIMPLE_FRONTMATTER_KEYS = new Set([
     "title",
@@ -104,6 +106,7 @@ interface TextStyleFragment {
 
 interface SpanFragmentOptions {
     refTokens?: Map<number, string>
+    refFallback?: "link" | "plain"
 }
 
 export interface GdocTextReplacement {
@@ -141,6 +144,11 @@ interface ListItemUpdate {
     trimmedFragments: TextStyleFragment[]
 }
 
+interface LineContentUpdate {
+    text: string
+    fragments: TextStyleFragment[]
+}
+
 function normalizeParagraphText(text: string): string {
     return text.replace(/\r/g, "").replace(/\n$/, "")
 }
@@ -163,9 +171,88 @@ function isBlankLine(line: string): boolean {
     return normalizeLineForComparison(line) === ""
 }
 
+function getArchiePropertyKey(line: string): string | null {
+    const parsed = parseFrontmatterLine(line)
+    if (!parsed) return null
+    const key = parsed.key.trim()
+    if (!key) return null
+    if (key !== key.toLowerCase()) return null
+    return key
+}
+
+function lineAllowsRichText(line: string): boolean {
+    if (parseScopeMarkerLine(line)) return false
+    if (frontmatterCommandPattern.test(line)) return false
+    const propertyKey = getArchiePropertyKey(line)
+    if (propertyKey === "url") return false
+    return true
+}
+
+function buildLineContentFromHtml(
+    line: string,
+    options: { allowRich: boolean; refTokens?: Map<number, string> }
+): { text: string; fragments?: TextStyleFragment[] } {
+    if (!options.allowRich || !htmlTagPattern.test(line)) {
+        const fragments = line
+            ? [{ text: line, style: { ...defaultTextStyle } }]
+            : []
+        return { text: line, fragments }
+    }
+    const spans = htmlToSpans(line)
+    const text = spansToSimpleString(spans)
+    const fragments = mergeAdjacentFragments(
+        spansToTextFragments(spans, [], {
+            refTokens: options.refTokens,
+            refFallback: "link",
+        })
+    )
+    const trimmedFragments = trimFragmentsToLength(fragments, text.length)
+    return { text, fragments: trimmedFragments }
+}
+
 function ensureTrailingNewline(text: string): string {
     if (!text) return "\n"
     return text.endsWith("\n") ? text : `${text}\n`
+}
+
+function alignLineUpdates(
+    lineRanges: ParagraphLineRange[],
+    updates: LineContentUpdate[],
+    existingFragments: TextStyleFragment[][]
+): { lines: string[]; fragments: TextStyleFragment[][] } | null {
+    const alignedLines: string[] = []
+    const alignedFragments: TextStyleFragment[][] = []
+    let updatedIndex = 0
+
+    for (let i = 0; i < lineRanges.length; i++) {
+        const lineRange = lineRanges[i]!
+        const update = updates[updatedIndex]
+        const canConsumeUpdate = update !== undefined
+        const currentBlank = isBlankLine(lineRange.text)
+
+        if (currentBlank) {
+            if (canConsumeUpdate && isBlankLine(update.text)) {
+                alignedLines.push(update.text)
+                alignedFragments.push(update.fragments)
+                updatedIndex += 1
+            } else {
+                alignedLines.push("")
+                alignedFragments.push(existingFragments[i] ?? [])
+            }
+            continue
+        }
+
+        if (!canConsumeUpdate) {
+            return null
+        }
+
+        alignedLines.push(update.text)
+        alignedFragments.push(update.fragments)
+        updatedIndex += 1
+    }
+
+    if (updatedIndex !== updates.length) return null
+    return { lines: alignedLines, fragments: alignedFragments }
 }
 
 const defaultTextStyle: docs_v1.Schema$TextStyle = {
@@ -289,6 +376,33 @@ function spansToTextFragments(
                         text: `{ref}${refToken}{/ref}`,
                         style: mergeStyleStack(styleStack),
                     })
+                } else if (options.refFallback === "link") {
+                    const linkUrl = span.url ?? ""
+                    const nextStack = linkUrl
+                        ? [
+                              ...styleStack,
+                              {
+                                  link: {
+                                      url: linkUrl,
+                                  },
+                              },
+                          ]
+                        : styleStack
+                    fragments.push(
+                        ...spansToTextFragments(
+                            span.children,
+                            nextStack,
+                            options
+                        )
+                    )
+                } else if (options.refFallback === "plain") {
+                    fragments.push(
+                        ...spansToTextFragments(
+                            span.children,
+                            styleStack,
+                            options
+                        )
+                    )
                 }
                 break
             }
@@ -459,6 +573,24 @@ function buildFragmentsFromParagraph(
     )
     const normalizedText = normalizeParagraphText(paragraph.text)
     return trimFragmentsToLength(fragments, normalizedText.length)
+}
+
+function buildExistingLineFragments(
+    lineRanges: ParagraphLineRange[],
+    paragraphs: GdocParagraph[]
+): TextStyleFragment[][] {
+    const cache = new Map<number, TextStyleFragment[][]>()
+    return lineRanges.map((range) => {
+        let fragmentsByLine = cache.get(range.paragraphIndex)
+        if (!fragmentsByLine) {
+            const paragraph = paragraphs[range.paragraphIndex]
+            fragmentsByLine = paragraph
+                ? splitFragmentsByLine(buildFragmentsFromParagraph(paragraph))
+                : []
+            cache.set(range.paragraphIndex, fragmentsByLine)
+        }
+        return fragmentsByLine[range.lineIndex] ?? []
+    })
 }
 
 function isDefaultStyle(style: docs_v1.Schema$TextStyle): boolean {
@@ -1125,7 +1257,8 @@ function buildTextReplacementsForRange(
     paragraphEnd: number,
     newText: string,
     reason: string,
-    warnings: string[]
+    warnings: string[],
+    options: { parseHtml?: boolean; refTokens?: Map<number, string> } = {}
 ): LineReplacementResult {
     const rangeParagraphs = paragraphs.slice(paragraphStart, paragraphEnd + 1)
     if (
@@ -1135,13 +1268,51 @@ function buildTextReplacementsForRange(
         const lineRanges = collectLineRangesForParagraphs(rangeParagraphs)
         if (lineRanges) {
             const normalizedNew = normalizeReplacementText(newText)
-            const newLines = getParagraphContentLines(normalizedNew)
-            const lineResult = buildLineReplacements(
-                lineRanges,
-                newLines,
-                reason
-            )
-            if (lineResult.applied) return lineResult
+            if (options.parseHtml) {
+                const rawLines = getParagraphContentLines(normalizedNew)
+                const lineUpdates: LineContentUpdate[] = rawLines.map(
+                    (line) => {
+                        const allowRich = lineAllowsRichText(line)
+                        const content = buildLineContentFromHtml(line, {
+                            allowRich,
+                            refTokens: options.refTokens,
+                        })
+                        return {
+                            text: content.text,
+                            fragments: content.fragments ?? [],
+                        }
+                    }
+                )
+                const existingFragments = buildExistingLineFragments(
+                    lineRanges,
+                    paragraphs
+                )
+                const aligned = alignLineUpdates(
+                    lineRanges,
+                    lineUpdates,
+                    existingFragments
+                )
+                if (aligned) {
+                    const lineResult = buildLineReplacements(
+                        lineRanges,
+                        aligned.lines,
+                        reason,
+                        {
+                            existing: existingFragments,
+                            updated: aligned.fragments,
+                        }
+                    )
+                    if (lineResult.applied) return lineResult
+                }
+            } else {
+                const newLines = getParagraphContentLines(normalizedNew)
+                const lineResult = buildLineReplacements(
+                    lineRanges,
+                    newLines,
+                    reason
+                )
+                if (lineResult.applied) return lineResult
+            }
         }
     }
 
@@ -2127,7 +2298,8 @@ function buildBodyReplacements(
             paragraphEnd,
             replacementText,
             `body[${index}]:${block.type}`,
-            warnings
+            warnings,
+            { parseHtml: true, refTokens }
         )
         if (rangeResult.applied) {
             replacements.push(...rangeResult.replacements)
@@ -2183,8 +2355,11 @@ function buildRequestsFromReplacements(
         underline: false,
         strikethrough: false,
         baselineOffset: "NONE",
-        link: { url: null },
     }
+    const resetStyleWithLink = {
+        ...resetStyle,
+        link: null,
+    } as unknown as docs_v1.Schema$TextStyle
 
     for (const replacement of sorted) {
         if (replacement.endIndex > replacement.startIndex) {
@@ -2217,7 +2392,7 @@ function buildRequestsFromReplacements(
                                 replacement.startIndex +
                                 replacement.newText.length,
                         },
-                        textStyle: resetStyle,
+                        textStyle: resetStyleWithLink,
                         fields: styleFields,
                     },
                 })

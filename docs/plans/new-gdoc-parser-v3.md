@@ -45,7 +45,7 @@ Attach paragraph range metadata to enriched blocks:
 
 - `startIndex/endIndex` in UTF-16
 - paragraph index range
-- markdown fingerprint for alignment
+- XHTML fingerprint for alignment
 
 ### Step 5: Write-back (later phase)
 
@@ -107,7 +107,7 @@ Done:
 - Paragraph blocks -> raw body using spans (text/heading/list) with legacy `{.heading}` support.
 - Cross-paragraph `{ref}` handling in body (inline ref anchors; ref-only paragraphs skipped).
 - Raw/enriched conversions accept span-based text values.
-- `_source` metadata attachment with markdown fingerprints.
+- `_source` metadata attachment with XHTML fingerprints.
 - Parity tooling: `devTools/gdocs/compareParsers.ts` and `devTools/gdocs/inspectMarkdownDiff.ts`.
 
 Left to do:
@@ -137,3 +137,67 @@ Write-back progress (branch: new-gdocs-parser):
 - Enhanced `devTools/gdocs/roundTripRawGdoc.ts` with diff categorization, ignore filters, JSON output, and summary counts; added `--list-all`.
 - Updated the `--all` query path in `roundTripRawGdoc.ts` to avoid MySQL sort-memory errors.
 - Ran `roundTripRawGdoc.ts` for a 200-doc sample with `--ignore whitespace,ref,default,frontmatter --json` and wrote `tmp/roundtrip-summary.json`.
+
+## XHTML Roundtrip Audit (Top 10 Pageviews)
+
+Goal: export each doc to XHTML, parse back to enriched blocks, and check write-back
+plans. Expectation is no changes. Results show multiple systematic diffs that need
+tracking and decision-making.
+
+Summary outcome (top 10 by `analytics_pageviews.views_365d`):
+
+- 4 docs showed 0 replacements, but 2 of those emitted warnings/skips due to
+  unsupported content in write-back ranges.
+- 6 docs produced replacement plans (1 to 50 replacements), often concentrated in
+  a few long blocks.
+
+Key recurring issues observed:
+
+1. Auto-linking in property lines
+    - Gdoc sometimes linkifies URLs embedded in ArchieML property lines (e.g.
+      `url:` fields), so the parsed content includes spans/anchors when the
+      original property was plain text.
+    - Example diff from `co2-and-greenhouse-gas-emissions`:
+        - Current: `url: https://ourworldindata.org/energy`
+        - Next: `url: <a href="https://ourworldindata.org/energy">https://ourworldindata.org/energy</a>`
+    - This causes no user-visible change but shows up as a write-back diff.
+
+2. Span fidelity differences (sub/superscript, refs, links)
+    - XHTML roundtrip preserves rich spans; the original gdoc may store these as
+      plain text in ArchieML (or vice versa), producing diffs that add span markup.
+    - Example from `co2-emissions`:
+        - Current: `CO2 emissions`
+        - Next: `CO <sub>2</sub> emissions`
+    - Similar diffs appear for ref markers and inline links.
+
+3. Component normalization / structural rewrites
+    - Some blocks re-serialize into a more explicit structured ArchieML shape
+      (e.g. headings inside a gray-section), even when the visible content is
+      unchanged.
+    - Example from `poverty`:
+        - Current: plain text headings inside `[.+gray-section]`
+        - Next: explicit `{.heading}` blocks for each heading inside the section
+    - These are large write-back replacements, even if they are semantically
+      equivalent.
+
+4. Unsupported-content guardrails
+    - Write-back intentionally skips ranges with unsupported content (inline
+      objects, equations, certain markers), causing warnings and no replacements.
+    - Example: `life-expectancy` skipped `key-insights` replacement due to
+      unsupported content inside the range.
+
+5. Marker ordering / formatting differences
+    - Some components are equivalent but differ in marker order or formatting
+      (e.g. `[.+content]` marker placement or ordering of property lines). This
+      triggers replacements even without semantic change.
+    - We already fixed `topic-page-intro` ordering once, but similar cases still
+      exist across other block types.
+
+Next steps / decisions:
+
+- Decide if auto-linking in property lines should be normalized away in
+  serialization or accepted as a no-op.
+- Decide which span changes are acceptable to roundtrip (e.g. should `CO2` be
+  normalized to `CO <sub>2</sub>` or left as-is?).
+- Identify component types that should preserve "minimal" ArchieML vs those
+  that should be normalized into explicit structured blocks.
