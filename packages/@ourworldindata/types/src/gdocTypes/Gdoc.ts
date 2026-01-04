@@ -123,6 +123,7 @@ export interface OwidGdocBaseInterface {
     publishedAt: Date | null
     updatedAt: Date | null
     revisionId: string | null
+    rawGdoc?: string | null
     publicationContext: OwidGdocPublicationContext
     manualBreadcrumbs: BreadcrumbItem[] | null
     linkedAuthors?: LinkedAuthor[]

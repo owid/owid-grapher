@@ -169,6 +169,7 @@ export async function updateGdocContentOnly(
         .update({
             content: JSON.stringify(gdoc.content),
             revisionId: gdoc.revisionId,
+            rawGdoc: gdoc.rawGdoc,
             markdown: gdoc.markdown,
         })
     await updateDerivedGdocPostsComponents(knex, id, gdoc.content.body)
@@ -735,6 +736,7 @@ export function getDbEnrichedGdocFromOwidGdoc(
         published: gdoc.published,
         publishedAt: gdoc.publishedAt,
         revisionId: gdoc.revisionId,
+        rawGdoc: gdoc.rawGdoc ?? null,
         slug: gdoc.slug,
         updatedAt: gdoc.updatedAt,
     } satisfies DbEnrichedPostGdoc

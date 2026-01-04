@@ -56,6 +56,7 @@ export const checkIsLightningUpdate = (
         linkedStaticViz: true,
         relatedCharts: true,
         revisionId: true,
+        rawGdoc: true,
         updatedAt: true,
         markdown: true,
         contentMd5: true,

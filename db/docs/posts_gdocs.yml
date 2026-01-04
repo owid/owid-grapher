@@ -48,6 +48,8 @@ fields:
         description: Publication context ('listed' or 'unlisted')
     revisionId:
         description: Google Docs revision ID for tracking document versions
+    rawGdoc:
+        description: Raw JSON response from the Google Docs API, stored for archival and re-parsing. Contains the original document structure before suggestion normalization.
     manualBreadcrumbs:
         description: Custom breadcrumb navigation overrides
     markdown:
