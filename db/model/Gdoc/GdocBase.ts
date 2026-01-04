@@ -44,6 +44,7 @@ import {
 } from "./gdocUtils.js"
 import { OwidGoogleAuth } from "../../OwidGoogleAuth.js"
 import { acceptAllGdocSuggestions } from "./acceptAllGdocSuggestions.js"
+import { gdocAstToEnriched } from "./gdocAstToEnriched.js"
 import { enrichedBlocksToMarkdown } from "./enrichedToMarkdown.js"
 import { getDatapageIndicatorId } from "../Variable.js"
 import { createLinkForNarrativeChart, createLinkFromUrl } from "../Link.js"
@@ -925,7 +926,8 @@ export class GdocBase implements OwidGdocBaseInterface {
     }
 
     async fetchAndEnrichGdoc(
-        acceptSuggestions: boolean = false
+        acceptSuggestions: boolean = false,
+        useParagraphParser: boolean = false
     ): Promise<void> {
         const docsClient = googleDocs({
             version: "v1",
@@ -955,15 +957,22 @@ export class GdocBase implements OwidGdocBaseInterface {
 
         this.revisionId = normalizedDocument.revisionId ?? null
 
-        // Convert the doc to ArchieML syntax
-        const { text } = await gdocToArchie(normalizedDocument)
+        if (useParagraphParser) {
+            this.content = gdocAstToEnriched(
+                normalizedDocument,
+                this._enrichSubclassContent
+            )
+        } else {
+            // Convert the doc to ArchieML syntax
+            const { text } = await gdocToArchie(normalizedDocument)
 
-        // Convert the ArchieML to our enriched JSON structure
-        this.content = archieToEnriched(text, this._enrichSubclassContent)
+            // Convert the ArchieML to our enriched JSON structure
+            this.content = archieToEnriched(text, this._enrichSubclassContent)
 
-        // Anchor comments to text spans based on quotedText matching
-        if (comments) {
-            this.content = anchorCommentsToContent(this.content, comments)
+            // Anchor comments to text spans based on quotedText matching
+            if (comments) {
+                this.content = anchorCommentsToContent(this.content, comments)
+            }
         }
     }
 

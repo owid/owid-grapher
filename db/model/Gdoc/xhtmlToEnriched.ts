@@ -26,6 +26,7 @@ import {
     RawBlockStickyLeftContainer,
     RawBlockStickyRightContainer,
     RawBlockGraySection,
+    RawBlockConditionalSection,
     RawBlockExploreDataSection,
     RawBlockConditionalSection,
     RawBlockAlign,
@@ -200,35 +201,50 @@ function getSpanContent(element: Element): string {
                     // These are artifacts of pretty-printing indentation.
                     // Preserve single spaces between elements as they may be actual content.
                     if (isWhitespaceOnly(text) && text.includes("\n")) {
-                        const prevIsTag =
-                            index > 0 && arr[index - 1].type === "tag"
-                        const nextIsTag =
-                            index < arr.length - 1 &&
-                            arr[index + 1].type === "tag"
-                        if (prevIsTag || nextIsTag) {
+                        if (index === 0 || index === arr.length - 1) {
                             return ""
                         }
+                        const prev = arr[index - 1]
+                        const next = arr[index + 1]
+                        const prevIsContent =
+                            prev &&
+                            (prev.type === "tag" ||
+                                (prev.type === "text" &&
+                                    !isWhitespaceOnly(
+                                        (prev as { data: string }).data
+                                    )))
+                        const nextIsContent =
+                            next &&
+                            (next.type === "tag" ||
+                                (next.type === "text" &&
+                                    !isWhitespaceOnly(
+                                        (next as { data: string }).data
+                                    )))
+                        if (prevIsContent || nextIsContent) {
+                            return " "
+                        }
+                        return ""
                     }
-                    // Trim trailing newline+indentation when followed by a tag or at end of parent.
-                    // This handles pretty-printing artifacts like "text \n    <b>" or "text\n  </p>".
-                    // We only strip newline followed by whitespace (indentation), not bare newlines
-                    // which may be intentional content like "text\n".
-                    const nextIsTag =
+                    // Collapse line-wrapped text nodes into single spaces.
+                    // Explicit line breaks should be represented with <br>.
+                    if (text.includes("\n")) {
+                        text = text.replace(/\s*\n\s*/g, " ")
+                    }
+                    const nextTag =
                         index < arr.length - 1 && arr[index + 1].type === "tag"
-                    const isLastChild = index === arr.length - 1
-                    if ((nextIsTag || isLastChild) && text.includes("\n")) {
-                        // Only strip if newline is followed by whitespace (pretty-printing)
-                        text = text.replace(/\n\s+$/, "")
+                            ? (arr[index + 1] as Element).tagName.toLowerCase()
+                            : null
+                    if (
+                        nextTag &&
+                        (nextTag === "ref" || nextTag === "comment-ref")
+                    ) {
+                        text = text.replace(/\s+$/, "")
                     }
-                    // Trim leading indentation+newline when preceded by a tag or at start of parent.
-                    // This handles pretty-printing artifacts like "</b>\n    text" or "<p>\n    text".
-                    // We only strip whitespace followed by newline (indentation), not bare newlines
-                    // which may be intentional content.
-                    const prevIsTag = index > 0 && arr[index - 1].type === "tag"
-                    const isFirstChild = index === 0
-                    if ((prevIsTag || isFirstChild) && text.includes("\n")) {
-                        // Only strip if there's whitespace before the newline (pretty-printing)
-                        text = text.replace(/^\s+\n/, "")
+                    if (index === 0) {
+                        text = text.replace(/^\s+/, "")
+                    }
+                    if (index === arr.length - 1) {
+                        text = text.replace(/\s+$/, "")
                     }
                     return text
                 }
@@ -646,6 +662,18 @@ function elementToRawBlock(element: Element): OwidRawGdocBlock {
             (): RawBlockGraySection => ({
                 type: "gray-section",
                 value: getAllChildElements(element).map(elementToRawBlock),
+            })
+        )
+        .with(
+            "conditional-section",
+            (): RawBlockConditionalSection => ({
+                type: "conditional-section",
+                value: {
+                    include: attribs.include,
+                    exclude: attribs.exclude,
+                    content:
+                        getAllChildElements(element).map(elementToRawBlock),
+                },
             })
         )
         .with(

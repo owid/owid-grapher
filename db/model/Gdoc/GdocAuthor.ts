@@ -12,8 +12,7 @@ import {
     excludeNullish,
 } from "@ourworldindata/utils"
 import { GdocBase } from "./GdocBase.js"
-import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
-import { parseSocials } from "./rawToEnriched.js"
+import { parseSocials, parseText } from "./rawToEnriched.js"
 import { getLatestWorkByAuthor } from "../Post.js"
 import * as db from "../../../db/db.js"
 import { loadPublishedGdocAuthors } from "./GdocFactory.js"
@@ -114,7 +113,7 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
     override _enrichSubclassContent = (content: Record<string, any>): void => {
         if (content.bio) {
             content.bio = content.bio.map((html: RawBlockText) =>
-                htmlToEnrichedTextBlock(html.value)
+                parseText(html)
             )
         }
         if (content.socials) {

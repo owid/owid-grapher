@@ -71,6 +71,7 @@ import {
     RawBlockStickyRightContainer,
     RawBlockLTPToc,
     RawBlockText,
+    RawTextValue,
     RawBlockKeyIndicator,
     Span,
     SpanSimpleText,
@@ -188,6 +189,30 @@ import {
 } from "./htmlToEnriched.js"
 import { P, match } from "ts-pattern"
 import * as R from "remeda"
+
+function isSpanArray(value: unknown): value is Span[] {
+    return (
+        Array.isArray(value) &&
+        value.every(
+            (item) =>
+                Boolean(item) &&
+                typeof item === "object" &&
+                "spanType" in (item as Span)
+        )
+    )
+}
+
+function isSpanMatrix(value: unknown): value is Span[][] {
+    return Array.isArray(value) && value.every((item) => isSpanArray(item))
+}
+
+function rawTextValueToString(value: RawTextValue): string {
+    if (typeof value === "string") return value
+    if (isSpanArray(value)) return spansToSimpleString(value)
+    return ""
+}
+
+type SpanWithChildren = Extract<Span, { children: Span[] }>
 
 export function parseRawBlocksToEnrichedBlocks(
     block: OwidRawGdocBlock
@@ -601,7 +626,7 @@ const parseCode = (raw: RawBlockCode): EnrichedBlockCode => {
             type: "simple-text",
             value: {
                 spanType: "span-simple-text",
-                text: toAsciiQuotes(text.value),
+                text: toAsciiQuotes(rawTextValueToString(text.value)),
             },
             parseErrors: [],
         })),
@@ -885,6 +910,17 @@ const parseNumberedList = (
             message: "Value is a string, not a list of strings",
         })
 
+    if (isSpanMatrix(raw.value)) {
+        const items = raw.value.map((item) =>
+            parseText({ type: "text", value: item })
+        )
+        return {
+            type: "numbered-list",
+            items,
+            parseErrors: [],
+        }
+    }
+
     // ArchieML only has lists, not numbered lists. By convention,
     const valuesWithoutLeadingNumbers = raw.value.map((val) =>
         val.replace(/^\s*\d+\.\s*/, "")
@@ -912,6 +948,17 @@ const parseList = (raw: RawBlockList): EnrichedBlockList => {
         return createError({
             message: "Value is a string, not a list of strings",
         })
+
+    if (isSpanMatrix(raw.value)) {
+        const items = raw.value.map((item) =>
+            parseText({ type: "text", value: item })
+        )
+        return {
+            type: "list",
+            items,
+            parseErrors: [],
+        }
+    }
 
     const items = raw.value.map(htmlToEnrichedTextBlock)
 
@@ -1424,12 +1471,17 @@ export const parseText = (raw: RawBlockText): EnrichedBlockText => {
 
     const parseErrors: ParseError[] = []
 
-    if (typeof raw.value !== "string")
+    let value: Span[] = []
+
+    if (typeof raw.value === "string") {
+        value = htmlToSpans(raw.value)
+    } else if (isSpanArray(raw.value)) {
+        value = raw.value
+    } else {
         return createError({
             message: "Value is a not a string",
         })
-
-    const value = htmlToSpans(raw.value)
+    }
 
     value.forEach((node) =>
         traverseEnrichedSpan(node, (span) => {
@@ -1469,12 +1521,106 @@ export const parseSimpleText = (raw: RawBlockText): EnrichedBlockSimpleText => {
         parseErrors: [error],
     })
 
-    if (typeof raw.value !== "string")
-        return createError({
-            message: "Value is a not a string but a " + typeof raw.value,
-        })
+    if (typeof raw.value === "string") {
+        return htmlToSimpleTextBlock(raw.value)
+    }
 
-    return htmlToSimpleTextBlock(raw.value)
+    if (isSpanArray(raw.value)) {
+        const simpleText: SpanSimpleText = {
+            spanType: "span-simple-text",
+            text: spansToSimpleString(raw.value),
+        }
+        return {
+            type: "simple-text",
+            value: simpleText,
+            parseErrors: [],
+        }
+    }
+
+    return createError({
+        message: "Value is a not a string but a " + typeof raw.value,
+    })
+}
+
+function cloneSpanWithChildren(
+    span: SpanWithChildren,
+    children: Span[]
+): SpanWithChildren {
+    return {
+        ...span,
+        children,
+    }
+}
+
+function splitSpansOnChar(
+    spans: Span[],
+    char: string
+): {
+    before: Span[]
+    after: Span[]
+    found: boolean
+} {
+    const before: Span[] = []
+    const after: Span[] = []
+
+    for (let i = 0; i < spans.length; i++) {
+        const span = spans[i]
+        if (span.spanType === "span-simple-text") {
+            const index = span.text.indexOf(char)
+            if (index === -1) {
+                before.push(span)
+                continue
+            }
+
+            const beforeText = span.text.slice(0, index)
+            const afterText = span.text.slice(index + 1)
+            if (beforeText) {
+                before.push({ spanType: "span-simple-text", text: beforeText })
+            }
+            if (afterText) {
+                after.push({ spanType: "span-simple-text", text: afterText })
+            }
+            after.push(...spans.slice(i + 1))
+            return { before, after, found: true }
+        }
+
+        if ("children" in span && Array.isArray(span.children)) {
+            const spanWithChildren = span as SpanWithChildren
+            const split = splitSpansOnChar(spanWithChildren.children, char)
+            if (split.found) {
+                if (split.before.length > 0) {
+                    before.push(
+                        cloneSpanWithChildren(spanWithChildren, split.before)
+                    )
+                }
+                if (split.after.length > 0) {
+                    after.push(
+                        cloneSpanWithChildren(spanWithChildren, split.after)
+                    )
+                }
+                after.push(...spans.slice(i + 1))
+                return { before, after, found: true }
+            }
+        }
+
+        before.push(span)
+    }
+
+    return { before, after, found: false }
+}
+
+function splitHeadingSpans(spans: Span[]): {
+    title: Span[]
+    supertitle?: Span[]
+} {
+    const split = splitSpansOnChar(spans, "\u000b")
+    if (!split.found) {
+        return { title: spans }
+    }
+    return {
+        title: split.before,
+        supertitle: split.after.length > 0 ? split.after : undefined,
+    }
 }
 
 const parseHeading = (raw: RawBlockHeading): EnrichedBlockHeading => {
@@ -1507,9 +1653,23 @@ const parseHeading = (raw: RawBlockHeading): EnrichedBlockHeading => {
     // and if so to create two trees where the second mirrors the nesting of
     // the first. For now here we just assume that the vertical tab character
     // is used on the top level only (i.e. not inside an italic span or similar)
-    const [title, supertitle] = getTitleSupertitleFromHeadingText(headingText)
-    const titleSpans = htmlToSpans(title)
-    const superTitleSpans = supertitle ? htmlToSpans(supertitle) : undefined
+    let titleSpans: Span[] = []
+    let superTitleSpans: Span[] | undefined
+
+    if (typeof headingText === "string") {
+        const [title, supertitle] =
+            getTitleSupertitleFromHeadingText(headingText)
+        titleSpans = htmlToSpans(title)
+        superTitleSpans = supertitle ? htmlToSpans(supertitle) : undefined
+    } else if (isSpanArray(headingText)) {
+        const split = splitHeadingSpans(headingText)
+        titleSpans = split.title
+        superTitleSpans = split.supertitle
+    } else {
+        return createError({
+            message: "Text property is not a supported type",
+        })
+    }
 
     if (!raw.value.level)
         return createError({
@@ -1914,9 +2074,7 @@ function parseTopicPageIntro(
         type: "topic-page-intro",
         downloadButton: enrichedDownloadButton,
         relatedTopics: enrichedRelatedTopics,
-        content: textOnlyContent.map((rawText) =>
-            htmlToEnrichedTextBlock(rawText.value)
-        ),
+        content: textOnlyContent.map((rawText) => parseText(rawText)),
         parseErrors: [...contentErrors],
     }
 }

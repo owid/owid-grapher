@@ -1,17 +1,26 @@
 import { HorizontalAlign } from "../domainTypes/Layout.js"
 import { Span, SpanSimpleText } from "./Spans.js"
+import { type GdocParagraphRange } from "./GdocParagraph.js"
 
 export type BlockPositionChoice = "right" | "left"
 
 type ArchieMLUnexpectedNonObjectValue = string
+
+export type RawTextValue = string | Span[]
+export type RawTextListValue = string[] | Span[][]
 
 export type ParseError = {
     message: string
     isWarning?: boolean
 }
 
+export type EnrichedBlockSource = GdocParagraphRange & {
+    fingerprint?: string
+}
+
 export type EnrichedBlockWithParseErrors = {
     parseErrors: ParseError[]
+    _source?: EnrichedBlockSource
 }
 
 export type RawBlockAsideValue = {
@@ -267,7 +276,7 @@ export type EnrichedBlockStaticViz = {
 // string IIRC - check this
 export type RawBlockList = {
     type: "list"
-    value: string[] | ArchieMLUnexpectedNonObjectValue
+    value: RawTextListValue | ArchieMLUnexpectedNonObjectValue
 }
 
 export type EnrichedBlockList = {
@@ -277,7 +286,7 @@ export type EnrichedBlockList = {
 
 export type RawBlockNumberedList = {
     type: "numbered-list"
-    value: string[] | ArchieMLUnexpectedNonObjectValue
+    value: RawTextListValue | ArchieMLUnexpectedNonObjectValue
 }
 
 export type EnrichedBlockNumberedList = {
@@ -438,7 +447,7 @@ export type EnrichedBlockRecirc = {
 
 export type RawBlockText = {
     type: "text"
-    value: string
+    value: RawTextValue
 }
 
 export type EnrichedBlockText = {
@@ -472,7 +481,7 @@ export type EnrichedBlockScript = {
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockHeadingValue = {
-    text?: string
+    text?: RawTextValue
     level?: string
 }
 export type RawBlockHeading = {

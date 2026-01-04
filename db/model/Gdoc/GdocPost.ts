@@ -18,8 +18,7 @@ import {
 } from "@ourworldindata/types"
 import { excludeNullish, formatDate, generateToc } from "@ourworldindata/utils"
 import { formatCitation, generateStickyNav } from "./archieToEnriched.js"
-import { parseFaqs } from "./rawToEnriched.js"
-import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
+import { parseFaqs, parseText } from "./rawToEnriched.js"
 import { GdocBase, getMinimalAuthorsByNames } from "./GdocBase.js"
 import { KnexReadonlyTransaction, knexRaw } from "../../db.js"
 import { getLatestArchivedChartPageVersionsIfEnabled } from "../ArchivedChartVersion.js"
@@ -94,7 +93,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
 
         if (content.summary) {
             content.summary = content.summary.map((html: RawBlockText) =>
-                htmlToEnrichedTextBlock(html.value)
+                parseText(html)
             )
         }
 
