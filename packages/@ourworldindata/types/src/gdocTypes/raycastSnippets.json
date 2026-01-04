@@ -238,5 +238,20 @@
         "name": "conditional-section",
         "text": "{.conditional-section}\ninclude: \nexclude: \n[.+content]\n\n[]\n{}",
         "keyword": "+conditional-section"
+    },
+    {
+        "name": "explore-data-section",
+        "text": "{.explore-data-section}\ntitle: \nalign: \n[.+content]\n\n[]\n{}",
+        "keyword": "+explore-data-section"
+    },
+    {
+        "name": "featured-data-insights",
+        "text": "{.featured-data-insights}\n{}",
+        "keyword": "+featured-data-insights"
+    },
+    {
+        "name": "featured-metrics",
+        "text": "{.featured-metrics}\n{}",
+        "keyword": "+featured-metrics"
     }
 ]
