@@ -87,6 +87,8 @@ import { getDods } from "../Dod.js"
 import { getLatestArchivedExplorerPageVersionsIfEnabled } from "../ArchivedExplorerVersion.js"
 import { getLatestArchivedMultiDimPageVersionsIfEnabled } from "../ArchivedMultiDimVersion.js"
 import { getLatestArchivedChartPageVersionsIfEnabled } from "../ArchivedChartVersion.js"
+import { fetchGdocComments } from "./fetchGdocComments.js"
+import { anchorCommentsToContent } from "./anchorCommentsToSpans.js"
 
 const BASE_URL = IS_ARCHIVE ? PROD_URL : BAKED_BASE_URL
 
@@ -934,10 +936,14 @@ export class GdocBase implements OwidGdocBaseInterface {
             ? "SUGGESTIONS_INLINE"
             : "PREVIEW_WITHOUT_SUGGESTIONS"
 
-        const { data } = await docsClient.documents.get({
-            documentId: this.id,
-            suggestionsViewMode,
-        })
+        // Fetch document and comments in parallel
+        const [{ data }, comments] = await Promise.all([
+            docsClient.documents.get({
+                documentId: this.id,
+                suggestionsViewMode,
+            }),
+            fetchGdocComments(this.id),
+        ])
 
         const normalizedDocument: docs_v1.Schema$Document = acceptSuggestions
             ? acceptAllGdocSuggestions(data)
@@ -950,6 +956,11 @@ export class GdocBase implements OwidGdocBaseInterface {
 
         // Convert the ArchieML to our enriched JSON structure
         this.content = archieToEnriched(text, this._enrichSubclassContent)
+
+        // Anchor comments to text spans based on quotedText matching
+        if (comments) {
+            this.content = anchorCommentsToContent(this.content, comments)
+        }
     }
 
     async validate(knex: db.KnexReadonlyTransaction): Promise<void> {

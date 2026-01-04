@@ -27,7 +27,8 @@ export function spanToSimpleString(s: Span): string {
                     "span-subscript",
                     "span-superscript",
                     "span-quote",
-                    "span-fallback"
+                    "span-fallback",
+                    "span-comment-ref"
                 ),
             },
             (other) => other.children.map(spanToSimpleString).join("")
@@ -94,6 +95,11 @@ export function spanToHtmlString(s: Span): string {
         .with(
             { spanType: "span-fallback" },
             (span) => `<span>${spansToHtmlString(span.children)}</span>`
+        )
+        .with(
+            { spanType: "span-comment-ref" },
+            // Comments are internal-only and not rendered; just output children
+            (span) => spansToHtmlString(span.children)
         )
         .exhaustive()
 }
