@@ -27,6 +27,7 @@ import {
     RawBlockStickyRightContainer,
     RawBlockGraySection,
     RawBlockExploreDataSection,
+    RawBlockConditionalSection,
     RawBlockAlign,
     RawBlockExpandableParagraph,
     RawBlockExpander,
@@ -640,6 +641,18 @@ function elementToRawBlock(element: Element): OwidRawGdocBlock {
                 value: {
                     title: attribs.title,
                     align: attribs.align as "left" | "right" | undefined,
+                    content:
+                        getAllChildElements(element).map(elementToRawBlock),
+                },
+            })
+        )
+        .with(
+            "conditional-section",
+            (): RawBlockConditionalSection => ({
+                type: "conditional-section",
+                value: {
+                    include: attribs.include,
+                    exclude: attribs.exclude,
                     content:
                         getAllChildElements(element).map(elementToRawBlock),
                 },
