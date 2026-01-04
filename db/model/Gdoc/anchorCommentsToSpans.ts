@@ -1,7 +1,6 @@
 import {
     Span,
     SpanCommentRef,
-    SpanSimpleText,
     GdocComments,
     CommentThread,
     OwidGdocContent,
@@ -51,13 +50,6 @@ function spansToPlainText(spans: Span[]): string {
  */
 function cloneSpan(span: Span): Span {
     return JSON.parse(JSON.stringify(span))
-}
-
-/**
- * Check if a span array is empty or contains only empty content.
- */
-function isEmptySpans(spans: Span[]): boolean {
-    return spansToPlainText(spans) === ""
 }
 
 /**
@@ -402,9 +394,7 @@ export function anchorCommentsToContent(
 
         // Remove matched threads from the unmatched list
         for (const m of matches) {
-            const idx = unmatchedThreads.findIndex(
-                (t) => t.id === m.commentId
-            )
+            const idx = unmatchedThreads.findIndex((t) => t.id === m.commentId)
             if (idx !== -1) {
                 unmatchedThreads.splice(idx, 1)
             }

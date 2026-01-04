@@ -82,7 +82,10 @@ export async function fetchGdocComments(
             fetchedAt: new Date().toISOString(),
         }
     } catch (error) {
-        console.error(`Error fetching comments for document ${documentId}:`, error)
+        console.error(
+            `Error fetching comments for document ${documentId}:`,
+            error
+        )
         return null
     }
 }

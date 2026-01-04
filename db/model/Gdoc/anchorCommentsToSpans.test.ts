@@ -44,7 +44,9 @@ describe("anchorCommentsToContent", () => {
 
     it("returns content unchanged when no comments", () => {
         const content = makeContent([
-            makeTextBlock([{ spanType: "span-simple-text", text: "Hello world" }]),
+            makeTextBlock([
+                { spanType: "span-simple-text", text: "Hello world" },
+            ]),
         ])
 
         const result = anchorCommentsToContent(content, null)
@@ -53,7 +55,9 @@ describe("anchorCommentsToContent", () => {
 
     it("returns content unchanged when comments have empty threads", () => {
         const content = makeContent([
-            makeTextBlock([{ spanType: "span-simple-text", text: "Hello world" }]),
+            makeTextBlock([
+                { spanType: "span-simple-text", text: "Hello world" },
+            ]),
         ])
 
         const result = anchorCommentsToContent(content, {
@@ -65,7 +69,9 @@ describe("anchorCommentsToContent", () => {
 
     it("anchors a simple comment to matching text", () => {
         const content = makeContent([
-            makeTextBlock([{ spanType: "span-simple-text", text: "Hello world" }]),
+            makeTextBlock([
+                { spanType: "span-simple-text", text: "Hello world" },
+            ]),
         ])
 
         const comments = makeComments([{ id: "c1", quotedText: "world" }])
@@ -80,8 +86,13 @@ describe("anchorCommentsToContent", () => {
         expect(textBlock.value.length).toBe(2) // "Hello " + comment-ref wrapping "world"
 
         const [beforeSpan, commentRefSpan] = textBlock.value
-        expect(beforeSpan).toEqual({ spanType: "span-simple-text", text: "Hello " })
-        expect((commentRefSpan as SpanCommentRef).spanType).toBe("span-comment-ref")
+        expect(beforeSpan).toEqual({
+            spanType: "span-simple-text",
+            text: "Hello ",
+        })
+        expect((commentRefSpan as SpanCommentRef).spanType).toBe(
+            "span-comment-ref"
+        )
         expect((commentRefSpan as SpanCommentRef).commentId).toBe("c1")
         expect((commentRefSpan as SpanCommentRef).children).toEqual([
             { spanType: "span-simple-text", text: "world" },
@@ -90,7 +101,9 @@ describe("anchorCommentsToContent", () => {
 
     it("handles comment at the beginning of text", () => {
         const content = makeContent([
-            makeTextBlock([{ spanType: "span-simple-text", text: "Hello world" }]),
+            makeTextBlock([
+                { spanType: "span-simple-text", text: "Hello world" },
+            ]),
         ])
 
         const comments = makeComments([{ id: "c1", quotedText: "Hello" }])
@@ -101,11 +114,16 @@ describe("anchorCommentsToContent", () => {
         expect(textBlock.value.length).toBe(2) // comment-ref wrapping "Hello" + " world"
 
         const [commentRefSpan, afterSpan] = textBlock.value
-        expect((commentRefSpan as SpanCommentRef).spanType).toBe("span-comment-ref")
+        expect((commentRefSpan as SpanCommentRef).spanType).toBe(
+            "span-comment-ref"
+        )
         expect((commentRefSpan as SpanCommentRef).children).toEqual([
             { spanType: "span-simple-text", text: "Hello" },
         ])
-        expect(afterSpan).toEqual({ spanType: "span-simple-text", text: " world" })
+        expect(afterSpan).toEqual({
+            spanType: "span-simple-text",
+            text: " world",
+        })
     })
 
     it("handles comment spanning entire text", () => {
@@ -130,7 +148,9 @@ describe("anchorCommentsToContent", () => {
 
     it("skips comments with no matching text", () => {
         const content = makeContent([
-            makeTextBlock([{ spanType: "span-simple-text", text: "Hello world" }]),
+            makeTextBlock([
+                { spanType: "span-simple-text", text: "Hello world" },
+            ]),
         ])
 
         const comments = makeComments([{ id: "c1", quotedText: "goodbye" }])
@@ -159,7 +179,9 @@ describe("anchorCommentsToContent", () => {
         // Should have: comment-ref("apple") + " banana apple"
         expect(textBlock.value.length).toBe(2)
         const [commentRefSpan, restSpan] = textBlock.value
-        expect((commentRefSpan as SpanCommentRef).spanType).toBe("span-comment-ref")
+        expect((commentRefSpan as SpanCommentRef).spanType).toBe(
+            "span-comment-ref"
+        )
         expect(restSpan).toEqual({
             spanType: "span-simple-text",
             text: " banana apple",
@@ -224,7 +246,10 @@ describe("anchorCommentsToContent", () => {
         /**
          * Helper to create a link span
          */
-        const link = (children: Span[], url: string = "http://example.com"): SpanLink => ({
+        const link = (
+            children: Span[],
+            url: string = "http://example.com"
+        ): SpanLink => ({
             spanType: "span-link",
             children,
             url,
@@ -314,7 +339,9 @@ describe("anchorCommentsToContent", () => {
             expect(commentRef.spanType).toBe("span-comment-ref")
             expect(commentRef.commentId).toBe("c1")
             expect(commentRef.children.length).toBe(2)
-            expect(commentRef.children[0]).toEqual(bold([italic([text("llo")])]))
+            expect(commentRef.children[0]).toEqual(
+                bold([italic([text("llo")])])
+            )
             expect(commentRef.children[1]).toEqual(underline([text("wor")]))
 
             // Third: <u>ld</u>
@@ -355,7 +382,9 @@ describe("anchorCommentsToContent", () => {
             const commentRef = spans[1] as SpanCommentRef
             expect(commentRef.spanType).toBe("span-comment-ref")
             expect(commentRef.children.length).toBe(2)
-            expect(commentRef.children[0]).toEqual(bold([italic([underline([text("eep")])])]))
+            expect(commentRef.children[0]).toEqual(
+                bold([italic([underline([text("eep")])])])
+            )
             expect(commentRef.children[1]).toEqual(link([text("sha")]))
 
             // Third: <link>llow</link>
@@ -366,13 +395,12 @@ describe("anchorCommentsToContent", () => {
             // <b>Hello</b><i>world</i>
             // Quote: "Hello wor" (entire bold + partial italic)
             const content = makeContent([
-                makeTextBlock([
-                    bold([text("Hello")]),
-                    italic([text("world")]),
-                ]),
+                makeTextBlock([bold([text("Hello")]), italic([text("world")])]),
             ])
 
-            const comments = makeComments([{ id: "c1", quotedText: "Hellowor" }])
+            const comments = makeComments([
+                { id: "c1", quotedText: "Hellowor" },
+            ])
             const result = anchorCommentsToContent(content, comments)
 
             const body = result.body as EnrichedBlockText[]
@@ -436,10 +464,7 @@ describe("anchorCommentsToContent", () => {
             // <b>Hello</b><i>world</i>
             // Quote: "Hello" (exactly the bold span)
             const content = makeContent([
-                makeTextBlock([
-                    bold([text("Hello")]),
-                    italic([text("world")]),
-                ]),
+                makeTextBlock([bold([text("Hello")]), italic([text("world")])]),
             ])
 
             const comments = makeComments([{ id: "c1", quotedText: "Hello" }])
@@ -468,10 +493,7 @@ describe("anchorCommentsToContent", () => {
             // <b>Hello</b><i>world</i>
             // Quote: "world" (exactly the italic span)
             const content = makeContent([
-                makeTextBlock([
-                    bold([text("Hello")]),
-                    italic([text("world")]),
-                ]),
+                makeTextBlock([bold([text("Hello")]), italic([text("world")])]),
             ])
 
             const comments = makeComments([{ id: "c1", quotedText: "world" }])
@@ -503,7 +525,9 @@ describe("anchorCommentsToContent", () => {
             // Comments: "Hello world" (outer) and "world" (inner)
             // Inner should be nested inside outer
             const content = makeContent([
-                makeTextBlock([{ spanType: "span-simple-text", text: "Hello world" }]),
+                makeTextBlock([
+                    { spanType: "span-simple-text", text: "Hello world" },
+                ]),
             ])
 
             const comments = makeComments([
@@ -585,7 +609,9 @@ describe("anchorCommentsToContent", () => {
                     { spanType: "span-bold", children: [] },
                     {
                         spanType: "span-italic",
-                        children: [{ spanType: "span-simple-text", text: "Hello" }],
+                        children: [
+                            { spanType: "span-simple-text", text: "Hello" },
+                        ],
                     },
                 ]),
             ])
@@ -619,7 +645,10 @@ describe("anchorCommentsToContent", () => {
                             {
                                 spanType: "span-italic",
                                 children: [
-                                    { spanType: "span-simple-text", text: "Hello world" },
+                                    {
+                                        spanType: "span-simple-text",
+                                        text: "Hello world",
+                                    },
                                 ],
                             },
                         ],
@@ -643,7 +672,9 @@ describe("anchorCommentsToContent", () => {
             // First: <b><i>Hello </i></b>
             const beforeSpan = spans[0] as SpanBold
             expect(beforeSpan.spanType).toBe("span-bold")
-            expect((beforeSpan.children[0] as SpanItalic).spanType).toBe("span-italic")
+            expect((beforeSpan.children[0] as SpanItalic).spanType).toBe(
+                "span-italic"
+            )
 
             // Second: <comment-ref><b><i>world</i></b></comment-ref>
             const commentRef = spans[1] as SpanCommentRef
@@ -660,12 +691,24 @@ describe("anchorCommentsToContent", () => {
             // Quote: "Helloworld" (entire content)
             const content = makeContent([
                 makeTextBlock([
-                    { spanType: "span-bold", children: [{ spanType: "span-simple-text", text: "Hello" }] },
-                    { spanType: "span-italic", children: [{ spanType: "span-simple-text", text: "world" }] },
+                    {
+                        spanType: "span-bold",
+                        children: [
+                            { spanType: "span-simple-text", text: "Hello" },
+                        ],
+                    },
+                    {
+                        spanType: "span-italic",
+                        children: [
+                            { spanType: "span-simple-text", text: "world" },
+                        ],
+                    },
                 ]),
             ])
 
-            const comments = makeComments([{ id: "c1", quotedText: "Helloworld" }])
+            const comments = makeComments([
+                { id: "c1", quotedText: "Helloworld" },
+            ])
             const result = anchorCommentsToContent(content, comments)
 
             const body = result.body as EnrichedBlockText[]
