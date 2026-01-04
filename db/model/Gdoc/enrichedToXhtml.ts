@@ -99,6 +99,7 @@ function collectCommentIdsFromBlock(block: OwidEnrichedGdocBlock): Set<string> {
             addBlocks(b.left)
             addBlocks(b.right)
         })
+        .with({ type: "conditional-section" }, (b) => addBlocks(b.content))
         .with({ type: "gray-section" }, (b) => addBlocks(b.items))
         .with({ type: "explore-data-section" }, (b) => addBlocks(b.content))
         .with({ type: "align" }, (b) => addBlocks(b.content))
