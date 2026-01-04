@@ -364,6 +364,20 @@ export function enrichedBlockToXhtml(block: OwidEnrichedGdocBlock): string {
                     xmlElement("right", {}, enrichedBlocksToXhtml(b.right))
             )
         )
+        .with({ type: "conditional-section" }, (b) =>
+            xmlElement(
+                "conditional-section",
+                {
+                    include: b.include.length
+                        ? b.include.join(", ")
+                        : undefined,
+                    exclude: b.exclude.length
+                        ? b.exclude.join(", ")
+                        : undefined,
+                },
+                enrichedBlocksToXhtml(b.content)
+            )
+        )
         .with({ type: "gray-section" }, (b) =>
             xmlElement("gray-section", {}, enrichedBlocksToXhtml(b.items))
         )
