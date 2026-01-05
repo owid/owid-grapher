@@ -47,6 +47,7 @@ import ReactDOMServer from "react-dom/server"
 import {
     Explorer,
     ExplorerChartCreationMode,
+    ExplorerChoiceParams,
     ExplorerProgram,
     ExplorerProps,
     GrapherGrammar,
@@ -807,14 +808,10 @@ function patchExplorerTableLoader(): void {
     )
 }
 
-interface ExplorerViewManifest {
+export interface ExplorerViewManifest {
     totalViews: number
     selectedViews: number
-    explorerPageviews: number
-    viewsToTest: Array<{
-        index: number
-        queryStr: string
-    }>
+    viewsToTest: ExplorerChoiceParams[]
 }
 
 async function loadViewsManifest(
@@ -833,18 +830,14 @@ async function getChoicesToTest(
     explorerProgram: ExplorerProgram,
     manifestFilename?: string
 ): Promise<Array<Record<string, string>>> {
-    const allChoices =
-        explorerProgram.decisionMatrix.allDecisionsAsQueryParams()
-
     // Use manifest to select which views to test
     if (manifestFilename) {
         const manifest = await loadViewsManifest(explorerDir, manifestFilename)
-        if (manifest) {
-            return manifest.viewsToTest.map((v) => allChoices[v.index])
-        }
+        if (manifest) return manifest.viewsToTest
     }
 
-    return allChoices
+    // No manifest - generate all possible choices
+    return explorerProgram.decisionMatrix.allDecisionsAsQueryParams()
 }
 
 export async function renderExplorerViewsToSVGsAndSave({

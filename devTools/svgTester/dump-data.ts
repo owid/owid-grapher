@@ -30,6 +30,7 @@ import pMap from "p-map"
 import { ExplorerAdminServer } from "../../explorerAdminServer/ExplorerAdminServer.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../db/model/Pageview.js"
 import { transformExplorerProgramToResolveCatalogPaths } from "../../db/model/ExplorerCatalogResolver.js"
+import { ExplorerViewManifest } from "./utils.js"
 
 interface ChartInfo {
     id: string
@@ -128,15 +129,6 @@ async function saveGrapherSchemaAndData(
     console.log(`Successfully exported ${charts.length} charts`)
 }
 
-interface ExplorerViewManifest {
-    totalViews: number
-    selectedViews: number
-    viewsToTest: Array<{
-        index: number
-        queryStr: string
-    }>
-}
-
 function allocateViewCount({
     totalViews,
     pageviews,
@@ -203,10 +195,7 @@ async function writeManifestFile({
     const manifest: ExplorerViewManifest = {
         totalViews,
         selectedViews: selectedViews.length,
-        viewsToTest: selectedViews.map((v) => ({
-            index: v.index,
-            queryStr: queryParamsToStr(v.choiceParams).replace("?", ""),
-        })),
+        viewsToTest: selectedViews.map((v) => v.choiceParams),
     }
 
     const manifestPath = path.join(explorerDir, manifestFilename)
