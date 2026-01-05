@@ -75,6 +75,9 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
     private editHandle?: Exclude<MarkerType, MarkerType.Hover>
 
+    // Prevents the hover handle from appearing when hovering over tooltips
+    private isHoveringOverTooltip: boolean = false
+
     private slider?: Element | HTMLElement | null
     private playButton?: Element | HTMLElement | null
     private disposers: (() => void)[] = []
@@ -89,12 +92,14 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
             | "lastUpdatedTooltip"
             | "hoverTime"
             | "editHandle"
+            | "isHoveringOverTooltip"
         >(this, {
             startTooltipVisible: observable,
             endTooltipVisible: observable,
             lastUpdatedTooltip: observable,
             hoverTime: observable,
             editHandle: observable,
+            isHoveringOverTooltip: observable,
         })
     }
 
@@ -258,7 +263,8 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
             !this.manager.isSingleTimeSelectionActive &&
             !this.isDragging &&
             !this.areBothHandlesVisible &&
-            !this.editHandle
+            !this.editHandle &&
+            !this.isHoveringOverTooltip
         )
     }
 
@@ -432,6 +438,15 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         this.editHandle = undefined
     }
 
+    @action.bound private onTooltipMouseEnter(): void {
+        this.isHoveringOverTooltip = true
+        this.hoverTime = undefined
+    }
+
+    @action.bound private onTooltipMouseLeave(): void {
+        this.isHoveringOverTooltip = false
+    }
+
     @action.bound private onCompleteYear(year?: number): void {
         // Only apply when the user has finished typing
         if (year !== undefined && this.editHandle !== undefined)
@@ -585,6 +600,8 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                 onStartEditing={() => this.onStartEditing(MarkerType.Start)}
                 onComplete={this.onCompleteDate}
                 onChange={this.onChangeDate}
+                onMouseEnter={this.onTooltipMouseEnter}
+                onMouseLeave={this.onTooltipMouseLeave}
             />
         ) : (
             <EditableYearTooltip
@@ -596,9 +613,8 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                 onComplete={this.onCompleteYear}
                 onChange={this.onChangeYear}
                 getTimeForKey={this.getStartTimeForNavigationKey}
-                onMouseEnter={action(() => {
-                    this.hoverTime = undefined
-                })}
+                onMouseEnter={this.onTooltipMouseEnter}
+                onMouseLeave={this.onTooltipMouseLeave}
                 onBlur={action(() => {
                     this.startTooltipVisible = false
                     this.endTooltipVisible = false
@@ -645,9 +661,8 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                 onStartEditing={() => this.onStartEditing(MarkerType.End)}
                 onComplete={this.onCompleteDate}
                 onChange={this.onChangeDate}
-                onMouseEnter={action(() => {
-                    this.hoverTime = undefined
-                })}
+                onMouseEnter={this.onTooltipMouseEnter}
+                onMouseLeave={this.onTooltipMouseLeave}
             />
         ) : (
             <EditableYearTooltip
@@ -659,9 +674,8 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                 onComplete={this.onCompleteYear}
                 onChange={this.onChangeYear}
                 getTimeForKey={this.getEndTimeForNavigationKey}
-                onMouseEnter={action(() => {
-                    this.hoverTime = undefined
-                })}
+                onMouseEnter={this.onTooltipMouseEnter}
+                onMouseLeave={this.onTooltipMouseLeave}
                 onBlur={action(() => {
                     this.startTooltipVisible = false
                     this.endTooltipVisible = false
