@@ -447,6 +447,26 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         this.isHoveringOverTooltip = false
     }
 
+    @action.bound private onEdgeButtonMouseEnter(): void {
+        this.hoverTime = undefined
+    }
+
+    @action.bound private onMinTimeButtonClick(): void {
+        if (this.areBothHandlesVisible) {
+            this.controller.resetStartToMin()
+        } else {
+            this.controller.setStartAndEndTimeFromInput(this.controller.minTime)
+        }
+    }
+
+    @action.bound private onMaxTimeButtonClick(): void {
+        if (this.areBothHandlesVisible) {
+            this.controller.resetEndToMax()
+        } else {
+            this.controller.setStartAndEndTimeFromInput(this.controller.maxTime)
+        }
+    }
+
     @action.bound private onCompleteYear(year?: number): void {
         // Only apply when the user has finished typing
         if (year !== undefined && this.editHandle !== undefined)
@@ -768,14 +788,8 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                 )}
                 <TimelineEdgeButton
                     formattedTime={formattedMinTime}
-                    onClick={action(() => controller.resetStartToMin())}
-                    onMouseEnter={action(() => {
-                        if (this.shouldShowHoverTimeHandle)
-                            this.hoverTime = minTime
-                    })}
-                    onMouseLeave={action(() => {
-                        this.hoverTime = undefined
-                    })}
+                    onClick={this.onMinTimeButtonClick}
+                    onMouseEnter={this.onEdgeButtonMouseEnter}
                 />
                 <div
                     className={`${SLIDER_CLASS} clickable`}
@@ -856,14 +870,8 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                 </div>
                 <TimelineEdgeButton
                     formattedTime={formattedMaxTime}
-                    onClick={action(() => controller.resetEndToMax())}
-                    onMouseEnter={action(() => {
-                        if (this.shouldShowHoverTimeHandle)
-                            this.hoverTime = maxTime
-                    })}
-                    onMouseLeave={action(() => {
-                        this.hoverTime = undefined
-                    })}
+                    onClick={this.onMaxTimeButtonClick}
+                    onMouseEnter={this.onEdgeButtonMouseEnter}
                 />
             </div>
         )
