@@ -6,12 +6,106 @@ import fs from "fs-extra"
 import path from "path"
 import workerpool from "workerpool"
 import * as _ from "lodash-es"
+import { match } from "ts-pattern"
 
 import * as utils from "./utils.js"
 import { grapherSlugToExportFileKey } from "../../baker/GrapherBakingUtils.js"
 import { ALL_GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 
-async function main(args: ReturnType<typeof parseArguments>) {
+async function verifyExplorers(args: ReturnType<typeof parseArguments>) {
+    const testSuite = args.testSuite as utils.TestSuite
+    const verbose = args.verbose
+    const manifest = args.manifest
+
+    // Input and output directories
+    const dataDir = path.join(utils.SVG_REPO_PATH, testSuite, "data")
+    const referencesDir = path.join(
+        utils.SVG_REPO_PATH,
+        testSuite,
+        "references"
+    )
+    const differencesDir = path.join(
+        utils.SVG_REPO_PATH,
+        testSuite,
+        "differences"
+    )
+
+    if (!fs.existsSync(dataDir))
+        throw `Input directory does not exist ${dataDir}`
+    if (!fs.existsSync(referencesDir))
+        throw `Reference directory does not exist ${referencesDir}`
+    if (!fs.existsSync(differencesDir))
+        fs.mkdirSync(differencesDir, { recursive: true })
+
+    // Collect all explorer directories
+    const explorerJobs: {
+        explorerDir: string
+        explorerSlug: string
+        referencesDir: string
+        differencesDir: string
+        verbose: boolean
+        rmOnError: boolean
+        manifest?: string
+    }[] = []
+
+    const dir = await fs.opendir(dataDir)
+    for await (const entry of dir) {
+        if (!entry.isDirectory()) continue
+
+        const explorerDir = path.join(dataDir, entry.name)
+        const explorerSlug = entry.name
+
+        explorerJobs.push({
+            explorerDir,
+            explorerSlug,
+            referencesDir,
+            differencesDir,
+            manifest,
+            verbose: args.verbose,
+            rmOnError: args.rmOnError,
+        })
+    }
+
+    const jobCount = explorerJobs.length
+    if (jobCount === 0) {
+        utils.logIfVerbose(verbose, "No explorer directories found")
+        process.exit(0)
+    } else {
+        utils.logIfVerbose(
+            verbose,
+            `Verifying ${jobCount} explorer${jobCount > 1 ? "s" : ""}...`
+        )
+    }
+
+    const pool = workerpool.pool(__dirname + "/worker.ts", {
+        minWorkers: 2,
+        maxWorkers: 4,
+        workerThreadOpts: {
+            execArgv: ["--require", "tsx"],
+        },
+    })
+
+    const validationResultsArrays: utils.VerifyResult[][] = await Promise.all(
+        explorerJobs.map((job) =>
+            pool.exec("renderAndVerifyExplorerViews", [job])
+        )
+    )
+
+    await pool.terminate()
+
+    // Flatten the array of arrays
+    const validationResults = validationResultsArrays.flat()
+
+    utils.logIfVerbose(verbose, "Verifications completed")
+
+    const exitCode = utils.displayVerifyResultsAndGetExitCode(
+        validationResults,
+        verbose
+    )
+    process.exit(exitCode)
+}
+
+async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
     try {
         // Test suite
         const testSuite = args.testSuite as utils.TestSuite
@@ -40,7 +134,6 @@ async function main(args: ReturnType<typeof parseArguments>) {
             args.allViews ?? testSuite === "grapher-views"
 
         // Other options
-        const suffix = args.suffix
         const rmOnError = args.rmOnError
         const verbose = args.verbose
 
@@ -86,7 +179,6 @@ async function main(args: ReturnType<typeof parseArguments>) {
                     outDir: differencesDir,
                     queryStr,
                     verbose,
-                    suffix,
                     rmOnError,
                 }
             })
@@ -141,6 +233,17 @@ async function main(args: ReturnType<typeof parseArguments>) {
     }
 }
 
+async function main(args: ReturnType<typeof parseArguments>) {
+    const testSuite = args.testSuite as utils.TestSuite
+
+    await match(testSuite)
+        .with("graphers", () => verifyGraphers(args))
+        .with("grapher-views", () => verifyGraphers(args))
+        .with("mdims", () => verifyGraphers(args))
+        .with("explorers", () => verifyExplorers(args))
+        .exhaustive()
+}
+
 function parseArguments() {
     return yargs(hideBin(process.argv))
         .usage(
@@ -155,7 +258,7 @@ function parseArguments() {
         })
         .parserConfiguration({ "camel-case-expansion": true })
         .options({
-            "view-ids": {
+            viewIds: {
                 alias: "c",
                 type: "string",
                 array: true,
@@ -171,7 +274,7 @@ function parseArguments() {
                     "A space-separated list of chart types, e.g. 'LineChart ScatterPlot'",
             },
             random: {
-                alias: "d",
+                alias: "r",
                 type: "number",
                 description: "Generate SVGs for a random set of configs",
             },
@@ -186,12 +289,10 @@ function parseArguments() {
                 description:
                     "For each Grapher, verify SVGs for all possible chart configurations. Default depends on the test suite.",
             },
-            suffix: {
-                alias: "s",
+            manifest: {
                 type: "string",
                 description:
-                    "Suffix for different SVG files to create <NAME><SUFFIX>.svg files",
-                default: "",
+                    "Manifest filename specifying which explorer views to test (for explorers test suite only). If not provided, all views are tested.",
             },
             rmOnError: {
                 type: "boolean",
