@@ -33,7 +33,7 @@ help:
 	@echo '  make dbtest                 run db test suite that needs a running mysql db'
 	@echo '  make svgtest                generate an SVG test report for graphers'
 	@echo '  make svgtest.full           generate a full SVG test report'
-    @echo '  make svgtest.explorers      generate an SVG test report for explorers only'
+	@echo '  make svgtest.explorers      generate an SVG test report for explorers only'
 	@echo '  make local-bake             do a full local site bake'
 	@echo '  make archive                create an archived version of our charts'
 	@echo

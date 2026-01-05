@@ -10,5 +10,5 @@ workerpool.worker({
     renderAndVerifySvg: utils.renderAndVerifySvg,
     renderSvgAndSave: utils.renderSvgAndSave,
     renderExplorerViewsToSVGsAndSave: utils.renderExplorerViewsToSVGsAndSave,
-    verifyExplorerViews: utils.verifyExplorerViews,
+    renderAndVerifyExplorerViews: utils.renderAndVerifyExplorerViews,
 })

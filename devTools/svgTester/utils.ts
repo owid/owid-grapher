@@ -743,7 +743,9 @@ const loadInputTableForConfig = async (
         const metadataPath = path.join(dir, `${variableId}.metadata.json`)
 
         if (!(await fs.pathExists(dataPath))) {
-            console.warn(`Missing data file for variable ${variableId}`)
+            console.warn(
+                `Missing data file for variable ${variableId} (${dir})`
+            )
             continue
         }
 
@@ -834,16 +836,14 @@ async function getChoicesToTest(
     const allChoices =
         explorerProgram.decisionMatrix.allDecisionsAsQueryParams()
 
-    // Only load manifest if explicitly provided
+    // Use manifest to select which views to test
     if (manifestFilename) {
         const manifest = await loadViewsManifest(explorerDir, manifestFilename)
         if (manifest) {
-            // Use manifest to select which views to test
             return manifest.viewsToTest.map((v) => allChoices[v.index])
         }
     }
 
-    // No manifest provided or found - test all views
     return allChoices
 }
 
@@ -899,6 +899,8 @@ export async function renderExplorerViewsToSVGsAndSave({
         // Create a fresh Explorer instance for each view
         const explorer = new Explorer(explorerProps)
 
+        const oldRow = explorer.explorerProgram.currentlySelectedGrapherRow || 0
+
         // Set the explorer to this specific choice combination
         explorer.explorerProgram.decisionMatrix.setValuesFromChoiceParams(
             choiceParams
@@ -912,7 +914,6 @@ export async function renderExplorerViewsToSVGsAndSave({
             continue
 
         // Update the explorer
-        const oldRow = explorer.explorerProgram.currentlySelectedGrapherRow || 0
         await explorer.reactToUserChangingSelection(oldRow)
 
         // Generate SVG for this view
@@ -948,14 +949,14 @@ export async function renderExplorerViewsToSVGsAndSave({
     return svgRecords
 }
 
-export async function verifyExplorerViews({
+export async function renderAndVerifyExplorerViews({
     explorerDir,
     explorerSlug,
     referencesDir,
     differencesDir,
     verbose,
     rmOnError,
-    manifestFilename,
+    manifest,
 }: {
     explorerDir: string
     explorerSlug: string
@@ -963,18 +964,18 @@ export async function verifyExplorerViews({
     differencesDir: string
     verbose: boolean
     rmOnError: boolean
-    manifestFilename?: string
+    manifest?: string
 }): Promise<VerifyResult[]> {
     // Set up file-aware table loader for local CSV files
     patchExplorerTableLoader()
 
-    // Load reference CSV in the worker to avoid passing massive arrays between processes
+    // Load reference CSV
     const referenceData = await parseReferenceCsv(referencesDir)
     const referenceDataByViewId = new Map(
         referenceData.map((record) => [record.viewId, record])
     )
 
-    // Load explorer config ONCE
+    // Load explorer config
     const configPath = path.join(explorerDir, "config.tsv")
     const tsvContent = await fs.readFile(configPath, "utf-8")
     const explorerProgram = new ExplorerProgram(explorerSlug, tsvContent)
@@ -987,10 +988,10 @@ export async function verifyExplorerViews({
     const height = DEFAULT_GRAPHER_HEIGHT
     const bounds = new Bounds(0, 0, width, height)
 
-    // Load partial grapher configs ONCE
+    // Load partial grapher configs
     const partialGrapherConfigs = await loadPartialGrapherConfigs(explorerDir)
 
-    // Set up explorer props to reuse
+    // Set up explorer props
     const explorerProps: ExplorerProps = {
         slug: explorerSlug,
         program: tsvContent,
@@ -1009,12 +1010,12 @@ export async function verifyExplorerViews({
     const choicesToTest = await getChoicesToTest(
         explorerDir,
         explorerProgram,
-        manifestFilename
+        manifest
     )
 
     const results: VerifyResult[] = []
 
-    // Process all views for this explorer sequentially to reuse loaded data
+    // Process all views for this explorer sequentially
     for (const choiceParams of choicesToTest) {
         const queryStr = queryParamsToStr(choiceParams).replace("?", "")
         const viewId = `${explorerSlug}?${queryStr}`
@@ -1034,6 +1035,9 @@ export async function verifyExplorerViews({
             // Create a fresh Explorer instance for this view, reusing shared config
             const explorer = new Explorer(explorerProps)
 
+            const oldRow =
+                explorer.explorerProgram.currentlySelectedGrapherRow || 0
+
             // Set the explorer to this specific choice combination
             explorer.explorerProgram.decisionMatrix.setValuesFromChoiceParams(
                 choiceParams
@@ -1049,8 +1053,6 @@ export async function verifyExplorerViews({
             }
 
             // Update the explorer
-            const oldRow =
-                explorer.explorerProgram.currentlySelectedGrapherRow || 0
             await explorer.reactToUserChangingSelection(oldRow)
 
             // Generate SVG for this view

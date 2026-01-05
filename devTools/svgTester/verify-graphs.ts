@@ -45,7 +45,7 @@ async function verifyExplorers(args: ReturnType<typeof parseArguments>) {
         differencesDir: string
         verbose: boolean
         rmOnError: boolean
-        manifestFilename?: string
+        manifest?: string
     }[] = []
 
     const dir = await fs.opendir(dataDir)
@@ -60,9 +60,9 @@ async function verifyExplorers(args: ReturnType<typeof parseArguments>) {
             explorerSlug,
             referencesDir,
             differencesDir,
+            manifest,
             verbose: args.verbose,
             rmOnError: args.rmOnError,
-            manifestFilename: manifest,
         })
     }
 
@@ -77,9 +77,6 @@ async function verifyExplorers(args: ReturnType<typeof parseArguments>) {
         )
     }
 
-    // Process explorers in parallel using workerpool
-    // Note: We use fewer workers for explorers than graphers because each explorer
-    // processes many views and can be memory-intensive
     const pool = workerpool.pool(__dirname + "/worker.ts", {
         minWorkers: 2,
         maxWorkers: 4,
@@ -89,7 +86,9 @@ async function verifyExplorers(args: ReturnType<typeof parseArguments>) {
     })
 
     const validationResultsArrays: utils.VerifyResult[][] = await Promise.all(
-        explorerJobs.map((job) => pool.exec("verifyExplorerViews", [job]))
+        explorerJobs.map((job) =>
+            pool.exec("renderAndVerifyExplorerViews", [job])
+        )
     )
 
     await pool.terminate()
@@ -294,7 +293,6 @@ function parseArguments() {
                 type: "string",
                 description:
                     "Manifest filename specifying which explorer views to test (for explorers test suite only). If not provided, all views are tested.",
-                implies: { testSuite: "explorers" },
             },
             rmOnError: {
                 type: "boolean",
