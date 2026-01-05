@@ -16,7 +16,7 @@ import {
     getEffectiveResultType,
 } from "./searchUtils.js"
 import { useTagGraphTopics, useSearchAnalytics } from "./searchHooks.js"
-import { useSearchParamsState } from "./searchState.js"
+import { stateToSearchParams, useSearchParamsState } from "./searchState.js"
 
 // Components
 import { Searchbar } from "./Searchbar.js"
@@ -98,7 +98,19 @@ export const Search = ({
             }}
         >
             <div className="search-controls-container span-cols-12 col-start-2">
-                <Searchbar key={state.query} allTopics={eligibleTopics} />
+                <Searchbar
+                    // force a component re-mount to sync local query state when
+                    // global state updates. This is relevant in two cases:
+                    // - a new global query is set (e.g. via autocomplete
+                    //   selection)
+                    // - filters are added/removed while an uncommitted local
+                    //   query exists (e.g. selecting a country from the country
+                    //   selector). In this case, we want to reset the local
+                    //   query to match the global one, discarding any
+                    //   uncommitted changes.
+                    key={stateToSearchParams(state).toString()}
+                    allTopics={eligibleTopics}
+                />
                 <SearchDetectedFilters
                     eligibleRegionNames={eligibleRegionNames}
                 />

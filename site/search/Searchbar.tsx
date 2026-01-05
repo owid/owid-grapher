@@ -29,8 +29,9 @@ export const Searchbar = ({ allTopics }: { allTopics: string[] }) => {
 
     const selectedRegionNames = useSelectedRegionNames(true)
     // Storing this in local state so that query params don't update during
-    // typing. Whenever the global query changes, we update the local query by
-    // triggering a re-render (see key prop on Searchbar in parent component).
+    // typing. Whenever the state semantically changes, we update the local
+    // query by triggering a re-mount (see key prop on Searchbar in parent
+    // component).
     const [localQuery, setLocalQuery] = useState(query)
 
     const inputRef = useRef<HTMLInputElement>(null)
