@@ -135,19 +135,21 @@ function allocateViewCount({
     totalPageviews,
     targetTotalViews,
     minViews = 10,
+    maxViews = 100,
 }: {
     totalViews: number
     pageviews: number
     totalPageviews: number
     targetTotalViews: number
     minViews?: number
+    maxViews?: number
 }): number {
     // Allocate based on popularity
     const pageviewRatio = totalPageviews > 0 ? pageviews / totalPageviews : 0
     const allocated = Math.floor(targetTotalViews * pageviewRatio)
 
     // Apply constraints
-    return Math.max(minViews, Math.min(allocated, totalViews))
+    return _.clamp(Math.min(allocated, totalViews), minViews, maxViews)
 }
 
 function selectViewsToTest(
@@ -488,7 +490,7 @@ function parseArguments() {
                 type: "number",
                 description:
                     "Target total number of explorer views to test (for explorers test suite). Views are allocated proportionally based on pageviews.",
-                default: 2000,
+                default: 1500,
             },
         })
         .help()
