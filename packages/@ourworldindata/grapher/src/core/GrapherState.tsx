@@ -49,7 +49,6 @@ import {
     GRAPHER_TAB_NAMES,
     AxisConfigInterface,
     SeriesStrategy,
-    AssetMap,
     GRAPHER_MAP_TYPE,
     GrapherVariant,
     SeriesColorMap,
@@ -319,7 +318,6 @@ export class GrapherState {
     _isInFullScreenMode = false
     windowInnerWidth: number | undefined = undefined
     windowInnerHeight: number | undefined = undefined
-    manuallyProvideData? = false // This will be removed.
 
     // This will be removed.
     @computed get isDev(): boolean {
@@ -330,8 +328,6 @@ export class GrapherState {
     bakedGrapherURL: string | undefined = undefined
     adminBaseUrl: string | undefined = undefined
     externalQueryParams: QueryParams = {}
-    private framePaddingHorizontal = GRAPHER_FRAME_PADDING_HORIZONTAL
-    private framePaddingVertical = GRAPHER_FRAME_PADDING_VERTICAL
     _inputTable: OwidTable = new OwidTable()
 
     // TODO Daniel: probably obsolete?
@@ -860,12 +856,6 @@ export class GrapherState {
 
     @computed get hasArchivedPage(): boolean {
         return this.archiveContext?.type === "archived-page-version"
-    }
-
-    @computed private get runtimeAssetMap(): AssetMap | undefined {
-        return this.archiveContext?.type === "archive-page"
-            ? this.archiveContext.assets.runtime
-            : undefined
     }
 
     @computed get additionalDataLoaderFn():
@@ -1829,7 +1819,8 @@ export class GrapherState {
                 fontSize: (11 / BASE_FONT_SIZE) * baseFontSize,
                 // leave room for padding on the left and right
                 maxWidth:
-                    this.staticBounds.width - 2 * this.framePaddingHorizontal,
+                    this.staticBounds.width -
+                    2 * GRAPHER_FRAME_PADDING_HORIZONTAL,
                 lineHeight: 1.2,
                 style: { fill: GRAPHER_LIGHT_TEXT },
             })
@@ -2415,7 +2406,7 @@ export class GrapherState {
         let height = this.staticBounds.height
         if (includeDetails) {
             height +=
-                2 * this.framePaddingVertical +
+                2 * GRAPHER_FRAME_PADDING_VERTICAL +
                 sumTextWrapHeights(
                     this.detailRenderers,
                     STATIC_EXPORT_DETAIL_SPACING
