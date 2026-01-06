@@ -218,75 +218,219 @@ import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
 import { getErrorMessageRelatedQuestionUrl } from "./relatedQuestion.js"
 
 export class GrapherState {
+    //
+    // Chart settings persisted in the config
+    //
+
+    /** Url of the concrete schema version to use to validate this document */
     $schema = latestGrapherConfigSchema
+
+    /** Internal database id */
+    id: number | undefined = undefined
+
+    /** Chart config version */
+    version = 1
+
+    /** Slug of the chart on Our World In Data */
+    slug: string | undefined = undefined
+
+    /** Big title text of the chart */
+    title: string | undefined = undefined
+
+    /** The longer subtitle text to show beneath the title */
+    subtitle: string | undefined = undefined
+
+    /** Indicates if the chart is published on Our World In Data or still in draft */
+    isPublished: boolean | undefined = undefined
+
+    /** The page containing this chart where more context can be found */
+    originUrl: string | undefined = undefined
+
+    /** Short comma-separated list of source names */
+    sourceDesc: string | undefined = undefined
+
+    /** Note displayed in the footer of the chart */
+    note: string | undefined = undefined
+
+    /** Additional text used internally to differentiate charts with the same title */
+    internalNotes: string | undefined = undefined
+
+    /** Optional internal variant name for distinguishing charts with the same title */
+    variantName: string | undefined = undefined
+
+    /** List of dimensions and their mapping to variables */
+    dimensions: ChartDimension[] = []
+
+    /** The initial selection of entities */
+    selectedEntityNames: EntityName[] = []
+
+    /** The initially focused chart elements. Is either a list of entity or variable names. Only works for line and slope charts for now. */
+    focusedSeriesNames: SeriesName[] = []
+
+    /** Entities that should be excluded (opposite of includedEntityNames) */
+    excludedEntityNames: EntityName[] | undefined = undefined
+
+    /** Entities that should be included (opposite of excludedEntityNames). If empty, all available entities are used. If set, all entities not specified here are excluded. excludedEntityNames are evaluated afterwards and can still remove entities even if they were included before. */
+    includedEntityNames: EntityName[] | undefined = undefined
+
+    /** Colors for selected entities */
+    selectedEntityColors: { [entityName: string]: string | undefined } = {}
+
+    /** Whether the user can change countries, add additional ones or neither */
+    addCountryMode = EntitySelectionMode.MultipleEntities
+
+    /**
+     * Display string for naming the primary entities of the data.
+     *
+     * The default is 'country or region', but you can specify a different one
+     * such as 'state' or 'region'
+     */
+    entityType = DEFAULT_GRAPHER_ENTITY_TYPE
+
+    /** Plural of the entity type (e.g. when entityType is 'country' this would be 'countries') */
+    entityTypePlural = DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL
+
+    /**
+     * Display string that replaces 'metric' in the 'Split by metric' label in
+     * facet controls (e.g. 'product' displays 'Split by product')
+     */
+    facettingLabelByYVariables = "metric"
+
+    /** Which chart types should be shown */
     chartTypes: GrapherChartType[] = [
         GRAPHER_CHART_TYPES.LineChart,
         GRAPHER_CHART_TYPES.DiscreteBar,
     ]
-    id: number | undefined = undefined
-    version = 1
-    slug: string | undefined = undefined
 
-    // Initializing text fields with `undefined` ensures that empty strings get serialised
-    title: string | undefined = undefined
-    subtitle: string | undefined = undefined
-    sourceDesc: string | undefined = undefined
-    note: string | undefined = undefined
-    internalNotes: string | undefined = undefined
-    variantName: string | undefined = undefined
-    originUrl: string | undefined = undefined
-    hideAnnotationFieldsInTitle: AnnotationFieldsInTitle | undefined = undefined
-
-    minTime: TimeBound | undefined = undefined
-    maxTime: TimeBound | undefined = undefined
-    timelineMinTime: Time | undefined = undefined
-    timelineMaxTime: Time | undefined = undefined
-    addCountryMode = EntitySelectionMode.MultipleEntities
-    stackMode = StackMode.absolute
-    showNoDataArea = true
-    hideLegend: boolean | undefined = false
-    logo: LogoOption | undefined = undefined
-    hideLogo: boolean | undefined = undefined
-    hideRelativeToggle: boolean | undefined = true
-    entityType = DEFAULT_GRAPHER_ENTITY_TYPE
-    entityTypePlural = DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL
-    facettingLabelByYVariables = "metric"
-    hideTimeline: boolean | undefined = undefined
-    zoomToSelection: boolean | undefined = undefined
-    showYearLabels: boolean | undefined = undefined
+    /** Indicates if the map tab should be shown */
     hasMapTab = false
+
+    /** The tab that is shown initially */
     tab: GrapherTabConfigOption = GRAPHER_TAB_CONFIG_OPTIONS.chart
-    isPublished: boolean | undefined = undefined
+
+    /** Configuration of the x-axis */
+    xAxis = new AxisConfig(undefined, this)
+
+    /** Configuration of the y-axis */
+    yAxis = new AxisConfig(undefined, this)
+
+    /** Color scale definition */
+    colorScale = new ColorScaleConfig()
+
+    /** Configuration of the world map chart */
+    map = new MapConfig()
+
+    /** One of the predefined base color schemes. If not provided, a default is automatically chosen based on the chart type. */
     baseColorScheme: ColorSchemeName | undefined = undefined
+
+    /** Reverse the order of colors in the color scheme */
     invertColorScheme: boolean | undefined = undefined
+
+    /** Which logo to show on the upper right side */
+    logo: LogoOption | undefined = undefined
+
+    /** Whether to hide the legend */
+    hideLegend: boolean | undefined = false
+
+    /** Whether to hide the logo */
+    hideLogo: boolean | undefined = undefined
+
+    /** Whether to hide the relative mode UI toggle */
+    hideRelativeToggle: boolean | undefined = true
+
+    /** Whether to hide connecting lines on scatter plots when a time range is selected */
     hideConnectedScatterLines: boolean | undefined = undefined
+
+    /** Hide entity names in Scatter plots */
     hideScatterLabels: boolean | undefined = undefined
-    scatterPointLabelStrategy: ScatterPointLabelStrategy | undefined = undefined
-    compareEndPointsOnly: boolean | undefined = undefined
-    matchingEntitiesOnly: boolean | undefined = undefined
+
+    /** Whether to hide the total value label (used on stacked discrete bar charts) */
     hideTotalValueLabel: boolean | undefined = undefined
 
+    /** Whether to hide the faceting control */
+    hideFacetControl = true
+
+    /** Whether to hide any automatically added title annotations like the selected year */
+    hideAnnotationFieldsInTitle: AnnotationFieldsInTitle | undefined = undefined
+
+    /** Start point of the initially selected time span */
+    minTime: TimeBound | undefined = undefined
+
+    /** End point of the initially selected time span */
+    maxTime: TimeBound | undefined = undefined
+
+    /**
+     * The lowest year to show in the timeline.
+     *
+     * If this is set then the user is not able to see any data before this year.
+     * If set to "earliest", then the earliest year in the data is used.
+     */
+    timelineMinTime: Time | undefined = undefined
+
+    /** The highest year to show in the timeline.
+     *
+     * If this is set then the user is not able to see any data after this year.
+     * If set to "latest", then the latest year in the data is used.
+     */
+    timelineMaxTime: Time | undefined = undefined
+
+    /**
+     * Whether to hide the timeline from the user. If it is hidden then the
+     * user can't change the time
+     */
+    hideTimeline: boolean | undefined = undefined
+
+    /** Stack mode. Only absolute and relative are actively used. */
+    stackMode = StackMode.absolute
+
+    /** Whether to zoom to the selected data points */
+    zoomToSelection: boolean | undefined = undefined
+
+    /** Whether to show year labels in bar charts */
+    showYearLabels: boolean | undefined = undefined
+
+    /** Whether to show an area for entities that have no data (used in marimekko charts) */
+    showNoDataArea = true
+
+    /** Drops in between points in scatter plots */
+    compareEndPointsOnly: boolean | undefined = undefined
+
+    /** Exclude entities that do not belong in any color group */
+    matchingEntitiesOnly: boolean | undefined = undefined
+
+    /** The desired strategy for handling entities with missing data */
     missingDataStrategy: MissingDataStrategy | undefined = undefined
 
-    xAxis = new AxisConfig(undefined, this)
-    yAxis = new AxisConfig(undefined, this)
-    colorScale = new ColorScaleConfig()
-    map = new MapConfig()
-    dimensions: ChartDimension[] = []
+    /** When a user hovers over a connected series line in a ScatterPlot we show a label for each point. By default that value will be from the "year" column but by changing this option the column used for the x or y axis could be used instead. */
+    scatterPointLabelStrategy: ScatterPointLabelStrategy | undefined = undefined
+
+    /** The desired facetting strategy (none for no facetting) */
+    selectedFacetStrategy: FacetStrategy | undefined = undefined
+
+    /** Sort criterion (used by stacked bar charts and marimekko) */
+    sortBy: SortBy | undefined = SortBy.total
+
+    /** Sort order (used by stacked bar charts and marimekko) */
+    sortOrder: SortOrder | undefined = SortOrder.desc
+
+    /** Sort column if sortBy is column (used by stacked bar charts and marimekko) */
+    sortColumnSlug: string | undefined = undefined
+
+    /** List of comparison lines to draw */
+    comparisonLines: ComparisonLineConfig[] | undefined = undefined
+
+    /** Links to related questions */
+    relatedQuestions: RelatedQuestionsConfig[] | undefined = undefined
+
+    //
+    // Internal state not persisted in the config
+    //
+
     ySlugs: ColumnSlugs | undefined = undefined
     xSlug: ColumnSlug | undefined = undefined
     colorSlug: ColumnSlug | undefined = undefined
     sizeSlug: ColumnSlug | undefined = undefined
     tableSlugs: ColumnSlugs | undefined = undefined
-    selectedEntityColors: {
-        [entityName: string]: string | undefined
-    } = {}
-    selectedEntityNames: EntityName[] = []
-    focusedSeriesNames: SeriesName[] = []
-    excludedEntityNames: EntityName[] | undefined = undefined
-    includedEntityNames: EntityName[] | undefined = undefined
-    comparisonLines: ComparisonLineConfig[] | undefined = undefined
-    relatedQuestions: RelatedQuestionsConfig[] | undefined = undefined
 
     dataTableConfig: DataTableConfig = {
         filter: "all",
@@ -299,8 +443,6 @@ export class GrapherState {
      */
     highlightedTimesInLineChart?: Time[]
 
-    hideFacetControl = true
-
     /**
      * Indicates whether the chart is embedded alongside a complementary table.
      * If that's the case, the chart can be simplified (e.g. hide legends or
@@ -308,10 +450,6 @@ export class GrapherState {
      */
     isDisplayedAlongsideComplementaryTable = false
 
-    selectedFacetStrategy: FacetStrategy | undefined = undefined
-    sortBy: SortBy | undefined = SortBy.total
-    sortOrder: SortOrder | undefined = SortOrder.desc
-    sortColumnSlug: string | undefined = undefined
     _isInFullScreenMode = false
     windowInnerWidth: number | undefined = undefined
     windowInnerHeight: number | undefined = undefined
