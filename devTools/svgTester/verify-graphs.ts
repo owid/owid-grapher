@@ -79,7 +79,7 @@ async function verifyExplorers(args: ReturnType<typeof parseArguments>) {
 
     const pool = workerpool.pool(__dirname + "/worker.ts", {
         minWorkers: 2,
-        maxWorkers: 4,
+        maxWorkers: 12,
         workerThreadOpts: {
             execArgv: ["--require", "tsx"],
         },
