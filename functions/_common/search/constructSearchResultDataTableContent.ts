@@ -643,16 +643,20 @@ function buildDataTableContentForTableTab({
     grapherState,
     maxRows,
 }: BaseArgs): SearchChartHitDataTableProps {
-    const yColumn = grapherState.tableForDisplay.get(grapherState.yColumnSlug)
+    const yColumn = grapherState.tableForDisplayBeforeEntityFilter.get(
+        grapherState.yColumnSlug
+    )
     const columnName = getColumnNameForDisplay(yColumn)
     const unit = getDisplayUnit(yColumn, { allowTrivial: true })
     const title = unit ? `In ${unit}` : columnName
 
-    const time = grapherState.endTime ?? grapherState.tableForDisplay.maxTime
+    const time =
+        grapherState.endTime ??
+        grapherState.tableForDisplayBeforeEntityFilter.maxTime
 
     if (!time) return { rows: [], title }
 
-    let owidRows = grapherState.tableForDisplay
+    let owidRows = grapherState.tableForDisplayBeforeEntityFilter
         .filterByTargetTimes([time])
         .get(grapherState.yColumnSlug).owidRows
     owidRows = _.orderBy(owidRows, [(row) => row.value], "desc")

@@ -1357,12 +1357,18 @@ describe("tableForDisplay", () => {
 
     it("contains the selected entities only if entity selection is disabled", () => {
         const grapher = new GrapherState(manager)
-        expect(grapher.tableForDisplay.availableEntityNames.length).toBe(3)
+        expect(
+            grapher.tableForDisplayBeforeEntityFilter.availableEntityNames
+                .length
+        ).toBe(3)
     })
 
     it("contains all available entities if there is a map tab, even if entity selection is disabled", () => {
         const grapher = new GrapherState({ ...manager, hasMapTab: true })
-        expect(grapher.tableForDisplay.availableEntityNames.length).toBe(5)
+        expect(
+            grapher.tableForDisplayBeforeEntityFilter.availableEntityNames
+                .length
+        ).toBe(5)
     })
 
     it("contains all available entities if there is a scatter plot, even if entity selection is disabled", () => {
@@ -1370,7 +1376,10 @@ describe("tableForDisplay", () => {
             ...manager,
             chartTypes: ["ScatterPlot"],
         })
-        expect(grapher.tableForDisplay.availableEntityNames.length).toBe(5)
+        expect(
+            grapher.tableForDisplayBeforeEntityFilter.availableEntityNames
+                .length
+        ).toBe(5)
     })
 
     it("contains all available entities if there is a Marimekko chart, even if entity selection is disabled", () => {
@@ -1378,7 +1387,10 @@ describe("tableForDisplay", () => {
             ...manager,
             chartTypes: ["Marimekko"],
         })
-        expect(grapher.tableForDisplay.availableEntityNames.length).toBe(5)
+        expect(
+            grapher.tableForDisplayBeforeEntityFilter.availableEntityNames
+                .length
+        ).toBe(5)
     })
 })
 

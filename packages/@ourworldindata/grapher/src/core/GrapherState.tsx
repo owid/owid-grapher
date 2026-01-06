@@ -711,10 +711,14 @@ export class GrapherState {
         }
     }
 
-    @computed get isDev(): boolean {
-        return this.initialOptions.env === "dev"
-    }
-
+    /**
+     * The complete, unfiltered data table for the chart.
+     *
+     * This is the raw input data provided to the Grapher. This table is the
+     * starting point for all data transformations in the pipeline. It contains
+     * all entities and all time periods present in the data before any filtering
+     * or chart-specific transforms are applied.
+     */
     get inputTable(): OwidTable {
         return this._inputTable
     }
@@ -727,6 +731,213 @@ export class GrapherState {
         } else if (this.areSelectedEntitiesDifferentThanAuthors) {
             // User has changed the selection, use theirs
         } else this.applyOriginalSelectionAsAuthored()
+    }
+
+    /**
+     * Input table with color and size tolerance applied.
+     *
+     * This happens _before_ applying the author's timeline filter to avoid
+     * accidentally dropping all color values before applying tolerance.
+     * This is especially important for scatter plots and Marimekko charts,
+     * where color and size columns are often transformed with infinite tolerance.
+     *
+     * Line and discrete bar charts also support a color dimension, but their
+     * tolerance transformations run in their respective transformTable functions
+     * since it's more efficient to run them on a table that has been filtered
+     * by selected entities.
+     */
+    @computed get tableAfterColorAndSizeToleranceApplication(): OwidTable {
+        let table = this.inputTable
+
+        if (this.hasScatter && this.sizeColumnSlug) {
+            const tolerance =
+                table.get(this.sizeColumnSlug)?.display?.tolerance ?? Infinity
+            table = table.interpolateColumnWithTolerance(this.sizeColumnSlug, {
+                toleranceOverride: tolerance,
+            })
+        }
+
+        if (
+            (this.hasScatter || this.hasMarimekko) &&
+            this.categoricalColorColumnSlug
+        ) {
+            const tolerance =
+                table.get(this.categoricalColorColumnSlug)?.display
+                    ?.tolerance ?? Infinity
+            table = table.interpolateColumnWithTolerance(
+                this.categoricalColorColumnSlug,
+                { toleranceOverride: tolerance }
+            )
+        }
+
+        return table
+    }
+
+    /**
+     * Table after author-specified entity and timeline filters have been applied.
+     *
+     * This is the earliest filtering step in the pipeline. The author can configure
+     * entity include/exclude patterns (includedEntityNames, excludedEntityNames) and
+     * timeline bounds (timelineMinTime, timelineMaxTime). These filters are applied
+     * before any chart-specific transforms, so to the charts it appears as if the
+     * filtered times and entities do not exist in the data.
+     */
+    @computed get tableAfterAuthorTimelineAndEntityFilter(): OwidTable {
+        let table = this.tableAfterColorAndSizeToleranceApplication
+
+        // Filter entities
+        table = table.filterByEntityNamesUsingIncludeExcludePattern({
+            excluded: this.excludedEntityNames,
+            included: this.includedEntityNames,
+        })
+
+        // Filter times
+        if (
+            this.timelineMinTime === undefined &&
+            this.timelineMaxTime === undefined
+        )
+            return table
+        return table.filterByTimeRange(
+            this.timelineMinTime ?? -Infinity,
+            this.timelineMaxTime ?? Infinity
+        )
+    }
+
+    /** The base data table after author-configured filters have been applied */
+    @computed get table(): OwidTable {
+        return this.tableAfterAuthorTimelineAndEntityFilter
+    }
+
+    /**
+     * Table after the active chart type's transformation has been applied.
+     *
+     * Different chart types (line, bar, scatter, etc.) have different data requirements
+     * and transformations. This property applies the chart-specific transformTable()
+     * method to prepare the data for that chart type's rendering. This happens before
+     * any user-selected time range filtering (startTime/endTime).
+     */
+    @computed
+    get tableAfterAuthorTimelineAndActiveChartTransform(): OwidTable {
+        const table = this.table
+        if (!this.isReady || !this.isOnChartOrMapTab) return table
+
+        const startMark = performance.now()
+
+        const transformedTable = this.chartState.transformTable(table)
+
+        this.createPerformanceMeasurement(
+            "chartInstance.transformTable",
+            startMark
+        )
+        return transformedTable
+    }
+
+    /**
+     * Table after all chart transforms and user-selected time range filtering.
+     *
+     * This applies the final filtering step based on the currently selected time range
+     * (startTime and endTime).
+     */
+    @computed
+    private get tableAfterAllTransformsAndFilters(): OwidTable {
+        const { startTime, endTime } = this
+        const table = this.tableAfterAuthorTimelineAndActiveChartTransform
+
+        if (startTime === undefined || endTime === undefined) return table
+
+        if (this.isOnMapTab) {
+            const targetTimes = this.isFaceted
+                ? [startTime, endTime]
+                : [endTime]
+
+            return table.filterByTargetTimes(targetTimes)
+        }
+
+        if (this.isOnDiscreteBarTab || this.isOnMarimekkoTab)
+            return table.filterByTargetTimes([endTime])
+
+        if (this.isOnSlopeChartTab)
+            return table.filterByTargetTimes([startTime, endTime])
+
+        return table.filterByTimeRange(startTime, endTime)
+    }
+
+    /** The final transformed table ready for chart rendering */
+    @computed get transformedTable(): OwidTable {
+        return this.tableAfterAllTransformsAndFilters
+    }
+
+    /** Table used to determine which entities can be selected in the entity selector */
+    @computed get tableForSelection(): OwidTable {
+        // Depending on the chart type, the criteria for being able to select an entity are
+        // different; e.g. for scatterplots, the entity needs to (1) not be excluded and
+        // (2) needs to have data for the x and y dimension.
+        let table =
+            this.isOnScatterTab || this.isOnMarimekkoTab
+                ? this.tableAfterAuthorTimelineAndActiveChartTransform
+                : this.table
+
+        if (!this.isReady) return table
+
+        // Some chart types (e.g. stacked area charts) choose not to show an entity
+        // with incomplete data. Such chart types define a custom transform function
+        // to ensure that the entity selector only offers entities that are actually plotted.
+        if (this.chartState.transformTableForSelection) {
+            table = this.chartState.transformTableForSelection(table)
+        }
+
+        return table
+    }
+
+    /** Base table for the data table tab */
+    @computed get tableForDisplayBeforeEntityFilter(): OwidTable {
+        let table = this.table
+
+        if (!this.isReady || !this.isOnTableTab) return table
+
+        if (this.chartState.transformTableForDisplay) {
+            table = this.chartState.transformTableForDisplay(table)
+        }
+
+        if (this.shouldShowSelectionOnlyInDataTable) {
+            table = table.filterByEntityNames(
+                this.selection.selectedEntityNames
+            )
+        }
+
+        return table
+    }
+
+    /** Table for display in the data table tab */
+    @computed get tableForDisplay(): OwidTable {
+        let table = this.tableForDisplayBeforeEntityFilter
+        const { filter } = this.dataTableConfig
+
+        const availableEntities = table.availableEntityNames
+
+        // Determine which entities should be visible based on the filter
+        const visibleEntities = match(filter)
+            .with("all", () => availableEntities)
+            .with("selection", () =>
+                this.selection.hasSelection
+                    ? this.selection.selectedEntityNames
+                    : availableEntities
+            )
+            .when(isEntityRegionType, (filter) => {
+                const regionNames = this.entityNamesByRegionType.get(filter)
+                return regionNames ?? availableEntities
+            })
+            .exhaustive()
+
+        // Apply entity filter if necessary
+        if (visibleEntities.length < availableEntities.length)
+            table = table.filterByEntityNames(visibleEntities)
+
+        return table
+    }
+
+    @computed get isDev(): boolean {
+        return this.initialOptions.env === "dev"
     }
 
     @computed get dataTableSlugs(): ColumnSlug[] {
@@ -1092,154 +1303,6 @@ export class GrapherState {
             : this.selection
     }
 
-    /** Table that is used for display in the table tab */
-    @computed get tableForDisplay(): OwidTable {
-        let table = this.table
-
-        if (!this.isReady || !this.isOnTableTab) return table
-
-        if (this.chartState.transformTableForDisplay) {
-            table = this.chartState.transformTableForDisplay(table)
-        }
-
-        if (this.shouldShowSelectionOnlyInDataTable) {
-            table = table.filterByEntityNames(
-                this.selection.selectedEntityNames
-            )
-        }
-
-        return table
-    }
-
-    @computed get filteredTableForDisplay(): OwidTable {
-        let table = this.tableForDisplay
-        const { filter } = this.dataTableConfig
-
-        const availableEntities = table.availableEntityNames
-
-        // Determine which entities should be visible based on the filter
-        const visibleEntities = match(filter)
-            .with("all", () => availableEntities)
-            .with("selection", () =>
-                this.selection.hasSelection
-                    ? this.selection.selectedEntityNames
-                    : availableEntities
-            )
-            .when(isEntityRegionType, (filter) => {
-                const regionNames = this.entityNamesByRegionType.get(filter)
-                return regionNames ?? availableEntities
-            })
-            .exhaustive()
-
-        // Apply entity filter if necessary
-        if (visibleEntities.length < availableEntities.length)
-            table = table.filterByEntityNames(visibleEntities)
-
-        return table
-    }
-
-    @computed get tableForSelection(): OwidTable {
-        // This table specifies which entities can be selected in the charts EntitySelectorModal.
-        // It should contain all entities that can be selected, and none more.
-        // Depending on the chart type, the criteria for being able to select an entity are
-        // different; e.g. for scatterplots, the entity needs to (1) not be excluded and
-        // (2) needs to have data for the x and y dimension.
-        let table =
-            this.isOnScatterTab || this.isOnMarimekkoTab
-                ? this.tableAfterAuthorTimelineAndActiveChartTransform
-                : this.table
-
-        if (!this.isReady) return table
-
-        // Some chart types (e.g. stacked area charts) choose not to show an entity
-        // with incomplete data. Such chart types define a custom transform function
-        // to ensure that the entity selector only offers entities that are actually plotted.
-        if (this.chartState.transformTableForSelection) {
-            table = this.chartState.transformTableForSelection(table)
-        }
-
-        return table
-    }
-
-    /**
-     * Input table with color and size tolerance applied.
-     *
-     * This happens _before_ applying the author's timeline filter to avoid
-     * accidentally dropping all color values before applying tolerance.
-     * This is especially important for scatter plots and Marimekko charts,
-     * where color and size columns are often transformed with infinite tolerance.
-     *
-     * Line and discrete bar charts also support a color dimension, but their
-     * tolerance transformations run in their respective transformTable functions
-     * since it's more efficient to run them on a table that has been filtered
-     * by selected entities.
-     */
-    @computed get tableAfterColorAndSizeToleranceApplication(): OwidTable {
-        let table = this.inputTable
-
-        if (this.hasScatter && this.sizeColumnSlug) {
-            const tolerance =
-                table.get(this.sizeColumnSlug)?.display?.tolerance ?? Infinity
-            table = table.interpolateColumnWithTolerance(this.sizeColumnSlug, {
-                toleranceOverride: tolerance,
-            })
-        }
-
-        if (
-            (this.hasScatter || this.hasMarimekko) &&
-            this.categoricalColorColumnSlug
-        ) {
-            const tolerance =
-                table.get(this.categoricalColorColumnSlug)?.display
-                    ?.tolerance ?? Infinity
-            table = table.interpolateColumnWithTolerance(
-                this.categoricalColorColumnSlug,
-                { toleranceOverride: tolerance }
-            )
-        }
-
-        return table
-    }
-
-    // If an author sets a timeline or entity filter, run it early in the pipeline
-    // so to the charts it's as if the filtered times and entities do not exist
-    @computed get tableAfterAuthorTimelineAndEntityFilter(): OwidTable {
-        let table = this.tableAfterColorAndSizeToleranceApplication
-
-        // Filter entities
-        table = table.filterByEntityNamesUsingIncludeExcludePattern({
-            excluded: this.excludedEntityNames,
-            included: this.includedEntityNames,
-        })
-
-        // Filter times
-        if (
-            this.timelineMinTime === undefined &&
-            this.timelineMaxTime === undefined
-        )
-            return table
-        return table.filterByTimeRange(
-            this.timelineMinTime ?? -Infinity,
-            this.timelineMaxTime ?? Infinity
-        )
-    }
-
-    @computed
-    get tableAfterAuthorTimelineAndActiveChartTransform(): OwidTable {
-        const table = this.table
-        if (!this.isReady || !this.isOnChartOrMapTab) return table
-
-        const startMark = performance.now()
-
-        const transformedTable = this.chartState.transformTable(table)
-
-        this.createPerformanceMeasurement(
-            "chartInstance.transformTable",
-            startMark
-        )
-        return transformedTable
-    }
-
     @computed get chartState(): ChartState {
         return this.isOnMapTab
             ? makeChartState(GRAPHER_MAP_TYPE, this)
@@ -1276,37 +1339,6 @@ export class GrapherState {
         }
 
         return this.chartState.series.map((series) => series.seriesName)
-    }
-
-    @computed get table(): OwidTable {
-        return this.tableAfterAuthorTimelineAndEntityFilter
-    }
-    @computed
-    private get tableAfterAllTransformsAndFilters(): OwidTable {
-        const { startTime, endTime } = this
-        const table = this.tableAfterAuthorTimelineAndActiveChartTransform
-
-        if (startTime === undefined || endTime === undefined) return table
-
-        if (this.isOnMapTab) {
-            const targetTimes = this.isFaceted
-                ? [startTime, endTime]
-                : [endTime]
-
-            return table.filterByTargetTimes(targetTimes)
-        }
-
-        if (this.isOnDiscreteBarTab || this.isOnMarimekkoTab)
-            return table.filterByTargetTimes([endTime])
-
-        if (this.isOnSlopeChartTab)
-            return table.filterByTargetTimes([startTime, endTime])
-
-        return table.filterByTimeRange(startTime, endTime)
-    }
-
-    @computed get transformedTable(): OwidTable {
-        return this.tableAfterAllTransformsAndFilters
     }
 
     @computed get isStatic(): boolean {
