@@ -142,12 +142,11 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     private getInputTimeFromMouse(
         event: MouseEvent | TouchEvent
     ): number | undefined {
-        const { minTime, maxTime } = this.controller
         if (!this.slider) return
         const mouseX = getRelativeMouse(this.slider, event).x
 
-        const fracWidth = mouseX / this.sliderBounds.width
-        return minTime + fracWidth * (maxTime - minTime)
+        const progress = mouseX / this.sliderBounds.width
+        return this.controller.progressToTime(progress)
     }
 
     @action.bound private onDrag(inputTime: number): void {
@@ -289,7 +288,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
     @computed private get hoverTimeProgress(): number | undefined {
         if (this.hoverTime === undefined) return undefined
-        return this.controller.calculateProgress(this.hoverTime)
+        return this.controller.timeToProgress(this.hoverTime)
     }
 
     private mouseHoveringOverTimeline: boolean = false

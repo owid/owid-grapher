@@ -5,8 +5,9 @@ import {
     TimeBoundValue,
     sleep,
     findClosestTime,
+    rollingMap,
 } from "@ourworldindata/utils"
-import { action } from "mobx"
+import { action, computed } from "mobx"
 import { TimeColumn } from "@ourworldindata/core-table"
 
 export enum TimelineDragTarget {
@@ -41,7 +42,7 @@ export class TimelineController {
         this.manager = manager
     }
 
-    private get timesAsc(): number[] {
+    get timesAsc(): number[] {
         // Note: assumes times is sorted in asc
         return this.manager.times
     }
@@ -65,16 +66,78 @@ export class TimelineController {
         return R.last(this.timesAsc)!
     }
 
-    calculateProgress(time: Time): number {
-        return (time - this.minTime) / (this.maxTime - this.minTime)
+    get timespan(): number {
+        return this.maxTime - this.minTime
+    }
+
+    /**
+     * Determines whether to use equal or proportional spacing for the timeline slider.
+     *
+     * When using equal spacing, each time point is given equal visual space on the slider.
+     * When using proportional spacing, time points are spaced based on their actual values.
+     */
+    @computed get shouldUseEqualSpacing(): boolean {
+        // Few time points always use continuous scale
+        if (this.timesAsc.length < 20) return false
+
+        // Short timespans always use continuous scale
+        if (this.timespan <= 500) return false
+
+        // Calculate gaps between consecutive time points
+        const gaps = rollingMap(this.timesAsc, (a, b) => b - a)
+
+        const topDecileSum = R.pipe(
+            gaps,
+            R.takeFirstBy(gaps.length * 0.1, [R.identity(), "desc"]),
+            R.sum()
+        )
+
+        return topDecileSum > this.timespan * 0.5
+    }
+
+    /**
+     * Converts a time value to a normalized progress value (0-1) representing
+     * its position on the timeline slider
+     */
+    timeToProgress(time: Time): number {
+        if (this.shouldUseEqualSpacing) {
+            // Equal spacing: each time point gets equal visual space
+            const index = this.timesAsc.indexOf(time)
+            if (index === -1) return 0
+            return this.timesAsc.length > 1
+                ? index / (this.timesAsc.length - 1)
+                : 0
+        } else {
+            // Proportional spacing: linear mapping based on time value
+            if (this.timespan === 0) return 0 // Handle single time point
+            return (time - this.minTime) / this.timespan
+        }
+    }
+
+    /**
+     * Converts a normalized progress value (0-1) to the corresponding time
+     * value on the timeline
+     */
+    progressToTime(progress: number): number {
+        if (this.shouldUseEqualSpacing) {
+            // Equal spacing: map progress to the nearest time index
+            if (this.timesAsc.length <= 1) return this.timesAsc[0]
+            const index = Math.round(progress * (this.timesAsc.length - 1))
+            return this.timesAsc[
+                R.clamp(index, { min: 0, max: this.timesAsc.length - 1 })
+            ]
+        } else {
+            // Proportional spacing: linear mapping based on time value
+            return this.minTime + progress * this.timespan
+        }
     }
 
     get startTimeProgress(): number {
-        return this.calculateProgress(this.startTime)
+        return this.timeToProgress(this.startTime)
     }
 
     get endTimeProgress(): number {
-        return this.calculateProgress(this.endTime)
+        return this.timeToProgress(this.endTime)
     }
 
     // Finds the index of `time` in the `timesAsc` array.
@@ -294,13 +357,56 @@ export class TimelineController {
         else await this.play()
     }
 
+    /**
+     * Stores the offset between the drag start position and the handle positions.
+     * Used when dragging the range (both handles together) to preserve their relative spacing.
+     *
+     * Depends on the spacing mode:
+     * - In proportional spacing mode: stores time offsets (e.g., [-5, +10] for years)
+     * - In equal spacing mode: stores index offsets (e.g., [-2, +3] for array positions)
+     */
     private dragOffsets: [number, number] = [0, 0]
 
     private get isSingleDragMarker(): boolean {
         return this.dragOffsets[0] === this.dragOffsets[1]
     }
 
+    private timeToIndex(time: Time): number {
+        return R.sortedIndex(this.timesAsc, time)
+    }
+
+    private indexToTimeBound(index: number): TimeBound {
+        const minIndex = 0
+        const maxIndex = this.timesAsc.length - 1
+        const clampedIndex = R.clamp(index, { min: minIndex, max: maxIndex })
+        const time = this.timesAsc[clampedIndex]
+
+        // Convert to infinity at the edges
+        if (index <= minIndex) return TimeBoundValue.negativeInfinity
+        if (index >= maxIndex) return TimeBoundValue.positiveInfinity
+
+        return time
+    }
+
     setDragOffsets(inputTime: number): void {
+        if (this.shouldUseEqualSpacing) {
+            this.setDragOffsetsEqualSpacing(inputTime)
+        } else {
+            this.setDragOffsetsProportional(inputTime)
+        }
+    }
+
+    private setDragOffsetsEqualSpacing(inputTime: number): void {
+        const closestTime =
+            findClosestTime(this.timesAsc, inputTime) ?? inputTime
+        const clickIndex = this.timeToIndex(closestTime)
+        const startIndex = this.timeToIndex(this.startTime)
+        const endIndex = this.timeToIndex(this.endTime)
+
+        this.dragOffsets = [startIndex - clickIndex, endIndex - clickIndex]
+    }
+
+    private setDragOffsetsProportional(inputTime: number): void {
         const closestTime =
             findClosestTime(this.timesAsc, inputTime) ?? inputTime
         this.dragOffsets = [
@@ -318,6 +424,46 @@ export class TimelineController {
     }
 
     private dragRangeToTime(time: Time): void {
+        if (this.shouldUseEqualSpacing) {
+            this.dragRangeToTimeEqualSpacing(time)
+        } else {
+            this.dragRangeToTimeProportional(time)
+        }
+    }
+
+    private dragRangeToTimeEqualSpacing(time: Time): void {
+        const closestTime = findClosestTime(this.timesAsc, time) ?? time
+        const currentIndex = this.timeToIndex(closestTime)
+
+        // Apply index offsets
+        let startIndex = currentIndex + this.dragOffsets[0]
+        let endIndex = currentIndex + this.dragOffsets[1]
+
+        const minIndex = 0
+        const maxIndex = this.timesAsc.length - 1
+
+        // Handle edge clamping for ranges
+        if (!this.isSingleDragMarker) {
+            const indexSpan = this.dragOffsets[1] - this.dragOffsets[0]
+
+            if (startIndex < minIndex) {
+                startIndex = minIndex
+                endIndex = minIndex + indexSpan
+            } else if (endIndex > maxIndex) {
+                endIndex = maxIndex
+                startIndex = maxIndex - indexSpan
+            }
+        }
+
+        // Convert indices to TimeBounds
+        const startTimeBound = this.indexToTimeBound(startIndex)
+        const endTimeBound = this.indexToTimeBound(endIndex)
+
+        this.updateStartTime(startTimeBound)
+        this.updateEndTime(endTimeBound)
+    }
+
+    private dragRangeToTimeProportional(time: Time): void {
         const { minTime, maxTime } = this
 
         let startTime = this.clampTimeBound(this.dragOffsets[0] + time)

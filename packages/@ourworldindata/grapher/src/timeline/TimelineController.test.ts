@@ -467,3 +467,72 @@ describe("setEndTimeFromInput", () => {
         expect(manager.endHandleTimeBound).toEqual(2006)
     })
 })
+
+describe("progress calculations", () => {
+    const proportionalController = new TimelineController({
+        times: [1950, 1990, 2000, 2010, 2020],
+        startHandleTimeBound: 1950,
+        endHandleTimeBound: 2020,
+    })
+    const equalSpacingController = new TimelineController({
+        times: [..._.range(-10000, -8000, 20), ..._.range(1900, 2021, 1)],
+        startHandleTimeBound: -10000,
+        endHandleTimeBound: 2020,
+    })
+
+    it("progressToTime works correctly with proportional spacing", () => {
+        expect(proportionalController.shouldUseEqualSpacing).toBe(false)
+        expect(proportionalController.progressToTime(0.5)).toBeCloseTo(1985)
+    })
+
+    it("progressToTime works correctly with equal spacing", () => {
+        expect(equalSpacingController.shouldUseEqualSpacing).toBe(true)
+        expect(equalSpacingController.progressToTime(0.5)).toBe(1910)
+    })
+
+    it("progress calculation is reversible with proportional spacing", () => {
+        for (const time of proportionalController.timesAsc) {
+            const progress = proportionalController.timeToProgress(time)
+            const timeFromProgress =
+                proportionalController.progressToTime(progress)
+            expect(timeFromProgress).toBeCloseTo(time)
+        }
+    })
+
+    it("progress calculation is reversible with equal spacing", () => {
+        for (const time of equalSpacingController.timesAsc) {
+            const progress = equalSpacingController.timeToProgress(time)
+            const timeFromProgress =
+                equalSpacingController.progressToTime(progress)
+            expect(timeFromProgress).toBe(time)
+        }
+    })
+})
+
+it("preserves visual distance when dragging range in equal spacing mode", () => {
+    // Timeline with large gaps in ancient times and small gaps in modern times
+    const times = [..._.range(-10000, -8000, 20), ..._.range(1900, 2021, 1)]
+    const manager: TimelineManager = {
+        times,
+        startHandleTimeBound: 1910, // Index 110
+        endHandleTimeBound: 1915, // Index 115
+    }
+
+    const controller = new TimelineController(manager)
+    expect(controller.shouldUseEqualSpacing).toBe(true)
+
+    // Start dragging from year 1912 (roughly in the middle of the range)
+    controller.setDragOffsets(1912)
+
+    // Drag to year -9890
+    controller["dragRangeToTime"](-9890)
+
+    // Verify that both handles did not collapse to the same time
+    expect(manager.startHandleTimeBound).not.toBe(manager.endHandleTimeBound)
+
+    // Verify that the visual distance (in indices) is preserved
+    // Original span was 5 indices (110 to 115)
+    const startIndex = times.indexOf(manager.startHandleTimeBound)
+    const endIndex = times.indexOf(manager.endHandleTimeBound)
+    expect(endIndex - startIndex).toBe(5)
+})
