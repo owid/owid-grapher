@@ -504,6 +504,9 @@ export class GrapherState {
     timelineController = new TimelineController(this)
     globeController = new GlobeController(this)
 
+    /** Keeps a running cache of series colors at the Grapher level. */
+    seriesColorMap: SeriesColorMap = new Map()
+
     isEntitySelectorModalOrDrawerOpen = false
     activeModal?: GrapherModal
     activeDownloadModalTab: DownloadModalTabName = DownloadModalTabName.Vis
@@ -562,6 +565,8 @@ export class GrapherState {
     /** Whether the grapher is running in the editor */
     isEditor =
         typeof window !== "undefined" && (window as any).isEditor === true
+
+    disposers: (() => void)[] = []
 
     constructor(options: GrapherProgrammaticInterface) {
         makeObservable(this, {
@@ -779,6 +784,11 @@ export class GrapherState {
         }
 
         return obj
+    }
+
+    /** Returns an object ready to be serialized to JSON */
+    @computed get object(): GrapherInterface {
+        return this.toObject()
     }
 
     /**
@@ -1164,13 +1174,6 @@ export class GrapherState {
         return this.tableSlugs ? this.tableSlugs.split(" ") : this.newSlugs
     }
 
-    /**
-     * todo: factor this out and make more RAII.
-     *
-     * Explorers create 1 Grapher instance, but as the user clicks around the Explorer loads other author created Graphers.
-     * But currently some Grapher features depend on knowing how the current state is different than the "authored state".
-     * So when an Explorer updates the grapher, it also needs to update this "original state".
-     */
     @action.bound setAuthoredVersion(
         config: Partial<LegacyGrapherInterface>
     ): void {
@@ -1211,6 +1214,7 @@ export class GrapherState {
     @computed get hasChartTab(): boolean {
         return this.validChartTypes.length > 0
     }
+
     @computed get isOnChartTab(): boolean {
         return !this.isOnMapTab && !this.isOnTableTab
     }
@@ -1226,6 +1230,7 @@ export class GrapherState {
     @computed get isOnChartOrMapTab(): boolean {
         return this.isOnChartTab || this.isOnMapTab
     }
+
     @computed get yAxisConfig(): Readonly<AxisConfigInterface> {
         return this.yAxis.toObject()
     }
@@ -1412,6 +1417,7 @@ export class GrapherState {
             return false
         }
     }
+
     @computed get showAdminControls(): boolean {
         return (
             this.isUserLoggedInAsAdmin ||
@@ -1421,6 +1427,7 @@ export class GrapherState {
             this.isStaging
         )
     }
+
     // Exclusively used for the performance.measurement API, so that DevTools can show some context
     createPerformanceMeasurement(name: string, startMark: number): void {
         const endMark = performance.now()
@@ -1456,9 +1463,11 @@ export class GrapherState {
         if (this.selectedEntityNames?.length)
             this.selection.setSelectedEntities(this.selectedEntityNames)
     }
+
     @computed get hasData(): boolean {
         return this.dimensions.length > 0 || this.newSlugs.length > 0
     }
+
     /**
      * Ready to go if we have retrieved data for every variable associated
      * with the chart or the config and data are marked as ready
@@ -1495,9 +1504,11 @@ export class GrapherState {
             (dim) => !this.inputTable.has(dim.columnSlug)
         )
     }
+
     @computed get isInIFrame(): boolean {
         return isInIFrame()
     }
+
     @computed get times(): Time[] {
         const { mapColumnSlug, projectionColumnInfoBySlug, yColumnSlugs } = this
 
@@ -1529,10 +1540,12 @@ export class GrapherState {
     @computed private get hasTimeDimensionButTimelineIsHidden(): boolean {
         return this.hasTimeDimension && !!this.hideTimeline
     }
+
     @computed get startHandleTimeBound(): TimeBound {
         if (this.isSingleTimeSelectionActive) return this.endHandleTimeBound
         return this.timelineHandleTimeBounds[0]
     }
+
     set startHandleTimeBound(newValue: TimeBound) {
         if (this.isSingleTimeSelectionActive)
             this.timelineHandleTimeBounds = [newValue, newValue]
@@ -1556,13 +1569,11 @@ export class GrapherState {
     @computed get endHandleTimeBound(): TimeBound {
         return this.timelineHandleTimeBounds[1]
     }
+
     @action.bound resetHandleTimeBounds(): void {
         this.startHandleTimeBound = this.timelineMinTime ?? -Infinity
         this.endHandleTimeBound = this.timelineMaxTime ?? Infinity
     }
-
-    /** Keeps a running cache of series colors at the Grapher level. */
-    seriesColorMap: SeriesColorMap = new Map()
 
     @computed get closestTimelineMinTime(): Time | undefined {
         return findClosestTime(this.times, this.timelineMinTime ?? -Infinity)
@@ -1629,13 +1640,13 @@ export class GrapherState {
             !this.hideLogo && (this.logo === undefined || this.logo === "owid")
         )
     }
+
     @computed get hasFatalErrors(): boolean {
         const { relatedQuestions = [] } = this
         return relatedQuestions.some(
             (question) => !!getErrorMessageRelatedQuestionUrl(question)
         )
     }
-    disposers: (() => void)[] = []
 
     @bind dispose(): void {
         this.disposers.forEach((dispose) => dispose())
@@ -1813,8 +1824,6 @@ export class GrapherState {
         this.validateEntitySelectorState(newTab)
     }
 
-    // TODO: can we remove this?
-    // I believe these states can only occur during editing.
     @action.bound private ensureValidConfigWhenEditing(): void {
         const disposers = [
             autorun(() => {
@@ -1829,6 +1838,7 @@ export class GrapherState {
         ]
         this.disposers.push(...disposers)
     }
+
     @computed private get validDimensions(): ChartDimension[] {
         const { dimensions } = this
         const validProperties = this.dimensionSlots.map((d) => d.property)
@@ -1928,9 +1938,11 @@ export class GrapherState {
     @computed.struct get filledDimensions(): ChartDimension[] {
         return this.isReady ? this.dimensions : []
     }
+
     @action.bound addDimension(config: OwidChartDimensionInterface): void {
         this.dimensions.push(new ChartDimension(config, this))
     }
+
     @action.bound setDimensionsForProperty(
         property: DimensionProperty,
         newConfigs: OwidChartDimensionInterface[]
@@ -1945,6 +1957,7 @@ export class GrapherState {
         })
         this.dimensions = newDimensions
     }
+
     @action.bound setDimensionsFromConfigs(
         configs: OwidChartDimensionInterface[]
     ): void {
@@ -2126,6 +2139,7 @@ export class GrapherState {
         availableTabs.push(...this.validChartTypes)
         return availableTabs
     }
+
     @computed get hasMultipleChartTypes(): boolean {
         return this.validChartTypes.length > 1
     }
@@ -2258,10 +2272,12 @@ export class GrapherState {
     getColumnForProperty(property: DimensionProperty): CoreColumn | undefined {
         return this.dimensions.find((dim) => dim.property === property)?.column
     }
+
     getSlugForProperty(property: DimensionProperty): string | undefined {
         return this.dimensions.find((dim) => dim.property === property)
             ?.columnSlug
     }
+
     @computed get yColumnsFromDimensions(): CoreColumn[] {
         return this.filledDimensions
             .filter((dim) => dim.property === DimensionProperty.y)
@@ -2314,9 +2330,11 @@ export class GrapherState {
     @computed get yScaleType(): ScaleType | undefined {
         return this.yAxis.scaleType
     }
+
     @computed get xScaleType(): ScaleType | undefined {
         return this.xAxis.scaleType
     }
+
     @computed private get timeTitleSuffix(): string | undefined {
         const timeColumn = this.table.timeColumn
         if (timeColumn.isMissing) return undefined // Do not show year until data is loaded
@@ -2336,6 +2354,7 @@ export class GrapherState {
     @computed get sourcesLine(): string {
         return this.sourceDesc ?? this.defaultSourcesLine
     }
+
     /** Columns that are used as a dimension in the currently active view */
     @computed get activeColumnSlugs(): string[] {
         const { yColumnSlugs, xColumnSlug, sizeColumnSlug, colorColumnSlug } =
@@ -2371,6 +2390,7 @@ export class GrapherState {
     set facetStrategy(facet: FacetStrategy) {
         this.selectedFacetStrategy = facet
     }
+
     set baseFontSize(val: number) {
         this._baseFontSize = val
     }
@@ -2407,6 +2427,7 @@ export class GrapherState {
         }
         return columnSlugs
     }
+
     @computed get columnsWithSourcesCondensed(): CoreColumn[] {
         const { yColumnSlugs } = this
 
@@ -2420,6 +2441,7 @@ export class GrapherState {
                     !!column.source.name || !_.isEmpty(column.def.origins)
             )
     }
+
     @computed private get defaultSourcesLine(): string {
         const attributions = this.columnsWithSourcesCondensed.flatMap(
             (column) => {
@@ -2456,11 +2478,13 @@ export class GrapherState {
                 dim.property === DimensionProperty.x
         )
     }
+
     @computed get yColumnsFromDimensionsOrSlugsOrAuto(): CoreColumn[] {
         return this.yColumnsFromDimensions.length
             ? this.yColumnsFromDimensions
             : this.table.getColumns(autoDetectYColumnSlugs(this))
     }
+
     @computed get defaultTitle(): string {
         const yColumns = this.yColumnsFromDimensionsOrSlugsOrAuto
 
@@ -2496,36 +2520,41 @@ export class GrapherState {
         if (this.isReady) return this.defaultTitle
         return ""
     }
-    /** Returns an object ready to be serialized to JSON */
-    @computed get object(): GrapherInterface {
-        return this.toObject()
-    }
+
     @computed get isLineChart(): boolean {
         return (
             this.chartType === GRAPHER_CHART_TYPES.LineChart || !this.chartType
         )
     }
+
     @computed get isScatter(): boolean {
         return this.chartType === GRAPHER_CHART_TYPES.ScatterPlot
     }
+
     @computed get isStackedArea(): boolean {
         return this.chartType === GRAPHER_CHART_TYPES.StackedArea
     }
+
     @computed get isSlopeChart(): boolean {
         return this.chartType === GRAPHER_CHART_TYPES.SlopeChart
     }
+
     @computed get isDiscreteBar(): boolean {
         return this.chartType === GRAPHER_CHART_TYPES.DiscreteBar
     }
+
     @computed get isStackedBar(): boolean {
         return this.chartType === GRAPHER_CHART_TYPES.StackedBar
     }
+
     @computed get isMarimekko(): boolean {
         return this.chartType === GRAPHER_CHART_TYPES.Marimekko
     }
+
     @computed get isStackedDiscreteBar(): boolean {
         return this.chartType === GRAPHER_CHART_TYPES.StackedDiscreteBar
     }
+
     @computed get isOnLineChartTab(): boolean {
         return this.activeChartType === GRAPHER_CHART_TYPES.LineChart
     }
@@ -2533,21 +2562,27 @@ export class GrapherState {
     @computed get isOnScatterTab(): boolean {
         return this.activeChartType === GRAPHER_CHART_TYPES.ScatterPlot
     }
+
     @computed get isOnStackedAreaTab(): boolean {
         return this.activeChartType === GRAPHER_CHART_TYPES.StackedArea
     }
+
     @computed get isOnSlopeChartTab(): boolean {
         return this.activeChartType === GRAPHER_CHART_TYPES.SlopeChart
     }
+
     @computed get isOnDiscreteBarTab(): boolean {
         return this.activeChartType === GRAPHER_CHART_TYPES.DiscreteBar
     }
+
     @computed get isOnStackedBarTab(): boolean {
         return this.activeChartType === GRAPHER_CHART_TYPES.StackedBar
     }
+
     @computed get isOnMarimekkoTab(): boolean {
         return this.activeChartType === GRAPHER_CHART_TYPES.Marimekko
     }
+
     @computed get isOnStackedDiscreteBarTab(): boolean {
         return this.activeChartType === GRAPHER_CHART_TYPES.StackedDiscreteBar
     }
@@ -2555,39 +2590,48 @@ export class GrapherState {
     @computed get hasLineChart(): boolean {
         return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.LineChart)
     }
+
     @computed get hasSlopeChart(): boolean {
         return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.SlopeChart)
     }
+
     @computed get hasDiscreteBar(): boolean {
         return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.DiscreteBar)
     }
+
     @computed get hasMarimekko(): boolean {
         return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.Marimekko)
     }
+
     @computed get hasScatter(): boolean {
         return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.ScatterPlot)
     }
+
     @computed get supportsMultipleYColumns(): boolean {
         return !this.isScatter
     }
+
     @computed get xDimension(): ChartDimension | undefined {
         return this.filledDimensions.find(
             (d) => d.property === DimensionProperty.x
         )
     }
+
     // TODO: this is only relevant for scatter plots and Marimekko. move to scatter plot class?
     // TODO: remove this. Should be done as a simple column transform at the data level.
-    // Possible to override the x axis dimension to target a special year
+    /** Overrides the x axis dimension to target a special year */
     @computed get xOverrideTime(): number | undefined {
         return this.xDimension?.targetYear
     }
-    // TODO: this is only relevant for scatter plots and Marimekko. move to scatter plot class?
+
     set xOverrideTime(value: number | undefined) {
         this.xDimension!.targetYear = value
     }
+
     @computed get defaultBounds(): Bounds {
         return new Bounds(0, 0, DEFAULT_GRAPHER_WIDTH, DEFAULT_GRAPHER_HEIGHT)
     }
+
     @computed get hasYDimension(): boolean {
         return this.dimensions.some((d) => d.property === DimensionProperty.y)
     }
@@ -2603,6 +2647,7 @@ export class GrapherState {
         this.isExportingToSvgOrPng = _isExportingToSvgOrPng
         return innerHTML
     }
+
     @computed get staticBoundsWithDetails(): Bounds {
         const includeDetails =
             this.shouldIncludeDetailsInStaticExport &&
@@ -2639,12 +2684,15 @@ export class GrapherState {
                 _shouldIncludeDetailsInStaticExport
         }
     }
+
     @computed get disableIntroAnimation(): boolean {
         return this.isStatic
     }
+
     @computed get mapConfig(): MapConfig {
         return this.map
     }
+
     @computed get cacheTag(): string {
         return this.version.toString()
     }
@@ -2666,6 +2714,7 @@ export class GrapherState {
             return false
         return this.stackMode === StackMode.relative
     }
+
     @computed get canToggleRelativeMode(): boolean {
         const {
             isOnLineChartTab,
@@ -2705,9 +2754,11 @@ export class GrapherState {
             .get(this.mapColumnSlug)
             .owidRows.filter((row) => isOnTheMap(row.entityName))
     }
+
     @computed get isMobile(): boolean {
         return isMobile()
     }
+
     @computed get isTouchDevice(): boolean {
         return isTouchDevice()
     }
@@ -2723,15 +2774,18 @@ export class GrapherState {
             _externalBounds ?? initialOptions.bounds ?? DEFAULT_GRAPHER_BOUNDS
         )
     }
+
     set externalBounds(bounds: Bounds) {
         this._externalBounds = bounds
     }
+
     @computed get isPortrait(): boolean {
         return (
             this.externalBounds.width < this.externalBounds.height &&
             this.externalBounds.width < DEFAULT_GRAPHER_WIDTH
         )
     }
+
     @computed private get widthForDeviceOrientation(): number {
         return this.isPortrait ? 400 : 680
     }
@@ -2739,6 +2793,7 @@ export class GrapherState {
     @computed private get heightForDeviceOrientation(): number {
         return this.isPortrait ? 640 : 480
     }
+
     @computed private get useIdealBounds(): boolean {
         const {
             isEditor,
@@ -2802,6 +2857,7 @@ export class GrapherState {
         if (!windowInnerWidth) return 0
         return windowInnerWidth < 940 ? 0 : 40
     }
+
     @computed get hideFullScreenButton(): boolean {
         if (this.isInFullScreenMode) return false
         if (!this.isSmall) return false
@@ -2991,9 +3047,11 @@ export class GrapherState {
         }
         return sortConfig
     }
+
     @computed get hasMultipleYColumns(): boolean {
         return this.yColumnSlugs.length > 1
     }
+
     @computed private get hasSingleMetricInFacets(): boolean {
         const {
             isOnStackedDiscreteBarTab,
@@ -3056,6 +3114,7 @@ export class GrapherState {
             ? this.chartState.availableFacetStrategies
             : [FacetStrategy.none]
     }
+
     /** The actual facet setting used by a chart, potentially overriding selectedFacetStrategy */
     @computed get facetStrategy(): FacetStrategy {
         if (
@@ -3175,17 +3234,21 @@ export class GrapherState {
         else if (bounds.width >= 1080) return 18
         else return 16
     }
+
     @computed get fontSize(): number {
         return this.baseFontSize
     }
+
     @computed get isNarrow(): boolean {
         if (this.isStatic) return false
         return this.frameBounds.width <= 420
     }
+
     @computed get isSemiNarrow(): boolean {
         if (this.isStatic) return false
         return this.frameBounds.width <= 550
     }
+
     /**
      * Small charts are typically rendered into 6 or 7 columns in a 12-column
      * grid layout (e.g. side-by-side charts or charts in the All Charts block)
@@ -3194,6 +3257,7 @@ export class GrapherState {
         if (this.isStatic) return false
         return this.frameBounds.width <= 740
     }
+
     /**
      * Medium charts are typically rendered into 8 columns in a 12-column
      * grid layout (e.g. stand-alone charts in the main text of an article)
@@ -3278,10 +3342,12 @@ export class GrapherState {
         this.selection.clearSelection()
         this.applyOriginalSelectionAsAuthored()
     }
+
     @action.bound clearFocus(): void {
         this.focusArray.clear()
         this.applyOriginalFocusAsAuthored()
     }
+
     @action.bound clearQueryParams(): void {
         const { authorsVersion } = this
         this.tab = authorsVersion.tab
@@ -3361,6 +3427,7 @@ export class GrapherState {
             originalSelectedEntityNames
         )
     }
+
     @computed get areFocusedSeriesNamesDifferentThanAuthors(): boolean {
         const authoredConfig = this.legacyConfigAsAuthored
         const currentFocusedSeriesNames = this.focusArray.seriesNames
@@ -3649,6 +3716,7 @@ export class GrapherState {
             ? timeColumn.formatValueForMobile(value)
             : timeColumn.formatValue(value)
     }
+
     @computed get canSelectMultipleEntities(): boolean {
         if (this.isOnMapTab) return true
 
