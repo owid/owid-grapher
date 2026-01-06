@@ -95,12 +95,26 @@
 }
 
 .latest-page__data-insight-image {
-    // Magic number from Figma
-    flex: 0 0 214px;
+    height: 214px;
+
+    picture {
+        display: flex;
+        height: 100%;
+    }
+
+    img {
+        height: 100%;
+        width: auto;
+        max-width: initial;
+    }
+
     @include sm-only {
+        height: auto;
         margin-bottom: 16px;
-        picture {
-            display: flex;
+
+        img {
+            height: auto;
+            max-width: 100%;
         }
     }
 }
