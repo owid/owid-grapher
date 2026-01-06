@@ -35,7 +35,7 @@ const booleanOptions = Object.values(Boolean)
 
 const VIEW_MATRIX_BY_CHART_TYPE: Record<GrapherChartType, ViewMatrix> = {
     [GRAPHER_CHART_TYPES.LineChart]: {
-        tab: ["chart"],
+        tab: ["line", "map", "slope", "discrete-bar", "marimekko"],
         time: timeSpan,
         stackMode: stackModeOptions,
         yScale: scaleTypeOptions,
@@ -99,6 +99,28 @@ const EXCLUDE_VIEWS_BY_CHART_TYPE: Record<
     PartialRecord<keyof GrapherQueryParams, string>[]
 > = {
     [GRAPHER_CHART_TYPES.LineChart]: [
+        // line charts only make sense for a time span
+        { tab: "line", time: TimePoint.earliest },
+        { tab: "line", time: TimePoint.latest },
+        // slope charts only make sense for a time span
+        { tab: "slope", time: TimePoint.earliest },
+        { tab: "slope", time: TimePoint.latest },
+        // bar charts and marimekko plots only make sense for a time point
+        { tab: "discrete-bar", time: TimeSpan.earliestLatest },
+        { tab: "marimekko", time: TimeSpan.earliestLatest },
+        // exclude all extra options for maps, bar charts and marimekko plots
+        { tab: "map", stackMode: StackMode.relative },
+        { tab: "map", yScale: ScaleType.log },
+        { tab: "map", facet: FacetStrategy.entity },
+        { tab: "map", facet: FacetStrategy.metric },
+        { tab: "discrete-bar", stackMode: StackMode.relative },
+        { tab: "discrete-bar", yScale: ScaleType.log },
+        { tab: "discrete-bar", facet: FacetStrategy.entity },
+        { tab: "discrete-bar", facet: FacetStrategy.metric },
+        { tab: "marimekko", stackMode: StackMode.relative },
+        { tab: "marimekko", yScale: ScaleType.log },
+        { tab: "marimekko", facet: FacetStrategy.entity },
+        { tab: "marimekko", facet: FacetStrategy.metric },
         // sharing an axis only makes sense if a chart is faceted
         { facet: FacetStrategy.none, uniformYAxis: Boolean.true },
         // log scale for percentage values doesn't make sense

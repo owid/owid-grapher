@@ -39,7 +39,7 @@ interface ChartInfo {
 
 async function getMostViewedGraphers(
     trx: KnexReadonlyTransaction,
-    topN = 25
+    topN = 10
 ): Promise<ChartInfo[]> {
     console.log(`Fetching top ${topN} most-viewed charts per chart type...`)
 
