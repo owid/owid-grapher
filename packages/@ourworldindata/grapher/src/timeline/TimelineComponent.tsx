@@ -9,8 +9,12 @@ import {
     Time,
     parseIntOrUndefined,
     isTouchDevice,
+    convertDaysSinceEpochToDate,
+    diffDateISOStringInDays,
+    EPOCH_DATE,
 } from "@ourworldindata/utils"
 import { observable, computed, action, makeObservable, reaction } from "mobx"
+import { ColumnTypeMap } from "@ourworldindata/core-table"
 import { observer } from "mobx-react"
 import { faPlay, faPause } from "@fortawesome/free-solid-svg-icons"
 import {
@@ -24,6 +28,8 @@ import {
     GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_TIMELINE_CLASS,
 } from "../core/GrapherConstants.js"
+import { DateField, DateInput, DateSegment } from "react-aria-components"
+import { CalendarDate } from "@internationalized/date"
 
 export const TIMELINE_HEIGHT = 32 // Keep in sync with $timelineHeight in TimelineComponent.scss
 
@@ -118,6 +124,13 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
     @computed private get canEditTimeViaTooltip(): boolean {
         return !this.isTouchDevice
+    }
+
+    @computed private get isDailyData(): boolean {
+        const { timeColumn } = this.manager
+        return (
+            timeColumn !== undefined && timeColumn instanceof ColumnTypeMap.Day
+        )
     }
 
     private get sliderBounds(): Bounds {
@@ -437,6 +450,23 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         }
     }
 
+    @action.bound private onCompleteDate(date?: CalendarDate): void {
+        // Only apply when the user has finished typing
+        if (date && this.editHandle !== undefined) this.onChangeDate(date)
+        this.resetEditState()
+    }
+
+    @action.bound private onChangeDate(date: CalendarDate): void {
+        const daysSinceEpoch = calendarDateToDaysSinceEpoch(date)
+        if (!this.areBothHandlesVisible) {
+            this.controller.setStartAndEndTimeFromInput(daysSinceEpoch)
+        } else if (this.editHandle === MarkerType.Start) {
+            this.controller.setStartTimeFromInput(daysSinceEpoch)
+        } else {
+            this.controller.setEndTimeFromInput(daysSinceEpoch)
+        }
+    }
+
     @action.bound private getStartTimeForNavigationKey(
         key: NavigationKey
     ): number {
@@ -537,10 +567,30 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
             return <SimpleTimeTooltip formattedTime={formattedStartTime} />
         }
 
-        return (
+        const isEditing = this.editHandle === MarkerType.Start
+
+        const isDateValid = (date: CalendarDate): boolean => {
+            const { minTime, endTime, allowHandlesOnSameTime } = this.controller
+            const time = calendarDateToDaysSinceEpoch(date)
+            if (time < minTime) return false
+            return allowHandlesOnSameTime ? time <= endTime : time < endTime
+        }
+
+        return this.isDailyData ? (
+            <EditableDateTooltip
+                position="left"
+                isEditing={isEditing}
+                formattedTime={formattedStartTime}
+                currentTime={startTime}
+                isDateValid={isDateValid}
+                onStartEditing={() => this.onStartEditing(MarkerType.Start)}
+                onComplete={this.onCompleteDate}
+                onChange={this.onChangeDate}
+            />
+        ) : (
             <EditableYearTooltip
                 position="left"
-                isEditing={this.editHandle === MarkerType.Start}
+                isEditing={isEditing}
                 currentTime={startTime}
                 formattedTime={formattedStartTime}
                 onStartEditing={() => this.onStartEditing(MarkerType.Start)}
@@ -576,10 +626,34 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                 ? "left"
                 : "right"
 
-        return (
+        const isEditing = this.editHandle === MarkerType.End
+
+        const isDateValid = (date: CalendarDate): boolean => {
+            const { maxTime, startTime, allowHandlesOnSameTime } =
+                this.controller
+            const time = calendarDateToDaysSinceEpoch(date)
+            if (time > maxTime) return false
+            return allowHandlesOnSameTime ? time >= startTime : time > startTime
+        }
+
+        return this.isDailyData ? (
+            <EditableDateTooltip
+                position={position}
+                isEditing={isEditing}
+                formattedTime={formattedEndTime}
+                currentTime={endTime}
+                isDateValid={isDateValid}
+                onStartEditing={() => this.onStartEditing(MarkerType.End)}
+                onComplete={this.onCompleteDate}
+                onChange={this.onChangeDate}
+                onMouseEnter={action(() => {
+                    this.hoverTime = undefined
+                })}
+            />
+        ) : (
             <EditableYearTooltip
                 position={position}
-                isEditing={this.editHandle === MarkerType.End}
+                isEditing={isEditing}
                 currentTime={endTime}
                 formattedTime={formattedEndTime}
                 onStartEditing={() => this.onStartEditing(MarkerType.End)}
@@ -964,6 +1038,125 @@ function EditableYearTooltip({
     )
 }
 
+function EditableDateTooltip({
+    position,
+    isEditing = false,
+    currentTime,
+    formattedTime,
+    isDateValid = (): boolean => true,
+    onStartEditing,
+    onMouseEnter,
+    onMouseLeave,
+    onComplete,
+    onChange,
+}: {
+    position: "left" | "right"
+    isEditing?: boolean
+    currentTime: number
+    formattedTime: string
+    isDateValid?: (date: CalendarDate) => boolean
+    onStartEditing?: () => void
+    onMouseEnter?: () => void
+    onMouseLeave?: () => void
+    onComplete: (date?: CalendarDate) => void
+    onChange: (date: CalendarDate) => void
+}): React.ReactElement {
+    return (
+        <div
+            className={cx("EditableTimeTooltip", {
+                "EditableTimeTooltip--left": position === "left",
+                "EditableTimeTooltip--right": position === "right",
+            })}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
+            onMouseDown={(e) => e.stopPropagation()}
+        >
+            {isEditing ? (
+                <TimelineDateInput
+                    value={daysSinceEpochToCalendarDate(currentTime)}
+                    isDateValid={isDateValid}
+                    onComplete={onComplete}
+                    onChange={onChange}
+                />
+            ) : (
+                <button
+                    type="button"
+                    className="EditableTimeTooltip__Button"
+                    onClick={onStartEditing}
+                    aria-label={`Current date: ${formattedTime}. Click to edit.`}
+                >
+                    {formattedTime}
+                </button>
+            )}
+        </div>
+    )
+}
+
+const TimelineDateInput = ({
+    value,
+    isDateValid,
+    onComplete,
+    onChange,
+}: {
+    value: CalendarDate
+    isDateValid: (date: CalendarDate) => boolean
+    onComplete: (date?: CalendarDate) => void
+    onChange?: (date: CalendarDate) => void
+}): React.ReactElement => {
+    const [currentValue, setCurrentValue] = React.useState(value)
+    const [shouldApplyImmediately, setShouldApplyImmediately] =
+        React.useState(false)
+
+    const handleKeyDown = (e: React.KeyboardEvent): void => {
+        if (e.key === "Enter") {
+            onComplete(currentValue)
+        } else if (e.key === "Escape") {
+            onComplete()
+        } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+            // Apply immediately on arrow key changes
+            setShouldApplyImmediately(true)
+        } else {
+            // Reset flag when typing (any other key)
+            setShouldApplyImmediately(false)
+        }
+        e.stopPropagation()
+    }
+
+    const handleChange = (date: CalendarDate | null): void => {
+        if (!date) return
+
+        setCurrentValue(date)
+
+        // If this change was triggered by arrow keys,
+        // apply immediately without exiting edit mode
+        if (shouldApplyImmediately) {
+            if (!isDateValid(date)) return
+            onChange?.(date)
+            setShouldApplyImmediately(false)
+        }
+    }
+
+    return (
+        <DateField
+            value={currentValue}
+            onChange={handleChange}
+            onBlur={() => onComplete(currentValue)}
+            onKeyDown={handleKeyDown}
+            className="GrapherTimeline__DateInput"
+            aria-label="Edit date"
+        >
+            <DateInput className="GrapherTimeline__DateInputField">
+                {(segment) => (
+                    <DateSegment
+                        segment={segment}
+                        className="GrapherTimeline__DateInputSegment"
+                    />
+                )}
+            </DateInput>
+        </DateField>
+    )
+}
+
 const TimelineInterval = ({
     startTimeProgress,
     endTimeProgress,
@@ -993,6 +1186,27 @@ function SimpleTimeTooltip({
     formattedTime: string
 }): React.ReactElement {
     return <div className="SimpleTimeTooltip">{formattedTime}</div>
+}
+
+/** Convert days-since-epoch integer to CalendarDate object */
+export function daysSinceEpochToCalendarDate(
+    daysSinceEpoch: number
+): CalendarDate {
+    const date = convertDaysSinceEpochToDate(daysSinceEpoch)
+    return new CalendarDate(
+        date.year(),
+        date.month() + 1, // CalendarDate is 1-indexed, dayjs is 0-indexed
+        date.date()
+    )
+}
+
+/** Convert CalendarDate to days-since-epoch integer */
+export function calendarDateToDaysSinceEpoch(date: CalendarDate): number {
+    const year = date.year
+    const month = date.month.toString().padStart(2, "0")
+    const day = date.day.toString().padStart(2, "0")
+    const isoString = `${year}-${month}-${day}`
+    return diffDateISOStringInDays(isoString, EPOCH_DATE)
 }
 
 function isRelevantNavigationKey(key: string): key is NavigationKey {
