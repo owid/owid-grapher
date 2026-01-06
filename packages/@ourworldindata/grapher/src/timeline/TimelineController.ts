@@ -8,7 +8,11 @@ import {
 } from "@ourworldindata/utils"
 import { action } from "mobx"
 
-export type TimelineDragTarget = "start" | "end" | "both"
+export enum TimelineDragTarget {
+    Start = "start",
+    End = "end",
+    Both = "both",
+}
 
 export interface TimelineManager {
     disablePlay?: boolean
@@ -89,6 +93,38 @@ export class TimelineController {
         return this.timesAsc[index - 1] ?? this.minTime
     }
 
+    getNextValidTime(time: number, avoidTime?: number): number {
+        const nextTime = this.getNextTime(time)
+
+        // If handles can't be on the same time and next time equals the avoid time,
+        // don't move (return current time)
+        if (
+            !this.allowHandlesOnSameTime &&
+            avoidTime !== undefined &&
+            nextTime === avoidTime
+        ) {
+            return time
+        }
+
+        return nextTime
+    }
+
+    getPrevValidTime(time: number, avoidTime?: number): number {
+        const prevTime = this.getPrevTime(time)
+
+        // If handles can't be on the same time and prev time equals the avoid time,
+        // don't move (return current time)
+        if (
+            !this.allowHandlesOnSameTime &&
+            avoidTime !== undefined &&
+            prevTime === avoidTime
+        ) {
+            return time
+        }
+
+        return prevTime
+    }
+
     // By default, play means extend the endTime to the right. Toggle this to play one time unit at a time.
     private rangeMode = true
     toggleRangeMode(): this {
@@ -167,7 +203,7 @@ export class TimelineController {
     }
 
     // Jump forward by ~10% of available times
-    private getLargeStepForward(currentTime: number, fraction = 0.1): number {
+    getLargeStepForward(currentTime: number, fraction = 0.1): number {
         const currentIndex = this.findIndexOfTime(currentTime)
         if (currentIndex === -1) return this.maxTime
 
@@ -185,7 +221,7 @@ export class TimelineController {
     }
 
     // Jump backward by ~10% of available times
-    private getLargeStepBackward(currentTime: number, fraction = 0.1): number {
+    getLargeStepBackward(currentTime: number, fraction = 0.1): number {
         const currentIndex = this.findIndexOfTime(currentTime)
         if (currentIndex === -1) return this.minTime
 
@@ -271,27 +307,27 @@ export class TimelineController {
         ]
     }
 
-    getTimeBoundFromDrag(inputTime: Time): TimeBound {
+    clampTimeBound(inputTime: Time): TimeBound {
         if (inputTime < this.minTime) return TimeBoundValue.negativeInfinity
         if (inputTime > this.maxTime) return TimeBoundValue.positiveInfinity
         const closestTime =
             findClosestTime(this.timesAsc, inputTime) ?? inputTime
-        return Math.min(this.maxTime, Math.max(this.minTime, closestTime))
+        return R.clamp(closestTime, { min: this.minTime, max: this.maxTime })
     }
 
     private dragRangeToTime(time: Time): void {
         const { minTime, maxTime } = this
 
-        let startTime = this.getTimeBoundFromDrag(this.dragOffsets[0] + time)
-        let endTime = this.getTimeBoundFromDrag(this.dragOffsets[1] + time)
+        let startTime = this.clampTimeBound(this.dragOffsets[0] + time)
+        let endTime = this.clampTimeBound(this.dragOffsets[1] + time)
 
         if (!this.isSingleDragMarker) {
             if (startTime < minTime) {
-                endTime = this.getTimeBoundFromDrag(
+                endTime = this.clampTimeBound(
                     minTime + (this.dragOffsets[1] - this.dragOffsets[0])
                 )
             } else if (endTime > maxTime) {
-                startTime = this.getTimeBoundFromDrag(
+                startTime = this.clampTimeBound(
                     maxTime + (this.dragOffsets[0] - this.dragOffsets[1])
                 )
             }
@@ -307,27 +343,33 @@ export class TimelineController {
     ): TimelineDragTarget {
         const { manager } = this
 
-        let time = this.getTimeBoundFromDrag(inputTime)
+        let time = this.clampTimeBound(inputTime)
 
         // Prevent handles from being on the same time if not allowed
         if (!this.allowHandlesOnSameTime) {
             const closestTime = findClosestTime(this.timesAsc, time) ?? time
-            if (handle === "start" && closestTime === this.endTime) {
+            if (
+                handle === TimelineDragTarget.Start &&
+                closestTime === this.endTime
+            ) {
                 time = this.getPrevTime(this.endTime)
-            } else if (handle === "end" && closestTime === this.startTime) {
+            } else if (
+                handle === TimelineDragTarget.End &&
+                closestTime === this.startTime
+            ) {
                 time = this.getNextTime(this.startTime)
             }
         }
 
         const constrainedHandle =
-            handle === "start" && time > this.endTime
-                ? "end"
-                : handle === "end" && time < this.startTime
-                  ? "start"
+            handle === TimelineDragTarget.Start && time > this.endTime
+                ? TimelineDragTarget.End
+                : handle === TimelineDragTarget.End && time < this.startTime
+                  ? TimelineDragTarget.Start
                   : handle
 
         if (constrainedHandle !== handle) {
-            if (handle === "start")
+            if (handle === TimelineDragTarget.Start)
                 this.updateStartTime(manager.endHandleTimeBound)
             else this.updateEndTime(manager.startHandleTimeBound)
         }
@@ -335,9 +377,12 @@ export class TimelineController {
         if (manager.isPlaying && !this.rangeMode) {
             this.updateStartTime(time)
             this.updateEndTime(time)
-        } else if (handle === "both") this.dragRangeToTime(inputTime)
-        else if (constrainedHandle === "start") this.updateStartTime(time)
-        else if (constrainedHandle === "end") this.updateEndTime(time)
+        } else if (handle === TimelineDragTarget.Both)
+            this.dragRangeToTime(inputTime)
+        else if (constrainedHandle === TimelineDragTarget.Start)
+            this.updateStartTime(time)
+        else if (constrainedHandle === TimelineDragTarget.End)
+            this.updateEndTime(time)
 
         return constrainedHandle
     }
@@ -364,5 +409,47 @@ export class TimelineController {
 
     setEndToMin(): void {
         this.updateEndTime(TimeBoundValue.negativeInfinity)
+    }
+
+    setStartAndEndTimeFromInput(time: number): void {
+        const timeBound = this.clampTimeBound(time)
+        this.updateStartTime(timeBound)
+        this.updateEndTime(timeBound)
+    }
+
+    setStartTimeFromInput(time: number): void {
+        let timeBound = this.clampTimeBound(time)
+
+        // Prevent handles from being on the same time if not allowed
+        const closestTime = findClosestTime(this.timesAsc, time) ?? time
+        if (!this.allowHandlesOnSameTime && closestTime === this.endTime) {
+            timeBound = this.getPrevTime(this.endTime)
+        }
+
+        // If new start time > current end time, swap them
+        if (timeBound > this.endTime) {
+            this.updateStartTime(this.manager.endHandleTimeBound)
+            this.updateEndTime(timeBound)
+        } else {
+            this.updateStartTime(timeBound)
+        }
+    }
+
+    setEndTimeFromInput(time: number): void {
+        let timeBound = this.clampTimeBound(time)
+
+        // Prevent handles from being on the same time if not allowed
+        const closestTime = findClosestTime(this.timesAsc, time) ?? time
+        if (!this.allowHandlesOnSameTime && closestTime === this.startTime) {
+            timeBound = this.getNextTime(this.startTime)
+        }
+
+        // If new end time < current start time, swap them
+        if (timeBound < this.startTime) {
+            this.updateEndTime(this.manager.startHandleTimeBound)
+            this.updateStartTime(timeBound)
+        } else {
+            this.updateEndTime(timeBound)
+        }
     }
 }
