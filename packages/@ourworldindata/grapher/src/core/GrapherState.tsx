@@ -711,6 +711,76 @@ export class GrapherState {
         }
     }
 
+    @action.bound updateFromObject(obj?: GrapherProgrammaticInterface): void {
+        if (!obj) return
+
+        updatePersistables(this, obj)
+
+        this.bindUrlToWindow = obj.bindUrlToWindow ?? false
+
+        // Regression fix: some legacies have this set to Null.
+        // TODO: clean DB
+        if (obj.originUrl === null) this.originUrl = ""
+
+        // Update selection
+        if (obj.selectedEntityNames)
+            this.selection.setSelectedEntities(obj.selectedEntityNames)
+
+        // Update focus
+        if (obj.focusedSeriesNames)
+            this.focusArray.clearAllAndAdd(...obj.focusedSeriesNames)
+
+        // JSON doesn't support Infinity, so we use strings instead.
+        this.minTime = minTimeBoundFromJSONOrNegativeInfinity(obj.minTime)
+        this.maxTime = maxTimeBoundFromJSONOrPositiveInfinity(obj.maxTime)
+
+        this.timelineMinTime = minTimeBoundFromJSONOrNegativeInfinity(
+            obj.timelineMinTime
+        )
+        this.timelineMaxTime = maxTimeBoundFromJSONOrPositiveInfinity(
+            obj.timelineMaxTime
+        )
+
+        if (obj?.dimensions?.length)
+            this.setDimensionsFromConfigs(obj.dimensions)
+    }
+
+    toObject(deleteUnchanged: boolean = true): GrapherInterface {
+        const obj: GrapherInterface = objectWithPersistablesToObject(
+            this,
+            grapherKeysToSerialize
+        )
+
+        obj.selectedEntityNames = this.selection.selectedEntityNames
+        obj.focusedSeriesNames = this.focusArray.seriesNames
+
+        if (deleteUnchanged) {
+            deleteRuntimeAndUnchangedProps(obj, defaultObject)
+        }
+
+        // Always include the schema, even if it's the default
+        obj.$schema = this.$schema || latestGrapherConfigSchema
+
+        // JSON doesn't support Infinity, so we use strings instead.
+        if (obj.minTime) obj.minTime = minTimeToJSON(this.minTime) as any
+        if (obj.maxTime) obj.maxTime = maxTimeToJSON(this.maxTime) as any
+
+        if (obj.timelineMinTime)
+            obj.timelineMinTime = minTimeToJSON(this.timelineMinTime) as any
+        if (obj.timelineMaxTime)
+            obj.timelineMaxTime = maxTimeToJSON(this.timelineMaxTime) as any
+
+        // Don't serialize tab if the default chart is currently shown
+        if (
+            this.activeChartType &&
+            this.activeChartType === this.defaultChartType
+        ) {
+            delete obj.tab
+        }
+
+        return obj
+    }
+
     /**
      * The complete, unfiltered data table for the chart.
      *
@@ -936,106 +1006,6 @@ export class GrapherState {
         return table
     }
 
-    @computed get isDev(): boolean {
-        return this.initialOptions.env === "dev"
-    }
-
-    @computed get dataTableSlugs(): ColumnSlug[] {
-        return this.tableSlugs ? this.tableSlugs.split(" ") : this.newSlugs
-    }
-
-    /**
-     * todo: factor this out and make more RAII.
-     *
-     * Explorers create 1 Grapher instance, but as the user clicks around the Explorer loads other author created Graphers.
-     * But currently some Grapher features depend on knowing how the current state is different than the "authored state".
-     * So when an Explorer updates the grapher, it also needs to update this "original state".
-     */
-    @action.bound setAuthoredVersion(
-        config: Partial<LegacyGrapherInterface>
-    ): void {
-        this.legacyConfigAsAuthored = config
-    }
-
-    @action.bound updateAuthoredVersion(
-        config: Partial<LegacyGrapherInterface>
-    ): void {
-        this.legacyConfigAsAuthored = {
-            ...this.legacyConfigAsAuthored,
-            ...config,
-        }
-    }
-
-    toObject(deleteUnchanged: boolean = true): GrapherInterface {
-        const obj: GrapherInterface = objectWithPersistablesToObject(
-            this,
-            grapherKeysToSerialize
-        )
-
-        obj.selectedEntityNames = this.selection.selectedEntityNames
-        obj.focusedSeriesNames = this.focusArray.seriesNames
-
-        if (deleteUnchanged) {
-            deleteRuntimeAndUnchangedProps(obj, defaultObject)
-        }
-
-        // Always include the schema, even if it's the default
-        obj.$schema = this.$schema || latestGrapherConfigSchema
-
-        // JSON doesn't support Infinity, so we use strings instead.
-        if (obj.minTime) obj.minTime = minTimeToJSON(this.minTime) as any
-        if (obj.maxTime) obj.maxTime = maxTimeToJSON(this.maxTime) as any
-
-        if (obj.timelineMinTime)
-            obj.timelineMinTime = minTimeToJSON(this.timelineMinTime) as any
-        if (obj.timelineMaxTime)
-            obj.timelineMaxTime = maxTimeToJSON(this.timelineMaxTime) as any
-
-        // Don't serialize tab if the default chart is currently shown
-        if (
-            this.activeChartType &&
-            this.activeChartType === this.defaultChartType
-        ) {
-            delete obj.tab
-        }
-
-        return obj
-    }
-
-    @action.bound updateFromObject(obj?: GrapherProgrammaticInterface): void {
-        if (!obj) return
-
-        updatePersistables(this, obj)
-
-        this.bindUrlToWindow = obj.bindUrlToWindow ?? false
-
-        // Regression fix: some legacies have this set to Null.
-        // TODO: clean DB
-        if (obj.originUrl === null) this.originUrl = ""
-
-        // Update selection
-        if (obj.selectedEntityNames)
-            this.selection.setSelectedEntities(obj.selectedEntityNames)
-
-        // Update focus
-        if (obj.focusedSeriesNames)
-            this.focusArray.clearAllAndAdd(...obj.focusedSeriesNames)
-
-        // JSON doesn't support Infinity, so we use strings instead.
-        this.minTime = minTimeBoundFromJSONOrNegativeInfinity(obj.minTime)
-        this.maxTime = maxTimeBoundFromJSONOrPositiveInfinity(obj.maxTime)
-
-        this.timelineMinTime = minTimeBoundFromJSONOrNegativeInfinity(
-            obj.timelineMinTime
-        )
-        this.timelineMaxTime = maxTimeBoundFromJSONOrPositiveInfinity(
-            obj.timelineMaxTime
-        )
-
-        if (obj?.dimensions?.length)
-            this.setDimensionsFromConfigs(obj.dimensions)
-    }
-
     @action.bound populateFromQueryParams(params: GrapherQueryParams): void {
         this.externalQueryParams = _.omit(params, GRAPHER_QUERY_PARAM_KEYS)
 
@@ -1184,6 +1154,36 @@ export class GrapherState {
         this.timelineHandleTimeBounds = getTimeDomainFromQueryString(time).map(
             (time) => findClosestTime(this.times, time) ?? time
         ) as TimeBounds
+    }
+
+    @computed get isDev(): boolean {
+        return this.initialOptions.env === "dev"
+    }
+
+    @computed get dataTableSlugs(): ColumnSlug[] {
+        return this.tableSlugs ? this.tableSlugs.split(" ") : this.newSlugs
+    }
+
+    /**
+     * todo: factor this out and make more RAII.
+     *
+     * Explorers create 1 Grapher instance, but as the user clicks around the Explorer loads other author created Graphers.
+     * But currently some Grapher features depend on knowing how the current state is different than the "authored state".
+     * So when an Explorer updates the grapher, it also needs to update this "original state".
+     */
+    @action.bound setAuthoredVersion(
+        config: Partial<LegacyGrapherInterface>
+    ): void {
+        this.legacyConfigAsAuthored = config
+    }
+
+    @action.bound updateAuthoredVersion(
+        config: Partial<LegacyGrapherInterface>
+    ): void {
+        this.legacyConfigAsAuthored = {
+            ...this.legacyConfigAsAuthored,
+            ...config,
+        }
     }
 
     @computed get activeTab(): GrapherTabName {
