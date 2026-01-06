@@ -285,7 +285,9 @@ export class Grapher extends React.Component<GrapherProps> {
             {
                 combo: "p",
                 fn: (): void => this.togglePlayingCommand(),
-                title: this.grapherState.isPlaying ? `Pause` : `Play`,
+                title: this.grapherState.isTimelineAnimationPlaying
+                    ? `Pause`
+                    : `Play`,
                 category: "Timeline",
             },
             {

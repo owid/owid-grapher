@@ -249,7 +249,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     @action.bound private onMouseUp(): void {
         this.manager.timelineDragTarget = undefined
 
-        if (this.manager.isPlaying) return
+        if (this.manager.isTimelineAnimationPlaying) return
 
         this.hideTooltipsAfterInteraction()
     }
@@ -312,7 +312,11 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     }
 
     @action.bound private onMouseLeaveSlider(): void {
-        if (!this.manager.isPlaying && !this.isDragging && !this.editHandle) {
+        if (
+            !this.manager.isTimelineAnimationPlaying &&
+            !this.isDragging &&
+            !this.editHandle
+        ) {
             this.startTooltipVisible = false
             this.endTooltipVisible = false
         }
@@ -346,7 +350,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         evt.stopPropagation()
 
         // Show tooltips when starting playback
-        if (!this.manager.isPlaying) {
+        if (!this.manager.isTimelineAnimationPlaying) {
             this.showStartTooltip()
             this.showEndTooltip()
         }
@@ -388,7 +392,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         // Hide tooltips when playback stops
         this.disposers.push(
             reaction(
-                () => this.manager.isPlaying,
+                () => this.manager.isTimelineAnimationPlaying,
                 (isPlaying, wasPlaying) => {
                     if (wasPlaying && !isPlaying)
                         this.hideTooltipsAfterInteraction()
@@ -770,7 +774,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                     <ActionButton
                         className={PLAY_BUTTON_CLASS}
                         dataTrackNote={
-                            manager.isPlaying
+                            manager.isTimelineAnimationPlaying
                                 ? "timeline_pause"
                                 : "timeline_play"
                         }
@@ -778,11 +782,16 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                         onClick={this.togglePlay}
                         showLabel={this.showPlayLabel}
                         label={
-                            (manager.isPlaying ? "Pause" : "Play") +
-                            " time-lapse"
+                            (manager.isTimelineAnimationPlaying
+                                ? "Pause"
+                                : "Play") + " time-lapse"
                         }
-                        icon={manager.isPlaying ? faPause : faPlay}
-                        isActive={manager.isPlaying}
+                        icon={
+                            manager.isTimelineAnimationPlaying
+                                ? faPause
+                                : faPlay
+                        }
+                        isActive={manager.isTimelineAnimationPlaying}
                         style={{ minWidth: TIMELINE_HEIGHT }}
                     />
                 )}

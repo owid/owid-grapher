@@ -14,19 +14,19 @@ it("can play a timeline", async () => {
         times: _.range(2000, 2010),
         startHandleTimeBound: 2000,
         endHandleTimeBound: 2005,
-        isPlaying: false,
+        isTimelineAnimationPlaying: false,
         onPlay: () => (wasPlayed = true),
     }
 
     const controller = new TimelineController(manager)
-    expect(manager.isPlaying).toEqual(false)
+    expect(manager.isTimelineAnimationPlaying).toEqual(false)
     expect(manager.endHandleTimeBound).toEqual(2005)
     expect(wasPlayed).toEqual(false)
     expect(controller.startTimeProgress).toEqual(0)
     expect(controller.endTimeProgress).toBeLessThan(1)
 
     const ticks = await controller.play()
-    expect(manager.isPlaying).toEqual(false)
+    expect(manager.isTimelineAnimationPlaying).toEqual(false)
     expect(manager.endHandleTimeBound).toEqual(2009)
     expect(wasPlayed).toEqual(true)
     expect(ticks).toEqual(4)

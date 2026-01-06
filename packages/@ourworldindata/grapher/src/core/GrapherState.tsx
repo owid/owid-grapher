@@ -426,22 +426,56 @@ export class GrapherState {
     // Internal state not persisted in the config
     //
 
+    /** Optional external manager */
+    readonly manager: GrapherManager | undefined = undefined
+
+    /** Reference to the root DOM element containing the grapher */
+    base = React.createRef<HTMLDivElement>()
+
+    /** Initial options passed when creating the GrapherState instance */
+    initialOptions: GrapherProgrammaticInterface
+
+    /** The complete data table for the chart */
+    _inputTable: OwidTable = new OwidTable()
+
+    /** Optional custom function for fetching additional data beyond the main table */
+    _additionalDataLoaderFn: AdditionalGrapherDataFetchFn | undefined =
+        undefined
+
+    /** The original config as authored, used to detect user changes from authored defaults */
+    legacyConfigAsAuthored: Partial<LegacyGrapherInterface> = {}
+
+    /** Query parameters that don't correspond to standard Grapher parameters (like tab, time, etc.) */
+    externalQueryParams: QueryParams = {}
+
+    // These are explicitly set to `false` if FetchingGrapher or some other
+    // external code is fetching the config and data
+    isConfigReady: boolean | undefined = true
+    isDataReady: boolean | undefined = true
+
+    // Used in explorers
     ySlugs: ColumnSlugs | undefined = undefined
     xSlug: ColumnSlug | undefined = undefined
     colorSlug: ColumnSlug | undefined = undefined
     sizeSlug: ColumnSlug | undefined = undefined
     tableSlugs: ColumnSlugs | undefined = undefined
 
-    dataTableConfig: DataTableConfig = {
-        filter: "all",
-        search: "",
-    }
+    bakedGrapherURL: string | undefined = undefined
+    adminBaseUrl: string | undefined = undefined
 
-    /**
-     * Used to highlight particular times in a line chart.
-     * The sparkline in map tooltips makes use of this.
-     */
-    highlightedTimesInLineChart?: Time[]
+    isEmbeddedInAnOwidPage?: boolean = false
+    isEmbeddedInADataPage?: boolean = false
+
+    archiveContext?: ArchiveContext
+    narrativeChartInfo?: MinimalNarrativeChartInfo = undefined
+
+    analytics: GrapherAnalytics
+
+    tooltip?: TooltipManager["tooltip"] = observable.box(undefined, {
+        deep: false,
+    })
+
+    variant = GrapherVariant.Default
 
     /**
      * Indicates whether the chart is embedded alongside a complementary table.
@@ -450,87 +484,85 @@ export class GrapherState {
      */
     isDisplayedAlongsideComplementaryTable = false
 
+    // Bounds
+    staticBounds: Bounds = DEFAULT_GRAPHER_BOUNDS
+    _externalBounds: Bounds | undefined = undefined
+
+    selection: SelectionArray = new SelectionArray()
+    focusArray = new FocusArray()
+
+    dataTableConfig: DataTableConfig = { filter: "all", search: "" }
+
+    entitySelectorState: Partial<EntitySelectorState> = {}
+
+    /**
+     * Used to highlight particular times in a line chart.
+     * The sparkline in map tooltips makes use of this.
+     */
+    highlightedTimesInLineChart?: Time[]
+
+    timelineController = new TimelineController(this)
+    globeController = new GlobeController(this)
+
+    isEntitySelectorModalOrDrawerOpen = false
+    activeModal?: GrapherModal
+    activeDownloadModalTab: DownloadModalTabName = DownloadModalTabName.Vis
+    isShareMenuActive = false
+
+    isTimelineAnimationPlaying = false
+    /** True if the timeline animation is either playing or paused but not finished */
+    isTimelineAnimationActive = false
+    animationStartTime: Time | undefined = undefined
+    areHandlesOnSameTimeBeforeAnimation: boolean | undefined = undefined
+    /** Which timeline element is currently being dragged */
+    timelineDragTarget: TimelineDragTarget | undefined = undefined
+
+    // Display flags
+    hasTableTab = true
+    hideTitle = false
+    hideSubtitle = false
+    hideNote = false
+    hideOriginUrl = false
+    hideEntityControls = false
+    hideShareButton = false
+    hideExploreTheDataButton = true
+    hideRelatedQuestion = false
+    canHideExternalControlsInEmbed: boolean = false
+    hideExternalControlsInEmbedUrl: boolean =
+        this.canHideExternalControlsInEmbed
+    forceHideAnnotationFieldsInTitle: AnnotationFieldsInTitle = {
+        entity: false,
+        time: false,
+        changeInPrefix: false,
+    }
+
+    /** Whether to allow entity selection via map interactions */
+    enableMapSelection = false
+
+    isExportingToSvgOrPng = false
+    isSocialMediaExport = false
+    isWikimediaExport = false
+    shouldIncludeDetailsInStaticExport = true
+
+    /** Base font size for responsive scaling of chart elements */
+    _baseFontSize = BASE_FONT_SIZE
+
     _isInFullScreenMode = false
     windowInnerWidth: number | undefined = undefined
     windowInnerHeight: number | undefined = undefined
 
-    @computed get isDev(): boolean {
-        return this.initialOptions.env === "dev"
-    }
+    enableKeyboardShortcuts: boolean = false
+    bindUrlToWindow: boolean = false
+
+    debounceMode: boolean = false
+    msPerTick = DEFAULT_MS_PER_TICK
+
+    slideShow: SlideShowController<any> | undefined = undefined
+
+    /** Whether the grapher is running in the editor */
     isEditor =
         typeof window !== "undefined" && (window as any).isEditor === true
-    bakedGrapherURL: string | undefined = undefined
-    adminBaseUrl: string | undefined = undefined
-    externalQueryParams: QueryParams = {}
-    _inputTable: OwidTable = new OwidTable()
 
-    get inputTable(): OwidTable {
-        return this._inputTable
-    }
-
-    @action set inputTable(table: OwidTable) {
-        this._inputTable = table
-
-        if (this.manager?.selection?.hasSelection) {
-            // Selection is managed externally, do nothing
-        } else if (this.areSelectedEntitiesDifferentThanAuthors) {
-            // User has changed the selection, use theirs
-        } else this.applyOriginalSelectionAsAuthored()
-    }
-
-    legacyConfigAsAuthored: Partial<LegacyGrapherInterface> = {}
-    entitySelectorState: Partial<EntitySelectorState> = {}
-    @computed get dataTableSlugs(): ColumnSlug[] {
-        return this.tableSlugs ? this.tableSlugs.split(" ") : this.newSlugs
-    }
-    isEmbeddedInAnOwidPage?: boolean = false
-    isEmbeddedInADataPage?: boolean = false
-
-    // These are explicitly set to `false` if FetchingGrapher or some other
-    // external code is fetching the config and data
-    isConfigReady: boolean | undefined = true
-    isDataReady: boolean | undefined = true
-
-    /** Whether external grapher controls can be hidden in embeds. */
-    canHideExternalControlsInEmbed: boolean = false
-
-    /**
-     * Value of the query parameter in the embed URL that hides external grapher
-     * controls.
-     */
-    hideExternalControlsInEmbedUrl: boolean =
-        this.canHideExternalControlsInEmbed
-
-    narrativeChartInfo?: MinimalNarrativeChartInfo = undefined
-    archiveContext?: ArchiveContext
-
-    selection: SelectionArray = new SelectionArray()
-    focusArray = new FocusArray()
-    analytics: GrapherAnalytics
-
-    _additionalDataLoaderFn: AdditionalGrapherDataFetchFn | undefined =
-        undefined
-    /**
-     * todo: factor this out and make more RAII.
-     *
-     * Explorers create 1 Grapher instance, but as the user clicks around the Explorer loads other author created Graphers.
-     * But currently some Grapher features depend on knowing how the current state is different than the "authored state".
-     * So when an Explorer updates the grapher, it also needs to update this "original state".
-     */
-    @action.bound setAuthoredVersion(
-        config: Partial<LegacyGrapherInterface>
-    ): void {
-        this.legacyConfigAsAuthored = config
-    }
-
-    @action.bound updateAuthoredVersion(
-        config: Partial<LegacyGrapherInterface>
-    ): void {
-        this.legacyConfigAsAuthored = {
-            ...this.legacyConfigAsAuthored,
-            ...config,
-        }
-    }
     constructor(options: GrapherProgrammaticInterface) {
         makeObservable(this, {
             $schema: observable.ref,
@@ -616,7 +648,7 @@ export class GrapherState {
             isWikimediaExport: observable.ref,
             variant: observable.ref,
             staticBounds: observable,
-            isPlaying: observable.ref,
+            isTimelineAnimationPlaying: observable.ref,
             isTimelineAnimationActive: observable.ref,
             animationStartTime: observable.ref,
             areHandlesOnSameTimeBeforeAnimation: observable.ref,
@@ -676,6 +708,50 @@ export class GrapherState {
         )
         if (this.isEditor) {
             this.ensureValidConfigWhenEditing()
+        }
+    }
+
+    @computed get isDev(): boolean {
+        return this.initialOptions.env === "dev"
+    }
+
+    get inputTable(): OwidTable {
+        return this._inputTable
+    }
+
+    @action set inputTable(table: OwidTable) {
+        this._inputTable = table
+
+        if (this.manager?.selection?.hasSelection) {
+            // Selection is managed externally, do nothing
+        } else if (this.areSelectedEntitiesDifferentThanAuthors) {
+            // User has changed the selection, use theirs
+        } else this.applyOriginalSelectionAsAuthored()
+    }
+
+    @computed get dataTableSlugs(): ColumnSlug[] {
+        return this.tableSlugs ? this.tableSlugs.split(" ") : this.newSlugs
+    }
+
+    /**
+     * todo: factor this out and make more RAII.
+     *
+     * Explorers create 1 Grapher instance, but as the user clicks around the Explorer loads other author created Graphers.
+     * But currently some Grapher features depend on knowing how the current state is different than the "authored state".
+     * So when an Explorer updates the grapher, it also needs to update this "original state".
+     */
+    @action.bound setAuthoredVersion(
+        config: Partial<LegacyGrapherInterface>
+    ): void {
+        this.legacyConfigAsAuthored = config
+    }
+
+    @action.bound updateAuthoredVersion(
+        config: Partial<LegacyGrapherInterface>
+    ): void {
+        this.legacyConfigAsAuthored = {
+            ...this.legacyConfigAsAuthored,
+            ...config,
         }
     }
 
@@ -1232,31 +1308,6 @@ export class GrapherState {
     @computed get transformedTable(): OwidTable {
         return this.tableAfterAllTransformsAndFilters
     }
-    isExportingToSvgOrPng = false
-    isSocialMediaExport = false
-    isWikimediaExport = false
-
-    variant = GrapherVariant.Default
-
-    staticBounds: Bounds = DEFAULT_GRAPHER_BOUNDS
-
-    enableKeyboardShortcuts: boolean = false
-    bindUrlToWindow: boolean = false
-    tooltip?: TooltipManager["tooltip"] = observable.box(undefined, {
-        deep: false,
-    })
-    isPlaying = false
-    /** True if the timeline animation is either playing or paused but not finished */
-    isTimelineAnimationActive = false
-
-    animationStartTime: Time | undefined = undefined
-    areHandlesOnSameTimeBeforeAnimation: boolean | undefined = undefined
-    timelineDragTarget: TimelineDragTarget | undefined = undefined
-
-    isEntitySelectorModalOrDrawerOpen = false
-
-    activeModal?: GrapherModal
-    activeDownloadModalTab: DownloadModalTabName = DownloadModalTabName.Vis
 
     @computed get isStatic(): boolean {
         return this.isExportingToSvgOrPng
@@ -1878,7 +1929,6 @@ export class GrapherState {
         return this.slug ?? this.defaultSlug
     }
 
-    shouldIncludeDetailsInStaticExport = true
     // Used for superscript numbers in static exports
     @computed get detailsOrderedByReference(): string[] {
         if (typeof window === "undefined") return []
@@ -2629,7 +2679,7 @@ export class GrapherState {
     @computed get isTouchDevice(): boolean {
         return isTouchDevice()
     }
-    _externalBounds: Bounds | undefined = undefined
+
     /** externalBounds should be set to the available plotting area for a
         Grapher that resizes itself to fit. When this area changes,
         externalBounds should be updated. Updating externalBounds can
@@ -2816,7 +2866,6 @@ export class GrapherState {
         )
     }
 
-    base = React.createRef<HTMLDivElement>()
     @computed get containerElement(): HTMLDivElement | undefined {
         return this.base.current || undefined
     }
@@ -2885,7 +2934,7 @@ export class GrapherState {
             ])
         )
     }
-    slideShow: SlideShowController<any> | undefined = undefined
+
     @computed get _sortConfig(): Readonly<SortConfig> {
         return {
             sortBy: this.sortBy ?? SortBy.total,
@@ -3066,7 +3115,7 @@ export class GrapherState {
             !!this.baseUrl
         )
     }
-    _baseFontSize = BASE_FONT_SIZE
+
     @computed get baseFontSize(): number {
         if (this.isStatic && this.initialOptions.baseFontSize)
             return this.initialOptions.baseFontSize
@@ -3156,7 +3205,6 @@ export class GrapherState {
         return this.isTouchDevice
     }
 
-    isShareMenuActive = false
     @computed get hasRelatedQuestion(): boolean {
         if (
             this.hideRelatedQuestion ||
@@ -3245,8 +3293,6 @@ export class GrapherState {
         this.focusArray.clear()
     }
 
-    debounceMode: boolean = false
-
     @computed.struct get allParams(): GrapherQueryParams {
         return grapherObjectToQueryParams(this)
     }
@@ -3330,7 +3376,6 @@ export class GrapherState {
             : undefined
     }
 
-    readonly manager: GrapherManager | undefined = undefined
     @computed get canonicalUrlIfIsNarrativeChart(): string | undefined {
         if (!this.narrativeChartInfo) return undefined
 
@@ -3441,10 +3486,6 @@ export class GrapherState {
         return startTime === endTime ? startTime : `${startTime}..${endTime}`
     }
 
-    msPerTick = DEFAULT_MS_PER_TICK
-    timelineController = new TimelineController(this)
-    globeController = new GlobeController(this)
-
     private dismissTooltip(): void {
         const tooltip = this.tooltip?.get()
         if (tooltip) tooltip.dismiss?.()
@@ -3553,6 +3594,7 @@ export class GrapherState {
     onStopPlayOrDrag(): void {
         this.debounceMode = false
     }
+
     @computed get disablePlay(): boolean {
         return false
     }
@@ -3738,32 +3780,6 @@ export class GrapherState {
             ? chartTypeName
             : this.defaultTab
     }
-
-    hideTitle = false
-    hideSubtitle = false
-    hideNote = false
-    hideOriginUrl = false
-
-    // Exposed programmatically for explorers. Setting this to true allows you
-    // to still use add country "modes" without showing the buttons in order to
-    // prioritize another entity selector over the built in ones.
-    hideEntityControls = false
-
-    enableMapSelection = false
-
-    // Enforces hiding an annotation, even if that means that a crucial piece
-    // of information is missing from the chart title
-    forceHideAnnotationFieldsInTitle: AnnotationFieldsInTitle = {
-        entity: false,
-        time: false,
-        changeInPrefix: false,
-    }
-    hasTableTab = true
-    hideShareButton = false
-    hideExploreTheDataButton = true
-    hideRelatedQuestion = false
-
-    initialOptions: GrapherProgrammaticInterface
 }
 
 export const defaultObject = objectWithPersistablesToObject(
