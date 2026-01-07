@@ -9,14 +9,12 @@ import {
 import { SearchDataResultsSkeleton } from "./SearchDataResultsSkeleton.js"
 import { SearchChartHitComponent } from "./SearchChartHitComponent.js"
 import { SearchHorizontalDivider } from "./SearchHorizontalDivider.js"
-import { useSearchContext } from "./SearchContext.js"
 
 export const SearchDataResults = ({
     isFirstChartLarge,
 }: {
     isFirstChartLarge: boolean
 }) => {
-    const { analytics } = useSearchContext()
     const selectedRegionNames = useSelectedRegionNames()
 
     const query = useInfiniteSearch<SearchChartsResponse, SearchChartHit>({
@@ -51,14 +49,6 @@ export const SearchDataResults = ({
                                           ? "medium"
                                           : "small"
 
-                                const onClick = (vizType: string | null) => {
-                                    analytics.logSiteSearchResultClick(hit, {
-                                        position: hitIndex + 1,
-                                        source: "search",
-                                        vizType,
-                                    })
-                                }
-
                                 return (
                                     <li
                                         className="search-data-results__hit"
@@ -70,7 +60,6 @@ export const SearchDataResults = ({
                                             selectedRegionNames={
                                                 selectedRegionNames
                                             }
-                                            onClick={onClick}
                                         />
                                     </li>
                                 )

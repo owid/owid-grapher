@@ -7,11 +7,9 @@ import { formatAuthors, formatDate } from "@ourworldindata/utils"
 export function SearchFlatArticleHit({
     className,
     hit,
-    onClick,
 }: {
     className?: string
     hit: FlatArticleHit
-    onClick: VoidFunction
 }) {
     const isArticle = hit.type === OwidGdocType.Article
 
@@ -19,7 +17,6 @@ export function SearchFlatArticleHit({
         <a
             className={cx("search-flat-article-hit", className)}
             href={getCanonicalPath(hit.slug, hit.type)}
-            onClick={onClick}
         >
             <article className="search-flat-article-hit__content">
                 {hit.thumbnailUrl && (

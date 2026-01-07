@@ -84,7 +84,6 @@ export const FeaturedDataInsights = ({
                                 key={hit.objectID}
                                 className="article-block__featured-data-insights__hit"
                                 hit={hit}
-                                onClick={() => undefined}
                             />
                         ))}
                     </div>

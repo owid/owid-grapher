@@ -89,7 +89,6 @@ export const FeaturedMetrics = ({
                                         hit={hit}
                                         variant={variant}
                                         selectedRegionNames={[]}
-                                        onClick={() => undefined}
                                     />
                                 </li>
                             )

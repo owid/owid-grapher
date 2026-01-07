@@ -10,7 +10,6 @@ interface SearchChartHitHeaderProps {
     url: string
     source?: string
     isLarge?: boolean
-    onClick: (vizType: null) => void
 }
 
 export function SearchChartHitHeader({
@@ -20,7 +19,6 @@ export function SearchChartHitHeader({
     url,
     source,
     isLarge = false,
-    onClick,
 }: SearchChartHitHeaderProps) {
     return (
         <a
@@ -28,7 +26,6 @@ export function SearchChartHitHeader({
                 "search-chart-hit-header--large": isLarge,
             })}
             href={url}
-            onClick={() => onClick(null)}
             data-algolia-index={getIndexName(
                 SearchIndexName.ExplorerViewsMdimViewsAndCharts
             )}
