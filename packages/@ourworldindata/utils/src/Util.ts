@@ -2092,6 +2092,7 @@ export function createTagGraph(
         name: TagGraphRootName,
         slug: null,
         isTopic: false,
+        isSearchable: false,
         path: [rootId],
         weight: 0,
         children: [],
@@ -2108,6 +2109,7 @@ export function createTagGraph(
                 name: child.name,
                 slug: child.slug,
                 isTopic: child.isTopic,
+                isSearchable: child.isSearchable,
                 weight: child.weight,
                 children: [],
             }
@@ -2130,20 +2132,21 @@ export const getAllChildrenOfArea = (area: TagGraphNode): TagGraphNode[] => {
 }
 
 /**
- * topicTagGraph.json includes sub-areas: non-topic tags that have topic children
+ * topicTagGraph.json includes sub-areas: non-searchable tags that have searchable children
  * e.g. "Health" is an area, "Life & Death" is a sub-area, and "Life Expectancy" is a topic,
  * This function flattens the graph by removing sub-areas and moving their children up to the area level
  * e.g. "Life Expectancy" becomes a child of "Health" instead of "Life & Death"
  * We need this because the all-topics section on the homepage renders sub-areas, but the site nav doesn't
  * Note that topics can have children (e.g. "Air Pollution" is a topic, and "Indoor Air Pollution" is a sub-topic)
  * Such cases are not flattened here, but in the frontend with getAllChildrenOfArea
+ * Searchable tags include both topics (tags with a topic page) and tags with searchableInAlgolia set
  */
 export function flattenNonTopicNodes(tagGraph: TagGraphRoot): TagGraphRoot {
     const flattenNodes = (nodes: TagGraphNode[]): TagGraphNode[] =>
         nodes.flatMap((node) =>
-            !node.isTopic && node.children.length
+            !node.isSearchable && node.children.length
                 ? flattenNodes(node.children)
-                : node.isTopic
+                : node.isSearchable
                   ? [{ ...node, children: flattenNodes(node.children) }]
                   : []
         )

@@ -15,9 +15,10 @@ const AllTopicsSection = () => {
     if (!tagGraph) return null
 
     // We have to flatten the areas because we can't nest <ul> elements and have them render correctly
+    // Filter to only include topics (tags with slugs) - searchable non-topic tags shouldn't appear here
     const flattenedAreas = tagGraph.children.map((area) => ({
         ...area,
-        children: getAllChildrenOfArea(area),
+        children: getAllChildrenOfArea(area).filter((topic) => topic.isTopic),
     }))
 
     return (

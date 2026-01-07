@@ -406,6 +406,7 @@ export class TagGraphPage extends React.Component {
             weight: 100,
             slug: tag.slug,
             isTopic: tag.isTopic,
+            isSearchable: tag.isSearchable,
         }
         if (siblings) {
             this.flatTagGraph[parentId] = insertChildAndSort(siblings, child)

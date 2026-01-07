@@ -847,6 +847,7 @@ describe(flattenNonTopicNodes, () => {
                                     children: [],
                                     id: 4,
                                     isTopic: true,
+                                    isSearchable: true,
                                     name: "Life Expectancy",
                                     path: [1, 2, 3, 4],
                                     slug: "life-expectancy",
@@ -855,6 +856,7 @@ describe(flattenNonTopicNodes, () => {
                             ],
                             id: 3,
                             isTopic: false,
+                            isSearchable: false,
                             name: "Life & Death",
                             path: [1, 2, 3],
                             slug: null,
@@ -863,6 +865,7 @@ describe(flattenNonTopicNodes, () => {
                     ],
                     id: 2,
                     isTopic: false,
+                    isSearchable: false,
                     name: "Health",
                     path: [1, 2],
                     slug: null,
@@ -871,6 +874,7 @@ describe(flattenNonTopicNodes, () => {
             ],
             id: 1,
             isTopic: false,
+            isSearchable: false,
             name: "tag-graph-root",
             path: [1],
             slug: null,
@@ -882,13 +886,14 @@ describe(flattenNonTopicNodes, () => {
         )
     })
 
-    it("Removes non-area non-topic nodes that don't have children", () => {
+    it("Removes non-area non-searchable nodes that don't have children", () => {
         const root: TagGraphRoot = {
             id: 1,
             name: "tag-graph-root",
             slug: null,
             weight: 0,
             isTopic: false,
+            isSearchable: false,
             path: [1],
             children: [
                 {
@@ -897,6 +902,7 @@ describe(flattenNonTopicNodes, () => {
                     slug: null,
                     weight: 0,
                     isTopic: false,
+                    isSearchable: false,
                     children: [
                         {
                             id: 3,
@@ -904,6 +910,7 @@ describe(flattenNonTopicNodes, () => {
                             slug: null,
                             weight: 0,
                             isTopic: false,
+                            isSearchable: false,
                             children: [],
                             path: [1, 2, 3],
                         },

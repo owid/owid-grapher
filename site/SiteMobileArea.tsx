@@ -30,9 +30,14 @@ export const SiteMobileArea = ({
                 onToggle={() => toggleArea(area)}
                 dropdown={
                     <ul>
-                        {getAllChildrenOfArea(area).map((topic) => (
-                            <SiteNavigationTopic key={topic.id} topic={topic} />
-                        ))}
+                        {getAllChildrenOfArea(area)
+                            .filter((topic) => topic.slug)
+                            .map((topic) => (
+                                <SiteNavigationTopic
+                                    key={topic.id}
+                                    topic={topic}
+                                />
+                            ))}
                     </ul>
                 }
                 withCaret={true}

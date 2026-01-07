@@ -1047,6 +1047,14 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     }
 }
 
+.TagEditPage {
+    .form-check-label {
+        &:has(input:disabled) {
+            cursor: default;
+        }
+    }
+}
+
 .DeploysPage {
     .all-published-notice {
         font-size: 18px;
