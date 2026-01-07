@@ -33,12 +33,18 @@ export async function getTagById(
     const tag: any = await db.knexRawFirst<
         Pick<
             DbPlainTag,
-            "id" | "name" | "specialType" | "updatedAt" | "parentId" | "slug"
+            | "id"
+            | "name"
+            | "specialType"
+            | "updatedAt"
+            | "parentId"
+            | "slug"
+            | "searchableInAlgolia"
         >
     >(
         trx,
         `-- sql
-        SELECT t.id, t.name, t.specialType, t.updatedAt, t.parentId, t.slug
+        SELECT t.id, t.name, t.specialType, t.updatedAt, t.parentId, t.slug, t.searchableInAlgolia
         FROM tags t LEFT JOIN tags p ON t.parentId=p.id
         WHERE t.id = ?
     `,
@@ -172,8 +178,14 @@ export async function updateTag(
     const tag = (req.body as { tag: any }).tag
     await db.knexRaw(
         trx,
-        `UPDATE tags SET name=?, updatedAt=?, slug=? WHERE id=?`,
-        [tag.name, new Date(), tag.slug, tagId]
+        `UPDATE tags SET name=?, updatedAt=?, slug=?, searchableInAlgolia=? WHERE id=?`,
+        [
+            tag.name,
+            new Date(),
+            tag.slug,
+            tag.searchableInAlgolia ?? false,
+            tagId,
+        ]
     )
     if (tag.slug) {
         // See if there's a published gdoc with a matching slug.

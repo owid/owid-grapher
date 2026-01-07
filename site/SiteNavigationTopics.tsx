@@ -28,7 +28,9 @@ export const SiteNavigationTopics = ({
     // using useLayoutEffect to avoid a flash of the wrong number of columns when switching categories
     useLayoutEffect(() => {
         if (activeArea) {
-            const topics = getAllChildrenOfArea(activeArea)
+            const topics = getAllChildrenOfArea(activeArea).filter(
+                (topic) => topic.slug
+            )
             const numColumns = Math.ceil(topics.length / 10)
             setNumTopicColumns(numColumns)
         }
@@ -79,9 +81,11 @@ export const SiteNavigationTopics = ({
                     })}
                     onClick={stopPropagation}
                 >
-                    {getAllChildrenOfArea(activeArea).map((topic) => (
-                        <SiteNavigationTopic key={topic.id} topic={topic} />
-                    ))}
+                    {getAllChildrenOfArea(activeArea)
+                        .filter((topic) => topic.slug)
+                        .map((topic) => (
+                            <SiteNavigationTopic key={topic.id} topic={topic} />
+                        ))}
                 </ul>
             )}
         </div>

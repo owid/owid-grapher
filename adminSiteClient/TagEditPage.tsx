@@ -4,7 +4,7 @@ import { observable, computed, runInAction, makeObservable } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
 import { DbChartTagJoin } from "@ourworldindata/utils"
 import { AdminLayout } from "./AdminLayout.js"
-import { BindString, Timeago } from "./Forms.js"
+import { BindString, Timeago, Toggle } from "./Forms.js"
 import { DatasetList, DatasetListItem } from "./DatasetList.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { TagBadge } from "./TagBadge.js"
@@ -19,16 +19,19 @@ interface TagPageData {
     charts: ChartListItem[]
     children: DbChartTagJoin[]
     slug: string | null
+    searchableInAlgolia: boolean
 }
 
 class TagEditable {
     name: string = ""
     slug: string | null = null
+    searchableInAlgolia: boolean = false
 
     constructor(json: TagPageData) {
         makeObservable(this, {
             name: observable,
             slug: observable,
+            searchableInAlgolia: observable,
         })
         for (const key in this) {
             this[key] = (json as any)[key]
@@ -145,7 +148,22 @@ class TagEditor extends Component<{ tag: TagPageData }> {
                             label="Slug"
                             helpText="The slug for this tag's topic page, e.g. trade-and-globalization. If specified, we assume this tag is a topic. Must be unique"
                         />
-                        <div>
+                        <Toggle
+                            label="Searchable in Algolia"
+                            value={newtag.searchableInAlgolia || !!newtag.slug}
+                            onValue={(value) =>
+                                runInAction(
+                                    () => (newtag.searchableInAlgolia = value)
+                                )
+                            }
+                            disabled={!!newtag.slug}
+                            secondaryLabel={
+                                newtag.slug
+                                    ? "Tags with a slug are always searchable in Algolia"
+                                    : "When enabled, this tag will appear in search filters even without a topic page"
+                            }
+                        />
+                        <div style={{ marginTop: 16 }}>
                             <input
                                 type="submit"
                                 disabled={!this.isModified || !newtag.name}

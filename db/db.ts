@@ -563,7 +563,9 @@ export const getNonGrapherExplorerViewCount = (
 }
 
 /**
- * 1. Fetch all records in tag_graph, isTopic = true when there is a published TP/LTP/Article with the same slug as the tag
+ * 1. Fetch all records in tag_graph:
+ *    - isTopic = true when there is a published TP/LTP/Article with the same slug as the tag
+ *    - isSearchable = true when isTopic OR the tag has searchableInAlgolia set
  * 2. Group tags by their parentId
  * 3. Return the flat tag graph along with a __rootId property so that the UI knows which record is the root node
  */
@@ -581,7 +583,8 @@ export async function getFlatTagGraph(knex: KnexReadonlyTransaction): Promise<
             tg.weight,
             t.slug,
             t.name,
-            p.slug IS NOT NULL AS isTopic
+            p.slug IS NOT NULL AS isTopic,
+            (p.slug IS NOT NULL OR t.searchableInAlgolia = TRUE) AS isSearchable
         FROM
             tag_graph tg
         LEFT JOIN tags t ON
@@ -810,7 +813,8 @@ export function getMinimalTagsWithIsTopic(
         SELECT t.id,
         t.name,
         t.slug,
-        t.slug IS NOT NULL AND MAX(IF(pg.type IN (:types), TRUE, FALSE)) AS isTopic
+        t.slug IS NOT NULL AND MAX(IF(pg.type IN (:types), TRUE, FALSE)) AS isTopic,
+        (t.slug IS NOT NULL AND MAX(IF(pg.type IN (:types), TRUE, FALSE))) OR t.searchableInAlgolia AS isSearchable
         FROM tags t
         LEFT JOIN posts_gdocs_x_tags gt ON t.id = gt.tagId
         LEFT JOIN posts_gdocs pg ON gt.gdocId = pg.id
@@ -953,17 +957,17 @@ export function getImageUsage(trx: KnexReadonlyTransaction): Promise<
     )
 }
 
-// A topic is any tag that has a slug matching the slug of a published topic page, linear topic page, or article.
-// We want to keep tags that have topic children (i.e. areas and sub-areas) but not leaf nodes that aren't topics
-function checkDoesFlatTagGraphNodeHaveAnyTopicChildren(
+// A searchable tag is either a topic (tag with a published topic page) or has searchableInAlgolia set.
+// We want to keep tags that have searchable children (i.e. areas and sub-areas) but not leaf nodes that aren't searchable
+function checkDoesFlatTagGraphNodeHaveAnySearchableChildren(
     node: FlatTagGraphNode,
     flatTagGraph: FlatTagGraph
 ): boolean {
-    if (node.isTopic) return true
+    if (node.isSearchable) return true
     const children = flatTagGraph[node.childId]
     if (!children) return false
     return children.some((child) =>
-        checkDoesFlatTagGraphNodeHaveAnyTopicChildren(child, flatTagGraph)
+        checkDoesFlatTagGraphNodeHaveAnySearchableChildren(child, flatTagGraph)
     )
 }
 
@@ -972,11 +976,11 @@ export async function generateTopicTagGraph(
 ): Promise<TagGraphRoot> {
     const { __rootId, ...parents } = await getFlatTagGraph(knex)
 
-    const tagGraphTopicsOnly = Object.entries(parents).reduce(
+    const tagGraphSearchableOnly = Object.entries(parents).reduce(
         (acc: FlatTagGraph, [parentId, children]) => {
             acc[Number(parentId)] = children.filter((child) => {
                 if (child.parentId === __rootId) return true
-                return checkDoesFlatTagGraphNodeHaveAnyTopicChildren(
+                return checkDoesFlatTagGraphNodeHaveAnySearchableChildren(
                     child,
                     parents
                 )
@@ -986,7 +990,7 @@ export async function generateTopicTagGraph(
         {} as FlatTagGraph
     )
 
-    return createTagGraph(tagGraphTopicsOnly, __rootId)
+    return createTagGraph(tagGraphSearchableOnly, __rootId)
 }
 
 /**
@@ -1014,7 +1018,7 @@ export const getAllTopicSlugs = async (
 /**
  * Fetch all area and topic tag names from the database.
  * Areas are the top-level children of the tag graph root, and don't have a slug.
- * Topics are any tags that have a slug.
+ * Topics are any tags that have a slug or have searchableInAlgolia set.
  */
 const getAllAreaAndTopicTagNames = async (
     trx: KnexReadonlyTransaction
@@ -1025,7 +1029,7 @@ const getAllAreaAndTopicTagNames = async (
         WITH topic_tags AS (
             SELECT name
             FROM ${TagsTableName}
-            WHERE slug IS NOT NULL
+            WHERE slug IS NOT NULL OR searchableInAlgolia = TRUE
         ),
         area_tags AS (
             SELECT t.name

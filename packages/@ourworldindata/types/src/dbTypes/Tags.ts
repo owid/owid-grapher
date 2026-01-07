@@ -5,6 +5,7 @@ export interface DbInsertTag {
     id?: number
     parentId?: number | null
     name: string
+    searchableInAlgolia?: boolean
     slug?: string | null
     specialType?: string | null
     updatedAt?: Date | null
@@ -18,4 +19,5 @@ export type MinimalTag = Pick<DbPlainTag, "id" | "name" | "slug">
 // Used in the tag graph
 export type MinimalTagWithIsTopic = MinimalTag & {
     isTopic: boolean
+    isSearchable: boolean
 }

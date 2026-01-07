@@ -27,7 +27,8 @@ export const useSelectedRegionNames = (): string[] => {
 }
 
 /**
- * Extracts and memoizes area names and all topics from the topic tag graph
+ * Extracts and memoizes area names and all searchable tags from the topic tag graph.
+ * Searchable tags include both topics (tags with a topic page) and tags with searchableInAlgolia set.
  */
 export function useTagGraphTopics(topicTagGraph: TagGraphRoot | null): {
     allAreas: string[]
@@ -41,19 +42,19 @@ export function useTagGraphTopics(topicTagGraph: TagGraphRoot | null): {
     const allTopics = useMemo(() => {
         if (!topicTagGraph) return []
 
-        function getAllTopics(node: TagGraphNode): Set<string> {
+        function getAllSearchableTopics(node: TagGraphNode): Set<string> {
             return node.children.reduce((acc, child) => {
-                if (child.isTopic) {
+                if (child.isSearchable) {
                     acc.add(child.name)
                 }
                 if (child.children.length) {
-                    const topics = getAllTopics(child)
+                    const topics = getAllSearchableTopics(child)
                     topics.forEach((topic) => acc.add(topic))
                 }
                 return acc
             }, new Set<string>())
         }
-        return [...getAllTopics(topicTagGraph)]
+        return [...getAllSearchableTopics(topicTagGraph)]
     }, [topicTagGraph])
 
     return { allAreas, allTopics }

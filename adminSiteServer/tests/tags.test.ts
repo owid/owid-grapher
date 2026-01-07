@@ -84,36 +84,42 @@ describe("Tag graph and breadcrumbs", { timeout: 15000 }, () => {
                     isTopic: 0,
                     name: "Climate & Air",
                     slug: null,
+                    isSearchable: 0,
                 },
                 {
                     id: 5,
                     isTopic: 1,
                     name: "CO2 & Greenhouse Gas Emissions",
                     slug: "co2-and-greenhouse-gas-emissions",
+                    isSearchable: 1,
                 },
                 {
                     id: 3,
                     isTopic: 1,
                     name: "Energy",
                     slug: "energy",
+                    isSearchable: 1,
                 },
                 {
                     id: 2,
                     isTopic: 0,
                     name: "Energy and Environment",
                     slug: null,
+                    isSearchable: 0,
                 },
                 {
                     id: 4,
                     isTopic: 1,
                     name: "Nuclear Energy",
                     slug: "nuclear-energy",
+                    isSearchable: 1,
                 },
                 {
                     id: 1,
                     isTopic: 0,
                     name: "tag-graph-root",
                     slug: null,
+                    isSearchable: 0,
                 },
             ],
         })
@@ -193,6 +199,7 @@ describe("Tag graph and breadcrumbs", { timeout: 15000 }, () => {
                     slug: null,
                     parentId: 1,
                     weight: 100,
+                    isSearchable: 0,
                 },
             ],
             "2": [
@@ -203,6 +210,7 @@ describe("Tag graph and breadcrumbs", { timeout: 15000 }, () => {
                     slug: "energy",
                     parentId: 2,
                     weight: 110,
+                    isSearchable: 1,
                 },
                 {
                     childId: 6,
@@ -211,6 +219,7 @@ describe("Tag graph and breadcrumbs", { timeout: 15000 }, () => {
                     slug: null,
                     parentId: 2,
                     weight: 100,
+                    isSearchable: 0,
                 },
             ],
             "3": [
@@ -221,6 +230,7 @@ describe("Tag graph and breadcrumbs", { timeout: 15000 }, () => {
                     slug: "nuclear-energy",
                     parentId: 3,
                     weight: 100,
+                    isSearchable: 1,
                 },
             ],
             "5": [
@@ -231,6 +241,7 @@ describe("Tag graph and breadcrumbs", { timeout: 15000 }, () => {
                     slug: "nuclear-energy",
                     parentId: 5,
                     weight: 100,
+                    isSearchable: 1,
                 },
             ],
             "6": [
@@ -241,6 +252,7 @@ describe("Tag graph and breadcrumbs", { timeout: 15000 }, () => {
                     parentId: 6,
                     slug: "co2-and-greenhouse-gas-emissions",
                     weight: 100,
+                    isSearchable: 1,
                 },
             ],
             __rootId: 1,

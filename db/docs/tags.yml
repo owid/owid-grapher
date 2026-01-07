@@ -32,6 +32,8 @@ fields:
         description: Timestamp when the tag was last updated
     parentId:
         description: Foreign key to tags table for parent tag (self-referential for hierarchy)
+    searchableInAlgolia:
+        description: When true, this tag is included in Algolia search filters even if it doesn't have an associated topic page. Used for non-topic tags like "Crime" that should still be searchable.
     specialType:
         description: Special type designation for the tag (e.g., 'unlisted' for hidden content)
     slug:
