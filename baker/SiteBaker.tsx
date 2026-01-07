@@ -18,7 +18,6 @@ import {
     makeAtomFeed,
     feedbackPage,
     renderNotFoundPage,
-    renderPost,
     renderGdoc,
     makeAtomFeedNoTopicPages,
     renderDynamicCollectionPage,
@@ -34,7 +33,6 @@ import {
 import { makeSitemap } from "../baker/sitemap.js"
 import { bakeCountryIndexes } from "./countryIndexes.js"
 import {
-    FullPost,
     LinkedAuthor,
     LinkedChart,
     LinkedIndicator,
@@ -280,15 +278,6 @@ export class SiteBaker {
             "deleted",
             `${tombstone.slug}.html`
         )
-        await this.stageWrite(outPath, html)
-    }
-
-    // Bake an individual post/page
-    private async bakePost(post: FullPost, knex: db.KnexReadonlyTransaction) {
-        const html = await renderPost(post, knex, this.baseUrl)
-
-        const outPath = path.join(this.bakedSiteDir, `${post.slug}.html`)
-        await fs.mkdirp(path.dirname(outPath))
         await this.stageWrite(outPath, html)
     }
 

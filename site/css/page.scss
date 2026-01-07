@@ -64,19 +64,6 @@
         @include display-1-semibold;
     }
 
-    .authors-byline {
-        margin-right: 1rem;
-        color: $secondary-text-color;
-
-        a {
-            color: inherit;
-
-            &:hover {
-                color: $accent-vermillion;
-            }
-        }
-    }
-
     // Cite this research and other potential tools located at the top of entries
     .tools {
         margin-top: 1.5rem;
@@ -125,10 +112,6 @@
                     margin-top: 0;
                 }
             }
-        }
-
-        .authors-byline {
-            font-size: 1.125rem;
         }
     }
 }

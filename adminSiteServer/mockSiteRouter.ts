@@ -4,7 +4,6 @@ import * as R from "remeda"
 import {
     renderFrontPage,
     renderGdocsPageBySlug,
-    renderPageBySlug,
     renderSearchPage,
     renderDonatePage,
     makeAtomFeed,
@@ -749,13 +748,7 @@ getPlainRouteWithROTransaction(
             console.error(e)
         }
 
-        try {
-            const page = await renderPageBySlug(slug, trx)
-            res.send(page)
-        } catch (e) {
-            console.error(e)
-            res.status(404).send(renderNotFoundPage())
-        }
+        res.status(404).send(renderNotFoundPage())
     }
 )
 

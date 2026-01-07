@@ -1,16 +1,6 @@
 import { OwidGdocType } from "../gdocTypes/Gdoc.js"
 import { WP_PostType } from "../wordpressTypes/WordpressTypes.js"
 import { RelatedChart } from "../grapherTypes/GrapherTypes.js"
-import { TocHeading } from "./Toc.js"
-
-export interface FormattedPost extends FullPost {
-    stickyNavLinks?: { text: string; target: string }[]
-    byline?: string
-    html: string
-    footnotes: string[]
-    tocHeadings: TocHeading[]
-    pageDesc: string
-}
 
 export interface IndexPost {
     title: string

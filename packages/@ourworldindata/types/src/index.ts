@@ -38,11 +38,7 @@ export {
     R2GrapherConfigDirectory,
 } from "./domainTypes/Various.js"
 export { type BreadcrumbItem, type KeyValueProps } from "./domainTypes/Site.js"
-export {
-    type FormattedPost,
-    type IndexPost,
-    type FullPost,
-} from "./domainTypes/Posts.js"
+export { type IndexPost } from "./domainTypes/Posts.js"
 
 export {
     type TocHeading,
@@ -160,12 +156,8 @@ export {
     ContentGraphLinkType,
 } from "./domainTypes/ContentGraph.js"
 export {
-    WP_BlockClass,
-    WP_ColumnStyle,
-    WP_PostType,
     type PostRestApi,
     type BlockGraphQlApi,
-    type FormattingOptions,
     SubNavId,
 } from "./wordpressTypes/WordpressTypes.js"
 

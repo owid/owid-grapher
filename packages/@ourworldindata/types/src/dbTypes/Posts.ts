@@ -1,6 +1,5 @@
 import {
     WP_PostType,
-    FormattingOptions,
     PostRestApi,
     BlockGraphQlApi,
 } from "../wordpressTypes/WordpressTypes.js"
@@ -32,15 +31,13 @@ export type DbEnrichedPost = Omit<
     "authors" | "formattingOptions" | "archieml" | "wpApiSnapshot"
 > & {
     authors: string[] | null
-    formattingOptions: FormattingOptions | null
+    formattingOptions: null
     archieml: OwidGdocPostInterface | null
     wpApiSnapshot: PostRestApi | BlockGraphQlApi | null
 }
 
-export function parsePostFormattingOptions(
-    formattingOptions: string
-): FormattingOptions {
-    return JSON.parse(formattingOptions)
+export function parsePostFormattingOptions(_formattingOptions: string): null {
+    return null
 }
 
 export function parsePostAuthors(authors: string): string[] {

@@ -1,7 +1,7 @@
 import * as db from "../db/db.js"
 import { Url } from "@ourworldindata/utils"
 import { isCanonicalInternalUrl } from "./formatting.js"
-import { resolveExplorerRedirect } from "./replaceExplorerRedirects.js"
+import { resolveExplorerRedirect } from "./resolveExplorerRedirects.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import { getRedirectsFromDb } from "../db/model/Redirect.js"
 import {

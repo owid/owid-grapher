@@ -387,10 +387,6 @@ h6 {
             background: transparent;
         }
     }
-
-    .authors-byline {
-        display: none;
-    }
 }
 
 /* Pages & Posts
@@ -424,11 +420,6 @@ h6 {
         @include h3-style;
     }
 
-    > .section-heading + h3 {
-        border-top: none;
-        padding-top: 0;
-    }
-
     /* Intratext headings e.g. How different are countries in terms of central government involvement in the economy? */
     .wp-block-columns h4 {
         margin-top: 2.75rem;
@@ -455,93 +446,6 @@ h6 {
 
     blockquote {
         font-style: italic;
-    }
-}
-
-/* Major sections e.g. I. Empirical View */
-.article-content .section-heading {
-    @include full-width;
-    padding-top: 2.5rem;
-    padding-bottom: 2.5rem;
-    margin-bottom: 2rem;
-    background-color: $blue-20;
-    @include md-up {
-        padding-top: 4 * $vertical-spacing;
-        padding-bottom: 4 * $vertical-spacing;
-        margin-bottom: 5rem;
-    }
-
-    @include xxlg-up {
-        width: calc(100vw - #{2 * $padding-x-md});
-        margin-left: calc(50% - 50vw - #{$padding-x-md});
-    }
-
-    .wrapper {
-        @include content-wrapper;
-    }
-
-    h2 {
-        margin: 0;
-        font-family: $serif-font-stack;
-        font-size: 2.5rem;
-        font-weight: 400;
-        line-height: 1.25em;
-        @include md-up {
-            font-size: 3rem;
-        }
-    }
-
-    .in-this-section {
-        display: flex;
-        align-items: center;
-        margin: 1.5 * $vertical-spacing 0 $vertical-spacing;
-        text-transform: uppercase;
-        font-size: 0.9rem;
-        font-weight: bold;
-        color: $blue-40;
-        @include md-up {
-            margin-top: 2 * $vertical-spacing;
-        }
-        .border {
-            margin-left: 1rem;
-            background-color: $blue-30;
-            height: 0.7em;
-            flex: 1;
-        }
-    }
-
-    ul {
-        margin-bottom: 0;
-        list-style: none;
-        padding: 0;
-        font-size: 0.9rem;
-    }
-    li {
-        line-height: 1.2;
-        margin-bottom: $vertical-spacing * 0.5;
-    }
-
-    a {
-        color: $blue-100;
-        &:hover svg {
-            color: inherit;
-        }
-    }
-    svg {
-        color: $blue-40;
-        margin-right: 0.5rem;
-    }
-}
-
-.with-sidebar .section-heading {
-    @include xxlg-up {
-        position: relative;
-        width: calc(100vw - $sidebar-width);
-        margin-left: 0;
-        left: min(
-            calc((100vw - 100% - $sidebar-width) / -2),
-            calc(-1 * $padding-x-md)
-        );
     }
 }
 

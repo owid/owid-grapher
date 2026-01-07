@@ -1,5 +1,4 @@
 import * as _ from "lodash-es"
-import { LongFormPage } from "../site/LongFormPage.js"
 import { LatestPage } from "../site/LatestPage.js"
 import { SearchPage } from "../site/search/SearchPage.js"
 import { DynamicCollectionPage } from "../site/collections/DynamicCollectionPage.js"
@@ -27,7 +26,6 @@ import {
 } from "../settings/clientSettings.js"
 import { FeedbackPage } from "../site/FeedbackPage.js"
 import {
-    FullPost,
     Url,
     OwidGdocType,
     OwidGdoc,
@@ -36,7 +34,6 @@ import {
     mergeGrapherConfigs,
     flattenNonTopicNodes,
 } from "@ourworldindata/utils"
-import { extractFormattingOptions } from "../serverUtils/wordpressUtils.js"
 import {
     ArchiveContext,
     DEFAULT_THUMBNAIL_FILENAME,
@@ -51,7 +48,6 @@ import {
     OwidGdocMinimalPostInterface,
     OwidGdocPublicationContext,
 } from "@ourworldindata/types"
-import { formatPost } from "./formatWordpressPost.js"
 import {
     knexRaw,
     KnexReadonlyTransaction,
@@ -59,7 +55,6 @@ import {
     getPublishedExplorersBySlug,
     generateTopicTagGraph,
 } from "../db/db.js"
-import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
 import { formatUrls } from "../site/formatting.js"
 
@@ -80,11 +75,7 @@ import {
 } from "../db/model/Chart.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { resolveInternalRedirect } from "./redirects.js"
-import {
-    getBlockContentFromSnapshot,
-    getFullPostBySlugFromSnapshot,
-    isPostSlugCitable,
-} from "../db/model/Post.js"
+import { getBlockContentFromSnapshot } from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import {
@@ -192,39 +183,6 @@ export function renderGdocTombstone(
         <AttachmentsContext.Provider value={attachments}>
             <TombstonePage baseUrl={BAKED_BASE_URL} tombstone={tombstone} />
         </AttachmentsContext.Provider>
-    )
-}
-
-export const renderPageBySlug = async (
-    slug: string,
-    knex: KnexReadonlyTransaction
-) => {
-    const post = await getFullPostBySlugFromSnapshot(knex, slug)
-    return renderPost(post, knex)
-}
-
-export const renderPost = async (
-    post: FullPost,
-    knex: KnexReadonlyTransaction,
-    baseUrl: string = BAKED_BASE_URL
-) => {
-    // Extract formatting options from post HTML comment (if any)
-    const formattingOptions = extractFormattingOptions(post.content)
-
-    const formatted = await formatPost(post, formattingOptions, knex)
-
-    const pageOverrides = await getPageOverrides(knex, post, formattingOptions)
-    const citationStatus =
-        isPostSlugCitable(post.slug) || isPageOverridesCitable(pageOverrides)
-
-    return renderToHtmlPage(
-        <LongFormPage
-            withCitation={citationStatus}
-            post={formatted}
-            overrides={pageOverrides}
-            formattingOptions={formattingOptions}
-            baseUrl={baseUrl}
-        />
     )
 }
 
@@ -484,25 +442,6 @@ ${dataInsights
 export const feedbackPage = () =>
     renderToHtmlPage(<FeedbackPage baseUrl={BAKED_BASE_URL} />)
 
-const renderPostThumbnailBySlug = async (
-    knex: KnexReadonlyTransaction,
-    slug: string | undefined
-): Promise<string | undefined> => {
-    if (!slug) return
-
-    let post
-    try {
-        post = await getFullPostBySlugFromSnapshot(knex, slug)
-    } catch {
-        // if no post is found, then we return early instead of throwing
-    }
-
-    if (!post?.thumbnailUrl) return
-    return ReactDOMServer.renderToStaticMarkup(
-        <img src={formatUrls(post.thumbnailUrl)} />
-    )
-}
-
 export const renderProminentLinks = async (
     $: cheerio.CheerioAPI,
     containerPostId: number,
@@ -540,13 +479,7 @@ export const renderProminentLinks = async (
                                       resolvedUrl.slug
                                   )
                               )?.config?.title // optim?
-                            : resolvedUrl.slug &&
-                              (
-                                  await getFullPostBySlugFromSnapshot(
-                                      knex,
-                                      resolvedUrl.slug
-                                  )
-                              ).title)
+                            : undefined)
             } finally {
                 if (!title) {
                     void logErrorAndMaybeCaptureInSentry(
@@ -569,10 +502,7 @@ export const renderProminentLinks = async (
                         ? renderGrapherThumbnailByResolvedChartSlug(
                               resolvedUrl.slug
                           )
-                        : await renderPostThumbnailBySlug(
-                              knex,
-                              resolvedUrl.slug
-                          ))
+                        : undefined)
 
             const rendered = ReactDOMServer.renderToStaticMarkup(
                 <div className="block-wrapper">

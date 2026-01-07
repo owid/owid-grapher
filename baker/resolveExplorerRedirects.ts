@@ -4,20 +4,6 @@ import {
 } from "@ourworldindata/explorer"
 import { getExplorerRedirectForPath } from "../explorerAdminServer/ExplorerRedirects.js"
 import { Url } from "@ourworldindata/utils"
-import { CheerioAPI } from "cheerio"
-
-export const replaceIframesWithExplorerRedirectsInWordPressPost = (
-    cheerio: CheerioAPI
-) =>
-    cheerio("iframe")
-        .toArray()
-        .forEach((el) => {
-            const srcUrl = Url.fromURL(el.attribs["src"].trim())
-            const resolvedUrl = resolveExplorerRedirect(srcUrl)
-            if (srcUrl === resolvedUrl) return
-
-            el.attribs["src"] = resolvedUrl.fullUrl
-        })
 
 export const resolveExplorerRedirect = (url: Url): Url => {
     if (!url.pathname) return url

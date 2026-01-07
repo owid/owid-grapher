@@ -4,11 +4,7 @@ import {
     DbRawPost,
     DbEnrichedPost,
     parsePostRow,
-    FullPost,
-    JsonError,
-    PostRestApi,
     RelatedChart,
-    snapshotIsPostRestApi,
     snapshotIsBlockGraphQlApi,
     PostReference,
     DataPageRelatedResearch,
@@ -16,7 +12,6 @@ import {
     DbRawLatestWork,
     DbEnrichedLatestWork,
     parseLatestWork,
-    DEFAULT_THUMBNAIL_FILENAME,
     ARCHIVED_THUMBNAIL_FILENAME,
     LatestPageItem,
     PostsGdocsTableName,
@@ -24,7 +19,6 @@ import {
 import { formatDate } from "@ourworldindata/utils"
 import type { Knex } from "knex"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
-import { decodeHTML } from "entities"
 import { gdocFromJSON } from "./Gdoc/GdocFactory.js"
 import { GdocPost } from "./Gdoc/GdocPost.js"
 import { GdocAnnouncement } from "./Gdoc/GdocAnnouncement.js"
@@ -79,26 +73,6 @@ export const getPostEnrichedById = async (
     return parsePostRow(post)
 }
 
-export const getFullPostBySlugFromSnapshot = async (
-    trx: db.KnexReadonlyTransaction,
-    slug: string
-): Promise<FullPost> => {
-    const postEnriched = await getPostEnrichedBySlug(trx, slug)
-    if (
-        !postEnriched?.wpApiSnapshot ||
-        !snapshotIsPostRestApi(postEnriched.wpApiSnapshot)
-    )
-        throw new JsonError(`No page snapshot found by slug ${slug}`, 404)
-
-    return getFullPost(trx, postEnriched.wpApiSnapshot)
-}
-
-// There are no longer any citable WP posts.
-// Will remove this and related code in the future.
-export const isPostSlugCitable = (_: string): boolean => {
-    return false
-}
-
 export const getPostRelatedCharts = async (
     knex: db.KnexReadonlyTransaction,
     postId: number
@@ -120,36 +94,6 @@ export const getPostRelatedCharts = async (
         ORDER BY title ASC
     `
     )
-
-const getFullPost = async (
-    knex: db.KnexReadonlyTransaction,
-    postApi: PostRestApi,
-    excludeContent?: boolean
-): Promise<FullPost> => ({
-    id: postApi.id,
-    type: postApi.type,
-    slug: postApi.slug,
-    path: postApi.slug, // kept for transitioning between legacy BPES (blog post as entry section) and future hierarchical paths
-    title: decodeHTML(postApi.title.rendered),
-    date: new Date(postApi.date_gmt),
-    modifiedDate: new Date(postApi.modified_gmt),
-    authors: postApi.authors_name || [],
-    content: excludeContent ? "" : postApi.content.rendered,
-    excerpt: decodeHTML(postApi.excerpt.rendered),
-    imageUrl: `${BAKED_BASE_URL}${
-        postApi.featured_media_paths.medium_large ??
-        `/${DEFAULT_THUMBNAIL_FILENAME}`
-    }`,
-    thumbnailUrl: `${BAKED_BASE_URL}${
-        postApi.featured_media_paths?.thumbnail ??
-        `/${DEFAULT_THUMBNAIL_FILENAME}`
-    }`,
-    imageId: postApi.featured_media,
-    relatedCharts:
-        postApi.type === "page"
-            ? await getPostRelatedCharts(knex, postApi.id)
-            : undefined,
-})
 
 function gdocToLatestItem(
     gdoc: GdocPost | GdocAnnouncement | GdocDataInsight
