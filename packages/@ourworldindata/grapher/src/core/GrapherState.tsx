@@ -759,10 +759,6 @@ export class GrapherState
 
         this.bindUrlToWindow = obj.bindUrlToWindow ?? false
 
-        // Regression fix: some legacies have this set to Null.
-        // TODO: clean DB
-        if (obj.originUrl === null) this.originUrl = ""
-
         // Update selection
         if (obj.selectedEntityNames)
             this.selection.setSelectedEntities(obj.selectedEntityNames)
