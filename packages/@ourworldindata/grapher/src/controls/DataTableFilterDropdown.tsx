@@ -14,7 +14,7 @@ import {
 
 export interface DataTableFilterDropdownManager {
     dataTableConfig: DataTableConfig
-    tableForDisplay: OwidTable
+    tableForDisplayBeforeEntityFilter: OwidTable
     isOnTableTab?: boolean
     dataTableSelection?: SelectionArray | EntityName[]
     canChangeAddOrHighlightEntities?: boolean
@@ -62,7 +62,8 @@ export class DataTableFilterDropdown extends React.Component<{
     }
 
     @computed private get availableEntityNameSet(): Set<EntityName> {
-        return this.manager.tableForDisplay.availableEntityNameSet
+        return this.manager.tableForDisplayBeforeEntityFilter
+            .availableEntityNameSet
     }
 
     @action.bound private onChange(selected: DropdownOption | null): void {

@@ -71,8 +71,6 @@ declare global {
     }
 }
 
-export const DEFAULT_MS_PER_TICK = 100
-
 // Exactly the same as GrapherInterface, but contains options that developers want but authors won't be touching.
 export interface GrapherProgrammaticInterface extends GrapherInterface {
     queryStr?: string
@@ -285,7 +283,9 @@ export class Grapher extends React.Component<GrapherProps> {
             {
                 combo: "p",
                 fn: (): void => this.togglePlayingCommand(),
-                title: this.grapherState.isPlaying ? `Pause` : `Play`,
+                title: this.grapherState.isTimelineAnimationPlaying
+                    ? `Pause`
+                    : `Play`,
                 category: "Timeline",
             },
             {

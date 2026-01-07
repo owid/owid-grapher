@@ -128,7 +128,7 @@ export class DataTable extends React.Component<DataTableProps> {
     }
 
     @computed get table(): OwidTable {
-        let table = this.manager.filteredTableForDisplay
+        let table = this.manager.tableForDisplay
 
         // make sure the given table doesn't contain any rows outside of the time range
         table = table.filterByTimeRange(

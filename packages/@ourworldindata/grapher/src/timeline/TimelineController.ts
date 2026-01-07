@@ -10,6 +10,8 @@ import {
 import { action, computed } from "mobx"
 import { TimeColumn } from "@ourworldindata/core-table"
 
+const MS_PER_TICK = 100
+
 export enum TimelineDragTarget {
     Start = "start",
     End = "end",
@@ -20,7 +22,7 @@ export interface TimelineManager {
     disablePlay?: boolean
     formatTimeFn?: (time: Time) => string
     timeColumn?: TimeColumn
-    isPlaying?: boolean
+    isTimelineAnimationPlaying?: boolean
     isTimelineAnimationActive?: boolean
     animationStartTime?: Time
     times: Time[]
@@ -29,7 +31,6 @@ export interface TimelineManager {
     areHandlesOnSameTimeBeforeAnimation?: boolean
     isSingleTimeSelectionActive?: boolean
     onlyTimeRangeSelectionPossible?: boolean
-    msPerTick?: number
     onPlay?: () => void
     onTimelineClick?: () => void
     timelineDragTarget?: TimelineDragTarget
@@ -217,7 +218,7 @@ export class TimelineController {
     @action.bound async play(numberOfTicks?: number): Promise<number> {
         const { manager } = this
 
-        manager.isPlaying = true
+        manager.isTimelineAnimationPlaying = true
         manager.isTimelineAnimationActive = true
 
         if (this.isAtEnd()) this.resetToBeginning()
@@ -226,7 +227,7 @@ export class TimelineController {
 
         // Keep and return a tickCount for easier testability
         let tickCount = 0
-        while (manager.isPlaying) {
+        while (manager.isTimelineAnimationPlaying) {
             const nextTime = this.getNextTime(this.endTime)
             if (!this.rangeMode) this.updateStartTime(nextTime)
             this.updateEndTime(nextTime)
@@ -235,7 +236,7 @@ export class TimelineController {
                 this.stop()
                 break
             }
-            await sleep(manager.msPerTick ?? 0)
+            await sleep(MS_PER_TICK)
         }
 
         return tickCount
@@ -329,14 +330,14 @@ export class TimelineController {
     }
 
     @action.bound private stop(): void {
-        this.manager.isPlaying = false
+        this.manager.isTimelineAnimationPlaying = false
         this.manager.isTimelineAnimationActive = false
         this.manager.animationStartTime = undefined
         this.manager.areHandlesOnSameTimeBeforeAnimation = undefined
     }
 
     @action.bound private pause(): void {
-        this.manager.isPlaying = false
+        this.manager.isTimelineAnimationPlaying = false
     }
 
     onDrag(): void {
@@ -353,7 +354,7 @@ export class TimelineController {
                 : this.startTime
         }
 
-        if (this.manager.isPlaying) this.pause()
+        if (this.manager.isTimelineAnimationPlaying) this.pause()
         else await this.play()
     }
 
@@ -522,7 +523,7 @@ export class TimelineController {
             else this.updateEndTime(manager.startHandleTimeBound)
         }
 
-        if (manager.isPlaying && !this.rangeMode) {
+        if (manager.isTimelineAnimationPlaying && !this.rangeMode) {
             this.updateStartTime(time)
             this.updateEndTime(time)
         } else if (handle === TimelineDragTarget.Both)

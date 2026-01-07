@@ -25,7 +25,7 @@ import { TimelineDragTarget } from "../timeline/TimelineController"
 
 export interface DataTableManager {
     table: OwidTable // not used here, but required in type `ChartManager`
-    filteredTableForDisplay: OwidTable
+    tableForDisplay: OwidTable
     entityType?: string
     endTime?: Time
     startTime?: Time
