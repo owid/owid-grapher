@@ -1,18 +1,11 @@
 import * as _ from "lodash-es"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { EntityName } from "@ourworldindata/types"
-import {
-    getSelectedEntityNamesParam,
-    migrateSelectedEntityNamesParam,
-    SelectionArray,
-    setSelectedEntityNamesParam,
-} from "@ourworldindata/grapher"
+import { migrateSelectedEntityNamesParam } from "@ourworldindata/grapher"
 import { Url } from "@ourworldindata/utils"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Component } from "react"
-import { createRoot } from "react-dom/client"
 
 export const PROMINENT_LINK_CLASSNAME = "wp-block-owid-prominent-link"
 
@@ -29,7 +22,6 @@ interface ProminentLinkProps {
     title: string | null
     content?: string | null
     image?: string | null
-    globalEntitySelection?: SelectionArray
 }
 
 @observer
@@ -39,26 +31,8 @@ export class ProminentLink extends Component<ProminentLinkProps> {
         makeObservable(this)
     }
 
-    @computed get originalUrl(): Url {
+    @computed get url(): Url {
         return migrateSelectedEntityNamesParam(Url.fromURL(this.props.href))
-    }
-
-    @computed private get originalSelectedEntities(): EntityName[] {
-        return getSelectedEntityNamesParam(this.originalUrl) ?? []
-    }
-
-    @computed private get entitiesInGlobalEntitySelection(): EntityName[] {
-        return this.props.globalEntitySelection?.selectedEntityNames ?? []
-    }
-
-    @computed private get updatedUrl(): Url {
-        const newEntityList = _.union(
-            this.originalSelectedEntities,
-            this.entitiesInGlobalEntitySelection
-        )
-        if (newEntityList.length === 0) return this.originalUrl
-
-        return setSelectedEntityNamesParam(this.originalUrl, newEntityList)
     }
 
     @computed private get style(): string {
@@ -140,7 +114,7 @@ export class ProminentLink extends Component<ProminentLinkProps> {
                 data-style={this.style}
                 data-title={this.props.title}
             >
-                <a href={this.updatedUrl.fullUrl}>
+                <a href={this.url.fullUrl}>
                     {this.style === ProminentLinkStyles.thin
                         ? renderThinStyle()
                         : renderDefaultStyle()}
@@ -148,41 +122,4 @@ export class ProminentLink extends Component<ProminentLinkProps> {
             </div>
         )
     }
-}
-
-export const hydrateProminentLink = (
-    globalEntitySelection?: SelectionArray
-) => {
-    document
-        .querySelectorAll<HTMLElement>(`.${PROMINENT_LINK_CLASSNAME}`)
-        .forEach((block) => {
-            const href = block.querySelector("a")?.href
-            if (!href) return
-
-            const style = block.getAttribute("data-style")
-            const title = block.getAttribute("data-title")
-            const content = block.querySelector(".content")?.innerHTML || null
-            const image = block.querySelector("figure")?.innerHTML || null
-
-            const rendered = (
-                <ProminentLink
-                    href={href}
-                    style={style}
-                    title={title}
-                    content={content}
-                    image={image}
-                    globalEntitySelection={globalEntitySelection}
-                />
-            )
-
-            // this should be a hydrate() call, but it does not work on page
-            // load for some reason (works fine when interacting with the global
-            // entity selector afterwards). Maybe a race condition with Mobx?
-            if (!block.parentElement)
-                throw new Error(
-                    "ProminentLink block must be inside a parent element"
-                )
-            const root = createRoot(block.parentElement)
-            root.render(rendered)
-        })
 }
