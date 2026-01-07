@@ -27,7 +27,7 @@ export const Searchbar = ({ allTopics }: { allTopics: string[] }) => {
 
     const { filters, query, requireAllCountries } = state
 
-    const selectedRegionNames = useSelectedRegionNames(true)
+    const selectedRegionNames = useSelectedRegionNames()
     // Storing this in local state so that query params don't update during
     // typing. Whenever the state semantically changes, we update the local
     // query by triggering a re-mount (see key prop on Searchbar in parent

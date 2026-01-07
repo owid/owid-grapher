@@ -11,7 +11,6 @@ import { SiteAnalytics } from "../SiteAnalytics.js"
 
 interface SearchContextType {
     state: SearchState
-    deferredState: SearchState
     actions: SearchActions
     liteSearchClient: LiteClient
     templateConfig: TemplateConfig
