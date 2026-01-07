@@ -71,8 +71,6 @@ declare global {
     }
 }
 
-export const DEFAULT_MS_PER_TICK = 100
-
 // Exactly the same as GrapherInterface, but contains options that developers want but authors won't be touching.
 export interface GrapherProgrammaticInterface extends GrapherInterface {
     queryStr?: string

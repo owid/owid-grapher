@@ -10,6 +10,8 @@ import {
 import { action, computed } from "mobx"
 import { TimeColumn } from "@ourworldindata/core-table"
 
+const MS_PER_TICK = 100
+
 export enum TimelineDragTarget {
     Start = "start",
     End = "end",
@@ -29,7 +31,6 @@ export interface TimelineManager {
     areHandlesOnSameTimeBeforeAnimation?: boolean
     isSingleTimeSelectionActive?: boolean
     onlyTimeRangeSelectionPossible?: boolean
-    msPerTick?: number
     onPlay?: () => void
     onTimelineClick?: () => void
     timelineDragTarget?: TimelineDragTarget
@@ -235,7 +236,7 @@ export class TimelineController {
                 this.stop()
                 break
             }
-            await sleep(manager.msPerTick ?? 0)
+            await sleep(MS_PER_TICK)
         }
 
         return tickCount
