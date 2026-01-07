@@ -2633,8 +2633,6 @@ export class GrapherState
         )
     }
 
-    // TODO: this is only relevant for scatter plots and Marimekko. move to scatter plot class?
-    // TODO: remove this. Should be done as a simple column transform at the data level.
     /** Overrides the x axis dimension to target a special year */
     @computed get xOverrideTime(): number | undefined {
         return this.xDimension?.targetYear
