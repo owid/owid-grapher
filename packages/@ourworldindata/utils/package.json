@@ -8,10 +8,6 @@
     "lib": "src"
   },
   "types": "src/index.ts",
-  "scripts": {
-    "build": "",
-    "watch": "tsc --watch"
-  },
   "keywords": [],
   "author": "",
   "dependencies": {
@@ -44,7 +40,6 @@
     "@types/url-parse": "^1.4.8",
     "eslint": "^9.37.0",
     "eslint-plugin-react-hooks": "^5.2.0",
-    "typescript": "~5.9.2",
     "vitest": "^4.0.15"
   },
   "license": "MIT"
