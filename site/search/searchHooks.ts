@@ -16,21 +16,14 @@ import type { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import * as R from "remeda"
 
-export const useSelectedTopic = (
-    deferred: boolean = false
-): string | undefined => {
-    const { state, deferredState } = useSearchContext()
-    return getSelectedTopic(deferred ? deferredState.filters : state.filters)
+export const useSelectedTopic = (): string | undefined => {
+    const { state } = useSearchContext()
+    return getSelectedTopic(state.filters)
 }
 
-export const useSelectedRegionNames = (deferred: boolean = false): string[] => {
-    const { state, deferredState } = useSearchContext()
-    return Array.from(
-        getFilterNamesOfType(
-            deferred ? deferredState.filters : state.filters,
-            FilterType.COUNTRY
-        )
-    )
+export const useSelectedRegionNames = (): string[] => {
+    const { state } = useSearchContext()
+    return Array.from(getFilterNamesOfType(state.filters, FilterType.COUNTRY))
 }
 
 /**

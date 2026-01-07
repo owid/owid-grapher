@@ -5,7 +5,7 @@ import {
     SearchResultType,
 } from "@ourworldindata/types"
 import { LiteClient } from "algoliasearch/lite"
-import { useMemo, useDeferredValue } from "react"
+import { useMemo } from "react"
 import { match } from "ts-pattern"
 import { useIsFetching } from "@tanstack/react-query"
 
@@ -61,16 +61,12 @@ export const Search = ({
 
     const analytics = useMemo(() => new SiteAnalytics(), [])
 
-    const deferredState = useDeferredValue(state)
-
     // Handle analytics tracking (skips initial page load)
-    useSearchAnalytics(deferredState, analytics)
+    useSearchAnalytics(state, analytics)
 
     const isFetching = useIsFetching()
 
-    // Derived state for template configuration Use immediate state to avoid
-    // firing duplicate queries (one for the current (deferred) template, one for the
-    // target template after deferred value catches up)
+    // Derived state for template configuration
     const topicType = getSelectedTopicType(state.filters, eligibleAreas)
     const templateConfig: TemplateConfig = {
         resultType: getEffectiveResultType(
@@ -88,7 +84,6 @@ export const Search = ({
         <SearchContext.Provider
             value={{
                 state,
-                deferredState,
                 actions,
                 liteSearchClient,
                 templateConfig,
