@@ -53,7 +53,7 @@ import {
     isNotErrorValue,
     DroppedForTesting,
 } from "./ErrorValues.js"
-import { applyTransforms, extractTransformNameAndParams } from "./Transforms.js"
+import { applyTransforms, parseTransformString } from "./Transforms.js"
 
 interface AdvancedOptions {
     tableDescription?: string
@@ -99,10 +99,10 @@ export class CoreTable<
         // Column definitions with a "duplicate" transform are merged with the column definition of the specified source column
         this.inputColumnDefs = this.inputColumnDefs.map((def) => {
             if (!def.transform) return def
-            const transform = extractTransformNameAndParams(def.transform)
+            const transform = parseTransformString(def.transform)
             if (transform?.transformName !== "duplicate") return def
 
-            const sourceSlug = transform.params[0]
+            const sourceSlug = transform.params[0].value
             const sourceDef = this.inputColumnDefs.find(
                 (def) => def.slug === sourceSlug
             )

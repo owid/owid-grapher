@@ -11,11 +11,15 @@ import {
     GrapherInterface,
     AxisMinMaxValueStr,
     GrapherChartType,
+    DimensionProperty,
+    OwidChartDimensionInterface,
+    OwidChartDimensionInterfaceWithMandatorySlug,
 } from "@ourworldindata/types"
 import {
     CoreTable,
     OwidTable,
     isNotErrorValue,
+    isNotErrorValueOrEmptyCell,
 } from "@ourworldindata/core-table"
 import {
     GitCommit,
@@ -23,6 +27,8 @@ import {
     SerializedGridProgram,
     trimObject,
     fetchWithRetry,
+    parseIntOrUndefined,
+    excludeUndefined,
 } from "@ourworldindata/utils"
 import {
     CellDef,
@@ -74,6 +80,20 @@ const ExplorerRootDef: CellDef = {
     ...RootKeywordCellDef,
     grammar: ExplorerGrammar,
 }
+
+type ChartDimensionInterfaceBySlug = Omit<
+    OwidChartDimensionInterfaceWithMandatorySlug,
+    "variableId"
+> & { type: "slug" }
+
+type ChartDimensionInterfaceByVariableId = Omit<
+    OwidChartDimensionInterface,
+    "slug"
+> & { type: "variableId" }
+
+type ExplorerChartDimensionInterface =
+    | ChartDimensionInterfaceBySlug
+    | ChartDimensionInterfaceByVariableId
 
 export class ExplorerProgram extends GridProgram {
     constructor(slug: string, tsv: string, lastCommit?: GitCommit) {
@@ -315,6 +335,22 @@ export class ExplorerProgram extends GridProgram {
         return this.columnDefsByTableSlug.get(undefined) ?? []
     }
 
+    private get columnDefsWithoutTableSlugByIdOrSlug(): Record<
+        string,
+        OwidColumnDef
+    > {
+        return _.keyBy(
+            this.columnDefsWithoutTableSlug,
+            (def: OwidColumnDef) => def.owidVariableId?.toString() ?? def.slug
+        )
+    }
+
+    getColumnDefWithoutTableSlugByIdOrSlug(
+        idOrSlug: string
+    ): OwidColumnDef | undefined {
+        return this.columnDefsWithoutTableSlugByIdOrSlug[idOrSlug]
+    }
+
     async autofillMissingColumnDefinitionsForTableCommand(tableSlug?: string) {
         const clone = this.clone
         const remoteTable = await clone.constructTable(tableSlug)
@@ -366,18 +402,24 @@ export class ExplorerProgram extends GridProgram {
         return clone
     }
 
-    constructExplorerGrapherConfig(grapherRow: any): ExplorerGrapherInterface {
+    /**
+     * Grapher config for the currently selected row including global settings.
+     * Includes all columns that are part of the GrapherGrammar.
+     */
+    get explorerGrapherConfig(): ExplorerGrapherInterface {
+        const selectedGrapherRow = this.decisionMatrix.selectedRow
+
         const rootObject = trimAndParseObject(this.tuplesObject, GrapherGrammar)
         let config = { ...rootObject }
 
-        if (grapherRow && Object.keys(grapherRow).length) {
+        if (selectedGrapherRow && Object.keys(selectedGrapherRow).length) {
             config = {
                 ...config,
-                ...trimAndParseObject(grapherRow, GrapherGrammar),
+                ...trimAndParseObject(selectedGrapherRow, GrapherGrammar),
             }
         }
 
-        // remove all keys that are not part of the GrapherGrammar
+        // Remove all keys that are not part of the GrapherGrammar
         Object.keys(config).forEach((key) => {
             if (!GrapherGrammar[key]) delete config[key]
         })
@@ -385,11 +427,15 @@ export class ExplorerProgram extends GridProgram {
         return config
     }
 
-    constructGrapherConfig(
-        explorerGrapherConfig: ExplorerGrapherInterface
-    ): GrapherInterface {
+    /**
+     * Grapher config for the currently selected row, with explorer-specific
+     * fields translated to valid GrapherInterface fields.
+     *
+     * For example, `yAxisMin` is translated to `{yAxis: {min: ... }}`
+     */
+    get grapherConfig(): GrapherInterface {
         const partialConfigs: GrapherInterface[] = []
-        const fields = Object.entries(explorerGrapherConfig)
+        const fields = Object.entries(this.explorerGrapherConfig)
 
         for (const [field, value] of fields) {
             const cellDef = GrapherGrammar[field]
@@ -403,7 +449,7 @@ export class ExplorerProgram extends GridProgram {
 
         // TODO: can be removed once relatedQuestions is refactored
         const { relatedQuestionUrl, relatedQuestionText } =
-            explorerGrapherConfig
+            this.explorerGrapherConfig
         if (relatedQuestionUrl && relatedQuestionText) {
             mergedConfig.relatedQuestions = [
                 { url: relatedQuestionUrl, text: relatedQuestionText },
@@ -414,22 +460,98 @@ export class ExplorerProgram extends GridProgram {
     }
 
     /**
-     * Grapher config for the currently selected row including global settings.
-     * Includes all columns that are part of the GrapherGrammar.
-     */
-    get explorerGrapherConfig(): ExplorerGrapherInterface {
-        const selectedGrapherRow = this.decisionMatrix.selectedRow
-        return this.constructExplorerGrapherConfig(selectedGrapherRow)
-    }
-
-    /**
-     * Grapher config for the currently selected row, with explorer-specific
-     * fields translated to valid GrapherInterface fields.
+     * All dimensions (x, y, color, size) for the currently selected Grapher row.
      *
-     * For example, `yAxisMin` is translated to `{yAxis: {min: ... }}`
+     * Dimensions are either specified by a slug or variable id.
      */
-    get grapherConfig(): GrapherInterface {
-        return this.constructGrapherConfig(this.explorerGrapherConfig)
+    get dimensionsOfSelectedRow(): ExplorerChartDimensionInterface[] {
+        const { y, x, color, size } = DimensionProperty
+        const {
+            ySlugs = "",
+            xSlug,
+            colorSlug,
+            sizeSlug,
+            yVariableIds = "",
+            xVariableId,
+            colorVariableId,
+            sizeVariableId,
+        } = this.explorerGrapherConfig
+
+        /** Construct dimension object with a slug */
+        const makeSlugDimension = (
+            slug: string | undefined,
+            property: DimensionProperty
+        ): ChartDimensionInterfaceBySlug | undefined => {
+            if (!slug) return undefined
+            const dimension: ChartDimensionInterfaceBySlug = {
+                type: "slug",
+                slug,
+                property,
+            }
+            const def = this.getColumnDefWithoutTableSlugByIdOrSlug(slug)
+            if (def?.display) dimension.display = def.display
+            return dimension
+        }
+
+        /** Construct dimension object with a variable id */
+        const makeVariableIdDimension = (
+            variableId: string | undefined,
+            property: DimensionProperty
+        ): ChartDimensionInterfaceByVariableId | undefined => {
+            if (!variableId) return undefined
+            const parsedId = parseIntOrUndefined(variableId)
+            if (!parsedId) return undefined
+            const dimension: ChartDimensionInterfaceByVariableId = {
+                type: "variableId",
+                variableId: parsedId,
+                property,
+            }
+            const def = this.getColumnDefWithoutTableSlugByIdOrSlug(
+                parsedId.toString()
+            )
+            if (def?.display) dimension.display = def.display
+            return dimension
+        }
+
+        // Make slug based dimensions
+        const ySlugList = ySlugs.split(" ")
+        const slugDimYList = excludeUndefined(
+            ySlugList.map((slug) => makeSlugDimension(slug, y))
+        )
+        const slugDimX = makeSlugDimension(xSlug, x)
+        const slugDimColor = makeSlugDimension(colorSlug, color)
+        const slugDimSize = makeSlugDimension(sizeSlug, size)
+
+        // Make variable id based dimensions
+        const yVariableIdList = yVariableIds.split(" ")
+        const varDimYList = excludeUndefined(
+            yVariableIdList.map((variableId) =>
+                makeVariableIdDimension(variableId, y)
+            )
+        )
+        const varDimX = makeVariableIdDimension(xVariableId, x)
+        const varDimColor = makeVariableIdDimension(colorVariableId, color)
+        const varDimSize = makeVariableIdDimension(sizeVariableId, size)
+
+        const dimensions: ExplorerChartDimensionInterface[] = []
+
+        // Add y dimensions
+        slugDimYList.forEach((dim) => dimensions.push(dim))
+        varDimYList.forEach((dim) => dimensions.push(dim))
+
+        // Add x dimensions (only one should be given)
+        if (slugDimX) dimensions.push(slugDimX)
+        if (varDimX) dimensions.push(varDimX)
+
+        // Add color dimensions (only one should be given)
+        if (slugDimColor) dimensions.push(slugDimColor)
+        if (varDimColor) dimensions.push(varDimColor)
+
+        // Add size dimensions (only one should be given)
+        if (slugDimSize) dimensions.push(slugDimSize)
+        if (varDimSize) dimensions.push(varDimSize)
+
+        return dimensions
     }
 
     /**
@@ -547,16 +669,21 @@ const parseColumnDefs = (block: string[][]): OwidColumnDef[] => {
             (row) => !!(row.slug || typeof row.owidVariableId === "number"),
             "Keep only column defs with a slug or variable id"
         )
+
     return columnsTable.rows.map((row) => {
-        // ignore slug if a variable id is given
+        // Ignore the slug if a variable id is given
         const hasValidVariableId =
             row.owidVariableId && isNotErrorValue(row.owidVariableId)
         if (hasValidVariableId && row.slug) delete row.slug
 
+        // Add display properties to the 'display' object
         for (const field in row) {
             const cellDef = ColumnGrammar[field]
-            if (cellDef?.display) {
-                // move field into 'display' object
+            if (
+                cellDef?.isDisplayProperty &&
+                isNotErrorValueOrEmptyCell(row[field]) &&
+                row[field] !== ""
+            ) {
                 row.display = row.display || {}
                 row.display[field] = row[field]
                 delete row[field]

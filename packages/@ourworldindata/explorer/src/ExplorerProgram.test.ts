@@ -9,6 +9,7 @@ import {
 import { ExplorerGrammar } from "./ExplorerGrammar.js"
 import { GrapherGrammar } from "./GrapherGrammar.js"
 import { DecisionMatrix } from "./ExplorerDecisionMatrix.js"
+import { SampleIndicatorBasedExplorerProgram } from "./Explorer.sample.js"
 
 const grapherIdKeyword = GrapherGrammar.grapherId.keyword
 const tableSlugKeyword = GrapherGrammar.tableSlug.keyword
@@ -75,8 +76,8 @@ columns\ttable1\ttable2\ttable3
             "table3",
         ])
 
-        const columnDef1 = [{ slug: "gdp", name: "GDP" }]
-        const columnDef2 = [{ slug: "banana", name: "Bananas" }]
+        const columnDef1 = [{ slug: "gdp", display: { name: "GDP" } }]
+        const columnDef2 = [{ slug: "banana", display: { name: "Bananas" } }]
 
         expect(program.columnDefsByTableSlug.get(undefined)).toEqual(columnDef1)
         expect(program.columnDefsByTableSlug.get("table1")).toEqual(columnDef2)
@@ -161,6 +162,34 @@ graphers
             expect(program.explorerGrapherConfig.yAxisMin).toEqual(1)
             expect(program.grapherConfig.yAxis?.min).toEqual(1)
         })
+    })
+
+    it("gets dimensions of the selected row", () => {
+        const program = new ExplorerProgram(
+            "test",
+            SampleIndicatorBasedExplorerProgram
+        )
+
+        expect(program.dimensionsOfSelectedRow).toStrictEqual([
+            {
+                display: { name: "Variable name", shortUnit: "tons" },
+                property: "y",
+                type: "variableId",
+                variableId: 952182,
+            },
+        ])
+
+        // Change to a different row
+        program.decisionMatrix.setValueCommand("Test", "Slug based")
+
+        expect(program.dimensionsOfSelectedRow).toStrictEqual([
+            {
+                display: { name: "Overwritten name", unit: "people" },
+                property: "y",
+                slug: "duplicated",
+                type: "slug",
+            },
+        ])
     })
 
     it("can power a grapher", () => {
