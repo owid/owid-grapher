@@ -1,5 +1,5 @@
 import * as _ from "lodash-es"
-import { useState, useRef } from "react"
+import { useState } from "react"
 import * as React from "react"
 import { RelatedChart } from "@ourworldindata/utils"
 import { GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
@@ -18,7 +18,6 @@ export const RelatedCharts = ({
     charts: RelatedChart[]
     showKeyChartsOnly?: boolean
 }) => {
-    const refChartContainer = useRef<HTMLDivElement>(null)
     const [activeChartIdx, setActiveChartIdx] = useState(0)
     const { isPreviewing } = useDocumentContext()
 
@@ -64,10 +63,7 @@ export const RelatedCharts = ({
     const singleChartView = (
         <div className={RELATED_CHARTS_CLASS_NAME}>
             <div className="grid grid-cols-12">
-                <div
-                    className="related-charts__chart span-cols-7 span-md-cols-12"
-                    ref={refChartContainer}
-                >
+                <div className="related-charts__chart span-cols-7 span-md-cols-12">
                     {figure}
                 </div>
             </div>
@@ -89,10 +85,7 @@ export const RelatedCharts = ({
                         ))}
                     </ul>
                 </div>
-                <div
-                    className="related-charts__chart span-cols-7 span-md-cols-12"
-                    ref={refChartContainer}
-                >
+                <div className="related-charts__chart span-cols-7 span-md-cols-12">
                     <div className="related-charts__figure">{figure}</div>
                     <div className="gallery-navigation">
                         <GalleryArrow
