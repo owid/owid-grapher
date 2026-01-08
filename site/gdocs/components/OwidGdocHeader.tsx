@@ -1,5 +1,5 @@
 import cx from "classnames"
-import { useContext, useState } from "react"
+import { useState } from "react"
 import {
     BreadcrumbItem,
     CITATION_ID,
@@ -18,7 +18,7 @@ import { Byline } from "./Byline.js"
 import { VersionsDrawer } from "../../archive/VersionsDrawer.js"
 import { useArchiveVersions } from "../../archive/versions.js"
 import { useWindowQueryParams } from "../../hooks.js"
-import { DocumentContext } from "../DocumentContext.js"
+import { useDocumentContext } from "../DocumentContext.js"
 
 function OwidArticleHeader({
     content,
@@ -36,7 +36,7 @@ function OwidArticleHeader({
         : undefined
 
     const breadcrumbColor = breadcrumbColorForCoverColor(content["cover-color"])
-    const { archiveContext } = useContext(DocumentContext)
+    const { archiveContext } = useDocumentContext()
     const isOnArchivePage = archiveContext?.type === "archive-page"
     const versionsFileUrl =
         archiveContext?.versionsFileUrl ??

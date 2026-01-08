@@ -2,9 +2,8 @@ import {
     EnrichedTopicPageIntroRelatedTopic,
     EnrichedBlockTopicPageIntro,
 } from "@ourworldindata/utils"
-import { useContext } from "react"
 import { useLinkedDocument } from "../utils.js"
-import { DocumentContext } from "../DocumentContext.js"
+import { useDocumentContext } from "../DocumentContext.js"
 import Paragraph from "./Paragraph.js"
 
 type TopicPageIntroProps = EnrichedBlockTopicPageIntro & {
@@ -16,7 +15,7 @@ function TopicPageRelatedTopic({
     url,
 }: EnrichedTopicPageIntroRelatedTopic) {
     const { linkedDocument, errorMessage } = useLinkedDocument(url)
-    const { isPreviewing } = useContext(DocumentContext)
+    const { isPreviewing } = useDocumentContext()
     if (errorMessage && isPreviewing) {
         return <li>{errorMessage}</li>
     }

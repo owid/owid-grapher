@@ -1,5 +1,5 @@
 import * as _ from "lodash-es"
-import { useState, useRef, useContext } from "react"
+import { useState, useRef } from "react"
 import * as React from "react"
 import { RelatedChart } from "@ourworldindata/utils"
 import { GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
@@ -7,7 +7,7 @@ import { GalleryArrow } from "./GalleryArrow.js"
 import { GalleryArrowDirection } from "../SiteConstants.js"
 import { AllChartsListItem } from "./AllChartsListItem.js"
 import { GrapherWithFallback } from "../GrapherWithFallback.js"
-import { DocumentContext } from "../gdocs/DocumentContext.js"
+import { useDocumentContext } from "../gdocs/DocumentContext.js"
 
 export const RELATED_CHARTS_CLASS_NAME = "related-charts"
 
@@ -20,7 +20,7 @@ export const RelatedCharts = ({
 }) => {
     const refChartContainer = useRef<HTMLDivElement>(null)
     const [activeChartIdx, setActiveChartIdx] = useState(0)
-    const { isPreviewing } = useContext(DocumentContext)
+    const { isPreviewing } = useDocumentContext()
 
     const chartsToShow = showKeyChartsOnly
         ? charts.filter((chart) => !!chart.keyChartLevel)

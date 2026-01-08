@@ -1,8 +1,7 @@
 import cx from "classnames"
 import { HybridLinkList } from "./HybridLinkList.js"
 import { useLinkedChart, useLinkedDocument } from "../utils.js"
-import { useContext } from "react"
-import { DocumentContext } from "../DocumentContext.js"
+import { useDocumentContext } from "../DocumentContext.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 
 export const ProminentLink = (props: {
@@ -15,7 +14,7 @@ export const ProminentLink = (props: {
     const { errorMessage: documentErrorMessage } = useLinkedDocument(props.url)
     const { errorMessage: linkedChartErrorMessage } = useLinkedChart(props.url)
     const errorMessage = documentErrorMessage || linkedChartErrorMessage
-    const { isPreviewing } = useContext(DocumentContext)
+    const { isPreviewing } = useDocumentContext()
 
     if (errorMessage) {
         if (isPreviewing) {

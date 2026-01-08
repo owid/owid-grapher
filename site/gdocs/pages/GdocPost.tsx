@@ -20,8 +20,7 @@ import { OwidGdocHeader } from "../components/OwidGdocHeader.js"
 import StickyNav from "../../blocks/StickyNav.js"
 import { getShortPageCitation } from "../utils.js"
 import { TableOfContents } from "../../TableOfContents.js"
-import { useContext } from "react"
-import { DocumentContext } from "../DocumentContext.js"
+import { useDocumentContext } from "../DocumentContext.js"
 import { PROD_URL } from "../../SiteConstants.js"
 
 const BASE_URL = IS_ARCHIVE ? PROD_URL : ""
@@ -62,7 +61,7 @@ export function GdocPost({
     breadcrumbs,
     manualBreadcrumbs,
 }: GdocPostProps) {
-    const { archiveContext } = useContext(DocumentContext)
+    const { archiveContext } = useDocumentContext()
     const postType = content.type ?? OwidGdocType.Article
     const citationDescription = citationDescriptionsByArticleType[postType]
     const shortPageCitation = getShortPageCitation(

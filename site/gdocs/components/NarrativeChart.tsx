@@ -1,4 +1,4 @@
-import { useContext, useRef } from "react"
+import { useRef } from "react"
 import { useEmbedChart } from "../../hooks.js"
 import {
     EnrichedBlockNarrativeChart,
@@ -8,7 +8,7 @@ import { useLinkedNarrativeChart } from "../utils.js"
 import cx from "classnames"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import SpanElements from "./SpanElements.js"
-import { DocumentContext } from "../DocumentContext.js"
+import { useDocumentContext } from "../DocumentContext.js"
 import {
     DEFAULT_GRAPHER_HEIGHT,
     DEFAULT_GRAPHER_WIDTH,
@@ -30,7 +30,7 @@ export default function NarrativeChart({
     fullWidthOnMobile?: boolean
 }) {
     const refChartContainer = useRef<HTMLDivElement>(null)
-    const { isPreviewing, archiveContext } = useContext(DocumentContext)
+    const { isPreviewing, archiveContext } = useDocumentContext()
     useEmbedChart(0, refChartContainer, isPreviewing)
 
     const viewMetadata = useLinkedNarrativeChart(d.name)

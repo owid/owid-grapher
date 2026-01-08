@@ -1,13 +1,12 @@
 import { EnrichedBlockExplorerTiles } from "@ourworldindata/types"
 import { Button } from "@ourworldindata/components"
-import { useContext } from "react"
 import { useLinkedChart } from "../utils.js"
-import { DocumentContext } from "../DocumentContext.js"
+import { useDocumentContext } from "../DocumentContext.js"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 
 function ExplorerTile({ url }: { url: string }) {
     const { linkedChart, errorMessage } = useLinkedChart(url)
-    const { isPreviewing } = useContext(DocumentContext)
+    const { isPreviewing } = useDocumentContext()
     if (errorMessage && isPreviewing) {
         return <p>{errorMessage}</p>
     }

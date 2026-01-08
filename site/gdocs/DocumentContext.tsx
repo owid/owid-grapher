@@ -1,4 +1,4 @@
-import { createContext } from "react"
+import { createContext, useContext } from "react"
 import { ArchiveContext } from "@ourworldindata/types"
 
 export const DocumentContext = createContext<{
@@ -7,3 +7,7 @@ export const DocumentContext = createContext<{
 }>({
     isPreviewing: false,
 })
+
+export function useDocumentContext() {
+    return useContext(DocumentContext)
+}
