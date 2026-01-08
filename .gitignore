@@ -47,5 +47,10 @@ cfstorage/
 vite.*.mjs
 archive/*
 
+# Playwright
+test-results/
+**/.features-gen/**/*.spec.js
+playwright-report/
+
 # Sentry Config File
 .env.sentry-build-plugin

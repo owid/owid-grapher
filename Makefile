@@ -17,7 +17,7 @@ ifneq (,$(wildcard ./.env))
 	include .env
 endif
 
-.PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest
+.PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest bdd bdd.ui
 
 help:
 	@echo 'Available commands:'
@@ -34,6 +34,8 @@ help:
 	@echo '  make svgtest                generate an SVG test report for graphers'
 	@echo '  make svgtest.full           generate a full SVG test report'
 	@echo '  make svgtest.explorers      generate an SVG test report for explorers only'
+	@echo '  make bdd                    start BDD test environment in watch mode'
+	@echo '  make bdd.ui                 start BDD test environment with UI'
 	@echo '  make local-bake             do a full local site bake'
 	@echo '  make archive                create an archived version of our charts'
 	@echo
@@ -165,6 +167,48 @@ sync-cloudflare-images: node_modules
 
 refresh.full: refresh refresh.pageviews
 	@echo '==> Full refresh completed'
+
+bdd: export TMUX_SESSION_NAME ?= bdd
+
+bdd: node_modules
+	@if tmux has-session -t $(TMUX_SESSION_NAME) 2>/dev/null; then \
+		echo '==> Killing existing tmux session'; \
+		tmux kill-session -t $(TMUX_SESSION_NAME); \
+	fi
+
+	@echo '==> Starting BDD test environment'
+	tmux new-session -s $(TMUX_SESSION_NAME) \
+		-n watcher 'yarn watchTestBdd' \; \
+			set remain-on-exit on \; \
+		set-option -g default-shell $(SCRIPT_SHELL) \; \
+		new-window -n playwright 'yarn startTestBddDev' \; \
+			set remain-on-exit on \; \
+		new-window -n welcome 'echo "BDD Test Environment Ready" && echo "" && echo "Window 0: Feature file watcher" && echo "Window 1: Playwright tests in watch mode" && echo "" && echo "Keybindings:" && echo "  R - Respawn pane" && echo "  X - Kill pane" && echo "  Q - Kill server"; exec $(LOGIN_SHELL)' \; \
+		bind R respawn-pane -k \; \
+		bind X kill-pane \; \
+		bind Q kill-server \; \
+		set -g mouse on
+
+bdd.ui: export TMUX_SESSION_NAME ?= bdd-ui
+
+bdd.ui: node_modules
+	@if tmux has-session -t $(TMUX_SESSION_NAME) 2>/dev/null; then \
+		echo '==> Killing existing tmux session'; \
+		tmux kill-session -t $(TMUX_SESSION_NAME); \
+	fi
+
+	@echo '==> Starting BDD test environment with UI'
+	tmux new-session -s $(TMUX_SESSION_NAME) \
+		-n watcher 'yarn watchTestBdd' \; \
+			set remain-on-exit on \; \
+		set-option -g default-shell $(SCRIPT_SHELL) \; \
+		new-window -n playwright 'yarn startTestBddDevUi' \; \
+			set remain-on-exit on \; \
+		new-window -n welcome 'echo "BDD Test Environment with UI Ready" && echo "" && echo "Window 0: Feature file watcher" && echo "Window 1: Playwright tests with UI" && echo "" && echo "Keybindings:" && echo "  R - Respawn pane" && echo "  X - Kill pane" && echo "  Q - Kill server"; exec $(LOGIN_SHELL)' \; \
+		bind R respawn-pane -k \; \
+		bind X kill-pane \; \
+		bind Q kill-server \; \
+		set -g mouse on
 
 down: export COMPOSE_PROJECT_NAME ?= owid-grapher
 
