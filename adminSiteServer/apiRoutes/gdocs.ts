@@ -11,6 +11,8 @@ import {
     PostsGdocsTableName,
     PostsGdocsComponentsTableName,
     PagesIndexRecordsResponse,
+    RedirectsTableName,
+    OwidGdocType,
 } from "@ourworldindata/types"
 import {
     checkIsDataInsight,
@@ -189,6 +191,56 @@ async function validateSlugCollisionsIfPublishing(
 }
 
 /**
+ * Creates a redirect from the old slug to the new slug when a published gdoc's slug changes.
+ * Also updates any existing redirects that point to the old slug to point to the new slug instead
+ * (to avoid redirect chains).
+ */
+async function createRedirectForSlugChangeIfNeeded(
+    trx: db.KnexReadWriteTransaction,
+    prevGdoc: {
+        slug: string
+        published: boolean
+        content: { type?: OwidGdocType }
+    },
+    nextGdoc: {
+        slug: string
+        published: boolean
+        content: { type?: OwidGdocType }
+    }
+): Promise<void> {
+    // Only create redirects when both prev and next are published and slug has changed
+    if (!prevGdoc.published || !nextGdoc.published) return
+    if (!prevGdoc.slug || prevGdoc.slug === nextGdoc.slug) return
+
+    const oldPath = getCanonicalUrl("", prevGdoc)
+    const newPath = getCanonicalUrl("", nextGdoc)
+
+    if (oldPath === newPath) return
+
+    // Update any existing redirects that point to the old path to point to the new path instead
+    // This prevents redirect chains (A -> B -> C becomes A -> C)
+    await trx(RedirectsTableName)
+        .where("target", oldPath)
+        .update({ target: newPath })
+
+    // Delete any self-referential redirects that may have been created by the above update
+    // (e.g., when reverting a slug change: a→b updated to a→a)
+    await trx(RedirectsTableName).whereRaw("source = target").delete()
+
+    // Delete any existing redirect from the old path (in case we're reverting a previous change)
+    await trx(RedirectsTableName).where("source", oldPath).delete()
+
+    // Create the new redirect from old path to new path
+    await trx(RedirectsTableName).insert({
+        source: oldPath,
+        target: newPath,
+        code: 301, // Permanent redirect
+    })
+
+    console.log(`Created redirect: ${oldPath} -> ${newPath}`)
+}
+
+/**
  * Only supports creating a new empty Gdoc or updating an existing one. Does not
  * support creating a new Gdoc from an existing one. Relevant updates will
  * trigger a deploy.
@@ -211,6 +263,9 @@ export async function createOrUpdateGdoc(
     await nextGdoc.loadState(trx)
 
     await validateSlugCollisionsIfPublishing(trx, nextGdoc)
+
+    // Create redirect if slug changed on a published gdoc
+    await createRedirectForSlugChangeIfNeeded(trx, prevGdoc, nextGdoc)
 
     await setImagesInContentGraph(trx, nextGdoc)
 
