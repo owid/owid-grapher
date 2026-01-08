@@ -152,5 +152,14 @@ export function FetchingGrapher(
         grapherState,
     ])
 
-    return <Grapher grapherState={grapherState.current} />
+    return (
+        <Grapher
+            // Force remount when the slug changes to make sure the GA
+            // grapher_view event is fired when navigating between different
+            // graphers using the same FetchingGrapher instance (e.g. in the
+            // All charts block)
+            key={grapherState.current.slug}
+            grapherState={grapherState.current}
+        />
+    )
 }
