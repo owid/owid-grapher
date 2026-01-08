@@ -207,11 +207,12 @@ export const subnavs: {
             id: "co2-and-ghg-emissions",
             highlight: true,
         },
-        {
-            label: "By country",
-            href: "/co2-and-greenhouse-gas-emissions#co2-and-greenhouse-gas-emissions-country-profiles",
-            id: "by-country",
-        },
+        // TODO: Uncomment once we add country selector to country pages.
+        // {
+        //     label: "By country",
+        //     href: "/profile/co2/united-states",
+        //     id: "by-country",
+        // },
         {
             label: "Data explorer",
             href: "/explorers/co2",
@@ -225,11 +226,6 @@ export const subnavs: {
             id: "ghg-emissions",
         },
         { label: "By sector", href: "/emissions-by-sector", id: "by-sector" },
-        {
-            label: "Atmospheric concentrations",
-            href: "/atmospheric-concentrations",
-            id: "atm-concentrations",
-        },
         {
             label: "Climate impacts",
             href: "/explorers/climate-change",
