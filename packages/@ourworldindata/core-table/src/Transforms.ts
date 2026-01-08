@@ -16,18 +16,19 @@ import {
 } from "./ErrorValues.js"
 import * as R from "remeda"
 
-enum TransformParamType {
-    TimeSlug = "TimeSlug", // column with time
-    EntitySlug = "EntitySlug", // column with entity
-    DataSlug = "DataSlug", // column with data
-    ColumnSlug = "ColumnSlug", // any column
+export enum TransformParamType {
+    /** Column with time */
+    TimeSlug = "TimeSlug",
+    /** Column with entity */
+    EntitySlug = "EntitySlug",
+    /** Column with data */
+    DataSlug = "DataSlug",
     Number = "Number",
     String = "String",
 }
 
 interface TransformParam {
     type: TransformParamType
-    spread?: boolean
 }
 
 interface Transform {
@@ -267,67 +268,6 @@ const subtract: Transform = {
     },
 }
 
-enum WhereOperators {
-    is = "is",
-    isNot = "isNot",
-    isGreaterThan = "isGreaterThan",
-    isGreaterThanOrEqual = "isGreaterThanOrEqual",
-    isLessThan = "isLessThan",
-    isLessThanOrEqual = "isLessThanOrEqual",
-}
-// Todo: add tests/expand capabilities/remove?
-// Currently this just supports `columnSlug where someColumnSlug (isNot|is) this or that or this`
-const where: Transform = {
-    params: [
-        { type: TransformParamType.DataSlug },
-        {
-            type: TransformParamType.ColumnSlug,
-        },
-        {
-            type: TransformParamType.String,
-            spread: true,
-        },
-    ],
-    fn: (
-        columnStore: CoreColumnStore,
-        columnSlug: ColumnSlug,
-        conditionSlug: ColumnSlug,
-        ...condition: string[]
-    ): CoreValueType[] => {
-        const values = columnStore[columnSlug]
-        const conditionValues = columnStore[conditionSlug]
-        const operator = condition.shift()
-        let passes: (value: any) => boolean = () => true
-        if (
-            operator === WhereOperators.isNot ||
-            operator === WhereOperators.is
-        ) {
-            const result = operator === "isNot" ? false : true
-            const list = condition.join(" ").split(" or ")
-            const set = new Set(list)
-            passes = (value: any): boolean =>
-                set.has(value) ? result : !result
-        } else if (operator === WhereOperators.isGreaterThan)
-            passes = (value: any): boolean =>
-                value > parseFloat(condition.join(""))
-        else if (operator === WhereOperators.isGreaterThanOrEqual)
-            passes = (value: any): boolean =>
-                value >= parseFloat(condition.join(""))
-        else if (operator === WhereOperators.isLessThan)
-            passes = (value: any): boolean =>
-                value < parseFloat(condition.join(""))
-        else if (operator === WhereOperators.isLessThanOrEqual)
-            passes = (value: any): boolean =>
-                value <= parseFloat(condition.join(""))
-
-        return values.map((value, index) =>
-            passes(conditionValues[index])
-                ? value
-                : ErrorValueTypes.FilteredValue
-        )
-    },
-}
-
 // Assumptions: data is sorted by entity, then time, and time is a continous integer with a row for each time step.
 // todo: move tests over from CE
 const percentChange: Transform = {
@@ -339,7 +279,7 @@ const percentChange: Transform = {
     ],
     fn: (
         columnStore: CoreColumnStore,
-        timeSlug: ColumnSlug,
+        _timeSlug: ColumnSlug,
         entitySlug: ColumnSlug,
         columnSlug: ColumnSlug,
         windowSize: number
@@ -400,7 +340,7 @@ const duplicate: Transform = {
     ): CoreValueType[] => _.cloneDeep(columnStore[columnSlug]),
 }
 
-const availableTransforms: Record<string, Transform> = {
+const availableTransforms = {
     asPercentageOf,
     timeSinceEntityExceededThreshold,
     divideBy,
@@ -408,24 +348,56 @@ const availableTransforms: Record<string, Transform> = {
     percentChange,
     multiplyBy,
     subtract,
-    where,
     duplicate,
 } as const
 
-export const AvailableTransforms = Object.keys(availableTransforms)
+type TransformName = keyof typeof availableTransforms
+export const availableTransformNames = Object.keys(
+    availableTransforms
+) as TransformName[]
 
-export const extractTransformNameAndParams = (
+const isTransformName = (word: string): word is TransformName =>
+    availableTransformNames.includes(word as any)
+
+/**
+ * Extracts the transform name and params from a transform string.
+ *
+ * For example, 'rollingAverage time entity population 5' is parsed as
+ * {
+ *     transformName: 'rollingAverage',
+ *     params: [
+ *        { type: TransformParamType.TimeSlug, value: 'time' },
+ *        { type: TransformParamType.EntitySlug, value: 'entity' },
+ *        { type: TransformParamType.DataSlug, value: 'population' },
+ *        { type: TransformParamType.Number, value: '5' },
+ *    ]
+ * }
+ */
+export const parseTransformString = (
     transform: string
-): { transformName: string; params: string[] } | undefined => {
+):
+    | {
+          transformName: TransformName
+          params: { type: TransformParamType; value: string }[]
+      }
+    | undefined => {
     const words = transform.split(" ")
-    const transformName = words.find(
-        (word) => availableTransforms[word] !== undefined
-    )
+
+    const transformName = words.find((word) => isTransformName(word))
+
     if (!transformName) {
         console.warn(`Warning: transform '${transformName}' not found`)
         return
     }
-    const params = words.filter((word) => word !== transformName)
+
+    const values = words.filter((word) => word !== transformName)
+
+    // Extract data slugs from transforms (i.e. columns with data, not time or entity)
+    const paramDefs = availableTransforms[transformName].params
+    const params = R.zip(paramDefs, values).map(([paramDef, value]) => {
+        return { type: paramDef.type, value }
+    })
+
     return { transformName, params }
 }
 
@@ -436,19 +408,20 @@ export const applyTransforms = (
     for (const def of defs) {
         if (!def.transform || def.transformHasRun) continue
         const { transformName, params = [] } =
-            extractTransformNameAndParams(def.transform!) ?? {}
+            parseTransformString(def.transform!) ?? {}
+        const paramValues = params.map(({ value }) => value)
         if (!transformName) continue
         const { fn } = availableTransforms[transformName]
         try {
-            columnStore[def.slug] = fn(columnStore, ...params)
+            columnStore[def.slug] = fn(columnStore, ...paramValues)
             def.transformHasRun = true
         } catch (err) {
             console.error(
                 `Error performing transform '${def.transform}' for column '${
                     def.slug
                 }'. Expected args: ${fn.length}. Provided args: ${
-                    1 + params.length
-                }. Ran as ${transformName}(columnStore, ${params
+                    1 + paramValues.length
+                }. Ran as ${transformName}(columnStore, ${paramValues
                     .map((param) => `"${param}"`)
                     .join(",")}).`
             )
@@ -456,28 +429,4 @@ export const applyTransforms = (
         }
     }
     return columnStore
-}
-
-const isMaybeDataSlugParam = (paramDef: TransformParam): boolean =>
-    paramDef.type === TransformParamType.DataSlug ||
-    paramDef.type === TransformParamType.ColumnSlug // might be a data slug
-
-export const extractPotentialDataSlugsFromTransform = (
-    transform: string
-): ColumnSlug[] | undefined => {
-    const { transformName, params = [] } =
-        extractTransformNameAndParams(transform) ?? {}
-    if (!transformName) return
-    const paramDefs = availableTransforms[transformName].params
-    const dataSlugs = R.zip(paramDefs, params)
-        .filter(
-            ([paramDef, param]) =>
-                param && paramDef && isMaybeDataSlugParam(paramDef)
-        )
-        .map(([_, param]) => param as string)
-    const lastParam = paramDefs[paramDefs.length - 1]
-    if (lastParam && isMaybeDataSlugParam(lastParam) && lastParam.spread) {
-        dataSlugs.push(...params.slice(paramDefs.length))
-    }
-    return _.uniq(dataSlugs)
 }

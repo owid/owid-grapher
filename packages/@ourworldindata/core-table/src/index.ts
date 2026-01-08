@@ -76,7 +76,7 @@ export {
 export {
     insertMissingValuePlaceholders,
     computeRollingAverage,
-    AvailableTransforms,
+    availableTransformNames,
     applyTransforms,
-    extractPotentialDataSlugsFromTransform,
+    parseTransformString,
 } from "./Transforms.js"
