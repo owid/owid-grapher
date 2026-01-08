@@ -49,7 +49,7 @@ function normalizeRedirectSource(source: string): string {
 
 type ApiMultiDimDetail = {
     id: number
-    catalogPath: string | null
+    catalogPath: string
     slug: string | null
     updatedAt: string
     published: boolean
@@ -328,7 +328,7 @@ export function MultiDimDetailPage({ id }: { id: number }) {
     }, [config, currentDimensions])
 
     const iframeSrc = useMemo(() => {
-        if (!multiDim?.catalogPath) return null
+        if (!multiDim) return null
         const baseUrl = urljoin(
             ADMIN_BASE_URL,
             `/admin/grapher/${encodeURIComponent(multiDim.catalogPath)}`
@@ -341,7 +341,7 @@ export function MultiDimDetailPage({ id }: { id: number }) {
             }
         }
         return `${baseUrl}?${params.toString()}`
-    }, [multiDim?.catalogPath, currentDimensions])
+    }, [multiDim, currentDimensions])
 
     function handleCreateRedirect(values: RedirectFormValues) {
         const normalizedSource = normalizeRedirectSource(values.source.trim())
@@ -392,12 +392,10 @@ export function MultiDimDetailPage({ id }: { id: number }) {
             ? urljoin(BAKED_GRAPHER_URL, multiDim.slug)
             : null
 
-    const previewUrl = multiDim.catalogPath
-        ? urljoin(
-              ADMIN_BASE_URL,
-              `/admin/grapher/${encodeURIComponent(multiDim.catalogPath)}`
-          )
-        : null
+    const previewUrl = urljoin(
+        ADMIN_BASE_URL,
+        `/admin/grapher/${encodeURIComponent(multiDim.catalogPath)}`
+    )
 
     const title = multiDim.config.title.title
 
@@ -415,14 +413,12 @@ export function MultiDimDetailPage({ id }: { id: number }) {
                             <Typography.Title className="mb-0" level={4}>
                                 {title}
                             </Typography.Title>
-                            {multiDim.catalogPath && (
-                                <Typography.Text
-                                    type="secondary"
-                                    copyable={{ text: multiDim.catalogPath }}
-                                >
-                                    {multiDim.catalogPath}
-                                </Typography.Text>
-                            )}
+                            <Typography.Text
+                                type="secondary"
+                                copyable={{ text: multiDim.catalogPath }}
+                            >
+                                {multiDim.catalogPath}
+                            </Typography.Text>
                             {!multiDim.published && (
                                 <Tag color="default">Draft</Tag>
                             )}
@@ -442,21 +438,17 @@ export function MultiDimDetailPage({ id }: { id: number }) {
                                 </Space>
                             </a>
                         ) : (
-                            previewUrl && (
-                                <a
-                                    className="ant-btn ant-btn-default"
-                                    href={previewUrl}
-                                    target="_blank"
-                                    rel="noopener"
-                                >
-                                    <Space>
-                                        <FontAwesomeIcon
-                                            icon={faExternalLink}
-                                        />
-                                        View preview
-                                    </Space>
-                                </a>
-                            )
+                            <a
+                                className="ant-btn ant-btn-default"
+                                href={previewUrl}
+                                target="_blank"
+                                rel="noopener"
+                            >
+                                <Space>
+                                    <FontAwesomeIcon icon={faExternalLink} />
+                                    View preview
+                                </Space>
+                            </a>
                         )}
                     </Col>
                 </Row>
