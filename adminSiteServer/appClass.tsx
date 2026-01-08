@@ -6,9 +6,11 @@ import { BAKED_BASE_URL, ENV } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
 import { IndexPage } from "./IndexPage.js"
 import {
-    authCloudflareSSOMiddleware,
+    cloudflareAuthMiddleware,
     tailscaleAuthMiddleware,
-    authMiddleware,
+    devAuthMiddleware,
+    sessionCookieAuthMiddleware,
+    requireAdminAuthMiddleware,
 } from "./authentication.js"
 import { apiRouter } from "./apiRouter.js"
 import { testPageRouter } from "./testPageRouter.js"
@@ -63,16 +65,18 @@ export class OwidAdminApp {
 
         app.use(express.urlencoded({ extended: true, limit: "50mb" }))
 
+        app.use("/admin", sessionCookieAuthMiddleware)
+
         if (ENV === "staging") {
-            // Try to log in with tailscale if we're in staging
-            app.use(tailscaleAuthMiddleware)
-        } else {
-            // In production use Cloudflare
-            app.use("/admin/login", authCloudflareSSOMiddleware)
+            app.use("/admin", tailscaleAuthMiddleware)
+        } else if (ENV === "production") {
+            app.use("/admin", cloudflareAuthMiddleware)
+        } else if (ENV === "development") {
+            app.use("/admin", devAuthMiddleware)
         }
 
         // Require authentication (only for /admin requests)
-        app.use(authMiddleware)
+        app.use("/admin", requireAdminAuthMiddleware)
 
         app.use("/", express.static("public"))
         app.use("/assets", express.static("dist/assets"))
