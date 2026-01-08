@@ -1,3 +1,5 @@
+export const RedirectsTableName = "redirects"
+
 export enum RedirectCode {
     MOVED_PERMANENTLY = 301,
     FOUND = 302,

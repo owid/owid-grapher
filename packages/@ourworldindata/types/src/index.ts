@@ -821,7 +821,11 @@ export {
     type License,
 } from "./dbTypes/Variables.js"
 
-export { RedirectCode, type DbPlainRedirect } from "./dbTypes/Redirects.js"
+export {
+    RedirectsTableName,
+    RedirectCode,
+    type DbPlainRedirect,
+} from "./dbTypes/Redirects.js"
 
 export {
     ExplorerViewsTableName,
