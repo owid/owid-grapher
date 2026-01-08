@@ -103,7 +103,6 @@ export interface ChartManager {
     isStatic?: boolean
     isSemiNarrow?: boolean
     isStaticAndSmall?: boolean
-    isExportingForSocialMedia?: boolean
     isExportingForWikimedia?: boolean
     backgroundColor?: Color
     shouldPinTooltipToBottom?: boolean

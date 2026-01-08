@@ -74,7 +74,6 @@ export interface CaptionedChartManager
     isOnTableTab?: boolean
     activeChartType?: GrapherChartType
     isFaceted?: boolean
-    isExportingForSocialMedia?: boolean
     isExportingForWikimedia?: boolean
 
     // timeline

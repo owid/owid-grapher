@@ -76,7 +76,6 @@ export interface DownloadModalManager {
     isOnArchivalPage?: boolean
     hasArchivedPage?: boolean
     showAdminControls?: boolean
-    isSocialMediaExport?: boolean
     isWikimediaExport?: boolean
     isPublished?: boolean
     activeColumnSlugs?: string[]
@@ -252,10 +251,6 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
         )
     }
 
-    @computed private get isSocialMediaExport(): boolean {
-        return this.manager.isSocialMediaExport ?? false
-    }
-
     @computed private get isWikimediaExport(): boolean {
         return this.manager.isWikimediaExport ?? false
     }
@@ -343,10 +338,6 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
         this.manager.staticBounds = this.isExportingSquare
             ? DEFAULT_GRAPHER_BOUNDS
             : DEFAULT_GRAPHER_BOUNDS_SQUARE
-    }
-
-    @action.bound private toggleExportForUseInSocialMedia(): void {
-        this.manager.isSocialMediaExport = !this.isSocialMediaExport
     }
 
     @action.bound private toggleExportForUseOnWikimedia(): void {
@@ -517,30 +508,6 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                                         onChange={action((): void => {
                                             this.reset()
                                             this.toggleExportFormat()
-
-                                            if (!this.isExportingSquare) {
-                                                this.manager.isSocialMediaExport = false
-                                            }
-
-                                            this.export()
-                                        })}
-                                    />
-                                )}
-                                {this.manager.showAdminControls && (
-                                    <Checkbox
-                                        checked={this.isSocialMediaExport}
-                                        label="For use in social media (internal)"
-                                        onChange={action((): void => {
-                                            this.reset()
-                                            this.toggleExportForUseInSocialMedia()
-
-                                            // set reasonable defaults for social media exports
-                                            if (this.isSocialMediaExport) {
-                                                this.manager.staticBounds =
-                                                    DEFAULT_GRAPHER_BOUNDS_SQUARE
-                                                this.shouldIncludeDetails = false
-                                            }
-
                                             this.export()
                                         })}
                                     />

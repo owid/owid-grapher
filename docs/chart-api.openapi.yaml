@@ -671,7 +671,6 @@ components:
                     - og
                     - thumbnail
                     - square
-                    - social-media-square
                     - uncaptioned
             example: "og"
 
