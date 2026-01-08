@@ -48,7 +48,7 @@ fields:
         description: Timestamp when the user was last seen/active in the system
     githubUsername:
         description: GitHub username for integration with GitHub workflows
-    slackUsername:
-        description: Slack display name for integration with Slack notifications
+    slackId:
+        description: Slack member ID (e.g. U01THNNPDCG) for integration with Slack notifications
     dataInsightFolderId:
         description: Folder ID for organizing data insights content

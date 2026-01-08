@@ -11,7 +11,7 @@ export interface DbInsertUser {
     password?: string | null
     updatedAt?: Date | null
     githubUsername?: string | null
-    slackUsername?: string | null
+    slackId?: string | null
     dataInsightFolderId?: string | null
 }
 export type DbPlainUser = Required<DbInsertUser>
