@@ -179,6 +179,11 @@ export const SearchAutocomplete = ({
                             }
                             onMouseEnter={() => setActiveIndex(index)}
                             aria-label={getFilterAriaLabel(filter, "add")}
+                            data-test="search-autocomplete-button"
+                            data-test-filter-type={filter.type}
+                            data-test-filter-name={encodeURIComponent(
+                                filter.name
+                            )}
                         >
                             <SearchAutocompleteItemContents
                                 filter={filter}

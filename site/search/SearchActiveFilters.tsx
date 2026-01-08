@@ -35,6 +35,11 @@ export const SearchActiveFilters = () => {
                             aria-label={`Remove ${filter.name}`}
                             onClick={() => removeTopic(filter.name)}
                             className="search-active-filter-button"
+                            data-test="search-active-filter-button"
+                            data-test-filter-type={filter.type}
+                            data-test-filter-name={encodeURIComponent(
+                                filter.name
+                            )}
                         >
                             <SearchFilterPill
                                 name={filter.name}
