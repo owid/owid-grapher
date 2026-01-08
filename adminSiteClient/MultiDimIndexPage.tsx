@@ -31,7 +31,7 @@ import { Link } from "./Link.js"
 
 type ApiMultiDim = {
     id: number
-    catalogPath: string | null
+    catalogPath: string
     title: string
     slug: string | null
     updatedAt: string
@@ -47,7 +47,7 @@ function PreviewLink({
     catalogPath,
 }: {
     slug: string | null
-    catalogPath: string | null
+    catalogPath: string
 }) {
     const [status, setStatus] = useState<"loading" | "success" | "error">(
         "loading"
@@ -84,23 +84,19 @@ function PreviewLink({
         </>
     )
 
-    if (catalogPath) {
-        return (
-            <a
-                className="multi-dim-preview-link"
-                target="_blank"
-                rel="noopener"
-                href={urljoin(
-                    ADMIN_BASE_URL,
-                    `/admin/grapher/${encodeURIComponent(catalogPath)}`
-                )}
-            >
-                {content}
-            </a>
-        )
-    }
-
-    return content
+    return (
+        <a
+            className="multi-dim-preview-link"
+            target="_blank"
+            rel="noopener"
+            href={urljoin(
+                ADMIN_BASE_URL,
+                `/admin/grapher/${encodeURIComponent(catalogPath)}`
+            )}
+        >
+            {content}
+        </a>
+    )
 }
 
 function SlugField({
@@ -189,15 +185,10 @@ function createColumns(
             title: "Catalog path",
             dataIndex: "catalogPath",
             key: "catalogPath",
-            render: (catalogPath) =>
-                catalogPath && (
-                    <Typography.Text copyable>{catalogPath}</Typography.Text>
-                ),
-            sorter: (a, b) => {
-                if (a.catalogPath === null) return 1
-                if (b.catalogPath === null) return -1
-                return a.catalogPath.localeCompare(b.catalogPath)
-            },
+            render: (catalogPath) => (
+                <Typography.Text copyable>{catalogPath}</Typography.Text>
+            ),
+            sorter: (a, b) => a.catalogPath.localeCompare(b.catalogPath),
         },
         {
             title: "Slug",

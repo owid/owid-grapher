@@ -47,7 +47,7 @@ interface ExplorerListItem {
 interface MultiDimListItem {
     id: number
     slug: string | null
-    catalogPath: string | null
+    catalogPath: string
     title: string | null
     titleVariant: string | null
     published: boolean
@@ -226,10 +226,7 @@ interface MultiDimListProps {
  * Helper function to extract directory path from catalog path
  * Example: "health/latest/vaccination_coverage#vaccination_coverage" -> "health/latest"
  */
-function getGitHubPathFromCatalogPath(
-    catalogPath: string | null
-): string | null {
-    if (!catalogPath) return null
+function getGitHubPathFromCatalogPath(catalogPath: string): string | null {
     // Remove everything after and including the # if present
     const pathWithoutFragment = catalogPath.split("#")[0]
     // Get directory path (everything before the last /)
