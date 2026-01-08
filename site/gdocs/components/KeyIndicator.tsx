@@ -31,7 +31,7 @@ export default function KeyIndicator({
 
     return (
         <div className={cx("key-indicator grid grid-cols-12", className)}>
-            <div className="left col-start-1 span-cols-4 span-sm-cols-12">
+            <div className="left col-start-1 span-cols-4 span-md-cols-12">
                 <div className="indicator-metadata">
                     <span className="indicator-title">
                         {linkedIndicator.title}
@@ -52,7 +52,7 @@ export default function KeyIndicator({
                 />
             </div>
             <Chart
-                className="key-indicator-chart col-start-5 span-cols-8 span-sm-cols-12 margin-0"
+                className="key-indicator-chart col-start-5 span-cols-8 span-md-cols-12 margin-0"
                 d={{
                     url: d.datapageUrl, // The URL is resolved in the component.
                     type: "chart",

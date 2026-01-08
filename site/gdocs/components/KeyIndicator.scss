@@ -8,7 +8,7 @@
     }
 
     .left {
-        @include sm-only {
+        @include md-down {
             margin-bottom: 16px;
         }
     }
