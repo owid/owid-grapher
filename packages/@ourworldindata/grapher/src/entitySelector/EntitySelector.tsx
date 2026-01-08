@@ -116,6 +116,8 @@ export interface EntitySelectorManager {
     canHighlightEntities?: boolean
     endTime?: Time
     isOnMapTab?: boolean
+    isOnScatterTab?: boolean
+    xColumnSlug?: ColumnSlug
     mapConfig?: MapConfig
     mapColumnSlug?: ColumnSlug
     isEntityMutedInSelector?: (entityName: EntityName) => boolean
@@ -436,11 +438,23 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         this.set({ isProjectionBySlugAndTimeAndEntityName })
     }
 
+    /** Time scatters plot time on the x-axis */
+    @computed private get isTimeScatter(): boolean {
+        return (
+            !!this.manager.isOnScatterTab &&
+            this.manager.xColumnSlug === undefined
+        )
+    }
+
     @computed private get toleranceOverride(): {
         value?: number
         strategy?: ToleranceStrategy
     } {
-        // use map tolerance if on the map tab
+        // For time scatters, use infinite tolerance so entities show data
+        // from any available time point instead of "No data"
+        if (this.isTimeScatter) return { value: Infinity }
+
+        // Use the given map tolerance if on the map tab
         const tolerance = this.manager.isOnMapTab
             ? this.mapConfig.timeTolerance
             : undefined
@@ -896,10 +910,11 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         const slugsToExclude: Set<ColumnSlug> = new Set()
 
         for (const column of columns) {
-            const formattedTime = this.formatTimeForSortColumnLabel(
-                this.endTime,
-                column
-            )
+            // Time scatters use values from any available time point,
+            // so we don't show a time label for them
+            const formattedTime = this.isTimeScatter
+                ? undefined
+                : this.formatTimeForSortColumnLabel(this.endTime, column)
 
             const projectionInfo = this.manager.projectionColumnInfoBySlug?.get(
                 column.slug
