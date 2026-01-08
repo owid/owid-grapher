@@ -121,6 +121,7 @@ export const SearchInput = forwardRef(
                         type="text"
                         className="search-input body-3-regular"
                         ref={inputRef}
+                        data-testid="search-input"
                         placeholder={placeholder}
                         enterKeyHint="search"
                         value={value}
