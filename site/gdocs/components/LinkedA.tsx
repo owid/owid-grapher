@@ -1,4 +1,3 @@
-import { useContext } from "react"
 import { getLinkType } from "@ourworldindata/components"
 import { SpanLink } from "@ourworldindata/types"
 import { useLinkedDocument, useLinkedChart } from "../utils.js"
@@ -9,13 +8,13 @@ import { ChartPreview } from "./ChartPreview.js"
 import { SiteAnalytics } from "../../SiteAnalytics.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons"
-import { DocumentContext } from "../DocumentContext.js"
+import { useDocumentContext } from "../DocumentContext.js"
 
 const analytics = new SiteAnalytics()
 
 export default function LinkedA({ span }: { span: SpanLink }) {
     const linkType = getLinkType(span.url)
-    const { archiveContext } = useContext(DocumentContext)
+    const { archiveContext } = useDocumentContext()
     const isOnArchivalPage = archiveContext?.type === "archive-page"
     const { linkedDocument } = useLinkedDocument(span.url)
     const { linkedChart } = useLinkedChart(span.url)

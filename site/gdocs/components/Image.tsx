@@ -1,4 +1,4 @@
-import { useCallback, useContext, useState } from "react"
+import { useCallback, useState } from "react"
 import {
     AssetMap,
     generateSourceProps,
@@ -8,7 +8,7 @@ import {
 } from "@ourworldindata/utils"
 import cx from "classnames"
 import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.js"
-import { DocumentContext } from "../DocumentContext.js"
+import { useDocumentContext } from "../DocumentContext.js"
 import { useImage } from "../utils.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../../SiteConstants.js"
@@ -109,7 +109,7 @@ export default function Image(props: {
     // Whether we should show the lightbox and a download button
     const isInteractive = shouldLightbox && containerType !== "thumbnail"
 
-    const { archiveContext, isPreviewing } = useContext(DocumentContext)
+    const { archiveContext, isPreviewing } = useDocumentContext()
     const isOnArchivalPage = archiveContext?.type === "archive-page"
     const assetMap = isOnArchivalPage
         ? archiveContext?.assets?.runtime

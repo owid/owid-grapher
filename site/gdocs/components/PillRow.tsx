@@ -1,11 +1,10 @@
 import { EnrichedBlockPillRow } from "@ourworldindata/types"
-import { useContext } from "react"
 import { useLinkedDocument } from "../utils.js"
-import { DocumentContext } from "../DocumentContext.js"
+import { useDocumentContext } from "../DocumentContext.js"
 
 function Pill(props: { text?: string; url: string }) {
     const { linkedDocument, errorMessage } = useLinkedDocument(props.url)
-    const { isPreviewing } = useContext(DocumentContext)
+    const { isPreviewing } = useDocumentContext()
     const url = linkedDocument?.url ?? props.url
     const text = props.text ?? linkedDocument?.title
 

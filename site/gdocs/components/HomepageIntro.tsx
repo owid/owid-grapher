@@ -7,7 +7,7 @@ import {
 } from "@ourworldindata/types"
 import { dayjs, formatAuthors } from "@ourworldindata/utils"
 import { useLinkedChart, useLinkedDocument } from "../utils.js"
-import { DocumentContext } from "../DocumentContext.js"
+import { useDocumentContext } from "../DocumentContext.js"
 import Image, { ImageParentContainer } from "./Image.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import * as R from "remeda"
@@ -43,7 +43,7 @@ function FeaturedWorkTile({
     id,
 }: FeaturedWorkTileProps) {
     const { linkedDocument, errorMessage } = useLinkedDocument(url)
-    const { isPreviewing } = useContext(DocumentContext)
+    const { isPreviewing } = useDocumentContext()
     const linkedDocumentFeaturedImage = linkedDocument?.["featured-image"]
     const thumbnailFilename = filename ?? linkedDocumentFeaturedImage
     const href = linkedDocument?.url ?? url

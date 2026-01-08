@@ -1,15 +1,8 @@
 import cx from "classnames"
 import { useLinkedStaticViz } from "../utils.js"
 import Image, { ImageParentContainer } from "./Image.js"
-import { DocumentContext } from "../DocumentContext.js"
-import {
-    useCallback,
-    useContext,
-    useMemo,
-    useState,
-    useId,
-    type MouseEvent,
-} from "react"
+import { useDocumentContext } from "../DocumentContext.js"
+import { useCallback, useMemo, useState, useId, type MouseEvent } from "react"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { MarkdownTextWrap, OverlayHeader } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -35,7 +28,7 @@ export default function StaticViz(props: StaticVizProps) {
         hasOutline = true,
     } = props
     const staticViz = useLinkedStaticViz(name)
-    const { isPreviewing } = useContext(DocumentContext)
+    const { isPreviewing } = useDocumentContext()
     const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false)
 
     if (!staticViz) {

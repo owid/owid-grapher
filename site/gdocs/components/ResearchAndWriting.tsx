@@ -10,7 +10,7 @@ import {
 } from "@ourworldindata/utils"
 import { useLinkedDocument } from "../utils.js"
 import Image, { ImageParentContainer } from "./Image.js"
-import { DocumentContext } from "../DocumentContext.js"
+import { useDocumentContext } from "../DocumentContext.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { Button } from "@ourworldindata/components"
 import {
@@ -84,7 +84,7 @@ function ResearchAndWritingLink(
         className,
     } = props
     const { linkedDocument, errorMessage } = useLinkedDocument(url)
-    const { isPreviewing } = useContext(DocumentContext)
+    const { isPreviewing } = useDocumentContext()
 
     if (errorMessage) {
         if (isPreviewing) {

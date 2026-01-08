@@ -9,7 +9,7 @@ import cx from "classnames"
 import { GrapherWithFallback } from "../../GrapherWithFallback.js"
 import { MultiDimEmbed } from "../../MultiDimEmbed.js"
 import { useEmbedChart } from "../../hooks.js"
-import { DocumentContext } from "../DocumentContext.js"
+import { useDocumentContext } from "../DocumentContext.js"
 
 export default function Chart({
     d,
@@ -20,7 +20,7 @@ export default function Chart({
     className?: string
     fullWidthOnMobile?: boolean
 }) {
-    const { isPreviewing, archiveContext } = useContext(DocumentContext)
+    const { isPreviewing, archiveContext } = useDocumentContext()
     const refChartContainer = useRef<HTMLDivElement>(null)
     const archiveIframeRef = useRef<HTMLIFrameElement | null>(null)
     useEmbedChart(0, refChartContainer, isPreviewing)
