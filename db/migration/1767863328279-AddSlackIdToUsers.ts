@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddSlackIdToUsers1767863328279
-    implements MigrationInterface
-{
+export class AddSlackIdToUsers1767863328279 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
             ALTER TABLE users ADD COLUMN slackId VARCHAR(255) NULL;
