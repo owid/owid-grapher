@@ -17,7 +17,7 @@ ifneq (,$(wildcard ./.env))
 	include .env
 endif
 
-.PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest bdd bdd.ui
+.PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest bdd bdd.ui playwright-browsers
 
 help:
 	@echo 'Available commands:'
@@ -31,6 +31,7 @@ help:
 	@echo '  make migrate                (while up) run any outstanding db migrations'
 	@echo '  make test                   run full suite (except db tests) of CI checks including unit tests'
 	@echo '  make dbtest                 run db test suite that needs a running mysql db'
+	@echo '  make playwright-browsers    install Playwright browsers'
 	@echo '  make svgtest                generate an SVG test report for graphers'
 	@echo '  make svgtest.full           generate a full SVG test report'
 	@echo '  make svgtest.explorers      generate an SVG test report for explorers only'
@@ -170,7 +171,7 @@ refresh.full: refresh refresh.pageviews
 
 bdd: export TMUX_SESSION_NAME ?= bdd
 
-bdd: node_modules
+bdd: node_modules playwright-browsers
 	@if tmux has-session -t $(TMUX_SESSION_NAME) 2>/dev/null; then \
 		echo '==> Killing existing tmux session'; \
 		tmux kill-session -t $(TMUX_SESSION_NAME); \
@@ -191,7 +192,7 @@ bdd: node_modules
 
 bdd.ui: export TMUX_SESSION_NAME ?= bdd-ui
 
-bdd.ui: node_modules
+bdd.ui: node_modules playwright-browsers
 	@if tmux has-session -t $(TMUX_SESSION_NAME) 2>/dev/null; then \
 		echo '==> Killing existing tmux session'; \
 		tmux kill-session -t $(TMUX_SESSION_NAME); \
@@ -270,7 +271,7 @@ tmp-downloads/owid_metadata.sql.gz:
 	@echo '==> Downloading metadata'
 	./devTools/docker/download-grapher-metadata-mysql.sh
 
-test: node_modules
+test: node_modules playwright-browsers
 	@echo '==> Linting'
 	yarn run eslint
 
@@ -282,6 +283,13 @@ test: node_modules
 
 	@echo '==> Running tests'
 	yarn run test
+
+	@echo '==> Running BDD tests'
+	yarn run testBdd
+
+playwright-browsers:
+	@echo '==> Installing Playwright browsers'
+	yarn playwright install --with-deps --no-shell
 
 dbtest: node_modules
 	@echo '==> Running db test script'
