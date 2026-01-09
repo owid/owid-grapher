@@ -1,8 +1,6 @@
 // Extract Google Doc ID from URL
 function getDocIdFromUrl(): string | null {
-    const match = window.location.href.match(
-        /\/document\/d\/([a-zA-Z0-9_-]+)/
-    )
+    const match = window.location.href.match(/\/document\/d\/([a-zA-Z0-9_-]+)/)
     return match ? match[1] : null
 }
 
