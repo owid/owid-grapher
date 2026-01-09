@@ -262,6 +262,7 @@
     "workspaces": [
         "functions",
         "packages/@ourworldindata/*",
+        "chrome-extension",
         "."
     ],
     "license": "MIT"
