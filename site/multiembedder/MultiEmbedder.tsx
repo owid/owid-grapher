@@ -2,7 +2,6 @@ import * as _ from "lodash-es"
 import {
     GrapherProgrammaticInterface,
     GRAPHER_EMBEDDED_FIGURE_ATTR,
-    SelectionArray,
     migrateGrapherConfigToLatestVersion,
     GRAPHER_NARRATIVE_CHART_CONFIG_FIGURE_ATTR,
     renderGrapherIntoContainer,
@@ -52,7 +51,6 @@ const figuresFromDOM = (
 class MultiEmbedder {
     private figuresObserver: IntersectionObserver | undefined
     private isPreviewing?: boolean
-    selection: SelectionArray = new SelectionArray()
 
     constructor() {
         makeObservable(this)
@@ -128,11 +126,7 @@ class MultiEmbedder {
         const { fullUrl, queryStr } = Url.fromURL(explorerUrl)
 
         const html = await fetchText(fullUrl)
-        const props: ExplorerProps = await buildExplorerProps(
-            html,
-            queryStr,
-            this.selection
-        )
+        const props: ExplorerProps = await buildExplorerProps(html, queryStr)
 
         const root = createRoot(figure)
         root.render(<Explorer {...props} />)
@@ -171,14 +165,7 @@ class MultiEmbedder {
             {}, // merge mutates the first argument
             grapherPageConfig,
             common,
-            additionalConfig,
-            {
-                manager: {
-                    selection: this.selection.hasSelection
-                        ? new SelectionArray(this.selection.selectedEntityNames)
-                        : undefined,
-                },
-            }
+            additionalConfig
         )
 
         renderGrapherIntoContainer(config, figure, DATA_API_URL, {
@@ -212,16 +199,11 @@ class MultiEmbedder {
         queryStr: string
     ) {
         figure.classList.remove(GRAPHER_PREVIEW_CLASS)
-        const localGrapherConfig: GrapherProgrammaticInterface = {}
-        localGrapherConfig.manager = {
-            selection: new SelectionArray(this.selection.selectedEntityNames),
-        }
         const root = createRoot(figure)
         root.render(
             <MultiDim
                 slug={slug}
                 config={MultiDimDataPageConfig.fromObject(multiDimConfig)}
-                localGrapherConfig={localGrapherConfig}
                 queryStr={queryStr}
                 isPreviewing={this.isPreviewing}
             />
