@@ -4,6 +4,8 @@
         "editorconfig.editorconfig",
         "esbenp.prettier-vscode",
         "mrmlnc.vscode-scss",
-        "vitest.explorer"
+        "vitest.explorer",
+        "ms-playwright.playwright",
+        "cucumberopen.cucumber-official"
     ]
 }
