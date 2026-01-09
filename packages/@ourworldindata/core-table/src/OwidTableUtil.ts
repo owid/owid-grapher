@@ -27,6 +27,9 @@ export function makeOriginalValueSlugFromColumnSlug(slug: ColumnSlug): string {
     return `${slug}-originalValue`
 }
 
+export const makeAnnotationsSlug = (columnSlug: string): string =>
+    `${columnSlug}-annotations`
+
 export function getOriginalTimeColumnSlug(
     table: CoreTable,
     slug: ColumnSlug

@@ -1,6 +1,5 @@
 import * as _ from "lodash-es"
 import {
-    csvEscape,
     intersection,
     isPresent,
     ColumnSlug,
@@ -29,7 +28,6 @@ import {
     CoreColumnDef,
     JsTypes,
     OwidTableSlugs,
-    OwidColumnDef,
 } from "@ourworldindata/types"
 import {
     makeAutoTypeFn,
@@ -509,6 +507,32 @@ export class CoreTable<
         return this.entityNameColumn.slug
     }
 
+    // todo: should be on owidtable
+    @imemo get entityCodeColumn(): CoreColumn {
+        return (
+            this.getFirstColumnWithType(ColumnTypeNames.EntityCode) ??
+            this.get(OwidTableSlugs.entityCode)
+        )
+    }
+
+    // todo: should be on owidtable
+    @imemo get entityCodeSlug(): string {
+        return this.entityCodeColumn.slug
+    }
+
+    // todo: should be on owidtable
+    @imemo get entityIdColumn(): CoreColumn {
+        return (
+            this.getFirstColumnWithType(ColumnTypeNames.EntityId) ??
+            this.get(OwidTableSlugs.entityId)
+        )
+    }
+
+    // todo: should be on owidtable
+    @imemo get entityIdSlug(): string {
+        return this.entityIdColumn.slug
+    }
+
     @imemo private get columnsWithParseErrors(): CoreColumn[] {
         return this.columnsAsArray.filter((col) => col.numErrorValues)
     }
@@ -848,29 +872,6 @@ export class CoreTable<
         }
     }
 
-    toCsvWithColumnNames(useShortNames: boolean = false): string {
-        const delimiter = ","
-        const header =
-            this.columnsAsArray
-                .map((col) =>
-                    csvEscape(
-                        useShortNames && (col.def as OwidColumnDef).shortName
-                            ? (col.def as OwidColumnDef).shortName
-                            : col.name
-                    )
-                )
-                .join(delimiter) + "\n"
-        const body = this.rows
-            .map((row) =>
-                this.columnsAsArray.map(
-                    (col) => col.formatForCsv(row[col.slug]) ?? ""
-                )
-            )
-            .map((row) => row.join(delimiter))
-            .join("\n")
-        return header + body
-    }
-
     rowsAt(indices: number[]): ROW_TYPE[] {
         const { columnStore } = this
         return indices.map(
@@ -930,23 +931,36 @@ export class CoreTable<
     }
 
     select(slugs: ColumnSlug[]): this {
-        const columnsToKeep = new Set(slugs)
         const newStore: CoreColumnStore = {}
-        const defs = this.columnsAsArray
-            .filter((col) => columnsToKeep.has(col.slug))
-            .map((col) => col.def) as COL_DEF_TYPE[]
 
-        Object.keys(this.columnStore)
-            .filter((slug) => columnsToKeep.has(slug))
-            .forEach((slug) => {
+        // Build defs in the order specified by slugs
+        const defs = slugs
+            .filter((slug) => this.has(slug))
+            .map((slug) => this.get(slug).def) as COL_DEF_TYPE[]
+
+        // Build column store with the same columns
+        slugs.forEach((slug) => {
+            if (this.columnStore[slug] !== undefined) {
                 newStore[slug] = this.columnStore[slug]
-            })
+            }
+        })
 
         return this.transform(
             newStore,
             defs,
             `Kept columns '${slugs}'`,
             TransformType.FilterColumns
+        )
+    }
+
+    dropEmptyColumns(): this {
+        const columnsToDrop = this.columnsAsArray
+            .filter((col) => col.numValues === 0)
+            .map((col) => col.slug)
+
+        return this.dropColumns(
+            columnsToDrop,
+            `Dropped ${columnsToDrop.length} empty columns: '${columnsToDrop.join(", ")}'`
         )
     }
 
@@ -1033,7 +1047,7 @@ export class CoreTable<
 
     replaceCells(
         columnSlugs: ColumnSlug[],
-        replaceFn: (val: CoreValueType) => CoreValueType
+        replaceFn: (val: CoreValueType, index: number) => CoreValueType
     ): this {
         const newStore: CoreColumnStore = { ...this.columnStore }
         columnSlugs.forEach((slug) => {
