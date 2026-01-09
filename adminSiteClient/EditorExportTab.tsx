@@ -9,19 +9,10 @@ import {
 import { observer } from "mobx-react"
 import { Component } from "react"
 import { Section, Toggle } from "./Forms.js"
-import {
-    DEFAULT_GRAPHER_BOUNDS,
-    DEFAULT_GRAPHER_BOUNDS_SQUARE,
-    GrapherState,
-    loadVariableDataAndMetadata,
-} from "@ourworldindata/grapher"
-import {
-    triggerDownloadFromBlob,
-    OwidVariableDataMetadataDimensions,
-    OwidVariableId,
-} from "@ourworldindata/utils"
+import { GrapherState } from "@ourworldindata/grapher"
+import { triggerDownloadFromBlob } from "@ourworldindata/utils"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
-import { DATA_API_URL, ETL_WIZARD_URL } from "../settings/clientSettings.js"
+import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
 import { faHatWizard, faDownload } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -213,81 +204,25 @@ export class EditorExportTab<
         return this.props.editor.grapherState.displaySlug
     }
 
-    @action.bound private onDownloadDesktopSVG() {
-        void this.download(`${this.baseFilename}-desktop.svg`, {
-            format: "landscape",
-        })
+    @computed private get formatSuffix(): string {
+        return this.props.editor.previewMode === "mobile" ? "mobile" : "desktop"
     }
 
-    @action.bound private onDownloadDesktopPNG() {
-        void this.download(`${this.baseFilename}-desktop.png`, {
-            format: "landscape",
-        })
+    @action.bound private onDownloadSVG() {
+        void this.download(`${this.baseFilename}-${this.formatSuffix}.svg`)
     }
 
-    @action.bound private onDownloadMobileSVG() {
-        void this.download(`${this.baseFilename}-mobile.svg`, {
-            format: "square",
-        })
+    @action.bound private onDownloadPNG() {
+        void this.download(`${this.baseFilename}-${this.formatSuffix}.png`)
     }
 
-    @action.bound private onDownloadMobilePNG() {
-        void this.download(`${this.baseFilename}-mobile.png`, {
-            format: "square",
-        })
-    }
-
-    @action.bound private onDownloadMobileSVGForSocialMedia() {
-        void this.download(`${this.baseFilename}-instagram.svg`, {
-            format: "square",
-            isSocialMediaExport: true,
-        })
-    }
-
-    private async download(
-        filename: ExportFilename,
-        {
-            format,
-            isSocialMediaExport = false,
-        }: {
-            format: "landscape" | "square"
-            isSocialMediaExport?: boolean
-        }
-    ) {
-        const requestedBounds =
-            format === "landscape"
-                ? DEFAULT_GRAPHER_BOUNDS
-                : DEFAULT_GRAPHER_BOUNDS_SQUARE
-
+    private async download(filename: ExportFilename) {
         try {
-            let grapherState = this.grapherState
-            if (
-                !this.grapherState.staticBounds.equals(requestedBounds) ||
-                this.grapherState.isSocialMediaExport !== isSocialMediaExport
-            ) {
-                grapherState = new GrapherState({
-                    ...this.grapherState.toObject(),
-                    staticBounds: requestedBounds,
-                    selectedEntityNames: [
-                        ...this.grapherState.selection.selectedEntityNames,
-                    ],
-                    focusedSeriesNames: [
-                        ...this.grapherState.focusedSeriesNames,
-                    ],
-                    isSocialMediaExport,
-                    additionalDataLoaderFn: (
-                        varId: OwidVariableId
-                    ): Promise<OwidVariableDataMetadataDimensions> =>
-                        loadVariableDataAndMetadata(varId, DATA_API_URL, {
-                            noCache: true,
-                        }),
+            const { blob: pngBlob, svgBlob } =
+                await this.grapherState.rasterize({
+                    includeDetails:
+                        this.settings.shouldIncludeDetailsInStaticExport,
                 })
-                grapherState.inputTable = this.grapherState.inputTable
-            }
-            const { blob: pngBlob, svgBlob } = await grapherState.rasterize({
-                includeDetails:
-                    this.settings.shouldIncludeDetailsInStaticExport,
-            })
             if (filename.endsWith("svg") && svgBlob) {
                 triggerDownloadFromBlob(filename, svgBlob)
             } else if (filename.endsWith("png") && pngBlob) {
@@ -405,38 +340,15 @@ export class EditorExportTab<
                     <div className="DownloadButtons">
                         <button
                             className="btn btn-primary"
-                            onClick={this.onDownloadDesktopPNG}
+                            onClick={this.onDownloadPNG}
                         >
-                            {<FontAwesomeIcon icon={faDownload} />} Download
-                            Desktop PNG
+                            {<FontAwesomeIcon icon={faDownload} />} Download PNG
                         </button>
                         <button
                             className="btn btn-primary"
-                            onClick={this.onDownloadDesktopSVG}
+                            onClick={this.onDownloadSVG}
                         >
-                            {<FontAwesomeIcon icon={faDownload} />} Download
-                            Desktop SVG
-                        </button>
-                        <button
-                            className="btn btn-primary"
-                            onClick={this.onDownloadMobilePNG}
-                        >
-                            {<FontAwesomeIcon icon={faDownload} />} Download
-                            Mobile PNG
-                        </button>
-                        <button
-                            className="btn btn-primary"
-                            onClick={this.onDownloadMobileSVG}
-                        >
-                            {<FontAwesomeIcon icon={faDownload} />} Download
-                            Mobile SVG
-                        </button>
-                        <button
-                            className="btn btn-primary"
-                            onClick={this.onDownloadMobileSVGForSocialMedia}
-                        >
-                            {<FontAwesomeIcon icon={faDownload} />} Download
-                            Mobile SVG for Social Media
+                            {<FontAwesomeIcon icon={faDownload} />} Download SVG
                         </button>
                     </div>
                 </Section>
