@@ -98,7 +98,7 @@ export const CookiePreferences = ({
                 preferences.
             </CookiePreference>
             <CookiePreference
-                title="Analytics cookies"
+                title="Optional cookies"
                 name="analytics"
                 consent={getPreferenceValue(
                     PreferenceType.Analytics,
