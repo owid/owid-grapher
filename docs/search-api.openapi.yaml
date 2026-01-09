@@ -318,6 +318,16 @@ components:
                         - "SlopeChart"
                         - "DiscreteBar"
                         - "Marimekko"
+                publishedAt: 
+                    type: string
+                    format: date
+                    description: Publication date of the chart (ISO 8601 format)
+                    example: "2016-05-03T21:44:14.000Z"
+                updatedAt:
+                    type: string
+                    format: date
+                    description: Last update date of the chart (ISO 8601 format)
+                    example: "2025-12-20T15:23:24.000Z"
                 url:
                     type: string
                     format: uri
@@ -388,8 +398,13 @@ components:
                 date:
                     type: string
                     format: date
-                    description: Publication or last update date (ISO 8601 format)
-                    example: "2023-05-15"
+                    description: Publication of the article (ISO 8601 format)
+                    example: "2024-09-30T08:57:00.000Z"
+                modifiedDate:
+                    type: string
+                    format: date
+                    description: Last update date (ISO 8601 format)
+                    example: "2025-08-21T15:57:34.000Z"
                 content:
                     type: string
                     description: Excerpt or snippet of page content
