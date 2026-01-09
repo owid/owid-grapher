@@ -49,7 +49,9 @@ export class FillEntityCodesFromRegions1767980196000
                 )
                 existingCodeSet.add(code) // Track newly added codes
                 updatedCount++
-                console.log(`Updated entity "${entity.name}" with code "${code}"`)
+                console.log(
+                    `Updated entity "${entity.name}" with code "${code}"`
+                )
             }
         }
 
