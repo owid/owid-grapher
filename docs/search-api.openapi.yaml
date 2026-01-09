@@ -148,6 +148,8 @@ paths:
                                                   - "LineChart"
                                                   - "Table"
                                                   - "WorldMap"
+                                              publishedAt: "2016-05-03T21:44:14.000Z"
+                                              updatedAt: "2025-12-20T15:23:24.000Z"
                                               url: "https://ourworldindata.org/grapher/gdp-per-capita-worldbank"
                                         nbHits: 360
                                         page: 0
@@ -169,6 +171,7 @@ paths:
                                               content: |-
                                                   You’ll get more clicks by making people angry at others for disagreeing. “Both sides” debates, for example in talk shows, can also give people the impression that they accurately reflect balance among the public. People think that far more people are opposed to climate action as a result.The debate is now about the merits of different solutions, not whether we should actFor decades, the world debated whether climate change was happening, if humans were causing it, and if we should do something. If you look at levels of concern in the UK since the millennium, for example, you find an interesting decline-then-rise. In the first decade of the 2000s, environmental concerns were very high. In 2005/06, 82% of Brits said they were concerned about “global warming”. This was around the time that Al Gore’s film An Inconvenient Truth was released. The Stern Report on the impacts and economics of climate change was published. And not far ahead of the release of the UK’s Climate Change Act.
                                               date: "2024-03-25T10:48:30.000Z"
+                                              modifiedDate: "2024-03-25T10:48:41.000Z"
                                               thumbnailUrl: "https://ourworldindata.org/cdn-cgi/imagedelivery/qLq-8BTgXU8yG0N6HnOy8g/e5956f18-560f-4639-ad7e-c18553856600/w=512"
                                               authors:
                                                   - "Hannah Ritchie"
