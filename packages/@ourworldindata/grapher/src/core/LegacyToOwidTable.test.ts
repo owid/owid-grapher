@@ -827,10 +827,10 @@ describe("creating a table from legacy", () => {
     })
 
     it("can export legacy to CSV", () => {
-        const expected = `Entity,Code,Year,"Prevalence of wasting, weight for height (% of children under 5)"
-Cape Verde,CPV,1985,4.2
-Kiribati,KIR,1985,12.6
-Papua New Guinea,PNG,1983,5.5`
+        const expected = `Entity,Code,Year,Some Display Name,Year,entityColor
+Cape Verde,CPV,1985,4.2,1985,blue
+Kiribati,KIR,1985,12.6,1985,
+Papua New Guinea,PNG,1983,5.5,1983,`
         expect(table.toPrettyCsv()).toEqual(expected)
     })
 

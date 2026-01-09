@@ -1,13 +1,13 @@
 import { expect, it, describe, DeeplyAllowMatchers } from "vitest"
 
-import { getGrapherTableWithRelevantColumns } from "./grapherTools"
 import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
 } from "@ourworldindata/core-table"
 import { GrapherState } from "@ourworldindata/grapher"
+import { OwidTableSlugs } from "@ourworldindata/types"
 
-describe(getGrapherTableWithRelevantColumns, () => {
+describe("download", () => {
     const originalTable = SynthesizeGDPTable()
     const originalYColumns: string[] = [
         SampleColumnSlugs.GDP,
@@ -20,13 +20,13 @@ describe(getGrapherTableWithRelevantColumns, () => {
 
     it("doesn't include any y-columns when none are specified", () => {
         const grapherState = new GrapherState({ table: SynthesizeGDPTable() })
-        const resultTable = getGrapherTableWithRelevantColumns(grapherState)
-        const slugs = resultTable.columnSlugs
-        expect(slugs).toEqual(
-            originalTable.columnSlugs.filter(
-                (slug) => !originalYColumns.includes(slug)
-            )
+        const slugs = grapherState.tableForDownload.columnSlugs
+        const expectedSlugs = originalTable.columnSlugs.filter(
+            (slug) =>
+                !originalYColumns.includes(slug) &&
+                slug !== OwidTableSlugs.entityId
         )
+        expect(slugs).toEqual(expectedSlugs)
     })
 
     it("only includes the chart's y-columns", () => {
@@ -42,12 +42,12 @@ describe(getGrapherTableWithRelevantColumns, () => {
                 table: SynthesizeGDPTable(),
                 ySlugs,
             })
-            const resultTable = getGrapherTableWithRelevantColumns(grapherState)
-            const slugs = resultTable.columnSlugs
-            expectUnorderedEqual(slugs, [
+            const slugs = grapherState.tableForDownload.columnSlugs
+            const expectedSlugs = [
                 ...originalOtherColumns,
                 ...ySlugs.split(" "),
-            ])
+            ].filter((slug) => slug !== OwidTableSlugs.entityId)
+            expectUnorderedEqual(slugs, expectedSlugs)
         }
     })
 })

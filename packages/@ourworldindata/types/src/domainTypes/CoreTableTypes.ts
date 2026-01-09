@@ -198,6 +198,15 @@ export interface CoreColumnDef extends ColumnColorScale {
     tolerance?: number // If set, some charts can use this for an interpolation strategy.
     toleranceStrategy?: ToleranceStrategy // Tolerance strategy to use for interpolation
     skipParsing?: boolean // If set, the values will never run through the type parser
+    // Denotes the relationship of this column to another column
+    derivedFrom?: {
+        columnSlug: ColumnSlug
+        relationship:
+            | "annotations"
+            | "originalTime"
+            | "originalStartTime"
+            | "originalValue"
+    }
 
     // Column information used for display only
     name?: string // The display name for the column

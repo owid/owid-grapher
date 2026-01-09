@@ -13,7 +13,6 @@ import {
     getCitationLong,
 } from "@ourworldindata/utils"
 import { getGrapherFilters } from "./urlTools.js"
-import { getGrapherTableWithRelevantColumns } from "./grapherTools.js"
 
 type MetadataColumn = {
     titleShort: string
@@ -37,7 +36,7 @@ type MetadataColumn = {
 }
 
 export const getColumnsForMetadata = (grapherState: GrapherState) => {
-    const table = getGrapherTableWithRelevantColumns(grapherState)
+    const table = grapherState.tableForDownload
 
     const columnsToIgnore = new Set(
         [

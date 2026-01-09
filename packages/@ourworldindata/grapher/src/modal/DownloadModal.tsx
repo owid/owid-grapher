@@ -63,16 +63,14 @@ export interface DownloadModalManager {
     baseUrl?: string
     queryStr?: string
     externalQueryParams?: QueryParams
-    inputTable?: OwidTable
-    transformedTable?: OwidTable
-    tableForDisplay?: OwidTable
+    tableForDownload: OwidTable
+    filteredTableForDownload: OwidTable
     yColumnsFromDimensionsOrSlugsOrAuto?: CoreColumn[]
     detailsOrderedByReference?: string[]
     activeModal?: GrapherModal
     frameBounds?: Bounds
     captionedChartBounds?: Bounds
     isOnChartOrMapTab?: boolean
-    isOnTableTab?: boolean
     isOnArchivalPage?: boolean
     hasArchivedPage?: boolean
     showAdminControls?: boolean
@@ -82,6 +80,9 @@ export interface DownloadModalManager {
     isServerSideDownloadAvailable?: boolean
     logImageDownloadEvent?: (action: GrapherImageDownloadEvent) => void
     activeDownloadModalTab: DownloadModalTabName
+    isOnMapTab?: boolean
+    isOnChartTab?: boolean
+    isOnTableTab?: boolean
 }
 
 interface DownloadModalProps {
@@ -580,10 +581,7 @@ const createCsvBlobLocally = async (ctx: DataDownloadContextClientSide) => {
         ctx.csvDownloadType === CsvDownloadType.Full
             ? ctx.fullTable
             : ctx.filteredTable
-    const csv = downloadTable.toPrettyCsv(
-        ctx.shortColNames,
-        ctx.activeColumnSlugs
-    )
+    const csv = downloadTable.toPrettyCsv({ useShortNames: ctx.shortColNames })
 
     return new Blob([csv], { type: "text/csv;charset=utf-8" })
 }
@@ -897,7 +895,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
     const { yColumnsFromDimensionsOrSlugsOrAuto: yColumns } = props.manager
 
     const { cols: nonRedistributableCols, sourceLinks } =
-        getNonRedistributableInfo(props.manager.inputTable)
+        getNonRedistributableInfo(props.manager.tableForDownload)
 
     // Server-side download is not necessarily available for all types of charts
     const serverSideDownloadAvailable =
@@ -923,11 +921,9 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                 props.manager.baseUrl ??
                 `/grapher/${props.manager.displaySlug}`,
 
-            fullTable: props.manager.inputTable ?? BlankOwidTable(),
+            fullTable: props.manager.tableForDownload ?? BlankOwidTable(),
             filteredTable:
-                (props.manager.isOnTableTab
-                    ? props.manager.tableForDisplay
-                    : props.manager.transformedTable) ?? BlankOwidTable(),
+                props.manager.filteredTableForDownload ?? BlankOwidTable(),
             activeColumnSlugs: props.manager.activeColumnSlugs,
         }
     }, [
@@ -935,10 +931,8 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
         props.manager.displaySlug,
         props.manager.queryStr,
         props.manager.externalQueryParams,
-        props.manager.isOnTableTab,
-        props.manager.inputTable,
-        props.manager.transformedTable,
-        props.manager.tableForDisplay,
+        props.manager.tableForDownload,
+        props.manager.filteredTableForDownload,
         props.manager.activeColumnSlugs,
     ])
 
@@ -1044,8 +1038,14 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
 
     const firstYColDef = yColumns?.[0]?.def as OwidColumnDef | undefined
 
+    const activeView = props.manager.isOnTableTab
+        ? "table"
+        : props.manager.isOnMapTab
+          ? "map"
+          : "chart"
+
     const fullDataDescription = `Includes all entities and time points`
-    const filteredDataDescription = `Includes only the entities and time points currently visible in the chart`
+    const filteredDataDescription = `Includes only the entities and time points currently visible in the ${activeView}`
 
     const fullTableRowCountSnippet = makeNumberOfRowsSnippet(
         downloadCtx.fullTable.numRows
@@ -1056,7 +1056,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
 
     return (
         <>
-            <SourceAndCitationSection table={props.manager.inputTable} />
+            <SourceAndCitationSection table={props.manager.tableForDownload} />
             <div className="download-modal__data-section">
                 <div className="download-modal__heading-with-caption">
                     <h3 className="grapher_h3-semibold">Quick download</h3>
