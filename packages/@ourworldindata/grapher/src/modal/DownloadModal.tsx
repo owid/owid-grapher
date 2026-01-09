@@ -609,10 +609,7 @@ const createCsvBlobLocally = async (ctx: DataDownloadContextClientSide) => {
         ctx.csvDownloadType === CsvDownloadType.Full
             ? ctx.fullTable
             : ctx.filteredTable
-    const csv = downloadTable.toPrettyCsv(
-        ctx.shortColNames,
-        ctx.activeColumnSlugs
-    )
+    const csv = downloadTable.toPrettyCsv(ctx.shortColNames)
 
     return new Blob([csv], { type: "text/csv;charset=utf-8" })
 }

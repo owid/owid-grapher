@@ -383,6 +383,8 @@ export function getGrapherTableWithRelevantColumns(
         ? grapherState.filteredTableForDownload
         : grapherState.tableForDownload
 
+    // TODO: can I use activeColumnSlugs here?
+
     // Trim table to only include columns that are relevant to the current
     // grapher view. This filtering is necessary for CSV-based data explorers
     // because the full table contains columns for all possible views.

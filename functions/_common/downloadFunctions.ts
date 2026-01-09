@@ -160,7 +160,8 @@ export async function fetchCsvForGrapher(
     )
     return new Response(csv, {
         headers: {
-            "Content-Type": "text/csv",
+            // TODO: revert; just for testing purposes --- IGNORE ---
+            "Content-Type": "text/plain; charset=utf-8",
         },
     })
 }

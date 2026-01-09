@@ -337,10 +337,7 @@ export const legacyToOwidTableAndDimensions = (
         if (joinedVariablesTable.columnSlugs.includes(dayOrYearSlug)) {
             joinedVariablesTable = joinedVariablesTable.duplicateColumn(
                 dayOrYearSlug,
-                {
-                    slug: OwidTableSlugs.time,
-                    name: OwidTableSlugs.time,
-                }
+                { slug: OwidTableSlugs.time, name: OwidTableSlugs.time }
             )
             // Do not inject multiple columns, terminate after one is successful
             break
