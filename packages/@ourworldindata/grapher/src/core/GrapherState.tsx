@@ -1047,6 +1047,21 @@ export class GrapherState
         return table
     }
 
+    /**
+     * Table used for downloading when the user requests a data download
+     * of the complete data set */
+    @computed get tableForDownload(): OwidTable {
+        return this.inputTable
+    }
+
+    /**
+     * Table used for downloading when the user requests a data download
+     * of the currently displayed data.
+     */
+    @computed get filteredTableForDownload(): OwidTable {
+        return this.isOnTableTab ? this.tableForDisplay : this.transformedTable
+    }
+
     @action.bound populateFromQueryParams(params: GrapherQueryParams): void {
         this.externalQueryParams = _.omit(params, GRAPHER_QUERY_PARAM_KEYS)
 

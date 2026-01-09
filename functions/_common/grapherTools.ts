@@ -378,12 +378,10 @@ export function getGrapherTableWithRelevantColumns(
     grapherState: GrapherState,
     options?: { shouldUseFilteredTable: boolean }
 ): OwidTable {
-    // Extract table from Grapher
-    const fullTable = grapherState.inputTable
-    const filteredTable = grapherState.isOnTableTab
-        ? grapherState.tableForDisplay
-        : grapherState.transformedTable
-    const table = options?.shouldUseFilteredTable ? filteredTable : fullTable
+    // Extract table for download from Grapher
+    const table = options?.shouldUseFilteredTable
+        ? grapherState.filteredTableForDownload
+        : grapherState.tableForDownload
 
     // Trim table to only include columns that are relevant to the current
     // grapher view. This filtering is necessary for CSV-based data explorers
