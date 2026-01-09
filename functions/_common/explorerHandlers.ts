@@ -64,9 +64,6 @@ async function initGrapherForExplorerView(
     await explorer.updateGrapherFromExplorer()
     explorer.grapherState.populateFromQueryParams(urlObj.queryParams)
 
-    if (options.grapherProps?.isSocialMediaExport)
-        explorer.grapherState.isSocialMediaExport =
-            options.grapherProps.isSocialMediaExport
     if (options.grapherProps?.variant)
         explorer.grapherState.variant = options.grapherProps.variant
     if (options.grapherProps?.isDisplayedAlongsideComplementaryTable)

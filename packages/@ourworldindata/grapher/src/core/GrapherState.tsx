@@ -139,7 +139,6 @@ import {
 import { DimensionSlot } from "../chart/DimensionSlot.js"
 import {
     GRAPHER_LIGHT_TEXT,
-    GRAPHER_BACKGROUND_BEIGE,
     GRAPHER_BACKGROUND_DEFAULT,
 } from "../color/ColorConstants.js"
 import { ColorScaleConfig } from "../color/ColorScaleConfig.js"
@@ -582,7 +581,6 @@ export class GrapherState
     enableMapSelection = false
 
     isExportingToSvgOrPng = false
-    isSocialMediaExport = false
     isWikimediaExport = false
     shouldIncludeDetailsInStaticExport = true
 
@@ -685,7 +683,6 @@ export class GrapherState
             canHideExternalControlsInEmbed: observable.ref,
             hideExternalControlsInEmbedUrl: observable.ref,
             isExportingToSvgOrPng: observable.ref,
-            isSocialMediaExport: observable.ref,
             isWikimediaExport: observable.ref,
             variant: observable.ref,
             staticBounds: observable,
@@ -3278,22 +3275,12 @@ export class GrapherState
         return staticPixelCount < 0.66 * idealPixelCount
     }
 
-    @computed get isExportingForSocialMedia(): boolean {
-        return (
-            this.isExportingToSvgOrPng &&
-            this.isStaticAndSmall &&
-            this.isSocialMediaExport
-        )
-    }
-
     @computed get isExportingForWikimedia(): boolean {
         return this.isExportingToSvgOrPng && this.isWikimediaExport
     }
 
     @computed get backgroundColor(): Color {
-        return this.isExportingForSocialMedia
-            ? GRAPHER_BACKGROUND_BEIGE
-            : GRAPHER_BACKGROUND_DEFAULT
+        return GRAPHER_BACKGROUND_DEFAULT
     }
 
     @computed get shouldPinTooltipToBottom(): boolean {

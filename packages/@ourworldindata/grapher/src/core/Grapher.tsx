@@ -97,7 +97,6 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hideShareButton?: boolean
     hideExploreTheDataButton?: boolean
     hideRelatedQuestion?: boolean
-    isSocialMediaExport?: boolean
     enableMapSelection?: boolean
 
     enableKeyboardShortcuts?: boolean

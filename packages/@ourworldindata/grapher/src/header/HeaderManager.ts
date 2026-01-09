@@ -23,6 +23,5 @@ export interface HeaderManager {
     hideTitle?: boolean
     hideSubtitle?: boolean
     isStaticAndSmall?: boolean
-    isSocialMediaExport?: boolean
     detailsMarkerInSvg?: DetailsMarker
 }

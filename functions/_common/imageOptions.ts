@@ -55,16 +55,8 @@ const getSquareOptions = (params: URLSearchParams): ImageOptions => {
         details: false,
         fontSize: undefined,
         grapherProps: {
-            isSocialMediaExport: false,
             staticBounds: DEFAULT_GRAPHER_BOUNDS_SQUARE,
         } as Partial<GrapherProgrammaticInterface>,
-    }
-
-    const imType = params.get("imType")
-
-    if (imType === "social-media-square") {
-        if (!options.grapherProps) options.grapherProps = {}
-        options.grapherProps.isSocialMediaExport = true
     }
 
     if (params.has("imSquareSize")) {
@@ -130,8 +122,7 @@ export const extractOptions = (params: URLSearchParams): ImageOptions => {
     if (imType === "twitter") return TWITTER_OPTIONS
     else if (imType === "og") return OPEN_GRAPH_OPTIONS
     else if (imType === "thumbnail") return getThumbnailOptions(params)
-    else if (imType === "square" || imType === "social-media-square")
-        return getSquareOptions(params)
+    else if (imType === "square") return getSquareOptions(params)
 
     if (imType === "uncaptioned") {
         if (!options.grapherProps) options.grapherProps = {}

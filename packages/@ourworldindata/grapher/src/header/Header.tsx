@@ -18,7 +18,7 @@ import {
     GRAPHER_FRAME_PADDING_VERTICAL,
     GRAPHER_HEADER_CLASS,
 } from "../core/GrapherConstants"
-import { GRAPHER_DARK_TEXT, GRAY_100, GRAY_80 } from "../color/ColorConstants"
+import { GRAPHER_DARK_TEXT, GRAY_100 } from "../color/ColorConstants"
 
 interface HeaderProps {
     manager: HeaderManager
@@ -358,11 +358,7 @@ export class StaticHeader extends AbstractHeader<StaticHeaderProps> {
                                 : 0),
                         {
                             id: makeIdForHumanConsumption("subtitle"),
-                            textProps: {
-                                fill: this.manager.isSocialMediaExport
-                                    ? GRAY_80
-                                    : GRAPHER_DARK_TEXT,
-                            },
+                            textProps: { fill: GRAPHER_DARK_TEXT },
                             detailsMarker: this.manager.detailsMarkerInSvg,
                         }
                     )}
