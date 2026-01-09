@@ -53,7 +53,6 @@ class MultiEmbedder {
     private figuresObserver: IntersectionObserver | undefined
     private isPreviewing?: boolean
     selection: SelectionArray = new SelectionArray()
-    graphersAndExplorersToUpdate: Set<SelectionArray> = new Set()
 
     constructor() {
         makeObservable(this)
@@ -134,8 +133,6 @@ class MultiEmbedder {
             queryStr,
             this.selection
         )
-        if (props.selection)
-            this.graphersAndExplorersToUpdate.add(props.selection)
 
         const root = createRoot(figure)
         root.render(<Explorer {...props} />)
@@ -183,8 +180,6 @@ class MultiEmbedder {
                 },
             }
         )
-        if (config.manager?.selection)
-            this.graphersAndExplorersToUpdate.add(config.manager.selection)
 
         renderGrapherIntoContainer(config, figure, DATA_API_URL, {
             noCache: this.isPreviewing,
@@ -220,11 +215,6 @@ class MultiEmbedder {
         const localGrapherConfig: GrapherProgrammaticInterface = {}
         localGrapherConfig.manager = {
             selection: new SelectionArray(this.selection.selectedEntityNames),
-        }
-        if (localGrapherConfig.manager?.selection) {
-            this.graphersAndExplorersToUpdate.add(
-                localGrapherConfig.manager.selection
-            )
         }
         const root = createRoot(figure)
         root.render(
