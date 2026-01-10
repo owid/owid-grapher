@@ -46,6 +46,6 @@ dist/
 cfstorage/
 vite.*.mjs
 archive/*
-
+tmp/
 # Sentry Config File
 .env.sentry-build-plugin
