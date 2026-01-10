@@ -112,6 +112,8 @@ const layouts: { [key in Container]: Layouts} = {
         ["sticky-right-left-column"]: "grid span-cols-5 grid grid-cols-5 span-md-cols-10 grid-md-cols-10 col-md-start-2 span-sm-cols-12 grid-sm-cols-12 col-sm-start-1",
         ["sticky-right-right-column"]: "span-cols-7 grid-cols-7 span-md-cols-10 grid-md-cols-10 col-md-start-2 span-sm-cols-12 grid-sm-cols-12 col-sm-start-1",
         ["sticky-right"]: "grid span-cols-12 col-start-2",
+        ["table--narrow"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["table--wide"]: "col-start-2 span-cols-12",
     },
     ["author-header"]: {
         ["default"]: "span-cols-8",

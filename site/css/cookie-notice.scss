@@ -1,5 +1,8 @@
+$full-button-width-breakpoint: 400px;
+
 .cookie-notice {
     background-color: $amber;
+    color: $blue-95;
     position: fixed;
     left: 0;
     right: 0;
@@ -10,7 +13,7 @@
     @include content-wrapper;
 
     & {
-        padding: 16px;
+        padding: 24px;
     }
 
     &.open {
@@ -18,86 +21,64 @@
         animation: 400ms ease slide-in forwards;
     }
 
-    .cookie-notice__inner {
-        font-weight: 700;
-        max-width: $lg;
-        margin: auto;
-        line-height: 1.5;
-        text-align: center;
+    @include sm-only {
+        padding: 16px;
+    }
+}
 
-        @include lg-up {
-            display: flex;
-            justify-content: space-between;
-        }
+.cookie-notice__inner {
+    max-width: $lg;
+    margin: auto;
+}
+
+.cookie-notice__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.cookie-notice__title {
+    @include h3-bold;
+    margin: 0 0 8px;
+}
+
+.cookie-notice__text {
+    @include note-13-medium;
+    margin: 0 0 8px;
+    opacity: 0.9;
+
+    a {
+        @include owid-link-90;
+        color: $blue-95;
+    }
+}
+
+.cookie-notice__actions {
+    display: flex;
+    gap: 8px 16px;
+    white-space: nowrap;
+
+    @include sm-only {
+        margin-top: 24px;
     }
 
-    .cookie-notice__text {
-        margin: 0;
-        a {
-            @include owid-link-90;
-        }
-
-        @include lg-up {
-            text-align: left;
-        }
-    }
-
-    .actions {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        align-items: center;
-        white-space: nowrap;
+    @media (max-width: $full-button-width-breakpoint) {
+        flex-direction: column;
         margin-top: 16px;
+    }
+}
 
-        @include md-up {
-            margin-top: 0;
-        }
+.cookie-notice__button {
+    @include note-12-medium;
+    padding: 8px 16px;
+
+    @media (max-width: $full-button-width-breakpoint) {
+        height: 40px;
     }
 
-    .button {
-        font-weight: 700;
-        line-height: 1.2;
-        padding: 10px 16px;
-        color: $text-color;
-        cursor: pointer;
-        border: 2px solid rgba($text-color, 0.2);
-        transition: border-color 150ms linear;
-        margin-top: 8px;
-        background-color: transparent;
-
-        @include md-up {
-            flex: 0;
-            font-size: 1rem;
-            margin-top: 0;
-        }
-
-        &:hover {
-            border-color: rgba($text-color, 0.8);
-        }
-
-        &:not(:last-child) {
-            margin-right: 12px;
-        }
-
-        .icon {
-            margin-right: 0.5rem;
-        }
-    }
-
-    .button.accept {
-        background-color: $oxford-blue;
-        border-color: $oxford-blue;
-        color: #fff;
-        transition:
-            background-color 150ms linear,
-            border-color 150ms linear;
-        min-width: 196px;
-
-        &:hover {
-            background-color: $oxford-blue;
-            border-color: $oxford-blue;
-        }
+    .owid-btn--icon-left {
+        color: $blue-40;
     }
 }
 

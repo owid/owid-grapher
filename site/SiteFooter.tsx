@@ -37,6 +37,7 @@ const RESOURCE_LINKS: LinkData[] = [
 
 const LEGAL_LINKS: LinkData[] = [
     { title: "Privacy policy", url: "/privacy-policy" },
+    { title: "Cookie notice", url: "/cookie-notice" },
     { title: "Legal disclaimer", url: "/organization#legal-disclaimer" },
     {
         title: "Grapher license",
