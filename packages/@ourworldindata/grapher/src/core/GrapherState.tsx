@@ -10,6 +10,9 @@ import {
     ColumnTypeMap,
     TimeColumn,
     MissingColumn,
+    makeOriginalTimeSlugFromColumnSlug,
+    ErrorValueTypes,
+    isNotErrorValue,
 } from "@ourworldindata/core-table"
 import {
     GrapherChartType,
@@ -63,6 +66,7 @@ import {
     GlobeRegionName,
     GrapherWindowType,
     MapRegionName,
+    OwidTableSlugs,
 } from "@ourworldindata/types"
 import {
     objectWithPersistablesToObject,
@@ -233,6 +237,7 @@ import { FacetChartManager } from "../facet/FacetChartConstants.js"
 import { EntitySelectorModalManager } from "../modal/EntitySelectorModal.js"
 import { SettingsMenuManager } from "../controls/SettingsMenu.js"
 import { SlopeChartManager } from "../slopeCharts/SlopeChartConstants.js"
+import { entityNameToCode } from "./EntityCodes.js"
 
 export class GrapherState
     implements
@@ -1059,6 +1064,100 @@ export class GrapherState
         // Apply entity filter if necessary
         if (visibleEntities.length < availableEntities.length)
             table = table.filterByEntityNames(visibleEntities)
+
+        return table
+    }
+
+    /**
+     * Table used for downloading when the user requests a data download
+     * of the complete data set */
+    @computed get tableForDownload(): OwidTable {
+        // TODO: or this.table?
+        return this.prepareTableForDownload(this.inputTable)
+    }
+
+    /**
+     * Table used for downloading when the user requests a data download
+     * of the currently displayed data.
+     */
+    @computed get filteredTableForDownload(): OwidTable {
+        const table = this.isOnTableTab
+            ? this.tableForDisplay
+            : this.transformedTable
+
+        return this.prepareTableForDownload(table)
+    }
+
+    private prepareTableForDownload(table: OwidTable): OwidTable {
+        // Time column slug to include in the downloaded table
+        const timeSlug = table.timeColumn.slug
+
+        // Original time column slugs to include
+        const originalTimeSlugs = this.yColumnSlugs.map((ySlug) =>
+            makeOriginalTimeSlugFromColumnSlug(ySlug)
+        )
+
+        // Select only relevant columns in the right order
+        table = table.select([
+            table.entityNameSlug, // Entity name column
+            table.entityCodeSlug, // Entity code column
+            timeSlug, // Time column
+            ...this.activeColumnSlugs, // Data columns
+            ...originalTimeSlugs, // Original time columns
+        ])
+
+        // Special case: if there's only one y column, then we simply use
+        // the y-column's original time as main time column if it exists
+        if (this.yColumnSlugs.length === 1 && table.has(originalTimeSlugs[0])) {
+            table = table
+                .dropColumns([timeSlug])
+                .renameColumn(originalTimeSlugs[0], timeSlug)
+        }
+
+        // Only keep original times that differ from the main time
+        for (const originalTimeSlug of originalTimeSlugs) {
+            if (!table.has(originalTimeSlug)) continue
+
+            const times = table.get(timeSlug).valuesIncludingErrorValues
+
+            // Replace original times that are the same as the main time
+            // with a missing value placeholder
+            table = table.replaceCells(
+                [originalTimeSlug],
+                (originalTime, index) => {
+                    return originalTime === times[index]
+                        ? ErrorValueTypes.MissingValuePlaceholder
+                        : originalTime
+                }
+            )
+        }
+
+        // Drop original time columns that are now completely empty
+        table = table.dropColumns(
+            originalTimeSlugs.filter((slug) => table.get(slug).numValues === 0)
+        )
+
+        // Fill in missing entity codes
+        if (table.entityCodeColumn.numErrorValues > 0) {
+            table = table.replaceCells(
+                [OwidTableSlugs.entityCode],
+                (value, index) => {
+                    if (isNotErrorValue(value)) return value
+
+                    const entityName = table.entityNameColumn
+                        .valuesIncludingErrorValues[index] as string
+
+                    // Look up entity code by entity name: first try the table's map,
+                    // then fall back to the standard entity name to code mapping
+                    // defined in the regions file
+                    const entityCode =
+                        this.inputTable.entityNameToCodeMap.get(entityName) ??
+                        entityNameToCode(entityName)
+
+                    return entityCode ?? value
+                }
+            )
+        }
 
         return table
     }

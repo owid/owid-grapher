@@ -17,6 +17,11 @@ export function makeOriginalTimeSlugFromColumnSlug(slug: ColumnSlug): string {
     return `${slug}-originalTime`
 }
 
+// TODO: would be better if we didn't need this
+export function isOriginalTimeColumnSlug(slug: ColumnSlug): boolean {
+    return slug.endsWith("-originalTime")
+}
+
 export function makeOriginalStartTimeSlugFromColumnSlug(
     slug: ColumnSlug
 ): string {

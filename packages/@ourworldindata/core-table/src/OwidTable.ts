@@ -14,6 +14,7 @@ import {
     ToleranceStrategy,
     differenceOfSets,
     sortedFindClosestIndex,
+    csvEscape,
 } from "@ourworldindata/utils"
 import {
     Time,
@@ -38,6 +39,7 @@ import {
     makeOriginalStartTimeSlugFromColumnSlug,
     timeColumnSlugFromColumnDef,
     toPercentageColumnDef,
+    isOriginalTimeColumnSlug,
 } from "./OwidTableUtil.js"
 import {
     linearInterpolation,
@@ -60,11 +62,33 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return this.entityNameColumn.uniqValuesAsSet
     }
 
-    @imemo override get entityNameColumn(): CoreColumn {
+    @imemo get entityNameSlug(): string {
+        return this.entityNameColumn.slug
+    }
+
+    @imemo get entityCodeSlug(): string {
+        return this.entityCodeColumn.slug
+    }
+
+    @imemo get entityNameColumn(): CoreColumn {
         return (
             this.getFirstColumnWithType(ColumnTypeNames.EntityName) ??
             this.get(OwidTableSlugs.entityName)
         )
+    }
+
+    @imemo get entityCodeColumn(): CoreColumn {
+        return (
+            this.getFirstColumnWithType(ColumnTypeNames.EntityCode) ??
+            this.get(OwidTableSlugs.entityCode)
+        )
+    }
+
+    @imemo get entityNameToCodeMap(): Map<string, string> {
+        return this.valueIndex(
+            this.entityNameColumn.slug,
+            this.entityCodeColumn.slug
+        ) as Map<string, string>
     }
 
     @imemo get minTime(): Time {
@@ -712,38 +736,69 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     // Give our users a clean CSV of each Grapher. Assumes an Owid Table with entityName.
-    toPrettyCsv(
-        useShortNames: boolean = false,
-        activeColumnSlugs: string[] | undefined = undefined
-    ): string {
-        let table
-        if (activeColumnSlugs?.length) {
-            const timeColumnToInclude = [
-                OwidTableSlugs.year,
-                OwidTableSlugs.day,
-                this.timeColumn.slug, // needed for explorers, where the time column may be called anything
-            ].find((colSlug) => this.has(colSlug))
+    // TODO: use dict for params
+    toPrettyCsv(useShortNames: boolean = false): string {
+        return this.sortBy([this.entityNameSlug]).toCsvWithColumnNames(
+            useShortNames
+        )
+    }
 
-            if (!timeColumnToInclude)
-                throw new Error(
-                    "Expected to find a time column to include in the CSV"
-                )
+    // TODO: use dict; get rid of this? and rename toPrettyCsv to toCsv
+    toCsvWithColumnNames(useShortNames: boolean = false): string {
+        const delimiter = ","
 
-            table = this.select([
-                timeColumnToInclude,
-                this.entityNameSlug,
-                ...activeColumnSlugs,
-            ])
-        } else {
-            table = this.dropColumns([
-                OwidTableSlugs.entityId,
-                OwidTableSlugs.time,
-                OwidTableSlugs.entityColor,
-            ])
+        const formatDataColumnName = (col: CoreColumn): string => {
+            const def = col.def as OwidColumnDef // TODO: fix typing
+            return useShortNames && def.shortName
+                ? def.shortName
+                : col.nonEmptyDisplayName
         }
-        return table
-            .sortBy([this.entityNameSlug])
-            .toCsvWithColumnNames(useShortNames)
+
+        const formatTimeColumnName = (col: CoreColumn): string => {
+            // TODO: hard-coded string?
+            const timeString = col instanceof ColumnTypeMap.Day ? "Day" : "Year"
+
+            if (isOriginalTimeColumnSlug(col.slug)) {
+                const dataSlug = col.slug.replace("-originalTime", "") // TODO: brittle
+                const dataColumn = this.get(dataSlug)
+
+                const suffix = useShortNames
+                    ? `__original_${timeString.toLowerCase()}`
+                    : ` (Original ${timeString})`
+
+                return formatDataColumnName(dataColumn) + suffix
+            }
+
+            return timeString
+        }
+
+        // todo: remove
+        const formatColumnName = (col: CoreColumn): string => {
+            if (col.isTimeColumn) {
+                return formatTimeColumnName(col)
+            }
+
+            return formatDataColumnName(col)
+        }
+
+        const header =
+            this.columnsAsArray
+                .map((col) => csvEscape(formatColumnName(col)))
+                .join(delimiter) + "\n"
+
+        const body = this.rows
+            .map((row) =>
+                this.columnsAsArray.map((col) => {
+                    const value = row[col.slug]
+                    return isNotErrorValue(value)
+                        ? (col.formatForCsv(value) ?? "")
+                        : ""
+                })
+            )
+            .map((row) => row.join(delimiter))
+            .join("\n")
+
+        return header + body
     }
 
     @imemo get entityNameColorIndex(): Map<EntityName, Color> {
@@ -904,9 +959,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 {
                     ...timeColumnOfValue.def,
                     slug: originalTimeSlug,
-                    display: {
-                        includeInTable: false,
-                    },
+                    display: { includeInTable: false },
                 },
             ],
             `Interpolated values in column ${columnSlug} with tolerance ${tolerance} and appended column ${originalTimeSlug} with the original times`,
