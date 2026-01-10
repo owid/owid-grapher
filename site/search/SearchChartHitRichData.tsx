@@ -61,7 +61,6 @@ const SCATTER_NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_MEDIUM_VARIANT = 6
 export function SearchChartHitRichData({
     hit,
     selectedRegionNames,
-    onClick,
     variant,
 }: SearchChartHitComponentProps & {
     variant: RichDataComponentVariant
@@ -113,7 +112,6 @@ export function SearchChartHitRichData({
             <SearchChartHitRichDataFallback
                 hit={hit}
                 selectedRegionNames={selectedRegionNames}
-                onClick={onClick}
             />
         )
     }
@@ -131,7 +129,6 @@ export function SearchChartHitRichData({
                         hit={hit}
                         url={chartUrl}
                         isLarge={isLargeVariant}
-                        onClick={onClick}
                     />
                     <SearchChartHitHeaderActionButtons
                         isLarge={isLargeVariant}
@@ -174,7 +171,6 @@ export function SearchChartHitRichData({
                     url={chartUrl}
                     source={data.source}
                     isLarge={isLargeVariant}
-                    onClick={onClick}
                 />
                 <SearchChartHitHeaderActionButtons
                     isLarge={isLargeVariant}
@@ -231,7 +227,6 @@ export function SearchChartHitRichData({
                                 entityType={data.entityType}
                                 entityTypePlural={data.entityTypePlural}
                                 className={className}
-                                onClick={() => onClick(grapherTab)}
                             />
                         ) : (
                             <CaptionedThumbnail
@@ -243,7 +238,6 @@ export function SearchChartHitRichData({
                                 imageWidth={imageWidth}
                                 imageHeight={imageHeight}
                                 className={className}
-                                onClick={() => onClick(grapherTab)}
                             />
                         )
                     }

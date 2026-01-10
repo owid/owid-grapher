@@ -31,7 +31,6 @@ import {
 export function SearchChartHitRichDataFallback({
     hit,
     selectedRegionNames,
-    onClick,
 }: SearchChartHitComponentProps) {
     const hasScatter = hit.availableTabs.includes(GRAPHER_TAB_NAMES.ScatterPlot)
 
@@ -93,7 +92,6 @@ export function SearchChartHitRichDataFallback({
                     hit={hit}
                     url={chartUrl}
                     source={chartInfo?.source}
-                    onClick={onClick}
                 />
                 <div className="search-chart-hit-rich-data__header-actions">
                     <Button
@@ -140,7 +138,6 @@ export function SearchChartHitRichDataFallback({
                             chartUrl={chartUrl}
                             previewUrl={previewUrl}
                             className={className}
-                            onClick={() => onClick(grapherTab)}
                         />
                     )
                 })}

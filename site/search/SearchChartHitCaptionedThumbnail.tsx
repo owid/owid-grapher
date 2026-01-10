@@ -12,7 +12,6 @@ export function CaptionedThumbnail({
     imageWidth,
     imageHeight,
     className,
-    onClick,
 }: {
     chartType: GrapherTabName
     chartUrl: string
@@ -21,7 +20,6 @@ export function CaptionedThumbnail({
     imageWidth?: number
     imageHeight?: number
     className?: string
-    onClick?: () => void
 }): React.ReactElement {
     const caption = makeLabelForGrapherTab(chartType, { format: "long" })
     const hoverOverlayText = isSmallSlot ? "Explore" : "Click to explore"
@@ -38,7 +36,6 @@ export function CaptionedThumbnail({
             caption={captionWithIcon}
             url={chartUrl}
             className={className}
-            onClick={onClick}
         >
             <SearchChartHitThumbnail
                 previewUrl={previewUrl}

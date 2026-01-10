@@ -28,7 +28,6 @@ import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 export function SearchChartHitSmall({
     hit,
     selectedRegionNames,
-    onClick,
 }: SearchChartHitComponentProps) {
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
 
@@ -83,7 +82,6 @@ export function SearchChartHitSmall({
                     hit={hit}
                     url={chartUrl}
                     source={chartInfo?.source}
-                    onClick={onClick}
                 />
                 <div className="search-chart-hit-small__tabs-container">
                     {hit.availableTabs.map((tab) => {
@@ -105,11 +103,7 @@ export function SearchChartHitSmall({
                                 theme="dark"
                                 disabled={isSmallScreen}
                             >
-                                <a
-                                    href={chartUrl}
-                                    onClick={() => onClick(tab)}
-                                    aria-label={label}
-                                >
+                                <a href={chartUrl} aria-label={label}>
                                     <GrapherTabIcon tab={tab} />
                                 </a>
                             </Tippy>

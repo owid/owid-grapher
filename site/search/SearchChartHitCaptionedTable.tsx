@@ -17,7 +17,6 @@ export function CaptionedTable({
     entityType,
     entityTypePlural,
     className,
-    onClick,
 }: {
     chartUrl: string
     dataTableContent?: SearchChartHitDataTableProps
@@ -26,7 +25,6 @@ export function CaptionedTable({
     entityType: string
     entityTypePlural: string
     className?: string
-    onClick?: () => void
 }): React.ReactElement | null {
     if (!dataTableContent) return null
 
@@ -47,7 +45,6 @@ export function CaptionedTable({
             caption={captionWithIcon}
             url={chartUrl}
             className={className}
-            onClick={onClick}
         >
             <div className="search-chart-hit-table-wrapper">
                 <div className="search-chart-hit-table-wrapper-content">
