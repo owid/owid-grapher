@@ -8,10 +8,6 @@
   "directories": {
     "lib": "src"
   },
-  "scripts": {
-    "build": "",
-    "typecheck": "tsc --noEmit"
-  },
   "keywords": [],
   "author": "",
   "dependencies": {
@@ -53,7 +49,6 @@
     "@types/topojson-client": "^3.1.1",
     "eslint": "^9.37.0",
     "eslint-plugin-react-hooks": "^5.2.0",
-    "typescript": "~5.9.2",
     "vitest": "^4.0.15"
   },
   "license": "MIT"
