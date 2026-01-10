@@ -711,14 +711,8 @@ export class GrapherState
             hideExploreTheDataButton: observable,
             isDisplayedAlongsideComplementaryTable: observable,
         })
-        // Prefer the manager's selection over the config's selectedEntityNames
-        // if both are passed in and the manager's selection is not empty.
-        // This is necessary for the global entity selector to work correctly.
-        if (options.manager?.selection?.hasSelection) {
-            this.updateFromObject(_.omit(options, "selectedEntityNames"))
-        } else {
-            this.updateFromObject(options)
-        }
+
+        this.updateFromObject(options)
 
         this._additionalDataLoaderFn = options.additionalDataLoaderFn
         this.isEmbeddedInAnOwidPage = options.isEmbeddedInAnOwidPage ?? false

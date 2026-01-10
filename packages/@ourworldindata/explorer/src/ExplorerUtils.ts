@@ -12,7 +12,7 @@ import { ExplorerProps } from "./Explorer.js"
 export async function buildExplorerProps(
     html: string,
     queryStr: string,
-    selection: SelectionArray,
+    selection?: SelectionArray,
     bounds?: Bounds
 ) {
     const explorerConstants = deserializeJSONFromHTML(
@@ -51,7 +51,7 @@ export async function buildExplorerProps(
         grapherConfigs,
         partialGrapherConfigs,
         queryStr,
-        selection: new SelectionArray(selection.selectedEntityNames),
+        selection: new SelectionArray(selection?.selectedEntityNames ?? []),
         bounds: bounds,
         staticBounds: bounds,
     }

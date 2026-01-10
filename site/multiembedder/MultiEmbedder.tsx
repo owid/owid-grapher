@@ -1,20 +1,13 @@
 import * as _ from "lodash-es"
 import {
-    getSelectedEntityNamesParam,
-    GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY,
-    GLOBAL_ENTITY_SELECTOR_ELEMENT,
     GrapherProgrammaticInterface,
     GRAPHER_EMBEDDED_FIGURE_ATTR,
-    hydrateGlobalEntitySelectorIfAny,
-    migrateSelectedEntityNamesParam,
-    SelectionArray,
     migrateGrapherConfigToLatestVersion,
     GRAPHER_NARRATIVE_CHART_CONFIG_FIGURE_ATTR,
     renderGrapherIntoContainer,
 } from "@ourworldindata/grapher"
 import {
     fetchText,
-    getWindowUrl,
     isPresent,
     Url,
     fetchWithRetry,
@@ -55,17 +48,9 @@ const figuresFromDOM = (
         container.querySelectorAll<HTMLElement>(`*[${selector}]`)
     ).filter(isPresent)
 
-// const pageContainsGlobalEntitySelector = () =>
-//     globalEntitySelectorElement() !== null
-
-const globalEntitySelectorElement = () =>
-    document.querySelector(GLOBAL_ENTITY_SELECTOR_ELEMENT)
-
 class MultiEmbedder {
     private figuresObserver: IntersectionObserver | undefined
     private isPreviewing?: boolean
-    selection: SelectionArray = new SelectionArray()
-    graphersAndExplorersToUpdate: Set<SelectionArray> = new Set()
 
     constructor() {
         makeObservable(this)
@@ -141,13 +126,7 @@ class MultiEmbedder {
         const { fullUrl, queryStr } = Url.fromURL(explorerUrl)
 
         const html = await fetchText(fullUrl)
-        const props: ExplorerProps = await buildExplorerProps(
-            html,
-            queryStr,
-            this.selection
-        )
-        if (props.selection)
-            this.graphersAndExplorersToUpdate.add(props.selection)
+        const props: ExplorerProps = await buildExplorerProps(html, queryStr)
 
         const root = createRoot(figure)
         root.render(<Explorer {...props} />)
@@ -186,17 +165,8 @@ class MultiEmbedder {
             {}, // merge mutates the first argument
             grapherPageConfig,
             common,
-            additionalConfig,
-            {
-                manager: {
-                    selection: this.selection.hasSelection
-                        ? new SelectionArray(this.selection.selectedEntityNames)
-                        : undefined,
-                },
-            }
+            additionalConfig
         )
-        if (config.manager?.selection)
-            this.graphersAndExplorersToUpdate.add(config.manager.selection)
 
         renderGrapherIntoContainer(config, figure, DATA_API_URL, {
             noCache: this.isPreviewing,
@@ -229,21 +199,11 @@ class MultiEmbedder {
         queryStr: string
     ) {
         figure.classList.remove(GRAPHER_PREVIEW_CLASS)
-        const localGrapherConfig: GrapherProgrammaticInterface = {}
-        localGrapherConfig.manager = {
-            selection: new SelectionArray(this.selection.selectedEntityNames),
-        }
-        if (localGrapherConfig.manager?.selection) {
-            this.graphersAndExplorersToUpdate.add(
-                localGrapherConfig.manager.selection
-            )
-        }
         const root = createRoot(figure)
         root.render(
             <MultiDim
                 slug={slug}
                 config={MultiDimDataPageConfig.fromObject(multiDimConfig)}
-                localGrapherConfig={localGrapherConfig}
                 queryStr={queryStr}
                 isPreviewing={this.isPreviewing}
             />
@@ -335,33 +295,6 @@ class MultiEmbedder {
             )
             .with("grapher", () => this.renderGrapherIntoFigure(figure))
             .exhaustive()
-    }
-
-    setUpGlobalEntitySelectorForEmbeds() {
-        const element = globalEntitySelectorElement()
-        if (!element) return
-
-        const embeddedDefaultCountriesParam = element.getAttribute(
-            GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY
-        )
-
-        const [defaultEntityNames, windowEntityNames] = [
-            Url.fromQueryParams({
-                country: embeddedDefaultCountriesParam || undefined,
-            }),
-            getWindowUrl(),
-        ]
-            .map(migrateSelectedEntityNamesParam)
-            .map(getSelectedEntityNamesParam)
-
-        this.selection = new SelectionArray(
-            windowEntityNames ?? defaultEntityNames
-        )
-
-        hydrateGlobalEntitySelectorIfAny(
-            this.selection,
-            this.graphersAndExplorersToUpdate
-        )
     }
 }
 
