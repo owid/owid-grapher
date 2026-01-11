@@ -1,5 +1,8 @@
-import { queryCharts, searchQueryKeys } from "./queries.js"
-import { useSelectedRegionNames, useInfiniteSearch } from "./searchHooks.js"
+import { queryChartsViaApi, searchQueryKeys } from "./queries.js"
+import {
+    useSelectedRegionNames,
+    useInfiniteSearchViaApi,
+} from "./searchHooks.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
 import {
     SearchChartsResponse,
@@ -11,6 +14,9 @@ import { SearchChartHitComponent } from "./SearchChartHitComponent.js"
 import { SearchHorizontalDivider } from "./SearchHorizontalDivider.js"
 import { useSearchContext } from "./SearchContext.js"
 
+// Enable AI reranking for the first page of results
+const ENABLE_RERANKING = true
+
 export const SearchDataResults = ({
     isFirstChartLarge,
 }: {
@@ -19,10 +25,13 @@ export const SearchDataResults = ({
     const { analytics } = useSearchContext()
     const selectedRegionNames = useSelectedRegionNames()
 
-    const query = useInfiniteSearch<SearchChartsResponse, SearchChartHit>({
-        queryKey: (state) => searchQueryKeys.charts(state),
-        queryFn: queryCharts,
-    })
+    const query = useInfiniteSearchViaApi<SearchChartsResponse, SearchChartHit>(
+        {
+            queryKey: (state) => searchQueryKeys.charts(state),
+            queryFn: (state, page) =>
+                queryChartsViaApi(state, page, ENABLE_RERANKING),
+        }
+    )
 
     const { hits, totalResults, isLoading } = query
 

@@ -51,7 +51,7 @@ export interface SearchState {
 
 export interface SearchApiResponse {
     query: string
-    results: EnrichedSearchChartHit[]
+    hits: EnrichedSearchChartHit[]
     nbHits: number
     page: number
     nbPages: number
@@ -285,7 +285,7 @@ export async function searchCharts(
 
     return {
         query: state.query,
-        results: cleanedHits,
+        hits: cleanedHits,
         nbHits: result.nbHits,
         page: result.page,
         nbPages: result.nbPages,

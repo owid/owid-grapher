@@ -154,6 +154,50 @@ export async function queryCharts(
         .then((response) => response.results[0] as SearchChartsResponse)
 }
 
+/**
+ * Query charts via the /api/search endpoint instead of directly hitting Algolia.
+ * This enables AI reranking via Cloudflare Workers AI.
+ */
+export async function queryChartsViaApi(
+    state: SearchState,
+    page: number = 0,
+    rerank: boolean = false
+): Promise<SearchChartsResponse> {
+    const params = new URLSearchParams({
+        q: state.query,
+        page: page.toString(),
+        hitsPerPage: "9",
+    })
+
+    // Add country filters (tilde-separated to match Grapher URL format)
+    const countries = getFilterNamesOfType(state.filters, FilterType.COUNTRY)
+    if (countries.size > 0) {
+        params.set("countries", Array.from(countries).join("~"))
+    }
+
+    // Add topic filter
+    const topics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
+    const firstTopic = Array.from(topics)[0]
+    if (firstTopic) {
+        params.set("topics", firstTopic)
+    }
+
+    if (state.requireAllCountries) {
+        params.set("requireAllCountries", "true")
+    }
+
+    // Reranking only works for page 0
+    if (rerank && page === 0) {
+        params.set("rerank", "true")
+    }
+
+    const response = await fetch(`/api/search?${params}`)
+    if (!response.ok) {
+        throw new Error(`Search API error: ${response.statusText}`)
+    }
+    return response.json()
+}
+
 export async function queryDataInsights(
     liteSearchClient: LiteClient,
     state: SearchState,
