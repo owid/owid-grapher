@@ -1,5 +1,6 @@
 export interface Env {
     ASSETS: Fetcher
+    AI: Ai
     url: URL
     GRAPHER_CONFIG_R2_BUCKET_URL: string
     GRAPHER_CONFIG_R2_BUCKET_FALLBACK_URL: string

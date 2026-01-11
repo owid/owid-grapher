@@ -14,6 +14,11 @@
 
     "pages_build_output_dir": "./localBake",
 
+    // Workers AI binding for reranking search results
+    "ai": {
+        "binding": "AI"
+    },
+
     "vars": {
         // Vars that should be available in all envs, including local dev
         "ENV": "development",

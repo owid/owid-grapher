@@ -24,18 +24,18 @@ describe("searchCharts with real Algolia", () => {
         )
 
         expect(result.query).toBe("population")
-        expect(result.results.length).toBeGreaterThan(0)
-        expect(result.results.length).toBeLessThanOrEqual(5)
+        expect(result.hits.length).toBeGreaterThan(0)
+        expect(result.hits.length).toBeLessThanOrEqual(5)
         expect(result.nbHits).toBeGreaterThan(0)
 
         // Check first result has required fields
-        expect(result.results[0]).toHaveProperty("title")
-        expect(result.results[0]).toHaveProperty("slug")
-        expect(result.results[0]).toHaveProperty("type")
-        expect(result.results[0]).toHaveProperty("url")
+        expect(result.hits[0]).toHaveProperty("title")
+        expect(result.hits[0]).toHaveProperty("slug")
+        expect(result.hits[0]).toHaveProperty("type")
+        expect(result.hits[0]).toHaveProperty("url")
 
         // URL should be properly constructed
-        expect(result.results[0].url).toMatch(
+        expect(result.hits[0].url).toMatch(
             /^https:\/\/ourworldindata\.org\/(grapher|explorers)\//
         )
     })
@@ -53,7 +53,7 @@ describe("searchCharts with real Algolia", () => {
         )
 
         expect(result.query).toBe("gdp")
-        expect(result.results.length).toBeGreaterThan(0)
+        expect(result.hits.length).toBeGreaterThan(0)
     })
 
     it("returns results requiring all countries", async () => {
@@ -88,7 +88,7 @@ describe("searchCharts with real Algolia", () => {
             5
         )
 
-        expect(result.results.length).toBeGreaterThan(0)
+        expect(result.hits.length).toBeGreaterThan(0)
     })
 
     it("throws helpful error for invalid topic when no results found", async () => {
@@ -133,14 +133,14 @@ describe("searchCharts with real Algolia", () => {
 
         expect(page0.page).toBe(0)
         expect(page0.hitsPerPage).toBe(3)
-        expect(page0.results.length).toBe(3)
+        expect(page0.hits.length).toBe(3)
 
         expect(page1.page).toBe(1)
         expect(page1.hitsPerPage).toBe(3)
-        expect(page1.results.length).toBe(3)
+        expect(page1.hits.length).toBe(3)
 
         // Pages should have different results
-        expect(page0.results[0].slug).not.toBe(page1.results[0].slug)
+        expect(page0.hits[0].slug).not.toBe(page1.hits[0].slug)
     })
 
     it("constructs correct URLs for different chart types", async () => {
@@ -155,11 +155,11 @@ describe("searchCharts with real Algolia", () => {
             20
         )
 
-        expect(result.results.length).toBeGreaterThan(0)
+        expect(result.hits.length).toBeGreaterThan(0)
 
         // Find examples of different types if they exist
-        const chartResult = result.results.find((r) => r.type === "chart")
-        const explorerResult = result.results.find(
+        const chartResult = result.hits.find((r) => r.type === "chart")
+        const explorerResult = result.hits.find(
             (r) => r.type === "explorerView"
         )
 
@@ -188,18 +188,18 @@ describe("searchCharts with real Algolia", () => {
             1
         )
 
-        expect(result.results.length).toBeGreaterThan(0)
+        expect(result.hits.length).toBeGreaterThan(0)
 
         // Internal Algolia fields should be removed
-        expect(result.results[0]).not.toHaveProperty("objectID")
-        expect(result.results[0]).not.toHaveProperty("_highlightResult")
-        expect(result.results[0]).not.toHaveProperty("_snippetResult")
+        expect(result.hits[0]).not.toHaveProperty("objectID")
+        expect(result.hits[0]).not.toHaveProperty("_highlightResult")
+        expect(result.hits[0]).not.toHaveProperty("_snippetResult")
 
         // Required fields should be present
-        expect(result.results[0]).toHaveProperty("title")
-        expect(result.results[0]).toHaveProperty("slug")
-        expect(result.results[0]).toHaveProperty("type")
-        expect(result.results[0]).toHaveProperty("url")
+        expect(result.hits[0]).toHaveProperty("title")
+        expect(result.hits[0]).toHaveProperty("slug")
+        expect(result.hits[0]).toHaveProperty("type")
+        expect(result.hits[0]).toHaveProperty("url")
     })
 
     it("returns empty results for nonsense query", async () => {
@@ -215,7 +215,7 @@ describe("searchCharts with real Algolia", () => {
         )
 
         expect(result.query).toBe("xyzabc123nonsense456")
-        expect(result.results.length).toBe(0)
+        expect(result.hits.length).toBe(0)
         expect(result.nbHits).toBe(0)
     })
 
@@ -233,10 +233,10 @@ describe("searchCharts with real Algolia", () => {
             stagingUrl
         )
 
-        expect(result.results.length).toBeGreaterThan(0)
+        expect(result.hits.length).toBeGreaterThan(0)
 
         // All URLs should use the staging base URL
-        result.results.forEach((hit) => {
+        result.hits.forEach((hit) => {
             expect(hit.url).toMatch(/^https:\/\/staging-pr-123\.owid\.io\//)
         })
     })

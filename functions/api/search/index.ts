@@ -62,6 +62,11 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 DEFAULT_HITS_PER_PAGE.toString()
         )
 
+        // Parse output options
+        const includeEntities =
+            url.searchParams.get("includeEntities") !== "false"
+        const rerank = url.searchParams.get("rerank") === "true"
+
         // Validate pagination parameters
 
         if (page < 0 || page > MAX_PAGE) {
@@ -85,6 +90,23 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 JSON.stringify({
                     error: "Invalid hitsPerPage parameter",
                     details: `hitsPerPage must be between 1 and ${MAX_HITS_PER_PAGE}`,
+                }),
+                {
+                    status: 400,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Access-Control-Allow-Origin": "*",
+                    },
+                }
+            )
+        }
+
+        if (rerank && page > 0) {
+            return new Response(
+                JSON.stringify({
+                    error: "Invalid parameter combination",
+                    details:
+                        "Reranking is only supported for the first page (page=0). Remove the rerank parameter or set page=0.",
                 }),
                 {
                     status: 400,
@@ -137,26 +159,86 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         // Extract base URL from request (for staging/preview deployments)
         const baseUrl = `${url.protocol}//${url.host}`
 
-        // Perform search based on type
-        const results =
-            searchType === "pages"
-                ? await searchPages(
-                      algoliaConfig,
-                      query,
-                      page * hitsPerPage, // Convert page to offset
-                      hitsPerPage,
-                      undefined, // Use default page types
-                      baseUrl
-                  )
-                : await searchCharts(
-                      algoliaConfig,
-                      searchState,
-                      page,
-                      hitsPerPage,
-                      baseUrl
-                  )
+        // When reranking, fetch max results to get a good pool for reranking
+        const fetchHitsPerPage = rerank ? MAX_HITS_PER_PAGE : hitsPerPage
 
-        return new Response(JSON.stringify(results, null, 2), {
+        // Perform search based on type
+        if (searchType === "pages") {
+            const results = await searchPages(
+                algoliaConfig,
+                query,
+                page * hitsPerPage, // Convert page to offset
+                fetchHitsPerPage,
+                undefined, // Use default page types
+                baseUrl
+            )
+
+            return new Response(JSON.stringify(results, null, 2), {
+                status: 200,
+                headers: {
+                    "Content-Type": "application/json",
+                    "Cache-Control": "public, max-age=600",
+                    "Access-Control-Allow-Origin": "*",
+                },
+            })
+        }
+
+        // Chart search
+        let chartResults = await searchCharts(
+            algoliaConfig,
+            searchState,
+            page,
+            fetchHitsPerPage,
+            baseUrl
+        )
+
+        // Rerank chart results using Cloudflare Workers AI
+        if (rerank && query && chartResults.hits.length > 1) {
+            const contexts = chartResults.hits.map((hit) => ({
+                text: `${hit.title}${hit.subtitle ? `: ${hit.subtitle}` : ""}`,
+            }))
+
+            // Note: The Cloudflare types are incomplete - they're missing the required 'query' field
+            // See: https://developers.cloudflare.com/workers-ai/models/bge-reranker-base/
+            const reranked = (await env.AI.run("@cf/baai/bge-reranker-base", {
+                query,
+                contexts,
+            } as any)) as { response?: { id?: number; score?: number }[] }
+
+            // Reorder results based on reranker scores, then limit to requested hitsPerPage
+            if (reranked.response) {
+                const reorderedHits = reranked.response
+                    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+                    .slice(0, hitsPerPage)
+                    .map((item) => ({
+                        ...chartResults.hits[item.id ?? 0],
+                        rerankScore: item.score,
+                    }))
+
+                chartResults = {
+                    ...chartResults,
+                    hits: reorderedHits,
+                    hitsPerPage, // Restore the requested hitsPerPage
+                }
+            }
+        }
+
+        // Strip entity fields if not requested (reduces response size significantly)
+        if (!includeEntities) {
+            chartResults = {
+                ...chartResults,
+                hits: chartResults.hits.map((hit) => {
+                    const {
+                        availableEntities: _ae,
+                        originalAvailableEntities: _oae,
+                        ...rest
+                    } = hit as any
+                    return rest
+                }),
+            }
+        }
+
+        return new Response(JSON.stringify(chartResults, null, 2), {
             status: 200,
             headers: {
                 "Content-Type": "application/json",

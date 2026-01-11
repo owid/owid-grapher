@@ -209,6 +209,49 @@ export function useInfiniteSearch<T extends SearchResponse<U>, U>({
     }
 }
 
+/**
+ * Like useInfiniteSearch, but calls a query function that doesn't need the Algolia client.
+ * Used for API-based search that goes through our backend (e.g., with AI reranking).
+ */
+export function useInfiniteSearchViaApi<T extends SearchResponse<U>, U>({
+    queryKey,
+    queryFn,
+    enabled = true,
+}: {
+    queryKey: (state: SearchState) => readonly (string | QueryKeyState)[]
+    queryFn: (state: SearchState, page: number) => Promise<T>
+    enabled?: boolean
+}) {
+    const { state } = useSearchContext()
+
+    const query = useInfiniteQuery<T, Error>({
+        queryKey: queryKey(state),
+        queryFn: ({ pageParam }) => {
+            if (typeof pageParam !== "number")
+                throw new Error("Invalid pageParam")
+
+            return queryFn(state, pageParam)
+        },
+        getNextPageParam: (lastPage) => {
+            let { page, nbPages } = lastPage
+            page = page ?? 0
+            nbPages = nbPages ?? 1
+            return page < nbPages - 1 ? page + 1 : undefined
+        },
+        initialPageParam: 0,
+        enabled,
+    })
+
+    const hits: U[] = query.data?.pages.flatMap((page) => page.hits) || []
+    const totalResults = query.data?.pages[0]?.nbHits || 0
+
+    return {
+        ...query,
+        hits,
+        totalResults,
+    }
+}
+
 export const useTopicTagGraph = () => {
     const [tagGraph, setTagGraph] = useState<TagGraphRoot | null>(null)
 
