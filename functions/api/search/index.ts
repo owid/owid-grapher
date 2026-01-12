@@ -162,6 +162,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         // When reranking, fetch max results to get a good pool for reranking
         const fetchHitsPerPage = rerank ? MAX_HITS_PER_PAGE : hitsPerPage
 
+        console.log(`Search request: ${query}`)
+
         // Perform search based on type
         if (searchType === "pages") {
             const results = await searchPages(
@@ -198,10 +200,23 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 text: `${hit.title}${hit.subtitle ? `: ${hit.subtitle}` : ""}`,
             }))
 
+            // NOTE: this is not working as intended, ranker doesn't seem to take into account the country context
+
+            // Build the full reranking query including country context
+            // This helps the reranker understand the user's full intent
+            // e.g., "Venezuela oil" becomes query="oil" + countries="Venezuela"
+            // We reconstruct "Venezuela oil" for reranking so it ranks
+            // "Oil production in Venezuela" higher than "Maize oil production"
+            const rerankQuery = countriesParam
+                ? `${countriesParam.replace(/~/g, ", ")} ${query}`
+                : query
+
+            console.log("Reranking query:", rerankQuery)
+
             // Note: The Cloudflare types are incomplete - they're missing the required 'query' field
             // See: https://developers.cloudflare.com/workers-ai/models/bge-reranker-base/
             const reranked = (await env.AI.run("@cf/baai/bge-reranker-base", {
-                query,
+                query: rerankQuery,
                 contexts,
             } as any)) as { response?: { id?: number; score?: number }[] }
 
