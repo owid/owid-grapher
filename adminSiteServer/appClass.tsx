@@ -6,6 +6,7 @@ import { BAKED_BASE_URL, ENV } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
 import { IndexPage } from "./IndexPage.js"
 import {
+    apiKeyAuthMiddleware,
     cloudflareAuthMiddleware,
     tailscaleAuthMiddleware,
     devAuthMiddleware,
@@ -66,6 +67,7 @@ export class OwidAdminApp {
         app.use(express.urlencoded({ extended: true, limit: "50mb" }))
 
         app.use("/admin", sessionCookieAuthMiddleware)
+        app.use("/admin", apiKeyAuthMiddleware)
 
         if (ENV === "staging") {
             app.use("/admin", tailscaleAuthMiddleware)
