@@ -60,10 +60,15 @@ export function buildChartHitDataDisplayProps({
     const time = startDatapoint?.formattedTime
         ? `${startDatapoint?.formattedTime}–${endDatapoint.formattedTime}`
         : endDatapoint.formattedTime
-    const trend = calculateTrendDirection(
-        startDatapoint?.value,
-        endDatapoint?.value
-    )
+    const trend =
+        // If both labels are the same, trivially show a right arrow
+        startValue !== undefined && startValue === endValue
+            ? "right"
+            : // Otherwise, calculate based on numeric values
+              calculateTrendDirection(
+                  startDatapoint?.value,
+                  endDatapoint?.value
+              )
     const showLocationIcon =
         isEntityPickedByUser && getRegionByName(entity) !== undefined
 
