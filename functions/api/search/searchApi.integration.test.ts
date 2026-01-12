@@ -190,9 +190,9 @@ describe("searchCharts with real Algolia", () => {
 
         expect(result.hits.length).toBeGreaterThan(0)
 
-        // Internal Algolia fields should be removed
+        // Internal Algolia fields should be removed (except _highlightResult which is needed for frontend)
         expect(result.hits[0]).not.toHaveProperty("objectID")
-        expect(result.hits[0]).not.toHaveProperty("_highlightResult")
+        expect(result.hits[0]).toHaveProperty("_highlightResult") // Preserved for frontend highlighting
         expect(result.hits[0]).not.toHaveProperty("_snippetResult")
 
         // Required fields should be present

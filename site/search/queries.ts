@@ -167,6 +167,7 @@ export async function queryChartsViaApi(
         q: state.query,
         page: page.toString(),
         hitsPerPage: "9",
+        verbose: "true", // Include all fields needed by frontend (entities, highlights)
     })
 
     // Add country filters (tilde-separated to match Grapher URL format)
