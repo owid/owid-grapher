@@ -8,10 +8,6 @@
     "lib": "src"
   },
   "types": "src/index.ts",
-  "scripts": {
-    "build": "",
-    "watch": "tsc --watch"
-  },
   "keywords": [],
   "author": "",
   "dependencies": {
@@ -27,7 +23,6 @@
     "@types/lodash-es": "^4",
     "@types/papaparse": "^5.3.16",
     "eslint": "^9.37.0",
-    "typescript": "~5.9.2",
     "vitest": "^4.0.15"
   },
   "license": "MIT"
