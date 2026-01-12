@@ -1789,6 +1789,11 @@ export class GrapherState
 
         this.ensureTimeHandlesAreSensibleForTab(newTab)
         this.ensureEntitySelectionIsSensibleForTab(newTab)
+
+        // Stop animation when switching to a tab where playback is disabled
+        if (this.disablePlay && this.isTimelineAnimationActive) {
+            this.timelineController.stop()
+        }
     }
 
     @action.bound syncEntitySelectionBetweenChartAndMap(
@@ -3668,7 +3673,9 @@ export class GrapherState
     }
 
     @computed get disablePlay(): boolean {
-        return false
+        return (
+            this.isOnTableTab || this.isOnSlopeChartTab || this.isOnMarimekkoTab
+        )
     }
 
     @computed get animationEndTime(): Time {

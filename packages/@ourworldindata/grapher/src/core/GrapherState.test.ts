@@ -576,6 +576,30 @@ describe("urls", () => {
         expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.WorldMap)
         expect(grapher.timelineHandleTimeBounds).toEqual([Infinity, Infinity])
     })
+
+    it("stops animation when switching to a tab where playback is disabled", () => {
+        const grapher = new GrapherState({
+            chartTypes: [
+                GRAPHER_CHART_TYPES.LineChart,
+                GRAPHER_CHART_TYPES.SlopeChart,
+            ],
+        })
+
+        // Animations are enabled for the default line chart tab
+        expect(grapher.disablePlay).toBe(false)
+
+        // Play the animation
+        void grapher.timelineController.play()
+
+        // Switch to the slope tab (where timeline animation is disabled)
+        const previousTab = grapher.activeTab
+        grapher.setTab(GRAPHER_TAB_NAMES.SlopeChart)
+        grapher.onTabChange(previousTab, GRAPHER_TAB_NAMES.SlopeChart)
+
+        // Animation should be stopped
+        expect(grapher.disablePlay).toBe(true)
+        expect(grapher.isTimelineAnimationPlaying).toBe(false)
+    })
 })
 
 describe("time domain tests", () => {
