@@ -27,7 +27,6 @@ import { JsonString } from "../domainTypes/Various.js"
 
 export enum EventCategory {
     Filter = "owid.filter",
-    GlobalEntitySelectorUsage = "owid.global_entity_selector_usage",
     GrapherView = "owid.grapher_view",
     GrapherClick = "owid.grapher_click",
     GrapherHover = "owid.grapher_hover",
@@ -75,7 +74,6 @@ export type EventParamsMap = {
     [EventCategory.SiteInstantSearchClick]: SiteInstantSearchClickParams
     [EventCategory.SiteError]: SiteErrorParams
     [EventCategory.Filter]: FilterParams
-    [EventCategory.GlobalEntitySelectorUsage]: GlobalEntitySelectorUsageParams
     [EventCategory.TranslatePage]: TranslatePageParams
 }
 
@@ -307,13 +305,6 @@ export interface FilterParams {
     eventContext: string
 }
 
-export interface GlobalEntitySelectorUsageParams {
-    /** Entity control action */
-    eventAction: EntityControlEvent
-    /** Additional note or context */
-    eventContext?: string
-}
-
 export interface TranslatePageParams {
     /** Information about the translation event, in the form { from: string | null, to: string | null } */
     eventTarget: JsonString
@@ -324,8 +315,6 @@ export interface TranslatePageParams {
 // =============================================================================
 // EVENT ACTION TYPES & HELPERS
 // =============================================================================
-
-export type EntityControlEvent = "open" | "change" | "close"
 
 export type EntitySelectorEvent =
     | "enter"

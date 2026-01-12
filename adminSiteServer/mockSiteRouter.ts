@@ -538,11 +538,7 @@ mockSiteRouter.get("/feedback", async (req, res) =>
 )
 
 mockSiteRouter.get("/multiEmbedderTest", async (req, res) =>
-    res.send(
-        renderToHtmlPage(
-            MultiEmbedderTestPage(req.query.globalEntitySelector === "true")
-        )
-    )
+    res.send(renderToHtmlPage(MultiEmbedderTestPage()))
 )
 
 getPlainRouteWithROTransaction(

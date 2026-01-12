@@ -245,8 +245,7 @@ export abstract class AbstractStackedChartState implements ChartState {
         )
 
         // Normally StackedArea/StackedBar charts are always single-entity or single-column,
-        // but if we are ever in a mode where we have multiple entities selected (e.g. through
-        // GlobalEntitySelector) and multiple columns, it only makes sense when faceted.
+        // but if we are ever in a mode where we have multiple entities selected and multiple columns, it only makes sense when faceted.
         if (
             // No facet strategy makes sense if columns are stacked and a single entity is selected
             (!this.isEntitySeries && !areMultipleEntitiesSelected) ||
