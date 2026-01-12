@@ -13,7 +13,7 @@ import { getIndexName, AlgoliaConfig } from "./algoliaClient.js"
  */
 export type EnrichedSearchChartHit = Omit<
     SearchChartHit,
-    "objectID" | "_highlightResult" | "_snippetResult"
+    "objectID" | "_snippetResult"
 > & {
     url: string
 }
@@ -260,6 +260,11 @@ export async function searchCharts(
             if (attr in hit) {
                 cleanHit[attr] = (hit as any)[attr]
             }
+        }
+
+        // Preserve highlight results for frontend rendering
+        if ((hit as any)._highlightResult) {
+            cleanHit._highlightResult = (hit as any)._highlightResult
         }
 
         // Construct URL based on type
