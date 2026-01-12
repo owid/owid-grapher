@@ -329,7 +329,7 @@ export class TimelineController {
         this.updateEndTime(prevTime)
     }
 
-    @action.bound private stop(): void {
+    @action.bound stop(): void {
         this.manager.isTimelineAnimationPlaying = false
         this.manager.isTimelineAnimationActive = false
         this.manager.animationStartTime = undefined
