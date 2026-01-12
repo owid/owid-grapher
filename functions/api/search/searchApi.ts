@@ -76,6 +76,7 @@ interface AlgoliaSearchResponse {
 
 // Minimal set of attributes needed by the MCP server and other API consumers
 const DATA_CATALOG_ATTRIBUTES = [
+    "objectID",
     "title",
     "slug",
     "subtitle",
