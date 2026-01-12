@@ -129,7 +129,7 @@ export class OwidAdminApp {
                                 await instantiateProfileForEntity(
                                     gdoc as GdocProfile,
                                     entityInScope,
-                                    { knex }
+                                    { knex, useDbOnlyCallouts: false }
                                 )
 
                             res.set("X-Robots-Tag", "noindex")

@@ -1,4 +1,11 @@
-import { useCallback, useContext, useEffect, useRef, useState } from "react"
+import {
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react"
 import * as React from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import {
@@ -25,6 +32,7 @@ import {
     Tippy,
     CreateTombstoneData,
     Url,
+    traverseEnrichedBlock,
 } from "@ourworldindata/utils"
 import { Button, Col, Drawer, Row, Space, Switch, Tag, Typography } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -92,6 +100,18 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
 
     const [isMobilePreviewActive, setIsMobilePreviewActive] = useState(false)
     const [acceptSuggestions, setAcceptSuggestions] = useState(false)
+    const calloutCount = useMemo(() => {
+        const body = currentGdoc?.content.body ?? []
+        let count = 0
+        for (const block of body) {
+            traverseEnrichedBlock(block, (node) => {
+                if (node.type === "data-callout") {
+                    count += 1
+                }
+            })
+        }
+        return count
+    }, [currentGdoc])
 
     // Only used when currentGdoc is a profile
     const { entitiesInScope, selectedEntity, setSelectedEntity } =
@@ -364,20 +384,21 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     </Col>
                     <Col>
                         <Space>
-                            <GdocsSaveButtons
-                                published={currentGdoc.published}
-                                originalGdoc={originalGdoc}
-                                currentGdoc={currentGdoc}
-                                errors={errors}
-                                hasErrors={hasErrors}
-                                hasWarnings={hasWarnings}
-                                hasChanges={hasChanges}
-                                isLightningUpdate={isLightningUpdate}
-                                setDiffOpen={setDiffOpen}
-                                doPublish={doPublish}
-                                saveDraft={saveDraft}
-                                disableButtons={acceptSuggestions}
-                            />
+                                <GdocsSaveButtons
+                                    published={currentGdoc.published}
+                                    originalGdoc={originalGdoc}
+                                    currentGdoc={currentGdoc}
+                                    errors={errors}
+                                    hasErrors={hasErrors}
+                                    hasWarnings={hasWarnings}
+                                    hasChanges={hasChanges}
+                                    isLightningUpdate={isLightningUpdate}
+                                    setDiffOpen={setDiffOpen}
+                                    doPublish={doPublish}
+                                    saveDraft={saveDraft}
+                                    disableButtons={acceptSuggestions}
+                                    calloutCount={calloutCount}
+                                />
                             <Space>
                                 <Switch
                                     checked={acceptSuggestions}

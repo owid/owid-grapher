@@ -1883,27 +1883,15 @@ function parseDataCallout(raw: RawBlockDataCallout): EnrichedBlockDataCallout {
         })
     }
 
-    const parseErrors: ParseError[] = []
-    const enrichedContent = raw.value.content
-        .map(parseRawBlocksToEnrichedBlocks)
-        .filter((block): block is EnrichedBlockText => {
-            if (block === null) return false
-            if (block.type !== "text") {
-                parseErrors.push({
-                    message:
-                        "Data callout content can only contain text blocks",
-                    isWarning: true,
-                })
-                return false
-            }
-            return true
-        })
+    const enrichedContent = raw.value.content.map(
+        parseRawBlocksToEnrichedBlocks
+    )
 
     return {
         type: "data-callout",
         url: raw.value.url,
-        content: enrichedContent,
-        parseErrors,
+        content: excludeNullish(enrichedContent),
+        parseErrors: [],
     }
 }
 

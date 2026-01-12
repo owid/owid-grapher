@@ -3,19 +3,21 @@ import {
     fetchInputTableForConfig,
     constructGrapherValuesJson,
     getEntityNamesParam,
+    isValuesJsonValid,
     GrapherProgrammaticInterface,
 } from "@ourworldindata/grapher"
 import {
     GrapherInterface,
     GrapherValuesJson,
     EntityName,
+    OwidGdocBaseInterface,
     OwidEnrichedGdocBlock,
     LinkedCallouts,
     DimensionProperty,
-    DbRawChartConfig,
-    parseChartConfig,
     ChartCalloutValuesTableName,
     DbPlainChartCalloutValue,
+    DbInsertChartCalloutValue,
+    OwidGdocType,
 } from "@ourworldindata/types"
 import {
     makeLinkedCalloutKey,
@@ -25,7 +27,10 @@ import {
     parseIntOrUndefined,
     searchParamsToMultiDimView,
     makeCalloutGrapherStateKey,
+    instantiateProfile,
+    getEntitiesForProfile,
 } from "@ourworldindata/utils"
+import { groupBy } from "remeda"
 import {
     ExplorerProgram,
     ExplorerChartCreationMode,
@@ -69,9 +74,91 @@ export function constructCalloutValuesFromPreparedState(
     return constructGrapherValuesJson(state, entity)
 }
 
-export function normalizeCalloutUrlForDb(calloutUrl: string): string {
-    const key = makeLinkedCalloutKey(calloutUrl)
-    return key.startsWith("/") ? key : `/${key}`
+export async function bakeCalloutsForUrls(
+    knex: db.KnexReadWriteTransaction,
+    calloutUrls: string[]
+): Promise<{
+    invalidByCalloutKey: Record<string, { invalid: number; total: number }>
+}> {
+    const uniqueCalloutUrls = Array.from(new Set(calloutUrls))
+    if (uniqueCalloutUrls.length === 0) return { invalidByCalloutKey: {} }
+
+    const slugToIdMap = await mapSlugsToIds(knex)
+    const urlsByCalloutKey = groupBy(uniqueCalloutUrls, (url) =>
+        makeCalloutGrapherStateKey(url)
+    )
+
+    const valuesToUpsert: Record<string, DbInsertChartCalloutValue> = {}
+    const invalidByCalloutKey: Record<
+        string,
+        { invalid: number; total: number }
+    > = {}
+
+    for (const [calloutKey, urls] of Object.entries(urlsByCalloutKey)) {
+        invalidByCalloutKey[calloutKey] = { invalid: 0, total: 0 }
+        const grapherState = await prepareCalloutStateForUrl(
+            knex,
+            urls[0],
+            slugToIdMap
+        )
+        if (!grapherState) continue
+
+        for (const urlString of urls) {
+            const url = Url.fromURL(urlString)
+            grapherState.populateFromQueryParams(url.queryParams)
+            const entityNames = getEntityNamesParam(url.queryParams.country)
+            if (!entityNames) {
+                console.warn(`No entity names for callout URL: ${urlString}`)
+                continue
+            }
+
+            const entityName = entityNames[0]
+            const values = constructGrapherValuesJson(grapherState, entityName)
+            invalidByCalloutKey[calloutKey].total += 1
+            if (!isValuesJsonValid(values)) {
+                invalidByCalloutKey[calloutKey].invalid += 1
+                continue
+            }
+
+            const id = makeLinkedCalloutKey(urlString)
+            valuesToUpsert[id] = { id, value: values }
+        }
+    }
+
+    for (const calloutValue of Object.values(valuesToUpsert)) {
+        await knex
+            .table(ChartCalloutValuesTableName)
+            .insert(calloutValue)
+            .onConflict("id")
+            .merge()
+    }
+
+    return { invalidByCalloutKey }
+}
+
+export async function bakeCalloutsForGdoc(
+    knex: db.KnexReadWriteTransaction,
+    gdoc: OwidGdocBaseInterface
+): Promise<{
+    invalidByCalloutKey: Record<string, { invalid: number; total: number }>
+}> {
+    const calloutUrls: string[] = []
+
+    if (gdoc.content.type === OwidGdocType.Profile) {
+        const entities = getEntitiesForProfile(gdoc.content.scope)
+        for (const entity of entities) {
+            const instantiatedContent = instantiateProfile(gdoc.content, entity)
+            calloutUrls.push(
+                ...extractDataCalloutUrls(instantiatedContent.body)
+            )
+        }
+    } else {
+        calloutUrls.push(
+            ...extractDataCalloutUrls(gdoc.content.body ?? [])
+        )
+    }
+
+    return bakeCalloutsForUrls(knex, calloutUrls)
 }
 
 async function getCalloutValuesFromDb(
@@ -79,15 +166,7 @@ async function getCalloutValuesFromDb(
     calloutUrls: string[]
 ): Promise<Record<string, GrapherValuesJson>> {
     const ids = Array.from(
-        new Set(
-            calloutUrls.flatMap((url) => {
-                const normalized = normalizeCalloutUrlForDb(url)
-                const withoutLeadingSlash = normalized.startsWith("/")
-                    ? normalized.slice(1)
-                    : normalized
-                return [normalized, withoutLeadingSlash]
-            })
-        )
+        new Set(calloutUrls.map((url) => makeLinkedCalloutKey(url)))
     )
     if (ids.length === 0) return {}
 
@@ -99,8 +178,12 @@ async function getCalloutValuesFromDb(
 
     const valuesByKey: Record<string, GrapherValuesJson> = {}
     for (const row of rows) {
-        const key = normalizeCalloutUrlForDb(row.id)
-        valuesByKey[key] = row.value
+        const key = makeLinkedCalloutKey(row.id)
+        const parsedValue =
+            typeof row.value === "string"
+                ? (JSON.parse(row.value) as GrapherValuesJson)
+                : row.value
+        valuesByKey[key] = parsedValue
     }
 
     return valuesByKey
@@ -279,10 +362,12 @@ export async function prepareCalloutStateForUrl(
  *
  * Supports grapher URLs (/grapher/slug), explorer URLs (/explorers/slug),
  * and multi-dimensional data page URLs (/grapher/slug with multi-dim config).
+ * Set useDbOnly to avoid fetching missing values on the fly.
  */
 export async function loadLinkedCalloutsForBlocks(
     knex: db.KnexReadonlyTransaction,
-    calloutUrls: string[]
+    calloutUrls: string[],
+    options?: { useDbOnly?: boolean }
 ): Promise<LinkedCallouts> {
     if (calloutUrls.length === 0) return {}
 
@@ -304,6 +389,8 @@ export async function loadLinkedCalloutsForBlocks(
 
         missingCallouts.push(calloutUrl)
     }
+
+    if (options?.useDbOnly) return linkedCallouts
 
     if (missingCallouts.length === 0) return linkedCallouts
 

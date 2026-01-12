@@ -416,7 +416,10 @@ export async function loadGdocFromGdocBase(
     base: OwidGdocBaseInterface,
     contentSource?: GdocsContentSource,
     acceptSuggestions: boolean = false,
-    options?: { loadState?: boolean }
+    options?: {
+        loadState?: boolean
+        loadStateOptions?: { useDbOnlyCallouts?: boolean }
+    }
 ): Promise<
     | GdocPost
     | GdocDataInsight
@@ -469,7 +472,10 @@ export async function loadGdocFromGdocBase(
     }
 
     if (shouldLoadState) {
-        await gdoc.loadState(knex)
+        const useDbOnlyCallouts =
+            options?.loadStateOptions?.useDbOnlyCallouts ??
+            contentSource !== GdocsContentSource.Gdocs
+        await gdoc.loadState(knex, { useDbOnlyCallouts })
     }
 
     return gdoc

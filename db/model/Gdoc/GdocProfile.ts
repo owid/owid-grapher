@@ -121,7 +121,7 @@ export class GdocProfile extends GdocBase implements OwidGdocProfileInterface {
 export async function instantiateProfileForEntity(
     profileTemplate: GdocProfile,
     entity: ProfileEntity,
-    options?: { knex: db.KnexReadonlyTransaction }
+    options?: { knex: db.KnexReadonlyTransaction; useDbOnlyCallouts?: boolean }
 ): Promise<OwidGdocProfileInterface> {
     // Instantiate the content with entity-specific values
     const instantiatedContent = instantiateProfile(
@@ -133,7 +133,9 @@ export async function instantiateProfileForEntity(
 
     // Load precomputed callout values from the database when available
     const linkedCallouts = options?.knex
-        ? await loadLinkedCalloutsForBlocks(options.knex, calloutUrls)
+        ? await loadLinkedCalloutsForBlocks(options.knex, calloutUrls, {
+              useDbOnly: options.useDbOnlyCallouts ?? true,
+          })
         : {}
 
     // Filter out data-callout blocks that have incomplete data

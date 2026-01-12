@@ -460,14 +460,12 @@ export function checkShouldDataCalloutRender(
 
     // Collect all span-callout spans from the content
     const calloutSpans: SpanCallout[] = []
-    for (const textBlock of block.content) {
-        for (const span of textBlock.value) {
-            traverseEnrichedSpan(span, (s) => {
-                if (s.spanType === "span-callout") {
-                    calloutSpans.push(s as SpanCallout)
-                }
-            })
-        }
+    for (const contentBlock of block.content) {
+        traverseEnrichedBlock(contentBlock, _.noop, (span) => {
+            if (span.spanType === "span-callout") {
+                calloutSpans.push(span as SpanCallout)
+            }
+        })
     }
 
     // If there are no callout spans, we still render the block
