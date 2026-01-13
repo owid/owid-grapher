@@ -13,7 +13,6 @@ import {
     ToleranceStrategy,
     differenceOfSets,
     sortedFindClosestIndex,
-    csvEscape,
 } from "@ourworldindata/utils"
 import {
     Time,
@@ -60,13 +59,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     @imemo get availableEntityNameSet(): Set<string> {
         return this.entityNameColumn.uniqValuesAsSet
-    }
-
-    @imemo get entityNameToCodeMap(): Map<string, string> {
-        return this.valueIndex(
-            this.entityNameColumn.slug,
-            this.entityCodeColumn.slug
-        ) as Map<string, string>
     }
 
     @imemo get minTime(): Time {
@@ -793,35 +785,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return this.dropColumns(excludeColumns)
             .sortBy(sortBy)
             .toCsv({ formatColumnName })
-    }
-
-    toCsv(options?: {
-        delimiter?: string
-        formatColumnName?: (col: CoreColumn) => string
-    }): string {
-        const {
-            delimiter = ",",
-            formatColumnName = (col: CoreColumn): string => col.slug,
-        } = options ?? {}
-
-        const header =
-            this.columnsAsArray
-                .map((col) => csvEscape(formatColumnName(col)))
-                .join(delimiter) + "\n"
-
-        const body = this.rows
-            .map((row) =>
-                this.columnsAsArray.map((col) => {
-                    const value = row[col.slug]
-                    return isNotErrorValue(value)
-                        ? (col.formatForCsv(value) ?? "")
-                        : ""
-                })
-            )
-            .map((row) => row.join(delimiter))
-            .join("\n")
-
-        return header + body
     }
 
     @imemo get entityNameColorIndex(): Map<EntityName, Color> {

@@ -80,6 +80,9 @@ export interface DownloadModalManager {
     isServerSideDownloadAvailable?: boolean
     logImageDownloadEvent?: (action: GrapherImageDownloadEvent) => void
     activeDownloadModalTab: DownloadModalTabName
+    isOnMapTab?: boolean
+    isOnChartTab?: boolean
+    isOnTableTab?: boolean
 }
 
 interface DownloadModalProps {
@@ -1025,8 +1028,14 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
 
     const firstYColDef = yColumns?.[0]?.def as OwidColumnDef | undefined
 
+    const activeView = props.manager.isOnTableTab
+        ? "table"
+        : props.manager.isOnMapTab
+          ? "map"
+          : "chart"
+
     const fullDataDescription = `Includes all entities and time points`
-    const filteredDataDescription = `Includes only the entities and time points currently visible in the chart`
+    const filteredDataDescription = `Includes only the entities and time points currently visible in the ${activeView}`
 
     const fullTableRowCountSnippet = makeNumberOfRowsSnippet(
         downloadCtx.fullTable.numRows
@@ -1034,6 +1043,11 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
     const filteredTableRowCountSnippet = makeNumberOfRowsSnippet(
         downloadCtx.filteredTable.numRows
     )
+
+    // Only offer the filtered table for download if it's different from the full table
+    const shouldShowFilteredTableDownloadButton =
+        downloadCtx.filteredTable.numRows > 0 &&
+        downloadCtx.fullTable.numRows !== downloadCtx.filteredTable.numRows
 
     return (
         <>
@@ -1056,21 +1070,27 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                             (serverSideDownloadAvailable ? "server" : "client")
                         }
                     />
-                    <DownloadButton
-                        title="Download displayed data"
-                        description={
-                            filteredDataDescription +
-                            filteredTableRowCountSnippet
-                        }
-                        icon={<DownloadIconSelected />}
-                        onClick={() =>
-                            onDownloadClick(CsvDownloadType.CurrentSelection)
-                        }
-                        tracking={
-                            "chart_download_filtered_data--" +
-                            (serverSideDownloadAvailable ? "server" : "client")
-                        }
-                    />
+                    {shouldShowFilteredTableDownloadButton && (
+                        <DownloadButton
+                            title="Download displayed data"
+                            description={
+                                filteredDataDescription +
+                                filteredTableRowCountSnippet
+                            }
+                            icon={<DownloadIconSelected />}
+                            onClick={() =>
+                                onDownloadClick(
+                                    CsvDownloadType.CurrentSelection
+                                )
+                            }
+                            tracking={
+                                "chart_download_filtered_data--" +
+                                (serverSideDownloadAvailable
+                                    ? "server"
+                                    : "client")
+                            }
+                        />
+                    )}
                 </div>
             </div>
             {serverSideDownloadAvailable && (

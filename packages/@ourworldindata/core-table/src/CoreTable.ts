@@ -5,6 +5,7 @@ import {
     ColumnSlug,
     PrimitiveType,
     imemo,
+    csvEscape,
 } from "@ourworldindata/utils"
 import {
     CoreColumn,
@@ -533,6 +534,14 @@ export class CoreTable<
         return this.entityIdColumn.slug
     }
 
+    // todo: should be on owidtable
+    @imemo get entityNameToCodeMap(): Map<string, string> {
+        return this.valueIndex(
+            this.entityNameColumn.slug,
+            this.entityCodeColumn.slug
+        ) as Map<string, string>
+    }
+
     @imemo private get columnsWithParseErrors(): CoreColumn[] {
         return this.columnsAsArray.filter((col) => col.numErrorValues)
     }
@@ -872,6 +881,35 @@ export class CoreTable<
         }
     }
 
+    toCsv(options?: {
+        delimiter?: string
+        formatColumnName?: (col: CoreColumn) => string
+    }): string {
+        const {
+            delimiter = ",",
+            formatColumnName = (col: CoreColumn): string => col.slug,
+        } = options ?? {}
+
+        const header =
+            this.columnsAsArray
+                .map((col) => csvEscape(formatColumnName(col)))
+                .join(delimiter) + "\n"
+
+        const body = this.rows
+            .map((row) =>
+                this.columnsAsArray.map((col) => {
+                    const value = row[col.slug]
+                    return isNotErrorValue(value)
+                        ? (col.formatForCsv(value) ?? "")
+                        : ""
+                })
+            )
+            .map((row) => row.join(delimiter))
+            .join("\n")
+
+        return header + body
+    }
+
     rowsAt(indices: number[]): ROW_TYPE[] {
         const { columnStore } = this
         return indices.map(
@@ -950,17 +988,6 @@ export class CoreTable<
             defs,
             `Kept columns '${slugs}'`,
             TransformType.FilterColumns
-        )
-    }
-
-    dropEmptyColumns(): this {
-        const columnsToDrop = this.columnsAsArray
-            .filter((col) => col.numValues === 0)
-            .map((col) => col.slug)
-
-        return this.dropColumns(
-            columnsToDrop,
-            `Dropped ${columnsToDrop.length} empty columns: '${columnsToDrop.join(", ")}'`
         )
     }
 
