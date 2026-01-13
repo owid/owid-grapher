@@ -97,8 +97,8 @@ function extractTitleFromContent(text: string): string {
 function extractSubtitleFromContent(text: string): string | undefined {
     // Split by double newlines and find first non-heading, non-section paragraph
     const lines = text.split("\n")
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim()
+    for (const rawLine of lines) {
+        const line = rawLine.trim()
         // Skip empty lines, headings, and metadata lines
         if (
             !line ||
