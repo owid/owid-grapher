@@ -22,12 +22,14 @@ import {
     stripOuterParentheses,
 } from "@ourworldindata/utils"
 import { CoreTable } from "./CoreTable.js"
+import type { OwidTable } from "./OwidTable.js"
 import {
     Time,
     JsTypes,
     CoreValueType,
     ColumnTypeNames,
     CoreColumnDef,
+    OwidColumnDef,
     EntityName,
     OwidVariableRow,
     ErrorValue,
@@ -41,11 +43,15 @@ import {
 } from "./OwidTableUtil.js"
 import * as R from "remeda"
 
-export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
-    def: CoreColumnDef
-    table: CoreTable
+export abstract class AbstractCoreColumn<
+    JS_TYPE extends PrimitiveType,
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> {
+    def: DEF_TYPE
+    table: TABLE_TYPE
 
-    constructor(table: CoreTable, def: CoreColumnDef) {
+    constructor(table: TABLE_TYPE, def: DEF_TYPE) {
         this.table = table
         this.def = def
     }
@@ -54,6 +60,15 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     parse(val: unknown): any {
         return val
+    }
+
+    /** Type guard to check if this column belongs to an OwidTable */
+    private isOwidColumn(): this is AbstractCoreColumn<
+        JS_TYPE,
+        OwidTable,
+        OwidColumnDef
+    > {
+        return this.table.isOwidTable()
     }
 
     @imemo get isMissing(): boolean {
@@ -430,41 +445,37 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         }
     }
 
-    // todo: remove. should not be on coretable
     @imemo private get allTimes(): Time[] {
         return this.table.getTimesAtIndices(this.validRowIndices)
     }
 
-    // todo: remove. should not be on coretable
     @imemo get uniqTimesAsc(): Time[] {
         return sortNumeric(_.uniq(this.allTimes))
     }
 
-    // todo: remove. should not be on coretable
     @imemo get maxTime(): Time {
         return _.max(this.allTimes) as Time
     }
 
-    // todo: remove. should not be on coretable
     @imemo get minTime(): Time {
         return _.min(this.allTimes) as Time
     }
 
-    // todo: remove? Should not be on CoreTable
     @imemo get uniqEntityNames(): EntityName[] {
         return _.uniq(this.allEntityNames)
     }
 
-    // todo: remove? Should not be on CoreTable
     @imemo private get allEntityNames(): EntityName[] {
+        // Type guard: early return if not OwidColumn
+        if (!this.isOwidColumn()) return []
+
         return this.table.getValuesAtIndices(
             this.table.entityNameSlug,
             this.validRowIndices
         ) as EntityName[]
     }
 
-    // todo: remove? Should not be on CoreTable
-    // assumes table is sorted by time
+    // Assumes table is sorted by time
     @imemo get owidRows(): OwidVariableRow<JS_TYPE>[] {
         const entities = this.allEntityNames
         const times = this.allTimes
@@ -482,7 +493,6 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         })
     }
 
-    // todo: remove? Should not be on CoreTable
     @imemo get owidRowsByEntityName(): Map<
         EntityName,
         OwidVariableRow<JS_TYPE>[]
@@ -495,7 +505,6 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return map
     }
 
-    // todo: remove? Should not be on CoreTable
     @imemo get owidRowByEntityNameAndTime(): Map<
         EntityName,
         Map<Time, OwidVariableRow<JS_TYPE>>
@@ -512,7 +521,6 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return valueByEntityNameAndTime
     }
 
-    // todo: remove? Should not be on CoreTable
     @imemo get valuesByTime(): Map<Time, JS_TYPE[]> {
         const map = new Map<Time, JS_TYPE[]>()
         this.owidRows.forEach((row) => {
@@ -522,7 +530,6 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return map
     }
 
-    // todo: remove? Should not be on CoreTable
     @imemo get valueByTimeAndEntityName(): Map<Time, Map<EntityName, JS_TYPE>> {
         const valueByTimeAndEntityName = new Map<
             Time,
@@ -538,7 +545,6 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return valueByTimeAndEntityName
     }
 
-    // todo: remove? Should not be on CoreTable
     // NOTE: this uses the original times, so any tolerance is effectively unapplied.
     @imemo get valueByEntityNameAndOriginalTime(): Map<
         EntityName,
@@ -559,9 +565,15 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 }
 
-export type CoreColumn = AbstractCoreColumn<any>
+export type CoreColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> = AbstractCoreColumn<any, TABLE_TYPE, DEF_TYPE>
 
-export class MissingColumn extends AbstractCoreColumn<any> {
+export class MissingColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends AbstractCoreColumn<any, TABLE_TYPE, DEF_TYPE> {
     jsType = JsTypes.string
 
     formatValue(): string {
@@ -569,7 +581,10 @@ export class MissingColumn extends AbstractCoreColumn<any> {
     }
 }
 
-class StringColumn extends AbstractCoreColumn<string> {
+class StringColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends AbstractCoreColumn<string, TABLE_TYPE, DEF_TYPE> {
     jsType = JsTypes.string
 
     formatValue(value: unknown): string {
@@ -583,10 +598,19 @@ class StringColumn extends AbstractCoreColumn<string> {
     }
 }
 
-class SeriesAnnotationColumn extends StringColumn {}
-class CategoricalColumn extends StringColumn {}
+class SeriesAnnotationColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends StringColumn<TABLE_TYPE, DEF_TYPE> {}
+class CategoricalColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends StringColumn<TABLE_TYPE, DEF_TYPE> {}
 
-class OrdinalColumn extends CategoricalColumn {
+class OrdinalColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends CategoricalColumn<TABLE_TYPE, DEF_TYPE> {
     @imemo get allowedValuesSorted(): string[] | undefined {
         return this.def.sort
     }
@@ -598,11 +622,23 @@ class OrdinalColumn extends CategoricalColumn {
     }
 }
 
-class RegionColumn extends OrdinalColumn {}
-class ContinentColumn extends RegionColumn {}
-class ColorColumn extends CategoricalColumn {}
+class RegionColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends OrdinalColumn<TABLE_TYPE, DEF_TYPE> {}
+class ContinentColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends RegionColumn<TABLE_TYPE, DEF_TYPE> {}
+class ColorColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends CategoricalColumn<TABLE_TYPE, DEF_TYPE> {}
 
-class BooleanColumn extends AbstractCoreColumn<boolean> {
+class BooleanColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends AbstractCoreColumn<boolean, TABLE_TYPE, DEF_TYPE> {
     jsType = JsTypes.boolean
 
     formatValue(value: unknown): "true" | "false" {
@@ -616,7 +652,9 @@ class BooleanColumn extends AbstractCoreColumn<boolean> {
 
 abstract class AbstractColumnWithNumberFormatting<
     T extends PrimitiveType,
-> extends AbstractCoreColumn<T> {
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends AbstractCoreColumn<T, TABLE_TYPE, DEF_TYPE> {
     jsType = JsTypes.number
 
     formatValue(value: unknown, options?: TickFormattingOptions): string {
@@ -689,8 +727,13 @@ abstract class AbstractColumnWithNumberFormatting<
  * implementations of formatValueShortWithAbbreviations and the like already.
  * -- @marcelgerber, 2022-07-01
  */
-class NumberOrStringColumn extends AbstractColumnWithNumberFormatting<
-    number | string
+class NumberOrStringColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends AbstractColumnWithNumberFormatting<
+    number | string,
+    TABLE_TYPE,
+    DEF_TYPE
 > {
     override formatValue(
         value: unknown,
@@ -714,7 +757,10 @@ class NumberOrStringColumn extends AbstractColumnWithNumberFormatting<
     }
 }
 
-abstract class AbstractNumericColumn extends AbstractColumnWithNumberFormatting<number> {
+abstract class AbstractNumericColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends AbstractColumnWithNumberFormatting<number, TABLE_TYPE, DEF_TYPE> {
     override parse(val: unknown): number | ErrorValue {
         if (val === null) return ErrorValueTypes.NullButShouldBeNumber
         if (val === undefined) return ErrorValueTypes.UndefinedButShouldBeNumber
@@ -733,10 +779,19 @@ abstract class AbstractNumericColumn extends AbstractColumnWithNumberFormatting<
     }
 }
 
-class NumericColumn extends AbstractNumericColumn {}
-class NumericCategoricalColumn extends AbstractNumericColumn {}
+class NumericColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends AbstractNumericColumn<TABLE_TYPE, DEF_TYPE> {}
+class NumericCategoricalColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends AbstractNumericColumn<TABLE_TYPE, DEF_TYPE> {}
 
-class IntegerColumn extends NumericColumn {
+class IntegerColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends NumericColumn<TABLE_TYPE, DEF_TYPE> {
     override formatValue(
         value: unknown,
         options?: TickFormattingOptions
@@ -752,7 +807,10 @@ class IntegerColumn extends NumericColumn {
     }
 }
 
-class CurrencyColumn extends NumericColumn {
+class CurrencyColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends NumericColumn<TABLE_TYPE, DEF_TYPE> {
     override formatValue(
         value: unknown,
         options?: TickFormattingOptions
@@ -771,7 +829,10 @@ class CurrencyColumn extends NumericColumn {
 }
 
 // Expects 50% to be 50
-class PercentageColumn extends NumericColumn {
+class PercentageColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends NumericColumn<TABLE_TYPE, DEF_TYPE> {
     override formatValue(
         value: number,
         options?: TickFormattingOptions
@@ -790,9 +851,15 @@ class PercentageColumn extends NumericColumn {
 
 // Same as %, but indicates it's part of a group of columns that add up to 100%.
 // Might not need this.
-class RelativePercentageColumn extends PercentageColumn {}
+class RelativePercentageColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends PercentageColumn<TABLE_TYPE, DEF_TYPE> {}
 
-class PercentChangeOverTimeColumn extends PercentageColumn {
+class PercentChangeOverTimeColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends PercentageColumn<TABLE_TYPE, DEF_TYPE> {
     override formatValue(
         value: number,
         options?: TickFormattingOptions
@@ -804,16 +871,34 @@ class PercentChangeOverTimeColumn extends PercentageColumn {
     }
 }
 
-class DecimalPercentageColumn extends PercentageColumn {}
-class RatioColumn extends NumericColumn {}
+class DecimalPercentageColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends PercentageColumn<TABLE_TYPE, DEF_TYPE> {}
+class RatioColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends NumericColumn<TABLE_TYPE, DEF_TYPE> {}
 
 // todo: remove. should not be in coretable
-class EntityIdColumn extends NumericCategoricalColumn {}
-class EntityCodeColumn extends CategoricalColumn {}
-class EntityNameColumn extends CategoricalColumn {}
+class EntityIdColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends NumericCategoricalColumn<TABLE_TYPE, DEF_TYPE> {}
+class EntityCodeColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends CategoricalColumn<TABLE_TYPE, DEF_TYPE> {}
+class EntityNameColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends CategoricalColumn<TABLE_TYPE, DEF_TYPE> {}
 
 // todo: cleanup time columns. current schema is a little incorrect.
-export abstract class TimeColumn extends AbstractCoreColumn<number> {
+export abstract class TimeColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends AbstractCoreColumn<number, TABLE_TYPE, DEF_TYPE> {
     jsType = JsTypes.number
 
     abstract preposition: string
@@ -831,7 +916,10 @@ export abstract class TimeColumn extends AbstractCoreColumn<number> {
     }
 }
 
-class YearColumn extends TimeColumn {
+class YearColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends TimeColumn<TABLE_TYPE, DEF_TYPE> {
     preposition = "in"
 
     formatValue(value: number): string {
@@ -840,7 +928,10 @@ class YearColumn extends TimeColumn {
     }
 }
 
-class DayColumn extends TimeColumn {
+class DayColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends TimeColumn<TABLE_TYPE, DEF_TYPE> {
     preposition = "on"
 
     // We cache these values because running `formatDay` thousands of times takes some time.
@@ -876,7 +967,10 @@ class DayColumn extends TimeColumn {
 }
 
 const dateToTimeCache = new Map<string, Time>() // Cache for performance
-class DateColumn extends DayColumn {
+class DateColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends DayColumn<TABLE_TYPE, DEF_TYPE> {
     override parse(val: unknown): number {
         // skip parsing if a date is a number, it's already been parsed
         if (typeof val === "number") return val
@@ -893,7 +987,10 @@ class DateColumn extends DayColumn {
     }
 }
 
-class QuarterColumn extends TimeColumn {
+class QuarterColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends TimeColumn<TABLE_TYPE, DEF_TYPE> {
     preposition = "in"
 
     private static regEx = /^([+-]?\d+)-Q([1-4])$/
@@ -928,10 +1025,19 @@ class QuarterColumn extends TimeColumn {
     }
 }
 
-class PopulationColumn extends IntegerColumn {}
-class PopulationDensityColumn extends NumericColumn {}
+class PopulationColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends IntegerColumn<TABLE_TYPE, DEF_TYPE> {}
+class PopulationDensityColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends NumericColumn<TABLE_TYPE, DEF_TYPE> {}
 
-class AgeColumn extends NumericColumn {}
+class AgeColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends NumericColumn<TABLE_TYPE, DEF_TYPE> {}
 
 export const ColumnTypeMap = {
     String: StringColumn,
