@@ -390,6 +390,10 @@ delete-algolia-index: node_modules
 	@echo '==> Deleting Algolia index'
 	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/deleteAlgoliaIndex.js
 
+index-charts-ai-search: node_modules
+	@echo '==> Indexing charts to AI Search R2 bucket'
+	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/indexChartsToAISearch.js
+
 bench.search: node_modules
 	@echo '==> Running search benchmarks'
 	@yarn tsx --tsconfig tsconfig.tsx.json site/search/evaluateSearch.js

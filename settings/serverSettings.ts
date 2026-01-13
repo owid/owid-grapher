@@ -167,3 +167,7 @@ export const SEARCH_EVAL_URL: string =
     "https://pub-ec761fe0df554b02bc605610f3296000.r2.dev"
 
 export const FIGMA_API_KEY: string = process.env.FIGMA_API_KEY ?? ""
+
+// AI Search (Cloudflare AutoRAG) R2 bucket for indexing charts
+export const AI_SEARCH_R2_BUCKET: string =
+    serverSettings.AI_SEARCH_R2_BUCKET || "cloudflare-ai-search"
