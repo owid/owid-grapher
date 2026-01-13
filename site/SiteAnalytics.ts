@@ -1,5 +1,5 @@
 import * as _ from "lodash-es"
-import { GrapherAnalytics } from "@ourworldindata/grapher"
+import { GrapherAnalytics, splitPathForGA4 } from "@ourworldindata/grapher"
 import { EventCategory } from "@ourworldindata/types"
 import {
     type SearchChartHit,
@@ -140,18 +140,22 @@ export class SiteAnalytics extends GrapherAnalytics {
     }
 
     logGuidedChartLinkClick(url: string) {
+        const { path: target, pathNext: targetNext } = splitPathForGA4(url)
         this.logToGA({
             event: EventCategory.SiteGuidedChartLinkClick,
             eventAction: "click",
-            eventTarget: url,
+            eventTarget: target,
+            eventTargetNext: targetNext,
         })
     }
 
     logChartPreviewMouseover(chartUrl: string) {
+        const { path: target, pathNext: targetNext } = splitPathForGA4(chartUrl)
         this.logToGA({
             event: EventCategory.SiteChartPreviewMouseover,
             eventAction: "mouseover",
-            eventTarget: chartUrl,
+            eventTarget: target,
+            eventTargetNext: targetNext,
         })
     }
 
