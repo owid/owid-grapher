@@ -7,6 +7,7 @@ import * as db from "../../db/db.js"
 import { getChartsRecords } from "./utils/charts.js"
 import { ChartRecord } from "@ourworldindata/types"
 import { getFeaturedMetricsByParentTagName } from "../../db/db.js"
+import { getAnalyticsPageviewsByUrlObj } from "../../db/model/Pageview.js"
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3"
 import {
     AI_SEARCH_R2_BUCKET,
@@ -43,6 +44,9 @@ function chartRecordToMarkdown(record: ChartRecord): string {
 /**
  * Build a map of chart URL path -> minimum FM rank for that chart.
  * A chart can be a featured metric for multiple topics, so we take the best (lowest) rank.
+ *
+ * We only consider FMs with incomeGroup="default" since that's the primary ranking.
+ * Other income groups (low, lower-middle, upper-middle) are for country-specific views.
  */
 async function getFmRankByChartPath(
     trx: db.KnexReadonlyTransaction
@@ -52,6 +56,9 @@ async function getFmRankByChartPath(
 
     for (const fms of Object.values(fmsByTag)) {
         for (const fm of fms) {
+            // Only consider default income group (primary ranking)
+            if (fm.incomeGroup !== "default") continue
+
             // Extract path from URL (e.g., "/grapher/population" from full URL)
             const url = new URL(fm.url, "https://ourworldindata.org")
             const path = url.pathname + url.search
@@ -66,6 +73,12 @@ async function getFmRankByChartPath(
     return fmRankByPath
 }
 
+interface ChartPageviews {
+    views_7d: number
+    views_14d: number
+    views_365d: number
+}
+
 /**
  * Upload a chart record to R2 as a Markdown file.
  * Stores chart metadata as JSON in a single metadata field to stay within R2 limits.
@@ -74,9 +87,15 @@ async function uploadChartToR2(
     s3Client: S3Client,
     bucket: string,
     record: ChartRecord,
-    fmRank: number | undefined
+    fmRank: number | undefined,
+    pageviews: ChartPageviews
 ): Promise<void> {
-    const markdown = chartRecordToMarkdown(record)
+    // Add timestamp to force AI Search to detect content change and re-index
+    const timestamp = new Date().toISOString()
+    // TODO: Do this to trigger rebuild of AI Search when only metadata changes. Don't
+    // do this in production
+    const markdown =
+        chartRecordToMarkdown(record) + `\n<!-- indexed: ${timestamp} -->\n`
     const key = `charts/${record.slug}.md`
 
     // Store essential chart data as JSON in metadata
@@ -89,7 +108,9 @@ async function uploadChartToR2(
         queryParams: record.queryParams || "",
         publishedAt: record.publishedAt,
         updatedAt: record.updatedAt,
-        views_7d: record.views_7d,
+        views_7d: pageviews.views_7d,
+        views_14d: pageviews.views_14d,
+        views_365d: pageviews.views_365d,
         fmRank,
     })
 
@@ -116,7 +137,9 @@ const indexChartsToAISearch = async () => {
         return
     }
 
-    console.log(`Indexing charts to AI Search R2 bucket: ${AI_SEARCH_R2_BUCKET}`)
+    console.log(
+        `Indexing charts to AI Search R2 bucket: ${AI_SEARCH_R2_BUCKET}`
+    )
 
     const s3Client = new S3Client({
         endpoint: R2_ENDPOINT,
@@ -127,14 +150,13 @@ const indexChartsToAISearch = async () => {
         },
     })
 
-    const { records, fmRankByPath } = await db.knexReadonlyTransaction(
-        async (trx) => {
+    const { records, fmRankByPath, pageviewsByUrl } =
+        await db.knexReadonlyTransaction(async (trx) => {
             const records = await getChartsRecords(trx)
             const fmRankByPath = await getFmRankByChartPath(trx)
-            return { records, fmRankByPath }
-        },
-        db.TransactionCloseMode.Close
-    )
+            const pageviewsByUrl = await getAnalyticsPageviewsByUrlObj(trx)
+            return { records, fmRankByPath, pageviewsByUrl }
+        }, db.TransactionCloseMode.Close)
 
     // Filter to only charts with "pop" in title (for initial testing)
     const filteredRecords = records.filter((record) =>
@@ -157,7 +179,22 @@ const indexChartsToAISearch = async () => {
             console.log(`  FM: ${record.slug} => rank ${fmRank}`)
             fmCount++
         }
-        await uploadChartToR2(s3Client, AI_SEARCH_R2_BUCKET, record, fmRank)
+
+        // Get pageviews for this chart (use max across slug and redirects)
+        const pageviewData = pageviewsByUrl[chartPath]
+        const pageviews: ChartPageviews = {
+            views_7d: pageviewData?.views_7d ?? 0,
+            views_14d: pageviewData?.views_14d ?? 0,
+            views_365d: pageviewData?.views_365d ?? 0,
+        }
+
+        await uploadChartToR2(
+            s3Client,
+            AI_SEARCH_R2_BUCKET,
+            record,
+            fmRank,
+            pageviews
+        )
         uploaded++
     }
     console.log(`Found ${fmCount} featured metrics among filtered charts`)

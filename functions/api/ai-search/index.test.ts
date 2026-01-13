@@ -28,9 +28,10 @@ describe("AI Search API endpoint", () => {
             await onRequestGet({ request, env: mockEnv } as any)
 
             expect(mockEnv.AI.autorag).toHaveBeenCalledWith("owid-ai-search")
+            // fetchSize = max(10, min(10 + 10, 50)) = 20
             expect(mockAutorag.search).toHaveBeenCalledWith({
                 query: "population",
-                max_num_results: 10,
+                max_num_results: 20,
             })
         })
 
@@ -45,9 +46,10 @@ describe("AI Search API endpoint", () => {
             )
             await onRequestGet({ request, env: mockEnv } as any)
 
+            // fetchSize = max(10, min(10 + 10, 50)) = 20
             expect(mockAutorag.search).toHaveBeenCalledWith({
                 query: "climate",
-                max_num_results: 10,
+                max_num_results: 20,
             })
         })
 
@@ -62,9 +64,10 @@ describe("AI Search API endpoint", () => {
             )
             await onRequestGet({ request, env: mockEnv } as any)
 
+            // fetchSize = max(25, min(25 + 10, 50)) = 35
             expect(mockAutorag.search).toHaveBeenCalledWith({
                 query: "test",
-                max_num_results: 25,
+                max_num_results: 35,
             })
         })
 
@@ -154,7 +157,7 @@ describe("AI Search API endpoint", () => {
             expect(body.hitsPerPage).toBe(10)
         })
 
-it("parses metadata from R2 chartdata field including fmRank and views_7d", async () => {
+it("parses metadata from R2 chartdata field including fmRank and all views fields", async () => {
             const chartdata = JSON.stringify({
                 type: "chart",
                 slug: "world-population",
@@ -164,6 +167,8 @@ it("parses metadata from R2 chartdata field including fmRank and views_7d", asyn
                 publishedAt: "2020-01-01",
                 updatedAt: "2024-01-01",
                 views_7d: 5000,
+                views_14d: 9500,
+                views_365d: 180000,
                 fmRank: 2,
             })
 
@@ -200,6 +205,8 @@ it("parses metadata from R2 chartdata field including fmRank and views_7d", asyn
                 hits: Array<{
                     slug: string
                     views_7d: number
+                    views_14d: number
+                    views_365d: number
                     fmRank: number
                     aiSearchScore: number
                     score: number
@@ -210,11 +217,13 @@ it("parses metadata from R2 chartdata field including fmRank and views_7d", asyn
             expect(body.hits).toHaveLength(1)
             expect(body.hits[0].slug).toBe("world-population")
             expect(body.hits[0].views_7d).toBe(5000)
+            expect(body.hits[0].views_14d).toBe(9500)
+            expect(body.hits[0].views_365d).toBe(180000)
             expect(body.hits[0].fmRank).toBe(2)
             expect(body.hits[0].variantName).toBe("UN estimates")
             expect(body.hits[0].aiSearchScore).toBe(0.85)
-            // Combined score: 0.85 + 0.45 (fmRank 2 boost) + log10(5001) ≈ 0.85 + 0.45 + 3.699
-            expect(body.hits[0].score).toBeCloseTo(0.85 + 0.45 + Math.log10(5001), 2)
+            // Combined score: 0.85 + 0.09 (fmRank 2 boost) + 0.01 * log10(5001)
+            expect(body.hits[0].score).toBeCloseTo(0.85 + 0.09 + 0.01 * Math.log10(5001), 2)
         })
 
         it("returns error response when AI Search fails", async () => {

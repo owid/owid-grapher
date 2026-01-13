@@ -12,6 +12,8 @@ interface ChartData {
     publishedAt: string
     updatedAt: string
     views_7d: number
+    views_14d: number
+    views_365d: number
     fmRank?: number // Featured metric rank (1 = top, only set for FMs)
 }
 
@@ -100,15 +102,12 @@ function parseChartData(result: AISearchResult): Partial<ChartData> {
 
 /**
  * Calculate a combined score from AI search relevance, FM rank, and pageviews.
- * All components are normalized to 0-1 range.
  *
  * Scoring strategy:
  * - AI Search score (0-1): Primary signal for semantic relevance
- * - FM boost (0-0.5): Featured metrics get a boost. Rank 1 = +0.5, rank 2 = +0.45, etc.
- * - Pageviews boost: log10(views + 1) gives a popularity signal
- *   (e.g., 1000 views = 3, 10000 = 4, 100000 = 5)
- *
- * Final score combines these with weights favoring relevance.
+ * - FM boost: rank 1 = +0.1, rank 2 = +0.09, ..., rank 10 = +0.01, rank 11+ = 0
+ * - Pageviews boost: 0.01 * log10(views + 1)
+ *   (e.g., 1000 views = 0.03, 10000 = 0.04, 100000 = 0.05)
  */
 function calculateCombinedScore(
     aiSearchScore: number,
@@ -118,11 +117,11 @@ function calculateCombinedScore(
     // AI search score is already 0-1
     const relevanceScore = aiSearchScore
 
-    // FM boost: rank 1 = +0.5, rank 2 = +0.45, ..., rank 10 = +0.05, rank 11+ = 0
-    const fmBoost = fmRank ? Math.max(0, 0.55 - fmRank * 0.05) : 0
+    // FM boost: rank 1 = +0.1, rank 2 = +0.09, ..., rank 10 = +0.01, rank 11+ = 0
+    const fmBoost = fmRank ? Math.max(0, 0.11 - fmRank * 0.01) : 0
 
-    // Pageviews boost: log scale
-    const viewsBoost = views7d ? Math.log10(views7d + 1) : 0
+    // Pageviews boost: scaled log
+    const viewsBoost = views7d ? 0.01 * Math.log10(views7d + 1) : 0
 
     return relevanceScore + fmBoost + viewsBoost
 }
@@ -151,6 +150,8 @@ function transformToSearchApiFormat(
 
         const aiSearchScore = result.score
         const views_7d = chartData.views_7d
+        const views_14d = chartData.views_14d
+        const views_365d = chartData.views_365d
         const fmRank = chartData.fmRank
         const score = calculateCombinedScore(aiSearchScore, fmRank, views_7d)
 
@@ -166,6 +167,8 @@ function transformToSearchApiFormat(
             publishedAt: chartData.publishedAt,
             updatedAt: chartData.updatedAt,
             views_7d,
+            views_14d,
+            views_365d,
             fmRank,
             url,
             aiSearchScore,
@@ -173,13 +176,14 @@ function transformToSearchApiFormat(
         }
     })
 
-    // Sort by combined score (descending)
+    // Sort by combined score (descending) and trim to requested size
     hits.sort((a, b) => b.score - a.score)
+    const trimmedHits = hits.slice(0, hitsPerPage)
 
     return {
         query,
-        hits,
-        nbHits: hits.length,
+        hits: trimmedHits,
+        nbHits: trimmedHits.length,
         page: 0,
         nbPages: 1,
         hitsPerPage,
@@ -200,11 +204,15 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     const verbose = url.searchParams.get("verbose") === "1"
 
     try {
+        // Fetch more results than requested so we can re-rank effectively
+        // Then trim to hitsPerPage after applying our scoring
+        const fetchSize = Math.max(hitsPerPage, Math.min(hitsPerPage + 10, 50))
+
         // Call AI Search via the AI binding
         // See: https://developers.cloudflare.com/ai-search/usage/workers-binding/
         const results = (await env.AI.autorag(AI_SEARCH_INSTANCE_NAME).search({
             query,
-            max_num_results: hitsPerPage,
+            max_num_results: fetchSize,
         })) as AISearchResponse
 
         const response = transformToSearchApiFormat(
