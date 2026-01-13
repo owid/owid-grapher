@@ -2,7 +2,7 @@ import { Env } from "../../../_common/env.js"
 import { SearchUrlParam, OwidGdocType } from "@ourworldindata/types"
 
 // Name of the AI Search instance in Cloudflare dashboard
-const AI_SEARCH_INSTANCE_NAME = "owid-ai-search"
+const AI_SEARCH_INSTANCE_NAME = "search-articles"
 
 const DEFAULT_LENGTH = 10
 const MAX_LENGTH = 100

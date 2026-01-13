@@ -168,6 +168,6 @@ export const SEARCH_EVAL_URL: string =
 
 export const FIGMA_API_KEY: string = process.env.FIGMA_API_KEY ?? ""
 
-// AI Search (Cloudflare AutoRAG) R2 bucket for indexing charts
+// AI Search (Cloudflare AutoRAG) R2 bucket for indexing
 export const AI_SEARCH_R2_BUCKET: string =
     serverSettings.AI_SEARCH_R2_BUCKET || "cloudflare-ai-search"
