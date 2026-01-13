@@ -394,6 +394,10 @@ index-charts-ai-search: node_modules
 	@echo '==> Indexing charts to AI Search R2 bucket'
 	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/indexChartsToAISearch.js
 
+index-pages-ai-search: node_modules
+	@echo '==> Indexing pages to AI Search R2 bucket'
+	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/indexPagesToAISearch.js
+
 bench.search: node_modules
 	@echo '==> Running search benchmarks'
 	@yarn tsx --tsconfig tsconfig.tsx.json site/search/evaluateSearch.js
