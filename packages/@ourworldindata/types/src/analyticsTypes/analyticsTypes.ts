@@ -184,7 +184,9 @@ export interface SiteChartPreviewMouseoverParams {
 
 export interface GrapherViewParams {
     /** Grapher chart path (e.g., '/grapher/life-expectancy') */
-    grapherPath: string
+    grapherPath?: string
+    /** Continuation of grapherPath for URLs > 100 chars (characters 101-200) */
+    grapherPathNext?: string
     /** View configuration ID for multi-dimensional data pages */
     viewConfigId?: string
     /** Name of the narrative chart if embedded */
@@ -196,6 +198,8 @@ export interface GrapherClickParams {
     eventAction: GrapherImageDownloadEvent | string
     /** Grapher chart path */
     grapherPath?: string
+    /** Continuation of grapherPath for URLs > 100 chars (characters 101-200) */
+    grapherPathNext?: string
     /** View configuration ID */
     viewConfigId?: string
     /** Name of narrative chart */
@@ -211,6 +215,8 @@ export interface GrapherHoverParams {
     eventAction: GrapherInteractionEvent
     /** Grapher chart path */
     grapherPath?: string
+    /** Continuation of grapherPath for URLs > 100 chars (characters 101-200) */
+    grapherPathNext?: string
     /** View configuration ID */
     viewConfigId?: string
     /** Name of narrative chart */
@@ -226,6 +232,8 @@ export interface GrapherErrorParams {
     eventContext: string
     /** Grapher chart path */
     grapherPath?: string
+    /** Continuation of grapherPath for URLs > 100 chars (characters 101-200) */
+    grapherPathNext?: string
     /** View configuration ID */
     viewConfigId?: string
     /** Name of narrative chart */
@@ -237,6 +245,8 @@ export interface GrapherEntitySelectorParams {
     eventAction: EntitySelectorEvent
     /** Grapher chart path */
     grapherPath?: string
+    /** Continuation of grapherPath for URLs > 100 chars (characters 101-200) */
+    grapherPathNext?: string
     /** View configuration ID */
     viewConfigId?: string
     /** Name of narrative chart */
