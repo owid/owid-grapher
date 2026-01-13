@@ -2,7 +2,7 @@ import { Env } from "../../../_common/env.js"
 import { SearchUrlParam } from "@ourworldindata/types"
 
 // Name of the AI Search instance in Cloudflare dashboard
-const AI_SEARCH_INSTANCE_NAME = "owid-ai-search"
+const AI_SEARCH_INSTANCE_NAME = "search-charts"
 
 const DEFAULT_HITS_PER_PAGE = 20
 const MAX_HITS_PER_PAGE = 100

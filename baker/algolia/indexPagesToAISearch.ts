@@ -4,7 +4,7 @@ import "../../serverUtils/instrument.js"
 
 import * as Sentry from "@sentry/node"
 import * as db from "../../db/db.js"
-import { PageRecord, OwidGdocType } from "@ourworldindata/types"
+import { OwidGdocType } from "@ourworldindata/types"
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3"
 import {
     AI_SEARCH_R2_BUCKET,
@@ -13,41 +13,24 @@ import {
     R2_REGION,
     R2_SECRET_ACCESS_KEY,
 } from "../../settings/serverSettings.js"
-import { getPagesRecords } from "./utils/pages.js"
+import { getAnalyticsPageviewsByUrlObj } from "../../db/model/Pageview.js"
+import { RawPageview } from "@ourworldindata/utils"
 
 /**
- * Convert a PageRecord to Markdown format for AI Search indexing.
- * Metadata is stored separately in R2 object metadata (pagedata field).
+ * Gdoc data from database for AI Search indexing
  */
-function pageRecordToMarkdown(record: PageRecord): string {
-    const lines: string[] = []
-
-    lines.push(`# ${record.title}`)
-    lines.push("")
-
-    if (record.excerpt) {
-        lines.push(record.excerpt)
-        lines.push("")
-    }
-
-    if (record.content) {
-        lines.push(record.content)
-        lines.push("")
-    }
-
-    if (record.tags && record.tags.length > 0) {
-        lines.push("## Topics")
-        lines.push(record.tags.join(", "))
-        lines.push("")
-    }
-
-    if (record.authors && record.authors.length > 0) {
-        lines.push("## Authors")
-        lines.push(record.authors.join(", "))
-        lines.push("")
-    }
-
-    return lines.join("\n")
+interface GdocForAISearch {
+    id: string
+    slug: string
+    type: OwidGdocType
+    title: string
+    excerpt: string
+    markdown: string
+    authors: string[]
+    tags: string[]
+    publishedAt: Date
+    updatedAt: Date | null
+    thumbnailUrl: string
 }
 
 /**
@@ -70,38 +53,77 @@ function getFolderForType(type: OwidGdocType): string {
 }
 
 /**
- * Upload a page record to R2 as a Markdown file.
+ * Build markdown content for AI Search indexing.
+ * Uses the pre-rendered markdown from the database, with title and metadata.
+ */
+function buildMarkdownForAISearch(gdoc: GdocForAISearch): string {
+    const lines: string[] = []
+
+    // Title
+    lines.push(`# ${gdoc.title}`)
+    lines.push("")
+
+    // Excerpt as lead paragraph
+    if (gdoc.excerpt) {
+        lines.push(gdoc.excerpt)
+        lines.push("")
+    }
+
+    // Full markdown content from database
+    if (gdoc.markdown) {
+        lines.push(gdoc.markdown)
+        lines.push("")
+    }
+
+    // Topics section for semantic search
+    if (gdoc.tags && gdoc.tags.length > 0) {
+        lines.push("## Topics")
+        lines.push(gdoc.tags.join(", "))
+        lines.push("")
+    }
+
+    // Authors section
+    if (gdoc.authors && gdoc.authors.length > 0) {
+        lines.push("## Authors")
+        lines.push(gdoc.authors.join(", "))
+        lines.push("")
+    }
+
+    return lines.join("\n")
+}
+
+/**
+ * Upload a gdoc to R2 as a Markdown file.
  * Stores page metadata as JSON in a single metadata field to stay within R2 limits.
  */
-async function uploadPageToR2(
+async function uploadGdocToR2(
     s3Client: S3Client,
     bucket: string,
-    record: PageRecord
+    gdoc: GdocForAISearch,
+    pageviews: RawPageview | undefined
 ): Promise<void> {
     // Add timestamp to force AI Search to detect content change and re-index
     const timestamp = new Date().toISOString()
     const markdown =
-        pageRecordToMarkdown(record) + `\n<!-- indexed: ${timestamp} -->\n`
+        buildMarkdownForAISearch(gdoc) + `\n<!-- indexed: ${timestamp} -->\n`
 
-    const folder = getFolderForType(record.type)
-    const key = `${folder}/${record.slug}.md`
+    const folder = getFolderForType(gdoc.type)
+    const key = `${folder}/${gdoc.slug}.md`
 
     // Store essential page data as JSON in metadata
     // R2 metadata values must be strings and have size limits
-    // Note: We exclude content from metadata (it goes in the markdown body)
     // We base64 encode to avoid HTTP header character issues with UTF-8
     const pageDataObj = {
-        type: record.type,
-        slug: record.slug,
-        title: record.title,
-        excerpt: record.excerpt || "",
-        authors: record.authors || [],
-        tags: record.tags || [],
-        date: record.date,
-        modifiedDate: record.modifiedDate,
-        views_7d: record.views_7d,
-        score: record.score,
-        thumbnailUrl: record.thumbnailUrl,
+        type: gdoc.type,
+        slug: gdoc.slug,
+        title: gdoc.title,
+        excerpt: gdoc.excerpt || "",
+        authors: gdoc.authors || [],
+        tags: gdoc.tags || [],
+        date: gdoc.publishedAt?.toISOString(),
+        modifiedDate: gdoc.updatedAt?.toISOString(),
+        views_7d: pageviews?.views_7d ?? 0,
+        thumbnailUrl: gdoc.thumbnailUrl || "",
     }
     const pageData = Buffer.from(JSON.stringify(pageDataObj)).toString("base64")
 
@@ -119,6 +141,73 @@ async function uploadPageToR2(
     )
 
     console.log(`Uploaded: ${key}`)
+}
+
+/**
+ * Get gdocs with markdown from database for AI Search indexing
+ */
+async function getGdocsForAISearch(
+    trx: db.KnexReadonlyTransaction
+): Promise<GdocForAISearch[]> {
+    const rows = await trx
+        .select(
+            "g.id",
+            "g.slug",
+            "g.type",
+            "g.markdown",
+            "g.publishedAt",
+            "g.updatedAt",
+            trx.raw("JSON_UNQUOTE(JSON_EXTRACT(g.content, '$.title')) as title"),
+            trx.raw(
+                "JSON_UNQUOTE(JSON_EXTRACT(g.content, '$.excerpt')) as excerpt"
+            ),
+            trx.raw(
+                "COALESCE(JSON_UNQUOTE(JSON_EXTRACT(g.content, '$.authors')), '[]') as authors"
+            ),
+            trx.raw(
+                "JSON_UNQUOTE(JSON_EXTRACT(g.content, '$.\"featured-image\"')) as featuredImage"
+            )
+        )
+        .from("posts_gdocs as g")
+        .where("g.published", true)
+        .whereIn("g.type", [
+            OwidGdocType.Article,
+            OwidGdocType.TopicPage,
+            OwidGdocType.LinearTopicPage,
+            OwidGdocType.AboutPage,
+        ])
+        .whereNotNull("g.markdown")
+
+    // Get tags for each gdoc
+    const gdocIds = rows.map((r) => r.id)
+    const tagRows = await trx
+        .select("gt.gdocId", "t.name")
+        .from("posts_gdocs_x_tags as gt")
+        .join("tags as t", "gt.tagId", "t.id")
+        .whereIn("gt.gdocId", gdocIds)
+
+    const tagsByGdocId = new Map<string, string[]>()
+    for (const row of tagRows) {
+        const tags = tagsByGdocId.get(row.gdocId) || []
+        tags.push(row.name)
+        tagsByGdocId.set(row.gdocId, tags)
+    }
+
+    return rows.map((row) => ({
+        id: row.id,
+        slug: row.slug,
+        type: row.type as OwidGdocType,
+        title: row.title || "",
+        excerpt: row.excerpt || "",
+        markdown: row.markdown || "",
+        authors: JSON.parse(row.authors || "[]"),
+        tags: tagsByGdocId.get(row.id) || [],
+        publishedAt: row.publishedAt,
+        updatedAt: row.updatedAt,
+        thumbnailUrl: row.featuredImage
+            ? `https://ourworldindata.org/images/${row.featuredImage}`
+            : "",
+    }))
 }
 
 const indexPagesToAISearch = async () => {
@@ -142,30 +231,22 @@ const indexPagesToAISearch = async () => {
         },
     })
 
-    const records = await db.knexReadonlyTransaction(
-        getPagesRecords,
+    const { gdocs, pageviewsByUrl } = await db.knexReadonlyTransaction(
+        async (trx) => {
+            const gdocs = await getGdocsForAISearch(trx)
+            const pageviewsByUrl = await getAnalyticsPageviewsByUrlObj(trx)
+            return { gdocs, pageviewsByUrl }
+        },
         db.TransactionCloseMode.Close
     )
 
-    // Filter to only articles containing "demographics" keyword (for initial testing)
-    const filteredRecords = records.filter(
-        (record) =>
-            record.type === OwidGdocType.Article &&
-            (record.title.toLowerCase().includes("demographics") ||
-                record.content?.toLowerCase().includes("demographics") ||
-                record.tags?.some((tag) =>
-                    tag.toLowerCase().includes("demographics")
-                ))
-    )
+    console.log(`Found ${gdocs.length} gdocs with markdown`)
 
-    console.log(
-        `Found ${records.length} pages, ${filteredRecords.length} articles with "demographics"`
-    )
-
-    // Upload each page to R2
+    // Upload each gdoc to R2
     let uploaded = 0
-    for (const record of filteredRecords) {
-        await uploadPageToR2(s3Client, AI_SEARCH_R2_BUCKET, record)
+    for (const gdoc of gdocs) {
+        const pageviews = pageviewsByUrl[`/${gdoc.slug}`]
+        await uploadGdocToR2(s3Client, AI_SEARCH_R2_BUCKET, gdoc, pageviews)
         uploaded++
     }
 
