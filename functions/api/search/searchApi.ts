@@ -283,6 +283,9 @@ export async function searchCharts(
             url = `${baseUrl}/grapher/${cleanHit.slug}`
         }
 
+        // Remove internal Algolia fields that shouldn't be exposed in API
+        delete cleanHit.objectID
+
         return {
             ...(cleanHit as SearchChartHit),
             url,
