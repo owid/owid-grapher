@@ -1,5 +1,6 @@
 import { defineConfig, devices } from "@playwright/test"
 import { defineBddConfig } from "playwright-bdd"
+import { ENV } from "./settings/clientSettings.ts"
 
 const testDir = defineBddConfig({
     features: "features/**/*.feature",
@@ -11,6 +12,7 @@ const testDir = defineBddConfig({
 
 export default defineConfig({
     testDir,
+    reporter: ENV === "development" ? [["line"]] : [["dot"]],
     projects: [
         {
             name: "chromium",
@@ -26,5 +28,4 @@ export default defineConfig({
             use: { ...devices["Desktop Safari"] },
         },
     ],
-    reporter: "html",
 })
