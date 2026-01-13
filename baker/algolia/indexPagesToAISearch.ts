@@ -157,7 +157,9 @@ async function getGdocsForAISearch(
             "g.markdown",
             "g.publishedAt",
             "g.updatedAt",
-            trx.raw("JSON_UNQUOTE(JSON_EXTRACT(g.content, '$.title')) as title"),
+            trx.raw(
+                "JSON_UNQUOTE(JSON_EXTRACT(g.content, '$.title')) as title"
+            ),
             trx.raw(
                 "JSON_UNQUOTE(JSON_EXTRACT(g.content, '$.excerpt')) as excerpt"
             ),
@@ -219,9 +221,7 @@ const indexPagesToAISearch = async () => {
         return
     }
 
-    console.log(
-        `Indexing pages to AI Search R2 bucket: ${AI_SEARCH_R2_BUCKET}`
-    )
+    console.log(`Indexing pages to AI Search R2 bucket: ${AI_SEARCH_R2_BUCKET}`)
 
     const s3Client = new S3Client({
         endpoint: R2_ENDPOINT,
