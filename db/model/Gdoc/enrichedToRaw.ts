@@ -561,8 +561,13 @@ export function enrichedBlockToRawBlock(
                     type: b.type,
                     value: {
                         heading: b.heading,
-                        "hide-authors": b["hide-authors"].toString(),
-                        "hide-date": b["hide-date"].toString(),
+                        // Only include hide-authors/hide-date if they're defined
+                        ...(b["hide-authors"] !== undefined && {
+                            "hide-authors": b["hide-authors"].toString(),
+                        }),
+                        ...(b["hide-date"] !== undefined && {
+                            "hide-date": b["hide-date"].toString(),
+                        }),
                         variant: b.variant,
                         primary: b.primary.map((enriched) =>
                             enrichedLinkToRawLink(enriched)
