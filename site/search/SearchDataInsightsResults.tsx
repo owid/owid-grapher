@@ -6,10 +6,10 @@ import {
     DataInsightHit,
     SearchDataInsightResponse,
 } from "@ourworldindata/types"
-import { queryDataInsights, searchQueryKeys } from "./queries.js"
+import { queryDataInsightsViaApi, searchQueryKeys } from "./queries.js"
 import { SearchDataInsightHit } from "./SearchDataInsightHit.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
-import { useInfiniteSearch } from "./searchHooks.js"
+import { useInfiniteSearchViaApi } from "./searchHooks.js"
 import { SearchDataInsightsResultsSkeleton } from "./SearchDataInsightsResultsSkeleton.js"
 import { SearchHorizontalDivider } from "./SearchHorizontalDivider.js"
 import { useSearchContext } from "./SearchContext.js"
@@ -17,9 +17,12 @@ import { useSearchContext } from "./SearchContext.js"
 export function SearchDataInsightsResults() {
     const { analytics } = useSearchContext()
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
-    const query = useInfiniteSearch<SearchDataInsightResponse, DataInsightHit>({
+    const query = useInfiniteSearchViaApi<
+        SearchDataInsightResponse,
+        DataInsightHit
+    >({
         queryKey: (state) => searchQueryKeys.dataInsights(state),
-        queryFn: queryDataInsights,
+        queryFn: queryDataInsightsViaApi,
     })
 
     const container = useRef<HTMLDivElement>(null)

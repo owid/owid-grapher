@@ -17,7 +17,6 @@ interface PageData {
     date: string
     modifiedDate: string
     views_7d: number
-    score: number // Algolia-computed importance score
     thumbnailUrl: string
 }
 
@@ -38,6 +37,14 @@ interface AISearchResponse {
 }
 
 /**
+ * Algolia-style snippet result format for highlighting
+ */
+interface SnippetValue {
+    value: string
+    matchLevel: "none" | "partial" | "full"
+}
+
+/**
  * Article hit matching the frontend FlatArticleHit type
  */
 interface ArticleHit {
@@ -50,9 +57,16 @@ interface ArticleHit {
     authors: string[]
     objectID: string
     __position: number
+    // Algolia-compatible snippet result for content highlighting
+    _snippetResult?: {
+        content: SnippetValue
+    }
     // AI Search specific fields
     aiSearchScore: number
+    viewsScore: number
+    importanceScore: number
     score: number
+    views_7d: number
     url: string
 }
 
@@ -69,7 +83,23 @@ interface TopicPageHit {
     __position: number
     // AI Search specific fields
     aiSearchScore: number
+    viewsScore: number
+    importanceScore: number
     score: number
+    views_7d: number
+}
+
+/**
+ * Data insight hit matching the frontend DataInsightHit type
+ */
+interface DataInsightHit {
+    title: string
+    thumbnailUrl: string
+    date: string
+    slug: string
+    type: OwidGdocType.DataInsight
+    objectID: string
+    __position: number
 }
 
 /**
@@ -91,34 +121,74 @@ function extractSlugFromFilename(filename: string): string {
         .replace(/^articles\//, "")
         .replace(/^about-pages\//, "")
         .replace(/^topic-pages\//, "")
+        .replace(/^data-insights\//, "")
         .replace(/\.md$/, "")
 }
 
 /**
- * Extract content excerpt from markdown (for search result display)
+ * Extract a snippet from text that contains the query terms, with surrounding context.
+ *
+ * Note: This is a simple implementation compared to Algolia's snippet extraction.
+ * It finds the first occurrence of query terms and extracts ~300 chars around it.
  */
-function extractContentFromMarkdown(text: string): string {
-    // Remove the title line and extract first meaningful paragraph
-    const lines = text.split("\n")
-    const contentLines: string[] = []
-
-    for (const line of lines) {
-        const trimmed = line.trim()
-        // Skip empty lines, headings, metadata sections
-        if (
-            !trimmed ||
-            trimmed.startsWith("#") ||
-            trimmed.startsWith("##") ||
-            trimmed.startsWith("<!--")
-        ) {
-            continue
-        }
-        contentLines.push(trimmed)
-        // Get first ~200 chars of content
-        if (contentLines.join(" ").length > 200) break
+function extractSnippet(
+    text: string,
+    query: string,
+    maxLength: number = 300
+): string {
+    if (!query.trim()) {
+        return text.slice(0, maxLength)
     }
 
-    return contentLines.join(" ").slice(0, 300)
+    // Normalize text for searching (remove extra whitespace, newlines)
+    const normalizedText = text.replace(/\s+/g, " ").trim()
+
+    // Split query into words and find first match
+    const queryWords = query
+        .toLowerCase()
+        .split(/\s+/)
+        .filter((w) => w.length > 2)
+    const lowerText = normalizedText.toLowerCase()
+
+    let bestMatchIndex = -1
+
+    for (const word of queryWords) {
+        const index = lowerText.indexOf(word)
+        if (index !== -1 && (bestMatchIndex === -1 || index < bestMatchIndex)) {
+            bestMatchIndex = index
+        }
+    }
+
+    if (bestMatchIndex === -1) {
+        // No match found, return beginning of text
+        return normalizedText.slice(0, maxLength)
+    }
+
+    // Extract context around the match
+    const contextBefore = 100
+    const start = Math.max(0, bestMatchIndex - contextBefore)
+    const end = Math.min(normalizedText.length, start + maxLength)
+
+    let snippet = normalizedText.slice(start, end)
+
+    // Add ellipsis if truncated
+    if (start > 0) snippet = "…" + snippet
+    if (end < normalizedText.length) snippet = snippet + "…"
+
+    return snippet
+}
+
+/**
+ * Decode base64 string to UTF-8 text.
+ * Unlike atob() which returns Latin-1, this properly handles UTF-8 encoded data.
+ */
+function base64ToUtf8(base64: string): string {
+    const binaryString = atob(base64)
+    const bytes = new Uint8Array(binaryString.length)
+    for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i)
+    }
+    return new TextDecoder("utf-8").decode(bytes)
 }
 
 /**
@@ -138,7 +208,7 @@ function parsePageData(result: AISearchResult): Partial<PageData> {
             const base64Data = pagedataStr.startsWith("b64-")
                 ? pagedataStr.slice(4)
                 : pagedataStr
-            const decoded = atob(base64Data)
+            const decoded = base64ToUtf8(base64Data)
             return JSON.parse(decoded) as PageData
         } catch {
             // Fall through to defaults
@@ -149,25 +219,50 @@ function parsePageData(result: AISearchResult): Partial<PageData> {
 }
 
 /**
- * Calculate combined score for articles.
- * Uses AI search relevance + pageviews boost (no FM rank for articles).
+ * Get page importance based on type.
+ * Mirrors Algolia's getPostImportance() from baker/algolia/utils/pages.ts
  */
-function calculateArticleScore(
+function getPageImportance(type: OwidGdocType | undefined): number {
+    switch (type) {
+        case OwidGdocType.TopicPage:
+        case OwidGdocType.LinearTopicPage:
+            return 3
+        case OwidGdocType.AboutPage:
+            return 1
+        case OwidGdocType.Article:
+        default:
+            return 0
+    }
+}
+
+interface ScoreComponents {
+    score: number
+    viewsScore: number
+    importanceScore: number
+}
+
+/**
+ * Calculate combined score for search results.
+ * Combines AI search relevance with pageviews and page type importance.
+ * Returns individual score components for transparency.
+ */
+function calculateScore(
     aiSearchScore: number,
     views7d: number | undefined,
-    importanceScore: number | undefined
-): number {
-    // AI search score is primary signal
-    const relevanceScore = aiSearchScore
+    type: OwidGdocType | undefined
+): ScoreComponents {
+    // Pageviews boost: scaled log to prevent high-traffic pages from dominating
+    const viewsScore = views7d ? 0.01 * Math.log10(views7d + 1) : 0
 
-    // Pageviews boost: scaled log
-    const viewsBoost = views7d ? 0.01 * Math.log10(views7d + 1) : 0
+    // Type importance boost: topic pages > about pages > articles
+    // Scale factor chosen to give meaningful but not overwhelming boost
+    const importance = getPageImportance(type)
+    const importanceScore = importance * 0.05
 
-    // Importance boost (from Algolia scoring: importance * 1000 + views_7d)
-    // Normalize to small boost
-    const importanceBoost = importanceScore ? 0.001 * importanceScore : 0
+    // AI search score is primary signal (typically 0-1 range)
+    const score = aiSearchScore + viewsScore + importanceScore
 
-    return relevanceScore + viewsBoost + importanceBoost
+    return { score, viewsScore, importanceScore }
 }
 
 /**
@@ -197,19 +292,23 @@ function transformToArticlesApiFormat(
         const pageData = parsePageData(result)
         const slug = pageData.slug || extractSlugFromFilename(result.filename)
         const text = result.content[0]?.text ?? ""
-        const content = extractContentFromMarkdown(text)
-
-        const aiSearchScore = result.score
-        const score = calculateArticleScore(
-            aiSearchScore,
-            pageData.views_7d,
-            pageData.score
-        )
+        const content = extractSnippet(text, query)
 
         // Determine type from pageData or filename
         const type = pageData.type?.includes("about")
             ? OwidGdocType.AboutPage
             : OwidGdocType.Article
+
+        const aiSearchScore = result.score
+        const { score, viewsScore, importanceScore } = calculateScore(
+            aiSearchScore,
+            pageData.views_7d,
+            type
+        )
+
+        // Determine match level for snippet
+        const hasQueryMatch = query.trim().length > 0 && content.includes("…")
+        const matchLevel = hasQueryMatch ? "full" : "none"
 
         return {
             title: pageData.title || slug,
@@ -221,8 +320,17 @@ function transformToArticlesApiFormat(
             authors: pageData.authors || [],
             objectID: slug,
             __position: index + 1,
+            _snippetResult: {
+                content: {
+                    value: content,
+                    matchLevel: matchLevel as "none" | "partial" | "full",
+                },
+            },
             aiSearchScore,
+            viewsScore,
+            importanceScore,
             score,
+            views_7d: pageData.views_7d ?? 0,
             url: `${baseUrl}/${slug}`,
         }
     })
@@ -266,20 +374,21 @@ function transformToTopicPagesApiFormat(
         const pageData = parsePageData(result)
         const slug = pageData.slug || extractSlugFromFilename(result.filename)
         const text = result.content[0]?.text ?? ""
-        const excerpt = pageData.excerpt || extractContentFromMarkdown(text)
-
-        const aiSearchScore = result.score
-        const score = calculateArticleScore(
-            aiSearchScore,
-            pageData.views_7d,
-            pageData.score
-        )
+        // Use stored excerpt if available, otherwise extract snippet from content
+        const excerpt = pageData.excerpt || extractSnippet(text, query)
 
         // Determine type from pageData
         const type =
             pageData.type === OwidGdocType.LinearTopicPage
                 ? OwidGdocType.LinearTopicPage
                 : OwidGdocType.TopicPage
+
+        const aiSearchScore = result.score
+        const { score, viewsScore, importanceScore } = calculateScore(
+            aiSearchScore,
+            pageData.views_7d,
+            type
+        )
 
         return {
             title: pageData.title || slug,
@@ -290,7 +399,10 @@ function transformToTopicPagesApiFormat(
             objectID: slug,
             __position: index + 1,
             aiSearchScore,
+            viewsScore,
+            importanceScore,
             score,
+            views_7d: pageData.views_7d ?? 0,
         }
     })
 
@@ -314,6 +426,55 @@ function transformToTopicPagesApiFormat(
     }
 }
 
+/**
+ * Transform AI Search results to data insights API format
+ */
+function transformToDataInsightsApiFormat(
+    query: string,
+    results: AISearchResponse,
+    page: number,
+    hitsPerPage: number,
+    folders: string[]
+): { query: string; hits: DataInsightHit[]; nbHits: number; page: number; nbPages: number; hitsPerPage: number } {
+    // Filter to only results from allowed folders
+    const filteredResults = results.data.filter((r) =>
+        matchesFolders(r.filename, folders)
+    )
+
+    const hits: DataInsightHit[] = filteredResults.map((result, index) => {
+        const pageData = parsePageData(result)
+        const slug = pageData.slug || extractSlugFromFilename(result.filename)
+
+        return {
+            title: pageData.title || slug,
+            thumbnailUrl: pageData.thumbnailUrl || "",
+            date: pageData.date || "",
+            slug,
+            type: OwidGdocType.DataInsight,
+            objectID: slug,
+            __position: index + 1,
+        }
+    })
+
+    // Apply page/hitsPerPage pagination (Algolia-style)
+    const offset = page * hitsPerPage
+    const paginatedHits = hits.slice(offset, offset + hitsPerPage)
+
+    // Re-assign positions after pagination
+    paginatedHits.forEach((hit, index) => {
+        hit.__position = offset + index + 1
+    })
+
+    return {
+        query,
+        hits: paginatedHits,
+        nbHits: hits.length,
+        page,
+        nbPages: Math.ceil(hits.length / hitsPerPage),
+        hitsPerPage,
+    }
+}
+
 // Default folders to include when not specified
 const DEFAULT_FOLDERS = ["articles", "about-pages"]
 
@@ -326,27 +487,33 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         // Parse query parameter
         const query = url.searchParams.get(SearchUrlParam.QUERY) || ""
 
-        // Parse offset/length pagination (matching Algolia style for articles)
-        const offset = parseInt(url.searchParams.get("offset") || "0")
-        const length = parseInt(
-            url.searchParams.get("length") || DEFAULT_LENGTH.toString()
-        )
-
         // Parse folders filter (comma-separated list)
         const foldersParam = url.searchParams.get("folders")
         const folders = foldersParam
             ? foldersParam.split(",").map((f) => f.trim())
             : DEFAULT_FOLDERS
 
-        // Determine if this is a topic pages request
+        // Determine request type based on folders
         const isTopicPagesRequest = folders.includes("topic-pages")
+        const isDataInsightsRequest = folders.includes("data-insights")
+
+        // Data insights use page/hitsPerPage pagination (Algolia-style)
+        // Articles and topic pages use offset/length pagination
+        const page = parseInt(url.searchParams.get("page") || "0")
+        const hitsPerPage = parseInt(
+            url.searchParams.get("hitsPerPage") || "4"
+        )
+        const offset = parseInt(url.searchParams.get("offset") || "0")
+        const length = parseInt(
+            url.searchParams.get("length") || DEFAULT_LENGTH.toString()
+        )
 
         // Validate pagination parameters
-        if (offset < 0) {
+        if (offset < 0 || page < 0) {
             return new Response(
                 JSON.stringify({
-                    error: "Invalid offset parameter",
-                    details: "Offset must be >= 0",
+                    error: "Invalid pagination parameter",
+                    details: "offset and page must be >= 0",
                 }),
                 {
                     status: 400,
@@ -375,7 +542,9 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         }
 
         // Fetch more results to account for filtering and pagination
-        const fetchSize = Math.min(offset + length + 20, 50)
+        const fetchSize = isDataInsightsRequest
+            ? Math.min((page + 1) * hitsPerPage + 20, 50)
+            : Math.min(offset + length + 20, 50)
 
         // Call AI Search
         const results = (await env.AI.autorag(AI_SEARCH_INSTANCE_NAME).search({
@@ -386,23 +555,34 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             },
         })) as AISearchResponse
 
-        // Transform based on whether this is articles or topic pages
-        const response = isTopicPagesRequest
-            ? transformToTopicPagesApiFormat(
-                  query,
-                  results,
-                  offset,
-                  length,
-                  folders
-              )
-            : transformToArticlesApiFormat(
-                  query,
-                  results,
-                  offset,
-                  length,
-                  baseUrl,
-                  folders
-              )
+        // Transform based on request type
+        let response
+        if (isDataInsightsRequest) {
+            response = transformToDataInsightsApiFormat(
+                query,
+                results,
+                page,
+                hitsPerPage,
+                folders
+            )
+        } else if (isTopicPagesRequest) {
+            response = transformToTopicPagesApiFormat(
+                query,
+                results,
+                offset,
+                length,
+                folders
+            )
+        } else {
+            response = transformToArticlesApiFormat(
+                query,
+                results,
+                offset,
+                length,
+                baseUrl,
+                folders
+            )
+        }
 
         return new Response(JSON.stringify(response, null, 2), {
             headers: {

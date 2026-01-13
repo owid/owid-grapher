@@ -175,6 +175,7 @@ async function getGdocsForAISearch(
             OwidGdocType.TopicPage,
             OwidGdocType.LinearTopicPage,
             OwidGdocType.AboutPage,
+            OwidGdocType.DataInsight,
         ])
         .whereNotNull("g.markdown")
 
