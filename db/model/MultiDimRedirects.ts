@@ -12,7 +12,7 @@ export interface MultiDimRedirectTarget {
     queryStr?: string
 }
 
-function buildQueryStrFromConfig(
+export function buildQueryStrFromConfig(
     viewConfigId: string | null,
     config: string,
     multiDimSlug: string
