@@ -41,14 +41,14 @@ describe("Admin API key auth", { timeout: 10000 }, () => {
         expect(apiKeyRow?.lastUsedAt).toBeTruthy()
     })
 
-    it("does not update lastUsedAt when API key is missing", async () => {
+    it("fails to authenticate when API key is missing", async () => {
         const user = await env.testKnex(UsersTableName).first<DbPlainUser>()
         expect(user).toBeTruthy()
 
         const { id } = await seedApiKeyForUser(user!.id)
 
         const response = await fetch(`${env.baseUrl}/users.json`)
-        expect(response.status).toBe(200)
+        expect(response.status).toBe(401)
 
         const apiKeyRow = await env
             .testKnex(AdminApiKeysTableName)
