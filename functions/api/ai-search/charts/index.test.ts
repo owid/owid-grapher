@@ -27,7 +27,7 @@ describe("AI Search Charts API endpoint", () => {
             const request = new Request("http://localhost/api/ai-search/charts")
             await onRequestGet({ request, env: mockEnv } as any)
 
-            expect(mockEnv.AI.autorag).toHaveBeenCalledWith("owid-ai-search")
+            expect(mockEnv.AI.autorag).toHaveBeenCalledWith("search-charts")
             // Default hitsPerPage=20, fetchSize = max(20, min(20 + 10, 50)) = 30
             expect(mockAutorag.search).toHaveBeenCalledWith({
                 query: "",
