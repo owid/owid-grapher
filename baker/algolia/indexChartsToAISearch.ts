@@ -100,6 +100,7 @@ async function uploadChartToR2(
 
     // Store essential chart data as JSON in metadata
     // R2 metadata values must be strings and have size limits
+    // We Base64 encode to avoid issues with non-ASCII characters in HTTP headers
     const chartData = JSON.stringify({
         type: record.type,
         slug: record.slug,
@@ -113,6 +114,7 @@ async function uploadChartToR2(
         views_365d: pageviews.views_365d,
         fmRank,
     })
+    const chartDataBase64 = Buffer.from(chartData).toString("base64")
 
     await s3Client.send(
         new PutObjectCommand({
@@ -121,7 +123,7 @@ async function uploadChartToR2(
             Body: markdown,
             ContentType: "text/markdown",
             Metadata: {
-                chartdata: chartData,
+                chartdata: chartDataBase64,
             },
         })
     )
@@ -158,20 +160,13 @@ const indexChartsToAISearch = async () => {
             return { records, fmRankByPath, pageviewsByUrl }
         }, db.TransactionCloseMode.Close)
 
-    // Filter to only charts with "pop" in title (for initial testing)
-    const filteredRecords = records.filter((record) =>
-        record.title.toLowerCase().includes("pop")
-    )
-
-    console.log(
-        `Found ${records.length} charts, ${filteredRecords.length} with "pop" in title`
-    )
+    console.log(`Found ${records.length} charts`)
     console.log(`Found ${fmRankByPath.size} featured metrics`)
 
     // Upload each chart to R2
     let uploaded = 0
     let fmCount = 0
-    for (const record of filteredRecords) {
+    for (const record of records) {
         // Look up FM rank by chart path
         const chartPath = `/grapher/${record.slug}`
         const fmRank = fmRankByPath.get(chartPath)
@@ -197,7 +192,7 @@ const indexChartsToAISearch = async () => {
         )
         uploaded++
     }
-    console.log(`Found ${fmCount} featured metrics among filtered charts`)
+    console.log(`Found ${fmCount} featured metrics among charts`)
 
     console.log(`Successfully uploaded ${uploaded} charts to R2`)
 }
