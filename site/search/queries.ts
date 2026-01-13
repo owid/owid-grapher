@@ -245,6 +245,44 @@ export async function queryTopicPagesViaApi(
     return response.json()
 }
 
+/**
+ * Query data insights via the /api/ai-search/articles endpoint using Cloudflare AI Search.
+ * This uses semantic search for better relevance ranking.
+ */
+export async function queryDataInsightsViaApi(
+    state: SearchState,
+    page: number = 0,
+    hitsPerPage: number = 4
+): Promise<SearchDataInsightResponse> {
+    const selectedCountryNames = getFilterNamesOfType(
+        state.filters,
+        FilterType.COUNTRY
+    )
+    // Append country names to query for filtering (AI Search doesn't support facet filters yet)
+    const query = [
+        state.query,
+        ...Array.from(selectedCountryNames).map((c) => `"${c}"`),
+    ]
+        .filter(Boolean)
+        .join(" ")
+
+    const params = new URLSearchParams({
+        q: query,
+        page: page.toString(),
+        hitsPerPage: hitsPerPage.toString(),
+        // Filter to data-insights folder only
+        folders: "data-insights",
+    })
+
+    const response = await fetch(`/api/ai-search/articles?${params}`)
+    if (!response.ok) {
+        throw new Error(
+            `AI Search data insights API error: ${response.statusText}`
+        )
+    }
+    return response.json()
+}
+
 export async function queryDataInsights(
     liteSearchClient: LiteClient,
     state: SearchState,
