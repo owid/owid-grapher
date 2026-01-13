@@ -208,11 +208,39 @@ export async function queryArticlesViaApi(
         q: state.query,
         offset: offset.toString(),
         length: length.toString(),
+        // Filter to articles and about-pages folders
+        folders: "articles,about-pages",
     })
 
     const response = await fetch(`/api/ai-search/articles?${params}`)
     if (!response.ok) {
         throw new Error(`AI Search articles API error: ${response.statusText}`)
+    }
+    return response.json()
+}
+
+/**
+ * Query topic pages via the /api/ai-search/articles endpoint using Cloudflare AI Search.
+ * This uses semantic search for better relevance ranking.
+ */
+export async function queryTopicPagesViaApi(
+    state: SearchState,
+    offset: number = 0,
+    length: number = 10
+): Promise<SearchTopicPageResponse> {
+    const params = new URLSearchParams({
+        q: state.query,
+        offset: offset.toString(),
+        length: length.toString(),
+        // Filter to topic-pages folder only
+        folders: "topic-pages",
+    })
+
+    const response = await fetch(`/api/ai-search/articles?${params}`)
+    if (!response.ok) {
+        throw new Error(
+            `AI Search topic pages API error: ${response.statusText}`
+        )
     }
     return response.json()
 }

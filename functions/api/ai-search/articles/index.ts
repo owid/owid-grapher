@@ -57,6 +57,22 @@ interface ArticleHit {
 }
 
 /**
+ * Topic page hit matching the frontend TopicPageHit type
+ */
+interface TopicPageHit {
+    title: string
+    type: OwidGdocType.TopicPage | OwidGdocType.LinearTopicPage
+    slug: string
+    excerpt: string
+    excerptLong?: string[]
+    objectID: string
+    __position: number
+    // AI Search specific fields
+    aiSearchScore: number
+    score: number
+}
+
+/**
  * Response format matching SearchFlatArticleResponse (Algolia SearchResponse shape)
  */
 interface ArticlesApiResponse {
@@ -74,6 +90,7 @@ function extractSlugFromFilename(filename: string): string {
     return filename
         .replace(/^articles\//, "")
         .replace(/^about-pages\//, "")
+        .replace(/^topic-pages\//, "")
         .replace(/\.md$/, "")
 }
 
@@ -154,13 +171,10 @@ function calculateArticleScore(
 }
 
 /**
- * Check if result is an article (from articles/ folder)
+ * Check if result matches any of the allowed folders
  */
-function isArticle(filename: string): boolean {
-    return (
-        filename.startsWith("articles/") ||
-        filename.startsWith("about-pages/")
-    )
+function matchesFolders(filename: string, folders: string[]): boolean {
+    return folders.some((folder) => filename.startsWith(`${folder}/`))
 }
 
 /**
@@ -171,15 +185,17 @@ function transformToArticlesApiFormat(
     results: AISearchResponse,
     offset: number,
     length: number,
-    baseUrl: string
+    baseUrl: string,
+    folders: string[]
 ): ArticlesApiResponse {
-    // Filter to only article results
-    const articleResults = results.data.filter((r) => isArticle(r.filename))
+    // Filter to only results from allowed folders
+    const filteredResults = results.data.filter((r) =>
+        matchesFolders(r.filename, folders)
+    )
 
-    const hits: ArticleHit[] = articleResults.map((result, index) => {
+    const hits: ArticleHit[] = filteredResults.map((result, index) => {
         const pageData = parsePageData(result)
-        const slug =
-            pageData.slug || extractSlugFromFilename(result.filename)
+        const slug = pageData.slug || extractSlugFromFilename(result.filename)
         const text = result.content[0]?.text ?? ""
         const content = extractContentFromMarkdown(text)
 
@@ -231,6 +247,76 @@ function transformToArticlesApiFormat(
     }
 }
 
+/**
+ * Transform AI Search results to topic pages API format
+ */
+function transformToTopicPagesApiFormat(
+    query: string,
+    results: AISearchResponse,
+    offset: number,
+    length: number,
+    folders: string[]
+): { query: string; hits: TopicPageHit[]; nbHits: number; offset: number; length: number } {
+    // Filter to only results from allowed folders
+    const filteredResults = results.data.filter((r) =>
+        matchesFolders(r.filename, folders)
+    )
+
+    const hits: TopicPageHit[] = filteredResults.map((result, index) => {
+        const pageData = parsePageData(result)
+        const slug = pageData.slug || extractSlugFromFilename(result.filename)
+        const text = result.content[0]?.text ?? ""
+        const excerpt = pageData.excerpt || extractContentFromMarkdown(text)
+
+        const aiSearchScore = result.score
+        const score = calculateArticleScore(
+            aiSearchScore,
+            pageData.views_7d,
+            pageData.score
+        )
+
+        // Determine type from pageData
+        const type =
+            pageData.type === OwidGdocType.LinearTopicPage
+                ? OwidGdocType.LinearTopicPage
+                : OwidGdocType.TopicPage
+
+        return {
+            title: pageData.title || slug,
+            type: type as OwidGdocType.TopicPage | OwidGdocType.LinearTopicPage,
+            slug,
+            excerpt,
+            excerptLong: undefined, // Not available from AI Search currently
+            objectID: slug,
+            __position: index + 1,
+            aiSearchScore,
+            score,
+        }
+    })
+
+    // Sort by combined score (descending)
+    hits.sort((a, b) => b.score - a.score)
+
+    // Apply offset/length pagination
+    const paginatedHits = hits.slice(offset, offset + length)
+
+    // Re-assign positions after sorting/pagination
+    paginatedHits.forEach((hit, index) => {
+        hit.__position = offset + index + 1
+    })
+
+    return {
+        query,
+        hits: paginatedHits,
+        nbHits: hits.length,
+        offset,
+        length,
+    }
+}
+
+// Default folders to include when not specified
+const DEFAULT_FOLDERS = ["articles", "about-pages"]
+
 export const onRequestGet: PagesFunction<Env> = async (context) => {
     const { env } = context
     const url = new URL(context.request.url)
@@ -245,6 +331,15 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         const length = parseInt(
             url.searchParams.get("length") || DEFAULT_LENGTH.toString()
         )
+
+        // Parse folders filter (comma-separated list)
+        const foldersParam = url.searchParams.get("folders")
+        const folders = foldersParam
+            ? foldersParam.split(",").map((f) => f.trim())
+            : DEFAULT_FOLDERS
+
+        // Determine if this is a topic pages request
+        const isTopicPagesRequest = folders.includes("topic-pages")
 
         // Validate pagination parameters
         if (offset < 0) {
@@ -291,13 +386,23 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             },
         })) as AISearchResponse
 
-        const response = transformToArticlesApiFormat(
-            query,
-            results,
-            offset,
-            length,
-            baseUrl
-        )
+        // Transform based on whether this is articles or topic pages
+        const response = isTopicPagesRequest
+            ? transformToTopicPagesApiFormat(
+                  query,
+                  results,
+                  offset,
+                  length,
+                  folders
+              )
+            : transformToArticlesApiFormat(
+                  query,
+                  results,
+                  offset,
+                  length,
+                  baseUrl,
+                  folders
+              )
 
         return new Response(JSON.stringify(response, null, 2), {
             headers: {

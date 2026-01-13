@@ -9,9 +9,13 @@ import {
     TopicPageHit,
 } from "@ourworldindata/types"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
-import { searchQueryKeys, queryArticles, queryTopicPages } from "./queries.js"
+import {
+    searchQueryKeys,
+    queryArticlesViaApi,
+    queryTopicPagesViaApi,
+} from "./queries.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
-import { useInfiniteSearchOffset } from "./searchHooks.js"
+import { useInfiniteSearchOffsetViaApi } from "./searchHooks.js"
 import { SearchFlatArticleHit } from "./SearchFlatArticleHit.js"
 import { SearchTopicPageHit } from "./SearchTopicPageHit.js"
 import { SearchWritingResultsSkeleton } from "./SearchWritingResultsSkeleton.js"
@@ -152,13 +156,13 @@ export const SearchWritingResults = ({
     hasTopicPages?: boolean
 }) => {
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
-    const articlesQuery = useInfiniteSearchOffset<
+    const articlesQuery = useInfiniteSearchOffsetViaApi<
         SearchFlatArticleResponse,
         FlatArticleHit
     >({
         queryKey: (state) => searchQueryKeys.articles(state),
-        queryFn: (liteSearchClient, state, offset, length) => {
-            return queryArticles(liteSearchClient, state, offset, length)
+        queryFn: (state, offset, length) => {
+            return queryArticlesViaApi(state, offset, length)
         },
         firstPageSize: 2,
         laterPageSize: 6,
@@ -166,13 +170,13 @@ export const SearchWritingResults = ({
 
     const noArticles = articlesQuery.totalResults === 0
 
-    const topicsQuery = useInfiniteSearchOffset<
+    const topicsQuery = useInfiniteSearchOffsetViaApi<
         SearchTopicPageResponse,
         TopicPageHit
     >({
         queryKey: (state) => searchQueryKeys.topicPages(state),
-        queryFn: (liteSearchClient, state, offset, length) => {
-            return queryTopicPages(liteSearchClient, state, offset, length)
+        queryFn: (state, offset, length) => {
+            return queryTopicPagesViaApi(state, offset, length)
         },
         firstPageSize: noArticles ? 6 : 2,
         laterPageSize: noArticles ? 6 : 4,
