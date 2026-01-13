@@ -24,9 +24,7 @@ describe("AI Search Charts API endpoint", () => {
                 has_more: false,
             })
 
-            const request = new Request(
-                "http://localhost/api/ai-search/charts"
-            )
+            const request = new Request("http://localhost/api/ai-search/charts")
             await onRequestGet({ request, env: mockEnv } as any)
 
             expect(mockEnv.AI.autorag).toHaveBeenCalledWith("owid-ai-search")
@@ -157,11 +155,15 @@ describe("AI Search Charts API endpoint", () => {
             } as any)
 
             expect(response.status).toBe(200)
-            expect(response.headers.get("Content-Type")).toBe("application/json")
+            expect(response.headers.get("Content-Type")).toBe(
+                "application/json"
+            )
             expect(response.headers.get("Cache-Control")).toBe(
                 "public, max-age=60"
             )
-            expect(response.headers.get("Access-Control-Allow-Origin")).toBe("*")
+            expect(response.headers.get("Access-Control-Allow-Origin")).toBe(
+                "*"
+            )
 
             const body = (await response.json()) as {
                 query: string
@@ -296,7 +298,9 @@ describe("AI Search Charts API endpoint", () => {
                         attributes: {
                             file: { chartdata },
                         },
-                        content: [{ type: "text", text: "# Test\n\nTest chart." }],
+                        content: [
+                            { type: "text", text: "# Test\n\nTest chart." },
+                        ],
                     },
                 ],
                 has_more: false,
@@ -351,21 +355,27 @@ describe("AI Search Charts API endpoint", () => {
                         filename: "charts/low-score.md",
                         score: 0.5,
                         attributes: { file: {} },
-                        content: [{ type: "text", text: "# Low Score\n\nLow." }],
+                        content: [
+                            { type: "text", text: "# Low Score\n\nLow." },
+                        ],
                     },
                     {
                         file_id: "2",
                         filename: "charts/high-score.md",
                         score: 0.9,
                         attributes: { file: {} },
-                        content: [{ type: "text", text: "# High Score\n\nHigh." }],
+                        content: [
+                            { type: "text", text: "# High Score\n\nHigh." },
+                        ],
                     },
                     {
                         file_id: "3",
                         filename: "charts/mid-score.md",
                         score: 0.7,
                         attributes: { file: {} },
-                        content: [{ type: "text", text: "# Mid Score\n\nMid." }],
+                        content: [
+                            { type: "text", text: "# Mid Score\n\nMid." },
+                        ],
                     },
                 ],
                 has_more: false,

@@ -364,7 +364,13 @@ function transformToTopicPagesApiFormat(
     offset: number,
     length: number,
     folders: string[]
-): { query: string; hits: TopicPageHit[]; nbHits: number; offset: number; length: number } {
+): {
+    query: string
+    hits: TopicPageHit[]
+    nbHits: number
+    offset: number
+    length: number
+} {
     // Filter to only results from allowed folders
     const filteredResults = results.data.filter((r) =>
         matchesFolders(r.filename, folders)
@@ -435,7 +441,14 @@ function transformToDataInsightsApiFormat(
     page: number,
     hitsPerPage: number,
     folders: string[]
-): { query: string; hits: DataInsightHit[]; nbHits: number; page: number; nbPages: number; hitsPerPage: number } {
+): {
+    query: string
+    hits: DataInsightHit[]
+    nbHits: number
+    page: number
+    nbPages: number
+    hitsPerPage: number
+} {
     // Filter to only results from allowed folders
     const filteredResults = results.data.filter((r) =>
         matchesFolders(r.filename, folders)
@@ -500,9 +513,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         // Data insights use page/hitsPerPage pagination (Algolia-style)
         // Articles and topic pages use offset/length pagination
         const page = parseInt(url.searchParams.get("page") || "0")
-        const hitsPerPage = parseInt(
-            url.searchParams.get("hitsPerPage") || "4"
-        )
+        const hitsPerPage = parseInt(url.searchParams.get("hitsPerPage") || "4")
         const offset = parseInt(url.searchParams.get("offset") || "0")
         const length = parseInt(
             url.searchParams.get("length") || DEFAULT_LENGTH.toString()
