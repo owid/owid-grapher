@@ -103,7 +103,7 @@
         "cookie-parser": "^1.4.7",
         "d3": "^7.9.0",
         "dayjs": "^1.11.11",
-        "diff": "^8.0.2",
+        "diff": "^8.0.3",
         "dotenv": "^16.0.1",
         "embla-carousel-class-names": "^8.6.0",
         "embla-carousel-react": "^8.6.0",
