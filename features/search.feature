@@ -12,5 +12,11 @@ Feature: Search autocomplete
         When I navigate back to the previous search state
         Then the url no longer contains topic filters
 
+    Scenario: Autofocus and autocomplete suggestions visibility
+        Then the search bar should be focused
+        And suggestions should not be visible
+        When I type "gdp" in the search input
+        Then suggestions should be visible
+
 
 

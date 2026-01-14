@@ -68,3 +68,18 @@ Then("the url no longer contains topic filters", async ({ page }) => {
     const topicInUrl = getTopicFromUrl(page.url())
     expect(topicInUrl).toBeNull()
 })
+
+Then("the search bar should be focused", async ({ page }) => {
+    const input = getSearchInput(page)
+    await expect(input).toBeFocused()
+})
+
+Then("suggestions should not be visible", async ({ page }) => {
+    const suggestions = page.getByTestId("search-autocomplete-listbox")
+    await expect(suggestions).not.toBeVisible()
+})
+
+Then("suggestions should be visible", async ({ page }) => {
+    const suggestions = page.getByTestId("search-autocomplete-listbox")
+    await expect(suggestions).toBeVisible()
+})

@@ -155,7 +155,11 @@ export const SearchAutocomplete = ({
 
     return (
         <div className="search-autocomplete-container">
-            <ul id={getSearchAutocompleteId()} role="listbox">
+            <ul
+                id={getSearchAutocompleteId()}
+                data-testid="search-autocomplete-listbox"
+                role="listbox"
+            >
                 {suggestions.map((filter, index) => (
                     <li
                         key={`${filter.type}:${filter.name}`}
