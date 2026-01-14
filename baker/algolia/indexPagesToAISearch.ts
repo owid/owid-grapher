@@ -13,8 +13,9 @@ import {
     R2_REGION,
     R2_SECRET_ACCESS_KEY,
 } from "../../settings/serverSettings.js"
+import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../db/model/Pageview.js"
-import { RawPageview } from "@ourworldindata/utils"
+import { DbEnrichedImage, RawPageview } from "@ourworldindata/utils"
 
 /**
  * Gdoc data from database for AI Search indexing
@@ -147,7 +148,8 @@ async function uploadGdocToR2(
  * Get gdocs with markdown from database for AI Search indexing
  */
 async function getGdocsForAISearch(
-    trx: db.KnexReadonlyTransaction
+    trx: db.KnexReadonlyTransaction,
+    cloudflareImagesByFilename: Record<string, DbEnrichedImage>
 ): Promise<GdocForAISearch[]> {
     const rows = await trx
         .select(
@@ -168,6 +170,13 @@ async function getGdocsForAISearch(
             ),
             trx.raw(
                 "JSON_UNQUOTE(JSON_EXTRACT(g.content, '$.\"featured-image\"')) as featuredImage"
+            ),
+            // For data insights, get the first image's smallFilename or filename
+            trx.raw(
+                `COALESCE(
+                    JSON_UNQUOTE(JSON_EXTRACT(g.content, '$.body[0].smallFilename')),
+                    JSON_UNQUOTE(JSON_EXTRACT(g.content, '$.body[0].filename'))
+                ) as firstImageFilename`
             )
         )
         .from("posts_gdocs as g")
@@ -196,21 +205,35 @@ async function getGdocsForAISearch(
         tagsByGdocId.set(row.gdocId, tags)
     }
 
-    return rows.map((row) => ({
-        id: row.id,
-        slug: row.slug,
-        type: row.type as OwidGdocType,
-        title: row.title || "",
-        excerpt: row.excerpt || "",
-        markdown: row.markdown || "",
-        authors: JSON.parse(row.authors || "[]"),
-        tags: tagsByGdocId.get(row.id) || [],
-        publishedAt: row.publishedAt,
-        updatedAt: row.updatedAt,
-        thumbnailUrl: row.featuredImage
-            ? `https://ourworldindata.org/images/${row.featuredImage}`
-            : "",
-    }))
+    return rows.map((row) => {
+        // Data insights use the first image block, other pages use featured-image
+        const isDataInsight = row.type === OwidGdocType.DataInsight
+        const imageFilename = isDataInsight
+            ? row.firstImageFilename
+            : row.featuredImage
+        const cloudflareId = imageFilename
+            ? cloudflareImagesByFilename[imageFilename]?.cloudflareId
+            : undefined
+        // Data insights use w=608, other pages use w=512
+        const imageWidth = isDataInsight ? 608 : 512
+        const thumbnailUrl = cloudflareId
+            ? `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/w=${imageWidth}`
+            : ""
+
+        return {
+            id: row.id,
+            slug: row.slug,
+            type: row.type as OwidGdocType,
+            title: row.title || "",
+            excerpt: row.excerpt || "",
+            markdown: row.markdown || "",
+            authors: JSON.parse(row.authors || "[]"),
+            tags: tagsByGdocId.get(row.id) || [],
+            publishedAt: row.publishedAt,
+            updatedAt: row.updatedAt,
+            thumbnailUrl,
+        }
+    })
 }
 
 const indexPagesToAISearch = async () => {
@@ -234,7 +257,18 @@ const indexPagesToAISearch = async () => {
 
     const { gdocs, pageviewsByUrl } = await db.knexReadonlyTransaction(
         async (trx) => {
-            const gdocs = await getGdocsForAISearch(trx)
+            // Fetch cloudflare images and index by filename
+            const cloudflareImages = await db.getCloudflareImages(trx)
+            const cloudflareImagesByFilename: Record<string, DbEnrichedImage> =
+                {}
+            for (const image of cloudflareImages) {
+                cloudflareImagesByFilename[image.filename] = image
+            }
+
+            const gdocs = await getGdocsForAISearch(
+                trx,
+                cloudflareImagesByFilename
+            )
             const pageviewsByUrl = await getAnalyticsPageviewsByUrlObj(trx)
             return { gdocs, pageviewsByUrl }
         },
