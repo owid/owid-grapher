@@ -17,8 +17,6 @@ describe("Explorer Views Integration", { timeout: 15000 }, () => {
 explorerSubtitle	Test explorer for explorer views integration.
 isPublished	true
 selection	Nigeria	Bangladesh
-subNavId	explorers
-subNavCurrentId	${testExplorerSlug}
 wpBlockId
 tab	map
 graphers
@@ -384,8 +382,6 @@ graphers
 explorerSubtitle	Explorer with invalid grapher IDs.
 isPublished	true
 selection	Nigeria	Bangladesh
-subNavId	explorers
-subNavCurrentId	test-invalid
 wpBlockId
 tab	map
 graphers
