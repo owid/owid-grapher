@@ -7,8 +7,7 @@ import * as db from "../../db/db.js"
 import { getChartsRecords } from "./utils/charts.js"
 import { ChartRecord } from "@ourworldindata/types"
 import { getFeaturedMetricsByParentTagName } from "../../db/db.js"
-import { getAnalyticsPageviewsByUrlObj } from "../../db/model/Pageview.js"
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3"
+import { S3Client } from "@aws-sdk/client-s3"
 import {
     AI_SEARCH_R2_BUCKET,
     R2_ACCESS_KEY_ID,
@@ -16,6 +15,7 @@ import {
     R2_REGION,
     R2_SECRET_ACCESS_KEY,
 } from "../../settings/serverSettings.js"
+import { uploadToR2 } from "./utils/aiSearch.js"
 
 /**
  * Convert a ChartRecord to Markdown format for AI Search indexing.
@@ -73,62 +73,18 @@ async function getFmRankByChartPath(
     return fmRankByPath
 }
 
-interface ChartPageviews {
+interface ChartMetadata {
+    type: string
+    slug: string
+    variantName: string
+    availableTabs: string[]
+    queryParams: string
+    publishedAt: string
+    updatedAt: string
     views_7d: number
     views_14d: number
     views_365d: number
-}
-
-/**
- * Upload a chart record to R2 as a Markdown file.
- * Stores chart metadata as JSON in a single metadata field to stay within R2 limits.
- */
-async function uploadChartToR2(
-    s3Client: S3Client,
-    bucket: string,
-    record: ChartRecord,
-    fmRank: number | undefined,
-    pageviews: ChartPageviews
-): Promise<void> {
-    // Add timestamp to force AI Search to detect content change and re-index
-    const timestamp = new Date().toISOString()
-    // TODO: Do this to trigger rebuild of AI Search when only metadata changes. Don't
-    // do this in production
-    const markdown =
-        chartRecordToMarkdown(record) + `\n<!-- indexed: ${timestamp} -->\n`
-    const key = `charts/${record.slug}.md`
-
-    // Store essential chart data as JSON in metadata
-    // R2 metadata values must be strings and have size limits
-    // We Base64 encode to avoid issues with non-ASCII characters in HTTP headers
-    const chartData = JSON.stringify({
-        type: record.type,
-        slug: record.slug,
-        variantName: record.variantName || "",
-        availableTabs: record.availableTabs,
-        queryParams: record.queryParams || "",
-        publishedAt: record.publishedAt,
-        updatedAt: record.updatedAt,
-        views_7d: pageviews.views_7d,
-        views_14d: pageviews.views_14d,
-        views_365d: pageviews.views_365d,
-        fmRank,
-    })
-    const chartDataBase64 = Buffer.from(chartData).toString("base64")
-
-    await s3Client.send(
-        new PutObjectCommand({
-            Bucket: bucket,
-            Key: key,
-            Body: markdown,
-            ContentType: "text/markdown",
-            Metadata: {
-                chartdata: chartDataBase64,
-            },
-        })
-    )
-
-    console.log(`Uploaded: ${key}`)
+    fmRank: number | undefined
 }
 
 const indexChartsToAISearch = async () => {
@@ -152,13 +108,14 @@ const indexChartsToAISearch = async () => {
         },
     })
 
-    const { records, fmRankByPath, pageviewsByUrl } =
-        await db.knexReadonlyTransaction(async (trx) => {
+    const { records, fmRankByPath } = await db.knexReadonlyTransaction(
+        async (trx) => {
             const records = await getChartsRecords(trx)
             const fmRankByPath = await getFmRankByChartPath(trx)
-            const pageviewsByUrl = await getAnalyticsPageviewsByUrlObj(trx)
-            return { records, fmRankByPath, pageviewsByUrl }
-        }, db.TransactionCloseMode.Close)
+            return { records, fmRankByPath }
+        },
+        db.TransactionCloseMode.Close
+    )
 
     console.log(`Found ${records.length} charts`)
     console.log(`Found ${fmRankByPath.size} featured metrics`)
@@ -175,20 +132,31 @@ const indexChartsToAISearch = async () => {
             fmCount++
         }
 
-        // Get pageviews for this chart (use max across slug and redirects)
-        const pageviewData = pageviewsByUrl[chartPath]
-        const pageviews: ChartPageviews = {
-            views_7d: pageviewData?.views_7d ?? 0,
-            views_14d: pageviewData?.views_14d ?? 0,
-            views_365d: pageviewData?.views_365d ?? 0,
+        const markdown = chartRecordToMarkdown(record)
+        const key = `charts/${record.slug}.md`
+
+        // Use views from the ChartRecord (already computed in getChartsRecords)
+        const metadata: ChartMetadata = {
+            type: record.type,
+            slug: record.slug,
+            variantName: record.variantName || "",
+            availableTabs: record.availableTabs,
+            queryParams: record.queryParams || "",
+            publishedAt: record.publishedAt,
+            updatedAt: record.updatedAt,
+            views_7d: record.views_7d,
+            views_14d: record.views_14d,
+            views_365d: record.views_365d,
+            fmRank,
         }
 
-        await uploadChartToR2(
+        await uploadToR2(
             s3Client,
             AI_SEARCH_R2_BUCKET,
-            record,
-            fmRank,
-            pageviews
+            key,
+            markdown,
+            "chartdata",
+            metadata
         )
         uploaded++
     }

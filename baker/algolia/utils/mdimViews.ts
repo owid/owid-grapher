@@ -154,6 +154,8 @@ async function getRecords(
             titleLength: title.length,
             numRelatedArticles: 0,
             views_7d,
+            views_14d: 0,
+            views_365d: 0,
             score,
             isIncomeGroupSpecificFM: false,
         } as ChartRecord

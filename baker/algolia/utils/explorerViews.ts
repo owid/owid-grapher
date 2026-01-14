@@ -650,6 +650,8 @@ async function finalizeRecords(
                 id: `explorer/${explorerInfo.slug}${record.viewQueryParams}`,
                 score: computeExplorerViewScore(record),
                 views_7d: record.views_7d,
+                views_14d: 0,
+                views_365d: 0,
                 availableEntities: record.availableEntities,
                 titleLength: record.titleLength,
                 isFirstExplorerView: record.isFirstExplorerView,
