@@ -17,7 +17,7 @@ ifneq (,$(wildcard ./.env))
 	include .env
 endif
 
-.PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest bdd bdd.ui
+.PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest svgtest.reset bdd bdd.ui
 
 help:
 	@echo 'Available commands:'
@@ -35,6 +35,7 @@ help:
 	@echo '  make bdd                    (while up) start BDD test environment'
 	@echo '  make bdd.ui                 (while up) start BDD test environment with UI'
 	@echo '  make svgtest                generate an SVG test report for graphers'
+	@echo '  make svgtest.reset          reset the owid-grapher-svgs repo to a clean state'
 	@echo '  make svgtest.full           generate a full SVG test report'
 	@echo '  make svgtest.explorers      generate an SVG test report for explorers only'
 	@echo '  make local-bake             do a full local site bake'
@@ -313,21 +314,19 @@ unittest: node_modules
 ../owid-grapher-svgs:
 	cd .. && git clone git@github.com:owid/owid-grapher-svgs
 
-svgtest: ../owid-grapher-svgs node_modules
-	@echo '==> Generating SVG test report for graphers'
-
-	@# get ../owid-grapher-svgs reliably to a base state at origin/master
+svgtest.reset: ../owid-grapher-svgs
+	@echo '==> Resetting owid-grapher-svgs repo to a clean state'
 	cd ../owid-grapher-svgs && git fetch && git checkout -f master && git reset --hard origin/master && git clean -fd
+
+svgtest: svgtest.reset node_modules
+	@echo '==> Generating SVG test report for graphers'
 
 	@# generate a full new set of svgs and create an HTML report if there are differences
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts \
 		|| yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts
 
-svgtest.full: ../owid-grapher-svgs node_modules
+svgtest.full: svgtest.reset node_modules
 	@echo '==> Generating full SVG test report'
-
-	@# get ../owid-grapher-svgs reliably to a base state at origin/master
-	cd ../owid-grapher-svgs && git fetch && git checkout -f master && git reset --hard origin/master && git clean -fd
 
 	@# run test suite for stand-alone graphers
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts \
@@ -345,11 +344,8 @@ svgtest.full: ../owid-grapher-svgs node_modules
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts explorers --manifest top.manifest.json \
 		&& yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts explorers
 
-svgtest.explorers: ../owid-grapher-svgs node_modules
+svgtest.explorers: svgtest.reset node_modules
 	@echo '==> Generating SVG test report for explorers'
-
-	@# get ../owid-grapher-svgs reliably to a base state at origin/master
-	cd ../owid-grapher-svgs && git fetch && git checkout -f master && git reset --hard origin/master && git clean -fd
 
 	@# run test suite for explorers
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts explorers \
