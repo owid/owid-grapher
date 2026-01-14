@@ -23,7 +23,11 @@ import {
 import urljoin from "url-join"
 import * as R from "remeda"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
-import { incomeGroupMap, REAL_FM_INCOME_GROUPS } from "./types.js"
+import {
+    incomeGroupMap,
+    ParsedCatalogPathDimensions,
+    REAL_FM_INCOME_GROUPS,
+} from "./types.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { GRAPHER_ROUTE_FOLDER } from "@ourworldindata/grapher"
 
@@ -284,4 +288,38 @@ export function maybeAddChangeInPrefix(
     return shouldAddChangeInPrefix
         ? "Change in " + lowerCaseFirstLetterUnlessAbbreviation(title)
         : title
+}
+
+/**
+ * Parses catalog paths and extracts ETL dimensions.
+ * Catalog path format: grapher/<namespace>/<version>/<dataset>/<table>#<short_name>
+ */
+export function parseCatalogPaths(
+    catalogPaths: (string | null | undefined)[]
+): ParsedCatalogPathDimensions {
+    const datasetNamespaces = new Set<string>()
+    const datasetVersions = new Set<string>()
+    const datasetProducts = new Set<string>()
+
+    for (const path of catalogPaths) {
+        if (!path) continue
+        const parts = path.split("/")
+        if (parts.length >= 4) {
+            datasetNamespaces.add(parts[1])
+            datasetVersions.add(parts[2])
+            datasetProducts.add(parts[3])
+        }
+    }
+
+    return {
+        datasetNamespaces: [...datasetNamespaces],
+        datasetVersions: [...datasetVersions],
+        datasetProducts: [...datasetProducts],
+    }
+}
+
+export const EMPTY_CATALOG_PATH_DIMENSIONS: ParsedCatalogPathDimensions = {
+    datasetNamespaces: [],
+    datasetVersions: [],
+    datasetProducts: [],
 }

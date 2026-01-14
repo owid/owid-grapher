@@ -45,8 +45,10 @@ import {
     FinalizedExplorerRecord,
 } from "./types.js"
 import {
+    EMPTY_CATALOG_PATH_DIMENSIONS,
     MAX_NON_FM_RECORD_SCORE,
     maybeAddChangeInPrefix,
+    parseCatalogPaths,
     processAvailableEntities as processRecordAvailableEntities,
     scaleRecordScores,
 } from "./shared.js"
@@ -409,12 +411,16 @@ const fetchGrapherInfo = async (
         .select(
             trx.raw("charts.id as id"),
             trx.raw("chart_configs.full->>'$.title' as title"),
-            trx.raw("chart_configs.full->>'$.subtitle' as subtitle")
+            trx.raw("chart_configs.full->>'$.subtitle' as subtitle"),
+            trx.raw("JSON_ARRAYAGG(v.catalogPath) as catalogPaths")
         )
         .from("charts")
         .join("chart_configs", { "charts.configId": "chart_configs.id" })
+        .leftJoin("chart_dimensions as cd", "charts.id", "cd.chartId")
+        .leftJoin("variables as v", "cd.variableId", "v.id")
         .whereIn("charts.id", grapherIds)
         .andWhereRaw("chart_configs.full->>'$.isPublished' = 'true'")
+        .groupBy("charts.id")
         .then((rows) => _.keyBy(rows, "id"))
 }
 
@@ -433,6 +439,12 @@ async function enrichRecordWithGrapherInfo(
         return
     }
 
+    const catalogPaths = grapher.catalogPaths
+        ? (JSON.parse(grapher.catalogPaths) as (string | null)[])
+        : []
+    const { datasetNamespaces, datasetVersions, datasetProducts } =
+        parseCatalogPaths(catalogPaths)
+
     return {
         ...record,
         availableEntities:
@@ -441,6 +453,9 @@ async function enrichRecordWithGrapherInfo(
         viewTitle: grapher.title,
         viewSubtitle: grapher.subtitle,
         titleLength: grapher.title.length,
+        datasetNamespaces,
+        datasetVersions,
+        datasetProducts,
     }
 }
 
@@ -495,6 +510,8 @@ async function enrichRecordWithTableData(
         ...record,
         availableEntities,
         titleLength: viewTitle.length,
+        // CSV explorers don't use ETL variables, so no catalog paths
+        ...EMPTY_CATALOG_PATH_DIMENSIONS,
     }
 }
 
@@ -520,12 +537,12 @@ async function enrichRecordWithIndicatorData(
     record: IndicatorUnenrichedExplorerViewRecord,
     indicatorMetadataDictionary: ExplorerIndicatorMetadataDictionary
 ): Promise<IndicatorEnrichedExplorerViewRecord | undefined> {
-    const allEntityNames = _.at(
+    const indicatorMetadata = _.at(
         indicatorMetadataDictionary,
         record.yVariableIds
-    )
-        .filter(Boolean)
-        .flatMap((meta) => meta.entityNames)
+    ).filter(Boolean)
+
+    const allEntityNames = indicatorMetadata.flatMap((meta) => meta.entityNames)
 
     const uniqueNonEmptyEntityNames = _.uniq(allEntityNames).filter(
         (name): name is string => !!name
@@ -553,12 +570,20 @@ async function enrichRecordWithIndicatorData(
     const viewSubtitle =
         record.viewSubtitle || (indicatorInfo.descriptionShort as string)
 
+    // Extract catalog paths from indicator metadata
+    const catalogPaths = indicatorMetadata.map((meta) => meta.catalogPath)
+    const { datasetNamespaces, datasetVersions, datasetProducts } =
+        parseCatalogPaths(catalogPaths)
+
     return {
         ...record,
         availableEntities: uniqueNonEmptyEntityNames,
         viewTitle,
         viewSubtitle,
         titleLength: viewTitle.length,
+        datasetNamespaces,
+        datasetVersions,
+        datasetProducts,
     }
 }
 
@@ -654,6 +679,9 @@ async function finalizeRecords(
                 titleLength: record.titleLength,
                 isFirstExplorerView: record.isFirstExplorerView,
                 isIncomeGroupSpecificFM: false,
+                datasetNamespaces: record.datasetNamespaces,
+                datasetVersions: record.datasetVersions,
+                datasetProducts: record.datasetProducts,
             }) as Omit<FinalizedExplorerRecord, "viewTitleIndexWithinExplorer">
     )
 

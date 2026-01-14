@@ -8,6 +8,13 @@ import {
 } from "@ourworldindata/types"
 import { OwidIncomeGroupName } from "@ourworldindata/utils"
 
+/** Parsed catalog path dimensions for ETL faceting */
+export interface ParsedCatalogPathDimensions {
+    datasetNamespaces: string[]
+    datasetVersions: string[]
+    datasetProducts: string[]
+}
+
 /** Charts */
 export interface RawChartRecordRow {
     id: number
@@ -19,6 +26,7 @@ export interface RawChartRecordRow {
     entityNames: string
     tags: string
     keyChartForTags: string
+    catalogPaths: string
 }
 
 export interface ParsedChartRecordRow {
@@ -31,6 +39,9 @@ export interface ParsedChartRecordRow {
     entityNames: string[]
     tags: string[]
     keyChartForTags: string[]
+    datasetNamespaces: string[]
+    datasetVersions: string[]
+    datasetProducts: string[]
 }
 
 /** Explorers */
@@ -38,6 +49,7 @@ export interface ExplorerViewGrapherInfo {
     id: number
     title: string
     subtitle: string
+    catalogPaths: string
 }
 
 export type EntitiesByColumnDictionary = Record<
@@ -88,12 +100,13 @@ export type GrapherUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
     viewGrapherId: number
 }
 
-export type GrapherEnrichedExplorerViewRecord = ExplorerViewBaseRecord & {
-    explorerType: ExplorerType.Grapher
-    viewTitle: string
-    viewSubtitle: string
-    titleLength: number
-}
+export type GrapherEnrichedExplorerViewRecord = ExplorerViewBaseRecord &
+    ParsedCatalogPathDimensions & {
+        explorerType: ExplorerType.Grapher
+        viewTitle: string
+        viewSubtitle: string
+        titleLength: number
+    }
 
 export type IndicatorUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
     explorerType: ExplorerType.Indicator
@@ -102,14 +115,15 @@ export type IndicatorUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
     tableSlug: never
 }
 
-export type IndicatorEnrichedExplorerViewRecord = ExplorerViewBaseRecord & {
-    explorerType: ExplorerType.Indicator
-    viewGrapherId: never
-    ySlugs: string[]
-    tableSlug: never
-    availableEntities: string[]
-    titleLength: number
-}
+export type IndicatorEnrichedExplorerViewRecord = ExplorerViewBaseRecord &
+    ParsedCatalogPathDimensions & {
+        explorerType: ExplorerType.Indicator
+        viewGrapherId: never
+        ySlugs: string[]
+        tableSlug: never
+        availableEntities: string[]
+        titleLength: number
+    }
 
 export type CsvUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
     explorerType: ExplorerType.Csv
@@ -118,13 +132,14 @@ export type CsvUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
     tableSlug: string
 }
 
-export type CsvEnrichedExplorerViewRecord = ExplorerViewBaseRecord & {
-    explorerType: ExplorerType.Csv
-    viewGrapherId: never
-    ySlugs: string[]
-    tableSlug: string
-    titleLength: number
-}
+export type CsvEnrichedExplorerViewRecord = ExplorerViewBaseRecord &
+    ParsedCatalogPathDimensions & {
+        explorerType: ExplorerType.Csv
+        viewGrapherId: never
+        ySlugs: string[]
+        tableSlug: string
+        titleLength: number
+    }
 
 export type EnrichedExplorerRecord =
     | GrapherEnrichedExplorerViewRecord
