@@ -39,24 +39,26 @@ let adminApiKey: string | undefined
 const ADMIN_URL = `http://${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}/admin/api`
 
 async function seedBaselineData(): Promise<number> {
-    // Ensure we have an admin user; do NOT delete users to avoid FK issues
-    const existing = await testKnex!(UsersTableName)
-        .where({ email: "admin@example.com" })
-        .first()
-    let userId: number
-    if (existing) {
-        userId = existing.id
-    } else {
-        const [id] = await testKnex!(UsersTableName).insert({
-            email: "admin@example.com",
-            fullName: "Admin",
-            isActive: 1,
-            isSuperuser: 1,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-        })
-        userId = id as number
+    const now = new Date()
+    const adminUser = {
+        email: "admin@example.com",
+        fullName: "Admin",
+        isActive: 1,
+        isSuperuser: 1,
+        createdAt: now,
+        updatedAt: now,
     }
+
+    // Ensure we have an admin user; do NOT delete users to avoid FK issues
+    await testKnex!(UsersTableName)
+        .insert(adminUser)
+        .onConflict("email")
+        .merge(adminUser)
+
+    const adminRow = await testKnex!(UsersTableName)
+        .where({ email: adminUser.email })
+        .first()
+    const userId = adminRow?.id as number
 
     // Always recreate the API key since we can't retrieve the plaintext from
     // the DB.

@@ -17,6 +17,7 @@ export type Request = express.Request
 export type Response = express.Response<any, { user: DbPlainUser }>
 
 const API_KEY_HEADER = "authorization"
+const ACT_AS_USER_HEADER = "x-act-as-user"
 const CLOUDFLARE_COOKIE_NAME = "CF_Authorization"
 const CLOUDFLARE_TEAM_DOMAIN = "https://owid.cloudflareaccess.com"
 const DEV_ADMIN_EMAIL = "admin@example.com"
@@ -130,7 +131,31 @@ export async function apiKeyAuthMiddleware(
             return
         }
 
-        await setAuthenticatedUser(res, user, trx)
+        let authenticatedUser = user
+        const actAsUserId = getActAsUserIdFromRequest(req)
+        if (!user.isSuperuser && actAsUserId !== undefined) {
+            console.error("Non-superuser attempted to use x-act-as-user.", {
+                userId: user.id,
+                actAsUserId,
+            })
+            return
+        }
+
+        if (user.isSuperuser && actAsUserId !== undefined) {
+            const actAsUser = await trx<DbPlainUser>(UsersTableName)
+                .where({ id: actAsUserId })
+                .first()
+            if (!actAsUser) {
+                console.error(
+                    `User with id ${actAsUserId} not found. Please contact an administrator.`
+                )
+                return
+            }
+            logActAsUser(req, user.id, actAsUserId)
+            authenticatedUser = actAsUser
+        }
+
+        await setAuthenticatedUser(res, authenticatedUser, trx)
         await updateApiKeyLastUsed(apiKeyRow.id, trx)
     })
     return next()
@@ -326,6 +351,29 @@ function getApiKeyFromRequest(req: express.Request): string | undefined {
     if (!trimmed.startsWith(bearerPrefix)) return undefined
     const token = trimmed.slice(bearerPrefix.length).trim()
     return token.length ? token : undefined
+}
+
+function getActAsUserIdFromRequest(req: express.Request): number | undefined {
+    const header = req.get(ACT_AS_USER_HEADER)
+    if (!header) return undefined
+    const trimmed = header.trim()
+    if (!trimmed) return undefined
+    const parsed = Number.parseInt(trimmed, 10)
+    if (Number.isNaN(parsed) || parsed <= 0) return undefined
+    return parsed
+}
+
+function logActAsUser(
+    req: express.Request,
+    superuserId: number,
+    actAsUserId: number
+): void {
+    console.info("Admin API key act-as", {
+        superuserId,
+        actAsUserId,
+        method: req.method,
+        path: req.originalUrl,
+    })
 }
 
 async function findAdminApiKey(
