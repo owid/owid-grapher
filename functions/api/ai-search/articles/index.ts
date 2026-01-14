@@ -1,5 +1,11 @@
 import { Env } from "../../../_common/env.js"
-import { SearchUrlParam, OwidGdocType } from "@ourworldindata/types"
+import { OwidGdocType } from "@ourworldindata/types"
+import {
+    validateQueryParams,
+    COMMON_SEARCH_PARAMS,
+    AISearchResult,
+    AISearchResponse,
+} from "../utils.js"
 
 // Name of the AI Search instance in Cloudflare dashboard
 const AI_SEARCH_INSTANCE_NAME = "search-articles"
@@ -18,22 +24,6 @@ interface PageData {
     modifiedDate: string
     views_7d: number
     thumbnailUrl: string
-}
-
-interface AISearchResult {
-    file_id: string
-    filename: string
-    score: number
-    attributes: Record<string, string | number | boolean | null>
-    content: Array<{
-        type: string
-        text: string
-    }>
-}
-
-interface AISearchResponse {
-    data: AISearchResult[]
-    has_more: boolean
 }
 
 /**
@@ -502,14 +492,28 @@ function transformToDataInsightsApiFormat(
 // Default folders to include when not specified
 const DEFAULT_FOLDERS = ["articles", "about-pages"]
 
+// Valid query parameter names for this endpoint
+const VALID_PARAMS = new Set([
+    COMMON_SEARCH_PARAMS.QUERY, // "q"
+    "folders",
+    "page",
+    "hitsPerPage",
+    "offset",
+    "length",
+])
+
 export const onRequestGet: PagesFunction<Env> = async (context) => {
     const { env } = context
     const url = new URL(context.request.url)
     const baseUrl = url.origin
 
     try {
+        // Validate query parameters - reject unknown params to catch typos like "query" instead of "q"
+        const validationError = validateQueryParams(url, VALID_PARAMS)
+        if (validationError) return validationError
+
         // Parse query parameter
-        const query = url.searchParams.get(SearchUrlParam.QUERY) || ""
+        const query = url.searchParams.get(COMMON_SEARCH_PARAMS.QUERY) || ""
 
         // Parse folders filter (comma-separated list)
         const foldersParam = url.searchParams.get("folders")
