@@ -19,7 +19,8 @@ export async function uploadToR2<T extends object>(
 ): Promise<void> {
     // Add timestamp to force AI Search to detect content change and re-index
     const timestamp = new Date().toISOString()
-    const markdownWithTimestamp = markdown + `\n<!-- indexed: ${timestamp} -->\n`
+    const markdownWithTimestamp =
+        markdown + `\n<!-- indexed: ${timestamp} -->\n`
 
     // Base64 encode metadata to avoid HTTP header character issues with UTF-8
     const metadataBase64 = Buffer.from(JSON.stringify(metadata)).toString(
