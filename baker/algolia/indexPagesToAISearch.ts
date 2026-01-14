@@ -4,8 +4,8 @@ import "../../serverUtils/instrument.js"
 
 import * as Sentry from "@sentry/node"
 import * as db from "../../db/db.js"
-import { OwidGdocType } from "@ourworldindata/types"
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3"
+import { OwidGdocType, PageRecord } from "@ourworldindata/types"
+import { S3Client } from "@aws-sdk/client-s3"
 import {
     AI_SEARCH_R2_BUCKET,
     R2_ACCESS_KEY_ID,
@@ -13,26 +13,8 @@ import {
     R2_REGION,
     R2_SECRET_ACCESS_KEY,
 } from "../../settings/serverSettings.js"
-import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"
-import { getAnalyticsPageviewsByUrlObj } from "../../db/model/Pageview.js"
-import { DbEnrichedImage, RawPageview } from "@ourworldindata/utils"
-
-/**
- * Gdoc data from database for AI Search indexing
- */
-interface GdocForAISearch {
-    id: string
-    slug: string
-    type: OwidGdocType
-    title: string
-    excerpt: string
-    markdown: string
-    authors: string[]
-    tags: string[]
-    publishedAt: Date
-    updatedAt: Date | null
-    thumbnailUrl: string
-}
+import { getPagesRecords } from "./utils/pages.js"
+import { uploadToR2 } from "./utils/aiSearch.js"
 
 /**
  * Get folder name for page type
@@ -55,185 +37,57 @@ function getFolderForType(type: OwidGdocType): string {
 
 /**
  * Build markdown content for AI Search indexing.
- * Uses the pre-rendered markdown from the database, with title and metadata.
+ * Uses the content field from Algolia records.
  */
-function buildMarkdownForAISearch(gdoc: GdocForAISearch): string {
+function buildMarkdownForAISearch(record: PageRecord): string {
     const lines: string[] = []
 
     // Title
-    lines.push(`# ${gdoc.title}`)
+    lines.push(`# ${record.title}`)
     lines.push("")
 
     // Excerpt as lead paragraph
-    if (gdoc.excerpt) {
-        lines.push(gdoc.excerpt)
+    if (record.excerpt) {
+        lines.push(record.excerpt)
         lines.push("")
     }
 
-    // Full markdown content from database
-    if (gdoc.markdown) {
-        lines.push(gdoc.markdown)
+    // Full content from Algolia record
+    if (record.content) {
+        lines.push(record.content)
         lines.push("")
     }
 
     // Topics section for semantic search
-    if (gdoc.tags && gdoc.tags.length > 0) {
+    if (record.tags && record.tags.length > 0) {
         lines.push("## Topics")
-        lines.push(gdoc.tags.join(", "))
+        lines.push(record.tags.join(", "))
         lines.push("")
     }
 
     // Authors section
-    if (gdoc.authors && gdoc.authors.length > 0) {
+    if (record.authors && record.authors.length > 0) {
         lines.push("## Authors")
-        lines.push(gdoc.authors.join(", "))
+        lines.push(record.authors.join(", "))
         lines.push("")
     }
 
     return lines.join("\n")
 }
 
-/**
- * Upload a gdoc to R2 as a Markdown file.
- * Stores page metadata as JSON in a single metadata field to stay within R2 limits.
- */
-async function uploadGdocToR2(
-    s3Client: S3Client,
-    bucket: string,
-    gdoc: GdocForAISearch,
-    pageviews: RawPageview | undefined
-): Promise<void> {
-    // Add timestamp to force AI Search to detect content change and re-index
-    const timestamp = new Date().toISOString()
-    const markdown =
-        buildMarkdownForAISearch(gdoc) + `\n<!-- indexed: ${timestamp} -->\n`
-
-    const folder = getFolderForType(gdoc.type)
-    const key = `${folder}/${gdoc.slug}.md`
-
-    // Store essential page data as JSON in metadata
-    // R2 metadata values must be strings and have size limits
-    // We base64 encode to avoid HTTP header character issues with UTF-8
-    const pageDataObj = {
-        type: gdoc.type,
-        slug: gdoc.slug,
-        title: gdoc.title,
-        excerpt: gdoc.excerpt || "",
-        authors: gdoc.authors || [],
-        tags: gdoc.tags || [],
-        date: gdoc.publishedAt?.toISOString(),
-        modifiedDate: gdoc.updatedAt?.toISOString(),
-        views_7d: pageviews?.views_7d ?? 0,
-        thumbnailUrl: gdoc.thumbnailUrl || "",
-    }
-    const pageData = Buffer.from(JSON.stringify(pageDataObj)).toString("base64")
-
-    await s3Client.send(
-        new PutObjectCommand({
-            Bucket: bucket,
-            Key: key,
-            Body: markdown,
-            ContentType: "text/markdown",
-            Metadata: {
-                // b64- prefix indicates base64 encoding for the API to decode
-                pagedata: `b64-${pageData}`,
-            },
-        })
-    )
-
-    console.log(`Uploaded: ${key}`)
-}
-
-/**
- * Get gdocs with markdown from database for AI Search indexing
- */
-async function getGdocsForAISearch(
-    trx: db.KnexReadonlyTransaction,
-    cloudflareImagesByFilename: Record<string, DbEnrichedImage>
-): Promise<GdocForAISearch[]> {
-    const rows = await trx
-        .select(
-            "g.id",
-            "g.slug",
-            "g.type",
-            "g.markdown",
-            "g.publishedAt",
-            "g.updatedAt",
-            trx.raw(
-                "JSON_UNQUOTE(JSON_EXTRACT(g.content, '$.title')) as title"
-            ),
-            trx.raw(
-                "JSON_UNQUOTE(JSON_EXTRACT(g.content, '$.excerpt')) as excerpt"
-            ),
-            trx.raw(
-                "COALESCE(JSON_UNQUOTE(JSON_EXTRACT(g.content, '$.authors')), '[]') as authors"
-            ),
-            trx.raw(
-                "JSON_UNQUOTE(JSON_EXTRACT(g.content, '$.\"featured-image\"')) as featuredImage"
-            ),
-            // For data insights, get the first image's smallFilename or filename
-            trx.raw(
-                `COALESCE(
-                    JSON_UNQUOTE(JSON_EXTRACT(g.content, '$.body[0].smallFilename')),
-                    JSON_UNQUOTE(JSON_EXTRACT(g.content, '$.body[0].filename'))
-                ) as firstImageFilename`
-            )
-        )
-        .from("posts_gdocs as g")
-        .where("g.published", true)
-        .whereIn("g.type", [
-            OwidGdocType.Article,
-            OwidGdocType.TopicPage,
-            OwidGdocType.LinearTopicPage,
-            OwidGdocType.AboutPage,
-            OwidGdocType.DataInsight,
-        ])
-        .whereNotNull("g.markdown")
-
-    // Get tags for each gdoc
-    const gdocIds = rows.map((r) => r.id)
-    const tagRows = await trx
-        .select("gt.gdocId", "t.name")
-        .from("posts_gdocs_x_tags as gt")
-        .join("tags as t", "gt.tagId", "t.id")
-        .whereIn("gt.gdocId", gdocIds)
-
-    const tagsByGdocId = new Map<string, string[]>()
-    for (const row of tagRows) {
-        const tags = tagsByGdocId.get(row.gdocId) || []
-        tags.push(row.name)
-        tagsByGdocId.set(row.gdocId, tags)
-    }
-
-    return rows.map((row) => {
-        // Data insights use the first image block, other pages use featured-image
-        const isDataInsight = row.type === OwidGdocType.DataInsight
-        const imageFilename = isDataInsight
-            ? row.firstImageFilename
-            : row.featuredImage
-        const cloudflareId = imageFilename
-            ? cloudflareImagesByFilename[imageFilename]?.cloudflareId
-            : undefined
-        // Data insights use w=608, other pages use w=512
-        const imageWidth = isDataInsight ? 608 : 512
-        const thumbnailUrl = cloudflareId
-            ? `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/w=${imageWidth}`
-            : ""
-
-        return {
-            id: row.id,
-            slug: row.slug,
-            type: row.type as OwidGdocType,
-            title: row.title || "",
-            excerpt: row.excerpt || "",
-            markdown: row.markdown || "",
-            authors: JSON.parse(row.authors || "[]"),
-            tags: tagsByGdocId.get(row.id) || [],
-            publishedAt: row.publishedAt,
-            updatedAt: row.updatedAt,
-            thumbnailUrl,
-        }
-    })
+interface PageMetadata {
+    type: OwidGdocType
+    slug: string
+    title: string
+    excerpt: string
+    authors: string[]
+    tags: string[]
+    date: string | undefined
+    modifiedDate: string | undefined
+    views_7d: number
+    views_14d: number
+    views_365d: number
+    thumbnailUrl: string
 }
 
 const indexPagesToAISearch = async () => {
@@ -255,37 +109,41 @@ const indexPagesToAISearch = async () => {
         },
     })
 
-    const { gdocs, pageviewsByUrl } = await db.knexReadonlyTransaction(
-        async (trx) => {
-            // Fetch cloudflare images and index by filename
-            const cloudflareImages = await db.getCloudflareImages(trx)
-            const cloudflareImagesByFilename: Record<string, DbEnrichedImage> =
-                {}
-            for (const image of cloudflareImages) {
-                cloudflareImagesByFilename[image.filename] = image
-            }
-
-            const gdocs = await getGdocsForAISearch(
-                trx,
-                cloudflareImagesByFilename
-            )
-            const pageviewsByUrl = await getAnalyticsPageviewsByUrlObj(trx)
-            return { gdocs, pageviewsByUrl }
-        },
+    // Reuse the same records generation as Algolia indexing, but without chunking
+    const records = await db.knexReadonlyTransaction(
+        async (trx) => getPagesRecords(trx, { skipChunking: true }),
         db.TransactionCloseMode.Close
     )
 
-    console.log(`Found ${gdocs.length} gdocs with markdown`)
+    console.log(`Uploading ${records.length} pages`)
 
-    // Upload each gdoc to R2
-    let uploaded = 0
-    for (const gdoc of gdocs) {
-        const pageviews = pageviewsByUrl[`/${gdoc.slug}`]
-        await uploadGdocToR2(s3Client, AI_SEARCH_R2_BUCKET, gdoc, pageviews)
-        uploaded++
+    // Upload each page to R2
+    for (const record of records) {
+        const folder = getFolderForType(record.type)
+        const key = `${folder}/${record.slug}.md`
+        const markdown = buildMarkdownForAISearch(record)
+
+        const metadata: PageMetadata = {
+            type: record.type,
+            slug: record.slug,
+            title: record.title,
+            excerpt: record.excerpt || "",
+            authors: record.authors || [],
+            tags: record.tags || [],
+            date: record.date,
+            modifiedDate: record.modifiedDate,
+            views_7d: record.views_7d ?? 0,
+            views_14d: record.views_14d ?? 0,
+            views_365d: record.views_365d ?? 0,
+            thumbnailUrl: record.thumbnailUrl || "",
+        }
+
+        await uploadToR2(s3Client, AI_SEARCH_R2_BUCKET, key, markdown, "pagedata", metadata, {
+            metadataPrefix: "b64-",
+        })
     }
 
-    console.log(`Successfully uploaded ${uploaded} pages to R2`)
+    console.log(`Successfully uploaded ${records.length} pages to R2`)
 }
 
 indexPagesToAISearch().catch(async (e) => {

@@ -207,12 +207,19 @@ const getPostImportance = (
         .exhaustive()
 }
 
+interface GenerateGdocRecordsOptions {
+    /** If true, don't chunk content - return one record per page with full content */
+    skipChunking?: boolean
+}
+
 async function generateGdocRecords(
     gdocs: (OwidGdocPostInterface | OwidGdocDataInsightInterface)[],
     pageviews: Record<string, RawPageview>,
     cloudflareImagesByFilename: Record<string, DbEnrichedImage>,
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadonlyTransaction,
+    options: GenerateGdocRecordsOptions = {}
 ): Promise<PageRecord[]> {
+    const { skipChunking = false } = options
     const topicHierarchiesByChildName =
         await db.getTopicHierarchiesByChildName(knex)
 
@@ -230,9 +237,6 @@ async function generateGdocRecords(
             ? formatGdocMarkdown(gdoc.markdown)
             : ""
 
-        const chunks = chunkParagraphs(plaintextContent, 1000)
-        let i = 0
-
         const thumbnailUrl = getThumbnailUrl(gdoc, cloudflareImagesByFilename)
 
         const originalTagNames = gdoc.tags?.map((t) => t.name) ?? []
@@ -245,7 +249,14 @@ async function generateGdocRecords(
             topicHierarchiesByChildName
         )
 
-        for (const chunk of chunks) {
+        // For AI Search, we want full content; for Algolia, we chunk it
+        const contentChunks = skipChunking
+            ? [plaintextContent]
+            : chunkParagraphs(plaintextContent, 1000)
+
+        let i = 0
+        for (const chunk of contentChunks) {
+            const pageviewData = pageviews[getPrefixedGdocPath("", gdoc)]
             const record = {
                 objectID: `${gdoc.id}-c${i}`,
                 importance: getPostImportance(gdoc),
@@ -253,8 +264,9 @@ async function generateGdocRecords(
                 slug: gdoc.slug,
                 title: gdoc.content.title || "",
                 content: chunk,
-                views_7d:
-                    pageviews[getPrefixedGdocPath("", gdoc)]?.views_7d ?? 0,
+                views_7d: pageviewData?.views_7d ?? 0,
+                views_14d: pageviewData?.views_14d ?? 0,
+                views_365d: pageviewData?.views_365d ?? 0,
                 excerpt: getExcerptFromGdoc(gdoc),
                 excerptLong: getExcerptLongFromGdoc(gdoc),
                 date: gdoc.publishedAt!.toISOString(),
@@ -273,7 +285,15 @@ async function generateGdocRecords(
     return records
 }
 
-export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
+interface GetPagesRecordsOptions {
+    /** If true, don't chunk content - return one record per page with full content (for AI Search) */
+    skipChunking?: boolean
+}
+
+export const getPagesRecords = async (
+    knex: db.KnexReadonlyTransaction,
+    options: GetPagesRecordsOptions = {}
+) => {
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
     const gdocs = (await db
         .getPublishedGdocsWithTags(
@@ -300,7 +320,8 @@ export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
         gdocs,
         pageviews,
         cloudflareImagesByFilename,
-        knex
+        knex,
+        { skipChunking: options.skipChunking }
     )
 
     return gdocsRecords
