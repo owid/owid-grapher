@@ -275,9 +275,10 @@ function calculateScore(
  * Build AI Search filters for folder-based filtering.
  * Uses prefix matching on filename to filter by folder.
  */
-function buildFolderFilters(
-    folders: string[]
-): { type: "or"; filters: Array<{ type: "eq"; key: string; value: string }> } {
+function buildFolderFilters(folders: string[]): {
+    type: "or"
+    filters: Array<{ type: "eq"; key: string; value: string }>
+} {
     return {
         type: "or",
         filters: folders.map((folder) => ({

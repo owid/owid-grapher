@@ -1,9 +1,7 @@
 import { describe, it, expect } from "vitest"
 import { getMaxViews7d, PageviewsByUrl } from "./pageviews.js"
 
-function makePageviews(
-    data: Record<string, number>
-): PageviewsByUrl {
+function makePageviews(data: Record<string, number>): PageviewsByUrl {
     const result: PageviewsByUrl = {}
     for (const [url, views_7d] of Object.entries(data)) {
         result[url] = { views_7d, views_14d: 0, views_365d: 0 }

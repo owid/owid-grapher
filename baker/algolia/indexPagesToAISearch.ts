@@ -138,9 +138,17 @@ const indexPagesToAISearch = async () => {
             thumbnailUrl: record.thumbnailUrl || "",
         }
 
-        await uploadToR2(s3Client, AI_SEARCH_R2_BUCKET, key, markdown, "pagedata", metadata, {
-            metadataPrefix: "b64-",
-        })
+        await uploadToR2(
+            s3Client,
+            AI_SEARCH_R2_BUCKET,
+            key,
+            markdown,
+            "pagedata",
+            metadata,
+            {
+                metadataPrefix: "b64-",
+            }
+        )
     }
 
     console.log(`Successfully uploaded ${records.length} pages to R2`)
