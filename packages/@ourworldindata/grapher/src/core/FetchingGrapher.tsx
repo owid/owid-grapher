@@ -58,7 +58,7 @@ export function FetchingGrapher(
     React.useEffect(() => {
         const abortController = new AbortController()
 
-        async function fetchConfigAndLoadData(): Promise<void> {
+        async function fetchAndApplyConfig(): Promise<void> {
             if (props.configUrl) {
                 try {
                     const fetchedConfig = await fetch(props.configUrl, {
@@ -103,7 +103,7 @@ export function FetchingGrapher(
                 }
             }
         }
-        void fetchConfigAndLoadData()
+        void fetchAndApplyConfig()
 
         return (): void => {
             abortController.abort()

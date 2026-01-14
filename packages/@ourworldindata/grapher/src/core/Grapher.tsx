@@ -655,6 +655,8 @@ export class Grapher extends React.Component<GrapherProps> {
     // Binds chart properties to global window title and URL. This should only
     // ever be invoked from top-level JavaScript.
     private bindToWindow(): void {
+        if (!this.grapherState.bindUrlToWindow) return
+
         // There is a surprisingly considerable performance overhead to updating the url
         // while animating, so we debounce to allow e.g. smoother timelines
         const pushParams = (): void =>
@@ -688,11 +690,7 @@ export class Grapher extends React.Component<GrapherProps> {
         }
     }
 
-    override componentDidMount(): void {
-        this.setBaseFontSize()
-        this.setUpIntersectionObserver()
-        this.setUpWindowResizeEventHandler()
-        exposeInstanceOnWindow(this, "grapher")
+    private setUpGrapherLoadedEventDispatcher(): void {
         // Emit a custom event when the grapher is ready
         // We can use this in global scripts that depend on the grapher e.g. the site-screenshots tool
         this.grapherState.disposers.push(
@@ -707,20 +705,37 @@ export class Grapher extends React.Component<GrapherProps> {
                         )
                     }
                 }
-            ),
+            )
+        )
+    }
+
+    private clearFocusOnFacetStrategyChange(): void {
+        this.grapherState.disposers.push(
             reaction(
                 () => this.grapherState.facetStrategy,
                 () => this.grapherState.focusArray.clear()
             )
         )
-        if (this.grapherState.bindUrlToWindow) this.bindToWindow()
-        if (this.grapherState.enableKeyboardShortcuts)
-            this.bindKeyboardShortcuts()
+    }
+
+    override componentDidMount(): void {
+        exposeInstanceOnWindow(this, "grapher")
+
+        this.setBaseFontSize()
+        this.setUpIntersectionObserver()
+        this.setUpWindowResizeEventHandler()
+        this.setUpGrapherLoadedEventDispatcher()
+
+        this.bindToWindow()
+        this.bindKeyboardShortcuts()
+
+        this.clearFocusOnFacetStrategyChange()
     }
 
     private _shortcutsBound = false
     private bindKeyboardShortcuts(): void {
-        if (this._shortcutsBound) return
+        if (!this.grapherState.enableKeyboardShortcuts || this._shortcutsBound)
+            return
         this.keyboardShortcuts.forEach((shortcut) => {
             Mousetrap.bind(shortcut.combo, () => {
                 shortcut.fn()

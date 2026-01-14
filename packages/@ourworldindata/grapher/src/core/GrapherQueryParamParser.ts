@@ -9,6 +9,8 @@ import {
     ScaleType,
     SeriesName,
     StackMode,
+    PeerCountryStrategyQueryParam,
+    VALID_PEER_COUNTRY_STRATEGY_QUERY_PARAMS,
 } from "@ourworldindata/types"
 import { parseFloatOrUndefined } from "@ourworldindata/utils"
 import { parseGlobeRotation } from "./GrapherUrl.js"
@@ -23,6 +25,7 @@ import { DataTableFilter } from "../dataTable/DataTableConstants.js"
 import { DownloadModalTabName } from "../modal/DownloadModal.js"
 import { GrapherModal } from "./GrapherConstants.js"
 import { isValidMapRegionName } from "../mapCharts/MapHelpers.js"
+import { isValidPeerCountryStrategyQueryParam } from "./PeerCountrySelection.js"
 
 /**
  * Discriminated union representing the result of parsing a query parameter
@@ -365,6 +368,19 @@ function parseZoomToSelectionParam(
     return missing()
 }
 
+function parsePeerCountriesParam(
+    value: string | undefined
+): ParsedParam<PeerCountryStrategyQueryParam> {
+    if (value === undefined) return missing()
+
+    if (isValidPeerCountryStrategyQueryParam(value)) return valid(value)
+
+    return invalid(
+        value,
+        `Invalid peerCountries value. Valid options: ${VALID_PEER_COUNTRY_STRATEGY_QUERY_PARAMS.join(", ")}`
+    )
+}
+
 /** Maps each GrapherQueryParams key to its parsed value type */
 type ParsedValueTypeMap = {
     tab: GrapherTabConfigOption
@@ -388,6 +404,7 @@ type ParsedValueTypeMap = {
     showSelectionOnlyInTable: DataTableFilter
     tableFilter: DataTableFilter
     tableSearch: string
+    peerCountries: PeerCountryStrategyQueryParam
 }
 
 /**
@@ -438,6 +455,7 @@ export function parseGrapherQueryParams(
         ),
         tableFilter: parseTableFilterParam(params.tableFilter),
         tableSearch: parseTableSearchParam(params.tableSearch),
+        peerCountries: parsePeerCountriesParam(params.peerCountries),
     }
 }
 
