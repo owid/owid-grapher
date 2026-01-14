@@ -131,7 +131,10 @@ export function isValuesJsonValid(valuesJson: GrapherValuesJson): boolean {
         return false
     if (valuesJson.endTime !== undefined && !valuesJson.endValues) return false
 
-    if (valuesJson.startValues && !areDataPointsComplete(valuesJson.startValues))
+    if (
+        valuesJson.startValues &&
+        !areDataPointsComplete(valuesJson.startValues)
+    )
         return false
     if (valuesJson.endValues && !areDataPointsComplete(valuesJson.endValues))
         return false
@@ -162,6 +165,7 @@ const makeColumnInfo = (
     column: CoreColumn
 ): GrapherValuesJsonDimension | undefined => {
     if (column.isMissing) return undefined
+    console.log("column", column)
 
     return omitUndefinedValues({
         name: column.titlePublicOrDisplayName.title,

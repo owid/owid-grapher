@@ -130,6 +130,7 @@ export async function instantiateProfileForEntity(
     )
 
     const calloutUrls = extractDataCalloutUrls(instantiatedContent.body)
+    console.log("calloutUrls", calloutUrls)
 
     // Load precomputed callout values from the database when available
     const linkedCallouts = options?.knex

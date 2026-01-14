@@ -468,10 +468,6 @@ export function checkShouldDataCalloutRender(
         })
     }
 
-    // If there are no callout spans, we still render the block
-    // (it might be a static block that just uses the URL for linking)
-    if (calloutSpans.length === 0) return true
-
     // Check if all callout values are available
     const values = linkedCallout.values
     for (const calloutSpan of calloutSpans) {

@@ -17,6 +17,12 @@ import {
 import {
     checkIsDataInsight,
     checkIsGdocPostExcludingFragments,
+    checkShouldDataCalloutRender,
+    getEntitiesForProfile,
+    instantiateProfile,
+    makeLinkedCalloutKey,
+    traverseEnrichedBlock,
+    Url,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 import {
@@ -34,7 +40,12 @@ import { GdocAbout } from "../../db/model/Gdoc/GdocAbout.js"
 import { GdocAuthor } from "../../db/model/Gdoc/GdocAuthor.js"
 import { getMinimalGdocPostsByIds } from "../../db/model/Gdoc/GdocBase.js"
 import { GdocDataInsight } from "../../db/model/Gdoc/GdocDataInsight.js"
-import { bakeCalloutsForGdoc } from "../../db/model/Gdoc/dataCallouts.js"
+import {
+    bakeCalloutsForGdoc,
+    extractDataCalloutUrls,
+    loadLinkedCalloutsForBlocks,
+    prepareCalloutStateForUrl,
+} from "../../db/model/Gdoc/dataCallouts.js"
 import {
     getAllGdocIndexItemsOrderedByUpdatedAt,
     getAndLoadGdocById,
@@ -45,8 +56,9 @@ import {
     setLinksForGdoc,
     GdocLinkUpdateMode,
     upsertGdoc,
-    getGdocBaseObjectById,
     setTagsForGdoc,
+    loadGdocFromGdocBase,
+    getGdocBaseObjectById,
 } from "../../db/model/Gdoc/GdocFactory.js"
 import { GdocHomepage } from "../../db/model/Gdoc/GdocHomepage.js"
 import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
@@ -98,6 +110,163 @@ export async function getIndividualGdoc(
             error: { message: String(error), status: 500 },
         })
     }
+}
+
+export async function getGdocCalloutCoverage(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const id = req.params.id
+    const contentSource = req.query.contentSource as
+        | GdocsContentSource
+        | undefined
+    const acceptSuggestions = req.query.acceptSuggestions === "true"
+
+    const base = await getGdocBaseObjectById(trx, id, true)
+    if (!base) throw new JsonError(`No Google Doc with id ${id} found`, 404)
+
+    const gdoc = await loadGdocFromGdocBase(
+        trx,
+        base,
+        contentSource,
+        acceptSuggestions,
+        { loadState: false }
+    )
+
+    if (gdoc.content.type !== OwidGdocType.Profile) {
+        throw new JsonError("Coverage matrix is only available for profiles")
+    }
+
+    const startTime = Date.now()
+    console.log(
+        `getGdocCalloutCoverage: gdoc=${gdoc.id} slug=${gdoc.slug} contentSource=${contentSource ?? "default"} acceptSuggestions=${acceptSuggestions}`
+    )
+
+    // Extract template callout URLs (with $entityCode placeholders) to define rows
+    const templateCalloutUrls = extractDataCalloutUrls(gdoc.content.body ?? [])
+
+    const rows = templateCalloutUrls.map((url, index) => {
+        const rowUrl = Url.fromURL(url).updateQueryParams({
+            country: undefined,
+        }).fullUrl
+        return {
+            id: `${rowUrl}#${index}`,
+            label: rowUrl,
+        }
+    })
+
+    const entities = getEntitiesForProfile(gdoc.content.scope)
+    const coverageByEntity: Record<string, Record<string, boolean>> = {}
+
+    console.log(
+        `getGdocCalloutCoverage: entities=${entities.length} callouts=${templateCalloutUrls.length}`
+    )
+
+    for (const entity of entities) {
+        const entityStart = Date.now()
+        const instantiatedContent = instantiateProfile(gdoc.content, entity)
+        const calloutUrls = extractDataCalloutUrls(instantiatedContent.body)
+
+        // Use loadLinkedCalloutsForBlocks to get callout values
+        // useDbOnly: false means it will fetch missing values on the fly (for unpublished gdocs)
+        const linkedCallouts = await loadLinkedCalloutsForBlocks(
+            trx,
+            calloutUrls,
+            { useDbOnly: false }
+        )
+
+        const coverageByRow: Record<string, boolean> = {}
+        instantiatedContent.body.forEach((node) => {
+            traverseEnrichedBlock(node, (block) => {
+                if (block.type === "data-callout") {
+                    const key = makeLinkedCalloutKey(block.url)
+                    const shouldRender = checkShouldDataCalloutRender(
+                        block,
+                        linkedCallouts
+                    )
+                    coverageByRow[key] = shouldRender
+                }
+            })
+        })
+
+        const rowCoverage: Record<string, boolean> = {}
+        templateCalloutUrls.forEach((url, index) => {
+            const key = makeLinkedCalloutKey(
+                Url.fromURL(url).updateQueryParams({ country: entity.code })
+                    .fullUrl
+            )
+            rowCoverage[rows[index].id] = coverageByRow[key] ?? false
+        })
+
+        coverageByEntity[entity.code] = rowCoverage
+        const elapsed = Date.now() - entityStart
+        if (elapsed > 1000) {
+            console.log(
+                `getGdocCalloutCoverage: entity=${entity.code} elapsedMs=${elapsed} callouts=${calloutUrls.length}`
+            )
+        }
+    }
+
+    console.log(
+        `getGdocCalloutCoverage: done gdoc=${gdoc.id} elapsedMs=${Date.now() - startTime}`
+    )
+
+    res.send({
+        rows,
+        entities,
+        coverageByEntity,
+    })
+}
+
+/**
+ * Given a chart URL (e.g. /grapher/life-expectancy?country=USA),
+ * returns the available callout function strings that can be used
+ * in data-callout blocks.
+ */
+export async function getCalloutFunctionStrings(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const chartUrl = req.query.url as string | undefined
+    if (!chartUrl) {
+        throw new JsonError("Missing 'url' query parameter", 400)
+    }
+
+    const grapherState = await prepareCalloutStateForUrl(trx, chartUrl)
+    if (!grapherState) {
+        throw new JsonError(`Could not load chart for URL: ${chartUrl}`, 404)
+    }
+
+    // Apply query params from the URL to the grapher state
+    const url = Url.fromURL(chartUrl)
+    grapherState.populateFromQueryParams(url.queryParams)
+
+    // Get column names from the transformed table
+    const columnSlugs = [
+        ...grapherState.yColumnSlugs,
+        ...(grapherState.xColumnSlug ? [grapherState.xColumnSlug] : []),
+    ]
+
+    const functionStrings: string[] = []
+    const columnNames: string[] = []
+
+    for (const slug of columnSlugs) {
+        const column = grapherState.chartState.transformedTable.get(slug)
+        if (column && !column.isMissing) {
+            const name = column.titlePublicOrDisplayName.title
+            columnNames.push(name)
+            functionStrings.push(`$latestValue("${name}")`)
+            functionStrings.push(`$latestYear("${name}")`)
+        }
+    }
+
+    res.send({
+        url: chartUrl,
+        columnNames,
+        functionStrings,
+    })
 }
 
 /**

@@ -184,6 +184,12 @@ export const AdminSidebar = (): React.ReactElement => (
                     status
                 </Link>
             </li>
+            <li>
+                <Link to="/callout-functions">
+                    <FontAwesomeIcon icon={faCircleInfo} fixedWidth /> Callout
+                    functions
+                </Link>
+            </li>
         </ul>
     </aside>
 )
