@@ -17,7 +17,11 @@ import {
     excludeNullish,
     getUniqueNamesFromTagHierarchies,
 } from "@ourworldindata/utils"
-import { maybeAddChangeInPrefix, processAvailableEntities } from "./shared.js"
+import {
+    maybeAddChangeInPrefix,
+    parseCatalogPaths,
+    processAvailableEntities,
+} from "./shared.js"
 import { GrapherState } from "@ourworldindata/grapher"
 import { toPlaintext } from "@ourworldindata/components"
 import { getMaxViews7d, PageviewsByUrl } from "./pageviews.js"
@@ -53,12 +57,22 @@ const parseAndProcessChartRecords = (
 
     const config = parseChartConfig(rawRecord.config)
 
+    // Parse catalog paths to extract ETL dimensions
+    const catalogPathsArray = rawRecord.catalogPaths
+        ? (JSON.parse(rawRecord.catalogPaths) as (string | null)[])
+        : []
+    const { datasetNamespaces, datasetVersions, datasetProducts } =
+        parseCatalogPaths(catalogPathsArray)
+
     return {
         ...rawRecord,
         config,
         entityNames,
         tags,
         keyChartForTags,
+        datasetNamespaces,
+        datasetVersions,
+        datasetProducts,
     }
 }
 
@@ -111,11 +125,14 @@ export const getChartsRecords = async (
                    JSON_LENGTH(cc.full ->> "$.dimensions") AS numDimensions,
                    c.publishedAt,
                    c.updatedAt,
-                   JSON_ARRAYAGG(e.name)                  AS entityNames
+                   JSON_ARRAYAGG(e.name)          AS entityNames,
+                   JSON_ARRAYAGG(v.catalogPath)   AS catalogPaths
             FROM charts c
                      LEFT JOIN chart_configs cc ON c.configId = cc.id
                      LEFT JOIN charts_x_entities ce ON c.id = ce.chartId
                      LEFT JOIN entities e ON ce.entityId = e.id
+                     LEFT JOIN chart_dimensions cd ON c.id = cd.chartId
+                     LEFT JOIN variables v ON cd.variableId = v.id
             WHERE cc.full ->> "$.isPublished" = 'true'
             -- NOT tagged "Unlisted"
             AND NOT EXISTS (
@@ -146,6 +163,7 @@ export const getChartsRecords = async (
                c.publishedAt,
                c.updatedAt,
                c.entityNames, -- this array may contain null values, will have to filter these out
+               c.catalogPaths, -- this array may contain null values, will have to filter these out
                JSON_ARRAYAGG(t.name) AS tags,
                JSON_ARRAYAGG(IF(ct.keyChartLevel = ${KeyChartLevel.Top}, t.name, NULL)) AS keyChartForTags -- this results in an array that contains null entries, will have to filter them out
         FROM indexable_charts_with_entity_names c
@@ -220,6 +238,9 @@ export const getChartsRecords = async (
                 chartRedirectSlugsByChartId.get(c.id) ?? []
             ),
             isIncomeGroupSpecificFM: false,
+            datasetNamespaces: c.datasetNamespaces,
+            datasetVersions: c.datasetVersions,
+            datasetProducts: c.datasetProducts,
         } as ChartRecord
         const score = computeChartScore(record)
         records.push({ ...record, score })

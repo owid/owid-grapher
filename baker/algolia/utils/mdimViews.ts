@@ -21,7 +21,7 @@ import {
     getRelevantVariableMetadata,
 } from "../../MultiDimBaker.js"
 import { GrapherState } from "@ourworldindata/grapher"
-import { maybeAddChangeInPrefix } from "./shared.js"
+import { maybeAddChangeInPrefix, parseCatalogPaths } from "./shared.js"
 import { getMultiDimRedirectTargets } from "../../../db/model/MultiDimRedirects.js"
 import { getMaxViews7d, PageviewsByUrl } from "./pageviews.js"
 
@@ -133,6 +133,14 @@ async function getRecords(
             ...redirectSources,
         ])
         const score = views_7d * 10 - title.length
+
+        // Extract catalog paths from indicator metadata
+        const catalogPaths = view.indicators.y
+            .map((ind) => relevantVariableMetadata[ind.id]?.catalogPath)
+            .filter(Boolean) as string[]
+        const { datasetNamespaces, datasetVersions, datasetProducts } =
+            parseCatalogPaths(catalogPaths)
+
         return {
             type: ChartRecordType.MultiDimView,
             objectID: `mdim-view-${id}`,
@@ -156,6 +164,9 @@ async function getRecords(
             views_7d,
             score,
             isIncomeGroupSpecificFM: false,
+            datasetNamespaces,
+            datasetVersions,
+            datasetProducts,
         } as ChartRecord
     })
 }
