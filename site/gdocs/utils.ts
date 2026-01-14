@@ -13,7 +13,6 @@ import {
     LinkedIndicator,
     OwidGdocDataInsightContent,
     ContentGraphLinkType,
-    SubNavId,
     OwidGdocDataInsightInterface,
     OwidGdocPostInterface,
     OwidEnrichedGdocBlockTypeMap,
@@ -25,7 +24,7 @@ import {
     Url,
 } from "@ourworldindata/utils"
 import { AttachmentsContext } from "./AttachmentsContext.js"
-import { PROD_URL, SubnavItem, subnavs } from "../SiteConstants.js"
+import { PROD_URL } from "../SiteConstants.js"
 import { BAKED_BASE_URL, IS_ARCHIVE } from "../../settings/clientSettings.js"
 
 const getOrigin = (url: string, base?: string): string | undefined => {
@@ -209,22 +208,6 @@ export function getShortPageCitation(
     publishedAt: Date | null
 ) {
     return `${formatAuthors(authors)} (${publishedAt?.getFullYear()}) - “${title}”`
-}
-
-export const getSubnavItem = (
-    id: string | undefined,
-    subnavItems: SubnavItem[]
-) => {
-    // We want to avoid matching elements with potentially undefined id.
-    // Static typing prevents id from being undefined but this might not be
-    // the case in a future API powered version.
-    return id ? subnavItems.find((item) => item.id === id) : undefined
-}
-
-export const getTopSubnavigationParentItem = (
-    subnavId: SubNavId
-): SubnavItem | undefined => {
-    return subnavs[subnavId]?.[0]
 }
 
 /**

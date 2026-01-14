@@ -166,7 +166,6 @@ export {
     type PostRestApi,
     type BlockGraphQlApi,
     type FormattingOptions,
-    SubNavId,
 } from "./wordpressTypes/WordpressTypes.js"
 
 export {

@@ -5,7 +5,6 @@ import { CitationMeta } from "./CitationMeta.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
 import { addContentFeatures, formatUrls } from "../site/formatting.js"
-import { SiteSubnavigation } from "./SiteSubnavigation.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBook } from "@fortawesome/free-solid-svg-icons"
 import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons"
@@ -17,43 +16,29 @@ import {
     formatAuthorsForBibtex,
 } from "@ourworldindata/utils"
 import { FormattingOptions } from "@ourworldindata/types"
-import { BreadcrumbsFromSubnav } from "./Breadcrumb/Breadcrumb.js"
 import { Byline } from "./Byline.js"
 import StickyNav from "./blocks/StickyNav.js"
 import { CodeSnippet } from "@ourworldindata/components"
 import { Html } from "./Html.js"
 
-export interface PageOverrides {
-    pageTitle?: string
-    pageDesc?: string
-    canonicalUrl?: string
-    citationTitle?: string
-    citationSlug?: string
-    citationCanonicalUrl?: string
-    citationAuthors?: string[]
-    citationPublicationDate?: Date
-}
-
 export const LongFormPage = (props: {
     withCitation: boolean
     post: FormattedPost
-    overrides?: PageOverrides
     formattingOptions: FormattingOptions
     baseUrl: string
 }) => {
-    const { withCitation, post, overrides, formattingOptions, baseUrl } = props
+    const { withCitation, post, formattingOptions, baseUrl } = props
 
-    const pageTitle = overrides?.pageTitle ?? post.title
-    const pageDesc = overrides?.pageDesc ?? post.pageDesc
-    const canonicalUrl = overrides?.canonicalUrl ?? `${baseUrl}/${post.slug}`
+    const pageTitle = post.title
+    const pageDesc = post.pageDesc
+    const canonicalUrl = `${baseUrl}/${post.slug}`
 
-    const citationTitle = overrides?.citationTitle ?? pageTitle
-    const citationSlug = overrides?.citationSlug ?? post.slug
-    const citationCanonicalUrl = overrides?.citationCanonicalUrl ?? canonicalUrl
-    const citationPublicationDate =
-        overrides?.citationPublicationDate ?? post.date
+    const citationTitle = pageTitle
+    const citationSlug = post.slug
+    const citationCanonicalUrl = canonicalUrl
+    const citationPublicationDate = post.date
     const citationPublishedYear = citationPublicationDate.getFullYear()
-    const citationAuthors = overrides?.citationAuthors ?? post.authors
+    const citationAuthors = post.authors
 
     let hasSidebar = false
     const endNotes = { text: "Endnotes", slug: "endnotes" }
@@ -133,16 +118,6 @@ export const LongFormPage = (props: {
                             <header className="article-header">
                                 <div className="article-titles">
                                     <h1 className="entry-title">{pageTitle}</h1>
-                                    {formattingOptions.subnavId && (
-                                        <BreadcrumbsFromSubnav
-                                            subnavId={
-                                                formattingOptions.subnavId
-                                            }
-                                            subnavCurrentId={
-                                                formattingOptions.subnavCurrentId
-                                            }
-                                        />
-                                    )}
                                 </div>
                                 <>
                                     {!formattingOptions.hideAuthors && (
@@ -176,14 +151,6 @@ export const LongFormPage = (props: {
                                 <StickyNav links={post.stickyNavLinks} />
                             </nav>
                         ) : null}
-                        {formattingOptions.subnavId && (
-                            <SiteSubnavigation
-                                subnavId={formattingOptions.subnavId}
-                                subnavCurrentId={
-                                    formattingOptions.subnavCurrentId
-                                }
-                            />
-                        )}
 
                         <div className="content-wrapper">
                             {hasSidebar && (
