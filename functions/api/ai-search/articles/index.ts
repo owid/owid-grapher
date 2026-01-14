@@ -100,6 +100,12 @@ interface DataInsightHit {
     type: OwidGdocType.DataInsight
     objectID: string
     __position: number
+    // AI Search specific fields
+    aiSearchScore: number
+    viewsScore: number
+    importanceScore: number
+    score: number
+    views_7d: number
 }
 
 /**
@@ -266,10 +272,20 @@ function calculateScore(
 }
 
 /**
- * Check if result matches any of the allowed folders
+ * Build AI Search filters for folder-based filtering.
+ * Uses prefix matching on filename to filter by folder.
  */
-function matchesFolders(filename: string, folders: string[]): boolean {
-    return folders.some((folder) => filename.startsWith(`${folder}/`))
+function buildFolderFilters(
+    folders: string[]
+): { type: "or"; filters: Array<{ type: "eq"; key: string; value: string }> } {
+    return {
+        type: "or",
+        filters: folders.map((folder) => ({
+            type: "eq" as const,
+            key: "folder",
+            value: `${folder}/`,
+        })),
+    }
 }
 
 /**
@@ -280,15 +296,9 @@ function transformToArticlesApiFormat(
     results: AISearchResponse,
     offset: number,
     length: number,
-    baseUrl: string,
-    folders: string[]
+    baseUrl: string
 ): ArticlesApiResponse {
-    // Filter to only results from allowed folders
-    const filteredResults = results.data.filter((r) =>
-        matchesFolders(r.filename, folders)
-    )
-
-    const hits: ArticleHit[] = filteredResults.map((result, index) => {
+    const hits: ArticleHit[] = results.data.map((result, index) => {
         const pageData = parsePageData(result)
         const slug = pageData.slug || extractSlugFromFilename(result.filename)
         const text = result.content[0]?.text ?? ""
@@ -362,8 +372,7 @@ function transformToTopicPagesApiFormat(
     query: string,
     results: AISearchResponse,
     offset: number,
-    length: number,
-    folders: string[]
+    length: number
 ): {
     query: string
     hits: TopicPageHit[]
@@ -371,12 +380,7 @@ function transformToTopicPagesApiFormat(
     offset: number
     length: number
 } {
-    // Filter to only results from allowed folders
-    const filteredResults = results.data.filter((r) =>
-        matchesFolders(r.filename, folders)
-    )
-
-    const hits: TopicPageHit[] = filteredResults.map((result, index) => {
+    const hits: TopicPageHit[] = results.data.map((result, index) => {
         const pageData = parsePageData(result)
         const slug = pageData.slug || extractSlugFromFilename(result.filename)
         const text = result.content[0]?.text ?? ""
@@ -439,8 +443,7 @@ function transformToDataInsightsApiFormat(
     query: string,
     results: AISearchResponse,
     page: number,
-    hitsPerPage: number,
-    folders: string[]
+    hitsPerPage: number
 ): {
     query: string
     hits: DataInsightHit[]
@@ -449,14 +452,16 @@ function transformToDataInsightsApiFormat(
     nbPages: number
     hitsPerPage: number
 } {
-    // Filter to only results from allowed folders
-    const filteredResults = results.data.filter((r) =>
-        matchesFolders(r.filename, folders)
-    )
-
-    const hits: DataInsightHit[] = filteredResults.map((result, index) => {
+    const hits: DataInsightHit[] = results.data.map((result, index) => {
         const pageData = parsePageData(result)
         const slug = pageData.slug || extractSlugFromFilename(result.filename)
+
+        const aiSearchScore = result.score
+        const { score, viewsScore, importanceScore } = calculateScore(
+            aiSearchScore,
+            pageData.views_7d,
+            OwidGdocType.DataInsight
+        )
 
         return {
             title: pageData.title || slug,
@@ -466,6 +471,11 @@ function transformToDataInsightsApiFormat(
             type: OwidGdocType.DataInsight,
             objectID: slug,
             __position: index + 1,
+            aiSearchScore,
+            viewsScore,
+            importanceScore,
+            score,
+            views_7d: pageData.views_7d ?? 0,
         }
     })
 
@@ -552,15 +562,19 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             )
         }
 
-        // Fetch more results to account for filtering and pagination
+        // Calculate fetch size based on pagination
         const fetchSize = isDataInsightsRequest
             ? Math.min((page + 1) * hitsPerPage + 20, 50)
             : Math.min(offset + length + 20, 50)
 
-        // Call AI Search
+        // Build folder filters for AI Search
+        const folderFilters = buildFolderFilters(folders)
+
+        // Call AI Search with folder filtering
         const results = (await env.AI.autorag(AI_SEARCH_INSTANCE_NAME).search({
             query,
             max_num_results: fetchSize,
+            filters: folderFilters,
             ranking_options: {
                 score_threshold: 0.1,
             },
@@ -573,16 +587,14 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 query,
                 results,
                 page,
-                hitsPerPage,
-                folders
+                hitsPerPage
             )
         } else if (isTopicPagesRequest) {
             response = transformToTopicPagesApiFormat(
                 query,
                 results,
                 offset,
-                length,
-                folders
+                length
             )
         } else {
             response = transformToArticlesApiFormat(
@@ -590,8 +602,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 results,
                 offset,
                 length,
-                baseUrl,
-                folders
+                baseUrl
             )
         }
 
