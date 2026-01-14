@@ -9,7 +9,13 @@ import {
     PrimitiveType,
     Time,
 } from "@ourworldindata/types"
-import { excludeUndefined, omitUndefinedValues } from "@ourworldindata/utils"
+import {
+    excludeUndefined,
+    getTimeDomainFromQueryString,
+    isNegativeInfinity,
+    isPositiveInfinity,
+    omitUndefinedValues,
+} from "@ourworldindata/utils"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { GrapherState } from "./GrapherState"
 import { makeChartState } from "../chart/ChartTypeMap"
@@ -17,7 +23,8 @@ import { MapChartState } from "../mapCharts/MapChartState"
 
 export function constructGrapherValuesJson(
     grapherState: GrapherState,
-    entityName: EntityName
+    entityName: EntityName,
+    timeQueryParam?: string
 ): GrapherValuesJson {
     // Make sure the given entityName is the only entity that is currently selected
     let selectionWasModified = false
@@ -31,12 +38,31 @@ export function constructGrapherValuesJson(
         selectionWasModified = true
     }
 
+    const resolveTimeBound = (bound: Time): Time | undefined => {
+        const times = grapherState.times
+        if (times.length === 0) return undefined
+        if (isNegativeInfinity(bound)) return times[0]
+        if (isPositiveInfinity(bound)) return times[times.length - 1]
+        return bound
+    }
+
     // Find the relevant times
-    const endTime = grapherState.endTime
-    const startTime =
+    let endTime = grapherState.endTime
+    let startTime =
         grapherState.startTime !== grapherState.endTime
             ? grapherState.startTime
             : undefined
+    if (timeQueryParam) {
+        const [rawStartTime, rawEndTime] =
+            getTimeDomainFromQueryString(timeQueryParam)
+        const resolvedEndTime = resolveTimeBound(rawEndTime)
+        const resolvedStartTime = resolveTimeBound(rawStartTime)
+        endTime = resolvedEndTime
+        startTime =
+            resolvedStartTime !== resolvedEndTime
+                ? resolvedStartTime
+                : undefined
+    }
 
     // Create a map chart state to access custom label formatting.
     // When `map.tooltipUseCustomLabels` is enabled, this allows us to display
@@ -51,8 +77,8 @@ export function constructGrapherValuesJson(
 
     const result = omitUndefinedValues({
         entityName,
-        startTime: grapherState.startTime,
-        endTime: grapherState.endTime,
+        startTime,
+        endTime,
         columns: makeColumnInfoForRelevantSlugs(grapherState),
         startValues: makeDimensionValuesForTime(
             grapherState,

@@ -136,7 +136,8 @@ async function main(): Promise<void> {
                 const entityName = entityNames[0]
                 const values = constructGrapherValuesJson(
                     grapherState,
-                    entityName
+                    entityName,
+                    url.queryParams.time
                 )
                 invalidValuesSummary[calloutKey].total += 1
                 if (!isValuesJsonValid(values)) {

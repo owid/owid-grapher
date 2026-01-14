@@ -69,9 +69,10 @@ export function extractDataCalloutUrls(
 
 export function constructCalloutValuesFromPreparedState(
     state: GrapherState,
-    entity: EntityName
+    entity: EntityName,
+    timeQueryParam?: string
 ): GrapherValuesJson {
-    return constructGrapherValuesJson(state, entity)
+    return constructGrapherValuesJson(state, entity, timeQueryParam)
 }
 
 export async function bakeCalloutsForUrls(
@@ -113,7 +114,11 @@ export async function bakeCalloutsForUrls(
             }
 
             const entityName = entityNames[0]
-            const values = constructGrapherValuesJson(grapherState, entityName)
+            const values = constructGrapherValuesJson(
+                grapherState,
+                entityName,
+                url.queryParams.time
+            )
             invalidByCalloutKey[calloutKey].total += 1
             if (!isValuesJsonValid(values)) {
                 invalidByCalloutKey[calloutKey].invalid += 1
@@ -229,12 +234,13 @@ export async function prepareCalloutChart(
  */
 export async function fetchCalloutValuesForConfig(
     config: GrapherInterface,
-    entity: EntityName
+    entity: EntityName,
+    timeQueryParam?: string
 ): Promise<GrapherValuesJson | undefined> {
     const grapherState = await prepareCalloutChart(config)
     if (!grapherState) return undefined
 
-    return constructGrapherValuesJson(grapherState, entity)
+    return constructGrapherValuesJson(grapherState, entity, timeQueryParam)
 }
 
 /**
@@ -272,7 +278,10 @@ export async function fetchCalloutValuesForMultiDim(
     }
 
     // Fetch and return values using the resolved config
-    return fetchCalloutValuesForConfig(chartConfig, entity)
+    const timeQueryParam = queryStr
+        ? Url.fromQueryStr(queryStr).queryParams.time
+        : undefined
+    return fetchCalloutValuesForConfig(chartConfig, entity, timeQueryParam)
 }
 
 export async function fetchCalloutValuesForUrl(
@@ -304,7 +313,11 @@ export async function fetchCalloutValuesForUrl(
     if (chartId) {
         const chartRecord = await getChartConfigById(knex, chartId)
         if (chartRecord) {
-            return fetchCalloutValuesForConfig(chartRecord.config, entityName)
+            return fetchCalloutValuesForConfig(
+                chartRecord.config,
+                entityName,
+                url.queryParams.time
+            )
         }
     }
 
@@ -443,7 +456,11 @@ export function generateLinkedCalloutsFromPreparedCharts(
         if (!entityNames) continue
         const entityName = entityNames[0]
 
-        const values = constructGrapherValuesJson(state, entityName)
+        const values = constructGrapherValuesJson(
+            state,
+            entityName,
+            url.queryParams.time
+        )
 
         linkedCallouts[linkedCalloutsKey] = {
             url: stringUrl,
@@ -660,7 +677,10 @@ export async function fetchCalloutValuesForExplorer(
     )
     if (!grapherState) return undefined
 
-    return constructGrapherValuesJson(grapherState, entity)
+    const timeQueryParam = (
+        queryParams as Record<string, string | undefined>
+    ).time
+    return constructGrapherValuesJson(grapherState, entity, timeQueryParam)
 }
 
 /**
