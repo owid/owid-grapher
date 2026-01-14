@@ -2,6 +2,8 @@ import * as _ from "lodash-es"
 import * as R from "remeda"
 import { match } from "ts-pattern"
 import {
+    selectPeerCountries,
+    selectRegionGroupByPriority,
     generateFocusedSeriesNamesParam,
     generateSelectedEntityNamesParam,
     GrapherState,
@@ -27,18 +29,12 @@ import {
     SeriesStrategy,
     Time,
     GrapherSearchResultJson,
+    PeerCountryStrategy,
 } from "@ourworldindata/types"
 import { constructSearchResultDataTableContent } from "./constructSearchResultDataTableContent"
 import { constructGrapherValuesJson } from "../grapherValuesJson"
 import {
     buildChartHitDataDisplayProps,
-    checkIsCountry,
-    getAggregates,
-    getContinents,
-    getIncomeGroups,
-    getParentRegions,
-    getRegionByName,
-    getSiblingRegions,
     getTableColumnCountForGridSlotKey,
     loadCatalogVariableData,
     omitUndefinedValues,
@@ -268,10 +264,16 @@ export async function pickDisplayEntities(
     const enrichPickedEntities = () => {
         if (pickedEntities.length === 0) return defaultEntities
 
-        const pickedComparisonEntities = pickComparisonEntities(
-            pickedEntities[0],
-            availableEntities
-        )
+        // For backward compatibility, default to the ParentRegions strategy
+        const peerCountryStrategy =
+            grapherState.peerCountryStrategy ??
+            PeerCountryStrategy.ParentRegions
+        const pickedComparisonEntities = selectPeerCountries({
+            peerCountryStrategy,
+            targetCountry: pickedEntities[0],
+            defaultSelection: defaultEntities,
+            availableEntities,
+        })
 
         // Default to the default entities if no comparison entities could be found
         const comparisonEntities =
@@ -400,7 +402,7 @@ async function pickDisplayEntitiesForScatterPlot({
     const { series, colorColumnSlug, sizeColumnSlug } = chartState
 
     // Pick income groups or continents if available
-    const regions = findBestAvailableRegions(
+    const regions = selectRegionGroupByPriority(
         grapherState.availableEntityNames,
         { includeWorld: true }
     )
@@ -477,7 +479,7 @@ async function pickDisplayEntitiesForMarimekko({
     const { items, colorColumnSlug, xColumnSlug } = chartState
 
     // Pick income groups or continents if available
-    const regions = findBestAvailableRegions(
+    const regions = selectRegionGroupByPriority(
         grapherState.availableEntityNames,
         { includeWorld: true }
     )
@@ -539,78 +541,6 @@ async function pickDisplayEntitiesForMarimekko({
         R.sortBy((item) => -getY(item)),
         R.map(getName)
     )
-}
-
-/**
- * Finds the best available regions from a set of available entities,
- * prioritizing continents, then  income groups, then other aggregates.
- */
-function findBestAvailableRegions(
-    availableEntities: EntityName[],
-    { includeWorld }: { includeWorld: boolean } = { includeWorld: false }
-) {
-    const availableEntitySet = new Set(availableEntities)
-
-    const regionGroups = [getContinents(), getIncomeGroups(), getAggregates()]
-    for (const regions of regionGroups) {
-        const availableRegions: EntityName[] = regions
-            .filter((region) => availableEntitySet.has(region.name))
-            .map((region) => region.name)
-
-        if (availableRegions.length > 0) {
-            // Also add the World entity if it's available
-            if (includeWorld && availableEntitySet.has(WORLD_ENTITY_NAME)) {
-                availableRegions.push(WORLD_ENTITY_NAME)
-            }
-
-            return availableRegions
-        }
-    }
-    return []
-}
-
-/**
- * Selects relevant comparison entities for a given entity to provide meaningful
- * contextual comparisons in search results.
- */
-function pickComparisonEntities(
-    entity: EntityName,
-    availableEntities: EntityName[]
-): EntityName[] {
-    const availableEntitySet = new Set(availableEntities)
-
-    const comparisonEntities = new Set<EntityName>()
-
-    // Can't determine comparison entities for non-geographical entities
-    const region = getRegionByName(entity)
-    if (!region) return []
-
-    // Compare World to any aggregate entities (e.g. continents or income groups)
-    if (entity === WORLD_ENTITY_NAME)
-        return findBestAvailableRegions(availableEntities)
-
-    // Always include World as a comparison if available
-    if (availableEntitySet.has(WORLD_ENTITY_NAME))
-        comparisonEntities.add(WORLD_ENTITY_NAME)
-
-    if (checkIsCountry(region)) {
-        // For countries: add their parent regions (continent, income group, etc.)
-        // Example: Germany -> Europe, Europe (WHO), High income countries
-        const regions = getParentRegions(region.name)
-        for (const region of regions)
-            if (availableEntitySet.has(region.name))
-                comparisonEntities.add(region.name)
-    } else {
-        // For aggregate regions: add sibling regions at the same hierarchical level
-        // Example: Europe -> Asia, Africa, North America (other continents)
-        const siblings = getSiblingRegions(region.name)
-        for (const sibling of siblings) {
-            if (availableEntitySet.has(sibling.name))
-                comparisonEntities.add(sibling.name)
-        }
-    }
-
-    return Array.from(comparisonEntities)
 }
 
 let _populationDataCache: Map<EntityName, number> | undefined
@@ -980,10 +910,15 @@ function getGrapherQueryParamsForDiscreteBar(
         isEntityStrategy &&
         selectedEntities.length === 1
     ) {
-        const comparisonEntities = pickComparisonEntities(
-            selectedEntities[0],
-            grapherState.availableEntityNames
-        )
+        const peerCountryStrategy =
+            grapherState.peerCountryStrategy ??
+            PeerCountryStrategy.ParentRegions
+        const comparisonEntities = selectPeerCountries({
+            peerCountryStrategy,
+            targetCountry: selectedEntities[0],
+            defaultSelection: grapherState.selection.selectedEntityNames,
+            availableEntities: grapherState.availableEntityNames,
+        })
         if (comparisonEntities.length > 1) {
             overwriteParams.country = generateSelectedEntityNamesParam(
                 _.uniq([...selectedEntities, ...comparisonEntities])

@@ -1,4 +1,5 @@
 import { HorizontalAlign } from "../domainTypes/Layout.js"
+import { PeerCountryStrategyQueryParam } from "../grapherTypes/GrapherTypes.js"
 import { Span, SpanSimpleText } from "./Spans.js"
 
 export type BlockPositionChoice = "right" | "left"
@@ -38,6 +39,7 @@ export type RawBlockChartValue = {
     position?: string
     caption?: string
     visibility?: string
+    peerCountries?: string
 }
 
 export type RawBlockChart = {
@@ -52,6 +54,7 @@ export type EnrichedBlockChart = {
     size: BlockSize
     caption?: Span[]
     visibility?: BlockVisibility
+    peerCountries?: PeerCountryStrategyQueryParam
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockNarrativeChartValue = {

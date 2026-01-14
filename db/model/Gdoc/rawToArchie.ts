@@ -134,6 +134,7 @@ function* rawBlockChartToArchieMLString(
         yield* propertyToArchieMLString("size", block.value)
         yield* propertyToArchieMLString("caption", block.value)
         yield* propertyToArchieMLString("visibility", block.value)
+        yield* propertyToArchieMLString("peerCountries", block.value)
     }
     yield "{}"
 }
