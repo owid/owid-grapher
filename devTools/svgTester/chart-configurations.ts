@@ -32,6 +32,7 @@ const stackModeOptions = Object.values(StackMode)
 const scaleTypeOptions = Object.values(ScaleType)
 const facetOptions = Object.values(FacetStrategy)
 const booleanOptions = Object.values(Boolean)
+const focusOptions = ["<none>", "<firstSeries>"]
 
 const VIEW_MATRIX_BY_CHART_TYPE: Record<GrapherChartType, ViewMatrix> = {
     [GRAPHER_CHART_TYPES.LineChart]: {
@@ -41,6 +42,7 @@ const VIEW_MATRIX_BY_CHART_TYPE: Record<GrapherChartType, ViewMatrix> = {
         yScale: scaleTypeOptions,
         facet: facetOptions,
         uniformYAxis: booleanOptions,
+        focus: focusOptions,
     },
     [GRAPHER_CHART_TYPES.ScatterPlot]: {
         tab: ["chart"],
@@ -55,6 +57,7 @@ const VIEW_MATRIX_BY_CHART_TYPE: Record<GrapherChartType, ViewMatrix> = {
         tab: ["chart"],
         time: timePoints,
         facet: facetOptions,
+        focus: focusOptions,
         // uniformYAxis doesn't apply
     },
     [GRAPHER_CHART_TYPES.StackedDiscreteBar]: {
@@ -62,6 +65,7 @@ const VIEW_MATRIX_BY_CHART_TYPE: Record<GrapherChartType, ViewMatrix> = {
         time: timePoints,
         stackMode: stackModeOptions,
         facet: facetOptions,
+        focus: focusOptions,
         // uniformYAxis doesn't apply
     },
     [GRAPHER_CHART_TYPES.Marimekko]: {
@@ -74,6 +78,7 @@ const VIEW_MATRIX_BY_CHART_TYPE: Record<GrapherChartType, ViewMatrix> = {
         tab: ["chart"],
         time: timeSpan,
         yScale: scaleTypeOptions,
+        focus: focusOptions,
     },
     [GRAPHER_CHART_TYPES.StackedArea]: {
         tab: ["chart"],
@@ -81,6 +86,7 @@ const VIEW_MATRIX_BY_CHART_TYPE: Record<GrapherChartType, ViewMatrix> = {
         stackMode: stackModeOptions,
         facet: facetOptions,
         uniformYAxis: booleanOptions,
+        focus: focusOptions,
     },
     [GRAPHER_CHART_TYPES.StackedBar]: {
         tab: ["chart"],
@@ -88,10 +94,11 @@ const VIEW_MATRIX_BY_CHART_TYPE: Record<GrapherChartType, ViewMatrix> = {
         stackMode: stackModeOptions,
         facet: facetOptions,
         uniformYAxis: booleanOptions,
+        focus: focusOptions,
     },
 }
 
-// the above view matrix is used to generate all possible combinations of query params
+// The above view matrix is used to generate all possible combinations of query params
 // but some combinations don't make sense. this matrix is used to exclude those combinations.
 // for example, if a chart is not faceted, the uniformYAxis param doesn't apply
 const EXCLUDE_VIEWS_BY_CHART_TYPE: Record<
@@ -99,16 +106,20 @@ const EXCLUDE_VIEWS_BY_CHART_TYPE: Record<
     PartialRecord<keyof GrapherQueryParams, string>[]
 > = {
     [GRAPHER_CHART_TYPES.LineChart]: [
-        // line charts only make sense for a time span
+        // Line charts only make sense for a time span
         { tab: "line", time: TimePoint.earliest },
         { tab: "line", time: TimePoint.latest },
-        // slope charts only make sense for a time span
+        // Slope charts only make sense for a time span
         { tab: "slope", time: TimePoint.earliest },
         { tab: "slope", time: TimePoint.latest },
-        // bar charts and marimekko plots only make sense for a time point
+        // Bar charts and marimekko plots only make sense for a time point
         { tab: "discrete-bar", time: TimeSpan.earliestLatest },
         { tab: "marimekko", time: TimeSpan.earliestLatest },
-        // exclude all extra options for maps, bar charts and marimekko plots
+        // Sharing an axis only makes sense if a chart is faceted
+        { facet: FacetStrategy.none, uniformYAxis: Boolean.true },
+        // Log scale for percentage values doesn't make sense
+        { stackMode: StackMode.relative, yScale: ScaleType.log },
+        // Exclude all extra options for maps, bar charts and marimekko plots
         { tab: "map", stackMode: StackMode.relative },
         { tab: "map", yScale: ScaleType.log },
         { tab: "map", facet: FacetStrategy.entity },
@@ -121,35 +132,63 @@ const EXCLUDE_VIEWS_BY_CHART_TYPE: Record<
         { tab: "marimekko", yScale: ScaleType.log },
         { tab: "marimekko", facet: FacetStrategy.entity },
         { tab: "marimekko", facet: FacetStrategy.metric },
-        // sharing an axis only makes sense if a chart is faceted
-        { facet: FacetStrategy.none, uniformYAxis: Boolean.true },
-        // log scale for percentage values doesn't make sense
-        { stackMode: StackMode.relative, yScale: ScaleType.log },
+        // Test focus mode only in the default view
+        { focus: "<firstSeries>", tab: "map" },
+        { focus: "<firstSeries>", tab: "slope" },
+        { focus: "<firstSeries>", tab: "discrete-bar" },
+        { focus: "<firstSeries>", tab: "marimekko" },
+        { focus: "<firstSeries>", stackMode: StackMode.relative },
+        { focus: "<firstSeries>", yScale: ScaleType.log },
+        { focus: "<firstSeries>", facet: FacetStrategy.entity },
+        { focus: "<firstSeries>", facet: FacetStrategy.metric },
+        { focus: "<firstSeries>", uniformYAxis: Boolean.true },
     ],
     [GRAPHER_CHART_TYPES.ScatterPlot]: [
-        // relative mode only makes sense if a time span is selected
+        // Relative mode only makes sense if a time span is selected
         { time: TimePoint.earliest, stackMode: StackMode.relative },
         { time: TimePoint.latest, stackMode: StackMode.relative },
-        // selecting the end points only makes sense if a time span is selected
+        // Selecting the end points only makes sense if a time span is selected
         { time: TimePoint.earliest, endpointsOnly: Boolean.true },
         { time: TimePoint.latest, endpointsOnly: Boolean.true },
-        // selecting the end points only makes sense if relative mode is not selected
+        // Selecting the end points only makes sense if relative mode is not selected
         { stackMode: StackMode.relative, endpointsOnly: Boolean.true },
-        // log scale for percentage values doesn't make sense
+        // Log scale for percentage values doesn't make sense
         { stackMode: StackMode.relative, yScale: ScaleType.log },
         { stackMode: StackMode.relative, xScale: ScaleType.log },
     ],
-    [GRAPHER_CHART_TYPES.DiscreteBar]: [],
-    [GRAPHER_CHART_TYPES.StackedDiscreteBar]: [],
+    [GRAPHER_CHART_TYPES.DiscreteBar]: [
+        // Test focus mode only in the default view
+        { focus: "<firstSeries>", facet: FacetStrategy.entity },
+        { focus: "<firstSeries>", facet: FacetStrategy.metric },
+    ],
+    [GRAPHER_CHART_TYPES.StackedDiscreteBar]: [
+        // Test focus mode only in the default view
+        { focus: "<firstSeries>", stackMode: StackMode.relative },
+        { focus: "<firstSeries>", facet: FacetStrategy.entity },
+        { focus: "<firstSeries>", facet: FacetStrategy.metric },
+    ],
     [GRAPHER_CHART_TYPES.Marimekko]: [],
-    [GRAPHER_CHART_TYPES.SlopeChart]: [],
+    [GRAPHER_CHART_TYPES.SlopeChart]: [
+        // Test focus mode only in the default view
+        { focus: "<firstSeries>", yScale: ScaleType.log },
+    ],
     [GRAPHER_CHART_TYPES.StackedArea]: [
-        // sharing an axis only makes sense if a chart is faceted
+        // Sharing an axis only makes sense if a chart is faceted
         { facet: FacetStrategy.none, uniformYAxis: Boolean.true },
+        // Test focus mode only in the default view
+        { focus: "<firstSeries>", stackMode: StackMode.relative },
+        { focus: "<firstSeries>", facet: FacetStrategy.entity },
+        { focus: "<firstSeries>", facet: FacetStrategy.metric },
+        { focus: "<firstSeries>", uniformYAxis: Boolean.true },
     ],
     [GRAPHER_CHART_TYPES.StackedBar]: [
-        // sharing an axis only makes sense if a chart is faceted
+        // Sharing an axis only makes sense if a chart is faceted
         { facet: FacetStrategy.none, uniformYAxis: Boolean.true },
+        // Test focus mode only in the default view
+        { focus: "<firstSeries>", stackMode: StackMode.relative },
+        { focus: "<firstSeries>", facet: FacetStrategy.entity },
+        { focus: "<firstSeries>", facet: FacetStrategy.metric },
+        { focus: "<firstSeries>", uniformYAxis: Boolean.true },
     ],
 }
 
