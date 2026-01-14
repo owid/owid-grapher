@@ -107,4 +107,12 @@ describe(isValuesJsonValid, () => {
 
         expect(isValuesJsonValid(valuesJson)).toBe(false)
     })
+
+    it("rejects values json when end values are missing even without end time", () => {
+        const valuesJson = makeValidValuesJson()
+        valuesJson.endTime = undefined
+        valuesJson.endValues = undefined
+
+        expect(isValuesJsonValid(valuesJson)).toBe(false)
+    })
 })

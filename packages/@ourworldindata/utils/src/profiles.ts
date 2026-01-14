@@ -557,3 +557,17 @@ export function filterIncompleteDataCallouts(
         })
     })
 }
+
+export function hasRenderableDataCallouts(
+    content: OwidGdocProfileContent
+): boolean {
+    let hasRenderable = false
+    content.body.forEach((node) => {
+        traverseEnrichedBlock(node, (block) => {
+            if (block.type === "data-callout" && block.content.length > 0) {
+                hasRenderable = true
+            }
+        })
+    })
+    return hasRenderable
+}

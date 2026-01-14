@@ -23,6 +23,7 @@ import {
     GdocsContentSource,
     OwidGdocType,
     getEntitiesForProfile,
+    hasRenderableDataCallouts,
 } from "@ourworldindata/utils"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import { getAndLoadGdocById } from "../db/model/Gdoc/GdocFactory.js"
@@ -132,6 +133,17 @@ export class OwidAdminApp {
                                     { knex, useDbOnlyCallouts: false }
                                 )
 
+                            if (
+                                !hasRenderableDataCallouts(
+                                    instantiatedProfile.content
+                                )
+                            ) {
+                                res.status(404).send(
+                                    "None of the callouts in this profile are available for this entity. A profile will not be baked for it."
+                                )
+                                return
+                            }
+
                             res.set("X-Robots-Tag", "noindex")
                             res.send(
                                 renderToHtmlPage(
@@ -148,7 +160,7 @@ export class OwidAdminApp {
 
                         if (!entityInScope) {
                             res.status(404).send(
-                                "Profile preview not available for this entity."
+                                "This entity is not in the profile scope."
                             )
                             return
                         }

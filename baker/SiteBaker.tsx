@@ -52,8 +52,9 @@ import {
     OwidGdocType,
     getEntitiesForProfile,
     LinkedStaticViz,
-     Url,
-     makeCalloutGrapherStateKey,
+    Url,
+    makeCalloutGrapherStateKey,
+    hasRenderableDataCallouts,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import {
@@ -130,8 +131,8 @@ type PrefetchedAttachments = {
     linkedIndicators: Record<number, LinkedIndicator>
     linkedNarrativeCharts: Record<string, NarrativeChartInfo>
     linkedStaticViz: Record<string, LinkedStaticViz>
-     // Prepared chart data for data-callouts, keyed by chart URL key (minus country param)
-     calloutGrapherStates: Record<string, CalloutGrapherState>
+    // Prepared chart data for data-callouts, keyed by chart URL key (minus country param)
+    calloutGrapherStates: Record<string, CalloutGrapherState>
 }
 
 // These aren't all "wordpress" steps
@@ -236,7 +237,6 @@ export class SiteBaker {
                 attachments.linkedNarrativeCharts
             profileTemplate.linkedStaticViz = attachments.linkedStaticViz
 
-
             if (
                 !profileTemplate.manualBreadcrumbs?.length &&
                 profileTemplate.tags?.length
@@ -257,6 +257,10 @@ export class SiteBaker {
                     entity,
                     { knex }
                 )
+
+                if (!hasRenderableDataCallouts(instantiatedProfile.content)) {
+                    continue
+                }
 
                 const html = renderGdoc(instantiatedProfile)
                 const outPath = path.join(

@@ -52,6 +52,7 @@ import {
     OwidGdocType,
     getRegionBySlug,
     getEntitiesForProfile,
+    hasRenderableDataCallouts,
     ALL_GDOC_TYPES,
 } from "@ourworldindata/utils"
 import {
@@ -717,6 +718,10 @@ getPlainRouteWithROTransaction(
                 entity,
                 { knex: trx }
             )
+
+            if (!hasRenderableDataCallouts(instantiatedProfile.content)) {
+                return res.status(404).send(renderNotFoundPage())
+            }
 
             return res.send(renderGdoc(instantiatedProfile, true))
         } catch (error) {

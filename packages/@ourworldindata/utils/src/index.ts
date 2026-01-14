@@ -237,6 +237,7 @@ export {
     makeCalloutGrapherStateKey,
     makeLinkedCalloutKey,
     filterIncompleteDataCallouts,
+    hasRenderableDataCallouts,
     checkShouldDataCalloutRender,
     getCalloutValue,
 } from "./profiles.js"

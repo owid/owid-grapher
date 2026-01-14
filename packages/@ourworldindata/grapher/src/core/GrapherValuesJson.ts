@@ -100,6 +100,7 @@ export function isValuesJsonValid(valuesJson: GrapherValuesJson): boolean {
         return true
     }
 
+    if (!valuesJson.endValues) return false
     if (valuesJson.startTime !== undefined && !valuesJson.startValues)
         return false
     if (valuesJson.endTime !== undefined && !valuesJson.endValues) return false
