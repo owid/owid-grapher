@@ -6,7 +6,6 @@ import {
     CoreTableInputOption,
     OwidColumnDef,
     TableSlug,
-    SubNavId,
     FacetAxisDomain,
     GrapherInterface,
     AxisMinMaxValueStr,
@@ -161,10 +160,6 @@ export class ExplorerProgram extends GridProgram {
         return this.getLineValue(ExplorerGrammar.title.keyword)
     }
 
-    get subNavId(): SubNavId | undefined {
-        return this.getLineValue(ExplorerGrammar.subNavId.keyword) as SubNavId
-    }
-
     get googleSheet() {
         return this.getLineValue(ExplorerGrammar.googleSheet.keyword)
     }
@@ -174,10 +169,6 @@ export class ExplorerProgram extends GridProgram {
             this.getLineValue(ExplorerGrammar.hideAlertBanner.keyword) ===
             GridBoolean.true
         )
-    }
-
-    get subNavCurrentId() {
-        return this.getLineValue(ExplorerGrammar.subNavCurrentId.keyword)
     }
 
     get thumbnail() {

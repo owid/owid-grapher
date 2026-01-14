@@ -1,4 +1,3 @@
-import { SubNavId } from "@ourworldindata/types"
 import {
     CellDef,
     BooleanCellDef,
@@ -9,7 +8,6 @@ import {
     IntegerCellDef,
     SlugsDeclarationCellDef,
     Grammar,
-    EnumCellDef,
     StringDeclarationDef,
 } from "./gridLang/GridLangConstants.js"
 import { GrapherGrammar } from "./GrapherGrammar.js"
@@ -109,22 +107,6 @@ export const ExplorerGrammar: Grammar = {
         ...BooleanCellDef,
         keyword: "hideControls",
         description: "Whether to hide the controls. Default is false.",
-    },
-    subNavId: {
-        ...EnumCellDef,
-        terminalOptions: Object.values(SubNavId).map((keyword) => ({
-            keyword,
-            description: "",
-            cssClass: "",
-        })),
-        keyword: "subNavId",
-        description: "A subnav to show, if any.",
-    },
-    subNavCurrentId: {
-        // todo: add options here
-        ...EnumCellDef,
-        keyword: "subNavCurrentId",
-        description: "The current page in the subnav.",
     },
     thumbnail: {
         ...UrlCellDef,

@@ -59,7 +59,6 @@ import {
     getPublishedExplorersBySlug,
     generateTopicTagGraph,
 } from "../db/db.js"
-import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
 import { formatUrls } from "../site/formatting.js"
 
@@ -213,15 +212,12 @@ export const renderPost = async (
 
     const formatted = await formatPost(post, formattingOptions, knex)
 
-    const pageOverrides = await getPageOverrides(knex, post, formattingOptions)
-    const citationStatus =
-        isPostSlugCitable(post.slug) || isPageOverridesCitable(pageOverrides)
+    const citationStatus = isPostSlugCitable(post.slug)
 
     return renderToHtmlPage(
         <LongFormPage
             withCitation={citationStatus}
             post={formatted}
-            overrides={pageOverrides}
             formattingOptions={formattingOptions}
             baseUrl={baseUrl}
         />

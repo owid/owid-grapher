@@ -89,7 +89,6 @@
 @import "./SiteNavigation.scss";
 @import "./SiteNavigationToggle.scss";
 @import "./SiteNavigationTopics.scss";
-@import "./SiteSubnavigation.scss";
 @import "./SiteMobileMenu.scss";
 @import "./SiteMobileArea.scss";
 @import "./OwidSocials.scss";
@@ -766,7 +765,6 @@ a.ref sup {
 @media print {
     .site-header,
     .alert-banner,
-    .offset-subnavigation,
     .site-footer,
     .cookie-notice,
     .citation-note,
