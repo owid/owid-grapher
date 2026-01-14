@@ -1,5 +1,10 @@
 import { Env } from "../../../_common/env.js"
-import { SearchUrlParam } from "@ourworldindata/types"
+import {
+    validateQueryParams,
+    COMMON_SEARCH_PARAMS,
+    AISearchResult,
+    AISearchResponse,
+} from "../utils.js"
 
 // Name of the AI Search instance in Cloudflare dashboard
 const AI_SEARCH_INSTANCE_NAME = "search-charts"
@@ -20,22 +25,6 @@ interface ChartData {
     views_14d: number
     views_365d: number
     fmRank?: number // Featured metric rank (1 = top, only set for FMs)
-}
-
-interface AISearchResult {
-    file_id: string
-    filename: string
-    score: number
-    attributes: Record<string, string | number | boolean | null>
-    content: Array<{
-        type: string
-        text: string
-    }>
-}
-
-interface AISearchResponse {
-    data: AISearchResult[]
-    has_more: boolean
 }
 
 /**
@@ -257,14 +246,29 @@ function stripVerboseFields(results: SearchApiResponse): SearchApiResponse {
     }
 }
 
+// Valid query parameter names for this endpoint
+const VALID_PARAMS = new Set([
+    COMMON_SEARCH_PARAMS.QUERY, // "q"
+    COMMON_SEARCH_PARAMS.COUNTRY, // "countries"
+    COMMON_SEARCH_PARAMS.TOPIC, // "topics"
+    COMMON_SEARCH_PARAMS.REQUIRE_ALL_COUNTRIES, // "requireAllCountries"
+    "page",
+    "hitsPerPage",
+    "verbose",
+])
+
 export const onRequestGet: PagesFunction<Env> = async (context) => {
     const { env } = context
     const url = new URL(context.request.url)
     const baseUrl = url.origin
 
     try {
+        // Validate query parameters - reject unknown params to catch typos like "query" instead of "q"
+        const validationError = validateQueryParams(url, VALID_PARAMS)
+        if (validationError) return validationError
+
         // Parse query parameter (matching existing API)
-        const query = url.searchParams.get(SearchUrlParam.QUERY) || ""
+        const query = url.searchParams.get(COMMON_SEARCH_PARAMS.QUERY) || ""
 
         // Parse pagination parameters
         const page = parseInt(url.searchParams.get("page") || "0")
@@ -277,10 +281,12 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         const verbose = url.searchParams.get("verbose") === "true"
 
         // Parse filter parameters (not yet implemented in AI Search, but accept them)
-        const countriesParam = url.searchParams.get(SearchUrlParam.COUNTRY)
-        const topicParam = url.searchParams.get(SearchUrlParam.TOPIC)
+        const countriesParam = url.searchParams.get(
+            COMMON_SEARCH_PARAMS.COUNTRY
+        )
+        const topicParam = url.searchParams.get(COMMON_SEARCH_PARAMS.TOPIC)
         const requireAllCountries =
-            url.searchParams.get(SearchUrlParam.REQUIRE_ALL_COUNTRIES) ===
+            url.searchParams.get(COMMON_SEARCH_PARAMS.REQUIRE_ALL_COUNTRIES) ===
             "true"
 
         // Log filter usage for debugging (AI Search doesn't support these yet)
