@@ -28,8 +28,6 @@ metadata:
 fields:
     id:
         description: Unique identifier for the user
-    password:
-        description: BCrypt encrypted password hash
     lastLogin:
         description: Timestamp of last successful login
     isSuperuser:
