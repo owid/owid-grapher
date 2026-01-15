@@ -11,7 +11,7 @@ import { action, computed } from "mobx"
 import { TimeColumn } from "@ourworldindata/core-table"
 
 // Animation timing constants
-const MIN_MS_PER_TICK = 50
+const MIN_MS_PER_TICK = 100
 const MAX_MS_PER_TICK = 200
 const TARGET_ANIMATION_DURATION_MS = 4000
 
