@@ -413,7 +413,14 @@ export class Explorer
         // will reset and initialize the grapherState and then the data loading will be awaited inside the function.
         // We don't want to wait for the data loading to finish as we only care about the non-data loading
         // part to run (the data loading can finish whenever)
+
+        // Preserve selection before updateGrapherFromExplorer, as it calls reset() which clears the shared selection array
+        const preservedSelection = this.selection.selectedEntityNames.slice()
+
         void this.updateGrapherFromExplorer()
+
+        // Restore selection after reset
+        this.selection.setSelectedEntities(preservedSelection)
 
         // Do the rest of the initialization
         this.grapherState.populateFromQueryParams(url.queryParams)
@@ -510,12 +517,18 @@ export class Explorer
 
         const previousTab = this.grapherState.activeTab
 
+        // Preserve selection before updateGrapherFromExplorer, as it calls reset() which clears the shared selection array
+        const preservedSelection = this.selection.selectedEntityNames.slice()
+
         await this.updateGrapherFromExplorer()
+
+        // Restore selection after reset
+        this.selection.setSelectedEntities(preservedSelection)
 
         newGrapherParams.tab =
             this.grapherState.mapGrapherTabToQueryParam(previousTab)
 
-        // reset map state if switching to a chart
+        // Reset map state if switching to a chart
         if (newGrapherParams.tab !== GRAPHER_TAB_QUERY_PARAMS.map) {
             newGrapherParams.globe = "0"
             newGrapherParams.mapSelect = ""
@@ -597,11 +610,6 @@ export class Explorer
             enableMapSelection: this.enableMapSelection,
         }
 
-        // if not empty, respect the explorer's selection
-        if (this.selection.hasSelection) {
-            config.selectedEntityNames = this.selection.selectedEntityNames
-        }
-
         grapherState.setAuthoredVersion(config)
         grapherState.reset()
         grapherState.inputTable = BlankOwidTable()
@@ -658,11 +666,6 @@ export class Explorer
             adminBaseUrl: this.adminBaseUrl,
             hideEntityControls: this.showExplorerControls,
             enableMapSelection: this.enableMapSelection,
-        }
-
-        // If not empty, respect the explorer's selection
-        if (this.selection.hasSelection) {
-            config.selectedEntityNames = this.selection.selectedEntityNames
         }
 
         // Indicator-based explorers support two types of dimensions for creating charts:
@@ -829,11 +832,6 @@ export class Explorer
             adminBaseUrl: this.adminBaseUrl,
             hideEntityControls: this.showExplorerControls,
             enableMapSelection: this.enableMapSelection,
-        }
-
-        // if not empty, respect the explorer's selection
-        if (this.selection.hasSelection) {
-            config.selectedEntityNames = this.selection.selectedEntityNames
         }
 
         grapherState.setAuthoredVersion(config)
