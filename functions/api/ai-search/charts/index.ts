@@ -66,10 +66,17 @@ interface EnrichedSearchChartHit {
 }
 
 /**
- * Extract slug from filename (e.g., "charts/population.md" -> "population")
+ * Extract objectID from filename.
+ * Handles different prefixes: charts/, explorers/, mdim/
+ * Examples:
+ *   "charts/population.md" -> "population"
+ *   "explorers/migration-flows-0.md" -> "migration-flows-0"
+ *   "mdim/mdim-view-123.md" -> "mdim-view-123"
  */
-function extractSlugFromFilename(filename: string): string {
-    return filename.replace(/^charts\//, "").replace(/\.md$/, "")
+function extractObjectIDFromFilename(filename: string): string {
+    return filename
+        .replace(/^(charts|explorers|mdim)\//, "")
+        .replace(/\.md$/, "")
 }
 
 /**
@@ -172,11 +179,14 @@ function transformToSearchApiFormat(
     baseUrl: string
 ): SearchApiResponse {
     const hits: EnrichedSearchChartHit[] = results.data.map((result, index) => {
-        const slug = extractSlugFromFilename(result.filename)
+        const objectID = extractObjectIDFromFilename(result.filename)
         const text = result.content[0]?.text ?? ""
         const title = extractTitleFromContent(text)
         const subtitle = extractSubtitleFromContent(text)
         const chartData = parseChartData(result)
+
+        // Use slug from metadata (more reliable than extracting from filename)
+        const slug = chartData.slug || objectID
 
         // Build URL based on type
         const isExplorer = chartData.type === "explorerView"
@@ -192,7 +202,7 @@ function transformToSearchApiFormat(
         const score = calculateCombinedScore(aiSearchScore, fmRank, views_7d)
 
         return {
-            objectID: slug,
+            objectID,
             title,
             slug,
             subtitle,
@@ -261,6 +271,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     const { env } = context
     const url = new URL(context.request.url)
     const baseUrl = url.origin
+    const startTime = Date.now()
 
     try {
         // Validate query parameters - reject unknown params to catch typos like "query" instead of "q"
@@ -351,8 +362,11 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         // Then trim to hitsPerPage after applying our scoring
         const fetchSize = Math.max(hitsPerPage, Math.min(hitsPerPage + 10, 50))
 
+        const preSearchTime = Date.now()
+
         // Call AI Search via the AI binding
         // See: https://developers.cloudflare.com/ai-search/usage/workers-binding/
+        // TODO: cache it before deploying to production
         const results = (await env.AI.autorag(AI_SEARCH_INSTANCE_NAME).search({
             query,
             max_num_results: fetchSize,
@@ -360,6 +374,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 score_threshold: 0.1,
             },
         })) as AISearchResponse
+
+        const postSearchTime = Date.now()
 
         let response = transformToSearchApiFormat(
             query,
@@ -373,6 +389,11 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         if (!verbose) {
             response = stripVerboseFields(response)
         }
+
+        const endTime = Date.now()
+        console.log(
+            `[AI Search charts] query="${query}" | total=${endTime - startTime}ms | search=${postSearchTime - preSearchTime}ms | transform=${endTime - postSearchTime}ms | hits=${results.data.length}`
+        )
 
         return new Response(JSON.stringify(response, null, 2), {
             headers: {
