@@ -18,7 +18,6 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     GRAPHER_FONT_SCALE_12,
     GRAPHER_AREA_OPACITY_DEFAULT,
-    GRAPHER_OPACITY_MUTE,
     GRAPHER_AREA_OPACITY_MUTE,
 } from "../core/GrapherConstants"
 import { NoDataModal } from "../noDataModal/NoDataModal"
@@ -49,6 +48,8 @@ import { HorizontalAxis } from "../axis/Axis"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import type { BaseType, Selection } from "d3-selection"
 import { NUMERIC_LEGEND_STYLE } from "../lineCharts/LineChartConstants"
+import { HashMap, NodeGroup } from "react-move"
+import { easeQuadOut } from "d3-ease"
 
 const DEFAULT_PROJECTED_DATA_COLOR_IN_LEGEND = "#787878"
 
@@ -344,7 +345,7 @@ export class DiscreteBarChart
         SVGGElement | null,
         unknown
     > {
-        return select(this.base.current).selectAll("g.bar > rect")
+        return select(this.base.current).selectAll("rect.bar")
     }
 
     private animateBarWidth(): void {
@@ -378,12 +379,203 @@ export class DiscreteBarChart
         }
     }
 
-    private renderDefs(): React.ReactElement | void {
+    private renderBar({
+        series,
+        barY,
+        yOffset,
+    }: {
+        series: PlacedDiscreteBarSeries
+        barY: number
+        yOffset: number
+    }): React.ReactElement {
+        const barColor = series.yColumn.isProjection
+            ? `url(#${makeProjectedDataPatternId(series.color)})`
+            : series.color
+
+        return (
+            <rect
+                key={series.seriesName}
+                className="bar"
+                id={makeIdForHumanConsumption(series.seriesName)}
+                x={0}
+                y={0}
+                transform={`translate(${series.barX}, ${barY + yOffset})`}
+                width={series.barWidth}
+                height={this.barHeight}
+                fill={barColor}
+                opacity={
+                    series.focus.background
+                        ? GRAPHER_AREA_OPACITY_MUTE
+                        : GRAPHER_AREA_OPACITY_DEFAULT
+                }
+                style={{ transition: "height 200ms ease" }}
+            />
+        )
+    }
+
+    private renderEntityLabel({
+        series,
+        barY,
+        labelY,
+    }: {
+        series: PlacedDiscreteBarSeries
+        barY: number
+        labelY: number
+    }): React.ReactElement | null {
+        if (!series.label) return null
+
+        return series.label.renderSVG(series.entityLabelX, barY + labelY, {
+            textProps: {
+                fill: "#555",
+                textAnchor: "end",
+                opacity: series.focus.background
+                    ? GRAPHER_AREA_OPACITY_MUTE
+                    : 1,
+            },
+        })
+    }
+
+    private renderEntityAnnotation({
+        series,
+        barY,
+        annotationY,
+    }: {
+        series: PlacedDiscreteBarSeries
+        barY: number
+        annotationY: number | undefined
+    }): React.ReactElement | null {
+        if (!series.annotationTextWrap || annotationY === undefined) {
+            return null
+        }
+
+        return (
+            <g key={series.seriesName}>
+                {series.annotationTextWrap.renderSVG(
+                    series.entityLabelX,
+                    barY + annotationY,
+                    {
+                        textProps: {
+                            fill: "#333",
+                            textAnchor: "end",
+                            opacity: series.focus.background
+                                ? GRAPHER_AREA_OPACITY_MUTE
+                                : 1,
+                        },
+                    }
+                )}
+            </g>
+        )
+    }
+
+    private renderValueLabel({
+        series,
+        label,
+        barY,
+        labelY,
+    }: {
+        series: PlacedDiscreteBarSeries
+        label: Label
+        barY: number
+        labelY: number
+    }): React.ReactElement {
+        return (
+            <text
+                key={series.seriesName}
+                x={0}
+                y={0}
+                transform={`translate(${series.valueLabelX}, ${barY + labelY})`}
+                fill={GRAPHER_DARK_TEXT}
+                dy={dyFromAlign(VerticalAlign.middle)}
+                textAnchor={series.value < 0 ? "end" : "start"}
+                opacity={
+                    series.focus.background ? GRAPHER_AREA_OPACITY_MUTE : 1
+                }
+                fontSize={this.valueLabelStyle.fontSize}
+                fontWeight={this.valueLabelStyle.fontWeight}
+            >
+                {label.valueString}
+                <tspan fill="#999">{label.timeString}</tspan>
+            </text>
+        )
+    }
+
+    private renderBars(): React.ReactElement {
+        const yOffset = -this.barHeight / 2
+        return (
+            <g id={makeIdForHumanConsumption("bars")}>
+                {this.placedSeries.map((series) =>
+                    this.renderBar({ series, barY: series.barY, yOffset })
+                )}
+            </g>
+        )
+    }
+
+    private renderEntityLabels(): React.ReactElement {
+        return (
+            <g id={makeIdForHumanConsumption("entity-labels")}>
+                {this.placedSeries.map((series) => {
+                    const labelY = series.entityLabelY - series.barY
+                    return (
+                        <React.Fragment key={series.seriesName}>
+                            {this.renderEntityLabel({
+                                series,
+                                barY: series.barY,
+                                labelY,
+                            })}
+                        </React.Fragment>
+                    )
+                })}
+            </g>
+        )
+    }
+
+    private renderEntityAnnotations(): React.ReactElement | null {
+        const hasAnnotations = this.placedSeries.some(
+            (series) =>
+                series.annotationTextWrap && series.annotationY !== undefined
+        )
+
+        if (!hasAnnotations) return null
+
+        return (
+            <g id={makeIdForHumanConsumption("entity-annotations")}>
+                {this.placedSeries.map((series) => {
+                    const annotationY = series.annotationY
+                        ? series.annotationY - series.barY
+                        : undefined
+                    return this.renderEntityAnnotation({
+                        series,
+                        barY: series.barY,
+                        annotationY,
+                    })
+                })}
+            </g>
+        )
+    }
+
+    private renderValueLabels(): React.ReactElement {
+        return (
+            <g id={makeIdForHumanConsumption("value-labels")}>
+                {this.placedSeries.map((series) => {
+                    const label = this.formatValue(series)
+                    const labelY = 0 // Value label is centered on the bar
+                    return this.renderValueLabel({
+                        series,
+                        label,
+                        barY: series.barY,
+                        labelY,
+                    })
+                })}
+            </g>
+        )
+    }
+
+    private renderDefs(): React.ReactElement | null {
         const projections = this.series.filter(
             (series) => series.yColumn.isProjection
         )
         const uniqProjections = _.uniqBy(projections, (series) => series.color)
-        if (projections.length === 0) return
+        if (projections.length === 0) return null
 
         return (
             <defs>
@@ -406,160 +598,125 @@ export class DiscreteBarChart
         )
     }
 
-    private renderEntityLabels(): React.ReactElement {
+    private renderRow({
+        series,
+        state,
+    }: {
+        series: PlacedDiscreteBarSeries
+        state: { translateY: number }
+    }): React.ReactElement {
+        const label = this.formatValue(series)
+
+        // Calculate positions relative to the row's center (y=0 in row space)
+        const yOffset = -this.barHeight / 2
+        const entityLabelY = series.entityLabelY - series.barY
+        const valueLabelY = 0 // Value label is centered on the bar
+        const annotationY = series.annotationY
+            ? series.annotationY - series.barY
+            : undefined
+
         return (
-            <g id={makeIdForHumanConsumption("entity-labels")}>
-                {this.placedSeries.map((series) => {
-                    return (
-                        series.label && (
-                            <React.Fragment key={series.seriesName}>
-                                {series.label.renderSVG(
-                                    series.entityLabelX,
-                                    series.entityLabelY,
-                                    {
-                                        textProps: {
-                                            fill: "#555",
-                                            textAnchor: "end",
-                                            opacity: series.focus.background
-                                                ? GRAPHER_OPACITY_MUTE
-                                                : 1,
-                                        },
-                                    }
-                                )}
-                            </React.Fragment>
-                        )
-                    )
+            <g
+                key={series.seriesName}
+                className="bar-row"
+                transform={`translate(0, ${state.translateY})`}
+            >
+                {this.renderBar({ series, barY: 0, yOffset })}
+                {this.renderEntityLabel({
+                    series,
+                    barY: 0,
+                    labelY: entityLabelY,
+                })}
+                {this.renderEntityAnnotation({ series, barY: 0, annotationY })}
+                {this.renderValueLabel({
+                    series,
+                    label,
+                    barY: 0,
+                    labelY: valueLabelY,
                 })}
             </g>
         )
     }
 
-    private renderEntityAnnotations(): React.ReactElement | null {
-        const hasAnnotations = this.placedSeries.some(
-            (series) =>
-                series.annotationTextWrap && series.annotationY !== undefined
-        )
-        if (!hasAnnotations) return null
+    private renderAnimatedBars(): React.ReactElement {
+        const handlePositionUpdate = (d: PlacedDiscreteBarSeries): HashMap => ({
+            translateY: [d.barY],
+            timing: { duration: 350, ease: easeQuadOut },
+        })
 
         return (
-            <g id={makeIdForHumanConsumption("entity-annotations")}>
-                {this.placedSeries.map((series) => {
-                    if (!series.annotationTextWrap || !series.annotationY)
-                        return null
-
-                    return (
-                        <React.Fragment key={`${series.seriesName}-annotation`}>
-                            {series.annotationTextWrap.renderSVG(
-                                series.entityLabelX,
-                                series.annotationY,
-                                {
-                                    textProps: {
-                                        fill: "#333",
-                                        textAnchor: "end",
-                                        opacity: series.focus.background
-                                            ? GRAPHER_OPACITY_MUTE
-                                            : 1,
-                                    },
-                                }
-                            )}
-                        </React.Fragment>
-                    )
-                })}
-            </g>
+            <NodeGroup
+                data={this.placedSeries}
+                keyAccessor={(d: PlacedDiscreteBarSeries): string =>
+                    d.seriesName
+                }
+                start={handlePositionUpdate}
+                update={handlePositionUpdate}
+            >
+                {(nodes): React.ReactElement => (
+                    <g id={makeIdForHumanConsumption("bar-rows")}>
+                        {nodes.map((node) =>
+                            this.renderRow({
+                                series: node.data,
+                                state: node.state,
+                            })
+                        )}
+                    </g>
+                )}
+            </NodeGroup>
         )
     }
 
-    private renderValueLabels(): React.ReactElement {
+    private renderLegend(): React.ReactElement | null {
+        if (!this.showColorLegend) return null
+
+        return <HorizontalNumericColorLegend manager={this} />
+    }
+
+    private renderAxis(): React.ReactElement {
         return (
-            <g id={makeIdForHumanConsumption("value-labels")}>
-                {this.placedSeries.map((series) => {
-                    const formattedLabel = this.formatValue(series)
-                    return (
-                        <text
-                            key={series.seriesName}
-                            x={0}
-                            y={0}
-                            transform={`translate(${series.valueLabelX}, ${series.barY})`}
-                            fill={GRAPHER_DARK_TEXT}
-                            dy={dyFromAlign(VerticalAlign.middle)}
-                            textAnchor={series.value < 0 ? "end" : "start"}
-                            opacity={
-                                series.focus.background
-                                    ? GRAPHER_OPACITY_MUTE
-                                    : 1
-                            }
-                            {...this.valueLabelStyle}
-                        >
-                            {formattedLabel.valueString}
-                            <tspan fill="#999">
-                                {formattedLabel.timeString}
-                            </tspan>
-                        </text>
-                    )
-                })}
-            </g>
+            <HorizontalAxisZeroLine
+                horizontalAxis={this.yAxis}
+                bounds={this.innerBounds}
+                strokeWidth={0.5}
+                // If the chart doesn't have negative values, then we
+                // move the zero line a little to the left to avoid
+                // overlap with the bars
+                align={
+                    this.hasNegative
+                        ? HorizontalAlign.center
+                        : HorizontalAlign.right
+                }
+            />
         )
     }
 
-    private renderBars(): React.ReactElement {
-        return (
-            <g id={makeIdForHumanConsumption("bars")}>
-                {this.placedSeries.map((series) => {
-                    const barColor = series.yColumn.isProjection
-                        ? `url(#${makeProjectedDataPatternId(series.color)})`
-                        : series.color
-
-                    // Using transforms for positioning to enable better (subpixel) transitions
-                    // Width transitions don't work well on iOS Safari – they get interrupted and
-                    // it appears very slow. Also be careful with negative bar charts.
-                    return (
-                        <rect
-                            id={makeIdForHumanConsumption(series.seriesName)}
-                            key={series.seriesName}
-                            x={0}
-                            y={0}
-                            transform={`translate(${series.barX}, ${series.barY - this.barHeight / 2})`}
-                            width={series.barWidth}
-                            height={this.barHeight}
-                            fill={barColor}
-                            opacity={
-                                series.focus.background
-                                    ? GRAPHER_AREA_OPACITY_MUTE
-                                    : GRAPHER_AREA_OPACITY_DEFAULT
-                            }
-                            style={{ transition: "height 200ms ease" }}
-                        />
-                    )
-                })}
-            </g>
-        )
-    }
-
-    private renderChartArea(): React.ReactElement {
+    private renderStatic(): React.ReactElement {
         return (
             <>
                 {this.renderDefs()}
-                {this.showColorLegend && (
-                    <HorizontalNumericColorLegend manager={this} />
-                )}
-                <HorizontalAxisZeroLine
-                    horizontalAxis={this.yAxis}
-                    bounds={this.innerBounds}
-                    strokeWidth={0.5}
-                    // if the chart doesn't have negative values, then we
-                    // move the zero line a little to the left to avoid
-                    // overlap with the bars
-                    align={
-                        this.hasNegative
-                            ? HorizontalAlign.center
-                            : HorizontalAlign.right
-                    }
-                />
+                {this.renderLegend()}
+                {this.renderAxis()}
                 {this.renderBars()}
                 {this.renderValueLabels()}
                 {this.renderEntityLabels()}
                 {this.renderEntityAnnotations()}
             </>
+        )
+    }
+
+    private renderInteractive(): React.ReactElement {
+        return (
+            <g
+                ref={this.base}
+                id={makeIdForHumanConsumption("discrete-bar-chart")}
+                className="DiscreteBarChart"
+            >
+                {this.renderDefs()}
+                {this.renderLegend()}
+                {this.renderAxis()}
+                {this.renderAnimatedBars()}
+            </g>
         )
     }
 
@@ -573,17 +730,9 @@ export class DiscreteBarChart
                 />
             )
 
-        return this.manager.isStatic ? (
-            this.renderChartArea()
-        ) : (
-            <g
-                ref={this.base}
-                id={makeIdForHumanConsumption("discrete-bar-chart")}
-                className="DiscreteBarChart"
-            >
-                {this.renderChartArea()}
-            </g>
-        )
+        return this.manager.isStatic
+            ? this.renderStatic()
+            : this.renderInteractive()
     }
 
     // Color legend props
