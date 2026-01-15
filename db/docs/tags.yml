@@ -1,5 +1,5 @@
 metadata:
-    description: Hierarchical categorization system for organizing charts, datasets, and posts. Tags can have parent-child relationships and special types. They're used for navigation, filtering, and determining chart indexability, as well as to create the main navigation structure on our homepage.
+    description: Categorization system for organizing charts, datasets, and posts. Tags are used for navigation, filtering, and determining chart indexability, as well as to create the main navigation structure on our homepage. Parent-child relationships between tags are stored in the tag_graph table.
     incoming_foreign_keys:
         - table: chart_tags
           column: tagId
@@ -17,8 +17,6 @@ metadata:
           column: childId
         - table: tag_graph
           column: parentId
-        - table: tags
-          column: parentId
         - table: tags_variables_topic_tags
           column: tagId
 fields:
@@ -30,8 +28,6 @@ fields:
         description: Timestamp when the tag was created
     updatedAt:
         description: Timestamp when the tag was last updated
-    parentId:
-        description: Foreign key to tags table for parent tag (self-referential for hierarchy)
     searchableInAlgolia:
         description: When true, this tag is included in Algolia search filters even if it doesn't have an associated topic page. Used for non-topic tags like "Crime" that should still be searchable.
     specialType:
