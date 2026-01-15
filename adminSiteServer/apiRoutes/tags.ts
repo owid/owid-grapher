@@ -37,15 +37,14 @@ export async function getTagById(
             | "name"
             | "specialType"
             | "updatedAt"
-            | "parentId"
             | "slug"
             | "searchableInAlgolia"
         >
     >(
         trx,
         `-- sql
-        SELECT t.id, t.name, t.specialType, t.updatedAt, t.parentId, t.slug, t.searchableInAlgolia
-        FROM tags t LEFT JOIN tags p ON t.parentId=p.id
+        SELECT t.id, t.name, t.specialType, t.updatedAt, t.slug, t.searchableInAlgolia
+        FROM tags t
         WHERE t.id = ?
     `,
         [tagId]
@@ -144,25 +143,17 @@ export async function getTagById(
 
     await assignTagsForCharts(trx, charts)
 
-    // Subcategories
+    // Subcategories (children in tag_graph)
     const children = await db.knexRaw<{ id: number; name: string }>(
         trx,
         `-- sql
         SELECT t.id, t.name FROM tags t
-        WHERE t.parentId = ?
+        JOIN tag_graph tg ON tg.childId = t.id
+        WHERE tg.parentId = ?
     `,
         [tag.id]
     )
     tag.children = children
-
-    const possibleParents = await db.knexRaw<{ id: number; name: string }>(
-        trx,
-        `-- sql
-        SELECT t.id, t.name FROM tags t
-        WHERE t.parentId IS NULL
-    `
-    )
-    tag.possibleParents = possibleParents
 
     // Get all published gdoc slugs (topic-page, linear-topic-page, article)
     // so the UI can show whether a slug would make this tag indexable in Algolia

@@ -3,7 +3,6 @@ export const TagsTableName = "tags"
 export interface DbInsertTag {
     createdAt?: Date
     id?: number
-    parentId?: number | null
     name: string
     searchableInAlgolia?: boolean
     slug?: string | null
