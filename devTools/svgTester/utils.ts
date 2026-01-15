@@ -417,7 +417,7 @@ export async function renderSvg({
     )
     const durationReceiveData = Date.now() - timeStart
 
-    const svg = grapher.grapherState.generateStaticSvg(
+    const svg = await grapher.grapherState.generateStaticSvg(
         ReactDOMServer.renderToStaticMarkup
     )
     const durationTotal = Date.now() - timeStart
@@ -875,6 +875,7 @@ export async function renderExplorerViewsToSVGsAndSave({
         bakedBaseUrl: "https://ourworldindata.org",
         bakedGrapherUrl: "https://ourworldindata.org/grapher",
         dataApiUrl: "https://api.ourworldindata.org/v1/indicators", // Unused
+        catalogUrl: "https://catalog.ourworldindata.org", // Unused
         partialGrapherConfigs,
         bounds,
         staticBounds: bounds,
@@ -910,7 +911,7 @@ export async function renderExplorerViewsToSVGsAndSave({
         await explorer.reactToUserChangingSelection(oldRow)
 
         // Generate SVG for this view
-        const svg = explorer.grapherState.generateStaticSvg(
+        const svg = await explorer.grapherState.generateStaticSvg(
             ReactDOMServer.renderToStaticMarkup
         )
         const cleanedSvg = await prepareSvgForComparison(svg)
@@ -993,6 +994,7 @@ export async function renderAndVerifyExplorerViews({
         bakedBaseUrl: "https://ourworldindata.org",
         bakedGrapherUrl: "https://ourworldindata.org/grapher",
         dataApiUrl: "https://api.ourworldindata.org/v1/indicators", // Unused
+        catalogUrl: "https://catalog.ourworldindata.org", // Unused
         partialGrapherConfigs,
         bounds,
         staticBounds: bounds,
@@ -1049,7 +1051,7 @@ export async function renderAndVerifyExplorerViews({
             await explorer.reactToUserChangingSelection(oldRow)
 
             // Generate SVG for this view
-            const svg = explorer.grapherState.generateStaticSvg(
+            const svg = await explorer.grapherState.generateStaticSvg(
                 ReactDOMServer.renderToStaticMarkup
             )
 

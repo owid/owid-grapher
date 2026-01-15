@@ -215,6 +215,10 @@ export enum ScatterPointLabelStrategy {
 export enum PeerCountryStrategy {
     /** Use the containing continent, income group and World as peers */
     ParentRegions = "parentRegions",
+    /** Use countries with similar GDP per capita as peers */
+    GdpPerCapita = "gdpPerCapita",
+    /** Use countries with similar population as peers */
+    Population = "population",
     /** Use the chart's default selection as peers */
     DefaultSelection = "defaultSelection",
 }

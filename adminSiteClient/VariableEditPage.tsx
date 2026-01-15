@@ -31,7 +31,6 @@ import {
     DimensionProperty,
     EPOCH_DATE,
     getETLPathComponents,
-    loadCatalogVariableData,
     OwidProcessingLevel,
     OwidOrigin,
     OwidSource,
@@ -51,6 +50,7 @@ import {
     fetchInputTableForConfig,
     Grapher,
     GrapherState,
+    loadCatalogData,
 } from "@ourworldindata/grapher"
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -756,9 +756,7 @@ class VariableEditor extends Component<{
         this.grapherState = new GrapherState({
             ...this.grapherConfig,
             additionalDataLoaderFn: (catalogKey: CatalogKey) =>
-                loadCatalogVariableData(catalogKey, {
-                    baseUrl: CATALOG_URL,
-                }),
+                loadCatalogData(catalogKey, { baseUrl: CATALOG_URL }),
         })
         void fetchInputTableForConfig({
             dimensions: this.grapherConfig.dimensions,

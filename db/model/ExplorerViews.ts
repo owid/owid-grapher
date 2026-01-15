@@ -25,6 +25,7 @@ import {
     ADMIN_BASE_URL,
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
+    CATALOG_URL,
     DATA_API_URL,
 } from "../../settings/clientSettings.js"
 
@@ -163,6 +164,7 @@ function createExplorerForViews(
         bakedBaseUrl: BAKED_BASE_URL,
         bakedGrapherUrl: BAKED_GRAPHER_URL,
         dataApiUrl: DATA_API_URL,
+        catalogUrl: CATALOG_URL,
         loadMetadataOnly,
         throwOnMissingGrapher: true,
         setupGrapher: false, // We will set up the grapher later in iterateExplorerViews

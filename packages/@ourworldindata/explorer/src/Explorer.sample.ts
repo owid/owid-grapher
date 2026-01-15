@@ -122,6 +122,7 @@ export const SampleExplorerOfGraphers = (props?: Partial<ExplorerProps>) => {
         bakedBaseUrl: "",
         bakedGrapherUrl: "",
         dataApiUrl: "",
+        catalogUrl: "",
         ...props,
     })
 }
@@ -155,6 +156,7 @@ export const SampleInlineDataExplorer = (props?: Partial<ExplorerProps>) => {
         bakedBaseUrl: "",
         bakedGrapherUrl: "",
         dataApiUrl: "",
+        catalogUrl: "",
         ...props,
     })
 }
@@ -182,6 +184,7 @@ export const SampleIndicatorBasedExplorer = (
         bakedBaseUrl: "",
         bakedGrapherUrl: "",
         dataApiUrl: "",
+        catalogUrl: "",
         ...props,
     })
 }

@@ -433,6 +433,9 @@ class PeerCountrySection<
         [key in PeerCountryStrategy]: string
     } = {
         [PeerCountryStrategy.ParentRegions]: "Continent, income group & World",
+        [PeerCountryStrategy.GdpPerCapita]:
+            "Countries with similar GDP per capita",
+        [PeerCountryStrategy.Population]: "Countries with similar population",
         [PeerCountryStrategy.DefaultSelection]: "Default selection",
     }
 
