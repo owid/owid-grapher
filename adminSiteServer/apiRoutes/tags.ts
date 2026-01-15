@@ -164,8 +164,21 @@ export async function getTagById(
     )
     tag.possibleParents = possibleParents
 
+    // Get all published gdoc slugs (topic-page, linear-topic-page, article)
+    // so the UI can show whether a slug would make this tag indexable in Algolia
+    const publishedGdocSlugs = await db.knexRaw<{ slug: string }>(
+        trx,
+        `-- sql
+        SELECT slug FROM posts_gdocs
+        WHERE published = TRUE
+        AND type IN ('topic-page', 'linear-topic-page', 'article')
+        AND slug IS NOT NULL
+        `
+    )
+
     return {
         tag,
+        publishedGdocSlugs: publishedGdocSlugs.map((r) => r.slug),
     }
 }
 
@@ -205,9 +218,9 @@ export async function updateTag(
         if (!gdoc.length) {
             return {
                 success: true,
-                tagUpdateWarning: `The tag's slug has been updated, but there isn't a published Gdoc page with the same slug.
-
-Are you sure you haven't made a typo?`,
+                tagUpdateWarning: `The tag's slug has been updated, but there isn't a published Gdoc page with the same slug - are you sure you haven't made a typo?
+                
+You should probably just enable "Searchable in Algolia" for this tag and remove the slug until you've published the topic page.`,
             }
         }
     }
