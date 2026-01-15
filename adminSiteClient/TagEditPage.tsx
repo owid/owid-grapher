@@ -40,14 +40,17 @@ class TagEditable {
 }
 
 @observer
-class TagEditor extends Component<{ tag: TagPageData }> {
+class TagEditor extends Component<{
+    tag: TagPageData
+    publishedGdocSlugs: string[]
+}> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     newtag!: TagEditable
     isDeleted: boolean = false
 
-    constructor(props: { tag: TagPageData }) {
+    constructor(props: { tag: TagPageData; publishedGdocSlugs: string[] }) {
         super(props)
 
         makeObservable(this, {
@@ -63,6 +66,13 @@ class TagEditor extends Component<{ tag: TagPageData }> {
     override UNSAFE_componentWillReceiveProps(nextProps: any) {
         this.newtag = new TagEditable(nextProps.tag)
         this.isDeleted = false
+    }
+
+    get slugMatchesPublishedGdoc(): boolean {
+        return (
+            !!this.newtag.slug &&
+            this.props.publishedGdocSlugs.includes(this.newtag.slug)
+        )
     }
 
     @computed get isModified(): boolean {
@@ -150,17 +160,20 @@ class TagEditor extends Component<{ tag: TagPageData }> {
                         />
                         <Toggle
                             label="Searchable in Algolia"
-                            value={newtag.searchableInAlgolia || !!newtag.slug}
+                            value={
+                                newtag.searchableInAlgolia ||
+                                this.slugMatchesPublishedGdoc
+                            }
                             onValue={(value) =>
                                 runInAction(
                                     () => (newtag.searchableInAlgolia = value)
                                 )
                             }
-                            disabled={!!newtag.slug}
+                            disabled={this.slugMatchesPublishedGdoc}
                             secondaryLabel={
-                                newtag.slug
-                                    ? "Tags with a slug are always searchable in Algolia"
-                                    : "When enabled, this tag will appear in search filters even without a topic page"
+                                this.slugMatchesPublishedGdoc
+                                    ? "This slug matches a published gdoc, so charts with this tag will be indexed in Algolia"
+                                    : "When enabled, charts with this tag will be indexed in Algolia even without a matching published gdoc"
                             }
                         />
                         <div style={{ marginTop: 16 }}>
@@ -213,19 +226,26 @@ export class TagEditPage extends Component<{ tagId: number }> {
     declare context: AdminAppContextType
 
     tag: TagPageData | undefined = undefined
+    publishedGdocSlugs: string[] = []
 
     constructor(props: { tagId: number }) {
         super(props)
 
         makeObservable(this, {
             tag: observable,
+            publishedGdocSlugs: observable,
         })
     }
 
     override render() {
         return (
             <AdminLayout title={this.tag && this.tag.name}>
-                {this.tag && <TagEditor tag={this.tag} />}
+                {this.tag && (
+                    <TagEditor
+                        tag={this.tag}
+                        publishedGdocSlugs={this.publishedGdocSlugs}
+                    />
+                )}
             </AdminLayout>
         )
     }
@@ -234,6 +254,7 @@ export class TagEditPage extends Component<{ tagId: number }> {
         const json = await this.context.admin.getJSON(`/api/tags/${tagId}.json`)
         runInAction(() => {
             this.tag = json.tag as TagPageData
+            this.publishedGdocSlugs = json.publishedGdocSlugs as string[]
         })
     }
 
