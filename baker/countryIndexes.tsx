@@ -58,7 +58,26 @@ const countryIndicatorGraphers = async (
                 WHERE
                     c.publishedAt is not null
                     AND cc.full->>'$.isPublished' = 'true'
-                    AND c.isIndexable is true
+                    -- NOT tagged "Unlisted"
+                    AND NOT EXISTS (
+                        SELECT 1 FROM chart_tags ct_unlisted
+                        JOIN tags t_unlisted ON ct_unlisted.tagId = t_unlisted.id
+                        WHERE ct_unlisted.chartId = c.id AND t_unlisted.name = 'Unlisted'
+                    )
+                    -- AND has at least one indexable tag (topic page OR searchableInAlgolia)
+                    AND EXISTS (
+                        SELECT 1 FROM chart_tags ct_topic
+                        JOIN tags t_topic ON ct_topic.tagId = t_topic.id
+                        LEFT JOIN posts_gdocs pg ON pg.slug = t_topic.slug
+                        WHERE ct_topic.chartId = c.id
+                        AND (
+                            t_topic.searchableInAlgolia = TRUE
+                            OR (
+                                pg.published = TRUE
+                                AND pg.type IN ('topic-page', 'linear-topic-page', 'article')
+                            )
+                        )
+                    )
             `
         )
 

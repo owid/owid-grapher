@@ -3,7 +3,6 @@ export interface DbInsertChart {
     configId: string
     createdAt?: Date
     id?: number
-    isIndexable?: boolean
     isInheritanceEnabled?: boolean
     lastEditedAt: Date
     lastEditedByUserId: number
