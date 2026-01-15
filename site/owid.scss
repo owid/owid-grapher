@@ -89,7 +89,6 @@
 @import "./SiteNavigation.scss";
 @import "./SiteNavigationToggle.scss";
 @import "./SiteNavigationTopics.scss";
-@import "./SiteSubnavigation.scss";
 @import "./SiteMobileMenu.scss";
 @import "./SiteMobileArea.scss";
 @import "./OwidSocials.scss";
@@ -116,7 +115,6 @@
 @import "./blocks/expandable-paragraph.scss";
 @import "./blocks/prominent-link.scss";
 @import "./blocks/related-charts.scss";
-@import "./blocks/help.scss";
 @import "./blocks/CookiePreferences.scss";
 @import "./blocks/Grid.scss";
 @import "./blocks/Card.scss";
@@ -318,7 +316,7 @@ h6 {
 .site-header {
     position: relative;
     // Must be specified for the header (and its sub-elements, e.g. topics menu)
-    // to be on top of the sticky nav, charts and global entity selector, while
+    // to be on top of the sticky nav and charts, while
     // allowing (DoD) tooltips to be on top of the header
     z-index: $zindex-site-header;
 }
@@ -767,7 +765,6 @@ a.ref sup {
 @media print {
     .site-header,
     .alert-banner,
-    .offset-subnavigation,
     .site-footer,
     .cookie-notice,
     .citation-note,

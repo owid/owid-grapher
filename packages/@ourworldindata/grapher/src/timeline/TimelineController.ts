@@ -10,7 +10,10 @@ import {
 import { action, computed } from "mobx"
 import { TimeColumn } from "@ourworldindata/core-table"
 
-const MS_PER_TICK = 100
+// Animation timing constants
+const MIN_MS_PER_TICK = 100
+const MAX_MS_PER_TICK = 200
+const TARGET_ANIMATION_DURATION_MS = 4000
 
 export enum TimelineDragTarget {
     Start = "start",
@@ -69,6 +72,16 @@ export class TimelineController {
 
     get timespan(): number {
         return this.maxTime - this.minTime
+    }
+
+    /** Adaptive animation speed based on the number of time points */
+    @computed get msPerTick(): number {
+        const numTimePoints = this.timesAsc.length
+        if (numTimePoints <= 1) return MAX_MS_PER_TICK
+
+        const duration = TARGET_ANIMATION_DURATION_MS / numTimePoints
+
+        return R.clamp(duration, { min: MIN_MS_PER_TICK, max: MAX_MS_PER_TICK })
     }
 
     /**
@@ -236,7 +249,7 @@ export class TimelineController {
                 this.stop()
                 break
             }
-            await sleep(MS_PER_TICK)
+            await sleep(this.msPerTick)
         }
 
         return tickCount
@@ -329,7 +342,7 @@ export class TimelineController {
         this.updateEndTime(prevTime)
     }
 
-    @action.bound private stop(): void {
+    @action.bound stop(): void {
         this.manager.isTimelineAnimationPlaying = false
         this.manager.isTimelineAnimationActive = false
         this.manager.animationStartTime = undefined

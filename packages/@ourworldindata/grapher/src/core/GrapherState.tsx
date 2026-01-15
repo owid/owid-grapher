@@ -711,14 +711,8 @@ export class GrapherState
             hideExploreTheDataButton: observable,
             isDisplayedAlongsideComplementaryTable: observable,
         })
-        // Prefer the manager's selection over the config's selectedEntityNames
-        // if both are passed in and the manager's selection is not empty.
-        // This is necessary for the global entity selector to work correctly.
-        if (options.manager?.selection?.hasSelection) {
-            this.updateFromObject(_.omit(options, "selectedEntityNames"))
-        } else {
-            this.updateFromObject(options)
-        }
+
+        this.updateFromObject(options)
 
         this._additionalDataLoaderFn = options.additionalDataLoaderFn
         this.isEmbeddedInAnOwidPage = options.isEmbeddedInAnOwidPage ?? false
@@ -1795,6 +1789,11 @@ export class GrapherState
 
         this.ensureTimeHandlesAreSensibleForTab(newTab)
         this.ensureEntitySelectionIsSensibleForTab(newTab)
+
+        // Stop animation when switching to a tab where playback is disabled
+        if (this.disablePlay && this.isTimelineAnimationActive) {
+            this.timelineController.stop()
+        }
     }
 
     @action.bound syncEntitySelectionBetweenChartAndMap(
@@ -3674,7 +3673,9 @@ export class GrapherState
     }
 
     @computed get disablePlay(): boolean {
-        return false
+        return (
+            this.isOnTableTab || this.isOnSlopeChartTab || this.isOnMarimekkoTab
+        )
     }
 
     @computed get animationEndTime(): Time {

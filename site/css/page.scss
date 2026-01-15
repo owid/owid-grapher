@@ -6,7 +6,6 @@
 
     .content-and-footnotes,
     .article-header,
-    .site-subnavigation,
     .sticky-nav-container {
         @include content-wrapper;
         @include lg-up {
@@ -24,18 +23,11 @@
         }
     }
 
-    @include sm-only {
-        .site-subnavigation {
-            padding-right: 0;
-        }
-    }
-
     &.with-sidebar {
         @include xxlg-down {
             @include md-up {
                 .offset-header,
-                .offset-content,
-                .offset-subnavigation {
+                .offset-content {
                     padding-left: $sidebar-closed-drawer-width;
                 }
             }
@@ -44,8 +36,7 @@
             & > .content-wrapper {
                 display: flex;
             }
-            .offset-header,
-            .offset-subnavigation {
+            .offset-header {
                 padding-left: ($sidebar-content-width + 2 * $padding-x-md);
             }
             .offset-content {
@@ -101,10 +92,6 @@
     }
 
     &.large-banner {
-        .offset-subnavigation {
-            position: relative;
-            z-index: $zindex-extended-header;
-        }
         .offset-header {
             background-color: $blue-10;
             position: relative;

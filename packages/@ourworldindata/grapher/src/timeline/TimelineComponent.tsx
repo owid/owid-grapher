@@ -362,13 +362,6 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         this.onMouseDown(event as TouchEvent)
     }
 
-    @computed private get showPlayLabel(): boolean {
-        const labelWidth = Bounds.forText("Play time-lapse", {
-            fontSize: 13,
-        }).width
-        return labelWidth < 0.1 * this.maxWidth
-    }
-
     override componentDidMount(): void {
         const current = this.base.current
 
@@ -780,7 +773,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                         }
                         onMouseDown={(e): void => e.stopPropagation()}
                         onClick={this.togglePlay}
-                        showLabel={this.showPlayLabel}
+                        showLabel={false}
                         label={
                             (manager.isTimelineAnimationPlaying
                                 ? "Pause"

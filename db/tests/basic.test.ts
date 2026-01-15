@@ -37,7 +37,6 @@ beforeAll(async () => {
                 id: 1,
                 email: "admin@example.com",
                 fullName: "Admin",
-                password: "admin",
                 createdAt: new Date(),
                 updatedAt: new Date(),
             },

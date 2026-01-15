@@ -253,14 +253,24 @@ function buildDataTableContentForSlopeChart({
                 series.column.nonEmptyDisplayName
             ) ?? series.color
 
+        const formattedStartValue = formatColumn.formatValueShort(start.value)
+        const formattedEndValue = formatColumn.formatValueShort(end.value)
+
+        const trend =
+            // If both labels are the same, trivially show a right arrow
+            formattedStartValue && formattedStartValue === formattedEndValue
+                ? "right"
+                : // Otherwise, calculate based on numeric values
+                  calculateTrendDirection(start.value, end.value)
+
         return {
             seriesName: series.seriesName,
             label: series.displayName,
             endValue: series.end.value,
             color,
-            value: formatColumn.formatValueShort(end.value),
-            startValue: formatColumn.formatValueShort(start.value),
-            trend: calculateTrendDirection(start.value, end.value),
+            value: formattedEndValue,
+            startValue: formattedStartValue,
+            trend,
             time: `${formattedStartTime}–${formattedEndTime}`,
             timePreposition: "",
             muted: series.focus.background,

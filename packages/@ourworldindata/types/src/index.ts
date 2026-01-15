@@ -166,7 +166,6 @@ export {
     type PostRestApi,
     type BlockGraphQlApi,
     type FormattingOptions,
-    SubNavId,
 } from "./wordpressTypes/WordpressTypes.js"
 
 export {
@@ -770,6 +769,10 @@ export {
     PostTagsTableName,
 } from "./dbTypes/PostTags.js"
 export { SessionsTableName } from "./dbTypes/Sessions.js"
+export {
+    AdminApiKeysTableName,
+    type DbAdminApiKey,
+} from "./dbTypes/AdminApiKeys.js"
 
 export {
     type DbInsertSource,

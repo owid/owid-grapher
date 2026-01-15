@@ -20,7 +20,6 @@ import { Head } from "../site/Head.js"
 import { IFrameDetector } from "../site/IframeDetector.js"
 import { SiteFooter } from "../site/SiteFooter.js"
 import { SiteHeader } from "../site/SiteHeader.js"
-import { SiteSubnavigation } from "../site/SiteSubnavigation.js"
 import { Html } from "./Html.js"
 import {
     ADMIN_BASE_URL,
@@ -72,8 +71,6 @@ export const ExplorerPage = (props: ExplorerPageSettings) => {
         archiveContext,
     } = props
     const {
-        subNavId,
-        subNavCurrentId,
         explorerTitle,
         explorerSubtitle,
         slug,
@@ -83,13 +80,6 @@ export const ExplorerPage = (props: ExplorerPageSettings) => {
 
     const isOnArchivalPage = archiveContext?.type === "archive-page"
     const assetMaps = isOnArchivalPage ? archiveContext.assets : undefined
-
-    const subNav = subNavId ? (
-        <SiteSubnavigation
-            subnavId={subNavId}
-            subnavCurrentId={subNavCurrentId}
-        />
-    ) : undefined
 
     const inlineJs = `const explorerProgram = ${serializeJSONForHTML(
         program.toJson(),
@@ -143,7 +133,6 @@ window.Explorer.renderSingleExplorerOnExplorerPage(
                     hideAlertBanner={hideAlertBanner || false}
                     archiveInfo={isOnArchivalPage ? archiveContext : undefined}
                 />
-                {subNav}
                 <main id={ExplorerContainerId}>
                     <div className="js--show-warning-block-if-js-disabled" />
                     <LoadingIndicator />

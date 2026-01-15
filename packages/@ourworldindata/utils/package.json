@@ -8,10 +8,6 @@
     "lib": "src"
   },
   "types": "src/index.ts",
-  "scripts": {
-    "build": "",
-    "watch": "tsc --watch"
-  },
   "keywords": [],
   "author": "",
   "dependencies": {
@@ -26,7 +22,6 @@
     "mobx": "^6.13.7",
     "mobx-react": "^7.6.0",
     "react": "^19.2.0",
-    "react-select": "^5.10.2",
     "remeda": "^2.32.0",
     "string-pixel-width": "^1.10.0",
     "striptags": "^3.2.0",
@@ -45,7 +40,6 @@
     "@types/url-parse": "^1.4.8",
     "eslint": "^9.37.0",
     "eslint-plugin-react-hooks": "^5.2.0",
-    "typescript": "~5.9.2",
     "vitest": "^4.0.15"
   },
   "license": "MIT"

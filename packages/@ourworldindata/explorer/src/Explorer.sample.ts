@@ -9,12 +9,10 @@ import { Explorer, ExplorerProps } from "./Explorer.js"
 const SampleExplorerOfGraphersProgram = `explorerTitle	CO₂
 isPublished	false
 explorerSubtitle	Download the complete <i>Our World in Data</i> <a href="https://github.com/owid/co2-data">CO₂ and GHG Emissions Dataset</a>.
-subNavId	co2
 time	earliest..latest
 selection	China	United States	India	United Kingdom	World
 Gas Radio	CO₂
 Accounting Radio	Production-based
-subNavCurrentId	co2-data-explorer
 graphers
 	grapherId	Gas Radio	Accounting Radio	Fuel Dropdown	Count Dropdown	Relative to world total Checkbox	hasMapTab
 	488	CO₂	Production-based	Total	Per country	false	true

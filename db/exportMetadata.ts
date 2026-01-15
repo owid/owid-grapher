@@ -14,13 +14,7 @@ import {
 import { execWrapper } from "./execWrapper.js"
 
 const argv = parseArgs(process.argv.slice(2))
-const withPasswords = argv["with-passwords"]
-
-const filePath =
-    argv._[0] ||
-    (!withPasswords
-        ? "/tmp/owid_metadata.sql"
-        : "/tmp/owid_metadata_with_passwords.sql")
+const filePath = argv._[0] || "/tmp/owid_metadata.sql"
 
 const excludeTables = ["analytics_pageviews", "donors", "sessions"]
 
@@ -45,15 +39,11 @@ async function dataExport(): Promise<void> {
         )} >> ${filePath}`
     )
 
-    if (!withPasswords) {
-        // Strip passwords
-        await execWrapper("sed", ["-i", "-e", `"s/bcrypt[^']*//g"`, filePath])
-        // Add default admin user
-        await fs.appendFile(
-            filePath,
-            "INSERT INTO users (`id`, `password`, `isSuperuser`, `email`, `fullName`, `createdAt`, `updatedAt`, `isActive`) VALUES (1, 'bcrypt$$2b$12$EXfM7cWsjlNchpinv.j6KuOwK92hihg5r3fNssty8tLCUpOubST9u', 1, 'admin@example.com', 'Admin User', '2016-01-01 00:00:00', '2016-01-01 00:00:00', 1);\n"
-        )
-    }
+    // Add default admin user
+    await fs.appendFile(
+        filePath,
+        "INSERT INTO users (`id`, `isSuperuser`, `email`, `fullName`, `createdAt`, `updatedAt`, `isActive`) VALUES (1, 1, 'admin@example.com', 'Admin User', '2016-01-01 00:00:00', '2016-01-01 00:00:00', 1);\n"
+    )
 
     await db.closeTypeOrmAndKnexConnections()
 }

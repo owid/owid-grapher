@@ -17,7 +17,7 @@ ifneq (,$(wildcard ./.env))
 	include .env
 endif
 
-.PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest
+.PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest svgtest.reset bdd bdd.ui
 
 help:
 	@echo 'Available commands:'
@@ -31,7 +31,11 @@ help:
 	@echo '  make migrate                (while up) run any outstanding db migrations'
 	@echo '  make test                   run full suite (except db tests) of CI checks including unit tests'
 	@echo '  make dbtest                 run db test suite that needs a running mysql db'
+	@echo '  make playwright-browsers    install Playwright browsers'
+	@echo '  make bdd                    (while up) start BDD test environment'
+	@echo '  make bdd.ui                 (while up) start BDD test environment with UI'
 	@echo '  make svgtest                generate an SVG test report for graphers'
+	@echo '  make svgtest.reset          reset the owid-grapher-svgs repo to a clean state'
 	@echo '  make svgtest.full           generate a full SVG test report'
 	@echo '  make svgtest.explorers      generate an SVG test report for explorers only'
 	@echo '  make local-bake             do a full local site bake'
@@ -243,6 +247,54 @@ dbtest: node_modules
 	@echo '==> Running db test script'
 	./db/tests/run-db-tests.sh
 
+playwright-browsers:
+	@echo '==> Installing Playwright browsers'
+	yarn playwright install --with-deps --no-shell
+
+bdd: export TMUX_SESSION_NAME ?= bdd
+
+bdd: node_modules playwright-browsers
+	@if tmux has-session -t $(TMUX_SESSION_NAME) 2>/dev/null; then \
+		echo '==> Killing existing tmux session'; \
+		tmux kill-session -t $(TMUX_SESSION_NAME); \
+	fi
+
+	@echo '==> Starting BDD test environment'
+	@yarn bddgen
+	tmux new-session -s $(TMUX_SESSION_NAME) \
+		-n watcher 'yarn chokidar "features/**" "site/**/*.{ts,tsx}" -c "yarn bddgen"' \; \
+			set remain-on-exit on \; \
+		set-option -g default-shell $(SCRIPT_SHELL) \; \
+		new-window -n playwright 'PWTEST_WATCH=1 yarn playwright test' \; \
+			set remain-on-exit on \; \
+		new-window -n welcome 'devTools/docker/banner-bdd.sh; exec $(LOGIN_SHELL)' \; \
+		bind R respawn-pane -k \; \
+		bind X kill-pane \; \
+		bind K kill-session \; \
+		set -g mouse on
+
+bdd.ui: export TMUX_SESSION_NAME ?= bdd-ui
+
+bdd.ui: node_modules playwright-browsers
+	@if tmux has-session -t $(TMUX_SESSION_NAME) 2>/dev/null; then \
+		echo '==> Killing existing tmux session'; \
+		tmux kill-session -t $(TMUX_SESSION_NAME); \
+	fi
+
+	@echo '==> Starting BDD test environment with UI'
+	@yarn bddgen
+	tmux new-session -s $(TMUX_SESSION_NAME) \
+		-n watcher 'yarn chokidar "features/**" "site/**/*.{ts,tsx}" -c "yarn bddgen"' \; \
+			set remain-on-exit on \; \
+		set-option -g default-shell $(SCRIPT_SHELL) \; \
+		new-window -n playwright 'yarn playwright test --ui --ui-host=0.0.0.0' \; \
+			set remain-on-exit on \; \
+		new-window -n welcome 'devTools/docker/banner-bdd.sh; exec $(LOGIN_SHELL)' \; \
+		bind R respawn-pane -k \; \
+		bind X kill-pane \; \
+		bind K kill-session \; \
+		set -g mouse on
+
 lint: node_modules
 	@echo '==> Linting'
 	yarn run eslint
@@ -262,21 +314,19 @@ unittest: node_modules
 ../owid-grapher-svgs:
 	cd .. && git clone git@github.com:owid/owid-grapher-svgs
 
-svgtest: ../owid-grapher-svgs node_modules
-	@echo '==> Generating SVG test report for graphers'
-
-	@# get ../owid-grapher-svgs reliably to a base state at origin/master
+svgtest.reset: ../owid-grapher-svgs
+	@echo '==> Resetting owid-grapher-svgs repo to a clean state'
 	cd ../owid-grapher-svgs && git fetch && git checkout -f master && git reset --hard origin/master && git clean -fd
+
+svgtest: svgtest.reset node_modules
+	@echo '==> Generating SVG test report for graphers'
 
 	@# generate a full new set of svgs and create an HTML report if there are differences
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts \
 		|| yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts
 
-svgtest.full: ../owid-grapher-svgs node_modules
+svgtest.full: svgtest.reset node_modules
 	@echo '==> Generating full SVG test report'
-
-	@# get ../owid-grapher-svgs reliably to a base state at origin/master
-	cd ../owid-grapher-svgs && git fetch && git checkout -f master && git reset --hard origin/master && git clean -fd
 
 	@# run test suite for stand-alone graphers
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts \
@@ -294,11 +344,8 @@ svgtest.full: ../owid-grapher-svgs node_modules
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts explorers --manifest top.manifest.json \
 		&& yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts explorers
 
-svgtest.explorers: ../owid-grapher-svgs node_modules
+svgtest.explorers: svgtest.reset node_modules
 	@echo '==> Generating SVG test report for explorers'
-
-	@# get ../owid-grapher-svgs reliably to a base state at origin/master
-	cd ../owid-grapher-svgs && git fetch && git checkout -f master && git reset --hard origin/master && git clean -fd
 
 	@# run test suite for explorers
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts explorers \

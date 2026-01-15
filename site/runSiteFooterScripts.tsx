@@ -11,7 +11,6 @@ import {
     SiteFooterContext,
     TagGraphRoot,
 } from "@ourworldindata/utils"
-import { hydrateProminentLink } from "./blocks/ProminentLink.js"
 import {
     DataPageV2Content,
     OWID_DATAPAGE_CONTENT_ROOT_ID,
@@ -398,15 +397,11 @@ export const runSiteFooterScripts = async (
         // falls through
         default:
             // Features that were not ported over to gdocs, are only being run on WP pages:
-            // - global entity selector
-            // - country-aware prominent links
             // - embedding charts through MultiEmbedderSingleton.embedAll()
             runSiteNavigation(hideDonationFlag)
             hydrateCodeSnippets()
-            MultiEmbedderSingleton.setUpGlobalEntitySelectorForEmbeds()
             MultiEmbedderSingleton.embedAll(isPreviewing)
             runAllGraphersLoadedListener()
-            hydrateProminentLink(MultiEmbedderSingleton.selection)
             runFootnotes()
             runSiteTools()
             runCookiePreferencesManager()
