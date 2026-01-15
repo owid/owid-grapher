@@ -3,13 +3,21 @@ import express from "express"
 import * as db from "../db/db.js"
 import { CLOUDFLARE_AUD } from "../settings/serverSettings.js"
 import * as jose from "jose"
+import {
+    AdminApiKeysTableName,
+    UsersTableName,
+    type DbAdminApiKey,
+} from "@ourworldindata/types"
 import { DbPlainUser, JsonError } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
+import { hashApiKey } from "../serverUtils/apiKey.js"
 
 export type Request = express.Request
 
 export type Response = express.Response<any, { user: DbPlainUser }>
 
+const API_KEY_HEADER = "authorization"
+const ACT_AS_USER_HEADER = "x-act-as-user"
 const CLOUDFLARE_COOKIE_NAME = "CF_Authorization"
 const CLOUDFLARE_TEAM_DOMAIN = "https://owid.cloudflareaccess.com"
 const DEV_ADMIN_EMAIL = "admin@example.com"
@@ -28,19 +36,15 @@ interface SessionRow {
 
 async function setAuthenticatedUser(
     res: express.Response,
-    user: DbPlainUser
+    user: DbPlainUser,
+    trx: db.KnexReadWriteTransaction
 ): Promise<void> {
     res.locals.user = user
     Sentry.setUser({
         email: user.email,
         username: user.fullName,
     })
-    await db.knexReadWriteTransaction(async (trx) => {
-        await trx
-            .table("users")
-            .where({ id: user.id })
-            .update({ lastSeen: new Date() })
-    })
+    await updateUserLastSeen(trx, user.id)
 }
 
 export async function cloudflareAuthMiddleware(
@@ -82,7 +86,7 @@ export async function cloudflareAuthMiddleware(
     // Here in the middleware we don't have access to the transaction yet so we get a knexinstance manually
     const user = await db
         .knexInstance()
-        .table("users")
+        .table(UsersTableName)
         .where({ email: payload.email })
         .first<DbPlainUser>()
 
@@ -93,7 +97,67 @@ export async function cloudflareAuthMiddleware(
         return next()
     }
 
-    await setAuthenticatedUser(res, user)
+    await db.knexReadWriteTransaction(async (trx) => {
+        await setAuthenticatedUser(res, user, trx)
+    })
+    return next()
+}
+
+export async function apiKeyAuthMiddleware(
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+) {
+    if (res.locals.user) return next()
+
+    const apiKey = getApiKeyFromRequest(req)
+    if (!apiKey) return next()
+
+    await db.knexReadWriteTransaction(async (trx) => {
+        const apiKeyRow = await findAdminApiKey(apiKey, trx)
+        if (!apiKeyRow) {
+            console.error("Invalid admin API key.")
+            return
+        }
+
+        const user = await trx<DbPlainUser>(UsersTableName)
+            .where({ id: apiKeyRow.userId })
+            .first()
+
+        if (!user) {
+            console.error(
+                `User with id ${apiKeyRow.userId} not found. Please contact an administrator.`
+            )
+            return
+        }
+
+        let authenticatedUser = user
+        const actAsUserId = getActAsUserIdFromRequest(req)
+        if (!user.isSuperuser && actAsUserId !== undefined) {
+            console.error("Non-superuser attempted to use x-act-as-user.", {
+                userId: user.id,
+                actAsUserId,
+            })
+            return
+        }
+
+        if (user.isSuperuser && actAsUserId !== undefined) {
+            const actAsUser = await trx<DbPlainUser>(UsersTableName)
+                .where({ id: actAsUserId })
+                .first()
+            if (!actAsUser) {
+                console.error(
+                    `User with id ${actAsUserId} not found. Please contact an administrator.`
+                )
+                return
+            }
+            logActAsUser(req, user.id, actAsUserId)
+            authenticatedUser = actAsUser
+        }
+
+        await setAuthenticatedUser(res, authenticatedUser, trx)
+        await updateApiKeyLastUsed(apiKeyRow.id, trx)
+    })
     return next()
 }
 
@@ -123,7 +187,7 @@ export async function tailscaleAuthMiddleware(
     try {
         user = await db
             .knexInstance()
-            .table("users")
+            .table(UsersTableName)
             .where({ githubUsername: githubUserName })
             .first<DbPlainUser>()
     } catch (error) {
@@ -138,7 +202,9 @@ export async function tailscaleAuthMiddleware(
         return next()
     }
 
-    await setAuthenticatedUser(res, user)
+    await db.knexReadWriteTransaction(async (trx) => {
+        await setAuthenticatedUser(res, user, trx)
+    })
 
     return next()
 }
@@ -151,7 +217,9 @@ export async function devAuthMiddleware(
     if (res.locals.user) return next()
 
     const user = await getOrCreateDevAdminUser()
-    await setAuthenticatedUser(res, user)
+    await db.knexReadWriteTransaction(async (trx) => {
+        await setAuthenticatedUser(res, user, trx)
+    })
     return next()
 }
 
@@ -165,7 +233,7 @@ export async function sessionCookieAuthMiddleware(
     const sessionid = req.cookies["sessionid"]
     if (!sessionid) return next()
 
-    const user = await db.knexReadWriteTransaction(async (trx) => {
+    const user = await db.knexReadonlyTransaction(async (trx) => {
         const rows = await db.knexRaw<SessionRow>(
             trx,
             `SELECT * FROM sessions WHERE session_key = ? AND expire_date >= NOW()`,
@@ -181,10 +249,9 @@ export async function sessionCookieAuthMiddleware(
             sessionData.split(":").slice(1).join(":")
         )
 
-        const user = await trx
-            .table("users")
+        const user = await trx<DbPlainUser>(UsersTableName)
             .where({ email: sessionJson.user_email })
-            .first<DbPlainUser>()
+            .first()
         if (!user) throw new JsonError("Invalid session (no such user)", 500)
 
         return user
@@ -192,7 +259,9 @@ export async function sessionCookieAuthMiddleware(
 
     if (!user) return next()
 
-    await setAuthenticatedUser(res, user)
+    await db.knexReadWriteTransaction(async (trx) => {
+        await setAuthenticatedUser(res, user, trx)
+    })
 
     return next()
 }
@@ -235,14 +304,13 @@ export async function logOut(req: express.Request, res: express.Response) {
 
 async function getOrCreateDevAdminUser(): Promise<DbPlainUser> {
     return db.knexReadWriteTransaction(async (trx) => {
-        const existing = await trx
-            .table("users")
+        const existing = await trx<DbPlainUser>(UsersTableName)
             .where({ email: DEV_ADMIN_EMAIL })
-            .first<DbPlainUser>()
+            .first()
         if (existing) return existing
 
         const now = new Date()
-        const [id] = await trx.table("users").insert({
+        const [id] = await trx<DbPlainUser>(UsersTableName).insert({
             email: DEV_ADMIN_EMAIL,
             fullName: DEV_ADMIN_FULL_NAME,
             isActive: 1,
@@ -251,10 +319,9 @@ async function getOrCreateDevAdminUser(): Promise<DbPlainUser> {
             updatedAt: now,
         })
 
-        const created = await trx
-            .table("users")
+        const created = await trx<DbPlainUser>(UsersTableName)
             .where({ id: id as number })
-            .first<DbPlainUser>()
+            .first()
 
         if (!created) {
             throw new Error("Failed to create dev admin user")
@@ -273,6 +340,68 @@ function getClientIp(req: express.Request): string | undefined {
         ip = ip.replace("::ffff:", "")
     }
     return ip
+}
+
+function getApiKeyFromRequest(req: express.Request): string | undefined {
+    const authorizationHeader = req.get(API_KEY_HEADER)
+    if (!authorizationHeader) return undefined
+    const trimmed = authorizationHeader.trim()
+    if (!trimmed) return undefined
+    const bearerPrefix = "Bearer "
+    if (!trimmed.startsWith(bearerPrefix)) return undefined
+    const token = trimmed.slice(bearerPrefix.length).trim()
+    return token.length ? token : undefined
+}
+
+function getActAsUserIdFromRequest(req: express.Request): number | undefined {
+    const header = req.get(ACT_AS_USER_HEADER)
+    if (!header) return undefined
+    const trimmed = header.trim()
+    if (!trimmed) return undefined
+    const parsed = Number.parseInt(trimmed, 10)
+    if (Number.isNaN(parsed) || parsed <= 0) return undefined
+    return parsed
+}
+
+function logActAsUser(
+    req: express.Request,
+    superuserId: number,
+    actAsUserId: number
+): void {
+    console.info("Admin API key act-as", {
+        superuserId,
+        actAsUserId,
+        method: req.method,
+        path: req.originalUrl,
+    })
+}
+
+async function findAdminApiKey(
+    apiKey: string,
+    trx: db.KnexReadWriteTransaction
+) {
+    const keyHash = hashApiKey(apiKey)
+    return await trx<DbAdminApiKey>(AdminApiKeysTableName)
+        .where({ keyHash })
+        .first("id", "userId")
+}
+
+async function updateApiKeyLastUsed(
+    apiKeyId: number,
+    trx: db.KnexReadWriteTransaction
+) {
+    await trx<DbAdminApiKey>(AdminApiKeysTableName)
+        .where({ id: apiKeyId })
+        .update({ lastUsedAt: new Date() })
+}
+
+async function updateUserLastSeen(
+    trx: db.KnexReadWriteTransaction,
+    userId: number
+) {
+    await trx<DbPlainUser>(UsersTableName).where({ id: userId }).update({
+        lastSeen: new Date(),
+    })
 }
 
 interface TailscaleStatus {

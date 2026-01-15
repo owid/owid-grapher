@@ -17,6 +17,7 @@
         "cleanTsc": "rm -rf itsJustJavascript && tsgo -b -clean",
         "createDbMigration": "tsx --tsconfig tsconfig.tsx.json node_modules/typeorm/cli.js migration:create",
         "createMultiDimRedirectsFromCsv": "tsx --tsconfig tsconfig.tsx.json devTools/createMultiDimRedirectsFromCsv.ts",
+        "createAdminApiKey": "tsx --tsconfig tsconfig.tsx.json devTools/createAdminApiKey.ts",
         "deleteExpiredRedirects": "tsx --tsconfig tsconfig.tsx.json devTools/deleteExpiredRedirects/deleteExpiredRedirects.ts",
         "fetchServerStatus": "tsx --tsconfig tsconfig.tsx.json baker/liveCommit.ts",
         "fixLint": "eslint . --fix",

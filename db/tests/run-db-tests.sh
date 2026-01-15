@@ -15,6 +15,9 @@ fi
 # with the db test suite. Since indexing is never needed here, force-disable it.
 export ALGOLIA_INDEXING=false
 
+# Set ENV to production for db tests to match production behavior.
+export ENV=production
+
 : "${GRAPHER_TEST_DB_USER:?Need to set GRAPHER_TEST_DB_USER non-empty}"
 : "${GRAPHER_TEST_DB_PASS:?Need to set GRAPHER_TEST_DB_PASS non-empty}"
 : "${GRAPHER_TEST_DB_NAME:?Need to set GRAPHER_TEST_DB_NAME non-empty}"

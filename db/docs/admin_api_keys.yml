@@ -1,0 +1,15 @@
+metadata:
+    description: |
+        API keys for authenticating admin requests. Stores only hashed keys (no plaintext) with lifecycle timestamps
+        for auditing. Each key is associated with a user account.
+fields:
+    id:
+        description: Unique auto-incrementing identifier for the API key record
+    userId:
+        description: Foreign key reference to the user who owns this API key (references users.id)
+    keyHash:
+        description: SHA-256 hash (hex) of the API key used for lookup and verification
+    createdAt:
+        description: Timestamp when the API key was created
+    lastUsedAt:
+        description: Timestamp of the last successful authentication using this key
