@@ -8,7 +8,6 @@ export interface DbInsertUser {
     isSuperuser?: number
     lastLogin?: Date | null
     lastSeen?: Date | null
-    password?: string | null
     updatedAt?: Date | null
     githubUsername?: string | null
     slackId?: string | null
