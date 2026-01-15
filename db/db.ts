@@ -996,23 +996,31 @@ export async function generateTopicTagGraph(
 /**
  * Fetch all topic tags from the database.
  * Topics are any tags that have a slug.
- * Returns id, name, and slug of each topic tag.
+ * Returns name and slug of each topic tag.
  * Note: This does not include area tags, which are the top-level children of the tag
  * graph root and do not have a slug.
  */
-export const getAllTopicSlugs = async (
+export const getAllTopicTags = async (
     trx: KnexReadonlyTransaction
-): Promise<string[]> => {
-    const results = await knexRaw<{ slug: string }>(
+): Promise<{ slug: string; name: string; id: number }[]> => {
+    return knexRaw<{ slug: string; name: string; id: number }>(
         trx,
         `-- sql
-        SELECT slug
-        FROM ${TagsTableName}
-        WHERE slug IS NOT NULL
-        `
+        SELECT t.slug, t.name, t.id
+        FROM ${TagsTableName} t
+        JOIN ${PostsGdocsTableName} pg ON pg.slug = t.slug
+        WHERE pg.published = TRUE
+        AND pg.type IN (:types)
+        AND t.slug IS NOT NULL
+        `,
+        {
+            types: [
+                OwidGdocType.TopicPage,
+                OwidGdocType.LinearTopicPage,
+                OwidGdocType.Article,
+            ],
+        }
     )
-
-    return results.map((row) => row.slug)
 }
 
 /**
