@@ -7,14 +7,14 @@ import {
     PeerCountryStrategyQueryParam,
 } from "@ourworldindata/types"
 import {
+    checkIsAggregate,
     checkIsCountry,
-    getAggregates,
+    checkIsIncomeGroup,
+    checkIsOwidContinent,
     getContinentForCountry,
-    getContinents,
-    getIncomeGroups,
     getParentRegions,
     getRegionByName,
-    getSiblingRegions,
+    Region,
 } from "@ourworldindata/utils"
 import { WORLD_ENTITY_NAME } from "./GrapherConstants.js"
 import { match } from "ts-pattern"
@@ -127,75 +127,46 @@ function isDataLoaderAvailable(
  * Selects parent aggregate regions (continents, income groups) that the target
  * country belongs to, plus World.
  */
-function selectParentRegionsAsPeers({
+export function selectParentRegionsAsPeers({
     targetCountry,
     availableEntities,
 }: {
     targetCountry: EntityName
     availableEntities: EntityName[]
 }): EntityName[] {
-    const availableEntitySet = new Set(availableEntities)
-
-    const comparisonEntities = new Set<EntityName>()
+    const region = getRegionByName(targetCountry)
 
     // Can't determine comparison entities for non-geographical entities
-    const region = getRegionByName(targetCountry)
     if (!region) return []
 
-    // Compare World to any aggregate entities (e.g. continents or income groups)
-    if (targetCountry === WORLD_ENTITY_NAME)
-        return selectRegionGroupByPriority(availableEntities)
+    const availableEntitySet = new Set(availableEntities)
+    const peers = new Set<EntityName>()
 
     // Always include World as a comparison if available
-    if (availableEntitySet.has(WORLD_ENTITY_NAME))
-        comparisonEntities.add(WORLD_ENTITY_NAME)
+    if (availableEntitySet.has(WORLD_ENTITY_NAME)) peers.add(WORLD_ENTITY_NAME)
 
-    if (checkIsCountry(region)) {
-        // For countries: add their parent regions (continent, income group, etc.)
-        // Example: Germany -> Europe, Europe (WHO), High income countries
-        const regions = getParentRegions(region.name)
-        for (const region of regions)
-            if (availableEntitySet.has(region.name))
-                comparisonEntities.add(region.name)
-    } else {
-        // For aggregate regions: add sibling regions at the same hierarchical level
-        // Example: Europe -> Asia, Africa, North America (other continents)
-        const siblings = getSiblingRegions(region.name)
-        for (const sibling of siblings) {
-            if (availableEntitySet.has(sibling.name))
-                comparisonEntities.add(sibling.name)
-        }
+    // Get the parent regions of a country (continent, income group, etc.)
+    // Example: Germany -> Europe, Europe (WHO), High income countries
+    const parentRegions = getParentRegions(region.name)
+
+    const isAvailable = (region: Region | undefined): region is Region =>
+        region !== undefined && availableEntitySet.has(region.name)
+
+    // If there is an income group, include it
+    const incomeGroup = parentRegions.find((r) => checkIsIncomeGroup(r))
+    if (isAvailable(incomeGroup)) peers.add(incomeGroup.name)
+
+    // If there is an OWID continent, include it;
+    // otherwise include any other aggregate region
+    const owidContinent = parentRegions.find((r) => checkIsOwidContinent(r))
+    const nonOwidContinent = parentRegions.find((r) => checkIsAggregate(r))
+    if (isAvailable(owidContinent)) {
+        peers.add(owidContinent.name)
+    } else if (isAvailable(nonOwidContinent)) {
+        peers.add(nonOwidContinent.name)
     }
 
-    return Array.from(comparisonEntities)
-}
-
-/**
- * Finds the best available regions from a set of available entities,
- * prioritizing continents, then  income groups, then other aggregates.
- */
-export function selectRegionGroupByPriority(
-    availableEntities: EntityName[],
-    { includeWorld }: { includeWorld: boolean } = { includeWorld: false }
-): EntityName[] {
-    const availableEntitySet = new Set(availableEntities)
-
-    const regionGroups = [getContinents(), getIncomeGroups(), getAggregates()]
-    for (const regions of regionGroups) {
-        const availableRegions: EntityName[] = regions
-            .filter((region) => availableEntitySet.has(region.name))
-            .map((region) => region.name)
-
-        if (availableRegions.length > 0) {
-            // Also add the World entity if it's available
-            if (includeWorld && availableEntitySet.has(WORLD_ENTITY_NAME)) {
-                availableRegions.push(WORLD_ENTITY_NAME)
-            }
-
-            return availableRegions
-        }
-    }
-    return []
+    return Array.from(peers)
 }
 
 /** Finds countries with similar values to the target country */
