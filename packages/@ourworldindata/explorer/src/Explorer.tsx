@@ -34,6 +34,7 @@ import {
     GrapherState,
     fetchInputTableForConfig,
     FetchInputTableForConfigFn,
+    loadCatalogData,
 } from "@ourworldindata/grapher"
 import {
     Bounds,
@@ -93,6 +94,7 @@ export interface ExplorerProps extends SerializedGridProgram {
     bakedBaseUrl: string
     bakedGrapherUrl: string
     dataApiUrl: string
+    catalogUrl: string
     bounds?: Bounds
     staticBounds?: Bounds
     loadMetadataOnly?: boolean
@@ -233,6 +235,7 @@ export class Explorer
         ).initDecisionMatrix(this.initialQueryParams)
         const { archiveContext } = props
         const isOnArchivalPage = archiveContext?.type === "archive-page"
+        const assetMaps = isOnArchivalPage ? archiveContext?.assets : undefined
         this.isOnArchivalPage = isOnArchivalPage
         this.grapherState = new GrapherState({
             staticBounds: props.staticBounds,
@@ -243,6 +246,11 @@ export class Explorer
             adminBaseUrl: this.adminBaseUrl,
             canHideExternalControlsInEmbed: true,
             archiveContext: props.archiveContext,
+            additionalDataLoaderFn: (catalogKey) =>
+                loadCatalogData(catalogKey, {
+                    baseUrl: this.props.catalogUrl,
+                    assetMap: assetMaps?.runtime,
+                }),
         })
 
         if (props.setupGrapher !== false)
@@ -315,6 +323,7 @@ export class Explorer
 
     bakedBaseUrl = this.props.bakedBaseUrl
     dataApiUrl = this.props.dataApiUrl
+    catalogUrl = this.props.catalogUrl
     adminBaseUrl = this.props.adminBaseUrl
     bakedGrapherUrl = this.props.bakedGrapherUrl
 

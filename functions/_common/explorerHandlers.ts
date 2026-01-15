@@ -91,7 +91,7 @@ export async function handleThumbnailRequestForExplorerView(
             explorerEnv,
             options
         )
-        const svg = grapherState.generateStaticSvg(
+        const svg = await grapherState.generateStaticSvg(
             ReactDOMServer.renderToStaticMarkup
         )
         if (extension === "svg") {

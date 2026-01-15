@@ -53,6 +53,7 @@ export async function buildExplorerProps(
         bakedBaseUrl: explorerConstants.bakedBaseUrl,
         bakedGrapherUrl: explorerConstants.bakedGrapherUrl,
         dataApiUrl: explorerConstants.dataApiUrl,
+        catalogUrl: explorerConstants.catalogUrl,
         grapherConfigs,
         partialGrapherConfigs,
         chartConfigIdByViewId,

@@ -2,7 +2,6 @@ import * as _ from "lodash-es"
 import {
     GrapherInterface,
     diffGrapherConfigs,
-    loadCatalogVariableData,
     mergeGrapherConfigs,
     PostReference,
     SeriesName,
@@ -23,6 +22,7 @@ import {
     defaultGrapherConfig,
     getCachingInputTableFetcher,
     GrapherState,
+    loadCatalogData,
 } from "@ourworldindata/grapher"
 import { NarrativeChartMinimalInformation } from "./ChartEditor.js"
 import { IndicatorChartInfo } from "./IndicatorChartEditor.js"
@@ -80,7 +80,7 @@ export abstract class AbstractChartEditor<
 
     grapherState = new GrapherState({
         additionalDataLoaderFn: (catalogKey) =>
-            loadCatalogVariableData(catalogKey, { baseUrl: CATALOG_URL }),
+            loadCatalogData(catalogKey, { baseUrl: CATALOG_URL }),
     })
     cachingGrapherDataLoader = getCachingInputTableFetcher(
         DATA_API_URL,

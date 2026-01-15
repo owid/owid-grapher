@@ -1,5 +1,5 @@
 import { debounce } from "lodash-es"
-import { GrapherProgrammaticInterface } from "../index.js"
+import { GrapherProgrammaticInterface, loadCatalogData } from "../index.js"
 import * as Sentry from "@sentry/react"
 import { createRoot } from "react-dom/client"
 import { FetchingGrapher } from "./FetchingGrapher.js"
@@ -8,7 +8,7 @@ import {
     ArchiveContext,
     CatalogKey,
 } from "@ourworldindata/types"
-import { Bounds, loadCatalogVariableData } from "@ourworldindata/utils"
+import { Bounds } from "@ourworldindata/utils"
 
 export function renderGrapherIntoContainer({
     config,
@@ -45,7 +45,7 @@ export function renderGrapherIntoContainer({
             additionalDataLoaderFn: (
                 catalogKey: CatalogKey
             ): ReturnType<AdditionalGrapherDataFetchFn> =>
-                loadCatalogVariableData(catalogKey, { baseUrl: catalogUrl }),
+                loadCatalogData(catalogKey, { baseUrl: catalogUrl }),
         }
 
         reactRoot.render(

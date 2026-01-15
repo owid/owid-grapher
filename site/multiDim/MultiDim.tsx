@@ -14,12 +14,12 @@ import {
     GrapherProgrammaticInterface,
     useMaybeGlobalGrapherStateRef,
     GuidedChartContext,
+    loadCatalogData,
 } from "@ourworldindata/grapher"
 import {
     extractMultiDimChoicesFromSearchParams,
     GRAPHER_TAB_QUERY_PARAMS,
     GrapherQueryParams,
-    loadCatalogVariableData,
     MultiDimDataPageConfig,
     MultiDimDimensionChoices,
 } from "@ourworldindata/utils"
@@ -58,7 +58,7 @@ export default function MultiDim({
         manager: manager.current,
         queryStr,
         additionalDataLoaderFn: (catalogKey) =>
-            loadCatalogVariableData(catalogKey, {
+            loadCatalogData(catalogKey, {
                 baseUrl: CATALOG_URL,
                 assetMap,
             }),
