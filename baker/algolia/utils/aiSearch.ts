@@ -2,11 +2,16 @@ import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3"
 
 interface UploadToR2Options {
     metadataPrefix?: string
+    /**
+     * Add a timestamp comment to the markdown content.
+     * Useful to invalidate AI Search cache and force re-indexing.
+     * Default: false
+     */
+    addTimestamp?: boolean
 }
 
 /**
  * Upload a record to R2 as a Markdown file with base64-encoded metadata.
- * Adds a timestamp comment to force AI Search to detect content changes.
  */
 export async function uploadToR2<T extends object>(
     s3Client: S3Client,
@@ -17,10 +22,12 @@ export async function uploadToR2<T extends object>(
     metadata: T,
     options: UploadToR2Options = {}
 ): Promise<void> {
-    // Add timestamp to force AI Search to detect content change and re-index
-    const timestamp = new Date().toISOString()
-    const markdownWithTimestamp =
-        markdown + `\n<!-- indexed: ${timestamp} -->\n`
+    // Optionally add timestamp to force AI Search to detect content change and re-index
+    let finalMarkdown = markdown
+    if (options.addTimestamp) {
+        const timestamp = new Date().toISOString()
+        finalMarkdown = markdown + `\n<!-- indexed: ${timestamp} -->\n`
+    }
 
     // Base64 encode metadata to avoid HTTP header character issues with UTF-8
     const metadataBase64 = Buffer.from(JSON.stringify(metadata)).toString(
@@ -34,7 +41,7 @@ export async function uploadToR2<T extends object>(
         new PutObjectCommand({
             Bucket: bucket,
             Key: key,
-            Body: markdownWithTimestamp,
+            Body: finalMarkdown,
             ContentType: "text/markdown",
             Metadata: {
                 [metadataKey]: metadataValue,

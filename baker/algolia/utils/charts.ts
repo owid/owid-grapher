@@ -98,9 +98,13 @@ function getChartViewsAllWindows(
 }
 
 export const getChartsRecords = async (
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadonlyTransaction,
+    slugFilter?: string
 ): Promise<ChartRecord[]> => {
     console.log("Fetching charts to index")
+    if (slugFilter) {
+        console.log(`(Filtering by slug: ${slugFilter})`)
+    }
     const chartsToIndex = await db.knexRaw<RawChartRecordRow>(
         knex,
         `-- sql
@@ -118,6 +122,7 @@ export const getChartsRecords = async (
                      LEFT JOIN entities e ON ce.entityId = e.id
             WHERE cc.full ->> "$.isPublished" = 'true'
                 AND c.isIndexable IS TRUE
+                ${slugFilter ? `AND cc.slug = ?` : ""}
             GROUP BY c.id
         )
         SELECT c.id,
@@ -134,7 +139,8 @@ export const getChartsRecords = async (
                  LEFT JOIN tags t on ct.tagId = t.id
         GROUP BY c.id
         HAVING COUNT(t.id) >= 1
-    `
+    `,
+        slugFilter ? [slugFilter] : []
     )
 
     const parsedRows = chartsToIndex.map(parseAndProcessChartRecords)

@@ -15,6 +15,54 @@ import {
 } from "../../settings/serverSettings.js"
 import { getPagesRecords } from "./utils/pages.js"
 import { uploadToR2 } from "./utils/aiSearch.js"
+import parseArgs from "minimist"
+
+interface CliArgs {
+    slug?: string // Filter by slug
+    type?: string // Filter by page type (article, topic-page, about-page, data-insight)
+    invalidate?: boolean // Add timestamp to invalidate AI Search cache
+    help?: boolean
+}
+
+function printUsage(): void {
+    console.log(`
+Usage: yarn tsx baker/algolia/indexPagesToAISearch.ts [options]
+
+Options:
+  --slug <slug>     Filter pages by slug (e.g., --slug poverty)
+  --type <type>     Filter by page type: article, topic-page, about-page, data-insight
+  --invalidate      Add timestamp to markdown to invalidate AI Search cache
+  --help            Show this help message
+
+Examples:
+  # Index only a specific page
+  yarn tsx baker/algolia/indexPagesToAISearch.ts --slug poverty
+
+  # Index only articles
+  yarn tsx baker/algolia/indexPagesToAISearch.ts --type article
+
+  # Force re-indexing by invalidating cache
+  yarn tsx baker/algolia/indexPagesToAISearch.ts --invalidate
+`)
+}
+
+/**
+ * Map CLI type argument to OwidGdocType
+ */
+function mapTypeArg(typeArg: string): OwidGdocType | undefined {
+    switch (typeArg) {
+        case "article":
+            return OwidGdocType.Article
+        case "topic-page":
+            return OwidGdocType.TopicPage
+        case "about-page":
+            return OwidGdocType.AboutPage
+        case "data-insight":
+            return OwidGdocType.DataInsight
+        default:
+            return undefined
+    }
+}
 
 /**
  * Get folder name for page type
@@ -91,6 +139,28 @@ interface PageMetadata {
 }
 
 const indexPagesToAISearch = async () => {
+    // Parse CLI arguments
+    const args = parseArgs(process.argv.slice(2), {
+        string: ["slug", "type"],
+        boolean: ["help", "invalidate"],
+    }) as CliArgs
+
+    if (args.help) {
+        printUsage()
+        return
+    }
+
+    const slugFilter = args.slug
+    const typeFilter = args.type ? mapTypeArg(args.type) : undefined
+    const addTimestamp = args.invalidate || false
+
+    if (args.type && !typeFilter) {
+        console.error(
+            `Invalid type: ${args.type}. Valid types: article, topic-page, about-page, data-insight`
+        )
+        return
+    }
+
     if (!R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY) {
         console.error(
             "R2 credentials are not set. Skipping AI Search indexing."
@@ -99,6 +169,15 @@ const indexPagesToAISearch = async () => {
     }
 
     console.log(`Indexing pages to AI Search R2 bucket: ${AI_SEARCH_R2_BUCKET}`)
+    if (slugFilter) {
+        console.log(`  Filtering by slug: ${slugFilter}`)
+    }
+    if (typeFilter) {
+        console.log(`  Filtering by type: ${typeFilter}`)
+    }
+    if (addTimestamp) {
+        console.log(`  Adding timestamp to invalidate cache`)
+    }
 
     const s3Client = new S3Client({
         endpoint: R2_ENDPOINT,
@@ -110,10 +189,25 @@ const indexPagesToAISearch = async () => {
     })
 
     // Reuse the same records generation as Algolia indexing, but without chunking
-    const records = await db.knexReadonlyTransaction(
+    let records = await db.knexReadonlyTransaction(
         async (trx) => getPagesRecords(trx, { skipChunking: true }),
         db.TransactionCloseMode.Close
     )
+
+    // Apply filters
+    if (slugFilter) {
+        records = records.filter((r) => r.slug === slugFilter)
+    }
+    if (typeFilter) {
+        records = records.filter((r) => r.type === typeFilter)
+    }
+
+    if (records.length === 0) {
+        console.error(
+            `No pages found${slugFilter ? ` with slug: ${slugFilter}` : ""}${typeFilter ? ` with type: ${typeFilter}` : ""}`
+        )
+        return
+    }
 
     console.log(`Uploading ${records.length} pages`)
 
@@ -147,6 +241,7 @@ const indexPagesToAISearch = async () => {
             metadata,
             {
                 metadataPrefix: "b64-",
+                addTimestamp,
             }
         )
     }
