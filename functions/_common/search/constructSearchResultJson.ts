@@ -11,6 +11,7 @@ import {
     MarimekkoChartState,
     ScatterPlotChartState,
     WORLD_ENTITY_NAME,
+    loadCatalogData,
 } from "@ourworldindata/grapher"
 import {
     EntityName,
@@ -36,7 +37,6 @@ import { constructGrapherValuesJson } from "../grapherValuesJson"
 import {
     buildChartHitDataDisplayProps,
     getTableColumnCountForGridSlotKey,
-    loadCatalogVariableData,
     omitUndefinedValues,
     getTimeDomainFromQueryString,
     placeGrapherTabsInLargeVariantGrid,
@@ -54,7 +54,7 @@ export enum RichDataVariant {
 
 type TimeBounds = [Time | undefined, Time | undefined]
 
-export function constructSearchResultJson(
+export async function constructSearchResultJson(
     grapherState: GrapherState,
     {
         variant,
@@ -69,7 +69,7 @@ export function constructSearchResultJson(
         sortedTabs: GrapherTabName[]
         numDataTableRowsPerColumn: number
     }
-): GrapherSearchResultJson | undefined {
+): Promise<GrapherSearchResultJson | undefined> {
     // Prepare data for the big data value display
     const entityForDataDisplay = pickedEntities[0] ?? WORLD_ENTITY_NAME
     const shouldShowDataDisplay = variant !== RichDataVariant.Large
@@ -146,20 +146,23 @@ export function constructSearchResultJson(
     if (!layout) return undefined
 
     // Some charts and preview thumbnails need specific grapher query params
-    const enrichedLayout = layout.map(({ slotKey, grapherTab }) => {
-        const { chartParams, previewParams } = getGrapherQueryParamsForTab({
-            grapherState,
-            tab: grapherTab,
-            timeBounds: pickedTimeBounds,
-        })
+    const enrichedLayout = await Promise.all(
+        layout.map(async ({ slotKey, grapherTab }) => {
+            const { chartParams, previewParams } =
+                await getGrapherQueryParamsForTab({
+                    grapherState,
+                    tab: grapherTab,
+                    timeBounds: pickedTimeBounds,
+                })
 
-        return omitUndefinedValues({
-            slotKey,
-            grapherTab,
-            chartParams,
-            previewParams,
+            return omitUndefinedValues({
+                slotKey,
+                grapherTab,
+                chartParams,
+                previewParams,
+            })
         })
-    })
+    )
 
     const grapherParams = {
         ...grapherState.changedParams,
@@ -261,18 +264,19 @@ export async function pickDisplayEntities(
     const isFaceted = facetStrategy !== FacetStrategy.none
 
     /** Find comparison entities and add them to the ones picked by the user */
-    const enrichPickedEntities = () => {
+    const enrichPickedEntities = async () => {
         if (pickedEntities.length === 0) return defaultEntities
 
         // For backward compatibility, default to the ParentRegions strategy
         const peerCountryStrategy =
             grapherState.peerCountryStrategy ??
             PeerCountryStrategy.ParentRegions
-        const pickedComparisonEntities = selectPeerCountries({
+        const pickedComparisonEntities = await selectPeerCountries({
             peerCountryStrategy,
             targetCountry: pickedEntities[0],
             defaultSelection: defaultEntities,
             availableEntities,
+            additionalDataLoaderFn: grapherState.additionalDataLoaderFn,
         })
 
         // Default to the default entities if no comparison entities could be found
@@ -321,7 +325,7 @@ export async function pickDisplayEntities(
 
         // Find entities for comparison and combine them with the picked entities
         if (pickedEntities.length > 0) {
-            const enrichedEntities = enrichPickedEntities()
+            const enrichedEntities = await enrichPickedEntities()
 
             // If we couldn't find any comparison entities,
             // we try to pick a sensible selection based on the chart data
@@ -559,7 +563,7 @@ async function fetchLatestPopulationData({
 
     try {
         // Fetch population data from catalog
-        const catalogData = await loadCatalogVariableData("population", {
+        const catalogData = await loadCatalogData("population", {
             baseUrl: catalogUrl,
         })
 
@@ -832,7 +836,7 @@ function configureGrapherStateForMarimekko(
         grapherState.selection.setSelectedEntities(displayEntities)
 }
 
-function getGrapherQueryParamsForTab({
+async function getGrapherQueryParamsForTab({
     grapherState,
     tab,
     timeBounds,
@@ -840,11 +844,15 @@ function getGrapherQueryParamsForTab({
     grapherState: GrapherState
     tab: GrapherTabName
     timeBounds?: TimeBounds
-}): { chartParams?: GrapherQueryParams; previewParams?: GrapherQueryParams } {
+}): Promise<{
+    chartParams?: GrapherQueryParams
+    previewParams?: GrapherQueryParams
+}> {
     // Adjust grapher query params for the preview thumbnail of some chart types
-    const params = match(tab)
-        .with(GRAPHER_TAB_NAMES.DiscreteBar, () =>
-            getGrapherQueryParamsForDiscreteBar(grapherState)
+    const params = await match(tab)
+        .with(
+            GRAPHER_TAB_NAMES.DiscreteBar,
+            async () => await getGrapherQueryParamsForDiscreteBar(grapherState)
         )
         .with(GRAPHER_TAB_NAMES.Marimekko, () =>
             getGrapherQueryParamsForMarimekko(grapherState)
@@ -887,11 +895,12 @@ function getGrapherQueryParamsForMarimekko(
     }
 }
 
-function getGrapherQueryParamsForDiscreteBar(
+async function getGrapherQueryParamsForDiscreteBar(
     grapherState: GrapherState
-):
+): Promise<
     | { chartParams?: GrapherQueryParams; previewParams?: GrapherQueryParams }
-    | undefined {
+    | undefined
+> {
     const overwriteParams: GrapherQueryParams = {}
 
     // Instead of showing a single series per facet,
@@ -913,11 +922,12 @@ function getGrapherQueryParamsForDiscreteBar(
         const peerCountryStrategy =
             grapherState.peerCountryStrategy ??
             PeerCountryStrategy.ParentRegions
-        const comparisonEntities = selectPeerCountries({
+        const comparisonEntities = await selectPeerCountries({
             peerCountryStrategy,
             targetCountry: selectedEntities[0],
             defaultSelection: grapherState.selection.selectedEntityNames,
             availableEntities: grapherState.availableEntityNames,
+            additionalDataLoaderFn: grapherState.additionalDataLoaderFn,
         })
         if (comparisonEntities.length > 1) {
             overwriteParams.country = generateSelectedEntityNamesParam(

@@ -8,11 +8,11 @@ import {
     GrapherState,
     getCachingInputTableFetcher,
     GrapherManager,
+    loadCatalogData,
 } from "@ourworldindata/grapher"
 import {
     DataPageDataV2,
     joinTitleFragments,
-    loadCatalogVariableData,
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromSearchParams,
     isInIFrame,
@@ -114,7 +114,7 @@ export function DataPageContent({
     const grapherStateRef = useRef<GrapherState>(
         new GrapherState({
             additionalDataLoaderFn: (catalogKey) =>
-                loadCatalogVariableData(catalogKey, {
+                loadCatalogData(catalogKey, {
                     baseUrl: CATALOG_URL,
                     assetMap,
                 }),

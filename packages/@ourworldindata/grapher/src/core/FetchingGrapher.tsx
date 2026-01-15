@@ -1,12 +1,13 @@
 import { GrapherInterface, ArchiveContext } from "@ourworldindata/types"
 import React from "react"
 import { Grapher, GrapherProgrammaticInterface } from "./Grapher.js"
-import { Bounds, loadCatalogVariableData } from "@ourworldindata/utils"
+import { Bounds } from "@ourworldindata/utils"
 import { fetchInputTableForConfig } from "./loadGrapherTableHelpers.js"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
 import { unstable_batchedUpdates } from "react-dom"
 import { migrateGrapherConfigToLatestVersion } from "../schema/migrations/migrate.js"
 import { useMaybeGlobalGrapherStateRef } from "../chart/guidedChartUtils.js"
+import { loadCatalogData } from "./loadCatalogData.js"
 
 export interface FetchingGrapherProps {
     config?: GrapherProgrammaticInterface
@@ -31,7 +32,7 @@ export function FetchingGrapher(
     const grapherState = useMaybeGlobalGrapherStateRef({
         ...props.config,
         additionalDataLoaderFn: (catalogKey) =>
-            loadCatalogVariableData(catalogKey, {
+            loadCatalogData(catalogKey, {
                 baseUrl: props.catalogUrl,
                 assetMap:
                     props.archiveContext?.type === "archive-page"

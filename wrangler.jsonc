@@ -21,6 +21,7 @@
         "GRAPHER_CONFIG_R2_BUCKET_FALLBACK_URL": "https://grapher-configs.owid.io",
         "GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH": "v1",
         "DATA_API_URL_COMPLETE": "https://api.ourworldindata.org/v1/indicators/",
+        "CATALOG_URL": "https://catalog.ourworldindata.org",
     },
     "env": {
         "preview": {
