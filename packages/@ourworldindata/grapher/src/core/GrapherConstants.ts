@@ -125,7 +125,6 @@ const population_regex =
  * regions file is more complete.
  */
 export const CUSTOM_REGION_SOURCE_IDS = [
-    "un",
     "fao",
     "ei",
     "pip",
@@ -137,6 +136,8 @@ export const CUSTOM_REGION_SOURCE_IDS = [
     "undp",
     "wid",
     "oecd",
+    "unsd",
+    "unm49",
 ] as const
 
 export const isPopulationVariableETLPath = (path: string): boolean => {

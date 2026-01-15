@@ -10,7 +10,9 @@ import {
 import { CUSTOM_REGION_SOURCE_IDS, isWorldEntityName } from "./GrapherConstants"
 import * as R from "remeda"
 
-const customAggregateSources = CUSTOM_REGION_SOURCE_IDS
+const customAggregateSources = CUSTOM_REGION_SOURCE_IDS.filter(
+    (source) => !aggregateSources.includes(source as AggregateSource)
+)
 type CustomAggregateSource = (typeof customAggregateSources)[number]
 
 const entityRegionTypes = [
@@ -40,11 +42,15 @@ export const entityRegionTypeLabels: Record<EntityRegionType, string> = {
     who: "World Health Organization regions",
     wb: "World Bank regions",
     un: "United Nations regions",
-    unsdg: "UN Sustainable Development Goals regions",
-    unm49: "United Nations M49 regions",
     pew: "Pew Research Center regions",
+    // TODO: add labels
+    un_m49_1: "un_m49_1",
+    un_m49_2: "un_m49_2",
+    un_m49_3: "un_m49_3",
 
     // Regions defined by an institution, but we don't have region definitions in regions.json for these (we recognize them by their suffix)
+    unsdg: "UN Sustainable Development Goals regions",
+    unm49: "United Nations M49 regions",
     unsd: "UN Statistics Division regions",
     fao: "FAO regions", // UN's Food and Agriculture Organization
     ei: "Education International regions",

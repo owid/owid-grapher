@@ -7,6 +7,7 @@ import {
     PeerCountryStrategyQueryParam,
 } from "@ourworldindata/types"
 import {
+    aggregateSources,
     checkIsCountry,
     getAggregates,
     getContinentForCountry,
@@ -134,45 +135,42 @@ function selectParentRegionsAsPeers({
     targetCountry: EntityName
     availableEntities: EntityName[]
 }): EntityName[] {
-    const availableEntitySet = new Set(availableEntities)
-
-    const comparisonEntities = new Set<EntityName>()
+    const region = getRegionByName(targetCountry)
 
     // Can't determine comparison entities for non-geographical entities
-    const region = getRegionByName(targetCountry)
     if (!region) return []
 
     // Compare World to any aggregate entities (e.g. continents or income groups)
     if (targetCountry === WORLD_ENTITY_NAME)
         return selectRegionGroupByPriority(availableEntities)
 
+    const peers = new Set<EntityName>()
+
     // Always include World as a comparison if available
-    if (availableEntitySet.has(WORLD_ENTITY_NAME))
-        comparisonEntities.add(WORLD_ENTITY_NAME)
+    if (availableEntitySet.has(WORLD_ENTITY_NAME)) peers.add(WORLD_ENTITY_NAME)
 
     if (checkIsCountry(region)) {
         // For countries: add their parent regions (continent, income group, etc.)
         // Example: Germany -> Europe, Europe (WHO), High income countries
         const regions = getParentRegions(region.name)
         for (const region of regions)
-            if (availableEntitySet.has(region.name))
-                comparisonEntities.add(region.name)
+            if (availableEntitySet.has(region.name)) peers.add(region.name)
     } else {
         // For aggregate regions: add sibling regions at the same hierarchical level
         // Example: Europe -> Asia, Africa, North America (other continents)
         const siblings = getSiblingRegions(region.name)
         for (const sibling of siblings) {
-            if (availableEntitySet.has(sibling.name))
-                comparisonEntities.add(sibling.name)
+            if (availableEntitySet.has(sibling.name)) peers.add(sibling.name)
         }
     }
 
-    return Array.from(comparisonEntities)
+    return Array.from(peers)
 }
 
 /**
  * Finds the best available regions from a set of available entities,
- * prioritizing continents, then  income groups, then other aggregates.
+ * prioritizing owid continents, then  income groups, then other aggregate
+ * regions as defined by the WHO or WB, for example
  */
 export function selectRegionGroupByPriority(
     availableEntities: EntityName[],
@@ -180,19 +178,39 @@ export function selectRegionGroupByPriority(
 ): EntityName[] {
     const availableEntitySet = new Set(availableEntities)
 
-    const regionGroups = [getContinents(), getIncomeGroups(), getAggregates()]
-    for (const regions of regionGroups) {
-        const availableRegions: EntityName[] = regions
+    const owidContinents = getContinents()
+    const incomeGroups = getIncomeGroups()
+    const aggregates = getAggregates()
+
+    const aggregatesBySource = R.groupBy(
+        aggregates,
+        (region) => region.definedBy
+    )
+
+    // Sort according to the order specified in the regions file
+    const sortedAggregatesBySource = aggregateSources
+        .map((source) => aggregatesBySource[source])
+        .filter(R.isDefined)
+
+    const regionGroups = [
+        owidContinents,
+        incomeGroups,
+        ...sortedAggregatesBySource,
+    ]
+
+    // Try each group in order of priority and return the first with available regions
+    for (const regionGroup of regionGroups) {
+        const matchingRegions: EntityName[] = regionGroup
             .filter((region) => availableEntitySet.has(region.name))
             .map((region) => region.name)
 
-        if (availableRegions.length > 0) {
-            // Also add the World entity if it's available
+        if (matchingRegions.length > 0) {
+            // Add the World entity if requested and available
             if (includeWorld && availableEntitySet.has(WORLD_ENTITY_NAME)) {
-                availableRegions.push(WORLD_ENTITY_NAME)
+                matchingRegions.push(WORLD_ENTITY_NAME)
             }
 
-            return availableRegions
+            return matchingRegions
         }
     }
     return []

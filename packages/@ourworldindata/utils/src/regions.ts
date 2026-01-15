@@ -68,12 +68,14 @@ export type OwidIncomeGroupName =
     | "OWID_HIC"
 
 export const aggregateSources = [
-    "pew", // Pew Research Center
-    "unm49", // UN M49 (UN country codes for statistical use)
-    "unsd", // UN Statistical Division
-    "unsdg", // UN SDG
+    "un", // United Nations
     "wb", // World Bank
     "who", // World Health Organization
+    "un_m49_1", // TODO: UN M49 (UN country codes for statistical use)
+    "un_m49_2", // TODO: UN M49 (UN country codes for statistical use)
+    "un_m49_3", // TODO: UN M49 (UN country codes for statistical use)
+    "pew", // Pew Research Center
+    "unsdg", // UN SDG
 ] as const
 export type AggregateSource = (typeof aggregateSources)[number]
 
