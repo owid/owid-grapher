@@ -27,12 +27,6 @@ import { zodResponseFormat } from "openai/helpers/zod"
 import { OPENAI_API_KEY } from "../../settings/serverSettings.js"
 import * as z from "zod"
 
-// XXX hardcoded filtering to public parent tags
-export const PUBLIC_TAG_PARENT_IDS = [
-    1515, 1507, 1513, 1504, 1502, 1509, 1506, 1501, 1514, 1511, 1500, 1503,
-    1505, 1508, 1512, 1510, 1834, 1835,
-]
-
 // Only considers published charts, because only in that case the mapping slug -> id is unique
 export async function mapSlugsToIds(
     knex: db.KnexReadonlyTransaction
@@ -373,27 +367,8 @@ export async function setChartTags(
             [tagRows]
         )
 
-    const parentIds = tags.length
-        ? await db.knexRaw<{ parentId: number }>(
-              knex,
-              `-- sql
-                SELECT
-                    parentId
-                FROM
-                    tags
-                WHERE
-                    id IN (?)`,
-              [tags.map((t) => t.id)]
-          )
-        : []
-
-    // A chart is indexable if it is not tagged "Unlisted" and has at
-    // least one public parent tag
-    const isIndexable = tags.some((t) => t.name === "Unlisted")
-        ? false
-        : parentIds.some((t) => PUBLIC_TAG_PARENT_IDS.includes(t.parentId))
-    const updateFields = ["isIndexable = ?", "lastEditedAt = ?"]
-    const updateValues: (boolean | Date | number)[] = [isIndexable, new Date()]
+    const updateFields = ["lastEditedAt = ?"]
+    const updateValues: (Date | number)[] = [new Date()]
 
     if (userId) {
         updateFields.push("lastEditedByUserId = ?")
@@ -468,15 +443,7 @@ export async function getGptTopicSuggestions(
         throw new JsonError(`No chart found for id ${chartId}`, 404)
     const enrichedChartConfig = parseChartConfig(chartConfigOnly.config)
 
-    const topics: Pick<DbPlainTag, "id" | "name">[] = await db.knexRaw(
-        knex,
-        `-- sql
-        SELECT t.id, t.name
-            FROM tags t
-            WHERE t.slug IS NOT NULL
-            AND t.parentId IN (${PUBLIC_TAG_PARENT_IDS.join(",")})
-        `
-    )
+    const topics = await db.getAllTopicTags(knex)
 
     if (!topics.length) throw new JsonError("No topics found", 404)
 
