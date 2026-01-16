@@ -47,9 +47,11 @@
 
         &.right {
             grid-column: 11 / span 3;
+            grid-row: span 10;
         }
         &.left {
             grid-column: 2 / span 3;
+            grid-row: span 10;
         }
 
         &.left,
