@@ -650,6 +650,8 @@ async function finalizeRecords(
                 id: `explorer/${explorerInfo.slug}${record.viewQueryParams}`,
                 score: computeExplorerViewScore(record),
                 views_7d: record.views_7d,
+                views_14d: 0,
+                views_365d: 0,
                 availableEntities: record.availableEntities,
                 titleLength: record.titleLength,
                 isFirstExplorerView: record.isFirstExplorerView,
@@ -804,13 +806,29 @@ async function getExplorersWithInheritedTags(trx: db.KnexReadonlyTransaction) {
 
 export const getExplorerViewRecords = async (
     trx: db.KnexReadonlyTransaction,
-    skipGrapherViews = false
+    skipGrapherViews = false,
+    slugFilter?: string
 ): Promise<FinalizedExplorerRecord[]> => {
     console.log("Getting explorer view records")
     if (skipGrapherViews) {
         console.log("(Skipping grapher views)")
     }
-    const publishedExplorersWithTags = await getExplorersWithInheritedTags(trx)
+    if (slugFilter) {
+        console.log(`(Filtering by slug: ${slugFilter})`)
+    }
+    let publishedExplorersWithTags = await getExplorersWithInheritedTags(trx)
+
+    // Apply slug filter early to avoid fetching data for all explorers
+    if (slugFilter) {
+        publishedExplorersWithTags = publishedExplorersWithTags.filter(
+            (e) => e.slug === slugFilter
+        )
+        if (publishedExplorersWithTags.length === 0) {
+            console.log(`No explorer found with slug: ${slugFilter}`)
+            return []
+        }
+    }
+
     const pageviews = await getAnalyticsPageviewsByUrlObj(trx)
 
     const explorerAdminServer = new ExplorerAdminServer()

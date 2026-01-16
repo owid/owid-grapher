@@ -16,6 +16,8 @@ export const PagesIndexRecordSchema = z.object({
     title: z.string(),
     content: z.string(),
     views_7d: z.number(),
+    views_14d: z.number(),
+    views_365d: z.number(),
     score: z.number(),
     excerpt: z.optional(z.string()),
     excerptLong: z.optional(z.array(z.string())),
@@ -83,6 +85,8 @@ export interface ChartRecord {
     titleLength: number
     numRelatedArticles: number
     views_7d: number
+    views_14d: number
+    views_365d: number
     score: number
     // we set attributeForDistinct on this, so we can use it to deduplicate
     // when we have multiple records for the same chart (e.g. with featured metrics)

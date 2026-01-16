@@ -20,7 +20,7 @@ import {
 import { maybeAddChangeInPrefix, processAvailableEntities } from "./shared.js"
 import { GrapherState } from "@ourworldindata/grapher"
 import { toPlaintext } from "@ourworldindata/components"
-import { getMaxViews7d, PageviewsByUrl } from "./pageviews.js"
+import { getMaxViewsAllWindows, PageviewsByUrl } from "./pageviews.js"
 
 const computeChartScore = (record: Omit<ChartRecord, "score">): number => {
     const { numRelatedArticles, views_7d } = record
@@ -85,22 +85,26 @@ async function getChartRedirectSlugsByChartId(
     return redirectMap
 }
 
-function getChartViews7d(
+function getChartViewsAllWindows(
     pageviews: PageviewsByUrl,
     slug: string,
     redirectSlugs: string[]
-): number {
+): { views_7d: number; views_14d: number; views_365d: number } {
     const urls = [
         `/grapher/${slug}`,
         ...redirectSlugs.map((redirectSlug) => `/grapher/${redirectSlug}`),
     ]
-    return getMaxViews7d(pageviews, urls)
+    return getMaxViewsAllWindows(pageviews, urls)
 }
 
 export const getChartsRecords = async (
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadonlyTransaction,
+    slugFilter?: string
 ): Promise<ChartRecord[]> => {
     console.log("Fetching charts to index")
+    if (slugFilter) {
+        console.log(`(Filtering by slug: ${slugFilter})`)
+    }
     const chartsToIndex = await db.knexRaw<RawChartRecordRow>(
         knex,
         `-- sql
@@ -118,6 +122,7 @@ export const getChartsRecords = async (
                      LEFT JOIN entities e ON ce.entityId = e.id
             WHERE cc.full ->> "$.isPublished" = 'true'
                 AND c.isIndexable IS TRUE
+                ${slugFilter ? `AND cc.slug = ?` : ""}
             GROUP BY c.id
         )
         SELECT c.id,
@@ -134,7 +139,8 @@ export const getChartsRecords = async (
                  LEFT JOIN tags t on ct.tagId = t.id
         GROUP BY c.id
         HAVING COUNT(t.id) >= 1
-    `
+    `,
+        slugFilter ? [slugFilter] : []
     )
 
     const parsedRows = chartsToIndex.map(parseAndProcessChartRecords)
@@ -195,7 +201,7 @@ export const getChartsRecords = async (
             titleLength: c.config.title?.length ?? 0,
             // Number of references to this chart in all our posts and pages
             numRelatedArticles: relatedArticles.length + linksFromGdocs.length,
-            views_7d: getChartViews7d(
+            ...getChartViewsAllWindows(
                 pageviews,
                 c.slug,
                 chartRedirectSlugsByChartId.get(c.id) ?? []
