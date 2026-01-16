@@ -29,7 +29,6 @@
 
 .search-autocomplete-item-contents__type-icon {
     @include autocomplete-item-icon;
-    visibility: hidden;
 }
 
 .search-autocomplete-item-contents__query {
