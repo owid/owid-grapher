@@ -7,17 +7,13 @@ import {
     PeerCountryStrategyQueryParam,
 } from "@ourworldindata/types"
 import {
-    aggregateSources,
     checkIsAggregate,
     checkIsCountry,
     checkIsIncomeGroup,
-    getAggregates,
     getContinentForCountry,
-    getContinents,
-    getIncomeGroups,
     getParentRegions,
     getRegionByName,
-    getSiblingRegions,
+    Region,
 } from "@ourworldindata/utils"
 import { WORLD_ENTITY_NAME } from "./GrapherConstants.js"
 import { match } from "ts-pattern"
@@ -142,93 +138,34 @@ function selectParentRegionsAsPeers({
     // Can't determine comparison entities for non-geographical entities
     if (!region) return []
 
-    // Compare World to any aggregate entities (e.g. continents or income groups)
-    if (targetCountry === WORLD_ENTITY_NAME)
-        return selectRegionGroupByPriority(availableEntities)
-
+    const availableEntitySet = new Set(availableEntities)
     const peers = new Set<EntityName>()
 
     // Always include World as a comparison if available
     if (availableEntitySet.has(WORLD_ENTITY_NAME)) peers.add(WORLD_ENTITY_NAME)
 
-    if (checkIsCountry(region)) {
-        // For countries: add their parent regions (continent, income group, etc.)
-        // Example: Germany -> Europe, High income countries
-        const parentRegions = getParentRegions(region.name)
+    // Get the parent regions of a country (continent, income group, etc.)
+    // Example: Germany -> Europe, Europe (WHO), High income countries
+    const parentRegions = getParentRegions(region.name)
 
-        // Only add a subset of parent regions:
-        // - If there is an income group, include it
-        // - If there is an owid continent, include it; otherwise include any
-        //   other aggregate continent
-        const incomeGroup = parentRegions.find((r) => checkIsIncomeGroup(r))
-        const owidContinent = parentRegions.find((r) => checkIsOwidContinent(r))
-        const nonOwidContinent = parentRegions.find((r) => checkIsAggregate(r))
-        const relevantParentRegions = excludeUndefined([
-            incomeGroup,
-            owidContinent ?? nonOwidContinent,
-        ])
+    const isAvailable = (region: Region): boolean =>
+        availableEntitySet.has(region.name)
 
-        for (const region of relevantParentRegions)
-            if (availableEntitySet.has(region.name)) peers.add(region.name)
-    } else {
-        // For aggregate regions: add sibling regions at the same hierarchical level
-        // Example: Europe -> Asia, Africa, North America (other continents)
-        const siblings = getSiblingRegions(region.name)
-        for (const sibling of siblings) {
-            if (availableEntitySet.has(sibling.name)) peers.add(sibling.name)
-        }
+    // If there is an income group, include it
+    const incomeGroup = parentRegions.find((r) => checkIsIncomeGroup(r))
+    if (incomeGroup && isAvailable(incomeGroup)) peers.add(incomeGroup.name)
+
+    // If there is an owid continent, include it;
+    // otherwise include any other aggregate region
+    const owidContinent = parentRegions.find((r) => checkIsOwidContinent(r))
+    const nonOwidContinent = parentRegions.find((r) => checkIsAggregate(r))
+    if (owidContinent && isAvailable(owidContinent)) {
+        peers.add(owidContinent.name)
+    } else if (nonOwidContinent && isAvailable(nonOwidContinent)) {
+        peers.add(nonOwidContinent.name)
     }
 
     return Array.from(peers)
-}
-
-/**
- * Finds the best available regions from a set of available entities,
- * prioritizing owid continents, then  income groups, then other aggregate
- * regions as defined by the WHO or WB, for example
- */
-export function selectRegionGroupByPriority(
-    availableEntities: EntityName[],
-    { includeWorld }: { includeWorld: boolean } = { includeWorld: false }
-): EntityName[] {
-    const availableEntitySet = new Set(availableEntities)
-
-    const owidContinents = getContinents()
-    const incomeGroups = getIncomeGroups()
-    const aggregates = getAggregates()
-
-    const aggregatesBySource = R.groupBy(
-        aggregates,
-        (region) => region.definedBy
-    )
-
-    // Sort according to the order specified in the regions file
-    const sortedAggregatesBySource = aggregateSources
-        .map((source) => aggregatesBySource[source])
-        .filter(R.isDefined)
-
-    const regionGroups = [
-        owidContinents,
-        incomeGroups,
-        ...sortedAggregatesBySource,
-    ]
-
-    // Try each group in order of priority and return the first with available regions
-    for (const regionGroup of regionGroups) {
-        const matchingRegions: EntityName[] = regionGroup
-            .filter((region) => availableEntitySet.has(region.name))
-            .map((region) => region.name)
-
-        if (matchingRegions.length > 0) {
-            // Add the World entity if requested and available
-            if (includeWorld && availableEntitySet.has(WORLD_ENTITY_NAME)) {
-                matchingRegions.push(WORLD_ENTITY_NAME)
-            }
-
-            return matchingRegions
-        }
-    }
-    return []
 }
 
 /** Finds countries with similar values to the target country */
