@@ -210,7 +210,7 @@ export {
     getAggregates,
     type Aggregate,
     type AggregateSource,
-    aggregateSources,
+    AGGREGATE_SOURCES,
     getOthers,
     countriesByName,
     incomeGroupsByName,

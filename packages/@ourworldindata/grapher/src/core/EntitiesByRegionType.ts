@@ -2,7 +2,7 @@ import * as _ from "lodash-es"
 import { EntityName } from "@ourworldindata/types"
 import {
     AggregateSource,
-    aggregateSources,
+    AGGREGATE_SOURCES,
     Country,
     excludeUndefined,
     getRegionByName,
@@ -11,7 +11,7 @@ import { CUSTOM_REGION_SOURCE_IDS, isWorldEntityName } from "./GrapherConstants"
 import * as R from "remeda"
 
 const customAggregateSources = CUSTOM_REGION_SOURCE_IDS.filter(
-    (source) => !aggregateSources.includes(source as AggregateSource)
+    (source) => !AGGREGATE_SOURCES.includes(source as AggregateSource)
 )
 type CustomAggregateSource = (typeof customAggregateSources)[number]
 
@@ -20,7 +20,7 @@ const entityRegionTypes = [
     "continents", // owid continents
     "incomeGroups",
     "historicalCountries", // e.g. USSR, Austria-Hungary
-    ...aggregateSources,
+    ...AGGREGATE_SOURCES,
     ...customAggregateSources,
 ] as const
 export type EntityRegionType = (typeof entityRegionTypes)[number]
@@ -41,12 +41,11 @@ export const entityRegionTypeLabels: Record<EntityRegionType, string> = {
     // Regions defined by an institution, and where we have region definition about what constitutes these regions in regions.json
     who: "World Health Organization regions",
     wb: "World Bank regions",
-    un: "United Nations regions",
     pew: "Pew Research Center regions",
-    // TODO: add labels
-    un_m49_1: "un_m49_1",
-    un_m49_2: "un_m49_2",
-    un_m49_3: "un_m49_3",
+    un: "United Nations regions",
+    un_m49_1: "United Nations regions",
+    un_m49_2: "United Nations regions",
+    un_m49_3: "United Nations regions",
 
     // Regions defined by an institution, but we don't have region definitions in regions.json for these (we recognize them by their suffix)
     unsdg: "UN Sustainable Development Goals regions",
@@ -163,7 +162,7 @@ export function groupEntityNamesByRegionType(
 }
 
 const aggregateSourceSet = new Set([
-    ...aggregateSources,
+    ...AGGREGATE_SOURCES,
     ...customAggregateSources,
 ])
 

@@ -51,7 +51,7 @@ import {
     getContinents,
     getIncomeGroups,
     getAggregates,
-    aggregateSources,
+    AGGREGATE_SOURCES,
 } from "@ourworldindata/utils"
 import { toPlaintext } from "@ourworldindata/components"
 import { ColumnTypeMap } from "@ourworldindata/core-table"
@@ -1111,9 +1111,9 @@ export function selectRegionGroupByPriority(
     )
 
     // Sort according to the order specified in the regions file
-    const sortedAggregatesBySource = aggregateSources
-        .map((source) => aggregatesBySource[source])
-        .filter(R.isDefined)
+    const sortedAggregatesBySource = AGGREGATE_SOURCES.map(
+        (source) => aggregatesBySource[source]
+    ).filter(R.isDefined)
 
     const regionGroups = [
         owidContinents,
