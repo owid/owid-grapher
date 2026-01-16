@@ -304,3 +304,24 @@ export interface WordPositioned {
 }
 
 export type Ngram = WordPositioned[]
+
+/**
+ * Context object containing shared enrichment data needed for Algolia indexing of chart, explorer and multi-dim views.
+ */
+export interface IndexingContext {
+    /** Pageview data by URL (e.g., "/grapher/life-expectancy" -> { views_7d: 1234 }) */
+    pageviews: Record<string, { views_7d: number }>
+
+    /**
+     * Topic tag hierarchies for computing parent topic tags.
+     * Maps tag name -> array of parent tag paths (each path is an array of tags with id, name, slug).
+     */
+    topicHierarchies: Record<
+        string,
+        Array<Array<{ id: number; name: string; slug: string | null }>>
+    >
+}
+
+export type ChartsIndexingContext = IndexingContext & {
+    redirectsByChartId: Map<number, string[]>
+}

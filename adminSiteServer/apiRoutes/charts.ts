@@ -64,6 +64,7 @@ import {
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
 import { getLogsByChartId } from "../getLogsByChartId.js"
+import { getChartsRecords } from "../../baker/algolia/utils/charts.js"
 
 import { Request } from "../authentication.js"
 import e from "express"
@@ -907,4 +908,18 @@ export async function deleteChart(
         )
 
     return { success: true }
+}
+
+/**
+ * Generate a preview of Algolia index records for a chart.
+ * Returns the records that would be created when indexing this chart.
+ */
+export async function getChartRecordsJson(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const chartId = expectInt(req.params.chartId)
+    const records = await getChartsRecords(trx, { chartIds: [chartId] })
+    return { records }
 }

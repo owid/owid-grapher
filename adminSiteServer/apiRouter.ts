@@ -142,6 +142,7 @@ import {
     updateChart,
     deleteChart,
     getChartTagsJson,
+    getChartRecordsJson,
 } from "./apiRoutes/charts.js"
 import { getChartConfig } from "./apiRoutes/chartConfigs.js"
 import {
@@ -234,6 +235,11 @@ getRouteWithROTransaction(
     apiRouter,
     "/charts/:chartId.tags.json",
     getChartTagsJson
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/charts/:chartId/records",
+    getChartRecordsJson
 )
 postRouteWithRWTransaction(apiRouter, "/charts", createChart)
 postRouteWithRWTransaction(
