@@ -2,7 +2,7 @@ import * as _ from "lodash-es"
 import * as R from "remeda"
 import { match } from "ts-pattern"
 import {
-    selectPeerCountries,
+    selectPeerCountriesForGrapher,
     generateFocusedSeriesNamesParam,
     generateSelectedEntityNamesParam,
     GrapherState,
@@ -30,7 +30,6 @@ import {
     Time,
     GrapherSearchResultJson,
     PeerCountryStrategy,
-    AdditionalGrapherDataFetchFn,
 } from "@ourworldindata/types"
 import { constructSearchResultDataTableContent } from "./constructSearchResultDataTableContent"
 import { constructGrapherValuesJson } from "../grapherValuesJson"
@@ -265,7 +264,6 @@ export async function pickDisplayEntities(
         chartType,
         addCountryMode,
         selectedEntityNames: defaultEntities,
-        availableEntityNames: availableEntities,
     } = grapherState
     const { seriesStrategy = SeriesStrategy.entity } = grapherState.chartState
     const isEntityStrategy = seriesStrategy === SeriesStrategy.entity
@@ -276,16 +274,9 @@ export async function pickDisplayEntities(
     const enrichPickedEntities = async () => {
         if (pickedEntities.length === 0) return defaultEntities
 
-        // For backward compatibility, default to the ParentRegions strategy
-        const peerCountryStrategy =
-            grapherState.peerCountryStrategy ??
-            PeerCountryStrategy.ParentRegions
         const pickedComparisonEntities = await selectPeerEntitiesForSearch({
-            peerCountryStrategy,
+            grapherState,
             targetEntity: pickedEntities[0],
-            defaultSelection: defaultEntities,
-            availableEntities,
-            additionalDataLoaderFn: grapherState.additionalDataLoaderFn,
         })
 
         // Default to the default entities if no comparison entities could be found
@@ -928,15 +919,9 @@ async function getGrapherQueryParamsForDiscreteBar(
         isEntityStrategy &&
         selectedEntities.length === 1
     ) {
-        const peerCountryStrategy =
-            grapherState.peerCountryStrategy ??
-            PeerCountryStrategy.ParentRegions
         const comparisonEntities = await selectPeerEntitiesForSearch({
-            peerCountryStrategy,
+            grapherState,
             targetEntity: selectedEntities[0],
-            defaultSelection: grapherState.selection.selectedEntityNames,
-            availableEntities: grapherState.availableEntityNames,
-            additionalDataLoaderFn: grapherState.additionalDataLoaderFn,
         })
         if (comparisonEntities.length > 1) {
             overwriteParams.country = generateSelectedEntityNamesParam(
@@ -1038,18 +1023,14 @@ function findTableSlotKey(
  * For the World entity: returns continents or income groups if available.
  */
 export async function selectPeerEntitiesForSearch({
-    peerCountryStrategy,
+    grapherState,
     targetEntity,
-    defaultSelection,
-    availableEntities,
-    additionalDataLoaderFn,
 }: {
-    peerCountryStrategy: PeerCountryStrategy
+    grapherState: GrapherState
     targetEntity: EntityName
-    defaultSelection: EntityName[]
-    availableEntities: EntityName[]
-    additionalDataLoaderFn?: AdditionalGrapherDataFetchFn
 }): Promise<EntityName[]> {
+    const availableEntities = grapherState.availableEntityNames
+
     // Compare World to any aggregate entities (e.g. continents or income groups)
     if (targetEntity === WORLD_ENTITY_NAME)
         return selectRegionGroupByPriority(availableEntities)
@@ -1059,13 +1040,15 @@ export async function selectPeerEntitiesForSearch({
     if (!targetRegion) return []
 
     if (checkIsCountry(targetRegion)) {
+        // For backward compatibility, default to the ParentRegions strategy
+        const peerCountryStrategy =
+            grapherState.peerCountryStrategy ??
+            PeerCountryStrategy.ParentRegions
+
         // For countries, use Grapher's peer selection logic
-        return selectPeerCountries({
-            peerCountryStrategy,
+        return selectPeerCountriesForGrapher(grapherState, {
             targetCountry: targetEntity,
-            defaultSelection,
-            availableEntities,
-            additionalDataLoaderFn,
+            peerCountryStrategy,
         })
     } else {
         // For aggregate regions, add sibling regions
