@@ -15,7 +15,7 @@ import {
     makeObservable,
 } from "mobx"
 import { observer } from "mobx-react"
-import Select, { MultiValue } from "react-select"
+import { Select } from "antd"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArchive } from "@fortawesome/free-solid-svg-icons"
@@ -46,6 +46,12 @@ interface Variable {
     datasetVersion?: string
     namespaceName: string
     usageCount: number
+}
+
+interface NamespaceOption {
+    value: string
+    label: React.ReactNode
+    searchText: string
 }
 
 @observer
@@ -200,16 +206,12 @@ export class VariableSelector<
         )
     }
 
-    filterNamespace(option: any, input: string) {
+    filterNamespace(searchText: string, input: string) {
         return input
             .split(" ")
             .map((word) => word.toLowerCase())
             .map((word) => {
-                const namespace = option.data as Namespace
-                return (
-                    namespace.name.toLowerCase().includes(word) ||
-                    namespace.description?.toLowerCase().includes(word)
-                )
+                return searchText.includes(word)
             })
             .every((v) => v)
     }
@@ -230,6 +232,14 @@ export class VariableSelector<
         } = this
 
         const highlight = highlightFunctionForSearchWords(searchWords)
+        const namespaceOptions: NamespaceOption[] = database.namespaces.map(
+            (namespace) => ({
+                value: namespace.name,
+                label: this.formatNamespaceLabel(namespace),
+                searchText:
+                    `${namespace.name} ${namespace.description ?? ""}`.toLowerCase(),
+            })
+        )
 
         return (
             <Modal onClose={this.onDismiss} className="VariableSelector">
@@ -251,31 +261,24 @@ export class VariableSelector<
                             />
                             <div className="form-group">
                                 <label>Namespaces</label>
-                                <Select
-                                    options={database.namespaces}
-                                    value={this.chosenNamespaces}
-                                    formatOptionLabel={
-                                        this.formatNamespaceLabel
-                                    }
-                                    getOptionValue={(v) => v.name}
+                                <Select<string[], NamespaceOption>
+                                    options={namespaceOptions}
+                                    value={this.chosenNamespaces.map(
+                                        (namespace) => namespace.name
+                                    )}
                                     onChange={this.onNamespace}
-                                    filterOption={this.filterNamespace}
-                                    components={{
-                                        IndicatorSeparator: null,
-                                    }}
-                                    menuPlacement="bottom"
-                                    isMulti
-                                    styles={{
-                                        multiValue: (baseStyles) => ({
-                                            ...baseStyles,
-                                            maxWidth: "300px",
-                                        }),
-                                        valueContainer: (baseStyles) => ({
-                                            ...baseStyles,
-                                            overflowY: "auto",
-                                            maxHeight: "130px",
-                                        }),
-                                    }}
+                                    filterOption={(inputValue, option) =>
+                                        this.filterNamespace(
+                                            option?.searchText ?? "",
+                                            inputValue
+                                        )
+                                    }
+                                    mode="multiple"
+                                    placement="bottomLeft"
+                                    getPopupContainer={(trigger) =>
+                                        trigger.parentElement ?? document.body
+                                    }
+                                    style={{ width: "100%" }}
                                 />
                             </div>
                             <div
@@ -467,8 +470,11 @@ export class VariableSelector<
         this.rowOffset = rowOffset
     }
 
-    @action.bound onNamespace(selected: MultiValue<Namespace> | null) {
-        if (selected) this.chosenNamespaces = [...selected]
+    @action.bound onNamespace(selected: string[]) {
+        const selectedSet = new Set(selected)
+        this.chosenNamespaces = this.database.namespaces.filter((namespace) =>
+            selectedSet.has(namespace.name)
+        )
     }
 
     @action.bound onSearchInput(input: string) {

@@ -1,6 +1,6 @@
 import { Component } from "react"
 import { computed, action, makeObservable } from "mobx"
-import Select from "react-select"
+import { Select } from "antd"
 import { GrapherChartOrMapType } from "@ourworldindata/types"
 import {
     ColorScheme,
@@ -14,6 +14,12 @@ export interface ColorSchemeOption {
     gradient?: string
     label: string
     value: string
+}
+
+interface ColorSchemeSelectOption {
+    value: string
+    label: React.ReactNode
+    searchLabel: string
 }
 
 interface ColorSchemeDropdownProps {
@@ -84,6 +90,13 @@ export class ColorSchemeDropdown extends Component<ColorSchemeDropdownProps> {
         if (value) this.props.onChange(value)
     }
 
+    @action.bound onSelectChange(value: string) {
+        const selected = this.allOptions.find(
+            (option) => option.value === value
+        )
+        this.onChange(selected ?? null)
+    }
+
     @bind formatOptionLabel(option: ColorSchemeOption) {
         const { invertedColorScheme } = this.props
 
@@ -117,27 +130,23 @@ export class ColorSchemeDropdown extends Component<ColorSchemeDropdownProps> {
     }
 
     override render() {
+        const selectOptions: ColorSchemeSelectOption[] = this.allOptions.map(
+            (option) => ({
+                value: option.value,
+                label: this.formatOptionLabel(option),
+                searchLabel: option.label,
+            })
+        )
         return (
-            <Select
-                options={this.allOptions}
-                formatOptionLabel={this.formatOptionLabel}
-                onChange={this.onChange}
+            <Select<string, ColorSchemeSelectOption>
+                options={selectOptions}
+                onChange={this.onSelectChange}
                 onBlur={this.props.onBlur}
-                value={this.allOptions.find(
-                    (scheme) => scheme.value === this.props.value
-                )}
-                components={{
-                    IndicatorSeparator: null,
-                }}
-                styles={{
-                    singleValue: (provided) => {
-                        return {
-                            ...provided,
-                            width: "calc(100% - 10px)",
-                        }
-                    },
-                }}
-                menuPlacement="auto"
+                optionFilterProp="searchLabel"
+                value={this.props.value}
+                placeholder="Select..."
+                showSearch={false}
+                style={{ width: "100%" }}
             />
         )
     }

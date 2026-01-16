@@ -155,7 +155,6 @@
         "react-router": "^5.3.4",
         "react-router-dom": "^5.3.4",
         "react-router-dom-v5-compat": "^6.29.0",
-        "react-select": "^5.10.2",
         "react-tag-autocomplete": "^7.5.0",
         "react-zoom-pan-pinch": "^3.7.0",
         "reflect-metadata": "^0.2.2",

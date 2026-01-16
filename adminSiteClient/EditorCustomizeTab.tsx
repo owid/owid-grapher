@@ -26,7 +26,6 @@ import {
     SelectField,
 } from "./Forms.js"
 import {
-    trimObject,
     TimeBoundValue,
     SortOrder,
     SortBy,
@@ -41,7 +40,7 @@ import {
     ColorSchemeOption,
 } from "./ColorSchemeDropdown.js"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
-import Select from "react-select"
+import { Select } from "antd"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { ErrorMessages } from "./ChartEditorTypes.js"
 import { match } from "ts-pattern"
@@ -213,6 +212,7 @@ export class ColorSchemeSelector extends React.Component<ColorSchemeSelectorProp
 }
 
 interface SortOrderDropdownOption {
+    key: string
     label: string
     value: Omit<SortConfig, "sortOrder">
     display?: { name: string; displayName: string }
@@ -242,6 +242,7 @@ class SortOrderSection<
         if (features.canSortByColumn) {
             dimensionSortOptions = this.grapherState.yColumnsFromDimensions.map(
                 (column): SortOrderDropdownOption => ({
+                    key: `column:${column.slug}`,
                     label: column.displayName,
                     display: {
                         name: column.name,
@@ -256,9 +257,18 @@ class SortOrderSection<
         }
 
         return [
-            { label: "Entity name", value: { sortBy: SortBy.entityName } },
-            { label: "Total value", value: { sortBy: SortBy.total } },
             {
+                key: "entityName",
+                label: "Entity name",
+                value: { sortBy: SortBy.entityName },
+            },
+            {
+                key: "total",
+                label: "Total value",
+                value: { sortBy: SortBy.total },
+            },
+            {
+                key: "custom",
                 label: "Custom order (use specified entity order)",
                 value: { sortBy: SortBy.custom },
             },
@@ -266,9 +276,21 @@ class SortOrderSection<
         ]
     }
 
-    @action.bound onSortByChange(selected: SortOrderDropdownOption | null) {
-        this.grapherState.sortBy = selected?.value.sortBy
-        this.grapherState.sortColumnSlug = selected?.value.sortColumnSlug
+    @computed get currentSortOptionKey(): string {
+        const { sortBy, sortColumnSlug } = this.sortConfig
+        if (sortBy === SortBy.column && sortColumnSlug)
+            return `column:${sortColumnSlug}`
+        if (sortBy === SortBy.entityName) return "entityName"
+        if (sortBy === SortBy.total) return "total"
+        if (sortBy === SortBy.custom) return "custom"
+        return this.sortOptions[0]?.key ?? "entityName"
+    }
+
+    @action.bound onSortByChange(selectedKey: string) {
+        const selected = this.sortOptions.find((opt) => opt.key === selectedKey)
+        if (!selected) return
+        this.grapherState.sortBy = selected.value.sortBy
+        this.grapherState.sortColumnSlug = selected.value.sortColumnSlug
     }
 
     @action.bound onSortOrderChange(sortOrder: string) {
@@ -285,29 +307,31 @@ class SortOrderSection<
                 <div className="form-group">
                     Sort by
                     <Select
-                        options={this.sortOptions}
                         onChange={this.onSortByChange}
-                        value={this.sortOptions.find((opt) =>
-                            _.isEqual(
-                                opt.value,
-                                trimObject(_.omit(this.sortConfig, "sortOrder"))
-                            )
-                        )}
-                        formatOptionLabel={(opt, { context }) =>
-                            opt.display && context === "menu" ? (
-                                <span>
-                                    {opt.display.displayName}
-                                    <br />
-                                    <small style={{ opacity: 0.8 }}>
-                                        {opt.display.name}
-                                    </small>
-                                </span>
-                            ) : (
-                                opt.label
-                            )
-                        }
-                        menuPlacement="auto"
-                    />
+                        value={this.currentSortOptionKey}
+                        optionLabelProp="label"
+                        style={{ width: "100%" }}
+                    >
+                        {this.sortOptions.map((opt) => (
+                            <Select.Option
+                                key={opt.key}
+                                value={opt.key}
+                                label={opt.label}
+                            >
+                                {opt.display ? (
+                                    <span>
+                                        {opt.display.displayName}
+                                        <br />
+                                        <small style={{ opacity: 0.8 }}>
+                                            {opt.display.name}
+                                        </small>
+                                    </span>
+                                ) : (
+                                    opt.label
+                                )}
+                            </Select.Option>
+                        ))}
+                    </Select>
                 </div>
                 <div className="form-group">
                     Sort order
@@ -342,31 +366,29 @@ class FacetSection<Editor extends AbstractChartEditor> extends React.Component<{
 
     @computed get facetOptions(): Array<{
         label: string
-        value?: FacetStrategy
+        value: FacetStrategy | "auto"
     }> {
-        return [{ label: "auto" }].concat(
-            this.grapherState.availableFacetStrategies.map((s) => {
-                return { label: s.toString(), value: s }
-            })
-        )
+        const options: Array<{
+            label: string
+            value: FacetStrategy | "auto"
+        }> = [{ label: "auto", value: "auto" }]
+
+        this.grapherState.availableFacetStrategies.forEach((strategy) => {
+            options.push({ label: strategy.toString(), value: strategy })
+        })
+
+        return options
     }
 
-    @computed get facetSelection(): { label: string; value?: FacetStrategy } {
-        const strategy = this.grapherState.selectedFacetStrategy
-        if (strategy) {
-            return { label: strategy.toString(), value: strategy }
-        }
-
-        return { label: "auto" }
+    @computed get facetSelectionValue(): FacetStrategy | "auto" {
+        return this.grapherState.selectedFacetStrategy ?? "auto"
     }
 
     @action.bound onFacetSelectionChange(
-        selected: {
-            label: string
-            value?: FacetStrategy
-        } | null
+        selectedValue: FacetStrategy | "auto"
     ) {
-        this.grapherState.selectedFacetStrategy = selected?.value
+        this.grapherState.selectedFacetStrategy =
+            selectedValue === "auto" ? undefined : selectedValue
     }
 
     override render() {
@@ -378,8 +400,9 @@ class FacetSection<Editor extends AbstractChartEditor> extends React.Component<{
                     Faceting strategy
                     <Select
                         options={this.facetOptions}
-                        value={this.facetSelection}
+                        value={this.facetSelectionValue}
                         onChange={this.onFacetSelectionChange}
+                        style={{ width: "100%" }}
                     />
                 </div>
                 <FieldsRow>
