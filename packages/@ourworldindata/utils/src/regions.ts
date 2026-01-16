@@ -105,6 +105,10 @@ export function checkIsIncomeGroup(region: Region): region is IncomeGroup {
     return region.regionType === RegionType.IncomeGroup
 }
 
+export function checkIsAggregate(region: Region): region is Aggregate {
+    return region.regionType === RegionType.Aggregate
+}
+
 export function checkHasMembers(
     region?: Region
 ): region is Aggregate | Continent | IncomeGroup {

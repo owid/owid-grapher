@@ -219,6 +219,7 @@ export {
     checkIsCountry,
     checkIsOwidContinent,
     checkIsIncomeGroup,
+    checkIsAggregate,
     getIncomeGroups,
     getCountryNamesForRegion,
     checkHasMembers,

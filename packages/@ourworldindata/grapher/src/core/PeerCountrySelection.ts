@@ -8,7 +8,9 @@ import {
 } from "@ourworldindata/types"
 import {
     aggregateSources,
+    checkIsAggregate,
     checkIsCountry,
+    checkIsIncomeGroup,
     getAggregates,
     getContinentForCountry,
     getContinents,
@@ -151,9 +153,22 @@ function selectParentRegionsAsPeers({
 
     if (checkIsCountry(region)) {
         // For countries: add their parent regions (continent, income group, etc.)
-        // Example: Germany -> Europe, Europe (WHO), High income countries
-        const regions = getParentRegions(region.name)
-        for (const region of regions)
+        // Example: Germany -> Europe, High income countries
+        const parentRegions = getParentRegions(region.name)
+
+        // Only add a subset of parent regions:
+        // - If there is an income group, include it
+        // - If there is an owid continent, include it; otherwise include any
+        //   other aggregate continent
+        const incomeGroup = parentRegions.find((r) => checkIsIncomeGroup(r))
+        const owidContinent = parentRegions.find((r) => checkIsOwidContinent(r))
+        const nonOwidContinent = parentRegions.find((r) => checkIsAggregate(r))
+        const relevantParentRegions = excludeUndefined([
+            incomeGroup,
+            owidContinent ?? nonOwidContinent,
+        ])
+
+        for (const region of relevantParentRegions)
             if (availableEntitySet.has(region.name)) peers.add(region.name)
     } else {
         // For aggregate regions: add sibling regions at the same hierarchical level
