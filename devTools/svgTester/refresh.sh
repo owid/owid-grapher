@@ -31,7 +31,7 @@ refresh() {
     echo "=> Generating reference SVGs ($testSuite)"
     rm -rf $path/references
     yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/export-graphs.ts \
-        $testSuite
+            $testSuite
 
     echo "=> Committing reference SVGs ($testSuite)"
     cd $SVGS_REPO \
@@ -53,6 +53,7 @@ main() {
     refresh grapher-views
     refresh mdims
     refresh explorers
+    refresh thumbnails
 }
 
 # show help

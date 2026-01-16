@@ -583,6 +583,27 @@ export async function getChartVariableData(
     return allVariablesDataAndMetadataMap
 }
 
+export const getMostViewedGrapherIds = async (
+    knex: db.KnexReadonlyTransaction,
+    count = 10
+): Promise<number[]> => {
+    const ids = await db.knexRaw<{ id: number }>(
+        knex,
+        `-- sql
+            SELECT c.id
+            FROM analytics_pageviews a
+            JOIN chart_configs cc ON slug = SUBSTRING_INDEX(a.url, '/', -1)
+            JOIN charts c ON c.configId = cc.id
+            WHERE a.url LIKE "https://ourworldindata.org/grapher/%"
+                AND cc.full ->> "$.isPublished" = "true"
+            ORDER BY a.views_365d DESC
+            LIMIT ?
+        `,
+        [count]
+    )
+    return ids.map((row) => row.id)
+}
+
 export const getMostViewedGrapherIdsByChartType = async (
     knex: db.KnexReadonlyTransaction,
     chartType: GrapherChartType,

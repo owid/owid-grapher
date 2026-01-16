@@ -14,6 +14,7 @@ The SVG tester supports multiple test suites:
 - **grapher-views**: All possible chart configurations for each grapher (different tabs, etc.)
 - **mdims**: Multi-dimensional data pages with multiple views
 - **explorers**: Interactive data explorers. Both indicator-based and CSV-based (FromColumnSlugs) explorers are tested. Grapher ID-based explorers are skipped since they're already covered by the grapher tests.
+- **thumbnails**: Thumbnail versions (300x160) of the most viewed graphers. For each chart, all available tabs (map, line, slope, etc.) are tested with the Thumbnail variant, which applies compact styling suitable for social media previews and search results.
 
 ## Make a reference set of SVGs
 
@@ -28,6 +29,44 @@ For every public and published grapher (~4,5000 at the time of writing), it crea
 - `config.json` - The grapher's JSON configuration
 - `{variableId}.data.json` - Data file for each variable used in the grapher
 - `{variableId}.metadata.json` - Metadata file for each variable used in the grapher
+
+#### Thumbnails
+
+For the most-viewed graphers (same subset as grapher-views), creates a manifest file listing which chart IDs to test. The actual data is read from the graphers suite, avoiding duplication. During SVG generation, all available tabs for each chart are rendered at 300x160 dimensions with the Thumbnail variant.
+
+```bash
+yarn tsx devTools/svgTester/dump-data.ts thumbnails
+```
+
+This creates `thumbnails/data/top.manifest.json` containing the list of chart slugs and the data directory path. The manifest specifies to use `../graphers/data` for the actual chart data. For each chart, all available tabs (map, line, slope, discrete-bar, etc., excluding table) are generated as separate thumbnails.
+
+**Important:** For the thumbnails test suite, the manifest is **required by default**. When you run export or verify without `--viewIds`, the scripts automatically load `top.manifest.json`. This prevents accidentally processing all ~4,000 charts.
+
+```bash
+# Export references for thumbnails (automatically uses manifest and tests all tabs)
+yarn tsx devTools/svgTester/export-graphs.ts thumbnails
+
+# Verify thumbnails (automatically uses manifest and tests all tabs)
+yarn tsx devTools/svgTester/verify-graphs.ts thumbnails
+
+# Process specific charts instead of using the manifest
+yarn tsx devTools/svgTester/export-graphs.ts thumbnails --viewIds life-expectancy population
+
+# You can also explicitly enable/disable all-tabs testing with --allTabs flag:
+yarn tsx devTools/svgTester/export-graphs.ts graphers --allTabs  # Test all tabs for regular graphers
+```
+
+#### Grapher-views
+
+For the most-viewed graphers (subset of all charts), creates a manifest file listing which chart IDs to test. The actual data is read from the graphers suite, avoiding duplication.
+
+```bash
+yarn tsx devTools/svgTester/dump-data.ts grapher-views
+```
+
+This creates `grapher-views/data/top.manifest.json` containing the list of chart slugs and the data directory path. The manifest specifies to use `../graphers/data` for the actual chart data.
+
+**Important:** For grapher-views and thumbnails test suites, the manifest is **required by default**. When you run export or verify without `--viewIds`, the scripts automatically load `top.manifest.json`. This prevents accidentally processing all ~4,000 charts with all view combinations. To override this behavior and process specific charts, explicitly use `--viewIds`.
 
 #### Multi-dimensional views
 
@@ -122,7 +161,7 @@ make svgtest.full
 This command:
 
 1. Resets `../owid-grapher-svgs` to `origin/master`
-2. Runs `export-graphs.ts` for all test suites (graphers, grapher-views, mdims, explorers)
+2. Runs `export-graphs.ts` for all test suites (graphers, grapher-views, mdims, explorers, thumbnails)
 3. Generates HTML comparison reports for each test suite
 
 ## Refreshing Reference Data
