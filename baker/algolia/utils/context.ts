@@ -44,3 +44,14 @@ export async function createExplorersIndexingContext(
 ): Promise<IndexingContext> {
     return baseContext ?? createBaseIndexingContext(knex)
 }
+
+/**
+ * Creates an IndexingContext for multi-dim views.
+ * If a base context is provided, uses it; otherwise fetches everything.
+ */
+export async function createMdimIndexingContext(
+    knex: db.KnexReadonlyTransaction,
+    baseContext?: IndexingContext
+): Promise<IndexingContext> {
+    return baseContext ?? createBaseIndexingContext(knex)
+}
