@@ -43,7 +43,7 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
             skipGrapherViews: true,
             baseContext,
         })
-        const mdimViews = await getMdimViewRecords(trx)
+        const mdimViews = await getMdimViewRecords(trx, { baseContext })
         const grapherViews = await getChartsRecords(trx, { baseContext })
         // Scale grapher records and the default explorer views between 1000 and 10000,
         // Scale the remaining explorer views between 0 and 1000.

@@ -61,6 +61,7 @@ import {
     handlePostMultiDimRedirect,
     handleDeleteMultiDimRedirect,
     handleGetAllMultiDimRedirects,
+    getMdimRecordsJson,
 } from "./apiRoutes/mdims.js"
 import {
     fetchAllWork,
@@ -399,6 +400,11 @@ getRouteWithROTransaction(apiRouter, "/images/usage", getImageUsageHandler)
 // Mdim routes
 getRouteWithROTransaction(apiRouter, "/multi-dims.json", handleGetMultiDims)
 getRouteWithROTransaction(apiRouter, "/multi-dims/:id", handleGetMultiDim)
+getRouteWithROTransaction(
+    apiRouter,
+    "/multi-dims/:id/records",
+    getMdimRecordsJson
+)
 putRouteWithRWTransaction(
     apiRouter,
     "/multi-dims/:catalogPath",

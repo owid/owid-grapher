@@ -25,6 +25,7 @@ import {
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import { Request } from "../authentication.js"
 import * as db from "../../db/db.js"
+import { getMdimViewRecords } from "../../baker/algolia/utils/mdimViews.js"
 import {
     validateNewGrapherSlug,
     validateMultiDimSlug,
@@ -546,4 +547,18 @@ export async function handleGetAllMultiDimRedirects(
     })
 
     return { redirects }
+}
+
+/**
+ * Generate a preview of Algolia index records for a multi-dim.
+ * Returns the records that would be created when indexing this multi-dim.
+ */
+export async function getMdimRecordsJson(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const id = expectInt(req.params.id)
+    const records = await getMdimViewRecords(trx, { id })
+    return { records }
 }

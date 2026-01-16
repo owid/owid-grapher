@@ -13,9 +13,13 @@ import {
 import { toPlaintext } from "@ourworldindata/components"
 import * as db from "../../../db/db.js"
 import { getAllPublishedMultiDimDataPages } from "../../../db/model/MultiDimDataPage.js"
-import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
-import { ChartRecord, ChartRecordType } from "@ourworldindata/types"
+import {
+    ChartRecord,
+    ChartRecordType,
+    IndexingContext,
+} from "@ourworldindata/types"
+import { createMdimIndexingContext } from "./context.js"
 import {
     getRelevantVariableIds,
     getRelevantVariableMetadata,
@@ -218,11 +222,10 @@ async function getRecords(
 }
 
 async function getMultiDimDataPagesWithInheritedTags(
-    trx: db.KnexReadonlyTransaction
+    trx: db.KnexReadonlyTransaction,
+    topicHierarchies: IndexingContext["topicHierarchies"]
 ) {
     const multiDims = await getAllPublishedMultiDimDataPages(trx)
-    const topicHierarchiesByChildName =
-        await db.getTopicHierarchiesByChildName(trx)
 
     const result = []
     for (const multiDim of multiDims) {
@@ -242,7 +245,7 @@ async function getMultiDimDataPagesWithInheritedTags(
 
         const topicTags = getUniqueNamesFromTagHierarchies(
             tags,
-            topicHierarchiesByChildName
+            topicHierarchies
         )
 
         result.push({ multiDim: multiDimWithSlug, tags: topicTags })
@@ -251,10 +254,26 @@ async function getMultiDimDataPagesWithInheritedTags(
     return result
 }
 
-export async function getMdimViewRecords(trx: db.KnexReadonlyTransaction) {
+export async function getMdimViewRecords(
+    trx: db.KnexReadonlyTransaction,
+    options?: {
+        id?: number
+        baseContext?: IndexingContext
+    }
+) {
+    const { id, baseContext } = options ?? {}
+
     console.log("Getting mdim view records")
-    const multiDimsWithTags = await getMultiDimDataPagesWithInheritedTags(trx)
-    const pageviews = await getAnalyticsPageviewsByUrlObj(trx)
+
+    const context = await createMdimIndexingContext(trx, baseContext)
+
+    const multiDimsWithTags = (
+        await getMultiDimDataPagesWithInheritedTags(
+            trx,
+            context.topicHierarchies
+        )
+    ).filter((m) => id === undefined || m.multiDim.id === id)
+
     const [grapherRedirects, explorerRedirects] = await Promise.all([
         getMultiDimRedirectTargets(trx, undefined, "/grapher/"),
         getMultiDimRedirectTargets(trx, undefined, "/explorers/"),
@@ -303,7 +322,7 @@ export async function getMdimViewRecords(trx: db.KnexReadonlyTransaction) {
                 trx,
                 multiDim,
                 tags,
-                pageviews,
+                context.pageviews,
                 redirectSourcesByTarget,
                 redirectSourcesBySlug
             )
