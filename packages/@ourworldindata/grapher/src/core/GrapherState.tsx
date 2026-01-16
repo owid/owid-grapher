@@ -3485,7 +3485,6 @@ export class GrapherState
      */
     @computed get canonicalUrl(): string | undefined {
         return (
-            this.manager?.canonicalUrl ??
             this.canonicalUrlIfIsNarrativeChart ??
             (this.baseUrl ? this.baseUrl + this.queryStr : undefined)
         )
