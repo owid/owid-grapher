@@ -119,11 +119,13 @@ function escapeQuestionMark(str: string) {
     return str.replace(/\?/g, "%3F")
 }
 
-function createTabControls() {
+function createTabControls(changedLines?: number) {
+    const codeDiffLabel =
+        changedLines !== undefined ? `Code Diff (${changedLines})` : "Code Diff"
     return `<div class="tabs">
         <button class="tab-btn active" data-tab="side-by-side">Side by Side</button>
         <button class="tab-btn" data-tab="slider">Swipe</button>
-        <button class="tab-btn" data-tab="code-diff">Code Diff</button>
+        <button class="tab-btn" data-tab="code-diff">${codeDiffLabel}</button>
     </div>`
 }
 
@@ -172,7 +174,7 @@ function createCodeDiffView(
     referenceFilename: string,
     differencesFilename: string,
     svgFilename: string
-) {
+): { html: string; changedLines: number } {
     // Read both SVG files
     const referenceContent = fs.readFileSync(referenceFilename, "utf-8")
     const differencesContent = fs.readFileSync(differencesFilename, "utf-8")
@@ -187,9 +189,16 @@ function createCodeDiffView(
         ""
     )
 
+    // Count changed lines (lines starting with + or - but not +++ or ---)
+    const diffLines = unifiedDiff.split("\n")
+    const changedLines = diffLines.filter(
+        (line) =>
+            (line.startsWith("+") && !line.startsWith("+++")) ||
+            (line.startsWith("-") && !line.startsWith("---"))
+    ).length
+
     // Truncate large diffs to avoid bloating HTML file
     const MAX_DIFF_LINES = 500
-    const diffLines = unifiedDiff.split("\n")
     const isTruncated = diffLines.length > MAX_DIFF_LINES
     const truncatedDiff = isTruncated
         ? diffLines.slice(0, MAX_DIFF_LINES).join("\n") +
@@ -202,9 +211,12 @@ function createCodeDiffView(
         .replace(/`/g, "\\`")
         .replace(/\$/g, "\\$")
 
-    return `<div class="tab-pane" data-pane="code-diff">
+    return {
+        html: `<div class="tab-pane" data-pane="code-diff">
         <div class="code-diff-container" data-diff="${escapedDiff.replace(/"/g, "&quot;")}" data-truncated="${isTruncated}"></div>
-    </div>`
+    </div>`,
+        changedLines,
+    }
 }
 
 function createComparisonView(args: {
@@ -235,6 +247,12 @@ function createComparisonView(args: {
         svgFilename
     )
 
+    const codeDiff = createCodeDiffView(
+        referencesPath,
+        differencesPath,
+        svgFilename
+    )
+
     return `<section data-slug="${viewId}">
         <div class="header-with-actions">
             <h2>${viewId}</h2>
@@ -246,11 +264,11 @@ function createComparisonView(args: {
                 <span class="copy-text">Copy</span>
             </button>
         </div>
-        ${createTabControls()}
+        ${createTabControls(codeDiff.changedLines)}
         <div class="tab-content">
             ${createSideBySideView(svgRecord, referenceFilenameUrl, differenceFilenameUrl, compareChartUrl, liveChartUrl)}
             ${createSliderView(referenceFilenameUrl, differenceFilenameUrl)}
-            ${createCodeDiffView(referencesPath, differencesPath, svgFilename)}
+            ${codeDiff.html}
         </div>
     </section>`
 }
@@ -399,10 +417,10 @@ function createHtml(content: string) {
         }
 
         .comparison-item {
-            flex: 1;
+            flex: 0 1 auto;
             display: flex;
             flex-direction: column;
-            max-width: 600px;
+            max-width: 850px;
         }
 
         .comparison-header {
@@ -443,8 +461,9 @@ function createHtml(content: string) {
 
         .comparison-image-wrapper img {
             display: block;
-            width: 100%;
+            width: auto;
             max-width: 100%;
+            height: auto;
         }
 
         /* Slider view */
@@ -454,7 +473,7 @@ function createHtml(content: string) {
         }
 
         .comparison-slider {
-            width: 800px;
+            width: auto;
             max-width: 100%;
             margin: 0 auto;
             display: inline-block;
@@ -466,10 +485,11 @@ function createHtml(content: string) {
         }
 
         img-comparison-slider img {
-            max-width: 100%;
+            max-width: 850px;
             width: 100%;
             display: block;
             border-radius: 4px;
+            height: auto;
         }
 
         /* Red outline for old/reference version (first image) */
