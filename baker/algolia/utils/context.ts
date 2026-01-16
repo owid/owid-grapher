@@ -33,3 +33,14 @@ export async function createChartsIndexingContext(
 
     return { ...base, redirectsByChartId }
 }
+
+/**
+ * Creates an IndexingContext for explorers.
+ * If a base context is provided, uses it; otherwise fetches everything.
+ */
+export async function createExplorersIndexingContext(
+    knex: db.KnexReadonlyTransaction,
+    baseContext?: IndexingContext
+): Promise<IndexingContext> {
+    return baseContext ?? createBaseIndexingContext(knex)
+}

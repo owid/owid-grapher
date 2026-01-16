@@ -39,7 +39,10 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
     const records = await db.knexReadonlyTransaction(async (trx) => {
         // Create shared base context once for all record getters
         const baseContext = await createBaseIndexingContext(trx)
-        const explorerViews = await getExplorerViewRecords(trx, true)
+        const explorerViews = await getExplorerViewRecords(trx, {
+            skipGrapherViews: true,
+            baseContext,
+        })
         const mdimViews = await getMdimViewRecords(trx)
         const grapherViews = await getChartsRecords(trx, { baseContext })
         // Scale grapher records and the default explorer views between 1000 and 10000,
