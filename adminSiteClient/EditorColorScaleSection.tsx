@@ -3,7 +3,7 @@ import * as R from "remeda"
 import { Component, Fragment } from "react"
 import { action, computed, runInAction, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import Select from "react-select"
+import { Select } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus, faMinus } from "@fortawesome/free-solid-svg-icons"
 import {
@@ -139,6 +139,8 @@ interface ColorsSectionProps {
     errorMessagesKey?: string
 }
 
+type MidpointModeOptionValue = MidpointMode | "auto"
+
 @observer
 class ColorsSection extends Component<ColorsSectionProps> {
     constructor(props: ColorsSectionProps) {
@@ -171,11 +173,9 @@ class ColorsSection extends Component<ColorsSectionProps> {
     }
 
     @action.bound onBinningStrategy(
-        binningStrategy: {
-            value: BinningStrategyIncludingManual
-        } | null
+        binningStrategy: BinningStrategyIncludingManual
     ) {
-        if (binningStrategy) this.config.binningStrategy = binningStrategy.value
+        this.config.binningStrategy = binningStrategy
         this.props.onChange?.()
     }
 
@@ -188,7 +188,7 @@ class ColorsSection extends Component<ColorsSectionProps> {
 
     @computed get midpointModeOptions() {
         return [
-            { value: undefined, label: "Automatic" },
+            { value: "auto", label: "Automatic" },
             { value: "none", label: "No midpoint" },
             { value: "symmetric", label: "Symmetric around midpoint" },
             {
@@ -196,7 +196,7 @@ class ColorsSection extends Component<ColorsSectionProps> {
                 label: "Same number of bins on both sides",
             },
             { value: "asymmetric", label: "Asymmetric around midpoint" },
-        ] satisfies { value: MidpointMode | undefined; label: string }[]
+        ] satisfies { value: MidpointModeOptionValue; label: string }[]
     }
 
     @computed get binningStrategyOptions() {
@@ -234,12 +234,6 @@ class ColorsSection extends Component<ColorsSectionProps> {
         ]
     }
 
-    @computed get currentBinningStrategyOption() {
-        return this.binningStrategyOptions.find(
-            (option) => option.value === (this.config.binningStrategy ?? "auto")
-        )
-    }
-
     override render() {
         const { scale, config } = this
 
@@ -275,15 +269,13 @@ class ColorsSection extends Component<ColorsSectionProps> {
                 <FieldsRow>
                     <div className="form-group">
                         <label>Binning strategy</label>
-                        <Select
+                        <Select<BinningStrategyIncludingManual>
                             options={this.binningStrategyOptions}
                             onChange={this.onBinningStrategy}
-                            value={this.currentBinningStrategyOption}
-                            components={{
-                                IndicatorSeparator: null,
-                            }}
-                            menuPlacement="auto"
-                            isSearchable={false}
+                            value={config.binningStrategy ?? "auto"}
+                            showSearch={false}
+                            placement="bottomLeft"
+                            style={{ width: "100%" }}
                         />
                     </div>
                 </FieldsRow>
@@ -336,20 +328,17 @@ class ColorsSection extends Component<ColorsSectionProps> {
                 <FieldsRow>
                     <div className="form-group">
                         <label>Midpoint mode</label>
-                        <Select
+                        <Select<MidpointModeOptionValue>
                             options={this.midpointModeOptions}
-                            onChange={(option) => {
-                                config.midpointMode = option?.value
+                            onChange={(value) => {
+                                config.midpointMode =
+                                    value === "auto" ? undefined : value
                                 this.props.onChange?.()
                             }}
-                            value={this.midpointModeOptions.find(
-                                (option) => option.value === config.midpointMode
-                            )}
-                            components={{
-                                IndicatorSeparator: null,
-                            }}
-                            menuPlacement="auto"
-                            isSearchable={false}
+                            value={config.midpointMode ?? "auto"}
+                            showSearch={false}
+                            placement="bottomLeft"
+                            style={{ width: "100%" }}
                         />
                     </div>
                 </FieldsRow>

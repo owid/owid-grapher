@@ -1,7 +1,6 @@
 import * as _ from "lodash-es"
 import { Component } from "react"
-import Select, { GroupBase, components, OptionProps } from "react-select"
-import classNames from "classnames"
+import { Select } from "antd"
 import { observer } from "mobx-react"
 import { computed, action, makeObservable } from "mobx"
 
@@ -101,20 +100,17 @@ export interface VisionDeficiencyEntity {
     deficiency?: VisionDeficiency
 }
 
-const VisionDeficiencyOption = (
-    props: OptionProps<VisionDeficiencyEntity, false, any>
-) => (
+const VisionDeficiencyOptionLabel = ({
+    label,
+    deficiency,
+}: VisionDeficiencyEntity) => (
     <div style={{ fontSize: ".9em", lineHeight: 1 }}>
-        <components.Option {...props}>
-            <label>{props.label}</label>
-            {props.data.deficiency?.affected && (
-                <div
-                    className={classNames({ "text-muted": !props.isSelected })}
-                >
-                    <small>Affected: {props.data.deficiency.affected}</small>
-                </div>
-            )}
-        </components.Option>
+        <label>{label}</label>
+        {deficiency?.affected && (
+            <div className="text-muted">
+                <small>Affected: {deficiency.affected}</small>
+            </div>
+        )}
     </div>
 )
 
@@ -130,41 +126,68 @@ export class VisionDeficiencyDropdown extends Component<VisionDeficiencyDropdown
         makeObservable(this)
     }
 
-    @computed get options(): GroupBase<VisionDeficiencyEntity>[] {
+    @computed get flatOptions(): VisionDeficiencyEntity[] {
         const options = visionDeficiencies.map((deficiency) => ({
             label: `${deficiency.name} (${deficiency.alternativeName})`,
             value: deficiency.id,
             deficiency,
         }))
-        const grouped = _.groupBy(options, (option) => option.deficiency.group)
+
+        return [this.noDeficiencyOption, ...options]
+    }
+
+    @computed get optionsByValue(): Map<string, VisionDeficiencyEntity> {
+        return new Map(this.flatOptions.map((option) => [option.value, option]))
+    }
+
+    @computed get optionGroups(): Array<{
+        label: string
+        options: VisionDeficiencyEntity[]
+    }> {
+        const grouped = _.groupBy(
+            this.flatOptions.slice(1),
+            (option) => option.deficiency?.group ?? "Other"
+        )
         const selectGroups = Object.entries(grouped).map(
             ([label, options]) => ({ label, options })
         )
 
         return [
-            {
-                label: "No deficiencies",
-                options: [this.noDeficiencyOption],
-            },
+            { label: "No deficiencies", options: [this.noDeficiencyOption] },
             ...selectGroups,
         ]
     }
 
-    @action.bound onChange(selected: VisionDeficiencyEntity | null) {
+    @action.bound onChange(selectedValue: string) {
+        const selected = this.optionsByValue.get(selectedValue)
         if (selected) this.props.onChange(selected)
     }
 
     override render() {
+        const isControlled = this.props.value !== undefined
         return (
             <Select
-                options={this.options}
                 onChange={this.onChange}
-                defaultValue={this.noDeficiencyOption}
-                menuPlacement="top"
-                components={{
-                    Option: VisionDeficiencyOption,
-                }}
-            />
+                defaultValue={this.noDeficiencyOption.value}
+                value={isControlled ? this.props.value : undefined}
+                optionLabelProp="label"
+                placement="topLeft"
+                style={{ width: "100%" }}
+            >
+                {this.optionGroups.map((group) => (
+                    <Select.OptGroup key={group.label} label={group.label}>
+                        {group.options.map((option) => (
+                            <Select.Option
+                                key={option.value}
+                                value={option.value}
+                                label={option.label}
+                            >
+                                <VisionDeficiencyOptionLabel {...option} />
+                            </Select.Option>
+                        ))}
+                    </Select.OptGroup>
+                ))}
+            </Select>
         )
     }
 }
