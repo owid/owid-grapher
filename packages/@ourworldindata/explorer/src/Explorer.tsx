@@ -87,7 +87,6 @@ export interface ExplorerProps extends SerializedGridProgram {
     isEmbeddedInAnOwidPage?: boolean
     isInStandalonePage?: boolean
     isPreview?: boolean
-    canonicalUrl?: string
     selection?: SelectionArray
     adminBaseUrl: string
     bakedBaseUrl: string
@@ -1115,13 +1114,6 @@ export class Explorer
         return (
             archiveUrl ??
             `${this.bakedBaseUrl}/${EXPLORERS_ROUTE_FOLDER}/${this.props.slug}`
-        )
-    }
-
-    @computed get canonicalUrl() {
-        return (
-            this.props.canonicalUrl ??
-            Url.fromURL(this.baseUrl).setQueryParams(this.queryParams).fullUrl
         )
     }
 
