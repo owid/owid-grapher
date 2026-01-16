@@ -219,6 +219,8 @@ export enum PeerCountryStrategy {
     GdpPerCapita = "gdpPerCapita",
     /** Use countries with similar population as peers */
     Population = "population",
+    /** Use countries that represent the full data range */
+    DataRange = "dataRange",
     /** Use the chart's default selection as peers */
     DefaultSelection = "defaultSelection",
 }

@@ -16,6 +16,7 @@ import {
     getRegionByName,
     Region,
 } from "@ourworldindata/utils"
+import { CoreColumn } from "@ourworldindata/core-table"
 import { WORLD_ENTITY_NAME } from "./GrapherConstants.js"
 import { match } from "ts-pattern"
 import { GrapherState } from "./GrapherState.js"
@@ -41,17 +42,23 @@ export function isValidPeerCountryStrategyQueryParam(
  * takes effect when exactly one entity is selected.
  */
 export async function selectPeerCountriesForGrapher(
-    grapherState: GrapherState
+    grapherState: GrapherState,
+    options?: {
+        peerCountryStrategy?: PeerCountryStrategy
+        targetCountry?: EntityName
+    }
 ): Promise<EntityName[]> {
     if (grapherState.selection.numSelectedEntities !== 1) return []
 
-    const targetCountry = grapherState.selection.selectedEntityNames[0]
+    const targetCountry =
+        options?.targetCountry ?? grapherState.selection.selectedEntityNames[0]
     const defaultSelection = grapherState.authorsVersion.selectedEntityNames
 
     const availableEntities = grapherState.availableEntityNames
     if (availableEntities.length === 0) return []
 
-    const peerCountryStrategy = grapherState.peerCountryStrategy
+    const peerCountryStrategy =
+        options?.peerCountryStrategy ?? grapherState.peerCountryStrategy
     if (!peerCountryStrategy) return []
 
     // Peer country selection only makes sense for countries
@@ -60,12 +67,15 @@ export async function selectPeerCountriesForGrapher(
 
     const additionalDataLoaderFn = grapherState.additionalDataLoaderFn
 
+    const dataColumn = grapherState.table.get(grapherState.yColumnSlug)
+
     return selectPeerCountries({
         peerCountryStrategy,
         targetCountry,
         defaultSelection,
         availableEntities,
         additionalDataLoaderFn,
+        dataColumn,
     })
 }
 
@@ -76,12 +86,14 @@ export async function selectPeerCountries({
     defaultSelection,
     availableEntities,
     additionalDataLoaderFn,
+    dataColumn,
 }: {
     peerCountryStrategy: PeerCountryStrategy
     targetCountry: EntityName
     defaultSelection: EntityName[]
     availableEntities: EntityName[]
     additionalDataLoaderFn?: AdditionalGrapherDataFetchFn
+    dataColumn?: CoreColumn
 }): Promise<EntityName[]> {
     return match(peerCountryStrategy)
         .with(PeerCountryStrategy.DefaultSelection, () => defaultSelection)
@@ -108,6 +120,13 @@ export async function selectPeerCountries({
                 maxPeerRatio: 1.5,
             })
         })
+        .with(PeerCountryStrategy.DataRange, async () => {
+            if (!isDataColumnAvailable(dataColumn)) return []
+            return selectPeerCountriesByDataRange({
+                availableEntities,
+                dataColumn,
+            })
+        })
         .exhaustive()
 }
 
@@ -117,6 +136,18 @@ function isDataLoaderAvailable(
     if (!additionalDataLoaderFn) {
         console.warn(
             `additionalDataLoaderFn not available for peer selection. Not selecting any peer countries.`
+        )
+        return false
+    }
+    return true
+}
+
+function isDataColumnAvailable(
+    dataColumn?: CoreColumn
+): dataColumn is CoreColumn {
+    if (!dataColumn || dataColumn.isMissing || dataColumn.isEmpty) {
+        console.warn(
+            `dataColumn not available for peer selection. Not selecting any peer countries.`
         )
         return false
     }
@@ -216,6 +247,32 @@ async function selectPeerCountriesByClosestValue({
         )
         return []
     }
+}
+
+/** Selects countries representing the full data range */
+async function selectPeerCountriesByDataRange({
+    availableEntities,
+    dataColumn,
+}: {
+    availableEntities: EntityName[]
+    dataColumn: CoreColumn
+}): Promise<EntityName[]> {
+    // Only consider countries as candidates for peer selection
+    const candidateCountries = availableEntities.filter((entityName) => {
+        const region = getRegionByName(entityName)
+        return region && checkIsCountry(region)
+    })
+
+    // Extract latest values for candidate countries
+    const values = new Map<EntityName, number>()
+    for (const entityName of candidateCountries) {
+        const latestValue = dataColumn.owidRowByEntityNameAndTime
+            .get(entityName)
+            ?.get(dataColumn.maxTime)?.value
+        if (latestValue !== undefined) values.set(entityName, latestValue)
+    }
+
+    return findDataRangePeers({ values })
 }
 
 /** Finds entities with values closest to a target entity using logarithmic distance */
@@ -332,5 +389,34 @@ const findClosestByLogDistance = ({
         R.sortBy((item) => item.difference),
         R.take(targetCount),
         R.map((item) => item.entityName)
+    )
+}
+
+/** Finds entities at specific percentiles to represent the data distribution */
+export function findDataRangePeers({
+    values,
+    percentiles = [0.1, 0.25, 0.5, 0.75, 0.9],
+}: {
+    values: Map<EntityName, number>
+    percentiles?: number[]
+}): EntityName[] {
+    const sortedData = R.pipe(
+        Array.from(values.entries()),
+        R.map(([entityName, value]) => ({ entityName, value })),
+        R.sortBy((item) => item.value)
+    )
+
+    if (sortedData.length === 0) return []
+
+    const n = sortedData.length
+
+    return R.pipe(
+        percentiles,
+        R.map((p) => {
+            const index = Math.round(p * (n - 1))
+            return sortedData[index]?.entityName
+        }),
+        R.filter((name): name is EntityName => name !== undefined),
+        R.unique()
     )
 }

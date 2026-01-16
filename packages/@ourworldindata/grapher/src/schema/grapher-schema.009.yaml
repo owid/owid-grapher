@@ -225,11 +225,13 @@ properties:
             - "parentRegions": Use the containing continent, income group, and World as peers
             - "gdpPerCapita": Use countries with similar GDP per capita as peers
             - "population": Use countries with similar population as peers
+            - "dataRange": Use countries that represent the data range as peers
         enum:
             - defaultSelection
             - parentRegions
             - gdpPerCapita
             - population
+            - dataRange
     entityType:
         type: string
         default: country or region
