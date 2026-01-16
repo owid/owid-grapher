@@ -1,5 +1,8 @@
 import { expect, it, describe } from "vitest"
-import { findClosestByValue } from "./PeerCountrySelection.js"
+import {
+    findClosestByValue,
+    selectParentRegionsAsPeers,
+} from "./PeerCountrySelection.js"
 
 describe(findClosestByValue, () => {
     it("finds entities with values closest to target using logarithmic distance", () => {
@@ -66,5 +69,65 @@ describe(findClosestByValue, () => {
 
         // Australia has no Oceania peers within threshold, falls back to global
         expect(result).toEqual(["Germany", "France"])
+    })
+})
+
+describe(selectParentRegionsAsPeers, () => {
+    it("returns World and parent regions for a country", () => {
+        const result = selectParentRegionsAsPeers({
+            targetCountry: "Germany",
+            availableEntities: [
+                "Germany",
+                "World",
+                "Europe",
+                "High-income countries",
+                "Asia",
+            ],
+        })
+
+        // Germany should have World, Europe (continent), and High-income countries (income group)
+        expect(result).toContain("World")
+        expect(result).toContain("Europe")
+        expect(result).toContain("High-income countries")
+        expect(result).not.toContain("Asia")
+        expect(result).not.toContain("Germany")
+    })
+
+    it("only returns entities that are available", () => {
+        const result = selectParentRegionsAsPeers({
+            targetCountry: "France",
+            availableEntities: ["France", "World", "Africa"], // Missing Europe
+        })
+
+        // Should only return World since Europe is not available
+        expect(result).toEqual(["World"])
+    })
+
+    it("returns empty array for non-existent entity", () => {
+        const result = selectParentRegionsAsPeers({
+            targetCountry: "NonExistentCountry",
+            availableEntities: ["World", "Europe"],
+        })
+
+        expect(result).toEqual([])
+    })
+
+    it("includes World even when no parent regions are available", () => {
+        const result = selectParentRegionsAsPeers({
+            targetCountry: "Brazil",
+            availableEntities: ["Brazil", "World"], // No South America or other parent regions
+        })
+
+        expect(result).toEqual(["World"])
+    })
+
+    it("returns empty array when World is not available", () => {
+        const result = selectParentRegionsAsPeers({
+            targetCountry: "Germany",
+            availableEntities: ["Germany", "Asia"], // No World or relevant parent regions
+        })
+
+        // Should return empty since neither World nor parent regions are available
+        expect(result).toEqual([])
     })
 })

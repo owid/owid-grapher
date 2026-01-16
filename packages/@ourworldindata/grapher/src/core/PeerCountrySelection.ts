@@ -126,7 +126,7 @@ function isDataLoaderAvailable(
  * Selects parent aggregate regions (continents, income groups) that the target
  * country belongs to, plus World.
  */
-function selectParentRegionsAsPeers({
+export function selectParentRegionsAsPeers({
     targetCountry,
     availableEntities,
 }: {
