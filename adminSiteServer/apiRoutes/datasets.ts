@@ -232,14 +232,12 @@ export async function getDataset(
     const availableTags = await db.knexRaw<{
         id: number
         name: string
-        parentName: string
     }>(
         trx,
+        `-- sql
+        SELECT t.id, t.name
+        FROM tags t
         `
-    SELECT t.id, t.name, p.name AS parentName
-    FROM tags AS t
-    JOIN tags AS p ON t.parentId=p.id
-    `
     )
     dataset.availableTags = availableTags
 

@@ -86,7 +86,6 @@ test("createdAt timestamp is automatically created", async () => {
                 configId,
                 lastEditedAt: new Date(),
                 lastEditedByUserId: user.id,
-                isIndexable: false,
             }
             await trx.table(ChartConfigsTableName).insert(chartConfig)
             const res = await trx.table(ChartsTableName).insert(chart)

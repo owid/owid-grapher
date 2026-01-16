@@ -36,5 +36,3 @@ fields:
         description: Foreign key to users table. Tracks who last made substantive edits to the chart.
     publishedByUserId:
         description: Foreign key to users table. Tracks who published the chart.
-    isIndexable:
-        description: Whether the chart should be indexed by search engines and appear in search results. Charts are indexable if not tagged 'Unlisted' and have at least one public parent tag.
