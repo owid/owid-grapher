@@ -1,6 +1,7 @@
 import { expect, it, describe } from "vitest"
 import {
     findClosestByValue,
+    findDataRangePeers,
     selectParentRegionsAsPeers,
 } from "./PeerCountrySelection.js"
 
@@ -129,5 +130,42 @@ describe(selectParentRegionsAsPeers, () => {
 
         // Should return empty since neither World nor parent regions are available
         expect(result).toEqual([])
+    })
+})
+
+describe(findDataRangePeers, () => {
+    it("avoids extreme outliers by using trimmed percentiles", () => {
+        const values = new Map([
+            ["Outlier_Low", 1], // Would be min, but excluded
+            ["Normal_1", 100],
+            ["Normal_2", 200],
+            ["Normal_3", 300],
+            ["Normal_4", 400],
+            ["Normal_5", 500],
+            ["Normal_6", 600],
+            ["Normal_7", 700],
+            ["Normal_8", 800],
+            ["Outlier_High", 10000], // Would be max, but excluded
+        ])
+
+        const result = findDataRangePeers({ values })
+
+        // Should not include extreme outliers
+        expect(result).not.toContain("Outlier_Low")
+        expect(result).not.toContain("Outlier_High")
+    })
+
+    it("deduplicates when multiple percentiles map to the same entity", () => {
+        // Small dataset where percentiles overlap
+        const values = new Map([
+            ["Low", 10],
+            ["Mid", 50],
+            ["High", 100],
+        ])
+
+        const result = findDataRangePeers({ values })
+
+        // Should deduplicate to 3 unique entities
+        expect(result).toHaveLength(3)
     })
 })
