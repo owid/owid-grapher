@@ -3444,6 +3444,8 @@ export class GrapherState
     }
 
     @computed get queryStr(): string {
+        if (this.manager?.queryStr !== undefined) return this.manager.queryStr
+
         return queryParamsToStr({
             ...this.changedParams,
             ...this.externalQueryParams,

@@ -894,6 +894,10 @@ export class Explorer
         return url.queryParams as ExplorerFullQueryParams
     }
 
+    @computed get queryStr(): string {
+        return Url.fromQueryParams(this.queryParams).queryStr
+    }
+
     @computed get currentUrl(): Url {
         if (this.props.isPreview) return Url.fromQueryParams(this.queryParams)
         return Url.fromURL(window.location.href).setQueryParams(

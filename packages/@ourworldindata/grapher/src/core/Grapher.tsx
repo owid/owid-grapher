@@ -127,6 +127,7 @@ interface AnalyticsContext {
 export interface GrapherManager {
     baseUrl?: string
     canonicalUrl?: string
+    queryStr?: string
     selection?: SelectionArray
     focusArray?: FocusArray
     adminEditPath?: string
