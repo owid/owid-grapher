@@ -3444,6 +3444,8 @@ export class GrapherState
     }
 
     @computed get queryStr(): string {
+        if (this.manager?.queryStr !== undefined) return this.manager.queryStr
+
         return queryParamsToStr({
             ...this.changedParams,
             ...this.externalQueryParams,
@@ -3483,7 +3485,6 @@ export class GrapherState
      */
     @computed get canonicalUrl(): string | undefined {
         return (
-            this.manager?.canonicalUrl ??
             this.canonicalUrlIfIsNarrativeChart ??
             (this.baseUrl ? this.baseUrl + this.queryStr : undefined)
         )
