@@ -167,6 +167,11 @@ export const configureAlgolia = async () => {
                 "desc(score)",
                 // For multiple explorer views with the same title, we want to avoid surfacing duplicates.
                 // So, rank a result with viewTitleIndexWithinExplorer=0 way more highly than one with 1, 2, etc.
+                // NOTE: This causes a problem when scores tie between explorers and regular charts.
+                // Regular charts have viewTitleIndexWithinExplorer=undefined, which Algolia sorts AFTER 0,
+                // so explorers get preferred over charts. E.g., searching "population" shows the
+                // Population explorer view before the Population grapher chart, even with equal scores.
+                // A fix would be to set viewTitleIndexWithinExplorer=0 on all chart/mdim records.
                 "asc(viewTitleIndexWithinExplorer)",
                 "asc(titleLength)",
             ],
