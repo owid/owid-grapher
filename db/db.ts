@@ -23,7 +23,6 @@ import {
     DBRawPostGdocWithTags,
     parsePostsGdocsWithTagsRow,
     DBEnrichedPostGdocWithTags,
-    OwidGdocProfileScope,
     parsePostsGdocsRow,
     TagGraphRootName,
     FlatTagGraph,

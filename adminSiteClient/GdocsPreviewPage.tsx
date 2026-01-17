@@ -384,21 +384,21 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     </Col>
                     <Col>
                         <Space>
-                                <GdocsSaveButtons
-                                    published={currentGdoc.published}
-                                    originalGdoc={originalGdoc}
-                                    currentGdoc={currentGdoc}
-                                    errors={errors}
-                                    hasErrors={hasErrors}
-                                    hasWarnings={hasWarnings}
-                                    hasChanges={hasChanges}
-                                    isLightningUpdate={isLightningUpdate}
-                                    setDiffOpen={setDiffOpen}
-                                    doPublish={doPublish}
-                                    saveDraft={saveDraft}
-                                    disableButtons={acceptSuggestions}
-                                    calloutCount={calloutCount}
-                                />
+                            <GdocsSaveButtons
+                                published={currentGdoc.published}
+                                originalGdoc={originalGdoc}
+                                currentGdoc={currentGdoc}
+                                errors={errors}
+                                hasErrors={hasErrors}
+                                hasWarnings={hasWarnings}
+                                hasChanges={hasChanges}
+                                isLightningUpdate={isLightningUpdate}
+                                setDiffOpen={setDiffOpen}
+                                doPublish={doPublish}
+                                saveDraft={saveDraft}
+                                disableButtons={acceptSuggestions}
+                                calloutCount={calloutCount}
+                            />
                             <Space>
                                 <Switch
                                     checked={acceptSuggestions}

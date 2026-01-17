@@ -165,7 +165,6 @@ const makeColumnInfo = (
     column: CoreColumn
 ): GrapherValuesJsonDimension | undefined => {
     if (column.isMissing) return undefined
-    console.log("column", column)
 
     return omitUndefinedValues({
         name: column.titlePublicOrDisplayName.title,

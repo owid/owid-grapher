@@ -158,9 +158,7 @@ export async function bakeCalloutsForGdoc(
             )
         }
     } else {
-        calloutUrls.push(
-            ...extractDataCalloutUrls(gdoc.content.body ?? [])
-        )
+        calloutUrls.push(...extractDataCalloutUrls(gdoc.content.body ?? []))
     }
 
     return bakeCalloutsForUrls(knex, calloutUrls)
@@ -677,9 +675,8 @@ export async function fetchCalloutValuesForExplorer(
     )
     if (!grapherState) return undefined
 
-    const timeQueryParam = (
-        queryParams as Record<string, string | undefined>
-    ).time
+    const timeQueryParam = (queryParams as Record<string, string | undefined>)
+        .time
     return constructGrapherValuesJson(grapherState, entity, timeQueryParam)
 }
 

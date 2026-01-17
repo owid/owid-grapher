@@ -257,8 +257,8 @@ export async function getCalloutFunctionStrings(
         if (column && !column.isMissing) {
             const name = column.titlePublicOrDisplayName.title
             columnNames.push(name)
-            functionStrings.push(`$latestValue("${name}")`)
-            functionStrings.push(`$latestYear("${name}")`)
+            functionStrings.push(`$latestValue(${name})`)
+            functionStrings.push(`$latestYear(${name})`)
         }
     }
 

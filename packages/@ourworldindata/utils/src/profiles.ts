@@ -15,20 +15,14 @@ import {
     EnrichedBlockConditionalSection,
     EnrichedBlockDataCallout,
     GRAPHER_QUERY_PARAM_KEYS,
-    GrapherQueryParams,
     GrapherValuesJson,
     LinkedCallouts,
-    OwidGdocProfileInterface,
     ParseError,
     SpanCallout,
     type OwidGdocProfileContent,
 } from "@ourworldindata/types"
 
-import {
-    generateToc,
-    traverseEnrichedBlock,
-    traverseEnrichedSpan,
-} from "./Util.js"
+import { generateToc, traverseEnrichedBlock } from "./Util.js"
 import { Url } from "./urls/Url.js"
 
 export type ProfileEntity = Pick<Region, "name" | "code">

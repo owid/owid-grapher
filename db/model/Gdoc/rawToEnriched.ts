@@ -166,6 +166,9 @@ import {
     EnrichedBlockScript,
     RawBlockScript,
     blockVisibilitys,
+    SpanCallout,
+    CalloutFunction,
+    CALLOUT_FUNCTIONS,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -175,6 +178,7 @@ import {
     toAsciiQuotes,
     traverseEnrichedBlock,
     validateConditionalSectionLists,
+    plaintextCalloutRegex,
 } from "@ourworldindata/utils"
 import { checkIsInternalLink, getLinkType } from "@ourworldindata/components"
 import {
@@ -1837,6 +1841,91 @@ function parseCallout(raw: RawBlockCallout): EnrichedBlockCallout {
     }
 }
 
+/**
+ * Transforms plaintext callout tokens ($latestValue(Column), $latestYear(Column), $entity())
+ * into SpanCallout spans within a span tree.
+ */
+function transformCalloutTokensInSpan(span: Span): Span[] {
+    // For spans with children, recursively transform children
+    if ("children" in span && span.children) {
+        const transformedChildren = span.children.flatMap(
+            transformCalloutTokensInSpan
+        )
+        return [{ ...span, children: transformedChildren } as Span]
+    }
+
+    // Only process simple text spans
+    if (span.spanType !== "span-simple-text") {
+        return [span]
+    }
+
+    const text = span.text
+    const result: Span[] = []
+    let lastIndex = 0
+
+    // Reset regex state for each call (global regex maintains state)
+    plaintextCalloutRegex.lastIndex = 0
+
+    for (const match of text.matchAll(plaintextCalloutRegex)) {
+        const matchIndex = match.index!
+        // Add text before match
+        if (matchIndex > lastIndex) {
+            result.push({
+                spanType: "span-simple-text",
+                text: text.slice(lastIndex, matchIndex),
+            })
+        }
+
+        const functionName = match[1]
+        const paramString = match[2] // may be empty string for "entity()"
+
+        // Only create SpanCallout for valid function names
+        if (CALLOUT_FUNCTIONS.includes(functionName as CalloutFunction)) {
+            const calloutSpan: SpanCallout = {
+                spanType: "span-callout",
+                functionName: functionName as CalloutFunction,
+                parameters: paramString ? [paramString] : [],
+                children: [], // No placeholder text in plaintext syntax
+            }
+            result.push(calloutSpan)
+        } else {
+            // If not a valid function name, keep the original text
+            result.push({
+                spanType: "span-simple-text",
+                text: match[0],
+            })
+        }
+
+        lastIndex = matchIndex + match[0].length
+    }
+
+    // Add remaining text after last match
+    if (lastIndex < text.length) {
+        result.push({
+            spanType: "span-simple-text",
+            text: text.slice(lastIndex),
+        })
+    }
+
+    // If no matches were found, return original span
+    return result.length === 0 ? [span] : result
+}
+
+/**
+ * Transforms plaintext callout tokens in all text blocks within an enriched block tree.
+ * Mutates the input block.
+ */
+function transformCalloutTokensInBlock(
+    block: OwidEnrichedGdocBlock
+): OwidEnrichedGdocBlock {
+    traverseEnrichedBlock(block, (node) => {
+        if (node.type === "text") {
+            node.value = node.value.flatMap(transformCalloutTokensInSpan)
+        }
+    })
+    return block
+}
+
 function parseDataCallout(raw: RawBlockDataCallout): EnrichedBlockDataCallout {
     const createError = (error: ParseError): EnrichedBlockDataCallout => ({
         type: "data-callout",
@@ -1852,7 +1941,7 @@ function parseDataCallout(raw: RawBlockDataCallout): EnrichedBlockDataCallout {
     }
 
     // Validate that the URL is a grapher or explorer link
-    const url = Url.fromURL(raw.value.url)
+    const url = Url.fromURL(extractUrl(raw.value.url))
     const isGrapherUrl = url.pathname?.startsWith("/grapher/")
     const isExplorerUrl = url.pathname?.startsWith("/explorers/")
     if (!isGrapherUrl && !isExplorerUrl) {
@@ -1887,10 +1976,14 @@ function parseDataCallout(raw: RawBlockDataCallout): EnrichedBlockDataCallout {
         parseRawBlocksToEnrichedBlocks
     )
 
+    const transformedContent = excludeNullish(enrichedContent).map(
+        transformCalloutTokensInBlock
+    )
+
     return {
         type: "data-callout",
-        url: raw.value.url,
-        content: excludeNullish(enrichedContent),
+        url: url.fullUrl,
+        content: transformedContent,
         parseErrors: [],
     }
 }

@@ -136,6 +136,7 @@ export {
     detailOnDemandRegex,
     guidedChartRegex,
     calloutFunctionRegex,
+    plaintextCalloutRegex,
     extractDetailsFromSyntax,
     parseFloatOrUndefined,
     bind,

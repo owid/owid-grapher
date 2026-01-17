@@ -1,5 +1,4 @@
 import {
-    EntityName,
     OwidGdocBaseInterface,
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,

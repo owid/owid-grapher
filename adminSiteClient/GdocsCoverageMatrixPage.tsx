@@ -33,8 +33,7 @@ export const GdocsCoverageMatrixPage = ({
                 if (!isMounted) return
                 setError(String(err))
             } finally {
-                if (!isMounted) return
-                setIsLoading(false)
+                if (isMounted) setIsLoading(false)
             }
         }
 

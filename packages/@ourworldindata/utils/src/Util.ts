@@ -1780,12 +1780,17 @@ export function traverseEnrichedBlock(
                 traverseEnrichedBlock(node, callback, spanCallback)
             }
         })
+        .with({ type: "data-callout" }, (dataCallout) => {
+            callback(dataCallout)
+            for (const node of dataCallout.content) {
+                traverseEnrichedBlock(node, callback, spanCallback)
+            }
+        })
         .with(
             {
                 type: P.union(
                     "chart-story",
                     "chart",
-                    "data-callout",
                     "narrative-chart",
                     "code",
                     "cookie-notice",
@@ -1979,6 +1984,18 @@ export const guidedChartRegex = /#guide:(https?:\/\/[^\s]+)/
  * Group 2: parameters (e.g., "Column Name") - may be undefined for parameterless functions like "entity"
  */
 export const calloutFunctionRegex = /#callout:(\w+)(?:\(([^)]+)\))?/
+
+/**
+ * Matches plaintext callout token syntax:
+ * $latestYear(Column Name)
+ * $latestValue(Column Name)
+ * $entity()
+ *
+ * Group 1: function name (e.g., "latestYear", "latestValue", "entity")
+ * Group 2: parameters (e.g., "Column Name") - may be empty string for parameterless functions like "entity"
+ */
+export const plaintextCalloutRegex =
+    /\$(latestValue|latestYear|entity)\(([^)]*)\)/g
 
 export function extractDetailsFromSyntax(str: string): string[] {
     return [...str.matchAll(new RegExp(detailOnDemandRegex, "g"))].map(
