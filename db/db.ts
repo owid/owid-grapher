@@ -564,7 +564,7 @@ export const getNonGrapherExplorerViewCount = (
 
 /**
  * 1. Fetch all records in tag_graph:
- *    - isTopic = true when there is a published TP/LTP/Article with the same slug as the tag
+ *    - isTopic = true when there is a published TP/LTP with the same slug as the tag
  *    - isSearchable = true when isTopic OR the tag has searchableInAlgolia set
  * 2. Group tags by their parentId
  * 3. Return the flat tag graph along with a __rootId property so that the UI knows which record is the root node
@@ -594,12 +594,7 @@ export async function getFlatTagGraph(knex: KnexReadonlyTransaction): Promise<
         -- order by descending weight, tiebreak by name
         ORDER BY tg.weight DESC, t.name ASC`,
         {
-            types: [
-                OwidGdocType.TopicPage,
-                OwidGdocType.LinearTopicPage,
-                // For sub-topics e.g. Nuclear Energy we use the article format
-                OwidGdocType.Article,
-            ],
+            types: [OwidGdocType.TopicPage, OwidGdocType.LinearTopicPage],
         }
     ).then((rows) => _.groupBy(rows, "parentId"))
 
@@ -1026,7 +1021,8 @@ export const getAllTopicTags = async (
 /**
  * Fetch all area and topic tag names from the database.
  * Areas are the top-level children of the tag graph root, and don't have a slug.
- * Topics are any tags that have a slug or have searchableInAlgolia set.
+ * Topics are tags whose slug matches a published topic-page or linear-topic-page,
+ * or tags with searchableInAlgolia set.
  */
 const getAllAreaAndTopicTagNames = async (
     trx: KnexReadonlyTransaction
@@ -1035,9 +1031,13 @@ const getAllAreaAndTopicTagNames = async (
         trx,
         `-- sql
         WITH topic_tags AS (
-            SELECT name
-            FROM ${TagsTableName}
-            WHERE slug IS NOT NULL OR searchableInAlgolia = TRUE
+            SELECT t.name
+            FROM ${TagsTableName} t
+            LEFT JOIN ${PostsGdocsTableName} pg
+                ON pg.slug = t.slug
+                AND pg.published = TRUE
+                AND pg.type IN ('topic-page', 'linear-topic-page')
+            WHERE pg.id IS NOT NULL OR t.searchableInAlgolia = TRUE
         ),
         area_tags AS (
             SELECT t.name
