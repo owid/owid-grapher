@@ -133,7 +133,7 @@ export const getChartsRecords = async (
                     t_topic.searchableInAlgolia = TRUE
                     OR (
                         pg.published = TRUE
-                        AND pg.type IN ('topic-page', 'linear-topic-page', 'article')
+                        AND pg.type IN ('topic-page', 'linear-topic-page')
                     )
                 )
             )
