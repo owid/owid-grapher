@@ -64,9 +64,6 @@ export const GRAPHER_TEST_DB_PORT: number =
 
 export const BAKED_SITE_DIR: string =
     serverSettings.BAKED_SITE_DIR ?? path.resolve(BASE_DIR, "bakedSite") // Where the static build output goes
-export const SECRET_KEY: string =
-    serverSettings.SECRET_KEY ??
-    "fejwiaof jewiafo jeioa fjieowajf isa fjidosajfgj"
 export const ALGOLIA_SECRET_KEY: string =
     serverSettings.ALGOLIA_SECRET_KEY ?? ""
 export const ALGOLIA_INDEXING: boolean =
