@@ -162,7 +162,7 @@
         "rxjs": "^7.8.2",
         "s-expression": "^3.1.1",
         "safe-stable-stringify": "^2.4.1",
-        "sharp": "^0.33.5",
+        "sharp": "^0.34.5",
         "simple-git": "^3.16.1",
         "simple-statistics": "^7.8.8",
         "string-pixel-width": "^1.10.0",
@@ -250,7 +250,7 @@
         "typescript-eslint": "^8.46.1",
         "vite": "^7.3.0",
         "vitest": "^4.0.15",
-        "wrangler": "^4.52.0"
+        "wrangler": "^4.59.2"
     },
     "resolutions": {
         "whatwg-url": "15.0.0",
