@@ -133,7 +133,9 @@ export class LineChartThumbnail
                     // Only show start points for historical series, not projected ones
                     !series.isProjection
             )
-            .map((series) => _.minBy(series.placedPoints, (point) => point.x))
+            .map((series) =>
+                _.minBy(series.placedPoints, (point) => point.time)
+            )
             .filter((point) => point !== undefined)
     }
 
@@ -147,7 +149,9 @@ export class LineChartThumbnail
                     // for the projected series. Otherwise, show end dots for all series
                     (!this.hasProjectedSeries || series.isProjection)
             )
-            .map((series) => _.maxBy(series.placedPoints, (point) => point.x))
+            .map((series) =>
+                _.maxBy(series.placedPoints, (point) => point.time)
+            )
             .filter((point) => point !== undefined)
     }
 
