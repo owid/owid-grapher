@@ -394,7 +394,7 @@ export class DiscreteBarChart
 
         return (
             <rect
-                key={series.seriesName}
+                key={`bar-${series.seriesName}`}
                 className="bar"
                 id={makeIdForHumanConsumption(series.seriesName)}
                 x={0}
@@ -449,7 +449,7 @@ export class DiscreteBarChart
         }
 
         return (
-            <g key={series.seriesName}>
+            <g key={`annotation-${series.seriesName}`}>
                 {series.annotationTextWrap.renderSVG(
                     series.entityLabelX,
                     barY + annotationY,
@@ -480,7 +480,7 @@ export class DiscreteBarChart
     }): React.ReactElement {
         return (
             <text
-                key={series.seriesName}
+                key={`value-label-${series.seriesName}`}
                 x={0}
                 y={0}
                 transform={`translate(${series.valueLabelX}, ${barY + labelY})`}
@@ -516,7 +516,9 @@ export class DiscreteBarChart
                 {this.placedSeries.map((series) => {
                     const labelY = series.entityLabelY - series.barY
                     return (
-                        <React.Fragment key={series.seriesName}>
+                        <React.Fragment
+                            key={`entity-label-${series.seriesName}`}
+                        >
                             {this.renderEntityLabel({
                                 series,
                                 barY: series.barY,
@@ -617,7 +619,7 @@ export class DiscreteBarChart
 
         return (
             <g
-                key={series.seriesName}
+                key={`row-${series.seriesName}`}
                 className="bar-row"
                 transform={`translate(0, ${state.translateY})`}
             >
