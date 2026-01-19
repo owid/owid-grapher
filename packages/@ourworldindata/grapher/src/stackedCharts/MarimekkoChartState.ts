@@ -138,6 +138,9 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
     }
 
     @computed get xColumnSlug(): string | undefined {
+        // If scatter is also enabled, marimekko charts should ignore the x-axis
+        if (this.manager.hasScatter) return undefined
+
         return this.manager.xColumnSlug
     }
 
@@ -445,6 +448,8 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
             axis.updateDomainPreservingUserSettings(this.xDomainDefault)
         }
 
+        // Marimekko charts should always use linear scale
+        axis.scaleType = ScaleType.linear
         axis.formatColumn = this.xColumn
 
         axis.label = this.horizontalAxisLabel

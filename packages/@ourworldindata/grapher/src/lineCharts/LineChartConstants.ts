@@ -86,4 +86,5 @@ export interface LineChartManager extends ChartManager {
     highlightedTimesInLineChart?: Time[]
     lineStrokeWidth?: number
     canSelectMultipleEntities?: boolean // used to pick an appropriate series name
+    hasScatter?: boolean // x-axis config is ignored if a secondary scatter plot is present
 }

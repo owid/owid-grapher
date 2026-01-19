@@ -12,8 +12,8 @@ import {
 import { observer } from "mobx-react"
 import {
     EntitySelectionMode,
-    StackMode,
     ALL_GRAPHER_CHART_TYPES,
+    GRAPHER_CHART_TYPES,
     GrapherChartType,
     DbChartTagJoin,
     TaggableType,
@@ -25,6 +25,7 @@ import {
     WORLD_ENTITY_NAME,
     CONTINENTS_INDICATOR_ID,
     POPULATION_INDICATOR_ID_USED_IN_ADMIN,
+    GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ADMIN,
     findPotentialChartTypeSiblings,
     ChartDimension,
     SelectionArray,
@@ -305,11 +306,7 @@ class DimensionSlotView<
             )
         }
 
-        this.grapherState.updateAuthoredVersion({
-            dimensions: grapherState.dimensions.map((dim) => dim.toObject()),
-        })
-        grapherState.seriesColorMap?.clear()
-        await this.editor.reloadGrapherData()
+        await this.editor.commitDimensionsAndReloadData()
     }
 
     @action.bound private updateParentConfig() {
@@ -497,14 +494,7 @@ class VariablesSection<
             return dimObj
         })
 
-        // Set all dimensions from the new configs
-        grapherState.setDimensionsFromConfigs(newDimensions)
-
-        grapherState.updateAuthoredVersion({
-            dimensions: grapherState.dimensions.map((dim) => dim.toObject()),
-        })
-        grapherState.seriesColorMap?.clear()
-        await this.props.editor.reloadGrapherData()
+        await this.props.editor.commitDimensionsAndReloadData(newDimensions)
     }
 
     override render() {
@@ -601,36 +591,14 @@ export class EditorBasicTab<
     @action.bound onChartTypeChange(value: string) {
         const { grapherState } = this.props.editor
 
-        grapherState.chartTypes =
+        const chartType =
             value === this.chartTypeOptionNone
-                ? []
-                : [value as GrapherChartType]
+                ? undefined
+                : (value as GrapherChartType)
 
-        if (grapherState.isMarimekko) {
-            grapherState.hideRelativeToggle = false
-            grapherState.stackMode = StackMode.relative
-        }
+        grapherState.chartTypes = chartType ? [chartType] : []
 
-        // Give scatterplots a default color and size dimensions
-        if (grapherState.isScatter) {
-            const hasColor = grapherState.dimensions.find(
-                (d) => d.property === DimensionProperty.color
-            )
-            if (!hasColor)
-                grapherState.addDimension({
-                    variableId: CONTINENTS_INDICATOR_ID,
-                    property: DimensionProperty.color,
-                })
-
-            const hasSize = grapherState.dimensions.find(
-                (d) => d.property === DimensionProperty.size
-            )
-            if (!hasSize)
-                grapherState.addDimension({
-                    variableId: POPULATION_INDICATOR_ID_USED_IN_ADMIN,
-                    property: DimensionProperty.size,
-                })
-        }
+        if (chartType) void this.addChartTypeDefaults(chartType)
 
         // since the parent config depends on the chart type
         // (scatters don't have a parent), we might need to update
@@ -665,10 +633,63 @@ export class EditorBasicTab<
         )
     }
 
+    @action.bound private async addChartTypeDefaults(
+        chartType: GrapherChartType
+    ): Promise<void> {
+        const { grapherState } = this.props.editor
+        const { editor } = this.props
+
+        // Add default dimensions for scatter plots
+        if (chartType === GRAPHER_CHART_TYPES.ScatterPlot) {
+            const existingDimensions = grapherState.dimensions.map((dim) =>
+                dim.toObject()
+            )
+            const newDimensions: OwidChartDimensionInterface[] = [
+                ...existingDimensions,
+            ]
+
+            // Add default x indicator if not already present
+            const hasX = existingDimensions.find(
+                (d) => d.property === DimensionProperty.x
+            )
+            if (!hasX)
+                newDimensions.push({
+                    variableId: GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ADMIN,
+                    property: DimensionProperty.x,
+                })
+
+            // Add default color indicator if not already present
+            const hasColor = existingDimensions.find(
+                (d) => d.property === DimensionProperty.color
+            )
+            if (!hasColor)
+                newDimensions.push({
+                    variableId: CONTINENTS_INDICATOR_ID,
+                    property: DimensionProperty.color,
+                })
+
+            // Add default size indicator if not already present
+            const hasSize = existingDimensions.find(
+                (d) => d.property === DimensionProperty.size
+            )
+            if (!hasSize)
+                newDimensions.push({
+                    variableId: POPULATION_INDICATOR_ID_USED_IN_ADMIN,
+                    property: DimensionProperty.size,
+                })
+
+            // Update dimensions if any new ones were added
+            if (newDimensions.length > existingDimensions.length) {
+                await editor.commitDimensionsAndReloadData(newDimensions)
+            }
+        }
+    }
+
     @action.bound private addChartType(chartType: GrapherChartType): void {
         const { grapherState } = this.props.editor
         if (grapherState.validChartTypeSet.has(chartType)) return
         grapherState.chartTypes = [...grapherState.chartTypes, chartType]
+        void this.addChartTypeDefaults(chartType)
     }
 
     @action.bound private removeChartType(chartType: GrapherChartType): void {

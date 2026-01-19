@@ -1886,10 +1886,20 @@ export class GrapherState
         ].includes(tabName as any)
     }
 
+    private checkSingleTimeSelectionPreferred = (
+        tabName: GrapherTabName
+    ): boolean => {
+        // Scatter plots can show a time range, but a single time is preferred
+        return [GRAPHER_TAB_NAMES.ScatterPlot].includes(tabName as any)
+    }
+
     @action.bound ensureTimeHandlesAreSensibleForTab(
         tab: GrapherTabName
     ): void {
-        if (this.checkOnlySingleTimeSelectionPossible(tab)) {
+        if (
+            this.checkOnlySingleTimeSelectionPossible(tab) ||
+            this.checkSingleTimeSelectionPreferred(tab)
+        ) {
             this.ensureHandlesAreOnSameTime()
         } else if (this.checkOnlyTimeRangeSelectionPossible(tab)) {
             this.ensureHandlesAreOnDifferentTimes()
@@ -2866,6 +2876,7 @@ export class GrapherState
             xColumnSlug,
             isOnMarimekkoTab,
             isStackedChartSplitByMetric,
+            hasScatter,
         } = this
 
         if (isOnLineChartTab || isOnSlopeChartTab)
@@ -2883,7 +2894,9 @@ export class GrapherState
         )
             return false
 
-        if (isOnMarimekkoTab && xColumnSlug === undefined) return false
+        // Disable relative mode for Marimekko charts without an x dimension
+        if (isOnMarimekkoTab && (!xColumnSlug || hasScatter)) return false
+
         return !hideRelativeToggle
     }
 

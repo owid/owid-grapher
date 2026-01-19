@@ -872,9 +872,14 @@ export class LineChart
     }
 
     @computed private get xAxisConfig(): AxisConfig {
-        const { xAxisConfig } = this.manager
-        const custom = { hideGridlines: true }
-        return new AxisConfig({ ...custom, ...xAxisConfig }, this)
+        const { xAxisConfig, hasScatter } = this.manager
+        const customConfig = { hideGridlines: true }
+
+        // If a secondary scatter tab is present, then the xAxisConfig
+        // applies to the scatter's x-axis, not the line chart's time axis
+        const userConfig = hasScatter ? undefined : xAxisConfig
+
+        return new AxisConfig({ ...customConfig, ...userConfig }, this)
     }
 
     @computed private get horizontalAxisPart(): HorizontalAxis {
