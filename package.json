@@ -251,7 +251,7 @@
         "typescript-eslint": "^8.46.1",
         "vite": "^7.3.0",
         "vitest": "^4.0.15",
-        "wrangler": "^4.52.0"
+        "wrangler": "^4.59.2"
     },
     "resolutions": {
         "whatwg-url": "15.0.0",
