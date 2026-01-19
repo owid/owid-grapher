@@ -60,6 +60,30 @@ describe(Explorer, () => {
             "Relative to world total": "false",
         })
     })
+
+    it("includes country param in archived embed URL after switching views", async () => {
+        const explorer = SampleExplorerOfGraphers({
+            queryStr: "?country=~GBR",
+            archiveContext: {
+                type: "archived-page-version",
+                archiveUrl: "https://archive.org/example",
+                archivalDate: "20240101-000000",
+            },
+        })
+
+        await explorer.componentDidMount()
+
+        // Verify initial state has country param
+        const initialUrl = explorer.grapherState.embedArchivedUrl
+        expect(initialUrl).toContain("country=~GBR")
+
+        // Switch to a different view
+        await explorer.onChangeChoice("Gas")("All GHGs (CO₂eq)")
+
+        // Verify country param is still present after switching
+        const afterSwitchUrl = explorer.grapherState.embedArchivedUrl
+        expect(afterSwitchUrl).toContain("country=~GBR")
+    })
 })
 
 describe("inline data explorer", () => {
