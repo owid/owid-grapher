@@ -17,18 +17,26 @@ async function exportGraphers(args: ReturnType<typeof parseArguments>) {
         const testSuite = args.testSuite as utils.TestSuite
 
         // Input and output directories
-        const dataDir = path.join(utils.SVG_REPO_PATH, testSuite, "data")
-        const outDir = path.join(utils.SVG_REPO_PATH, testSuite, "references")
+        const testSuiteDir = path.join(utils.SVG_REPO_PATH, testSuite)
+        const outDir = path.join(testSuiteDir, "references")
 
         // Charts to process
         const targetViewIds = args.viewIds
         const targetChartTypes = args.chartTypes
         const randomCount = args.random
 
+        // Load manifest and determine data directory
+        const { viewIds: manifestViewIds, dataDir } =
+            await utils.loadManifestViewIds(testSuite, {
+                targetViewIds,
+                manifestName: args.manifest,
+            })
+
         // Chart configurations to test
         const grapherQueryString = args.queryStr
         const shouldTestAllChartViews =
             args.allViews ?? testSuite === "grapher-views"
+        const shouldTestAllTabs = args.allTabs ?? testSuite === "thumbnails"
 
         // Other options
         const isolate = args.isolate
@@ -51,7 +59,7 @@ async function exportGraphers(args: ReturnType<typeof parseArguments>) {
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
 
         const chartIdsToProcess = await utils.selectChartIdsToProcess(dataDir, {
-            viewIds: targetViewIds,
+            viewIds: targetViewIds ?? manifestViewIds ?? undefined,
             chartTypes: targetChartTypes,
             randomCount,
         })
@@ -62,8 +70,11 @@ async function exportGraphers(args: ReturnType<typeof parseArguments>) {
             {
                 queryStr: grapherQueryString,
                 shouldTestAllViews: shouldTestAllChartViews,
+                shouldTestAllTabs,
             }
         )
+
+        const variant = testSuite === "thumbnails" ? "thumbnail" : "default"
 
         const jobDescriptions: utils.RenderSvgAndSaveJobDescription[] =
             chartViewsToGenerate.map((chart: utils.ChartWithQueryStr) => ({
@@ -73,6 +84,7 @@ async function exportGraphers(args: ReturnType<typeof parseArguments>) {
                 },
                 queryStr: chart.queryStr,
                 outDir,
+                variant,
             }))
 
         // if verbose, log how many SVGs we're going to generate
@@ -190,6 +202,7 @@ async function main(args: ReturnType<typeof parseArguments>) {
         .with("graphers", () => exportGraphers(args))
         .with("grapher-views", () => exportGraphers(args))
         .with("mdims", () => exportGraphers(args))
+        .with("thumbnails", () => exportGraphers(args))
         .with("explorers", () => exportExplorers(args))
         .exhaustive()
 }
@@ -211,7 +224,7 @@ function parseArguments() {
                 type: "string",
                 array: true,
                 description:
-                    "A space-separated list of grapher IDs or mdim view ids, e.g. '2 4 8 10'",
+                    "A space-separated list of grapher slugs or mdim view ids, e.g. 'life-expectancy population'",
             },
             chartTypes: {
                 alias: "t",
@@ -236,6 +249,16 @@ function parseArguments() {
                 type: "boolean",
                 description:
                     "For each Grapher, generate SVGs for all possible chart configurations. Default depends on the test suite.",
+            },
+            allTabs: {
+                type: "boolean",
+                description:
+                    "For each Grapher, generate thumbnail SVGs for all available tabs. Default depends on the test suite.",
+            },
+            manifest: {
+                type: "string",
+                description:
+                    "Manifest filename (e.g. 'top.manifest.json') specifying which charts to export. For grapher-views and thumbnails, defaults to 'top.manifest.json' if --viewIds is not provided. For other test suites, all charts in the data directory are exported if neither manifest nor --viewIds is provided.",
             },
             isolate: {
                 type: "boolean",

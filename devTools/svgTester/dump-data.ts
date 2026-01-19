@@ -37,7 +37,7 @@ interface ChartInfo {
     config: GrapherInterface
 }
 
-async function getMostViewedGraphers(
+async function getMostViewedGraphersPerChartType(
     trx: KnexReadonlyTransaction,
     topN = 10
 ): Promise<ChartInfo[]> {
@@ -392,7 +392,8 @@ async function saveExplorerConfigAndData(
 async function main(args: ReturnType<typeof parseArguments>) {
     try {
         const testSuite = args.testSuite as utils.TestSuite
-        const outDir = path.join(utils.SVG_REPO_PATH, testSuite, "data")
+        const testSuiteDir = path.join(utils.SVG_REPO_PATH, testSuite)
+        const outDir = path.join(testSuiteDir, "data")
         const concurrency = args.concurrency
 
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
@@ -405,12 +406,69 @@ async function main(args: ReturnType<typeof parseArguments>) {
                 )
                 await saveGrapherSchemaAndData(charts, outDir, { concurrency })
             })
-            .with("grapher-views", async () => {
+            .with("thumbnails", async () => {
+                // Thumbnails uses a manifest to specify which charts to test
+                // The actual data is read from the graphers suite
                 const charts = await knexReadonlyTransaction(
-                    getMostViewedGraphers,
+                    getMostViewedGraphersPerChartType,
                     TransactionCloseMode.Close
                 )
-                await saveGrapherSchemaAndData(charts, outDir, { concurrency })
+
+                // Extract slugs
+                const slugs = charts.map((chart) => chart.id)
+
+                // Write manifest file
+                const manifest: utils.GrapherViewsManifest = {
+                    slugs,
+                    dataDir: "../graphers/data",
+                }
+                const manifestPath = path.join(
+                    testSuiteDir,
+                    "top.manifest.json"
+                )
+                await fs.writeFile(
+                    manifestPath,
+                    JSON.stringify(manifest, null, 2)
+                )
+
+                console.log(
+                    `Wrote manifest for ${slugs.length} charts to ${manifestPath}`
+                )
+                console.log(
+                    "Note: thumbnails reuses data from the graphers suite"
+                )
+            })
+            .with("grapher-views", async () => {
+                // Grapher-views uses a manifest to specify which charts to test
+                // The actual data is read from the graphers suite
+                const charts = await knexReadonlyTransaction(
+                    getMostViewedGraphersPerChartType,
+                    TransactionCloseMode.Close
+                )
+
+                // Extract slugs
+                const slugs = charts.map((chart) => chart.id)
+
+                // Write manifest file
+                const manifest: utils.GrapherViewsManifest = {
+                    slugs,
+                    dataDir: "../graphers/data",
+                }
+                const manifestPath = path.join(
+                    testSuiteDir,
+                    "top.manifest.json"
+                )
+                await fs.writeFile(
+                    manifestPath,
+                    JSON.stringify(manifest, null, 2)
+                )
+
+                console.log(
+                    `Wrote manifest for ${slugs.length} charts to ${manifestPath}`
+                )
+                console.log(
+                    "Note: grapher-views reuses data from the graphers suite"
+                )
             })
             .with("mdims", async () => {
                 const mdimViews = await knexReadonlyTransaction(
