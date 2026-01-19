@@ -3675,7 +3675,10 @@ export class GrapherState
 
     @computed get disablePlay(): boolean {
         return (
-            this.isOnTableTab || this.isOnSlopeChartTab || this.isOnMarimekkoTab
+            this.isOnTableTab ||
+            this.isOnSlopeChartTab ||
+            this.isOnMarimekkoTab ||
+            (this.times.length > 0 && this.times.length <= 2)
         )
     }
 
