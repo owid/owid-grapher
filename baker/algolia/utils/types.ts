@@ -16,6 +16,8 @@ export interface ParsedCatalogPathDimensions {
 }
 
 /** Charts */
+type JsonArrayString = string
+
 export interface RawChartRecordRow {
     id: number
     slug: string
@@ -23,10 +25,10 @@ export interface RawChartRecordRow {
     numDimensions: string
     publishedAt: string
     updatedAt: string
-    entityNames: string
-    tags: string
-    keyChartForTags: string
-    catalogPaths: string
+    entityNames: JsonArrayString
+    tags: JsonArrayString
+    keyChartForTags: JsonArrayString
+    catalogPaths: JsonArrayString
 }
 
 export interface ParsedChartRecordRow {

@@ -13,10 +13,7 @@ import { getRelatedArticles } from "../../../db/model/Post.js"
 import { getPublishedLinksTo } from "../../../db/model/Link.js"
 import { isPathRedirectedToExplorer } from "../../../explorerAdminServer/ExplorerRedirects.js"
 import { ParsedChartRecordRow, RawChartRecordRow } from "./types.js"
-import {
-    excludeNullish,
-    getUniqueNamesFromTagHierarchies,
-} from "@ourworldindata/utils"
+import { getUniqueNamesFromTagHierarchies } from "@ourworldindata/utils"
 import {
     maybeAddChangeInPrefix,
     parseCatalogPaths,
@@ -39,8 +36,8 @@ const parseAndProcessChartRecords = (
         // This is a very rough way to check for the Algolia record size limit, but it's better than the update failing
         // because we exceed the 20KB record size limit
         if (rawRecord.entityNames.length < 12000)
-            parsedEntities = excludeNullish(
-                JSON.parse(rawRecord.entityNames as string) as (string | null)[]
+            parsedEntities = JSON.parse(
+                rawRecord.entityNames as string
             ) as string[]
         else {
             console.info(
@@ -50,17 +47,13 @@ const parseAndProcessChartRecords = (
     }
     const entityNames = processAvailableEntities(parsedEntities)
 
-    const tags = JSON.parse(rawRecord.tags)
-    const keyChartForTags = JSON.parse(
-        rawRecord.keyChartForTags as string
-    ).filter((t: string | null) => t)
+    const tags = JSON.parse(rawRecord.tags) as string[]
+    const keyChartForTags = JSON.parse(rawRecord.keyChartForTags) as string[]
 
     const config = parseChartConfig(rawRecord.config)
 
     // Parse catalog paths to extract ETL dimensions
-    const catalogPathsArray = rawRecord.catalogPaths
-        ? (JSON.parse(rawRecord.catalogPaths) as (string | null)[])
-        : []
+    const catalogPathsArray = JSON.parse(rawRecord.catalogPaths) as string[]
     const { datasetNamespaces, datasetVersions, datasetProducts } =
         parseCatalogPaths(catalogPathsArray)
 
@@ -118,21 +111,15 @@ export const getChartsRecords = async (
     const chartsToIndex = await db.knexRaw<RawChartRecordRow>(
         knex,
         `-- sql
-        WITH indexable_charts_with_entity_names AS (
+        WITH indexable_charts AS (
             SELECT c.id,
                    cc.slug,
                    cc.full                                 AS config,
                    JSON_LENGTH(cc.full ->> "$.dimensions") AS numDimensions,
                    c.publishedAt,
-                   c.updatedAt,
-                   JSON_ARRAYAGG(e.name)          AS entityNames,
-                   JSON_ARRAYAGG(v.catalogPath)   AS catalogPaths
+                   c.updatedAt
             FROM charts c
                      LEFT JOIN chart_configs cc ON c.configId = cc.id
-                     LEFT JOIN charts_x_entities ce ON c.id = ce.chartId
-                     LEFT JOIN entities e ON ce.entityId = e.id
-                     LEFT JOIN chart_dimensions cd ON c.id = cd.chartId
-                     LEFT JOIN variables v ON cd.variableId = v.id
             WHERE cc.full ->> "$.isPublished" = 'true'
             -- NOT tagged "Unlisted"
             AND NOT EXISTS (
@@ -154,7 +141,58 @@ export const getChartsRecords = async (
                     )
                 )
             )
-            GROUP BY c.id
+        ),
+        entity_names AS (
+            SELECT s.chartId,
+                   COALESCE(JSON_ARRAYAGG(s.name), JSON_ARRAY()) AS entityNames
+            FROM (
+                     SELECT DISTINCT ce.chartId, e.name
+                     FROM charts_x_entities ce
+                              LEFT JOIN entities e ON ce.entityId = e.id
+                     WHERE e.name IS NOT NULL
+                 ) s
+            GROUP BY s.chartId
+        ),
+        catalog_paths AS (
+            SELECT s.chartId,
+                   COALESCE(JSON_ARRAYAGG(s.catalogPath), JSON_ARRAY()) AS catalogPaths
+            FROM (
+                     SELECT DISTINCT cd.chartId, v.catalogPath
+                     FROM chart_dimensions cd
+                              LEFT JOIN variables v ON cd.variableId = v.id
+                     WHERE v.catalogPath IS NOT NULL
+                 ) s
+            GROUP BY s.chartId
+        ),
+        chart_tags_names AS (
+            SELECT s.chartId,
+                   COALESCE(JSON_ARRAYAGG(s.name), JSON_ARRAY()) AS tags
+            FROM (
+                     SELECT ct.chartId, t.name
+                     FROM chart_tags ct
+                              LEFT JOIN tags t on ct.tagId = t.id
+                     WHERE t.name IS NOT NULL
+                 ) s
+            GROUP BY s.chartId
+        ),
+        key_chart_tags AS (
+            SELECT s.chartId,
+                   COALESCE(JSON_ARRAYAGG(s.name), JSON_ARRAY()) AS keyChartForTags
+            FROM (
+                     SELECT ct.chartId, t.name
+                     FROM chart_tags ct
+                              LEFT JOIN tags t on ct.tagId = t.id
+                     WHERE ct.keyChartLevel = ${KeyChartLevel.Top}
+                         AND t.name IS NOT NULL
+                 ) s
+            GROUP BY s.chartId
+        ),
+        chart_tag_counts AS (
+            SELECT ct.chartId,
+                   COUNT(t.id) AS tagCount
+            FROM chart_tags ct
+                     LEFT JOIN tags t on ct.tagId = t.id
+            GROUP BY ct.chartId
         )
         SELECT c.id,
                c.slug,
@@ -162,15 +200,17 @@ export const getChartsRecords = async (
                c.numDimensions,
                c.publishedAt,
                c.updatedAt,
-               c.entityNames, -- this array may contain null values, will have to filter these out
-               c.catalogPaths, -- this array may contain null values, will have to filter these out
-               JSON_ARRAYAGG(t.name) AS tags,
-               JSON_ARRAYAGG(IF(ct.keyChartLevel = ${KeyChartLevel.Top}, t.name, NULL)) AS keyChartForTags -- this results in an array that contains null entries, will have to filter them out
-        FROM indexable_charts_with_entity_names c
-                 LEFT JOIN chart_tags ct ON c.id = ct.chartId
-                 LEFT JOIN tags t on ct.tagId = t.id
-        GROUP BY c.id
-        HAVING COUNT(t.id) >= 1
+               COALESCE(en.entityNames, '[]') AS entityNames,
+               COALESCE(cp.catalogPaths, '[]') AS catalogPaths,
+               ctn.tags,
+               COALESCE(kct.keyChartForTags, '[]') AS keyChartForTags
+        FROM indexable_charts c
+                 LEFT JOIN entity_names en ON c.id = en.chartId
+                 LEFT JOIN catalog_paths cp ON c.id = cp.chartId
+                 INNER JOIN chart_tag_counts tc ON c.id = tc.chartId
+                 LEFT JOIN chart_tags_names ctn ON c.id = ctn.chartId
+                 LEFT JOIN key_chart_tags kct ON c.id = kct.chartId
+        WHERE tc.tagCount >= 1
     `
     )
 
