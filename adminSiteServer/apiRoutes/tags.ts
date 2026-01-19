@@ -162,7 +162,7 @@ export async function getTagById(
         `-- sql
         SELECT slug FROM posts_gdocs
         WHERE published = TRUE
-        AND type IN ('topic-page', 'linear-topic-page', 'article')
+        AND type IN ('topic-page', 'linear-topic-page')
         AND slug IS NOT NULL
         `
     )
