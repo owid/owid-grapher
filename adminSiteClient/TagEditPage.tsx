@@ -9,6 +9,7 @@ import { DatasetList, DatasetListItem } from "./DatasetList.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { TagBadge } from "./TagBadge.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
+import { AutoComplete } from "antd"
 
 interface TagPageData {
     id: number
@@ -42,7 +43,7 @@ class TagEditable {
 @observer
 class TagEditor extends Component<{
     tag: TagPageData
-    publishedGdocSlugs: string[]
+    publishedGdocTopicSlugs: string[]
 }> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
@@ -50,7 +51,10 @@ class TagEditor extends Component<{
     newtag!: TagEditable
     isDeleted: boolean = false
 
-    constructor(props: { tag: TagPageData; publishedGdocSlugs: string[] }) {
+    constructor(props: {
+        tag: TagPageData
+        publishedGdocTopicSlugs: string[]
+    }) {
         super(props)
 
         makeObservable(this, {
@@ -68,10 +72,10 @@ class TagEditor extends Component<{
         this.isDeleted = false
     }
 
-    get slugMatchesPublishedGdoc(): boolean {
+    get slugMatchesPublishedTopicPage(): boolean {
         return (
             !!this.newtag.slug &&
-            this.props.publishedGdocSlugs.includes(this.newtag.slug)
+            this.props.publishedGdocTopicSlugs.includes(this.newtag.slug)
         )
     }
 
@@ -152,26 +156,50 @@ class TagEditor extends Component<{
                             label="Name"
                             helpText="Tag names must be unique and should be able to be understood without context"
                         />
-                        <BindString
-                            field="slug"
-                            store={newtag}
-                            label="Slug"
-                            helpText="The slug for this tag's topic page, e.g. trade-and-globalization. If specified, we assume this tag is a topic. Must be unique"
-                        />
+                        <div className="form-group">
+                            <label>Slug</label>
+                            <AutoComplete
+                                style={{ width: "100%" }}
+                                value={newtag.slug ?? ""}
+                                onChange={(value) =>
+                                    runInAction(
+                                        () => (newtag.slug = value || null)
+                                    )
+                                }
+                                options={this.props.publishedGdocTopicSlugs.map(
+                                    (slug) => ({
+                                        value: slug,
+                                        label: slug,
+                                    })
+                                )}
+                                filterOption={(inputValue, option) =>
+                                    option?.value
+                                        .toLowerCase()
+                                        .includes(inputValue.toLowerCase()) ??
+                                    false
+                                }
+                                allowClear
+                            />
+                            <small className="form-text text-muted">
+                                The slug for this tag's topic page, e.g.
+                                trade-and-globalization. If specified, we assume
+                                this tag is a topic. Must be unique
+                            </small>
+                        </div>
                         <Toggle
                             label="Searchable in Algolia"
                             value={
                                 newtag.searchableInAlgolia ||
-                                this.slugMatchesPublishedGdoc
+                                this.slugMatchesPublishedTopicPage
                             }
                             onValue={(value) =>
                                 runInAction(
                                     () => (newtag.searchableInAlgolia = value)
                                 )
                             }
-                            disabled={this.slugMatchesPublishedGdoc}
+                            disabled={this.slugMatchesPublishedTopicPage}
                             secondaryLabel={
-                                this.slugMatchesPublishedGdoc
+                                this.slugMatchesPublishedTopicPage
                                     ? "This slug matches a published gdoc, so charts with this tag will be indexed in Algolia"
                                     : "When enabled, charts with this tag will be indexed in Algolia even without a matching published gdoc"
                             }
@@ -226,14 +254,14 @@ export class TagEditPage extends Component<{ tagId: number }> {
     declare context: AdminAppContextType
 
     tag: TagPageData | undefined = undefined
-    publishedGdocSlugs: string[] = []
+    publishedGdocTopicSlugs: string[] = []
 
     constructor(props: { tagId: number }) {
         super(props)
 
         makeObservable(this, {
             tag: observable,
-            publishedGdocSlugs: observable,
+            publishedGdocTopicSlugs: observable,
         })
     }
 
@@ -243,7 +271,7 @@ export class TagEditPage extends Component<{ tagId: number }> {
                 {this.tag && (
                     <TagEditor
                         tag={this.tag}
-                        publishedGdocSlugs={this.publishedGdocSlugs}
+                        publishedGdocTopicSlugs={this.publishedGdocTopicSlugs}
                     />
                 )}
             </AdminLayout>
@@ -251,10 +279,13 @@ export class TagEditPage extends Component<{ tagId: number }> {
     }
 
     async getData(tagId: number) {
-        const json = await this.context.admin.getJSON(`/api/tags/${tagId}.json`)
+        const [tagJson, slugsJson] = await Promise.all([
+            this.context.admin.getJSON(`/api/tags/${tagId}.json`),
+            this.context.admin.getJSON("/api/gdocs/publishedTopicSlugs"),
+        ])
         runInAction(() => {
-            this.tag = json.tag as TagPageData
-            this.publishedGdocSlugs = json.publishedGdocSlugs as string[]
+            this.tag = tagJson.tag as TagPageData
+            this.publishedGdocTopicSlugs = slugsJson.slugs as string[]
         })
     }
 

@@ -38,6 +38,7 @@ import {
     deleteGdoc,
     setGdocTags,
     getPreviewGdocIndexRecords,
+    getPublishedGdocTopicSlugs,
 } from "./apiRoutes/gdocs.js"
 import {
     getImagesHandler,
@@ -332,6 +333,11 @@ getRouteWithROTransaction(apiRouter, "/files.json", getFiles)
 
 // Gdoc routes
 getRouteWithROTransaction(apiRouter, "/gdocs", getAllGdocIndexItems)
+getRouteWithROTransaction(
+    apiRouter,
+    "/gdocs/publishedTopicSlugs",
+    getPublishedGdocTopicSlugs
+)
 getRouteNonIdempotentWithRWTransaction(
     apiRouter,
     "/gdocs/:id",

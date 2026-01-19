@@ -155,22 +155,7 @@ export async function getTagById(
     )
     tag.children = children
 
-    // Get all published gdoc slugs (topic-page, linear-topic-page, article)
-    // so the UI can show whether a slug would make this tag indexable in Algolia
-    const publishedGdocSlugs = await db.knexRaw<{ slug: string }>(
-        trx,
-        `-- sql
-        SELECT slug FROM posts_gdocs
-        WHERE published = TRUE
-        AND type IN ('topic-page', 'linear-topic-page')
-        AND slug IS NOT NULL
-        `
-    )
-
-    return {
-        tag,
-        publishedGdocSlugs: publishedGdocSlugs.map((r) => r.slug),
-    }
+    return { tag }
 }
 
 export async function updateTag(
