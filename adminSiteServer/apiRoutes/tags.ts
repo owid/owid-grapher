@@ -188,13 +188,13 @@ export async function updateTag(
                         SELECT 1
                         FROM posts_gdocs_x_tags gt
                         WHERE pg.id = gt.gdocId AND gt.tagId = ?
-                ) AND pg.published = TRUE AND pg.slug = ?`,
+                ) AND pg.published = TRUE AND pg.slug = ? AND pg.type IN ('topic-page', 'linear-topic-page')`,
             [tagId, tag.slug]
         )
         if (!gdoc.length) {
             return {
                 success: true,
-                tagUpdateWarning: `The tag's slug has been updated, but there isn't a published Gdoc page with the same slug - are you sure you haven't made a typo?
+                tagUpdateWarning: `The tag's slug has been updated, but there isn't a published topic page with the same slug. Are you sure you haven't made a typo?
                 
 You should probably just enable "Searchable in Algolia" for this tag and remove the slug until you've published the topic page.`,
             }

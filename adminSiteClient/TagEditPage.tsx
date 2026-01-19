@@ -182,8 +182,7 @@ class TagEditor extends Component<{
                             />
                             <small className="form-text text-muted">
                                 The slug for this tag's topic page, e.g.
-                                trade-and-globalization. If specified, we assume
-                                this tag is a topic. Must be unique
+                                trade-and-globalization.
                             </small>
                         </div>
                         <Toggle
@@ -200,8 +199,8 @@ class TagEditor extends Component<{
                             disabled={this.slugMatchesPublishedTopicPage}
                             secondaryLabel={
                                 this.slugMatchesPublishedTopicPage
-                                    ? "This slug matches a published gdoc, so charts with this tag will be indexed in Algolia"
-                                    : "When enabled, charts with this tag will be indexed in Algolia even without a matching published gdoc"
+                                    ? "This slug matches a published topic page, so charts with this tag will be indexed in Algolia"
+                                    : "When enabled, charts with this tag will be indexed in Algolia even without matching a published topic page"
                             }
                         />
                         <div style={{ marginTop: 16 }}>
