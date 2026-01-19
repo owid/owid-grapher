@@ -6,6 +6,9 @@ import {
     GrapherInterface,
     OwidChartDimensionInterface,
     parseChartConfig,
+    GrapherVariant,
+    GRAPHER_TAB_NAMES,
+    GrapherChartOrMapType,
 } from "@ourworldindata/types"
 import {
     Bounds,
@@ -40,6 +43,9 @@ import {
     legacyToOwidTableAndDimensionsWithMandatorySlug,
     migrateGrapherConfigToLatestVersion,
     GrapherState,
+    GRAPHER_THUMBNAIL_WIDTH,
+    GRAPHER_THUMBNAIL_HEIGHT,
+    mapGrapherTabNameToQueryParam,
 } from "@ourworldindata/grapher"
 import prettier from "prettier"
 import { hashMd5 } from "../../serverUtils/hash.js"
@@ -62,11 +68,12 @@ export const TEST_SUITES = [
     "grapher-views",
     "mdims",
     "explorers",
+    "thumbnails",
 ] as const
 export type TestSuite = (typeof TEST_SUITES)[number]
 
 export const TEST_SUITE_DESCRIPTION =
-    "Test suite to run: 'graphers' for default Grapher views, 'grapher-views' for all views of a subset of Graphers. 'mdims' for all multi-dim views. 'explorers' for all Explorer views."
+    "Test suite to run: 'graphers' for default Grapher views, 'grapher-views' for all views of a subset of Graphers. 'mdims' for all multi-dim views. 'explorers' for all Explorer views. 'thumbnails' for thumbnail versions (300x160) of all published graphers."
 
 const CONFIG_FILENAME = "config.json"
 const RESULTS_FILENAME = "results.csv"
@@ -75,7 +82,7 @@ export const finished = util.promisify(stream.finished) // (A)
 
 export interface ChartWithQueryStr {
     viewId: string
-    chartType: GrapherChartType
+    chartType: GrapherChartOrMapType
     queryStr?: string
 }
 
@@ -125,6 +132,7 @@ export type SvgRecord = {
     viewId: string
     chartType: GrapherTabName | undefined
     queryStr?: string
+    resolvedQueryStr?: string // The query string after resolving placeholders like <firstSeries>
     md5: string
     svgFilename: string
     performance?: SvgRenderPerformance
@@ -227,12 +235,36 @@ export async function selectChartIdsToProcess(
     return _.sortBy(validViewIds)
 }
 
+// Get available tabs from a grapher config
+// Returns tabs that should be tested (excludes table tab)
+export function getAvailableTabsFromConfig(
+    config: GrapherInterface
+): GrapherChartOrMapType[] {
+    const tabs: GrapherChartOrMapType[] = []
+
+    // Add map tab if available
+    if (config.hasMapTab) {
+        tabs.push(GRAPHER_TAB_NAMES.WorldMap)
+    }
+
+    // Add chart types (or default to LineChart and DiscreteBar if none specified)
+    const chartTypes =
+        config.chartTypes && config.chartTypes.length > 0
+            ? config.chartTypes
+            : [GRAPHER_CHART_TYPES.LineChart, GRAPHER_CHART_TYPES.DiscreteBar]
+
+    tabs.push(...chartTypes)
+
+    return tabs
+}
+
 export async function findChartViewsToGenerate(
     inDir: string,
     viewIds: string[],
     options: {
         queryStr?: string
         shouldTestAllViews?: boolean
+        shouldTestAllTabs?: boolean
     }
 ): Promise<ChartWithQueryStr[]> {
     const chartsToProcess: ChartWithQueryStr[] = []
@@ -243,14 +275,25 @@ export async function findChartViewsToGenerate(
         const chartType =
             grapherConfig.chartTypes?.[0] ?? GRAPHER_CHART_TYPES.LineChart
 
-        const queryStrings = options.shouldTestAllViews
-            ? queryStringsByChartType[chartType]
-            : options.queryStr
-              ? [options.queryStr]
-              : [undefined]
+        // If shouldTestAllTabs is true, generate entries for each available tab
+        if (options.shouldTestAllTabs) {
+            const availableTabs = getAvailableTabsFromConfig(grapherConfig)
+            for (const tab of availableTabs) {
+                const tabParam = mapGrapherTabNameToQueryParam(tab)
+                const queryStr = `tab=${tabParam}`
+                chartsToProcess.push({ viewId, chartType: tab, queryStr })
+            }
+        } else {
+            // Existing behavior for shouldTestAllViews and queryStr
+            const queryStrings = options.shouldTestAllViews
+                ? queryStringsByChartType[chartType]
+                : options.queryStr
+                  ? [options.queryStr]
+                  : [undefined]
 
-        for (const queryStr of queryStrings) {
-            chartsToProcess.push({ viewId, chartType, queryStr })
+            for (const queryStr of queryStrings) {
+                chartsToProcess.push({ viewId, chartType, queryStr })
+            }
         }
     }
 
@@ -260,17 +303,17 @@ export async function findChartViewsToGenerate(
 export async function findValidViewIds(
     inDir: string,
     {
-        grapherIds = [],
+        viewIds = [],
         chartTypes = [],
     }: {
-        grapherIds?: number[]
+        viewIds?: string[]
         chartTypes?: GrapherChartType[]
     }
 ): Promise<string[]> {
     const validChartIds: string[] = []
 
     // If nothing is specified, scan all directories in the inDir folder
-    if (grapherIds.length === 0 && chartTypes.length === 0) {
+    if (viewIds.length === 0 && chartTypes.length === 0) {
         const dir = await fs.opendir(inDir)
         for await (const entry of dir) {
             if (entry.isDirectory()) {
@@ -283,17 +326,15 @@ export async function findValidViewIds(
 
     // If grapher ids were given check which ones exist in inDir and filter to those
     // -> if by doing so we drop some, warn the user
-    if (grapherIds.length > 0) {
-        const validatedChartIds = grapherIds.filter((grapherId) =>
-            fs.existsSync(path.join(inDir, grapherId.toString()))
+    if (viewIds.length > 0) {
+        const validatedChartIds = viewIds.filter((viewId) =>
+            fs.existsSync(path.join(inDir, viewId))
         )
-        validChartIds.push(
-            ...validatedChartIds.map((grapherId) => grapherId.toString())
-        )
-        if (validChartIds.length < grapherIds.length) {
-            const invalidChartIds = _.difference(grapherIds, validatedChartIds)
+        validChartIds.push(...validatedChartIds)
+        if (validChartIds.length < viewIds.length) {
+            const invalidChartIds = _.difference(viewIds, validatedChartIds)
             console.warn(
-                `${grapherIds.length} grapher ids were given but only ${validChartIds.length} existed as directories. Missing ids: ${invalidChartIds}`
+                `${viewIds.length} view ids were given but only ${validChartIds.length} existed as directories. Missing ids: ${invalidChartIds}`
             )
         }
     }
@@ -401,9 +442,11 @@ function resolveFocusPlaceholderInQueryString(
 export async function renderSvg({
     dir,
     queryStr,
+    variant = "default",
 }: {
     dir: JobDirectory
     queryStr?: string
+    variant?: "default" | "thumbnail"
 }): Promise<[string, SvgRecord]> {
     const configAndData = await loadGrapherConfigAndData(dir.pathToProcess)
 
@@ -419,12 +462,27 @@ export async function renderSvg({
     const queryStrWithoutFocus = new URLSearchParams(queryStr)
     queryStrWithoutFocus.delete("focus")
 
+    const config: GrapherProgrammaticInterface = {
+        ...configAndData.config,
+        adminBaseUrl: "https://ourworldindata.org",
+        bakedGrapherURL: "https://ourworldindata.org/grapher",
+    }
+
+    // Apply thumbnail settings if variant is thumbnail
+    if (variant === "thumbnail") {
+        const thumbnailBounds = new Bounds(
+            0,
+            0,
+            GRAPHER_THUMBNAIL_WIDTH,
+            GRAPHER_THUMBNAIL_HEIGHT
+        )
+        config.staticBounds = thumbnailBounds
+        config.variant = GrapherVariant.Thumbnail
+        config.baseFontSize = 14
+    }
+
     const grapher = initGrapherForSvgExport(
-        {
-            ...configAndData.config,
-            adminBaseUrl: "https://ourworldindata.org",
-            bakedGrapherURL: "https://ourworldindata.org/grapher",
-        },
+        config,
         queryStrWithoutFocus.toString()
     )
 
@@ -443,7 +501,7 @@ export async function renderSvg({
         grapher.grapherState.focusArray.clearAllAndAdd(focusedSeriesName)
     }
 
-    const { width, height } = grapher.grapherState.defaultBounds
+    const { width, height } = grapher.grapherState.staticBounds
     const outFilename = buildSvgOutFilename(
         {
             slug: dir.viewId,
@@ -465,7 +523,8 @@ export async function renderSvg({
     const svgRecord: SvgRecord = {
         viewId: dir.viewId,
         chartType: grapher.grapherState.activeTab,
-        queryStr: resolvedQueryStr,
+        queryStr: queryStr ?? "",
+        resolvedQueryStr,
         md5: await processSvgAndCalculateHash(svg),
         svgFilename: outFilename,
         performance: {
@@ -507,12 +566,13 @@ export interface RenderSvgAndSaveJobDescription {
     dir: JobDirectory
     outDir: string
     queryStr?: string
+    variant?: "default" | "thumbnail"
 }
 export async function renderSvgAndSave(
     jobDescription: RenderSvgAndSaveJobDescription
 ): Promise<SvgRecord> {
-    const { dir, outDir, queryStr } = jobDescription
-    const [svg, svgRecord] = await renderSvg({ dir, queryStr })
+    const { dir, outDir, queryStr, variant = "default" } = jobDescription
+    const [svg, svgRecord] = await renderSvg({ dir, queryStr, variant })
     const outPath = path.join(outDir, svgRecord.svgFilename)
     const cleanedSvg = await prepareSvgForComparison(svg)
     await fs.writeFile(outPath, cleanedSvg)
@@ -594,6 +654,7 @@ export async function parseReferenceCsv(
         viewId: d.viewId,
         chartType: d.chartType,
         queryStr: d.queryStr,
+        resolvedQueryStr: d.resolvedQueryStr,
         md5: d.md5,
         svgFilename: d.svgFilename,
         performance: {
@@ -615,6 +676,7 @@ export async function writeReferenceCsv(
             viewId: record.viewId,
             chartType: record.chartType,
             queryStr: record.queryStr,
+            resolvedQueryStr: record.resolvedQueryStr,
             md5: record.md5,
             svgFilename: record.svgFilename,
             durationReceiveData: record.performance?.durationReceiveData,
@@ -632,6 +694,7 @@ export interface RenderJobDescription {
     referenceDir: string
     outDir: string
     queryStr?: string
+    variant?: "default" | "thumbnail"
     verbose: boolean
     rmOnError?: boolean
 }
@@ -642,6 +705,7 @@ export async function renderAndVerifySvg({
     referenceDir,
     outDir,
     queryStr,
+    variant = "default",
     verbose,
     rmOnError,
 }: RenderJobDescription): Promise<VerifyResult> {
@@ -651,7 +715,7 @@ export async function renderAndVerifySvg({
         if (!referenceDir) throw "ReferenceDir was not defined"
         if (!outDir) throw "outdir was not defined"
 
-        const [svg, svgRecord] = await renderSvg({ dir, queryStr })
+        const [svg, svgRecord] = await renderSvg({ dir, queryStr, variant })
 
         const validationResult = await verifySvg(
             svg,
@@ -854,6 +918,11 @@ export interface ExplorerViewManifest {
     viewsToTest: ExplorerChoiceParams[]
 }
 
+export interface GrapherViewsManifest {
+    slugs: string[]
+    dataDir: string // Relative path to the data directory (e.g., "../graphers/data")
+}
+
 async function loadViewsManifest(
     explorerDir: string,
     filename: string
@@ -863,6 +932,78 @@ async function loadViewsManifest(
         return null
     }
     return await fs.readJson(manifestPath)
+}
+
+// Load manifest from a specific path
+export async function loadManifestFromPath(
+    manifestPath: string
+): Promise<GrapherViewsManifest | null> {
+    if (!fs.existsSync(manifestPath)) {
+        return null
+    }
+    const manifest: GrapherViewsManifest = await fs.readJson(manifestPath)
+    return manifest
+}
+
+// Load manifest with appropriate defaults for test suites that require it
+// Returns the manifest view IDs and the data directory to use
+export async function loadManifestViewIds(
+    testSuite: TestSuite,
+    options: {
+        targetViewIds?: string[]
+        manifestName?: string
+    }
+): Promise<{ viewIds: string[] | null; dataDir: string }> {
+    const testSuiteDir = path.join(SVG_REPO_PATH, testSuite)
+    const defaultDataDir = path.join(testSuiteDir, "data")
+
+    // If viewIds are explicitly provided, don't load manifest
+    if (options.targetViewIds) {
+        return { viewIds: null, dataDir: defaultDataDir }
+    }
+
+    // For grapher-views and thumbnails, default to using manifest if no viewIds provided
+    if (testSuite === "grapher-views" || testSuite === "thumbnails") {
+        const defaultManifestName = "top.manifest.json"
+        const manifestName = options.manifestName ?? defaultManifestName
+        const manifestPath = path.join(testSuiteDir, manifestName)
+        const manifest = await loadManifestFromPath(manifestPath)
+
+        if (manifest) {
+            const dataDir = path.join(testSuiteDir, manifest.dataDir)
+            console.log(
+                `Read ${manifest.slugs.length} chart slugs from manifest: ${manifestName}`
+            )
+            console.log(`Using data directory: ${manifest.dataDir}`)
+            return { viewIds: manifest.slugs, dataDir }
+        } else {
+            throw new Error(
+                `No manifest found at ${manifestPath}. For ${testSuite}, you must either:\n` +
+                    `  1. Provide a manifest file (default: top.manifest.json), or\n` +
+                    `  2. Explicitly specify --viewIds to process specific charts`
+            )
+        }
+    }
+
+    // For other test suites, only load manifest if explicitly provided
+    if (options.manifestName) {
+        const manifestPath = path.join(testSuiteDir, options.manifestName)
+        const manifest = await loadManifestFromPath(manifestPath)
+
+        if (manifest) {
+            const dataDir = path.join(testSuiteDir, manifest.dataDir)
+            console.log(
+                `Read ${manifest.slugs.length} chart slugs from manifest: ${options.manifestName}`
+            )
+            console.log(`Using data directory: ${manifest.dataDir}`)
+            return { viewIds: manifest.slugs, dataDir }
+        } else {
+            console.warn(`Warning: Manifest not found at ${manifestPath}`)
+        }
+    }
+
+    // Default: no manifest, use default data directory
+    return { viewIds: null, dataDir: defaultDataDir }
 }
 
 async function getChoicesToTest(

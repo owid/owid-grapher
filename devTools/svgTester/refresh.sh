@@ -53,6 +53,7 @@ main() {
     refresh grapher-views
     refresh mdims
     refresh explorers
+    refresh thumbnails
 }
 
 # show help

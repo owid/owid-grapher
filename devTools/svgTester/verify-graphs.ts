@@ -111,27 +111,27 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
         const testSuite = args.testSuite as utils.TestSuite
 
         // Input and output directories
-        const dataDir = path.join(utils.SVG_REPO_PATH, testSuite, "data")
-        const referencesDir = path.join(
-            utils.SVG_REPO_PATH,
-            testSuite,
-            "references"
-        )
-        const differencesDir = path.join(
-            utils.SVG_REPO_PATH,
-            testSuite,
-            "differences"
-        )
+        const testSuiteDir = path.join(utils.SVG_REPO_PATH, testSuite)
+        const referencesDir = path.join(testSuiteDir, "references")
+        const differencesDir = path.join(testSuiteDir, "differences")
 
         // charts to process
         const targetViewIds = args.viewIds
         const targetChartTypes = args.chartTypes
         const randomCount = args.random
 
+        // Load manifest and determine data directory
+        const { viewIds: manifestViewIds, dataDir } =
+            await utils.loadManifestViewIds(testSuite, {
+                targetViewIds,
+                manifestName: args.manifest,
+            })
+
         // Chart configurations to test
         const grapherQueryString = args.queryStr
         const shouldTestAllChartViews =
             args.allViews ?? testSuite === "grapher-views"
+        const shouldTestAllTabs = args.allTabs ?? testSuite === "thumbnails"
 
         // Other options
         const rmOnError = args.rmOnError
@@ -144,7 +144,7 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
         if (!fs.existsSync(differencesDir)) fs.mkdirSync(differencesDir)
 
         const chartIdsToProcess = await utils.selectChartIdsToProcess(dataDir, {
-            viewIds: targetViewIds,
+            viewIds: targetViewIds ?? manifestViewIds ?? undefined,
             chartTypes: targetChartTypes,
             randomCount,
         })
@@ -155,6 +155,7 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
             {
                 queryStr: grapherQueryString,
                 shouldTestAllViews: shouldTestAllChartViews,
+                shouldTestAllTabs,
             }
         )
 
@@ -165,6 +166,8 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
                 record,
             ])
         )
+
+        const variant = testSuite === "thumbnails" ? "thumbnail" : "default"
 
         const verifyJobs: utils.RenderJobDescription[] =
             chartViewsToGenerate.map((chart) => {
@@ -178,6 +181,7 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
                     referenceDir: referencesDir,
                     outDir: differencesDir,
                     queryStr,
+                    variant,
                     verbose,
                     rmOnError,
                 }
@@ -240,6 +244,7 @@ async function main(args: ReturnType<typeof parseArguments>) {
         .with("graphers", () => verifyGraphers(args))
         .with("grapher-views", () => verifyGraphers(args))
         .with("mdims", () => verifyGraphers(args))
+        .with("thumbnails", () => verifyGraphers(args))
         .with("explorers", () => verifyExplorers(args))
         .exhaustive()
 }
@@ -263,7 +268,7 @@ function parseArguments() {
                 type: "string",
                 array: true,
                 description:
-                    "A space-separated list of grapher IDs or mdim view ids, e.g. '2 4 8 10'",
+                    "A space-separated list of grapher slugs or mdim view ids, e.g. 'life-expectancy population'",
             },
             chartTypes: {
                 alias: "t",
@@ -289,10 +294,15 @@ function parseArguments() {
                 description:
                     "For each Grapher, verify SVGs for all possible chart configurations. Default depends on the test suite.",
             },
+            allTabs: {
+                type: "boolean",
+                description:
+                    "For each Grapher, verify thumbnail SVGs for all available tabs. Default depends on the test suite.",
+            },
             manifest: {
                 type: "string",
                 description:
-                    "Manifest filename specifying which explorer views to test (for explorers test suite only). If not provided, all views are tested.",
+                    "Manifest filename (e.g. 'top.manifest.json') specifying which charts to test. For grapher-views and thumbnails, defaults to 'top.manifest.json' if --viewIds is not provided. For other test suites, all charts in the data directory are tested if neither manifest nor --viewIds is provided.",
             },
             rmOnError: {
                 type: "boolean",
