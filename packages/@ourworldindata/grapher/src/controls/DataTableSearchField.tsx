@@ -64,9 +64,17 @@ export class DataTableSearchField extends React.Component<{
             <SearchField
                 className="data-table-search-field"
                 value={this.manager.dataTableConfig.search}
-                onChange={(value) =>
-                    (this.manager.dataTableConfig.search = value)
-                }
+                onChange={(value) => {
+                    // Reset filter to "all" when user starts typing
+                    // to allow searching across all entities
+                    if (
+                        value &&
+                        this.manager.dataTableConfig.filter !== "all"
+                    ) {
+                        this.manager.dataTableConfig.filter = "all"
+                    }
+                    this.manager.dataTableConfig.search = value
+                }}
                 onClear={() => (this.manager.dataTableConfig.search = "")}
                 trackNote="data_table_search"
                 placeholder={`Search for ${a(this.placeholderEntityType)}`}
