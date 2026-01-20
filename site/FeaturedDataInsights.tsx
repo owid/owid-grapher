@@ -67,7 +67,7 @@ export const FeaturedDataInsights = ({
             id={FEATURED_DATA_INSIGHTS_ID}
         >
             <h1 className="h1-semibold">
-                <span>Data insights on {topicName}</span>
+                <span>Data Insights on {topicName}</span>
                 <a
                     className="deep-link"
                     aria-labelledby={FEATURED_DATA_INSIGHTS_ID}

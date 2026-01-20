@@ -62,7 +62,7 @@ export const FeaturedMetrics = ({
             id={FEATURED_METRICS_ID}
         >
             <h1 className="h1-semibold">
-                <span>Featured data on {topicName}</span>
+                <span>Featured Data on {topicName}</span>
                 <a
                     className="deep-link"
                     aria-labelledby={FEATURED_METRICS_ID}
