@@ -238,6 +238,9 @@ export enum FilterType {
     COUNTRY = "country",
     TOPIC = "topic",
     QUERY = "query",
+    DATASET_PRODUCT = "datasetProduct",
+    DATASET_NAMESPACE = "datasetNamespace",
+    DATASET_VERSION = "datasetVersion",
 }
 
 export enum SearchResultType {
@@ -257,6 +260,9 @@ export enum SearchUrlParam {
     QUERY = "q",
     REQUIRE_ALL_COUNTRIES = "requireAllCountries",
     RESULT_TYPE = "resultType",
+    DATASET_PRODUCT = "datasetProducts",
+    DATASET_NAMESPACE = "datasetNamespaces",
+    DATASET_VERSION = "datasetVersions",
 }
 
 export type SearchState = Readonly<{
@@ -292,6 +298,7 @@ export interface TemplateConfig {
     topicType: SearchTopicType | null
     hasCountry: boolean
     hasQuery: boolean
+    hasDatasetFilters: boolean
 }
 
 export type SearchFacetFilters = (string | string[])[]

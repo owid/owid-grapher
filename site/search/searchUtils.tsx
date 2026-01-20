@@ -372,7 +372,12 @@ export const DATA_CATALOG_ATTRIBUTES = [
 
 export function setToFacetFilters(
     facetSet: Set<string>,
-    attribute: "tags" | "availableEntities"
+    attribute:
+        | "tags"
+        | "availableEntities"
+        | "datasetProducts"
+        | "datasetNamespaces"
+        | "datasetVersions"
 ) {
     return Array.from(facetSet).map((facet) => `${attribute}:${facet}`)
 }
@@ -417,6 +422,24 @@ export const formatTopicFacetFilters = (
     return [setToFacetFilters(topics, "tags")]
 }
 
+export const formatDatasetFacetFilters = (
+    datasets: Set<string>
+): SearchFacetFilters => {
+    return [setToFacetFilters(datasets, "datasetProducts")]
+}
+
+export const formatDatasetNamespaceFacetFilters = (
+    namespaces: Set<string>
+): SearchFacetFilters => {
+    return [setToFacetFilters(namespaces, "datasetNamespaces")]
+}
+
+export const formatDatasetVersionFacetFilters = (
+    versions: Set<string>
+): SearchFacetFilters => {
+    return [setToFacetFilters(versions, "datasetVersions")]
+}
+
 export function serializeSet(set: Set<string>) {
     return set.size ? [...set].join("~") : undefined
 }
@@ -459,6 +482,16 @@ export const getFilterIcon = (filter: Filter) => {
                 <FontAwesomeIcon icon={faTag} />
             </span>
         ))
+        .with(
+            FilterType.DATASET_PRODUCT,
+            FilterType.DATASET_NAMESPACE,
+            FilterType.DATASET_VERSION,
+            () => (
+                <span className="icon">
+                    <FontAwesomeIcon icon={faDatabase} />
+                </span>
+            )
+        )
         .with(FilterType.QUERY, () => null)
         .exhaustive()
 }
@@ -823,6 +856,15 @@ export function createFilter(type: FilterType) {
 export const createCountryFilter = createFilter(FilterType.COUNTRY)
 export const createTopicFilter = createFilter(FilterType.TOPIC)
 export const createQueryFilter = createFilter(FilterType.QUERY)
+export const createDatasetProductsFilter = createFilter(
+    FilterType.DATASET_PRODUCT
+)
+export const createDatasetNamespaceFilter = createFilter(
+    FilterType.DATASET_NAMESPACE
+)
+export const createDatasetVersionFilter = createFilter(
+    FilterType.DATASET_VERSION
+)
 
 /**
  * Returns a click handler that focuses an input element when clicking on the
@@ -871,11 +913,26 @@ export const getFilterAriaLabel = (
     action: "add" | "remove"
 ) => {
     const actionName = action === "add" ? "Add" : "Remove"
+    const filterTypeLabel = match(filter.type)
+        .with(FilterType.DATASET_PRODUCT, () => "dataset product")
+        .with(FilterType.DATASET_NAMESPACE, () => "dataset namespace")
+        .with(FilterType.DATASET_VERSION, () => "dataset version")
+        .with(FilterType.COUNTRY, () => "country")
+        .with(FilterType.TOPIC, () => "topic")
+        .with(FilterType.QUERY, () => "query")
+        .exhaustive()
+
     return match(filter.type)
         .with(FilterType.QUERY, () => `Search for ${filter.name}`)
         .with(
-            P.union(FilterType.COUNTRY, FilterType.TOPIC),
-            () => `${actionName} ${filter.name} ${filter.type} filter`
+            P.union(
+                FilterType.COUNTRY,
+                FilterType.TOPIC,
+                FilterType.DATASET_PRODUCT,
+                FilterType.DATASET_NAMESPACE,
+                FilterType.DATASET_VERSION
+            ),
+            () => `${actionName} ${filter.name} ${filterTypeLabel} filter`
         )
         .exhaustive()
 }
@@ -910,6 +967,17 @@ export function getSelectedTopicType(
 export const isBrowsing = (filters: Filter[], query: string) => {
     return query.trim() === "" && filters.length === 0
 }
+/**
+ * Checks if any dataset-related filters are present in the filters array.
+ */
+export const hasDatasetFilters = (filters: Filter[]): boolean => {
+    return filters.some(
+        (filter) =>
+            filter.type === FilterType.DATASET_PRODUCT ||
+            filter.type === FilterType.DATASET_NAMESPACE ||
+            filter.type === FilterType.DATASET_VERSION
+    )
+}
 
 /**
  * Computes the effective result type that should be displayed/used in the UI.
@@ -921,10 +989,12 @@ export const getEffectiveResultType = (
     query: string,
     desiredResultType: SearchResultType
 ): SearchResultType => {
-    return isBrowsing(filters, query) &&
-        desiredResultType === SearchResultType.ALL
+    return hasDatasetFilters(filters)
         ? SearchResultType.DATA
-        : desiredResultType
+        : isBrowsing(filters, query) &&
+            desiredResultType === SearchResultType.ALL
+          ? SearchResultType.DATA
+          : desiredResultType
 }
 
 export const getUrlParamNameForFilter = (filter: Filter) =>
@@ -932,6 +1002,12 @@ export const getUrlParamNameForFilter = (filter: Filter) =>
         .with(FilterType.COUNTRY, () => SearchUrlParam.COUNTRY)
         .with(FilterType.TOPIC, () => SearchUrlParam.TOPIC)
         .with(FilterType.QUERY, () => SearchUrlParam.QUERY)
+        .with(FilterType.DATASET_PRODUCT, () => SearchUrlParam.DATASET_PRODUCT)
+        .with(
+            FilterType.DATASET_NAMESPACE,
+            () => SearchUrlParam.DATASET_NAMESPACE
+        )
+        .with(FilterType.DATASET_VERSION, () => SearchUrlParam.DATASET_VERSION)
         .exhaustive()
 
 /**
@@ -966,7 +1042,14 @@ export const getItemUrlForFilter = (
                 [SearchUrlParam.QUERY]: unmatchedQuery,
             }),
         }))
-        .with(FilterType.QUERY, FilterType.TOPIC, () => filterParam)
+        .with(
+            FilterType.QUERY,
+            FilterType.TOPIC,
+            FilterType.DATASET_PRODUCT, // only for exhaustiveness, not used in autocomplete
+            FilterType.DATASET_NAMESPACE, // only for exhaustiveness, not used in autocomplete
+            FilterType.DATASET_VERSION, // only for exhaustiveness, not used in autocomplete
+            () => filterParam
+        )
         .exhaustive()
 
     return `${BAKED_BASE_URL}${SEARCH_BASE_PATH}${queryParamsToStr(queryParams)}`

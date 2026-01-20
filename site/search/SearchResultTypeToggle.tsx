@@ -1,7 +1,11 @@
 import { RadioButton } from "@ourworldindata/components"
 import { SearchResultType } from "@ourworldindata/types"
 import { useSearchContext } from "./SearchContext.js"
-import { getEffectiveResultType, isBrowsing } from "./searchUtils.js"
+import {
+    getEffectiveResultType,
+    hasDatasetFilters,
+    isBrowsing,
+} from "./searchUtils.js"
 
 const OPTIONS = [
     { value: SearchResultType.ALL, label: "All" },
@@ -15,6 +19,8 @@ export const SearchResultTypeToggle = () => {
         actions: { setResultType },
     } = useSearchContext()
     const { resultType, filters, query } = state
+
+    if (hasDatasetFilters(filters)) return null
 
     const effectiveResultType = getEffectiveResultType(
         filters,

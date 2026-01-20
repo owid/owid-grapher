@@ -22,6 +22,7 @@ export const Searchbar = ({ allTopics }: { allTopics: string[] }) => {
             removeTopic,
             toggleRequireAllCountries,
             reset,
+            removeFilter,
         },
     } = useSearchContext()
 
@@ -44,8 +45,10 @@ export const Searchbar = ({ allTopics }: { allTopics: string[] }) => {
             removeCountry(lastFilter.name)
         } else if (lastFilter.type === FilterType.TOPIC) {
             removeTopic(lastFilter.name)
+        } else {
+            removeFilter(lastFilter)
         }
-    }, [filters, removeCountry, removeTopic])
+    }, [filters, removeCountry, removeFilter, removeTopic])
 
     // Allow clicks on the search bar to focus the input. This is useful on
     // mobile when the search bar stretches vertically and reveals white space
