@@ -768,7 +768,6 @@ export {
     type DbInsertPostTag,
     PostTagsTableName,
 } from "./dbTypes/PostTags.js"
-export { SessionsTableName } from "./dbTypes/Sessions.js"
 export {
     AdminApiKeysTableName,
     type DbAdminApiKey,
