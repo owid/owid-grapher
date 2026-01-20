@@ -166,6 +166,16 @@ export class TestIndexPage extends Component {
                             <Link
                                 native
                                 target="_blank"
+                                to="/test/embeds?faceted=true"
+                            >
+                                Faceted charts
+                            </Link>
+                        </li>
+
+                        <li>
+                            <Link
+                                native
+                                target="_blank"
                                 to="/test/embedVariants"
                             >
                                 Embed Variants

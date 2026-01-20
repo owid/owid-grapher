@@ -102,6 +102,7 @@ interface EmbedTestPageQueryParams {
     readonly relativeToggle?: string
     readonly categoricalLegend?: string
     readonly mixedTimeTypes?: string
+    readonly faceted?: string
     readonly addCountryMode?: EntitySelectionMode
     readonly ids?: string
     readonly datasetIds?: string
@@ -204,6 +205,13 @@ async function propsFromQueryParams(
             ) >= 2
         `
         )
+    }
+
+    if (params.faceted) {
+        query = query.andWhereRaw(
+            `cc.full->>'$.selectedFacetStrategy' != 'none'`
+        )
+        tab = GRAPHER_TAB_CONFIG_OPTIONS.chart
     }
 
     if (params.addCountryMode) {
