@@ -114,7 +114,10 @@ export function DataPageContent({
     const grapherStateRef = useRef<GrapherState>(
         new GrapherState({
             additionalDataLoaderFn: (catalogKey) =>
-                loadCatalogVariableData(catalogKey, { baseUrl: CATALOG_URL }),
+                loadCatalogVariableData(catalogKey, {
+                    baseUrl: CATALOG_URL,
+                    assetMap,
+                }),
             manager: managerRef.current,
             archiveContext,
             isConfigReady: false,

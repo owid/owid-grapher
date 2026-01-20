@@ -58,7 +58,10 @@ export default function MultiDim({
         manager: manager.current,
         queryStr,
         additionalDataLoaderFn: (catalogKey) =>
-            loadCatalogVariableData(catalogKey, { baseUrl: CATALOG_URL }),
+            loadCatalogVariableData(catalogKey, {
+                baseUrl: CATALOG_URL,
+                assetMap,
+            }),
         archiveContext,
         isConfigReady: false,
     })

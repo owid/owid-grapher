@@ -33,6 +33,10 @@ export function FetchingGrapher(
         additionalDataLoaderFn: (catalogKey) =>
             loadCatalogVariableData(catalogKey, {
                 baseUrl: props.catalogUrl,
+                assetMap:
+                    props.archiveContext?.type === "archive-page"
+                        ? props.archiveContext.assets.runtime
+                        : undefined,
             }),
         queryStr: props.queryStr,
         bounds: props.externalBounds,

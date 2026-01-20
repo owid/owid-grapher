@@ -470,8 +470,7 @@ export class GrapherState
     _inputTable: OwidTable = new OwidTable()
 
     /** Optional custom function for fetching additional data beyond the main table */
-    private _additionalDataLoaderFn: AdditionalGrapherDataFetchFn | undefined =
-        undefined
+    additionalDataLoaderFn: AdditionalGrapherDataFetchFn | undefined = undefined
 
     /** The original config as authored, used to detect user changes from authored defaults */
     legacyConfigAsAuthored: Partial<LegacyGrapherInterface> = {}
@@ -709,7 +708,7 @@ export class GrapherState
 
         this.updateFromObject(options)
 
-        this._additionalDataLoaderFn = options.additionalDataLoaderFn
+        this.additionalDataLoaderFn = options.additionalDataLoaderFn
         this.isEmbeddedInAnOwidPage = options.isEmbeddedInAnOwidPage ?? false
         this.isEmbeddedInADataPage = options.isEmbeddedInADataPage ?? false
 
@@ -1301,13 +1300,6 @@ export class GrapherState
 
     @computed get hasArchivedPage(): boolean {
         return this.archiveContext?.type === "archived-page-version"
-    }
-
-    @computed get additionalDataLoaderFn():
-        | AdditionalGrapherDataFetchFn
-        | undefined {
-        if (this.isOnArchivalPage) return undefined
-        return this._additionalDataLoaderFn
     }
 
     /**
