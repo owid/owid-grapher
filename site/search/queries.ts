@@ -108,6 +108,7 @@ export async function queryDataTopics(
             facetFilters: facetFilters,
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
+            optionalFilters: [`title:${state.query}`], // promote exact title matches up top
             hitsPerPage: 4,
         }
     })
@@ -145,6 +146,7 @@ export async function queryCharts(
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
             hitsPerPage: 9,
+            optionalFilters: [`title:${state.query}`], // promote exact title matches up top
             page,
         },
     ]
