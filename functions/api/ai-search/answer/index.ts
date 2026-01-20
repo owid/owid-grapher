@@ -159,7 +159,7 @@ function findBestSourceMatch(
 }
 
 /**
- * Process text buffer: replace **(Title)** patterns with markdown links
+ * Process text buffer: replace [Title](slug) patterns with full URLs
  * Returns: { output: text to emit, remaining: text to keep in buffer }
  */
 function processTextBuffer(
@@ -171,21 +171,29 @@ function processTextBuffer(
 ): { output: string; remaining: string } {
     // If not flushing, keep potential partial patterns in buffer
     if (!flush) {
-        // Check if buffer ends with a potential partial markdown link: [
+        // Find the last '[' that could start an incomplete markdown link
         const lastBracket = buffer.lastIndexOf("[")
 
-        if (lastBracket !== -1 && lastBracket > buffer.length - 100) {
+        if (lastBracket !== -1) {
             const possiblePartial = buffer.slice(lastBracket)
 
-            // Check if the link is complete: [text](url)
-            const isCompleteLink = possiblePartial.match(/^\[[^\]]+\]\([^)]+\)/)
+            // Check if the link is complete: [text](url) followed by non-link char or end
+            // A complete link must have: [, some text, ], (, some url, )
+            const isCompleteLink = possiblePartial.match(
+                /^\[[^\]]+\]\([^)]+\)(?:[^(]|$)/
+            )
 
             if (!isCompleteLink) {
-                // It's incomplete, split here
+                // It's incomplete - keep everything from '[' onwards in buffer
                 const output = buffer.slice(0, lastBracket)
                 const remaining = buffer.slice(lastBracket)
                 return {
-                    output: processCompletePatterns(output, sourceMap, usedSources, baseUrl),
+                    output: processCompletePatterns(
+                        output,
+                        sourceMap,
+                        usedSources,
+                        baseUrl
+                    ),
                     remaining,
                 }
             }
