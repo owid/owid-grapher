@@ -226,16 +226,25 @@ function processCompletePatterns(
 
             // It's a slug - convert to full URL
             const slug = slugOrUrl.replace(/^\//, "") // Remove leading slash if present
-            const source = findBestSourceMatch(slug, sourceMap)
+
+            // Try to find source - first with full path, then with just the basename
+            let source = findBestSourceMatch(slug, sourceMap)
+            if (!source) {
+                // LLM might output wrong path prefix (e.g., etl/wizard/ instead of data-insights/)
+                // Try matching just the last path segment
+                const basename = slug.split("/").pop() || slug
+                source = findBestSourceMatch(basename, sourceMap)
+            }
 
             if (source) {
                 usedSources.set(source.slug, source)
                 return `[${title}](${source.url})`
             }
 
-            // No match in source map, but still convert to URL
-            usedSources.set(slug, { title, slug, url: `${baseUrl}/${slug}` })
-            return `[${title}](${baseUrl}/${slug})`
+            // No match in source map - strip any path prefix and use just the basename
+            const basename = slug.split("/").pop() || slug
+            usedSources.set(basename, { title, slug: basename, url: `${baseUrl}/${basename}` })
+            return `[${title}](${baseUrl}/${basename})`
         }
     )
 }
