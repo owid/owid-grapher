@@ -1,5 +1,6 @@
 import { Env } from "../../../_common/env.js"
 import {
+    getBaseUrl,
     validateQueryParams,
     COMMON_SEARCH_PARAMS,
     AISearchResult,
@@ -268,9 +269,9 @@ const VALID_PARAMS = new Set([
 ])
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
-    const { env } = context
-    const url = new URL(context.request.url)
-    const baseUrl = url.origin
+    const { env, request } = context
+    const url = new URL(request.url)
+    const baseUrl = getBaseUrl(request)
     const startTime = Date.now()
 
     try {
