@@ -326,17 +326,6 @@ export class DiscreteBarChart
 
     override componentDidMount(): void {
         exposeInstanceOnWindow(this)
-        if (!this.manager.disableIntroAnimation) {
-            this.d3Bars().attr("width", 0)
-            this.animateBarWidth()
-        }
-    }
-
-    override componentDidUpdate(): void {
-        // Animating the bar width after a render ensures there's no race condition, where the
-        // initial animation (in override componentDidMount) did override the now-changed bar width in
-        // some cases. Updating the animation with the updated bar widths fixes that.
-        if (!this.manager.disableIntroAnimation) this.animateBarWidth()
     }
 
     private d3Bars(): Selection<
@@ -607,34 +596,34 @@ export class DiscreteBarChart
         series: PlacedDiscreteBarSeries
         state: { translateY: number }
     }): React.ReactElement {
-        const label = this.formatValue(series)
-
-        // Calculate positions relative to the row's center (y=0 in row space)
-        const yOffset = -this.barHeight / 2
-        const entityLabelY = series.entityLabelY - series.barY
-        const valueLabelY = 0 // Value label is centered on the bar
-        const annotationY = series.annotationY
-            ? series.annotationY - series.barY
-            : undefined
-
         return (
             <g
                 key={`row-${series.seriesName}`}
                 className="bar-row"
                 transform={`translate(0, ${state.translateY})`}
             >
-                {this.renderBar({ series, barY: 0, yOffset })}
+                {this.renderBar({
+                    series,
+                    barY: 0,
+                    yOffset: -this.barHeight / 2,
+                })}
                 {this.renderEntityLabel({
                     series,
                     barY: 0,
-                    labelY: entityLabelY,
+                    labelY: series.entityLabelY - series.barY,
                 })}
-                {this.renderEntityAnnotation({ series, barY: 0, annotationY })}
+                {this.renderEntityAnnotation({
+                    series,
+                    barY: 0,
+                    annotationY: series.annotationY
+                        ? series.annotationY - series.barY
+                        : undefined,
+                })}
                 {this.renderValueLabel({
                     series,
-                    label,
+                    label: this.formatValue(series),
                     barY: 0,
-                    labelY: valueLabelY,
+                    labelY: 0,
                 })}
             </g>
         )
