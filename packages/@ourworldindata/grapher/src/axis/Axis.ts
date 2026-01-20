@@ -321,22 +321,21 @@ abstract class AbstractAxis {
         if (this.config.ticks) {
             // If custom ticks are supplied, use them without any transformations or additions.
             const [minValue, maxValue] = d3_scale.domain()
-            return (
-                this.config.ticks
-                    // replace ±Infinity with minimum/maximum
-                    .map((tick) => {
-                        if (tick.value === -Infinity)
-                            return { ...tick, value: minValue }
-                        if (tick.value === Infinity)
-                            return { ...tick, value: maxValue }
-                        return tick
-                    })
-                    // filter out custom ticks outside the plottable area
-                    .filter(
-                        (tick) =>
-                            tick.value >= minValue && tick.value <= maxValue
-                    )
-            )
+            const processedTicks = this.config.ticks
+                // replace ±Infinity with minimum/maximum
+                .map((tick) => {
+                    if (tick.value === -Infinity)
+                        return { ...tick, value: minValue }
+                    if (tick.value === Infinity)
+                        return { ...tick, value: maxValue }
+                    return tick
+                })
+                // filter out custom ticks outside the plottable area
+                .filter(
+                    (tick) => tick.value >= minValue && tick.value <= maxValue
+                )
+
+            return _.uniqBy(processedTicks, (tick) => tick.value)
         } else if (this.isLogScale) {
             // Show a bit more ticks for log axes
             const maxLabelledTicks = Math.round(this.totalTicksTarget * 1.25)

@@ -21,8 +21,7 @@
                 stroke: $gray-30;
             }
 
-            // the zero line
-            line:nth-child(2) {
+            line.zero-line {
                 stroke: #787878;
             }
         }
