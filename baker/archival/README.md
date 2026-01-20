@@ -15,6 +15,7 @@ flowchart TD
         configs["Mdim grapher configs<br><br><code>/grapher/by-uuid/UUID.HASH.config.json</code>"]
         vars["Variable data &amp; metadata files<br><br><code>/api/v1/indicators/VARID.HASH.data.json</code><br><code>/api/v1/indicators/VARID.HASH.metadata.json</code>"]
         dods["Details on demand<br><br><code>/assets/dods.HASH.json</code>"]
+        catalog["Catalog data<br><br><code>/catalog/CATALOG_KEY.HASH.json</code>"]
         versions["Versions files<br><br><code>/versions/charts/CHARTID.json</code><br><code>/versions/multi-dim/ID.json</code><br><code>/versions/posts/POSTID.json</code><br><code>/versions/explorers/SLUG.json</code>"]
         images["Images<br><br><code>/images/FILENAME.HASH.png</code>"]
         videos["Videos<br><br><code>/videos/FILENAME.HASH.mp4</code>"]
@@ -45,12 +46,13 @@ Legend:
     - an example hash is `2e98tbpu0i`
 - `DATE-TIME` is a UTC date string in the format `YYYYMMDD-HHmmss`, e.g. `20250414-074331`
 - `SLUG` is a grapher slug (e.g. `life-expectancy`), an article slug (e.g. `poverty`), or an explorer slug (e.g. `co2`)
+- `CATALOG_KEY` is a catalog key, e.g. `population`
 
 ### Description of assets
 
 - Static assets are those where the path _only_ needs to be known at bake-time, but not at runtime. Those are the JS & CSS files, where we need to put the correct path into the `<script>` and `<link rel="stylesheet">` tags, so they can be loaded correctly.
     - In code, search for `staticAssetMap`.
-- Runtime assets are those that are fetched dynamically somewhere in our code. This includes multi-dim, explorer and grapher configs, variable files, images, videos, and DoDs. It also includes a special kind of file only generated for archived pages, the version file.
+- Runtime assets are those that are fetched dynamically somewhere in our code. This includes multi-dim, explorer and grapher configs, variable files, images, videos, DoDs, and catalog data. It also includes a special kind of file only generated for archived pages, the version file.
     - Here, it's important that all calling sites in our code know that they need to alter their fetch requests to get the correct, archived runtime asset.
     - In code, search for `runtimeAssetMap` or `readFromAssetMap`.
 - The special versions file contains all the archived versions for a single page. It is mainly used to power the "Go to next version" button in the archive navigation bar, which we need to resolve at runtime because we're not aware of the next version at bake time (because the next version doesn't exist yet at bake time).

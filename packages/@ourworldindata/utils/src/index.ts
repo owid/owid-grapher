@@ -360,4 +360,5 @@ export { placeGrapherTabsInMediumVariantGridLayout } from "./search/MediumVarian
 export {
     loadCatalogVariableData,
     columnDefsByCatalogKey,
+    getCatalogAssetKey,
 } from "./loadCatalogData.js"
