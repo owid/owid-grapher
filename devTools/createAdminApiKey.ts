@@ -8,15 +8,6 @@ interface CreateAdminApiKeyArgs {
     userId: number
 }
 
-async function createApiKeyPair(): Promise<{
-    apiKey: string
-    keyHash: string
-}> {
-    const apiKey = createApiKey()
-    const keyHash = hashApiKey(apiKey)
-    return { apiKey, keyHash }
-}
-
 async function main(args: CreateAdminApiKeyArgs) {
     try {
         const result = await db.knexReadWriteTransaction(async (trx) => {
@@ -27,7 +18,8 @@ async function main(args: CreateAdminApiKeyArgs) {
                 throw new Error(`User with id ${args.userId} not found.`)
             }
 
-            const { apiKey, keyHash } = await createApiKeyPair()
+            const apiKey = createApiKey()
+            const keyHash = hashApiKey(apiKey)
 
             await trx(AdminApiKeysTableName).insert({
                 userId: args.userId,
