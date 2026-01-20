@@ -2,6 +2,7 @@ import * as _ from "lodash-es"
 import {
     GrapherInterface,
     diffGrapherConfigs,
+    loadCatalogVariableData,
     mergeGrapherConfigs,
     PostReference,
     SeriesName,
@@ -22,12 +23,11 @@ import {
     defaultGrapherConfig,
     getCachingInputTableFetcher,
     GrapherState,
-    loadVariableDataAndMetadata,
 } from "@ourworldindata/grapher"
 import { NarrativeChartMinimalInformation } from "./ChartEditor.js"
 import { IndicatorChartInfo } from "./IndicatorChartEditor.js"
 import { DataInsightMinimalInformation } from "../adminShared/AdminTypes.js"
-import { DATA_API_URL } from "../settings/clientSettings.js"
+import { CATALOG_URL, DATA_API_URL } from "../settings/clientSettings.js"
 
 const EDITOR_TABS = [
     "basic",
@@ -79,8 +79,8 @@ export abstract class AbstractChartEditor<
     manager: Manager
 
     grapherState = new GrapherState({
-        additionalDataLoaderFn: (varId: number) =>
-            loadVariableDataAndMetadata(varId, DATA_API_URL, { noCache: true }),
+        additionalDataLoaderFn: (catalogKey) =>
+            loadCatalogVariableData(catalogKey, { baseUrl: CATALOG_URL }),
     })
     cachingGrapherDataLoader = getCachingInputTableFetcher(
         DATA_API_URL,
