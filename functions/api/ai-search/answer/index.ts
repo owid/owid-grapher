@@ -54,14 +54,20 @@ function parsePageMetadata(result: AISearchResult): {
 }
 
 /**
- * Extract slug from filename
+ * Extract URL path from filename.
+ * For most content types, strips the folder prefix.
+ * For data-insights, preserves the prefix as it's part of the URL.
  */
-function extractSlugFromFilename(filename: string): string {
+function extractUrlPathFromFilename(filename: string): string {
+    // Data insights URLs include the /data-insights/ prefix
+    if (filename.startsWith("data-insights/")) {
+        return filename.replace(/\.md$/, "")
+    }
+    // Other content types don't include folder prefix in URL
     return filename
         .replace(/^articles\//, "")
         .replace(/^about-pages\//, "")
         .replace(/^topic-pages\//, "")
-        .replace(/^data-insights\//, "")
         .replace(/\.md$/, "")
 }
 
@@ -76,13 +82,16 @@ function buildSourceMap(
 
     for (const result of results) {
         const metadata = parsePageMetadata(result)
-        const slug = metadata.slug || extractSlugFromFilename(result.filename)
+        // Use the URL path from filename (which preserves data-insights/ prefix)
+        const urlPath = extractUrlPathFromFilename(result.filename)
+        // Slug for matching can come from metadata or be extracted from filename
+        const slug = metadata.slug || urlPath.split("/").pop() || urlPath
         const title = metadata.title || slug
 
         const source: Source = {
             title,
             slug,
-            url: `${baseUrl}/${slug}`,
+            url: `${baseUrl}/${urlPath}`,
         }
 
         // Add multiple keys for fuzzy matching
@@ -382,8 +391,9 @@ Always include relevant source citations inline where you reference information.
             try {
                 const searchResults = await searchPromise
                 if (searchResults.data && searchResults.data.length > 0) {
+                    console.log("[Search results] Filenames:", searchResults.data.map(r => r.filename))
                     sourceMap = buildSourceMap(searchResults.data, baseUrl)
-                    console.log("[Source map] Keys:", [...sourceMap.keys()])
+                    console.log("[Source map] Sample entries:", [...sourceMap.entries()].slice(0, 10))
                 }
             } catch (searchError) {
                 console.warn("Failed to fetch sources:", searchError)
