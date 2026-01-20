@@ -8,6 +8,7 @@ import {
     GRAPHER_DYNAMIC_CONFIG_URL,
     BAKED_GRAPHER_URL,
     DATA_API_URL,
+    CATALOG_URL,
 } from "../settings/clientSettings.js"
 import { useElementBounds } from "./hooks.js"
 
@@ -72,6 +73,7 @@ export function GrapherFigureView(
                     config={config}
                     configUrl={configUrl}
                     dataApiUrl={DATA_API_URL}
+                    catalogUrl={CATALOG_URL}
                     archiveContext={config.archiveContext}
                     queryStr={props.queryStr}
                     externalBounds={bounds}

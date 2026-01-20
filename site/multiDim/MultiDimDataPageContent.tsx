@@ -8,11 +8,11 @@ import {
     GrapherState,
     getCachingInputTableFetcher,
     GrapherManager,
-    loadVariableDataAndMetadata,
 } from "@ourworldindata/grapher"
 import {
     DataPageDataV2,
     joinTitleFragments,
+    loadCatalogVariableData,
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromSearchParams,
     isInIFrame,
@@ -47,6 +47,7 @@ import {
     DATA_API_URL,
     BAKED_GRAPHER_URL,
     ADMIN_BASE_URL,
+    CATALOG_URL,
 } from "../../settings/clientSettings.js"
 
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
@@ -112,11 +113,8 @@ export function DataPageContent({
     const managerRef = useRef<GrapherManager>({ adminEditPath: "" })
     const grapherStateRef = useRef<GrapherState>(
         new GrapherState({
-            additionalDataLoaderFn: (varId: number) =>
-                loadVariableDataAndMetadata(varId, DATA_API_URL, {
-                    assetMap,
-                    noCache: isPreviewing,
-                }),
+            additionalDataLoaderFn: (catalogKey) =>
+                loadCatalogVariableData(catalogKey, { baseUrl: CATALOG_URL }),
             manager: managerRef.current,
             archiveContext,
             isConfigReady: false,

@@ -12,7 +12,6 @@ import {
     getCachingInputTableFetcher,
     Grapher,
     GrapherProgrammaticInterface,
-    loadVariableDataAndMetadata,
     useMaybeGlobalGrapherStateRef,
     GuidedChartContext,
 } from "@ourworldindata/grapher"
@@ -20,6 +19,7 @@ import {
     extractMultiDimChoicesFromSearchParams,
     GRAPHER_TAB_QUERY_PARAMS,
     GrapherQueryParams,
+    loadCatalogVariableData,
     MultiDimDataPageConfig,
     MultiDimDimensionChoices,
 } from "@ourworldindata/utils"
@@ -30,6 +30,7 @@ import MultiDimEmbedSettingsPanel from "./MultiDimEmbedSettingsPanel.js"
 import { useBaseGrapherConfig, useMultiDimAnalytics } from "./hooks.js"
 import {
     BAKED_GRAPHER_URL,
+    CATALOG_URL,
     DATA_API_URL,
 } from "../../settings/clientSettings.js"
 
@@ -56,11 +57,8 @@ export default function MultiDim({
     const grapherStateRef = useMaybeGlobalGrapherStateRef({
         manager: manager.current,
         queryStr,
-        additionalDataLoaderFn: (varId: number) =>
-            loadVariableDataAndMetadata(varId, DATA_API_URL, {
-                assetMap,
-                noCache: isPreviewing,
-            }),
+        additionalDataLoaderFn: (catalogKey) =>
+            loadCatalogVariableData(catalogKey, { baseUrl: CATALOG_URL }),
         archiveContext,
         isConfigReady: false,
     })

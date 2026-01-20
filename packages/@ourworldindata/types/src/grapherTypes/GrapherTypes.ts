@@ -4,7 +4,7 @@ import {
 } from "../OwidVariableDisplayConfigInterface.js"
 import { ColumnSlugs, EntityName } from "../domainTypes/CoreTableTypes.js"
 import { AxisAlign, Position } from "../domainTypes/Layout.js"
-import { Integer, OwidVariableId } from "../domainTypes/Various.js"
+import { Integer } from "../domainTypes/Various.js"
 import { DetailDictionary } from "../gdocTypes/Gdoc.js"
 import {
     GRAPHER_CHART_TYPES,
@@ -13,12 +13,12 @@ import {
     GRAPHER_TAB_CONFIG_OPTIONS,
     GRAPHER_TAB_QUERY_PARAMS,
 } from "./GrapherConstants.js"
-import { OwidVariableDataMetadataDimensions } from "../OwidVariable.js"
 import { ArchiveContext } from "../domainTypes/Archive.js"
 import {
     BinningStrategyIncludingManual,
     MidpointMode,
 } from "./BinningStrategyTypes.js"
+import { CatalogDataPoint, CatalogKey } from "../CatalogTypes.js"
 
 // Utility type that marks all properties of T that may be undefined as optional.
 export type UndefinedToOptional<T> = Partial<T> & {
@@ -731,9 +731,9 @@ export enum GrapherWindowType {
     drawer = "drawer",
 }
 
-export type AdditionalGrapherDataFetchFn = (
-    varId: OwidVariableId,
-    loadMetadataOnly?: boolean
-) => Promise<OwidVariableDataMetadataDimensions>
-
 export type GrapherTrendArrowDirection = "up" | "right" | "down"
+
+/** Function type for loading additional indicator data from the catalog */
+export type AdditionalGrapherDataFetchFn = (
+    catalogKey: CatalogKey
+) => Promise<CatalogDataPoint[]>

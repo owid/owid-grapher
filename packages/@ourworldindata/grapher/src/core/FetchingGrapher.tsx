@@ -1,16 +1,10 @@
-import {
-    GrapherInterface,
-    OwidVariableDataMetadataDimensions,
-    ArchiveContext,
-    OwidVariableId,
-} from "@ourworldindata/types"
+import { GrapherInterface, ArchiveContext } from "@ourworldindata/types"
 import React from "react"
 import { Grapher, GrapherProgrammaticInterface } from "./Grapher.js"
-import { loadVariableDataAndMetadata } from "./loadVariable.js"
+import { Bounds, loadCatalogVariableData } from "@ourworldindata/utils"
 import { fetchInputTableForConfig } from "./loadGrapherTableHelpers.js"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
 import { unstable_batchedUpdates } from "react-dom"
-import { Bounds } from "@ourworldindata/utils"
 import { migrateGrapherConfigToLatestVersion } from "../schema/migrations/migrate.js"
 import { useMaybeGlobalGrapherStateRef } from "../chart/guidedChartUtils.js"
 
@@ -18,6 +12,7 @@ export interface FetchingGrapherProps {
     config?: GrapherProgrammaticInterface
     configUrl?: string
     dataApiUrl: string
+    catalogUrl: string
     archiveContext: ArchiveContext | undefined
     queryStr?: string
     externalBounds?: Bounds
@@ -35,11 +30,9 @@ export function FetchingGrapher(
 
     const grapherState = useMaybeGlobalGrapherStateRef({
         ...props.config,
-        additionalDataLoaderFn: (
-            varId: OwidVariableId
-        ): Promise<OwidVariableDataMetadataDimensions> =>
-            loadVariableDataAndMetadata(varId, props.dataApiUrl, {
-                noCache: props.noCache,
+        additionalDataLoaderFn: (catalogKey) =>
+            loadCatalogVariableData(catalogKey, {
+                baseUrl: props.catalogUrl,
             }),
         queryStr: props.queryStr,
         bounds: props.externalBounds,

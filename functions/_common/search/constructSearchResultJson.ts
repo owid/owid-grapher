@@ -2,7 +2,6 @@ import * as _ from "lodash-es"
 import * as R from "remeda"
 import { match } from "ts-pattern"
 import {
-    fetchInputTableForConfig,
     generateFocusedSeriesNamesParam,
     generateSelectedEntityNamesParam,
     GrapherState,
@@ -12,7 +11,6 @@ import {
     WORLD_ENTITY_NAME,
 } from "@ourworldindata/grapher"
 import {
-    DimensionProperty,
     EntityName,
     EntitySelectionMode,
     FacetStrategy,
@@ -42,6 +40,7 @@ import {
     getRegionByName,
     getSiblingRegions,
     getTableColumnCountForGridSlotKey,
+    loadCatalogVariableData,
     omitUndefinedValues,
     getTimeDomainFromQueryString,
     placeGrapherTabsInLargeVariantGrid,
@@ -51,11 +50,6 @@ import {
 } from "@ourworldindata/utils"
 import { toPlaintext } from "@ourworldindata/components"
 import { ColumnTypeMap } from "@ourworldindata/core-table"
-
-// Population variable ID used to fetch latest population data for entities.
-// This data helps determine which entities to display in Scatter plots and
-// Marimekko charts when no specific selection is made
-const POPULATION_VARIABLE_ID = 953903 // "Population (historical) (various sources, 2024-07-15)"
 
 export enum RichDataVariant {
     Medium = "medium",
@@ -255,8 +249,8 @@ export async function pickDisplayEntities(
     grapherState: GrapherState,
     {
         pickedEntities,
-        dataApiUrl,
-    }: { pickedEntities: EntityName[]; dataApiUrl?: string }
+        catalogUrl,
+    }: { pickedEntities: EntityName[]; catalogUrl?: string }
 ): Promise<EntityName[]> {
     const { ScatterPlot, Marimekko } = GRAPHER_CHART_TYPES
     const {
@@ -307,7 +301,7 @@ export async function pickDisplayEntities(
                     return pickDisplayEntitiesForScatterPlot({
                         grapherState,
                         chartState,
-                        dataApiUrl,
+                        catalogUrl,
                         entity: pickedEntities[0],
                     })
                 })
@@ -317,7 +311,7 @@ export async function pickDisplayEntities(
                     return pickDisplayEntitiesForMarimekko({
                         grapherState,
                         chartState,
-                        dataApiUrl,
+                        catalogUrl,
                         entity: pickedEntities[0],
                     })
                 })
@@ -395,12 +389,12 @@ export async function pickDisplayEntities(
 async function pickDisplayEntitiesForScatterPlot({
     grapherState,
     chartState,
-    dataApiUrl,
+    catalogUrl,
     entity,
 }: {
     grapherState: GrapherState
     chartState: ScatterPlotChartState
-    dataApiUrl?: string
+    catalogUrl?: string
     entity?: EntityName
 }): Promise<EntityName[]> {
     const { series, colorColumnSlug, sizeColumnSlug } = chartState
@@ -439,9 +433,9 @@ async function pickDisplayEntitiesForScatterPlot({
 
     // When only the color dimension is available, select the entity with the
     // largest population from each color group
-    if (colorColumnSlug && dataApiUrl) {
+    if (colorColumnSlug && catalogUrl) {
         const populationByEntityName = await fetchLatestPopulationData({
-            dataApiUrl,
+            catalogUrl,
         })
 
         const getPopulation = (series: ScatterSeries) =>
@@ -472,12 +466,12 @@ async function pickDisplayEntitiesForScatterPlot({
 async function pickDisplayEntitiesForMarimekko({
     grapherState,
     chartState,
-    dataApiUrl,
+    catalogUrl,
     entity,
 }: {
     grapherState: GrapherState
     chartState: MarimekkoChartState
-    dataApiUrl?: string
+    catalogUrl?: string
     entity?: EntityName
 }): Promise<EntityName[]> {
     const { items, colorColumnSlug, xColumnSlug } = chartState
@@ -517,9 +511,9 @@ async function pickDisplayEntitiesForMarimekko({
 
     // When only the color dimension is available, select the entity with the
     // largest population from each color group
-    if (colorColumnSlug && dataApiUrl) {
+    if (colorColumnSlug && catalogUrl) {
         const populationByEntityName = await fetchLatestPopulationData({
-            dataApiUrl,
+            catalogUrl,
         })
 
         const getPopulation = (item: MarimekkoItem) =>
@@ -623,45 +617,34 @@ let _populationDataCache: Map<EntityName, number> | undefined
 /**
  * Fetch the latest population data and return a map from entity name to
  * population value. The data is cached after the first fetch to avoid
- * re-fetching and re-processing the table on subsequent calls.
+ * re-fetching and re-processing on subsequent calls.
  */
 async function fetchLatestPopulationData({
-    dataApiUrl,
+    catalogUrl,
 }: {
-    dataApiUrl: string
+    catalogUrl: string
 }): Promise<Map<EntityName, number> | undefined> {
-    // Return cached population data if available to avoid re-fetching/re-processing the table
+    // Return cached population data if available
     if (_populationDataCache) return _populationDataCache
 
-    // Fetch population data as OWID table
-    const table = await fetchInputTableForConfig({
-        dimensions: [
-            {
-                property: DimensionProperty.y,
-                variableId: POPULATION_VARIABLE_ID,
-            },
-        ],
-        dataApiUrl,
-    })
-    if (!table) return undefined
+    try {
+        // Fetch population data from catalog
+        const catalogData = await loadCatalogVariableData("population", {
+            baseUrl: catalogUrl,
+        })
 
-    // Filter to the most recent year
-    const maxTime = table.maxTime ?? 0
-    const populationColumn = table
-        .filterByTargetTimes([maxTime])
-        .get(POPULATION_VARIABLE_ID.toString())
-    if (populationColumn.isMissing) return undefined
+        // Create a map from entity name to population value
+        const data = new Map<EntityName, number>(
+            catalogData.map(({ entity, value }) => [entity, value])
+        )
 
-    // Create a map from entity name to population value
-    const data = new Map<EntityName, number>()
-    for (const [entityName, rows] of populationColumn.owidRowsByEntityName) {
-        if (rows.length > 0) data.set(entityName, rows[0].value)
+        // Update cache
+        _populationDataCache = data
+        return data
+    } catch (error) {
+        console.error("Failed to fetch population data from catalog:", error)
+        return undefined
     }
-
-    // Update cache
-    _populationDataCache = data
-
-    return data
 }
 
 export function configureGrapherStateTab(
