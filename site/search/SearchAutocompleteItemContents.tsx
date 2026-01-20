@@ -46,6 +46,17 @@ export function SearchAutocompleteItemContents({
                         icon={getFilterIcon(filter)}
                     />
                 ))
+                .with(
+                    FilterType.DATASET_PRODUCT,
+                    FilterType.DATASET_NAMESPACE,
+                    FilterType.DATASET_VERSION,
+                    () => (
+                        <SearchFilterPill
+                            name={filter.name}
+                            icon={getFilterIcon(filter)}
+                        />
+                    )
+                )
                 .exhaustive()}
         </div>
     )

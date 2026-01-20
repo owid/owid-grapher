@@ -14,6 +14,7 @@ import {
     getFilterNamesOfType,
     getSelectedTopicType,
     getEffectiveResultType,
+    hasDatasetFilters,
 } from "./searchUtils.js"
 import { useTagGraphTopics, useSearchAnalytics } from "./searchHooks.js"
 import { stateToSearchParams, useSearchParamsState } from "./searchState.js"
@@ -78,6 +79,7 @@ export const Search = ({
         hasCountry:
             getFilterNamesOfType(state.filters, FilterType.COUNTRY).size > 0,
         hasQuery: state.query.length > 0,
+        hasDatasetFilters: hasDatasetFilters(state.filters),
     }
 
     return (

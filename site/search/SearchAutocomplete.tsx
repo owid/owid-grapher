@@ -29,7 +29,7 @@ export const SearchAutocomplete = ({
 }) => {
     const {
         state: { filters },
-        actions: { addCountryAndSetQuery, setTopicAndClearQuery },
+        actions: { addCountryAndSetQuery, setTopicAndClearQuery, addFilter },
         synonymMap,
         analytics,
     } = useSearchContext()
@@ -121,11 +121,21 @@ export const SearchAutocomplete = ({
                     logSearchAutocompleteClick()
                     setQueries(localQuery || filter.name) // only use filter.name for default searches, as it may be lagging
                 })
+                .with(
+                    FilterType.DATASET_PRODUCT,
+                    FilterType.DATASET_NAMESPACE,
+                    FilterType.DATASET_VERSION,
+                    () => {
+                        logSearchAutocompleteClick()
+                        addFilter(filter)
+                    }
+                )
                 .exhaustive()
             setShowSuggestions(false)
         },
         [
             addCountryAndSetQuery,
+            addFilter,
             setTopicAndClearQuery,
             setLocalQuery,
             setShowSuggestions,

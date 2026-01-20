@@ -25,6 +25,9 @@ import {
     CHARTS_INDEX,
     DATA_CATALOG_ATTRIBUTES,
     formatTopicFacetFilters,
+    formatDatasetFacetFilters,
+    formatDatasetNamespaceFacetFilters,
+    formatDatasetVersionFacetFilters,
 } from "./searchUtils.js"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
 
@@ -134,7 +137,22 @@ export async function queryCharts(
     const topicFacetFilters = formatTopicFacetFilters(
         getFilterNamesOfType(state.filters, FilterType.TOPIC)
     )
-    const facetFilters = [...countryFacetFilters, ...topicFacetFilters]
+    const datasetFacetFilters = formatDatasetFacetFilters(
+        getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCT)
+    )
+    const namespaceFacetFilters = formatDatasetNamespaceFacetFilters(
+        getFilterNamesOfType(state.filters, FilterType.DATASET_NAMESPACE)
+    )
+    const versionFacetFilters = formatDatasetVersionFacetFilters(
+        getFilterNamesOfType(state.filters, FilterType.DATASET_VERSION)
+    )
+    const facetFilters = [
+        ...countryFacetFilters,
+        ...topicFacetFilters,
+        ...datasetFacetFilters,
+        ...namespaceFacetFilters,
+        ...versionFacetFilters,
+    ]
 
     const searchParams = [
         {

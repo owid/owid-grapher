@@ -1,4 +1,4 @@
-import { match } from "ts-pattern"
+import { match, P } from "ts-pattern"
 import { SearchTopicType } from "@ourworldindata/types"
 import { useSearchContext } from "./SearchContext.js"
 import { SearchDataResults } from "./SearchDataResults.js"
@@ -12,75 +12,78 @@ export const SearchTemplatesData = () => {
             templateConfig.topicType,
             templateConfig.hasCountry,
             templateConfig.hasQuery,
+            templateConfig.hasDatasetFilters,
         ] as const)
+            // Data + Any + Any + Any + Dataset Filter
+            .with([P._, P._, P._, true], () => (
+                <SearchDataResults isFirstChartLarge={false} />
+            ))
             // Data + Topic + Country + Query
-            .with([SearchTopicType.Topic, true, true], () => (
-                <>
-                    <SearchDataResults isFirstChartLarge={true} />
-                </>
+            .with([SearchTopicType.Topic, true, true, false], () => (
+                <SearchDataResults isFirstChartLarge={true} />
             ))
             // Data + Topic + Country + No Query
-            .with([SearchTopicType.Topic, true, false], () => (
+            .with([SearchTopicType.Topic, true, false, false], () => (
                 <>
                     <SearchDataResults isFirstChartLarge={false} />
                 </>
             ))
             // Data + Topic + No Country + Query
-            .with([SearchTopicType.Topic, false, true], () => (
+            .with([SearchTopicType.Topic, false, true, false], () => (
                 <>
                     <SearchDataResults isFirstChartLarge={true} />
                 </>
             ))
             // Data + Topic + No Country + No Query
-            .with([SearchTopicType.Topic, false, false], () => (
+            .with([SearchTopicType.Topic, false, false, false], () => (
                 <>
                     <SearchDataResults isFirstChartLarge={false} />
                 </>
             ))
             // Data + Area + Country + Query
-            .with([SearchTopicType.Area, true, true], () => (
+            .with([SearchTopicType.Area, true, true, false], () => (
                 <>
                     <SearchDataResults isFirstChartLarge={true} />
                 </>
             ))
             // Data + Area + Country + No Query
-            .with([SearchTopicType.Area, true, false], () => (
+            .with([SearchTopicType.Area, true, false, false], () => (
                 <>
                     <SearchDataTopicsResults />
                 </>
             ))
             // Data + Area + No Country + Query
-            .with([SearchTopicType.Area, false, true], () => (
+            .with([SearchTopicType.Area, false, true, false], () => (
                 <>
                     <SearchDataResults isFirstChartLarge={true} />
                 </>
             ))
             // Data + Area + No Country + No Query
-            .with([SearchTopicType.Area, false, false], () => (
+            .with([SearchTopicType.Area, false, false, false], () => (
                 <>
                     <SearchDataTopicsResults />
                 </>
             ))
             // Data + No Topic + Country + Query
-            .with([null, true, true], () => (
+            .with([null, true, true, false], () => (
                 <>
                     <SearchDataResults isFirstChartLarge={true} />
                 </>
             ))
             // Data + No Topic + Country + No Query
-            .with([null, true, false], () => (
+            .with([null, true, false, false], () => (
                 <>
                     <SearchDataTopicsResults />
                 </>
             ))
             // Data + No Topic + No Country + Query
-            .with([null, false, true], () => (
+            .with([null, false, true, false], () => (
                 <>
                     <SearchDataResults isFirstChartLarge={true} />
                 </>
             ))
             // Data + No Topic + No Country + No Query
-            .with([null, false, false], () => (
+            .with([null, false, false, false], () => (
                 <>
                     <SearchDataTopicsResults />
                 </>
