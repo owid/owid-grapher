@@ -1,6 +1,7 @@
 import { Env } from "../../../_common/env.js"
 import { OwidGdocType } from "@ourworldindata/types"
 import {
+    getBaseUrl,
     validateQueryParams,
     COMMON_SEARCH_PARAMS,
     AISearchResult,
@@ -503,9 +504,9 @@ const VALID_PARAMS = new Set([
 ])
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
-    const { env } = context
-    const url = new URL(context.request.url)
-    const baseUrl = url.origin
+    const { env, request } = context
+    const url = new URL(request.url)
+    const baseUrl = getBaseUrl(request)
 
     try {
         // Validate query parameters - reject unknown params to catch typos like "query" instead of "q"
