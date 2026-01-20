@@ -158,6 +158,7 @@ export const configureAlgolia = async () => {
             ranking: [
                 "typo",
                 "words",
+                "filters",
                 "exact",
                 "attribute",
                 "custom",
@@ -190,6 +191,7 @@ export const configureAlgolia = async () => {
             ],
             disablePrefixOnAttributes: ["subtitle"],
             attributesForFaceting: [
+                "filterOnly(title)", // to be used in `optionalFilters` to promote exact title matches
                 "tags",
                 "availableEntities",
                 "type",
