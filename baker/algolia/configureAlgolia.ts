@@ -177,8 +177,17 @@ export const configureAlgolia = async () => {
             // These lines below essentially demote matches in the `subtitle` and `availableEntities` fields:
             // If we find a match (only) there, then it doesn't count towards `exact`, and is therefore ranked lower.
             // We also disable prefix matching and typo tolerance on these.
-            disableExactOnAttributes: ["tags", "subtitle", "availableEntities"],
-            disableTypoToleranceOnAttributes: ["subtitle", "availableEntities"],
+            disableExactOnAttributes: [
+                "tags",
+                "subtitle",
+                "availableEntities",
+                "originalAvailableEntities",
+            ],
+            disableTypoToleranceOnAttributes: [
+                "subtitle",
+                "availableEntities",
+                "originalAvailableEntities",
+            ],
             disablePrefixOnAttributes: ["subtitle"],
             attributesForFaceting: [
                 "tags",
