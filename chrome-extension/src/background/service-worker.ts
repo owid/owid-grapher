@@ -132,4 +132,6 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
             })
         return true // Will respond asynchronously
     }
+
+    return false
 })
