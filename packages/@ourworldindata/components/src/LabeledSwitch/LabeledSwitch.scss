@@ -95,7 +95,7 @@ $lato: $sans-serif-font-stack;
         background: color.adjust($active-switch, $lightness: -13%);
     }
 
-    &.labeled-switch--is-disabled {
+    &.labeled-switch--disabled {
         opacity: 0.5;
         label {
             cursor: default;

@@ -24,10 +24,8 @@ export const LabeledSwitch = ({
     return (
         <div
             className={cx(
-                {
-                    "labeled-switch": true,
-                    "labeled-switch--is-disabled": disabled,
-                },
+                "labeled-switch",
+                { "labeled-switch--disabled": disabled },
                 className
             )}
         >
