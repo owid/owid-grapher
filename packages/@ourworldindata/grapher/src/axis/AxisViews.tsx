@@ -49,11 +49,14 @@ export class VerticalAxisGridLines extends React.Component<VerticalAxisGridLines
                           : TICK_COLOR
                     const dasharray = this.props.dashPattern ?? "4,4"
 
+                    const className = t.value === 0 ? "zero-line" : undefined
+
                     return (
                         <line
                             id={makeIdForHumanConsumption(
                                 verticalAxis.formatTick(t.value)
                             )}
+                            className={className}
                             key={t.value}
                             x1={bounds.left.toFixed(2)}
                             y1={axis.place(t.value)}
