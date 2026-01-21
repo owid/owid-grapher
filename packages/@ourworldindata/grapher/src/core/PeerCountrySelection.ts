@@ -10,6 +10,7 @@ import {
     checkIsAggregate,
     checkIsCountry,
     checkIsIncomeGroup,
+    checkIsOwidContinent,
     getContinentForCountry,
     getParentRegions,
     getRegionByName,
