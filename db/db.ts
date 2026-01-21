@@ -11,11 +11,7 @@ import {
 import { IS_ARCHIVE } from "../settings/clientSettings.js"
 import { PROD_URL } from "../site/SiteConstants.js"
 import { registerExitHandler } from "./cleanup.js"
-import {
-    createTagGraph,
-    Url,
-    getEntitiesForProfile,
-} from "@ourworldindata/utils"
+import { createTagGraph, Url } from "@ourworldindata/utils"
 import {
     ImageMetadata,
     MinimalDataInsightInterface,
@@ -883,44 +879,6 @@ export async function getCalloutGrapherUrlsForPublishedGdocs(
     return links.map((link) =>
         urlJoin("/", link.linkType, link.target, link.queryString || "")
     )
-}
-
-/**
- * Get all callout URLs (grapher and explorer) from data-callout blocks in published gdocs.
- * If the callout has a profile scope, generate URLs for all entities in that profile.
- */
-export async function getCalloutUrlsForPublishedGdocs(
-    knex: KnexReadonlyTransaction
-): Promise<string[]> {
-    const rows = await knexRaw<{
-        target: string
-        queryString: string | null
-        linkType: ContentGraphLinkType
-        scope: string | undefined
-    }>(
-        knex,
-        `-- sql
-        SELECT DISTINCT l.target, l.queryString, l.linkType, pg.content->>"$.scope" as scope
-        FROM posts_gdocs_links l
-        JOIN posts_gdocs pg ON l.sourceId = pg.id
-        WHERE l.componentType = 'data-callout'
-          AND l.linkType IN ('${ContentGraphLinkType.Grapher}', '${ContentGraphLinkType.Explorer}')
-          AND pg.published = TRUE
-        `
-    )
-
-    return rows.flatMap((row) => {
-        function rowToUrl(r: typeof row): string {
-            return urlJoin("/", r.linkType, r.target, r.queryString || "")
-        }
-        if (row.scope) {
-            const entities = getEntitiesForProfile(row.scope)
-            return entities.map((entity) => {
-                return rowToUrl(row).replaceAll("$entityCode", entity.code)
-            })
-        }
-        return rowToUrl(row)
-    })
 }
 
 /**

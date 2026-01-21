@@ -52,8 +52,6 @@ import {
     OwidGdocType,
     getEntitiesForProfile,
     LinkedStaticViz,
-    Url,
-    makeCalloutGrapherStateKey,
     hasRenderableDataCallouts,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
@@ -77,6 +75,7 @@ import {
     GdocProfile,
     instantiateProfileForEntity,
 } from "../db/model/Gdoc/GdocProfile.js"
+import { prepareCalloutTablesForProfile } from "../db/model/Gdoc/dataCallouts.js"
 import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 import {
     gdocFromJSON,
@@ -131,8 +130,6 @@ type PrefetchedAttachments = {
     linkedIndicators: Record<number, LinkedIndicator>
     linkedNarrativeCharts: Record<string, NarrativeChartInfo>
     linkedStaticViz: Record<string, LinkedStaticViz>
-    // Prepared chart data for data-callouts, keyed by chart URL key (minus country param)
-    calloutGrapherStates: Record<string, CalloutGrapherState>
 }
 
 // These aren't all "wordpress" steps
@@ -237,25 +234,23 @@ export class SiteBaker {
                 attachments.linkedNarrativeCharts
             profileTemplate.linkedStaticViz = attachments.linkedStaticViz
 
-            if (
-                !profileTemplate.manualBreadcrumbs?.length &&
-                profileTemplate.tags?.length
-            ) {
-                profileTemplate.breadcrumbs = db.getBestBreadcrumbs(
-                    profileTemplate.tags,
-                    tagHierarchiesByChildName
-                )
-            }
+            // Prepare all callout tables ONCE for this profile.
+            // This avoids fetching the same chart data for each entity.
+            const preparedTables = await prepareCalloutTablesForProfile(
+                knex,
+                profileTemplate.content
+            )
 
             const entities = getEntitiesForProfile(
                 profileTemplate.content.scope
             )
 
             for (const entity of entities) {
+                // Pass pre-prepared tables to avoid redundant API calls
                 const instantiatedProfile = await instantiateProfileForEntity(
                     profileTemplate,
                     entity,
-                    { knex }
+                    { preparedTables }
                 )
 
                 if (!hasRenderableDataCallouts(instantiatedProfile.content)) {
@@ -511,41 +506,6 @@ export class SiteBaker {
             const staticVizByName = _.keyBy(staticVizList, "name")
             console.log(`✅ Prefetched ${staticVizList.length} static viz`)
 
-            console.log("Prefetching callout Grapher charts")
-            // Get all unique callout chart URLs from published gdocs
-            const calloutGrapherUrls =
-                await db.getCalloutGrapherUrlsForPublishedGdocs(knex)
-
-            // Build a map of slug → config from publishedChartsRaw
-            const chartConfigsBySlug = Object.fromEntries(
-                publishedChartsRaw.map((c) => [c.slug, c.config])
-            )
-
-            // Prepare each chart (fetches data once for all entities)
-            const calloutGrapherStates: Record<string, CalloutGrapherState> = {}
-            for (const stringUrl of calloutGrapherUrls) {
-                const key = makeCalloutGrapherStateKey(stringUrl)
-                const url = Url.fromURL(stringUrl)
-                if (calloutGrapherStates[key]) continue
-                if (!url.slug) continue
-
-                // Get chart config
-                const chartConfig = chartConfigsBySlug[url.slug]
-                if (!chartConfig) continue
-
-                const prepared = await prepareCalloutChart(
-                    chartConfig,
-                    url.queryStr
-                )
-
-                if (prepared) {
-                    calloutGrapherStates[key] = prepared
-                }
-            }
-            console.log(
-                `✅ Prefetched ${Object.keys(calloutGrapherStates).length} callout charts`
-            )
-
             const prefetchedAttachments = {
                 donors,
                 linkedAuthors: publishedAuthors,
@@ -562,7 +522,6 @@ export class SiteBaker {
                 linkedIndicators: datapageIndicatorsById,
                 linkedNarrativeCharts: narrativeChartsInfoByName,
                 linkedStaticViz: staticVizByName,
-                calloutGrapherStates,
             }
             this._prefetchedAttachmentsCache = prefetchedAttachments
         }
@@ -636,10 +595,6 @@ export class SiteBaker {
                     this._prefetchedAttachmentsCache.linkedStaticViz,
                     linkedStaticVizNames
                 ),
-                // We don't need to pick these. They don't get attached to the gdoc,
-                // that happens when linkedCallouts is set.
-                calloutGrapherStates:
-                    this._prefetchedAttachmentsCache.calloutGrapherStates,
             }
         }
         return this._prefetchedAttachmentsCache

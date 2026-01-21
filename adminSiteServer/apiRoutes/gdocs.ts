@@ -38,7 +38,6 @@ import { GdocAuthor } from "../../db/model/Gdoc/GdocAuthor.js"
 import { getMinimalGdocPostsByIds } from "../../db/model/Gdoc/GdocBase.js"
 import { GdocDataInsight } from "../../db/model/Gdoc/GdocDataInsight.js"
 import {
-    bakeCalloutsForGdoc,
     extractDataCalloutUrls,
     prepareCalloutStateForUrl,
     prepareCalloutTableForUrl,
@@ -345,50 +344,11 @@ async function indexAndBakeGdocIfNeccesary(
                     prevGdoc.slug || nextJson.slug
                 )
             }
-            const { invalidByCalloutKey } = await bakeCalloutsForGdoc(
-                trx,
-                nextGdoc
-            )
-            const invalidEntries = Object.entries(invalidByCalloutKey).filter(
-                ([, summary]) => summary.invalid > 0
-            )
-            if (invalidEntries.length > 0) {
-                console.warn(
-                    `Skipped invalid callout values for gdoc ${nextJson.slug}:`
-                )
-                for (const [calloutKey, { invalid, total }] of invalidEntries) {
-                    console.warn(
-                        `${calloutKey}: ${invalid}/${total} values were invalid`
-                    )
-                }
-            }
             await triggerStaticBuild(user, `${action} ${nextJson.slug}`)
         })
         .with(GdocPublishingAction.Updating, async () => {
             if (isGdocPost) {
                 await indexIndividualGdocPost(nextJson, trx, prevGdoc.slug)
-            }
-            if (hasChanges) {
-                const { invalidByCalloutKey } = await bakeCalloutsForGdoc(
-                    trx,
-                    nextGdoc
-                )
-                const invalidEntries = Object.entries(
-                    invalidByCalloutKey
-                ).filter(([, summary]) => summary.invalid > 0)
-                if (invalidEntries.length > 0) {
-                    console.warn(
-                        `Skipped invalid callout values for gdoc ${nextJson.slug}:`
-                    )
-                    for (const [
-                        calloutKey,
-                        { invalid, total },
-                    ] of invalidEntries) {
-                        console.warn(
-                            `${calloutKey}: ${invalid}/${total} values were invalid`
-                        )
-                    }
-                }
             }
             if (checkIsLightningUpdate(prevJson, nextJson, hasChanges)) {
                 await enqueueLightningChange(

@@ -20,7 +20,9 @@ import { GdocBase } from "./GdocBase.js"
 import {
     extractDataCalloutUrls,
     loadLinkedCalloutsForBlocks,
+    computeLinkedCalloutsFromPreparedTables,
 } from "./dataCallouts.js"
+import { PreparedCalloutTable } from "@ourworldindata/grapher"
 
 const GENERIC_PROFILE_SCOPES = new Set<OwidGdocProfileScope>([
     "countries",
@@ -110,17 +112,23 @@ export class GdocProfile extends GdocBase implements OwidGdocProfileInterface {
  * Renders a profile template for a specific entity by replacing template tokens
  * with entity-specific values.
  *
- * For bulk baking (SiteBaker) and previews, pass knex so callout values can be
- * loaded from the database instead of recomputing.
+ * For bulk baking (SiteBaker), pass preparedTables to use pre-fetched chart data.
+ * This avoids redundant API calls when baking many entities.
+ *
+ * For previews and single-entity calls, pass knex to load callout values
+ * on the fly.
  *
  * @param profileTemplate - The profile template to instantiate
  * @param entity - The entity to instantiate the profile for
- * @param options - Optional knex transaction for loading callout values
+ * @param options - Optional preparedTables (fast path) or knex (slow path)
  */
 export async function instantiateProfileForEntity(
     profileTemplate: GdocProfile,
     entity: ProfileEntity,
-    options?: { knex: db.KnexReadonlyTransaction; useDbOnlyCallouts?: boolean }
+    options?: {
+        knex?: db.KnexReadonlyTransaction
+        preparedTables?: Map<string, PreparedCalloutTable>
+    }
 ): Promise<OwidGdocProfileInterface> {
     // Instantiate the content with entity-specific values
     const instantiatedContent = instantiateProfile(
@@ -129,14 +137,17 @@ export async function instantiateProfileForEntity(
     )
 
     const calloutUrls = extractDataCalloutUrls(instantiatedContent.body)
-    console.log("calloutUrls", calloutUrls)
 
-    // Load precomputed callout values from the database when available
-    const linkedCallouts = options?.knex
-        ? await loadLinkedCalloutsForBlocks(options.knex, calloutUrls, {
-              useDbOnly: options.useDbOnlyCallouts ?? true,
-          })
-        : {}
+    // Use pre-prepared tables if provided (fast path - no API calls)
+    // Otherwise fall back to computing on the fly (slow path)
+    const linkedCallouts = options?.preparedTables
+        ? computeLinkedCalloutsFromPreparedTables(
+              calloutUrls,
+              options.preparedTables
+          )
+        : options?.knex
+          ? await loadLinkedCalloutsForBlocks(options.knex, calloutUrls)
+          : {}
 
     // Filter out data-callout blocks that have incomplete data
     filterIncompleteDataCallouts(instantiatedContent, linkedCallouts)

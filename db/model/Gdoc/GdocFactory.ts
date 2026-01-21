@@ -418,7 +418,6 @@ export async function loadGdocFromGdocBase(
     acceptSuggestions: boolean = false,
     options?: {
         loadState?: boolean
-        loadStateOptions?: { useDbOnlyCallouts?: boolean }
     }
 ): Promise<
     | GdocPost
@@ -472,10 +471,7 @@ export async function loadGdocFromGdocBase(
     }
 
     if (shouldLoadState) {
-        const useDbOnlyCallouts =
-            options?.loadStateOptions?.useDbOnlyCallouts ??
-            contentSource !== GdocsContentSource.Gdocs
-        await gdoc.loadState(knex, { useDbOnlyCallouts })
+        await gdoc.loadState(knex)
     }
 
     return gdoc

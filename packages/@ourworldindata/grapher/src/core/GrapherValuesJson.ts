@@ -125,7 +125,9 @@ export function isValuesJsonValid(valuesJson: GrapherValuesJson): boolean {
         dataPoints: GrapherValuesJsonDataPoints | undefined
     ): boolean => {
         if (!dataPoints?.y?.length) return false
-        if (!dataPoints.y.every(isDataPointComplete)) return false
+        // Use `some` instead of `every` to support comparison charts where
+        // not all indicators have data for all entities/times
+        if (!dataPoints.y.some(isDataPointComplete)) return false
         if (dataPoints.x && !isDataPointComplete(dataPoints.x)) return false
         return true
     }

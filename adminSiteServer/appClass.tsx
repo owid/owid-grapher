@@ -31,6 +31,7 @@ import {
     instantiateProfileForEntity,
     GdocProfile,
 } from "../db/model/Gdoc/GdocProfile.js"
+import { prepareCalloutTablesForProfile } from "../db/model/Gdoc/dataCallouts.js"
 
 interface OwidAdminAppOptions {
     isDev: boolean
@@ -126,11 +127,17 @@ export class OwidAdminApp {
                             (profileEntity) => profileEntity.code === entityCode
                         )
                         if (entityInScope) {
+                            // Prepare tables once for the preview
+                            const preparedTables =
+                                await prepareCalloutTablesForProfile(
+                                    knex,
+                                    gdoc.content
+                                )
                             const instantiatedProfile =
                                 await instantiateProfileForEntity(
                                     gdoc as GdocProfile,
                                     entityInScope,
-                                    { knex, useDbOnlyCallouts: false }
+                                    { preparedTables }
                                 )
 
                             if (

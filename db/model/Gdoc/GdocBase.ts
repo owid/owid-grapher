@@ -1003,15 +1003,10 @@ export class GdocBase implements OwidGdocBaseInterface {
      * Load data for all data-callout blocks.
      * For each callout, we fetch the chart config and construct the values JSON.
      */
-    async loadLinkedCallouts(
-        knex: db.KnexReadonlyTransaction,
-        options?: { useDbOnlyCallouts?: boolean }
-    ): Promise<void> {
-        const useDbOnlyCallouts = options?.useDbOnlyCallouts ?? true
+    async loadLinkedCallouts(knex: db.KnexReadonlyTransaction): Promise<void> {
         this.linkedCallouts = await loadLinkedCalloutsForBlocks(
             knex,
-            this.linkedCalloutUrls,
-            { useDbOnly: useDbOnlyCallouts }
+            this.linkedCalloutUrls
         )
     }
 
@@ -1309,10 +1304,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         ]
     }
 
-    async loadState(
-        knex: db.KnexReadonlyTransaction,
-        options?: { useDbOnlyCallouts?: boolean }
-    ): Promise<void> {
+    async loadState(knex: db.KnexReadonlyTransaction): Promise<void> {
         await this.loadLinkedAuthors(knex)
         await this.loadLinkedDocuments(knex)
         await this.loadImageMetadataFromDB(knex)
@@ -1320,7 +1312,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         await this.loadLinkedIndicators(knex) // depends on linked charts
         await this.loadNarrativeChartsInfo(knex)
         await this.loadLinkedStaticViz(knex)
-        await this.loadLinkedCallouts(knex, options)
+        await this.loadLinkedCallouts(knex)
         await this._loadSubclassAttachments(knex) // for GdocHomepage, mutates linkedCharts and linkedDocuments
         await this.validate(knex)
     }

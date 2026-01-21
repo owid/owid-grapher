@@ -7,20 +7,17 @@ import {
     GrapherProgrammaticInterface,
     prepareCalloutTable,
     constructGrapherValuesJsonFromTable,
+    PreparedCalloutTable,
 } from "@ourworldindata/grapher"
 import { OwidTable } from "@ourworldindata/core-table"
 import {
     GrapherInterface,
     GrapherValuesJson,
     EntityName,
-    OwidGdocBaseInterface,
     OwidEnrichedGdocBlock,
     LinkedCallouts,
     DimensionProperty,
-    ChartCalloutValuesTableName,
-    DbPlainChartCalloutValue,
-    DbInsertChartCalloutValue,
-    OwidGdocType,
+    OwidGdocProfileContent,
 } from "@ourworldindata/types"
 import {
     makeLinkedCalloutKey,
@@ -30,10 +27,7 @@ import {
     parseIntOrUndefined,
     searchParamsToMultiDimView,
     makeCalloutGrapherStateKey,
-    instantiateProfile,
-    getEntitiesForProfile,
 } from "@ourworldindata/utils"
-import { groupBy } from "remeda"
 import {
     ExplorerProgram,
     ExplorerChartCreationMode,
@@ -314,296 +308,6 @@ async function prepareCalloutTableForExplorer(
     }
 }
 
-export interface CalloutBakeStats {
-    optimized: {
-        chartGroups: number
-        urlsProcessed: number
-        preparationTimeMs: number
-        extractionTimeMs: number
-    }
-    fallback: {
-        chartGroups: number
-        urlsProcessed: number
-        preparationTimeMs: number
-        extractionTimeMs: number
-    }
-    totalTimeMs: number
-}
-
-export async function bakeCalloutsForUrls(
-    knex: db.KnexReadWriteTransaction,
-    calloutUrls: string[],
-    options?: { collectStats?: boolean }
-): Promise<{
-    invalidByCalloutKey: Record<string, { invalid: number; total: number }>
-    stats?: CalloutBakeStats
-}> {
-    const uniqueCalloutUrls = Array.from(new Set(calloutUrls))
-    if (uniqueCalloutUrls.length === 0)
-        return { invalidByCalloutKey: {}, stats: undefined }
-
-    const collectStats = options?.collectStats ?? false
-    const totalStart = collectStats ? performance.now() : 0
-
-    // Initialize stats
-    const stats: CalloutBakeStats = {
-        optimized: {
-            chartGroups: 0,
-            urlsProcessed: 0,
-            preparationTimeMs: 0,
-            extractionTimeMs: 0,
-        },
-        fallback: {
-            chartGroups: 0,
-            urlsProcessed: 0,
-            preparationTimeMs: 0,
-            extractionTimeMs: 0,
-        },
-        totalTimeMs: 0,
-    }
-
-    const slugToIdMap = await mapSlugsToIds(knex)
-    const urlsByCalloutKey = groupBy(uniqueCalloutUrls, (url) =>
-        makeCalloutGrapherStateKey(url)
-    )
-
-    const valuesToUpsert: Record<string, DbInsertChartCalloutValue> = {}
-    const invalidByCalloutKey: Record<
-        string,
-        { invalid: number; total: number }
-    > = {}
-
-    for (const [calloutKey, urls] of Object.entries(urlsByCalloutKey)) {
-        invalidByCalloutKey[calloutKey] = { invalid: 0, total: 0 }
-
-        // Try the optimized direct table approach first
-        const prepStart = collectStats ? performance.now() : 0
-        const tableResult = await prepareCalloutTableForUrl(
-            knex,
-            urls[0],
-            slugToIdMap
-        )
-
-        if (tableResult) {
-            // Use the optimized direct table approach
-            const { config, inputTable } = tableResult
-            const prepared = prepareCalloutTable(inputTable, config)
-
-            if (collectStats) {
-                stats.optimized.preparationTimeMs +=
-                    performance.now() - prepStart
-                stats.optimized.chartGroups += 1
-            }
-
-            const extractStart = collectStats ? performance.now() : 0
-
-            for (const urlString of urls) {
-                const url = Url.fromURL(urlString)
-                const entityNames = getEntityNamesParam(url.queryParams.country)
-                if (!entityNames) {
-                    console.warn(
-                        `No entity names for callout URL: ${urlString}`
-                    )
-                    continue
-                }
-
-                const entityName = entityNames[0]
-                const values = constructGrapherValuesJsonFromTable(
-                    prepared,
-                    entityName,
-                    url.queryParams.time
-                )
-                invalidByCalloutKey[calloutKey].total += 1
-                if (!isValuesJsonValid(values)) {
-                    invalidByCalloutKey[calloutKey].invalid += 1
-                    continue
-                }
-
-                const id = makeLinkedCalloutKey(urlString)
-                valuesToUpsert[id] = { id, value: values }
-
-                if (collectStats) {
-                    stats.optimized.urlsProcessed += 1
-                }
-            }
-
-            if (collectStats) {
-                stats.optimized.extractionTimeMs +=
-                    performance.now() - extractStart
-            }
-        } else {
-            // Fall back to GrapherState approach for explorers
-            const grapherState = await prepareCalloutStateForUrl(
-                knex,
-                urls[0],
-                slugToIdMap
-            )
-
-            if (collectStats) {
-                stats.fallback.preparationTimeMs +=
-                    performance.now() - prepStart
-                stats.fallback.chartGroups += 1
-            }
-
-            if (!grapherState) continue
-
-            const extractStart = collectStats ? performance.now() : 0
-
-            for (const urlString of urls) {
-                const url = Url.fromURL(urlString)
-                grapherState.populateFromQueryParams(url.queryParams)
-                const entityNames = getEntityNamesParam(url.queryParams.country)
-                if (!entityNames) {
-                    console.warn(
-                        `No entity names for callout URL: ${urlString}`
-                    )
-                    continue
-                }
-
-                const entityName = entityNames[0]
-                const values = constructGrapherValuesJson(
-                    grapherState,
-                    entityName,
-                    url.queryParams.time
-                )
-                invalidByCalloutKey[calloutKey].total += 1
-                if (!isValuesJsonValid(values)) {
-                    invalidByCalloutKey[calloutKey].invalid += 1
-                    continue
-                }
-
-                const id = makeLinkedCalloutKey(urlString)
-                valuesToUpsert[id] = { id, value: values }
-
-                if (collectStats) {
-                    stats.fallback.urlsProcessed += 1
-                }
-            }
-
-            if (collectStats) {
-                stats.fallback.extractionTimeMs +=
-                    performance.now() - extractStart
-            }
-        }
-    }
-
-    for (const calloutValue of Object.values(valuesToUpsert)) {
-        await knex
-            .table(ChartCalloutValuesTableName)
-            .insert(calloutValue)
-            .onConflict("id")
-            .merge()
-    }
-
-    if (collectStats) {
-        stats.totalTimeMs = performance.now() - totalStart
-    }
-
-    return { invalidByCalloutKey, stats: collectStats ? stats : undefined }
-}
-
-export async function bakeCalloutsForGdoc(
-    knex: db.KnexReadWriteTransaction,
-    gdoc: OwidGdocBaseInterface,
-    options?: { collectStats?: boolean }
-): Promise<{
-    invalidByCalloutKey: Record<string, { invalid: number; total: number }>
-    stats?: CalloutBakeStats
-}> {
-    const calloutUrls: string[] = []
-
-    if (gdoc.content.type === OwidGdocType.Profile) {
-        const entities = getEntitiesForProfile(gdoc.content.scope)
-        for (const entity of entities) {
-            const instantiatedContent = instantiateProfile(gdoc.content, entity)
-            calloutUrls.push(
-                ...extractDataCalloutUrls(instantiatedContent.body)
-            )
-        }
-    } else {
-        calloutUrls.push(...extractDataCalloutUrls(gdoc.content.body ?? []))
-    }
-
-    return bakeCalloutsForUrls(knex, calloutUrls, options)
-}
-
-/**
- * Format CalloutBakeStats for logging.
- */
-export function formatCalloutBakeStats(stats: CalloutBakeStats): string {
-    const { optimized, fallback, totalTimeMs } = stats
-
-    const optimizedTotal =
-        optimized.preparationTimeMs + optimized.extractionTimeMs
-    const fallbackTotal = fallback.preparationTimeMs + fallback.extractionTimeMs
-
-    const optimizedPerUrl =
-        optimized.urlsProcessed > 0
-            ? optimized.extractionTimeMs / optimized.urlsProcessed
-            : 0
-    const fallbackPerUrl =
-        fallback.urlsProcessed > 0
-            ? fallback.extractionTimeMs / fallback.urlsProcessed
-            : 0
-
-    const lines = [
-        `=== Callout Bake Stats ===`,
-        ``,
-        `Optimized (direct table):`,
-        `  Chart groups: ${optimized.chartGroups}`,
-        `  URLs processed: ${optimized.urlsProcessed}`,
-        `  Preparation time: ${optimized.preparationTimeMs.toFixed(2)}ms`,
-        `  Extraction time: ${optimized.extractionTimeMs.toFixed(2)}ms`,
-        `  Total: ${optimizedTotal.toFixed(2)}ms`,
-        `  Per-URL extraction: ${optimizedPerUrl.toFixed(3)}ms`,
-        ``,
-        `Fallback (GrapherState):`,
-        `  Chart groups: ${fallback.chartGroups}`,
-        `  URLs processed: ${fallback.urlsProcessed}`,
-        `  Preparation time: ${fallback.preparationTimeMs.toFixed(2)}ms`,
-        `  Extraction time: ${fallback.extractionTimeMs.toFixed(2)}ms`,
-        `  Total: ${fallbackTotal.toFixed(2)}ms`,
-        `  Per-URL extraction: ${fallbackPerUrl.toFixed(3)}ms`,
-        ``,
-        `Total time: ${totalTimeMs.toFixed(2)}ms`,
-    ]
-
-    if (optimized.urlsProcessed > 0 && fallback.urlsProcessed > 0) {
-        const speedup = fallbackPerUrl / optimizedPerUrl
-        lines.push(`Speedup (per-URL): ${speedup.toFixed(2)}x`)
-    }
-
-    return lines.join("\n")
-}
-
-async function getCalloutValuesFromDb(
-    knex: db.KnexReadonlyTransaction,
-    calloutUrls: string[]
-): Promise<Record<string, GrapherValuesJson>> {
-    const ids = Array.from(
-        new Set(calloutUrls.map((url) => makeLinkedCalloutKey(url)))
-    )
-    if (ids.length === 0) return {}
-
-    const rows = await knex<DbPlainChartCalloutValue>(
-        ChartCalloutValuesTableName
-    )
-        .select("id", "value")
-        .whereIn("id", ids)
-
-    const valuesByKey: Record<string, GrapherValuesJson> = {}
-    for (const row of rows) {
-        const key = makeLinkedCalloutKey(row.id)
-        const parsedValue =
-            typeof row.value === "string"
-                ? (JSON.parse(row.value) as GrapherValuesJson)
-                : row.value
-        valuesByKey[key] = parsedValue
-    }
-
-    return valuesByKey
-}
-
 /**
  * Prepare a GrapherState for a chart config by fetching its data.
  * The returned GrapherState can be used to generate values for any entity
@@ -779,60 +483,66 @@ export async function prepareCalloutStateForUrl(
 }
 
 /**
- * Load LinkedCallouts for a list of data-callout blocks.
- * This is the unified function used by GdocBase.loadLinkedCallouts,
- * appClass.tsx profile preview, and can be used elsewhere.
+ * Load LinkedCallouts for a list of data-callout blocks by computing values
+ * on the fly using the optimized table-based approach.
  *
  * Supports grapher URLs (/grapher/slug), explorer URLs (/explorers/slug),
  * and multi-dimensional data page URLs (/grapher/slug with multi-dim config).
- * Set useDbOnly to avoid fetching missing values on the fly.
  */
 export async function loadLinkedCalloutsForBlocks(
     knex: db.KnexReadonlyTransaction,
-    calloutUrls: string[],
-    options?: { useDbOnly?: boolean }
+    calloutUrls: string[]
 ): Promise<LinkedCallouts> {
     if (calloutUrls.length === 0) return {}
 
     const linkedCallouts: LinkedCallouts = {}
     const uniqueCalloutUrls = Array.from(new Set(calloutUrls))
-    const valuesFromDb = await getCalloutValuesFromDb(knex, uniqueCalloutUrls)
-    const missingCallouts: string[] = []
 
-    for (const calloutUrl of uniqueCalloutUrls) {
-        const linkedCalloutsKey = makeLinkedCalloutKey(calloutUrl)
-        const cachedValue = valuesFromDb[linkedCalloutsKey]
-        if (cachedValue) {
-            linkedCallouts[linkedCalloutsKey] = {
-                url: calloutUrl,
-                values: cachedValue,
-            }
-            continue
+    // Group URLs by chart key to prepare each chart's table once
+    const urlsByChartKey = new Map<string, string[]>()
+    for (const url of uniqueCalloutUrls) {
+        const chartKey = makeCalloutGrapherStateKey(url)
+        if (!urlsByChartKey.has(chartKey)) {
+            urlsByChartKey.set(chartKey, [])
         }
-
-        missingCallouts.push(calloutUrl)
+        urlsByChartKey.get(chartKey)!.push(url)
     }
 
-    if (options?.useDbOnly) return linkedCallouts
-
-    if (missingCallouts.length === 0) return linkedCallouts
-
+    // Pre-fetch slug to ID map for efficiency
     const slugToIdMap = await mapSlugsToIds(knex)
 
-    for (const calloutUrl of missingCallouts) {
-        const values = await fetchCalloutValuesForUrl(
+    // Process each chart group
+    for (const [_chartKey, urls] of urlsByChartKey) {
+        const tableResult = await prepareCalloutTableForUrl(
             knex,
-            calloutUrl,
+            urls[0],
             slugToIdMap
         )
-        if (!values) continue
 
-        const linkedCalloutsKey = makeLinkedCalloutKey(calloutUrl)
-        if (linkedCallouts[linkedCalloutsKey]) continue
+        if (!tableResult) continue
 
-        linkedCallouts[linkedCalloutsKey] = {
-            url: calloutUrl,
-            values: values,
+        const { config, inputTable } = tableResult
+        const prepared = prepareCalloutTable(inputTable, config)
+
+        for (const calloutUrl of urls) {
+            const url = Url.fromURL(calloutUrl)
+            const entityNames = getEntityNamesParam(url.queryParams.country)
+            if (!entityNames) continue
+
+            const entityName = entityNames[0]
+            const values = constructGrapherValuesJsonFromTable(
+                prepared,
+                entityName,
+                url.queryParams.time
+            )
+
+            if (!isValuesJsonValid(values)) continue
+
+            const linkedCalloutsKey = makeLinkedCalloutKey(calloutUrl)
+            linkedCallouts[linkedCalloutsKey] = {
+                url: calloutUrl,
+                values,
+            }
         }
     }
 
@@ -1136,4 +846,122 @@ async function getPartialGrapherConfigForVariableId(
     const { dimensions: _, ...configWithoutDimensions } = mergedConfig
 
     return configWithoutDimensions
+}
+
+/**
+ * Prepare callout tables for all unique charts in a profile template.
+ * Call this ONCE before the entity loop, then reuse the prepared tables.
+ *
+ * This avoids redundant API calls when baking profiles for many entities.
+ * Instead of fetching the same chart data for each entity, we fetch once
+ * and extract values from the prepared tables.
+ */
+export async function prepareCalloutTablesForProfile(
+    knex: db.KnexReadonlyTransaction,
+    profileContent: OwidGdocProfileContent
+): Promise<Map<string, PreparedCalloutTable>> {
+    const preparedTables = new Map<string, PreparedCalloutTable>()
+
+    // Extract template URLs (with $entityCode placeholders)
+    const templateUrls = extractDataCalloutUrls(profileContent.body ?? [])
+    if (templateUrls.length === 0) return preparedTables
+
+    const slugToIdMap = await mapSlugsToIds(knex)
+
+    // Group by chart key to prepare each chart once
+    // Use USA as a representative entity code to create a fetchable URL
+    const urlsByChartKey = new Map<string, string>()
+    for (const templateUrl of templateUrls) {
+        // Replace $entityCode with a real code to create a fetchable URL
+        // Also handle URL-encoded $ (%24) in case the URL was encoded
+        const fetchableUrl = templateUrl
+            .replace(/\$entityCode/g, "USA")
+            .replace(/%24entityCode/gi, "USA")
+        const chartKey = makeCalloutGrapherStateKey(fetchableUrl)
+        if (!urlsByChartKey.has(chartKey)) {
+            urlsByChartKey.set(chartKey, fetchableUrl)
+        }
+    }
+
+    console.log(
+        `prepareCalloutTablesForProfile: preparing ${urlsByChartKey.size} unique charts from ${templateUrls.length} URLs`
+    )
+
+    // Prepare each unique chart's table
+    for (const [chartKey, fetchableUrl] of urlsByChartKey) {
+        const tableResult = await prepareCalloutTableForUrl(
+            knex,
+            fetchableUrl,
+            slugToIdMap
+        )
+        if (!tableResult) {
+            console.log(
+                `prepareCalloutTablesForProfile: failed to prepare table for chartKey=${chartKey} fetchableUrl=${fetchableUrl}`
+            )
+            continue
+        }
+
+        const { config, inputTable } = tableResult
+        const prepared = prepareCalloutTable(inputTable, config)
+        preparedTables.set(chartKey, prepared)
+        console.log(
+            `prepareCalloutTablesForProfile: prepared table for chartKey=${chartKey}`
+        )
+    }
+
+    console.log(
+        `prepareCalloutTablesForProfile: successfully prepared ${preparedTables.size}/${urlsByChartKey.size} tables`
+    )
+
+    return preparedTables
+}
+
+/**
+ * Compute linked callouts for an entity using pre-prepared tables.
+ * This is the fast path - no API calls, just in-memory lookups.
+ *
+ * Used during profile baking after tables have been prepared once
+ * with prepareCalloutTablesForProfile().
+ */
+export function computeLinkedCalloutsFromPreparedTables(
+    calloutUrls: string[],
+    preparedTables: Map<string, PreparedCalloutTable>
+): LinkedCallouts {
+    const linkedCallouts: LinkedCallouts = {}
+
+    for (const calloutUrl of calloutUrls) {
+        const chartKey = makeCalloutGrapherStateKey(calloutUrl)
+        const prepared = preparedTables.get(chartKey)
+        if (!prepared) {
+            console.log(
+                `computeLinkedCalloutsFromPreparedTables: no prepared table for chartKey=${chartKey}, calloutUrl=${calloutUrl}`
+            )
+            continue
+        }
+
+        const url = Url.fromURL(calloutUrl)
+        const entityNames = getEntityNamesParam(url.queryParams.country)
+        if (!entityNames) {
+            console.log(
+                `computeLinkedCalloutsFromPreparedTables: no entity names for country=${url.queryParams.country}`
+            )
+            continue
+        }
+
+        const entityName = entityNames[0]
+        const values = constructGrapherValuesJsonFromTable(
+            prepared,
+            entityName,
+            url.queryParams.time
+        )
+
+        if (!isValuesJsonValid(values)) {
+            continue
+        }
+
+        const key = makeLinkedCalloutKey(calloutUrl)
+        linkedCallouts[key] = { url: calloutUrl, values }
+    }
+
+    return linkedCallouts
 }
