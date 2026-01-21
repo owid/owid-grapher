@@ -12,6 +12,7 @@ import {
 } from "@floating-ui/react"
 import { useAtomValue } from "jotai"
 import { useRef } from "react"
+import { useShadowRoot } from "../ShadowRootContext.tsx"
 import {
     atomCombinedFactor,
     atomCurrentCurrency,
@@ -30,6 +31,7 @@ import {
 
 export const IncomePlotTooltip = () => {
     const arrowRef = useRef(null)
+    const shadowRoot = useShadowRoot()
 
     const isOpen = useAtomValue(atomTooltipIsOpen)
     const hoveredEntity = useAtomValue(atomHoveredEntity)
@@ -64,7 +66,7 @@ export const IncomePlotTooltip = () => {
     return (
         <>
             {isOpen && (
-                <FloatingPortal>
+                <FloatingPortal root={shadowRoot}>
                     <div
                         className="income-plot-tooltip"
                         ref={refs.setFloating}
