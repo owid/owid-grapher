@@ -1,10 +1,13 @@
 import { useEffect, useRef } from "react"
 import { createRoot } from "react-dom/client"
-import type {
-    OwidGdocContent,
-    OwidGdocErrorMessage,
+import {
+    OwidGdocPublicationContext,
+    type OwidGdoc as OwidGdocModel,
+    type OwidGdocContent,
+    type OwidGdocErrorMessage,
 } from "@ourworldindata/types"
 import {
+    extractGdocPageData,
     parseIntOrUndefined,
     type OwidGdocPageProps,
 } from "@ourworldindata/utils"
@@ -84,16 +87,17 @@ export function Preview({ content, attachments, errors }: PreviewProps) {
     }, [])
 
     // Build props for OwidGdoc component
-    const gdocProps = {
+    const gdoc = {
         id: "preview",
         slug: "preview",
         content,
+        contentMd5: "preview",
         published: false,
         createdAt: new Date(),
         publishedAt: null,
         updatedAt: new Date(),
         revisionId: null,
-        markdown: null,
+        publicationContext: OwidGdocPublicationContext.unlisted,
         breadcrumbs: null,
         manualBreadcrumbs: null,
         tags: attachments.tags,
@@ -105,11 +109,9 @@ export function Preview({ content, attachments, errors }: PreviewProps) {
         relatedCharts: attachments.relatedCharts,
         linkedNarrativeCharts: attachments.linkedNarrativeCharts,
         linkedStaticViz: attachments.linkedStaticViz,
-        latestDataInsights: [],
-        homepageMetadata: undefined,
-        latestWorkLinks: [],
-        donors: [],
-    }
+        markdown: null,
+    } as OwidGdocModel
+    const gdocProps: OwidGdocPageProps = extractGdocPageData(gdoc)
 
     return (
         <>
@@ -129,10 +131,7 @@ export function Preview({ content, attachments, errors }: PreviewProps) {
             {/* Match the structure from OwidGdocPage.tsx */}
             <div id="owid-document-root">
                 <DebugProvider debug={true}>
-                    <OwidGdoc
-                        {...(gdocProps as OwidGdocPageProps)}
-                        isPreviewing={true}
-                    />
+                    <OwidGdoc {...gdocProps} isPreviewing={true} />
                 </DebugProvider>
             </div>
         </>

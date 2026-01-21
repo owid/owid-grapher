@@ -1,6 +1,7 @@
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
 import { resolve } from "path"
+import tsconfigPaths from "vite-tsconfig-paths"
 import {
     copyFileSync,
     mkdirSync,
@@ -58,6 +59,7 @@ function copyStaticFiles() {
 
 export default defineConfig({
     plugins: [
+        tsconfigPaths(),
         react({
             babel: {
                 parserOpts: {
@@ -99,7 +101,6 @@ export default defineConfig({
     },
     resolve: {
         alias: {
-            "@owid": resolve(__dirname, ".."),
             // Browser-compatible shims for Node.js modules
             crypto: resolve(__dirname, "src/shims/crypto.ts"),
         },

@@ -13,17 +13,18 @@
         "@ourworldindata/components": "workspace:*",
         "@ourworldindata/types": "workspace:*",
         "@ourworldindata/utils": "workspace:*",
-        "react": "^19.0.0",
-        "react-dom": "^19.0.0"
+        "react": "^19.2.0",
+        "react-dom": "^19.2.0"
     },
     "devDependencies": {
-        "@googleapis/docs": "^4.0.1",
+        "@googleapis/docs": "^5.0.1",
         "@types/chrome": "^0.0.287",
-        "@types/react": "^19.0.0",
-        "@types/react-dom": "^19.0.0",
-        "@vitejs/plugin-react": "^4.3.4",
-        "sass": "^1.83.0",
-        "typescript": "^5.7.2",
-        "vite": "^6.0.5"
+        "@types/react": "^19.2.2",
+        "@types/react-dom": "^19.2.2",
+        "@vitejs/plugin-react": "^5.1.1",
+        "sass": "^1.89.2",
+        "typescript": "~5.9.3",
+        "vite": "^7.3.0",
+        "vite-tsconfig-paths": "^4.3.2"
     }
 }
