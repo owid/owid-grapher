@@ -32,6 +32,7 @@ import {
     MinimalExplorerInfo,
     DbEnrichedImage,
     DbEnrichedImageWithUserId,
+    DbEnrichedImageWithPageviews,
     MinimalTag,
     BreadcrumbItem,
     PostsGdocsTableName,
@@ -893,14 +894,21 @@ export async function selectReplacementChainForImage(
 
 export function getCloudflareImages(
     trx: KnexReadonlyTransaction
-): Promise<DbEnrichedImage[]> {
-    return knexRaw<DbEnrichedImage>(
+): Promise<DbEnrichedImageWithPageviews[]> {
+    return knexRaw<DbEnrichedImageWithPageviews>(
         trx,
         `-- sql
-        SELECT *
-        FROM images
-        WHERE cloudflareId IS NOT NULL
-        AND replacedBy IS NULL`
+        SELECT
+            i.*,
+            COALESCE(SUM(pv.views_7d), 0) AS views_7d,
+            COALESCE(SUM(pv.views_365d), 0) AS views_365d
+        FROM images i
+        LEFT JOIN posts_gdocs_x_images pxi ON i.id = pxi.imageId
+        LEFT JOIN posts_gdocs pg ON pxi.gdocId = pg.id AND pg.published = 1
+        LEFT JOIN analytics_pageviews pv ON pv.url = CONCAT('https://ourworldindata.org/', pg.slug)
+        WHERE i.cloudflareId IS NOT NULL
+        AND i.replacedBy IS NULL
+        GROUP BY i.id`
     )
 }
 

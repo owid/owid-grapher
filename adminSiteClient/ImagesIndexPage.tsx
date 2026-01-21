@@ -22,7 +22,10 @@ import {
 } from "antd"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import { DbEnrichedImageWithUserId, DbPlainUser } from "@ourworldindata/types"
+import {
+    DbEnrichedImageWithPageviews,
+    DbPlainUser,
+} from "@ourworldindata/types"
 import { downloadImage } from "@ourworldindata/utils"
 import { Timeago } from "./Forms.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -43,7 +46,7 @@ import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
 import { NotificationInstance } from "antd/es/notification/interface.js"
 import { EditableTextarea } from "./EditableTextarea.js"
 
-type ImageMap = Record<string, DbEnrichedImageWithUserId>
+type ImageMap = Record<string, DbEnrichedImageWithPageviews>
 
 type UserMap = Record<string, DbPlainUser>
 
@@ -56,8 +59,8 @@ type ImageEditorApi = {
     getUsage: () => void
     getAltText: (id: number) => Promise<{ altText: string; success: boolean }>
     patchImage: (
-        image: DbEnrichedImageWithUserId,
-        patch: Partial<DbEnrichedImageWithUserId>
+        image: DbEnrichedImageWithPageviews,
+        patch: Partial<DbEnrichedImageWithPageviews>
     ) => void
     putImage: (
         id: number,
@@ -72,13 +75,16 @@ type ImageEditorApi = {
         content?: string
         type: string
     }) => void
-    deleteImage: (image: DbEnrichedImageWithUserId) => void
+    deleteImage: (image: DbEnrichedImageWithPageviews) => void
     getImages: () => void
     getUsers: () => void
-    postUserImage: (user: DbPlainUser, image: DbEnrichedImageWithUserId) => void
+    postUserImage: (
+        user: DbPlainUser,
+        image: DbEnrichedImageWithPageviews
+    ) => void
     deleteUserImage: (
         user: DbPlainUser,
-        image: DbEnrichedImageWithUserId
+        image: DbEnrichedImageWithPageviews
     ) => void
 }
 
@@ -88,7 +94,7 @@ function AltTextEditor({
     patchImage,
     getAltText,
 }: {
-    image: DbEnrichedImageWithUserId
+    image: DbEnrichedImageWithPageviews
     text: string
     patchImage: ImageEditorApi["patchImage"]
     getAltText: ImageEditorApi["getAltText"]
@@ -289,7 +295,7 @@ function createColumns({
     users: UserMap
     usage: Record<string, UsageInfo[]>
     notificationApi: NotificationInstance
-}): TableColumnsType<DbEnrichedImageWithUserId> {
+}): TableColumnsType<DbEnrichedImageWithPageviews> {
     return [
         {
             title: "Preview",
@@ -375,6 +381,22 @@ function createColumns({
             sorter: (a, b) =>
                 a.updatedAt && b.updatedAt ? a.updatedAt - b.updatedAt : 0,
             render: (time) => <Timeago time={time} />,
+        },
+        {
+            title: "Views (7d)",
+            dataIndex: "views_7d",
+            key: "views_7d",
+            width: 80,
+            sorter: (a, b) => a.views_7d - b.views_7d,
+            render: (views: number) => views.toLocaleString(),
+        },
+        {
+            title: "Views (365d)",
+            dataIndex: "views_365d",
+            key: "views_365d",
+            width: 90,
+            sorter: (a, b) => a.views_365d - b.views_365d,
+            render: (views: number) => views.toLocaleString(),
         },
         {
             title: "Owner",
@@ -492,7 +514,7 @@ function ImageReplaceConfirmModal({
     open: boolean
     onCancel: () => void
     onConfirm: () => void
-    currentImage: DbEnrichedImageWithUserId
+    currentImage: DbEnrichedImageWithPageviews
     newImageFile: RcFile | null
 }) {
     const currentImageSrc =
@@ -596,7 +618,7 @@ function PutImageButton({
     notificationApi,
 }: {
     putImage: ImageEditorApi["putImage"]
-    image: DbEnrichedImageWithUserId
+    image: DbEnrichedImageWithPageviews
     notificationApi: NotificationInstance
 }) {
     const [showConfirmModal, setShowConfirmModal] = useState(false)
@@ -691,7 +713,7 @@ export function ImageIndexPage() {
             },
             getImages: async () => {
                 const json = await admin.getJSON<{
-                    images: DbEnrichedImageWithUserId[]
+                    images: DbEnrichedImageWithPageviews[]
                 }>("/api/images.json")
                 setImages(_.keyBy(json.images, "id"))
             },
