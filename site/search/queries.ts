@@ -21,13 +21,11 @@ import { type LiteClient } from "algoliasearch/lite"
 import {
     getFilterNamesOfType,
     formatCountryFacetFilters,
+    formatTopicFacetFilters,
     getSelectableTopics,
     CHARTS_INDEX,
     DATA_CATALOG_ATTRIBUTES,
-    formatTopicFacetFilters,
-    formatDatasetFacetFilters,
-    formatDatasetNamespaceFacetFilters,
-    formatDatasetVersionFacetFilters,
+    formatDisjunctiveFacetFilters,
 } from "./searchUtils.js"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
 
@@ -137,21 +135,24 @@ export async function queryCharts(
     const topicFacetFilters = formatTopicFacetFilters(
         getFilterNamesOfType(state.filters, FilterType.TOPIC)
     )
-    const datasetFacetFilters = formatDatasetFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCT)
+    const datasetProductFacetFilters = formatDisjunctiveFacetFilters(
+        getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCT),
+        "datasetProducts"
     )
-    const namespaceFacetFilters = formatDatasetNamespaceFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.DATASET_NAMESPACE)
+    const datasetNamespaceFacetFilters = formatDisjunctiveFacetFilters(
+        getFilterNamesOfType(state.filters, FilterType.DATASET_NAMESPACE),
+        "datasetNamespaces"
     )
-    const versionFacetFilters = formatDatasetVersionFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.DATASET_VERSION)
+    const datasetVersionFacetFilters = formatDisjunctiveFacetFilters(
+        getFilterNamesOfType(state.filters, FilterType.DATASET_VERSION),
+        "datasetVersions"
     )
     const facetFilters = [
         ...countryFacetFilters,
         ...topicFacetFilters,
-        ...datasetFacetFilters,
-        ...namespaceFacetFilters,
-        ...versionFacetFilters,
+        ...datasetProductFacetFilters,
+        ...datasetNamespaceFacetFilters,
+        ...datasetVersionFacetFilters,
     ]
 
     const searchParams = [

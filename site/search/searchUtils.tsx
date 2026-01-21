@@ -370,14 +370,16 @@ export const DATA_CATALOG_ATTRIBUTES = [
     "explorerType",
 ]
 
+type SearchFacetAttribute =
+    | "tags"
+    | "availableEntities"
+    | "datasetProducts"
+    | "datasetNamespaces"
+    | "datasetVersions"
+
 export function setToFacetFilters(
     facetSet: Set<string>,
-    attribute:
-        | "tags"
-        | "availableEntities"
-        | "datasetProducts"
-        | "datasetNamespaces"
-        | "datasetVersions"
+    attribute: SearchFacetAttribute
 ) {
     return Array.from(facetSet).map((facet) => `${attribute}:${facet}`)
 }
@@ -396,17 +398,35 @@ export function getSelectableTopics(
     return new Set()
 }
 
+export const formatDisjunctiveFacetFilters = (
+    facets: Set<string>,
+    attribute: SearchFacetAttribute
+): SearchFacetFilters => {
+    // disjunction mode (A OR B): [[attribute:"A", attribute:"B"]]
+    return [setToFacetFilters(facets, attribute)]
+}
+
+export const formatConjunctiveFacetFilters = (
+    facets: Set<string>,
+    attribute: SearchFacetAttribute
+): SearchFacetFilters => {
+    // conjunction mode (A AND B): [attribute:"A", attribute:"B"]
+    return setToFacetFilters(facets, attribute)
+}
+
 export function formatCountryFacetFilters(
     countries: Set<string>,
     requireAllCountries: boolean
 ) {
     const facetFilters: SearchFacetFilters = []
     if (requireAllCountries) {
-        // conjunction mode (A AND B): [attribute:"A", attribute:"B"]
-        facetFilters.push(...setToFacetFilters(countries, "availableEntities"))
+        facetFilters.push(
+            ...formatConjunctiveFacetFilters(countries, "availableEntities")
+        )
     } else {
-        // disjunction mode (A OR B): [[attribute:"A", attribute:"B"]]
-        facetFilters.push(setToFacetFilters(countries, "availableEntities"))
+        facetFilters.push(
+            ...formatDisjunctiveFacetFilters(countries, "availableEntities")
+        )
     }
     // Don't show income group-specific FMs if no countries are selected
     if (!countries.size) {
@@ -418,26 +438,7 @@ export function formatCountryFacetFilters(
 export const formatTopicFacetFilters = (
     topics: Set<string>
 ): SearchFacetFilters => {
-    // disjunction mode (A OR B): [[attribute:"A", attribute:"B"]]
-    return [setToFacetFilters(topics, "tags")]
-}
-
-export const formatDatasetFacetFilters = (
-    datasets: Set<string>
-): SearchFacetFilters => {
-    return [setToFacetFilters(datasets, "datasetProducts")]
-}
-
-export const formatDatasetNamespaceFacetFilters = (
-    namespaces: Set<string>
-): SearchFacetFilters => {
-    return [setToFacetFilters(namespaces, "datasetNamespaces")]
-}
-
-export const formatDatasetVersionFacetFilters = (
-    versions: Set<string>
-): SearchFacetFilters => {
-    return [setToFacetFilters(versions, "datasetVersions")]
+    return formatDisjunctiveFacetFilters(topics, "tags")
 }
 
 export function serializeSet(set: Set<string>) {
