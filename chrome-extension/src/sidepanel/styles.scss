@@ -305,6 +305,78 @@ $extension-text-muted: #666666;
     }
 }
 
+.component-card__info {
+    padding: 12px 16px;
+    background-color: #fafafa;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.component-card__description {
+    margin: 0 0 12px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #333;
+}
+
+.component-card__fields {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.component-card__fields-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.component-card__fields-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    &--required {
+        color: #c0392b;
+    }
+
+    &--optional {
+        color: $extension-text-muted;
+    }
+}
+
+.component-card__field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-left: 8px;
+    border-left: 2px solid transparent;
+
+    &--required {
+        border-left-color: #c0392b;
+    }
+
+    &--optional {
+        border-left-color: #ddd;
+    }
+}
+
+.component-card__field-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: $extension-primary-color;
+    background-color: #e8e8e8;
+    padding: 1px 4px;
+    border-radius: 2px;
+    width: fit-content;
+}
+
+.component-card__field-description {
+    font-size: 12px;
+    color: $extension-text-muted;
+    line-height: 1.4;
+}
+
 .component-card__preview {
     padding: 16px;
     overflow-x: auto;
