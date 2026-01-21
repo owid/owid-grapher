@@ -69,7 +69,7 @@ export interface ParsedOverlay {
 }
 
 /** Parses a boolean parameter that uses "1"/"0" string values */
-export function parseBooleanOneZeroParam(
+function parseBooleanOneZeroParam(
     value: string | undefined
 ): ParsedParam<boolean> {
     if (value === undefined) return missing()
@@ -79,7 +79,7 @@ export function parseBooleanOneZeroParam(
 }
 
 /** Parses a scale type parameter (linear or log) */
-export function parseScaleTypeParam(
+function parseScaleTypeParam(
     value: string | undefined
 ): ParsedParam<ScaleType> {
     if (value === undefined) return missing()
@@ -92,7 +92,7 @@ export function parseScaleTypeParam(
 }
 
 /** Parses the `tab` query parameter */
-export function parseTabParam(
+function parseTabParam(
     value: string | undefined
 ): ParsedParam<GrapherTabConfigOption> {
     if (value === undefined) return missing()
@@ -110,7 +110,7 @@ export function parseTabParam(
  * an issue where the embed modal URL was accidentally included in the
  * Embed dialog's URL, causing embeds to always show the modal.
  */
-export function parseOverlayParam(
+function parseOverlayParam(
     value: string | undefined
 ): ParsedParam<ParsedOverlay> {
     if (value === undefined) return missing()
@@ -139,7 +139,7 @@ export function parseOverlayParam(
 }
 
 /** Parses the `stackMode` query parameter */
-export function parseStackModeParam(
+function parseStackModeParam(
     value: string | undefined
 ): ParsedParam<StackMode> {
     if (value === undefined) return missing()
@@ -153,20 +153,18 @@ export function parseStackModeParam(
 }
 
 /** Parses the `time` query parameter */
-export function parseTimeParam(value: string | undefined): ParsedParam<string> {
+function parseTimeParam(value: string | undefined): ParsedParam<string> {
     if (value === undefined || value === "") return missing()
     return valid(value)
 }
 
 /** Parses the `globe` query parameter */
-export function parseGlobeParam(
-    value: string | undefined
-): ParsedParam<boolean> {
+function parseGlobeParam(value: string | undefined): ParsedParam<boolean> {
     return parseBooleanOneZeroParam(value)
 }
 
 /** Parses the `globeRotation` query parameter */
-export function parseGlobeRotationParam(
+function parseGlobeRotationParam(
     value: string | undefined
 ): ParsedParam<[number, number]> {
     if (value === undefined) return missing()
@@ -185,9 +183,7 @@ export function parseGlobeRotationParam(
 }
 
 /** Parses the `globeZoom` query parameter */
-export function parseGlobeZoomParam(
-    value: string | undefined
-): ParsedParam<number> {
+function parseGlobeZoomParam(value: string | undefined): ParsedParam<number> {
     if (value === undefined) return missing()
 
     const parsed = parseFloatOrUndefined(value)
@@ -197,7 +193,7 @@ export function parseGlobeZoomParam(
 }
 
 /** Parses the `region` query parameter */
-export function parseRegionParam(
+function parseRegionParam(
     value: string | undefined
 ): ParsedParam<MapRegionName> {
     if (value === undefined) return missing()
@@ -209,7 +205,7 @@ export function parseRegionParam(
 }
 
 /** Parses entity names from a query parameter */
-export function parseEntityNamesParam(
+function parseEntityNamesParam(
     value: string | undefined
 ): ParsedParam<EntityName[]> {
     if (value === undefined) return missing()
@@ -221,7 +217,7 @@ export function parseEntityNamesParam(
 }
 
 /** Parses the `country` query parameter with URL migration support */
-export function parseCountryParam(
+function parseCountryParam(
     params: GrapherQueryParams
 ): ParsedParam<EntityName[]> {
     if (params.country === undefined) return missing()
@@ -233,9 +229,7 @@ export function parseCountryParam(
 }
 
 /** Parses the `focus` query parameter for focused series names */
-export function parseFocusParam(
-    value: string | undefined
-): ParsedParam<SeriesName[]> {
+function parseFocusParam(value: string | undefined): ParsedParam<SeriesName[]> {
     if (value === undefined) return missing()
     const names = getFocusedSeriesNamesParam(value)
     if (names) return valid(names)
@@ -243,7 +237,7 @@ export function parseFocusParam(
 }
 
 /** Parses the `facet` query parameter */
-export function parseFacetParam(
+function parseFacetParam(
     value: string | undefined
 ): ParsedParam<FacetStrategy> {
     if (value === undefined) return missing()
@@ -255,7 +249,7 @@ export function parseFacetParam(
 }
 
 /** Parses the `uniformYAxis` query parameter */
-export function parseUniformYAxisParam(
+function parseUniformYAxisParam(
     value: string | undefined
 ): ParsedParam<FacetAxisDomain> {
     if (value === undefined) return missing()
@@ -265,14 +259,14 @@ export function parseUniformYAxisParam(
 }
 
 /** Parses the `showNoDataArea` query parameter */
-export function parseShowNoDataAreaParam(
+function parseShowNoDataAreaParam(
     value: string | undefined
 ): ParsedParam<boolean> {
     return parseBooleanOneZeroParam(value)
 }
 
 /** Parses the deprecated `showSelectionOnlyInTable` query parameter */
-export function parseShowSelectionOnlyInTableParam(
+function parseShowSelectionOnlyInTableParam(
     value: string | undefined
 ): ParsedParam<DataTableFilter> {
     if (value === undefined) return missing()
@@ -282,7 +276,7 @@ export function parseShowSelectionOnlyInTableParam(
 }
 
 /** Parses the `tableFilter` query parameter */
-export function parseTableFilterParam(
+function parseTableFilterParam(
     value: string | undefined
 ): ParsedParam<DataTableFilter> {
     if (value === undefined) return missing()
@@ -291,22 +285,20 @@ export function parseTableFilterParam(
 }
 
 /** Parses the `tableSearch` query parameter */
-export function parseTableSearchParam(
-    value: string | undefined
-): ParsedParam<string> {
+function parseTableSearchParam(value: string | undefined): ParsedParam<string> {
     if (value === undefined || value === "") return missing()
     return valid(value)
 }
 
 /** Parses the `endpointsOnly` query parameter */
-export function parseEndpointsOnlyParam(
+function parseEndpointsOnlyParam(
     value: string | undefined
 ): ParsedParam<boolean> {
     return parseBooleanOneZeroParam(value)
 }
 
 /** Parses the `zoomToSelection` query parameter */
-export function parseZoomToSelectionParam(
+function parseZoomToSelectionParam(
     value: string | undefined
 ): ParsedParam<true> {
     if (value === undefined) return missing()
