@@ -12,6 +12,9 @@ import {
     GRAPHER_TAB_NAMES,
     OwidChartDimensionInterface,
     GRAPHER_TAB_QUERY_PARAMS,
+    StackMode,
+    FacetStrategy,
+    FacetAxisDomain,
 } from "@ourworldindata/types"
 import {
     TimeBoundValue,
@@ -1852,5 +1855,453 @@ describe("tolerance is not applied twice (issue #4891)", () => {
             .filterByEntityNames(["Belarus"])
             .get("testColumn").values
         expect(testColumnValues2015).toEqual([100])
+    })
+})
+
+describe("populateFromQueryParams", () => {
+    describe("overlay parameter", () => {
+        it("opens sources modal when overlay=sources", () => {
+            const grapher = new GrapherState({})
+            grapher.populateFromQueryParams({ overlay: "sources" })
+            expect(grapher.activeModal).toBe("sources")
+        })
+
+        it("opens download modal with data tab when overlay=download-data", () => {
+            const grapher = new GrapherState({})
+            grapher.populateFromQueryParams({ overlay: "download-data" })
+            expect(grapher.activeModal).toBe("download")
+            expect(grapher.activeDownloadModalTab).toBe("Data")
+        })
+
+        it("opens download modal with vis tab when overlay=download-vis", () => {
+            const grapher = new GrapherState({})
+            grapher.populateFromQueryParams({ overlay: "download-vis" })
+            expect(grapher.activeModal).toBe("download")
+            expect(grapher.activeDownloadModalTab).toBe("Vis")
+        })
+
+        it("opens download modal when overlay=download", () => {
+            const grapher = new GrapherState({})
+            grapher.populateFromQueryParams({ overlay: "download" })
+            expect(grapher.activeModal).toBe("download")
+        })
+
+        it("ignores overlay=embed to prevent infinite embed loops", () => {
+            const grapher = new GrapherState({})
+            grapher.populateFromQueryParams({ overlay: "embed" })
+            expect(grapher.activeModal).toBeUndefined()
+        })
+
+        it("does not set overlay for invalid values", () => {
+            const grapher = new GrapherState({})
+            grapher.populateFromQueryParams({ overlay: "invalid" })
+            expect(grapher.activeModal).toBeUndefined()
+        })
+    })
+
+    describe("stackMode parameter", () => {
+        it("sets stackMode to relative", () => {
+            const grapher = new GrapherState({})
+            grapher.populateFromQueryParams({ stackMode: "relative" })
+            expect(grapher.stackMode).toBe("relative")
+        })
+
+        it("sets stackMode to absolute", () => {
+            const grapher = new GrapherState({ stackMode: StackMode.relative })
+            grapher.populateFromQueryParams({ stackMode: "absolute" })
+            expect(grapher.stackMode).toBe("absolute")
+        })
+
+        it("preserves existing stackMode if not specified", () => {
+            const grapher = new GrapherState({ stackMode: StackMode.relative })
+            grapher.populateFromQueryParams({})
+            expect(grapher.stackMode).toBe("relative")
+        })
+    })
+
+    describe("zoomToSelection parameter", () => {
+        it('sets zoomToSelection to true when zoomToSelection="true"', () => {
+            const grapher = new GrapherState({})
+            grapher.populateFromQueryParams({ zoomToSelection: "true" })
+            expect(grapher.zoomToSelection).toBe(true)
+        })
+
+        it("preserves existing zoomToSelection for other values", () => {
+            const grapher = new GrapherState({ zoomToSelection: true })
+            grapher.populateFromQueryParams({ zoomToSelection: "false" })
+            expect(grapher.zoomToSelection).toBe(true)
+        })
+
+        it("preserves existing zoomToSelection if not specified", () => {
+            const grapher = new GrapherState({ zoomToSelection: true })
+            grapher.populateFromQueryParams({})
+            expect(grapher.zoomToSelection).toBe(true)
+        })
+    })
+
+    describe("xScale parameter", () => {
+        it("sets xAxis scale to linear", () => {
+            const grapher = new GrapherState({
+                xAxis: { scaleType: ScaleType.log },
+            })
+            grapher.populateFromQueryParams({ xScale: "linear" })
+            expect(grapher.xAxis.scaleType).toBe("linear")
+        })
+
+        it("sets xAxis scale to log", () => {
+            const grapher = new GrapherState({})
+            grapher.populateFromQueryParams({ xScale: "log" })
+            expect(grapher.xAxis.scaleType).toBe("log")
+        })
+
+        it("ignores invalid xScale values", () => {
+            const grapher = new GrapherState({
+                xAxis: { scaleType: ScaleType.linear },
+            })
+            grapher.populateFromQueryParams({ xScale: "invalid" })
+            expect(grapher.xAxis.scaleType).toBe("linear")
+        })
+    })
+
+    describe("yScale parameter", () => {
+        it("sets yAxis scale to linear", () => {
+            const grapher = new GrapherState({
+                yAxis: { scaleType: ScaleType.log },
+            })
+            grapher.populateFromQueryParams({ yScale: "linear" })
+            expect(grapher.yAxis.scaleType).toBe("linear")
+        })
+
+        it("sets yAxis scale to log", () => {
+            const grapher = new GrapherState({})
+            grapher.populateFromQueryParams({ yScale: "log" })
+            expect(grapher.yAxis.scaleType).toBe("log")
+        })
+
+        it("ignores invalid yScale values", () => {
+            const grapher = new GrapherState({
+                yAxis: { scaleType: ScaleType.linear },
+            })
+            grapher.populateFromQueryParams({ yScale: "invalid" })
+            expect(grapher.yAxis.scaleType).toBe("linear")
+        })
+    })
+
+    describe("endpointsOnly parameter", () => {
+        it('sets compareEndPointsOnly to true when endpointsOnly="1"', () => {
+            const grapher = new GrapherState({})
+            grapher.populateFromQueryParams({ endpointsOnly: "1" })
+            expect(grapher.compareEndPointsOnly).toBe(true)
+        })
+
+        it("sets compareEndPointsOnly to undefined for other values", () => {
+            const grapher = new GrapherState({ compareEndPointsOnly: true })
+            grapher.populateFromQueryParams({ endpointsOnly: "0" })
+            expect(grapher.compareEndPointsOnly).toBeUndefined()
+        })
+
+        it("preserves existing value if not specified", () => {
+            const grapher = new GrapherState({ compareEndPointsOnly: true })
+            grapher.populateFromQueryParams({})
+            expect(grapher.compareEndPointsOnly).toBe(true)
+        })
+    })
+
+    describe("globe parameter", () => {
+        it('activates globe mode when globe="1"', () => {
+            const grapher = new GrapherState({ hasMapTab: true })
+            grapher.populateFromQueryParams({ globe: "1" })
+            expect(grapher.mapConfig.globe.isActive).toBe(true)
+        })
+
+        it('deactivates globe mode when globe="0"', () => {
+            const grapher = new GrapherState({ hasMapTab: true })
+            // First activate the globe
+            grapher.mapConfig.globe.isActive = true
+            grapher.populateFromQueryParams({ globe: "0" })
+            expect(grapher.mapConfig.globe.isActive).toBe(false)
+        })
+    })
+
+    describe("globeRotation parameter", () => {
+        it("sets globe rotation from lat,lon format", () => {
+            const grapher = new GrapherState({ hasMapTab: true })
+            grapher.populateFromQueryParams({ globeRotation: "45,90" })
+            // Internal format is [lon, lat], URL format is [lat, lon]
+            expect(grapher.mapConfig.globe.rotation).toEqual([90, 45])
+        })
+
+        it("handles negative rotation values", () => {
+            const grapher = new GrapherState({ hasMapTab: true })
+            grapher.populateFromQueryParams({ globeRotation: "-30,-60" })
+            expect(grapher.mapConfig.globe.rotation).toEqual([-60, -30])
+        })
+    })
+
+    describe("globeZoom parameter", () => {
+        it("sets globe zoom level", () => {
+            const grapher = new GrapherState({ hasMapTab: true })
+            grapher.populateFromQueryParams({ globeZoom: "2.5" })
+            expect(grapher.mapConfig.globe.zoom).toBe(2.5)
+        })
+
+        it("ignores invalid zoom values", () => {
+            const grapher = new GrapherState({ hasMapTab: true })
+            const originalZoom = grapher.mapConfig.globe.zoom
+            grapher.populateFromQueryParams({ globeZoom: "invalid" })
+            expect(grapher.mapConfig.globe.zoom).toBe(originalZoom)
+        })
+    })
+
+    describe("region parameter", () => {
+        it("sets valid map region", () => {
+            const grapher = new GrapherState({ hasMapTab: true })
+            grapher.populateFromQueryParams({ region: "Europe" })
+            expect(grapher.map.region).toBe("Europe")
+        })
+
+        it("sets other valid map regions", () => {
+            const grapher = new GrapherState({ hasMapTab: true })
+            grapher.populateFromQueryParams({ region: "Africa" })
+            expect(grapher.map.region).toBe("Africa")
+
+            grapher.populateFromQueryParams({ region: "Asia" })
+            expect(grapher.map.region).toBe("Asia")
+
+            grapher.populateFromQueryParams({ region: "NorthAmerica" })
+            expect(grapher.map.region).toBe("NorthAmerica")
+
+            grapher.populateFromQueryParams({ region: "SouthAmerica" })
+            expect(grapher.map.region).toBe("SouthAmerica")
+
+            grapher.populateFromQueryParams({ region: "Oceania" })
+            expect(grapher.map.region).toBe("Oceania")
+
+            grapher.populateFromQueryParams({ region: "World" })
+            expect(grapher.map.region).toBe("World")
+        })
+
+        it("ignores invalid region values", () => {
+            const grapher = new GrapherState({ hasMapTab: true })
+            grapher.populateFromQueryParams({ region: "InvalidRegion" })
+            expect(grapher.map.region).toBe("World") // default value
+        })
+    })
+
+    describe("mapSelect parameter", () => {
+        it("sets map entity selection (codes are decoded to full names)", () => {
+            const grapher = new GrapherState({ hasMapTab: true })
+            // Country codes like USA and GBR are decoded to full country names
+            grapher.populateFromQueryParams({ mapSelect: "~USA~GBR" })
+            expect(grapher.mapConfig.selection.selectedEntityNames).toEqual([
+                "United States",
+                "United Kingdom",
+            ])
+        })
+
+        it("handles single entity selection", () => {
+            const grapher = new GrapherState({ hasMapTab: true })
+            grapher.populateFromQueryParams({ mapSelect: "~France" })
+            expect(grapher.mapConfig.selection.selectedEntityNames).toEqual([
+                "France",
+            ])
+        })
+    })
+
+    describe("focus parameter", () => {
+        it("sets focused series names (codes are decoded to full names)", () => {
+            const grapher = new GrapherState({})
+            // Country codes like USA and GBR are decoded to full country names
+            grapher.populateFromQueryParams({ focus: "~USA~GBR" })
+            expect(grapher.focusArray.seriesNames).toEqual([
+                "United States",
+                "United Kingdom",
+            ])
+        })
+
+        it("handles single focused series", () => {
+            const grapher = new GrapherState({})
+            grapher.populateFromQueryParams({ focus: "~France" })
+            expect(grapher.focusArray.seriesNames).toEqual(["France"])
+        })
+
+        it("clears existing focus and sets new ones", () => {
+            const grapher = new GrapherState({
+                focusedSeriesNames: ["Germany", "Italy"],
+            })
+            // Country code USA is decoded to full name
+            grapher.populateFromQueryParams({ focus: "~USA" })
+            expect(grapher.focusArray.seriesNames).toEqual(["United States"])
+        })
+    })
+
+    describe("facet parameter", () => {
+        it("sets facet strategy to entity", () => {
+            const grapher = new GrapherState({})
+            grapher.populateFromQueryParams({ facet: "entity" })
+            expect(grapher.selectedFacetStrategy).toBe("entity")
+        })
+
+        it("sets facet strategy to metric", () => {
+            const grapher = new GrapherState({})
+            grapher.populateFromQueryParams({ facet: "metric" })
+            expect(grapher.selectedFacetStrategy).toBe("metric")
+        })
+
+        it("sets facet strategy to none", () => {
+            const grapher = new GrapherState({
+                selectedFacetStrategy: FacetStrategy.entity,
+            })
+            grapher.populateFromQueryParams({ facet: "none" })
+            expect(grapher.selectedFacetStrategy).toBe("none")
+        })
+
+        it("ignores invalid facet values", () => {
+            const grapher = new GrapherState({
+                selectedFacetStrategy: FacetStrategy.entity,
+            })
+            grapher.populateFromQueryParams({ facet: "invalid" })
+            expect(grapher.selectedFacetStrategy).toBe("entity")
+        })
+    })
+
+    describe("uniformYAxis parameter", () => {
+        it('sets independent y axis domain when uniformYAxis="0"', () => {
+            const grapher = new GrapherState({})
+            grapher.populateFromQueryParams({ uniformYAxis: "0" })
+            expect(grapher.yAxis.facetDomain).toBe("independent")
+        })
+
+        it('sets shared y axis domain when uniformYAxis="1"', () => {
+            const grapher = new GrapherState({
+                yAxis: { facetDomain: FacetAxisDomain.independent },
+            })
+            grapher.populateFromQueryParams({ uniformYAxis: "1" })
+            expect(grapher.yAxis.facetDomain).toBe("shared")
+        })
+
+        it("preserves existing value for other input", () => {
+            const grapher = new GrapherState({
+                yAxis: { facetDomain: FacetAxisDomain.independent },
+            })
+            grapher.populateFromQueryParams({ uniformYAxis: "other" })
+            expect(grapher.yAxis.facetDomain).toBe("independent")
+        })
+    })
+
+    describe("showNoDataArea parameter", () => {
+        it('sets showNoDataArea to true when showNoDataArea="1"', () => {
+            const grapher = new GrapherState({ showNoDataArea: false })
+            grapher.populateFromQueryParams({ showNoDataArea: "1" })
+            expect(grapher.showNoDataArea).toBe(true)
+        })
+
+        it('sets showNoDataArea to false when showNoDataArea="0"', () => {
+            const grapher = new GrapherState({ showNoDataArea: true })
+            grapher.populateFromQueryParams({ showNoDataArea: "0" })
+            expect(grapher.showNoDataArea).toBe(false)
+        })
+    })
+
+    describe("showSelectionOnlyInTable parameter (deprecated)", () => {
+        it('sets dataTableConfig.filter to "selection" when showSelectionOnlyInTable="1"', () => {
+            const grapher = new GrapherState({})
+            grapher.populateFromQueryParams({ showSelectionOnlyInTable: "1" })
+            expect(grapher.dataTableConfig.filter).toBe("selection")
+        })
+
+        it('sets dataTableConfig.filter to "all" when showSelectionOnlyInTable="0"', () => {
+            const grapher = new GrapherState({})
+            grapher.dataTableConfig.filter = "selection"
+            grapher.populateFromQueryParams({ showSelectionOnlyInTable: "0" })
+            expect(grapher.dataTableConfig.filter).toBe("all")
+        })
+    })
+
+    describe("tableFilter parameter", () => {
+        it('sets dataTableConfig.filter to "all"', () => {
+            const grapher = new GrapherState({})
+            grapher.dataTableConfig.filter = "selection"
+            grapher.populateFromQueryParams({ tableFilter: "all" })
+            expect(grapher.dataTableConfig.filter).toBe("all")
+        })
+
+        it('sets dataTableConfig.filter to "selection"', () => {
+            const grapher = new GrapherState({})
+            grapher.populateFromQueryParams({ tableFilter: "selection" })
+            expect(grapher.dataTableConfig.filter).toBe("selection")
+        })
+
+        it('falls back to "all" for invalid filter values', () => {
+            const grapher = new GrapherState({})
+            grapher.dataTableConfig.filter = "selection"
+            grapher.populateFromQueryParams({ tableFilter: "invalid" })
+            expect(grapher.dataTableConfig.filter).toBe("all")
+        })
+    })
+
+    describe("tableSearch parameter", () => {
+        it("sets dataTableConfig.search", () => {
+            const grapher = new GrapherState({})
+            grapher.populateFromQueryParams({ tableSearch: "United States" })
+            expect(grapher.dataTableConfig.search).toBe("United States")
+        })
+
+        it("handles empty search string", () => {
+            const grapher = new GrapherState({})
+            grapher.dataTableConfig.search = "previous"
+            grapher.populateFromQueryParams({ tableSearch: "" })
+            // Empty string is falsy, so it should not update
+            expect(grapher.dataTableConfig.search).toBe("previous")
+        })
+    })
+
+    describe("externalQueryParams", () => {
+        it("stores non-grapher query params in externalQueryParams", () => {
+            const grapher = new GrapherState({})
+            grapher.populateFromQueryParams({
+                tab: "map",
+                customParam: "customValue",
+                anotherParam: "anotherValue",
+            } as any)
+            expect(grapher.externalQueryParams).toEqual({
+                customParam: "customValue",
+                anotherParam: "anotherValue",
+            })
+        })
+
+        it("does not include known grapher params in externalQueryParams", () => {
+            const grapher = new GrapherState({ hasMapTab: true })
+            grapher.populateFromQueryParams({
+                tab: "map",
+                time: "2020",
+                stackMode: "relative",
+            })
+            expect(grapher.externalQueryParams).toEqual({})
+        })
+    })
+
+    describe("multiple parameters at once", () => {
+        it("applies all parameters correctly", () => {
+            const grapher = new GrapherState({
+                hasMapTab: true,
+                chartTypes: [GRAPHER_CHART_TYPES.LineChart],
+            })
+            grapher.populateFromQueryParams({
+                tab: "map",
+                stackMode: "relative",
+                region: "Europe",
+                globe: "1",
+                globeZoom: "2",
+                globeRotation: "45,90",
+            })
+
+            expect(grapher.activeTab).toBe(GRAPHER_TAB_NAMES.WorldMap)
+            expect(grapher.stackMode).toBe("relative")
+            expect(grapher.map.region).toBe("Europe")
+            expect(grapher.mapConfig.globe.isActive).toBe(true)
+            expect(grapher.mapConfig.globe.zoom).toBe(2)
+            expect(grapher.mapConfig.globe.rotation).toEqual([90, 45])
+        })
     })
 })
