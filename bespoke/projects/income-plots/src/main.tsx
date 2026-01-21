@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client"
 import { App } from "./components/App.tsx"
+import { ShadowRootContext } from "./ShadowRootContext.tsx"
 
 export const mount = (container: HTMLElement) => {
     createRoot(container).render(<App />)
@@ -23,7 +24,11 @@ export const mountIntoShadowDOM = (hostElement: HTMLElement) => {
     const container = document.createElement("div")
     shadowRoot.appendChild(container)
 
-    createRoot(container).render(<App />)
+    createRoot(container).render(
+        <ShadowRootContext.Provider value={shadowRoot}>
+            <App />
+        </ShadowRootContext.Provider>
+    )
 
     return shadowRoot
 }
