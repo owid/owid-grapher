@@ -43,7 +43,6 @@ import {
     GrapherQueryParams,
     GRAPHER_QUERY_PARAM_KEYS,
     ScaleType,
-    FacetAxisDomain,
     TimeBounds,
     GrapherTabName,
     GRAPHER_TAB_NAMES,
@@ -72,7 +71,6 @@ import {
     updatePersistables,
     minTimeBoundFromJSONOrNegativeInfinity,
     maxTimeBoundFromJSONOrPositiveInfinity,
-    parseFloatOrUndefined,
     Url,
     getTimeDomainFromQueryString,
     findClosestTime,
@@ -127,7 +125,6 @@ import {
     isChartTab,
     isMapTab,
     findValidChartTypeCombination,
-    isValidTabConfigOption,
     mapChartTypeNameToTabConfigOption,
     mapTabConfigOptionToChartTypeName,
 } from "../chart/ChartTabs.js"
@@ -142,7 +139,6 @@ import {
     GRAPHER_BACKGROUND_DEFAULT,
 } from "../color/ColorConstants.js"
 import { ColorScaleConfig } from "../color/ColorScaleConfig.js"
-import { isValidDataTableFilter } from "../dataTable/DataTable.js"
 import {
     DataTableConfig,
     DataTableManager,
@@ -160,10 +156,7 @@ import {
     MapChartManager,
 } from "../mapCharts/MapChartConstants.js"
 import { MapConfig } from "../mapCharts/MapConfig.js"
-import {
-    isValidMapRegionName,
-    getCountriesByRegion,
-} from "../mapCharts/MapHelpers.js"
+import { getCountriesByRegion } from "../mapCharts/MapHelpers.js"
 import {
     DownloadModalManager,
     DownloadModalTabName,
@@ -182,11 +175,6 @@ import {
     EntityNamesByRegionType,
     isEntityRegionType,
 } from "./EntitiesByRegionType.js"
-import {
-    getEntityNamesParam,
-    getSelectedEntityNamesParam,
-    getFocusedSeriesNamesParam,
-} from "./EntityUrlBuilder.js"
 import {
     MinimalNarrativeChartInfo,
     GrapherProgrammaticInterface,
@@ -218,7 +206,11 @@ import {
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
     CHART_TYPES_THAT_SHOW_ALL_ENTITIES,
 } from "./GrapherConstants.js"
-import { parseGlobeRotation, grapherObjectToQueryParams } from "./GrapherUrl.js"
+import { grapherObjectToQueryParams } from "./GrapherUrl.js"
+import {
+    parseGrapherQueryParams,
+    logInvalidQueryParams,
+} from "./GrapherQueryParamParser.js"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
 import { getErrorMessageRelatedQuestionUrl } from "./relatedQuestion.js"
 import { ChartManager } from "../chart/ChartManager.js"
@@ -1057,147 +1049,135 @@ export class GrapherState
         return table
     }
 
+    /** Populates grapher state from URL query parameters */
     @action.bound populateFromQueryParams(params: GrapherQueryParams): void {
+        // Store any external params not recognized by Grapher
         this.externalQueryParams = _.omit(params, GRAPHER_QUERY_PARAM_KEYS)
 
-        // Set tab if specified
-        const parsedTab = params.tab
-            ? this.mapQueryParamToTabName(params.tab)
-            : undefined
-        if (parsedTab) this.setTab(parsedTab)
-        else if (params.tab !== undefined)
-            console.error("Unexpected tab: " + params.tab)
+        // Parse all query params
+        const parsed = parseGrapherQueryParams(params)
 
-        // Set overlay if specified
-        const overlay = params.overlay
-        if (overlay) {
-            if (overlay === "sources") {
-                this.activeModal = GrapherModal.Sources
-            } else if (overlay === "download-data") {
-                this.activeModal = GrapherModal.Download
-                this.activeDownloadModalTab = DownloadModalTabName.Data
-            } else if (overlay === "download-vis") {
-                this.activeModal = GrapherModal.Download
-                this.activeDownloadModalTab = DownloadModalTabName.Vis
-            } else if (overlay === "download") {
-                this.activeModal = GrapherModal.Download
-            } else if (overlay === "embed") {
-                // We could include the embed modal in the `overlay=` params,
-                // but there has been an issue in the past where we accidentally
-                // included that in the Embed dialog's URL, and then embeds would
-                // always show the modal.
-                // So, if it is specified in the query params, we just ignore it.
-                // Linking directly to the modal doesn't have much of a use case, anyway.
-            } else {
-                console.error("Unexpected overlay: " + overlay)
+        // Log any invalid parameters for debugging
+        logInvalidQueryParams(parsed)
+
+        // Tab
+        if (parsed.tab.status === "valid") {
+            const tabName = this.mapTabConfigOptionToTabName(parsed.tab.value)
+            this.setTab(tabName)
+        } else if (parsed.tab.status === "invalid") {
+            // Reset the tab if an invalid value is provided
+            this.setTab(this.defaultTab)
+        }
+
+        // Overlay
+        if (parsed.overlay.status === "valid") {
+            this.activeModal = parsed.overlay.value.modal
+            if (parsed.overlay.value.downloadTab) {
+                this.activeDownloadModalTab = parsed.overlay.value.downloadTab
             }
         }
 
-        // Stack mode for bar and stacked area charts
-        this.stackMode = (params.stackMode ?? this.stackMode) as StackMode
-
-        this.zoomToSelection =
-            params.zoomToSelection === "true" ? true : this.zoomToSelection
-
-        // Axis scale mode
-        const xScaleType = params.xScale
-        if (xScaleType) {
-            if (xScaleType === ScaleType.linear || xScaleType === ScaleType.log)
-                this.xAxis.scaleType = xScaleType
-            else console.error("Unexpected xScale: " + xScaleType)
+        // Stack mode
+        if (parsed.stackMode.status === "valid") {
+            this.stackMode = parsed.stackMode.value
         }
 
-        const yScaleType = params.yScale
-        if (yScaleType) {
-            if (yScaleType === ScaleType.linear || yScaleType === ScaleType.log)
-                this.yAxis.scaleType = yScaleType
-            else console.error("Unexpected xScale: " + yScaleType)
+        // Zoom to selection
+        if (parsed.zoomToSelection.status === "valid") {
+            this.zoomToSelection = true
         }
 
-        const time = params.time
-        if (time !== undefined && time !== "")
-            this.setTimeFromTimeQueryParam(time)
+        // X-axis scale
+        if (parsed.xScale.status === "valid") {
+            this.xAxis.scaleType = parsed.xScale.value
+        }
 
-        const endpointsOnly = params.endpointsOnly
-        if (endpointsOnly !== undefined)
-            this.compareEndPointsOnly = endpointsOnly === "1" ? true : undefined
+        // Y-axis scale
+        if (parsed.yScale.status === "valid") {
+            this.yAxis.scaleType = parsed.yScale.value
+        }
 
-        // Globe
-        const globe = params.globe
-        if (globe !== undefined) {
-            this.mapConfig.globe.isActive = globe === "1"
+        // Time
+        if (parsed.time.status === "valid") {
+            this.setTimeFromTimeQueryParam(parsed.time.value)
+        }
+
+        // Endpoints only
+        if (parsed.endpointsOnly.status === "valid") {
+            this.compareEndPointsOnly = parsed.endpointsOnly.value
+                ? true
+                : undefined
+        }
+
+        // Globe mode
+        if (parsed.globe.status === "valid") {
+            this.mapConfig.globe.isActive = parsed.globe.value
         }
 
         // Globe rotation
-        const globeRotation = params.globeRotation
-        if (globeRotation !== undefined) {
-            this.mapConfig.globe.rotation = parseGlobeRotation(globeRotation)
+        if (parsed.globeRotation.status === "valid") {
+            this.mapConfig.globe.rotation = parsed.globeRotation.value
         }
 
         // Globe zoom
-        const globeZoom = params.globeZoom
-        if (globeZoom !== undefined) {
-            const parsedZoom = parseFloatOrUndefined(globeZoom)
-            if (parsedZoom !== undefined) this.mapConfig.globe.zoom = parsedZoom
+        if (parsed.globeZoom.status === "valid") {
+            this.mapConfig.globe.zoom = parsed.globeZoom.value
         }
 
-        // Region
-        const region = params.region
-        if (region !== undefined && isValidMapRegionName(region)) {
-            this.map.region = region
+        // Map region
+        if (parsed.region.status === "valid") {
+            this.map.region = parsed.region.value
         }
 
         // Map selection
-        const mapSelection = getEntityNamesParam(params.mapSelect)
-        if (mapSelection) {
-            this.mapConfig.selection.setSelectedEntities(mapSelection)
+        if (parsed.mapSelect.status === "valid") {
+            this.mapConfig.selection.setSelectedEntities(parsed.mapSelect.value)
         }
 
-        // Selection
-        const url = Url.fromQueryParams(params)
-        const selection = getSelectedEntityNamesParam(url)
-        if (this.addCountryMode !== EntitySelectionMode.Disabled && selection)
-            this.selection.setSelectedEntities(selection)
+        // Entity selection (country param)
+        if (
+            parsed.country.status === "valid" &&
+            this.addCountryMode !== EntitySelectionMode.Disabled
+        ) {
+            this.selection.setSelectedEntities(parsed.country.value)
+        }
 
-        // Focus
-        const focusedSeriesNames = getFocusedSeriesNamesParam(params.focus)
-        if (focusedSeriesNames) {
-            this.focusArray.clearAllAndAdd(...focusedSeriesNames)
+        // Focused series
+        if (parsed.focus.status === "valid") {
+            this.focusArray.clearAllAndAdd(...parsed.focus.value)
         }
 
         // Faceting
-        if (params.facet && params.facet in FacetStrategy) {
-            this.selectedFacetStrategy = params.facet as FacetStrategy
-        }
-        if (params.uniformYAxis === "0") {
-            this.yAxis.facetDomain = FacetAxisDomain.independent
-        } else if (params.uniformYAxis === "1") {
-            this.yAxis.facetDomain = FacetAxisDomain.shared
+        if (parsed.facet.status === "valid") {
+            this.selectedFacetStrategy = parsed.facet.value
         }
 
-        // No data area in marimekko charts
-        if (params.showNoDataArea) {
-            this.showNoDataArea = params.showNoDataArea === "1"
+        // Uniform Y-axis (facet domain)
+        if (parsed.uniformYAxis.status === "valid") {
+            this.yAxis.facetDomain = parsed.uniformYAxis.value
         }
 
-        // Deprecated; support for legacy URLs
-        if (params.showSelectionOnlyInTable) {
-            this.dataTableConfig.filter =
-                params.showSelectionOnlyInTable === "1" ? "selection" : "all"
+        // Show no data area (Marimekko charts)
+        if (parsed.showNoDataArea.status === "valid") {
+            this.showNoDataArea = parsed.showNoDataArea.value
         }
 
-        // Data table filter
-        if (params.tableFilter) {
-            this.dataTableConfig.filter = isValidDataTableFilter(
-                params.tableFilter
-            )
-                ? params.tableFilter
-                : "all"
+        // Deprecated: showSelectionOnlyInTable (legacy URL support)
+        if (parsed.showSelectionOnlyInTable.status === "valid") {
+            this.dataTableConfig.filter = parsed.showSelectionOnlyInTable.value
         }
 
-        // Data table search
-        if (params.tableSearch) {
-            this.dataTableConfig.search = params.tableSearch
+        // Table filter (overrides deprecated param if both present)
+        if (parsed.tableFilter.status === "valid") {
+            this.dataTableConfig.filter = parsed.tableFilter.value
+        } else if (parsed.tableFilter.status === "invalid") {
+            // Reset to default if invalid value provided
+            this.dataTableConfig.filter = "all"
+        }
+
+        // Table search
+        if (parsed.tableSearch.status === "valid") {
+            this.dataTableConfig.search = parsed.tableSearch.value
         }
     }
 
@@ -3813,12 +3793,6 @@ export class GrapherState
 
     @computed private get numSelectableEntityNames(): number {
         return this.availableEntityNames.length
-    }
-
-    private mapQueryParamToTabName(tab: string): GrapherTabName | undefined {
-        return isValidTabConfigOption(tab)
-            ? this.mapTabConfigOptionToTabName(tab)
-            : this.defaultTab
     }
 
     mapGrapherTabToQueryParam(tabName: GrapherTabName): string {
