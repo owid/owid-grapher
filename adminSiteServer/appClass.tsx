@@ -10,7 +10,6 @@ import {
     cloudflareAuthMiddleware,
     tailscaleAuthMiddleware,
     devAuthMiddleware,
-    sessionCookieAuthMiddleware,
     requireAdminAuthMiddleware,
 } from "./authentication.js"
 import { apiRouter } from "./apiRouter.js"
@@ -66,7 +65,6 @@ export class OwidAdminApp {
 
         app.use(express.urlencoded({ extended: true, limit: "50mb" }))
 
-        app.use("/admin", sessionCookieAuthMiddleware)
         app.use("/admin", apiKeyAuthMiddleware)
 
         if (ENV === "staging") {

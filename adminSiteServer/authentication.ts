@@ -8,7 +8,7 @@ import {
     UsersTableName,
     type DbAdminApiKey,
 } from "@ourworldindata/types"
-import { DbPlainUser, JsonError } from "@ourworldindata/utils"
+import { DbPlainUser } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { hashApiKey } from "../serverUtils/apiKey.js"
 
@@ -27,12 +27,6 @@ const DEV_ADMIN_FULL_NAME = "Admin User"
 const jwks = jose.createRemoteJWKSet(
     new URL(`${CLOUDFLARE_TEAM_DOMAIN}/cdn-cgi/access/certs`)
 )
-
-interface SessionRow {
-    session_key: string
-    session_data: string
-    expire_date: Date
-}
 
 async function setAuthenticatedUser(
     res: express.Response,
@@ -223,49 +217,6 @@ export async function devAuthMiddleware(
     return next()
 }
 
-export async function sessionCookieAuthMiddleware(
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
-) {
-    if (res.locals.user) return next()
-
-    const sessionid = req.cookies["sessionid"]
-    if (!sessionid) return next()
-
-    const user = await db.knexReadonlyTransaction(async (trx) => {
-        const rows = await db.knexRaw<SessionRow>(
-            trx,
-            `SELECT * FROM sessions WHERE session_key = ? AND expire_date >= NOW()`,
-            [sessionid]
-        )
-        if (!rows.length) return null
-
-        const sessionData = Buffer.from(
-            rows[0].session_data,
-            "base64"
-        ).toString("utf8")
-        const sessionJson = JSON.parse(
-            sessionData.split(":").slice(1).join(":")
-        )
-
-        const user = await trx<DbPlainUser>(UsersTableName)
-            .where({ email: sessionJson.user_email })
-            .first()
-        if (!user) throw new JsonError("Invalid session (no such user)", 500)
-
-        return user
-    })
-
-    if (!user) return next()
-
-    await db.knexReadWriteTransaction(async (trx) => {
-        await setAuthenticatedUser(res, user, trx)
-    })
-
-    return next()
-}
-
 export function requireAdminAuthMiddleware(
     _req: express.Request,
     res: express.Response,
@@ -287,17 +238,7 @@ export function requireAdminAuthMiddleware(
     return res.status(status).send(message)
 }
 
-export async function logOut(req: express.Request, res: express.Response) {
-    const sessionid = req.cookies["sessionid"]
-    if (sessionid) {
-        await db.knexReadWriteTransaction((trx) =>
-            db.knexRaw(trx, `DELETE FROM sessions WHERE session_key = ?`, [
-                sessionid,
-            ])
-        )
-    }
-
-    res.clearCookie("sessionid")
+export async function logOut(_req: express.Request, res: express.Response) {
     res.clearCookie(CLOUDFLARE_COOKIE_NAME)
     return res.redirect("/admin")
 }
