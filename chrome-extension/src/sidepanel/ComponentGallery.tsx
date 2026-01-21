@@ -1,7 +1,11 @@
 import { useMemo } from "react"
 import { DebugProvider } from "@owid/site/gdocs/DebugProvider.js"
 import { AttachmentsContext } from "@owid/site/gdocs/AttachmentsContext.js"
-import { galleryExamples, galleryAttachments } from "./componentGalleryExamples.js"
+import {
+    galleryExamples,
+    galleryAttachments,
+    componentMetadata,
+} from "./componentGalleryExamples.js"
 import { ComponentCard } from "./ComponentCard.js"
 
 interface ComponentGalleryProps {
@@ -15,9 +19,18 @@ export function ComponentGallery({ searchQuery }: ComponentGalleryProps) {
             return Object.entries(galleryExamples)
         }
 
-        return Object.entries(galleryExamples).filter(([blockType]) =>
-            blockType.toLowerCase().includes(query)
-        )
+        return Object.entries(galleryExamples).filter(([blockType]) => {
+            // Search by component name
+            if (blockType.toLowerCase().includes(query)) {
+                return true
+            }
+            // Search by description
+            const metadata = componentMetadata[blockType]
+            if (metadata?.description.toLowerCase().includes(query)) {
+                return true
+            }
+            return false
+        })
     }, [searchQuery])
 
     // Convert galleryAttachments to the format expected by AttachmentsContext
@@ -53,6 +66,7 @@ export function ComponentGallery({ searchQuery }: ComponentGalleryProps) {
                                 key={blockType}
                                 blockType={blockType}
                                 enrichedBlock={block}
+                                metadata={componentMetadata[blockType]}
                             />
                         ))
                     )}
