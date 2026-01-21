@@ -575,9 +575,19 @@ ${links}`
                 .filter((item) => item !== "")
                 .join("\n")
         })
-        .with({ type: "featured-metrics" }, (_): string | undefined =>
-            markdownComponent("FeaturedMetrics", {}, exportComponents)
-        )
+        .with({ type: "featured-metrics" }, (b): string | undefined => {
+            const serializeFilters = (values: string[]): string | undefined =>
+                values.length ? values.join("~") : undefined
+            return markdownComponent(
+                "FeaturedMetrics",
+                {
+                    datasetProducts: serializeFilters(b.datasetProducts),
+                    datasetNamespaces: serializeFilters(b.datasetNamespaces),
+                    datasetVersions: serializeFilters(b.datasetVersions),
+                },
+                exportComponents
+            )
+        })
         .with({ type: "featured-data-insights" }, (_): string | undefined =>
             markdownComponent("FeaturedDataInsights", {}, exportComponents)
         )

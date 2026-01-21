@@ -1066,11 +1066,18 @@ export type EnrichedBlockHomepageIntro = {
 
 export type RawBlockFeaturedMetrics = {
     type: "featured-metrics"
-    value: Record<string, never>
+    value: {
+        "dataset-products"?: string
+        "dataset-namespaces"?: string
+        "dataset-versions"?: string
+    }
 }
 
 export type EnrichedBlockFeaturedMetrics = {
     type: "featured-metrics"
+    datasetProducts: string[]
+    datasetNamespaces: string[]
+    datasetVersions: string[]
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockFeaturedDataInsights = {

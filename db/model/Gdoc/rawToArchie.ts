@@ -975,9 +975,12 @@ function* rawBlockHomepageIntroToArchieMLString(
 }
 
 function* rawBlockFeaturedMetricsToArchieMLString(
-    _: RawBlockFeaturedMetrics
+    block: RawBlockFeaturedMetrics
 ): Generator<string, void, undefined> {
     yield "{.featured-metrics}"
+    yield* propertyToArchieMLString("dataset-products", block.value)
+    yield* propertyToArchieMLString("dataset-namespaces", block.value)
+    yield* propertyToArchieMLString("dataset-versions", block.value)
     yield "{}"
 }
 

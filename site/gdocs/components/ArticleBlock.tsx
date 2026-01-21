@@ -879,27 +879,17 @@ function ArticleBlockInternal({
                 />
             )
         })
-        .with({ type: "featured-metrics" }, () => {
+        .with({ type: "featured-metrics" }, (block) => {
             const layoutClassName = getLayout("featured-metrics", containerType)
             const topicName = tags[0]?.name
-
-            if (!topicName) {
-                return (
-                    <BlockErrorFallback
-                        className={layoutClassName}
-                        error={{
-                            name: `Error in ${block.type}`,
-                            message:
-                                "Featured metrics requires at least one tag on the document.",
-                        }}
-                    />
-                )
-            }
 
             return (
                 <BlockQueryClientProvider>
                     <FeaturedMetrics
                         topicName={topicName}
+                        datasetProducts={block.datasetProducts}
+                        datasetNamespaces={block.datasetNamespaces}
+                        datasetVersions={block.datasetVersions}
                         className={layoutClassName}
                     />
                 </BlockQueryClientProvider>

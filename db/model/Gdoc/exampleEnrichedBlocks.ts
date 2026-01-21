@@ -877,6 +877,9 @@ export const enrichedBlockExamples: Record<
     },
     "featured-metrics": {
         type: "featured-metrics",
+        datasetProducts: [],
+        datasetNamespaces: [],
+        datasetVersions: [],
         parseErrors: [],
     },
     "featured-data-insights": {

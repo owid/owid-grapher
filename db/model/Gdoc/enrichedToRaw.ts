@@ -724,13 +724,19 @@ export function enrichedBlockToRawBlock(
                 },
             }
         })
-        .with(
-            { type: "featured-metrics" },
-            (_): RawBlockFeaturedMetrics => ({
+        .with({ type: "featured-metrics" }, (b): RawBlockFeaturedMetrics => {
+            const serializeFilters = (values: string[]): string | undefined =>
+                values.length ? values.join("~") : undefined
+
+            return {
                 type: "featured-metrics",
-                value: {},
-            })
-        )
+                value: {
+                    "dataset-products": serializeFilters(b.datasetProducts),
+                    "dataset-namespaces": serializeFilters(b.datasetNamespaces),
+                    "dataset-versions": serializeFilters(b.datasetVersions),
+                },
+            }
+        })
         .with(
             { type: "featured-data-insights" },
             (_): RawBlockFeaturedDataInsights => ({

@@ -16,7 +16,12 @@ import {
     LinkedAuthor,
     LinkedChart,
 } from "@ourworldindata/types"
-import { excludeNullish, formatDate, generateToc } from "@ourworldindata/utils"
+import {
+    excludeNullish,
+    formatDate,
+    generateToc,
+    traverseEnrichedBlock,
+} from "@ourworldindata/utils"
 import { formatCitation, generateStickyNav } from "./archieToEnriched.js"
 import { parseFaqs } from "./rawToEnriched.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
@@ -110,6 +115,30 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
 
     override _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
         const errors: OwidGdocErrorMessage[] = []
+
+        const isLinearTopicPage =
+            this.content.type === OwidGdocType.LinearTopicPage
+        if (isLinearTopicPage) {
+            let hasFeaturedMetrics = false
+            for (const enrichedBlockSource of this.enrichedBlockSources) {
+                for (const block of enrichedBlockSource) {
+                    traverseEnrichedBlock(block, (block) => {
+                        if (block.type === "featured-metrics") {
+                            hasFeaturedMetrics = true
+                        }
+                    })
+                }
+            }
+
+            if (hasFeaturedMetrics && !this.tags?.length) {
+                errors.push({
+                    property: "content",
+                    message:
+                        "Featured metrics requires the document to be tagged on linear topic pages.",
+                    type: OwidGdocErrorMessageType.Error,
+                })
+            }
+        }
 
         if (!this.tags?.length) {
             if (

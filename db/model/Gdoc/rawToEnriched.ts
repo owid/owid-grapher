@@ -2865,10 +2865,23 @@ function parseHomepageSearch(
 }
 
 function parseFeaturedMetrics(
-    _: RawBlockFeaturedMetrics
+    raw: RawBlockFeaturedMetrics
 ): EnrichedBlockFeaturedMetrics {
+    const parseDatasetFilterList = (rawList: string | undefined): string[] => {
+        if (!rawList) return []
+        return rawList
+            .split("~")
+            .map((entry) => entry.trim())
+            .filter(Boolean)
+    }
+
     return {
         type: "featured-metrics",
+        datasetProducts: parseDatasetFilterList(raw.value["dataset-products"]),
+        datasetNamespaces: parseDatasetFilterList(
+            raw.value["dataset-namespaces"]
+        ),
+        datasetVersions: parseDatasetFilterList(raw.value["dataset-versions"]),
         parseErrors: [],
     }
 }
