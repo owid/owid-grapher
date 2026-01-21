@@ -158,7 +158,7 @@ export async function queryCharts(
         ...datasetNamespaceFacetFilters,
         ...datasetVersionFacetFilters,
         ...datasetProducerFacetFilters,
-    ]
+    ].filter((filter) => !Array.isArray(filter) || filter.length > 0)
 
     const searchParams = [
         {
