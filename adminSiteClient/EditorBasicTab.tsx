@@ -41,7 +41,7 @@ import {
     OwidVariableId,
     OwidChartDimensionInterface,
 } from "@ourworldindata/utils"
-import { FieldsRow, Section, SelectField, TextField, Toggle } from "./Forms.js"
+import { Section, SelectField, TextField, Toggle } from "./Forms.js"
 import { VariableSelector } from "./VariableSelector.js"
 import { DimensionCard } from "./DimensionCard.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
@@ -746,27 +746,26 @@ export class EditorBasicTab<
                         onValue={this.onChartTypeChange}
                         options={this.chartTypeOptions}
                     />
-                    <FieldsRow>
+
+                    <Toggle
+                        label="Map tab"
+                        value={grapherState.hasMapTab}
+                        onValue={(shouldHaveMapTab) =>
+                            (grapherState.hasMapTab = shouldHaveMapTab)
+                        }
+                    />
+                    {this.chartTypeSiblings.map((chartType) => (
                         <Toggle
-                            label="Map tab"
-                            value={grapherState.hasMapTab}
-                            onValue={(shouldHaveMapTab) =>
-                                (grapherState.hasMapTab = shouldHaveMapTab)
+                            key={chartType}
+                            label={_.startCase(chartType)}
+                            value={grapherState.validChartTypeSet.has(
+                                chartType
+                            )}
+                            onValue={(value) =>
+                                this.toggleChartType(chartType, value)
                             }
                         />
-                        {this.chartTypeSiblings.map((chartType) => (
-                            <Toggle
-                                key={chartType}
-                                label={_.startCase(chartType)}
-                                value={grapherState.validChartTypeSet.has(
-                                    chartType
-                                )}
-                                onValue={(value) =>
-                                    this.toggleChartType(chartType, value)
-                                }
-                            />
-                        ))}
-                    </FieldsRow>
+                    ))}
                 </Section>
                 {!isIndicatorChart && (
                     <VariablesSection
