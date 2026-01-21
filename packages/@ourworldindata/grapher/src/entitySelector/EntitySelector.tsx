@@ -170,10 +170,12 @@ interface FilterDropdownOption {
 export const EXTERNAL_SORT_INDICATOR_DEFINITIONS = [
     {
         catalogKey: "population" satisfies CatalogKey,
+        slug: columnDefsByCatalogKey["population"].slug,
         label: "Population",
     },
     {
         catalogKey: "gdp" satisfies CatalogKey,
+        slug: columnDefsByCatalogKey["gdp"].slug,
         label: "GDP per capita (int. $)",
     },
 ] as const
@@ -526,7 +528,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
      */
     private toColumnCompatibleTime(time: Time, column: CoreColumn): Time {
         const isExternal = this.externalSortIndicatorDefinitions.some(
-            (external) => column.slug === external.catalogKey
+            (external) => column.slug === external.slug
         )
 
         // if the column comes from the chart, no conversion is needed
@@ -833,11 +835,11 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
                     })
                 } else {
                     const column =
-                        this.interpolatedSortColumnsBySlug[external.catalogKey]
+                        this.interpolatedSortColumnsBySlug[external.slug]
                     options.push({
                         type: "external-indicator",
-                        value: external.catalogKey,
-                        slug: external.catalogKey,
+                        value: external.slug,
+                        slug: external.slug,
                         label: external.label,
                         formattedTime: column
                             ? this.formatTimeForSortColumnLabel(
@@ -1216,11 +1218,11 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
     @action.bound async loadAndSetExternalSortColumn(
         external: ExternalSortIndicatorDefinition
     ): Promise<void> {
-        const { catalogKey } = external
+        const { catalogKey, slug } = external
         const { additionalDataLoaderFn } = this.manager
 
         // the indicator has already been loaded
-        if (this.interpolatedSortColumnsBySlug[catalogKey]) return
+        if (this.interpolatedSortColumnsBySlug[slug]) return
 
         // load the external indicator from the catalog
         try {
@@ -1230,16 +1232,17 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
                     "additionalDataLoaderFn is not set, can't load sort variables on demand"
                 )
             const data = await additionalDataLoaderFn(catalogKey)
-            const table = catalogDataToOwidTable(catalogKey, data)
+            const columnDef = columnDefsByCatalogKey[catalogKey]
+            const table = catalogDataToOwidTable(data, columnDef)
             const column = table
                 .filterByEntityNames(this.inputTable.availableEntityNames)
-                .interpolateColumnWithTolerance(catalogKey, {
+                .interpolateColumnWithTolerance(slug, {
                     toleranceOverride: Infinity,
                 })
-                .get(catalogKey)
+                .get(slug)
             if (column) this.setInterpolatedSortColumn(column)
         } catch {
-            console.error(`Failed to load variable from catalog: ${catalogKey}`)
+            console.error(`Failed to load data from catalog: ${catalogKey}`)
         } finally {
             this.set({ isLoadingExternalSortColumn: false })
         }
@@ -1253,7 +1256,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
 
             // if an external indicator has been selected, load it
             const external = this.externalSortIndicatorDefinitions.find(
-                (external) => external.catalogKey === slug
+                (external) => external.slug === slug
             )
             if (external) await this.loadAndSetExternalSortColumn(external)
 
@@ -1807,6 +1810,9 @@ function isExternalSortIndicatorMatch(
     key: CatalogKey,
     column: CoreColumn
 ): boolean {
+    // Trivial if the slugs match
+    if (column.def.slug === columnDefsByCatalogKey[key].slug) return true
+
     return match(key)
         .with("population", () => {
             // Check the catalog path for population data
@@ -1830,12 +1836,10 @@ function isExternalSortIndicatorMatch(
 }
 
 /** Creates an OwidTable from catalog data points */
-export function catalogDataToOwidTable(
-    catalogKey: CatalogKey,
-    data: CatalogDataPoint[]
+function catalogDataToOwidTable(
+    data: CatalogDataPoint[],
+    columnDef: OwidColumnDef
 ): OwidTable {
-    const columnDef = columnDefsByCatalogKey[catalogKey]
-
     const rows = data.map((point) => ({
         entityName: point.entity,
         year: point.year,

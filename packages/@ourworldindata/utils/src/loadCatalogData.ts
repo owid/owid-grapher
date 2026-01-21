@@ -7,18 +7,21 @@ import {
 } from "@ourworldindata/types"
 import { fetchJson } from "./Util.js"
 
-/**
- * Column definitions with display metadata for catalog indicators.
- * Maps each catalog key to its column definition.
- */
+/** Paths to catalog data files */
+const catalogPaths: Record<CatalogKey, `${string}.json`> = {
+    population: "population/population.json",
+    gdp: "gdp/gdp.json",
+}
+
+/** Column definitions with display metadata for catalog data */
 export const columnDefsByCatalogKey: Record<CatalogKey, OwidColumnDef> = {
     population: {
-        slug: "population",
+        slug: "catalog-population",
         name: "Population",
         type: ColumnTypeNames.Integer,
     },
     gdp: {
-        slug: "gdp",
+        slug: "catalog-gdp",
         name: "GDP per capita",
         type: ColumnTypeNames.Integer,
         shortUnit: "$",
@@ -30,7 +33,7 @@ async function _loadCatalogVariableData(
     key: CatalogKey,
     { baseUrl }: { baseUrl: string }
 ): Promise<CatalogDataPoint[]> {
-    const url = `${baseUrl}/external/owid_grapher/latest/${key}/${key}.json`
+    const url = `${baseUrl}/external/owid_grapher/latest/${catalogPaths[key]}`
     return fetchJson<CatalogDataPoint[]>(url)
 }
 
