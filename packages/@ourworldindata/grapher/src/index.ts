@@ -142,4 +142,7 @@ export type { MarimekkoChartState } from "./stackedCharts/MarimekkoChartState"
 export {
     constructGrapherValuesJson,
     isValuesJsonValid,
+    prepareCalloutTable,
+    constructGrapherValuesJsonFromTable,
 } from "./core/GrapherValuesJson"
+export type { PreparedCalloutTable } from "./core/GrapherValuesJson"

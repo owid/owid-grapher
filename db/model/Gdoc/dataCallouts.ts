@@ -5,7 +5,10 @@ import {
     getEntityNamesParam,
     isValuesJsonValid,
     GrapherProgrammaticInterface,
+    prepareCalloutTable,
+    constructGrapherValuesJsonFromTable,
 } from "@ourworldindata/grapher"
+import { OwidTable } from "@ourworldindata/core-table"
 import {
     GrapherInterface,
     GrapherValuesJson,
@@ -75,14 +78,289 @@ export function constructCalloutValuesFromPreparedState(
     return constructGrapherValuesJson(state, entity, timeQueryParam)
 }
 
+/**
+ * Prepare a chart config and input table for direct value extraction.
+ * This is the optimized alternative to prepareCalloutStateForUrl that
+ * avoids creating a full GrapherState.
+ *
+ * Supports regular grapher charts, multi-dim pages, and explorers.
+ */
+export async function prepareCalloutTableForUrl(
+    knex: db.KnexReadonlyTransaction,
+    calloutUrl: string,
+    slugToIdMap?: Record<string, number>
+): Promise<{ config: GrapherInterface; inputTable: OwidTable } | undefined> {
+    const url = Url.fromURL(calloutUrl)
+    const slug = url.slug
+    if (!slug) return undefined
+
+    // Handle explorer URLs
+    if (url.isExplorer) {
+        return prepareCalloutTableForExplorer(
+            knex,
+            slug,
+            url.queryParams as ExplorerChoiceParams
+        )
+    }
+
+    const map = slugToIdMap ?? (await mapSlugsToIds(knex))
+    const chartId = map[slug]
+
+    let config: GrapherInterface | undefined
+
+    if (chartId) {
+        const chartRecord = await getChartConfigById(knex, chartId)
+        if (chartRecord) {
+            config = chartRecord.config
+        }
+    }
+
+    if (!config) {
+        // Try multi-dim page
+        const multiDimPage = await getMultiDimDataPageBySlug(knex, slug)
+        if (!multiDimPage) return undefined
+
+        const searchParams = new URLSearchParams(url.queryStr || "")
+        const view = searchParamsToMultiDimView(
+            multiDimPage.config,
+            searchParams
+        )
+        config = await getChartConfigByUuid(knex, view.fullConfigId)
+        if (!config) return undefined
+    }
+
+    // Fetch the input table
+    const inputTable = await fetchInputTableForConfig({
+        dimensions: config.dimensions,
+        dataApiUrl: DATA_API_URL,
+    })
+
+    if (!inputTable) return undefined
+
+    return { config, inputTable }
+}
+
+/**
+ * Prepare a chart config and input table for an explorer URL.
+ * This resolves the explorer's config based on query params and fetches the data.
+ */
+async function prepareCalloutTableForExplorer(
+    knex: db.KnexReadonlyTransaction,
+    explorerSlug: string,
+    queryParams: ExplorerChoiceParams
+): Promise<{ config: GrapherInterface; inputTable: OwidTable } | undefined> {
+    try {
+        // Get explorer from database
+        const explorerRecord = await getExplorerBySlug(knex, explorerSlug)
+        if (!explorerRecord || !explorerRecord.tsv) {
+            console.error(`Explorer not found: ${explorerSlug}`)
+            return undefined
+        }
+
+        // Create ExplorerProgram and resolve catalog paths
+        let program = new ExplorerProgram(explorerSlug, explorerRecord.tsv)
+        const { program: transformedProgram } =
+            await transformExplorerProgramToResolveCatalogPaths(program, knex)
+        program = transformedProgram
+
+        // Initialize decision matrix with query params to select the right row
+        program.initDecisionMatrix(queryParams)
+
+        // Get the explorer grapher config for the selected row
+        const explorerGrapherConfig = program.explorerGrapherConfig
+        const chartCreationMode =
+            program.getChartCreationModeForExplorerGrapherConfig(
+                explorerGrapherConfig
+            )
+
+        let finalConfig: GrapherInterface
+
+        switch (chartCreationMode) {
+            case ExplorerChartCreationMode.FromGrapherId: {
+                const grapherId = explorerGrapherConfig.grapherId
+                if (!grapherId) {
+                    console.error(
+                        `No grapherId in explorer config: ${explorerSlug}`
+                    )
+                    return undefined
+                }
+
+                // Get the full grapher config from DB
+                const chartRecord = await getChartConfigById(knex, grapherId)
+                if (!chartRecord) {
+                    console.error(`Chart not found for grapherId: ${grapherId}`)
+                    return undefined
+                }
+
+                // Merge the explorer's grapher config with the base chart config
+                finalConfig = mergeGrapherConfigs(
+                    chartRecord.config,
+                    program.grapherConfig
+                )
+                break
+            }
+
+            case ExplorerChartCreationMode.FromVariableIds: {
+                const {
+                    yVariableIds = "",
+                    xVariableId,
+                    colorVariableId,
+                    sizeVariableId,
+                } = explorerGrapherConfig
+
+                const yVariableIdsList = yVariableIds
+                    .split(" ")
+                    .map(parseIntOrUndefined)
+                    .filter((item): item is number => item !== undefined)
+
+                if (yVariableIdsList.length === 0) {
+                    console.error(
+                        `No valid yVariableIds in explorer config: ${explorerSlug}`
+                    )
+                    return undefined
+                }
+
+                // Get partial grapher configs for the variable IDs
+                const partialConfig =
+                    await getPartialGrapherConfigForVariableId(
+                        knex,
+                        yVariableIdsList[0]
+                    )
+
+                // Build config with dimensions
+                const config: GrapherProgrammaticInterface = {
+                    ...mergeGrapherConfigs(
+                        partialConfig,
+                        program.grapherConfig
+                    ),
+                }
+
+                // Build dimensions from variable IDs
+                const dimensions: GrapherInterface["dimensions"] = []
+                yVariableIdsList.forEach((yVariableId) => {
+                    dimensions.push({
+                        variableId: yVariableId,
+                        property: DimensionProperty.y,
+                    })
+                })
+
+                if (xVariableId) {
+                    const maybeXVariableId = parseIntOrUndefined(xVariableId)
+                    if (maybeXVariableId !== undefined) {
+                        dimensions.push({
+                            variableId: maybeXVariableId,
+                            property: DimensionProperty.x,
+                        })
+                    }
+                }
+                if (colorVariableId) {
+                    const maybeColorVariableId =
+                        parseIntOrUndefined(colorVariableId)
+                    if (maybeColorVariableId !== undefined) {
+                        dimensions.push({
+                            variableId: maybeColorVariableId,
+                            property: DimensionProperty.color,
+                        })
+                    }
+                }
+                if (sizeVariableId) {
+                    const maybeSizeVariableId =
+                        parseIntOrUndefined(sizeVariableId)
+                    if (maybeSizeVariableId !== undefined) {
+                        dimensions.push({
+                            variableId: maybeSizeVariableId,
+                            property: DimensionProperty.size,
+                        })
+                    }
+                }
+
+                config.dimensions = dimensions
+                finalConfig = config
+                break
+            }
+
+            case ExplorerChartCreationMode.FromExplorerTableColumnSlugs: {
+                // This mode requires loading external CSV data which is complex.
+                // For now, we don't support this mode for callouts.
+                console.error(
+                    `ExplorerChartCreationMode.FromExplorerTableColumnSlugs is not yet supported for data callouts: ${explorerSlug}`
+                )
+                return undefined
+            }
+
+            default: {
+                console.error(
+                    `Unknown chart creation mode for explorer: ${explorerSlug}`
+                )
+                return undefined
+            }
+        }
+
+        // Fetch the input table
+        const inputTable = await fetchInputTableForConfig({
+            dimensions: finalConfig.dimensions,
+            dataApiUrl: DATA_API_URL,
+        })
+
+        if (!inputTable) return undefined
+
+        return { config: finalConfig, inputTable }
+    } catch (error) {
+        console.error(
+            `Failed to prepare explorer callout table for ${explorerSlug}:`,
+            error
+        )
+        return undefined
+    }
+}
+
+export interface CalloutBakeStats {
+    optimized: {
+        chartGroups: number
+        urlsProcessed: number
+        preparationTimeMs: number
+        extractionTimeMs: number
+    }
+    fallback: {
+        chartGroups: number
+        urlsProcessed: number
+        preparationTimeMs: number
+        extractionTimeMs: number
+    }
+    totalTimeMs: number
+}
+
 export async function bakeCalloutsForUrls(
     knex: db.KnexReadWriteTransaction,
-    calloutUrls: string[]
+    calloutUrls: string[],
+    options?: { collectStats?: boolean }
 ): Promise<{
     invalidByCalloutKey: Record<string, { invalid: number; total: number }>
+    stats?: CalloutBakeStats
 }> {
     const uniqueCalloutUrls = Array.from(new Set(calloutUrls))
-    if (uniqueCalloutUrls.length === 0) return { invalidByCalloutKey: {} }
+    if (uniqueCalloutUrls.length === 0)
+        return { invalidByCalloutKey: {}, stats: undefined }
+
+    const collectStats = options?.collectStats ?? false
+    const totalStart = collectStats ? performance.now() : 0
+
+    // Initialize stats
+    const stats: CalloutBakeStats = {
+        optimized: {
+            chartGroups: 0,
+            urlsProcessed: 0,
+            preparationTimeMs: 0,
+            extractionTimeMs: 0,
+        },
+        fallback: {
+            chartGroups: 0,
+            urlsProcessed: 0,
+            preparationTimeMs: 0,
+            extractionTimeMs: 0,
+        },
+        totalTimeMs: 0,
+    }
 
     const slugToIdMap = await mapSlugsToIds(knex)
     const urlsByCalloutKey = groupBy(uniqueCalloutUrls, (url) =>
@@ -97,36 +375,115 @@ export async function bakeCalloutsForUrls(
 
     for (const [calloutKey, urls] of Object.entries(urlsByCalloutKey)) {
         invalidByCalloutKey[calloutKey] = { invalid: 0, total: 0 }
-        const grapherState = await prepareCalloutStateForUrl(
+
+        // Try the optimized direct table approach first
+        const prepStart = collectStats ? performance.now() : 0
+        const tableResult = await prepareCalloutTableForUrl(
             knex,
             urls[0],
             slugToIdMap
         )
-        if (!grapherState) continue
 
-        for (const urlString of urls) {
-            const url = Url.fromURL(urlString)
-            grapherState.populateFromQueryParams(url.queryParams)
-            const entityNames = getEntityNamesParam(url.queryParams.country)
-            if (!entityNames) {
-                console.warn(`No entity names for callout URL: ${urlString}`)
-                continue
+        if (tableResult) {
+            // Use the optimized direct table approach
+            const { config, inputTable } = tableResult
+            const prepared = prepareCalloutTable(inputTable, config)
+
+            if (collectStats) {
+                stats.optimized.preparationTimeMs +=
+                    performance.now() - prepStart
+                stats.optimized.chartGroups += 1
             }
 
-            const entityName = entityNames[0]
-            const values = constructGrapherValuesJson(
-                grapherState,
-                entityName,
-                url.queryParams.time
+            const extractStart = collectStats ? performance.now() : 0
+
+            for (const urlString of urls) {
+                const url = Url.fromURL(urlString)
+                const entityNames = getEntityNamesParam(url.queryParams.country)
+                if (!entityNames) {
+                    console.warn(
+                        `No entity names for callout URL: ${urlString}`
+                    )
+                    continue
+                }
+
+                const entityName = entityNames[0]
+                const values = constructGrapherValuesJsonFromTable(
+                    prepared,
+                    entityName,
+                    url.queryParams.time
+                )
+                invalidByCalloutKey[calloutKey].total += 1
+                if (!isValuesJsonValid(values)) {
+                    invalidByCalloutKey[calloutKey].invalid += 1
+                    continue
+                }
+
+                const id = makeLinkedCalloutKey(urlString)
+                valuesToUpsert[id] = { id, value: values }
+
+                if (collectStats) {
+                    stats.optimized.urlsProcessed += 1
+                }
+            }
+
+            if (collectStats) {
+                stats.optimized.extractionTimeMs +=
+                    performance.now() - extractStart
+            }
+        } else {
+            // Fall back to GrapherState approach for explorers
+            const grapherState = await prepareCalloutStateForUrl(
+                knex,
+                urls[0],
+                slugToIdMap
             )
-            invalidByCalloutKey[calloutKey].total += 1
-            if (!isValuesJsonValid(values)) {
-                invalidByCalloutKey[calloutKey].invalid += 1
-                continue
+
+            if (collectStats) {
+                stats.fallback.preparationTimeMs +=
+                    performance.now() - prepStart
+                stats.fallback.chartGroups += 1
             }
 
-            const id = makeLinkedCalloutKey(urlString)
-            valuesToUpsert[id] = { id, value: values }
+            if (!grapherState) continue
+
+            const extractStart = collectStats ? performance.now() : 0
+
+            for (const urlString of urls) {
+                const url = Url.fromURL(urlString)
+                grapherState.populateFromQueryParams(url.queryParams)
+                const entityNames = getEntityNamesParam(url.queryParams.country)
+                if (!entityNames) {
+                    console.warn(
+                        `No entity names for callout URL: ${urlString}`
+                    )
+                    continue
+                }
+
+                const entityName = entityNames[0]
+                const values = constructGrapherValuesJson(
+                    grapherState,
+                    entityName,
+                    url.queryParams.time
+                )
+                invalidByCalloutKey[calloutKey].total += 1
+                if (!isValuesJsonValid(values)) {
+                    invalidByCalloutKey[calloutKey].invalid += 1
+                    continue
+                }
+
+                const id = makeLinkedCalloutKey(urlString)
+                valuesToUpsert[id] = { id, value: values }
+
+                if (collectStats) {
+                    stats.fallback.urlsProcessed += 1
+                }
+            }
+
+            if (collectStats) {
+                stats.fallback.extractionTimeMs +=
+                    performance.now() - extractStart
+            }
         }
     }
 
@@ -138,14 +495,20 @@ export async function bakeCalloutsForUrls(
             .merge()
     }
 
-    return { invalidByCalloutKey }
+    if (collectStats) {
+        stats.totalTimeMs = performance.now() - totalStart
+    }
+
+    return { invalidByCalloutKey, stats: collectStats ? stats : undefined }
 }
 
 export async function bakeCalloutsForGdoc(
     knex: db.KnexReadWriteTransaction,
-    gdoc: OwidGdocBaseInterface
+    gdoc: OwidGdocBaseInterface,
+    options?: { collectStats?: boolean }
 ): Promise<{
     invalidByCalloutKey: Record<string, { invalid: number; total: number }>
+    stats?: CalloutBakeStats
 }> {
     const calloutUrls: string[] = []
 
@@ -161,7 +524,56 @@ export async function bakeCalloutsForGdoc(
         calloutUrls.push(...extractDataCalloutUrls(gdoc.content.body ?? []))
     }
 
-    return bakeCalloutsForUrls(knex, calloutUrls)
+    return bakeCalloutsForUrls(knex, calloutUrls, options)
+}
+
+/**
+ * Format CalloutBakeStats for logging.
+ */
+export function formatCalloutBakeStats(stats: CalloutBakeStats): string {
+    const { optimized, fallback, totalTimeMs } = stats
+
+    const optimizedTotal =
+        optimized.preparationTimeMs + optimized.extractionTimeMs
+    const fallbackTotal = fallback.preparationTimeMs + fallback.extractionTimeMs
+
+    const optimizedPerUrl =
+        optimized.urlsProcessed > 0
+            ? optimized.extractionTimeMs / optimized.urlsProcessed
+            : 0
+    const fallbackPerUrl =
+        fallback.urlsProcessed > 0
+            ? fallback.extractionTimeMs / fallback.urlsProcessed
+            : 0
+
+    const lines = [
+        `=== Callout Bake Stats ===`,
+        ``,
+        `Optimized (direct table):`,
+        `  Chart groups: ${optimized.chartGroups}`,
+        `  URLs processed: ${optimized.urlsProcessed}`,
+        `  Preparation time: ${optimized.preparationTimeMs.toFixed(2)}ms`,
+        `  Extraction time: ${optimized.extractionTimeMs.toFixed(2)}ms`,
+        `  Total: ${optimizedTotal.toFixed(2)}ms`,
+        `  Per-URL extraction: ${optimizedPerUrl.toFixed(3)}ms`,
+        ``,
+        `Fallback (GrapherState):`,
+        `  Chart groups: ${fallback.chartGroups}`,
+        `  URLs processed: ${fallback.urlsProcessed}`,
+        `  Preparation time: ${fallback.preparationTimeMs.toFixed(2)}ms`,
+        `  Extraction time: ${fallback.extractionTimeMs.toFixed(2)}ms`,
+        `  Total: ${fallbackTotal.toFixed(2)}ms`,
+        `  Per-URL extraction: ${fallbackPerUrl.toFixed(3)}ms`,
+        ``,
+        `Total time: ${totalTimeMs.toFixed(2)}ms`,
+    ]
+
+    if (optimized.urlsProcessed > 0 && fallback.urlsProcessed > 0) {
+        const speedup = fallbackPerUrl / optimizedPerUrl
+        lines.push(`Speedup (per-URL): ${speedup.toFixed(2)}x`)
+    }
+
+    return lines.join("\n")
 }
 
 async function getCalloutValuesFromDb(
