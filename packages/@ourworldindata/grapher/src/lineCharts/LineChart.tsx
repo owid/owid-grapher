@@ -65,7 +65,7 @@ import {
 } from "../chart/ChartUtils"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { ColorScale } from "../color/ColorScale"
-import { GRAPHER_BACKGROUND_DEFAULT, GRAY_50 } from "../color/ColorConstants"
+import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
 import { darkenColorForLine } from "../color/ColorUtils"
 import {
     HorizontalColorLegendManager,
@@ -269,10 +269,11 @@ export class LineChart
                                       )
                                   )
                                 : series.color
-                            const color =
-                                !series.focus.background || series.hover.active
-                                    ? valueColor
-                                    : GRAY_50
+                            const isBackground =
+                                series.focus.background && !series.hover.active
+                            const opacity = isBackground
+                                ? GRAPHER_OPACITY_MUTE
+                                : 1
 
                             return (
                                 <circle
@@ -280,7 +281,8 @@ export class LineChart
                                     cx={horizontalAxis.place(point.x)}
                                     cy={verticalAxis.place(point.y)}
                                     r={this.lineStrokeWidth / 2 + 3.5}
-                                    fill={color}
+                                    fill={valueColor}
+                                    fillOpacity={opacity}
                                     stroke={
                                         this.manager.backgroundColor ??
                                         GRAPHER_BACKGROUND_DEFAULT
