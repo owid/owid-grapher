@@ -10,7 +10,7 @@ import {
     SeriesName,
     StackMode,
 } from "@ourworldindata/types"
-import { parseFloatOrUndefined, Url } from "@ourworldindata/utils"
+import { parseFloatOrUndefined } from "@ourworldindata/utils"
 import { parseGlobeRotation } from "./GrapherUrl.js"
 import {
     getEntityNamesParam,
@@ -152,10 +152,70 @@ function parseStackModeParam(
     )
 }
 
-/** Parses the `time` query parameter */
+/**
+ * Validates a single time value (used in the `time` query parameter).
+ *
+ * Valid formats:
+ * - Integer (possibly negative): -500, 2020, etc.
+ * - ISO date string: 2020-01-15
+ * - Special keywords: "earliest", "latest"
+ */
+function isValidSingleTime(value: string): boolean {
+    // "earliest" or "latest"
+    if (value === "earliest" || value === "latest") return true
+
+    // Integer (possibly negative)
+    if (/^-?\d+$/.test(value)) return true
+
+    // ISO date format (yyyy-mm-dd)
+    if (/^\d{4}-[01]\d-[0-3]\d$/.test(value)) return true
+
+    return false
+}
+
+/**
+ * Parses the `time` query parameter.
+ *
+ * Valid formats:
+ * - Single time: "2020", "-500", "2020-01-15", "earliest", "latest"
+ * - Time range: "2010..2020", "earliest..2020", "2010..latest", "earliest..latest"
+ */
 function parseTimeParam(value: string | undefined): ParsedParam<string> {
     if (value === undefined || value === "") return missing()
-    return valid(value)
+
+    // Handle time ranges (e.g., "2010..2020")
+    if (value.includes("..")) {
+        const parts = value.split("..")
+        if (parts.length !== 2) {
+            return invalid(
+                value,
+                "Invalid time range format. Expected 'start..end'"
+            )
+        }
+
+        const [start, end] = parts
+
+        // Handle legacy formats like "2015.." or "..2015"
+        const startValid = start === "" || isValidSingleTime(start)
+        const endValid = end === "" || isValidSingleTime(end)
+
+        if (!startValid || !endValid) {
+            return invalid(
+                value,
+                "Invalid time value. Expected integer, yyyy-mm-dd, 'earliest', or 'latest'"
+            )
+        }
+
+        return valid(value)
+    }
+
+    // Handle single time values
+    if (isValidSingleTime(value)) return valid(value)
+
+    return invalid(
+        value,
+        "Invalid time value. Expected integer, yyyy-mm-dd, 'earliest', or 'latest'"
+    )
 }
 
 /** Parses the `globe` query parameter */
