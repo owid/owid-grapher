@@ -1,0 +1,15 @@
+metadata:
+    description: |
+        Append-only mapping table that records the dimensions (query parameter key/value pairs)
+        for explorer view chart configurations. Each row maps a chartConfigId to the exact
+        dimensions used to generate that view at creation time.
+
+        Useful for analytics, since GA events include the chartConfigID and this table lets
+        us recover the associated explorer view dimensions.
+fields:
+    id:
+        description: Unique identifier for the mapping row
+    chartConfigId:
+        description: Chart configuration id for the explorer view (chart_configs.id)
+    dimensions:
+        description: JSON object of explorer dimension key/value pairs for this view

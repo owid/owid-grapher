@@ -8,6 +8,7 @@ import {
     GrapherInterface,
     DbPlainChart,
     DbRawChartConfig,
+    ExplorerViewDimensionsTableName,
 } from "@ourworldindata/types"
 import {
     ExplorerProgram,
@@ -445,6 +446,11 @@ export async function refreshExplorerViewsForSlug(
             }
             await insertChartConfig(knex, chartConfig)
 
+            await knex(ExplorerViewDimensionsTableName).insert({
+                chartConfigId,
+                dimensions: generated.dimensions,
+            })
+
             updatedChartConfigIds.push(chartConfigId)
 
             await knex("explorer_views").where("id", existing.id).update({
@@ -471,6 +477,11 @@ export async function refreshExplorerViewsForSlug(
                     full: serializeChartConfig(newView.config),
                 }
                 await insertChartConfig(knex, chartConfig)
+
+                await knex(ExplorerViewDimensionsTableName).insert({
+                    chartConfigId,
+                    dimensions: newView.dimensions,
+                })
 
                 updatedChartConfigIds.push(chartConfigId)
 
