@@ -235,6 +235,7 @@ export const enrichedBlockExamples: Record<
         type: "static-viz",
         name: "some-static-viz",
         size: BlockSize.Wide,
+        caption: boldLinkExampleText,
         hasOutline: true,
         parseErrors: [],
     },

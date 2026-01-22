@@ -859,11 +859,16 @@ const parseStaticViz = (raw: RawBlockStaticViz): EnrichedBlockStaticViz => {
             ? true
             : raw.value.hasOutline === "true"
 
+    const caption = raw.value.caption
+        ? htmlToSpans(raw.value.caption)
+        : undefined
+
     return {
         type: "static-viz",
         name,
         size,
         hasOutline,
+        caption,
         parseErrors: [],
     }
 }

@@ -252,6 +252,7 @@ export type RawBlockStaticViz = {
         name?: string
         size?: BlockSize
         hasOutline?: string
+        caption?: string
     }
 }
 
@@ -260,6 +261,7 @@ export type EnrichedBlockStaticViz = {
     name: string
     size: BlockSize
     hasOutline: boolean
+    caption?: Span[]
 } & EnrichedBlockWithParseErrors
 
 // TODO: This is what lists staring with * are converted to in archieToEnriched

@@ -460,6 +460,7 @@ function* rawBlockStaticVizToArchieMLString(
     yield* propertyToArchieMLString("name", block.value)
     yield* propertyToArchieMLString("size", block.value)
     yield* propertyToArchieMLString("hasOutline", block.value)
+    yield* propertyToArchieMLString("caption", block.value)
     yield "{}"
 }
 

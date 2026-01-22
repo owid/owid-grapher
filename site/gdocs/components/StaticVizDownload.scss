@@ -1,5 +1,17 @@
-.static-viz {
+.static-viz__image-wrapper {
     position: relative;
+}
+
+.static-viz__caption {
+    @include body-3-medium-italic;
+    color: $blue-60;
+    text-align: center;
+    text-wrap: balance;
+    margin-top: 16px;
+
+    a {
+        @include owid-link-90;
+    }
 }
 
 .static-viz__download-overlay {

@@ -231,7 +231,7 @@
     },
     {
         "name": "static-viz",
-        "text": "{.static-viz}\nname: \nsize: \nhasOutline: \n{}",
+        "text": "{.static-viz}\nname: \nsize: \nhasOutline: \ncaption:\n{}",
         "keyword": "+static-viz"
     },
     {

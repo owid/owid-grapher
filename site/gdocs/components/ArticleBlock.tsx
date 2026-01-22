@@ -242,6 +242,7 @@ function ArticleBlockInternal({
                 name={block.name}
                 containerType={containerType as ImageParentContainer}
                 hasOutline={block.hasOutline}
+                caption={block.caption}
             />
         ))
         .with({ type: "people" }, (block) => (
