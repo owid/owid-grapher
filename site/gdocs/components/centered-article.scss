@@ -414,6 +414,9 @@ h3.article-block__heading {
     text-align: center;
     text-wrap: balance;
     margin-top: 16px;
+    a {
+        @include owid-link-90;
+    }
 }
 
 h2.article-block__heading.has-supertitle {

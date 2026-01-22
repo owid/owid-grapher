@@ -9,15 +9,17 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight, faDownload } from "@fortawesome/free-solid-svg-icons"
 import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.js"
 import { triggerDownloadFromBlob } from "@ourworldindata/utils"
-import { ImageMetadata, LinkedStaticViz } from "@ourworldindata/types"
+import { ImageMetadata, LinkedStaticViz, Span } from "@ourworldindata/types"
 import { useTriggerOnEscape } from "../../hooks.js"
 import { FloatingDownloadButton } from "./FloatingDownloadButton.js"
+import SpanElements from "./SpanElements.js"
 
 interface StaticVizProps {
     name: string
     className?: string
     containerType?: ImageParentContainer
     hasOutline?: boolean
+    caption?: Span[]
 }
 
 export default function StaticViz(props: StaticVizProps) {
@@ -26,6 +28,7 @@ export default function StaticViz(props: StaticVizProps) {
         className,
         containerType = "default",
         hasOutline = true,
+        caption,
     } = props
     const staticViz = useLinkedStaticViz(name)
     const { isPreviewing } = useDocumentContext()
@@ -48,24 +51,32 @@ export default function StaticViz(props: StaticVizProps) {
 
     return (
         <figure className={cx("static-viz", className)}>
-            <Image
-                hasOutline={hasOutline}
-                imageData={staticViz.desktop}
-                smallImageData={staticViz.mobile}
-                containerType={containerType}
-                shouldHideDownloadButton
-            />
-            <FloatingDownloadButton
-                label="Open download options"
-                onClick={() => setIsDownloadModalOpen(true)}
-                containerClassName="static-viz__download-button-container"
-            />
-            {isDownloadModalOpen && (
-                <StaticVizDownloadModal
-                    staticViz={staticViz}
-                    onClose={() => setIsDownloadModalOpen(false)}
+            <div className="static-viz__image-wrapper">
+                <Image
+                    hasOutline={hasOutline}
+                    imageData={staticViz.desktop}
+                    smallImageData={staticViz.mobile}
+                    containerType={containerType}
+                    DownloadButton={
+                        <FloatingDownloadButton
+                            label="Open download options"
+                            onClick={() => setIsDownloadModalOpen(true)}
+                            containerClassName="static-viz__download-button-container"
+                        />
+                    }
                 />
-            )}
+                {isDownloadModalOpen && (
+                    <StaticVizDownloadModal
+                        staticViz={staticViz}
+                        onClose={() => setIsDownloadModalOpen(false)}
+                    />
+                )}
+            </div>
+            {caption ? (
+                <figcaption className="static-viz__caption">
+                    <SpanElements spans={caption} />
+                </figcaption>
+            ) : null}
         </figure>
     )
 }
