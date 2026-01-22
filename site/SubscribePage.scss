@@ -99,7 +99,7 @@
     }
 
     .owid-socials__label {
-        @include body-2-bold;
+        @include body-2-bold-tight;
         display: inline-block;
         margin-left: 8px;
         height: unset;
