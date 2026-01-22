@@ -2,7 +2,12 @@ import * as React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import cx from "classnames"
-import { Tippy } from "@ourworldindata/utils"
+import {
+    TooltipTrigger,
+    Tooltip,
+    Button,
+    OverlayArrow,
+} from "react-aria-components"
 
 export const LabeledSwitch = ({
     className,
@@ -42,14 +47,26 @@ export const LabeledSwitch = ({
                 </div>
                 {label}
                 {tooltip && (
-                    <Tippy
-                        content={tooltip}
-                        theme="grapher-explanation"
-                        placement="top"
-                        maxWidth={338}
-                    >
-                        <FontAwesomeIcon icon={faInfoCircle} />
-                    </Tippy>
+                    <TooltipTrigger delay={0}>
+                        <Button
+                            className="tooltip-trigger"
+                            aria-label="More information about this setting"
+                        >
+                            <FontAwesomeIcon icon={faInfoCircle} />
+                        </Button>
+                        <Tooltip
+                            className="react-aria-tooltip"
+                            placement="top"
+                            offset={8}
+                        >
+                            <OverlayArrow className="react-aria-tooltip__overlay-arrow">
+                                <svg width={8} height={8} viewBox="0 0 8 8">
+                                    <path d="M0 0 L4 4 L8 0" />
+                                </svg>
+                            </OverlayArrow>
+                            {tooltip}
+                        </Tooltip>
+                    </TooltipTrigger>
                 )}
             </label>
             {tooltip && (
