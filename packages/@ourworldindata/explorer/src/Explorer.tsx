@@ -43,6 +43,7 @@ import {
     exposeInstanceOnWindow,
     isInIFrame,
     keyMap,
+    dimensionsToViewId,
     merge,
     mergeGrapherConfigs,
     omitUndefinedValues,
@@ -83,6 +84,7 @@ import { TransformParamType } from "@ourworldindata/core-table/src/Transforms.js
 export interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
     partialGrapherConfigs?: GrapherInterface[]
+    chartConfigIdByViewId?: Record<string, string>
     queryStr?: string
     isEmbeddedInAnOwidPage?: boolean
     isInStandalonePage?: boolean
@@ -262,6 +264,7 @@ export class Explorer
         program: ExplorerProps,
         grapherConfigs: GrapherInterface[],
         partialGrapherConfigs: GrapherInterface[],
+        chartConfigIdByViewId: Record<string, string> | undefined,
         explorerConstants: Record<string, string>,
         urlMigrationSpec?: ExplorerPageUrlMigrationSpec,
         archiveContext?: ArchiveContext
@@ -274,6 +277,7 @@ export class Explorer
             isEmbeddedInAnOwidPage: false,
             isInStandalonePage: true,
             archiveContext,
+            chartConfigIdByViewId,
         }
 
         if (window.location.href.includes(EXPLORERS_PREVIEW_ROUTE)) {
@@ -382,7 +386,8 @@ export class Explorer
                     if (entry.isIntersecting) {
                         this.analytics.logExplorerView(
                             this.explorerProgram.slug,
-                            this.explorerProgram.decisionMatrix.currentParams
+                            this.explorerProgram.decisionMatrix.currentParams,
+                            this.getChartConfigIdForCurrentParams()
                         )
                         observer.disconnect()
                     }
@@ -535,8 +540,22 @@ export class Explorer
 
         this.analytics.logExplorerView(
             this.explorerProgram.slug,
-            this.explorerProgram.decisionMatrix.currentParams
+            this.explorerProgram.decisionMatrix.currentParams,
+            this.getChartConfigIdForCurrentParams()
         )
+    }
+
+    private getChartConfigIdForCurrentParams() {
+        // We get the params this way to match the logic on the backend.
+        // `this.currentChoiceParams` gives a different result.
+        const decisionMatrix = this.explorerProgram.decisionMatrix
+        const selectedRow = decisionMatrix.table.rowsAt([
+            decisionMatrix.selectedRowIndex,
+        ])[0]
+        if (!selectedRow) return undefined
+        const params = decisionMatrix.getChoiceParamsForRow(selectedRow)
+        const viewId = dimensionsToViewId(params)
+        return this.props.chartConfigIdByViewId?.[viewId]
     }
 
     @action.bound private setGrapherTable(table: OwidTable) {
