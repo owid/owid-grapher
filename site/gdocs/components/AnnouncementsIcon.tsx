@@ -22,8 +22,8 @@ export function AnnouncementsIcon() {
                     stroke="#CEDEF0"
                     rx="2.5"
                 />
-                <circle cx="14.5" cy="23.5" r="2.5" fill="#46688F" />
-                <circle cx="14.5" cy="47.5" r="2.5" fill="#46688F" />
+                <circle cx="14.5" cy="23.5" r="2.5" fill="#355174" />
+                <circle cx="14.5" cy="47.5" r="2.5" fill="#355174" />
                 <rect
                     width="21"
                     height="5"

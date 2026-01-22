@@ -99,8 +99,8 @@
 
     &:hover,
     &:focus-visible {
-        color: $blue-65;
-        border-color: $blue-65;
+        color: $blue-70;
+        border-color: $blue-70;
         background-color: transparent;
     }
 }
@@ -117,7 +117,7 @@
 
 .versions-drawer__status {
     @include body-3-regular;
-    color: $blue-65;
+    color: $blue-70;
 }
 
 .versions-drawer__status--error {
@@ -202,7 +202,7 @@
 
 .versions-drawer-timeline__description {
     @include body-3-regular;
-    color: $blue-65;
+    color: $blue-70;
 }
 
 @include sm-only {

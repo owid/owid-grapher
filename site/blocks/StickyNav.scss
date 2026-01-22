@@ -45,10 +45,15 @@
 .sticky-nav--dark {
     background-color: $blue-10;
     a {
-        color: $blue-40;
+        color: $blue-60;
 
         &:visited {
-            color: $blue-40;
+            color: $blue-60;
+        }
+
+        &.active,
+        :active {
+            font-weight: 600;
         }
 
         &:active,
