@@ -29,7 +29,7 @@
 
     .header__supertitle {
         @include overline-black-caps;
-        color: $blue-50;
+        color: $blue-60;
 
         @include sm-only {
             font-size: 0.625rem;
@@ -52,7 +52,7 @@
     .header__source {
         display: inline-block;
         @include body-1-regular;
-        color: $blue-50;
+        color: $blue-60;
 
         @include sm-only {
             font-size: 1rem;

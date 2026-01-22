@@ -133,7 +133,7 @@
                     white-space: nowrap;
                     box-shadow: none;
                     background: #fff;
-                    border: 1px solid $blue-65;
+                    border: 1px solid $blue-70;
                     padding: 6.5px 16px;
                     line-height: 16px;
                     border-radius: 0;
@@ -974,7 +974,7 @@ div.raw-html-table__container {
         .description,
         .last-updated {
             @include body-3-regular;
-            color: $blue-65;
+            color: $blue-70;
         }
 
         .cookie-preference {
