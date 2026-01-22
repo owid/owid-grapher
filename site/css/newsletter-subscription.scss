@@ -11,7 +11,7 @@
 }
 
 .newsletter-subscription-form__label-title {
-    @include body-2-bold;
+    @include body-2-bold-tight;
 }
 
 // hidden by default, shown on the /subscribe page and homepage
@@ -86,8 +86,6 @@
     }
 
     .newsletter-subscription-header__heading {
-        font-size: 1.25rem;
-        line-height: 1.5rem;
         color: $blue-90;
         margin: 0;
         // magic number to get the heading to wrap at the same place as the announcements heading
