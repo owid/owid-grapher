@@ -151,10 +151,9 @@ export const getEntityNamesParam = (
 }
 
 export const getSelectedEntityNamesParam = (
-    url: Url
+    country: string | undefined
 ): EntityName[] | undefined => {
-    // Expects an already-migrated URL as input
-    const { country } = url.queryParams
+    // Expects an already-migrated param as input
     return getEntityNamesParam(country)
 }
 

@@ -276,14 +276,13 @@ function parseEntityNamesParam(
     return missing()
 }
 
-/** Parses the `country` query parameter with URL migration support */
+/** Parses the `country` query parameter */
 function parseCountryParam(
-    params: GrapherQueryParams
+    value: string | undefined
 ): ParsedParam<EntityName[]> {
-    if (params.country === undefined) return missing()
+    if (value === undefined) return missing()
 
-    const url = Url.fromQueryParams(params)
-    const selection = getSelectedEntityNamesParam(url)
+    const selection = getSelectedEntityNamesParam(value)
 
     return valid(selection ?? [])
 }
@@ -429,7 +428,7 @@ export function parseGrapherQueryParams(
         globeZoom: parseGlobeZoomParam(params.globeZoom),
         region: parseRegionParam(params.region),
         mapSelect: parseEntityNamesParam(params.mapSelect),
-        country: parseCountryParam(params),
+        country: parseCountryParam(params.country),
         focus: parseFocusParam(params.focus),
         facet: parseFacetParam(params.facet),
         uniformYAxis: parseUniformYAxisParam(params.uniformYAxis),

@@ -48,8 +48,9 @@ async function initGrapherForExplorerView(
     const queryStr = url.searchParams.toString()
     // The env URL class isn't compatible with the Url class from @ourworldindata/utils
     const urlObj = Url.fromURL(url.toString())
+    const migratedUrl = migrateSelectedEntityNamesParam(urlObj)
     const windowEntityNames = getSelectedEntityNamesParam(
-        migrateSelectedEntityNamesParam(urlObj)
+        migratedUrl.queryParams.country
     )
 
     const selection = new SelectionArray(windowEntityNames)
