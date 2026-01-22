@@ -1,4 +1,7 @@
-import { GrapherInterface } from "@ourworldindata/types"
+import {
+    GrapherInterface,
+    ORIGIN_URL_REGEX_PATTERNS,
+} from "@ourworldindata/types"
 
 export const CellHasErrorsClass = "CellHasErrorsClass"
 
@@ -164,6 +167,18 @@ export const UrlCellDef: CellDef = {
     cssClass: "UrlCellDef",
     description: "",
     regex: MatchUrlsOnlyRegex,
+}
+
+// Combines the patterns from ORIGIN_URL_REGEX_PATTERNS into a single regex for cell validation
+const AbsoluteOrRelativeUrlRegex = new RegExp(
+    ORIGIN_URL_REGEX_PATTERNS.map((regex) => regex.source).join("|")
+)
+
+export const AbsoluteOrRelativeUrlCellDef: CellDef = {
+    keyword: "",
+    cssClass: "UrlCellDef",
+    description: "",
+    regex: AbsoluteOrRelativeUrlRegex,
 }
 
 export const QueryStringCellDef: CellDef = {
