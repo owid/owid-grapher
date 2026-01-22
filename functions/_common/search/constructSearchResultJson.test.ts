@@ -361,30 +361,30 @@ describe(selectRegionGroupByPriority, () => {
 
         expect(selectedRegions).toEqual(["Africa (WHO)", "Europe (WHO)"])
     })
-})
 
-it("excludes World by default", () => {
-    const availableEntities = [WORLD_ENTITY_NAME, "Europe", "Asia"]
+    it("excludes World by default", () => {
+        const availableEntities = [WORLD_ENTITY_NAME, "Europe", "Asia"]
 
-    const selectedRegions = selectRegionGroupByPriority(availableEntities)
+        const selectedRegions = selectRegionGroupByPriority(availableEntities)
 
-    expect(selectedRegions).not.toContain(WORLD_ENTITY_NAME)
-})
-
-it("includes World when includeWorld option is true", () => {
-    const availableEntities = [
-        WORLD_ENTITY_NAME,
-        "Europe",
-        "Asia",
-        "Italy",
-        "Africa (WHO)",
-    ]
-
-    const selectedRegions = selectRegionGroupByPriority(availableEntities, {
-        includeWorld: true,
+        expect(selectedRegions).not.toContain(WORLD_ENTITY_NAME)
     })
 
-    expect(selectedRegions).toContain(WORLD_ENTITY_NAME)
-    expect(selectedRegions).toContain("Europe")
-    expect(selectedRegions).toContain("Asia")
+    it("includes World when includeWorld option is true", () => {
+        const availableEntities = [
+            WORLD_ENTITY_NAME,
+            "Europe",
+            "Asia",
+            "Italy",
+            "Africa (WHO)",
+        ]
+
+        const selectedRegions = selectRegionGroupByPriority(availableEntities, {
+            includeWorld: true,
+        })
+
+        expect(selectedRegions).toContain(WORLD_ENTITY_NAME)
+        expect(selectedRegions).toContain("Europe")
+        expect(selectedRegions).toContain("Asia")
+    })
 })

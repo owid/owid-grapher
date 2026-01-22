@@ -51,7 +51,6 @@ import {
     getContinents,
     getIncomeGroups,
     getAggregates,
-    AGGREGATE_SOURCES,
 } from "@ourworldindata/utils"
 import { toPlaintext } from "@ourworldindata/components"
 import { ColumnTypeMap } from "@ourworldindata/core-table"
@@ -1063,7 +1062,7 @@ export async function selectPeerEntitiesForSearch({
         })
     } else {
         // For aggregate regions, add sibling regions
-        return selectPeerRegions({ targetRegion, availableEntities })
+        return findAvailableSiblingRegions({ targetRegion, availableEntities })
     }
 }
 
@@ -1072,7 +1071,7 @@ export async function selectPeerEntitiesForSearch({
  *
  * For example, Europe -> Asia, Africa, North America, South America, Oceania
  */
-function selectPeerRegions({
+function findAvailableSiblingRegions({
     targetRegion,
     availableEntities,
 }: {
@@ -1110,15 +1109,17 @@ export function selectRegionGroupByPriority(
         (region) => region.definedBy
     )
 
-    // Sort according to the order specified in the regions file
-    const sortedAggregatesBySource = AGGREGATE_SOURCES.map(
-        (source) => aggregatesBySource[source]
-    ).filter(R.isDefined)
+    // Sort aggregate groups by count (most regions first)
+    const sortedAggregateGroups = R.pipe(
+        aggregatesBySource,
+        R.values(),
+        R.sortBy((group) => -group.length)
+    )
 
     const regionGroups = [
         owidContinents,
         incomeGroups,
-        ...sortedAggregatesBySource,
+        ...sortedAggregateGroups,
     ]
 
     // Try each group in order of priority and return the first with available regions
