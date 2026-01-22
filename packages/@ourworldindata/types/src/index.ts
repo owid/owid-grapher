@@ -838,6 +838,16 @@ export {
     serializeExplorerViewRow,
 } from "./dbTypes/ExplorerViews.js"
 
+export {
+    ExplorerViewDimensionsTableName,
+    type DbInsertExplorerViewDimensions,
+} from "./dbTypes/ExplorerViewDimensions.js"
+
+export {
+    MultiDimViewDimensionsTableName,
+    type DbInsertMultiDimViewDimensions,
+} from "./dbTypes/MultiDimViewDimensions.js"
+
 export { type Nominal, wrap, unwrap } from "./NominalType.js"
 
 export {

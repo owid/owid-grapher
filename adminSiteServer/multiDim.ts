@@ -20,6 +20,7 @@ import {
     MultiDimDataPageConfigRaw,
     MultiDimDataPagesTableName,
     MultiDimXChartConfigsTableName,
+    MultiDimViewDimensionsTableName,
     parseChartConfigsRow,
     R2GrapherConfigDirectory,
     View,
@@ -313,6 +314,10 @@ export async function upsertMultiDim(
                     fullGrapherConfig
                 )
                 chartConfigId = result.chartConfigId
+                await knex(MultiDimViewDimensionsTableName).insert({
+                    chartConfigId,
+                    dimensions: JSON.stringify(view.dimensions),
+                })
                 console.debug(`Chart config created id=${chartConfigId}`)
             }
             return { ...view, fullConfigId: chartConfigId }
