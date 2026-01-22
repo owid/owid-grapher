@@ -69,11 +69,16 @@ export class GrapherAnalytics {
         })
     }
 
-    logExplorerView(slug: string, view: Record<string, string>): void {
+    logExplorerView(
+        slug: string,
+        view: Record<string, string>,
+        viewConfigId?: string
+    ): void {
         this.logToGA({
             event: EventCategory.ExplorerView,
             explorerPath: `/explorers/${slug}`,
             explorerView: JSON.stringify(view),
+            viewConfigId,
         })
     }
 

@@ -10,6 +10,7 @@ import {
     EMBEDDED_EXPLORER_DELIMITER,
     EMBEDDED_EXPLORER_GRAPHER_CONFIGS,
     EMBEDDED_EXPLORER_PARTIAL_GRAPHER_CONFIGS,
+    EMBEDDED_EXPLORER_VIEW_CONFIG_IDS,
     ExplorerContainerId,
     EXPLORERS_ROUTE_FOLDER,
     ExplorerProgram,
@@ -33,6 +34,7 @@ interface ExplorerPageSettings {
     wpContent?: string
     grapherConfigs: GrapherInterface[]
     partialGrapherConfigs: GrapherInterface[]
+    chartConfigIdByViewId?: Record<string, string>
     baseUrl: string
     urlMigrationSpec?: ExplorerPageUrlMigrationSpec
     isPreviewing?: boolean
@@ -66,6 +68,7 @@ export const ExplorerPage = (props: ExplorerPageSettings) => {
         program,
         grapherConfigs,
         partialGrapherConfigs,
+        chartConfigIdByViewId,
         baseUrl,
         urlMigrationSpec,
         archiveContext,
@@ -93,6 +96,10 @@ const partialGrapherConfigs = ${serializeJSONForHTML(
         partialGrapherConfigs,
         EMBEDDED_EXPLORER_PARTIAL_GRAPHER_CONFIGS
     )};
+const chartConfigIdByViewId = ${serializeJSONForHTML(
+        chartConfigIdByViewId ?? {},
+        EMBEDDED_EXPLORER_VIEW_CONFIG_IDS
+    )};
 const urlMigrationSpec = ${
         urlMigrationSpec ? JSON.stringify(urlMigrationSpec) : "undefined"
     };
@@ -110,6 +117,7 @@ window.Explorer.renderSingleExplorerOnExplorerPage(
     explorerProgram,
     grapherConfigs,
     partialGrapherConfigs,
+    chartConfigIdByViewId,
     explorerConstants,
     urlMigrationSpec,
     archiveContext

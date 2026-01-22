@@ -8,7 +8,13 @@ import { KnexReadonlyTransaction } from "../db/db.js"
 // Note: renderProminentLinks() tests are now e2e (see kitchenSink.js)
 
 it("renders an explorer page with title", async () => {
-    const knex: KnexReadonlyTransaction = {} as KnexReadonlyTransaction
+    const knex = (() => ({
+        select: () => ({
+            where: () => ({
+                whereNotNull: async () => [],
+            }),
+        }),
+    })) as unknown as KnexReadonlyTransaction
 
     expect(
         await renderExplorerPage(

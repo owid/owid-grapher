@@ -266,6 +266,8 @@ export interface ExplorerViewParams {
     explorerPath: string
     /** JSON string of the explorer view state */
     explorerView: string
+    /** Chart config ID of the explorer view */
+    viewConfigId?: string
 }
 
 export interface ExplorerCountrySelectorParams {
