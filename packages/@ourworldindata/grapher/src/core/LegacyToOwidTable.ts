@@ -18,12 +18,12 @@ import {
     OwidTable,
     ErrorValueTypes,
     makeKeyFn,
+    makeAnnotationsSlug,
 } from "@ourworldindata/core-table"
 import {
     diffDateISOStringInDays,
     getYearFromISOStringAndDayOffset,
     intersection,
-    makeAnnotationsSlug,
     trimObject,
     OwidEntityKey,
     MultipleOwidVariableDataDimensionsMap,
@@ -337,10 +337,7 @@ export const legacyToOwidTableAndDimensions = (
         if (joinedVariablesTable.columnSlugs.includes(dayOrYearSlug)) {
             joinedVariablesTable = joinedVariablesTable.duplicateColumn(
                 dayOrYearSlug,
-                {
-                    slug: OwidTableSlugs.time,
-                    name: OwidTableSlugs.time,
-                }
+                { slug: OwidTableSlugs.time, name: OwidTableSlugs.time }
             )
             // Do not inject multiple columns, terminate after one is successful
             break
@@ -738,17 +735,17 @@ const annotationMapAndDefFromOwidVariable = (
     variable: OwidVariableWithSourceAndDimension
 ): [Map<string, string>, OwidColumnDef] | [] => {
     if (variable.display?.entityAnnotationsMap) {
-        const slug = makeAnnotationsSlug(variable.id.toString())
+        const slug = variable.id.toString()
+        const annotationsSlug = makeAnnotationsSlug(slug)
         const annotationMap = annotationsToMap(
             variable.display.entityAnnotationsMap
         )
-        const columnDef = {
-            slug,
+        const columnDef: OwidColumnDef = {
+            slug: annotationsSlug,
             type: ColumnTypeNames.SeriesAnnotation,
-            name: slug,
-            display: {
-                includeInTable: false,
-            },
+            name: annotationsSlug,
+            display: { includeInTable: false },
+            derivedFrom: { columnSlug: slug, relationship: "annotations" },
         }
         return [annotationMap, columnDef]
     }

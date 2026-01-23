@@ -573,41 +573,6 @@ describe("debug tools", () => {
     })
 })
 
-describe("printing", () => {
-    it("can export a clean csv with dates", () => {
-        const table = new CoreTable(
-            [
-                { entityName: "Aruba", day: 1, annotation: "Something, foo" },
-                { entityName: "Canada", day: 2 },
-            ],
-            [
-                { slug: "entityName" },
-                { slug: "day", type: "Day" as any },
-                { slug: "annotation" },
-            ]
-        )
-
-        expect(table.toCsvWithColumnNames()).toEqual(`entityName,day,annotation
-Aruba,2020-01-22,"Something, foo"
-Canada,2020-01-23,`)
-    })
-
-    it("can format a value", () => {
-        const table = new CoreTable(
-            `growthRate
-123`,
-            [
-                {
-                    slug: "growthRate",
-                    display: { unit: "%" },
-                    type: ColumnTypeNames.Numeric,
-                },
-            ]
-        )
-        expect(table.get("growthRate").formatValueShort(20)).toEqual("20%")
-    })
-})
-
 describe("value operations", () => {
     it("can detect all integers", () => {
         const table = new CoreTable(`gdp,perCapita

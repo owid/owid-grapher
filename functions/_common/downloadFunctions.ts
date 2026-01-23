@@ -18,7 +18,6 @@ import { assembleMetadata, getColumnsForMetadata } from "./metadataTools.js"
 import { Env } from "./env.js"
 import {
     getDataApiUrl,
-    getGrapherTableWithRelevantColumns,
     GrapherIdentifier,
     initGrapher,
 } from "./grapherTools.js"
@@ -127,11 +126,11 @@ export function assembleCsv(
         searchParams.get("useColumnShortNames") === "true"
     const shouldUseFilteredTable = searchParams.get("csvType") === "filtered"
 
-    const table = getGrapherTableWithRelevantColumns(grapherState, {
-        shouldUseFilteredTable,
-    })
+    const table = shouldUseFilteredTable
+        ? grapherState.filteredTableForDownload
+        : grapherState.tableForDownload
 
-    return table.toPrettyCsv(shouldUseShortNames)
+    return table.toPrettyCsv({ useShortNames: shouldUseShortNames })
 }
 
 export async function fetchCsvForGrapher(
