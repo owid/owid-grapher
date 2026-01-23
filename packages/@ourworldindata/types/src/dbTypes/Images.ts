@@ -38,6 +38,7 @@ export type DbEnrichedImageWithPageviews = DbEnrichedImageWithUserId & {
     views_365d: number
     isFeaturedImage: number
     isBodyContent: number
+    isInResearchAndWriting: number
 }
 
 export function parseImageRow(row: DbRawImage): DbEnrichedImage {

@@ -49,16 +49,19 @@ import { EditableTextarea } from "./EditableTextarea.js"
 
 type ImageMap = Record<string, DbEnrichedImageWithPageviews>
 
-type ImageTypeFilter = "all" | "featured" | "thumbnail" | "content" | "both"
+type ImageTypeFilter = "all" | "featured-thumbnail-rw" | "content"
 
 function getImageType(image: DbEnrichedImageWithPageviews): ImageTypeFilter {
     const isFeatured = image.isFeaturedImage === 1
-    const isBody = image.isBodyContent === 1
     const isThumbnail = image.filename.toLowerCase().includes("thumbnail")
-    
-    if (isFeatured && isBody) return "both"
-    if (isFeatured) return "featured"
-    if (isThumbnail) return "thumbnail"
+    const isInResearchAndWriting = image.isInResearchAndWriting === 1
+
+    // One category for featured, thumbnails, and research-and-writing
+    if (isFeatured || isThumbnail || isInResearchAndWriting) {
+        return "featured-thumbnail-rw"
+    }
+
+    // Everything else is content
     return "content"
 }
 
