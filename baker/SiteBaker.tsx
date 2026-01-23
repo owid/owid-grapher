@@ -51,6 +51,7 @@ import {
     ArchiveContext,
     OwidGdocType,
     getEntitiesForProfile,
+    LinkedStaticViz,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import {
@@ -95,6 +96,7 @@ import { bakeAllMultiDimDataPages } from "./MultiDimBaker.js"
 import { getAllLinkedPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
 import { getPublicDonorNames } from "../db/model/Donor.js"
 import { getNarrativeChartsInfo } from "../db/model/NarrativeChart.js"
+import { getLinkedStaticVizByNames } from "../db/model/StaticViz.js"
 import {
     getExplorerToMultiDimRedirects,
     getGrapherToChartAndMultiDimRedirects,
@@ -125,6 +127,7 @@ type PrefetchedAttachments = {
     }
     linkedIndicators: Record<number, LinkedIndicator>
     linkedNarrativeCharts: Record<string, NarrativeChartInfo>
+    linkedStaticViz: Record<string, LinkedStaticViz>
 }
 
 // These aren't all "wordpress" steps
@@ -216,6 +219,7 @@ export class SiteBaker {
                 profileTemplate.linkedChartSlugs.grapher,
                 profileTemplate.linkedChartSlugs.explorer,
                 profileTemplate.linkedNarrativeChartNames,
+                profileTemplate.linkedStaticVizNames,
             ])
 
             profileTemplate.donors = attachments.donors
@@ -229,6 +233,7 @@ export class SiteBaker {
             profileTemplate.linkedIndicators = attachments.linkedIndicators
             profileTemplate.linkedNarrativeCharts =
                 attachments.linkedNarrativeCharts
+            profileTemplate.linkedStaticViz = attachments.linkedStaticViz
 
             if (
                 !profileTemplate.manualBreadcrumbs?.length &&
@@ -332,7 +337,15 @@ export class SiteBaker {
     _prefetchedAttachmentsCache: PrefetchedAttachments | undefined = undefined
     private async getPrefetchedGdocAttachments(
         knex: db.KnexReadonlyTransaction,
-        picks?: [string[], string[], string[], string[], string[], string[]]
+        picks?: [
+            string[],
+            string[],
+            string[],
+            string[],
+            string[],
+            string[],
+            string[],
+        ]
     ): Promise<PrefetchedAttachments> {
         if (!this._prefetchedAttachmentsCache) {
             console.log("Prefetching donors")
@@ -477,6 +490,17 @@ export class SiteBaker {
                 `✅ Prefetched ${narrativeChartsInfo.length} narrative charts`
             )
 
+            console.log("Prefetching static viz")
+            const staticVizLinkTargets = await db
+                .getStaticVizLinkTargets(knex)
+                .then((rows) => rows.map((row) => row.target))
+            const staticVizList = await getLinkedStaticVizByNames(
+                knex,
+                staticVizLinkTargets
+            )
+            const staticVizByName = _.keyBy(staticVizList, "name")
+            console.log(`✅ Prefetched ${staticVizList.length} static viz`)
+
             const prefetchedAttachments = {
                 donors,
                 linkedAuthors: publishedAuthors,
@@ -492,6 +516,7 @@ export class SiteBaker {
                 },
                 linkedIndicators: datapageIndicatorsById,
                 linkedNarrativeCharts: narrativeChartsInfoByName,
+                linkedStaticViz: staticVizByName,
             }
             this._prefetchedAttachmentsCache = prefetchedAttachments
         }
@@ -503,6 +528,7 @@ export class SiteBaker {
                 linkedGrapherSlugs,
                 linkedExplorerSlugs,
                 linkedNarrativeChartNames,
+                linkedStaticVizNames,
             ] = picks
             const linkedDocuments = _.pick(
                 this._prefetchedAttachmentsCache.linkedDocuments,
@@ -559,6 +585,10 @@ export class SiteBaker {
                 linkedNarrativeCharts: _.pick(
                     this._prefetchedAttachmentsCache.linkedNarrativeCharts,
                     linkedNarrativeChartNames
+                ),
+                linkedStaticViz: _.pick(
+                    this._prefetchedAttachmentsCache.linkedStaticViz,
+                    linkedStaticVizNames
                 ),
             }
         }
@@ -626,6 +656,7 @@ export class SiteBaker {
                 publishedGdoc.linkedChartSlugs.grapher,
                 publishedGdoc.linkedChartSlugs.explorer,
                 publishedGdoc.linkedNarrativeChartNames,
+                publishedGdoc.linkedStaticVizNames,
             ])
             publishedGdoc.donors = attachments.donors
             publishedGdoc.linkedAuthors = attachments.linkedAuthors
@@ -638,6 +669,7 @@ export class SiteBaker {
             publishedGdoc.linkedIndicators = attachments.linkedIndicators
             publishedGdoc.linkedNarrativeCharts =
                 attachments.linkedNarrativeCharts
+            publishedGdoc.linkedStaticViz = attachments.linkedStaticViz
 
             if (
                 !publishedGdoc.manualBreadcrumbs?.length &&
@@ -873,6 +905,7 @@ export class SiteBaker {
                 dataInsight.linkedChartSlugs.grapher,
                 dataInsight.linkedChartSlugs.explorer,
                 dataInsight.linkedNarrativeChartNames,
+                dataInsight.linkedStaticVizNames,
             ])
             dataInsight.linkedDocuments = attachments.linkedDocuments
             dataInsight.imageMetadata = {
@@ -883,6 +916,7 @@ export class SiteBaker {
                 ...attachments.linkedCharts.graphers,
                 ...attachments.linkedCharts.explorers,
             }
+            dataInsight.linkedStaticViz = attachments.linkedStaticViz
             dataInsight.latestDataInsights = latestDataInsights
 
             await dataInsight.validate(knex)
@@ -957,6 +991,7 @@ export class SiteBaker {
                 publishedAuthor.linkedChartSlugs.grapher,
                 publishedAuthor.linkedChartSlugs.explorer,
                 publishedAuthor.linkedNarrativeChartNames,
+                publishedAuthor.linkedStaticVizNames,
             ])
 
             // We don't need these to be attached to the gdoc in the current

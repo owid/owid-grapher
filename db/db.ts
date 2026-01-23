@@ -839,6 +839,19 @@ export async function getGrapherLinkTargets(
     )
 }
 
+export async function getStaticVizLinkTargets(
+    knex: KnexReadonlyTransaction
+): Promise<Pick<DbPlainPostGdocLink, "target">[]> {
+    return knexRaw<Pick<DbPlainPostGdocLink, "target">>(
+        knex,
+        `-- sql
+        SELECT DISTINCT target
+        FROM posts_gdocs_links
+        WHERE linkType = '${ContentGraphLinkType.StaticViz}'
+        `
+    )
+}
+
 /**
  * Get the slugs of all datapages that are linked to in KeyIndicator blocks
  * Optionally exclude homepage KeyIndicator blocks, because for prefetching (the one current usecase for this function)
