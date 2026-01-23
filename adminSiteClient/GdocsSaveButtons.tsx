@@ -1,9 +1,8 @@
-import { Badge, Button, Modal, Space, Spin } from "antd"
+import { Badge, Button, Modal, Space } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faExclamationTriangle,
     faBolt,
-    faClock,
 } from "@fortawesome/free-solid-svg-icons"
 import { GdocsDiff } from "./GdocsDiff.js"
 import { OwidGdocErrorMessage, OwidGdoc } from "@ourworldindata/utils"
@@ -21,7 +20,6 @@ export const GdocsSaveButtons = ({
     disableButtons,
     doPublish,
     saveDraft,
-    calloutCount,
 }: {
     published: boolean
     originalGdoc: OwidGdoc | undefined
@@ -35,10 +33,8 @@ export const GdocsSaveButtons = ({
     setDiffOpen: (open: boolean) => void
     doPublish: () => Promise<void>
     saveDraft: VoidFunction
-    calloutCount: number
 }) => {
     const [isPublishing, setIsPublishing] = useState(false)
-    const hasCallouts = calloutCount > 0
 
     const formatPublishError = (error: unknown): string => {
         if (error instanceof Error && error.message) return error.message
@@ -51,10 +47,6 @@ export const GdocsSaveButtons = ({
             : {}
         const widthModal = hasChanges ? { width: "80vw" } : {}
         const centeredModal = hasChanges ? { centered: true } : {}
-
-        const calloutTooltip = `This will regenerate ${calloutCount} data callout${
-            calloutCount === 1 ? "" : "s"
-        } and may take a minute.`
 
         const modal = Modal.confirm({
             title: `Are you sure you want to publish ${
@@ -87,34 +79,10 @@ export const GdocsSaveButtons = ({
             ),
             okType: hasWarnings ? "danger" : "primary",
             okText: "Publish now",
-            okButtonProps: hasCallouts
-                ? {
-                      icon: <FontAwesomeIcon icon={faClock} />,
-                      title: calloutTooltip,
-                  }
-                : undefined,
             cancelText: "Cancel",
             onOk: async () => {
                 if (isPublishing) return
                 setIsPublishing(true)
-
-                if (hasCallouts) {
-                    modal.update({
-                        title: "Publishing",
-                        content: (
-                            <Space>
-                                <Spin size="small" />
-                                <span>Generating data callouts…</span>
-                            </Space>
-                        ),
-                        okText: "Publishing…",
-                        okButtonProps: {
-                            loading: true,
-                            title: calloutTooltip,
-                        },
-                        cancelButtonProps: { disabled: true },
-                    })
-                }
 
                 try {
                     await doPublish()
