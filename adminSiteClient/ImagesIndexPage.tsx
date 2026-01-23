@@ -55,13 +55,19 @@ function getImageType(image: DbEnrichedImageWithPageviews): ImageTypeFilter {
     const isFeatured = image.isFeaturedImage === 1
     const isThumbnail = image.filename.toLowerCase().includes("thumbnail")
     const isInResearchAndWriting = image.isInResearchAndWriting === 1
+    const isBodyContent = image.isBodyContent === 1
 
-    // One category for featured, thumbnails, and research-and-writing
+    // If an image is used in both body content and featured/rw/thumbnail, keep it in content category
+    if (isBodyContent) {
+        return "content"
+    }
+
+    // Category for featured, thumbnails, and research-and-writing (only if not in body content)
     if (isFeatured || isThumbnail || isInResearchAndWriting) {
         return "featured-thumbnail-rw"
     }
 
-    // Everything else is content
+    // Everything else is content (fallback)
     return "content"
 }
 
@@ -871,12 +877,14 @@ export function ImageIndexPage() {
                             <Select
                                 value={imageTypeFilter}
                                 onChange={setImageTypeFilter}
-                                style={{ width: 150 }}
+                                style={{ width: 250 }}
                                 options={[
                                     { value: "all", label: "All images" },
                                     { value: "content", label: "Content" },
-                                    { value: "featured", label: "Featured" },
-                                    { value: "thumbnail", label: "Thumbnail" },
+                                    {
+                                        value: "featured-thumbnail-rw",
+                                        label: "Featured/Thumbnails/R&W",
+                                    },
                                 ]}
                             />
                         </Flex>

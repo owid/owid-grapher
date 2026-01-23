@@ -931,7 +931,10 @@ export function getCloudflareImages(
             i.*,
             COALESCE(SUM(pv.views_365d), 0) AS views_365d,
             MAX(CASE WHEN i.filename = pg.content->>'$."featured-image"' THEN 1 ELSE 0 END) AS isFeaturedImage,
-            MAX(CASE WHEN i.filename != pg.content->>'$."featured-image"' OR pg.content->>'$."featured-image"' IS NULL THEN 1 ELSE 0 END) AS isBodyContent,
+            MAX(CASE WHEN
+                JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body') IS NOT NULL
+                AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].value[*].articles[*].filename') IS NULL
+            THEN 1 ELSE 0 END) AS isBodyContent,
             MAX(CASE WHEN JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].value[*].articles[*].filename') IS NOT NULL THEN 1 ELSE 0 END) AS isInResearchAndWriting
         FROM images i
         LEFT JOIN posts_gdocs_x_images pxi ON i.id = pxi.imageId
