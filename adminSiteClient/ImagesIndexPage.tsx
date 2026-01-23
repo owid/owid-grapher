@@ -49,7 +49,7 @@ import { EditableTextarea } from "./EditableTextarea.js"
 
 type ImageMap = Record<string, DbEnrichedImageWithPageviews>
 
-type ImageTypeFilter = "all" | "featured-thumbnail-rw" | "content"
+type ImageTypeFilter = "all" | "featured-thumbnail-rw" | "content" | "other"
 
 function getImageType(image: DbEnrichedImageWithPageviews): ImageTypeFilter {
     const isFeatured = image.isFeaturedImage === 1
@@ -67,8 +67,8 @@ function getImageType(image: DbEnrichedImageWithPageviews): ImageTypeFilter {
         return "featured-thumbnail-rw"
     }
 
-    // Everything else is content (fallback)
-    return "content"
+    // Everything else is other (fallback)
+    return "other"
 }
 
 type UserMap = Record<string, DbPlainUser>
@@ -885,6 +885,7 @@ export function ImageIndexPage() {
                                         value: "featured-thumbnail-rw",
                                         label: "Featured/Thumbnails/R&W",
                                     },
+                                    { value: "other", label: "Other" },
                                 ]}
                             />
                         </Flex>
