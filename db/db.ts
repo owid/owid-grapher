@@ -893,8 +893,25 @@ export async function selectReplacementChainForImage(
 }
 
 export function getCloudflareImages(
-    trx: KnexReadonlyTransaction
+    trx: KnexReadonlyTransaction,
+    options?: {
+        excludeFeaturedImages?: boolean
+        excludeThumbnails?: boolean
+    }
 ): Promise<DbEnrichedImageWithPageviews[]> {
+    const { excludeFeaturedImages = false, excludeThumbnails = false } =
+        options || {}
+
+    let havingClause = ""
+    if (excludeFeaturedImages && excludeThumbnails) {
+        havingClause =
+            "HAVING isFeaturedImage = 0 AND i.filename NOT LIKE '%thumbnail%'"
+    } else if (excludeFeaturedImages) {
+        havingClause = "HAVING isFeaturedImage = 0"
+    } else if (excludeThumbnails) {
+        havingClause = "HAVING i.filename NOT LIKE '%thumbnail%'"
+    }
+
     return knexRaw<DbEnrichedImageWithPageviews>(
         trx,
         `-- sql
@@ -909,7 +926,8 @@ export function getCloudflareImages(
             AND pv.day = (SELECT MAX(day) FROM analytics_pageviews)
         WHERE i.cloudflareId IS NOT NULL
         AND i.replacedBy IS NULL
-        GROUP BY i.id`
+        GROUP BY i.id
+        ${havingClause}`
     )
 }
 
