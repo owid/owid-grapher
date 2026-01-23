@@ -73,12 +73,11 @@ encodeTests.forEach((testCase) => {
     })
 
     it(`correctly decodes url strings`, () => {
+        const migratedUrl = migrateSelectedEntityNamesParam(
+            Url.fromQueryStr(testCase.inputQueryStr)
+        )
         expect(
-            getSelectedEntityNamesParam(
-                migrateSelectedEntityNamesParam(
-                    Url.fromQueryStr(testCase.inputQueryStr)
-                )
-            )
+            getSelectedEntityNamesParam(migratedUrl.queryParams.country)
         ).toEqual(testCase.entities)
     })
 })
@@ -101,12 +100,11 @@ describe("legacyLinks", () => {
 
     legacyLinks.forEach((testCase) => {
         it(`correctly decodes legacy url strings`, () => {
+            const migratedUrl = migrateSelectedEntityNamesParam(
+                Url.fromQueryStr(testCase.queryStr)
+            )
             expect(
-                getSelectedEntityNamesParam(
-                    migrateSelectedEntityNamesParam(
-                        Url.fromQueryStr(testCase.queryStr)
-                    )
-                )
+                getSelectedEntityNamesParam(migratedUrl.queryParams.country)
             ).toEqual(testCase.entities)
         })
     })
@@ -122,8 +120,9 @@ describe("facebook", () => {
 
     facebookLinks.forEach((testCase) => {
         it(`correctly decodes Facebook altered links`, () => {
+            const url = Url.fromQueryStr(testCase.queryStr)
             expect(
-                getSelectedEntityNamesParam(Url.fromQueryStr(testCase.queryStr))
+                getSelectedEntityNamesParam(url.queryParams.country)
             ).toEqual(testCase.entities)
         })
     })
@@ -140,9 +139,8 @@ it("can handle legacy urls with dimension in selection key", () => {
         ].join(ENTITY_V2_DELIMITER),
     })
 
-    const results = getSelectedEntityNamesParam(
-        migrateSelectedEntityNamesParam(url)
-    )
+    const migratedUrl = migrateSelectedEntityNamesParam(url)
+    const results = getSelectedEntityNamesParam(migratedUrl.queryParams.country)
 
     expect(results).toEqual([
         "United States",
