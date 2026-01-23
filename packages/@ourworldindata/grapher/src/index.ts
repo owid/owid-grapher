@@ -65,7 +65,7 @@ export {
     type GrapherManager,
 } from "./core/Grapher"
 export { GrapherState } from "./core/GrapherState"
-export { GrapherAnalytics } from "./core/GrapherAnalytics"
+export { GrapherAnalytics, splitPathForGA4 } from "./core/GrapherAnalytics"
 export { legacyToCurrentGrapherUrl } from "./core/GrapherUrlMigrations"
 export {
     legacyToOwidTableAndDimensions,
