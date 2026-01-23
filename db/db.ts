@@ -933,9 +933,21 @@ export function getCloudflareImages(
             MAX(CASE WHEN i.filename = pg.content->>'$."featured-image"' THEN 1 ELSE 0 END) AS isFeaturedImage,
             MAX(CASE WHEN
                 JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body') IS NOT NULL
-                AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].value[*].articles[*].filename') IS NULL
+                AND (
+                    JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].primary[*].value.filename') IS NULL
+                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].secondary[*].value.filename') IS NULL
+                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].rows[*].articles[*].value.filename') IS NULL
+                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].more.articles[*].value.filename') IS NULL
+                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].latest.articles[*].value.filename') IS NULL
+                )
             THEN 1 ELSE 0 END) AS isBodyContent,
-            MAX(CASE WHEN JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].value[*].articles[*].filename') IS NOT NULL THEN 1 ELSE 0 END) AS isInResearchAndWriting
+            MAX(CASE WHEN
+                JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].primary[*].value.filename') IS NOT NULL
+                OR JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].secondary[*].value.filename') IS NOT NULL
+                OR JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].rows[*].articles[*].value.filename') IS NOT NULL
+                OR JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].more.articles[*].value.filename') IS NOT NULL
+                OR JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].latest.articles[*].value.filename') IS NOT NULL
+            THEN 1 ELSE 0 END) AS isInResearchAndWriting
         FROM images i
         LEFT JOIN posts_gdocs_x_images pxi ON i.id = pxi.imageId
         LEFT JOIN posts_gdocs pg ON pxi.gdocId = pg.id AND pg.published = 1
