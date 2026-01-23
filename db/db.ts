@@ -900,12 +900,13 @@ export function getCloudflareImages(
         `-- sql
         SELECT
             i.*,
-            COALESCE(SUM(pv.views_7d), 0) AS views_7d,
-            COALESCE(SUM(pv.views_365d), 0) AS views_365d
+            COALESCE(SUM(pv.views_365d), 0) AS views_365d,
+            MAX(CASE WHEN i.filename = pg.content->>'$."featured-image"' THEN 1 ELSE 0 END) AS isFeaturedImage
         FROM images i
         LEFT JOIN posts_gdocs_x_images pxi ON i.id = pxi.imageId
         LEFT JOIN posts_gdocs pg ON pxi.gdocId = pg.id AND pg.published = 1
         LEFT JOIN analytics_pageviews pv ON pv.url = CONCAT('https://ourworldindata.org/', pg.slug)
+            AND pv.day = (SELECT MAX(day) FROM analytics_pageviews)
         WHERE i.cloudflareId IS NOT NULL
         AND i.replacedBy IS NULL
         GROUP BY i.id`

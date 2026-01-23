@@ -15,6 +15,7 @@ import {
     Modal,
     Popconfirm,
     Popover,
+    Select,
     Table,
     TableColumnsType,
     Upload,
@@ -47,6 +48,14 @@ import { NotificationInstance } from "antd/es/notification/interface.js"
 import { EditableTextarea } from "./EditableTextarea.js"
 
 type ImageMap = Record<string, DbEnrichedImageWithPageviews>
+
+type ImageTypeFilter = "all" | "featured" | "thumbnail" | "content"
+
+function getImageType(image: DbEnrichedImageWithPageviews): ImageTypeFilter {
+    if (image.isFeaturedImage) return "featured"
+    if (image.filename.toLowerCase().includes("thumbnail")) return "thumbnail"
+    return "content"
+}
 
 type UserMap = Record<string, DbPlainUser>
 
@@ -383,20 +392,15 @@ function createColumns({
             render: (time) => <Timeago time={time} />,
         },
         {
-            title: "Views (7d)",
-            dataIndex: "views_7d",
-            key: "views_7d",
-            width: 80,
-            sorter: (a, b) => a.views_7d - b.views_7d,
-            render: (views: number) => views.toLocaleString(),
-        },
-        {
-            title: "Views (365d)",
+            title: "Views per day",
             dataIndex: "views_365d",
-            key: "views_365d",
-            width: 90,
+            key: "viewsPerDay",
+            width: 100,
             sorter: (a, b) => a.views_365d - b.views_365d,
-            render: (views: number) => views.toLocaleString(),
+            render: (views_365d: number) =>
+                (views_365d / 365).toLocaleString(undefined, {
+                    maximumFractionDigits: 1,
+                }),
         },
         {
             title: "Owner",
@@ -687,6 +691,8 @@ export function ImageIndexPage() {
     const [users, setUsers] = useState<UserMap>({})
     const [usage, setUsage] = useState<Record<string, UsageInfo[]>>({})
     const [filenameSearchValue, setFilenameSearchValue] = useState("")
+    const [imageTypeFilter, setImageTypeFilter] =
+        useState<ImageTypeFilter>("all")
 
     const api = useMemo(
         (): ImageEditorApi => ({
@@ -816,12 +822,16 @@ export function ImageIndexPage() {
 
     const filteredImages = useMemo(
         () =>
-            Object.values(images).filter((image) =>
-                image.filename
+            Object.values(images).filter((image) => {
+                const matchesFilename = image.filename
                     .toLowerCase()
                     .includes(filenameSearchValue.toLowerCase())
-            ),
-        [images, filenameSearchValue]
+                const matchesType =
+                    imageTypeFilter === "all" ||
+                    getImageType(image) === imageTypeFilter
+                return matchesFilename && matchesType
+            }),
+        [images, filenameSearchValue, imageTypeFilter]
     )
 
     const columns = useMemo(
@@ -841,14 +851,27 @@ export function ImageIndexPage() {
                 {notificationContextHolder}
                 <main className="ImageIndexPage">
                     <Flex justify="space-between">
-                        <Input
-                            placeholder="Search by filename"
-                            value={filenameSearchValue}
-                            onChange={(e) =>
-                                setFilenameSearchValue(e.target.value)
-                            }
-                            style={{ width: 500, marginBottom: 20 }}
-                        />
+                        <Flex gap={12}>
+                            <Input
+                                placeholder="Search by filename"
+                                value={filenameSearchValue}
+                                onChange={(e) =>
+                                    setFilenameSearchValue(e.target.value)
+                                }
+                                style={{ width: 300, marginBottom: 20 }}
+                            />
+                            <Select
+                                value={imageTypeFilter}
+                                onChange={setImageTypeFilter}
+                                style={{ width: 150 }}
+                                options={[
+                                    { value: "all", label: "All images" },
+                                    { value: "content", label: "Content" },
+                                    { value: "featured", label: "Featured" },
+                                    { value: "thumbnail", label: "Thumbnail" },
+                                ]}
+                            />
+                        </Flex>
                         <PostImageButton postImage={api.postImage} />
                     </Flex>
                     <Table
