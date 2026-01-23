@@ -161,6 +161,9 @@ export const getIncomeGroups = lazy(
         ) as IncomeGroup[]
 )
 
+export const getAggregatesBySource = (source: AggregateSource): Aggregate[] =>
+    getAggregates().filter((r) => r.definedBy === source)
+
 const regionsByName = lazy(() =>
     Object.fromEntries(regions.map((region) => [region.name, region]))
 )

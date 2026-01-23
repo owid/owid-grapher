@@ -140,6 +140,8 @@ export const CUSTOM_REGION_SOURCE_IDS = [
     "unm49",
 ] as const
 
+export type CustomAggregateSource = (typeof CUSTOM_REGION_SOURCE_IDS)[number]
+
 export const isPopulationVariableETLPath = (path: string): boolean => {
     return population_regex.test(path)
 }
