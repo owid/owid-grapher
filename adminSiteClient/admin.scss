@@ -647,6 +647,78 @@ $nav-height: 45px;
     .btn-clear-selection {
         margin-bottom: 0.7rem;
     }
+
+    .QuickAddSection {
+        margin-bottom: 1rem;
+
+        .quick-add-label {
+            font-size: 0.85rem;
+            color: #666;
+            white-space: nowrap;
+            padding-top: 0.3rem; // align with button text
+
+            .quick-add-hint {
+                font-size: 0.8rem;
+                color: #999;
+            }
+        }
+
+        .quick-add-buttons {
+            margin-top: 0.3rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+
+            .btn {
+                font-size: 0.85rem;
+                padding: 0.25rem 0.5rem;
+            }
+        }
+    }
+
+    .AddPeersSection {
+        margin-top: 1rem;
+        padding: 0.75rem;
+        background: #fdfdfd;
+        border-radius: 3px;
+        border: 1px solid #e9ecef;
+
+        .add-peers-header {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+
+            .add-peers-country-select {
+                display: inline-block;
+                width: auto;
+                font-weight: 600;
+                padding: 0.1rem 0.4rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        .add-peers-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+
+            .btn {
+                font-size: 0.85rem;
+                padding: 0.25rem 0.5rem;
+            }
+        }
+    }
+
+    .SelectionResetButtons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+
+        .btn {
+            font-size: 0.85rem;
+            padding: 0.25rem 0.5rem;
+        }
+    }
 }
 
 /* Reusable utility classes */

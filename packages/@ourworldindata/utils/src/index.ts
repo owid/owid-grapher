@@ -207,6 +207,7 @@ export {
     getContinents,
     type Continent,
     getAggregates,
+    getAggregatesBySource,
     type Aggregate,
     type AggregateSource,
     AGGREGATE_SOURCES,
