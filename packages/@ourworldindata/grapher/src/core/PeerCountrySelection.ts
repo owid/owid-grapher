@@ -1,4 +1,5 @@
 import * as R from "remeda"
+import * as _ from "lodash-es"
 import {
     AdditionalGrapherDataFetchFn,
     CatalogKey,
@@ -121,10 +122,15 @@ export async function selectPeerCountries({
             })
         })
         .with(PeerCountryStrategy.DataRange, async () => {
-            if (!isDataColumnAvailable(dataColumn)) return []
+            if (
+                !isDataColumnAvailable(dataColumn) ||
+                !isDataLoaderAvailable(additionalDataLoaderFn)
+            )
+                return []
             return selectPeerCountriesByDataRange({
                 availableEntities,
                 dataColumn,
+                additionalDataLoaderFn,
             })
         })
         .exhaustive()
@@ -253,9 +259,14 @@ async function selectPeerCountriesByClosestValue({
 async function selectPeerCountriesByDataRange({
     availableEntities,
     dataColumn,
+    additionalDataLoaderFn,
+    randomize = false,
 }: {
     availableEntities: EntityName[]
     dataColumn: CoreColumn
+    additionalDataLoaderFn: AdditionalGrapherDataFetchFn
+    /** If true, use randomized selection; if false, pick most populous per bucket */
+    randomize?: boolean
 }): Promise<EntityName[]> {
     // Only consider countries as candidates for peer selection
     const candidateCountries = availableEntities.filter((entityName) => {
@@ -272,7 +283,13 @@ async function selectPeerCountriesByDataRange({
         if (latestValue !== undefined) values.set(entityName, latestValue)
     }
 
-    return findDataRangePeers({ values })
+    // Load population data for weighted selection (prefer larger countries)
+    const populationData = await additionalDataLoaderFn("population")
+    const population = new Map(
+        populationData.map((row) => [row.entity, row.value])
+    )
+
+    return findDataRangePeers({ values, population, randomize })
 }
 
 /** Finds entities with values closest to a target entity using logarithmic distance */
@@ -392,13 +409,25 @@ const findClosestByLogDistance = ({
     )
 }
 
-/** Finds entities at specific percentiles to represent the data distribution */
+/**
+ * Finds entities representing the data distribution using stratified sampling.
+ *
+ * Divides data into buckets (quintiles by default) and picks one entity from each:
+ * - When randomize=false (default): picks the most populous country in each bucket
+ * - When randomize=true: random selection weighted by log(population)
+ */
 export function findDataRangePeers({
     values,
-    percentiles = [0.1, 0.25, 0.5, 0.75, 0.9],
+    population,
+    randomize = false,
+    numBuckets = 5,
 }: {
     values: Map<EntityName, number>
-    percentiles?: number[]
+    /** Population data for weighted selection (prefers larger countries) */
+    population: Map<EntityName, number>
+    numBuckets?: number
+    /** If true, use randomized selection; if false, pick most populous */
+    randomize?: boolean
 }): EntityName[] {
     const sortedData = R.pipe(
         Array.from(values.entries()),
@@ -408,15 +437,72 @@ export function findDataRangePeers({
 
     if (sortedData.length === 0) return []
 
-    const n = sortedData.length
+    const bucketSize = Math.ceil(sortedData.length / numBuckets)
+    const buckets = R.chunk(sortedData, bucketSize)
 
-    return R.pipe(
-        percentiles,
-        R.map((p) => {
-            const index = Math.round(p * (n - 1))
-            return sortedData[index]?.entityName
+    const selected = R.pipe(
+        buckets,
+        R.map((bucket) => {
+            if (bucket.length === 0) return undefined
+
+            return randomize
+                ? weightedRandomPick(bucket, population)
+                : maxPopulationPick(bucket, population)
         }),
-        R.filter((name): name is EntityName => name !== undefined),
-        R.unique()
+        R.filter(R.isDefined)
     )
+
+    return R.unique(selected)
+}
+
+/** Pick the entity with the highest population from the bucket */
+function maxPopulationPick(
+    bucket: { entityName: EntityName; value: number }[],
+    population: Map<EntityName, number>
+): EntityName | undefined {
+    return _.maxBy(bucket, (item) => population.get(item.entityName) ?? 0)
+        ?.entityName
+}
+
+/**
+ * Pick a random entity from the bucket, weighted by log(population).
+ *
+ * We use log(population) rather than raw population to create a soft preference
+ * for larger countries without letting extreme outliers (China, India) dominate.
+ * Raw population has a wide range between the largest and smallest countries;
+ * log compresses this to ~2x, giving larger countries better odds while still
+ * allowing variety.
+ */
+function weightedRandomPick(
+    bucket: { entityName: EntityName; value: number }[],
+    population: Map<EntityName, number>
+): EntityName | undefined {
+    // Calculate weights using log(population)
+    const weights = bucket.map((item) => {
+        const pop = population.get(item.entityName) ?? 1
+        return Math.log(pop)
+    })
+
+    const totalWeight = R.sum(weights)
+
+    // If no population data is available, just pick a random entity
+    if (totalWeight === 0) return R.sample(bucket, 1)[0]?.entityName
+
+    // Weighted random selection: imagine a number line divided into segments,
+    // where each country's segment size equals its weight. We pick a random
+    // point on the line, then walk through segments until we find which one
+    // contains our point. Countries with larger weights have larger segments,
+    // so they're more likely to be picked.
+    //
+    // Example with weights [5, 3, 2]:
+    //   |------Germany (5)------|--France (3)--|-Belgium (2)-|
+    //   0                        5              8             10
+    // A random point at 6.5 lands in France's segment, so France is picked.
+    let random = Math.random() * totalWeight
+    for (let i = 0; i < bucket.length; i++) {
+        random -= weights[i]
+        if (random <= 0) return bucket[i].entityName
+    }
+
+    return bucket[bucket.length - 1]?.entityName
 }
