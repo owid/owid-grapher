@@ -905,9 +905,9 @@ export function getCloudflareImages(
     let havingClause = ""
     if (excludeFeaturedImages && excludeThumbnails) {
         havingClause =
-            "HAVING isFeaturedImage = 0 AND i.filename NOT LIKE '%thumbnail%'"
+            "HAVING isFeaturedImage = 0 AND isBodyContent = 1 AND i.filename NOT LIKE '%thumbnail%'"
     } else if (excludeFeaturedImages) {
-        havingClause = "HAVING isFeaturedImage = 0"
+        havingClause = "HAVING isFeaturedImage = 0 AND isBodyContent = 1"
     } else if (excludeThumbnails) {
         havingClause = "HAVING i.filename NOT LIKE '%thumbnail%'"
     }
@@ -918,7 +918,8 @@ export function getCloudflareImages(
         SELECT
             i.*,
             COALESCE(SUM(pv.views_365d), 0) AS views_365d,
-            MAX(CASE WHEN i.filename = pg.content->>'$."featured-image"' THEN 1 ELSE 0 END) AS isFeaturedImage
+            MAX(CASE WHEN i.filename = pg.content->>'$."featured-image"' THEN 1 ELSE 0 END) AS isFeaturedImage,
+            MAX(CASE WHEN i.filename != pg.content->>'$."featured-image"' OR pg.content->>'$."featured-image"' IS NULL THEN 1 ELSE 0 END) AS isBodyContent
         FROM images i
         LEFT JOIN posts_gdocs_x_images pxi ON i.id = pxi.imageId
         LEFT JOIN posts_gdocs pg ON pxi.gdocId = pg.id AND pg.published = 1
