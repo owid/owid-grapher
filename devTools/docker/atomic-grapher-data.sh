@@ -2,6 +2,12 @@
 #
 # Atomic database refresh script for grapher.
 #
+# IMPORTANT: This script requires the database user to have privileges to create
+# and drop databases. Grant with:
+#
+#   GRANT ALL PRIVILEGES ON *.* TO 'owid'@'%';
+#   FLUSH PRIVILEGES;
+#
 # Unlike refresh-grapher-data.sh which drops and recreates the database (killing
 # all active connections), this script uses an atomic table swap approach:
 #
