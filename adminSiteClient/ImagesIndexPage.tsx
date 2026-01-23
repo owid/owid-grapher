@@ -55,7 +55,7 @@ function getImageType(image: DbEnrichedImageWithPageviews): ImageTypeFilter {
     const isFeatured = image.isFeaturedImage === 1
     const isBody = image.isBodyContent === 1
     const isThumbnail = image.filename.toLowerCase().includes("thumbnail")
-    
+
     if (isFeatured && isBody) return "both"
     if (isFeatured) return "featured"
     if (isThumbnail) return "thumbnail"
