@@ -374,6 +374,13 @@ export function Autocomplete({
                     onClose()
                 }
             },
+            // Keep the panel open while typing even if there are no suggestions (would otherwise close by default)
+            shouldPanelOpen({ state }) {
+                if (state.query) return true
+                return state.collections.some(
+                    (collection) => collection.items.length > 0
+                )
+            },
             onSubmit({ state, navigator }) {
                 if (!state.query) return
                 navigator.navigate({
