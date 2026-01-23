@@ -883,7 +883,7 @@ export function ImageIndexPage() {
                                     { value: "content", label: "Content" },
                                     {
                                         value: "featured-thumbnail-rw",
-                                        label: "Featured/Thumbnails/R&W",
+                                        label: "Thumbnails or featured images",
                                     },
                                     { value: "other", label: "Other" },
                                 ]}
