@@ -39,7 +39,6 @@ import { getMinimalGdocPostsByIds } from "../../db/model/Gdoc/GdocBase.js"
 import { GdocDataInsight } from "../../db/model/Gdoc/GdocDataInsight.js"
 import {
     extractDataCalloutUrls,
-    prepareCalloutStateForUrl,
     prepareCalloutTableForUrl,
 } from "../../db/model/Gdoc/dataCallouts.js"
 import {
@@ -264,31 +263,29 @@ export async function getCalloutFunctionStrings(
         throw new JsonError("Missing 'url' query parameter", 400)
     }
 
-    const grapherState = await prepareCalloutStateForUrl(trx, chartUrl)
-    if (!grapherState) {
+    const tableResult = await prepareCalloutTableForUrl(trx, chartUrl)
+    if (!tableResult) {
         throw new JsonError(`Could not load chart for URL: ${chartUrl}`, 404)
     }
 
-    // Apply query params from the URL to the grapher state
-    const url = Url.fromURL(chartUrl)
-    grapherState.populateFromQueryParams(url.queryParams)
+    const { config, inputTable } = tableResult
+    const prepared = prepareCalloutTable(inputTable, config)
 
-    // Get column names from the transformed table
+    // Get column names from the prepared table
     const columnSlugs = [
-        ...grapherState.yColumnSlugs,
-        ...(grapherState.xColumnSlug ? [grapherState.xColumnSlug] : []),
+        ...prepared.yColumnSlugs,
+        ...(prepared.xColumnSlug ? [prepared.xColumnSlug] : []),
     ]
 
     const functionStrings: string[] = []
     const columnNames: string[] = []
 
     for (const slug of columnSlugs) {
-        const column = grapherState.chartState.transformedTable.get(slug)
-        if (column && !column.isMissing) {
-            const name = column.titlePublicOrDisplayName.title
-            columnNames.push(name)
-            functionStrings.push(`$latestValue(${name})`)
-            functionStrings.push(`$latestYear(${name})`)
+        const columnInfo = prepared.columns?.[slug]
+        if (columnInfo?.name) {
+            columnNames.push(columnInfo.name)
+            functionStrings.push(`$latestValue(${columnInfo.name})`)
+            functionStrings.push(`$latestYear(${columnInfo.name})`)
         }
     }
 
