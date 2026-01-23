@@ -673,6 +673,7 @@ export class Grapher extends React.Component<GrapherProps> {
         const updateWindowDimensions = action((): void => {
             this.grapherState.windowInnerWidth = window.innerWidth
             this.grapherState.windowInnerHeight = window.innerHeight
+            this.grapherState.screenHeight = window.screen.height
         })
         const onResize = _.debounce(updateWindowDimensions, 400, {
             leading: true,
