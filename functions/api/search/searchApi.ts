@@ -13,7 +13,7 @@ import { getIndexName, AlgoliaConfig } from "./algoliaClient.js"
  */
 export type EnrichedSearchChartHit = Omit<
     SearchChartHit,
-    "objectID" | "_highlightResult" | "_snippetResult"
+    "objectID" | "_snippetResult"
 > & {
     url: string
 }
@@ -51,7 +51,7 @@ export interface SearchState {
 
 export interface SearchApiResponse {
     query: string
-    results: EnrichedSearchChartHit[]
+    hits: EnrichedSearchChartHit[]
     nbHits: number
     page: number
     nbPages: number
@@ -76,6 +76,7 @@ interface AlgoliaSearchResponse {
 
 // Minimal set of attributes needed by the MCP server and other API consumers
 const DATA_CATALOG_ATTRIBUTES = [
+    "objectID",
     "title",
     "slug",
     "subtitle",
@@ -262,6 +263,11 @@ export async function searchCharts(
             }
         }
 
+        // Preserve highlight results for frontend rendering
+        if ((hit as any)._highlightResult) {
+            cleanHit._highlightResult = (hit as any)._highlightResult
+        }
+
         // Construct URL based on type
         let url: string
         if (cleanHit.type === ChartRecordType.ExplorerView) {
@@ -285,7 +291,7 @@ export async function searchCharts(
 
     return {
         query: state.query,
-        results: cleanedHits,
+        hits: cleanedHits,
         nbHits: result.nbHits,
         page: result.page,
         nbPages: result.nbPages,
