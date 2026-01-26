@@ -125,7 +125,7 @@
         "js-cookie": "^3.0.5",
         "json8-pointer": "^1.0.6",
         "knex": "^3.1.0",
-        "lodash-es": "^4.17.21",
+        "lodash-es": "^4.17.23",
         "mdast-util-find-and-replace": "^3.0.2",
         "mdast-util-from-markdown": "^2.0.2",
         "minimist": "^1.2.6",
