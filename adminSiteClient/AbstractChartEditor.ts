@@ -7,7 +7,15 @@ import {
     SeriesName,
 } from "@ourworldindata/utils"
 import { ContentGraphLinkType } from "@ourworldindata/types"
-import { action, computed, observable, when, makeObservable } from "mobx"
+import {
+    action,
+    computed,
+    observable,
+    when,
+    makeObservable,
+    reaction,
+    IReactionDisposer,
+} from "mobx"
 import { EditorFeatures } from "./EditorFeatures.js"
 import { Admin } from "./Admin.js"
 import {
@@ -21,18 +29,25 @@ import { IndicatorChartInfo } from "./IndicatorChartEditor.js"
 import { DataInsightMinimalInformation } from "../adminShared/AdminTypes.js"
 import { DATA_API_URL } from "../settings/clientSettings.js"
 
-export type EditorTab =
-    | "basic"
-    | "data"
-    | "text"
-    | "customize"
-    | "map"
-    | "scatter"
-    | "marimekko"
-    | "revisions"
-    | "refs"
-    | "export"
-    | "debug"
+const EDITOR_TABS = [
+    "basic",
+    "data",
+    "text",
+    "customize",
+    "map",
+    "scatter",
+    "marimekko",
+    "revisions",
+    "refs",
+    "export",
+    "debug",
+] as const
+
+export type EditorTab = (typeof EDITOR_TABS)[number]
+
+function isValidEditorTab(tab: string): tab is EditorTab {
+    return EDITOR_TABS.includes(tab as EditorTab)
+}
 
 export interface AbstractChartEditorManager {
     admin: Admin
@@ -84,6 +99,8 @@ export abstract class AbstractChartEditor<
     // if inheritance is enabled, the parent config is applied to grapherState
     isInheritanceEnabled: boolean | undefined = undefined
 
+    private disposers: IReactionDisposer[] = []
+
     constructor(props: { manager: Manager }) {
         makeObservable(this, {
             grapherState: observable.ref,
@@ -102,6 +119,9 @@ export abstract class AbstractChartEditor<
                 ? "mobile"
                 : "desktop"
 
+        this.readInitialTabFromUrl()
+        this.setupTabUrlSync()
+
         when(
             () => this.manager.parentConfig !== undefined,
             () => (this.parentConfig = this.manager.parentConfig)
@@ -117,6 +137,33 @@ export abstract class AbstractChartEditor<
             () => this.grapherState.hasData && this.grapherState.isReady,
             () => (this.savedPatchConfig = this.patchConfig)
         )
+    }
+
+    private readInitialTabFromUrl(): void {
+        const urlParams = new URLSearchParams(window.location.search)
+        const tabParam = urlParams.get("tab")
+        if (tabParam && isValidEditorTab(tabParam)) this.tab = tabParam
+    }
+
+    private setupTabUrlSync(): void {
+        this.disposers.push(
+            reaction(
+                () => this.tab,
+                (tab) => {
+                    const url = new URL(window.location.href)
+                    if (tab === "basic") {
+                        url.searchParams.delete("tab")
+                    } else {
+                        url.searchParams.set("tab", tab)
+                    }
+                    window.history.replaceState({}, "", url.toString())
+                }
+            )
+        )
+    }
+
+    dispose(): void {
+        this.disposers.forEach((dispose) => dispose())
     }
 
     abstract get references(): References | undefined

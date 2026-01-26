@@ -376,6 +376,7 @@ export class ChartEditorView<
     disposers: IReactionDisposer[] = []
     override componentWillUnmount(): void {
         this.disposers.forEach((dispose) => dispose())
+        this.editor?.dispose()
     }
 
     override render(): React.ReactElement {
