@@ -95,6 +95,7 @@ import {
     checkIsIncomeGroup,
     checkHasMembers,
     sortNumeric,
+    isMobile,
 } from "@ourworldindata/utils"
 import Cookies from "js-cookie"
 import * as _ from "lodash-es"
@@ -582,6 +583,7 @@ export class GrapherState
     _isInFullScreenMode = false
     windowInnerWidth: number | undefined = undefined
     windowInnerHeight: number | undefined = undefined
+    screenHeight: number | undefined = undefined
 
     enableKeyboardShortcuts: boolean = false
     bindUrlToWindow: boolean = false
@@ -665,6 +667,7 @@ export class GrapherState
             _isInFullScreenMode: observable.ref,
             windowInnerWidth: observable.ref,
             windowInnerHeight: observable.ref,
+            screenHeight: observable.ref,
             bakedGrapherURL: observable,
             externalQueryParams: observable.ref,
             _inputTable: observable.ref,
@@ -2757,6 +2760,10 @@ export class GrapherState
         return isTouchDevice()
     }
 
+    @computed private get isMobile(): boolean {
+        return isMobile()
+    }
+
     /** externalBounds should be set to the available plotting area for a
         Grapher that resizes itself to fit. When this area changes,
         externalBounds should be updated. Updating externalBounds can
@@ -2854,10 +2861,14 @@ export class GrapherState
 
     @computed get hideFullScreenButton(): boolean {
         if (this.isInFullScreenMode) return false
-        if (!this.isSmall) return false
+        if (!this.isSmall || !this.isMobile || !this.screenHeight) return false
+
+        // Approximate full screen height on mobile devices
+        // that doesn't update when browser UI is shown/hidden
+        const fullScreenHeight = this.screenHeight
+
         // Hide the full screen button if the full screen height
         // is barely larger than the current chart height
-        const fullScreenHeight = this.windowInnerHeight!
         return fullScreenHeight < this.frameBounds.height + 80
     }
 
