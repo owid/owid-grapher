@@ -134,7 +134,7 @@ describe(selectParentRegionsAsPeers, () => {
 })
 
 describe(findDataRangePeers, () => {
-    it("peers are deterministic by default", () => {
+    it("is deterministic by default", () => {
         const values = new Map([
             ["A", 10],
             ["B", 20],
@@ -188,7 +188,7 @@ describe(findDataRangePeers, () => {
         expect(peers).toEqual(["Germany", "France", "Brazil", "Japan", "USA"])
     })
 
-    it("respects numBuckets parameter", () => {
+    it("respects targetCount parameter", () => {
         const values = new Map([
             ["A", 10],
             ["B", 20],
@@ -199,7 +199,7 @@ describe(findDataRangePeers, () => {
         ])
         const population = new Map<string, number>()
 
-        const peers = findDataRangePeers({ values, population, numBuckets: 3 })
+        const peers = findDataRangePeers({ values, population, targetCount: 3 })
 
         expect(peers).toHaveLength(3)
     })
