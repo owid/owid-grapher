@@ -226,6 +226,29 @@ $zindex-controls-drawer: 150;
     }
 }
 
+// React Aria Tooltip
+// Matches the styling of .tippy-box[data-theme="grapher-explanation"]
+.react-aria-tooltip {
+    background: white;
+    color: $gray-80;
+    font: 400 14px/1.5 $sans-serif-font-stack;
+    box-shadow: 0px 4px 40px 0px rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    padding: 15px;
+    max-width: 338px;
+
+    // Small triangle arrow that point to the info icon
+    .react-aria-tooltip__overlay-arrow {
+        position: absolute;
+
+        svg {
+            display: block;
+            fill: white;
+            stroke: none;
+        }
+    }
+}
+
 .markdown-text-wrap__line {
     display: block;
 }

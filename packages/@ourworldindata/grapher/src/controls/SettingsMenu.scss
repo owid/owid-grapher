@@ -41,7 +41,7 @@ $control-row-height: 32px;
         //
         // shared button coloring & behaviors
         //
-        button {
+        button:not(.tooltip-trigger) {
             display: flex;
             align-items: center;
             color: $light-text;

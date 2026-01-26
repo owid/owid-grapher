@@ -3076,6 +3076,7 @@ __metadata:
     mobx: "npm:^6.13.7"
     mobx-react: "npm:^7.6.0"
     react: "npm:^19.2.0"
+    react-aria-components: "npm:1.13.0"
     react-dom: "npm:^19.2.0"
     react-markdown: "npm:^10.1.0"
     remeda: "npm:^2.32.0"
@@ -15548,7 +15549,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-aria-components@npm:^1.13.0":
+"react-aria-components@npm:1.13.0, react-aria-components@npm:^1.13.0":
   version: 1.13.0
   resolution: "react-aria-components@npm:1.13.0"
   dependencies:
