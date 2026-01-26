@@ -290,12 +290,14 @@ async function selectPeerCountriesByDataRange({
     availableEntities,
     dataColumn,
     additionalDataLoaderFn,
+    targetCount = 5,
     randomize = false,
     requiredTimes,
 }: {
     availableEntities: EntityName[]
     dataColumn: CoreColumn
     additionalDataLoaderFn: AdditionalGrapherDataFetchFn
+    targetCount?: number
     /** If true, use randomized selection; if false, pick most populous per bucket */
     randomize?: boolean
     /** Only include entities with data at all required times */
@@ -310,15 +312,22 @@ async function selectPeerCountriesByDataRange({
           })
         : availableEntities
 
-    // Only consider countries as candidates for peer selection
-    const candidateCountries = relevantEntities.filter((entityName) => {
+    // If there is at least one country with data, only consider countries as peers;
+    // If there are no countries with data, consider all relevant entities
+    const hasCountryData = relevantEntities.some((entityName) => {
         const region = getRegionByName(entityName)
         return region && checkIsCountry(region)
     })
+    const candidateEntities = hasCountryData
+        ? relevantEntities.filter((entityName) => {
+              const region = getRegionByName(entityName)
+              return region && checkIsCountry(region)
+          })
+        : relevantEntities
 
-    // Extract latest values for candidate countries
+    // Extract latest values for candidate entities
     const values = new Map<EntityName, number>()
-    for (const entityName of candidateCountries) {
+    for (const entityName of candidateEntities) {
         const latestValue = dataColumn.owidRowByEntityNameAndTime
             .get(entityName)
             ?.get(dataColumn.maxTime)?.value
@@ -331,7 +340,7 @@ async function selectPeerCountriesByDataRange({
         populationData.map((row) => [row.entity, row.value])
     )
 
-    return findDataRangePeers({ values, population, randomize })
+    return findDataRangePeers({ values, population, targetCount, randomize })
 }
 
 /** Finds entities with values closest to a target entity using logarithmic distance */
@@ -462,12 +471,12 @@ export function findDataRangePeers({
     values,
     population,
     randomize = false,
-    numBuckets = 5,
+    targetCount = 5,
 }: {
     values: Map<EntityName, number>
     /** Population data for weighted selection (prefers larger countries) */
     population: Map<EntityName, number>
-    numBuckets?: number
+    targetCount?: number
     /** If true, use randomized selection; if false, pick most populous */
     randomize?: boolean
 }): EntityName[] {
@@ -479,7 +488,7 @@ export function findDataRangePeers({
 
     if (sortedData.length === 0) return []
 
-    const bucketSize = Math.ceil(sortedData.length / numBuckets)
+    const bucketSize = Math.ceil(sortedData.length / targetCount)
     const buckets = R.chunk(sortedData, bucketSize)
 
     const selected = R.pipe(
