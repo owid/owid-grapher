@@ -17,6 +17,7 @@ import {
     GrapherIdentifier,
     initGrapher,
 } from "./grapherTools.js"
+import { GRAPHER_TAB_NAMES } from "@ourworldindata/types"
 import { fetchInputTableForConfig } from "@ourworldindata/grapher"
 import ReactDOMServer from "react-dom/server"
 
@@ -47,6 +48,11 @@ async function fetchAndRenderGrapherToSvg(
         searchParams,
         env
     )
+
+    // Prefer to render the default tab rather than an empty table
+    if (grapher.grapherState.activeTab === GRAPHER_TAB_NAMES.Table) {
+        grapher.grapherState.resetToDefaultTab()
+    }
 
     grapherLogger.log("initGrapher")
     const promises = []

@@ -1228,6 +1228,10 @@ export class GrapherState
         return GRAPHER_TAB_NAMES.Table
     }
 
+    @action.bound resetToDefaultTab(): void {
+        this.setTab(this.defaultTab)
+    }
+
     @computed get chartType(): GrapherChartType | undefined {
         return this.validChartTypes[0]
     }
