@@ -653,6 +653,7 @@ export {
     type DbRawImage,
     type DbEnrichedImage,
     type DbEnrichedImageWithUserId,
+    type DbEnrichedImageWithPageviews,
     type DbInsertImage,
     parseImageRow,
     parseImageUpdatedAt,
