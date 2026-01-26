@@ -414,7 +414,7 @@ const findClosestByLogDistance = ({
  *
  * Divides data into buckets (quintiles by default) and picks one entity from each:
  * - When randomize=false (default): picks the most populous country in each bucket
- * - When randomize=true: random selection weighted by log(population)
+ * - When randomize=true: random selection weighted by population
  */
 export function findDataRangePeers({
     values,
@@ -464,24 +464,13 @@ function maxPopulationPick(
         ?.entityName
 }
 
-/**
- * Pick a random entity from the bucket, weighted by log(population).
- *
- * We use log(population) rather than raw population to create a soft preference
- * for larger countries without letting extreme outliers (China, India) dominate.
- * Raw population has a wide range between the largest and smallest countries;
- * log compresses this to ~2x, giving larger countries better odds while still
- * allowing variety.
- */
+/** Pick a random entity from the bucket, weighted by population */
 function weightedRandomPick(
     bucket: { entityName: EntityName; value: number }[],
     population: Map<EntityName, number>
 ): EntityName | undefined {
-    // Calculate weights using log(population)
-    const weights = bucket.map((item) => {
-        const pop = population.get(item.entityName) ?? 1
-        return Math.log(pop)
-    })
+    // Calculate weights using population
+    const weights = bucket.map((item) => population.get(item.entityName) ?? 0)
 
     const totalWeight = R.sum(weights)
 
