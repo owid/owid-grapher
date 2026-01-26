@@ -199,7 +199,7 @@ describe(findDataRangePeers, () => {
         ])
         const population = new Map<string, number>()
 
-        const peers = findDataRangePeers({ values, population, numBuckets: 3 })
+        const peers = findDataRangePeers({ values, population, targetCount: 3 })
 
         expect(peers).toHaveLength(3)
     })
