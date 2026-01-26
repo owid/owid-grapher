@@ -412,7 +412,7 @@ function createColumns({
             width: 100,
             sorter: (a, b) => a.views_365d - b.views_365d,
             render: (views_365d: number) =>
-                formatValue(views_365d / 365, { numDecimalPlaces: 1 }),
+                formatValue(views_365d / 365, { numDecimalPlaces: 0 }),
         },
         {
             title: "Owner",
