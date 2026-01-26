@@ -6,12 +6,14 @@ import {
     EntityName,
     PeerCountryStrategy,
     PeerCountryStrategyQueryParam,
+    Time,
 } from "@ourworldindata/types"
 import {
     checkIsAggregate,
     checkIsCountry,
     checkIsIncomeGroup,
     checkIsOwidContinent,
+    excludeUndefined,
     getContinentForCountry,
     getParentRegions,
     getRegionByName,
@@ -66,8 +68,11 @@ export async function selectPeerCountriesForGrapher(
     const regionInfo = getRegionByName(targetCountry)
     if (!regionInfo || !checkIsCountry(regionInfo)) return []
 
-    const additionalDataLoaderFn = grapherState.additionalDataLoaderFn
+    const requiredTimes = grapherState.isOnSlopeChartTab
+        ? excludeUndefined([grapherState.startTime, grapherState.endTime])
+        : undefined
 
+    const additionalDataLoaderFn = grapherState.additionalDataLoaderFn
     const dataColumn = grapherState.table.get(grapherState.yColumnSlug)
 
     return selectPeerCountries({
@@ -77,6 +82,7 @@ export async function selectPeerCountriesForGrapher(
         availableEntities,
         additionalDataLoaderFn,
         dataColumn,
+        requiredTimes,
     })
 }
 
@@ -88,6 +94,7 @@ export async function selectPeerCountries({
     availableEntities,
     additionalDataLoaderFn,
     dataColumn,
+    requiredTimes,
 }: {
     peerCountryStrategy: PeerCountryStrategy
     targetCountry: EntityName
@@ -95,6 +102,7 @@ export async function selectPeerCountries({
     availableEntities: EntityName[]
     additionalDataLoaderFn?: AdditionalGrapherDataFetchFn
     dataColumn?: CoreColumn
+    requiredTimes?: Time[]
 }): Promise<EntityName[]> {
     return match(peerCountryStrategy)
         .with(PeerCountryStrategy.DefaultSelection, () => defaultSelection)
@@ -130,6 +138,7 @@ export async function selectPeerCountries({
             return selectPeerCountriesByDataRange({
                 availableEntities,
                 dataColumn,
+                requiredTimes,
                 additionalDataLoaderFn,
             })
         })
@@ -158,6 +167,27 @@ function isDataColumnAvailable(
         return false
     }
     return true
+}
+
+/** Filters entities to only those that have data at all required time points */
+export function filterEntitiesWithDataAtAllTimes({
+    entities,
+    dataColumn,
+    requiredTimes,
+}: {
+    entities: EntityName[]
+    dataColumn: CoreColumn
+    requiredTimes: Time[]
+}): EntityName[] {
+    if (requiredTimes.length === 0) return entities
+
+    return entities.filter((entityName) => {
+        const entityData = dataColumn.owidRowByEntityNameAndTime.get(entityName)
+        if (!entityData) return false
+        return requiredTimes.every(
+            (time) => entityData.get(time)?.value !== undefined
+        )
+    })
 }
 
 /**
@@ -261,15 +291,27 @@ async function selectPeerCountriesByDataRange({
     dataColumn,
     additionalDataLoaderFn,
     randomize = false,
+    requiredTimes,
 }: {
     availableEntities: EntityName[]
     dataColumn: CoreColumn
     additionalDataLoaderFn: AdditionalGrapherDataFetchFn
     /** If true, use randomized selection; if false, pick most populous per bucket */
     randomize?: boolean
+    /** Only include entities with data at all required times */
+    requiredTimes?: Time[]
 }): Promise<EntityName[]> {
+    // Filter entities to those with data at required times
+    const relevantEntities = requiredTimes
+        ? filterEntitiesWithDataAtAllTimes({
+              entities: availableEntities,
+              dataColumn,
+              requiredTimes,
+          })
+        : availableEntities
+
     // Only consider countries as candidates for peer selection
-    const candidateCountries = availableEntities.filter((entityName) => {
+    const candidateCountries = relevantEntities.filter((entityName) => {
         const region = getRegionByName(entityName)
         return region && checkIsCountry(region)
     })
