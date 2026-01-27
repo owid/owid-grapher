@@ -23,6 +23,7 @@
 
         "noImplicitOverride": true
     },
+    "include": ["**/*.ts", "**/*.tsx", "**/*.json"],
     "references": [
         { "path": "../packages/@ourworldindata/components" },
         { "path": "../packages/@ourworldindata/core-table" },

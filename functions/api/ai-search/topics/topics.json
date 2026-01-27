@@ -1,0 +1,740 @@
+[
+  {
+    "id": 1791,
+    "name": "Access to Energy",
+    "slug": "energy-access",
+    "excerpt": "Access to electricity and clean cooking fuels are vital for a good standard of living and good health."
+  },
+  {
+    "id": 4,
+    "name": "Age Structure",
+    "slug": "age-structure",
+    "excerpt": "What is the age profile of populations around the world? How did it change and what will the age structure of populations look like in the future?"
+  },
+  {
+    "id": 46,
+    "name": "Agricultural Production",
+    "slug": "agricultural-production",
+    "excerpt": "How much, and what types of food, do countries produce across the world?"
+  },
+  {
+    "id": 106,
+    "name": "Air Pollution",
+    "slug": "air-pollution",
+    "excerpt": "Our overview of both indoor and outdoor air pollution."
+  },
+  {
+    "id": 1572,
+    "name": "Alcohol Consumption",
+    "slug": "alcohol-consumption",
+    "excerpt": "Who consumes the most alcohol? How has consumption changed over time? And what are the health impacts?"
+  },
+  {
+    "id": 291,
+    "name": "Animal Welfare",
+    "slug": "animal-welfare",
+    "excerpt": "See all our data, visualizations, and writing on animal welfare."
+  },
+  {
+    "id": 32,
+    "name": "Antibiotics & Antibiotic Resistance",
+    "slug": "antibiotics",
+    "excerpt": "Antibiotics revolutionized medicine, but their effectiveness is threatened by resistance. This page presents global data and research on antibiotics and antibiotic resistance."
+  },
+  {
+    "id": 1800,
+    "name": "Artificial Intelligence",
+    "slug": "artificial-intelligence",
+    "excerpt": "AI already has a large impact on our world. Explore research and data to understand the trajectory of this important technology."
+  },
+  {
+    "id": 99,
+    "name": "Biodiversity",
+    "slug": "biodiversity",
+    "excerpt": "Explore the diversity of wildlife across the planet. What are species threatened with? What can we do to prevent biodiversity loss?"
+  },
+  {
+    "id": 70,
+    "name": "Bioenergy and Biofuels",
+    "slug": "bioenergy-biofuels",
+    "excerpt": "How much bioenergy does the world produce, and what is it used for?"
+  },
+  {
+    "id": 313,
+    "name": "Books",
+    "slug": "books",
+    "excerpt": "Books have been at the center of science and the arts for centuries. How has the production and sales of books changed over time?"
+  },
+  {
+    "id": 25,
+    "name": "Burden of Disease",
+    "slug": "burden-of-disease",
+    "excerpt": "How is the burden of disease distributed and how did it change over time?"
+  },
+  {
+    "id": 19,
+    "name": "Cancer",
+    "slug": "cancer",
+    "excerpt": "Cancers are one of the leading causes of death globally. Are we making progress against them?"
+  },
+  {
+    "id": 28,
+    "name": "Cardiovascular Diseases",
+    "slug": "cardiovascular-diseases",
+    "excerpt": "Cardiovascular diseases are the most common cause of death worldwide. Explore global data on cardiovascular diseases, their treatments, risk factors, and trends over time."
+  },
+  {
+    "id": 24,
+    "name": "Causes of Death",
+    "slug": "causes-of-death",
+    "excerpt": "To find ways to save lives, it’s essential to know what people are dying from. Explore global data and research on causes of death."
+  },
+  {
+    "id": 5,
+    "name": "Child & Infant Mortality",
+    "slug": "child-mortality",
+    "excerpt": "Child mortality remains one of the world’s largest problems and is a painful reminder of work yet to be done. With global data on where, when, and how child deaths occur, we can accelerate efforts to prevent them."
+  },
+  {
+    "id": 186,
+    "name": "Child Labor",
+    "slug": "child-labor",
+    "excerpt": "Why and where do children work? How did child labor change over time?"
+  },
+  {
+    "id": 1827,
+    "name": "Clean Water",
+    "slug": "clean-water",
+    "excerpt": "Clean and safe water is essential for good health. How did access change over time? Where do people lack access?"
+  },
+  {
+    "id": 1810,
+    "name": "Clean Water & Sanitation",
+    "slug": "clean-water-sanitation",
+    "excerpt": "Explore global usage of clean water and sanitation."
+  },
+  {
+    "id": 93,
+    "name": "Climate Change",
+    "slug": "climate-change",
+    "excerpt": "How are global temperatures changing, and what are the impacts on sea level rise, sea ice, and ice sheets?"
+  },
+  {
+    "id": 71,
+    "name": "CO2 & Greenhouse Gas Emissions",
+    "slug": "co2-and-greenhouse-gas-emissions",
+    "excerpt": "Human emissions of greenhouse gases are the primary driver of climate change. The world needs to decarbonize to reduce them."
+  },
+  {
+    "id": 1584,
+    "name": "Corruption",
+    "slug": "corruption",
+    "excerpt": "How does corruption vary around the world? Is corruption becoming more or less common? What should you know when using data on corruption?"
+  },
+  {
+    "id": 1793,
+    "name": "COVID-19",
+    "slug": "coronavirus",
+    "excerpt": "The COVID-19 pandemic has had a profound impact on the world. Explore global data and research to understand its impact, spread, and global response."
+  },
+  {
+    "id": 1792,
+    "name": "Crop Yields",
+    "slug": "crop-yields",
+    "excerpt": "Increasing crop yields is crucial to improve food security, living standards, and reduce human impacts on the environment."
+  },
+  {
+    "id": 255,
+    "name": "Democracy",
+    "slug": "democracy",
+    "excerpt": "How has democracy spread across countries? Are we moving towards a more democratic world? Explore global data and research on democracy."
+  },
+  {
+    "id": 1560,
+    "name": "Diarrheal Diseases",
+    "slug": "diarrheal-diseases",
+    "excerpt": "Diarrheal diseases are one of the leading causes of child deaths while they are largely preventable. How can we continue to make progress against these diseases?"
+  },
+  {
+    "id": 58,
+    "name": "Diet Compositions",
+    "slug": "diet-compositions",
+    "excerpt": "Explore data on diet compositions."
+  },
+  {
+    "id": 134,
+    "name": "Economic Growth",
+    "slug": "economic-growth",
+    "excerpt": "See all our data, visualizations, and writing on economic growth."
+  },
+  {
+    "id": 135,
+    "name": "Economic Inequality",
+    "slug": "economic-inequality",
+    "excerpt": "See all our data, visualizations, and writing on economic inequality."
+  },
+  {
+    "id": 147,
+    "name": "Economic Inequality by Gender",
+    "slug": "economic-inequality-by-gender",
+    "excerpt": "How big are the inequalities in pay, jobs, and wealth between men and women? What causes these differences?"
+  },
+  {
+    "id": 293,
+    "name": "Education Spending",
+    "slug": "financing-education",
+    "excerpt": "How is education financed? How much do we spend on it? What are the returns?"
+  },
+  {
+    "id": 1811,
+    "name": "Electricity Mix",
+    "slug": "electricity-mix",
+    "excerpt": "Explore data on where our electricity comes from and how this is changing."
+  },
+  {
+    "id": 40,
+    "name": "Employment in Agriculture",
+    "slug": "employment-in-agriculture",
+    "excerpt": "Explore data on employment in agriculture."
+  },
+  {
+    "id": 72,
+    "name": "Energy",
+    "slug": "energy",
+    "excerpt": "Explore our data and research on global energy."
+  },
+  {
+    "id": 1812,
+    "name": "Energy Mix",
+    "slug": "energy-mix",
+    "excerpt": "Explore global data on where our energy comes from, and how this is changing."
+  },
+  {
+    "id": 1796,
+    "name": "Environmental Impacts of Food Production",
+    "slug": "environmental-impacts-of-food",
+    "excerpt": "What are the environmental impacts of food production? How do we reduce the impacts of agriculture on the environment?"
+  },
+  {
+    "id": 11,
+    "name": "Eradication of Diseases",
+    "slug": "eradication-of-diseases",
+    "excerpt": "Which ones could we eradicate in our lifetimes and how?"
+  },
+  {
+    "id": 38,
+    "name": "Famines",
+    "slug": "famines",
+    "excerpt": "In many parts of the world famines have been common in the past. What causes famines? How can famines be averted?"
+  },
+  {
+    "id": 1801,
+    "name": "Farm Size",
+    "slug": "farm-size",
+    "excerpt": "How does farm size vary across the world? How much of farmland is held by smallholders?"
+  },
+  {
+    "id": 3,
+    "name": "Fertility Rate",
+    "slug": "fertility-rate",
+    "excerpt": "Explore changing patterns in fertility worldwide, from birth rates to parental ages, twinning rates, reproductive technologies, and more."
+  },
+  {
+    "id": 43,
+    "name": "Fertilizers",
+    "slug": "fertilizers",
+    "excerpt": "Fertilizers supply plants with nutrients that are essential for growth."
+  },
+  {
+    "id": 1795,
+    "name": "Fish & Overfishing",
+    "slug": "fish-and-overfishing",
+    "excerpt": "How are fish stocks changing across the world? How much is overfished?"
+  },
+  {
+    "id": 44,
+    "name": "Food Prices",
+    "slug": "food-prices",
+    "excerpt": "Food needs to be affordable for people, and at the same it is a key source of income for one-quarter of the world’s labor force."
+  },
+  {
+    "id": 36,
+    "name": "Food Supply",
+    "slug": "food-supply",
+    "excerpt": "How has the availability of food changed over time? How does food supply vary across the world today?"
+  },
+  {
+    "id": 229,
+    "name": "Foreign Aid",
+    "slug": "foreign-aid",
+    "excerpt": "Who gives and receives foreign aid? Which forms does it take? What are examples of when it was (un-)successful?"
+  },
+  {
+    "id": 88,
+    "name": "Forests & Deforestation",
+    "slug": "forests-and-deforestation",
+    "excerpt": "How are forests distributed across the world? How much do we lose to deforestation every year?"
+  },
+  {
+    "id": 82,
+    "name": "Fossil Fuels",
+    "slug": "fossil-fuels",
+    "excerpt": "Fossil fuels were key to industrialization and rising prosperity, but their impact on health and the climate means that we should transition away from them."
+  },
+  {
+    "id": 8,
+    "name": "Gender Ratio",
+    "slug": "gender-ratio",
+    "excerpt": "How does the number of men and women differ between countries? And why?"
+  },
+  {
+    "id": 294,
+    "name": "Global Education",
+    "slug": "global-education",
+    "excerpt": "Education has expanded widely, but large gaps in learning quality still trap many children in poverty and inequality. Explore our writing and data on global education."
+  },
+  {
+    "id": 1815,
+    "name": "Global Health",
+    "slug": "health-meta",
+    "excerpt": "An overview of our research on global health."
+  },
+  {
+    "id": 206,
+    "name": "Government Spending",
+    "slug": "government-spending",
+    "excerpt": "What do governments spend their financial resources on?"
+  },
+  {
+    "id": 159,
+    "name": "Happiness & Life Satisfaction",
+    "slug": "happiness-and-life-satisfaction",
+    "excerpt": "Self-reported life satisfaction differs widely between people and between countries. What explains these differences?"
+  },
+  {
+    "id": 22,
+    "name": "Healthcare Spending",
+    "slug": "financing-healthcare",
+    "excerpt": "How is healthcare financed? How much do we spend on it? What are the returns?"
+  },
+  {
+    "id": 13,
+    "name": "HIV/AIDS",
+    "slug": "hiv-aids",
+    "excerpt": "A global epidemic and the leading cause of death in some countries."
+  },
+  {
+    "id": 180,
+    "name": "Homelessness",
+    "slug": "homelessness",
+    "excerpt": "How many people are affected by homelessness? How is their number changing over time? Explore global data and research on homelessness."
+  },
+  {
+    "id": 279,
+    "name": "Homicides",
+    "slug": "homicides",
+    "excerpt": "How common are homicides? How does this differ across countries? And how is this changing over time? Explore global data on homicides."
+  },
+  {
+    "id": 39,
+    "name": "Human Height",
+    "slug": "human-height",
+    "excerpt": "The average height of a population can inform us about the nutrition and living conditions of populations in the past for which we have little other data."
+  },
+  {
+    "id": 285,
+    "name": "Human Rights",
+    "slug": "human-rights",
+    "excerpt": "How has the protection of human rights changed over time? How does it differ across countries, and between social groups? Explore global data on human rights."
+  },
+  {
+    "id": 37,
+    "name": "Hunger & Undernourishment",
+    "slug": "hunger-and-undernourishment",
+    "excerpt": "What are the consequences of undernourishment and how can we make progress against hunger and undernourishment?"
+  },
+  {
+    "id": 1825,
+    "name": "Illicit Drug Use",
+    "slug": "illicit-drug-use",
+    "excerpt": "How common is the use and addiction to opioids, cocaine, amphetamines and cannabis? What is the impact?"
+  },
+  {
+    "id": 89,
+    "name": "Indoor Air Pollution",
+    "slug": "indoor-air-pollution",
+    "excerpt": "Indoor air pollution – caused by the burning of firewood, crop waste, and dung for cooking and heating – is a major health risk of the world's poorest."
+  },
+  {
+    "id": 1804,
+    "name": "Influenza",
+    "slug": "influenza",
+    "excerpt": "Flu epidemics kill hundreds of thousands of people globally each year, but countries can respond and save lives with better data."
+  },
+  {
+    "id": 314,
+    "name": "Internet",
+    "slug": "internet",
+    "excerpt": "More than half of the world is online, but the Internet is still young."
+  },
+  {
+    "id": 90,
+    "name": "Land Use",
+    "slug": "land-use",
+    "excerpt": "How is humanity using the Earth’s land? And how can we decrease our land use so that more land is left for wildlife?"
+  },
+  {
+    "id": 1797,
+    "name": "Lead Pollution",
+    "slug": "lead-pollution",
+    "excerpt": "Lead pollution is a widespread problem that receives little attention. What is the scale of the problem and how can we tackle it?"
+  },
+  {
+    "id": 290,
+    "name": "LGBT+ Rights",
+    "slug": "lgbt-rights",
+    "excerpt": "How has the protection of LGBT+ rights changed over time? How does it differ across countries? Explore global data on LGBT+ rights."
+  },
+  {
+    "id": 7,
+    "name": "Life Expectancy",
+    "slug": "life-expectancy",
+    "excerpt": "People are living longer across the world, but large differences remain. Explore global data on life expectancy and how it has changed over time."
+  },
+  {
+    "id": 161,
+    "name": "Light at Night",
+    "slug": "light-at-night",
+    "excerpt": "Light at night was once expensive everywhere. In some places people are still lacking light at night, while in other places light became extremely cheap."
+  },
+  {
+    "id": 302,
+    "name": "Literacy",
+    "slug": "literacy",
+    "excerpt": "Being able to read and write opens up the world of education and knowledge.\nWhen and why did more people become literate? How can progress continue?"
+  },
+  {
+    "id": 1817,
+    "name": "Loneliness & Social Connections",
+    "slug": "social-connections-and-loneliness",
+    "excerpt": "In this topic page, we explore data on loneliness and social connections and review available evidence on the link between social connections and well-being."
+  },
+  {
+    "id": 14,
+    "name": "Malaria",
+    "slug": "malaria",
+    "excerpt": "The deadly disease transmitted by mosquitoes is one of the leading causes of death in children. How did we eliminate the disease in some world regions and how can we continue progress against malaria?"
+  },
+  {
+    "id": 325,
+    "name": "Marriages & Divorces",
+    "slug": "marriages-and-divorces",
+    "excerpt": "How is the institution of marriage changing? What percentage of marriages end in divorce? Explore global data on marriages and divorces."
+  },
+  {
+    "id": 15,
+    "name": "Maternal Mortality",
+    "slug": "maternal-mortality",
+    "excerpt": "What could be more tragic than a mother losing her life in the moment that she is giving birth to her newborn? Why are mothers dying and what can be done to prevent these deaths?"
+  },
+  {
+    "id": 67,
+    "name": "Meat & Dairy Production",
+    "slug": "meat-production",
+    "excerpt": "Meat is an important source of nutrition for people around the world. How quickly is demand growing? And what are the implications for animal welfare and the earth’s environment?"
+  },
+  {
+    "id": 35,
+    "name": "Mental Health",
+    "slug": "mental-health",
+    "excerpt": "Mental health has a significant impact on people’s lives and wellbeing. To support people with mental illnesses, we need better data to understand them."
+  },
+  {
+    "id": 86,
+    "name": "Metals & Minerals",
+    "slug": "metals-minerals",
+    "excerpt": "Which countries produce the world’s critical minerals? How is production changing over time?"
+  },
+  {
+    "id": 1603,
+    "name": "Micronutrient Deficiency",
+    "slug": "micronutrient-deficiency",
+    "excerpt": "Food is not only a source of energy and protein, but also micronutrients — vitamins and minerals — which are essential to good health. Who is most affected by the \"hidden hunger\" of micronutrient deficiency?"
+  },
+  {
+    "id": 233,
+    "name": "Migration",
+    "slug": "migration",
+    "excerpt": "Migration has been an important source of economic development and poverty reduction. Explore data on global migration."
+  },
+  {
+    "id": 1826,
+    "name": "Military Personnel & Spending",
+    "slug": "military-personnel-spending",
+    "excerpt": "How large are countries’ militaries? How much do they spend on their armed forces? Explore global data on military personnel and spending."
+  },
+  {
+    "id": 1818,
+    "name": "Mpox (monkeypox)",
+    "slug": "mpox",
+    "excerpt": "Explore data on confirmed mpox cases and deaths."
+  },
+  {
+    "id": 91,
+    "name": "Natural Disasters",
+    "slug": "natural-disasters",
+    "excerpt": "How many people die from disasters, and how are these impacts changing over time?"
+  },
+  {
+    "id": 26,
+    "name": "Neglected Tropical Diseases",
+    "slug": "neglected-tropical-diseases",
+    "excerpt": "Neglected tropical diseases affect millions of people despite the existence of cheap interventions to control them."
+  },
+  {
+    "id": 80,
+    "name": "Nuclear Energy",
+    "slug": "nuclear-energy",
+    "excerpt": "Explore global data on nuclear energy production and the safety of nuclear technologies."
+  },
+  {
+    "id": 242,
+    "name": "Nuclear Weapons",
+    "slug": "nuclear-weapons",
+    "excerpt": "How many states have nuclear weapons, and how many warheads do they have? How is this changing over time? Explore research and data on nuclear weapons."
+  },
+  {
+    "id": 62,
+    "name": "Obesity",
+    "slug": "obesity",
+    "excerpt": "When did obesity increase? How do rates vary across the world? What is the health impact?"
+  },
+  {
+    "id": 92,
+    "name": "Oil Spills",
+    "slug": "oil-spills",
+    "excerpt": "How often do oil spills happen? How did the frequency of oil spills change over time?"
+  },
+  {
+    "id": 1819,
+    "name": "Outdoor Air Pollution",
+    "slug": "outdoor-air-pollution",
+    "excerpt": "Outdoor air pollution is one of the world’s largest health and environmental problems."
+  },
+  {
+    "id": 105,
+    "name": "Ozone Layer",
+    "slug": "ozone-layer",
+    "excerpt": "Humans were emitting large amounts of gases that depleted the ozone layer. But in the 1980s the world came together to tackle the problem. Emissions have fallen by more than 99%."
+  },
+  {
+    "id": 1807,
+    "name": "Pandemics",
+    "slug": "pandemics",
+    "excerpt": "The world can respond swiftly and effectively to pandemic risks with better understanding, resources, and effort."
+  },
+  {
+    "id": 1573,
+    "name": "Pesticides",
+    "slug": "pesticides",
+    "excerpt": "Pesticides are used to protect plants from weeds, fungi, or insects. Where are they used? What is their impact?"
+  },
+  {
+    "id": 1575,
+    "name": "Plastic Pollution",
+    "slug": "plastic-pollution",
+    "excerpt": "How much plastic ends up in the ocean? Where does it come from?"
+  },
+  {
+    "id": 1821,
+    "name": "Pneumonia",
+    "slug": "pneumonia",
+    "excerpt": "Pneumonia is the leading cause of death for children younger than 5 years."
+  },
+  {
+    "id": 1563,
+    "name": "Polio",
+    "slug": "polio",
+    "excerpt": "The world has made great progress against polio and two out of three types of wild poliovirus have been eradicated. This page presents global data and research on polio and the remaining challenges in eradicating the disease."
+  },
+  {
+    "id": 1,
+    "name": "Population Growth",
+    "slug": "population-growth",
+    "excerpt": "Explore global and national data on population growth, demography, and how they are changing."
+  },
+  {
+    "id": 1602,
+    "name": "Poverty",
+    "slug": "poverty",
+    "excerpt": "In order to make progress against poverty in the future, we need to understand poverty around the world today and how it has changed."
+  },
+  {
+    "id": 81,
+    "name": "Renewable Energy",
+    "slug": "renewable-energy",
+    "excerpt": "Renewable energy sources are growing quickly and will play a vital role in tackling climate change."
+  },
+  {
+    "id": 110,
+    "name": "Research & Development",
+    "slug": "research-and-development",
+    "excerpt": "Research and development underpin nearly all of the transformative changes the world has seen."
+  },
+  {
+    "id": 1576,
+    "name": "Sanitation",
+    "slug": "sanitation",
+    "excerpt": "Safe sanitation is essential to reduce deaths from infectious diseases, prevent malnutrition, and provide dignity."
+  },
+  {
+    "id": 1557,
+    "name": "Smallpox",
+    "slug": "smallpox",
+    "excerpt": "Humanity eradicated this infectious disease globally. How was this possible?"
+  },
+  {
+    "id": 16,
+    "name": "Smoking",
+    "slug": "smoking",
+    "excerpt": "Tobacco smoking is one of the world’s largest health problems today."
+  },
+  {
+    "id": 114,
+    "name": "Space Exploration & Satellites",
+    "slug": "space-exploration-satellites",
+    "excerpt": "Space exploration and satellites have advanced our understanding of the universe but also created new risks that need ongoing research and innovation to manage."
+  },
+  {
+    "id": 1823,
+    "name": "State Capacity",
+    "slug": "state-capacity",
+    "excerpt": "Do governments worldwide have the ability to implement their policies? How has this changed over time?"
+  },
+  {
+    "id": 17,
+    "name": "Suicides",
+    "slug": "suicide",
+    "excerpt": "Suicide rates can be reduced with greater understanding and support for people at risk."
+  },
+  {
+    "id": 1582,
+    "name": "Taxation",
+    "slug": "taxation",
+    "excerpt": "Taxes are the most important source of government revenue. Who is paying how much and how do tax systems differ?"
+  },
+  {
+    "id": 111,
+    "name": "Technological Change",
+    "slug": "technological-change",
+    "excerpt": "Technological change underpins many of the developments we've seen in health, agriculture, energy, and global development."
+  },
+  {
+    "id": 244,
+    "name": "Terrorism",
+    "slug": "terrorism",
+    "excerpt": "How common is terrorism? How does this differ across countries? And how is it changing over time? Explore research and data on terrorism."
+  },
+  {
+    "id": 1639,
+    "name": "Tetanus",
+    "slug": "tetanus",
+    "excerpt": "Tetanus is a bacterial infection that leads to painful muscle contractions and possibly death."
+  },
+  {
+    "id": 1824,
+    "name": "Time Use",
+    "slug": "time-use",
+    "excerpt": "How do people across the world spend their time? How do daily activities differ across countries, and how do these differences matter for people’s lives? Explore data and research on time use."
+  },
+  {
+    "id": 231,
+    "name": "Tourism",
+    "slug": "tourism",
+    "excerpt": "How often do people travel for pleasure? What role does tourism play in economies across the world? Explore global data on tourism."
+  },
+  {
+    "id": 217,
+    "name": "Trade & Globalization",
+    "slug": "trade-and-globalization",
+    "excerpt": "How have international trade and globalization changed over time? What is the structure of global trade today, and what is its impact?"
+  },
+  {
+    "id": 1578,
+    "name": "Transport",
+    "slug": "transport",
+    "excerpt": "How are people moving around? What is its effect on the climate? Explore global data and research on transportation."
+  },
+  {
+    "id": 324,
+    "name": "Trust",
+    "slug": "trust",
+    "excerpt": "Trust is essential for effective cooperation. How does trust vary between different societies and locations and what matters for levels of trust?"
+  },
+  {
+    "id": 30,
+    "name": "Tuberculosis",
+    "slug": "tuberculosis",
+    "excerpt": "Tuberculosis is still among the most common causes of death globally. Explore global data on tuberculosis and its trends over time."
+  },
+  {
+    "id": 175,
+    "name": "Urbanization",
+    "slug": "urbanization",
+    "excerpt": "The world population is moving to cities. Why is urbanization happening and what are the consequences?"
+  },
+  {
+    "id": 18,
+    "name": "Vaccination",
+    "slug": "vaccination",
+    "excerpt": "Vaccines have saved millions of lives and transformed global health. This page presents data and research on their history, impact, and future."
+  },
+  {
+    "id": 289,
+    "name": "Violence Against Children & Children's Rights",
+    "slug": "violence-against-rights-for-children",
+    "excerpt": "How does the protection of children’s rights differ across countries? How often is violence used against them?"
+  },
+  {
+    "id": 246,
+    "name": "War & Peace",
+    "slug": "war-and-peace",
+    "excerpt": "How common are armed conflict and peace between and within countries? How is this changing over time? Explore research and data on war and peace."
+  },
+  {
+    "id": 107,
+    "name": "Waste Management",
+    "slug": "waste-management",
+    "excerpt": "Explore data on waste management."
+  },
+  {
+    "id": 102,
+    "name": "Water Use & Stress",
+    "slug": "water-use-stress",
+    "excerpt": "How much water do we use? How did it change over time?"
+  },
+  {
+    "id": 1836,
+    "name": "Wildfires",
+    "slug": "wildfires",
+    "excerpt": "Explore global and country-level data on the extent of wildfires and how they’ve changed over time."
+  },
+  {
+    "id": 1589,
+    "name": "Women's Employment",
+    "slug": "female-labor-supply",
+    "excerpt": "How does women’s labor force participation differ across countries? How has it changed over time? What is behind these differences and changes?"
+  },
+  {
+    "id": 282,
+    "name": "Women's Rights",
+    "slug": "women-rights",
+    "excerpt": "How has the protection of women’s rights changed over time? How does it differ across countries? Explore global data and research on women’s rights."
+  },
+  {
+    "id": 163,
+    "name": "Working Hours",
+    "slug": "working-hours",
+    "excerpt": "How much time do people across the world spend working? How have working hours changed over time, and what do these changes matter for people’s lives? Explore data and research on working hours."
+  }
+]
