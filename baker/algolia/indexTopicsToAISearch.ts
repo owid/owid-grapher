@@ -17,11 +17,15 @@ import parseArgs from "minimist"
 import { TopicForAISearch } from "../../db/db.js"
 import { toPlaintext } from "@ourworldindata/components"
 import { stripCustomMarkdownComponents } from "../../db/model/Gdoc/enrichedToMarkdown.js"
+import * as path from "path"
+import * as fs from "fs"
 
 interface CliArgs {
     slug?: string // Filter by slug
     invalidate?: boolean // Add timestamp to invalidate AI Search cache
     "dry-run"?: boolean // Print content without uploading
+    "full-content"?: boolean // Include intro text (default: name only)
+    "generate-json"?: boolean // Generate topics.json for CF Worker
     help?: boolean
 }
 
@@ -32,6 +36,8 @@ Usage: yarn tsx baker/algolia/indexTopicsToAISearch.ts [options]
 Options:
   --slug <slug>     Filter topics by slug (e.g., --slug climate-change)
   --dry-run         Print markdown content without uploading to R2
+  --full-content    Include intro text from topic page (default: name only)
+  --generate-json   Generate topics.json file for CF Worker LLM mode
   --invalidate      Add timestamp to markdown to invalidate AI Search cache
   --help            Show this help message
 
@@ -44,6 +50,12 @@ Examples:
 
   # Preview what would be indexed (dry run)
   yarn tsx baker/algolia/indexTopicsToAISearch.ts --slug climate-change --dry-run
+
+  # Include full intro text (for comparison)
+  yarn tsx baker/algolia/indexTopicsToAISearch.ts --full-content --dry-run
+
+  # Generate topics.json for CF Worker
+  yarn tsx baker/algolia/indexTopicsToAISearch.ts --generate-json
 
   # Force re-indexing by invalidating cache
   yarn tsx baker/algolia/indexTopicsToAISearch.ts --invalidate
@@ -93,8 +105,18 @@ function extractIntroFromMarkdown(markdown: string): string {
 
 /**
  * Build markdown content for AI Search indexing.
+ * By default, only includes the topic name for cleaner semantic matching.
+ * With fullContent=true, includes excerpt and intro text.
  */
-function buildMarkdownForAISearch(topic: TopicForAISearch): string {
+function buildMarkdownForAISearch(
+    topic: TopicForAISearch,
+    fullContent: boolean = false
+): string {
+    if (!fullContent) {
+        // Just the plain topic name, no markdown formatting
+        return topic.name
+    }
+
     const lines: string[] = []
 
     // Title (tag name)
@@ -131,7 +153,13 @@ const indexTopicsToAISearch = async () => {
     // Parse CLI arguments
     const args = parseArgs(process.argv.slice(2), {
         string: ["slug"],
-        boolean: ["help", "invalidate", "dry-run"],
+        boolean: [
+            "help",
+            "invalidate",
+            "dry-run",
+            "full-content",
+            "generate-json",
+        ],
     }) as CliArgs
 
     if (args.help) {
@@ -142,6 +170,34 @@ const indexTopicsToAISearch = async () => {
     const slugFilter = args.slug
     const addTimestamp = args.invalidate || false
     const dryRun = args["dry-run"] || false
+    const fullContent = args["full-content"] || false
+    const generateJson = args["generate-json"] || false
+
+    // Generate topics.json for CF Worker
+    if (generateJson) {
+        console.log("Generating topics.json for CF Worker...")
+
+        const topics = await db.knexReadonlyTransaction(
+            async (trx) => db.getTopicsForAISearch(trx),
+            db.TransactionCloseMode.Close
+        )
+
+        const topicsData = topics.map((topic) => ({
+            id: topic.id,
+            name: topic.name,
+            slug: topic.slug,
+            excerpt: topic.excerpt,
+        }))
+
+        const outputPath = path.join(
+            process.cwd(),
+            "functions/api/ai-search/topics/topics.json"
+        )
+
+        fs.writeFileSync(outputPath, JSON.stringify(topicsData, null, 2))
+        console.log(`Generated ${outputPath} with ${topicsData.length} topics`)
+        return
+    }
 
     if (!dryRun && (!R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY)) {
         console.error(
@@ -159,6 +215,11 @@ const indexTopicsToAISearch = async () => {
     }
     if (slugFilter) {
         console.log(`  Filtering by slug: ${slugFilter}`)
+    }
+    if (fullContent) {
+        console.log(`  Including full content (excerpt + intro)`)
+    } else {
+        console.log(`  Name only (use --full-content for more)`)
     }
     if (addTimestamp) {
         console.log(`  Adding timestamp to invalidate cache`)
@@ -196,7 +257,7 @@ const indexTopicsToAISearch = async () => {
     // Upload each topic to R2 (or print in dry-run mode)
     for (const topic of topics) {
         const key = `topics/${topic.slug}.md`
-        const markdown = buildMarkdownForAISearch(topic)
+        const markdown = buildMarkdownForAISearch(topic, fullContent)
 
         const metadata: TopicMetadata = {
             id: topic.id,
@@ -229,7 +290,9 @@ const indexTopicsToAISearch = async () => {
     }
 
     if (dryRun) {
-        console.log(`\nDry run complete. ${topics.length} topics would be uploaded.`)
+        console.log(
+            `\nDry run complete. ${topics.length} topics would be uploaded.`
+        )
     } else {
         console.log(`Successfully uploaded ${topics.length} topics to R2`)
     }

@@ -6,9 +6,13 @@ import {
     AISearchResult,
     AISearchResponse,
 } from "../utils.js"
+import topicsData from "./topics.json"
 
 // Name of the AI Search instance in Cloudflare dashboard
 const AI_SEARCH_INSTANCE_NAME = "search-topics"
+
+// Pre-build topics list for LLM (cacheable in system message)
+const TOPICS_LIST = topicsData.map((t) => `- ${t.name}`).join("\n")
 
 const DEFAULT_LIMIT = 10
 const MAX_LIMIT = 50
@@ -40,6 +44,8 @@ interface TopicsApiResponse {
     query: string
     hits: TopicHit[]
     nbHits: number
+    mode: "semantic" | "llm"
+    timing_ms: number
 }
 
 /**
@@ -105,7 +111,7 @@ function transformToTopicsApiFormat(
     results: AISearchResponse,
     limit: number,
     baseUrl: string
-): TopicsApiResponse {
+): Omit<TopicsApiResponse, "mode" | "timing_ms"> {
     const hits: TopicHit[] = results.data.map((result, index) => {
         const topicData = parseTopicData(result)
         const slug = topicData.slug || extractSlugFromFilename(result.filename)
@@ -141,16 +147,90 @@ function transformToTopicsApiFormat(
     }
 }
 
+/**
+ * Recommend topics using LLM
+ */
+async function recommendTopicsWithLLM(
+    env: Env,
+    query: string,
+    limit: number,
+    baseUrl: string
+): Promise<TopicHit[]> {
+    const systemMessage = `Here are all available topics:\n${TOPICS_LIST}`
+    const userMessage = `Given this query: "${query}"\n\nRecommend the most relevant topics (0-${limit}) that match this query.\nReturn ONLY a JSON array of topic names.`
+
+    let response: any
+    try {
+        // Try llama-3.1-8b-instruct-fast which is more commonly available
+        response = await env.AI.run("@cf/meta/llama-3.1-8b-instruct-fast", {
+            messages: [
+                { role: "system", content: systemMessage },
+                { role: "user", content: userMessage },
+            ],
+            temperature: 0.1,
+            max_tokens: 500,
+        })
+    } catch (error) {
+        console.error("LLM API error:", error)
+        return []
+    }
+
+    // Parse LLM response - extract JSON array
+    const text = typeof response === "string" ? response : (response.response || "")
+    if (!text || typeof text !== "string") {
+        console.log("LLM response type issue:", typeof response, response)
+        return []
+    }
+
+    console.log("LLM response text:", text)
+
+    const jsonMatch = text.match(/\[[\s\S]*?\]/)
+    if (!jsonMatch) {
+        console.log("No JSON array found in LLM response")
+        return []
+    }
+
+    try {
+        const recommendedNames = JSON.parse(jsonMatch[0]) as string[]
+        console.log("Recommended names:", recommendedNames)
+
+        // Map names back to topic objects
+        const hits = recommendedNames
+            .map((name, index) => {
+                const topic = topicsData.find((t) => t.name === name)
+                if (!topic) return null
+                return {
+                    id: topic.id,
+                    name: topic.name,
+                    slug: topic.slug,
+                    excerpt: topic.excerpt,
+                    url: `${baseUrl}/${topic.slug}`,
+                    __position: index + 1,
+                    score: 1.0 - index * 0.05, // Synthetic score
+                }
+            })
+            .filter((hit): hit is TopicHit => hit !== null)
+            .slice(0, limit)
+
+        return hits
+    } catch {
+        return []
+    }
+}
+
 // Valid query parameter names for this endpoint
 const VALID_PARAMS = new Set([
     COMMON_SEARCH_PARAMS.QUERY, // "q"
     "limit",
+    "mode",
 ])
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
     const { env, request } = context
     const url = new URL(request.url)
     const baseUrl = getBaseUrl(request)
+
+    const startTime = performance.now()
 
     try {
         // Validate query parameters - reject unknown params to catch typos
@@ -159,6 +239,26 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
         // Parse query parameter
         const query = url.searchParams.get(COMMON_SEARCH_PARAMS.QUERY) || ""
+
+        // Parse mode parameter
+        const mode = (url.searchParams.get("mode") || "semantic") as
+            | "semantic"
+            | "llm"
+        if (mode !== "semantic" && mode !== "llm") {
+            return new Response(
+                JSON.stringify({
+                    error: "Invalid mode parameter",
+                    details: "Mode must be 'semantic' or 'llm'",
+                }),
+                {
+                    status: 400,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Access-Control-Allow-Origin": "*",
+                    },
+                }
+            )
+        }
 
         // Parse limit parameter
         const limit = Math.min(
@@ -171,24 +271,52 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             MAX_LIMIT
         )
 
-        // Fetch more results than requested for better relevance sorting
-        const fetchSize = Math.min(limit + 10, MAX_LIMIT)
+        let response: TopicsApiResponse
 
-        // Call AI Search via the AI binding
-        const results = (await env.AI.autorag(AI_SEARCH_INSTANCE_NAME).search({
-            query,
-            max_num_results: fetchSize,
-            ranking_options: {
-                score_threshold: 0.1,
-            },
-        })) as AISearchResponse
+        if (mode === "llm") {
+            // LLM-based recommendations
+            const hits = await recommendTopicsWithLLM(
+                env,
+                query,
+                limit,
+                baseUrl
+            )
+            const timing_ms = Math.round(performance.now() - startTime)
+            response = {
+                query,
+                hits,
+                nbHits: hits.length,
+                mode: "llm",
+                timing_ms,
+            }
+        } else {
+            // Semantic search via AI Search
+            const fetchSize = Math.min(limit + 10, MAX_LIMIT)
 
-        const response = transformToTopicsApiFormat(
-            query,
-            results,
-            limit,
-            baseUrl
-        )
+            const results = (await env.AI.autorag(
+                AI_SEARCH_INSTANCE_NAME
+            ).search({
+                query,
+                max_num_results: fetchSize,
+                ranking_options: {
+                    score_threshold: 0.1,
+                },
+            })) as AISearchResponse
+
+            const searchResponse = transformToTopicsApiFormat(
+                query,
+                results,
+                limit,
+                baseUrl
+            )
+
+            const timing_ms = Math.round(performance.now() - startTime)
+            response = {
+                ...searchResponse,
+                mode: "semantic",
+                timing_ms,
+            }
+        }
 
         return new Response(JSON.stringify(response, null, 2), {
             headers: {
