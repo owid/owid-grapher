@@ -74,10 +74,10 @@ import { MapConfig } from "../mapCharts/MapConfig"
 import { match } from "ts-pattern"
 import {
     entityRegionTypeLabels,
-    EntityNamesByRegionType,
+    EntitiesByRegionType,
     EntityRegionType,
-    EntityRegionTypeGroup,
-    isAggregateSource,
+    RegionGroup,
+    isRegionDataProvider,
 } from "../core/EntitiesByRegionType"
 import { SearchField } from "../controls/SearchField"
 import { MAP_REGION_LABELS } from "../mapCharts/MapChartConstants.js"
@@ -126,8 +126,8 @@ export interface EntitySelectorManager {
     onSelectEntity?: (entityName: EntityName) => void
     onDeselectEntity?: (entityName: EntityName) => void
     onClearEntities?: () => void
-    entityRegionTypeGroups?: EntityRegionTypeGroup[]
-    entityNamesByRegionType?: EntityNamesByRegionType
+    regionGroups?: RegionGroup[]
+    entitiesByRegionType?: EntitiesByRegionType
     isReady?: boolean
     logEntitySelectorEvent: (
         action: EntitySelectorEvent,
@@ -581,7 +581,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
     }
 
     @computed private get searchPlaceholderEntityType(): string {
-        if (isAggregateSource(this.entityFilter)) return "region"
+        if (isRegionDataProvider(this.entityFilter)) return "region"
 
         return match(this.entityFilter)
             .with("all", () => this.entityType.singular)
@@ -1035,7 +1035,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
             })
 
         const entityNameSet = new Set(
-            this.manager.entityNamesByRegionType?.get(entityFilter) ?? []
+            this.manager.entitiesByRegionType?.get(entityFilter) ?? []
         )
         const filteredAvailableEntities = availableEntities.filter((entity) =>
             entityNameSet.has(entity.name)
@@ -1295,9 +1295,9 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
     }
 
     @computed get filterOptions(): FilterDropdownOption[] {
-        const { entityRegionTypeGroups = [] } = this.manager
+        const { regionGroups = [] } = this.manager
 
-        const options: FilterDropdownOption[] = entityRegionTypeGroups
+        const options: FilterDropdownOption[] = regionGroups
             .map(({ regionType, entityNames }) => ({
                 value: regionType,
                 label: entityRegionTypeLabels[regionType],

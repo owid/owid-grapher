@@ -8,7 +8,7 @@ import { OwidTable } from "@ourworldindata/core-table"
 import { SelectionArray } from "../selection/SelectionArray"
 import { makeSelectionArray } from "../chart/ChartUtils"
 import {
-    EntityRegionTypeGroup,
+    RegionGroup,
     entityRegionTypeLabels,
 } from "../core/EntitiesByRegionType"
 
@@ -19,7 +19,7 @@ export interface DataTableFilterDropdownManager {
     dataTableSelection?: SelectionArray | EntityName[]
     canChangeAddOrHighlightEntities?: boolean
     shouldShowSelectionOnlyInDataTable?: boolean
-    entityRegionTypeGroups?: EntityRegionTypeGroup[]
+    regionGroups?: RegionGroup[]
     isSemiNarrow?: boolean
 }
 
@@ -101,9 +101,9 @@ export class DataTableFilterDropdown extends React.Component<{
             })
         }
 
-        if (this.manager.entityRegionTypeGroups) {
+        if (this.manager.regionGroups) {
             options.push(
-                ...this.manager.entityRegionTypeGroups
+                ...this.manager.regionGroups
                     .map(
                         ({ regionType, entityNames }) =>
                             ({

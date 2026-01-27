@@ -10,7 +10,7 @@ it("detects regions based on their suffix", () => {
         ],
     })
     const grapher = new GrapherState({ table })
-    expect(grapher.entityNamesByRegionType.get("wb")).toEqual([
+    expect(grapher.entitiesByRegionType.get("wb")).toEqual([
         "Europe and Central Asia (WB)",
         "Europe & Central Asia (WB)",
     ])

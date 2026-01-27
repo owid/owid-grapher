@@ -172,9 +172,9 @@ import {
 } from "../timeline/TimelineController.js"
 import { TooltipManager } from "../tooltip/TooltipProps.js"
 import {
-    EntityRegionTypeGroup,
-    groupEntityNamesByRegionType,
-    EntityNamesByRegionType,
+    RegionGroup,
+    groupEntitiesByRegionType,
+    EntitiesByRegionType,
     isEntityRegionType,
 } from "./EntitiesByRegionType.js"
 import {
@@ -1066,7 +1066,7 @@ export class GrapherState
                     : availableEntities
             )
             .when(isEntityRegionType, (filter) => {
-                const regionNames = this.entityNamesByRegionType.get(filter)
+                const regionNames = this.entitiesByRegionType.get(filter)
                 return regionNames ?? availableEntities
             })
             .exhaustive()
@@ -3106,13 +3106,13 @@ export class GrapherState
         }
     }
 
-    @computed get entityRegionTypeGroups(): EntityRegionTypeGroup[] {
-        return groupEntityNamesByRegionType(this.availableEntityNames)
+    @computed get regionGroups(): RegionGroup[] {
+        return groupEntitiesByRegionType(this.availableEntityNames)
     }
 
-    @computed get entityNamesByRegionType(): EntityNamesByRegionType {
+    @computed get entitiesByRegionType(): EntitiesByRegionType {
         return new Map(
-            this.entityRegionTypeGroups.map(({ regionType, entityNames }) => [
+            this.regionGroups.map(({ regionType, entityNames }) => [
                 regionType,
                 entityNames,
             ])
