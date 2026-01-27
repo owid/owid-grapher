@@ -12,7 +12,8 @@ fields:
         description: The slug of the explorer this view belongs to. References explorers.slug
     viewId:
         description: |
-            Human-readable identifier for this specific view within the explorer.
+            Canonical identifier for this specific view within the explorer,
+            derived from the full dimensions object using sorted key=value pairs.
     dimensions:
         description: |
             JSON object containing the specific parameter choices for this view (e.g., {"energySource": "solar", "metric": "absolute energy"}).

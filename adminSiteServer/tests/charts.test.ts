@@ -270,10 +270,10 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
             MultiDimXChartConfigsTableName
         )
         expect(mdxcc1.multiDimId).toBe(mdim.id)
-        expect(mdxcc1.viewId).toBe("total__all")
+        expect(mdxcc1.viewId).toBe("metric=total__source=all")
         expect(mdxcc1.variableId).toBe(variableId)
         expect(mdxcc2.multiDimId).toBe(mdim.id)
-        expect(mdxcc2.viewId).toBe("per_capita__all")
+        expect(mdxcc2.viewId).toBe("metric=per_capita__source=all")
         expect(mdxcc2.variableId).toBe(otherVariableId)
 
         // view config should override the variable config

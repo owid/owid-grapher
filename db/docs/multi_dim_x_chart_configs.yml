@@ -9,7 +9,9 @@ fields:
     multiDimId:
         description: Foreign key to multi_dim_data_pages table
     viewId:
-        description: View identifier within the multi-dimensional page
+        description: |
+            Canonical view identifier derived from the dimensions object using
+            sorted key=value pairs.
     variableId:
         description: Foreign key to variables table for the variable being visualized
     chartConfigId:
