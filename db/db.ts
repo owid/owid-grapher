@@ -1231,3 +1231,57 @@ export const getUniqueTopicCount = async (
     if (!count) throw new Error("Failed to get unique topic count")
     return count
 }
+
+/**
+ * Data structure for topics to be indexed in AI Search
+ */
+export interface TopicForAISearch {
+    id: number
+    name: string
+    slug: string
+    excerpt: string
+    markdown: string
+}
+
+/**
+ * Get topics (tags with associated topic pages) for AI Search indexing.
+ * Returns tags that have a matching published topic page (TopicPage or LinearTopicPage).
+ */
+export async function getTopicsForAISearch(
+    knex: KnexReadonlyTransaction
+): Promise<TopicForAISearch[]> {
+    const rows = await knexRaw<{
+        id: number
+        name: string
+        slug: string
+        excerpt: string | null
+        markdown: string | null
+    }>(
+        knex,
+        `-- sql
+        SELECT
+            t.id,
+            t.name,
+            t.slug,
+            JSON_UNQUOTE(JSON_EXTRACT(p.content, '$.excerpt')) AS excerpt,
+            p.markdown
+        FROM tags t
+        JOIN posts_gdocs p ON t.slug = p.slug
+        WHERE
+            t.slug IS NOT NULL
+            AND p.published = 1
+            AND p.type IN (:types)
+        ORDER BY t.name ASC`,
+        {
+            types: [OwidGdocType.TopicPage, OwidGdocType.LinearTopicPage],
+        }
+    )
+
+    return rows.map((row) => ({
+        id: row.id,
+        name: row.name,
+        slug: row.slug,
+        excerpt: row.excerpt ?? "",
+        markdown: row.markdown ?? "",
+    }))
+}
