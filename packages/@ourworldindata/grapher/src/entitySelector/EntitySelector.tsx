@@ -73,12 +73,12 @@ import * as R from "remeda"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { match } from "ts-pattern"
 import {
-    entityRegionTypeLabels,
-    EntityNamesByRegionType,
-    EntityRegionType,
-    EntityRegionTypeGroup,
-    isAggregateSource,
-} from "../core/EntitiesByRegionType"
+    regionGroupLabels,
+    EntitiesByRegionGroup,
+    RegionGroupKey,
+    RegionGroup,
+    isRegionDataProviderKey,
+} from "../core/RegionGroups"
 import { SearchField } from "../controls/SearchField"
 import { MAP_REGION_LABELS } from "../mapCharts/MapChartConstants.js"
 import {
@@ -88,7 +88,7 @@ import {
 
 export type CoreColumnBySlug = Record<ColumnSlug, CoreColumn>
 
-type EntityFilter = EntityRegionType | "all"
+type EntityFilter = RegionGroupKey | "all"
 
 type ValueBySlugAndTimeAndEntityName<T> = Map<
     ColumnSlug,
@@ -126,8 +126,8 @@ export interface EntitySelectorManager {
     onSelectEntity?: (entityName: EntityName) => void
     onDeselectEntity?: (entityName: EntityName) => void
     onClearEntities?: () => void
-    entityRegionTypeGroups?: EntityRegionTypeGroup[]
-    entityNamesByRegionType?: EntityNamesByRegionType
+    regionGroups?: RegionGroup[]
+    entitiesByRegionGroup?: EntitiesByRegionGroup
     isReady?: boolean
     logEntitySelectorEvent: (
         action: EntitySelectorEvent,
@@ -581,7 +581,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
     }
 
     @computed private get searchPlaceholderEntityType(): string {
-        if (isAggregateSource(this.entityFilter)) return "region"
+        if (isRegionDataProviderKey(this.entityFilter)) return "region"
 
         return match(this.entityFilter)
             .with("all", () => this.entityType.singular)
@@ -1036,7 +1036,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
             })
 
         const entityNameSet = new Set(
-            this.manager.entityNamesByRegionType?.get(entityFilter) ?? []
+            this.manager.entitiesByRegionGroup?.get(entityFilter) ?? []
         )
         const filteredAvailableEntities = availableEntities.filter((entity) =>
             entityNameSet.has(entity.name)
@@ -1296,12 +1296,12 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
     }
 
     @computed get filterOptions(): FilterDropdownOption[] {
-        const { entityRegionTypeGroups = [] } = this.manager
+        const { regionGroups = [] } = this.manager
 
-        const options: FilterDropdownOption[] = entityRegionTypeGroups
-            .map(({ regionType, entityNames }) => ({
-                value: regionType,
-                label: entityRegionTypeLabels[regionType],
+        const options: FilterDropdownOption[] = regionGroups
+            .map(({ regionGroupKey, entityNames }) => ({
+                value: regionGroupKey,
+                label: regionGroupLabels[regionGroupKey],
                 count: entityNames.filter((entityName) =>
                     this.availableEntityNameSet.has(entityName)
                 ).length,

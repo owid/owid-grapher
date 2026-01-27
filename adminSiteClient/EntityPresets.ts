@@ -2,13 +2,13 @@ import { EntityName } from "@ourworldindata/types"
 import {
     getContinents,
     getIncomeGroups,
-    getAggregatesBySource,
-    AggregateSource,
-    AGGREGATE_SOURCES,
+    getAggregatesByProvider,
+    RegionDataProvider,
+    REGION_DATA_PROVIDERS,
 } from "@ourworldindata/utils"
 import {
-    CUSTOM_REGION_SOURCE_IDS,
-    CustomAggregateSource,
+    ADDITIONAL_REGION_DATA_PROVIDERS,
+    AdditionalRegionDataProvider,
 } from "@ourworldindata/grapher"
 import { CoreColumn } from "@ourworldindata/core-table"
 import * as _ from "lodash-es"
@@ -20,7 +20,7 @@ export interface EntityPreset {
     entities: EntityName[]
 }
 
-const AGGREGATE_SOURCE_LABELS: Record<AggregateSource, string> = {
+const REGION_DATA_PROVIDER_LABELS: Record<RegionDataProvider, string> = {
     un: "UN regions",
     wb: "WB regions",
     who: "WHO regions",
@@ -31,7 +31,10 @@ const AGGREGATE_SOURCE_LABELS: Record<AggregateSource, string> = {
     unsdg: "UN SDG regions",
 }
 
-const CUSTOM_SOURCE_LABELS: Record<CustomAggregateSource, string> = {
+const ADDITIONAL_REGION_DATA_PROVIDER_LABELS: Record<
+    AdditionalRegionDataProvider,
+    string
+> = {
     fao: "FAO regions",
     ei: "EI regions",
     pip: "PIP regions",
@@ -48,11 +51,11 @@ const CUSTOM_SOURCE_LABELS: Record<CustomAggregateSource, string> = {
 }
 
 /** Extracts entities matching a custom source pattern like "Africa (FAO)" */
-function getEntitiesForCustomSource(
+function getEntitiesForAdditionalProvider(
     availableEntities: EntityName[],
-    sourceId: CustomAggregateSource
+    provider: AdditionalRegionDataProvider
 ): EntityName[] {
-    const suffix = ` (${sourceId.toLowerCase()})`
+    const suffix = ` (${provider.toLowerCase()})`
     return availableEntities.filter((name) =>
         name.trim().toLowerCase().endsWith(suffix)
     )
@@ -102,12 +105,12 @@ export const STATIC_ENTITY_PRESETS: EntityPreset[] = [
         entities: getIncomeGroups().map((r) => r.name),
     },
     // Add all aggregate sources
-    ...AGGREGATE_SOURCES.map(
-        (source): EntityPreset => ({
-            id: source,
-            label: AGGREGATE_SOURCE_LABELS[source],
-            description: `Regions defined by ${source.toUpperCase()}`,
-            entities: getAggregatesBySource(source).map((r) => r.name),
+    ...REGION_DATA_PROVIDERS.map(
+        (provider): EntityPreset => ({
+            id: provider,
+            label: REGION_DATA_PROVIDER_LABELS[provider],
+            description: `Regions defined by ${provider.toUpperCase()}`,
+            entities: getAggregatesByProvider(provider).map((r) => r.name),
         })
     ),
 ]
@@ -136,21 +139,25 @@ export function getAvailablePresets(
     }).filter(({ entities }) => entities.length >= 3)
 
     // Check custom region sources (entities like "Africa (FAO)")
-    const customPresets = CUSTOM_REGION_SOURCE_IDS.map((sourceId) => {
-        const entities = getEntitiesForCustomSource(
-            availableEntityNames,
-            sourceId
-        )
-        const preset: EntityPreset = {
-            id: `custom_${sourceId}`,
-            label: CUSTOM_SOURCE_LABELS[sourceId],
-            description: `Regions defined by ${sourceId.toUpperCase()}`,
-            entities,
-        }
-        return { preset, entities }
-    }).filter(({ entities }) => entities.length >= 3)
+    const additionalPresets = ADDITIONAL_REGION_DATA_PROVIDERS.map(
+        (provider) => {
+            const entities = getEntitiesForAdditionalProvider(
+                availableEntityNames,
+                provider
+            )
 
-    return [...staticPresets, ...customPresets]
+            const preset: EntityPreset = {
+                id: `custom_${provider}`,
+                label: ADDITIONAL_REGION_DATA_PROVIDER_LABELS[provider],
+                description: `Regions defined by ${provider.toUpperCase()}`,
+                entities,
+            }
+
+            return { preset, entities }
+        }
+    ).filter(({ entities }) => entities.length >= 3)
+
+    return [...staticPresets, ...additionalPresets]
 }
 
 /**

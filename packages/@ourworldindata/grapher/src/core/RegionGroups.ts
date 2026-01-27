@@ -1,41 +1,49 @@
 import * as _ from "lodash-es"
 import { EntityName } from "@ourworldindata/types"
 import {
-    AggregateSource,
-    AGGREGATE_SOURCES,
+    RegionDataProvider,
+    REGION_DATA_PROVIDERS,
     Country,
     excludeUndefined,
     getRegionByName,
 } from "@ourworldindata/utils"
 import {
-    CUSTOM_REGION_SOURCE_IDS,
-    CustomAggregateSource,
+    ADDITIONAL_REGION_DATA_PROVIDERS,
+    AdditionalRegionDataProvider,
     isWorldEntityName,
 } from "./GrapherConstants"
 import * as R from "remeda"
 
-const customAggregateSources = CUSTOM_REGION_SOURCE_IDS.filter(
-    (source) => !AGGREGATE_SOURCES.includes(source as AggregateSource)
+const additionalRegionDataProviders = ADDITIONAL_REGION_DATA_PROVIDERS.filter(
+    (source) => !REGION_DATA_PROVIDERS.includes(source as RegionDataProvider)
 )
 
-const entityRegionTypes = [
+const regionDataProviders = [
+    ...REGION_DATA_PROVIDERS,
+    ...additionalRegionDataProviders,
+]
+const regionDataProviderSet = new Set(regionDataProviders)
+
+const regionGroupKeys = [
     "countries",
     "continents", // owid continents
     "incomeGroups",
     "historicalCountries", // e.g. USSR, Austria-Hungary
-    ...AGGREGATE_SOURCES,
-    ...customAggregateSources,
+    ...REGION_DATA_PROVIDERS,
+    ...additionalRegionDataProviders,
 ] as const
-export type EntityRegionType = (typeof entityRegionTypes)[number]
+export type RegionGroupKey = (typeof regionGroupKeys)[number]
 
-export interface EntityRegionTypeGroup {
-    regionType: EntityRegionType
+export interface RegionGroup {
+    regionGroupKey: RegionGroupKey
     entityNames: EntityName[]
 }
 
-export type EntityNamesByRegionType = Map<EntityRegionType, EntityName[]>
+export type EntitiesByRegionGroup = Map<RegionGroupKey, EntityName[]>
 
-export const entityRegionTypeLabels: Record<EntityRegionType, string> = {
+type AnyRegionDataProvider = RegionDataProvider | AdditionalRegionDataProvider
+
+export const regionGroupLabels: Record<RegionGroupKey, string> = {
     countries: "Countries",
     continents: "Continents", // OWID-defined continents
     incomeGroups: "Income groups",
@@ -67,52 +75,59 @@ export const entityRegionTypeLabels: Record<EntityRegionType, string> = {
     oecd: "OECD regions", // Organisation for Economic Co-operation and Development
 }
 
-export function groupEntityNamesByRegionType(
+function toProviderKey(
+    providerSuffix: string
+): AnyRegionDataProvider | undefined {
+    const candidate = providerSuffix.toLowerCase().replaceAll(" ", "")
+    return isRegionDataProviderKey(candidate) ? candidate : undefined
+}
+
+export function groupEntitiesByRegionType(
     entityNames: EntityName[]
-): EntityRegionTypeGroup[] {
-    // the 'World' entity shouldn't show up in any of the groups
+): RegionGroup[] {
+    // The 'World' entity shouldn't show up in any of the groups
     const availableEntityNames = entityNames.filter(
         (entityName) => !isWorldEntityName(entityName)
     )
 
-    // map entities to their regions
+    // Map entities to their regions
     const availableRegions = excludeUndefined(
         availableEntityNames.map((entityName) => getRegionByName(entityName))
     )
 
-    // group regions by type
+    // Group regions by type
     const regionsGroupedByType = _.groupBy(
         availableRegions,
         (r) => r.regionType
     )
 
-    const entitiesByType: EntityRegionTypeGroup[] = []
+    const entitiesByRegionGroup: RegionGroup[] = []
 
-    // split countries into historical and non-historical
+    // Split countries into historical and non-historical
     const [historicalCountries, nonHistoricalCountries] = R.partition(
         regionsGroupedByType.country ?? [],
         (country) => !!(country as Country).isHistorical
     )
 
-    // add the 'countries' group
+    // Add the 'countries' group
     if (nonHistoricalCountries.length > 0) {
-        entitiesByType.push({
-            regionType: "countries",
+        entitiesByRegionGroup.push({
+            regionGroupKey: "countries",
             entityNames: nonHistoricalCountries.map((region) => region.name),
         })
     }
 
-    // add the 'continents' group
+    // Add the 'continents' group
     if (regionsGroupedByType.continent) {
-        entitiesByType.push({
-            regionType: "continents",
+        entitiesByRegionGroup.push({
+            regionGroupKey: "continents",
             entityNames: regionsGroupedByType.continent.map(
                 (region) => region.name
             ),
         })
     }
 
-    // add the 'incomeGroups' group
+    // Add the 'incomeGroups' group
     if (regionsGroupedByType.income_group) {
         // match by name instead of relying on the regions file because
         // some charts have income groups that aren't listed in the regions
@@ -124,59 +139,75 @@ export function groupEntityNamesByRegionType(
                 entityName.includes("income group")
         )
 
-        entitiesByType.push({
-            regionType: "incomeGroups",
+        entitiesByRegionGroup.push({
+            regionGroupKey: "incomeGroups",
             entityNames: incomeGroups,
         })
     }
 
-    const entitiesBySource = new Map<
-        AggregateSource | CustomAggregateSource,
-        EntityName[]
-    >()
+    const entitiesByProvider = new Map<AnyRegionDataProvider, EntityName[]>()
     for (const entityName of availableEntityNames) {
-        // The regions file includes a definedBy field for aggregates,
-        // which could be used here. However, non-OWID regions aren't
-        // standardized, meaning we might miss some entities.
-        // Instead, we rely on the convention that non-OWID regions
-        // are suffixed with (source) and check the entity name.
-        const match = entityName.match(/\(([^)]+)\)$/)
-        const sourceCandidate = match?.[1].toLowerCase().replaceAll(" ", "")
-        if (sourceCandidate && isAggregateSource(sourceCandidate)) {
-            if (!entitiesBySource.get(sourceCandidate))
-                entitiesBySource.set(sourceCandidate, [])
-            entitiesBySource.get(sourceCandidate)!.push(entityName)
+        const parsedEntityName = parseEntityName(entityName)
+        if (parsedEntityName.type === "regionWithProviderSuffix") {
+            const providerKey = parsedEntityName.providerKey
+            if (!entitiesByProvider.get(providerKey))
+                entitiesByProvider.set(providerKey, [])
+            entitiesByProvider.get(providerKey)!.push(entityName)
         }
     }
 
-    for (const [source, entityNames] of entitiesBySource) {
-        entitiesByType.push({ regionType: source, entityNames })
+    for (const [provider, entityNames] of entitiesByProvider) {
+        entitiesByRegionGroup.push({ regionGroupKey: provider, entityNames })
     }
 
-    // add a group for historical countries
+    // Add a group for historical countries
     if (historicalCountries.length > 0) {
-        entitiesByType.push({
-            regionType: "historicalCountries",
+        entitiesByRegionGroup.push({
+            regionGroupKey: "historicalCountries",
             entityNames: historicalCountries.map((region) => region.name),
         })
     }
 
-    return entitiesByType
+    return entitiesByRegionGroup
 }
 
-const aggregateSourceSet = new Set([
-    ...AGGREGATE_SOURCES,
-    ...customAggregateSources,
-])
+type ParsedEntityName =
+    | { type: "plain"; name: string; suffix?: string }
+    | {
+          type: "regionWithProviderSuffix"
+          name: string
+          suffix: string
+          providerKey: AnyRegionDataProvider
+      }
 
-export function isAggregateSource(
-    candidate: string
-): candidate is AggregateSource | CustomAggregateSource {
-    return aggregateSourceSet.has(candidate as any)
+export function parseEntityName(entityName: string): ParsedEntityName {
+    const match = entityName.match(/^(.+)\s+\(([^)]+)\)$/)
+    if (!match) return { type: "plain", name: entityName }
+
+    const [, name, suffix] = match
+
+    if (!suffix) return { type: "plain", name: entityName }
+
+    const providerKey = toProviderKey(suffix)
+    if (!providerKey || !isRegionDataProviderKey(providerKey))
+        return { type: "plain", name: entityName, suffix }
+
+    return {
+        type: "regionWithProviderSuffix",
+        name,
+        suffix,
+        providerKey,
+    }
 }
 
-export function isEntityRegionType(
+export function isRegionDataProviderKey(
     candidate: string
-): candidate is EntityRegionType {
-    return entityRegionTypes.includes(candidate as any)
+): candidate is AnyRegionDataProvider {
+    return regionDataProviderSet.has(candidate as any)
+}
+
+export function isEntityRegionGroupKey(
+    candidate: string
+): candidate is RegionGroupKey {
+    return regionGroupKeys.includes(candidate as any)
 }
