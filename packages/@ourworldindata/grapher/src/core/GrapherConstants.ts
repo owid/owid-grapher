@@ -112,19 +112,19 @@ const population_regex =
     /^grapher\/demography\/[\d-]+\/population\/(population#population|historical#population_historical)$/
 
 /**
- * Manually configured list of sources that define geographic regions.
+ * Manually configured list of providers that define geographic regions.
  *
- * By convention, entities are named with the format 'RegionName (Source)',
+ * By convention, entities are named with the format 'RegionName (Provider)',
  * such as 'Africa (UN)' or 'Africa (FAO)'.
  *
- * These source identifiers are used to compile group of regions for the
+ * These provider identifiers are used to compile groups of regions for the
  * filter dropdown in the entity selector and on the data tab.
  *
  * Ideally, all regions would be defined in the ETL's regions file,
  * but currently we need to maintain this manual configuration until the
  * regions file is more complete.
  */
-export const CUSTOM_REGION_SOURCE_IDS = [
+export const ADDITIONAL_REGION_DATA_PROVIDERS = [
     "fao",
     "ei",
     "pip",
@@ -140,7 +140,8 @@ export const CUSTOM_REGION_SOURCE_IDS = [
     "unm49",
 ] as const
 
-export type CustomAggregateSource = (typeof CUSTOM_REGION_SOURCE_IDS)[number]
+export type AdditionalRegionDataProvider =
+    (typeof ADDITIONAL_REGION_DATA_PROVIDERS)[number]
 
 export const isPopulationVariableETLPath = (path: string): boolean => {
     return population_regex.test(path)

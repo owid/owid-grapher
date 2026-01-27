@@ -5,7 +5,7 @@ import a from "indefinite"
 import { DataTableConfig } from "../dataTable/DataTableConstants"
 import { SearchField } from "./SearchField"
 import { DEFAULT_GRAPHER_ENTITY_TYPE } from "../core/GrapherConstants"
-import { isAggregateSource } from "../core/EntitiesByRegionType"
+import { isRegionDataProviderKey } from "../core/RegionGroups"
 import { match } from "ts-pattern"
 
 export interface DataTableSearchFieldManager {
@@ -45,7 +45,7 @@ export class DataTableSearchField extends React.Component<{
     }
 
     @computed private get placeholderEntityType(): string {
-        if (isAggregateSource(this.config.filter)) return "region"
+        if (isRegionDataProviderKey(this.config.filter)) return "region"
 
         return match(this.config.filter)
             .with("all", () => this.entityType)
