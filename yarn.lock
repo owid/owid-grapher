@@ -3065,7 +3065,7 @@ __metadata:
     "@fortawesome/react-fontawesome": "npm:^0.2.2"
     "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
-    "@types/lodash-es": "npm:^4"
+    "@types/lodash-es": "npm:^4.17.12"
     "@types/react": "npm:^19.2.2"
     "@types/react-dom": "npm:^19.2.2"
     classnames: "npm:^2.5.1"
@@ -3094,7 +3094,7 @@ __metadata:
     "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
     "@types/d3": "npm:^7.4.3"
-    "@types/lodash-es": "npm:^4"
+    "@types/lodash-es": "npm:^4.17.12"
     "@types/papaparse": "npm:^5.3.16"
     d3: "npm:^7.9.0"
     dayjs: "npm:^1.11.11"
@@ -3123,7 +3123,7 @@ __metadata:
     "@types/colorbrewer": "npm:^1.0.29"
     "@types/d3": "npm:^7.4.3"
     "@types/js-cookie": "npm:^3.0.6"
-    "@types/lodash-es": "npm:^4"
+    "@types/lodash-es": "npm:^4.17.12"
     "@types/mousetrap": "npm:^1.6.9"
     "@types/react": "npm:^19.2.2"
     "@types/react-dom": "npm:^19.2.2"
@@ -3173,7 +3173,7 @@ __metadata:
     "@types/geojson": "npm:^7946.0.10"
     "@types/indefinite": "npm:^2.3.4"
     "@types/js-cookie": "npm:^3.0.6"
-    "@types/lodash-es": "npm:^4"
+    "@types/lodash-es": "npm:^4.17.12"
     "@types/mousetrap": "npm:^1.6.9"
     "@types/react": "npm:^19.2.2"
     "@types/react-dom": "npm:^19.2.2"
@@ -3223,7 +3223,7 @@ __metadata:
     "@tippyjs/react": "npm:^4.2.6"
     "@types/d3": "npm:^7.4.3"
     "@types/js-cookie": "npm:^3.0.6"
-    "@types/lodash-es": "npm:^4"
+    "@types/lodash-es": "npm:^4.17.12"
     "@types/react": "npm:^19.2.2"
     "@types/string-pixel-width": "npm:^1.7.2"
     "@types/url-parse": "npm:^1.4.8"
@@ -3233,7 +3233,7 @@ __metadata:
     eslint-plugin-react-hooks: "npm:^5.2.0"
     fuzzysort: "npm:^3.1.0"
     js-cookie: "npm:^3.0.5"
-    lodash-es: "npm:^4.17.21"
+    lodash-es: "npm:^4.17.23"
     mobx: "npm:^6.13.7"
     mobx-react: "npm:^7.6.0"
     react: "npm:^19.2.0"
@@ -7278,7 +7278,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash-es@npm:^4":
+"@types/lodash-es@npm:^4.17.12":
   version: 4.17.12
   resolution: "@types/lodash-es@npm:4.17.12"
   dependencies:
@@ -11593,7 +11593,7 @@ __metadata:
     "@types/indefinite": "npm:^2.3.4"
     "@types/ini": "npm:^4.1.1"
     "@types/js-cookie": "npm:^3.0.6"
-    "@types/lodash-es": "npm:^4"
+    "@types/lodash-es": "npm:^4.17.12"
     "@types/mdast": "npm:^4.0.4"
     "@types/minimist": "npm:^1.2.2"
     "@types/mousetrap": "npm:^1.6.9"
@@ -11666,7 +11666,7 @@ __metadata:
     json8-pointer: "npm:^1.0.6"
     knex: "npm:^3.1.0"
     lint-staged: "npm:^16.2.6"
-    lodash-es: "npm:^4.17.21"
+    lodash-es: "npm:^4.17.23"
     mdast-util-find-and-replace: "npm:^3.0.2"
     mdast-util-from-markdown: "npm:^2.0.2"
     minimist: "npm:^1.2.6"
@@ -13052,10 +13052,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash-es@npm:^4.17.21":
-  version: 4.17.21
-  resolution: "lodash-es@npm:4.17.21"
-  checksum: 10/03f39878ea1e42b3199bd3f478150ab723f93cc8730ad86fec1f2804f4a07c6e30deaac73cad53a88e9c3db33348bb8ceeb274552390e7a75d7849021c02df43
+"lodash-es@npm:^4.17.21, lodash-es@npm:^4.17.23":
+  version: 4.17.23
+  resolution: "lodash-es@npm:4.17.23"
+  checksum: 10/1feae200df22eb0bd93ca86d485e77784b8a9fb1d13e91b66e9baa7a7e5e04be088c12a7e20c2250fc0bd3db1bc0ef0affc7d9e3810b6af2455a3c6bf6dde59e
   languageName: node
   linkType: hard
 
@@ -13095,9 +13095,9 @@ __metadata:
   linkType: hard
 
 "lodash@npm:^4.0.1, lodash@npm:^4.17.11, lodash@npm:^4.17.21":
-  version: 4.17.21
-  resolution: "lodash@npm:4.17.21"
-  checksum: 10/c08619c038846ea6ac754abd6dd29d2568aa705feb69339e836dfa8d8b09abbb2f859371e86863eda41848221f9af43714491467b5b0299122431e202bb0c532
+  version: 4.17.23
+  resolution: "lodash@npm:4.17.23"
+  checksum: 10/82504c88250f58da7a5a4289f57a4f759c44946c005dd232821c7688b5fcfbf4a6268f6a6cdde4b792c91edd2f3b5398c1d2a0998274432cff76def48735e233
   languageName: node
   linkType: hard
 
@@ -14408,7 +14408,7 @@ __metadata:
     "@ourworldindata/utils": "workspace:^"
     "@resvg/resvg-wasm": "npm:^2.6.2"
     "@sentry/cloudflare": "npm:^10.27.0"
-    "@types/lodash-es": "npm:^4"
+    "@types/lodash-es": "npm:^4.17.12"
     "@types/react": "npm:^19.2.2"
     "@types/react-dom": "npm:^19.2.2"
     cookie: "npm:^1.0.2"
