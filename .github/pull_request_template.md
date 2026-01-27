@@ -30,7 +30,6 @@ If DB migrations exists:
 - [ ] If columns have been added/deleted, all necessary views were recreated and ETL and Analytics team members have been informed of the incoming changes
 - [ ] The DB type definitions have been updated
 - [ ] The DB types in the ETL have been updated
-- [ ] If tables/views were added/removed, the Datasette export has been updated to take this into account
 - [ ] Update the documentation in db/docs
 
 ### After merging
