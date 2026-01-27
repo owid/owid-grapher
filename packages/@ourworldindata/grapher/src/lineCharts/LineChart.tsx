@@ -10,7 +10,6 @@ import {
     isMobile,
     Bounds,
     HorizontalAlign,
-    isTouchDevice,
 } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -472,10 +471,6 @@ export class LineChart
         this.clearHighlightedSeries()
     }
 
-    @action.bound private onLineLegendClick(seriesName: SeriesName): void {
-        this.chartState.focusArray.toggle(seriesName)
-    }
-
     @computed private get hoveredSeriesNames(): string[] {
         const { externalLegendHoverBin } = this.manager
         const hoveredSeriesNames = excludeUndefined([
@@ -499,10 +494,6 @@ export class LineChart
             // the currently hovered series
             (!!this.manager.externalLegendHoverBin && !this.hasColorScale)
         )
-    }
-
-    @computed private get canToggleFocusMode(): boolean {
-        return !isTouchDevice() && this.series.length > 1
     }
 
     @computed private get hasTimeHighlights(): boolean {
@@ -654,11 +645,6 @@ export class LineChart
                         isStatic={this.isStatic}
                         onMouseOver={this.onLineLegendMouseOver}
                         onMouseLeave={this.onLineLegendMouseLeave}
-                        onClick={
-                            this.canToggleFocusMode
-                                ? this.onLineLegendClick
-                                : undefined
-                        }
                     />
                 )}
                 <Lines

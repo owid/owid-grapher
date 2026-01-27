@@ -324,7 +324,6 @@ export interface LineLegendProps {
 
     // interactions
     isStatic?: boolean // don't add interactions if true
-    onClick?: (key: SeriesName) => void
     onMouseOver?: (key: SeriesName) => void
     onMouseLeave?: () => void
 }
@@ -494,9 +493,6 @@ export class LineLegend extends React.Component<LineLegendProps> {
     }
     @computed get onMouseLeave(): any {
         return this.props.onMouseLeave ?? _.noop
-    }
-    @computed get onClick(): any {
-        return this.props.onClick ?? _.noop
     }
 
     @computed get legendX(): number {
@@ -711,11 +707,9 @@ export class LineLegend extends React.Component<LineLegendProps> {
                     onMouseOver={(series): void =>
                         this.onMouseOver(series.seriesName)
                     }
-                    onClick={(series): void => this.onClick(series.seriesName)}
                     onMouseLeave={(series): void =>
                         this.onMouseLeave(series.seriesName)
                     }
-                    cursor={this.props.onClick ? "pointer" : "default"}
                 />
             </g>
         )

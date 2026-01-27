@@ -10,7 +10,6 @@ import {
     excludeUndefined,
     getRelativeMouse,
     dyFromAlign,
-    isTouchDevice,
     domainExtent,
     calculateTrendDirection,
 } from "@ourworldindata/utils"
@@ -163,10 +162,6 @@ export class SlopeChart
             // the currently hovered series
             !!this.manager.externalLegendHoverBin
         )
-    }
-
-    @computed private get canToggleFocusMode(): boolean {
-        return !isTouchDevice() && this.series.length > 1
     }
 
     @computed private get startTime(): Time {
@@ -378,9 +373,6 @@ export class SlopeChart
             textOutlineColor: this.backgroundColor,
             onMouseOver: this.onLineLegendMouseOver,
             onMouseLeave: this.onLineLegendMouseLeave,
-            onClick: this.canToggleFocusMode
-                ? this.onLineLegendClick
-                : undefined,
         }
     }
 
@@ -702,10 +694,6 @@ export class SlopeChart
         this.hoverTimer = window.setTimeout(() => {
             this.clearHoveredSeries()
         }, 200)
-    }
-
-    @action.bound onLineLegendClick(seriesName: SeriesName): void {
-        this.focusArray.toggle(seriesName)
     }
 
     @action.bound onSlopeMouseOver(series: SlopeChartSeries): void {
