@@ -78,6 +78,7 @@ export class VerticalColorLegend extends React.Component<{
             fontWeight: 700,
             lineHeight: 1,
             text: this.manager.legendTitle,
+            separators: [" ", "-"],
         })
     }
 
@@ -114,6 +115,7 @@ export class VerticalColorLegend extends React.Component<{
                 fontSize,
                 lineHeight: 1,
                 text: label,
+                separators: [" ", "-"],
             })
             const width = rectSize + rectPadding + textWrap.width
             const height = Math.max(textWrap.height, rectSize)
