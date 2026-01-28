@@ -19,7 +19,6 @@ import {
     CodeSnippet,
     OverlayHeader,
     RadioButton,
-    LoadingIndicator,
 } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -389,8 +388,6 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
     }
 
     override render(): React.ReactElement {
-        if (!this.isReady) return <LoadingIndicator color="#000" />
-
         const {
             manager,
             svgPreviewUrl,
@@ -400,6 +397,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
             showInteractiveEmbedTip,
         } = this
         const pngPreviewUrl = this.pngPreviewUrl || this.fallbackPngUrl
+        const isRegenerating = !this.isReady
 
         let previewWidth: number
         let previewHeight: number
@@ -468,6 +466,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                                 <button
                                     className="download-modal__download-button download-modal__download-button--variant-copy"
                                     onClick={this.onCopyPng}
+                                    disabled={isRegenerating}
                                 >
                                     <FontAwesomeIcon icon={faCopy} />
                                     Copy PNG
@@ -479,6 +478,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                                 previewImageUrl={pngPreviewUrl}
                                 onClick={this.onPngDownload}
                                 imageStyle={imageStyle}
+                                isRegenerating={isRegenerating}
                             />
                             <DownloadButton
                                 title="Vector graphic (SVG)"
@@ -486,6 +486,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                                 previewImageUrl={svgPreviewUrl}
                                 onClick={this.onSvgDownload}
                                 imageStyle={imageStyle}
+                                isRegenerating={isRegenerating}
                             />
                         </div>
                         {this.showExportControls && (
@@ -1100,10 +1101,11 @@ interface DownloadButtonProps {
     previewImageUrl?: string
     imageStyle?: React.CSSProperties
     tracking?: string
+    isRegenerating?: boolean
 }
 
 function DownloadButton(props: DownloadButtonProps): React.ReactElement {
-    const { onClick } = props
+    const { onClick, isRegenerating = false } = props
 
     const [isDownloading, setIsDownloading] = useState(false)
     const [showLoadingUI, setShowLoadingUI] = useState(false)
@@ -1130,7 +1132,7 @@ function DownloadButton(props: DownloadButtonProps): React.ReactElement {
             })}
             onClick={handleClick}
             data-track-note={props.tracking}
-            disabled={isDownloading}
+            disabled={isDownloading || isRegenerating}
         >
             {props.icon && (
                 <div className="download-modal__option-icon">{props.icon}</div>
@@ -1148,7 +1150,7 @@ function DownloadButton(props: DownloadButtonProps): React.ReactElement {
                     </p>
                     {showLoadingUI && (
                         <p className="grapher_label-1-regular download-modal__download-button-loading-label">
-                            Downloading…
+                            Loading…
                         </p>
                     )}
                 </div>
