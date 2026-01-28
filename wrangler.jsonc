@@ -14,9 +14,9 @@
 
     "pages_build_output_dir": "./localBake",
 
-    // Workers AI binding for reranking search results
+    // Workers AI binding for search
     "ai": {
-        "binding": "AI"
+        "binding": "AI",
     },
 
     "vars": {
@@ -27,8 +27,12 @@
         "GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH": "v1",
         "DATA_API_URL_COMPLETE": "https://api.ourworldindata.org/v1/indicators/",
     },
+
     "env": {
         "preview": {
+            "ai": {
+                "binding": "AI",
+            },
             "vars": {
                 // Overrides for CF preview deployments
                 "MAILGUN_DOMAIN": "mg.ourworldindata.org",
@@ -45,6 +49,9 @@
         },
         "production": {
             // Overrides for CF production deployment
+            "ai": {
+                "binding": "AI",
+            },
             "compatibility_date": "2025-05-05",
             "vars": {
                 "ENV": "production",

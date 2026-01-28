@@ -252,6 +252,69 @@ export function useInfiniteSearchViaApi<T extends SearchResponse<U>, U>({
     }
 }
 
+/**
+ * Like useInfiniteSearchOffset, but calls a query function that doesn't need the Algolia client.
+ * Used for API-based search with offset/length pagination (e.g., articles via AI Search).
+ */
+export function useInfiniteSearchOffsetViaApi<
+    T extends { hits: U[]; nbHits?: number },
+    U,
+>({
+    queryKey,
+    queryFn,
+    firstPageSize,
+    laterPageSize,
+    enabled = true,
+}: {
+    queryKey: (state: SearchState) => readonly (string | QueryKeyState)[]
+    queryFn: (state: SearchState, offset: number, length: number) => Promise<T>
+    firstPageSize: number
+    laterPageSize: number
+    enabled?: boolean
+}) {
+    const { state } = useSearchContext()
+    const query = useInfiniteQuery<T, Error>({
+        queryKey: queryKey(state),
+        queryFn: ({ pageParam }) => {
+            if (typeof pageParam !== "number")
+                throw new Error("Invalid pageParam")
+
+            const { offset, length } = getPaginationOffsetAndLength(
+                pageParam,
+                firstPageSize,
+                laterPageSize
+            )
+
+            return queryFn(state, offset, length)
+        },
+        getNextPageParam: (lastPage, allPages) => {
+            const currentPageIndex = allPages.length - 1
+
+            const requestedSoFar = getNbPaginatedItemsRequested(
+                currentPageIndex,
+                firstPageSize,
+                laterPageSize,
+                lastPage.hits.length
+            )
+
+            return requestedSoFar < (lastPage.nbHits ?? 0)
+                ? currentPageIndex + 1
+                : undefined
+        },
+        enabled,
+        initialPageParam: 0,
+    })
+
+    const hits: U[] = query.data?.pages.flatMap((page) => page.hits) || []
+    const totalResults = query.data?.pages[0]?.nbHits || 0
+
+    return {
+        ...query,
+        hits,
+        totalResults,
+    }
+}
+
 export const useTopicTagGraph = () => {
     const [tagGraph, setTagGraph] = useState<TagGraphRoot | null>(null)
 

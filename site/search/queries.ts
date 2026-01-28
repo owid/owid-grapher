@@ -155,13 +155,13 @@ export async function queryCharts(
 }
 
 /**
- * Query charts via the /api/search endpoint instead of directly hitting Algolia.
- * This enables AI reranking via Cloudflare Workers AI.
+ * Query charts via the /api/ai-search endpoint using Cloudflare AI Search.
+ * This uses semantic search for better relevance ranking.
  */
 export async function queryChartsViaApi(
     state: SearchState,
     page: number = 0,
-    rerank: boolean = false
+    _rerank: boolean = false // Not used for AI Search (has built-in semantic ranking)
 ): Promise<SearchChartsResponse> {
     const params = new URLSearchParams({
         q: state.query,
@@ -171,6 +171,7 @@ export async function queryChartsViaApi(
     })
 
     // Add country filters (tilde-separated to match Grapher URL format)
+    // Note: AI Search doesn't support filtering yet, but we pass them for future use
     const countries = getFilterNamesOfType(state.filters, FilterType.COUNTRY)
     if (countries.size > 0) {
         params.set("countries", Array.from(countries).join("~"))
@@ -187,14 +188,97 @@ export async function queryChartsViaApi(
         params.set("requireAllCountries", "true")
     }
 
-    // Reranking only works for page 0
-    if (rerank && page === 0) {
-        params.set("rerank", "true")
-    }
-
-    const response = await fetch(`/api/search?${params}`)
+    const response = await fetch(`/api/ai-search/charts?${params}`)
     if (!response.ok) {
-        throw new Error(`Search API error: ${response.statusText}`)
+        throw new Error(`AI Search API error: ${response.statusText}`)
+    }
+    return response.json()
+}
+
+/**
+ * Query articles via the /api/ai-search/articles endpoint using Cloudflare AI Search.
+ * This uses semantic search for better relevance ranking.
+ */
+export async function queryArticlesViaApi(
+    state: SearchState,
+    offset: number = 0,
+    length: number = 10
+): Promise<SearchFlatArticleResponse> {
+    const params = new URLSearchParams({
+        q: state.query,
+        offset: offset.toString(),
+        length: length.toString(),
+        // Filter to articles and about-pages folders
+        folders: "articles,about-pages",
+    })
+
+    const response = await fetch(`/api/ai-search/articles?${params}`)
+    if (!response.ok) {
+        throw new Error(`AI Search articles API error: ${response.statusText}`)
+    }
+    return response.json()
+}
+
+/**
+ * Query topic pages via the /api/ai-search/articles endpoint using Cloudflare AI Search.
+ * This uses semantic search for better relevance ranking.
+ */
+export async function queryTopicPagesViaApi(
+    state: SearchState,
+    offset: number = 0,
+    length: number = 10
+): Promise<SearchTopicPageResponse> {
+    const params = new URLSearchParams({
+        q: state.query,
+        offset: offset.toString(),
+        length: length.toString(),
+        // Filter to topic-pages folder only
+        folders: "topic-pages",
+    })
+
+    const response = await fetch(`/api/ai-search/articles?${params}`)
+    if (!response.ok) {
+        throw new Error(
+            `AI Search topic pages API error: ${response.statusText}`
+        )
+    }
+    return response.json()
+}
+
+/**
+ * Query data insights via the /api/ai-search/articles endpoint using Cloudflare AI Search.
+ * This uses semantic search for better relevance ranking.
+ */
+export async function queryDataInsightsViaApi(
+    state: SearchState,
+    page: number = 0,
+    hitsPerPage: number = 4
+): Promise<SearchDataInsightResponse> {
+    const selectedCountryNames = getFilterNamesOfType(
+        state.filters,
+        FilterType.COUNTRY
+    )
+    // Append country names to query for filtering (AI Search doesn't support facet filters yet)
+    const query = [
+        state.query,
+        ...Array.from(selectedCountryNames).map((c) => `"${c}"`),
+    ]
+        .filter(Boolean)
+        .join(" ")
+
+    const params = new URLSearchParams({
+        q: query,
+        page: page.toString(),
+        hitsPerPage: hitsPerPage.toString(),
+        // Filter to data-insights folder only
+        folders: "data-insights",
+    })
+
+    const response = await fetch(`/api/ai-search/articles?${params}`)
+    if (!response.ok) {
+        throw new Error(
+            `AI Search data insights API error: ${response.statusText}`
+        )
     }
     return response.json()
 }

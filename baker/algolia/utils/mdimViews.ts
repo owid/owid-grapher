@@ -154,6 +154,8 @@ async function getRecords(
             titleLength: title.length,
             numRelatedArticles: 0,
             views_7d,
+            views_14d: 0,
+            views_365d: 0,
             score,
             isIncomeGroupSpecificFM: false,
         } as ChartRecord
@@ -194,9 +196,26 @@ async function getMultiDimDataPagesWithInheritedTags(
     return result
 }
 
-export async function getMdimViewRecords(trx: db.KnexReadonlyTransaction) {
+export async function getMdimViewRecords(
+    trx: db.KnexReadonlyTransaction,
+    slugFilter?: string
+) {
     console.log("Getting mdim view records")
-    const multiDimsWithTags = await getMultiDimDataPagesWithInheritedTags(trx)
+    if (slugFilter) {
+        console.log(`(Filtering by slug: ${slugFilter})`)
+    }
+    let multiDimsWithTags = await getMultiDimDataPagesWithInheritedTags(trx)
+
+    // Apply slug filter early to avoid processing all mdims
+    if (slugFilter) {
+        multiDimsWithTags = multiDimsWithTags.filter(
+            ({ multiDim }) => multiDim.slug === slugFilter
+        )
+        if (multiDimsWithTags.length === 0) {
+            console.log(`No mdim found with slug: ${slugFilter}`)
+            return []
+        }
+    }
     const pageviews = await getAnalyticsPageviewsByUrlObj(trx)
     const [grapherRedirects, explorerRedirects] = await Promise.all([
         getMultiDimRedirectTargets(trx, undefined, "/grapher/"),
