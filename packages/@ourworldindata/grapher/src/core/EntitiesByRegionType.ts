@@ -2,7 +2,7 @@ import * as _ from "lodash-es"
 import { EntityName } from "@ourworldindata/types"
 import {
     AggregateSource,
-    aggregateSources,
+    AGGREGATE_SOURCES,
     Country,
     excludeUndefined,
     getRegionByName,
@@ -10,7 +10,9 @@ import {
 import { CUSTOM_REGION_SOURCE_IDS, isWorldEntityName } from "./GrapherConstants"
 import * as R from "remeda"
 
-const customAggregateSources = CUSTOM_REGION_SOURCE_IDS
+const customAggregateSources = CUSTOM_REGION_SOURCE_IDS.filter(
+    (source) => !AGGREGATE_SOURCES.includes(source as AggregateSource)
+)
 type CustomAggregateSource = (typeof customAggregateSources)[number]
 
 const entityRegionTypes = [
@@ -18,7 +20,7 @@ const entityRegionTypes = [
     "continents", // owid continents
     "incomeGroups",
     "historicalCountries", // e.g. USSR, Austria-Hungary
-    ...aggregateSources,
+    ...AGGREGATE_SOURCES,
     ...customAggregateSources,
 ] as const
 export type EntityRegionType = (typeof entityRegionTypes)[number]
@@ -39,12 +41,15 @@ export const entityRegionTypeLabels: Record<EntityRegionType, string> = {
     // Regions defined by an institution, and where we have region definition about what constitutes these regions in regions.json
     who: "World Health Organization regions",
     wb: "World Bank regions",
-    un: "United Nations regions",
-    unsdg: "UN Sustainable Development Goals regions",
-    unm49: "United Nations M49 regions",
     pew: "Pew Research Center regions",
+    un: "United Nations regions",
+    un_m49_1: "United Nations regions",
+    un_m49_2: "United Nations regions",
+    un_m49_3: "United Nations regions",
 
     // Regions defined by an institution, but we don't have region definitions in regions.json for these (we recognize them by their suffix)
+    unsdg: "UN Sustainable Development Goals regions",
+    unm49: "United Nations M49 regions",
     unsd: "UN Statistics Division regions",
     fao: "FAO regions", // UN's Food and Agriculture Organization
     ei: "Education International regions",
@@ -157,7 +162,7 @@ export function groupEntityNamesByRegionType(
 }
 
 const aggregateSourceSet = new Set([
-    ...aggregateSources,
+    ...AGGREGATE_SOURCES,
     ...customAggregateSources,
 ])
 
