@@ -20,6 +20,14 @@ export class SelectionArray {
         return this.numSelectedEntities > 0
     }
 
+    @computed get isEmpty(): boolean {
+        return this.store.size === 0
+    }
+
+    has(entityName: EntityName): boolean {
+        return this.store.has(entityName)
+    }
+
     @computed get numSelectedEntities(): number {
         return this.store.size
     }

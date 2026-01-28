@@ -36,6 +36,8 @@ export {
     latestGrapherConfigSchema,
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
+    CUSTOM_REGION_SOURCE_IDS,
+    type CustomAggregateSource,
 } from "./core/GrapherConstants"
 export {
     getVariableDataRoute,
@@ -143,6 +145,7 @@ export type { MarimekkoChartState } from "./stackedCharts/MarimekkoChartState"
 
 export {
     selectPeerCountriesForGrapher,
+    selectPeerCountries,
     isValidPeerCountryStrategyQueryParam,
 } from "./core/PeerCountrySelection.js"
 
