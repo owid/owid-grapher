@@ -89,7 +89,7 @@ swapGrapherDb() {
     MAIN_TABLES=$(_mysql -N -e "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA='$GRAPHER_DB_NAME' AND TABLE_TYPE='BASE TABLE'")
 
     # Build the atomic rename command
-    RENAME_CMD="SET FOREIGN_KEY_CHECKS=0; RENAME TABLE "
+    RENAME_CMD="RENAME TABLE "
     FIRST=true
 
     # For each table in new DB: swap if exists in main, otherwise just move to main
@@ -122,10 +122,28 @@ swapGrapherDb() {
         fi
     done
 
-    RENAME_CMD+="; SET FOREIGN_KEY_CHECKS=1;"
-
     echo "==> Executing atomic table swap"
     _mysql --database="" -e "$RENAME_CMD"
+
+    # Handle views: drop existing views and recreate from new DB
+    # Views can't be renamed across databases, so we extract and recreate them
+    echo "==> Updating views"
+
+    # Drop all existing views in main database
+    MAIN_VIEWS=$(_mysql -N -e "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA='$GRAPHER_DB_NAME' AND TABLE_TYPE='VIEW'")
+    for VIEW in $MAIN_VIEWS; do
+        _mysql --database="$GRAPHER_DB_NAME" -e "DROP VIEW IF EXISTS $VIEW"
+    done
+
+    # Get view definitions from new DB and recreate them in main DB
+    NEW_VIEWS=$(_mysql -N -e "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA='$NEW_DB' AND TABLE_TYPE='VIEW'")
+    for VIEW in $NEW_VIEWS; do
+        # Get the CREATE VIEW statement and adapt it for the main database
+        VIEW_DEF=$(_mysql -N -e "SHOW CREATE VIEW $NEW_DB.$VIEW" | cut -f2)
+        # Replace references to new DB with main DB in the view definition
+        VIEW_DEF="${VIEW_DEF//$NEW_DB/$GRAPHER_DB_NAME}"
+        _mysql --database="$GRAPHER_DB_NAME" -e "$VIEW_DEF"
+    done
 
     echo "==> Cleaning up"
     _mysql --database="" -e "DROP DATABASE IF EXISTS $NEW_DB; DROP DATABASE IF EXISTS $OLD_DB;"
