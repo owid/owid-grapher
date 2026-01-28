@@ -1967,6 +1967,16 @@ export const detailOnDemandRegex = /#dod:([\w\-_]+)/
 
 export const guidedChartRegex = /#guide:(https?:\/\/[^\s]+)/
 
+/**
+ * Matches plaintext callout token syntax:
+ * $latestYear(shortName)
+ * $latestValue(shortName)
+ *
+ * Group 1: function name (e.g., "latestYear", "latestValue")
+ * Group 2: parameters (e.g., "shortName")
+ */
+export const plaintextCalloutRegex = /\$(latestValue|latestYear)\(([^)]*)\)/g
+
 export function extractDetailsFromSyntax(str: string): string[] {
     return [...str.matchAll(new RegExp(detailOnDemandRegex, "g"))].map(
         ([_, term]) => term

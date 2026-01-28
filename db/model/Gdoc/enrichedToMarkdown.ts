@@ -46,7 +46,8 @@ export function spanToMarkdown(s: Span): string {
                     "span-subscript",
                     "span-superscript",
                     "span-quote",
-                    "span-fallback"
+                    "span-fallback",
+                    "span-callout"
                 ),
             },
             (other) => spansToMarkdown(other.children)
@@ -505,5 +506,8 @@ ${links}`
                 .map((link) => `* [${link.text}](${link.url})`)
                 .join("\n")
         })
+        .with({ type: "data-callout" }, (b): string | undefined =>
+            enrichedBlocksToMarkdown(b.content, exportComponents)
+        )
         .exhaustive()
 }

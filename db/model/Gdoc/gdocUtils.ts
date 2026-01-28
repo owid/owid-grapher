@@ -6,7 +6,14 @@ import {
     EnrichedBlockResearchAndWritingLink,
     DATA_INSIGHTS_INDEX_PAGE_SIZE,
     OwidEnrichedGdocBlock,
+    traverseEnrichedBlock,
+    plaintextCalloutRegex,
 } from "@ourworldindata/utils"
+import {
+    SpanCallout,
+    CalloutFunction,
+    CALLOUT_FUNCTIONS,
+} from "@ourworldindata/types"
 import { match, P } from "ts-pattern"
 import * as cheerio from "cheerio"
 
@@ -27,7 +34,8 @@ export function spanToSimpleString(s: Span): string {
                     "span-subscript",
                     "span-superscript",
                     "span-quote",
-                    "span-fallback"
+                    "span-fallback",
+                    "span-callout"
                 ),
             },
             (other) => other.children.map(spanToSimpleString).join("")
@@ -94,6 +102,10 @@ export function spanToHtmlString(s: Span): string {
         .with(
             { spanType: "span-fallback" },
             (span) => `<span>${spansToHtmlString(span.children)}</span>`
+        )
+        .with(
+            { spanType: "span-callout" },
+            (span) => `$${span.functionName}(${span.parameters.join(",")})`
         )
         .exhaustive()
 }
@@ -234,6 +246,7 @@ export function extractFilenamesFromBlock(
                     "code",
                     "cookie-notice",
                     "cta",
+                    "data-callout",
                     "donors",
                     "entry-summary",
                     "expandable-paragraph",
@@ -281,4 +294,89 @@ export function extractFilenamesFromBlock(
         )
         .exhaustive()
     return [...filenames]
+}
+
+/**
+ * Transforms plaintext callout tokens (e.g. $latestValue(shortName), $latestYear(shortName))
+ * into SpanCallout spans within a span tree.
+ */
+function transformCalloutTokensInSpan(span: Span): Span[] {
+    // For spans with children, recursively transform children
+    if ("children" in span && span.children) {
+        const transformedChildren = span.children.flatMap(
+            transformCalloutTokensInSpan
+        )
+        return [{ ...span, children: transformedChildren } as Span]
+    }
+
+    // Only process simple text spans
+    if (span.spanType !== "span-simple-text") {
+        return [span]
+    }
+
+    const text = span.text
+    const result: Span[] = []
+    let lastIndex = 0
+
+    // Reset regex state for each call (global regex maintains state)
+    plaintextCalloutRegex.lastIndex = 0
+
+    for (const match of text.matchAll(plaintextCalloutRegex)) {
+        const matchIndex = match.index!
+        // Add text before match
+        if (matchIndex > lastIndex) {
+            result.push({
+                spanType: "span-simple-text",
+                text: text.slice(lastIndex, matchIndex),
+            })
+        }
+
+        const functionName = match[1]
+        const paramString = match[2]
+
+        // Only create SpanCallout for valid function names
+        if (CALLOUT_FUNCTIONS.includes(functionName as CalloutFunction)) {
+            const calloutSpan: SpanCallout = {
+                spanType: "span-callout",
+                functionName: functionName as CalloutFunction,
+                parameters: paramString ? [paramString] : [],
+                children: [],
+            }
+            result.push(calloutSpan)
+        } else {
+            // If not a valid function name, keep the original text
+            result.push({
+                spanType: "span-simple-text",
+                text: match[0],
+            })
+        }
+
+        lastIndex = matchIndex + match[0].length
+    }
+
+    // Add remaining text after last match
+    if (lastIndex < text.length) {
+        result.push({
+            spanType: "span-simple-text",
+            text: text.slice(lastIndex),
+        })
+    }
+
+    // If no matches were found, return original span
+    return result.length === 0 ? [span] : result
+}
+
+/**
+ * Transforms plaintext callout tokens in all text blocks within an enriched block tree.
+ * Mutates the input block.
+ */
+export function transformCalloutTokensInBlock(
+    block: OwidEnrichedGdocBlock
+): OwidEnrichedGdocBlock {
+    traverseEnrichedBlock(block, (node) => {
+        if (node.type === "text") {
+            node.value = node.value.flatMap(transformCalloutTokensInSpan)
+        }
+    })
+    return block
 }
