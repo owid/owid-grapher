@@ -594,7 +594,18 @@ export class GrapherState
 
     slideShow: SlideShowController<any> | undefined = undefined
 
-    private shouldApplyPeerCountriesOnTableLoad: boolean = false
+    private shouldApplyPeerCountries: boolean = false
+
+    /**
+     * Cached promise for peer country application to prevent duplicate operations.
+     *
+     * When peer countries are being applied asynchronously, this stores the promise
+     * so that subsequent calls to applyPeerCountriesIfNeeded() will wait for the
+     * existing operation instead of starting a new one. This prevents race conditions
+     * when the function is called from multiple places (e.g., inputTable setter and
+     * generateStaticSvg).
+     */
+    private peerCountriesPromise: Promise<void> | undefined = undefined
 
     /** Whether the grapher is running in the editor */
     private isEditor =
@@ -857,11 +868,11 @@ export class GrapherState
         } else this.applyOriginalSelectionAsAuthored()
 
         // Add peer countries if requested
-        if (this.shouldApplyPeerCountriesOnTableLoad) {
-            this.applyPeerCountriesIfNeeded()
-
-            // Ensure peer countries are only applied once
-            this.shouldApplyPeerCountriesOnTableLoad = false
+        if (this.shouldApplyPeerCountries) {
+            void this.applyPeerCountriesIfNeeded().finally(() => {
+                // Ensure peer countries are only applied once on table load
+                this.shouldApplyPeerCountries = false
+            })
         }
     }
 
@@ -1209,9 +1220,12 @@ export class GrapherState
 
             // Apply immediately if we have data, otherwise set flag to apply later
             if (this.availableEntityNames.length > 0) {
-                void this.applyPeerCountriesIfNeeded()
+                this.shouldApplyPeerCountries = true
+                void this.applyPeerCountriesIfNeeded().finally(() => {
+                    this.shouldApplyPeerCountries = false
+                })
             } else {
-                this.shouldApplyPeerCountriesOnTableLoad = true
+                this.shouldApplyPeerCountries = true
             }
         } else if (parsed.peerCountries.status === "invalid") {
             // Clear the strategy if an invalid value was provided
@@ -2676,15 +2690,22 @@ export class GrapherState
         return new Bounds(0, 0, DEFAULT_GRAPHER_WIDTH, DEFAULT_GRAPHER_HEIGHT)
     }
 
-    generateStaticSvg(
+    async generateStaticSvg(
         renderToHtmlString: (element: React.ReactElement) => string
-    ): string {
+    ): Promise<string> {
+        // Wait for peer country application if requested but not yet applied
+        if (this.shouldApplyPeerCountries)
+            await this.applyPeerCountriesIfNeeded()
+
+        // Temporarily set isExportingToSvgOrPng to true
         const _isExportingToSvgOrPng = this.isExportingToSvgOrPng
         this.isExportingToSvgOrPng = true
 
         const innerHTML = renderToHtmlString(<Chart manager={this} />)
 
+        // Restore isExportingToSvgOrPng
         this.isExportingToSvgOrPng = _isExportingToSvgOrPng
+
         return innerHTML
     }
 
@@ -2706,7 +2727,7 @@ export class GrapherState
         return new Bounds(0, 0, this.staticBounds.width, height)
     }
 
-    rasterize: GrapherRasterizeFn = ({ includeDetails }) => {
+    rasterize: GrapherRasterizeFn = async ({ includeDetails }) => {
         const _shouldIncludeDetailsInStaticExport =
             this.shouldIncludeDetailsInStaticExport
         this.shouldIncludeDetailsInStaticExport = includeDetails
@@ -2715,7 +2736,7 @@ export class GrapherState
 
         try {
             // We need to ensure `rasterize` is only called on the client-side, otherwise this will fail
-            const staticSVG = this.generateStaticSvg(
+            const staticSVG = await this.generateStaticSvg(
                 reactRenderToStringClientOnly
             )
             return new StaticChartRasterizer(staticSVG, width, height).render()
@@ -3043,7 +3064,7 @@ export class GrapherState
         return this.tableForSelection.availableEntityNames
     }
 
-    @computed private get shouldApplyPeerCountries(): boolean {
+    @computed private get canApplyPeerCountries(): boolean {
         return (
             this.peerCountryStrategy !== undefined &&
             this.availableEntityNames.length > 0 &&
@@ -3053,11 +3074,36 @@ export class GrapherState
         )
     }
 
-    @action.bound private applyPeerCountriesIfNeeded(): void {
-        if (!this.shouldApplyPeerCountries) return
+    /**
+     * Adds peer countries to Grapher's selection
+     *
+     * Uses a cached promise pattern to prevent duplicate operations and allow
+     * generateStaticSvg() to wait for peer country application that was already
+     * initiated by the inputTable setter.
+     *
+     * This approach avoids making inputTable async, which would complicate the
+     * codebase since many parts assume synchronous data access.
+     */
+    @action.bound private async applyPeerCountriesIfNeeded(): Promise<void> {
+        // If already running, return the existing promise to wait for
+        if (this.peerCountriesPromise) return this.peerCountriesPromise
 
-        const peerCountries = selectPeerCountriesForGrapher(this)
-        this.selection.addToSelection(peerCountries)
+        if (!this.canApplyPeerCountries) return
+
+        // Create and cache the promise immediately so that concurrent calls
+        // will find and wait for this same promise
+        this.peerCountriesPromise = (async (): Promise<void> => {
+            const peerCountries = await selectPeerCountriesForGrapher(this)
+            this.selection.addToSelection(peerCountries)
+        })()
+
+        try {
+            await this.peerCountriesPromise
+        } finally {
+            // Clear the promise cache after completion (success or failure)
+            // so future calls will trigger a new operation if needed
+            this.peerCountriesPromise = undefined
+        }
     }
 
     @computed get entityRegionTypeGroups(): EntityRegionTypeGroup[] {

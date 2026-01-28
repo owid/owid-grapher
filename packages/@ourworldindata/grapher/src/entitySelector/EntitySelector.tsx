@@ -29,7 +29,6 @@ import {
     Region,
     getRegionByName,
     makeSafeForCSS,
-    columnDefsByCatalogKey,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
@@ -60,7 +59,6 @@ import { Dropdown } from "../controls/Dropdown"
 import { scaleLinear, type ScaleLinear } from "d3-scale"
 import {
     AdditionalGrapherDataFetchFn,
-    CatalogDataPoint,
     CatalogKey,
     ColumnSlug,
     EntityName,
@@ -83,6 +81,10 @@ import {
 } from "../core/EntitiesByRegionType"
 import { SearchField } from "../controls/SearchField"
 import { MAP_REGION_LABELS } from "../mapCharts/MapChartConstants.js"
+import {
+    columnDefsByCatalogKey,
+    loadCatalogDataAsOwidTable,
+} from "../core/loadCatalogData.js"
 
 export type CoreColumnBySlug = Record<ColumnSlug, CoreColumn>
 
@@ -1231,9 +1233,10 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
                 throw new Error(
                     "additionalDataLoaderFn is not set, can't load sort variables on demand"
                 )
-            const data = await additionalDataLoaderFn(catalogKey)
-            const columnDef = columnDefsByCatalogKey[catalogKey]
-            const table = catalogDataToOwidTable(data, columnDef)
+            const { table } = await loadCatalogDataAsOwidTable(
+                catalogKey,
+                additionalDataLoaderFn
+            )
             const column = table
                 .filterByEntityNames(this.inputTable.availableEntityNames)
                 .interpolateColumnWithTolerance(slug, {
@@ -1833,18 +1836,4 @@ function isExternalSortIndicatorMatch(
             return matches.length > 0
         })
         .exhaustive()
-}
-
-/** Creates an OwidTable from catalog data points */
-function catalogDataToOwidTable(
-    data: CatalogDataPoint[],
-    columnDef: OwidColumnDef
-): OwidTable {
-    const rows = data.map((point) => ({
-        entityName: point.entity,
-        year: point.year,
-        [columnDef.slug]: point.value,
-    }))
-
-    return new OwidTable(rows, [columnDef])
 }

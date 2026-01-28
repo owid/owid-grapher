@@ -4,7 +4,6 @@ import {
     Bounds,
     stringifyUnknownError,
     excludeUndefined,
-    loadCatalogVariableData,
     moveArrayItemToIndex,
     getWindowUrl,
     setWindowUrl,
@@ -44,6 +43,7 @@ import {
     Grapher,
     GrapherProgrammaticInterface,
     GrapherState,
+    loadCatalogData,
     MapChartState,
 } from "@ourworldindata/grapher"
 import { BindString, SelectField, Toggle } from "./Forms.js"
@@ -156,9 +156,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
     grapherState = new GrapherState({
         additionalDataLoaderFn: (catalogKey) =>
-            loadCatalogVariableData(catalogKey, {
-                baseUrl: CATALOG_URL,
-            }),
+            loadCatalogData(catalogKey, { baseUrl: CATALOG_URL }),
         bounds: new Bounds(0, 0, 480, 500),
 
         // workaround to enforce `useIdealBounds == false`

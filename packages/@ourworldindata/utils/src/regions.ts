@@ -237,6 +237,18 @@ export const getSiblingRegions = (regionName: string): Region[] => {
         .filter((region) => region && region.name !== regionName) as Region[]
 }
 
+/**
+ * Gets the OWID continent name for a country.
+ * Returns undefined if the entity is not a country or has no continent.
+ */
+export function getContinentForCountry(
+    countryName: EntityName
+): string | undefined {
+    const parentRegions = getParentRegions(countryName)
+    const continent = parentRegions.find((r) => checkIsOwidContinent(r))
+    return continent?.name
+}
+
 const getCountryNamesForRegionRecursive = (region: Region): string[] => {
     if (!checkHasMembers(region)) return [region.name]
     return region.members.reduce<string[]>((countryNames, memberCode) => {
