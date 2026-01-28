@@ -193,6 +193,10 @@ export class ScatterPlotChart
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
+    @computed get isStaticAndSmall(): boolean {
+        return !!this.manager.isStaticAndSmall
+    }
+
     @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
         if (isTouchDevice()) return
         this.hoveredLegendColor = bin.color
