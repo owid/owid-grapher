@@ -152,6 +152,21 @@ refresh:
 	@echo '!!! If you use ETL, wipe indicators from your R2 staging with `rclone delete r2:owid-api-staging/[yourname]/ ' \
 	'--fast-list --transfers 32 --checkers 32  --verbose`'
 
+refresh.atomic:
+	@if grep -q "ENV=production" .env; then \
+		echo "ERROR: Cannot run refresh in production environment."; \
+		exit 1; \
+	fi
+
+	@echo '==> Downloading chart data'
+	./devTools/docker/download-grapher-metadata-mysql.sh
+
+	@echo '==> Updating grapher database (atomic swap)'
+	DATA_FOLDER=tmp-downloads ./devTools/docker/atomic-grapher-data.sh
+
+	@echo '!!! If you use ETL, wipe indicators from your R2 staging with `rclone delete r2:owid-api-staging/[yourname]/ ' \
+	'--fast-list --transfers 32 --checkers 32  --verbose`'
+
 refresh.pageviews: node_modules
 	@echo '==> Refreshing pageviews'
 	yarn refreshPageviews
