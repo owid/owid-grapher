@@ -31,7 +31,7 @@ export interface Country extends BaseRegion {
 
 export interface Aggregate extends BaseRegion {
     regionType: RegionType.Aggregate
-    definedBy?: AggregateSource
+    definedBy?: RegionDataProvider
     translationCodes?: string[]
     members: string[]
 }
@@ -67,7 +67,7 @@ export type OwidIncomeGroupName =
     | "OWID_UMC"
     | "OWID_HIC"
 
-export const AGGREGATE_SOURCES = [
+export const REGION_DATA_PROVIDERS = [
     "un", // United Nations
     "wb", // World Bank
     "who", // World Health Organization
@@ -77,7 +77,7 @@ export const AGGREGATE_SOURCES = [
     "pew", // Pew Research Center
     "unsdg", // UN SDG
 ] as const
-export type AggregateSource = (typeof AGGREGATE_SOURCES)[number]
+export type RegionDataProvider = (typeof REGION_DATA_PROVIDERS)[number]
 
 export function checkIsOwidIncomeGroupName(
     name: string
@@ -161,8 +161,9 @@ export const getIncomeGroups = lazy(
         ) as IncomeGroup[]
 )
 
-export const getAggregatesBySource = (source: AggregateSource): Aggregate[] =>
-    getAggregates().filter((r) => r.definedBy === source)
+export const getAggregatesByProvider = (
+    provider: RegionDataProvider
+): Aggregate[] => getAggregates().filter((r) => r.definedBy === provider)
 
 const regionsByName = lazy(() =>
     Object.fromEntries(regions.map((region) => [region.name, region]))

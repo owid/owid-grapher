@@ -8,7 +8,7 @@ import {
     Time,
 } from "@ourworldindata/types"
 import {
-    EntityNamesByRegionType,
+    EntitiesByRegionType,
     EntityRegionType,
 } from "../core/EntitiesByRegionType"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -33,7 +33,7 @@ export interface DataTableManager {
     isNarrow?: boolean
     dataTableConfig: DataTableConfig
     dataTableSelection?: SelectionArray | EntityName[]
-    entityNamesByRegionType?: EntityNamesByRegionType
+    entitiesByRegionType?: EntitiesByRegionType
     timelineDragTarget?: TimelineDragTarget
     closestTimelineMinTime?: Time
     closestTimelineMaxTime?: Time
