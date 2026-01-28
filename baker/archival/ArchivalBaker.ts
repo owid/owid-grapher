@@ -51,14 +51,17 @@ import pMap from "p-map"
 import {
     ARCHIVE_BASE_URL,
     CLOUDFLARE_IMAGES_URL,
+    CATALOG_URL,
 } from "../../settings/serverSettings.js"
 import {
     appendImageSizeSuffix,
     ArchivalTimestamp,
     convertToArchivalDateStringIfNecessary,
     getAllVariableIds,
+    getCatalogAssetKey,
     LARGE_THUMBNAIL_WIDTH,
     LARGEST_IMAGE_WIDTH,
+    loadCatalogVariableData,
 } from "@ourworldindata/utils"
 import { PROD_URL } from "../../site/SiteConstants.js"
 import { getParsedDodsDictionary } from "../../db/model/Dod.js"
@@ -79,6 +82,7 @@ import {
     getArchivedPostVersionsByPostId,
     getLatestArchivedPostVersions,
 } from "../../db/model/ArchivedPostVersion.js"
+import { EXTERNAL_SORT_INDICATOR_DEFINITIONS } from "@ourworldindata/grapher"
 
 export interface MinimalChartInfo {
     chartId: number
@@ -155,6 +159,36 @@ export const bakeDods = async (
     ).then((fullPath) => path.basename(fullPath))
 
     return { "dods.json": `/assets/${resultFilename}` }
+}
+
+/** Fetches and archives catalog data files used for sorting in EntitySelector */
+export const bakeCatalogData = async (
+    archiveDir: string
+): Promise<AssetMap> => {
+    const assetMap: AssetMap = {}
+
+    await fs.mkdirp(path.join(archiveDir, "catalog"))
+
+    for (const { catalogKey } of EXTERNAL_SORT_INDICATOR_DEFINITIONS) {
+        const data = await loadCatalogVariableData(catalogKey, {
+            baseUrl: CATALOG_URL,
+        })
+
+        const targetPath = path.join(
+            archiveDir,
+            "catalog",
+            `${catalogKey}.json`
+        )
+        const resultFilename = await hashAndWriteFile(
+            targetPath,
+            JSON.stringify(data)
+        ).then((fullPath) => path.basename(fullPath))
+
+        const assetMapKey = getCatalogAssetKey(catalogKey)
+        assetMap[assetMapKey] = `/catalog/${resultFilename}`
+    }
+
+    return assetMap
 }
 
 const bakeVariableDataFiles = async (
@@ -569,7 +603,8 @@ export const createCommonArchivalContext = async (
     await copyPublicDir(archiveDir)
 
     const { staticAssetMap } = await bakeAssets(archiveDir)
-    const commonRuntimeFiles = await bakeDods(knex, archiveDir)
+    const dodsFiles = await bakeDods(knex, archiveDir)
+    const catalogFiles = await bakeCatalogData(archiveDir)
     const imageMetadataDictionary = await getAllImages(knex).then((images) =>
         _.keyBy(images, "filename")
     )
@@ -578,7 +613,8 @@ export const createCommonArchivalContext = async (
         date,
         baseArchiveDir: archiveDir,
         archiveDir: dir,
-        commonRuntimeFiles,
+        dodsFiles,
+        catalogFiles,
         staticAssetMap,
         imageMetadataDictionary,
     }
@@ -724,7 +760,10 @@ export const bakeArchivalExplorerPagesToFolder = async (
                 `Could not find checksums for explorer '${program.slug}', this shouldn't happen`
             )
 
-        const runtimeFiles: AssetMap = { ...commonCtx.commonRuntimeFiles }
+        const runtimeFiles: AssetMap = {
+            ...commonCtx.dodsFiles,
+            ...commonCtx.catalogFiles,
+        }
         const indicatorIds = Object.keys(checksumsObj.checksums.indicators).map(
             (k) => parseInt(k, 10)
         )
@@ -855,7 +894,8 @@ export interface CommonArchivalContext {
     date: ArchivalTimestamp
     baseArchiveDir: string
     archiveDir: string
-    commonRuntimeFiles: AssetMap
+    dodsFiles: AssetMap
+    catalogFiles: AssetMap
     staticAssetMap: Record<string, string>
     imageMetadataDictionary: Record<string, DbEnrichedImage>
 }
@@ -907,7 +947,8 @@ async function bakeGrapherPageForArchival(
 ) {
     const { chartConfigId, config } = chartInfo
     const {
-        commonRuntimeFiles,
+        dodsFiles,
+        catalogFiles,
         imageMetadataDictionary,
         staticAssetMap,
         variableFiles,
@@ -919,7 +960,7 @@ async function bakeGrapherPageForArchival(
     if (!config.slug) throw new Error("Grapher slug is missing")
     if (!ARCHIVE_BASE_URL) throw new Error("ARCHIVE_BASE_URL is missing")
 
-    const runtimeFiles = { ...commonRuntimeFiles }
+    const runtimeFiles = { ...dodsFiles, ...catalogFiles }
 
     for (const dim of config.dimensions ?? []) {
         if (dim.variableId) {
@@ -988,7 +1029,7 @@ async function bakePostPageForArchival(
 ) {
     const { postId, postSlug } = postInfo
     const {
-        commonRuntimeFiles,
+        dodsFiles,
         staticAssetMap,
         checksumsObj,
         date,
@@ -1001,7 +1042,7 @@ async function bakePostPageForArchival(
     if (!ARCHIVE_BASE_URL) throw new Error("ARCHIVE_BASE_URL is missing")
 
     const runtimeAssetMap = {
-        ...commonRuntimeFiles,
+        ...dodsFiles,
         ...imageFiles,
         ...videoFiles,
         ...narrativeChartFiles,
@@ -1143,7 +1184,8 @@ export const bakeMultiDimDataPageForArchival = async (
 ) => {
     const { config, slug, id } = multiDimInfo
     const {
-        commonRuntimeFiles,
+        dodsFiles,
+        catalogFiles,
         imageMetadataDictionary,
         staticAssetMap,
         variableFiles,
@@ -1156,7 +1198,7 @@ export const bakeMultiDimDataPageForArchival = async (
     if (!slug) throw new Error("Multi-dim page slug is missing")
     if (!ARCHIVE_BASE_URL) throw new Error("ARCHIVE_BASE_URL is missing")
 
-    const runtimeFiles = { ...commonRuntimeFiles }
+    const runtimeFiles = { ...dodsFiles, ...catalogFiles }
 
     // Add variable files for all variables used in this multi-dim page
     for (const variableId of getAllVariableIds(config.views)) {
