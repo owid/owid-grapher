@@ -15,6 +15,7 @@ import {
     Bounds,
     isTouchDevice,
     makeIdForHumanConsumption,
+    guid,
 } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
 import { NoDataModal } from "../noDataModal/NoDataModal"
@@ -41,7 +42,11 @@ import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { ColorScale, NO_DATA_LABEL } from "../color/ColorScale"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
-import { getShortNameForEntity } from "../chart/ChartUtils"
+import {
+    ClipPath,
+    getShortNameForEntity,
+    makeClipPath,
+} from "../chart/ChartUtils"
 import {
     ScatterPlotManager,
     ScatterSeries,
@@ -589,6 +594,14 @@ export class ScatterPlotChart
         exposeInstanceOnWindow(this)
     }
 
+    @computed private get renderUid(): number {
+        return guid()
+    }
+
+    @computed private get clipPath(): ClipPath {
+        return makeClipPath({ renderUid: this.renderUid, box: this.bounds })
+    }
+
     renderSidebar(): React.ReactElement | null {
         const {
             bounds,
@@ -677,14 +690,17 @@ export class ScatterPlotChart
     renderStatic(): React.ReactElement {
         return (
             <>
+                {this.clipPath.element}
                 <DualAxisComponent
                     dualAxis={this.dualAxis}
                     showTickMarks={false}
                     detailsMarker={this.manager.detailsMarkerInSvg}
                     backgroundColor={this.manager.backgroundColor}
                 />
-                {this.points}
-                {this.renderSidebar()}
+                <g clipPath={this.clipPath.id}>
+                    {this.points}
+                    {this.renderSidebar()}
+                </g>
             </>
         )
     }
@@ -692,13 +708,16 @@ export class ScatterPlotChart
     renderInteractive(): React.ReactElement {
         return (
             <g className="ScatterPlot" onMouseMove={this.onScatterMouseMove}>
+                {this.clipPath.element}
                 <DualAxisComponent
                     dualAxis={this.dualAxis}
                     showTickMarks={false}
                     detailsMarker={this.manager.detailsMarkerInSvg}
                 />
-                {this.points}
-                {this.renderSidebar()}
+                <g clipPath={this.clipPath.id}>
+                    {this.points}
+                    {this.renderSidebar()}
+                </g>
                 {this.tooltip}
             </g>
         )
