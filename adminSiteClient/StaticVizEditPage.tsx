@@ -376,7 +376,7 @@ export function StaticVizEditPage() {
                         <h4>Description</h4>
                         <p className="static-viz-edit-form__description">
                             Explain how this visualization was created.{" "}
-                            <strong>This field accepts markdown.</strong>
+                            <strong>This field accepts Markdown.</strong>
                         </p>
                         <Form.Item name="description">
                             <TextArea
