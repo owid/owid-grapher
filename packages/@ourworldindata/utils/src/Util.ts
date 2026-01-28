@@ -1285,6 +1285,7 @@ export function extractGdocPageData(gdoc: OwidGdoc) {
         "linkedCharts",
         "linkedNarrativeCharts",
         "linkedIndicators",
+        "linkedCallouts",
         "imageMetadata",
         "relatedCharts",
     ])
@@ -1780,6 +1781,12 @@ export function traverseEnrichedBlock(
                 traverseEnrichedBlock(node, callback, spanCallback)
             }
         })
+        .with({ type: "data-callout" }, (dataCallout) => {
+            callback(dataCallout)
+            for (const node of dataCallout.content) {
+                traverseEnrichedBlock(node, callback, spanCallback)
+            }
+        })
         .with(
             {
                 type: P.union(
@@ -1837,6 +1844,7 @@ export function spansToUnformattedPlainText(spans: Span[]): string {
                     {
                         spanType: P.union(
                             "span-link",
+                            "span-callout",
                             "span-italic",
                             "span-bold",
                             "span-fallback",

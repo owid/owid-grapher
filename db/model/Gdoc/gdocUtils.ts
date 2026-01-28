@@ -287,7 +287,8 @@ export function extractFilenamesFromBlock(
                     "sticky-right",
                     "table",
                     "text",
-                    "topic-page-intro"
+                    "topic-page-intro",
+                    "data-callout"
                 ),
             },
             _.noop

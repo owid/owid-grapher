@@ -390,6 +390,8 @@ export {
     type LinkedAuthor,
     type LinkedChart,
     type LinkedIndicator,
+    type LinkedCallout,
+    type LinkedCallouts,
     type LinkedStaticViz,
     DYNAMIC_COLLECTION_PAGE_CONTAINER_ID,
     type OwidGdocContent,
