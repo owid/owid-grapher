@@ -2363,7 +2363,7 @@ export function dimensionsToViewId(
 ): string {
     return Object.entries(dimensions)
         .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-        .map(([_, value]) => slugify(value))
+        .map(([key, value]) => `${slugify(key)}=${slugify(value)}`)
         .join("__")
         .toLowerCase()
 }
