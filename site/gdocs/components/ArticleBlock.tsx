@@ -60,6 +60,7 @@ import { FeaturedDataInsights } from "../../FeaturedDataInsights.js"
 import { BlockQueryClientProvider } from "./BlockQueryClientProvider.js"
 import { ExploreDataSection } from "./ExploreDataSection.js"
 import { LTPTableOfContents } from "./LTPTableOfContents.js"
+import { DataCallout } from "./DataCallout.js"
 
 function ArticleBlockInternal({
     b: block,
@@ -938,6 +939,9 @@ function ArticleBlockInternal({
                 className={getLayout("socials", containerType)}
                 links={block.links}
             />
+        ))
+        .with({ type: "data-callout" }, (block) => (
+            <DataCallout block={block} containerType={containerType} />
         ))
         .exhaustive()
 }

@@ -416,7 +416,9 @@ export async function loadGdocFromGdocBase(
     base: OwidGdocBaseInterface,
     contentSource?: GdocsContentSource,
     acceptSuggestions: boolean = false,
-    options?: { loadState?: boolean }
+    options?: {
+        loadState?: boolean
+    }
 ): Promise<
     | GdocPost
     | GdocDataInsight

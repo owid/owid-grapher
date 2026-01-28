@@ -1284,6 +1284,7 @@ export function extractGdocPageData(gdoc: OwidGdoc) {
         "linkedCharts",
         "linkedNarrativeCharts",
         "linkedIndicators",
+        "linkedCallouts",
         "imageMetadata",
         "relatedCharts",
     ])
@@ -1779,6 +1780,12 @@ export function traverseEnrichedBlock(
                 traverseEnrichedBlock(node, callback, spanCallback)
             }
         })
+        .with({ type: "data-callout" }, (dataCallout) => {
+            callback(dataCallout)
+            for (const node of dataCallout.content) {
+                traverseEnrichedBlock(node, callback, spanCallback)
+            }
+        })
         .with(
             {
                 type: P.union(
@@ -1836,6 +1843,7 @@ export function spansToUnformattedPlainText(spans: Span[]): string {
                     {
                         spanType: P.union(
                             "span-link",
+                            "span-callout",
                             "span-italic",
                             "span-bold",
                             "span-fallback",
@@ -1965,6 +1973,29 @@ export function lowercaseObjectKeys(
 export const detailOnDemandRegex = /#dod:([\w\-_]+)/
 
 export const guidedChartRegex = /#guide:(https?:\/\/[^\s]+)/
+
+/**
+ * Matches callout function syntax in link anchors:
+ * #callout:latestYear(Column Name)
+ * #callout:latestValue(Column Name)
+ * #callout:entity
+ *
+ * Group 1: function name (e.g., "latestYear", "latestValue", "entity")
+ * Group 2: parameters (e.g., "Column Name") - may be undefined for parameterless functions like "entity"
+ */
+export const calloutFunctionRegex = /#callout:(\w+)(?:\(([^)]+)\))?/
+
+/**
+ * Matches plaintext callout token syntax:
+ * $latestYear(Column Name)
+ * $latestValue(Column Name)
+ * $entity()
+ *
+ * Group 1: function name (e.g., "latestYear", "latestValue", "entity")
+ * Group 2: parameters (e.g., "Column Name") - may be empty string for parameterless functions like "entity"
+ */
+export const plaintextCalloutRegex =
+    /\$(latestValue|latestYear|entity)\(([^)]*)\)/g
 
 export function extractDetailsFromSyntax(str: string): string[] {
     return [...str.matchAll(new RegExp(detailOnDemandRegex, "g"))].map(

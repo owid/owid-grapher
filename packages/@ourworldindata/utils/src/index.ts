@@ -135,6 +135,8 @@ export {
     lowercaseObjectKeys,
     detailOnDemandRegex,
     guidedChartRegex,
+    calloutFunctionRegex,
+    plaintextCalloutRegex,
     extractDetailsFromSyntax,
     parseFloatOrUndefined,
     bind,
@@ -233,6 +235,12 @@ export {
     type ProfileEntity,
     getEntitiesForProfile,
     validateConditionalSectionLists,
+    makeCalloutGrapherStateKey,
+    makeLinkedCalloutKey,
+    filterIncompleteDataCallouts,
+    hasRenderableDataCallouts,
+    checkShouldDataCalloutRender,
+    getCalloutValue,
 } from "./profiles.js"
 
 export {

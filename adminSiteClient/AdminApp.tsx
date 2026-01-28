@@ -39,6 +39,8 @@ import { AdminLayout } from "./AdminLayout.js"
 import { BulkGrapherConfigEditorPage } from "./BulkGrapherConfigEditor.js"
 import { GdocsIndexPage } from "./GdocsIndexPage.js"
 import { GdocsMatchProps, GdocsPreviewPage } from "./GdocsPreviewPage.js"
+import { GdocsCoverageMatrixPage } from "./GdocsCoverageMatrixPage.js"
+import { CalloutFunctionsPage } from "./CalloutFunctionsPage.js"
 import { GdocsStoreProvider } from "./GdocsStoreProvider.js"
 import { IndicatorChartEditorPage } from "./IndicatorChartEditorPage.js"
 import { CreateNarrativeChartEditorPage } from "./CreateNarrativeChartEditorPage.js"
@@ -379,6 +381,22 @@ export class AdminApp extends React.Component<{
                                             <GdocsPreviewPage {...props} />
                                         </GdocsStoreProvider>
                                     )}
+                                />
+                                <Route
+                                    exact
+                                    path="/gdocs/:id/coverage"
+                                    render={(props: GdocsMatchProps) => (
+                                        <GdocsStoreProvider>
+                                            <GdocsCoverageMatrixPage
+                                                {...props}
+                                            />
+                                        </GdocsStoreProvider>
+                                    )}
+                                />
+                                <Route
+                                    exact
+                                    path="/callout-functions"
+                                    component={CalloutFunctionsPage}
                                 />
                                 <Route
                                     path="/gdocs"

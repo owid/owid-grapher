@@ -52,6 +52,7 @@ import {
     OwidGdocType,
     getRegionBySlug,
     getEntitiesForProfile,
+    hasRenderableDataCallouts,
     ALL_GDOC_TYPES,
 } from "@ourworldindata/utils"
 import {
@@ -704,7 +705,7 @@ getPlainRouteWithROTransaction(
                 return res.status(404).send(renderNotFoundPage())
             }
 
-            const entitiesInScope = getEntitiesForProfile(gdoc as GdocProfile)
+            const entitiesInScope = getEntitiesForProfile(gdoc.content.scope)
             const isEntityInScope = entitiesInScope.some(
                 (profileEntity) => profileEntity.code === entity.code
             )
@@ -712,10 +713,15 @@ getPlainRouteWithROTransaction(
                 return res.status(404).send(renderNotFoundPage())
             }
 
-            const instantiatedProfile = instantiateProfileForEntity(
+            const instantiatedProfile = await instantiateProfileForEntity(
                 gdoc as GdocProfile,
-                entity
+                entity,
+                { knex: trx }
             )
+
+            if (!hasRenderableDataCallouts(instantiatedProfile.content)) {
+                return res.status(404).send(renderNotFoundPage())
+            }
 
             return res.send(renderGdoc(instantiatedProfile, true))
         } catch (error) {

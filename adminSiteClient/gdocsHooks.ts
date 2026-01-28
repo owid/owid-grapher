@@ -51,7 +51,7 @@ export function useCountryProfileSelection(
 ) {
     const entitiesInScope = React.useMemo(() => {
         if (!gdoc) return []
-        const entitiesInScope = getEntitiesForProfile(gdoc)
+        const entitiesInScope = getEntitiesForProfile(gdoc.content.scope)
         return entitiesInScope
             .filter((entity) => entity.code && entity.name)
             .map((entity) => ({

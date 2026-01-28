@@ -1222,6 +1222,144 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     }
 }
 
+.GdocsCoverageMatrix {
+    padding: 24px;
+
+    &__loading,
+    &__error,
+    &__empty {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        color: #6b7280;
+    }
+
+    &__error {
+        color: #b91c1c;
+    }
+
+    &__table-wrapper {
+        overflow: auto;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        background: #fff;
+    }
+
+    &__table {
+        width: max-content;
+        min-width: 100%;
+        border-collapse: collapse;
+
+        th,
+        td {
+            border: 1px solid #e5e7eb;
+            padding: 6px 8px;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        th {
+            background: #f9fafb;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            text-align: center;
+        }
+    }
+
+    &__label {
+        position: sticky;
+        left: 0;
+        background: #fff;
+        z-index: 2;
+        max-width: 360px;
+
+        div {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    &__cell {
+        width: 14px;
+        height: 14px;
+    }
+
+    &__cell--present {
+        background: #16a34a;
+    }
+
+    &__cell--missing {
+        background: #dc2626;
+    }
+
+    &__legend {
+        display: flex;
+        gap: 16px;
+        padding: 12px 4px;
+        color: #6b7280;
+        font-size: 12px;
+    }
+
+    &__legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+
+        .GdocsCoverageMatrix__cell {
+            border: 1px solid #e5e7eb;
+        }
+    }
+}
+
+.CalloutFunctionsPage {
+    padding: 24px;
+    max-width: 800px;
+
+    &__form {
+        margin-top: 16px;
+    }
+
+    &__input-group {
+        display: flex;
+        gap: 8px;
+
+        input {
+            flex: 1;
+        }
+    }
+
+    &__results {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 16px;
+    }
+
+    &__function-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    &__function-item {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 4px;
+        margin-bottom: 8px;
+
+        code {
+            flex: 1;
+            font-size: 14px;
+            color: #1f2937;
+        }
+    }
+}
+
 .GdocsSettingsForm {
     .edit-in-gdocs {
         position: relative;

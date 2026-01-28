@@ -6,6 +6,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { GdocsDiff } from "./GdocsDiff.js"
 import { OwidGdocErrorMessage, OwidGdoc } from "@ourworldindata/utils"
+import { useState } from "react"
 
 export const GdocsSaveButtons = ({
     published,
@@ -30,9 +31,16 @@ export const GdocsSaveButtons = ({
     isLightningUpdate: boolean
     disableButtons: boolean
     setDiffOpen: (open: boolean) => void
-    doPublish: VoidFunction
+    doPublish: () => Promise<void>
     saveDraft: VoidFunction
 }) => {
+    const [isPublishing, setIsPublishing] = useState(false)
+
+    const formatPublishError = (error: unknown): string => {
+        if (error instanceof Error && error.message) return error.message
+        return String(error)
+    }
+
     const confirmPublish = async () => {
         const styleDiff = hasChanges
             ? { style: { "overflow-y": "auto", maxHeight: "50vh" } }
@@ -40,7 +48,7 @@ export const GdocsSaveButtons = ({
         const widthModal = hasChanges ? { width: "80vw" } : {}
         const centeredModal = hasChanges ? { centered: true } : {}
 
-        Modal.confirm({
+        const modal = Modal.confirm({
             title: `Are you sure you want to publish ${
                 hasChanges ? "these changes" : "this article"
             }?`,
@@ -72,7 +80,30 @@ export const GdocsSaveButtons = ({
             okType: hasWarnings ? "danger" : "primary",
             okText: "Publish now",
             cancelText: "Cancel",
-            onOk: doPublish,
+            onOk: async () => {
+                if (isPublishing) return
+                setIsPublishing(true)
+
+                try {
+                    await doPublish()
+                    modal.destroy()
+                } catch (error) {
+                    modal.update({
+                        title: "Publish failed",
+                        content: (
+                            <div>
+                                Could not publish this document.{" "}
+                                {formatPublishError(error)}
+                            </div>
+                        ),
+                        okText: "Close",
+                        okButtonProps: { loading: false },
+                        cancelButtonProps: { style: { display: "none" } },
+                    })
+                } finally {
+                    setIsPublishing(false)
+                }
+            },
             maskClosable: true,
             ...centeredModal,
             ...widthModal,
@@ -96,7 +127,7 @@ export const GdocsSaveButtons = ({
             <Space>
                 {!published && (
                     <Button
-                        disabled={disableButtons || !hasChanges}
+                        disabled={disableButtons || isPublishing || !hasChanges}
                         onClick={saveDraft}
                     >
                         Save draft
@@ -107,6 +138,7 @@ export const GdocsSaveButtons = ({
                     <Button
                         disabled={
                             disableButtons ||
+                            isPublishing ||
                             hasErrors ||
                             (published && !hasChanges)
                         }

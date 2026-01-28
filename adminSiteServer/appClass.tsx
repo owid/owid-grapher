@@ -23,6 +23,7 @@ import {
     GdocsContentSource,
     OwidGdocType,
     getEntitiesForProfile,
+    hasRenderableDataCallouts,
 } from "@ourworldindata/utils"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import { getAndLoadGdocById } from "../db/model/Gdoc/GdocFactory.js"
@@ -30,6 +31,7 @@ import {
     instantiateProfileForEntity,
     GdocProfile,
 } from "../db/model/Gdoc/GdocProfile.js"
+import { prepareCalloutTablesForProfile } from "../db/model/Gdoc/dataCallouts.js"
 
 interface OwidAdminAppOptions {
     isDev: boolean
@@ -119,17 +121,36 @@ export class OwidAdminApp {
                     ) {
                         const entityCode = req.query.entity as string
                         const entitiesInScope = getEntitiesForProfile(
-                            gdoc as GdocProfile
+                            gdoc.content.scope
                         )
                         const entityInScope = entitiesInScope.find(
                             (profileEntity) => profileEntity.code === entityCode
                         )
                         if (entityInScope) {
-                            const instantiatedProfile =
-                                instantiateProfileForEntity(
-                                    gdoc as GdocProfile,
-                                    entityInScope
+                            // Prepare tables once for the preview
+                            const preparedTables =
+                                await prepareCalloutTablesForProfile(
+                                    knex,
+                                    gdoc.content
                                 )
+                            const instantiatedProfile =
+                                await instantiateProfileForEntity(
+                                    gdoc as GdocProfile,
+                                    entityInScope,
+                                    { preparedTables }
+                                )
+
+                            if (
+                                !hasRenderableDataCallouts(
+                                    instantiatedProfile.content
+                                )
+                            ) {
+                                res.status(404).send(
+                                    "None of the callouts in this profile are available for this entity. A profile will not be baked for it."
+                                )
+                                return
+                            }
+
                             res.set("X-Robots-Tag", "noindex")
                             res.send(
                                 renderToHtmlPage(
@@ -146,7 +167,7 @@ export class OwidAdminApp {
 
                         if (!entityInScope) {
                             res.status(404).send(
-                                "Profile preview not available for this entity."
+                                "This entity is not in the profile scope."
                             )
                             return
                         }

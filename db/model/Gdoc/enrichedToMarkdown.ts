@@ -46,7 +46,8 @@ export function spanToMarkdown(s: Span): string {
                     "span-subscript",
                     "span-superscript",
                     "span-quote",
-                    "span-fallback"
+                    "span-fallback",
+                    "span-callout"
                 ),
             },
             (other) => spansToMarkdown(other.children)
@@ -316,7 +317,9 @@ ${items}
             b.items.map((item) => `${item.goal}: ${item.link}`).join("\n")
         )
         .with(
-            { type: P.union("side-by-side", "sticky-left", "sticky-right") },
+            {
+                type: P.union("side-by-side", "sticky-left", "sticky-right"),
+            },
             (b): string | undefined => {
                 const nonNullishLeft = excludeNullish(
                     b.left.map((item) =>
@@ -505,5 +508,8 @@ ${links}`
                 .map((link) => `* [${link.text}](${link.url})`)
                 .join("\n")
         })
+        .with({ type: "data-callout" }, (b): string | undefined =>
+            enrichedBlocksToMarkdown(b.content, exportComponents)
+        )
         .exhaustive()
 }

@@ -52,6 +52,7 @@ import {
     OwidGdocType,
     getEntitiesForProfile,
     LinkedStaticViz,
+    hasRenderableDataCallouts,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import {
@@ -74,6 +75,7 @@ import {
     GdocProfile,
     instantiateProfileForEntity,
 } from "../db/model/Gdoc/GdocProfile.js"
+import { prepareCalloutTablesForProfile } from "../db/model/Gdoc/dataCallouts.js"
 import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 import {
     gdocFromJSON,
@@ -208,9 +210,6 @@ export class SiteBaker {
 
         if (profileTemplates.length === 0) return
 
-        const tagHierarchiesByChildName =
-            await db.getTagHierarchiesByChildName(knex)
-
         for (const profileTemplate of profileTemplates) {
             const attachments = await this.getPrefetchedGdocAttachments(knex, [
                 profileTemplate.content.authors,
@@ -235,23 +234,29 @@ export class SiteBaker {
                 attachments.linkedNarrativeCharts
             profileTemplate.linkedStaticViz = attachments.linkedStaticViz
 
-            if (
-                !profileTemplate.manualBreadcrumbs?.length &&
-                profileTemplate.tags?.length
-            ) {
-                profileTemplate.breadcrumbs = db.getBestBreadcrumbs(
-                    profileTemplate.tags,
-                    tagHierarchiesByChildName
-                )
-            }
+            // Prepare all callout tables ONCE for this profile.
+            // This avoids fetching the same chart data for each entity.
+            const preparedTables = await prepareCalloutTablesForProfile(
+                knex,
+                profileTemplate.content
+            )
 
-            const entities = getEntitiesForProfile(profileTemplate)
+            const entities = getEntitiesForProfile(
+                profileTemplate.content.scope
+            )
 
             for (const entity of entities) {
-                const instantiatedProfile = instantiateProfileForEntity(
+                // Pass pre-prepared tables to avoid redundant API calls
+                const instantiatedProfile = await instantiateProfileForEntity(
                     profileTemplate,
-                    entity
+                    entity,
+                    { preparedTables }
                 )
+
+                if (!hasRenderableDataCallouts(instantiatedProfile.content)) {
+                    continue
+                }
+
                 const html = renderGdoc(instantiatedProfile)
                 const outPath = path.join(
                     this.bakedSiteDir,
