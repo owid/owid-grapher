@@ -12,6 +12,7 @@ export interface ConnectedScatterLegendManager {
     displayEndTime: string
     fontSize?: number
     compareEndPointsOnly?: boolean
+    isStaticAndSmall?: boolean
 }
 
 export class ConnectedScatterLegend {
@@ -22,7 +23,9 @@ export class ConnectedScatterLegend {
     }
 
     @computed get fontSize(): number {
-        return 0.7 * (this.manager.fontSize ?? BASE_FONT_SIZE)
+        const baseFontSize = this.manager.fontSize ?? BASE_FONT_SIZE
+        const multiplier = this.manager.isStaticAndSmall ? 0.5 : 0.7
+        return multiplier * baseFontSize
     }
     @computed get fontColor(): string {
         return "#333"
@@ -56,7 +59,13 @@ export class ConnectedScatterLegend {
     }
 
     @computed get height(): number {
-        return Math.max(this.startLabel.height, this.endLabel.height)
+        const labelHeight = Math.max(
+            this.startLabel.height,
+            this.endLabel.height
+        )
+
+        // Arrow line area (6px) + gap (4px) + labels height
+        return 6 + 4 + labelHeight
     }
 
     render(
@@ -66,9 +75,13 @@ export class ConnectedScatterLegend {
     ): React.ReactElement {
         const { manager, startLabel, endLabel, fontColor } = this
 
-        const lineLeft = targetX + startLabel.width + 5
-        const lineRight = targetX + manager.sidebarWidth - endLabel.width - 5
-        const lineY = targetY + this.height / 2 - 0.5
+        // Arrow line spans nearly full width at top
+        const lineLeft = targetX + 5
+        const lineRight = targetX + manager.sidebarWidth - 5
+        const lineY = targetY + 3
+
+        // Labels below the line
+        const labelY = targetY + 10
 
         return (
             <g
@@ -84,14 +97,29 @@ export class ConnectedScatterLegend {
                     fill="#fff"
                     opacity={0}
                 />
-                {startLabel.renderSVG(targetX, targetY, {
+                {this.renderArrowLine(lineLeft, lineRight, lineY)}
+                {startLabel.renderSVG(targetX, labelY, {
                     textProps: { fill: fontColor },
                 })}
                 {endLabel.renderSVG(
                     targetX + manager.sidebarWidth - endLabel.width,
-                    targetY,
+                    labelY,
                     { textProps: { fill: fontColor } }
                 )}
+            </g>
+        )
+    }
+
+    // Shared arrow line rendering (circles, line, triangle)
+    private renderArrowLine(
+        lineLeft: number,
+        lineRight: number,
+        lineY: number
+    ): React.ReactElement {
+        const { manager } = this
+
+        return (
+            <React.Fragment>
                 <line
                     x1={lineLeft}
                     y1={lineY}
@@ -137,7 +165,7 @@ export class ConnectedScatterLegend {
                     stroke="#ccc"
                     strokeWidth={0.2}
                 />
-            </g>
+            </React.Fragment>
         )
     }
 }
