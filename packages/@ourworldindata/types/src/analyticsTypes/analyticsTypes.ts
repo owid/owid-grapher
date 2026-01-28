@@ -46,6 +46,7 @@ export enum EventCategory {
     DetailOnDemand = "owid.detail_on_demand",
     SiteGuidedChartLinkClick = "owid.site_guided_chart_link_click",
     SiteChartPreviewMouseover = "owid.site_chart_preview_mouseover",
+    SiteStaticVizDownload = "owid.site_static_viz_download",
     TranslatePage = "owid.translate_page",
 }
 
@@ -69,6 +70,7 @@ export type EventParamsMap = {
     [EventCategory.KeyboardShortcut]: KeyboardShortcutParams
     [EventCategory.SiteGuidedChartLinkClick]: SiteGuidedChartLinkClickParams
     [EventCategory.SiteChartPreviewMouseover]: SiteChartPreviewMouseoverParams
+    [EventCategory.SiteStaticVizDownload]: SiteStaticVizDownloadParams
     [EventCategory.SiteClick]: SiteClickParams
     [EventCategory.SiteFormSubmit]: SiteFormSubmitParams
     [EventCategory.SiteInstantSearchClick]: SiteInstantSearchClickParams
@@ -182,6 +184,15 @@ export interface SiteChartPreviewMouseoverParams {
     explorerPath?: string
     /** Grapher path being previewed */
     grapherPath?: string
+}
+
+export interface SiteStaticVizDownloadParams {
+    /** Type of download action */
+    eventAction: "image_download" | "data_download" | "source_link_click"
+    /** Name of the static viz */
+    eventTarget: string
+    /** Additional context (e.g., 'desktop' or 'mobile' for images, URL for data/source) */
+    eventContext?: string
 }
 
 // Grapher Events

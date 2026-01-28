@@ -159,6 +159,26 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
+    /**
+     * Logs analytics events for static visualization downloads.
+     * @param staticVizName - The unique name identifier of the static viz
+     * @param action - The type of download: 'image_download' for PNG exports,
+     *                 'data_download' for CSV downloads, or 'source_link_click' for external source links
+     * @param context - Optional context such as 'desktop'/'mobile' for images, or the URL for data/source links
+     */
+    logStaticVizDownload(
+        staticVizName: string,
+        action: "image_download" | "data_download" | "source_link_click",
+        context?: string
+    ) {
+        this.logToGA({
+            event: EventCategory.SiteStaticVizDownload,
+            eventAction: action,
+            eventTarget: staticVizName,
+            eventContext: context,
+        })
+    }
+
     startClickTracking(): void {
         // we use a data-track-note attr on elements to indicate that clicks on them should be tracked, and what to send
         const dataTrackAttr = "data-track-note"
