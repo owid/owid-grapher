@@ -1,7 +1,6 @@
 import { expect, Locator, Page } from "@playwright/test"
 import { createBdd } from "playwright-bdd"
 import { FilterType, SearchUrlParam } from "@ourworldindata/types"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 
 const { Given, When, Then } = createBdd()
 
@@ -19,7 +18,7 @@ const getTopicFromUrl = (url: string): string | null => {
 }
 
 Given("I am on the search page", async ({ page }) => {
-    await page.goto(`${BAKED_BASE_URL}/search`)
+    await page.goto(`/search`)
     await expect(getSearchInput(page)).toBeVisible()
 })
 
@@ -67,4 +66,19 @@ When("I navigate back to the previous search state", async ({ page }) => {
 Then("the url no longer contains topic filters", async ({ page }) => {
     const topicInUrl = getTopicFromUrl(page.url())
     expect(topicInUrl).toBeNull()
+})
+
+Then("the search bar should be focused", async ({ page }) => {
+    const input = getSearchInput(page)
+    await expect(input).toBeFocused()
+})
+
+Then("suggestions should not be visible", async ({ page }) => {
+    const suggestions = page.getByTestId("search-autocomplete-listbox")
+    await expect(suggestions).not.toBeVisible()
+})
+
+Then("suggestions should be visible", async ({ page }) => {
+    const suggestions = page.getByTestId("search-autocomplete-listbox")
+    await expect(suggestions).toBeVisible()
 })
