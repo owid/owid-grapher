@@ -32,6 +32,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["chart--wide"]: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["chart--widest"]: "col-start-2 span-cols-12 col-md-start-2 span-md-cols-12",
         ["cta"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["data-callout"]: "span-cols-14 grid grid-cols-12-full-width",
         ["default"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["divider"]: "col-start-2 span-cols-12",
         ["explorer"]: "col-start-2 span-cols-12",
