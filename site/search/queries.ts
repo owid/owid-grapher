@@ -142,6 +142,8 @@ export async function queryCharts(
             attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
             query: state.query,
             facetFilters: facetFilters,
+            // Exclude featured metric records (score > 10000) from general chart queries
+            filters: "score <= 10000",
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
             hitsPerPage: 9,
