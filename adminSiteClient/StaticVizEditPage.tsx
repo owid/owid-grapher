@@ -375,11 +375,12 @@ export function StaticVizEditPage() {
 
                         <h4>Description</h4>
                         <p className="static-viz-edit-form__description">
-                            Explain how this visualization was created.
+                            Explain how this visualization was created.{" "}
+                            <strong>This field accepts Markdown.</strong>
                         </p>
                         <Form.Item name="description">
                             <TextArea
-                                rows={3}
+                                rows={10}
                                 placeholder={`1. The data was downloaded from [source](https://example.org)
 2. It was then processed using scripts stored at https://github.com/owid/notebooks/blah
 3. The output chart was then improved in Figma`}
