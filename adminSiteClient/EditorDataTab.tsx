@@ -7,6 +7,7 @@ import cx from "classnames"
 import {
     EntitySelectionMode,
     MissingDataStrategy,
+    PeerCountryStrategy,
     EntityName,
     SeriesName,
 } from "@ourworldindata/types"
@@ -420,6 +421,68 @@ class MissingDataSection<
 }
 
 @observer
+class PeerCountrySection<
+    Editor extends AbstractChartEditor,
+> extends React.Component<{ editor: Editor }> {
+    constructor(props: { editor: Editor }) {
+        super(props)
+        makeObservable(this)
+    }
+
+    private peerCountryStrategyLabels: {
+        [key in PeerCountryStrategy]: string
+    } = {
+        [PeerCountryStrategy.ParentRegions]: "Continent, income group & World",
+        [PeerCountryStrategy.DefaultSelection]: "Default selection",
+    }
+
+    @computed get grapherState() {
+        return this.props.editor.grapherState
+    }
+
+    get peerCountryStrategyOptions(): {
+        value: PeerCountryStrategy | undefined
+        label: string
+    }[] {
+        const options = Object.values(PeerCountryStrategy).map((strategy) => ({
+            value: strategy,
+            label: this.peerCountryStrategyLabels[strategy],
+        }))
+
+        return [{ value: undefined, label: "None" }, ...options]
+    }
+
+    @action.bound onSelectPeerCountryStrategy(value: string | undefined) {
+        this.grapherState.peerCountryStrategy = value
+            ? (value as PeerCountryStrategy)
+            : undefined
+    }
+
+    override render() {
+        const { grapherState } = this
+
+        return (
+            <Section name="Peer countries">
+                <p className="form-section-desc">
+                    Defines how comparison countries are selected when peer
+                    countries are enabled in a gdoc chart component. In search,
+                    peers are shown when a user focuses on a single country.
+                </p>
+                <SelectField
+                    label="Peer country strategy"
+                    value={grapherState.peerCountryStrategy ?? ""}
+                    options={this.peerCountryStrategyOptions.map((opt) => ({
+                        value: opt.value ?? "",
+                        label: opt.label,
+                    }))}
+                    onValue={this.onSelectPeerCountryStrategy}
+                />
+            </Section>
+        )
+    }
+}
+
+@observer
 class EntityFilterSection<
     Editor extends AbstractChartEditor,
 > extends React.Component<{ editor: Editor }> {
@@ -691,6 +754,7 @@ export class EditorDataTab<
                 {features.canSpecifyMissingDataStrategy && (
                     <MissingDataSection editor={this.props.editor} />
                 )}
+                <PeerCountrySection editor={editor} />
             </div>
         )
     }

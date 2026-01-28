@@ -135,6 +135,7 @@ export function enrichedBlockToRawBlock(
                     size: b.size,
                     caption: b.caption ? spansToHtmlText(b.caption) : undefined,
                     visibility: b.visibility ? b.visibility : undefined,
+                    peerCountries: b.peerCountries,
                 },
             })
         )

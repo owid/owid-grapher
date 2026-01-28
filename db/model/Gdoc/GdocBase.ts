@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as db from "../../db.js"
-import { getUrlTarget, MarkdownTextWrap } from "@ourworldindata/components"
+import { getUrlTarget, toPlaintext } from "@ourworldindata/components"
 import {
     LinkedChart,
     LinkedIndicator,
@@ -1370,13 +1370,11 @@ export async function makeGrapherLinkedChart(
 ): Promise<LinkedChart> {
     const resolvedSlug = config.slug ?? ""
     const resolvedTitle = config.title ?? ""
-    const subtitle = new MarkdownTextWrap({
-        text: config.subtitle || "",
-        fontSize: 12,
-    }).plaintext
+    const subtitle = toPlaintext(config.subtitle ?? "")
     const resolvedUrl = `${BASE_URL}/grapher/${resolvedSlug}`
     const tab = config.tab ?? GRAPHER_TAB_CONFIG_OPTIONS.chart
     const indicatorId = await getDatapageIndicatorId(knex, config)
+
     return {
         configType: ChartConfigType.Grapher,
         originalSlug,

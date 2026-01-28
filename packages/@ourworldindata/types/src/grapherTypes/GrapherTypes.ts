@@ -212,10 +212,23 @@ export enum ScatterPointLabelStrategy {
     y = "y",
 }
 
+export enum PeerCountryStrategy {
+    /** Use the containing continent, income group and World as peers */
+    ParentRegions = "parentRegions",
+    /** Use the chart's default selection as peers */
+    DefaultSelection = "defaultSelection",
+}
+
+export type PeerCountryStrategyQueryParam = PeerCountryStrategy | "auto"
+
+/** Valid values for the peerCountries query parameter */
+export const VALID_PEER_COUNTRY_STRATEGY_QUERY_PARAMS: PeerCountryStrategyQueryParam[] =
+    ["auto", ...Object.values(PeerCountryStrategy)]
+
 export enum GrapherTooltipAnchor {
-    // the tooltip is positioned relative to the mouse cursor
+    /** The tooltip is positioned relative to the mouse cursor */
     mouse = "mouse",
-    // the tooltip is pinned to the bottom of the screen
+    /** The tooltip is pinned to the bottom of the screen */
     bottom = "bottom",
 }
 
@@ -552,6 +565,7 @@ export interface GrapherInterface extends SortConfig {
     selectedEntityNames?: EntityName[]
     selectedEntityColors?: { [entityName: string]: string | undefined }
     focusedSeriesNames?: SeriesName[]
+    peerCountryStrategy?: PeerCountryStrategy
     missingDataStrategy?: MissingDataStrategy
     hideFacetControl?: boolean
     facettingLabelByYVariables?: string
@@ -598,6 +612,7 @@ export type GrapherQueryParams = {
     mapSelect?: string
     tableFilter?: string
     tableSearch?: string
+    peerCountries?: string
 }
 
 export type LegacyGrapherQueryParams = GrapherQueryParams & {
@@ -629,7 +644,9 @@ const GRAPHER_ALL_QUERY_PARAMS: Required<LegacyGrapherQueryParams> = {
     mapSelect: "",
     tableFilter: "",
     tableSearch: "",
+    peerCountries: "",
 }
+
 export const GRAPHER_QUERY_PARAM_KEYS = Object.keys(
     GRAPHER_ALL_QUERY_PARAMS
 ) as (keyof LegacyGrapherQueryParams)[]
@@ -695,6 +712,7 @@ export const grapherKeysToSerialize = [
     "comparisonLines",
     "relatedQuestions",
     "missingDataStrategy",
+    "peerCountryStrategy",
 
     // internals
     "adminBaseUrl",

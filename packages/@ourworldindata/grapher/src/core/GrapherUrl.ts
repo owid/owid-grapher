@@ -71,6 +71,7 @@ export const grapherConfigToQueryParams = (
             config.map?.globe?.rotation
         ),
         globeZoom: configGlobeZoomToQueryParam(config.map?.globe?.zoom),
+        peerCountries: config.peerCountryStrategy,
 
         // These cannot be specified in config, so we always set them to undefined
         showSelectionOnlyInTable: undefined,
@@ -94,7 +95,16 @@ export const grapherConfigToQueryParams = (
 export const grapherObjectToQueryParams = (
     grapher: GrapherState
 ): GrapherQueryParams => {
-    const params: GrapherQueryParams = {
+    const params: Record<
+        Exclude<
+            keyof GrapherQueryParams,
+            // Excluded because it's deprecated
+            | "showSelectionOnlyInTable"
+            // Excluded because it shouldn't be persisted in the URL
+            | "peerCountries"
+        >,
+        string | undefined
+    > = {
         tab: grapher.mapGrapherTabToQueryParam(grapher.activeTab),
         xScale: grapher.xAxis?.scaleType,
         yScale: grapher.yAxis?.scaleType,
