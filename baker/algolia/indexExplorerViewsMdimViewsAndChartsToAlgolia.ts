@@ -16,6 +16,7 @@ import {
     scaleRecordScores,
 } from "./utils/shared.js"
 import { getChartsRecords } from "./utils/charts.js"
+import { createBaseIndexingContext } from "./utils/context.js"
 import { getIndexName } from "../../site/search/searchClient.js"
 import { SearchIndexName } from "@ourworldindata/types"
 import { getMdimViewRecords } from "./utils/mdimViews.js"
@@ -36,9 +37,14 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
     }
 
     const records = await db.knexReadonlyTransaction(async (trx) => {
-        const explorerViews = await getExplorerViewRecords(trx, true)
-        const mdimViews = await getMdimViewRecords(trx)
-        const grapherViews = await getChartsRecords(trx)
+        // Create shared base context once for all record getters
+        const baseContext = await createBaseIndexingContext(trx)
+        const explorerViews = await getExplorerViewRecords(trx, {
+            skipGrapherViews: true,
+            baseContext,
+        })
+        const mdimViews = await getMdimViewRecords(trx, { baseContext })
+        const grapherViews = await getChartsRecords(trx, { baseContext })
         // Scale grapher records and the default explorer views between 1000 and 10000,
         // Scale the remaining explorer views between 0 and 1000.
         // This is because Graphers are generally higher quality than Explorers and we don't want
