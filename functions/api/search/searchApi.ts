@@ -203,6 +203,7 @@ export async function searchCharts(
                     highlightPostTag: "</mark>",
                     hitsPerPage: hitsPerPage.toString(),
                     page: page.toString(),
+                    optionalFilters: JSON.stringify([`title:${state.query}`]), // promote exact title matches up top
                     ...(facetFilters.length > 0 && {
                         facetFilters: JSON.stringify(facetFilters),
                     }),
