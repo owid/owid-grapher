@@ -45,6 +45,7 @@ import {
     faBook,
     faBookmark,
     faBullhorn,
+    faDatabase,
     faFileLines,
     faLightbulb,
     faTag,
@@ -376,6 +377,7 @@ type SearchFacetAttribute =
     | "datasetProducts"
     | "datasetNamespaces"
     | "datasetVersions"
+    | "datasetProducers"
 
 export function setToFacetFilters(
     facetSet: Set<string>,
@@ -487,6 +489,7 @@ export const getFilterIcon = (filter: Filter) => {
             FilterType.DATASET_PRODUCT,
             FilterType.DATASET_NAMESPACE,
             FilterType.DATASET_VERSION,
+            FilterType.DATASET_PRODUCER,
             () => (
                 <span className="icon">
                     <FontAwesomeIcon icon={faDatabase} />
@@ -866,6 +869,9 @@ export const createDatasetNamespaceFilter = createFilter(
 export const createDatasetVersionFilter = createFilter(
     FilterType.DATASET_VERSION
 )
+export const createDatasetProducerFilter = createFilter(
+    FilterType.DATASET_PRODUCER
+)
 
 /**
  * Returns a click handler that focuses an input element when clicking on the
@@ -918,6 +924,7 @@ export const getFilterAriaLabel = (
         .with(FilterType.DATASET_PRODUCT, () => "dataset product")
         .with(FilterType.DATASET_NAMESPACE, () => "dataset namespace")
         .with(FilterType.DATASET_VERSION, () => "dataset version")
+        .with(FilterType.DATASET_PRODUCER, () => "dataset producer")
         .with(FilterType.COUNTRY, () => "country")
         .with(FilterType.TOPIC, () => "topic")
         .with(FilterType.QUERY, () => "query")
@@ -931,7 +938,8 @@ export const getFilterAriaLabel = (
                 FilterType.TOPIC,
                 FilterType.DATASET_PRODUCT,
                 FilterType.DATASET_NAMESPACE,
-                FilterType.DATASET_VERSION
+                FilterType.DATASET_VERSION,
+                FilterType.DATASET_PRODUCER
             ),
             () => `${actionName} ${filter.name} ${filterTypeLabel} filter`
         )
@@ -976,7 +984,8 @@ export const hasDatasetFilters = (filters: Filter[]): boolean => {
         (filter) =>
             filter.type === FilterType.DATASET_PRODUCT ||
             filter.type === FilterType.DATASET_NAMESPACE ||
-            filter.type === FilterType.DATASET_VERSION
+            filter.type === FilterType.DATASET_VERSION ||
+            filter.type === FilterType.DATASET_PRODUCER
     )
 }
 
@@ -1009,6 +1018,10 @@ export const getUrlParamNameForFilter = (filter: Filter) =>
             () => SearchUrlParam.DATASET_NAMESPACE
         )
         .with(FilterType.DATASET_VERSION, () => SearchUrlParam.DATASET_VERSION)
+        .with(
+            FilterType.DATASET_PRODUCER,
+            () => SearchUrlParam.DATASET_PRODUCER
+        )
         .exhaustive()
 
 /**
@@ -1049,6 +1062,7 @@ export const getItemUrlForFilter = (
             FilterType.DATASET_PRODUCT, // only for exhaustiveness, not used in autocomplete
             FilterType.DATASET_NAMESPACE, // only for exhaustiveness, not used in autocomplete
             FilterType.DATASET_VERSION, // only for exhaustiveness, not used in autocomplete
+            FilterType.DATASET_PRODUCER, // only for exhaustiveness, not used in autocomplete
             () => filterParam
         )
         .exhaustive()

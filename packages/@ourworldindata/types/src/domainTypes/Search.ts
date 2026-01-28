@@ -241,6 +241,7 @@ export enum FilterType {
     DATASET_PRODUCT = "datasetProduct",
     DATASET_NAMESPACE = "datasetNamespace",
     DATASET_VERSION = "datasetVersion",
+    DATASET_PRODUCER = "datasetProducer",
 }
 
 export enum SearchResultType {
@@ -263,6 +264,7 @@ export enum SearchUrlParam {
     DATASET_PRODUCT = "datasetProducts",
     DATASET_NAMESPACE = "datasetNamespaces",
     DATASET_VERSION = "datasetVersions",
+    DATASET_PRODUCER = "datasetProducers",
 }
 
 export type SearchState = Readonly<{

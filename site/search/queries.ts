@@ -147,12 +147,17 @@ export async function queryCharts(
         getFilterNamesOfType(state.filters, FilterType.DATASET_VERSION),
         "datasetVersions"
     )
+    const datasetProducerFacetFilters = formatDisjunctiveFacetFilters(
+        getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCER),
+        "datasetProducers"
+    )
     const facetFilters = [
         ...countryFacetFilters,
         ...topicFacetFilters,
         ...datasetProductFacetFilters,
         ...datasetNamespaceFacetFilters,
         ...datasetVersionFacetFilters,
+        ...datasetProducerFacetFilters,
     ]
 
     const searchParams = [
@@ -160,7 +165,7 @@ export async function queryCharts(
             indexName: CHARTS_INDEX,
             attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
             query: state.query,
-            facetFilters: facetFilters,
+            facetFilters,
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
             hitsPerPage: 9,

@@ -330,21 +330,13 @@ const createFiltersSource = (
                             />
                         </span>
                     ))
+                    // dataset filters are not suggested in autocomplete
                     .with(
                         FilterType.DATASET_PRODUCT,
                         FilterType.DATASET_NAMESPACE,
                         FilterType.DATASET_VERSION,
-                        () => (
-                            <span className="autocomplete-item-contents">
-                                <span className="autocomplete-item-contents__type-icon">
-                                    <FontAwesomeIcon icon={faSearch} />
-                                </span>
-                                <SearchFilterPill
-                                    name={filter.name}
-                                    icon={getFilterIcon(filter)}
-                                />
-                            </span>
-                        )
+                        FilterType.DATASET_PRODUCER,
+                        () => <></>
                     )
                     // query filters are filtered out in getItems
                     .with(FilterType.QUERY, () => <></>)
