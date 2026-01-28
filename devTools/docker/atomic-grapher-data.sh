@@ -82,6 +82,16 @@ swapGrapherDb() {
     # Drop old backup database if exists, create fresh one
     _mysql --database="" -e "DROP DATABASE IF EXISTS $OLD_DB; CREATE DATABASE $OLD_DB CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_as_cs;"
 
+    # Get view definitions from new DB BEFORE the swap (while tables still exist there)
+    echo "==> Extracting view definitions"
+    NEW_VIEWS=$(_mysql -N -e "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA='$NEW_DB' AND TABLE_TYPE='VIEW'")
+    declare -A VIEW_DEFS
+    for VIEW in $NEW_VIEWS; do
+        # Get the CREATE VIEW statement, strip DEFINER clause, and replace database references
+        VIEW_DEF=$(_mysql -N -e "SHOW CREATE VIEW $NEW_DB.$VIEW" | cut -f2 | sed 's/ DEFINER=`[^`]*`@`[^`]*`//' | sed "s/\`$NEW_DB\`\./\`$GRAPHER_DB_NAME\`./g")
+        VIEW_DEFS[$VIEW]="$VIEW_DEF"
+    done
+
     # Get list of tables in new DB (incoming data)
     NEW_TABLES=$(_mysql -N -e "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA='$NEW_DB' AND TABLE_TYPE='BASE TABLE'")
 
@@ -125,8 +135,8 @@ swapGrapherDb() {
     echo "==> Executing atomic table swap"
     _mysql --database="" -e "$RENAME_CMD"
 
-    # Handle views: drop existing views and recreate from new DB
-    # Views can't be renamed across databases, so we extract and recreate them
+    # Handle views: drop existing views and recreate from extracted definitions
+    # Views can't be renamed across databases, so we recreate them
     echo "==> Updating views"
 
     # Drop all existing views in main database
@@ -135,14 +145,9 @@ swapGrapherDb() {
         _mysql --database="$GRAPHER_DB_NAME" -e "DROP VIEW IF EXISTS $VIEW"
     done
 
-    # Get view definitions from new DB and recreate them in main DB
-    NEW_VIEWS=$(_mysql -N -e "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA='$NEW_DB' AND TABLE_TYPE='VIEW'")
-    for VIEW in $NEW_VIEWS; do
-        # Get the CREATE VIEW statement and adapt it for the main database
-        VIEW_DEF=$(_mysql -N -e "SHOW CREATE VIEW $NEW_DB.$VIEW" | cut -f2)
-        # Replace references to new DB with main DB in the view definition
-        VIEW_DEF="${VIEW_DEF//$NEW_DB/$GRAPHER_DB_NAME}"
-        _mysql --database="$GRAPHER_DB_NAME" -e "$VIEW_DEF"
+    # Recreate views in main DB using the extracted definitions
+    for VIEW in "${!VIEW_DEFS[@]}"; do
+        _mysql --database="$GRAPHER_DB_NAME" -e "${VIEW_DEFS[$VIEW]}"
     done
 
     echo "==> Cleaning up"
