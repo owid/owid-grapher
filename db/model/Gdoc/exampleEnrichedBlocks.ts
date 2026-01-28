@@ -910,4 +910,41 @@ export const enrichedBlockExamples: Record<
         ],
         parseErrors: [],
     },
+    "data-callout": {
+        type: "data-callout",
+        url: "https://ourworldindata.org/grapher/life-expectancy?country=KEN",
+        content: [
+            {
+                type: "text",
+                value: [
+                    {
+                        spanType: "span-simple-text",
+                        text: "In ",
+                    },
+                    {
+                        spanType: "span-callout",
+                        functionName: "latestYear",
+                        parameters: ["life_expectancy_0"],
+                        children: [],
+                    },
+                    {
+                        spanType: "span-simple-text",
+                        text: ", Kenya had a life expectancy of ",
+                    },
+                    {
+                        spanType: "span-callout",
+                        functionName: "latestValue",
+                        parameters: ["life_expectancy_0"],
+                        children: [],
+                    },
+                    {
+                        spanType: "span-simple-text",
+                        text: ".",
+                    },
+                ],
+                parseErrors: [],
+            },
+        ],
+        parseErrors: [],
+    },
 }
