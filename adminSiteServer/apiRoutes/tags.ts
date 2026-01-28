@@ -37,15 +37,14 @@ export async function getTagById(
             | "name"
             | "specialType"
             | "updatedAt"
-            | "parentId"
             | "slug"
             | "searchableInAlgolia"
         >
     >(
         trx,
         `-- sql
-        SELECT t.id, t.name, t.specialType, t.updatedAt, t.parentId, t.slug, t.searchableInAlgolia
-        FROM tags t LEFT JOIN tags p ON t.parentId=p.id
+        SELECT t.id, t.name, t.specialType, t.updatedAt, t.slug, t.searchableInAlgolia
+        FROM tags t
         WHERE t.id = ?
     `,
         [tagId]
@@ -144,29 +143,19 @@ export async function getTagById(
 
     await assignTagsForCharts(trx, charts)
 
-    // Subcategories
+    // Subcategories (children in tag_graph)
     const children = await db.knexRaw<{ id: number; name: string }>(
         trx,
         `-- sql
         SELECT t.id, t.name FROM tags t
-        WHERE t.parentId = ?
+        JOIN tag_graph tg ON tg.childId = t.id
+        WHERE tg.parentId = ?
     `,
         [tag.id]
     )
     tag.children = children
 
-    const possibleParents = await db.knexRaw<{ id: number; name: string }>(
-        trx,
-        `-- sql
-        SELECT t.id, t.name FROM tags t
-        WHERE t.parentId IS NULL
-    `
-    )
-    tag.possibleParents = possibleParents
-
-    return {
-        tag,
-    }
+    return { tag }
 }
 
 export async function updateTag(
@@ -199,15 +188,15 @@ export async function updateTag(
                         SELECT 1
                         FROM posts_gdocs_x_tags gt
                         WHERE pg.id = gt.gdocId AND gt.tagId = ?
-                ) AND pg.published = TRUE AND pg.slug = ?`,
+                ) AND pg.published = TRUE AND pg.slug = ? AND pg.type IN ('topic-page', 'linear-topic-page')`,
             [tagId, tag.slug]
         )
         if (!gdoc.length) {
             return {
                 success: true,
-                tagUpdateWarning: `The tag's slug has been updated, but there isn't a published Gdoc page with the same slug.
-
-Are you sure you haven't made a typo?`,
+                tagUpdateWarning: `The tag's slug has been updated, but there isn't a published topic page with the same slug. Are you sure you haven't made a typo?
+                
+You should probably just enable "Searchable in Algolia" for this tag and remove the slug until you've published the topic page.`,
             }
         }
     }

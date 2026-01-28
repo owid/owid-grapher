@@ -453,3 +453,24 @@ export async function getPreviewGdocIndexRecords(
         throw new Error(String(error))
     }
 }
+
+/**
+ * Get slugs of all published topic pages (topic-page, linear-topic-page).
+ * Used by the tag editor to determine if a tag's slug matches a published gdoc.
+ */
+export async function getPublishedGdocTopicSlugs(
+    _req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+): Promise<{ slugs: string[] }> {
+    const rows = await db.knexRaw<{ slug: string }>(
+        trx,
+        `-- sql
+        SELECT slug FROM posts_gdocs
+        WHERE published = TRUE
+        AND type IN ('topic-page', 'linear-topic-page')
+        AND slug IS NOT NULL
+        `
+    )
+    return { slugs: rows.map((r) => r.slug) }
+}

@@ -178,8 +178,13 @@
 }
 
 .aa-PanelLayout {
-    margin: 6px;
+    margin: 0;
     padding: 0;
+}
+
+// Only add spacing when there are actual suggestion items (otherwise an empty panel is shown)
+.aa-PanelLayout:has(.aa-Item) {
+    margin: 6px;
 }
 
 /*

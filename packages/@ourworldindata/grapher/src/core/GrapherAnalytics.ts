@@ -43,9 +43,11 @@ export class GrapherAnalytics {
         slug: string,
         ctx?: { viewConfigId?: string; narrativeChartName?: string }
     ): void {
+        const { path, pathNext } = splitPathForGA4(`/grapher/${slug}`)
         this.logToGA({
             event: EventCategory.GrapherView,
-            grapherPath: `/grapher/${slug}`,
+            grapherPath: path,
+            grapherPathNext: pathNext,
             viewConfigId: ctx?.viewConfigId,
             narrativeChartName: ctx?.narrativeChartName,
         })
@@ -67,11 +69,16 @@ export class GrapherAnalytics {
         })
     }
 
-    logExplorerView(slug: string, view: Record<string, string>): void {
+    logExplorerView(
+        slug: string,
+        view: Record<string, string>,
+        viewConfigId?: string
+    ): void {
         this.logToGA({
             event: EventCategory.ExplorerView,
             explorerPath: `/explorers/${slug}`,
             explorerView: JSON.stringify(view),
+            viewConfigId,
         })
     }
 
@@ -129,11 +136,15 @@ export class GrapherAnalytics {
             narrativeChartName?: string
         }
     ): void {
+        const { path, pathNext } = splitPathForGA4(
+            getPathname(ctx.grapherUrl) ?? ""
+        )
         this.logToGA({
             event: EventCategory.GrapherClick,
             eventAction: action,
             eventTarget: ctx.label,
-            grapherPath: getPathname(ctx.grapherUrl),
+            grapherPath: path,
+            grapherPathNext: pathNext,
             narrativeChartName: ctx.narrativeChartName,
         })
     }
@@ -207,12 +218,24 @@ function getPathname(url?: string): string | undefined {
         return undefined
     }
 }
+// GA4 truncates all string parameters at 100 characters.
+// If path exceeds this, split into path (first 100 chars) and pathNext (chars 101-200)
+export function splitPathForGA4(path: string): {
+    path: string
+    pathNext?: string
+} {
+    if (path.length <= 100) return { path }
+    return { path: path.slice(0, 100), pathNext: path.slice(100) }
+}
 
 function grapherAnalyticsContextToGAEventFields(
     ctx: GrapherAnalyticsContext
 ): Partial<GAEvent> {
+    const fullPath = ctx.slug ? `/grapher/${ctx.slug}` : undefined
+    const { path, pathNext } = splitPathForGA4(fullPath ?? "")
     return {
-        grapherPath: ctx.slug ? `/grapher/${ctx.slug}` : undefined,
+        grapherPath: path,
+        grapherPathNext: pathNext,
         viewConfigId: ctx.viewConfigId,
         narrativeChartName: ctx.narrativeChartName,
     }

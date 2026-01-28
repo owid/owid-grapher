@@ -34,6 +34,13 @@ export type DbEnrichedImageWithUserId = DbEnrichedImage & {
     userId: DbPlainUser["id"]
 }
 
+export type DbEnrichedImageWithPageviews = DbEnrichedImageWithUserId & {
+    views_365d: number
+    isFeaturedImage: number
+    isBodyContent: number
+    isInResearchAndWriting: number
+}
+
 export function parseImageRow(row: DbRawImage): DbEnrichedImage {
     return { ...row, updatedAt: parseImageUpdatedAt(row.updatedAt) }
 }

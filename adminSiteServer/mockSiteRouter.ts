@@ -341,7 +341,9 @@ getPlainRouteWithROTransaction(
 
         if (topicTag && topicTag.slug !== undefined) {
             // if topic slug is not a valid topic, render all data insights
-            const validTopicSlugs = await db.getAllTopicSlugs(trx)
+            const validTopicSlugs = await db
+                .getAllTopicTags(trx)
+                .then((tags) => tags.map((tag) => tag.slug))
             if (!validTopicSlugs.includes(topicTag.slug)) {
                 topicTag = undefined
             }

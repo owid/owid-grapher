@@ -65,6 +65,7 @@ export {
     GRAPHER_TAB_CONFIG_OPTIONS,
     GRAPHER_TAB_QUERY_PARAMS,
     ALL_GRAPHER_CHART_TYPES,
+    ORIGIN_URL_REGEX_PATTERNS,
 } from "./grapherTypes/GrapherConstants.js"
 
 export {
@@ -652,6 +653,7 @@ export {
     type DbRawImage,
     type DbEnrichedImage,
     type DbEnrichedImageWithUserId,
+    type DbEnrichedImageWithPageviews,
     type DbInsertImage,
     parseImageRow,
     parseImageUpdatedAt,
@@ -837,6 +839,16 @@ export {
     parseExplorerViewRow,
     serializeExplorerViewRow,
 } from "./dbTypes/ExplorerViews.js"
+
+export {
+    ExplorerViewDimensionsTableName,
+    type DbInsertExplorerViewDimensions,
+} from "./dbTypes/ExplorerViewDimensions.js"
+
+export {
+    MultiDimViewDimensionsTableName,
+    type DbInsertMultiDimViewDimensions,
+} from "./dbTypes/MultiDimViewDimensions.js"
 
 export { type Nominal, wrap, unwrap } from "./NominalType.js"
 

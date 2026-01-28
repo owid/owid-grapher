@@ -76,7 +76,7 @@ interface DatasetPageData {
     metadataEditedByUserId: number
     metadataEditedByUserName: string
 
-    availableTags: { id: number; name: string; parentName: string }[]
+    availableTags: { id: number; name: string }[]
     tags: { id: number; name: string }[]
     variables: VariableListItem[]
     charts: ChartListItem[]
@@ -359,7 +359,6 @@ interface DatasetTagEditorProps {
     availableTags: {
         id: number
         name: string
-        parentName: string
     }[]
 }
 

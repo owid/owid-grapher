@@ -17,7 +17,11 @@ import {
     extractDetailsFromSyntax,
     getIndexableKeys,
 } from "@ourworldindata/utils"
-import { GrapherInterface, DimensionProperty } from "@ourworldindata/types"
+import {
+    GrapherInterface,
+    DimensionProperty,
+    ORIGIN_URL_REGEX_PATTERNS,
+} from "@ourworldindata/types"
 import {
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
@@ -296,17 +300,9 @@ export class ChartEditorView<
             }
         })
 
-        // The origin url can either be a full URL (with optional https protocol), or a relative
-        // URL starting with /.
-        // We could combine them into one regex, but then it's harder to read.
-        const originUrlRegex = [
-            /^(https?:\/\/)?[^/.]+\.[^/].+$/, // absolute URL, optionally starting with https
-            /^\/.+$/, // relative URL, starting with /
-        ]
-
         if (
             this.grapherState.originUrl &&
-            !originUrlRegex.some((regex) =>
+            !ORIGIN_URL_REGEX_PATTERNS.some((regex) =>
                 regex.test(this.grapherState.originUrl ?? "")
             )
         ) {
@@ -380,6 +376,7 @@ export class ChartEditorView<
     disposers: IReactionDisposer[] = []
     override componentWillUnmount(): void {
         this.disposers.forEach((dispose) => dispose())
+        this.editor?.dispose()
     }
 
     override render(): React.ReactElement {

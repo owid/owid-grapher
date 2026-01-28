@@ -122,9 +122,6 @@
     }
 
     h4 {
-        font-size: 1.25rem;
-        line-height: 1.5rem;
-        color: $blue-90;
         margin: 0;
         flex: 0 0 calc(100% - 56px - 16px);
     }
@@ -251,7 +248,7 @@
 
     .newsletter-subscription-form__subheader {
         @include body-2-regular;
-        color: $blue-65;
+        color: $blue-70;
     }
 
     .newsletter-subscription-form__label-frequency {
@@ -269,7 +266,7 @@
     }
 
     .newsletter-subscription-form__privacy-notice {
-        color: $blue-65;
+        color: $blue-70;
     }
 
     @include md-down {
@@ -300,7 +297,7 @@
 
     .homepage-intro__donation-message {
         margin: 0;
-        color: $blue-65;
+        color: $blue-70;
     }
 
     .homepage-intro__donation-link {

@@ -1854,3 +1854,36 @@ describe("tolerance is not applied twice (issue #4891)", () => {
         expect(testColumnValues2015).toEqual([100])
     })
 })
+
+describe("populateFromQueryParams", () => {
+    it("ignores overlay=embed", () => {
+        const grapher = new GrapherState({})
+        grapher.populateFromQueryParams({ overlay: "embed" })
+        expect(grapher.activeModal).toBeUndefined()
+    })
+
+    it("ignores invalid query param values", () => {
+        const grapher = new GrapherState({})
+        grapher.populateFromQueryParams({ overlay: "invalid" })
+        expect(grapher.activeModal).toBeUndefined()
+    })
+
+    it("sets axis scale type", () => {
+        const grapher = new GrapherState({
+            xAxis: { scaleType: ScaleType.log },
+        })
+        grapher.populateFromQueryParams({ xScale: "linear" })
+        expect(grapher.xAxis.scaleType).toBe("linear")
+    })
+
+    it("stores non-grapher query params in externalQueryParams", () => {
+        const grapher = new GrapherState({})
+        grapher.populateFromQueryParams({
+            tab: "map",
+            customParam: "customValue",
+        } as any)
+        expect(grapher.externalQueryParams).toEqual({
+            customParam: "customValue",
+        })
+    })
+})

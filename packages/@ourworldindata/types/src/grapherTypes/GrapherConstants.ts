@@ -51,3 +51,14 @@ export const GRAPHER_TAB_NAMES = {
 
 /** Valid values for the `tab` query parameter in Grapher */
 export const GRAPHER_TAB_QUERY_PARAMS = GRAPHER_TAB_CONFIG_OPTIONS
+
+/**
+ * Validation regex patterns for originUrl field.
+ * The origin url can either be a full URL (with optional https protocol),
+ * or a relative URL starting with /.
+ * We use separate regex patterns rather than combining them for readability.
+ */
+export const ORIGIN_URL_REGEX_PATTERNS = [
+    /^(https?:\/\/)?[^/.]+\.[^/].+$/, // absolute URL, optionally starting with https
+    /^\/.+$/, // relative URL, starting with /
+] as const

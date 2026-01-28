@@ -1,26 +1,31 @@
 import { EntityName } from "@ourworldindata/types"
-import { action, computed, observable, makeObservable } from "mobx"
+import { action, computed, makeObservable, observable } from "mobx"
 
 export class SelectionArray {
+    private store: Set<EntityName> = new Set()
+
     constructor(selectedEntityNames: EntityName[] = []) {
-        makeObservable(this, {
-            selectedEntityNames: observable,
-        })
-        this.selectedEntityNames = selectedEntityNames.slice()
+        makeObservable<SelectionArray, "store">(this, { store: observable })
+
+        for (const name of selectedEntityNames) {
+            this.store.add(name)
+        }
     }
 
-    selectedEntityNames: EntityName[]
+    @computed get selectedEntityNames(): EntityName[] {
+        return [...this.store]
+    }
 
     @computed get hasSelection(): boolean {
-        return this.selectedEntityNames.length > 0
+        return this.numSelectedEntities > 0
     }
 
     @computed get numSelectedEntities(): number {
-        return this.selectedEntityNames.length
+        return this.store.size
     }
 
     @computed get selectedSet(): Set<EntityName> {
-        return new Set<EntityName>(this.selectedEntityNames)
+        return new Set(this.store)
     }
 
     // Clears and sets selected entities
@@ -30,42 +35,37 @@ export class SelectionArray {
     }
 
     @action.bound addToSelection(entityNames: EntityName[]): this {
-        this.selectedEntityNames = this.selectedEntityNames.concat(entityNames)
+        for (const name of entityNames) this.selectEntity(name)
         return this
     }
 
     @action.bound clearSelection(): void {
-        this.selectedEntityNames = []
+        this.store.clear()
     }
 
     @action.bound toggleSelection(entityName: EntityName): this {
-        return this.selectedSet.has(entityName)
+        return this.store.has(entityName)
             ? this.deselectEntity(entityName)
             : this.selectEntity(entityName)
     }
 
     @action.bound selectEntity(entityName: EntityName): this {
-        if (!this.selectedSet.has(entityName))
-            return this.addToSelection([entityName])
+        this.store.add(entityName)
         return this
     }
 
     @action.bound deselectEntity(entityName: EntityName): this {
-        this.selectedEntityNames = this.selectedEntityNames.filter(
-            (name) => name !== entityName
-        )
+        this.store.delete(entityName)
         return this
     }
 
     @action.bound selectEntities(entityNames: EntityName[]): this {
-        entityNames.forEach((entityName) => this.selectEntity(entityName))
+        for (const name of entityNames) this.selectEntity(name)
         return this
     }
 
     @action.bound deselectEntities(entityNames: EntityName[]): this {
-        this.selectedEntityNames = this.selectedEntityNames.filter(
-            (name) => !entityNames.includes(name)
-        )
+        for (const name of entityNames) this.deselectEntity(name)
         return this
     }
 }

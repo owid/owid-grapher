@@ -22,6 +22,7 @@ import {
     SlugsDeclarationCellDef,
     StringCellDef,
     UrlCellDef,
+    AbsoluteOrRelativeUrlCellDef,
     IndicatorIdsOrEtlPathsCellDef,
     IndicatorIdOrEtlPathCellDef,
     SlugOrIndicatorIdOrEtlPathCellDef,
@@ -334,6 +335,15 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
         description: "The link of the related question text",
         toGrapherObject: () => ({}), // handled in code (can be done properly once the relatedQuestion field is refactored)
     },
+    originUrl: {
+        ...AbsoluteOrRelativeUrlCellDef,
+        keyword: "originUrl",
+        description:
+            "The page containing this chart where more context can be found",
+        valuePlaceholder: "/life-expectancy",
+        toGrapherObject: (parsedValue) =>
+            omitEmptyStringValues({ originUrl: parsedValue }),
+    },
     mapTargetTime: {
         ...IntegerCellDef,
         keyword: "mapTargetTime",
@@ -351,9 +361,7 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
             "Hide or show entities for which one or more variables are missing",
         terminalOptions: toTerminalOptions(Object.values(MissingDataStrategy)),
         toGrapherObject: (parsedValue) =>
-            omitEmptyStringValues({
-                missingDataStrategy: parsedValue,
-            }),
+            omitEmptyStringValues({ missingDataStrategy: parsedValue }),
     },
     minTime: {
         ...IntegerCellDef,

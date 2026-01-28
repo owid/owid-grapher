@@ -43,6 +43,7 @@ import {
     DbEnrichedImage,
     DbPlainChart,
     DbRawChartConfig,
+    ExplorerViewsTableName,
     GrapherInterface,
     ImageMetadata,
     LatestPageItem,
@@ -755,12 +756,24 @@ export const renderExplorerPage = async (
         archiveContext = latestBySlug[program.slug]
     }
 
+    const explorerViewConfigIdRows = await knex<{
+        viewId: string
+        chartConfigId: string
+    }>(ExplorerViewsTableName)
+        .select("viewId", "chartConfigId")
+        .where("explorerSlug", program.slug)
+        .whereNotNull("chartConfigId")
+    const chartConfigIdByViewId = Object.fromEntries(
+        explorerViewConfigIdRows.map((row) => [row.viewId, row.chartConfigId])
+    )
+
     return (
         `<!doctype html>` +
         ReactDOMServer.renderToString(
             <ExplorerPage
                 grapherConfigs={grapherConfigs}
                 partialGrapherConfigs={partialGrapherConfigs}
+                chartConfigIdByViewId={chartConfigIdByViewId}
                 program={transformedProgram}
                 wpContent={wpContent}
                 baseUrl={BAKED_BASE_URL}

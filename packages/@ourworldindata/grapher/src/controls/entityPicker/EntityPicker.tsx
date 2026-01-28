@@ -176,16 +176,12 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
                     value: entityNameColumn?.slug,
                 },
             ...this.pickerColumnDefs.map(
-                (
-                    col
-                ): {
-                    label: string
-                    value: string
-                } => {
-                    return {
-                        label: col.name || col.slug,
-                        value: col.slug,
-                    }
+                (columnDef): { label: string; value: string } => {
+                    const label =
+                        columnDef?.display?.name ||
+                        columnDef.name ||
+                        columnDef.slug
+                    return { label, value: columnDef.slug }
                 }
             ),
         ])

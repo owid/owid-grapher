@@ -222,6 +222,9 @@ export function enrichedBlockToRawBlock(
                     name: block.name,
                     size: block.size,
                     hasOutline: String(block.hasOutline),
+                    caption: block.caption
+                        ? spansToHtmlText(block.caption)
+                        : undefined,
                 },
             })
         )
