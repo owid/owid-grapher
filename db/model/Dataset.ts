@@ -122,16 +122,16 @@ export async function checkDatasetVariablesInUse(
 
     const chartsCount = await db.knexRaw<{ count: number }>(
         trx,
-        `SELECT COUNT(DISTINCT cd.chartId) as count 
-         FROM ${ChartDimensionsTableName} cd 
+        `SELECT COUNT(DISTINCT cd.chartId) as count
+         FROM ${ChartDimensionsTableName} cd
          WHERE cd.variableId IN (${varIds.map(() => "?").join(",")})`,
         varIds
     )
 
     const explorersCount = await db.knexRaw<{ count: number }>(
         trx,
-        `SELECT COUNT(DISTINCT ev.explorerSlug) as count 
-         FROM ${ExplorerVariablesTableName} ev 
+        `SELECT COUNT(DISTINCT ev.explorerSlug) as count
+         FROM ${ExplorerVariablesTableName} ev
          WHERE ev.variableId IN (${varIds.map(() => "?").join(",")})`,
         varIds
     )
@@ -139,7 +139,7 @@ export async function checkDatasetVariablesInUse(
     // Multi-dim pages reference variables in their JSON config, so we need to search the config text
     const multiDimCount = await db.knexRaw<{ count: number }>(
         trx,
-        `SELECT COUNT(*) as count 
+        `SELECT COUNT(*) as count
          FROM ${MultiDimDataPagesTableName} mdp
          WHERE ${varIds.map((id) => `mdp.config LIKE '%"id":${id}%'`).join(" OR ")}`,
         []
@@ -160,4 +160,81 @@ export async function checkDatasetVariablesInUse(
             multiDimCount: totalMultiDimCount,
         },
     }
+}
+
+export async function getDatasetProducersByChartIds(
+    trx: db.KnexReadonlyTransaction,
+    chartIds: number[]
+): Promise<Map<number, string[]>> {
+    if (chartIds.length === 0) return new Map()
+
+    const rows = await db.knexRaw<{
+        chartId: number
+        datasetProducers: string
+    }>(
+        trx,
+        `-- sql
+        SELECT
+            s.chartId,
+            COALESCE(JSON_ARRAYAGG(s.producer), JSON_ARRAY()) AS datasetProducers
+        FROM (
+            SELECT DISTINCT
+                cd.chartId,
+                TRIM(o.producer) AS producer
+            FROM chart_dimensions cd
+            JOIN origins_variables ov ON cd.variableId = ov.variableId
+            JOIN origins o ON ov.originId = o.id
+            WHERE cd.chartId IN (?)
+            AND o.producer IS NOT NULL
+            AND TRIM(o.producer) != ''
+        ) s
+        GROUP BY s.chartId
+        `,
+        [chartIds]
+    )
+
+    return new Map(
+        rows.map((row) => [
+            row.chartId,
+            JSON.parse(row.datasetProducers) as string[],
+        ])
+    )
+}
+
+export async function getDatasetProducersByVariableIds(
+    trx: db.KnexReadonlyTransaction,
+    variableIds: number[]
+): Promise<Map<number, string[]>> {
+    if (variableIds.length === 0) return new Map()
+
+    const rows = await db.knexRaw<{
+        variableId: number
+        datasetProducers: string
+    }>(
+        trx,
+        `-- sql
+        SELECT
+            s.variableId,
+            COALESCE(JSON_ARRAYAGG(s.producer), JSON_ARRAY()) AS datasetProducers
+        FROM (
+            SELECT DISTINCT
+                ov.variableId,
+                TRIM(o.producer) AS producer
+            FROM origins_variables ov
+            JOIN origins o ON ov.originId = o.id
+            WHERE ov.variableId IN (?)
+            AND o.producer IS NOT NULL
+            AND TRIM(o.producer) != ''
+        ) s
+        GROUP BY s.variableId
+        `,
+        [variableIds]
+    )
+
+    return new Map(
+        rows.map((row) => [
+            row.variableId,
+            JSON.parse(row.datasetProducers) as string[],
+        ])
+    )
 }

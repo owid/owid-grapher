@@ -57,6 +57,10 @@ const parseAndProcessChartRecords = (
     const { datasetNamespaces, datasetVersions, datasetProducts } =
         parseCatalogPaths(catalogPathsArray)
 
+    const datasetProducers = JSON.parse(
+        rawRecord.datasetProducers as string
+    ) as string[]
+
     return {
         ...rawRecord,
         config,
@@ -66,6 +70,7 @@ const parseAndProcessChartRecords = (
         datasetNamespaces,
         datasetVersions,
         datasetProducts,
+        datasetProducers,
     }
 }
 
@@ -164,6 +169,20 @@ export const getChartsRecords = async (
                  ) s
             GROUP BY s.chartId
         ),
+        origin_producers AS (
+            SELECT s.chartId,
+                   COALESCE(JSON_ARRAYAGG(s.producer), JSON_ARRAY()) AS datasetProducers
+            FROM (
+                     SELECT DISTINCT cd.chartId, TRIM(o.producer) AS producer
+                     FROM chart_dimensions cd
+                              INNER JOIN indexable_charts ic ON ic.id = cd.chartId
+                              JOIN origins_variables ov ON cd.variableId = ov.variableId
+                              JOIN origins o ON ov.originId = o.id
+                     WHERE o.producer IS NOT NULL
+                       AND TRIM(o.producer) != ''
+                 ) s
+            GROUP BY s.chartId
+        ),
         chart_tags_names AS (
             SELECT s.chartId,
                    COALESCE(JSON_ARRAYAGG(s.name), JSON_ARRAY()) AS tags
@@ -202,11 +221,13 @@ export const getChartsRecords = async (
                c.updatedAt,
                COALESCE(en.entityNames, '[]') AS entityNames,
                COALESCE(cp.catalogPaths, '[]') AS catalogPaths,
+               COALESCE(op.datasetProducers, '[]') AS datasetProducers,
                ctn.tags,
                COALESCE(kct.keyChartForTags, '[]') AS keyChartForTags
         FROM indexable_charts c
                  LEFT JOIN entity_names en ON c.id = en.chartId
                  LEFT JOIN catalog_paths cp ON c.id = cp.chartId
+                 LEFT JOIN origin_producers op ON c.id = op.chartId
                  INNER JOIN chart_tag_counts tc ON c.id = tc.chartId
                  LEFT JOIN chart_tags_names ctn ON c.id = ctn.chartId
                  LEFT JOIN key_chart_tags kct ON c.id = kct.chartId
@@ -281,6 +302,7 @@ export const getChartsRecords = async (
             datasetNamespaces: c.datasetNamespaces,
             datasetVersions: c.datasetVersions,
             datasetProducts: c.datasetProducts,
+            datasetProducers: c.datasetProducers,
         } as ChartRecord
         const score = computeChartScore(record)
         records.push({ ...record, score })

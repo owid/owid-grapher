@@ -149,6 +149,7 @@ export const configureAlgolia = async () => {
                 "datasetNamespaces",
                 "datasetVersions",
                 "datasetProducts",
+                "datasetProducers",
             ],
         },
     })

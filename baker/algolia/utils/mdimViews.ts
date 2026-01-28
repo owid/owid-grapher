@@ -24,6 +24,7 @@ import { GrapherState } from "@ourworldindata/grapher"
 import { maybeAddChangeInPrefix, parseCatalogPaths } from "./shared.js"
 import { getMultiDimRedirectTargets } from "../../../db/model/MultiDimRedirects.js"
 import { getMaxViews7d, PageviewsByUrl } from "./pageviews.js"
+import { getDatasetProducersByVariableIds } from "../../../db/model/Dataset.js"
 
 // Published multi-dim must have a slug.
 type PublishedMultiDimWithSlug = DbEnrichedMultiDimDataPage & { slug: string }
@@ -86,6 +87,10 @@ async function getRecords(
     const relevantVariableIds = getRelevantVariableIds(multiDim.config)
     const relevantVariableMetadata =
         await getRelevantVariableMetadata(relevantVariableIds)
+    const datasetProducersByVariableId = await getDatasetProducersByVariableIds(
+        trx,
+        [...relevantVariableIds]
+    )
     return multiDim.config.views.map((view) => {
         const viewId = dimensionsToViewId(view.dimensions)
         const id = multiDimXChartConfigIdMap.get(`${multiDim.id}-${viewId}`)
@@ -140,6 +145,14 @@ async function getRecords(
             .filter(Boolean) as string[]
         const { datasetNamespaces, datasetVersions, datasetProducts } =
             parseCatalogPaths(catalogPaths)
+        const datasetProducers = _.uniq(
+            view.indicators.y
+                .map((ind) => ind.id)
+                .flatMap(
+                    (variableId) =>
+                        datasetProducersByVariableId.get(variableId) ?? []
+                )
+        )
 
         return {
             type: ChartRecordType.MultiDimView,
@@ -167,6 +180,7 @@ async function getRecords(
             datasetNamespaces,
             datasetVersions,
             datasetProducts,
+            datasetProducers,
         } as ChartRecord
     })
 }

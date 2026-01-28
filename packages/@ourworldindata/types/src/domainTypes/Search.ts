@@ -72,6 +72,8 @@ export interface ChartRecord {
     datasetVersions: string[]
     /** ETL dataset product names of the variables used in this chart (e.g., "ghe", "faostat_tcl") */
     datasetProducts: string[]
+    /** Data producers of the variables used in this chart (e.g., "World Bank") */
+    datasetProducers: string[]
     /**
      * Only present for income group-specific FMs: availableEntities before it gets filtered down.
      * Without this, searching for charts with data for "Uganda" OR "United States" would return
