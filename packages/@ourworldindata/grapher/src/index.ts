@@ -151,3 +151,5 @@ export {
 } from "./core/PeerCountrySelection.js"
 
 export { loadCatalogData, getCatalogAssetKey } from "./core/loadCatalogData.js"
+
+export { constructGrapherValuesJson } from "./core/GrapherValuesJson"

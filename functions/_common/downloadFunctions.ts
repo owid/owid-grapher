@@ -5,6 +5,7 @@ import {
     WORLD_ENTITY_NAME,
     getEntityNamesParam,
     generateSelectedEntityNamesParam,
+    constructGrapherValuesJson,
 } from "@ourworldindata/grapher"
 import {
     OwidColumnDef,
@@ -24,7 +25,6 @@ import {
 import { TWITTER_OPTIONS } from "./imageOptions.js"
 import { constructReadme } from "./readmeTools.js"
 import { constructSearchResultDataTableContent } from "./search/constructSearchResultDataTableContent.js"
-import { constructGrapherValuesJson } from "./grapherValuesJson.js"
 import { match } from "ts-pattern"
 import {
     configureGrapherStateTab,
