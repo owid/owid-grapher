@@ -187,6 +187,8 @@ const StaticVizDownloadModal = ({
             ? staticViz.grapherUrl
             : undefined
 
+    const hasTwoImages = imageOptions.length > 1
+
     return (
         <div
             className="static-viz__download-overlay"
@@ -224,10 +226,11 @@ const StaticVizDownloadModal = ({
                     )}
                     <section className="static-viz-download-modal__section">
                         <div className="static-viz-download-modal__heading">
-                            <h3>Images</h3>
+                            <h3>{hasTwoImages ? "Images" : "Image"}</h3>
                             <p>
-                                Download high-resolution images for this static
-                                visualization.
+                                {hasTwoImages
+                                    ? "Download high-resolution images for this static visualization."
+                                    : "Download a high-resolution version of this static visualization."}
                             </p>
                         </div>
                         {imageOptions.map((option) => (
