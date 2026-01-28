@@ -14,6 +14,7 @@ export interface GrapherValuesJson {
 
 export interface GrapherValuesJsonDimension {
     name: string
+    shortName?: string
     unit?: string
     shortUnit?: string
     isProjection?: boolean
