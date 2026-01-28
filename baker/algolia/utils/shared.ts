@@ -25,7 +25,7 @@ import * as R from "remeda"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 import {
     incomeGroupMap,
-    ParsedCatalogPathDimensions,
+    DatasetChartRecordDimensions,
     REAL_FM_INCOME_GROUPS,
 } from "./types.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
@@ -296,7 +296,10 @@ export function maybeAddChangeInPrefix(
  */
 export function parseCatalogPaths(
     catalogPaths: (string | null | undefined)[]
-): ParsedCatalogPathDimensions {
+): Pick<
+    DatasetChartRecordDimensions,
+    "datasetNamespaces" | "datasetVersions" | "datasetProducts"
+> {
     const datasetNamespaces = new Set<string>()
     const datasetVersions = new Set<string>()
     const datasetProducts = new Set<string>()
@@ -318,8 +321,10 @@ export function parseCatalogPaths(
     }
 }
 
-export const EMPTY_CATALOG_PATH_DIMENSIONS: ParsedCatalogPathDimensions = {
-    datasetNamespaces: [],
-    datasetVersions: [],
-    datasetProducts: [],
-}
+export const EMPTY_DATASET_CHART_RECORD_DIMENSIONS: DatasetChartRecordDimensions =
+    {
+        datasetNamespaces: [],
+        datasetVersions: [],
+        datasetProducts: [],
+        datasetProducers: [],
+    }

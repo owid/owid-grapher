@@ -8,11 +8,11 @@ import {
 } from "@ourworldindata/types"
 import { OwidIncomeGroupName } from "@ourworldindata/utils"
 
-/** Parsed catalog path dimensions for ETL faceting */
-export interface ParsedCatalogPathDimensions {
+export interface DatasetChartRecordDimensions {
     datasetNamespaces: string[]
     datasetVersions: string[]
     datasetProducts: string[]
+    datasetProducers: string[]
 }
 
 /** Charts */
@@ -29,9 +29,10 @@ export interface RawChartRecordRow {
     tags: JsonArrayString
     keyChartForTags: JsonArrayString
     catalogPaths: JsonArrayString
+    datasetProducers: JsonArrayString
 }
 
-export interface ParsedChartRecordRow {
+export type ParsedChartRecordRow = {
     id: number
     slug: string
     config: GrapherInterface
@@ -41,10 +42,7 @@ export interface ParsedChartRecordRow {
     entityNames: string[]
     tags: string[]
     keyChartForTags: string[]
-    datasetNamespaces: string[]
-    datasetVersions: string[]
-    datasetProducts: string[]
-}
+} & DatasetChartRecordDimensions
 
 /** Explorers */
 export interface ExplorerViewGrapherInfo {
@@ -67,7 +65,9 @@ export type ExplorerIndicatorMetadataFromDb = Pick<
     | "titlePublic"
     | "display"
     | "descriptionShort"
->
+> & {
+    datasetProducers?: string[]
+}
 
 export type ExplorerIndicatorMetadataDictionary = Record<
     string | number,
@@ -103,7 +103,7 @@ export type GrapherUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
 }
 
 export type GrapherEnrichedExplorerViewRecord = ExplorerViewBaseRecord &
-    ParsedCatalogPathDimensions & {
+    DatasetChartRecordDimensions & {
         explorerType: ExplorerType.Grapher
         viewTitle: string
         viewSubtitle: string
@@ -118,7 +118,7 @@ export type IndicatorUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
 }
 
 export type IndicatorEnrichedExplorerViewRecord = ExplorerViewBaseRecord &
-    ParsedCatalogPathDimensions & {
+    DatasetChartRecordDimensions & {
         explorerType: ExplorerType.Indicator
         viewGrapherId: never
         ySlugs: string[]
@@ -135,7 +135,7 @@ export type CsvUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
 }
 
 export type CsvEnrichedExplorerViewRecord = ExplorerViewBaseRecord &
-    ParsedCatalogPathDimensions & {
+    DatasetChartRecordDimensions & {
         explorerType: ExplorerType.Csv
         viewGrapherId: never
         ySlugs: string[]
