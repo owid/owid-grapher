@@ -6,7 +6,13 @@ import {
     FEATURED_METRICS_ID,
 } from "@ourworldindata/types"
 import { SearchChartHitComponent } from "./search/SearchChartHitComponent.js"
-import { createTopicFilter, SEARCH_BASE_PATH } from "./search/searchUtils.js"
+import {
+    createDatasetNamespaceFilter,
+    createDatasetProductsFilter,
+    createDatasetVersionFilter,
+    createTopicFilter,
+    SEARCH_BASE_PATH,
+} from "./search/searchUtils.js"
 import { stateToSearchParams } from "./search/searchState.js"
 import { queryCharts, searchQueryKeys } from "./search/queries.js"
 import { getLiteSearchClient } from "./search/searchClients.js"
@@ -19,19 +25,30 @@ const MAX_MEDIUM_RESULTS = 4
 const MAX_SMALL_RESULTS = 5
 
 export type FeaturedMetricsProps = {
-    topicName: string
+    topicName?: string
+    datasetProducts?: string[]
+    datasetNamespaces?: string[]
+    datasetVersions?: string[]
     className?: string
 }
 
 export const FeaturedMetrics = ({
     topicName,
+    datasetProducts = [],
+    datasetNamespaces = [],
+    datasetVersions = [],
     className,
 }: FeaturedMetricsProps) => {
     const liteSearchClient = getLiteSearchClient()
-
+    const filters = [
+        ...(topicName ? [createTopicFilter(topicName)] : []),
+        ...datasetProducts.map(createDatasetProductsFilter),
+        ...datasetNamespaces.map(createDatasetNamespaceFilter),
+        ...datasetVersions.map(createDatasetVersionFilter),
+    ]
     const searchState = {
         query: "",
-        filters: [createTopicFilter(topicName)],
+        filters,
         requireAllCountries: false,
         resultType: SearchResultType.DATA,
     }
@@ -41,10 +58,9 @@ export const FeaturedMetrics = ({
         // would technically collide if using the same query client instance
         queryKey: searchQueryKeys.charts(searchState),
         queryFn: () => queryCharts(liteSearchClient, searchState, 0),
-        enabled: Boolean(topicName),
     })
 
-    if (isError || !topicName) return null
+    if (isError) return null
 
     const hits: SearchChartHit[] = (data?.hits ?? []).slice(
         0,
@@ -62,7 +78,11 @@ export const FeaturedMetrics = ({
             id={FEATURED_METRICS_ID}
         >
             <h1 className="h1-semibold">
-                <span>Featured Data on {topicName}</span>
+                <span>
+                    {topicName
+                        ? `Featured Data on ${topicName}`
+                        : "Featured Data"}
+                </span>
                 <a
                     className="deep-link"
                     aria-labelledby={FEATURED_METRICS_ID}
@@ -98,7 +118,11 @@ export const FeaturedMetrics = ({
                     <div className="article-block__featured-metrics__see-all">
                         <Button
                             theme="solid-vermillion"
-                            text={`See all ${data?.nbHits ?? 0} charts on this topic`}
+                            text={
+                                topicName
+                                    ? `See all ${data?.nbHits ?? 0} charts on this topic`
+                                    : `See all ${data?.nbHits ?? 0} charts`
+                            }
                             href={searchHref}
                             dataTrackNote="featured-metrics-see-all"
                             icon={faMagnifyingGlass}
