@@ -142,7 +142,7 @@ export type { ScatterPlotChartState } from "./scatterCharts/ScatterPlotChartStat
 export type { MarimekkoChartState } from "./stackedCharts/MarimekkoChartState"
 
 export {
-    selectPeerCountries,
+    selectPeerCountriesForGrapher,
     isValidPeerCountryStrategyQueryParam,
 } from "./core/PeerCountrySelection.js"
 
