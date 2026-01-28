@@ -29,7 +29,7 @@ export const SearchAutocomplete = ({
 }) => {
     const {
         state: { filters },
-        actions: { addCountryAndSetQuery, setTopicAndClearQuery, addFilter },
+        actions: { addCountryAndSetQuery, setTopicAndClearQuery },
         synonymMap,
         analytics,
     } = useSearchContext()
@@ -125,9 +125,9 @@ export const SearchAutocomplete = ({
                     FilterType.DATASET_PRODUCT,
                     FilterType.DATASET_NAMESPACE,
                     FilterType.DATASET_VERSION,
+                    FilterType.DATASET_PRODUCER,
                     () => {
-                        logSearchAutocompleteClick()
-                        addFilter(filter)
+                        // no-op: dataset filters are not suggested in autocomplete
                     }
                 )
                 .exhaustive()
@@ -135,7 +135,6 @@ export const SearchAutocomplete = ({
         },
         [
             addCountryAndSetQuery,
-            addFilter,
             setTopicAndClearQuery,
             setLocalQuery,
             setShowSuggestions,

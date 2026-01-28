@@ -4,6 +4,7 @@ import {
     createDatasetProductsFilter,
     createDatasetNamespaceFilter,
     createDatasetVersionFilter,
+    createDatasetProducerFilter,
     getFilterNamesOfType,
 } from "./searchUtils.js"
 import {
@@ -25,6 +26,7 @@ describe("searchState URL parsing", () => {
                 createDatasetProductsFilter("gbd"),
                 createDatasetNamespaceFilter("who"),
                 createDatasetVersionFilter("2024-05-15"),
+                createDatasetProducerFilter("World Bank"),
             ],
         }
 
@@ -40,6 +42,9 @@ describe("searchState URL parsing", () => {
         expect(
             getFilterNamesOfType(parsed.filters, FilterType.DATASET_VERSION)
         ).toEqual(new Set(["2024-05-15"]))
+        expect(
+            getFilterNamesOfType(parsed.filters, FilterType.DATASET_PRODUCER)
+        ).toEqual(new Set(["World Bank"]))
     })
 
     it("drops empty dataset-related values from URL params", () => {
@@ -47,6 +52,7 @@ describe("searchState URL parsing", () => {
             datasetProducts: "gbd~~pwt~",
             datasetNamespaces: "~who",
             datasetVersions: "~~2024-05-15~",
+            datasetProducers: "~World Bank~~UNICEF~",
         })
 
         const parsed = searchParamsToState(params, emptyRegions, emptyTopics)
@@ -60,5 +66,8 @@ describe("searchState URL parsing", () => {
         expect(
             getFilterNamesOfType(parsed.filters, FilterType.DATASET_VERSION)
         ).toEqual(new Set(["2024-05-15"]))
+        expect(
+            getFilterNamesOfType(parsed.filters, FilterType.DATASET_PRODUCER)
+        ).toEqual(new Set(["World Bank", "UNICEF"]))
     })
 })

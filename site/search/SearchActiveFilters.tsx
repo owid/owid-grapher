@@ -50,6 +50,7 @@ export const SearchActiveFilters = () => {
                         { type: FilterType.DATASET_PRODUCT },
                         { type: FilterType.DATASET_NAMESPACE },
                         { type: FilterType.DATASET_VERSION },
+                        { type: FilterType.DATASET_PRODUCER },
                         (filter) => (
                             <button
                                 key={`${filter.type}-${filter.name}`}

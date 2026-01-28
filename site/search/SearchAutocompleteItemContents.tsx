@@ -50,11 +50,10 @@ export function SearchAutocompleteItemContents({
                     FilterType.DATASET_PRODUCT,
                     FilterType.DATASET_NAMESPACE,
                     FilterType.DATASET_VERSION,
+                    FilterType.DATASET_PRODUCER,
                     () => (
-                        <SearchFilterPill
-                            name={filter.name}
-                            icon={getFilterIcon(filter)}
-                        />
+                        /* dataset filters are not suggested in autocomplete */
+                        <></>
                     )
                 )
                 .exhaustive()}

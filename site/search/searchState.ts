@@ -15,6 +15,7 @@ import {
     createDatasetProductsFilter,
     createDatasetNamespaceFilter,
     createDatasetVersionFilter,
+    createDatasetProducerFilter,
     isValidResultType,
     serializeSet,
     getFilterNamesOfType,
@@ -273,6 +274,11 @@ export function searchParamsToState(
     const versionsSet = new Set(
         [...deserializeSet(searchParams.get("datasetVersions"))].filter(Boolean)
     )
+    const producersSet = new Set(
+        [...deserializeSet(searchParams.get("datasetProducers"))].filter(
+            Boolean
+        )
+    )
 
     const filters: Filter[] = [
         [...topicsSet].map((topic) => createTopicFilter(topic)),
@@ -282,6 +288,9 @@ export function searchParamsToState(
             createDatasetNamespaceFilter(namespace)
         ),
         [...versionsSet].map((version) => createDatasetVersionFilter(version)),
+        [...producersSet].map((producer) =>
+            createDatasetProducerFilter(producer)
+        ),
     ].flat()
 
     const resultTypeParam = searchParams.get("resultType") ?? undefined
@@ -341,6 +350,13 @@ export function stateToSearchParams(state: SearchState): URLSearchParams {
     )
     if (versions) {
         params.set(SearchUrlParam.DATASET_VERSION, versions)
+    }
+
+    const producers = serializeSet(
+        getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCER)
+    )
+    if (producers) {
+        params.set(SearchUrlParam.DATASET_PRODUCER, producers)
     }
 
     if (state.requireAllCountries) {
