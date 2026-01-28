@@ -194,6 +194,10 @@ export const configureAlgolia = async () => {
                 "availableEntities",
                 "type",
                 "isIncomeGroupSpecificFM",
+                "datasetNamespaces",
+                "datasetVersions",
+                "datasetProducts",
+                "datasetProducers",
             ],
         },
     })
