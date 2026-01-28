@@ -13,6 +13,9 @@ import { ImageMetadata, LinkedStaticViz, Span } from "@ourworldindata/types"
 import { useTriggerOnEscape } from "../../hooks.js"
 import { FloatingDownloadButton } from "./FloatingDownloadButton.js"
 import SpanElements from "./SpanElements.js"
+import { SiteAnalytics } from "../../SiteAnalytics.js"
+
+const analytics = new SiteAnalytics()
 
 interface StaticVizProps {
     name: string
@@ -88,6 +91,7 @@ interface DownloadOption {
     previewImage?: ImageMetadata
     onClick?: () => void
     href?: string
+    onClickAnalytics?: () => void
 }
 
 const StaticVizDownloadModal = ({
@@ -101,7 +105,11 @@ const StaticVizDownloadModal = ({
     useTriggerOnEscape(onClose)
 
     const downloadImage = useCallback(
-        async (image: ImageMetadata, fallbackName: string) => {
+        async (
+            image: ImageMetadata,
+            fallbackName: string,
+            variant: "desktop" | "mobile"
+        ) => {
             if (!image.cloudflareId) return
             const url = makeImageSrc(image)
             if (!url) return
@@ -110,11 +118,16 @@ const StaticVizDownloadModal = ({
                 const blob = await response.blob()
                 const filename = image.filename ?? fallbackName
                 triggerDownloadFromBlob(filename, blob)
+                analytics.logStaticVizDownload(
+                    staticViz.name,
+                    "image_download",
+                    variant
+                )
             } catch (error) {
                 console.error("Failed to download static viz image", error)
             }
         },
-        []
+        [staticViz.name]
     )
 
     const imageOptions: DownloadOption[] = useMemo(() => {
@@ -130,7 +143,8 @@ const StaticVizDownloadModal = ({
                 onClick: () =>
                     void downloadImage(
                         staticViz.desktop,
-                        `${staticViz.name}-desktop.png`
+                        `${staticViz.name}-desktop.png`,
+                        "desktop"
                     ),
             },
         ]
@@ -144,7 +158,8 @@ const StaticVizDownloadModal = ({
                 onClick: () =>
                     void downloadImage(
                         staticViz.mobile!,
-                        `${staticViz.name}-mobile.png`
+                        `${staticViz.name}-mobile.png`,
+                        "mobile"
                     ),
             })
         }
@@ -161,6 +176,12 @@ const StaticVizDownloadModal = ({
                 description:
                     "Download the data behind this visualization as a CSV file.",
                 href: `${staticViz.grapherUrl}.csv`,
+                onClickAnalytics: () =>
+                    analytics.logStaticVizDownload(
+                        staticViz.name,
+                        "data_download",
+                        staticViz.grapherUrl
+                    ),
             })
         }
         if (staticViz.sourceUrl) {
@@ -170,10 +191,16 @@ const StaticVizDownloadModal = ({
                 description:
                     "Visit the external dataset or documentation referenced for this visualization.",
                 href: staticViz.sourceUrl,
+                onClickAnalytics: () =>
+                    analytics.logStaticVizDownload(
+                        staticViz.name,
+                        "source_link_click",
+                        staticViz.sourceUrl
+                    ),
             })
         }
         return options
-    }, [staticViz.grapherUrl, staticViz.sourceUrl])
+    }, [staticViz.grapherUrl, staticViz.sourceUrl, staticViz.name])
 
     const handleOverlayClick = useCallback(
         (event: MouseEvent<HTMLDivElement>) => {
@@ -261,6 +288,7 @@ const StaticVizDownloadModal = ({
                                     title={option.title}
                                     description={option.description}
                                     href={option.href}
+                                    onClickAnalytics={option.onClickAnalytics}
                                 />
                             ))}
                         </section>
@@ -295,12 +323,14 @@ const DownloadButton = ({
     previewImage,
     onClick,
     href,
+    onClickAnalytics,
 }: {
     title: string
     description: string
     previewImage?: ImageMetadata
     onClick?: () => void
     href?: string
+    onClickAnalytics?: () => void
 }) => {
     const content = (
         <>
@@ -334,6 +364,7 @@ const DownloadButton = ({
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={onClickAnalytics}
             >
                 {content}
             </a>
