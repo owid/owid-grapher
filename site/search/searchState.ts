@@ -12,6 +12,10 @@ import {
     deserializeSet,
     createTopicFilter,
     createCountryFilter,
+    createDatasetProductsFilter,
+    createDatasetNamespaceFilter,
+    createDatasetVersionFilter,
+    createDatasetProducerFilter,
     isValidResultType,
     serializeSet,
     getFilterNamesOfType,
@@ -259,10 +263,34 @@ export function searchParamsToState(
         deserializeSet(searchParams.get("countries")),
         new Set(eligibleRegionNames),
     ])
+    const datasetsSet = new Set(
+        [...deserializeSet(searchParams.get("datasetProducts"))].filter(Boolean)
+    )
+    const namespacesSet = new Set(
+        [...deserializeSet(searchParams.get("datasetNamespaces"))].filter(
+            Boolean
+        )
+    )
+    const versionsSet = new Set(
+        [...deserializeSet(searchParams.get("datasetVersions"))].filter(Boolean)
+    )
+    const producersSet = new Set(
+        [...deserializeSet(searchParams.get("datasetProducers"))].filter(
+            Boolean
+        )
+    )
 
     const filters: Filter[] = [
         [...topicsSet].map((topic) => createTopicFilter(topic)),
         [...countriesSet].map((country) => createCountryFilter(country)),
+        [...datasetsSet].map((dataset) => createDatasetProductsFilter(dataset)),
+        [...namespacesSet].map((namespace) =>
+            createDatasetNamespaceFilter(namespace)
+        ),
+        [...versionsSet].map((version) => createDatasetVersionFilter(version)),
+        [...producersSet].map((producer) =>
+            createDatasetProducerFilter(producer)
+        ),
     ].flat()
 
     const resultTypeParam = searchParams.get("resultType") ?? undefined
@@ -301,6 +329,34 @@ export function stateToSearchParams(state: SearchState): URLSearchParams {
     )
     if (countries) {
         params.set(SearchUrlParam.COUNTRY, countries)
+    }
+
+    const datasets = serializeSet(
+        getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCT)
+    )
+    if (datasets) {
+        params.set(SearchUrlParam.DATASET_PRODUCT, datasets)
+    }
+
+    const namespaces = serializeSet(
+        getFilterNamesOfType(state.filters, FilterType.DATASET_NAMESPACE)
+    )
+    if (namespaces) {
+        params.set(SearchUrlParam.DATASET_NAMESPACE, namespaces)
+    }
+
+    const versions = serializeSet(
+        getFilterNamesOfType(state.filters, FilterType.DATASET_VERSION)
+    )
+    if (versions) {
+        params.set(SearchUrlParam.DATASET_VERSION, versions)
+    }
+
+    const producers = serializeSet(
+        getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCER)
+    )
+    if (producers) {
+        params.set(SearchUrlParam.DATASET_PRODUCER, producers)
     }
 
     if (state.requireAllCountries) {
