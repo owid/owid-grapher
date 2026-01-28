@@ -1,5 +1,7 @@
 # Database
 
+Dummy change
+
 This folder contains the code for interacting with our MySQL database. We store wordpress content, charts, data, and more in MySQL.
 
 There are [multiple ways to run and serve the database](/docs/setup-options-overview.md), depending on your needs.
