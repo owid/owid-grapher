@@ -157,7 +157,15 @@ async function recommendTopicsWithLLM(
     baseUrl: string
 ): Promise<TopicHit[]> {
     const systemMessage = `Here are all available topics:\n${TOPICS_LIST}`
-    const userMessage = `Given this query: "${query}"\n\nRecommend the most relevant topics (0-${limit}) that match this query.\nReturn ONLY a JSON array of topic names.`
+    const userMessage = `Given this query: "${query}"
+
+Recommend ONLY topics that are DIRECTLY and STRONGLY related to this query.
+- Only include topics where the connection is obvious and immediate
+- If a topic is only tangentially or indirectly related, exclude it
+- Better to return 1-3 highly relevant topics than many loosely related ones
+- If no topics are strongly relevant, return an empty array []
+- Maximum ${limit} topics
+- Return ONLY a JSON array of topic names`
 
     let response: any
     try {
