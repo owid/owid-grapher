@@ -57,6 +57,9 @@ export const ADMIN_BASE_URL: string =
 export const DATA_API_URL: string =
     process.env.DATA_API_URL ?? "https://api.ourworldindata.org/v1/indicators"
 
+export const CATALOG_URL: string =
+    process.env.CATALOG_URL ?? "https://catalog.ourworldindata.org"
+
 export const ALGOLIA_ID: string = process.env.ALGOLIA_ID ?? ""
 export const ALGOLIA_SEARCH_KEY: string = process.env.ALGOLIA_SEARCH_KEY ?? ""
 export const ALGOLIA_INDEX_PREFIX: string =

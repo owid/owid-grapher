@@ -29,6 +29,7 @@ import {
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
+    CATALOG_URL,
     DATA_API_URL,
     GRAPHER_DYNAMIC_CONFIG_URL,
     MULTI_DIM_DYNAMIC_CONFIG_URL,
@@ -168,7 +169,11 @@ class MultiEmbedder {
             additionalConfig
         )
 
-        renderGrapherIntoContainer(config, figure, DATA_API_URL, {
+        renderGrapherIntoContainer({
+            config,
+            container: figure,
+            dataApiUrl: DATA_API_URL,
+            catalogUrl: CATALOG_URL,
             noCache: this.isPreviewing,
         })
 
