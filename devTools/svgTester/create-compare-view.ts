@@ -188,7 +188,7 @@ function createCodeDiffView(
     )
 
     // Truncate large diffs to avoid bloating HTML file
-    const MAX_DIFF_LINES = 500
+    const MAX_DIFF_LINES = 300
     const diffLines = unifiedDiff.split("\n")
     const isTruncated = diffLines.length > MAX_DIFF_LINES
     const truncatedDiff = isTruncated
