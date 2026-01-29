@@ -3,6 +3,7 @@ import { GrapherTabName } from "@ourworldindata/types"
 import { SearchChartHitThumbnail } from "./SearchChartHitThumbnail"
 import { CaptionedLink } from "./SearchChartHitCaptionedLink"
 import { GrapherTabIcon } from "@ourworldindata/components"
+import { checkIsVeryShortUnit } from "@ourworldindata/utils"
 
 export function CaptionedThumbnail({
     chartType,
@@ -11,6 +12,7 @@ export function CaptionedThumbnail({
     isSmallSlot = false,
     imageWidth,
     imageHeight,
+    unit,
     className,
     onClick,
 }: {
@@ -20,6 +22,7 @@ export function CaptionedThumbnail({
     isSmallSlot?: boolean
     imageWidth?: number
     imageHeight?: number
+    unit?: string
     className?: string
     onClick?: () => void
 }): React.ReactElement {
@@ -30,6 +33,9 @@ export function CaptionedThumbnail({
         <span className="search-chart-hit-captioned-link-label-content">
             <GrapherTabIcon tab={chartType} />
             {caption}
+            {unit && !checkIsVeryShortUnit(unit) && (
+                <span className="unit">Measured in {unit}</span>
+            )}
         </span>
     )
 
