@@ -11,7 +11,7 @@ import {
 import { DetailsMarker } from "@ourworldindata/types"
 import { TextWrap } from "../TextWrap/TextWrap.js"
 import { fromMarkdown } from "mdast-util-from-markdown"
-import type { Content, Root } from "mdast"
+import type { RootContent, Root } from "mdast"
 import { match } from "ts-pattern"
 import { urlRegex } from "../markdown/remarkPlainLinks.js"
 import * as R from "remeda"
@@ -830,10 +830,8 @@ export function convertMarkdownToIRTokens(
     )
 }
 
-// When using mdast types version 4 this should be typed as:
-// node: RootContentMap[keyof RootContentMap]
 function convertMarkdownNodeToIRTokens(
-    node: Content,
+    node: RootContent,
     fontParams: IRFontParams = {}
 ): IRToken[] {
     const converted = match(node)

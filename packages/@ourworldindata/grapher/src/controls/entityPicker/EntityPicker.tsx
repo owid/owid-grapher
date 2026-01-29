@@ -379,7 +379,7 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
         this.blockHover()
         switch (event.key) {
             case "Enter": {
-                if (event.keyCode === 229) {
+                if (event.nativeEvent.isComposing) {
                     // ignore the keydown event from an Input Method Editor(IME)
                     // ref. https://www.w3.org/TR/uievents/#determine-keydown-keyup-keyCode
                     break

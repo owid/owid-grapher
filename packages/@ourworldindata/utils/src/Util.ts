@@ -1405,6 +1405,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
         textarea.select()
 
         try {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- fallback for legacy browsers
             return document.execCommand("copy")
         } catch (err) {
             console.error("Failed to copy text to clipboard", err)

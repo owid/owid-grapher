@@ -36,7 +36,7 @@ export class Bounds {
         return this.fromProps(bbox)
     }
 
-    static fromRect(rect: ClientRect): Bounds {
+    static fromRect(rect: DOMRect): Bounds {
         return new Bounds(rect.left, rect.top, rect.width, rect.height)
     }
 

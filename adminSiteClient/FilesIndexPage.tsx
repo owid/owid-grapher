@@ -1,4 +1,4 @@
-import * as R from "remeda"
+import * as _ from "lodash-es"
 import React, { useContext, useState, useMemo, useEffect } from "react"
 import { useHistory, useLocation } from "react-router-dom"
 import { Flex, Input, Breadcrumb, Space, Tooltip } from "antd"
@@ -124,7 +124,8 @@ function FileMapViewer({
     }
 
     const pathSegments = currentPath.split("/").filter(Boolean)
-    const currentNode = R.pathOr(fileMap, pathSegments as any, fileMap)
+    const currentNode: (typeof fileMap)[string] =
+        _.get(fileMap, pathSegments) ?? fileMap
 
     return (
         <div>

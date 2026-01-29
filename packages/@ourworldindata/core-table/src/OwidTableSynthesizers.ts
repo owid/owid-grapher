@@ -46,7 +46,7 @@ const SynthesizeOwidTable = (
         ? entityNames.map((name) => {
               return {
                   name,
-                  code: name.substr(0, 3).toUpperCase(),
+                  code: name.substring(0, 3).toUpperCase(),
               }
           })
         : sampleFrom(countries, entityCount, seed)

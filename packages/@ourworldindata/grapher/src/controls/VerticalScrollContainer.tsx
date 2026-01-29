@@ -15,7 +15,7 @@ type VerticalScrollContainerProps = React.DetailedHTMLProps<
 
 type ReactRef<T> =
     | ((instance: T | null) => void)
-    | React.MutableRefObject<T | null>
+    | React.RefObject<T | null>
     | null
 
 function useCombinedRefs<T>(...refs: ReactRef<T>[]): React.RefObject<T | null> {

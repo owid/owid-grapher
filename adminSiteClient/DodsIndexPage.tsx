@@ -21,7 +21,7 @@ import { EditableTextarea } from "./EditableTextarea.js"
 import * as R from "remeda"
 import { Admin } from "./Admin.js"
 import { fromMarkdown } from "mdast-util-from-markdown"
-import { Content, PhrasingContent } from "mdast"
+import { RootContent, PhrasingContent } from "mdast"
 import { renderToStaticMarkup } from "react-dom/server"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import TextArea from "antd/es/input/TextArea.js"
@@ -35,7 +35,7 @@ type ValidPhrasingContent = Extract<
 >
 
 function validateParagraphChildren(
-    children: Content[],
+    children: RootContent[],
     dods: Record<string, DbPlainDod> | undefined
 ): children is ValidPhrasingContent[] {
     return children.every((child) => {

@@ -35,7 +35,7 @@ export const columnStoreToRows = (
 
 // If string exceeds maxLength, will replace the end char with a ... and drop the rest
 export const truncate = (str: string, maxLength: number): string =>
-    str.length > maxLength ? `${str.substr(0, maxLength - 3)}...` : str
+    str.length > maxLength ? `${str.substring(0, maxLength - 3)}...` : str
 
 // Picks a type for each column from the first row then autotypes all rows after that so all values in
 // a column will have the same type. Only chooses between strings and numbers.
