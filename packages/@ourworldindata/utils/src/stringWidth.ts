@@ -4,8 +4,6 @@
  * It can be used to roughly estimate the width of a string in pixels.
  */
 
-import { deburr } from "lodash-es"
-
 type SupportedFonts = "lato" | "playfair display"
 
 const widthsMap: Record<SupportedFonts, Record<string, number[]>> = {
@@ -212,40 +210,48 @@ interface StringWidthSettings {
     italic?: boolean
 }
 
-const settingsDefaults = {
-    font: "lato",
-    size: 100,
-} satisfies StringWidthSettings
+// Pre-computed fallback width for 'x' character per font
+const fallbackWidths: Record<SupportedFonts, number[]> = {
+    lato: widthsMap.lato.x,
+    "playfair display": widthsMap["playfair display"].x,
+}
 
 const getPixelWidth = (
     string: string,
     settings: StringWidthSettings
 ): number => {
-    const sett = { ...settingsDefaults, ...settings }
-    const font = sett.font.toLowerCase() as SupportedFonts
-    const size = sett.size
-    const variant = 0 + (sett.bold ? 1 : 0) + (sett.italic ? 2 : 0)
-    const available = Object.keys(widthsMap)
-    if (available.indexOf(font) === -1) {
+    const font = (settings.font?.toLowerCase() ?? "lato") as SupportedFonts
+    const size = settings.size ?? 100
+    const variant = (settings.bold ? 1 : 0) + (settings.italic ? 2 : 0)
+
+    const fontWidths = widthsMap[font]
+    if (!fontWidths) {
         throw new Error(
-            `This font is not supported. Supported fonts are: ${available.join(", ")}`
+            `This font is not supported. Supported fonts are: lato, playfair display`
         )
     }
+
+    const fallback = fallbackWidths[font]
     let totalWidth = 0
-    deburr(string)
-        .split("")
-        .forEach((char) => {
-            // eslint-disable-next-line no-control-regex
-            if (/[\x00-\x1F]/.test(char)) {
-                // non-printable character
-                return true
-            }
-            // use width of 'x' as fallback for unregistered char
-            const widths = widthsMap[font][char] || widthsMap[font].x
-            const width = widths[variant]
-            totalWidth += width
-            return true
-        })
+
+    // Normalize to decompose accented characters (é -> e + combining accent `)
+    // then skip combining marks (U+0300-U+036F) and control characters
+    const normalized = string.normalize("NFD")
+    const len = normalized.length
+
+    for (let i = 0; i < len; i++) {
+        const code = normalized.charCodeAt(i)
+
+        // Skip control characters (0x00-0x1F) and combining diacritical marks (0x0300-0x036F)
+        if (code <= 0x1f || (code >= 0x0300 && code <= 0x036f)) {
+            continue
+        }
+
+        const char = normalized[i]
+        const widths = fontWidths[char] ?? fallback
+        totalWidth += widths[variant]
+    }
+
     return totalWidth * (size / 100)
 }
 
