@@ -61,6 +61,7 @@ export default tseslint.config(
 
             "@typescript-eslint/explicit-function-return-type": "off",
             "@typescript-eslint/explicit-module-boundary-types": "off",
+            "@typescript-eslint/no-deprecated": "warn",
             "@typescript-eslint/no-empty-function": "warn",
             "@typescript-eslint/no-empty-interface": "warn",
             "@typescript-eslint/no-explicit-any": "off",
