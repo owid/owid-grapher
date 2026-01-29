@@ -18,7 +18,7 @@ import {
     BinningStrategyIncludingManual,
     MidpointMode,
 } from "./BinningStrategyTypes.js"
-import { CatalogDataPoint, CatalogKey } from "../CatalogTypes.js"
+import { CatalogDataForKey, CatalogKey } from "../CatalogTypes.js"
 
 // Utility type that marks all properties of T that may be undefined as optional.
 export type UndefinedToOptional<T> = Partial<T> & {
@@ -223,6 +223,8 @@ export enum PeerCountryStrategy {
     DataRange = "dataRange",
     /** Use the chart's default selection as peers */
     DefaultSelection = "defaultSelection",
+    /** Use geographically neighboring countries as peers */
+    Neighbors = "neighbors",
 }
 
 export type PeerCountryStrategyQueryParam = PeerCountryStrategy | "auto"
@@ -758,6 +760,6 @@ export enum GrapherWindowType {
 export type GrapherTrendArrowDirection = "up" | "right" | "down"
 
 /** Function type for loading additional indicator data from the catalog */
-export type AdditionalGrapherDataFetchFn = (
-    catalogKey: CatalogKey
-) => Promise<CatalogDataPoint[]>
+export type AdditionalGrapherDataFetchFn = <K extends CatalogKey>(
+    catalogKey: K
+) => Promise<CatalogDataForKey<K>>

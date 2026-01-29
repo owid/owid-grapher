@@ -6,7 +6,6 @@ import { FetchingGrapher } from "./FetchingGrapher.js"
 import {
     AdditionalGrapherDataFetchFn,
     ArchiveContext,
-    CatalogKey,
 } from "@ourworldindata/types"
 import { Bounds } from "@ourworldindata/utils"
 
@@ -42,10 +41,10 @@ export function renderGrapherIntoContainer({
 
         const grapherConfigWithBounds = {
             ...config,
-            additionalDataLoaderFn: (
-                catalogKey: CatalogKey
-            ): ReturnType<AdditionalGrapherDataFetchFn> =>
-                loadCatalogData(catalogKey, { baseUrl: catalogUrl }),
+            additionalDataLoaderFn: ((catalogKey) =>
+                loadCatalogData(catalogKey, {
+                    baseUrl: catalogUrl,
+                })) as AdditionalGrapherDataFetchFn,
         }
 
         reactRoot.render(

@@ -59,9 +59,9 @@ import { Dropdown } from "../controls/Dropdown"
 import { scaleLinear, type ScaleLinear } from "d3-scale"
 import {
     AdditionalGrapherDataFetchFn,
-    CatalogKey,
     ColumnSlug,
     EntityName,
+    NumericCatalogKey,
     OwidColumnDef,
     ProjectionColumnInfo,
     Time,
@@ -171,12 +171,12 @@ interface FilterDropdownOption {
 
 export const EXTERNAL_SORT_INDICATOR_DEFINITIONS = [
     {
-        catalogKey: "population" satisfies CatalogKey,
+        catalogKey: "population" satisfies NumericCatalogKey,
         slug: columnDefsByCatalogKey["population"].slug,
         label: "Population",
     },
     {
-        catalogKey: "gdp" satisfies CatalogKey,
+        catalogKey: "gdp" satisfies NumericCatalogKey,
         slug: columnDefsByCatalogKey["gdp"].slug,
         label: "GDP per capita (int. $)",
     },
@@ -705,9 +705,10 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
      */
     @computed
     private get externalSortColumnsByCatalogKey(): Partial<
-        Record<CatalogKey, CoreColumn>
+        Record<NumericCatalogKey, CoreColumn>
     > {
-        const matchingColumns: Partial<Record<CatalogKey, CoreColumn>> = {}
+        const matchingColumns: Partial<Record<NumericCatalogKey, CoreColumn>> =
+            {}
         for (const external of EXTERNAL_SORT_INDICATOR_DEFINITIONS) {
             const matchingColumn = this.numericalChartColumns.find((column) =>
                 isExternalSortIndicatorMatch(external.catalogKey, column)
@@ -1810,7 +1811,7 @@ function getTitleForSortColumnLabel(column: CoreColumn): string {
 
 /** Determines if a column matches a specific external sort indicator type */
 function isExternalSortIndicatorMatch(
-    key: CatalogKey,
+    key: NumericCatalogKey,
     column: CoreColumn
 ): boolean {
     // Trivial if the slugs match
