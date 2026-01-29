@@ -139,11 +139,11 @@ export class StackedAreas extends React.Component<AreasProps> {
             const points = [...placedPoints, ...prevPoints.toReversed()]
             const opacity =
                 !this.isHoverModeActive && !this.isFocusModeActive
-                    ? AREA_OPACITY.DEFAULT // normal opacity
+                    ? AREA_OPACITY.default // normal opacity
                     : hoveredSeriesName === series.seriesName ||
                         series.focus?.active
-                      ? AREA_OPACITY.FOCUS // hovered or focused
-                      : AREA_OPACITY.MUTE // background
+                      ? AREA_OPACITY.focus // hovered or focused
+                      : AREA_OPACITY.muted // background
 
             return (
                 <path

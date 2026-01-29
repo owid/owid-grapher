@@ -19,8 +19,8 @@ import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
     GRAPHER_FONT_SCALE_12,
-    GRAPHER_OPACITY_MUTE,
 } from "../core/GrapherConstants"
+import { InteractionState } from "../interaction/InteractionState"
 import {
     HorizontalAxisComponent,
     HorizontalAxisGridLines,
@@ -42,6 +42,7 @@ import {
 import {
     Bar,
     BAR_OPACITY,
+    HighlightState,
     PlacedItem,
     SizedItem,
     StackedPoint,
@@ -66,14 +67,7 @@ export interface StackedDiscreteBarChartManager extends ChartManager {
 
 interface StackedBarChartContext {
     yAxis: HorizontalAxis
-    targetTime?: number
-    timeColumn: CoreColumn
-    formatColumn: CoreColumn
     formatValueForLabel: (value: number) => string
-    legendHoverSeriesName?: string
-    hoverSeriesName?: string
-    hoverEntityName?: string
-    hasFocusedColumn: boolean
     barHeight: number
     x0: number
     baseFontSize: number
@@ -312,6 +306,74 @@ export class StackedDiscreteBars
         this.clearTooltip()
     }
 
+    /**
+     * Get the interaction state for a series.
+     * Combines persistent focus with transient legend hover.
+     */
+    private getSeriesInteractionState(
+        seriesName: SeriesName
+    ): InteractionState {
+        const { focusArray, hasFocusedColumn } = this.chartState
+
+        const isActive =
+            this.legendHoverSeriesName === seriesName ||
+            focusArray.has(seriesName)
+
+        const hasInteraction =
+            this.legendHoverSeriesName !== undefined || hasFocusedColumn
+
+        return new InteractionState(isActive, hasInteraction)
+    }
+
+    /**
+     * Get the interaction state for an entity.
+     */
+    private getEntityInteractionState(
+        entityName: EntityName
+    ): InteractionState {
+        return this.chartState.focusArray.state(entityName)
+    }
+
+    /**
+     * Check if a specific bar is being hovered.
+     */
+    private isBarHovered(
+        entityName: EntityName,
+        seriesName: SeriesName
+    ): boolean {
+        const target = this.tooltipState.target
+        return (
+            target?.entityName === entityName &&
+            target?.seriesName === seriesName
+        )
+    }
+
+    /**
+     * Compute the highlight state for a bar.
+     */
+    private getBarHighlightStateFor(
+        entityName: EntityName,
+        seriesName: SeriesName
+    ): HighlightState {
+        return getBarHighlightState(
+            this.getSeriesInteractionState(seriesName),
+            this.getEntityInteractionState(entityName),
+            this.isBarHovered(entityName, seriesName)
+        )
+    }
+
+    /**
+     * Compute the highlight state for an entity label.
+     * Labels only respond to entity focus, not series focus.
+     */
+    private getLabelHighlightState(entityName: EntityName): HighlightState {
+        return getBarHighlightState(
+            InteractionState.none(), // No series interaction for labels
+            this.getEntityInteractionState(entityName),
+            false // Labels don't have hover
+        )
+    }
+
     override render(): React.ReactElement {
         return this.manager.isStatic
             ? this.renderStatic()
@@ -325,15 +387,8 @@ export class StackedDiscreteBars
     @computed private get chartContext(): StackedBarChartContext {
         return {
             yAxis: this.yAxis,
-            targetTime: this.manager.endTime,
-            timeColumn: this.inputTable.timeColumn,
-            formatColumn: this.formatColumn,
             formatValueForLabel: this.formatValueForLabel,
             barHeight: this.barHeight,
-            legendHoverSeriesName: this.legendHoverSeriesName,
-            hoverSeriesName: this.tooltipState.target?.seriesName,
-            hoverEntityName: this.tooltipState.target?.entityName,
-            hasFocusedColumn: this.chartState.hasFocusedColumn,
             x0: this.x0,
             baseFontSize: this.baseFontSize,
         }
@@ -352,11 +407,9 @@ export class StackedDiscreteBars
         const totalLabel = this.formatValueForLabel(totalValue)
         const showLabelInsideBar = bars.length > 1
 
-        // Entity focus affects labels, but bars handle their own opacity
-        const labelOpacity =
-            !this.chartState.hasFocusedColumn && data.focus.background
-                ? GRAPHER_OPACITY_MUTE
-                : 1
+        // Compute label opacity using highlight state
+        const labelHighlightState = this.getLabelHighlightState(entityName)
+        const labelOpacity = BAR_OPACITY[labelHighlightState]
 
         // We can't just take the last bar here because if the last bar has a negative value,
         // its position on the chart (valueOffset + value) might actually be leftmost rather than rightmost.
@@ -375,12 +428,16 @@ export class StackedDiscreteBars
                 {bars.map((bar) => (
                     <StackedDiscreteBars.Bar
                         key={bar.seriesName}
-                        entity={entityName}
                         bar={bar}
                         chartContext={this.chartContext}
-                        background={data.focus.background}
+                        highlightState={this.getBarHighlightStateFor(
+                            entityName,
+                            bar.seriesName
+                        )}
                         showLabelInsideBar={showLabelInsideBar}
-                        onMouseEnter={this.onEntityMouseEnter}
+                        onMouseEnter={(): void =>
+                            this.onEntityMouseEnter(entityName, bar.seriesName)
+                        }
                         onMouseLeave={this.onEntityMouseLeave}
                     />
                 ))}
@@ -463,10 +520,6 @@ export class StackedDiscreteBars
             timing: { duration: 350, ease: easeQuadOut },
         })
 
-        // needs to be referenced here, otherwise it's not updated in the renderRow function
-        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-        this.legendHoverSeriesName
-
         return (
             <>
                 {this.renderAxis()}
@@ -487,34 +540,16 @@ export class StackedDiscreteBars
 
     private static Bar(props: {
         bar: Bar
-        entity: string
         chartContext: StackedBarChartContext
-        background: boolean
+        highlightState: HighlightState
         showLabelInsideBar: boolean
-        onMouseEnter: (entityName: string, seriesName?: string) => void
+        onMouseEnter: () => void
         onMouseLeave: () => void
     }): React.ReactElement {
-        const { entity, bar, chartContext, background } = props
-        const { yAxis, formatValueForLabel, legendHoverSeriesName, barHeight } =
-            chartContext
+        const { bar, chartContext, highlightState } = props
+        const { yAxis, formatValueForLabel, barHeight } = chartContext
 
-        const isSeriesFocused =
-            (legendHoverSeriesName !== undefined &&
-                legendHoverSeriesName === bar.seriesName) ||
-            bar.focus.active
-        const isColumnFocusActive =
-            legendHoverSeriesName !== undefined || chartContext.hasFocusedColumn
-        const isHover =
-            chartContext.hoverSeriesName === bar.seriesName &&
-            chartContext.hoverEntityName === entity
-
-        // Determine if this bar should be faint (muted)
-        // - Column focus: mute if not the focused series
-        // - Entity focus: mute if not the focused entity (unless hovered)
-        const isFaintFromColumnFocus = isColumnFocusActive && !isSeriesFocused
-        const isFaintFromEntityFocus =
-            !isColumnFocusActive && background && !isHover
-        const isFaint = isFaintFromColumnFocus || isFaintFromEntityFocus
+        // Compute bar position and dimensions
         let barX = yAxis.place(chartContext.x0 + bar.point.valueOffset)
         const barWidth = Math.abs(
             yAxis.place(bar.point.value) - yAxis.place(chartContext.x0)
@@ -523,11 +558,13 @@ export class StackedDiscreteBars
         // Place bars that represent negative values on the left
         if (bar.point.value < 0) barX -= barWidth
 
+        // Compute label properties
         const barLabel = formatValueForLabel(bar.point.value)
         const labelFontSize = GRAPHER_FONT_SCALE_12 * chartContext.baseFontSize
         const labelBounds = Bounds.forText(barLabel, {
             fontSize: labelFontSize,
         })
+
         // Check that we have enough space to show the bar label
         const showLabelInsideBar =
             props.showLabelInsideBar &&
@@ -536,24 +573,14 @@ export class StackedDiscreteBars
         const isLabelColorDark = !isDarkColor(bar.color)
         const labelColor = isLabelColorDark ? "#000" : "#fff"
 
-        const nothingFocused = !isColumnFocusActive && !background
-        const opacity = isSeriesFocused
-            ? BAR_OPACITY.FOCUS
-            : isFaint
-              ? isHover
-                  ? BAR_OPACITY.DEFAULT
-                  : BAR_OPACITY.MUTE
-              : isHover && nothingFocused
-                ? BAR_OPACITY.FOCUS
-                : BAR_OPACITY.DEFAULT
+        // Get opacity from highlight state
+        const opacity = BAR_OPACITY[highlightState]
 
         return (
             <g
                 id={makeFigmaId(bar.seriesName)}
-                onMouseEnter={(): void =>
-                    props?.onMouseEnter(entity, bar.seriesName)
-                }
-                onMouseLeave={props?.onMouseLeave}
+                onMouseEnter={props.onMouseEnter}
+                onMouseLeave={props.onMouseLeave}
             >
                 <rect
                     id={makeFigmaId("bar")}
@@ -675,4 +702,32 @@ export class StackedDiscreteBars
     override componentDidMount(): void {
         exposeInstanceOnWindow(this)
     }
+}
+
+/**
+ * Computes the highlight state for a bar based on interaction states.
+ *
+ * Priority rules:
+ * 1. Series interactions (column focus, legend hover) take precedence over entity focus
+ * 2. Active state → "focus"
+ * 3. Background state → "muted" (unless hovered, then "default")
+ * 4. Idle + hovered → "focus"
+ * 5. Idle + not hovered → "default"
+ *
+ * @param seriesState - Interaction state for the bar's series (from focus + legend hover)
+ * @param entityState - Interaction state for the bar's entity (from entity focus)
+ * @param isHovered - Whether this specific bar is being hovered
+ */
+function getBarHighlightState(
+    seriesState: InteractionState,
+    entityState: InteractionState,
+    isHovered: boolean
+): HighlightState {
+    // Series interactions take priority over entity
+    const baseState = seriesState.idle ? entityState : seriesState
+
+    if (baseState.active) return "focus"
+    if (baseState.background) return isHovered ? "default" : "muted"
+    if (isHovered) return "focus"
+    return "default"
 }

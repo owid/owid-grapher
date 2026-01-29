@@ -71,4 +71,12 @@ export class InteractionState {
     get background(): boolean {
         return this._isInteractionModeActive && !this._isInteractedWith
     }
+
+    /**
+     * Returns an interaction state representing no interaction.
+     * Useful when a dimension doesn't apply (e.g., no series interaction for labels).
+     */
+    static none(): InteractionState {
+        return new InteractionState(false, false)
+    }
 }

@@ -423,8 +423,8 @@ export class StackedBarChart
 
                             const color = point?.color ?? seriesColor
                             const opacity = focused
-                                ? BAR_OPACITY.FOCUS
-                                : BAR_OPACITY.DEFAULT
+                                ? BAR_OPACITY.focus
+                                : BAR_OPACITY.default
                             const swatch = { color, opacity }
 
                             return { name, swatch, blurred, focused, values }

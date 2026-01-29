@@ -14,10 +14,12 @@ import { InteractionState } from "../interaction/InteractionState.js"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState.js"
 import { LegendStyleConfig } from "../legend/LegendInteractionState"
 
-export const AREA_OPACITY = {
-    DEFAULT: GRAPHER_AREA_OPACITY_DEFAULT,
-    FOCUS: GRAPHER_AREA_OPACITY_FOCUS,
-    MUTE: GRAPHER_AREA_OPACITY_MUTE,
+export type HighlightState = "focus" | "default" | "muted"
+
+export const AREA_OPACITY: Record<HighlightState, number> = {
+    default: GRAPHER_AREA_OPACITY_DEFAULT,
+    focus: GRAPHER_AREA_OPACITY_FOCUS,
+    muted: GRAPHER_AREA_OPACITY_MUTE,
 } as const
 
 export const BAR_OPACITY = AREA_OPACITY
@@ -35,12 +37,12 @@ export const BORDER_WIDTH = {
 
 export const LEGEND_STYLE_FOR_STACKED_CHARTS: LegendStyleConfig = {
     marker: {
-        default: { opacity: AREA_OPACITY.DEFAULT },
-        focused: { opacity: AREA_OPACITY.FOCUS },
-        muted: { opacity: AREA_OPACITY.MUTE },
+        default: { opacity: AREA_OPACITY.default },
+        focused: { opacity: AREA_OPACITY.focus },
+        muted: { opacity: AREA_OPACITY.muted },
     },
     text: {
-        muted: { opacity: AREA_OPACITY.MUTE },
+        muted: { opacity: AREA_OPACITY.muted },
     },
 }
 

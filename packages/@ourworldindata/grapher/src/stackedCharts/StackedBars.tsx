@@ -52,8 +52,8 @@ export class StackedBars extends React.Component<StackedBarsProps> {
                     const opacity =
                         (isLegendHovered || hoveredSeriesNames.length === 0) &&
                         !series.focus?.background
-                            ? BAR_OPACITY.DEFAULT
-                            : BAR_OPACITY.MUTE
+                            ? BAR_OPACITY.default
+                            : BAR_OPACITY.muted
 
                     return (
                         <g
@@ -71,7 +71,7 @@ export class StackedBars extends React.Component<StackedBarsProps> {
                                     bar === hoveredBar ||
                                     series.focus?.active ||
                                     isLegendHovered
-                                        ? BAR_OPACITY.FOCUS
+                                        ? BAR_OPACITY.focus
                                         : opacity
 
                                 return (

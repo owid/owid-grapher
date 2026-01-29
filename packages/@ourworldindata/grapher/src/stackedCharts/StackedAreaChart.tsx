@@ -249,11 +249,11 @@ export class StackedAreaChart
                 categoricalLegendData,
                 legendStyleConfig: {
                     marker: {
-                        default: { opacity: AREA_OPACITY.DEFAULT },
-                        focused: { opacity: AREA_OPACITY.FOCUS },
-                        muted: { opacity: AREA_OPACITY.MUTE },
+                        default: { opacity: AREA_OPACITY.default },
+                        focused: { opacity: AREA_OPACITY.focus },
+                        muted: { opacity: AREA_OPACITY.muted },
                     },
-                    text: { muted: { opacity: AREA_OPACITY.MUTE } },
+                    text: { muted: { opacity: AREA_OPACITY.muted } },
                 },
             }
         }
@@ -506,8 +506,8 @@ export class StackedAreaChart
                         const focused = name === target.series
                         const values = [point?.fake ? undefined : point?.value]
                         const opacity = focused
-                            ? AREA_OPACITY.FOCUS
-                            : AREA_OPACITY.DEFAULT
+                            ? AREA_OPACITY.focus
+                            : AREA_OPACITY.default
                         const swatch = { color, opacity }
 
                         return {
