@@ -70,9 +70,10 @@ interface StackedBarChartContext {
     timeColumn: CoreColumn
     formatColumn: CoreColumn
     formatValueForLabel: (value: number) => string
-    focusSeriesName?: string
+    legendHoverSeriesName?: string
     hoverSeriesName?: string
     hoverEntityName?: string
+    hasFocusedColumn: boolean
     barHeight: number
     x0: number
     baseFontSize: number
@@ -85,7 +86,7 @@ interface StackedDiscreteBarsProps {
         entityName: string
         seriesName?: string
     }>
-    focusSeriesName?: SeriesName
+    legendHoverSeriesName?: SeriesName
 }
 
 @observer
@@ -113,8 +114,8 @@ export class StackedDiscreteBars
         return this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS
     }
 
-    @computed private get focusSeriesName(): SeriesName | undefined {
-        return this.props.focusSeriesName
+    @computed private get legendHoverSeriesName(): SeriesName | undefined {
+        return this.props.legendHoverSeriesName
     }
 
     @computed private get tooltipState(): TooltipState<{
@@ -329,9 +330,10 @@ export class StackedDiscreteBars
             formatColumn: this.formatColumn,
             formatValueForLabel: this.formatValueForLabel,
             barHeight: this.barHeight,
-            focusSeriesName: this.focusSeriesName,
+            legendHoverSeriesName: this.legendHoverSeriesName,
             hoverSeriesName: this.tooltipState.target?.seriesName,
             hoverEntityName: this.tooltipState.target?.entityName,
+            hasFocusedColumn: this.chartState.hasFocusedColumn,
             x0: this.x0,
             baseFontSize: this.baseFontSize,
         }
@@ -350,7 +352,11 @@ export class StackedDiscreteBars
         const totalLabel = this.formatValueForLabel(totalValue)
         const showLabelInsideBar = bars.length > 1
 
-        const opacity = data.focus.background ? GRAPHER_OPACITY_MUTE : 1
+        // Entity focus affects labels, but bars handle their own opacity
+        const labelOpacity =
+            !this.chartState.hasFocusedColumn && data.focus.background
+                ? GRAPHER_OPACITY_MUTE
+                : 1
 
         // We can't just take the last bar here because if the last bar has a negative value,
         // its position on the chart (valueOffset + value) might actually be leftmost rather than rightmost.
@@ -365,7 +371,6 @@ export class StackedDiscreteBars
                 id={makeFigmaId(entityName)}
                 className="bar"
                 transform={`translate(0, ${state.translateY ?? 0})`}
-                opacity={opacity}
             >
                 {bars.map((bar) => (
                     <StackedDiscreteBars.Bar
@@ -373,6 +378,7 @@ export class StackedDiscreteBars
                         entity={entityName}
                         bar={bar}
                         chartContext={this.chartContext}
+                        background={data.focus.background}
                         showLabelInsideBar={showLabelInsideBar}
                         onMouseEnter={this.onEntityMouseEnter}
                         onMouseLeave={this.onEntityMouseLeave}
@@ -382,6 +388,7 @@ export class StackedDiscreteBars
                     state={label}
                     x={yAxis.place(this.x0) - labelToBarPadding}
                     y={-label.height / 2}
+                    opacity={labelOpacity}
                     onMouseEnter={(): void =>
                         this.onEntityMouseEnter(label.text)
                     }
@@ -394,6 +401,7 @@ export class StackedDiscreteBars
                             yAxis.place(lastValue) + labelToBarPadding
                         }, 0)`}
                         dy={dyFromAlign(VerticalAlign.middle)}
+                        opacity={labelOpacity}
                         {...this.totalValueLabelStyle}
                     >
                         {totalLabel}
@@ -457,7 +465,7 @@ export class StackedDiscreteBars
 
         // needs to be referenced here, otherwise it's not updated in the renderRow function
         // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-        this.focusSeriesName
+        this.legendHoverSeriesName
 
         return (
             <>
@@ -481,19 +489,32 @@ export class StackedDiscreteBars
         bar: Bar
         entity: string
         chartContext: StackedBarChartContext
+        background: boolean
         showLabelInsideBar: boolean
         onMouseEnter: (entityName: string, seriesName?: string) => void
         onMouseLeave: () => void
     }): React.ReactElement {
-        const { entity, bar, chartContext } = props
-        const { yAxis, formatValueForLabel, focusSeriesName, barHeight } =
+        const { entity, bar, chartContext, background } = props
+        const { yAxis, formatValueForLabel, legendHoverSeriesName, barHeight } =
             chartContext
 
-        const isFaint =
-            focusSeriesName !== undefined && focusSeriesName !== bar.seriesName
+        const isSeriesFocused =
+            (legendHoverSeriesName !== undefined &&
+                legendHoverSeriesName === bar.seriesName) ||
+            bar.focus.active
+        const isColumnFocusActive =
+            legendHoverSeriesName !== undefined || chartContext.hasFocusedColumn
         const isHover =
             chartContext.hoverSeriesName === bar.seriesName &&
             chartContext.hoverEntityName === entity
+
+        // Determine if this bar should be faint (muted)
+        // - Column focus: mute if not the focused series
+        // - Entity focus: mute if not the focused entity (unless hovered)
+        const isFaintFromColumnFocus = isColumnFocusActive && !isSeriesFocused
+        const isFaintFromEntityFocus =
+            !isColumnFocusActive && background && !isHover
+        const isFaint = isFaintFromColumnFocus || isFaintFromEntityFocus
         let barX = yAxis.place(chartContext.x0 + bar.point.valueOffset)
         const barWidth = Math.abs(
             yAxis.place(bar.point.value) - yAxis.place(chartContext.x0)
@@ -512,13 +533,19 @@ export class StackedDiscreteBars
             props.showLabelInsideBar &&
             labelBounds.width < 0.85 * barWidth &&
             labelBounds.height < 0.85 * barHeight
-        const labelColor = isDarkColor(bar.color) ? "#fff" : "#000"
+        const isLabelColorDark = !isDarkColor(bar.color)
+        const labelColor = isLabelColorDark ? "#000" : "#fff"
 
-        const opacity = isHover
+        const nothingFocused = !isColumnFocusActive && !background
+        const opacity = isSeriesFocused
             ? BAR_OPACITY.FOCUS
             : isFaint
-              ? BAR_OPACITY.MUTE
-              : BAR_OPACITY.DEFAULT
+              ? isHover
+                  ? BAR_OPACITY.DEFAULT
+                  : BAR_OPACITY.MUTE
+              : isHover && nothingFocused
+                ? BAR_OPACITY.FOCUS
+                : BAR_OPACITY.DEFAULT
 
         return (
             <g
@@ -546,7 +573,7 @@ export class StackedDiscreteBars
                         width={barWidth}
                         height={barHeight}
                         fill={labelColor}
-                        opacity={isFaint ? 0 : 1}
+                        opacity={isLabelColorDark ? opacity : 1}
                         fontSize={labelFontSize}
                         textAnchor="middle"
                         dy={dyFromAlign(VerticalAlign.middle)}

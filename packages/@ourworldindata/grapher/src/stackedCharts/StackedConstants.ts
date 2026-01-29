@@ -90,6 +90,7 @@ export interface Bar {
     seriesName: string
     columnSlug: string
     point: StackedPoint<EntityName>
+    focus: InteractionState
 }
 
 export interface Item {

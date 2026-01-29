@@ -8,6 +8,7 @@ import {
     EntityName,
     getRelativeMouse,
     exposeInstanceOnWindow,
+    excludeUndefined,
 } from "@ourworldindata/utils"
 import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -53,12 +54,13 @@ export class StackedDiscreteBarChart
         super(props)
 
         makeObservable(this, {
-            focusSeriesName: observable,
+            legendHoverSeriesName: observable,
             tooltipState: observable,
         })
     }
 
-    focusSeriesName: SeriesName | undefined = undefined
+    /** Series name currently hovered in the legend */
+    legendHoverSeriesName: SeriesName | undefined = undefined
 
     @computed get chartState(): StackedDiscreteBarChartState {
         return this.props.chartState
@@ -140,15 +142,23 @@ export class StackedDiscreteBarChart
     }
 
     getLegendBinState(bin: ColorScaleBin): LegendInteractionState {
-        const { focusSeriesName } = this
+        const {
+            legendHoverSeriesName,
+            chartState: { hasFocusedColumn, focusArray },
+        } = this
 
-        // If nothing is focused, all items are active
-        if (!focusSeriesName) {
+        // If no column focus or legend hover is active, all items are default
+        // (entity focus doesn't affect the legend)
+        if (!legendHoverSeriesName && !hasFocusedColumn) {
             return LegendInteractionState.Default
         }
 
-        // Check if this bin contains the focused series
-        const isFocused = bin.contains(focusSeriesName)
+        // Check if this bin contains any of the focused series
+        const activeSeriesNames = excludeUndefined([
+            legendHoverSeriesName,
+            ...focusArray.seriesNames,
+        ])
+        const isFocused = activeSeriesNames.some((name) => bin.contains(name))
         return isFocused
             ? LegendInteractionState.Focused
             : LegendInteractionState.Muted
@@ -167,7 +177,7 @@ export class StackedDiscreteBarChart
     }
 
     @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
-        this.focusSeriesName = R.first(
+        this.legendHoverSeriesName = R.first(
             this.series
                 .map((s) => s.seriesName)
                 .filter((name) => bin.contains(name))
@@ -175,7 +185,7 @@ export class StackedDiscreteBarChart
     }
 
     @action.bound onLegendMouseLeave(): void {
-        this.focusSeriesName = undefined
+        this.legendHoverSeriesName = undefined
     }
 
     @computed private get legend(): HorizontalCategoricalColorLegend {
@@ -222,7 +232,7 @@ export class StackedDiscreteBarChart
                     chartState={this.chartState}
                     bounds={this.boundsWithoutLegend}
                     tooltipState={this.tooltipState}
-                    focusSeriesName={this.focusSeriesName}
+                    legendHoverSeriesName={this.legendHoverSeriesName}
                 />
             </>
         )
@@ -231,9 +241,9 @@ export class StackedDiscreteBarChart
     private renderInteractive(): React.ReactElement {
         const { bounds } = this
 
-        // needs to be referenced here, otherwise it's not updated in the renderRow function
+        // Needs to be referenced here, otherwise it's not updated in the renderRow function
         // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-        this.focusSeriesName
+        this.legendHoverSeriesName
 
         return (
             <g
@@ -254,7 +264,7 @@ export class StackedDiscreteBarChart
                     chartState={this.chartState}
                     bounds={this.boundsWithoutLegend}
                     tooltipState={this.tooltipState}
-                    focusSeriesName={this.focusSeriesName}
+                    legendHoverSeriesName={this.legendHoverSeriesName}
                 />
             </g>
         )
