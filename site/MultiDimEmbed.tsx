@@ -2,15 +2,10 @@ import { MultiDimDataPageConfigEnriched } from "@ourworldindata/types"
 import {
     Url,
     fetchWithRetry,
-    searchParamsToMultiDimView,
     MultiDimDataPageConfig,
 } from "@ourworldindata/utils"
 import { useState, useEffect } from "react"
-import {
-    MULTI_DIM_DYNAMIC_CONFIG_URL,
-    GRAPHER_DYNAMIC_CONFIG_URL,
-} from "../settings/clientSettings.js"
-import { GrapherWithFallback } from "./GrapherWithFallback.js"
+import { MULTI_DIM_DYNAMIC_CONFIG_URL } from "../settings/clientSettings.js"
 import MultiDim from "./multiDim/MultiDim.js"
 import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 
@@ -65,25 +60,6 @@ export const MultiDimEmbed: React.FC<MultiDimEmbedProps> = (
 
     if (!config || !slug) {
         return <div>Loading...</div>
-    }
-
-    if (embedUrl.queryParams.hideControls === "true") {
-        const view = searchParamsToMultiDimView(
-            config,
-            new URLSearchParams(queryStr)
-        )
-        const configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${view.fullConfigId}.config.json${isPreviewing ? "?nocache" : ""}`
-
-        return (
-            <GrapherWithFallback
-                configUrl={configUrl}
-                queryStr={queryStr}
-                config={props.chartConfig}
-                isEmbeddedInAnOwidPage={true}
-                isEmbeddedInADataPage={false}
-                isPreviewing={isPreviewing}
-            />
-        )
     }
 
     return (
