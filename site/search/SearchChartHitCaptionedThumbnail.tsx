@@ -11,6 +11,7 @@ export function CaptionedThumbnail({
     isSmallSlot = false,
     imageWidth,
     imageHeight,
+    unit,
     className,
     onClick,
 }: {
@@ -20,6 +21,7 @@ export function CaptionedThumbnail({
     isSmallSlot?: boolean
     imageWidth?: number
     imageHeight?: number
+    unit?: string
     className?: string
     onClick?: () => void
 }): React.ReactElement {
@@ -30,6 +32,11 @@ export function CaptionedThumbnail({
         <span className="search-chart-hit-captioned-link-label-content">
             <GrapherTabIcon tab={chartType} />
             {caption}
+            {unit && (
+                <span className="search-chart-hit-captioned-link-label-unit">
+                    {unit}
+                </span>
+            )}
         </span>
     )
 

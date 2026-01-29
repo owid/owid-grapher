@@ -93,6 +93,14 @@
             width: 12px;
             vertical-align: -1.625px;
         }
+
+        .search-chart-hit-captioned-link-label-unit {
+            color: $blue-60;
+
+            &::before {
+                content: " · ";
+            }
+        }
     }
 
     .search-chart-hit-rich-data__placeholder {

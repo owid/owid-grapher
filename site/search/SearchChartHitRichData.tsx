@@ -242,6 +242,7 @@ export function SearchChartHitRichData({
                                 previewUrl={previewUrl}
                                 imageWidth={imageWidth}
                                 imageHeight={imageHeight}
+                                unit={data.unit}
                                 className={className}
                                 onClick={() => onClick(grapherTab)}
                             />

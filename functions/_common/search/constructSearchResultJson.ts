@@ -37,6 +37,7 @@ import {
     checkIsCountry,
     getAggregates,
     getContinents,
+    getDisplayUnit,
     getIncomeGroups,
     getParentRegions,
     getRegionByName,
@@ -180,6 +181,16 @@ export function constructSearchResultJson(
         ]),
     }
 
+    // Get the unit from the primary y-axis column for display in thumbnail captions
+    const primaryYColumnSlug = grapherState.yColumnSlugs[0]
+    const primaryYColumn = primaryYColumnSlug
+        ? grapherState.transformedTable.get(primaryYColumnSlug)
+        : undefined
+    const unit =
+        primaryYColumn && !primaryYColumn.isMissing
+            ? getDisplayUnit(primaryYColumn, { allowTrivial: true })
+            : undefined
+
     return omitUndefinedValues({
         title: grapherState.title,
         subtitle: stripMarkdown(grapherState.subtitle),
@@ -190,6 +201,7 @@ export function constructSearchResultJson(
         valueDisplay: dataDisplayProps,
         entityType: grapherState.entityType,
         entityTypePlural: grapherState.entityTypePlural,
+        unit,
     })
 }
 

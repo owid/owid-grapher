@@ -15,6 +15,8 @@ export type GrapherSearchResultJson = {
     valueDisplay?: SearchChartHitDataDisplayProps
     entityType: string
     entityTypePlural: string
+    /** The unit of the primary y-axis indicator, displayed in thumbnail captions */
+    unit?: string
 }
 
 export interface SearchChartHitDataTableProps {
