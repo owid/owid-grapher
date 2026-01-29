@@ -14,7 +14,6 @@ import {
     PointVector,
     Bounds,
     isTouchDevice,
-    makeIdForHumanConsumption,
     guid,
 } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
@@ -640,52 +639,21 @@ export class ScatterPlotChart
             bounds.height - yNoDataSection
         )
 
-        const separatorLine = (y: number): React.ReactElement | null =>
-            y > bounds.top ? (
-                <line
-                    id={makeIdForHumanConsumption("separator")}
-                    x1={this.legendX}
-                    y1={y - 0.5 * legendPadding}
-                    x2={bounds.right}
-                    y2={y - 0.5 * legendPadding}
-                    stroke="#e7e7e7"
-                />
-            ) : null
-
         return (
             <>
                 {verticalColorLegend && <VerticalColorLegend manager={this} />}
-                {sizeLegend && (
-                    <>
-                        {verticalColorLegend && separatorLine(ySizeLegend)}
-                        {sizeLegend.render(this.legendX, ySizeLegend)}
-                    </>
-                )}
+                {sizeLegend && sizeLegend.render(this.legendX, ySizeLegend)}
                 {arrowLegend && (
-                    <>
-                        {(verticalColorLegend || sizeLegend) &&
-                            separatorLine(yArrowLegend)}
-                        <g
-                            className="clickable"
-                            onClick={this.onToggleEndpoints}
-                        >
-                            {arrowLegend.render(this.legendX, yArrowLegend)}
-                        </g>
-                    </>
+                    <g className="clickable" onClick={this.onToggleEndpoints}>
+                        {arrowLegend.render(this.legendX, yArrowLegend)}
+                    </g>
                 )}
                 {this.hasNoDataSection && (
-                    <>
-                        {!this.manager.isStatic &&
-                            (verticalColorLegend ||
-                                sizeLegend ||
-                                arrowLegend) &&
-                            separatorLine(noDataSectionBounds.top)}
-                        <NoDataSection
-                            seriesNames={this.selectedEntitiesWithoutData}
-                            bounds={noDataSectionBounds}
-                            baseFontSize={this.fontSize}
-                        />
-                    </>
+                    <NoDataSection
+                        seriesNames={this.selectedEntitiesWithoutData}
+                        bounds={noDataSectionBounds}
+                        baseFontSize={this.fontSize}
+                    />
                 )}
             </>
         )
