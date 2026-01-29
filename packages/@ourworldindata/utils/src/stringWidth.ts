@@ -4,12 +4,15 @@
  * It can be used to roughly estimate the width of a string in pixels.
  */
 
-type SupportedFonts = "lato" | "playfair display"
+export enum FontFamily {
+    Lato = "Lato",
+    PlayfairDisplay = "PlayfairDisplay",
+}
 
 // Variant indices: 0=regular, 1=bold, 2=italic, 3=bold+italic
 // Pre-flattened maps: widthsMap[font][variant][char] -> width in pixels
-const widthsMap: Record<SupportedFonts, Record<string, number>[]> = {
-    lato: [
+const widthsMap: Record<FontFamily, Record<string, number>[]> = {
+    [FontFamily.Lato]: [
         // regular
         {
             "0": 58,
@@ -403,7 +406,7 @@ const widthsMap: Record<SupportedFonts, Record<string, number>[]> = {
             "~": 58,
         },
     ],
-    "playfair display": [
+    [FontFamily.PlayfairDisplay]: [
         // regular
         {
             "0": 60,
@@ -800,7 +803,7 @@ const widthsMap: Record<SupportedFonts, Record<string, number>[]> = {
 }
 
 interface StringWidthSettings {
-    font?: SupportedFonts
+    font?: FontFamily
     size?: number
     bold?: boolean
     italic?: boolean
@@ -810,14 +813,14 @@ const getPixelWidth = (
     string: string,
     settings: StringWidthSettings
 ): number => {
-    const font = (settings.font?.toLowerCase() ?? "lato") as SupportedFonts
+    const font = settings.font ?? FontFamily.Lato
     const size = settings.size ?? 100
     const variant = (settings.bold ? 1 : 0) + (settings.italic ? 2 : 0)
 
     const fontVariants = widthsMap[font]
     if (!fontVariants) {
         throw new Error(
-            `This font is not supported. Supported fonts are: lato, playfair display`
+            `This font is not supported. Supported fonts are: ${Object.values(FontFamily).join(", ")}`
         )
     }
 

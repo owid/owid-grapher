@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import { PointVector } from "./PointVector.js"
-import { getPixelWidth } from "./stringWidth.js"
+import { getPixelWidth, FontFamily } from "./stringWidth.js"
 import {
     Box,
     GridParameters,
@@ -22,10 +22,7 @@ export interface GridBounds {
     bounds: Bounds
 }
 
-export enum FontFamily {
-    lato = "lato",
-    "playfair display" = "playfair display",
-}
+export { FontFamily }
 
 export class Bounds {
     static ctx: CanvasRenderingContext2D
@@ -85,7 +82,7 @@ export class Bounds {
             y = 0,
             fontSize = 16,
             fontWeight = 400,
-            fontFamily = FontFamily.lato,
+            fontFamily = FontFamily.Lato,
             isItalic = false,
         }: {
             x?: number
