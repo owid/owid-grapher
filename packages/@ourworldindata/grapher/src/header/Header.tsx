@@ -4,6 +4,7 @@ import {
     LogoOption,
     makeIdForHumanConsumption,
     Bounds,
+    FontFamily,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap, TextWrap } from "@ourworldindata/components"
 import { computed, makeObservable } from "mobx"
@@ -107,6 +108,7 @@ abstract class AbstractHeader<
             new TextWrap({
                 text: this.titleText,
                 maxWidth: this.maxWidth - this.logoWidth - logoPadding,
+                fontFamily: FontFamily.PlayfairDisplay,
                 fontWeight: this.titleFontWeight,
                 lineHeight: this.titleLineHeight,
                 fontSize,

@@ -19,6 +19,7 @@ interface TextWrapProps {
     lineHeight?: number
     fontSize: FontSize
     fontWeight?: number
+    fontFamily?: FontFamily
     separators?: string[]
     rawHtml?: boolean
     verticalAlign?: VerticalAlign
@@ -113,6 +114,9 @@ export class TextWrap {
     @computed get fontWeight(): number | undefined {
         return this.props.fontWeight
     }
+    @computed get fontFamily(): FontFamily | undefined {
+        return this.props.fontFamily
+    }
     @computed get verticalAlign(): VerticalAlign {
         return this.props.verticalAlign ?? VerticalAlign.bottom
     }
@@ -168,7 +172,8 @@ export class TextWrap {
     }
 
     @computed get lines(): WrapLine[] {
-        const { text, separators, maxWidth, fontSize, fontWeight } = this
+        const { text, separators, maxWidth, fontSize, fontWeight, fontFamily } =
+            this
 
         // Prepend spaces so that the string is also split before newline characters
         // See startsWithNewline
@@ -193,6 +198,7 @@ export class TextWrap {
             const nextBounds = Bounds.forText(text, {
                 fontSize,
                 fontWeight,
+                fontFamily,
             })
 
             if (
@@ -216,6 +222,7 @@ export class TextWrap {
                 lineBounds = Bounds.forText(wordWithoutNewline, {
                     fontSize,
                     fontWeight,
+                    fontFamily,
                 })
             } else {
                 line = nextLine
