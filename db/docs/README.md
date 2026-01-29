@@ -3,6 +3,7 @@ In this folder, each table of our MySQL 8 database is documented with it's own y
 The most important tables are:
 
 - analytics_pageviews: Pageviews for all our pages. In some environments this table might be empty, but in general this is a useful table to join content with so that you can sort by pageviews descending and show the most viewed content first.
+- analytics_grapher_views: chart views for all our charts. Where analytics_pageviews captures views at the page level (data page, grapher page), analytics_grapher_views captures views at the chart level, whenever charts are scrolled into view. In some environments this table might be empty, but in general this is a useful table to join content with so that you can sort by chart views descending and show the most viewed charts first.
 - charts: stores standalone charts that are published at https://ourworldindata.org/grapher/SLUG. Charts are rendered as data pages on our website.
 - chart_configs: stores the actual JSON configuration for all charts that we have anywhere in our system.
 - chart_references_view: view that aggregates chart reference and usage counts (narrative charts, gdocs references, explorer references) used across admin interfaces.

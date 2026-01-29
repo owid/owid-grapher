@@ -10,7 +10,7 @@ usage() {
   echo -e "Usage: ./$(basename "$0") [-h | --help]
 
 Dump a new set of configs and generate reference SVGs.
-Make sure to run \`make refresh\` and \`make refresh.pageviews\` before running this script."
+Make sure to run \`make refresh.full\` before running this script."
 }
 
 refresh() {

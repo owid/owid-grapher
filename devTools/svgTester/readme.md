@@ -131,8 +131,7 @@ To generate a fresh reference dataset from production data, use the `refresh.sh`
 
 ```bash
 # First ensure the database has the latest data
-make refresh         # Refresh the database from production
-make refresh.pageviews  # Refresh pageviews data
+make refresh.full    # Refresh the database and analytics from production
 
 # Then run the refresh script
 ./devTools/svgTester/refresh.sh

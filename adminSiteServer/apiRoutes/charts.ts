@@ -583,13 +583,13 @@ export async function getChartsJson(
         trx,
         `-- sql
             SELECT ${oldChartFieldList},
-                round(views_365d / 365, 1) as pageviewsPerDay,
+                round(agv.views_365d / 365, 1) as pageviewsPerDay,
                 crv.narrativeChartsCount,
                 crv.referencesCount
             FROM charts
             JOIN chart_configs ON chart_configs.id = charts.configId
             JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
-            LEFT JOIN analytics_pageviews on (analytics_pageviews.url = CONCAT("https://ourworldindata.org/grapher/", chart_configs.slug) AND chart_configs.full ->> '$.isPublished' = "true" )
+            LEFT JOIN analytics_grapher_views agv ON (agv.grapher_slug = chart_configs.slug AND chart_configs.full ->> '$.isPublished' = "true")
             LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
             LEFT JOIN chart_references_view crv ON crv.chartId = charts.id
             ORDER BY charts.lastEditedAt DESC LIMIT ?
