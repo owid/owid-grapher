@@ -29,6 +29,7 @@ import {
     faSpinner,
 } from "@fortawesome/free-solid-svg-icons"
 import {
+    type GrapherQueryParams,
     OwidColumnDef,
     OwidOrigin,
     QueryParams,
@@ -598,6 +599,7 @@ const getDownloadSearchParams = (ctx: DataDownloadContextServerSide) => {
             .exhaustive()
     )
     searchParams.set("useColumnShortNames", ctx.shortColNames.toString())
+
     const otherParams =
         ctx.csvDownloadType === CsvDownloadType.CurrentSelection
             ? // Append all the current grapher settings, e.g.
@@ -605,7 +607,14 @@ const getDownloadSearchParams = (ctx: DataDownloadContextServerSide) => {
               ctx.searchParams
             : // Use the base grapher settings + mdim dimensions.
               ctx.externalSearchParams
+
+    const SEARCH_PARAMS_TO_EXCLUDE: string[] = [
+        "overlay", // always present when the modal is open, but just polluting the download URL
+    ] satisfies (keyof GrapherQueryParams)[]
+
     for (const [key, value] of otherParams.entries()) {
+        if (SEARCH_PARAMS_TO_EXCLUDE.includes(key)) continue
+
         searchParams.set(key, value)
     }
     return searchParams
