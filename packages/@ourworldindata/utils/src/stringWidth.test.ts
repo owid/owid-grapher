@@ -164,4 +164,11 @@ describe("getPixelWidth", () => {
             })
         ).toThrow("This font is not supported")
     })
+
+    it("has data for subscript numbers", () => {
+        const co2Normal = getPixelWidth("CO2", {})
+        const co2Subscript = getPixelWidth("CO₂", {})
+
+        expect(co2Subscript).toBeLessThan(co2Normal)
+    })
 })
