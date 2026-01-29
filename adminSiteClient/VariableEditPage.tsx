@@ -35,7 +35,6 @@ import {
     OwidOrigin,
     OwidSource,
     stringifyUnknownError,
-    CatalogKey,
 } from "@ourworldindata/utils"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { OriginList } from "./OriginList.js"
@@ -755,7 +754,7 @@ class VariableEditor extends Component<{
     override componentDidMount() {
         this.grapherState = new GrapherState({
             ...this.grapherConfig,
-            additionalDataLoaderFn: (catalogKey: CatalogKey) =>
+            additionalDataLoaderFn: (catalogKey) =>
                 loadCatalogData(catalogKey, { baseUrl: CATALOG_URL }),
         })
         void fetchInputTableForConfig({

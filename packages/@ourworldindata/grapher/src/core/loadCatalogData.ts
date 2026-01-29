@@ -3,10 +3,12 @@ import { OwidTable } from "@ourworldindata/core-table"
 import {
     AdditionalGrapherDataFetchFn,
     AssetMap,
-    CatalogDataPoint,
+    CatalogDataForKey,
     CatalogKey,
+    CatalogNumericDataPoint,
     ColumnSlug,
     ColumnTypeNames,
+    NumericCatalogKey,
     OwidColumnDef,
 } from "@ourworldindata/types"
 import { fetchJson, readFromAssetMap } from "@ourworldindata/utils"
@@ -23,42 +25,44 @@ export function getCatalogAssetKey(key: CatalogKey): string {
 const catalogPaths: Record<CatalogKey, `${string}.json`> = {
     population: "population/population.json",
     gdp: "gdp/gdp.json",
+    neighbors: "neighbours/neighbours.json",
 }
 
-/** Column definitions with display metadata for catalog data */
-export const columnDefsByCatalogKey: Record<CatalogKey, OwidColumnDef> = {
-    population: {
-        slug: "catalog-population",
-        name: "Population",
-        type: ColumnTypeNames.Integer,
-    },
-    gdp: {
-        slug: "catalog-gdp",
-        name: "GDP per capita",
-        type: ColumnTypeNames.Integer,
-        shortUnit: "$",
-    },
-}
+/** Column definitions with display metadata for numeric catalog data */
+export const columnDefsByCatalogKey: Record<NumericCatalogKey, OwidColumnDef> =
+    {
+        population: {
+            slug: "catalog-population",
+            name: "Population",
+            type: ColumnTypeNames.Integer,
+        },
+        gdp: {
+            slug: "catalog-gdp",
+            name: "GDP per capita",
+            type: ColumnTypeNames.Integer,
+            shortUnit: "$",
+        },
+    }
 
 /** Loads indicator data from the OWID catalog */
-async function _loadCatalogData(
-    key: CatalogKey,
+async function _loadCatalogData<K extends CatalogKey>(
+    key: K,
     { baseUrl, assetMap }: { baseUrl: string; assetMap?: AssetMap }
-): Promise<CatalogDataPoint[]> {
+): Promise<CatalogDataForKey<K>> {
     const assetKey = getCatalogAssetKey(key)
     const catalogPath = `${baseUrl}/external/owid_grapher/latest/${catalogPaths[key]}`
     const url = readFromAssetMap(assetMap, {
         path: assetKey,
         fallback: catalogPath,
     })
-    return fetchJson<CatalogDataPoint[]>(url)
+    return fetchJson(url)
 }
 
 export const loadCatalogData = _.memoize(_loadCatalogData)
 
-/** Creates an OwidTable from catalog data points */
+/** Creates an OwidTable from numeric catalog data points */
 function catalogDataToOwidTable(
-    data: CatalogDataPoint[],
+    data: CatalogNumericDataPoint[],
     columnDef: OwidColumnDef
 ): OwidTable {
     const rows = data.map((point) => ({
@@ -70,9 +74,9 @@ function catalogDataToOwidTable(
     return new OwidTable(rows, [columnDef])
 }
 
-/** Loads catalog data and transforms it into an OwidTable */
+/** Loads numeric catalog data and transforms it into an OwidTable */
 export async function loadCatalogDataAsOwidTable(
-    key: CatalogKey,
+    key: NumericCatalogKey,
     loadCatalogDataFn: AdditionalGrapherDataFetchFn
 ): Promise<{ table: OwidTable; slug: ColumnSlug }> {
     const data = await loadCatalogDataFn(key)

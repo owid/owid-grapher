@@ -923,7 +923,12 @@ export {
     type AdditionalGrapherDataFetchFn,
     type GrapherTrendArrowDirection,
 } from "./grapherTypes/GrapherTypes.js"
-export { type CatalogKey, type CatalogDataPoint } from "./CatalogTypes.js"
+export {
+    type CatalogKey,
+    type CatalogNumericDataPoint,
+    type CatalogDataForKey,
+    type NumericCatalogKey,
+} from "./CatalogTypes.js"
 
 export {
     logBinningStrategies,

@@ -381,6 +381,19 @@ class AddPeersSection extends React.Component<{
         this.grapherState.selection.addToSelection(peers)
     }
 
+    @action.bound async onAddNeighborsPeers() {
+        if (!this.effectiveTargetCountry) return
+
+        const peers = await selectPeerCountries({
+            peerCountryStrategy: PeerCountryStrategy.Neighbors,
+            targetCountry: this.effectiveTargetCountry,
+            availableEntities: this.availableEntities,
+            additionalDataLoaderFn: this.grapherState.additionalDataLoaderFn,
+        })
+
+        this.grapherState.selection.addToSelection(peers)
+    }
+
     @computed private get shouldShow() {
         const isSingleEntityMode =
             this.grapherState.addCountryMode ===
@@ -435,6 +448,12 @@ class AddPeersSection extends React.Component<{
                         onClick={this.onAddPopulationPeers}
                     >
                         + Similar by population
+                    </button>
+                    <button
+                        className="btn btn-outline-secondary"
+                        onClick={this.onAddNeighborsPeers}
+                    >
+                        + Neighbors
                     </button>
                 </div>
             </div>
@@ -784,6 +803,7 @@ class PeerCountrySection<
         [PeerCountryStrategy.DataRange]:
             "Countries that represent the data range",
         [PeerCountryStrategy.DefaultSelection]: "Default selection",
+        [PeerCountryStrategy.Neighbors]: "Neighboring countries",
     }
 
     @computed get grapherState() {

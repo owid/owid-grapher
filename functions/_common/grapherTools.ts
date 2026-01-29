@@ -9,7 +9,7 @@ import {
     GrapherInterface,
     MultiDimDataPageConfigEnriched,
     R2GrapherConfigDirectory,
-    CatalogKey,
+    AdditionalGrapherDataFetchFn,
 } from "@ourworldindata/types"
 import {
     excludeUndefined,
@@ -266,8 +266,10 @@ export async function initGrapher(
         throw new StatusError(grapherConfigResponse.status)
     }
 
-    const additionalDataLoaderFn = async (catalogKey: CatalogKey) =>
-        loadCatalogData(catalogKey, { baseUrl: env.CATALOG_URL })
+    const additionalDataLoaderFn = ((catalogKey) =>
+        loadCatalogData(catalogKey, {
+            baseUrl: env.CATALOG_URL,
+        })) as AdditionalGrapherDataFetchFn
 
     const bounds = new Bounds(0, 0, options.svgWidth, options.svgHeight)
     const grapherState = new GrapherState({
