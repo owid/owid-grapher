@@ -275,6 +275,7 @@ export const synonyms = [
     ["hpv", "human papillomavirus"],
     ["tertiary", "university", "college", "post-secondary"],
     ["fdi", "foreign direct investment"],
+    ["sex", "gender"],
 ]
 
 /**
