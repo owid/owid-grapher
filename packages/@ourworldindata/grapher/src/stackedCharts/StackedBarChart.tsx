@@ -579,7 +579,8 @@ export class StackedBarChart
     }
 
     @computed get legendY(): number {
-        return this.bounds.top
+        // Small offset aligns the legend with the chart area's top edge in relative mode
+        return this.bounds.top + 3
     }
 
     @computed get legendX(): number {
