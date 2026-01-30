@@ -74,6 +74,7 @@ export async function selectPeerCountriesForGrapher(
 
     const additionalDataLoaderFn = grapherState.additionalDataLoaderFn
     const dataColumn = grapherState.table.get(grapherState.yColumnSlug)
+    const time = grapherState.endTime
 
     return selectPeerCountries({
         peerCountryStrategy,
@@ -83,6 +84,7 @@ export async function selectPeerCountriesForGrapher(
         additionalDataLoaderFn,
         dataColumn,
         requiredTimes,
+        time,
     })
 }
 
@@ -95,6 +97,7 @@ export async function selectPeerCountries({
     additionalDataLoaderFn,
     dataColumn,
     requiredTimes,
+    time,
 }: {
     peerCountryStrategy: PeerCountryStrategy
     targetCountry: EntityName
@@ -103,6 +106,7 @@ export async function selectPeerCountries({
     additionalDataLoaderFn?: AdditionalGrapherDataFetchFn
     dataColumn?: CoreColumn
     requiredTimes?: Time[]
+    time?: Time
 }): Promise<EntityName[]> {
     return match(peerCountryStrategy)
         .with(PeerCountryStrategy.DefaultSelection, () => defaultSelection)
@@ -140,6 +144,7 @@ export async function selectPeerCountries({
                 dataColumn,
                 requiredTimes,
                 additionalDataLoaderFn,
+                time,
             })
         })
         .exhaustive()
@@ -293,6 +298,7 @@ async function selectPeerCountriesByDataRange({
     targetCount = 5,
     randomize = false,
     requiredTimes,
+    time,
 }: {
     availableEntities: EntityName[]
     dataColumn: CoreColumn
@@ -302,6 +308,8 @@ async function selectPeerCountriesByDataRange({
     randomize?: boolean
     /** Only include entities with data at all required times */
     requiredTimes?: Time[]
+    /** Target time for extracting data values */
+    time?: Time
 }): Promise<EntityName[]> {
     // Filter entities to those with data at required times
     const relevantEntities = requiredTimes
@@ -327,10 +335,11 @@ async function selectPeerCountriesByDataRange({
 
     // Extract latest values for candidate entities
     const values = new Map<EntityName, number>()
+    const targetTime = time ?? dataColumn.maxTime
     for (const entityName of candidateEntities) {
         const latestValue = dataColumn.owidRowByEntityNameAndTime
             .get(entityName)
-            ?.get(dataColumn.maxTime)?.value
+            ?.get(targetTime)?.value
         if (latestValue !== undefined) values.set(entityName, latestValue)
     }
 
