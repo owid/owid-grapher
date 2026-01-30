@@ -267,11 +267,14 @@ export interface OwidGdocAnnouncementInterface extends OwidGdocBaseInterface {
     content: OwidGdocAnnouncementContent
 }
 
+export type OwidGdocProfileScope = "countries" | "continents" | "all"
+
 export interface OwidGdocProfileContent {
     type: OwidGdocType.Profile
     title: string
     authors: string[]
-    scope: string // e.g. "countries, continents"
+    scope: OwidGdocProfileScope
+    exclude?: string
     subtitle?: string
     excerpt?: string
     "featured-image"?: string

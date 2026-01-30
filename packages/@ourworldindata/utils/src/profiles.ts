@@ -143,9 +143,9 @@ export const instantiateProfile = (
 }
 
 export function getEntitiesForProfile(
-    profileTemplate: OwidGdocProfileInterface
+    scopeRaw: string,
+    excludeRaw?: string
 ): ProfileEntity[] {
-    const scopeRaw = profileTemplate.content.scope
     if (!scopeRaw) return []
 
     const scopeValues = scopeRaw
@@ -184,6 +184,19 @@ export function getEntitiesForProfile(
             scopeValue !== "all"
         ) {
             addEntity(getRegionByNameOrVariantName(scopeValue))
+        }
+    }
+
+    // Remove excluded entities
+    if (excludeRaw) {
+        const excludeValues = excludeRaw
+            .split(",")
+            .map((value) => value.trim().toLowerCase())
+            .filter((value) => value.length > 0)
+
+        for (const excludeValue of excludeValues) {
+            const region = getRegionByNameOrVariantName(excludeValue)
+            if (region?.code) entitiesByCode.delete(region.code)
         }
     }
 

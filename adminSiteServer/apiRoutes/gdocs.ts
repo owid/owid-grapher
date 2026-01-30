@@ -154,6 +154,7 @@ export async function getGdocCalloutCoverage(
 
     const entities = getEntitiesForProfile(
         gdoc.content.scope,
+        gdoc.content.exclude
     )
     const coverageByEntity: Record<string, Record<string, boolean>> = {}
 

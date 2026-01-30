@@ -157,6 +157,7 @@ export const checkIsLightningUpdate = (
         title: false,
         authors: false,
         scope: false,
+        exclude: false,
         subtitle: false,
         excerpt: false,
         "featured-image": false,
