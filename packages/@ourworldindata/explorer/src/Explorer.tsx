@@ -33,7 +33,6 @@ import {
     GrapherAnalytics,
     GrapherState,
     fetchInputTableForConfig,
-    loadVariableDataAndMetadata,
     FetchInputTableForConfigFn,
 } from "@ourworldindata/grapher"
 import {
@@ -234,7 +233,6 @@ export class Explorer
         ).initDecisionMatrix(this.initialQueryParams)
         const { archiveContext } = props
         const isOnArchivalPage = archiveContext?.type === "archive-page"
-        const assetMaps = isOnArchivalPage ? archiveContext?.assets : undefined
         this.isOnArchivalPage = isOnArchivalPage
         this.grapherState = new GrapherState({
             staticBounds: props.staticBounds,
@@ -245,15 +243,6 @@ export class Explorer
             adminBaseUrl: this.adminBaseUrl,
             canHideExternalControlsInEmbed: true,
             archiveContext: props.archiveContext,
-            additionalDataLoaderFn: (
-                varId: number,
-                loadMetadataOnly?: boolean
-            ) =>
-                loadVariableDataAndMetadata(varId, this.dataApiUrl, {
-                    assetMap: assetMaps?.runtime,
-                    noCache: props.isPreview,
-                    loadMetadataOnly,
-                }),
         })
 
         if (props.setupGrapher !== false)

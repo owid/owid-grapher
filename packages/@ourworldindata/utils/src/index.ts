@@ -356,3 +356,8 @@ export {
 
 export { placeGrapherTabsInLargeVariantGrid } from "./search/LargeVariantRichDataHelpers.js"
 export { placeGrapherTabsInMediumVariantGridLayout } from "./search/MediumVariantRichDataHelpers.js"
+
+export {
+    loadCatalogVariableData,
+    columnDefsByCatalogKey,
+} from "./loadCatalogData.js"

@@ -96,7 +96,7 @@ export const GrapherPage = (props: {
     })}
 const archiveContext = window._OWID_ARCHIVE_CONTEXT
 const isPreviewing = ${isPreviewing}
-window.renderSingleGrapherOnGrapherPage(jsonConfig, "${DATA_API_URL}", { archiveContext, isPreviewing })`
+window.renderSingleGrapherOnGrapherPage({ config: jsonConfig, dataApiUrl: "${DATA_API_URL}", archiveContext, isPreviewing })`
 
     const variableIds = _.uniq(grapher.dimensions!.map((d) => d.variableId))
 

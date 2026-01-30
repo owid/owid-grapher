@@ -31,10 +31,12 @@ import {
     DimensionProperty,
     EPOCH_DATE,
     getETLPathComponents,
+    loadCatalogVariableData,
     OwidProcessingLevel,
     OwidOrigin,
     OwidSource,
     stringifyUnknownError,
+    CatalogKey,
 } from "@ourworldindata/utils"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { OriginList } from "./OriginList.js"
@@ -49,11 +51,14 @@ import {
     fetchInputTableForConfig,
     Grapher,
     GrapherState,
-    loadVariableDataAndMetadata,
 } from "@ourworldindata/grapher"
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { DATA_API_URL, ETL_API_URL } from "../settings/clientSettings.js"
+import {
+    CATALOG_URL,
+    DATA_API_URL,
+    ETL_API_URL,
+} from "../settings/clientSettings.js"
 import urljoin from "url-join"
 
 interface VariablePageData
@@ -750,9 +755,9 @@ class VariableEditor extends Component<{
     override componentDidMount() {
         this.grapherState = new GrapherState({
             ...this.grapherConfig,
-            additionalDataLoaderFn: (varId: number) =>
-                loadVariableDataAndMetadata(varId, DATA_API_URL, {
-                    noCache: true,
+            additionalDataLoaderFn: (catalogKey: CatalogKey) =>
+                loadCatalogVariableData(catalogKey, {
+                    baseUrl: CATALOG_URL,
                 }),
         })
         void fetchInputTableForConfig({
