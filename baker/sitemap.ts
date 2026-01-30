@@ -137,7 +137,10 @@ export const makeSitemap = async (
             ? dayjs(profileTemplate.updatedAt).format("YYYY-MM-DD")
             : undefined
 
-        return getEntitiesForProfile(profileTemplate).map((entity) => ({
+        return getEntitiesForProfile(
+            profileTemplate.content.scope,
+            profileTemplate.content.exclude
+        ).map((entity) => ({
             loc: urljoin(
                 BAKED_BASE_URL,
                 getSlugForProfileEntity(profileTemplate, entity)

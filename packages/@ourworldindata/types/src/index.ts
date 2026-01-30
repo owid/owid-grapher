@@ -370,6 +370,7 @@ export {
     type OwidGdocHomepageContent,
     type OwidGdocHomepageInterface,
     type OwidGdocHomepageMetadata,
+    type OwidGdocProfileScope,
     type OwidGdocProfileContent,
     type OwidGdocProfileInterface,
     type OwidGdocProfileEntitySummary,
