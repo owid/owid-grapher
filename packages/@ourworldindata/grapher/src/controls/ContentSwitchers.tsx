@@ -42,7 +42,7 @@ export class ContentSwitchers extends React.Component<{
     }
 
     private isOverflowMenuOpen = false
-    private overflowButtonRef = React.createRef<HTMLButtonElement>()
+    private overflowButtonRef = React.createRef<HTMLDivElement>()
 
     @computed private get manager(): ContentSwitchersManager {
         return this.props.manager

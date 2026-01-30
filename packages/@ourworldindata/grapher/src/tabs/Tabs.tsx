@@ -9,7 +9,7 @@ export interface TabItem<TabKey extends string = string> {
         className?: string
         ariaLabel?: string
         dataTrackNote?: string
-        ref?: React.RefObject<HTMLButtonElement | null>
+        ref?: React.RefObject<HTMLDivElement | null>
     }
 }
 

@@ -23,7 +23,7 @@
         "mobx": "^6.13.7",
         "mobx-react": "^7.6.0",
         "react": "^19.2.0",
-        "react-aria-components": "1.13.0",
+        "react-aria-components": "^1.14.0",
         "react-dom": "^19.2.0",
         "react-markdown": "^10.1.0",
         "remeda": "^2.32.0",
