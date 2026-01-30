@@ -35,10 +35,7 @@ class MapConfigDefaults {
     timeTolerance: number | undefined = undefined
     toleranceStrategy: ToleranceStrategy | undefined = undefined
     hideTimeline: boolean | undefined = undefined
-
     region = MapRegionName.World
-    selection = new MapSelectionArray()
-    hoverCountry?: EntityName // shared across facets
 
     globe: GlobeConfig = {
         isActive: false,
@@ -59,16 +56,18 @@ class MapConfigDefaults {
             toleranceStrategy: observable,
             hideTimeline: observable,
             region: observable,
-            selection: observable,
             globe: observable,
             colorScale: observable,
             tooltipUseCustomLabels: observable,
-            hoverCountry: observable,
         })
     }
 }
 
 export class MapConfig extends MapConfigDefaults implements Persistable {
+    // Runtime-only state
+    selection = new MapSelectionArray()
+    hoverCountry?: EntityName
+
     updateFromObject(obj: Partial<MapConfigInterface>): void {
         updatePersistables(this, obj)
 
@@ -107,15 +106,13 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
         // No need to store the startTime if it's the same as the end time
         if (obj.startTime === obj.time) delete obj.startTime
 
-        // persist selection
+        // Persist selection
         obj.selectedEntityNames = this.selection.selectedEntityNames
-        // @ts-expect-error hack to prevent selection from being persisted
-        delete obj.selection
 
-        // don't persist globe settings if the globe isn't active
+        // Don't persist globe settings if the globe isn't active
         if (!obj.globe?.isActive) delete obj.globe
 
-        // round rotation coordinates before persisting
+        // Round rotation coordinates before persisting
         if (obj.globe?.rotation)
             obj.globe = {
                 ...obj.globe,
@@ -126,7 +123,7 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
                 ],
             }
 
-        // round zoom level before persisting
+        // Round zoom level before persisting
         if (obj.globe?.zoom) {
             obj.globe = {
                 ...obj.globe,
@@ -139,6 +136,10 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
 
     constructor(obj?: Partial<MapConfigInterface>) {
         super()
+        makeObservable(this, {
+            selection: observable,
+            hoverCountry: observable,
+        })
         if (obj) this.updateFromObject(obj)
     }
 
