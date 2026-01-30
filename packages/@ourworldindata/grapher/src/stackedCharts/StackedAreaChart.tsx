@@ -179,6 +179,7 @@ export class StackedAreaChart
                 yValue: this.chartState.midpoints[index],
                 isAllZeros: series.isAllZeros,
                 hover: this.hoverStateForSeries(series),
+                focus: series.focus,
             }))
             .filter((series) => !series.isAllZeros)
             .toReversed()
