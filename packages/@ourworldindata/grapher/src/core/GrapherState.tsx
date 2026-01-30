@@ -86,7 +86,6 @@ import {
     slugify,
     extractDetailsFromSyntax,
     lowerCaseFirstLetterUnlessAbbreviation,
-    getOriginAttributionFragments,
     isTouchDevice,
     omitUndefinedValues,
     firstOfNonEmptyArray,
@@ -220,6 +219,7 @@ import {
 } from "./GrapherQueryParamParser.js"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
 import { getErrorMessageRelatedQuestionUrl } from "./relatedQuestion.js"
+import { buildSourcesLineFromColumns } from "./sourcesLine.js"
 import { ChartManager } from "../chart/ChartManager.js"
 import { CaptionedChartManager } from "../captionedChart/CaptionedChart.js"
 import { SourcesModalManager } from "../modal/SourcesModal.js"
@@ -2604,47 +2604,13 @@ export class GrapherState
         return columnSlugs
     }
 
-    @computed private get columnsWithSourcesCondensed(): CoreColumn[] {
+    @computed private get defaultSourcesLine(): string {
         const { yColumnSlugs } = this
-
         const columnSlugs = [...yColumnSlugs]
         columnSlugs.push(...this.getColumnSlugsForCondensedSources())
-
-        return this.inputTable
-            .getColumns(_.uniq(columnSlugs))
-            .filter(
-                (column) =>
-                    !!column.source.name || !_.isEmpty(column.def.origins)
-            )
-    }
-
-    @computed private get defaultSourcesLine(): string {
-        const attributions = this.columnsWithSourcesCondensed.flatMap(
-            (column) => {
-                const { presentation = {} } = column.def
-                // If the variable metadata specifies an attribution on the
-                // variable level then this is preferred over assembling it from
-                // the source and origins
-                if (
-                    presentation.attribution !== undefined &&
-                    presentation.attribution !== ""
-                )
-                    return [presentation.attribution]
-                else {
-                    const originFragments = getOriginAttributionFragments(
-                        column.def.origins
-                    )
-                    return [column.source.name, ...originFragments]
-                }
-            }
+        return buildSourcesLineFromColumns(
+            this.inputTable.getColumns(_.uniq(columnSlugs))
         )
-
-        const uniqueAttributions = _.uniq(_.compact(attributions))
-
-        if (uniqueAttributions.length > 3)
-            return `${uniqueAttributions[0]} and other sources`
-
-        return uniqueAttributions.join("; ")
     }
 
     @computed private get axisDimensions(): ChartDimension[] {
