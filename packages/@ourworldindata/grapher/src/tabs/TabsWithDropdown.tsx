@@ -8,6 +8,7 @@ import {
     Menu,
     MenuItem,
 } from "react-aria-components"
+import { UNSAFE_PortalProvider } from "@react-aria/overlays"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEllipsisVertical } from "@fortawesome/free-solid-svg-icons"
 import { TabItem, Tabs } from "./Tabs"
@@ -55,7 +56,7 @@ export const TabsWithDropdown = <TabKey extends string = string>({
         setIsOpen(false)
     }
 
-    return (
+    const content = (
         <div className={cx("TabsWithDropdown", className)}>
             <div className="TabsWithDropdown__Row">
                 <Tabs
@@ -81,7 +82,6 @@ export const TabsWithDropdown = <TabKey extends string = string>({
                         <Popover
                             className="TabsWithDropdown__Popover"
                             placement="bottom end"
-                            UNSTABLE_portalContainer={portalContainer}
                         >
                             <Menu
                                 className="TabsWithDropdown__Menu"
@@ -111,4 +111,14 @@ export const TabsWithDropdown = <TabKey extends string = string>({
             </div>
         </div>
     )
+
+    if (portalContainer) {
+        return (
+            <UNSAFE_PortalProvider getContainer={() => portalContainer}>
+                {content}
+            </UNSAFE_PortalProvider>
+        )
+    }
+
+    return content
 }

@@ -79,6 +79,7 @@
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
         "@playwright/test": "^1.57.0",
+        "@react-aria/overlays": "^3.31.0",
         "@react-awesome-query-builder/antd": "^6.6.15",
         "@sentry/node": "^10.27.0",
         "@sentry/profiling-node": "^10.27.0",

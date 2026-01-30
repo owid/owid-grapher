@@ -20,6 +20,7 @@
     "@ourworldindata/core-table": "workspace:^",
     "@ourworldindata/types": "workspace:^",
     "@ourworldindata/utils": "workspace:^",
+    "@react-aria/overlays": "^3.31.0",
     "@sentry/browser": "^10.27.0",
     "@sentry/react": "^10.27.0",
     "@tippyjs/react": "^4.2.6",
