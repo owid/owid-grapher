@@ -58,6 +58,7 @@ import {
     RawBlockSubscribeBanner,
     RawBlockExpander,
     EnrichedHybridLink,
+    RawBlockBespokeComponent,
     RawBlockResourcePanel,
     RawBlockCta,
     RawBlockScript,
@@ -772,6 +773,16 @@ export function enrichedBlockToRawBlock(
                 },
             })
         )
+        .with({ type: "bespoke-component" }, (b): RawBlockBespokeComponent => {
+            return {
+                type: "bespoke-component",
+                value: {
+                    name: b.name,
+                    size: b.size,
+                    config: b.config,
+                },
+            }
+        })
         .exhaustive()
 }
 

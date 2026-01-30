@@ -53,6 +53,7 @@ import LatestDataInsightsBlock from "./LatestDataInsightsBlock.js"
 import { Socials } from "./Socials.js"
 import Person from "./Person.js"
 import NarrativeChart from "./NarrativeChart.js"
+import { BespokeComponent } from "./BespokeComponent.js"
 import { Container, getLayout } from "./layout.js"
 import { Expander } from "./Expander.js"
 import { BlockSize, ChartConfigType } from "@ourworldindata/types"
@@ -1028,6 +1029,15 @@ function ArticleBlockInternal({
             <CountryProfileSelector
                 block={block}
                 className={getLayout("country-profile-selector", containerType)}
+            />
+        ))
+        .with({ type: "bespoke-component" }, (block) => (
+            <BespokeComponent
+                className={getLayout(
+                    `bespoke-component--${block.size}`,
+                    containerType
+                )}
+                block={block}
             />
         ))
         .exhaustive()

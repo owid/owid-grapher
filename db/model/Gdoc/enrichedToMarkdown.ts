@@ -609,5 +609,9 @@ ${links}`
             )
         })
         .with({ type: "country-profile-selector" }, () => undefined)
+        .with(
+            { type: "bespoke-component" },
+            (_): string | undefined => undefined
+        )
         .exhaustive()
 }

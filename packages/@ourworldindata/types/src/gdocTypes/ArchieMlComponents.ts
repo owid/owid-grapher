@@ -235,6 +235,22 @@ import type {
     RawBlockVideo,
 } from "./archieMLComponents/Video.js"
 
+export type RawBlockBespokeComponent = {
+    type: "bespoke-component"
+    value: {
+        name?: string
+        size?: BlockSize
+        config?: Record<string, unknown>
+    }
+}
+
+export type EnrichedBlockBespokeComponent = {
+    type: "bespoke-component"
+    name: string
+    size: BlockSize
+    config: Record<string, unknown>
+} & EnrichedBlockWithParseErrors
+
 export type OwidRawGdocBlock =
     | RawBlockAllCharts
     | RawBlockAside
@@ -297,6 +313,7 @@ export type OwidRawGdocBlock =
     | RawBlockSocials
     | RawBlockStaticViz
     | RawBlockCountryProfileSelector
+    | RawBlockBespokeComponent
 
 export type OwidEnrichedGdocBlock =
     | EnrichedBlockAllCharts
@@ -362,6 +379,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockSocials
     | EnrichedBlockStaticViz
     | EnrichedBlockCountryProfileSelector
+    | EnrichedBlockBespokeComponent
 
 /**
  * A map of all possible block types, with the type as the key and the block type as the value
