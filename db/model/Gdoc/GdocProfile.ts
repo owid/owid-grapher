@@ -15,6 +15,8 @@ import {
 } from "@ourworldindata/utils"
 import * as db from "../../db.js"
 import { GdocBase } from "./GdocBase.js"
+import { loadAndClearLinkedCallouts } from "./dataCallouts.js"
+import { PreparedCalloutTable } from "@ourworldindata/grapher"
 
 const GENERIC_PROFILE_SCOPES = new Set(["countries", "continents", "all"])
 
@@ -24,6 +26,14 @@ export class GdocProfile extends GdocBase implements OwidGdocProfileInterface {
 
     constructor(id?: string) {
         super(id)
+    }
+
+    // Profiles handle callouts via instantiateProfileForEntity, not during loadState.
+    // The template has $entityCode placeholders that can't be fetched until instantiated.
+    override async loadAndClearLinkedCallouts(
+        _knex: db.KnexReadonlyTransaction
+    ): Promise<void> {
+        // No-op for profiles
     }
 
     static create(obj: OwidGdocBaseInterface): GdocProfile {
@@ -91,21 +101,31 @@ export class GdocProfile extends GdocBase implements OwidGdocProfileInterface {
 /**
  * Renders a profile template for a specific entity by replacing template tokens
  * with entity-specific values.
+ *
+ * For bulk baking (SiteBaker), pass preparedTables to use pre-fetched chart data.
  */
-
-export function instantiateProfileForEntity(
+export async function instantiateProfileForEntity(
     profileTemplate: GdocProfile,
-    entity: ProfileEntity
-): OwidGdocProfileInterface {
-    // Instantiate the content with entity-specific values
+    entity: ProfileEntity,
+    options?: {
+        knex?: db.KnexReadonlyTransaction
+        preparedTables?: Map<string, PreparedCalloutTable>
+    }
+): Promise<OwidGdocProfileInterface> {
     const instantiatedContent = instantiateProfile(
         profileTemplate.content,
         entity
     )
 
+    const { content, linkedCallouts } = await loadAndClearLinkedCallouts(
+        instantiatedContent,
+        options
+    )
+
     return {
         ...profileTemplate,
-        content: instantiatedContent,
+        content,
+        linkedCallouts,
         slug: getSlugForProfileEntity(profileTemplate, entity),
     }
 }
