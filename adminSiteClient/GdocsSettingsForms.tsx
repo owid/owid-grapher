@@ -419,6 +419,15 @@ export const GdocProfileSettings = ({
                     This only affects the preview and does not change the
                     template itself.
                 </p>
+                <p className="form-text text-muted">
+                    <a
+                        href={`/admin/gdocs/${gdoc.id}/coverage?contentSource=gdocs`}
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        View coverage matrix for this profile
+                    </a>
+                </p>
             </div>
             <GdocCommonErrors
                 errors={errors || []}
