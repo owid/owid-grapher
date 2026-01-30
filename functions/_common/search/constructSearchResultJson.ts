@@ -47,6 +47,7 @@ import {
     placeGrapherTabsInLargeVariantGrid,
     placeGrapherTabsInMediumVariantGridLayout,
     timeBoundToTimeBoundString,
+    stripOuterParentheses,
 } from "@ourworldindata/utils"
 import { toPlaintext } from "@ourworldindata/components"
 import { ColumnTypeMap } from "@ourworldindata/core-table"
@@ -180,6 +181,11 @@ export function constructSearchResultJson(
         ]),
     }
 
+    const unit = grapherState.transformedTable.get(
+        grapherState.yColumnSlug
+    ).unit
+    const strippedUnit = unit ? stripOuterParentheses(unit) : undefined
+
     return omitUndefinedValues({
         title: grapherState.title,
         subtitle: stripMarkdown(grapherState.subtitle),
@@ -190,6 +196,7 @@ export function constructSearchResultJson(
         valueDisplay: dataDisplayProps,
         entityType: grapherState.entityType,
         entityTypePlural: grapherState.entityTypePlural,
+        unit: strippedUnit,
     })
 }
 

@@ -221,6 +221,13 @@ export function SearchChartHitRichData({
 
                         const className = makeSlotClassNames(variant, slotKey)
 
+                        // Show the unit only on the first tab's thumbnail
+                        // and only if the tab is not a scatter plot
+                        const isScatter =
+                            grapherTab === GRAPHER_TAB_NAMES.ScatterPlot
+                        const unit =
+                            tabIndex === 0 && !isScatter ? data.unit : undefined
+
                         return grapherTab === GRAPHER_TAB_NAMES.Table ? (
                             <CaptionedTable
                                 key={grapherTab}
@@ -242,6 +249,7 @@ export function SearchChartHitRichData({
                                 previewUrl={previewUrl}
                                 imageWidth={imageWidth}
                                 imageHeight={imageHeight}
+                                unit={unit}
                                 className={className}
                                 onClick={() => onClick(grapherTab)}
                             />
