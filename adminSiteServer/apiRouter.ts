@@ -34,6 +34,7 @@ import {
 import {
     getAllGdocIndexItems,
     getIndividualGdoc,
+    getGdocCalloutCoverage,
     createOrUpdateGdoc,
     deleteGdoc,
     setGdocTags,
@@ -342,6 +343,11 @@ getRouteNonIdempotentWithRWTransaction(
     apiRouter,
     "/gdocs/:id",
     getIndividualGdoc
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/gdocs/:id/coverage",
+    getGdocCalloutCoverage
 )
 getRouteWithROTransaction(
     apiRouter,

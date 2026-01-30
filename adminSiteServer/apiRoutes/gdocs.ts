@@ -17,6 +17,9 @@ import {
 import {
     checkIsDataInsight,
     checkIsGdocPostExcludingFragments,
+    getEntitiesForProfile,
+    makeCalloutGrapherStateKey,
+    Url,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 import {
@@ -35,6 +38,16 @@ import { GdocAuthor } from "../../db/model/Gdoc/GdocAuthor.js"
 import { getMinimalGdocPostsByIds } from "../../db/model/Gdoc/GdocBase.js"
 import { GdocDataInsight } from "../../db/model/Gdoc/GdocDataInsight.js"
 import {
+    extractDataCalloutUrls,
+    prepareCalloutTableForUrl,
+} from "../../db/model/Gdoc/dataCallouts.js"
+import {
+    prepareCalloutTable,
+    constructGrapherValuesJsonFromTable,
+    isValuesJsonValid,
+} from "@ourworldindata/grapher"
+import { mapSlugsToIds } from "../../db/model/Chart.js"
+import {
     getAllGdocIndexItemsOrderedByUpdatedAt,
     getAndLoadGdocById,
     updateGdocContentOnly,
@@ -44,8 +57,9 @@ import {
     setLinksForGdoc,
     GdocLinkUpdateMode,
     upsertGdoc,
-    getGdocBaseObjectById,
     setTagsForGdoc,
+    loadGdocFromGdocBase,
+    getGdocBaseObjectById,
 } from "../../db/model/Gdoc/GdocFactory.js"
 import { GdocHomepage } from "../../db/model/Gdoc/GdocHomepage.js"
 import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
@@ -99,6 +113,125 @@ export async function getIndividualGdoc(
     }
 }
 
+export async function getGdocCalloutCoverage(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const id = req.params.id
+    const contentSource = req.query.contentSource as
+        | GdocsContentSource
+        | undefined
+    const acceptSuggestions = req.query.acceptSuggestions === "true"
+
+    const base = await getGdocBaseObjectById(trx, id, true)
+    if (!base) throw new JsonError(`No Google Doc with id ${id} found`, 404)
+
+    const gdoc = await loadGdocFromGdocBase(
+        trx,
+        base,
+        contentSource,
+        acceptSuggestions,
+        { loadState: false }
+    )
+
+    if (gdoc.content.type !== OwidGdocType.Profile) {
+        throw new JsonError("Coverage matrix is only available for profiles")
+    }
+
+    // Extract template callout URLs (with $entityCode placeholders) to define rows
+    const templateCalloutUrls = extractDataCalloutUrls(gdoc.content.body ?? [])
+
+    const rows = templateCalloutUrls.map((url, index) => {
+        const rowUrl = Url.fromURL(url).updateQueryParams({
+            country: undefined,
+        }).fullUrl
+        return {
+            id: `${rowUrl}#${index}`,
+            label: rowUrl,
+        }
+    })
+
+    const entities = getEntitiesForProfile(
+        gdoc.content.scope,
+    )
+    const coverageByEntity: Record<string, Record<string, boolean>> = {}
+
+    // Pre-fetch slug to ID map for efficiency
+    const slugToIdMap = await mapSlugsToIds(trx)
+
+    // Group template URLs by their chart key (base chart without entity-specific params)
+    // This lets us prepare each chart's table once and reuse it for all entities
+    const urlsByChartKey = new Map<string, string[]>()
+    for (const url of templateCalloutUrls) {
+        const chartKey = makeCalloutGrapherStateKey(url)
+        if (!urlsByChartKey.has(chartKey)) {
+            urlsByChartKey.set(chartKey, [])
+        }
+        urlsByChartKey.get(chartKey)!.push(url)
+    }
+
+    // Prepare tables for each unique chart
+    const preparedTablesByChartKey = new Map<
+        string,
+        ReturnType<typeof prepareCalloutTable>
+    >()
+    for (const [chartKey, urls] of urlsByChartKey) {
+        const result = await prepareCalloutTableForUrl(
+            trx,
+            urls[0],
+            slugToIdMap
+        )
+        if (result) {
+            const prepared = prepareCalloutTable(
+                result.inputTable,
+                result.config
+            )
+            preparedTablesByChartKey.set(chartKey, prepared)
+        }
+    }
+
+    // For each entity, check coverage using the optimized extraction
+    for (const entity of entities) {
+        const rowCoverage: Record<string, boolean> = {}
+
+        templateCalloutUrls.forEach((templateUrl, index) => {
+            const chartKey = makeCalloutGrapherStateKey(templateUrl)
+            const prepared = preparedTablesByChartKey.get(chartKey)
+
+            if (!prepared) {
+                // Chart couldn't be prepared (e.g., explorer URL)
+                rowCoverage[rows[index].id] = false
+                return
+            }
+
+            // Instantiate the URL with the entity code
+            const instantiatedUrl = Url.fromURL(templateUrl).updateQueryParams({
+                country: entity.code,
+            }).fullUrl
+            const url = Url.fromURL(instantiatedUrl)
+
+            // Extract values using the optimized method
+            const values = constructGrapherValuesJsonFromTable(
+                prepared,
+                entity.name,
+                url.queryParams.time
+            )
+
+            // Check if the values are valid (has data)
+            const isValid = isValuesJsonValid(values)
+            rowCoverage[rows[index].id] = isValid
+        })
+
+        coverageByEntity[entity.code] = rowCoverage
+    }
+
+    res.send({
+        rows,
+        entities,
+        coverageByEntity,
+    })
+}
 /**
  * Handles all four `GdocPublishingAction` cases
  * - SavingDraft (no action)
