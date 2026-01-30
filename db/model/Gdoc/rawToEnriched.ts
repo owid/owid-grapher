@@ -164,6 +164,8 @@ import {
     EnrichedBlockScript,
     RawBlockScript,
     blockVisibilitys,
+    RawBlockBespokeComponent,
+    EnrichedBlockBespokeComponent,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -196,6 +198,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "all-charts" }, parseAllCharts)
         .with({ type: "additional-charts" }, parseAdditionalCharts)
         .with({ type: "aside" }, parseAside)
+        .with({ type: "bespoke-component" }, parseBespokeComponent)
         .with({ type: "blockquote" }, parseBlockquote)
         .with({ type: "callout" }, parseCallout)
         .with({ type: "chart" }, parseChart)
@@ -460,6 +463,43 @@ const parseBlockquote = (raw: RawBlockBlockquote): EnrichedBlockBlockquote => {
         text: parsedText,
         citation,
         parseErrors: parsedTextErrors,
+    }
+}
+
+const parseBespokeComponent = (
+    raw: RawBlockBespokeComponent
+): EnrichedBlockBespokeComponent => {
+    const createError = (
+        error: ParseError,
+        name: string = "",
+        size: BlockSize = BlockSize.Wide,
+        config: Record<string, unknown> = {}
+    ): EnrichedBlockBespokeComponent => ({
+        type: "bespoke-component",
+        name,
+        size,
+        config,
+        parseErrors: [error],
+    })
+
+    if (!raw.value.name) {
+        return createError({
+            message: "Name property is required for bespoke-component",
+        })
+    }
+
+    const size = checkIsBlockSize(raw.value.size)
+        ? raw.value.size
+        : BlockSize.Wide
+
+    const config = raw.value.config ?? {}
+
+    return {
+        type: "bespoke-component",
+        name: raw.value.name,
+        size,
+        config,
+        parseErrors: [],
     }
 }
 

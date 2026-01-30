@@ -274,7 +274,8 @@ export function extractFilenamesFromBlock(
                     "sticky-right",
                     "table",
                     "text",
-                    "topic-page-intro"
+                    "topic-page-intro",
+                    "bespoke-component"
                 ),
             },
             _.noop

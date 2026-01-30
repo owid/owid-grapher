@@ -389,7 +389,8 @@ export function enumerateGdocComponentsWithoutChildren(
                         "socials",
                         "subscribe-banner",
                         "narrative-chart",
-                        "static-viz"
+                        "static-viz",
+                        "bespoke-component"
                     ),
                 },
                 (c) => handleComponent(c, [], parentPath, path)

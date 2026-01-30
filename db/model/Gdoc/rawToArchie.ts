@@ -60,6 +60,7 @@ import {
     RawBlockScript,
     RawBlockStaticViz,
     RawBlockConditionalSection,
+    RawBlockBespokeComponent,
 } from "@ourworldindata/types"
 import { match } from "ts-pattern"
 
@@ -1000,6 +1001,18 @@ function* rawBlockSocialsToArchieMLString(
     yield "[]"
 }
 
+function* rawBlockBespokeComponentToArchieMLString(
+    block: RawBlockBespokeComponent
+): Generator<string, void, undefined> {
+    yield "{.bespoke-component}"
+    yield* propertyToArchieMLString("name", block.value)
+    yield* propertyToArchieMLString("size", block.value)
+    if (block.value.config) {
+        yield `config: ${JSON.stringify(block.value.config)}`
+    }
+    yield "{}"
+}
+
 export function* OwidRawGdocBlockToArchieMLStringGenerator(
     block: OwidRawGdocBlock | RawBlockTableRow
 ): Generator<string, void, undefined> {
@@ -1116,6 +1129,10 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
             rawBlockFeaturedDataInsightsToArchieMLString
         )
         .with({ type: "socials" }, rawBlockSocialsToArchieMLString)
+        .with(
+            { type: "bespoke-component" },
+            rawBlockBespokeComponentToArchieMLString
+        )
         .exhaustive()
     yield* content
 }
