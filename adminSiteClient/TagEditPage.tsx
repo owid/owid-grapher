@@ -61,14 +61,18 @@ class TagEditor extends Component<{
             newtag: observable,
             isDeleted: observable,
         })
+
+        this.syncFromProps()
     }
 
     // Store the original tag to determine when it is modified
-    override UNSAFE_componentWillMount() {
-        this.UNSAFE_componentWillReceiveProps(this.props)
+    override componentDidUpdate(prevProps: { tag: TagPageData }) {
+        if (prevProps.tag !== this.props.tag) {
+            this.syncFromProps()
+        }
     }
-    override UNSAFE_componentWillReceiveProps(nextProps: any) {
-        this.newtag = new TagEditable(nextProps.tag)
+    private syncFromProps() {
+        this.newtag = new TagEditable(this.props.tag)
         this.isDeleted = false
     }
 

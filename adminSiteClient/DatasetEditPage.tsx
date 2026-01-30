@@ -415,13 +415,17 @@ class DatasetEditor extends Component<DatasetEditorProps> {
             activeTab: observable,
             searchInput: observable,
         })
+
+        this.syncFromProps()
     }
 
     // Store the original dataset to determine when it is modified
-    override UNSAFE_componentWillMount() {
-        this.UNSAFE_componentWillReceiveProps()
+    override componentDidUpdate(prevProps: DatasetEditorProps) {
+        if (prevProps.dataset !== this.props.dataset) {
+            this.syncFromProps()
+        }
     }
-    override UNSAFE_componentWillReceiveProps() {
+    private syncFromProps() {
         this.newDataset = new DatasetEditable(this.props.dataset)
     }
 
@@ -904,9 +908,11 @@ export class DatasetEditPage extends Component<DatasetEditPageProps> {
     }
 
     override componentDidMount() {
-        this.UNSAFE_componentWillReceiveProps()
-    }
-    override UNSAFE_componentWillReceiveProps() {
         void this.getData()
+    }
+    override componentDidUpdate(prevProps: DatasetEditPageProps) {
+        if (prevProps.datasetId !== this.props.datasetId) {
+            void this.getData()
+        }
     }
 }

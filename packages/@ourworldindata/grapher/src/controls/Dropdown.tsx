@@ -16,6 +16,7 @@ import {
     SelectValue,
     useFilter,
 } from "react-aria-components"
+import { UNSAFE_PortalProvider } from "@react-aria/overlays"
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { isTouchDevice } from "@ourworldindata/utils"
@@ -160,13 +161,13 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
         </ListBox>
     )
 
-    return (
+    const select = (
         <Select
             className={cx("grapher-dropdown", className)}
             // null means no selection, undefined means the component is
             // uncontrolled, so we need to set it explicitly.
-            selectedKey={value?.value ?? null}
-            onSelectionChange={handleSelectionChange}
+            value={value?.value ?? null}
+            onChange={handleSelectionChange}
             placeholder={placeholder}
             isDisabled={isDisabled}
             {...otherProps}
@@ -197,7 +198,6 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
             <Popover
                 className={cx("grapher-dropdown-menu", menuClassName)}
                 offset={4}
-                UNSTABLE_portalContainer={portalContainer}
             >
                 {isSearchable ? (
                     // If inputValue is provided, the component is controlled
@@ -232,4 +232,14 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
             </Popover>
         </Select>
     )
+
+    if (portalContainer) {
+        return (
+            <UNSAFE_PortalProvider getContainer={() => portalContainer}>
+                {select}
+            </UNSAFE_PortalProvider>
+        )
+    }
+
+    return select
 }

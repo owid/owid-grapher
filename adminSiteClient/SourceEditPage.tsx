@@ -61,13 +61,17 @@ class SourceEditor extends Component<{ source: SourcePageData }> {
             newSource: observable,
             isDeleted: observable,
         })
+
+        this.syncFromProps()
     }
 
     // Store the original source to determine when it is modified
-    override UNSAFE_componentWillMount() {
-        this.UNSAFE_componentWillReceiveProps()
+    override componentDidUpdate(prevProps: { source: SourcePageData }) {
+        if (prevProps.source !== this.props.source) {
+            this.syncFromProps()
+        }
     }
-    override UNSAFE_componentWillReceiveProps() {
+    private syncFromProps() {
         this.newSource = new SourceEditable(this.props.source)
         this.isDeleted = false
     }
@@ -210,9 +214,11 @@ export class SourceEditPage extends Component<{ sourceId: number }> {
     }
 
     override componentDidMount() {
-        this.UNSAFE_componentWillReceiveProps()
-    }
-    override UNSAFE_componentWillReceiveProps() {
         void this.getData()
+    }
+    override componentDidUpdate(prevProps: { sourceId: number }) {
+        if (prevProps.sourceId !== this.props.sourceId) {
+            void this.getData()
+        }
     }
 }

@@ -159,13 +159,17 @@ class VariableEditor extends Component<{
             isDeleted: observable,
             grapherState: observable.ref,
         })
+
+        this.syncFromProps()
     }
 
     // Store the original dataset to determine when it is modified
-    override UNSAFE_componentWillMount() {
-        this.UNSAFE_componentWillReceiveProps()
+    override componentDidUpdate(prevProps: { variable: VariablePageData }) {
+        if (prevProps.variable !== this.props.variable) {
+            this.syncFromProps()
+        }
     }
-    override UNSAFE_componentWillReceiveProps() {
+    private syncFromProps() {
         this.newVariable = new VariableEditable(this.props.variable)
         this.isDeleted = false
     }
@@ -748,6 +752,7 @@ class VariableEditor extends Component<{
 
     dispose!: IReactionDisposer
     override componentDidMount() {
+        this.syncFromProps()
         this.grapherState = new GrapherState({
             ...this.grapherConfig,
             additionalDataLoaderFn: (varId: number) =>
@@ -809,9 +814,11 @@ export class VariableEditPage extends Component<{ variableId: number }> {
     }
 
     override componentDidMount() {
-        this.UNSAFE_componentWillReceiveProps()
-    }
-    override UNSAFE_componentWillReceiveProps() {
         void this.getData()
+    }
+    override componentDidUpdate(prevProps: { variableId: number }) {
+        if (prevProps.variableId !== this.props.variableId) {
+            void this.getData()
+        }
     }
 }
