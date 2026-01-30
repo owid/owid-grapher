@@ -232,6 +232,54 @@ export async function getGdocCalloutCoverage(
         coverageByEntity,
     })
 }
+
+/**
+ * Given a chart URL (e.g. /grapher/life-expectancy?country=USA),
+ * returns the available callout function strings that can be used
+ * in data-callout blocks.
+ */
+export async function getCalloutFunctionStrings(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const chartUrl = req.query.url as string | undefined
+    if (!chartUrl) {
+        throw new JsonError("Missing 'url' query parameter", 400)
+    }
+
+    const tableResult = await prepareCalloutTableForUrl(trx, chartUrl)
+    if (!tableResult) {
+        throw new JsonError(`Could not load chart for URL: ${chartUrl}`, 404)
+    }
+
+    const { config, inputTable } = tableResult
+    const prepared = prepareCalloutTable(inputTable, config)
+
+    // Get column short names from the prepared table
+    const columnSlugs = [
+        ...prepared.yColumnSlugs,
+        ...(prepared.xColumnSlug ? [prepared.xColumnSlug] : []),
+    ]
+
+    const functionStringsByName: Record<string, string[]> = {}
+
+    for (const slug of columnSlugs) {
+        const columnInfo = prepared.columns?.[slug]
+        if (columnInfo?.shortName) {
+            functionStringsByName[columnInfo.name] = [
+                `$latestValue(${columnInfo.shortName})`,
+                `$latestYear(${columnInfo.shortName})`,
+            ]
+        }
+    }
+
+    res.send({
+        url: chartUrl,
+        functionStringsByName,
+    })
+}
+
 /**
  * Handles all four `GdocPublishingAction` cases
  * - SavingDraft (no action)

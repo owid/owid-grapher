@@ -35,6 +35,7 @@ import {
     getAllGdocIndexItems,
     getIndividualGdoc,
     getGdocCalloutCoverage,
+    getCalloutFunctionStrings,
     createOrUpdateGdoc,
     deleteGdoc,
     setGdocTags,
@@ -348,6 +349,11 @@ getRouteWithROTransaction(
     apiRouter,
     "/gdocs/:id/coverage",
     getGdocCalloutCoverage
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/callout-functions",
+    getCalloutFunctionStrings
 )
 getRouteWithROTransaction(
     apiRouter,

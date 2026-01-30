@@ -1385,6 +1385,61 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     }
 }
 
+.CalloutFunctionsPage {
+    padding: 24px;
+}
+
+.CalloutFunctionsPage__form {
+    margin-top: 16px;
+}
+
+.CalloutFunctionsPage__input-group {
+    display: flex;
+    gap: 8px;
+
+    input {
+        flex: 1;
+    }
+}
+
+.CalloutFunctionsPage__results {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 16px;
+}
+
+.CalloutFunctionsPage__function-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.CalloutFunctionsPage__column-functions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 8px 12px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    ul {
+        width: 100%;
+        margin-top: 8px;
+        li {
+            margin-bottom: 4px;
+            list-style: none;
+        }
+    }
+
+    code {
+        flex: 1;
+        font-size: 14px;
+        color: #1f2937;
+    }
+}
+
 .GdocsSettingsForm {
     .edit-in-gdocs {
         position: relative;
