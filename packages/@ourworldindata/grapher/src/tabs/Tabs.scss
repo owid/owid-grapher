@@ -1,3 +1,39 @@
+// Mixins for slim tab styling, shared with ContentSwitchers.scss
+@mixin slim-tab-item {
+    $visual-gap: 2px;
+
+    position: relative;
+    display: block;
+    text-transform: capitalize;
+    color: $light-text;
+    font-size: var(--tabs-font-size, 13px);
+    font-weight: 500;
+    height: $controlRowHeight - 2 * $visual-gap;
+    line-height: $controlRowHeight - 2 * $visual-gap;
+    border-radius: $visual-gap;
+    cursor: pointer;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    user-select: none;
+    text-align: center;
+
+    &[data-hovered] {
+        background-color: $gray-10;
+    }
+}
+@mixin slim-tab-separator {
+    &::before {
+        content: "";
+        display: block;
+        width: 1px;
+        height: calc(100% - 12px);
+        position: absolute;
+        top: 6px;
+        background-color: $gray-20;
+        left: -0.5px;
+    }
+}
+
 .Tabs {
     position: relative;
 
@@ -60,12 +96,9 @@
 
     // Variant: slim
     &.Tabs--variant-slim {
-        $font-size: var(--tabs-font-size, 13px);
         --tab-padding: 16px;
 
         $light-stroke: $gray-20;
-
-        $hover-fill: $gray-10;
         $active-fill: $blue-20;
 
         $border-radius: 4px;
@@ -81,30 +114,10 @@
         border-radius: $border-radius;
 
         .Tabs__Tab {
-            position: relative;
-
-            $height: $controlRowHeight - 2 * $visual-gap;
-
-            display: block;
-            text-transform: capitalize;
-            color: $light-text;
-            font-size: $font-size;
-            font-weight: 500;
-            height: $height;
-            line-height: $height;
-            border-radius: $border-radius - $visual-gap;
+            @include slim-tab-item;
             padding: 0 var(--tab-padding);
-            cursor: pointer;
-            letter-spacing: 0.01em;
-            white-space: nowrap;
-            user-select: none;
-            text-align: center;
             text-overflow: ellipsis;
             overflow: hidden;
-
-            &[data-hovered] {
-                background-color: $hover-fill;
-            }
 
             &[data-selected] {
                 color: $active-text;
@@ -113,15 +126,8 @@
         }
 
         // separators between tabs
-        .Tabs__Tab + .Tabs__Tab::before {
-            content: "";
-            display: block;
-            width: 1px;
-            height: calc(100% - 12px);
-            position: absolute;
-            top: 6px;
-            background-color: $light-stroke;
-            left: -0.5px;
+        .Tabs__Tab + .Tabs__Tab {
+            @include slim-tab-separator;
         }
 
         // hide separators when a tab is hovered over or when a tab is active
