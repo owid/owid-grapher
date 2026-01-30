@@ -5,6 +5,10 @@ $active-icon: $blue-50;
         border-radius: 4px;
         background-color: #fff;
         box-shadow: 0px 4px 40px 0px rgba(0, 0, 0, 0.06);
+
+        &:focus:not([data-focus-visible]) {
+            outline: none;
+        }
     }
 
     .ContentSwitchers__OverflowMenuItem {
@@ -20,11 +24,15 @@ $active-icon: $blue-50;
         width: 100%;
         background-color: #fff;
 
-        &:hover {
+        &[data-hovered] {
             background-color: $gray-10;
         }
 
-        &:focus-visible {
+        &:focus:not([data-focus-visible]) {
+            outline: none;
+        }
+
+        &[data-focus-visible] {
             color: $active-text;
             background-color: $active-fill;
 
