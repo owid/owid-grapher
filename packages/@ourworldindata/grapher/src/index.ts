@@ -152,4 +152,10 @@ export {
 
 export { loadCatalogData, getCatalogAssetKey } from "./core/loadCatalogData.js"
 
-export { constructGrapherValuesJson } from "./core/GrapherValuesJson"
+export {
+    constructGrapherValuesJson,
+    isValuesJsonValid,
+    prepareCalloutTable,
+    constructGrapherValuesJsonFromTable,
+    type PreparedCalloutTable,
+} from "./core/GrapherValuesJson"

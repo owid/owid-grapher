@@ -7,18 +7,29 @@ import {
     GrapherValuesJsonDataPoint,
     GrapherValuesJsonDimension,
     OwidVariableRow,
+    OwidColumnDef,
     PrimitiveType,
     Time,
+    DimensionProperty,
+    GrapherInterface,
 } from "@ourworldindata/types"
-import { excludeUndefined, omitUndefinedValues } from "@ourworldindata/utils"
-import { CoreColumn } from "@ourworldindata/core-table"
+import {
+    excludeUndefined,
+    getTimeDomainFromQueryString,
+    isNegativeInfinity,
+    isPositiveInfinity,
+    omitUndefinedValues,
+} from "@ourworldindata/utils"
+import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { GrapherState } from "./GrapherState"
 import { makeChartState } from "../chart/ChartTypeMap"
 import { MapChartState } from "../mapCharts/MapChartState"
+import { buildSourcesLineFromColumns } from "./sourcesLine"
 
 export function constructGrapherValuesJson(
     grapherState: GrapherState,
-    entityName: EntityName
+    entityName: EntityName,
+    timeQueryParam?: string
 ): GrapherValuesJson {
     // Make sure the given entityName is the only entity that is currently selected
     let selectionWasModified = false
@@ -32,12 +43,31 @@ export function constructGrapherValuesJson(
         selectionWasModified = true
     }
 
+    const resolveTimeBound = (bound: Time): Time | undefined => {
+        const times = grapherState.times
+        if (times.length === 0) return undefined
+        if (isNegativeInfinity(bound)) return times[0]
+        if (isPositiveInfinity(bound)) return times[times.length - 1]
+        return bound
+    }
+
     // Find the relevant times
-    const endTime = grapherState.endTime
-    const startTime =
+    let endTime = grapherState.endTime
+    let startTime =
         grapherState.startTime !== grapherState.endTime
             ? grapherState.startTime
             : undefined
+    if (timeQueryParam) {
+        const [rawStartTime, rawEndTime] =
+            getTimeDomainFromQueryString(timeQueryParam)
+        const resolvedEndTime = resolveTimeBound(rawEndTime)
+        const resolvedStartTime = resolveTimeBound(rawStartTime)
+        endTime = resolvedEndTime
+        startTime =
+            resolvedStartTime !== resolvedEndTime
+                ? resolvedStartTime
+                : undefined
+    }
 
     // Create a map chart state to access custom label formatting.
     // When `map.tooltipUseCustomLabels` is enabled, this allows us to display
@@ -52,8 +82,8 @@ export function constructGrapherValuesJson(
 
     const result = omitUndefinedValues({
         entityName,
-        startTime: grapherState.startTime,
-        endTime: grapherState.endTime,
+        startTime,
+        endTime,
         columns: makeColumnInfoForRelevantSlugs(grapherState),
         startValues: makeDimensionValuesForTime(
             grapherState,
@@ -85,15 +115,24 @@ const makeColumnInfoForRelevantSlugs = (
         grapherState.xColumnSlug,
     ])
 
-    const dimInfo: Record<string, any> = {}
-    for (const slug of targetSlugs) {
-        if (dimInfo[slug] !== undefined) continue
-        const column = getTransformedColumn(grapherState, slug)
-        const info = makeColumnInfo(column)
-        if (info !== undefined) dimInfo[slug] = info
-    }
+    const columns = targetSlugs.map((slug) =>
+        getTransformedColumn(grapherState, slug)
+    )
+    return buildColumnInfoMap(columns)
+}
 
-    return dimInfo
+const buildColumnInfoMap = (
+    columns: CoreColumn[]
+): Record<string, GrapherValuesJsonDimension> => {
+    const result: Record<string, GrapherValuesJsonDimension> = {}
+    for (const column of columns) {
+        const slug = column.def.slug
+        if (slug && result[slug] === undefined) {
+            const info = makeColumnInfo(column)
+            if (info !== undefined) result[slug] = info
+        }
+    }
+    return result
 }
 
 const makeColumnInfo = (
@@ -103,6 +142,7 @@ const makeColumnInfo = (
 
     return omitUndefinedValues({
         name: column.titlePublicOrDisplayName.title,
+        shortName: (column.def as OwidColumnDef).shortName,
         unit: column.unit,
         shortUnit: column.shortUnit,
         isProjection: column.isProjection ? true : undefined,
@@ -183,3 +223,323 @@ const getTransformedColumn = (
     grapherState: GrapherState,
     slug?: string
 ): CoreColumn => grapherState.chartState.transformedTable.get(slug)
+
+export function isValuesJsonValid(valuesJson: GrapherValuesJson): boolean {
+    const columns = valuesJson.columns
+
+    if (!columns || Object.keys(columns).length === 0) return false
+
+    const isDataPointComplete = (
+        dataPoint: GrapherValuesJsonDataPoint | undefined
+    ): boolean => {
+        if (!dataPoint) return false
+        if (!columns[dataPoint.columnSlug]) return false
+        if (dataPoint.value === undefined) return false
+        if (dataPoint.time === undefined) return false
+        return true
+    }
+
+    const areDataPointsComplete = (
+        dataPoints: GrapherValuesJsonDataPoints | undefined
+    ): boolean => {
+        if (!dataPoints?.y?.length) return false
+        // Use `some` instead of `every` to support comparison charts where
+        // not all indicators have data for all entities/times
+        if (!dataPoints.y.some(isDataPointComplete)) return false
+        if (dataPoints.x && !isDataPointComplete(dataPoints.x)) return false
+        return true
+    }
+
+    if (!valuesJson.endValues) return false
+    if (valuesJson.startTime !== undefined && !valuesJson.startValues)
+        return false
+    if (valuesJson.endTime !== undefined && !valuesJson.endValues) return false
+
+    if (
+        valuesJson.startValues &&
+        !areDataPointsComplete(valuesJson.startValues)
+    )
+        return false
+    if (valuesJson.endValues && !areDataPointsComplete(valuesJson.endValues))
+        return false
+
+    return true
+}
+
+// ============================================================================
+// Direct table-based value extraction (optimized for batch processing)
+// ============================================================================
+
+/**
+ * Prepared state for extracting callout values from a table without
+ * going through GrapherState mutations. This is used for batch processing
+ * of many entities with the same chart configuration.
+ */
+export interface PreparedCalloutTable {
+    inputTable: OwidTable
+    yColumnSlugs: string[]
+    xColumnSlug: string | undefined
+    columns: GrapherValuesJson["columns"]
+    sourcesLine: string
+    times: Time[]
+    minTime: Time | undefined
+    maxTime: Time | undefined
+    formatValueForTooltip?: (value: PrimitiveType) => string | undefined
+}
+
+/**
+ * Prepare a table and metadata for batch extraction of callout values.
+ * Call this once per unique chart configuration, then use
+ * constructGrapherValuesJsonFromTable for each entity.
+ */
+export function prepareCalloutTable(
+    inputTable: OwidTable,
+    config: GrapherInterface,
+    formatValueForTooltip?: (value: PrimitiveType) => string | undefined
+): PreparedCalloutTable {
+    const dimensions = config.dimensions ?? []
+
+    // Compute column slug the same way ChartDimension does:
+    // slug ?? variableId.toString()
+    const getColumnSlug = (d: (typeof dimensions)[0]): string | undefined =>
+        d.slug ?? d.variableId?.toString()
+
+    // Extract column slugs from dimensions
+    const yColumnSlugs = dimensions
+        .filter((d) => d.property === DimensionProperty.y)
+        .map(getColumnSlug)
+        .filter((slug): slug is string => slug !== undefined)
+
+    const xDimension = dimensions.find(
+        (d) => d.property === DimensionProperty.x
+    )
+    const xColumnSlug = xDimension ? getColumnSlug(xDimension) : undefined
+
+    // Get all relevant columns and build column info
+    const allSlugs = excludeUndefined([...yColumnSlugs, xColumnSlug])
+    const columns = buildColumnInfoMap(
+        allSlugs.map((slug) => inputTable.get(slug))
+    )
+
+    // Build sources line from columns
+    const sourcesLine =
+        config.sourceDesc ??
+        buildSourcesLineFromColumns(inputTable.getColumns(_.uniq(yColumnSlugs)))
+
+    // Get sorted unique times from the table
+    const times = inputTable.getTimesUniqSortedAscForColumns(yColumnSlugs)
+
+    // Parse configured time bounds (handle both numeric and string formats)
+    const parseTimeBound = (
+        value: number | string | undefined
+    ): Time | undefined => {
+        if (value === undefined) return undefined
+        if (typeof value === "number") return value
+        // Handle string formats like "earliest", "latest", or numeric strings
+        if (value === "earliest") return times[0]
+        if (value === "latest") return times[times.length - 1]
+        const parsed = parseInt(value, 10)
+        return isNaN(parsed) ? undefined : parsed
+    }
+
+    const minTime = parseTimeBound(config.minTime)
+    const maxTime = parseTimeBound(config.maxTime)
+
+    return {
+        inputTable,
+        yColumnSlugs,
+        xColumnSlug,
+        columns,
+        sourcesLine,
+        times,
+        minTime,
+        maxTime,
+        formatValueForTooltip,
+    }
+}
+
+/**
+ * Construct GrapherValuesJson directly from a prepared table.
+ * This is optimized for batch processing - no GrapherState mutations.
+ *
+ * Note: This bypasses chart-specific transformations (like relative mode).
+ * For most callouts this is fine, but some edge cases may produce different
+ * results than the full GrapherState approach.
+ */
+export function constructGrapherValuesJsonFromTable(
+    prepared: PreparedCalloutTable,
+    entityName: EntityName,
+    timeQueryParam?: string
+): GrapherValuesJson {
+    const {
+        inputTable,
+        yColumnSlugs,
+        xColumnSlug,
+        columns,
+        sourcesLine,
+        times,
+        minTime: configMinTime,
+        maxTime: configMaxTime,
+        formatValueForTooltip,
+    } = prepared
+
+    if (times.length === 0) {
+        return omitUndefinedValues({
+            entityName,
+            columns,
+            source: sourcesLine,
+        })
+    }
+
+    // Get entity-specific times from the y columns
+    // This matches how GrapherState.times works - filtered to selected entity
+    const entityTimes = getEntityTimesFromTable(
+        inputTable,
+        yColumnSlugs,
+        entityName
+    )
+    const effectiveTimes = entityTimes.length > 0 ? entityTimes : times
+
+    // Resolve time bounds against entity-specific times
+    const resolveTimeBound = (bound: Time): Time | undefined => {
+        if (isNegativeInfinity(bound)) return effectiveTimes[0]
+        if (isPositiveInfinity(bound))
+            return effectiveTimes[effectiveTimes.length - 1]
+        // Find closest time in effectiveTimes
+        return findClosestTimeInArray(effectiveTimes, bound)
+    }
+
+    // Default to chart's configured time range resolved against entity times
+    const resolvedMinTime =
+        configMinTime !== undefined
+            ? resolveTimeBound(configMinTime)
+            : effectiveTimes[0]
+    const resolvedMaxTime =
+        configMaxTime !== undefined
+            ? resolveTimeBound(configMaxTime)
+            : effectiveTimes[effectiveTimes.length - 1]
+
+    let endTime: Time | undefined = resolvedMaxTime
+    let startTime: Time | undefined =
+        resolvedMinTime !== undefined && resolvedMinTime !== endTime
+            ? resolvedMinTime
+            : undefined
+
+    if (timeQueryParam) {
+        const [rawStartTime, rawEndTime] =
+            getTimeDomainFromQueryString(timeQueryParam)
+        const resolvedEndTime = resolveTimeBound(rawEndTime)
+        const resolvedStartTime = resolveTimeBound(rawStartTime)
+        endTime = resolvedEndTime
+        startTime =
+            resolvedStartTime !== resolvedEndTime
+                ? resolvedStartTime
+                : undefined
+    }
+
+    return omitUndefinedValues({
+        entityName,
+        startTime,
+        endTime,
+        columns,
+        startValues: makeDimensionValuesForTimeDirect(
+            inputTable,
+            yColumnSlugs,
+            xColumnSlug,
+            entityName,
+            startTime,
+            formatValueForTooltip
+        ),
+        endValues: makeDimensionValuesForTimeDirect(
+            inputTable,
+            yColumnSlugs,
+            xColumnSlug,
+            entityName,
+            endTime,
+            formatValueForTooltip
+        ),
+        source: sourcesLine,
+    })
+}
+
+const makeDimensionValuesForTimeDirect = (
+    table: OwidTable,
+    ySlugs: string[],
+    xSlug: string | undefined,
+    entityName: EntityName,
+    time?: Time,
+    formatValueForTooltip?: (value: PrimitiveType) => string | undefined
+): GrapherValuesJsonDataPoints | undefined => {
+    if (time === undefined) return undefined
+
+    return omitUndefinedValues({
+        y: ySlugs.map((ySlug) =>
+            makeDimensionValueForColumnAndTime(
+                table.get(ySlug),
+                entityName,
+                time,
+                formatValueForTooltip
+            )
+        ),
+        x: makeDimensionValueForColumnAndTime(
+            table.get(xSlug),
+            entityName,
+            time,
+            formatValueForTooltip
+        ),
+    })
+}
+
+/**
+ * Get sorted unique times for a specific entity from the table columns.
+ * This gives entity-specific times, matching GrapherState.times behavior.
+ */
+const getEntityTimesFromTable = (
+    table: OwidTable,
+    columnSlugs: string[],
+    entityName: EntityName
+): Time[] => {
+    const timesSet = new Set<Time>()
+    for (const slug of columnSlugs) {
+        const column = table.get(slug)
+        if (column.isMissing) continue
+        const entityTimes = column.owidRowByEntityNameAndTime.get(entityName)
+        if (entityTimes) {
+            for (const time of entityTimes.keys()) {
+                timesSet.add(time)
+            }
+        }
+    }
+    return Array.from(timesSet).sort((a, b) => a - b)
+}
+
+/**
+ * Find the closest time in a sorted array to the target time.
+ */
+const findClosestTimeInArray = (
+    times: Time[],
+    target: Time
+): Time | undefined => {
+    if (times.length === 0) return undefined
+    if (target <= times[0]) return times[0]
+    if (target >= times[times.length - 1]) return times[times.length - 1]
+
+    // Binary search for closest
+    let low = 0
+    let high = times.length - 1
+    while (low < high) {
+        const mid = Math.floor((low + high) / 2)
+        if (times[mid] === target) return target
+        if (times[mid] < target) {
+            low = mid + 1
+        } else {
+            high = mid
+        }
+    }
+
+    // Check which neighbor is closer
+    if (low === 0) return times[0]
+    const prev = times[low - 1]
+    const curr = times[low]
+    return Math.abs(prev - target) <= Math.abs(curr - target) ? prev : curr
+}

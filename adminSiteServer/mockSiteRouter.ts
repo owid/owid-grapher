@@ -52,9 +52,9 @@ import {
     OwidGdocType,
     getRegionBySlug,
     getEntitiesForProfile,
-    hasRenderableDataCallouts,
     ALL_GDOC_TYPES,
 } from "@ourworldindata/utils"
+import { hasRenderableDataCallouts } from "../db/model/Gdoc/dataCallouts.js"
 import {
     EXPLORERS_ROUTE_FOLDER,
     explorerUrlMigrationsById,
