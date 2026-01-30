@@ -54,3 +54,6 @@ playwright-report/
 
 # Sentry Config File
 .env.sentry-build-plugin
+
+# Claude
+.claude/settings.local.json
