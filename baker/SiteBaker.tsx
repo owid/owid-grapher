@@ -208,9 +208,6 @@ export class SiteBaker {
 
         if (profileTemplates.length === 0) return
 
-        const tagHierarchiesByChildName =
-            await db.getTagHierarchiesByChildName(knex)
-
         for (const profileTemplate of profileTemplates) {
             const attachments = await this.getPrefetchedGdocAttachments(knex, [
                 profileTemplate.content.authors,
@@ -235,15 +232,6 @@ export class SiteBaker {
                 attachments.linkedNarrativeCharts
             profileTemplate.linkedStaticViz = attachments.linkedStaticViz
 
-            if (
-                !profileTemplate.manualBreadcrumbs?.length &&
-                profileTemplate.tags?.length
-            ) {
-                profileTemplate.breadcrumbs = db.getBestBreadcrumbs(
-                    profileTemplate.tags,
-                    tagHierarchiesByChildName
-                )
-            }
 
             const entities = getEntitiesForProfile(profileTemplate)
 
