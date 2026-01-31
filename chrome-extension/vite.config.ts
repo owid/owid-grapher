@@ -19,11 +19,15 @@ function copyStaticFiles() {
             const distDir = resolve(__dirname, "dist")
             const iconsDir = resolve(distDir, "icons")
             const sidepanelDir = resolve(distDir, "sidepanel")
+            const optionsDir = resolve(distDir, "options")
             if (!existsSync(iconsDir)) {
                 mkdirSync(iconsDir, { recursive: true })
             }
             if (!existsSync(sidepanelDir)) {
                 mkdirSync(sidepanelDir, { recursive: true })
+            }
+            if (!existsSync(optionsDir)) {
+                mkdirSync(optionsDir, { recursive: true })
             }
 
             // Copy manifest.json
@@ -32,7 +36,7 @@ function copyStaticFiles() {
                 resolve(distDir, "manifest.json")
             )
 
-            // Move HTML file to correct location (Vite outputs to src/sidepanel/)
+            // Move HTML files to correct locations (Vite outputs to src/<dir>/)
             // and fix the relative paths
             const srcHtml = resolve(distDir, "src/sidepanel/index.html")
             const destHtml = resolve(sidepanelDir, "sidepanel.html")
@@ -41,6 +45,16 @@ function copyStaticFiles() {
                 // Fix paths: ../../sidepanel/X -> ./X
                 html = html.replace(/\.\.\/\.\.\/sidepanel\//g, "./")
                 writeFileSync(destHtml, html)
+            }
+
+            const srcOptionsHtml = resolve(distDir, "src/options/options.html")
+            const destOptionsHtml = resolve(optionsDir, "options.html")
+            if (existsSync(srcOptionsHtml)) {
+                let html = readFileSync(srcOptionsHtml, "utf-8")
+                // Fix paths: ../../options/X -> ./X, ../../sidepanel/X -> ../sidepanel/X
+                html = html.replace(/\.\.\/\.\.\/options\//g, "./")
+                html = html.replace(/\.\.\/\.\.\/sidepanel\//g, "../sidepanel/")
+                writeFileSync(destOptionsHtml, html)
             }
 
             // Copy icons from parent public folder
@@ -82,6 +96,10 @@ export default defineConfig({
                 "sidepanel/sidepanel": resolve(
                     __dirname,
                     "src/sidepanel/index.html"
+                ),
+                "options/options": resolve(
+                    __dirname,
+                    "src/options/options.html"
                 ),
                 "background/service-worker": resolve(
                     __dirname,

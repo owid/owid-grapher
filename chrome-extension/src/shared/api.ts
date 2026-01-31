@@ -1,10 +1,12 @@
 import type { DetailDictionary } from "@ourworldindata/types"
 import type { Attachments, RawGdocDocument } from "./types.js"
 
-// For development: use localhost. For production: use admin.owid.io
-// TODO: Make this configurable via extension options page
-const ADMIN_BASE_URL = "http://localhost:3030"
-// const ADMIN_BASE_URL = "https://admin.owid.io"
+export const DEFAULT_ADMIN_BASE_URL = "https://admin.owid.io"
+
+export async function getAdminBaseUrl(): Promise<string> {
+    const result = await chrome.storage.sync.get("adminBaseUrl")
+    return (result.adminBaseUrl as string) || DEFAULT_ADMIN_BASE_URL
+}
 
 interface ApiError {
     message: string
@@ -57,20 +59,23 @@ async function fetchWithAuth<T>(url: string): Promise<T> {
 }
 
 export async function getGdocRaw(docId: string): Promise<RawGdocDocument> {
+    const baseUrl = await getAdminBaseUrl()
     return fetchWithAuth<RawGdocDocument>(
-        `${ADMIN_BASE_URL}/admin/api/gdocs/${docId}/raw`
+        `${baseUrl}/admin/api/gdocs/${docId}/raw`
     )
 }
 
 export async function getGdocAttachments(docId: string): Promise<Attachments> {
+    const baseUrl = await getAdminBaseUrl()
     return fetchWithAuth<Attachments>(
-        `${ADMIN_BASE_URL}/admin/api/gdocs/${docId}/attachments`
+        `${baseUrl}/admin/api/gdocs/${docId}/attachments`
     )
 }
 
 export async function getParsedDods(): Promise<DetailDictionary> {
+    const baseUrl = await getAdminBaseUrl()
     return fetchWithAuth<DetailDictionary>(
-        `${ADMIN_BASE_URL}/admin/api/parsed-dods.json`
+        `${baseUrl}/admin/api/parsed-dods.json`
     )
 }
 
