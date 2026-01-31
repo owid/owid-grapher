@@ -438,18 +438,30 @@ export function computeLinkedCalloutsFromPreparedTables(
     return linkedCallouts
 }
 
-export function hasRenderableDataCallouts(content: {
-    body: OwidEnrichedGdocBlock[]
+/**
+ * Check if a profile should be rendered.
+ * Returns false if there are data-callouts and ALL of them are hidden.
+ * Returns true if there are no data-callouts, or if at least one callout is visible.
+ */
+export function checkShouldProfileRender(content: {
+    body?: OwidEnrichedGdocBlock[]
 }): boolean {
-    let hasRenderable = false
+    if (!content.body || content.body.length === 0) return false
+
+    const dataCallouts: EnrichedBlockDataCallout[] = []
     content.body.forEach((node) => {
         traverseEnrichedBlock(node, (block) => {
-            if (block.type === "data-callout" && block.content.length > 0) {
-                hasRenderable = true
+            if (block.type === "data-callout") {
+                dataCallouts.push(block as EnrichedBlockDataCallout)
             }
         })
     })
-    return hasRenderable
+
+    // No data-callouts means the profile has other content and is renderable
+    if (dataCallouts.length === 0) return true
+
+    // If there are data-callouts, at least one must be visible
+    return dataCallouts.some((callout) => callout.content.length > 0)
 }
 
 /**

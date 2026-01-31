@@ -30,7 +30,7 @@ import {
     instantiateProfileForEntity,
     GdocProfile,
 } from "../db/model/Gdoc/GdocProfile.js"
-import { hasRenderableDataCallouts } from "../db/model/Gdoc/dataCallouts.js"
+import { checkShouldProfileRender } from "../db/model/Gdoc/dataCallouts.js"
 
 interface OwidAdminAppOptions {
     isDev: boolean
@@ -140,12 +140,12 @@ export class OwidAdminApp {
                             )
 
                         if (
-                            !hasRenderableDataCallouts(
+                            !checkShouldProfileRender(
                                 instantiatedProfile.content
                             )
                         ) {
                             res.status(404).send(
-                                "None of the callouts in this profile are available for this entity. A profile will not be baked for it."
+                                "This profile has no renderable content for this entity. A profile will not be baked for it."
                             )
                             return
                         }

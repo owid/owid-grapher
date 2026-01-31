@@ -74,6 +74,10 @@ import {
     GdocProfile,
     instantiateProfileForEntity,
 } from "../db/model/Gdoc/GdocProfile.js"
+import {
+    prepareCalloutTablesForProfile,
+    checkShouldProfileRender,
+} from "../db/model/Gdoc/dataCallouts.js"
 import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 import {
     gdocFromJSON,
@@ -232,14 +236,30 @@ export class SiteBaker {
                 attachments.linkedNarrativeCharts
             profileTemplate.linkedStaticViz = attachments.linkedStaticViz
 
+            // Prepare all callout tables ONCE for this profile.
+            // This avoids fetching the same chart data for each entity.
+            const preparedTables = await prepareCalloutTablesForProfile(
+                knex,
+                profileTemplate.content
+            )
 
-            const entities = getEntitiesForProfile(profileTemplate)
+            const entities = getEntitiesForProfile(
+                profileTemplate.content.scope,
+                profileTemplate.content.exclude
+            )
 
             for (const entity of entities) {
-                const instantiatedProfile = instantiateProfileForEntity(
+                // Pass pre-prepared tables to avoid redundant API calls
+                const instantiatedProfile = await instantiateProfileForEntity(
                     profileTemplate,
-                    entity
+                    entity,
+                    { preparedTables }
                 )
+
+                if (!checkShouldProfileRender(instantiatedProfile.content)) {
+                    continue
+                }
+
                 const html = renderGdoc(instantiatedProfile)
                 const outPath = path.join(
                     this.bakedSiteDir,
@@ -322,6 +342,7 @@ export class SiteBaker {
     // linkedCharts, and linkedIndicators instead of having to fetch them for
     // each individual gdoc. Optionally takes a tuple of string arrays to pick
     // from the prefetched dictionaries.
+    // Doesn't prefetch data for callouts.
     _prefetchedAttachmentsCache: PrefetchedAttachments | undefined = undefined
     private async getPrefetchedGdocAttachments(
         knex: db.KnexReadonlyTransaction,
@@ -658,6 +679,7 @@ export class SiteBaker {
             publishedGdoc.linkedNarrativeCharts =
                 attachments.linkedNarrativeCharts
             publishedGdoc.linkedStaticViz = attachments.linkedStaticViz
+            await publishedGdoc.loadAndClearLinkedCallouts(knex)
 
             if (
                 !publishedGdoc.manualBreadcrumbs?.length &&
@@ -905,6 +927,7 @@ export class SiteBaker {
                 ...attachments.linkedCharts.explorers,
             }
             dataInsight.linkedStaticViz = attachments.linkedStaticViz
+            await dataInsight.loadAndClearLinkedCallouts(knex)
             dataInsight.latestDataInsights = latestDataInsights
 
             await dataInsight.validate(knex)
