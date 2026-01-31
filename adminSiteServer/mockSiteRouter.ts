@@ -54,7 +54,7 @@ import {
     getEntitiesForProfile,
     ALL_GDOC_TYPES,
 } from "@ourworldindata/utils"
-import { hasRenderableDataCallouts } from "../db/model/Gdoc/dataCallouts.js"
+import { checkShouldProfileRender } from "../db/model/Gdoc/dataCallouts.js"
 import {
     EXPLORERS_ROUTE_FOLDER,
     explorerUrlMigrationsById,
@@ -721,7 +721,7 @@ getPlainRouteWithROTransaction(
                 { knex: trx }
             )
 
-            if (!hasRenderableDataCallouts(instantiatedProfile.content)) {
+            if (!checkShouldProfileRender(instantiatedProfile.content)) {
                 return res.status(404).send(renderNotFoundPage())
             }
 
