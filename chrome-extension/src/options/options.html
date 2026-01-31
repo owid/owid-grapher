@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="stylesheet" href="./options.css" />
+    </head>
+    <body>
+        <div class="options-container">
+            <h2>OWID Preview Settings</h2>
+            <label for="admin-url">Admin Base URL</label>
+            <input
+                type="url"
+                id="admin-url"
+                placeholder="https://admin.owid.io"
+            />
+            <button id="save">Save</button>
+            <div id="status"></div>
+        </div>
+        <script type="module" src="./options.ts"></script>
+    </body>
+</html>

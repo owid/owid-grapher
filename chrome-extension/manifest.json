@@ -24,6 +24,10 @@
     "side_panel": {
         "default_path": "sidepanel/sidepanel.html"
     },
+    "options_ui": {
+        "page": "options/options.html",
+        "open_in_tab": false
+    },
     "icons": {
         "16": "icons/icon16.png",
         "48": "icons/icon48.png",

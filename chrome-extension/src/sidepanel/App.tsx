@@ -4,6 +4,7 @@ import { Preview } from "./Preview.js"
 import {
     getGdocRaw,
     getGdocAttachments,
+    getAdminBaseUrl,
     isAuthError,
     getErrorMessage,
 } from "../shared/api.js"
@@ -61,8 +62,14 @@ const getDocIdFromUrl = (url: string | undefined): string | null => {
 export function App() {
     const [state, setState] = useState<AppState>(initialState)
     const [autoRefresh, setAutoRefresh] = useState(false)
+    const [adminBaseUrl, setAdminBaseUrl] = useState<string>("")
     const contentIntervalRef = useRef<number | null>(null)
     const attachmentsIntervalRef = useRef<number | null>(null)
+
+    // Load admin base URL for auth error link
+    useEffect(() => {
+        void getAdminBaseUrl().then(setAdminBaseUrl)
+    }, [])
 
     // Get doc ID directly from the active tab's URL
     const fetchDocId = useCallback(async (): Promise<void> => {
@@ -271,7 +278,7 @@ export function App() {
                     <h2>Authentication Required</h2>
                     <p>Please log in to the OWID admin to preview documents.</p>
                     <a
-                        href="https://admin.owid.io/admin"
+                        href={`${adminBaseUrl}/admin`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="login-link"
