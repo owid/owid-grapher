@@ -167,6 +167,15 @@ export default tseslint.config(
         },
     },
     {
+        // The chrome extension uses @owid/* tsconfig path aliases to import
+        // from monorepo directories (db, site, etc.) which are not npm packages.
+        // The extraneous-dependencies rule can't resolve these aliases.
+        files: ["chrome-extension/**/*"],
+        rules: {
+            "import-x/no-extraneous-dependencies": "off",
+        },
+    },
+    {
         files: [
             "db/**/*",
             "packages/@ourworldindata/core-table/**/*",
