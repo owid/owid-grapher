@@ -14,4 +14,5 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 })
 
 // Notify that content script is ready
+// eslint-disable-next-line no-console
 console.log("[OWID Preview] Content script loaded for:", getDocIdFromUrl())
