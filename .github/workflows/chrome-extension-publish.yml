@@ -1,0 +1,60 @@
+name: Chrome Extension Publish
+
+on:
+    workflow_dispatch:
+        inputs:
+            version:
+                description: "Version to publish (e.g. 1.2.0)"
+                required: true
+                type: string
+
+permissions:
+    contents: write
+
+jobs:
+    publish:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Validate version format
+              run: |
+                  if ! echo "${{ inputs.version }}" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+                      echo "Error: Version must be in semver format (e.g. 1.2.0)"
+                      exit 1
+                  fi
+
+            - name: Clone repository
+              uses: actions/checkout@v5
+
+            - name: Update manifest.json version
+              run: |
+                  cd chrome-extension
+                  jq '.version = "${{ inputs.version }}"' manifest.json > manifest.tmp
+                  mv manifest.tmp manifest.json
+
+            - name: Commit and tag version bump
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+                  git add chrome-extension/manifest.json
+                  git commit -m "chrome-extension: bump version to ${{ inputs.version }}"
+                  git tag "chrome-extension/v${{ inputs.version }}"
+                  git push origin HEAD:${{ github.ref_name }} --tags
+
+            - uses: ./.github/actions/setup-node-yarn-deps
+
+            - name: Build extension
+              run: yarn buildChromeExtension
+
+            - name: Zip extension
+              run: cd chrome-extension/dist && zip -r ../../extension.zip .
+
+            - name: Upload to Chrome Web Store
+              uses: mnao305/chrome-extension-upload@v5
+              with:
+                  file-path: extension.zip
+                  extension-id: ${{ secrets.CHROME_EXTENSION_ID }}
+                  client-id: ${{ secrets.CHROME_CLIENT_ID }}
+                  client-secret: ${{ secrets.CHROME_CLIENT_SECRET }}
+                  refresh-token: ${{ secrets.CHROME_REFRESH_TOKEN }}
+                  publish: true
