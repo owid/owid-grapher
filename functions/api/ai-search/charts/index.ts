@@ -279,7 +279,7 @@ const VALID_PARAMS = new Set([
 ])
 
 // LLM models for reranking
-// small is about 2-3x faster
+// small is about 2-3x faster and 6x cheaper
 type LLMModel = "small" | "large"
 const LLM_MODELS: Record<LLMModel, string> = {
     small: "@cf/meta/llama-3.1-8b-instruct-fast",
@@ -358,11 +358,10 @@ async function rerankWithLLMSmall(
     chartList: string,
     modelId: string
 ): Promise<EnrichedSearchChartHit[]> {
-    const userMessage = `Return ONLY the numbers of charts that are DIRECTLY and STRONGLY relevant to the search query.
-- Exclude charts where the match is superficial, phonetic, or only tangentially related
-- Charts are already ordered by popularity - preserve this order unless relevance clearly differs
-- If no charts are truly relevant, return an empty array []
-- Return ONLY a JSON array of numbers, e.g. [3, 7, 1]
+    const userMessage = `Return chart numbers relevant to the search query, ordered by relevance.
+- Include semantically related charts (e.g., democracy charts for "populism")
+- Put phonetic-only matches like "population" at the end
+- Return ONLY a JSON array of numbers, e.g. [0, 3, 6, 1, 2]
 
 Search query: "${query}"
 
@@ -492,15 +491,18 @@ Analyze the list of charts against the user's query.
     } else if (typeof rawIndices === "number") {
         rawIndices = [rawIndices]
     }
-    const indices: number[] = Array.isArray(rawIndices) ? rawIndices : [rawIndices]
+    const indices: number[] = Array.isArray(rawIndices)
+        ? rawIndices
+        : [rawIndices]
     console.log("LLM rerank (large) indices:", indices)
 
     // Map indices back to hits (0-indexed)
     const rerankedHits: EnrichedSearchChartHit[] = indices
         .map((i: number) => hits[i])
         .filter(
-            (hit: EnrichedSearchChartHit | undefined): hit is EnrichedSearchChartHit =>
-                hit !== undefined
+            (
+                hit: EnrichedSearchChartHit | undefined
+            ): hit is EnrichedSearchChartHit => hit !== undefined
         )
 
     rerankedHits.forEach((hit: EnrichedSearchChartHit, index: number) => {
