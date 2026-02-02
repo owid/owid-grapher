@@ -266,7 +266,40 @@ const VALID_PARAMS = new Set([
     "page",
     "hitsPerPage",
     "verbose",
+    "type", // Filter by record type: chart, explorer, mdim
+    "rerank", // Enable reranking with BGE reranker model
+    "rewrite", // Enable query rewriting for better retrieval
 ])
+
+// Default reranking model
+const RERANKING_MODEL = "@cf/baai/bge-reranker-base"
+
+// Map type parameter values to folder prefixes used in R2
+const TYPE_TO_FOLDER: Record<string, string> = {
+    chart: "charts/",
+    explorer: "explorers/",
+    mdim: "mdim/",
+}
+
+// All valid type values
+const VALID_TYPES = Object.keys(TYPE_TO_FOLDER)
+
+/**
+ * Build AI Search filters for folder-based type filtering.
+ */
+function buildTypeFilters(types: string[]): {
+    type: "or"
+    filters: Array<{ type: "eq"; key: string; value: string }>
+} {
+    return {
+        type: "or",
+        filters: types.map((t) => ({
+            type: "eq" as const,
+            key: "folder",
+            value: TYPE_TO_FOLDER[t],
+        })),
+    }
+}
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
     const { env, request } = context
@@ -291,6 +324,36 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
         // Parse output options
         const verbose = url.searchParams.get("verbose") === "true"
+
+        // Parse AI Search enhancement options
+        const rerank = url.searchParams.get("rerank") === "true"
+        const rewrite = url.searchParams.get("rewrite") === "true"
+
+        // Parse type filter (chart, explorer, mdim - comma-separated for multiple)
+        const typeParam = url.searchParams.get("type")
+        const types = typeParam
+            ? typeParam.split(",").map((t) => t.trim().toLowerCase())
+            : null
+
+        // Validate type values
+        if (types) {
+            const invalidTypes = types.filter((t) => !VALID_TYPES.includes(t))
+            if (invalidTypes.length > 0) {
+                return new Response(
+                    JSON.stringify({
+                        error: "Invalid type parameter",
+                        details: `Invalid type(s): ${invalidTypes.join(", ")}. Valid values: ${VALID_TYPES.join(", ")}`,
+                    }),
+                    {
+                        status: 400,
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Access-Control-Allow-Origin": "*",
+                        },
+                    }
+                )
+            }
+        }
 
         // Parse filter parameters (not yet implemented in AI Search, but accept them)
         const countriesParam = url.searchParams.get(
@@ -371,6 +434,14 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         const results = (await env.AI.autorag(AI_SEARCH_INSTANCE_NAME).search({
             query,
             max_num_results: fetchSize,
+            ...(types && { filters: buildTypeFilters(types) }),
+            ...(rewrite && { rewrite_query: true }),
+            ...(rerank && {
+                reranking: {
+                    enabled: true,
+                    model: RERANKING_MODEL,
+                },
+            }),
             ranking_options: {
                 score_threshold: 0.1,
             },
@@ -392,8 +463,15 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         }
 
         const endTime = Date.now()
+        const opts = [
+            types ? `type=${types.join(",")}` : null,
+            rerank ? "rerank" : null,
+            rewrite ? "rewrite" : null,
+        ]
+            .filter(Boolean)
+            .join(" ")
         console.log(
-            `[AI Search charts] query="${query}" | total=${endTime - startTime}ms | search=${postSearchTime - preSearchTime}ms | transform=${endTime - postSearchTime}ms | hits=${results.data.length}`
+            `[AI Search charts] query="${query}"${opts ? ` ${opts}` : ""} | total=${endTime - startTime}ms | search=${postSearchTime - preSearchTime}ms | transform=${endTime - postSearchTime}ms | hits=${results.data.length}`
         )
 
         return new Response(JSON.stringify(response, null, 2), {
