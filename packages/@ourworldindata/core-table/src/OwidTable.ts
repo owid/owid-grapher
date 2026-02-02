@@ -13,6 +13,7 @@ import {
     ToleranceStrategy,
     differenceOfSets,
     sortedFindClosestIndex,
+    csvEscape,
 } from "@ourworldindata/utils"
 import {
     Time,
@@ -49,16 +50,55 @@ import {
 } from "./CoreTableUtils.js"
 import { CoreColumn, ColumnTypeMap } from "./CoreTableColumns.js"
 
+export type OwidColumn = CoreColumn<OwidTable, OwidColumnDef>
+
 // An OwidTable is a subset of Table. An OwidTable always has EntityName, EntityCode, EntityId, and Time columns,
 // and value column(s). Whether or not we need in the long run is uncertain and it may just be a stepping stone
 // to go from our Variables paradigm to the Table paradigm.
 export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
+    override isOwidTable(): boolean {
+        return true
+    }
+
     @imemo get availableEntityNames(): any[] {
         return Array.from(this.availableEntityNameSet)
     }
 
     @imemo get availableEntityNameSet(): Set<string> {
         return this.entityNameColumn.uniqValuesAsSet
+    }
+
+    @imemo get entityNameColumn(): OwidColumn {
+        return (
+            this.getFirstColumnWithType(ColumnTypeNames.EntityName) ??
+            this.get(OwidTableSlugs.entityName)
+        )
+    }
+
+    @imemo get entityNameSlug(): string {
+        return this.entityNameColumn.slug
+    }
+
+    @imemo get entityCodeColumn(): OwidColumn {
+        return (
+            this.getFirstColumnWithType(ColumnTypeNames.EntityCode) ??
+            this.get(OwidTableSlugs.entityCode)
+        )
+    }
+
+    @imemo get entityCodeSlug(): string {
+        return this.entityCodeColumn.slug
+    }
+
+    @imemo get entityIdColumn(): OwidColumn {
+        return (
+            this.getFirstColumnWithType(ColumnTypeNames.EntityId) ??
+            this.get(OwidTableSlugs.entityId)
+        )
+    }
+
+    @imemo get entityIdSlug(): string {
+        return this.entityIdColumn.slug
     }
 
     @imemo get minTime(): Time {
@@ -84,8 +124,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     // todo: instead of this we should probably make annotations another property on charts—something like "annotationsColumnSlugs"
-    getAnnotationColumnForColumn(columnSlug: ColumnSlug): CoreColumn {
-        const def = this.get(columnSlug).def as OwidColumnDef
+    getAnnotationColumnForColumn(columnSlug: ColumnSlug): OwidColumn {
+        const def = this.get(columnSlug).def
         const slug = this.getAnnotationColumnSlug(def)
         return this.get(slug)
     }
@@ -252,28 +292,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             slug,
             (value) => isNotErrorValue(value),
             `Drop rows with empty or ErrorValues in ${slug} column`
-        )
-    }
-
-    // TODO rewrite with column ops
-    // TODO move to CoreTable
-    dropRowsWithErrorValuesForAnyColumn(slugs: ColumnSlug[]): this {
-        return this.rowFilter(
-            (row) => slugs.every((slug) => isNotErrorValue(row[slug])),
-            `Drop rows with empty or ErrorValues in any column: ${slugs.join(
-                ", "
-            )}`
-        )
-    }
-
-    // TODO rewrite with column ops
-    // TODO move to CoreTable
-    dropRowsWithErrorValuesForAllColumns(slugs: ColumnSlug[]): this {
-        return this.rowFilter(
-            (row) => slugs.some((slug) => isNotErrorValue(row[slug])),
-            `Drop rows with empty or ErrorValues in every column: ${slugs.join(
-                ", "
-            )}`
         )
     }
 
@@ -723,15 +741,15 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const makeShortName = (name: string): string =>
             name.toLowerCase().replace(/\s+/g, "_")
 
-        const getLabelForColumn = (col: CoreColumn): string => {
-            const def = col.def as OwidColumnDef
+        const getLabelForColumn = (col: OwidColumn): string => {
+            const def = col.def
             return useShortNames
                 ? (def.shortName ?? makeShortName(col.nonEmptyDisplayName))
                 : col.nonEmptyDisplayName
         }
 
-        const formatDataColumnName = (col: CoreColumn): string => {
-            const def = col.def as OwidColumnDef
+        const formatDataColumnName = (col: OwidColumn): string => {
+            const def = col.def
 
             let label = getLabelForColumn(col)
 
@@ -777,7 +795,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             return timeString
         }
 
-        const formatColumnName = (col: CoreColumn): string =>
+        const formatColumnName = (col: OwidColumn): string =>
             col.isTimeColumn
                 ? formatTimeColumnName(col)
                 : formatDataColumnName(col)
@@ -785,6 +803,35 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return this.dropColumns(excludeColumns)
             .sortBy(sortBy)
             .toCsv({ formatColumnName })
+    }
+
+    toCsv(options?: {
+        delimiter?: string
+        formatColumnName?: (col: OwidColumn) => string
+    }): string {
+        const {
+            delimiter = ",",
+            formatColumnName = (col: OwidColumn): string => col.slug,
+        } = options ?? {}
+
+        const header =
+            this.columnsAsArray
+                .map((col) => csvEscape(formatColumnName(col)))
+                .join(delimiter) + "\n"
+
+        const body = this.rows
+            .map((row) =>
+                this.columnsAsArray.map((col) => {
+                    const value = row[col.slug]
+                    return isNotErrorValue(value)
+                        ? (col.formatForCsv(value) ?? "")
+                        : ""
+                })
+            )
+            .map((row) => row.join(delimiter))
+            .join("\n")
+
+        return header + body
     }
 
     @imemo get entityNameColorIndex(): Map<EntityName, Color> {
@@ -796,6 +843,13 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     getColorForEntityName(entityName: EntityName): Color | undefined {
         return this.entityNameColorIndex.get(entityName)
+    }
+
+    @imemo get entityNameToCodeMap(): Map<EntityName, string> {
+        return this.valueIndex(this.entityNameSlug, this.entityCodeSlug) as Map<
+            EntityName,
+            string
+        >
     }
 
     @imemo get columnDisplayNameToColorMap(): Map<string, Color> {
@@ -876,7 +930,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         if (!this.has(columnSlug)) return this
 
         const column = this.get(columnSlug)
-        const columnDef = column.def as OwidColumnDef
+        const columnDef = column.def
         const tolerance = toleranceOverride ?? column.tolerance ?? 0
         const toleranceStrategy =
             toleranceStrategyOverride ??
@@ -886,7 +940,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const timeColumnOfTable = !this.timeColumn.isMissing
             ? this.timeColumn
             : // CovidTable does not have a day or year column so we need to use time.
-              (this.get(OwidTableSlugs.time) as CoreColumn)
+              this.get(OwidTableSlugs.time)
 
         const maybeTimeColumnOfValue =
             getOriginalTimeColumnSlug(this, columnSlug) ??
@@ -962,14 +1016,13 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         if (!this.has(columnSlug)) return this
 
         const column = this.get(columnSlug)
-        const columnDef = column?.def as OwidColumnDef
+        const columnDef = column.def
 
         const maybeTimeColumnSlug =
             getOriginalTimeColumnSlug(this, columnSlug) ??
             timeColumnSlugFromColumnDef(columnDef)
         const timeColumn =
-            this.get(maybeTimeColumnSlug) ??
-            (this.get(OwidTableSlugs.time) as CoreColumn) // CovidTable does not have a day or year column so we need to use time.
+            this.get(maybeTimeColumnSlug) ?? this.get(OwidTableSlugs.time) // CovidTable does not have a day or year column so we need to use time.
 
         const originalColumnSlug =
             makeOriginalValueSlugFromColumnSlug(columnSlug)
