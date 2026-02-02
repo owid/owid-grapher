@@ -132,11 +132,7 @@ export async function renderMultiDimDataPageFromConfig({
     const faqEntries = await getFaqEntries(knex, variableIds)
 
     // PRIMARY TOPIC
-    const primaryTopic = await getPrimaryTopic(
-        knex,
-        config.topicTags,
-        slug ?? undefined
-    )
+    const primaryTopic = await getPrimaryTopic(knex, config.topicTags)
 
     let tagToSlugMap: Record<string, string> = {}
     let relatedResearchCandidates: DataPageRelatedResearch[] = []
