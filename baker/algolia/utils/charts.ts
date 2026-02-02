@@ -12,7 +12,6 @@ import {
 import * as db from "../../../db/db.js"
 import { getRelatedArticles } from "../../../db/model/Post.js"
 import { getPublishedLinksTo } from "../../../db/model/Link.js"
-import { isPathRedirectedToExplorer } from "../../../explorerAdminServer/ExplorerRedirects.js"
 import { ParsedChartRecordRow, RawChartRecordRow } from "./types.js"
 import {
     excludeNullish,
@@ -242,10 +241,6 @@ async function buildChartRecord(
     context: ChartsIndexingContext
 ): Promise<ChartRecord | null> {
     const grapherState = new GrapherState(chart.config)
-
-    // Our search currently cannot render explorers, so don't index them because
-    // otherwise they will fail when rendered in the search results
-    if (isPathRedirectedToExplorer(`/grapher/${chart.slug}`)) return null
 
     const relatedArticles = (await getRelatedArticles(knex, chart.id)) ?? []
     const linksFromGdocs = await getPublishedLinksTo(
