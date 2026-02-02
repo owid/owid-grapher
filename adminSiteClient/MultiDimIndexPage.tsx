@@ -179,7 +179,7 @@ function createColumns(
                 ) : (
                     text
                 ),
-            sorter: (a, b) => a.title.localeCompare(b.title),
+            sorter: (a, b) => (a.title ?? "").localeCompare(b.title ?? ""),
         },
         {
             title: "Catalog path",
@@ -330,7 +330,7 @@ export function MultiDimIndexPage() {
     const filteredMdims = useMemo(() => {
         const query = search.trim().toLowerCase()
         return data?.filter((mdim) =>
-            [mdim.title, mdim.slug ?? ""].some((field) =>
+            [mdim.title ?? "", mdim.slug ?? ""].some((field) =>
                 field.toLowerCase().includes(query)
             )
         )

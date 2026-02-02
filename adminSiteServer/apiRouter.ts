@@ -114,6 +114,7 @@ import {
     putVariablesVariableIdGrapherConfigAdmin,
     deleteVariablesVariableIdGrapherConfigAdmin,
     getVariablesVariableIdChartsJson,
+    getVariablesRelatedJson,
 } from "./apiRoutes/variables.js"
 import { FunctionalRouter } from "./FunctionalRouter.js"
 import {
@@ -592,6 +593,12 @@ getRouteWithROTransaction(
     apiRouter,
     "/variables/:variableId/charts.json",
     getVariablesVariableIdChartsJson
+)
+// Get related variables with same originalShortName for multidim chart creation
+getRouteWithROTransaction(
+    apiRouter,
+    "/variables/:variableId/related.json",
+    getVariablesRelatedJson
 )
 
 // Figma routes

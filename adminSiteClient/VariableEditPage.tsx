@@ -38,6 +38,7 @@ import {
     stringifyUnknownError,
     CatalogKey,
 } from "@ourworldindata/utils"
+import { VariableDisplayDimension } from "@ourworldindata/types"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { OriginList } from "./OriginList.js"
 import { SourceList } from "./SourceList.js"
@@ -70,6 +71,7 @@ interface VariablePageData
     grapherConfigAdmin: GrapherInterface | undefined
     source: { id: number; name: string }
     origins: OwidOrigin[]
+    dimensions: VariableDisplayDimension | null
 }
 
 // Calculates the difference between two objects, including nested objects.

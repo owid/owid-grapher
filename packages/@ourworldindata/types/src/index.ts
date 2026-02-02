@@ -807,6 +807,7 @@ export {
     type DbRawVariable,
     type DbEnrichedVariable,
     type DbInsertVariable,
+    type VariableDisplayDimension,
     VariablesTableName,
     parseVariableDisplayConfig,
     serializeVariableDisplayConfig,

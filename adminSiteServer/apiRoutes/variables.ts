@@ -13,6 +13,8 @@ import {
     GrapherInterface,
     OwidVariableWithSource,
     parseChartConfig,
+    VariableDisplayDimension,
+    parseVariableDimensions,
 } from "@ourworldindata/types"
 import {
     fetchS3DataValuesByPath,
@@ -235,6 +237,17 @@ export async function getVariablesVariableIdJson(
         variable.catalogPath += `#${variable.shortName}`
     }
 
+    // Fetch the dimensions field from the database (contains originalShortName for multidim)
+    const dbVarRow = await db.knexRaw<Pick<DbRawVariable, "dimensions">>(
+        trx,
+        `SELECT dimensions FROM variables WHERE id = ?`,
+        [variableId]
+    )
+    const dbDimensions =
+        dbVarRow.length > 0
+            ? parseVariableDimensions(dbVarRow[0].dimensions)
+            : null
+
     const rawCharts = await db.knexRaw<
         OldChartFieldList & {
             isInheritanceEnabled: DbPlainChart["isInheritanceEnabled"]
@@ -301,12 +314,14 @@ export async function getVariablesVariableIdJson(
         grapherConfig: GrapherInterface | undefined
         grapherConfigETL: GrapherInterface | undefined
         grapherConfigAdmin: GrapherInterface | undefined
+        dimensions: VariableDisplayDimension | null
     } = {
         ...variable,
         charts,
         grapherConfig: mergedGrapherConfig,
         grapherConfigETL,
         grapherConfigAdmin,
+        dimensions: dbDimensions,
     }
 
     return {
@@ -578,4 +593,101 @@ export async function getVariablesVariableIdChartsJson(
         isInheritanceEnabled: chart.isInheritanceEnabled,
         isPublished: chart.isPublished,
     }))
+}
+
+export interface RelatedVariablesResponse {
+    currentVariable: {
+        id: number
+        name: string
+        datasetId: number
+        dimensions: VariableDisplayDimension
+    }
+    relatedVariables: Array<{
+        id: number
+        name: string
+        dimensions: VariableDisplayDimension
+    }>
+    dimensionChoices: Record<string, string[]>
+}
+
+export async function getVariablesRelatedJson(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+): Promise<RelatedVariablesResponse | { error: string }> {
+    const variableId = expectInt(req.params.variableId)
+
+    // Get the current variable's dimensions
+    const currentVarRow = await db.knexRaw<
+        Pick<DbRawVariable, "id" | "name" | "datasetId" | "dimensions">
+    >(
+        trx,
+        `SELECT id, name, datasetId, dimensions FROM variables WHERE id = ?`,
+        [variableId]
+    )
+
+    if (currentVarRow.length === 0) {
+        throw new JsonError(`Variable with id ${variableId} not found`, 404)
+    }
+
+    const currentVar = currentVarRow[0]
+    const currentDimensions = parseVariableDimensions(currentVar.dimensions)
+
+    if (!currentDimensions?.originalShortName) {
+        return {
+            error: "Variable does not have originalShortName in dimensions",
+        }
+    }
+
+    // Find all variables in the same dataset with the same originalShortName
+    const relatedRows = await db.knexRaw<
+        Pick<DbRawVariable, "id" | "name" | "dimensions">
+    >(
+        trx,
+        `SELECT id, name, dimensions
+         FROM variables
+         WHERE datasetId = ?
+           AND JSON_EXTRACT(dimensions, '$.originalShortName') = ?`,
+        [currentVar.datasetId, currentDimensions.originalShortName]
+    )
+
+    // Parse dimensions and build the response
+    const relatedVariables = relatedRows
+        .map((row) => ({
+            id: row.id,
+            name: row.name ?? "",
+            dimensions: parseVariableDimensions(row.dimensions),
+        }))
+        .filter(
+            (v): v is { id: number; name: string; dimensions: VariableDisplayDimension } =>
+                v.dimensions !== null
+        )
+
+    // Extract unique dimension choices from all related variables
+    const dimensionChoices: Record<string, Set<string>> = {}
+    for (const variable of relatedVariables) {
+        for (const filter of variable.dimensions.filters) {
+            if (!dimensionChoices[filter.name]) {
+                dimensionChoices[filter.name] = new Set()
+            }
+            dimensionChoices[filter.name].add(filter.value)
+        }
+    }
+
+    // Convert Sets to sorted arrays
+    const dimensionChoicesArrays: Record<string, string[]> = {}
+    for (const [name, values] of Object.entries(dimensionChoices)) {
+        dimensionChoicesArrays[name] = Array.from(values).sort()
+    }
+
+    return {
+        currentVariable: {
+            id: currentVar.id,
+            name: currentVar.name ?? "",
+            datasetId: currentVar.datasetId,
+            dimensions: currentDimensions,
+        },
+        relatedVariables,
+        dimensionChoices: dimensionChoicesArrays,
+    }
 }

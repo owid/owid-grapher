@@ -54,6 +54,7 @@ import { FeaturedMetricsPage } from "./FeaturedMetricsPage.js"
 import { DodsIndexPage } from "./DodsIndexPage.js"
 import { StaticVizIndexPage } from "./StaticVizIndexPage.js"
 import { StaticVizEditPage } from "./StaticVizEditPage.js"
+import { CreateMultidimChartPage } from "./CreateMultidimChartPage.js"
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -147,12 +148,34 @@ export class AdminApp extends React.Component<{
                                         const grapherConfig = configParam
                                             ? JSON.parse(configParam)
                                             : undefined
+                                        const multidimVariableIdParam =
+                                            params.get("multidimVariableId")
+                                        const multidimVariableId =
+                                            multidimVariableIdParam
+                                                ? parseInt(
+                                                      multidimVariableIdParam
+                                                  )
+                                                : undefined
                                         return (
                                             <ChartEditorPage
                                                 grapherConfig={grapherConfig}
+                                                multidimVariableId={
+                                                    multidimVariableId
+                                                }
                                             />
                                         )
                                     }}
+                                />
+                                <Route
+                                    exact
+                                    path="/charts/create-multidim/:variableId"
+                                    render={({ match }) => (
+                                        <CreateMultidimChartPage
+                                            variableId={parseInt(
+                                                match.params.variableId
+                                            )}
+                                        />
+                                    )}
                                 />
                                 <Route
                                     exact

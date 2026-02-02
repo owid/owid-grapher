@@ -60,6 +60,8 @@ import {
     ErrorMessagesForDimensions,
     FieldWithDetailReferences,
 } from "./ChartEditorTypes.js"
+import { MultidimData } from "./ChartEditorPage.js"
+import { Select } from "antd"
 
 interface Variable {
     id: number
@@ -105,6 +107,36 @@ export class EditorDatabase {
 
 export type DetailReferences = Record<FieldWithDetailReferences, string[]>
 
+function DimensionSelector({
+    name,
+    values,
+    selectedValue,
+    onChange,
+}: {
+    name: string
+    values: string[]
+    selectedValue: string
+    onChange: (value: string) => void
+}) {
+    const options = values.map((value) => ({
+        value: value,
+        label: value,
+    }))
+
+    return (
+        <div className="dimension-selector">
+            <label className="dimension-selector__label">{name}</label>
+            <Select
+                style={{ minWidth: 120 }}
+                value={selectedValue}
+                onChange={onChange}
+                options={options}
+                disabled={values.length <= 1}
+            />
+        </div>
+    )
+}
+
 export interface ChartEditorViewManager<Editor> {
     admin: Admin
     editor: Editor
@@ -112,6 +144,10 @@ export interface ChartEditorViewManager<Editor> {
 
 interface ChartEditorViewProps<Editor> {
     manager: ChartEditorViewManager<Editor>
+    multidimData?: MultidimData
+    selectedDimensions?: Record<string, string>
+    onDimensionChange?: (name: string, value: string) => void
+    onSaveAsMultidim?: () => Promise<void>
 }
 
 @observer
@@ -362,6 +398,17 @@ export class ChartEditorView<
                 }
             )
         )
+        // Watch for dimension changes and update the grapher
+        this.disposers.push(
+            reaction(
+                () => this.editor?.patchConfig?.dimensions,
+                () => {
+                    if (this.editor) {
+                        void this.updateGrapher()
+                    }
+                }
+            )
+        )
         this.disposers.push(
             reaction(
                 () => this.editor && this.editor.previewMode,
@@ -497,6 +544,38 @@ export class ChartEditorView<
                     )}
                 </div>
                 <div className="chart-editor-view">
+                    {this.props.multidimData && (
+                        <div className="dimension-selectors-row">
+                            {Object.entries(
+                                this.props.multidimData.dimensionChoices
+                            ).map(([name, values]) => (
+                                <DimensionSelector
+                                    key={name}
+                                    name={name}
+                                    values={values}
+                                    selectedValue={
+                                        this.props.selectedDimensions?.[
+                                            name
+                                        ] || ""
+                                    }
+                                    onChange={(value) =>
+                                        this.props.onDimensionChange?.(
+                                            name,
+                                            value
+                                        )
+                                    }
+                                />
+                            ))}
+                            {this.props.onSaveAsMultidim && (
+                                <button
+                                    className="btn btn-primary save-multidim-btn"
+                                    onClick={this.props.onSaveAsMultidim}
+                                >
+                                    Save as Multidim
+                                </button>
+                            )}
+                        </div>
+                    )}
                     {grapherState.id && (
                         <a
                             className="preview"

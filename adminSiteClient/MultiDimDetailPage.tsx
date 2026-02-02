@@ -16,7 +16,8 @@ import {
     Popconfirm,
 } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faExternalLink, faTrash } from "@fortawesome/free-solid-svg-icons"
+import { faExternalLink, faTrash, faPencil } from "@fortawesome/free-solid-svg-icons"
+import { Link } from "./Link.js"
 import urljoin from "url-join"
 import { Admin } from "./Admin.js"
 import { AdminLayout } from "./AdminLayout.js"
@@ -397,6 +398,12 @@ export function MultiDimDetailPage({ id }: { id: number }) {
         `/admin/grapher/${encodeURIComponent(multiDim.catalogPath)}`
     )
 
+    // Get the first view's variable ID for the edit link
+    const firstVariableId = multiDim.config.views[0]?.indicators?.y?.[0]?.id
+    const editUrl = firstVariableId
+        ? `/charts/create?yVariableIds=${firstVariableId}`
+        : null
+
     const title = multiDim.config.title.title
 
     return (
@@ -425,31 +432,44 @@ export function MultiDimDetailPage({ id }: { id: number }) {
                         </Space>
                     </Col>
                     <Col>
-                        {liveUrl ? (
-                            <a
-                                className="ant-btn ant-btn-default"
-                                href={liveUrl}
-                                target="_blank"
-                                rel="noopener"
-                            >
-                                <Space>
-                                    <FontAwesomeIcon icon={faExternalLink} />
-                                    View live
-                                </Space>
-                            </a>
-                        ) : (
-                            <a
-                                className="ant-btn ant-btn-default"
-                                href={previewUrl}
-                                target="_blank"
-                                rel="noopener"
-                            >
-                                <Space>
-                                    <FontAwesomeIcon icon={faExternalLink} />
-                                    View preview
-                                </Space>
-                            </a>
-                        )}
+                        <Space>
+                            {editUrl && (
+                                <Link
+                                    className="ant-btn ant-btn-default"
+                                    to={editUrl}
+                                >
+                                    <Space>
+                                        <FontAwesomeIcon icon={faPencil} />
+                                        Edit content
+                                    </Space>
+                                </Link>
+                            )}
+                            {liveUrl ? (
+                                <a
+                                    className="ant-btn ant-btn-default"
+                                    href={liveUrl}
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    <Space>
+                                        <FontAwesomeIcon icon={faExternalLink} />
+                                        View live
+                                    </Space>
+                                </a>
+                            ) : (
+                                <a
+                                    className="ant-btn ant-btn-default"
+                                    href={previewUrl}
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    <Space>
+                                        <FontAwesomeIcon icon={faExternalLink} />
+                                        View preview
+                                    </Space>
+                                </a>
+                            )}
+                        </Space>
                     </Col>
                 </Row>
 
