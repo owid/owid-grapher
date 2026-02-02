@@ -38,6 +38,11 @@ interface SearchApiResponse {
     page: number
     nbPages: number
     hitsPerPage: number
+    timing?: {
+        total_ms: number
+        search_ms: number
+        llmRerank_ms?: number
+    }
 }
 
 /**
@@ -270,7 +275,16 @@ const VALID_PARAMS = new Set([
     "rerank", // Enable reranking with BGE reranker model
     "rewrite", // Enable query rewriting for better retrieval
     "llmRerank", // Enable LLM-based reranking and filtering
+    "llmModel", // LLM model for reranking: "small" (8B) or "large" (70B)
 ])
+
+// LLM models for reranking
+// small is about 2-3x faster
+type LLMModel = "small" | "large"
+const LLM_MODELS: Record<LLMModel, string> = {
+    small: "@cf/meta/llama-3.1-8b-instruct-fast",
+    large: "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+}
 
 // Default reranking model
 const RERANKING_MODEL = "@cf/baai/bge-reranker-base"
@@ -305,25 +319,48 @@ function buildTypeFilters(types: string[]): {
 /**
  * Use LLM to rerank and filter search results based on semantic relevance.
  * Returns only charts that are directly relevant to the query.
+ *
+ * @param model - "small" uses Llama 3.1 8B (fast), "large" uses Llama 3.3 70B (better reasoning)
  */
 async function rerankWithLLM(
     env: Env,
     query: string,
-    hits: EnrichedSearchChartHit[]
+    hits: EnrichedSearchChartHit[],
+    model: LLMModel = "small"
 ): Promise<EnrichedSearchChartHit[]> {
     if (hits.length === 0) return hits
 
-    // Build a numbered list of charts for the LLM
+    // Build a numbered list of charts for the LLM (0-indexed for tool calling)
     const chartList = hits
         .map((hit, i) => {
-            const desc = hit.subtitle ? `${hit.title} - ${hit.subtitle}` : hit.title
-            return `${i + 1}. ${desc}`
+            const subtitle = hit.subtitle ? ` (${hit.subtitle})` : ""
+            return `${i}. ${hit.title}${subtitle}`
         })
         .join("\n")
 
+    const modelId = LLM_MODELS[model]
+
+    // Use different strategies for small vs large models
+    if (model === "large") {
+        return rerankWithLLMLarge(env, query, hits, chartList, modelId)
+    } else {
+        return rerankWithLLMSmall(env, query, hits, chartList, modelId)
+    }
+}
+
+/**
+ * Rerank using small model (8B) with simple JSON output
+ */
+async function rerankWithLLMSmall(
+    env: Env,
+    query: string,
+    hits: EnrichedSearchChartHit[],
+    chartList: string,
+    modelId: string
+): Promise<EnrichedSearchChartHit[]> {
     const userMessage = `Return ONLY the numbers of charts that are DIRECTLY and STRONGLY relevant to the search query.
 - Exclude charts where the match is superficial, phonetic, or only tangentially related
-- Order by relevance (most relevant first)
+- Charts are already ordered by popularity - preserve this order unless relevance clearly differs
 - If no charts are truly relevant, return an empty array []
 - Return ONLY a JSON array of numbers, e.g. [3, 7, 1]
 
@@ -332,59 +369,145 @@ Search query: "${query}"
 Charts:
 ${chartList}`
 
-    try {
-        const response = (await (
-            env.AI.run as (
-                model: string,
-                options: object
-            ) => Promise<{ response?: string } | string>
-        )(
-            "@cf/meta/llama-3.1-8b-instruct-fast",
-            {
-                messages: [{ role: "user", content: userMessage }],
-                temperature: 0,
-                max_tokens: 200,
-            }
-        )) as { response?: string } | string
+    const response = (await (
+        env.AI.run as (
+            model: string,
+            options: object
+        ) => Promise<{ response?: string } | string>
+    )(modelId, {
+        messages: [{ role: "user", content: userMessage }],
+        temperature: 0,
+        max_tokens: 200,
+    })) as { response?: string } | string
 
-        // Parse LLM response
-        const text =
-            typeof response === "string" ? response : response.response || ""
-        if (!text) {
-            console.log("LLM rerank: empty response")
-            return hits
-        }
-
-        console.log("LLM rerank response:", text)
-
-        // Extract JSON array from response
-        const jsonMatch = text.match(/\[[\s\S]*?\]/)
-        if (!jsonMatch) {
-            console.log("LLM rerank: no JSON array found")
-            return hits
-        }
-
-        const indices = JSON.parse(jsonMatch[0]) as number[]
-        if (!Array.isArray(indices)) {
-            console.log("LLM rerank: invalid array")
-            return hits
-        }
-
-        // Reorder hits based on LLM response (1-indexed to 0-indexed)
-        const rerankedHits = indices
-            .map((i) => hits[i - 1])
-            .filter((hit): hit is EnrichedSearchChartHit => hit !== undefined)
-
-        // Update positions
-        rerankedHits.forEach((hit, index) => {
-            hit.__position = index + 1
-        })
-
-        return rerankedHits
-    } catch (error) {
-        console.error("LLM rerank error:", error)
-        return hits // Fall back to original order on error
+    const text =
+        typeof response === "string" ? response : response.response || ""
+    if (!text) {
+        throw new Error("LLM rerank (small): empty response from model")
     }
+
+    console.log("LLM rerank (small) response:", text)
+
+    const jsonMatch = text.match(/\[[\s\S]*?\]/)
+    if (!jsonMatch) {
+        throw new Error(
+            `LLM rerank (small): no JSON array found in response: ${text}`
+        )
+    }
+
+    const indices = JSON.parse(jsonMatch[0]) as number[]
+    if (!Array.isArray(indices)) {
+        throw new Error(
+            `LLM rerank (small): invalid array in response: ${jsonMatch[0]}`
+        )
+    }
+
+    // Map indices back to hits (0-indexed)
+    const rerankedHits = indices
+        .map((i) => hits[i])
+        .filter((hit): hit is EnrichedSearchChartHit => hit !== undefined)
+
+    rerankedHits.forEach((hit, index) => {
+        hit.__position = index + 1
+    })
+
+    return rerankedHits
+}
+
+/**
+ * Rerank using large model (70B) with tool calling for structured output
+ */
+async function rerankWithLLMLarge(
+    env: Env,
+    query: string,
+    hits: EnrichedSearchChartHit[],
+    chartList: string,
+    modelId: string
+): Promise<EnrichedSearchChartHit[]> {
+    const systemPrompt = `You are a search relevance expert.
+Analyze the list of charts against the user's query.
+1. Identify charts that are STRICTLY relevant.
+2. DISCARD matches that are only phonetic, spelling errors, or tangentially related.
+3. Charts are already ordered by popularity - preserve this order unless relevance clearly differs.
+4. Call the 'submit_rankings' tool with the final sorted list of indices.`
+
+    const response = await (
+        env.AI.run as (
+            model: string,
+            options: object
+        ) => Promise<{
+            response?: string
+            tool_calls?: Array<{
+                name: string
+                arguments: string | { relevant_indices?: number[] }
+            }>
+        }>
+    )(modelId, {
+        messages: [
+            { role: "system", content: systemPrompt },
+            {
+                role: "user",
+                content: `Query: "${query}"\n\nCharts:\n${chartList}`,
+            },
+        ],
+        tools: [
+            {
+                type: "function",
+                function: {
+                    name: "submit_rankings",
+                    description:
+                        "Submit the final ranked list of relevant chart indices.",
+                    parameters: {
+                        type: "object",
+                        properties: {
+                            relevant_indices: {
+                                type: "array",
+                                items: { type: "number" },
+                                description:
+                                    "List of 0-based indices of relevant charts, sorted by relevance.",
+                            },
+                        },
+                        required: ["relevant_indices"],
+                    },
+                },
+            },
+        ],
+    })
+
+    if (!response.tool_calls || response.tool_calls.length === 0) {
+        throw new Error(
+            `LLM rerank (large): no tool call in response: ${JSON.stringify(response)}`
+        )
+    }
+
+    const args = response.tool_calls[0].arguments
+    console.log("LLM rerank (large) raw args:", JSON.stringify(args))
+    const cleanArgs = typeof args === "string" ? JSON.parse(args) : args
+    // Handle various formats: array, string of array, or single number
+    let rawIndices = cleanArgs.relevant_indices
+    if (rawIndices === undefined || rawIndices === null) {
+        rawIndices = []
+    } else if (typeof rawIndices === "string") {
+        rawIndices = JSON.parse(rawIndices)
+    } else if (typeof rawIndices === "number") {
+        rawIndices = [rawIndices]
+    }
+    const indices: number[] = Array.isArray(rawIndices) ? rawIndices : [rawIndices]
+    console.log("LLM rerank (large) indices:", indices)
+
+    // Map indices back to hits (0-indexed)
+    const rerankedHits: EnrichedSearchChartHit[] = indices
+        .map((i: number) => hits[i])
+        .filter(
+            (hit: EnrichedSearchChartHit | undefined): hit is EnrichedSearchChartHit =>
+                hit !== undefined
+        )
+
+    rerankedHits.forEach((hit: EnrichedSearchChartHit, index: number) => {
+        hit.__position = index + 1
+    })
+
+    return rerankedHits
 }
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
@@ -415,6 +538,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         const rerank = url.searchParams.get("rerank") === "true"
         const rewrite = url.searchParams.get("rewrite") === "true"
         const llmRerank = url.searchParams.get("llmRerank") === "true"
+        const llmModelParam = url.searchParams.get("llmModel") || "small"
+        const llmModel: LLMModel = llmModelParam === "large" ? "large" : "small"
 
         // Parse type filter (chart, explorer, mdim - comma-separated for multiple)
         const typeParam = url.searchParams.get("type")
@@ -545,8 +670,16 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         )
 
         // Apply LLM-based reranking and filtering if requested
+        let llmRerankTime = 0
         if (llmRerank) {
-            const rerankedHits = await rerankWithLLM(env, query, response.hits)
+            const preLLMTime = Date.now()
+            const rerankedHits = await rerankWithLLM(
+                env,
+                query,
+                response.hits,
+                llmModel
+            )
+            llmRerankTime = Date.now() - preLLMTime
             response = {
                 ...response,
                 hits: rerankedHits,
@@ -564,13 +697,20 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             types ? `type=${types.join(",")}` : null,
             rerank ? "rerank" : null,
             rewrite ? "rewrite" : null,
-            llmRerank ? "llmRerank" : null,
+            llmRerank ? `llmRerank(${llmModel})` : null,
         ]
             .filter(Boolean)
             .join(" ")
         console.log(
-            `[AI Search charts] query="${query}"${opts ? ` ${opts}` : ""} | total=${endTime - startTime}ms | search=${postSearchTime - preSearchTime}ms | transform=${endTime - postSearchTime}ms | hits=${results.data.length}`
+            `[AI Search charts] query="${query}"${opts ? ` ${opts}` : ""} | total=${endTime - startTime}ms | search=${postSearchTime - preSearchTime}ms${llmRerank ? ` | llmRerank=${llmRerankTime}ms` : ""} | hits=${results.data.length}`
         )
+
+        // Add timing info to response
+        response.timing = {
+            total_ms: endTime - startTime,
+            search_ms: postSearchTime - preSearchTime,
+            ...(llmRerank && { llmRerank_ms: llmRerankTime }),
+        }
 
         return new Response(JSON.stringify(response, null, 2), {
             headers: {
