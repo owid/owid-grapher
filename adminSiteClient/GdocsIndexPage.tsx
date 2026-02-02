@@ -386,7 +386,15 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
                                                       Scheduled for{" "}
                                                       {new Date(
                                                           gdoc.publishedAt!
-                                                      ).toDateString()}
+                                                      ).toLocaleDateString(
+                                                          "en-GB",
+                                                          {
+                                                              weekday: "long",
+                                                              day: "numeric",
+                                                              month: "long",
+                                                              year: "numeric",
+                                                          }
+                                                      )}
                                                   </span>
                                               )
                                           }
