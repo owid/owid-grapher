@@ -55,6 +55,7 @@ enum GdocPublishStatus {
     All = "all",
     Published = "published",
     Unpublished = "unpublished",
+    Scheduled = "scheduled",
 }
 
 interface GdocsIndexPageSearchProps {
@@ -130,6 +131,9 @@ class GdocsIndexPageSearch extends React.Component<GdocsIndexPageSearchProps> {
                             </option>
                             <option value={GdocPublishStatus.Unpublished}>
                                 Unpublished
+                            </option>
+                            <option value={GdocPublishStatus.Scheduled}>
+                                Scheduled
                             </option>
                         </select>
                     </label>
@@ -212,13 +216,22 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
                       // show this document if its type is active
                       this.filters[gdoc.type]
 
+                  const isScheduled =
+                      isPublished &&
+                      gdoc.publishedAt &&
+                      new Date(gdoc.publishedAt) > new Date()
+
                   switch (publishStatus) {
                       case GdocPublishStatus.All:
                           return shouldFilterByType
                       case GdocPublishStatus.Published:
-                          return shouldFilterByType && isPublished
+                          return (
+                              shouldFilterByType && isPublished && !isScheduled
+                          )
                       case GdocPublishStatus.Unpublished:
                           return shouldFilterByType && !isPublished
+                      case GdocPublishStatus.Scheduled:
+                          return shouldFilterByType && isScheduled
                   }
               })
             : context.gdocs
@@ -252,10 +265,26 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
                     return properties
                 }
             )
-            return filteredByType.filter(filterFn)
+            const result = filteredByType.filter(filterFn)
+            return this.sortIfScheduled(result)
         } else {
-            return filteredByType
+            return this.sortIfScheduled(filteredByType)
         }
+    }
+
+    private sortIfScheduled(gdocs: OwidGdocIndexItem[]): OwidGdocIndexItem[] {
+        if (this.filters.publishStatus === GdocPublishStatus.Scheduled) {
+            return [...gdocs].sort((a, b) => {
+                const dateA = a.publishedAt
+                    ? new Date(a.publishedAt).getTime()
+                    : 0
+                const dateB = b.publishedAt
+                    ? new Date(b.publishedAt).getTime()
+                    : 0
+                return dateA - dateB
+            })
+        }
+        return gdocs
     }
 
     override render() {
@@ -342,25 +371,44 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
                                 </span>
                             </div>
                             <div className="gdoc-index-item__publish-status">
-                                {gdoc.published ? (
-                                    <a
-                                        title={
-                                            gdoc.publishedAt
-                                                ? new Date(
+                                {gdoc.published
+                                    ? (() => {
+                                          const isScheduled =
+                                              gdoc.publishedAt &&
+                                              new Date(gdoc.publishedAt) >
+                                                  new Date()
+                                          if (isScheduled) {
+                                              return (
+                                                  <span className="gdoc-index-item__scheduled-label">
+                                                      Scheduled for{" "}
+                                                      {new Date(
+                                                          gdoc.publishedAt!
+                                                      ).toLocaleDateString()}
+                                                  </span>
+                                              )
+                                          }
+                                          return (
+                                              <a
+                                                  title={
                                                       gdoc.publishedAt
-                                                  ).toDateString()
-                                                : undefined
-                                        }
-                                        href={
-                                            gdoc.type !== OwidGdocType.Fragment
-                                                ? `${BAKED_BASE_URL}/${gdoc.slug}`
-                                                : undefined
-                                        }
-                                        className="gdoc-index-item__publish-link"
-                                    >
-                                        Published
-                                    </a>
-                                ) : null}
+                                                          ? new Date(
+                                                                gdoc.publishedAt
+                                                            ).toDateString()
+                                                          : undefined
+                                                  }
+                                                  href={
+                                                      gdoc.type !==
+                                                      OwidGdocType.Fragment
+                                                          ? `${BAKED_BASE_URL}/${gdoc.slug}`
+                                                          : undefined
+                                                  }
+                                                  className="gdoc-index-item__publish-link"
+                                              >
+                                                  Published
+                                              </a>
+                                          )
+                                      })()
+                                    : null}
                             </div>
                         </div>
                     ))}
