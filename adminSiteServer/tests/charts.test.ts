@@ -893,4 +893,81 @@ describe("Chart slug validation", { timeout: 15000 }, () => {
             "This chart slug is in use by another chart"
         )
     })
+
+    it("should allow updating a draft when a stale redirect exists for its slug", async () => {
+        // Simulate the bug scenario from GitHub issue #6040:
+        // 1. Chart 1 originally has slug "original-slug" (published)
+        // 2. Chart 1 is renamed to "new-slug" (creates redirect: original-slug → chart 1)
+        // 3. Chart 2 (draft) is created with "original-slug"
+        // 4. Updating chart 2 should succeed (redirect check skipped for drafts)
+
+        // Create and publish chart 1
+        const chart1 = {
+            $schema: latestGrapherConfigSchema,
+            slug: "redirect-bug-original",
+            title: "Chart 1",
+            chartTypes: ["LineChart"],
+            isPublished: true,
+        }
+        const response1 = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(chart1),
+        })
+        expect(response1.success).toBe(true)
+        const chartId1 = response1.chartId
+
+        // Rename chart 1 to create a redirect
+        const chart1Renamed = {
+            ...chart1,
+            slug: "redirect-bug-renamed",
+        }
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId1}`,
+            body: JSON.stringify(chart1Renamed),
+        })
+
+        // Verify redirect was created
+        const redirects = await env.testKnex!("chart_slug_redirects").where({
+            chart_id: chartId1,
+            slug: "redirect-bug-original",
+        })
+        expect(redirects.length).toBe(1)
+
+        // Create draft chart 2 with the original slug
+        const chart2 = {
+            $schema: latestGrapherConfigSchema,
+            slug: "redirect-bug-original",
+            title: "Chart 2",
+            chartTypes: ["LineChart"],
+            // Note: not published (draft)
+        }
+        const response2 = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(chart2),
+        })
+        expect(response2.success).toBe(true)
+        const chartId2 = response2.chartId
+
+        // Update chart 2 - this should succeed
+        const chart2Updated = {
+            ...chart2,
+            title: "Chart 2 Updated",
+        }
+        const updateResponse = await env.request({
+            method: "PUT",
+            path: `/charts/${chartId2}`,
+            body: JSON.stringify(chart2Updated),
+        })
+
+        expect(updateResponse.success).toBe(true)
+
+        // Verify the update worked
+        const fullConfig = await env.fetchJson(
+            `/charts/${chartId2}.config.json`
+        )
+        expect(fullConfig.title).toBe("Chart 2 Updated")
+    })
 })

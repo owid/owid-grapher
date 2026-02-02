@@ -68,7 +68,10 @@ import { getLogsByChartId } from "../getLogsByChartId.js"
 import { Request } from "../authentication.js"
 import e from "express"
 import { DataInsightMinimalInformation } from "../../adminShared/AdminTypes.js"
-import { validateNewGrapherSlug } from "../validation.js"
+import {
+    validateNewGrapherSlug,
+    validateDraftGrapherSlug,
+} from "../validation.js"
 
 export const getReferencesByChartId = async (
     chartId: number,
@@ -416,7 +419,8 @@ export const saveGrapher = async (
         }
     } else if (newConfig.slug && newConfig.slug.length > 0) {
         // Only validate non-empty slugs for drafts (empty slugs are allowed for drafts)
-        await validateNewGrapherSlug(knex, newConfig.slug, existingConfig?.id)
+        // Use draft-specific validation that skips redirect checks
+        await validateDraftGrapherSlug(knex, newConfig.slug, existingConfig?.id)
     }
 
     if (existingConfig)
