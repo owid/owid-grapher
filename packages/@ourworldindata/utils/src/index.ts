@@ -25,7 +25,6 @@ export {
     previous,
     domainExtent,
     cagr,
-    makeAnnotationsSlug,
     slugify,
     slugifySameCase,
     guid,

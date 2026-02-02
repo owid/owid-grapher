@@ -331,9 +331,6 @@ export const cagr = (
     )
 }
 
-export const makeAnnotationsSlug = (columnSlug: string): string =>
-    `${columnSlug}-annotations`
-
 // Take an arbitrary string and turn it into a nice url slug
 export const slugify = (str: string, allowSlashes?: boolean): string => {
     // Convert subscript and superscript numbers to regular numbers

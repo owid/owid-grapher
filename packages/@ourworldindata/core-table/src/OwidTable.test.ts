@@ -677,3 +677,239 @@ gdp	annotation`
         (table.get("gdp").def as OwidColumnDef).annotationsColumnSlug
     ).toEqual("annotation")
 })
+
+describe("printing", () => {
+    it("can export a clean csv with dates", () => {
+        const table = new OwidTable(
+            [
+                { entityName: "Aruba", day: 1, annotation: "Something, foo" },
+                { entityName: "Canada", day: 2 },
+            ],
+            [
+                { slug: "entityName" },
+                { slug: "day", type: "Day" as any },
+                { slug: "annotation" },
+            ]
+        )
+
+        expect(table.toCsv()).toEqual(`entityName,day,annotation
+Aruba,2020-01-22,"Something, foo"
+Canada,2020-01-23,`)
+    })
+
+    it("can format a value", () => {
+        const table = new OwidTable(
+            `growthRate
+123`,
+            [
+                {
+                    slug: "growthRate",
+                    display: { unit: "%" },
+                    type: ColumnTypeNames.Numeric,
+                },
+            ]
+        )
+        expect(table.get("growthRate").formatValueShort(20)).toEqual("20%")
+    })
+})
+
+describe("toPrettyCsv", () => {
+    it("formats basic line chart data with full display names", () => {
+        const table = new OwidTable(
+            [
+                ["entityName", "entityCode", "year", "gdp", "population"],
+                ["France", "FRA", 2020, 2500, 67000000],
+                ["Germany", "DEU", 2020, 3500, 83000000],
+                ["France", "FRA", 2021, 2600, 67500000],
+            ],
+            [
+                {
+                    slug: "gdp",
+                    type: ColumnTypeNames.Numeric,
+                    name: "Gross Domestic Product",
+                },
+                {
+                    slug: "population",
+                    type: ColumnTypeNames.Numeric,
+                    name: "Total Population",
+                },
+            ]
+        )
+
+        const csv = table.toPrettyCsv()
+        expect(csv).toContain("Gross Domestic Product")
+        expect(csv).toContain("Total Population")
+        expect(csv).toContain("Entity")
+        expect(csv).toContain("Code")
+        expect(csv).toContain("Year")
+        // Columns are in table order, data columns come first
+        expect(csv).toContain("2500,67000000,France,FRA,2020")
+    })
+
+    it("uses short names when useShortNames is true", () => {
+        const table = new OwidTable(
+            [
+                ["entityName", "entityCode", "year", "gdp"],
+                ["France", "FRA", 2020, 2500],
+            ],
+            [
+                {
+                    slug: "gdp",
+                    type: ColumnTypeNames.Numeric,
+                    name: "Gross Domestic Product (constant 2015 US$)",
+                    shortName: "GDP",
+                },
+            ]
+        )
+
+        const csv = table.toPrettyCsv({ useShortNames: true })
+        expect(csv).toContain("GDP")
+        expect(csv).not.toContain("Gross Domestic Product")
+    })
+
+    it("handles projection columns correctly", () => {
+        const table = new OwidTable(
+            [
+                ["entityName", "entityCode", "year", "pop", "pop_proj"],
+                ["France", "FRA", 2020, 67000000, null],
+                ["France", "FRA", 2030, null, 70000000],
+            ],
+            [
+                {
+                    slug: "pop",
+                    type: ColumnTypeNames.Numeric,
+                    name: "Population",
+                },
+                {
+                    slug: "pop_proj",
+                    type: ColumnTypeNames.Numeric,
+                    name: "Population",
+                    display: { isProjection: true },
+                },
+            ]
+        )
+
+        const csv = table.toPrettyCsv()
+        expect(csv).toContain("Population")
+        expect(csv).toContain("Population (Projected)")
+    })
+
+    it("formats original time columns", () => {
+        const table = new OwidTable(
+            [
+                ["entityName", "entityCode", "year", "gdp", "gdp-originalTime"],
+                ["France", "FRA", 2020, 2500, 2019],
+                ["France", "FRA", 2021, 2600, 2021],
+            ],
+            [
+                {
+                    slug: "gdp",
+                    type: ColumnTypeNames.Numeric,
+                    name: "GDP",
+                },
+                {
+                    slug: "gdp-originalTime",
+                    type: ColumnTypeNames.Year,
+                    derivedFrom: {
+                        columnSlug: "gdp",
+                        relationship: "originalTime",
+                    },
+                },
+            ]
+        )
+
+        const csv = table.toPrettyCsv()
+        expect(csv).toContain("GDP (Original Year)")
+        expect(csv).toContain("2019")
+    })
+
+    it("handles columns with targetTime", () => {
+        const table = new OwidTable(
+            [
+                ["entityName", "entityCode", "year", "gdp"],
+                ["France", "FRA", 2020, 2500],
+            ],
+            [
+                {
+                    slug: "gdp",
+                    type: ColumnTypeNames.Numeric,
+                    name: "GDP",
+                    targetTime: 2030,
+                },
+            ]
+        )
+
+        const csv = table.toPrettyCsv()
+        expect(csv).toContain("GDP in 2030")
+    })
+
+    it("handles day columns", () => {
+        const table = new OwidTable(
+            [
+                ["entityName", "entityCode", "day", "cases"],
+                ["France", "FRA", 0, 100],
+                ["France", "FRA", 1, 150],
+            ],
+            [
+                {
+                    slug: "day",
+                    type: ColumnTypeNames.Day,
+                },
+                {
+                    slug: "cases",
+                    type: ColumnTypeNames.Numeric,
+                    name: "COVID Cases",
+                },
+            ]
+        )
+
+        const csv = table.toPrettyCsv()
+        expect(csv).toContain("Entity")
+        expect(csv).toContain("Code")
+        expect(csv).toContain("Day")
+        expect(csv).toContain("COVID Cases")
+    })
+
+    it("sorts by entityName by default", () => {
+        const table = new OwidTable([
+            ["entityName", "entityCode", "year", "value"],
+            ["Zambia", "ZMB", 2020, 10],
+            ["Algeria", "DZA", 2020, 20],
+            ["Brazil", "BRA", 2020, 30],
+        ])
+
+        const csv = table.toPrettyCsv()
+        const lines = csv.split("\n")
+        expect(lines[1]).toContain("Algeria")
+        expect(lines[2]).toContain("Brazil")
+        expect(lines[3]).toContain("Zambia")
+    })
+
+    it("allows custom sort order", () => {
+        const table = new OwidTable([
+            ["entityName", "entityCode", "year", "value"],
+            ["France", "FRA", 2020, 30],
+            ["France", "FRA", 2019, 10],
+            ["France", "FRA", 2021, 20],
+        ])
+
+        const csv = table.toPrettyCsv({ sortBy: ["year"] })
+        const lines = csv.split("\n")
+        expect(lines[1]).toContain("2019")
+        expect(lines[2]).toContain("2020")
+        expect(lines[3]).toContain("2021")
+    })
+
+    it("handles empty tables gracefully", () => {
+        const table = new OwidTable([
+            ["entityName", "entityCode", "year", "gdp"],
+        ])
+
+        // Should not throw when exporting an empty table
+        expect(() => table.toPrettyCsv()).not.toThrow()
+        const csv = table.toPrettyCsv()
+
+        // Empty tables produce minimal output (no headers, no data)
+        expect(csv.trim()).toBe("")
+    })
+})

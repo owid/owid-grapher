@@ -10,6 +10,10 @@ import {
     ColumnTypeMap,
     TimeColumn,
     MissingColumn,
+    makeOriginalTimeSlugFromColumnSlug,
+    ErrorValueTypes,
+    isNotErrorValueOrEmptyCell,
+    makeAnnotationsSlug,
 } from "@ourworldindata/core-table"
 import {
     GrapherChartType,
@@ -62,6 +66,7 @@ import {
     GlobeRegionName,
     GrapherWindowType,
     MapRegionName,
+    OwidTableSlugs,
 } from "@ourworldindata/types"
 import {
     objectWithPersistablesToObject,
@@ -1047,6 +1052,118 @@ export class GrapherState
         // Apply entity filter if necessary
         if (visibleEntities.length < availableEntities.length)
             table = table.filterByEntityNames(visibleEntities)
+
+        return table
+    }
+
+    /**
+     * Table used for downloading when the user requests a data download
+     * of the complete data set */
+    @computed get tableForDownload(): OwidTable {
+        return this.prepareTableForDownload(this.table)
+    }
+
+    /**
+     * Table used for downloading when the user requests a data download
+     * of the currently displayed data.
+     */
+    @computed get filteredTableForDownload(): OwidTable {
+        const table = this.isOnTableTab
+            ? this.tableForDisplay
+            : this.transformedTable
+
+        return this.prepareTableForDownload(table)
+    }
+
+    private prepareTableForDownload(table: OwidTable): OwidTable {
+        const activeSlugs = this.activeColumnSlugs
+
+        // x and y column slugs
+        const xySlugs = [this.xColumnSlug, ...this.yColumnSlugs].filter(
+            (slug) => slug !== undefined
+        )
+
+        // Time column slug to include in the downloaded table
+        const timeSlug = table.timeColumn.slug
+
+        // Original time column slugs to include
+        const originalTimeSlugs = xySlugs
+            .map((ySlug) => makeOriginalTimeSlugFromColumnSlug(ySlug))
+            .filter((slug) => table.has(slug))
+
+        // Annotation columns to include
+        const annotationSlugs = xySlugs
+            .map((slug) => makeAnnotationsSlug(slug))
+            .filter((slug) => table.has(slug))
+
+        // Select only relevant columns (in the right order)
+        table = table.select([
+            table.entityNameSlug, // Entity name column
+            table.entityCodeSlug, // Entity code column
+            timeSlug, // Time column
+            ...activeSlugs, // Data columns
+            ...originalTimeSlugs, // Original time columns
+            ...annotationSlugs, // Annotation columns
+        ])
+
+        // Drop rows without any x or y values
+        if (xySlugs.length > 0) {
+            table = table.dropRowsWithErrorValuesForAllColumns(xySlugs)
+        }
+
+        // Only keep original times that differ from the main time
+        for (const originalTimeSlug of originalTimeSlugs) {
+            if (!table.has(originalTimeSlug)) continue
+
+            const times = table.get(timeSlug).valuesIncludingErrorValues
+
+            // Replace original times that are the same as the main time
+            // with a missing value placeholder
+            table = table.replaceCells(
+                [originalTimeSlug],
+                (originalTime, index) => {
+                    return originalTime === times[index]
+                        ? ErrorValueTypes.MissingValuePlaceholder
+                        : originalTime
+                }
+            )
+        }
+
+        // Drop original time columns that are now completely empty
+        table = table.dropColumns(
+            originalTimeSlugs.filter((slug) => table.get(slug).numValues === 0)
+        )
+
+        // Drop empty annotation columns
+        table = table.dropColumns(
+            annotationSlugs.filter((slug) => table.get(slug).numValues === 0)
+        )
+
+        // Fill in missing entity codes
+        if (table.entityCodeColumn.numErrorValues > 0) {
+            table = table.replaceCells(
+                [OwidTableSlugs.entityCode],
+                (value, index) => {
+                    if (isNotErrorValueOrEmptyCell(value)) return value
+
+                    const entityName = table.entityNameColumn
+                        .valuesIncludingErrorValues[index] as string
+
+                    const entityCode =
+                        this.inputTable.entityNameToCodeMap.get(entityName)
+
+                    return entityCode ?? value
+                }
+            )
+        }
+
+        // Drop entity code column if all values are empty (after backfilling)
+        const hasEntityCodes = table.entityCodeColumn.values.some(
+            (code) => code && code !== ""
+        )
+        if (!hasEntityCodes) {
+            table = table.dropColumns([OwidTableSlugs.entityCode])
+        }
 
         return table
     }
