@@ -217,10 +217,7 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
                       // show this document if its type is active
                       this.filters[gdoc.type]
 
-                  const isScheduled =
-                      isPublished &&
-                      !!gdoc.publishedAt &&
-                      new Date(gdoc.publishedAt).getTime() > now
+                  const isScheduled = this.isGdocScheduled(gdoc, now)
 
                   switch (publishStatus) {
                       case GdocPublishStatus.All:
@@ -277,6 +274,14 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
         if (!gdoc.publishedAt) return Infinity
         const timestamp = new Date(gdoc.publishedAt).getTime()
         return Number.isNaN(timestamp) ? Infinity : timestamp
+    }
+
+    private isGdocScheduled(gdoc: OwidGdocIndexItem, now: number): boolean {
+        return (
+            gdoc.published &&
+            !!gdoc.publishedAt &&
+            new Date(gdoc.publishedAt).getTime() > now
+        )
     }
 
     private sortIfScheduled(gdocs: OwidGdocIndexItem[]): OwidGdocIndexItem[] {
@@ -376,11 +381,12 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
                             <div className="gdoc-index-item__publish-status">
                                 {gdoc.published
                                     ? (() => {
-                                          const isScheduled =
-                                              gdoc.publishedAt &&
-                                              new Date(gdoc.publishedAt) >
-                                                  new Date()
-                                          if (isScheduled) {
+                                          if (
+                                              this.isGdocScheduled(
+                                                  gdoc,
+                                                  Date.now()
+                                              )
+                                          ) {
                                               return (
                                                   <span className="gdoc-index-item__scheduled-label">
                                                       Scheduled for{" "}
