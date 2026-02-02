@@ -119,7 +119,7 @@ class GdocsIndexPageSearch extends React.Component<GdocsIndexPageSearchProps> {
                     })}
                     <label className="gdoc-index-filter-checkbox">
                         <select
-                            id="shouldShowPublishedOnly"
+                            id="publishStatusFilter"
                             onChange={({ target }) => {
                                 const value = target.value as GdocPublishStatus
                                 this.props.filters.publishStatus = value
@@ -204,6 +204,7 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
         const shouldUseFilters =
             areAnyTypeFiltersActive || publishStatus !== GdocPublishStatus.All
 
+        const now = Date.now()
         const filteredByType = shouldUseFilters
             ? context.gdocs.filter((gdoc) => {
                   const isPublished = gdoc.published
@@ -218,8 +219,8 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
 
                   const isScheduled =
                       isPublished &&
-                      gdoc.publishedAt &&
-                      new Date(gdoc.publishedAt) > new Date()
+                      !!gdoc.publishedAt &&
+                      new Date(gdoc.publishedAt).getTime() > now
 
                   switch (publishStatus) {
                       case GdocPublishStatus.All:
@@ -272,17 +273,19 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
         }
     }
 
+    private getPublishedAtTimestamp(gdoc: OwidGdocIndexItem): number {
+        if (!gdoc.publishedAt) return Infinity
+        const timestamp = new Date(gdoc.publishedAt).getTime()
+        return Number.isNaN(timestamp) ? Infinity : timestamp
+    }
+
     private sortIfScheduled(gdocs: OwidGdocIndexItem[]): OwidGdocIndexItem[] {
         if (this.filters.publishStatus === GdocPublishStatus.Scheduled) {
-            return [...gdocs].sort((a, b) => {
-                const dateA = a.publishedAt
-                    ? new Date(a.publishedAt).getTime()
-                    : 0
-                const dateB = b.publishedAt
-                    ? new Date(b.publishedAt).getTime()
-                    : 0
-                return dateA - dateB
-            })
+            return [...gdocs].sort(
+                (a, b) =>
+                    this.getPublishedAtTimestamp(a) -
+                    this.getPublishedAtTimestamp(b)
+            )
         }
         return gdocs
     }
@@ -383,7 +386,7 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
                                                       Scheduled for{" "}
                                                       {new Date(
                                                           gdoc.publishedAt!
-                                                      ).toLocaleDateString()}
+                                                      ).toDateString()}
                                                   </span>
                                               )
                                           }
