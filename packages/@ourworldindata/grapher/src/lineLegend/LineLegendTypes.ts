@@ -1,4 +1,8 @@
-import { MarkdownTextWrap, TextWrap } from "@ourworldindata/components"
+import {
+    MarkdownTextWrap,
+    TextWrap,
+    EntityLabel,
+} from "@ourworldindata/components"
 import { Bounds } from "@ourworldindata/utils"
 import { ChartSeries } from "../chart/ChartInterface"
 import { InteractionState } from "../interaction/InteractionState"
@@ -15,7 +19,7 @@ export interface LineLabelSeries extends ChartSeries {
 }
 
 export interface SizedSeries extends LineLabelSeries {
-    textWrap: TextWrap | MarkdownTextWrap
+    textWrap: TextWrap | MarkdownTextWrap | EntityLabel
     annotationTextWrap?: TextWrap
     width: number
     height: number

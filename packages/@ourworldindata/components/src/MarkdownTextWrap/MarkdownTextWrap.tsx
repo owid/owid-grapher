@@ -418,6 +418,51 @@ export function lineToPlaintext(tokens: IRToken[]): string {
     return tokens.map((t) => t.toPlaintext()).join("")
 }
 
+/**
+ * Combines two token sequences with configurable line-break behavior.
+ * Useful for keeping related content (like a suffix) together on one line.
+ *
+ * @param mainTokens - Primary token sequence
+ * @param secondaryTokens - Secondary token sequence to append
+ * @param maxWidth - Maximum line width for layout
+ * @param newLine - Line break behavior:
+ *   - "continue-line": always join with space (default)
+ *   - "always": always start secondary on new line
+ *   - "avoid-wrap": join with space if fits, otherwise new line
+ * @param fontParams - Font parameters for whitespace measurement
+ */
+export function combineTokensWithWrapBehavior(
+    mainTokens: IRToken[],
+    secondaryTokens: IRToken[],
+    maxWidth: number,
+    newLine: "continue-line" | "always" | "avoid-wrap" = "continue-line",
+    fontParams?: IRFontParams
+): IRToken[] {
+    if (newLine === "always") {
+        return [...mainTokens, new IRLineBreak(), ...secondaryTokens]
+    }
+
+    if (newLine === "continue-line") {
+        return [...mainTokens, new IRWhitespace(fontParams), ...secondaryTokens]
+    }
+
+    // "avoid-wrap": check if secondary fits on the last line of main
+    const mainLines = splitIntoLines(mainTokens, maxWidth)
+    const lastLineWidth = getLineWidth(mainLines[mainLines.length - 1] ?? [])
+    const secondaryWidth = secondaryTokens.reduce((w, t) => w + t.width, 0)
+    const spaceWidth = new IRWhitespace(fontParams).width
+    const wiggleRoom = 10 // arbitrary buffer to avoid edge cases
+
+    const fitsOnSameLine =
+        lastLineWidth + spaceWidth + secondaryWidth + wiggleRoom <= maxWidth
+
+    if (fitsOnSameLine) {
+        return [...mainTokens, new IRWhitespace(fontParams), ...secondaryTokens]
+    } else {
+        return [...mainTokens, new IRLineBreak(), ...secondaryTokens]
+    }
+}
+
 export const isTextToken = (token: IRToken): token is IRText | IRWhitespace =>
     token instanceof IRText || token instanceof IRWhitespace
 

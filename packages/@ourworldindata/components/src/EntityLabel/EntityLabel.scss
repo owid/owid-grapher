@@ -1,0 +1,43 @@
+.entity-label {
+    &__text--muted {
+        fill: $light-text;
+    }
+}
+
+.provider-info-icon {
+    cursor: pointer;
+
+    &__svg path {
+        fill: $light-text;
+    }
+
+    &:hover {
+        .provider-info-icon__svg {
+            // opacity: 0.8;
+        }
+    }
+}
+
+// Provider info tooltip - rendered via React portal
+@at-root .provider-info-tooltip-container {
+    pointer-events: none;
+}
+
+@at-root .provider-info-tooltip {
+    background-color: white;
+    border-radius: 4px;
+    box-shadow:
+        0 0 20px 4px rgba(154, 161, 177, 0.15),
+        0 4px 80px -8px rgba(36, 40, 47, 0.25);
+
+    @include dod-container;
+
+    strong {
+        display: block;
+        margin-bottom: 4px;
+    }
+
+    p {
+        margin: 0;
+    }
+}

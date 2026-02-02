@@ -659,6 +659,7 @@ export class LineChart
                                 ? this.onLineLegendClick
                                 : undefined
                         }
+                        showProviderIcons={true}
                     />
                 )}
                 <Lines
@@ -687,6 +688,7 @@ export class LineChart
     }
 
     private renderInteractive(): React.ReactElement {
+        console.log(this.isTooltipActive)
         return (
             <g
                 ref={this.base}

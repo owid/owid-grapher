@@ -6,7 +6,12 @@ import {
     makeIdForHumanConsumption,
     excludeUndefined,
 } from "@ourworldindata/utils"
-import { TextWrap, Halo, MarkdownTextWrap } from "@ourworldindata/components"
+import {
+    TextWrap,
+    Halo,
+    MarkdownTextWrap,
+    EntityLabel,
+} from "@ourworldindata/components"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { VerticalAxis } from "../axis/Axis"
@@ -138,14 +143,19 @@ class LineLabels extends React.Component<LineLabelsProps> {
 
     @computed private get textLabels(): React.ReactElement {
         return (
-            <g id={makeIdForHumanConsumption("text-labels")}>
+            <g
+                id={makeIdForHumanConsumption("text-labels")}
+                style={{ pointerEvents: "none" }}
+            >
                 {this.markers.map(({ series, labelText }, index) => {
                     const textColor = darkenColorForText(series.color)
-                    const textProps = {
+                    const textProps: React.SVGProps<SVGTextElement> = {
                         fill: textColor,
                         opacity: this.textOpacityForSeries(series),
                         textAnchor: this.anchor,
                     }
+
+                    const { textWrap } = series
 
                     return (
                         <Halo
@@ -156,21 +166,27 @@ class LineLabels extends React.Component<LineLabelsProps> {
                             key={getSeriesKey(series, index)}
                             show={this.showTextOutline}
                             outlineWidth={
-                                GRAPHER_TEXT_OUTLINE_FACTOR *
-                                series.textWrap.fontSize
+                                GRAPHER_TEXT_OUTLINE_FACTOR * textWrap.fontSize
                             }
                             outlineColor={this.textOutlineColor}
                         >
-                            {series.textWrap.renderSVG(
-                                labelText.x,
-                                labelText.y,
-                                {
+                            {textWrap instanceof EntityLabel ? (
+                                // Render EntityLabel as a React component for proper tooltip support
+                                <EntityLabel
+                                    key={series.seriesName}
+                                    {...textWrap.props}
+                                    x={labelText.x}
+                                    y={labelText.y}
+                                    textProps={textProps}
+                                />
+                            ) : (
+                                textWrap.renderSVG(labelText.x, labelText.y, {
                                     textProps,
                                     id: makeIdForHumanConsumption(
                                         "label",
                                         series.seriesName
                                     ),
-                                }
+                                })
                             )}
                         </Halo>
                     )
@@ -185,7 +201,10 @@ class LineLabels extends React.Component<LineLabelsProps> {
         )
         if (!markersWithAnnotations) return
         return (
-            <g id={makeIdForHumanConsumption("text-annotations")}>
+            <g
+                id={makeIdForHumanConsumption("text-annotations")}
+                style={{ pointerEvents: "none" }}
+            >
                 {markersWithAnnotations.map(({ series, labelText }, index) => {
                     if (!series.annotationTextWrap) return
                     return (
@@ -224,7 +243,10 @@ class LineLabels extends React.Component<LineLabelsProps> {
     @computed private get connectorLines(): React.ReactElement | undefined {
         if (!this.props.needsConnectorLines) return
         return (
-            <g id={makeIdForHumanConsumption("connectors")}>
+            <g
+                id={makeIdForHumanConsumption("connectors")}
+                style={{ pointerEvents: "none" }}
+            >
                 {this.markers.map(({ series, connectorLine }, index) => {
                     const { x1, x2 } = connectorLine
                     const {
@@ -291,12 +313,16 @@ class LineLabels extends React.Component<LineLabelsProps> {
     }
 
     override render(): React.ReactElement {
+        // Interactions layer renders first (at bottom) so visual layers can
+        // sit on top. Visual layers have pointer-events: none so hover events
+        // pass through to the interactions layer - except for specific
+        // interactive elements like provider info tooltips.
         return (
             <>
+                {!this.props.isStatic && this.interactions}
                 {this.connectorLines}
                 {this.textAnnotations}
                 {this.textLabels}
-                {!this.props.isStatic && this.interactions}
             </>
         )
     }
@@ -318,6 +344,8 @@ export interface LineLegendProps {
     fontWeight?: number
     showTextOutlines?: boolean
     textOutlineColor?: Color
+    /** Show info icons for entity names with recognized provider suffixes (e.g., "Africa (WHO)") */
+    showProviderIcons?: boolean
 
     // used to determine which series should be labelled when there is limited space
     seriesNamesSortedByImportance?: SeriesName[]
@@ -397,7 +425,24 @@ export class LineLegend extends React.Component<LineLegendProps> {
     private makeLabelTextWrap(
         series: LineLabelSeries,
         { fontWeights }: { fontWeights: { label: number; value?: number } }
-    ): TextWrap | MarkdownTextWrap {
+    ): TextWrap | MarkdownTextWrap | EntityLabel {
+        // Use EntityLabel when provider icons are enabled and the label is simple
+        // (no formatted value). EntityLabel handles provider detection internally.
+        if (this.props.showProviderIcons && !series.formattedValue) {
+            return new EntityLabel({
+                entityName: series.label,
+                maxWidth: this.textMaxWidth,
+                fontSize: this.fontSize,
+                fontWeight: fontWeights?.label,
+                showProviderIcon: true,
+                isStatic: this.props.isStatic,
+                // Connect provider suffix hover to line legend hover behavior
+                onProviderMouseEnter: () =>
+                    this.props.onMouseOver?.(series.seriesName),
+                onProviderMouseLeave: () => this.props.onMouseLeave?.(),
+            })
+        }
+
         if (!series.formattedValue) {
             return new TextWrap({
                 text: series.label,
