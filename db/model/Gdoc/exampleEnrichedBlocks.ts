@@ -964,7 +964,7 @@ export const enrichedBlockExamples: Record<
     },
     "bespoke-component": {
         type: "bespoke-component",
-        name: "example-widget",
+        bundle: "example-widget",
         size: BlockSize.Wide,
         config: { foo: "bar" },
         parseErrors: [],

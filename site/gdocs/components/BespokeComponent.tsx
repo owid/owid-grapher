@@ -10,10 +10,11 @@ export function BespokeComponent({
     return (
         <div
             className={className}
-            data-bespoke-component={block.name}
+            data-bespoke-bundle={block.bundle}
+            data-bespoke-variant={block.variant}
             data-bespoke-config={JSON.stringify(block.config)}
         >
-            {/* Bespoke components are hydrated client-side based on the name */}
+            {/* Bespoke components are hydrated client-side based on the bundle */}
         </div>
     )
 }

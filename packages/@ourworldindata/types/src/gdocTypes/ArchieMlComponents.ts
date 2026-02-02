@@ -238,7 +238,8 @@ import type {
 export type RawBlockBespokeComponent = {
     type: "bespoke-component"
     value: {
-        name?: string
+        bundle?: string
+        variant?: string
         size?: BlockSize
         config?: Record<string, unknown>
     }
@@ -246,7 +247,8 @@ export type RawBlockBespokeComponent = {
 
 export type EnrichedBlockBespokeComponent = {
     type: "bespoke-component"
-    name: string
+    bundle: string
+    variant?: string
     size: BlockSize
     config: Record<string, unknown>
 } & EnrichedBlockWithParseErrors

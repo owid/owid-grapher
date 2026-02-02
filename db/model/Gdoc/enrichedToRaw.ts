@@ -777,7 +777,8 @@ export function enrichedBlockToRawBlock(
             return {
                 type: "bespoke-component",
                 value: {
-                    name: b.name,
+                    bundle: b.bundle,
+                    variant: b.variant,
                     size: b.size,
                     config: b.config,
                 },

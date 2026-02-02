@@ -5,12 +5,12 @@ import {
 
 /**
  * Hydrates all bespoke components on the page.
- * Finds elements with [data-bespoke-component], looks up their definition
+ * Finds elements with [data-bespoke-bundle], looks up their definition
  * in the registry, creates a shadow root, loads CSS, and mounts the component.
  */
 export async function hydrateBespokeComponents(): Promise<void> {
     const elements = document.querySelectorAll<HTMLElement>(
-        "[data-bespoke-component]"
+        "[data-bespoke-bundle]"
     )
 
     const hydrationPromises = Array.from(elements).map((element) =>
@@ -21,12 +21,14 @@ export async function hydrateBespokeComponents(): Promise<void> {
 }
 
 async function hydrateSingleComponent(element: HTMLElement): Promise<void> {
-    const name = element.dataset.bespokeComponent
-    if (!name) return
+    const bundle = element.dataset.bespokeBundle
+    if (!bundle) return
 
-    const definition = BESPOKE_COMPONENT_REGISTRY[name]
+    const variant = element.dataset.bespokeVariant
+
+    const definition = BESPOKE_COMPONENT_REGISTRY[bundle]
     if (!definition) {
-        renderError(element, `Unknown bespoke component: "${name}"`)
+        renderError(element, `Unknown bespoke bundle: "${bundle}"`)
         return
     }
 
@@ -49,7 +51,7 @@ async function hydrateSingleComponent(element: HTMLElement): Promise<void> {
         if (typeof module.mount !== "function") {
             renderError(
                 element,
-                `Bespoke component "${name}" does not export a mount function`
+                `Bespoke bundle "${bundle}" does not export a mount function`
             )
             return
         }
@@ -61,14 +63,14 @@ async function hydrateSingleComponent(element: HTMLElement): Promise<void> {
             : {}
 
         // Mount the component into the container (Shadow DOM is an implementation detail)
-        module.mount(container, config)
+        module.mount(container, { config, variant })
     } catch (error) {
         const message = error instanceof Error ? error.message : "Unknown error"
         renderError(
             element,
-            `Failed to load bespoke component "${name}": ${message}`
+            `Failed to load bespoke bundle "${bundle}": ${message}`
         )
-        console.error(`Failed to hydrate bespoke component "${name}":`, error)
+        console.error(`Failed to hydrate bespoke bundle "${bundle}":`, error)
     }
 }
 
