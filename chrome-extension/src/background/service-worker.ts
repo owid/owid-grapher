@@ -37,13 +37,16 @@ async function getCookiesForUrl(url: string): Promise<string> {
         )
     }
 
-    // Determine the cookie domain based on the URL
+    // Determine the cookie domain from the URL being fetched
+    const parsed = new URL(url)
     let cookies: chrome.cookies.Cookie[]
-    if (url.includes("localhost")) {
+    if (parsed.hostname === "localhost") {
         // For localhost, get cookies by URL since domain matching is tricky
-        cookies = await chrome.cookies.getAll({ url: "http://localhost:3030" })
+        cookies = await chrome.cookies.getAll({
+            url: `${parsed.protocol}//${parsed.host}`,
+        })
     } else {
-        cookies = await chrome.cookies.getAll({ domain: "admin.owid.io" })
+        cookies = await chrome.cookies.getAll({ domain: parsed.hostname })
     }
 
     const cookieString = cookies.map((c) => `${c.name}=${c.value}`).join("; ")
