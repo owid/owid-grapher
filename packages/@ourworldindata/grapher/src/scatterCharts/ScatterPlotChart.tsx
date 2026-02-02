@@ -193,6 +193,10 @@ export class ScatterPlotChart
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
+    @computed get isStaticAndSmall(): boolean {
+        return !!this.manager.isStaticAndSmall
+    }
+
     @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
         if (isTouchDevice()) return
         this.hoveredLegendColor = bin.color
@@ -345,6 +349,7 @@ export class ScatterPlotChart
     @computed.struct get sidebarWidth(): number {
         const { sidebarMinWidth, sidebarMaxWidth } = this
 
+        // No sidebar needed if there are no legends
         if (
             !this.verticalColorLegend &&
             !this.sizeLegend &&
@@ -353,10 +358,9 @@ export class ScatterPlotChart
         )
             return 0
 
-        return Math.max(
-            Math.min(this.verticalColorLegend?.width ?? 0, sidebarMaxWidth),
-            sidebarMinWidth
-        )
+        const colorLegendWidth = this.verticalColorLegend?.width ?? 0
+
+        return _.clamp(colorLegendWidth, sidebarMinWidth, sidebarMaxWidth)
     }
 
     @computed get dualAxis(): DualAxis {
