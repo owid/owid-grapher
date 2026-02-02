@@ -56,7 +56,6 @@ import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import { SUBSCRIBE_PAGE_FORM_CONTAINER_ID } from "@ourworldindata/types"
 import UserSurvey from "./gdocs/components/UserSurvey.js"
-import { hydrateBespokeComponents } from "./hydrateBespokeComponents.js"
 
 function runSearchPage() {
     const root = document.getElementById("search-page-root")
@@ -355,7 +354,6 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
             runSiteNavigation()
             runFootnotes()
             void runDetailsOnDemand()
-            void hydrateBespokeComponents()
             // runSiteTools()
             // runCookiePreferencesManager()
             break
@@ -415,7 +413,6 @@ export const runSiteFooterScripts = async (
             runSiteNavigation(hideDonationFlag)
             runFootnotes()
             void runDetailsOnDemand()
-            void hydrateBespokeComponents()
             runSiteTools()
             runCookiePreferencesManager()
             runUserSurveyWidget()
