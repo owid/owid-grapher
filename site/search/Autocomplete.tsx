@@ -109,22 +109,35 @@ const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
         .with(SearchIndexName.ExplorerViewsMdimViewsAndCharts, () => {
             return match(item.type as ChartRecordType)
                 .with(ChartRecordType.ExplorerView, () => {
-                    return urljoin(
-                        BAKED_BASE_URL,
-                        EXPLORERS_ROUTE_FOLDER,
-                        item.slug as string,
+                    const url = new URL(
+                        urljoin(
+                            BAKED_BASE_URL,
+                            EXPLORERS_ROUTE_FOLDER,
+                            item.slug as string
+                        )
+                    )
+                    const queryParams = new URLSearchParams(
                         item.queryParams as string
                     )
+                    for (const [key, value] of queryParams) {
+                        url.searchParams.set(key, value)
+                    }
+                    return url.toString()
                 })
                 .with(ChartRecordType.Chart, () => {
                     return urljoin(BAKED_GRAPHER_URL, item.slug as string)
                 })
                 .with(ChartRecordType.MultiDimView, () => {
-                    return urljoin(
-                        BAKED_GRAPHER_URL,
-                        item.slug as string,
+                    const url = new URL(
+                        urljoin(BAKED_GRAPHER_URL, item.slug as string)
+                    )
+                    const queryParams = new URLSearchParams(
                         item.queryParams as string
                     )
+                    for (const [key, value] of queryParams) {
+                        url.searchParams.set(key, value)
+                    }
+                    return url.toString()
                 })
                 .exhaustive()
         })
