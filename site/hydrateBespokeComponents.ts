@@ -34,7 +34,7 @@ async function hydrateSingleComponent(element: HTMLElement): Promise<void> {
         const shadowRoot = element.attachShadow({ mode: "open" })
 
         // Load CSS into shadow root
-        await loadCssIntoShadow(shadowRoot, definition.cssUrl)
+        await loadCssIntoShadow(shadowRoot, definition.cssUrls)
 
         // Create a container div inside the shadow root for the component to render into
         const container = document.createElement("div")
@@ -63,26 +63,31 @@ async function hydrateSingleComponent(element: HTMLElement): Promise<void> {
         // Mount the component into the container (Shadow DOM is an implementation detail)
         module.mount(container, config)
     } catch (error) {
-        const message =
-            error instanceof Error ? error.message : "Unknown error"
-        renderError(element, `Failed to load bespoke component "${name}": ${message}`)
+        const message = error instanceof Error ? error.message : "Unknown error"
+        renderError(
+            element,
+            `Failed to load bespoke component "${name}": ${message}`
+        )
         console.error(`Failed to hydrate bespoke component "${name}":`, error)
     }
 }
 
 async function loadCssIntoShadow(
     shadowRoot: ShadowRoot,
-    cssUrl: string
+    cssUrls: string[]
 ): Promise<void> {
-    return new Promise((resolve, reject) => {
-        const link = document.createElement("link")
-        link.rel = "stylesheet"
-        link.href = cssUrl
-        link.onload = () => resolve()
-        link.onerror = () =>
-            reject(new Error(`Failed to load CSS: ${cssUrl}`))
-        shadowRoot.appendChild(link)
+    const loadPromises = cssUrls.map((cssUrl) => {
+        return new Promise<void>((resolve, reject) => {
+            const link = document.createElement("link")
+            link.rel = "stylesheet"
+            link.href = cssUrl
+            link.onload = () => resolve()
+            link.onerror = () =>
+                reject(new Error(`Failed to load CSS: ${cssUrl}`))
+            shadowRoot.appendChild(link)
+        })
     })
+    await Promise.all(loadPromises)
 }
 
 function renderError(element: HTMLElement, message: string): void {

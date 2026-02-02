@@ -6,8 +6,8 @@
 export interface BespokeComponentDefinition {
     /** URL to the ES module that exports the component's mount function */
     scriptUrl: string
-    /** URL to the component's CSS stylesheet (loaded into shadow DOM) */
-    cssUrl: string
+    /** URLs to the component's CSS stylesheets (loaded into shadow DOM) */
+    cssUrls: string[]
 }
 
 /**
@@ -23,6 +23,13 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     //     scriptUrl: "/assets/bespoke/my-widget.mjs",
     //     cssUrl: "/assets/bespoke/my-widget.css",
     // },
+    test: {
+        scriptUrl: "http://localhost:5173/admin/main.tsx",
+        cssUrls: [
+            "http://localhost:5173/admin/styles.css",
+            "http://localhost:5173/admin/controls.scss",
+        ],
+    },
 }
 
 /**
