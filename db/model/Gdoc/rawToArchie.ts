@@ -1005,7 +1005,8 @@ function* rawBlockBespokeComponentToArchieMLString(
     block: RawBlockBespokeComponent
 ): Generator<string, void, undefined> {
     yield "{.bespoke-component}"
-    yield* propertyToArchieMLString("name", block.value)
+    yield* propertyToArchieMLString("bundle", block.value)
+    yield* propertyToArchieMLString("variant", block.value)
     yield* propertyToArchieMLString("size", block.value)
     if (block.value.config) {
         yield `config: ${JSON.stringify(block.value.config)}`

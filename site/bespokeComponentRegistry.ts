@@ -38,5 +38,8 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
  * and configuration object. The container is isolated via Shadow DOM.
  */
 export interface BespokeComponentModule {
-    mount: (container: HTMLDivElement, config: Record<string, unknown>) => void
+    mount: (
+        container: HTMLDivElement,
+        opts: { variant?: string; config: Record<string, unknown> }
+    ) => void
 }

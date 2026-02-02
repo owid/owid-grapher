@@ -471,20 +471,20 @@ const parseBespokeComponent = (
 ): EnrichedBlockBespokeComponent => {
     const createError = (
         error: ParseError,
-        name: string = "",
+        bundle: string = "",
         size: BlockSize = BlockSize.Wide,
         config: Record<string, unknown> = {}
     ): EnrichedBlockBespokeComponent => ({
         type: "bespoke-component",
-        name,
+        bundle,
         size,
         config,
         parseErrors: [error],
     })
 
-    if (!raw.value.name) {
+    if (!raw.value.bundle) {
         return createError({
-            message: "Name property is required for bespoke-component",
+            message: "Bundle property is required for bespoke-component",
         })
     }
 
@@ -496,7 +496,8 @@ const parseBespokeComponent = (
 
     return {
         type: "bespoke-component",
-        name: raw.value.name,
+        bundle: raw.value.bundle,
+        variant: raw.value.variant,
         size,
         config,
         parseErrors: [],
