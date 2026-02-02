@@ -416,7 +416,7 @@ function FeaturedMetricsExplainer() {
                         <>
                             <p>
                                 Featured Metrics get indexed by the weekly
-                                Algolia sync, which runs every Friday at 19:00
+                                Algolia sync, which runs every Monday at 19:00
                                 UTC.
                             </p>
                         </>
