@@ -19,17 +19,15 @@ interface RewriteResponse {
  * Use LLM to convert a natural language query into keywords for Algolia search.
  */
 async function rewriteQuery(env: Env, query: string): Promise<string[]> {
-    const userMessage = `Convert this query into 2-5 search keywords that would appear in chart/dataset titles.
-- Use terms commonly found in data titles (e.g., "GDP per capita", "CO2 emissions", "life expectancy")
-- Be specific: "temperature anomalies" not "climate indicators"
-- Ignore countries/years - focus on the metric name
-- Return ONLY a JSON array of strings
+    const userMessage = `Rewrite this query into 1-5 keywords for searching Our World in Data charts.
 
-Examples:
-- "Are people richer in Spain or Italy?" → ["GDP per capita", "income per capita", "median income"]
-- "Is climate change getting worse?" → ["temperature anomalies", "CO2 emissions", "sea level rise"]
-- "What causes most deaths?" → ["causes of death", "mortality rate", "death rate"]
-- "How educated are people?" → ["literacy rate", "years of schooling", "education attainment"]
+Rules:
+- Use terms from OWID chart titles (e.g., "GDP per capita", "CO2 emissions", "fish supply")
+- For vague terms, translate to metrics (e.g., "richer" → "GDP per capita")
+- Do NOT add "rate", "level", "index" unless in original query
+- Ignore country names
+
+Return ONLY a JSON array of strings.
 
 Query: "${query}"
 `

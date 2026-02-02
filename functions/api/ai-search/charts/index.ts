@@ -26,6 +26,10 @@ interface ChartData {
     views_14d: number
     views_365d: number
     fmRank?: number // Featured metric rank (1 = top, only set for FMs)
+    tag1?: string
+    tag2?: string
+    tag3?: string
+    tag4?: string
 }
 
 /**
@@ -58,6 +62,7 @@ interface EnrichedSearchChartHit {
     queryParams?: string
     availableTabs?: string[]
     availableEntities: string[]
+    tags: string[]
     publishedAt?: string
     updatedAt?: string
     url: string
@@ -207,6 +212,14 @@ function transformToSearchApiFormat(
         const fmRank = chartData.fmRank
         const score = calculateCombinedScore(aiSearchScore, fmRank, views_7d)
 
+        // Reassemble tags from individual fields
+        const tags = [
+            chartData.tag1,
+            chartData.tag2,
+            chartData.tag3,
+            chartData.tag4,
+        ].filter((t): t is string => !!t)
+
         return {
             objectID,
             title,
@@ -217,6 +230,7 @@ function transformToSearchApiFormat(
             queryParams: chartData.queryParams,
             availableTabs: chartData.availableTabs,
             availableEntities: [], // AI Search doesn't have entity data yet
+            tags,
             publishedAt: chartData.publishedAt,
             updatedAt: chartData.updatedAt,
             url,

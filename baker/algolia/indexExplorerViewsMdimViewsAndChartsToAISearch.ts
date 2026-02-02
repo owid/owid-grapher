@@ -167,6 +167,10 @@ interface RecordMetadata {
     views_14d: number
     views_365d: number
     fmRank: number | undefined
+    tag1: string
+    tag2: string
+    tag3: string
+    tag4: string
 }
 
 const indexExplorerViewsMdimViewsAndChartsToAISearch = async () => {
@@ -305,6 +309,10 @@ const indexExplorerViewsMdimViewsAndChartsToAISearch = async () => {
             views_14d: record.views_14d,
             views_365d: record.views_365d,
             fmRank,
+            tag1: record.tags[0] || "",
+            tag2: record.tags[1] || "",
+            tag3: record.tags[2] || "",
+            tag4: record.tags[3] || "",
         }
 
         await uploadToR2(
