@@ -1,4 +1,5 @@
 import { EnrichedBlockBespokeComponent } from "@ourworldindata/types"
+import { LoadingIndicator } from "@ourworldindata/components"
 import { useEffect, useRef, useState } from "react"
 import {
     BESPOKE_COMPONENT_REGISTRY,
@@ -24,6 +25,8 @@ export function BespokeComponent({
     block: EnrichedBlockBespokeComponent
 }) {
     const containerRef = useRef<HTMLDivElement>(null)
+    const disposeRef = useRef<(() => void) | null>(null)
+    const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
@@ -44,6 +47,7 @@ export function BespokeComponent({
         const abortController = new AbortController()
 
         async function hydrate() {
+            setIsLoading(true)
             try {
                 // Load CSS into shadow root
                 await loadCssIntoShadow(shadowRoot!, definition.cssUrls)
@@ -57,7 +61,7 @@ export function BespokeComponent({
 
                 // Dynamically import the ESM module
                 const module = (await import(
-                    /* webpackIgnore: true */ definition.scriptUrl
+                    definition.scriptUrl
                 )) as BespokeComponentModule
 
                 if (abortController.signal.aborted) return
@@ -70,10 +74,14 @@ export function BespokeComponent({
                 }
 
                 // Mount the component
-                module.mount(mountContainer, {
+                const dispose = module.mount(mountContainer, {
                     variant: block.variant,
                     config: block.config,
                 })
+                if (typeof dispose === "function") {
+                    disposeRef.current = dispose
+                }
+                setIsLoading(false)
             } catch (err) {
                 if (abortController.signal.aborted) return
                 const message =
@@ -92,6 +100,10 @@ export function BespokeComponent({
 
         return () => {
             abortController.abort()
+            if (disposeRef.current) {
+                disposeRef.current()
+                disposeRef.current = null
+            }
         }
     }, [block.bundle, block.variant, block.config])
 
@@ -99,7 +111,18 @@ export function BespokeComponent({
         return <BespokeError className={className} message={error} />
     }
 
-    return <div className={className} ref={containerRef} />
+    return (
+        <div
+            className={className}
+            style={{
+                position: "relative",
+                minHeight: 300,
+            }}
+        >
+            {isLoading && <LoadingIndicator />}
+            <div ref={containerRef}></div>
+        </div>
+    )
 }
 
 async function loadCssIntoShadow(

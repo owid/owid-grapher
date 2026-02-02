@@ -41,5 +41,5 @@ export interface BespokeComponentModule {
     mount: (
         container: HTMLDivElement,
         opts: { variant?: string; config: Record<string, unknown> }
-    ) => void
+    ) => void | Promise<void> | Promise<() => void>
 }
