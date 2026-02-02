@@ -5,6 +5,17 @@ import {
     BespokeComponentModule,
 } from "../../bespokeComponentRegistry.js"
 
+/**
+ * Renders a bespoke component inside a Shadow DOM container.
+ *
+ * This is not a normal React component - it renders client-only and mounts
+ * an external ES module into a Shadow DOM. This allows embedding
+ * independently-built components that have their own bundled JS and CSS,
+ * isolated from the rest of the page styles.
+ *
+ * On the server, this renders an empty div. On the client, useEffect dynamically
+ * imports the module and calls its `mount` function.
+ */
 export function BespokeComponent({
     className,
     block,
