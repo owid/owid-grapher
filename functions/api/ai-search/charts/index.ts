@@ -269,6 +269,7 @@ const VALID_PARAMS = new Set([
     "type", // Filter by record type: chart, explorer, mdim
     "rerank", // Enable reranking with BGE reranker model
     "rewrite", // Enable query rewriting for better retrieval
+    "llmRerank", // Enable LLM-based reranking and filtering
 ])
 
 // Default reranking model
@@ -301,6 +302,91 @@ function buildTypeFilters(types: string[]): {
     }
 }
 
+/**
+ * Use LLM to rerank and filter search results based on semantic relevance.
+ * Returns only charts that are directly relevant to the query.
+ */
+async function rerankWithLLM(
+    env: Env,
+    query: string,
+    hits: EnrichedSearchChartHit[]
+): Promise<EnrichedSearchChartHit[]> {
+    if (hits.length === 0) return hits
+
+    // Build a numbered list of charts for the LLM
+    const chartList = hits
+        .map((hit, i) => {
+            const desc = hit.subtitle ? `${hit.title} - ${hit.subtitle}` : hit.title
+            return `${i + 1}. ${desc}`
+        })
+        .join("\n")
+
+    const userMessage = `Return ONLY the numbers of charts that are DIRECTLY and STRONGLY relevant to the search query.
+- Exclude charts where the match is superficial, phonetic, or only tangentially related
+- Order by relevance (most relevant first)
+- If no charts are truly relevant, return an empty array []
+- Return ONLY a JSON array of numbers, e.g. [3, 7, 1]
+
+Search query: "${query}"
+
+Charts:
+${chartList}`
+
+    try {
+        const response = (await (
+            env.AI.run as (
+                model: string,
+                options: object
+            ) => Promise<{ response?: string } | string>
+        )(
+            "@cf/meta/llama-3.1-8b-instruct-fast",
+            {
+                messages: [{ role: "user", content: userMessage }],
+                temperature: 0,
+                max_tokens: 200,
+            }
+        )) as { response?: string } | string
+
+        // Parse LLM response
+        const text =
+            typeof response === "string" ? response : response.response || ""
+        if (!text) {
+            console.log("LLM rerank: empty response")
+            return hits
+        }
+
+        console.log("LLM rerank response:", text)
+
+        // Extract JSON array from response
+        const jsonMatch = text.match(/\[[\s\S]*?\]/)
+        if (!jsonMatch) {
+            console.log("LLM rerank: no JSON array found")
+            return hits
+        }
+
+        const indices = JSON.parse(jsonMatch[0]) as number[]
+        if (!Array.isArray(indices)) {
+            console.log("LLM rerank: invalid array")
+            return hits
+        }
+
+        // Reorder hits based on LLM response (1-indexed to 0-indexed)
+        const rerankedHits = indices
+            .map((i) => hits[i - 1])
+            .filter((hit): hit is EnrichedSearchChartHit => hit !== undefined)
+
+        // Update positions
+        rerankedHits.forEach((hit, index) => {
+            hit.__position = index + 1
+        })
+
+        return rerankedHits
+    } catch (error) {
+        console.error("LLM rerank error:", error)
+        return hits // Fall back to original order on error
+    }
+}
+
 export const onRequestGet: PagesFunction<Env> = async (context) => {
     const { env, request } = context
     const url = new URL(request.url)
@@ -328,6 +414,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         // Parse AI Search enhancement options
         const rerank = url.searchParams.get("rerank") === "true"
         const rewrite = url.searchParams.get("rewrite") === "true"
+        const llmRerank = url.searchParams.get("llmRerank") === "true"
 
         // Parse type filter (chart, explorer, mdim - comma-separated for multiple)
         const typeParam = url.searchParams.get("type")
@@ -457,6 +544,16 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             baseUrl
         )
 
+        // Apply LLM-based reranking and filtering if requested
+        if (llmRerank) {
+            const rerankedHits = await rerankWithLLM(env, query, response.hits)
+            response = {
+                ...response,
+                hits: rerankedHits,
+                nbHits: rerankedHits.length,
+            }
+        }
+
         // Strip verbose fields by default to reduce response size
         if (!verbose) {
             response = stripVerboseFields(response)
@@ -467,6 +564,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             types ? `type=${types.join(",")}` : null,
             rerank ? "rerank" : null,
             rewrite ? "rewrite" : null,
+            llmRerank ? "llmRerank" : null,
         ]
             .filter(Boolean)
             .join(" ")
