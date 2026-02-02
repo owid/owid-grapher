@@ -73,6 +73,32 @@ export async function validateNewGrapherSlug(
 }
 
 /**
+ * Validates a slug for a draft chart.
+ * Skips redirect validation since redirects only matter for published URLs.
+ */
+export async function validateDraftGrapherSlug(
+    knex: db.KnexReadonlyTransaction,
+    slug?: string,
+    existingConfigId?: number
+) {
+    if (!isValidSlug(slug)) {
+        throw new JsonError(`Invalid chart slug ${slug}`)
+    }
+    // Skip isSlugUsedInRedirect - redirects only matter for published charts
+    if (await isSlugUsedInOtherGrapher(knex, slug, existingConfigId)) {
+        throw new JsonError(
+            `This chart slug is in use by another chart: ${slug}`
+        )
+    }
+    if (await multiDimDataPageExists(knex, { slug })) {
+        throw new JsonError(
+            `This slug is in use by a multidimensional data page: ${slug}`
+        )
+    }
+    return slug
+}
+
+/**
  * Validates an existing slug of a multidimensional data page,
  * e.g. before publishing.
  */

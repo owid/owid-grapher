@@ -2,6 +2,7 @@ import {
     ChartConfigsTableName,
     ChartDimensionsTableName,
     ChartRevisionsTableName,
+    ChartSlugRedirectsTableName,
     ChartsTableName,
     DatasetsTableName,
     AdminApiKeysTableName,
@@ -24,6 +25,7 @@ import type { Knex } from "knex"
 export const TABLES_IN_USE = [
     ChartDimensionsTableName,
     ChartRevisionsTableName,
+    ChartSlugRedirectsTableName, // Must come before ChartsTableName due to foreign key
     MultiDimXChartConfigsTableName,
     MultiDimDataPagesTableName,
     ExplorerViewsTableName, // Must come before ExplorersTableName due to foreign key

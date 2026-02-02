@@ -103,6 +103,11 @@ export const denormalizeLatestCountryData = async (
     trx: db.KnexReadWriteTransaction,
     variableIds?: number[]
 ) => {
+    // If explicitly passed an empty array, there's nothing to denormalize
+    if (variableIds !== undefined && variableIds.length === 0) {
+        return
+    }
+
     const entities = (await trx
         .table("entities")
         .select("id", "code")
