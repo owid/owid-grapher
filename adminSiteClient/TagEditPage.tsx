@@ -186,7 +186,7 @@ class TagEditor extends Component<{
                             </small>
                         </div>
                         <Toggle
-                            label="Searchable in Algolia"
+                            label="Searchable in Algolia (must exist in tag graph)"
                             value={
                                 newtag.searchableInAlgolia ||
                                 this.slugMatchesPublishedTopicPage
