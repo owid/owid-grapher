@@ -194,6 +194,7 @@ export function enrichSeriesWithLabels<
         fontWeight: 300,
         lineHeight: 1,
     },
+    showProviderIcon,
 }: {
     series: readonly TSeries[]
     availableHeightPerSeries: number
@@ -201,6 +202,7 @@ export function enrichSeriesWithLabels<
     maxLabelWidth: number
     fontSettings: FontSettings
     annotationFontSettings?: FontSettings
+    showProviderIcon?: boolean
 }): (TSeries & { label: SeriesLabelState; annotationTextWrap?: TextWrap })[] {
     // Wrap labels and annotations to fit within the available space
     const wrappedLabels = series.map((series) => {
@@ -274,9 +276,21 @@ export function enrichSeriesWithLabels<
     if (!needsTruncation)
         return series.map((series, index) => ({
             ...series,
+<<<<<<< HEAD
             label: SeriesLabelState.fromTextWrap(
                 wrappedLabels[index].labelWrap
             ),
+||||||| parent of a5426d0900 (🎉 add provider info icons to EntityLabel)
+=======
+            label: SeriesLabelState.fromTextWrap(
+                wrappedLabels[index].labelWrap,
+                {
+                    fontWeight: fontSettings.fontWeight,
+                    lineHeight: fontSettings.lineHeight,
+                    showProviderIcon,
+                }
+            ),
+>>>>>>> a5426d0900 (🎉 add provider info icons to EntityLabel)
             annotationTextWrap: wrappedLabels[index].annotationWrap,
         }))
 
@@ -335,7 +349,16 @@ export function enrichSeriesWithLabels<
 
     return series.map((series, index) => ({
         ...series,
+<<<<<<< HEAD
         label: SeriesLabelState.fromTextWrap(truncatedLabels[index]),
+||||||| parent of a5426d0900 (🎉 add provider info icons to EntityLabel)
+=======
+        label: SeriesLabelState.fromTextWrap(truncatedLabels[index], {
+            fontWeight: fontSettings.fontWeight,
+            lineHeight: fontSettings.lineHeight,
+            showProviderIcon,
+        }),
+>>>>>>> a5426d0900 (🎉 add provider info icons to EntityLabel)
         annotationTextWrap: truncatedAnnotations[index],
     }))
 }

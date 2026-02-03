@@ -580,6 +580,7 @@ export class StackedAreaChart
                 fontSize={this.fontSize}
                 seriesNamesSortedByImportance={this.seriesSortedByImportance}
                 isStatic={this.isStatic}
+                showProviderIcons={true}
                 onMouseOver={this.onLineLegendMouseOver}
                 onMouseLeave={this.onLineLegendMouseLeave}
             />

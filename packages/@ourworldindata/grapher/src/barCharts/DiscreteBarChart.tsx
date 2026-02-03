@@ -143,6 +143,7 @@ export class DiscreteBarChart
             maxLabelWidth: 0.66 * this.bounds.width,
             fontSettings: this.entityLabelStyle,
             annotationFontSettings: this.entityAnnotationStyle,
+            showProviderIcon: true,
         })
     }
 

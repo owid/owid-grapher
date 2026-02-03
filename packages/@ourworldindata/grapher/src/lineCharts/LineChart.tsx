@@ -652,6 +652,7 @@ export class LineChart
                         fontSize={this.fontSize}
                         fontWeight={this.fontWeight}
                         isStatic={this.isStatic}
+                        showProviderIcons={true}
                         onMouseOver={this.onLineLegendMouseOver}
                         onMouseLeave={this.onLineLegendMouseLeave}
                         onClick={

@@ -72,6 +72,8 @@ interface LineLabelsProps {
     onClick?: (series: PlacedSeries) => void
     onMouseOver?: (series: PlacedSeries) => void
     onMouseLeave?: (series: PlacedSeries) => void
+    onProviderMouseEnter?: (seriesName: SeriesName) => void
+    onProviderMouseLeave?: () => void
 }
 
 @observer
@@ -139,7 +141,10 @@ class LineLabels extends React.Component<LineLabelsProps> {
 
     @computed private get textLabels(): React.ReactElement {
         return (
-            <g id={makeIdForHumanConsumption("text-labels")}>
+            <g
+                id={makeIdForHumanConsumption("text-labels")}
+                style={{ pointerEvents: "none" }}
+            >
                 {this.markers.map(({ series, labelText }, index) => {
                     return (
                         <Halo
@@ -166,6 +171,23 @@ class LineLabels extends React.Component<LineLabelsProps> {
                                 fill={darkenColorForText(series.color)}
                                 opacity={this.textOpacityForSeries(series)}
                                 textAnchor={this.anchor}
+<<<<<<< HEAD
+||||||| parent of a5426d0900 (🎉 add provider info icons to EntityLabel)
+                                id={makeIdForHumanConsumption(
+                                    "label",
+                                    series.seriesName
+                                )}
+=======
+                                isStatic={this.props.isStatic}
+                                onProviderMouseEnter={() =>
+                                    this.props.onProviderMouseEnter?.(
+                                        series.seriesName
+                                    )
+                                }
+                                onProviderMouseLeave={
+                                    this.props.onProviderMouseLeave
+                                }
+>>>>>>> a5426d0900 (🎉 add provider info icons to EntityLabel)
                             />
                         </Halo>
                     )
@@ -180,7 +202,10 @@ class LineLabels extends React.Component<LineLabelsProps> {
         )
         if (!markersWithAnnotations) return
         return (
-            <g id={makeIdForHumanConsumption("text-annotations")}>
+            <g
+                id={makeIdForHumanConsumption("text-annotations")}
+                style={{ pointerEvents: "none" }}
+            >
                 {markersWithAnnotations.map(({ series, labelText }, index) => {
                     if (!series.annotationTextWrap) return
                     return (
@@ -219,7 +244,10 @@ class LineLabels extends React.Component<LineLabelsProps> {
     @computed private get connectorLines(): React.ReactElement | undefined {
         if (!this.props.needsConnectorLines) return
         return (
-            <g id={makeIdForHumanConsumption("connectors")}>
+            <g
+                id={makeIdForHumanConsumption("connectors")}
+                style={{ pointerEvents: "none" }}
+            >
                 {this.markers.map(({ series, connectorLine }, index) => {
                     const { x1, x2 } = connectorLine
                     const {
@@ -288,10 +316,10 @@ class LineLabels extends React.Component<LineLabelsProps> {
     override render(): React.ReactElement {
         return (
             <>
+                {!this.props.isStatic && this.interactions}
                 {this.connectorLines}
                 {this.textAnnotations}
                 {this.textLabels}
-                {!this.props.isStatic && this.interactions}
             </>
         )
     }
@@ -313,6 +341,8 @@ export interface LineLegendProps {
     fontWeight?: number
     showTextOutlines?: boolean
     textOutlineColor?: Color
+    /** Show info icons for entity names with recognized provider suffixes (e.g., "Africa (WHO)") */
+    showProviderIcons?: boolean
 
     // used to determine which series should be labelled when there is limited space
     seriesNamesSortedByImportance?: SeriesName[]
@@ -342,34 +372,48 @@ export class LineLegend extends React.Component<LineLegendProps> {
         const test = new LineLegend(props)
         return test.stableWidth
     }
+    get stableWidth(): number {
+        return this.maxLabelWidth + DEFAULT_CONNECTOR_LINE_WIDTH + MARKER_MARGIN
+    }
 
     static width(props: LineLegendProps): number {
         const test = new LineLegend(props)
         return test.width
+    }
+    get width(): number {
+        return this.needsLines
+            ? this.stableWidth
+            : this.maxLabelWidth + MARKER_MARGIN
     }
 
     static fontSize(props: Partial<LineLegendProps>): number {
         const test = new LineLegend(props as LineLegendProps)
         return test.fontSize
     }
+    private get fontSize(): number {
+        return Math.floor(
+            GRAPHER_FONT_SCALE_12 * (this.props.fontSize ?? BASE_FONT_SIZE)
+        )
+    }
 
     static maxLevel(props: Partial<LineLegendProps>): number {
         const test = new LineLegend(props as LineLegendProps)
         return test.maxLevel
+    }
+    private get maxLevel(): number {
+        return _.max(this.placedSeries.map((series) => series.totalLevels)) ?? 0
     }
 
     static visibleSeriesNames(props: LineLegendProps): SeriesName[] {
         const test = new LineLegend(props as LineLegendProps)
         return test.visibleSeriesNames
     }
-
-    @computed private get fontSize(): number {
-        return Math.floor(
-            GRAPHER_FONT_SCALE_12 * (this.props.fontSize ?? BASE_FONT_SIZE)
-        )
+    get visibleSeriesNames(): SeriesName[] {
+        return this.visiblePlacedSeries.map((series) => series.seriesName)
     }
 
-    @computed private get fontWeight(): number {
+    @computed
+    private get fontWeight(): number {
         return this.props.fontWeight ?? DEFAULT_FONT_WEIGHT
     }
 
@@ -421,6 +465,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 formattedValue: series.formattedValue,
                 placeFormattedValueInNewLine:
                     series.placeFormattedValueInNewLine,
+                showProviderIcon: true,
             })
 
             const annotationTextWrap = this.makeAnnotationTextWrap(series)
@@ -444,17 +489,8 @@ export class LineLegend extends React.Component<LineLegendProps> {
         return _.max(sizedSeries.map((d) => d.width)) ?? 0
     }
 
-    @computed get stableWidth(): number {
-        return this.maxLabelWidth + DEFAULT_CONNECTOR_LINE_WIDTH + MARKER_MARGIN
-    }
-
-    @computed get width(): number {
-        return this.needsLines
-            ? this.stableWidth
-            : this.maxLabelWidth + MARKER_MARGIN
-    }
-
-    @computed get onMouseOver(): any {
+    @computed
+    get onMouseOver(): any {
         return this.props.onMouseOver ?? _.noop
     }
     @computed get onMouseLeave(): any {
@@ -643,21 +679,14 @@ export class LineLegend extends React.Component<LineLegendProps> {
         )
     }
 
-    @computed get visibleSeriesNames(): SeriesName[] {
-        return this.visiblePlacedSeries.map((series) => series.seriesName)
-    }
-
-    @computed get visibleSeriesHeight(): number {
+    @computed
+    get visibleSeriesHeight(): number {
         return this.computeHeight(this.visiblePlacedSeries)
     }
 
     // Does this placement need line markers or is the position of the labels already clear?
     @computed private get needsLines(): boolean {
         return this.placedSeries.some((series) => series.totalLevels > 1)
-    }
-
-    @computed private get maxLevel(): number {
-        return _.max(this.placedSeries.map((series) => series.totalLevels)) ?? 0
     }
 
     override render(): React.ReactElement {
@@ -680,6 +709,10 @@ export class LineLegend extends React.Component<LineLegendProps> {
                     onMouseLeave={(series): void =>
                         this.onMouseLeave(series.seriesName)
                     }
+                    onProviderMouseEnter={(seriesName): void =>
+                        this.onMouseOver(seriesName)
+                    }
+                    onProviderMouseLeave={(): void => this.onMouseLeave()}
                     cursor={this.props.onClick ? "pointer" : "default"}
                 />
             </g>

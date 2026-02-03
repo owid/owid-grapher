@@ -376,6 +376,7 @@ export class SlopeChart
             verticalAlign: VerticalAlign.top,
             showTextOutlines: true,
             textOutlineColor: this.backgroundColor,
+            showProviderIcons: true,
             onMouseOver: this.onLineLegendMouseOver,
             onMouseLeave: this.onLineLegendMouseLeave,
             onClick: this.canToggleFocusMode

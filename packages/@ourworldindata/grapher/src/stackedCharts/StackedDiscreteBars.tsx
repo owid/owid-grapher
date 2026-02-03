@@ -249,6 +249,7 @@ export class StackedDiscreteBars
             minLabelWidth: 0.3 * this.bounds.width,
             maxLabelWidth: 0.66 * this.bounds.width,
             fontSettings: this.labelStyle,
+            showProviderIcon: true,
         })
     }
 
