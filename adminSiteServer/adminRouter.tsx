@@ -29,6 +29,7 @@ import {
     getMultiDimDataPageBySlug,
 } from "../db/model/MultiDimDataPage.js"
 import { renderMultiDimDataPageFromConfig } from "../baker/MultiDimBaker.js"
+import { getPreviewCommentScript } from "./previewCommentScript.js"
 
 const adminRouter = Router()
 
@@ -138,17 +139,24 @@ getPlainRouteWithROTransaction(
         const variableMetadata = await getVariableMetadata(variableId)
         if (!variableMetadata) throw new JsonError("No such variable", 404)
 
-        res.send(
-            await renderDataPageV2(
-                {
-                    variableId,
-                    variableMetadata,
-                    isPreviewing: true,
-                    useIndicatorGrapherConfigs: true,
-                },
-                trx
-            )
+        let html = await renderDataPageV2(
+            {
+                variableId,
+                variableMetadata,
+                isPreviewing: true,
+                useIndicatorGrapherConfigs: true,
+            },
+            trx
         )
+
+        // Inject comment script if comments query param is present
+        if (req.query.comments === "true") {
+            const commentScript = getPreviewCommentScript(variableId)
+            // Inject before closing body tag
+            html = html.replace("</body>", `${commentScript}</body>`)
+        }
+
+        res.send(html)
     }
 )
 
@@ -200,13 +208,26 @@ getPlainRouteWithROTransaction(
                 onlyPublished: false,
             })) ?? (await getMultiDimDataPageByCatalogPath(trx, slug))
         if (mdd) {
-            const renderedPage = await renderMultiDimDataPageFromConfig({
+            let html = await renderMultiDimDataPageFromConfig({
                 knex: trx,
                 slug: mdd.slug,
                 config: mdd.config,
                 isPreviewing: true,
             })
-            res.send(renderedPage)
+
+            // Inject comment script if comments query param is present
+            if (req.query.comments === "true") {
+                const { getMultidimCommentScript } = await import(
+                    "./previewCommentScript.js"
+                )
+                const commentScript = getMultidimCommentScript(
+                    mdd.slug ?? slug,
+                    mdd.config.dimensions?.map((d) => d.slug) ?? []
+                )
+                html = html.replace("</body>", `${commentScript}</body>`)
+            }
+
+            res.send(html)
             return
         }
 

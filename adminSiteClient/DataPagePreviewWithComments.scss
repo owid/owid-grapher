@@ -1,0 +1,354 @@
+// Data Page Preview with Comments styles
+
+.DataPagePreviewWithComments {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 56px); // Account for admin header
+    background: #f5f5f5;
+}
+
+.datapage-preview-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: white;
+    border-bottom: 1px solid #e0e0e0;
+
+    h4 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+    }
+}
+
+.datapage-preview-header-info {
+    color: #666;
+    font-size: 14px;
+}
+
+.datapage-preview-header-actions {
+    display: flex;
+    gap: 8px;
+
+    .btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .badge {
+        font-size: 10px;
+        padding: 2px 6px;
+    }
+}
+
+.datapage-preview-content {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+
+    &.with-sidebar {
+        .datapage-preview-iframe-container {
+            width: calc(100% - 400px);
+        }
+    }
+}
+
+.datapage-preview-iframe-container {
+    flex: 1;
+    width: 100%;
+    transition: width 0.2s ease;
+}
+
+.datapage-preview-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: white;
+}
+
+.datapage-preview-sidebar {
+    width: 400px;
+    background: white;
+    border-left: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.datapage-preview-sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid #e0e0e0;
+    background: #f8f9fa;
+
+    h5 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+        color: #333;
+
+        svg {
+            margin-right: 8px;
+            color: #002147;
+        }
+    }
+
+    .btn-link {
+        color: #666;
+        padding: 4px 8px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        font-size: 16px;
+
+        &:hover {
+            color: #333;
+        }
+    }
+}
+
+.datapage-preview-sidebar-controls {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e0e0e0;
+    background: #fafafa;
+}
+
+.datapage-preview-sidebar-filter {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e0e0e0;
+    background: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.datapage-comment-field-select {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    label {
+        font-size: 12px;
+        font-weight: 500;
+        color: #555;
+    }
+
+    select {
+        padding: 8px 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 13px;
+        background: white;
+
+        &:focus {
+            outline: none;
+            border-color: #002147;
+        }
+    }
+}
+
+.datapage-comment-show-resolved {
+    font-size: 13px;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+
+    input[type="checkbox"] {
+        margin: 0;
+    }
+}
+
+.datapage-preview-sidebar-new {
+    padding: 16px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.datapage-comment-form {
+    textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 14px;
+        resize: vertical;
+        min-height: 80px;
+        font-family: inherit;
+
+        &:focus {
+            outline: none;
+            border-color: #002147;
+        }
+
+        &:disabled {
+            background: #f5f5f5;
+        }
+    }
+}
+
+.datapage-comment-form-field-indicator {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 8px;
+    padding: 6px 10px;
+    background: #e9ecef;
+    border-radius: 4px;
+
+    strong {
+        color: #333;
+    }
+}
+
+.datapage-comment-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 10px;
+
+    .btn {
+        padding: 6px 14px;
+        border-radius: 4px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+
+        &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    }
+
+    .btn-primary {
+        background: #002147;
+        color: white;
+
+        &:hover:not(:disabled) {
+            background: #003366;
+        }
+    }
+}
+
+.datapage-preview-sidebar-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+.datapage-comment-loading,
+.datapage-comment-error,
+.datapage-comment-empty {
+    text-align: center;
+    padding: 24px;
+    color: #666;
+    font-size: 14px;
+
+    svg {
+        margin-right: 8px;
+    }
+}
+
+.datapage-comment-error {
+    color: #dc3545;
+}
+
+.datapage-comment-item {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+
+    &.resolved {
+        background: #f0f8f0;
+        opacity: 0.8;
+    }
+}
+
+.datapage-comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.datapage-comment-author {
+    font-weight: 600;
+    font-size: 13px;
+    color: #333;
+}
+
+.datapage-comment-time {
+    font-size: 12px;
+    color: #888;
+}
+
+.datapage-comment-field {
+    margin-bottom: 6px;
+
+    small {
+        font-size: 11px;
+        color: #666;
+        background: #e9ecef;
+        padding: 2px 6px;
+        border-radius: 3px;
+    }
+}
+
+.datapage-comment-content {
+    font-size: 14px;
+    color: #333;
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+.datapage-comment-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #e0e0e0;
+
+    .btn-link {
+        color: #666;
+        font-size: 12px;
+        padding: 4px 8px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+
+        &:hover {
+            color: #002147;
+        }
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        &.text-danger {
+            color: #dc3545;
+
+            &:hover {
+                color: #b02a37;
+            }
+        }
+    }
+}
+
+.datapage-comment-resolved-by {
+    margin-top: 8px;
+
+    small {
+        font-size: 11px;
+        color: #28a745;
+        font-style: italic;
+    }
+}

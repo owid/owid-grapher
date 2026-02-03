@@ -55,6 +55,7 @@ import { DodsIndexPage } from "./DodsIndexPage.js"
 import { StaticVizIndexPage } from "./StaticVizIndexPage.js"
 import { StaticVizEditPage } from "./StaticVizEditPage.js"
 import { CreateMultidimChartPage } from "./CreateMultidimChartPage.js"
+import { DataPagePreviewWithComments } from "./DataPagePreviewWithComments.js"
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -316,6 +317,17 @@ export class AdminApp extends React.Component<{
                                     path="/variables/:variableId/config"
                                     render={({ match }) => (
                                         <IndicatorChartEditorPage
+                                            variableId={parseInt(
+                                                match.params.variableId
+                                            )}
+                                        />
+                                    )}
+                                />
+                                <Route
+                                    exact
+                                    path="/variables/:variableId/preview-with-comments"
+                                    render={({ match }) => (
+                                        <DataPagePreviewWithComments
                                             variableId={parseInt(
                                                 match.params.variableId
                                             )}

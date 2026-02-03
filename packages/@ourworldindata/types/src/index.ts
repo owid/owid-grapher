@@ -804,6 +804,19 @@ export {
 } from "./dbTypes/Users.js"
 
 export {
+    CommentsTableName,
+    type CommentTargetType,
+    type DbInsertComment,
+    type DbRawComment,
+    type DbEnrichedComment,
+    type DbCommentWithUser,
+    parseCommentViewState,
+    serializeCommentViewState,
+    parseCommentsRow,
+    serializeCommentsRow,
+} from "./dbTypes/Comments.js"
+
+export {
     type DbRawVariable,
     type DbEnrichedVariable,
     type DbInsertVariable,

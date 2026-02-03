@@ -55,6 +55,7 @@ import { EditorMarimekkoTab } from "./EditorMarimekkoTab.js"
 import { EditorExportTab } from "./EditorExportTab.js"
 import { runDetailsOnDemand } from "../site/detailsOnDemand.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import { CommentSidebar, CommentToggleButton } from "./CommentSidebar.js"
 import {
     ErrorMessages,
     ErrorMessagesForDimensions,
@@ -160,11 +161,12 @@ export class ChartEditorView<
     constructor(props: ChartEditorViewProps<Editor>) {
         super(props)
 
-        makeObservable<ChartEditorView<Editor>, "_isDbSet">(this, {
+        makeObservable<ChartEditorView<Editor>, "_isDbSet" | "isCommentSidebarOpen">(this, {
             database: observable.ref,
             details: observable,
             simulateVisionDeficiency: observable,
             _isDbSet: observable,
+            isCommentSidebarOpen: observable,
         })
     }
 
@@ -173,6 +175,11 @@ export class ChartEditorView<
     }
 
     simulateVisionDeficiency: VisionDeficiency | undefined = undefined
+    isCommentSidebarOpen = false
+
+    @action.bound toggleCommentSidebar(): void {
+        this.isCommentSidebarOpen = !this.isCommentSidebarOpen
+    }
 
     @computed private get manager(): ChartEditorViewManager<Editor> {
         return this.props.manager
@@ -661,7 +668,25 @@ export class ChartEditorView<
 
                     {/* Include svg filters necessary for vision deficiency emulation */}
                     <VisionDeficiencySvgFilters />
+
+                    {/* Comment toggle button */}
+                    <div style={{ marginTop: 15 }}>
+                        <CommentToggleButton
+                            onClick={this.toggleCommentSidebar}
+                        />
+                    </div>
                 </div>
+
+                {/* Comment sidebar */}
+                {grapherState.id && (
+                    <CommentSidebar
+                        admin={this.manager.admin}
+                        targetType="chart"
+                        targetId={String(grapherState.id)}
+                        isOpen={this.isCommentSidebarOpen}
+                        onClose={this.toggleCommentSidebar}
+                    />
+                )}
             </>
         )
     }
