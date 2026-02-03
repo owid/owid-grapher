@@ -6,7 +6,7 @@ import {
     makeIdForHumanConsumption,
     excludeUndefined,
 } from "@ourworldindata/utils"
-import { TextWrap, Halo } from "@ourworldindata/components"
+import { Halo } from "@ourworldindata/components"
 import { EntityLabel } from "../entityLabel/EntityLabel.js"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -31,7 +31,6 @@ import {
     findSeriesThatFitIntoTheAvailableSpace,
 } from "./LineLegendFilterAlgorithms.js"
 import {
-    ANNOTATION_PADDING,
     DEFAULT_CONNECTOR_LINE_WIDTH,
     DEFAULT_FONT_WEIGHT,
     LEGEND_ITEM_MIN_SPACING,
@@ -181,51 +180,6 @@ class LineLabels extends React.Component<LineLabelsProps> {
         )
     }
 
-    @computed private get textAnnotations(): React.ReactElement | undefined {
-        const markersWithAnnotations = this.markers.filter(
-            ({ series }) => series.annotationTextWrap !== undefined
-        )
-        if (!markersWithAnnotations) return
-        return (
-            <g
-                id={makeIdForHumanConsumption("text-annotations")}
-                style={{ pointerEvents: "none" }}
-            >
-                {markersWithAnnotations.map(({ series, labelText }, index) => {
-                    if (!series.annotationTextWrap) return
-                    return (
-                        <Halo
-                            id={series.seriesName}
-                            key={getSeriesKey(series, index)}
-                            show={this.showTextOutline}
-                            outlineWidth={
-                                GRAPHER_TEXT_OUTLINE_FACTOR *
-                                series.annotationTextWrap.fontSize
-                            }
-                            outlineColor={this.textOutlineColor}
-                        >
-                            {series.annotationTextWrap.renderSVG(
-                                labelText.x,
-                                labelText.y +
-                                    series.textWrap.height +
-                                    ANNOTATION_PADDING,
-                                {
-                                    textProps: {
-                                        fill: "#333",
-                                        opacity:
-                                            this.textOpacityForSeries(series),
-                                        textAnchor: this.anchor,
-                                        style: { fontWeight: 300 },
-                                    },
-                                }
-                            )}
-                        </Halo>
-                    )
-                })}
-            </g>
-        )
-    }
-
     @computed private get connectorLines(): React.ReactElement | undefined {
         if (!this.props.needsConnectorLines) return
         return (
@@ -307,7 +261,6 @@ class LineLabels extends React.Component<LineLabelsProps> {
             <>
                 {!this.props.isStatic && this.interactions}
                 {this.connectorLines}
-                {this.textAnnotations}
                 {this.textLabels}
             </>
         )
@@ -416,6 +369,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
         // - Simple entity names
         // - Entity names with provider suffixes (shows info icon)
         // - Formatted values with proper wrapping behavior
+        // - Annotations (rendered below the label)
         return new EntityLabel({
             entityName: series.label,
             maxWidth: this.textMaxWidth,
@@ -426,23 +380,11 @@ export class LineLegend extends React.Component<LineLegendProps> {
             formattedValue: series.formattedValue,
             formattedValueFontWeight: fontWeights?.value,
             placeFormattedValueInNewLine: series.placeFormattedValueInNewLine,
+            annotation: series.annotation,
             // Connect provider suffix hover to line legend hover behavior
             onProviderMouseEnter: () =>
                 this.props.onMouseOver?.(series.seriesName),
             onProviderMouseLeave: () => this.props.onMouseLeave?.(),
-        })
-    }
-
-    private makeAnnotationTextWrap(
-        series: LineLabelSeries
-    ): TextWrap | undefined {
-        if (!series.annotation) return undefined
-        const maxWidth = Math.min(this.textMaxWidth, 150)
-        return new TextWrap({
-            text: series.annotation,
-            maxWidth,
-            fontSize: this.fontSize * 0.9,
-            lineHeight: 1,
         })
     }
 
@@ -459,18 +401,13 @@ export class LineLegend extends React.Component<LineLegendProps> {
             const fontWeights = { label: fontWeight, value: 400 }
             const textWrap = this.makeLabelTextWrap(series, { fontWeights })
 
-            const annotationTextWrap = this.makeAnnotationTextWrap(series)
-            const annotationWidth = annotationTextWrap?.width ?? 0
-            const annotationHeight = annotationTextWrap
-                ? ANNOTATION_PADDING + annotationTextWrap.height
-                : 0
-
+            // EntityLabel handles annotation layout internally,
+            // so width/height include annotation dimensions
             return {
                 ...series,
                 textWrap,
-                annotationTextWrap,
-                width: Math.max(textWrap.width, annotationWidth),
-                height: textWrap.height + annotationHeight,
+                width: textWrap.width,
+                height: textWrap.height,
             }
         })
     }

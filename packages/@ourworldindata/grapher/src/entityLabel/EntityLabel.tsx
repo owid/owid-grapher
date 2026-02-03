@@ -11,6 +11,7 @@ import {
 } from "./ProviderInfo.js"
 
 const INFO_ICON_SIZE_FACTOR = 0.9 // Relative to font size
+const ANNOTATION_PADDING = 1 // Space between label and annotation
 
 export interface EntityLabelProps {
     entityName: string
@@ -32,6 +33,13 @@ export interface EntityLabelProps {
     /** If true, always place the formatted value on a new line */
     placeFormattedValueInNewLine?: boolean
 
+    /** Optional annotation text rendered below the label */
+    annotation?: string
+    /** Font size for annotation (default: fontSize * 0.9) */
+    annotationFontSize?: number
+    /** Font weight for annotation (default: 300) */
+    annotationFontWeight?: number
+
     /** Called when mouse enters the provider suffix area */
     onProviderMouseEnter?: (seriesName: string) => void
     /** Called when mouse leaves the provider suffix area */
@@ -45,7 +53,7 @@ export interface EntityLabelProps {
 
 /**
  * EntityLabel renders an entity name with optional provider info icon, tooltip,
- * and formatted value.
+ * formatted value, and annotation.
  *
  * For entity names with recognized provider suffixes like "Africa (WHO)", it:
  * - Displays the provider suffix in muted (gray) text
@@ -56,6 +64,9 @@ export interface EntityLabelProps {
  * - Displays: "Africa (WHO ⓘ) 1,234"
  * - Value wraps to new line if it doesn't fit
  * - placeFormattedValueInNewLine forces value to always be on new line
+ *
+ * When an annotation is provided:
+ * - Renders below all other content with smaller, lighter text
  */
 @observer
 export class EntityLabel extends React.Component<EntityLabelProps> {
@@ -120,6 +131,19 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
         return {
             fontSize: this.props.fontSize,
             fontWeight: this.props.formattedValueFontWeight,
+            fontFamily: this.props.fontFamily,
+        }
+    }
+
+    @computed private get annotationFontSettings(): {
+        fontSize: number
+        fontWeight: number
+        fontFamily?: FontFamily
+    } {
+        return {
+            fontSize:
+                this.props.annotationFontSize ?? this.props.fontSize * 0.9,
+            fontWeight: this.props.annotationFontWeight ?? 300,
             fontFamily: this.props.fontFamily,
         }
     }
@@ -263,6 +287,22 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
     }
 
     /**
+     * TextWrap for the annotation (if provided)
+     */
+    @computed private get annotationTextWrap(): TextWrap | undefined {
+        if (!this.props.annotation) return undefined
+
+        return new TextWrap({
+            text: this.props.annotation,
+            maxWidth: this.props.maxWidth,
+            fontSize: this.annotationFontSettings.fontSize,
+            fontWeight: this.annotationFontSettings.fontWeight,
+            fontFamily: this.annotationFontSettings.fontFamily,
+            lineHeight: this.lineHeight,
+        })
+    }
+
+    /**
      * Get the position where the suffix should be rendered
      */
     @computed private get suffixPosition():
@@ -309,10 +349,39 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
         }
     }
 
+    /**
+     * Height of the main content (text + suffix + value) without annotation
+     */
+    @computed private get mainContentHeight(): number {
+        let height = this.mainTextWrap.height
+        if (this.valueOnNewLine && this.props.formattedValue) {
+            height += this.singleLineHeight
+        }
+        return height
+    }
+
+    /**
+     * Get the position where the annotation should be rendered
+     */
+    @computed private get annotationPosition():
+        | { x: number; y: number }
+        | undefined {
+        if (!this.annotationTextWrap) return undefined
+
+        return {
+            x: 0,
+            y: this.mainContentHeight + ANNOTATION_PADDING,
+        }
+    }
+
     @computed get width(): number {
         const mainWidth = this.mainTextWrap.width
 
-        if (!this.shouldShowIcon && !this.props.formattedValue) {
+        if (
+            !this.shouldShowIcon &&
+            !this.props.formattedValue &&
+            !this.annotationTextWrap
+        ) {
             return mainWidth
         }
 
@@ -330,14 +399,24 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
         // If value is on new line, also consider its width
         const valueLineWidth = this.valueOnNewLine ? this.valueWidth : 0
 
-        return Math.max(mainWidth, lastLineWidth, valueLineWidth)
+        // Consider annotation width
+        const annotationWidth = this.annotationTextWrap?.width ?? 0
+
+        return Math.max(
+            mainWidth,
+            lastLineWidth,
+            valueLineWidth,
+            annotationWidth
+        )
     }
 
     @computed get height(): number {
-        let height = this.mainTextWrap.height
-        if (this.valueOnNewLine && this.props.formattedValue) {
-            height += this.singleLineHeight
+        let height = this.mainContentHeight
+
+        if (this.annotationTextWrap) {
+            height += ANNOTATION_PADDING + this.annotationTextWrap.height
         }
+
         return height
     }
 
@@ -455,6 +534,25 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
         )
     }
 
+    private renderAnnotation(
+        baseX: number,
+        baseY: number,
+        textProps?: React.SVGProps<SVGTextElement>
+    ): React.ReactElement | null {
+        const { annotationTextWrap, annotationPosition } = this
+        if (!annotationTextWrap || !annotationPosition) return null
+
+        const x = baseX + annotationPosition.x
+        const y = baseY + annotationPosition.y
+
+        return annotationTextWrap.renderSVG(x, y, {
+            textProps: {
+                ...textProps,
+                className: "entity-label__text--muted",
+            },
+        })
+    }
+
     /**
      * Render an invisible hit area over the info icon for hover interactions.
      */
@@ -525,6 +623,7 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
                 {this.renderMainText(x, y, options?.textProps)}
                 {this.renderProviderSuffix(x, y)}
                 {this.renderFormattedValue(x, y, options?.textProps)}
+                {this.renderAnnotation(x, y, options?.textProps)}
                 {showInteraction && this.renderIconHitArea(x, y)}
             </g>
         )
