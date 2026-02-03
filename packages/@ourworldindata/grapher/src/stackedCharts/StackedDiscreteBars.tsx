@@ -53,6 +53,7 @@ import { HashMap, NodeGroup } from "react-move"
 import { easeQuadOut } from "d3-ease"
 import { StackedDiscreteBarChartState } from "./StackedDiscreteBarChartState"
 import { enrichSeriesWithLabels } from "../barCharts/DiscreteBarChartHelpers.js"
+import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
 
 const BAR_SPACING_FACTOR = 0.35
 
@@ -372,19 +373,17 @@ export class StackedDiscreteBars
                         onMouseLeave={this.onEntityMouseLeave}
                     />
                 ))}
-                {label.renderSVG(
-                    yAxis.place(this.x0) - labelToBarPadding,
-                    -label.height / 2,
-                    {
-                        textProps: {
-                            textAnchor: "end",
-                            fill: "#555",
-                            onMouseEnter: (): void =>
-                                this.onEntityMouseEnter(label.text),
-                            onMouseLeave: this.onEntityMouseLeave,
-                        },
+                <SeriesLabel
+                    state={label}
+                    x={yAxis.place(this.x0) - labelToBarPadding}
+                    y={-label.height / 2}
+                    textAnchor="end"
+                    fill="#555"
+                    onMouseEnter={(): void =>
+                        this.onEntityMouseEnter(label.text)
                     }
-                )}
+                    onMouseLeave={this.onEntityMouseLeave}
+                />
                 {this.showTotalValueLabel && (
                     <text
                         transform={`translate(${

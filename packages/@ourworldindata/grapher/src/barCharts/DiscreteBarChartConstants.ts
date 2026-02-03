@@ -4,6 +4,7 @@ import { ChartSeries } from "../chart/ChartInterface"
 import { Color, CoreValueType, Time } from "@ourworldindata/types"
 import { TextWrap } from "@ourworldindata/components"
 import { InteractionState } from "../interaction/InteractionState.js"
+import { SeriesLabelState } from "../seriesLabel/SeriesLabelState.js"
 
 export interface DiscreteBarSeries extends ChartSeries {
     entityName: string
@@ -17,7 +18,7 @@ export interface DiscreteBarSeries extends ChartSeries {
 }
 
 export interface SizedDiscreteBarSeries extends DiscreteBarSeries {
-    label: TextWrap
+    label: SeriesLabelState
     annotationTextWrap?: TextWrap
 }
 
@@ -48,12 +49,6 @@ export interface DiscreteBarItem {
     time: number
     colorValue?: CoreValueType
     color?: Color
-}
-
-export interface FontSettings {
-    fontSize: number
-    fontWeight: number
-    lineHeight: number
 }
 
 export const BACKGROUND_COLOR = "#fff"

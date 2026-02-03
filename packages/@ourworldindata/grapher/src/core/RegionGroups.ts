@@ -147,7 +147,7 @@ export function groupEntitiesByRegionType(
 
     const entitiesByProvider = new Map<AnyRegionDataProvider, EntityName[]>()
     for (const entityName of availableEntityNames) {
-        const parsedEntityName = parseEntityName(entityName)
+        const parsedEntityName = parseLabelWithSuffix(entityName)
         if (parsedEntityName.type === "regionWithProviderSuffix") {
             const providerKey = parsedEntityName.providerKey
             if (!entitiesByProvider.get(providerKey))
@@ -171,7 +171,7 @@ export function groupEntitiesByRegionType(
     return entitiesByRegionGroup
 }
 
-type ParsedEntityName =
+export type ParsedLabel =
     | { type: "plain"; name: string; suffix?: string }
     | {
           type: "regionWithProviderSuffix"
@@ -180,7 +180,7 @@ type ParsedEntityName =
           providerKey: AnyRegionDataProvider
       }
 
-export function parseEntityName(entityName: string): ParsedEntityName {
+export function parseLabelWithSuffix(entityName: string): ParsedLabel {
     const match = entityName.match(/^(.+)\s+\(([^)]+)\)$/)
     if (!match) return { type: "plain", name: entityName }
 
@@ -190,7 +190,7 @@ export function parseEntityName(entityName: string): ParsedEntityName {
 
     const providerKey = toProviderKey(suffix)
     if (!providerKey || !isRegionDataProviderKey(providerKey))
-        return { type: "plain", name: entityName, suffix }
+        return { type: "plain", name, suffix }
 
     return {
         type: "regionWithProviderSuffix",

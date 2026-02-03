@@ -173,3 +173,9 @@ export const CHART_TYPES_THAT_SHOW_ALL_ENTITIES: GrapherChartType[] = [
     GRAPHER_CHART_TYPES.ScatterPlot,
     GRAPHER_CHART_TYPES.Marimekko,
 ]
+
+export interface FontSettings {
+    fontSize: number
+    fontWeight: number
+    lineHeight: number
+}
