@@ -91,7 +91,7 @@ export default function MultiDim({
     })
     // We want to preserve the grapher tab when switching between views, except
     // when the switch happens via a guided chart link.
-    const [shouldPreserveTab, setShouldPreserveTab] = useState(false)
+    const [shouldPreserveTab, setShouldPreserveTab] = useState(true)
     const [additionalQueryParams, setAdditionalQueryParams] =
         useState<GrapherQueryParams | null>(null)
 
