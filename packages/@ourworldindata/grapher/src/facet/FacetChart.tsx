@@ -63,12 +63,16 @@ import {
     ColorScaleBin,
     NumericBin,
 } from "../color/ColorScaleBin"
-import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import { FocusArray } from "../focus/FocusArray"
 import {
     LegendInteractionState,
     LegendStyleConfig,
 } from "../legend/LegendInteractionState"
+import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
+import {
+    SeriesLabelState,
+    SeriesLabelStateOptions,
+} from "../seriesLabel/SeriesLabelState.js"
 
 const SHARED_X_AXIS_MIN_FACET_COUNT = 12
 
@@ -171,14 +175,17 @@ export class FacetChart
         return isNumericLegend ? 1.5 * fontSize : 0.875 * fontSize
     }
 
+    @computed private get labelPadding(): number {
+        return getLabelPadding(this.facetFontSize)
+    }
+
     @computed private get facetsContainerBounds(): Bounds {
         const legendHeightWithPadding =
             this.showLegend && this.legend.height > 0
                 ? this.legend.height + this.legendPadding
                 : 0
-        return this.bounds.padTop(
-            legendHeightWithPadding + 1.25 * this.facetFontSize
-        )
+        const labelSpace = this.facetFontSize + this.labelPadding
+        return this.bounds.padTop(legendHeightWithPadding + labelSpace)
     }
 
     @computed get fontSize(): number {
@@ -849,14 +856,13 @@ export class FacetChart
      */
     private shrinkAndShortenFacetLabel(
         label: string,
-        availableWidth: number,
-        baseFontSize: number // font size to use when we're not shrinking
+        availableWidth: number
     ): { fontSize: number; shortenedLabel: string } {
+        const { fontSize: baseFontSize, fontWeight } = this.facetLabelSettings
+
         // How much width would we need if we were to render the text at font size 1?
         // We calculate this to compute the ideal font size from the available width.
-        const textBounds = Bounds.forText(label, {
-            fontSize: 1,
-        })
+        const textBounds = Bounds.forText(label, { fontSize: 1, fontWeight })
         const idealFontSize = availableWidth / textBounds.width
 
         // Clamp the ideal font size: 0.7 * baseFontSize <= fontSize <= baseFontSize
@@ -866,10 +872,23 @@ export class FacetChart
         )
 
         if (fontSize > idealFontSize) {
-            label = shortenWithEllipsis(label, availableWidth, { fontSize })
+            label = shortenWithEllipsis(label, availableWidth, {
+                fontSize,
+                fontWeight,
+            })
         }
 
         return { fontSize, shortenedLabel: label }
+    }
+
+    @computed
+    private get facetLabelSettings(): Omit<SeriesLabelStateOptions, "text"> {
+        return {
+            maxWidth: Infinity, // Facet labels never wrap
+            fontWeight: 700,
+            fontSize: this.facetFontSize,
+            showRegionProviderTooltip: !this.manager.isStatic,
+        }
     }
 
     override componentDidMount(): void {
@@ -877,33 +896,55 @@ export class FacetChart
     }
 
     override render(): React.ReactElement {
-        const { facetFontSize, LegendClass, showLegend } = this
+        const { labelPadding, facetLabelSettings, LegendClass, showLegend } =
+            this
         return (
             <React.Fragment>
                 {showLegend && <LegendClass manager={this} />}
                 {this.placedSeries.map((facetChart, index: number) => {
                     const { bounds, contentBounds, seriesName } = facetChart
-                    const labelPadding = getLabelPadding(facetFontSize)
 
-                    const { fontSize, shortenedLabel } =
+                    let { fontSize: shrunkFontSize, shortenedLabel } =
                         this.shrinkAndShortenFacetLabel(
                             seriesName,
-                            contentBounds.width,
-                            facetFontSize
+                            contentBounds.width
                         )
+
+                    let seriesLabelState = new SeriesLabelState({
+                        text: shortenedLabel,
+                        ...facetLabelSettings,
+                        fontSize: shrunkFontSize,
+                    })
+
+                    // If the info icon causes overflow, shorten the label
+                    // (which also removes the icon because the suffix gets truncated)
+                    if (seriesLabelState.width > contentBounds.width) {
+                        shortenedLabel = shortenWithEllipsis(
+                            seriesName,
+                            contentBounds.width,
+                            {
+                                fontSize: shrunkFontSize,
+                                fontWeight: facetLabelSettings.fontWeight,
+                            }
+                        )
+                        seriesLabelState = new SeriesLabelState({
+                            text: shortenedLabel,
+                            ...facetLabelSettings,
+                            fontSize: shrunkFontSize,
+                        })
+                    }
 
                     return (
                         <React.Fragment key={index}>
-                            <text
+                            <SeriesLabel
+                                state={seriesLabelState}
                                 x={contentBounds.x}
-                                y={contentBounds.top - labelPadding}
-                                fill={GRAPHER_DARK_TEXT}
-                                fontSize={fontSize}
-                                style={{ fontWeight: 700 }}
-                            >
-                                {shortenedLabel}
-                                <title>{seriesName}</title>
-                            </text>
+                                y={
+                                    contentBounds.top -
+                                    seriesLabelState.height -
+                                    labelPadding
+                                }
+                            />
                             <g id={makeIdForHumanConsumption(seriesName)}>
                                 <ChartComponent
                                     manager={facetChart.manager}

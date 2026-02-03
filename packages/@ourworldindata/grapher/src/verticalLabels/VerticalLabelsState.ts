@@ -1,5 +1,5 @@
 import * as R from "remeda"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { Bounds, RequiredBy, VerticalAlign } from "@ourworldindata/utils"
 import { TextWrap } from "@ourworldindata/components"
 
@@ -65,6 +65,7 @@ export class VerticalLabelsState {
     ) {
         this.initialSeries = series
         this.initialOptions = options
+        makeObservable(this)
     }
 
     @computed private get options(): RequiredBy<

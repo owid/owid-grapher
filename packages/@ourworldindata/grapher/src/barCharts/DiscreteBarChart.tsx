@@ -19,6 +19,7 @@ import {
     GRAPHER_FONT_SCALE_12,
     GRAPHER_AREA_OPACITY_DEFAULT,
     GRAPHER_AREA_OPACITY_MUTE,
+    FontSettings,
 } from "../core/GrapherConstants"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { HorizontalAxisZeroLine } from "../axis/AxisViews"
@@ -28,7 +29,6 @@ import {
     BAR_SPACING_FACTOR,
     DiscreteBarChartManager,
     DiscreteBarSeries,
-    FontSettings,
     PlacedDiscreteBarSeries,
     SizedDiscreteBarSeries,
 } from "./DiscreteBarChartConstants"
@@ -43,6 +43,7 @@ import {
     makeProjectedDataPatternId,
     enrichSeriesWithLabels,
 } from "./DiscreteBarChartHelpers"
+import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
 import { OwidTable } from "@ourworldindata/core-table"
 import { HorizontalAxis } from "../axis/Axis"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
@@ -142,6 +143,7 @@ export class DiscreteBarChart
             maxLabelWidth: 0.66 * this.bounds.width,
             fontSettings: this.entityLabelStyle,
             annotationFontSettings: this.entityAnnotationStyle,
+            showRegionProviderTooltip: !this.manager.isStatic,
         })
     }
 
@@ -413,15 +415,16 @@ export class DiscreteBarChart
     }): React.ReactElement | null {
         if (!series.label) return null
 
-        return series.label.renderSVG(series.entityLabelX, barY + labelY, {
-            textProps: {
-                fill: "#555",
-                textAnchor: "end",
-                opacity: series.focus.background
-                    ? GRAPHER_AREA_OPACITY_MUTE
-                    : 1,
-            },
-        })
+        const opacity = series.focus.background ? GRAPHER_AREA_OPACITY_MUTE : 1
+
+        return (
+            <SeriesLabel
+                state={series.label}
+                x={series.entityLabelX}
+                y={barY + labelY}
+                opacity={opacity}
+            />
+        )
     }
 
     private renderEntityAnnotation({

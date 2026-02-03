@@ -1,4 +1,5 @@
-import { MarkdownTextWrap, TextWrap } from "@ourworldindata/components"
+import { TextWrap } from "@ourworldindata/components"
+import { SeriesLabelState } from "../seriesLabel/SeriesLabelState.js"
 import { Bounds } from "@ourworldindata/utils"
 import { ChartSeries } from "../chart/ChartInterface"
 import { InteractionState } from "../interaction/InteractionState"
@@ -15,7 +16,7 @@ export interface LineLabelSeries extends ChartSeries {
 }
 
 export interface SizedSeries extends LineLabelSeries {
-    textWrap: TextWrap | MarkdownTextWrap
+    seriesLabel: SeriesLabelState
     annotationTextWrap?: TextWrap
     width: number
     height: number

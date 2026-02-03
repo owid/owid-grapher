@@ -448,7 +448,7 @@ export class LineChart
     private lineLegendHoveredSeriesName: SeriesName | undefined = undefined
     private hoverTimer: number | undefined = undefined
 
-    @action.bound private onLineLegendMouseOver(seriesName: SeriesName): void {
+    @action.bound private onLineLegendMouseEnter(seriesName: SeriesName): void {
         clearTimeout(this.hoverTimer)
         this.lineLegendHoveredSeriesName = seriesName
     }
@@ -643,7 +643,7 @@ export class LineChart
                         fontSize={this.fontSize}
                         fontWeight={this.fontWeight}
                         isStatic={this.isStatic}
-                        onMouseOver={this.onLineLegendMouseOver}
+                        onMouseEnter={this.onLineLegendMouseEnter}
                         onMouseLeave={this.onLineLegendMouseLeave}
                     />
                 )}
