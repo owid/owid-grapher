@@ -24,10 +24,10 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     //     cssUrl: "/assets/bespoke/my-widget.css",
     // },
     test: {
-        scriptUrl: "http://localhost:5173/admin/main.tsx",
+        scriptUrl:
+            "https://owid-public.owid.io/marcel-bespoke-data-viz-02-2026/poverty-plots/income-plots.mjs",
         cssUrls: [
-            "http://localhost:5173/admin/styles.css",
-            "http://localhost:5173/admin/controls.scss",
+            "https://owid-public.owid.io/marcel-bespoke-data-viz-02-2026/poverty-plots/income-plots.css",
         ],
     },
 }
