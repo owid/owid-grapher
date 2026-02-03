@@ -789,35 +789,6 @@ body.comment-mode-active .key-info__key-description .owid-comment-icon {
     box-sizing: border-box;
 }
 .owid-comment-popover-form textarea:focus { outline: none; border-color: #002147; }
-.owid-comment-scope-toggle {
-    display: flex;
-    gap: 8px;
-    margin: 10px 0;
-}
-.owid-comment-scope-option {
-    flex: 1;
-    padding: 8px 10px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    background: white;
-    cursor: pointer;
-    font-size: 12px;
-    text-align: center;
-    transition: all 0.15s;
-}
-.owid-comment-scope-option:hover {
-    border-color: #002147;
-}
-.owid-comment-scope-option.selected {
-    background: #002147;
-    color: white;
-    border-color: #002147;
-}
-.owid-comment-scope-option .scope-icon {
-    display: block;
-    font-size: 16px;
-    margin-bottom: 2px;
-}
 .owid-comment-popover-submit {
     margin-top: 8px;
     background: #002147;
@@ -1231,16 +1202,6 @@ body.comment-mode-active .key-data:hover {
             </div>
             <div class="owid-comment-popover-list"></div>
             <form class="owid-comment-popover-form">
-                <div class="owid-comment-scope-toggle">
-                    <button type="button" class="owid-comment-scope-option selected" data-scope="this-view">
-                        <span class="scope-icon">📊</span>
-                        This view only
-                    </button>
-                    <button type="button" class="owid-comment-scope-option" data-scope="all">
-                        <span class="scope-icon">🌐</span>
-                        All views
-                    </button>
-                </div>
                 <textarea placeholder="Add a comment..." rows="2"></textarea>
                 <button type="submit" class="owid-comment-popover-submit">Add Comment</button>
             </form>
@@ -1253,24 +1214,16 @@ body.comment-mode-active .key-data:hover {
 
         popover.querySelector('.owid-comment-popover-close').addEventListener('click', closePopover);
 
-        // Tab switching
+        // Tab switching - also determines scope for new comments
         popover.querySelectorAll('.owid-comment-popover-tab').forEach(tab => {
             tab.addEventListener('click', () => {
                 activeTab = tab.dataset.tab;
+                // Use active tab to determine comment scope
+                commentScope = activeTab === 'this-view' ? 'this-view' : 'all';
                 popover.querySelectorAll('.owid-comment-popover-tab').forEach(t =>
                     t.classList.toggle('active', t.dataset.tab === activeTab)
                 );
                 renderPopoverContent(fieldPath, fieldLabel);
-            });
-        });
-
-        // Scope toggle for new comments
-        popover.querySelectorAll('.owid-comment-scope-option').forEach(opt => {
-            opt.addEventListener('click', () => {
-                commentScope = opt.dataset.scope;
-                popover.querySelectorAll('.owid-comment-scope-option').forEach(o =>
-                    o.classList.toggle('selected', o.dataset.scope === commentScope)
-                );
             });
         });
 
