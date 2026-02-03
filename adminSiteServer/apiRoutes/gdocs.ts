@@ -38,6 +38,8 @@ import {
     removeIndividualGdocPostFromIndex,
     getIndividualGdocRecords,
     getPreprocessedIndexableText,
+    indexIndividualProfile,
+    removeIndividualProfileFromIndex,
 } from "../../baker/algolia/utils/pages.js"
 import { GdocAbout } from "../../db/model/Gdoc/GdocAbout.js"
 import { GdocAuthor } from "../../db/model/Gdoc/GdocAuthor.js"
@@ -298,6 +300,10 @@ export async function getCalloutFunctionStrings(
     }
 }
 
+function checkIsProfile(gdoc: { content: { type?: OwidGdocType } }): boolean {
+    return gdoc.content.type === OwidGdocType.Profile
+}
+
 /**
  * Handles all four `GdocPublishingAction` cases
  * - SavingDraft (no action)
@@ -330,6 +336,7 @@ async function indexAndBakeGdocIfNeccesary(
     const hasChanges = checkHasChanges(prevGdoc, nextGdoc)
     const action = getPublishingAction(prevJson, nextJson)
     const isGdocPost = checkIsGdocPostExcludingFragments(nextJson)
+    const isProfile = checkIsProfile(nextJson)
 
     await match(action)
         .with(GdocPublishingAction.SavingDraft, _.noop)
@@ -343,11 +350,17 @@ async function indexAndBakeGdocIfNeccesary(
                     prevGdoc.slug || nextJson.slug
                 )
             }
+            if (isProfile) {
+                await indexIndividualProfile(nextGdoc as GdocProfile, trx)
+            }
             await triggerStaticBuild(user, `${action} ${nextJson.slug}`)
         })
         .with(GdocPublishingAction.Updating, async () => {
             if (isGdocPost) {
                 await indexIndividualGdocPost(nextJson, trx, prevGdoc.slug)
+            }
+            if (isProfile) {
+                await indexIndividualProfile(nextGdoc as GdocProfile, trx)
             }
             if (checkIsLightningUpdate(prevJson, nextJson, hasChanges)) {
                 await enqueueLightningChange(
@@ -362,6 +375,9 @@ async function indexAndBakeGdocIfNeccesary(
         .with(GdocPublishingAction.Unpublishing, async () => {
             if (isGdocPost) {
                 await removeIndividualGdocPostFromIndex(nextJson)
+            }
+            if (isProfile) {
+                await removeIndividualProfileFromIndex(nextGdoc as GdocProfile)
             }
             await triggerStaticBuild(user, `${action} ${nextJson.slug}`)
         })

@@ -24,6 +24,7 @@ export const PagesIndexRecordSchema = z.object({
     modifiedDate: z.optional(z.string()),
     tags: z.optional(z.array(z.string())),
     thumbnailUrl: z.string(),
+    availableEntities: z.optional(z.array(z.string())),
 })
 
 export type PageRecord = z.infer<typeof PagesIndexRecordSchema>
