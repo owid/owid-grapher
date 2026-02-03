@@ -6,12 +6,8 @@ import {
     makeIdForHumanConsumption,
     excludeUndefined,
 } from "@ourworldindata/utils"
-import {
-    TextWrap,
-    Halo,
-    MarkdownTextWrap,
-    EntityLabel,
-} from "@ourworldindata/components"
+import { TextWrap, Halo, MarkdownTextWrap } from "@ourworldindata/components"
+import { EntityLabel } from "./EntityLabel.js"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { VerticalAxis } from "../axis/Axis"

@@ -78,7 +78,7 @@ $zindex-controls-drawer: 150;
     @import "../mapCharts/MapChart.scss";
     @import "../controls/SearchField.scss";
     @import "../controls/DataTableSearchField.scss";
-    @import "../../../components/src/EntityLabel/EntityLabel.scss";
+    @import "../lineLegend/EntityLabel.scss";
 }
 
 // These rules are currently used elsewhere in the site. e.g. Explorers

@@ -70,13 +70,3 @@ export { reactRenderToStringClientOnly } from "./reactUtil.js"
 
 export { GrapherTabIcon } from "./GrapherTabIcon.js"
 export { GrapherTrendArrow } from "./GrapherTrendArrow.js"
-
-export {
-    EntityLabel,
-    type EntityLabelProps,
-    PROVIDER_INFO,
-    parseProviderFromEntityName,
-    type ProviderDefinition,
-    type ParsedProvider,
-    ensureProviderInfoTooltipsInitialized,
-} from "./EntityLabel/index.js"

@@ -10,15 +10,10 @@
     &__svg path {
         fill: $light-text;
     }
-
-    &:hover {
-        .provider-info-icon__svg {
-            // opacity: 0.8;
-        }
-    }
 }
 
-// Provider info tooltip - rendered via React portal
+// Provider info tooltip - rendered via React portal to document.body
+// so these styles must be outside of .GrapherComponent scope
 @at-root .provider-info-tooltip-container {
     pointer-events: none;
 }
