@@ -167,16 +167,24 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
         }
 
         // Width is the max of all lines
-        // If suffix is on the last line, add its width to that line
+        // If suffix is on the last line, add space + suffix width to that line
         const mainWidth = this.mainTextWrap.width
         const lastLineWidth = this.mainTextWrap.lastLineWidth
-        const suffixOnLastLine = lastLineWidth + this.suffixWidth
+        const suffixOnLastLine =
+            lastLineWidth + this.spaceWidth + this.suffixWidth
 
         return Math.max(mainWidth, suffixOnLastLine)
     }
 
     @computed get height(): number {
         return this.mainTextWrap.height
+    }
+
+    /**
+     * Width of space between main text and suffix
+     */
+    @computed private get spaceWidth(): number {
+        return Bounds.forText(" ", this.fontSettings).width
     }
 
     /**
@@ -189,7 +197,7 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
 
         const lastLineIndex = this.mainTextWrap.lineCount - 1
         return {
-            x: this.mainTextWrap.lastLineWidth,
+            x: this.mainTextWrap.lastLineWidth + this.spaceWidth,
             y: lastLineIndex * this.singleLineHeight,
         }
     }
@@ -212,22 +220,25 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
             singleLineHeight,
             iconSize,
             fontSettings,
+            mainTextWrap,
         } = this
         if (!suffixPosition || !parsedProvider) return null
 
         const x = baseX + suffixPosition.x
-        const yOffset = baseY + this.props.fontSize * HEIGHT_CORRECTION_FACTOR
-        const lineY = yOffset + suffixPosition.y
+        // Use TextWrap's positioning to match the main text baseline
+        const [, renderY] = mainTextWrap.getPositionForSvgRendering(
+            baseX,
+            baseY
+        )
+        const lineY = renderY + suffixPosition.y
 
         // Measure individual parts for positioning
         const openingText = `(${parsedProvider.providerCode} `
         const openingWidth = Bounds.forText(openingText, fontSettings).width
 
-        // Icon vertical positioning - align with text x-height
-        const iconY =
-            suffixPosition.y +
-            (singleLineHeight - iconSize) / 2 -
-            iconSize * 0.2
+        // Icon vertical positioning - center relative to text baseline
+        // lineY is the text baseline, so we position icon above it
+        const iconY = lineY - iconSize * 0.8
 
         return (
             <g className="entity-label__suffix">
@@ -245,7 +256,7 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
                 {/* Info icon */}
                 <g
                     className="provider-info-icon"
-                    transform={`translate(${x + openingWidth}, ${baseY + iconY})`}
+                    transform={`translate(${x + openingWidth}, ${iconY})`}
                 >
                     <svg
                         x={0}
