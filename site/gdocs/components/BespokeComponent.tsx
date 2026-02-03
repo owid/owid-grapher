@@ -16,6 +16,16 @@ import {
  *
  * On the server, this renders an empty div. On the client, useEffect dynamically
  * imports the module and calls its `mount` function.
+ *
+ * Example ArchieML:
+ * {.bespoke-component}
+ *   bundle: poverty-plots
+ *   variant: distribution # Variant is optional, but can be useful when the bundle contains multiple charts that should be connected in state, but rendered in different places.
+ *   {.config}
+ *     country: "USA"
+ *     year: 2020
+ *   {}
+ * {}
  */
 export function BespokeComponent({
     className,
