@@ -6,8 +6,8 @@
 export interface BespokeComponentDefinition {
     /** URL to the ES module that exports the component's mount function */
     scriptUrl: string
-    /** URLs to the component's CSS stylesheets (loaded into shadow DOM) */
-    cssUrls: string[]
+    /** URL to the component's CSS stylesheet (loaded into shadow DOM) */
+    cssUrl: string
 }
 
 /**
@@ -26,9 +26,7 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     test: {
         scriptUrl:
             "https://owid-public.owid.io/marcel-bespoke-data-viz-02-2026/poverty-plots/income-plots.mjs",
-        cssUrls: [
-            "https://owid-public.owid.io/marcel-bespoke-data-viz-02-2026/poverty-plots/income-plots.css",
-        ],
+        cssUrl: "https://owid-public.owid.io/marcel-bespoke-data-viz-02-2026/poverty-plots/income-plots.css",
     },
 }
 

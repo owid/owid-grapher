@@ -60,7 +60,14 @@ export function BespokeComponent({
             setIsLoading(true)
             try {
                 // Load CSS into shadow root
-                await loadCssIntoShadow(shadowRoot!, definition.cssUrls)
+                const cssPromise = loadCssIntoShadow(
+                    shadowRoot!,
+                    definition.cssUrl
+                )
+                // Dynamically import the JS module
+                const jsPromise = import(
+                    definition.scriptUrl
+                ) as Promise<BespokeComponentModule>
 
                 if (abortController.signal.aborted) return
 
@@ -69,12 +76,10 @@ export function BespokeComponent({
                 mountContainer.className = "bespoke-container"
                 shadowRoot!.appendChild(mountContainer)
 
-                // Dynamically import the ESM module
-                const module = (await import(
-                    definition.scriptUrl
-                )) as BespokeComponentModule
-
                 if (abortController.signal.aborted) return
+
+                await cssPromise
+                const module = await jsPromise
 
                 if (typeof module.mount !== "function") {
                     setError(
@@ -137,20 +142,16 @@ export function BespokeComponent({
 
 async function loadCssIntoShadow(
     shadowRoot: ShadowRoot,
-    cssUrls: string[]
+    cssUrl: string
 ): Promise<void> {
-    const loadPromises = cssUrls.map((cssUrl) => {
-        return new Promise<void>((resolve, reject) => {
-            const link = document.createElement("link")
-            link.rel = "stylesheet"
-            link.href = cssUrl
-            link.onload = () => resolve()
-            link.onerror = () =>
-                reject(new Error(`Failed to load CSS: ${cssUrl}`))
-            shadowRoot.appendChild(link)
-        })
+    return new Promise<void>((resolve, reject) => {
+        const link = document.createElement("link")
+        link.rel = "stylesheet"
+        link.href = cssUrl
+        link.onload = () => resolve()
+        link.onerror = () => reject(new Error(`Failed to load CSS: ${cssUrl}`))
+        shadowRoot.appendChild(link)
     })
-    await Promise.all(loadPromises)
 }
 
 function BespokeError({
