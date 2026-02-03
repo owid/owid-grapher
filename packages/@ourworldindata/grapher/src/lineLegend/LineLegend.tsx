@@ -6,7 +6,7 @@ import {
     makeIdForHumanConsumption,
     excludeUndefined,
 } from "@ourworldindata/utils"
-import { TextWrap, Halo, MarkdownTextWrap } from "@ourworldindata/components"
+import { TextWrap, Halo } from "@ourworldindata/components"
 import { EntityLabel } from "../entityLabel/EntityLabel.js"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -166,24 +166,14 @@ class LineLabels extends React.Component<LineLabelsProps> {
                             }
                             outlineColor={this.textOutlineColor}
                         >
-                            {textWrap instanceof EntityLabel ? (
-                                // Render EntityLabel as a React component for proper tooltip support
-                                <EntityLabel
-                                    key={series.seriesName}
-                                    {...textWrap.props}
-                                    x={labelText.x}
-                                    y={labelText.y}
-                                    textProps={textProps}
-                                />
-                            ) : (
-                                textWrap.renderSVG(labelText.x, labelText.y, {
-                                    textProps,
-                                    id: makeIdForHumanConsumption(
-                                        "label",
-                                        series.seriesName
-                                    ),
-                                })
-                            )}
+                            {/* Render EntityLabel as a React component for proper tooltip support */}
+                            <EntityLabel
+                                key={series.seriesName}
+                                {...textWrap.props}
+                                x={labelText.x}
+                                y={labelText.y}
+                                textProps={textProps}
+                            />
                         </Halo>
                     )
                 })}
@@ -421,55 +411,25 @@ export class LineLegend extends React.Component<LineLegendProps> {
     private makeLabelTextWrap(
         series: LineLabelSeries,
         { fontWeights }: { fontWeights: { label: number; value?: number } }
-    ): TextWrap | MarkdownTextWrap | EntityLabel {
-        // Use EntityLabel when provider icons are enabled and the label is simple
-        // (no formatted value). EntityLabel handles provider detection internally.
-        if (this.props.showProviderIcons && !series.formattedValue) {
-            return new EntityLabel({
-                entityName: series.label,
-                maxWidth: this.textMaxWidth,
-                fontSize: this.fontSize,
-                fontWeight: fontWeights?.label,
-                showProviderIcon: true,
-                isStatic: this.props.isStatic,
-                // Connect provider suffix hover to line legend hover behavior
-                onProviderMouseEnter: () =>
-                    this.props.onMouseOver?.(series.seriesName),
-                onProviderMouseLeave: () => this.props.onMouseLeave?.(),
-            })
-        }
-
-        if (!series.formattedValue) {
-            return new TextWrap({
-                text: series.label,
-                maxWidth: this.textMaxWidth,
-                fontSize: this.fontSize,
-                fontWeight: fontWeights?.label,
-            })
-        }
-
-        const isTextLabelBold = (fontWeights?.label ?? 400) >= 700
-        const isValueLabelBold = (fontWeights?.value ?? 400) >= 700
-
-        // text label fragments
-        const textLabel = { text: series.label, bold: isTextLabelBold }
-        const valueLabel = {
-            text: series.formattedValue,
-            bold: isValueLabelBold,
-        }
-
-        const newLine = series.placeFormattedValueInNewLine
-            ? "always"
-            : "avoid-wrap"
-
-        return MarkdownTextWrap.fromFragments({
-            main: textLabel,
-            secondary: valueLabel,
-            newLine,
-            textWrapProps: {
-                maxWidth: this.textMaxWidth,
-                fontSize: this.fontSize,
-            },
+    ): EntityLabel {
+        // EntityLabel handles all cases:
+        // - Simple entity names
+        // - Entity names with provider suffixes (shows info icon)
+        // - Formatted values with proper wrapping behavior
+        return new EntityLabel({
+            entityName: series.label,
+            maxWidth: this.textMaxWidth,
+            fontSize: this.fontSize,
+            fontWeight: fontWeights?.label,
+            showProviderIcon: this.props.showProviderIcons,
+            isStatic: this.props.isStatic,
+            formattedValue: series.formattedValue,
+            formattedValueFontWeight: fontWeights?.value,
+            placeFormattedValueInNewLine: series.placeFormattedValueInNewLine,
+            // Connect provider suffix hover to line legend hover behavior
+            onProviderMouseEnter: () =>
+                this.props.onMouseOver?.(series.seriesName),
+            onProviderMouseLeave: () => this.props.onMouseLeave?.(),
         })
     }
 

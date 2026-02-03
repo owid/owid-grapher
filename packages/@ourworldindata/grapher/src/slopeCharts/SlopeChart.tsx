@@ -375,6 +375,7 @@ export class SlopeChart
             yRange: this.lineLegendYRange,
             verticalAlign: VerticalAlign.top,
             showTextOutlines: true,
+            showProviderIcons: true,
             textOutlineColor: this.backgroundColor,
             onMouseOver: this.onLineLegendMouseOver,
             onMouseLeave: this.onLineLegendMouseLeave,

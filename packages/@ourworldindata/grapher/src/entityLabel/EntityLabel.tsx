@@ -11,7 +11,6 @@ import {
 } from "./ProviderInfo.js"
 
 const INFO_ICON_SIZE_FACTOR = 0.9 // Relative to font size
-const HEIGHT_CORRECTION_FACTOR = 0.74 // Magic number from TextWrap
 
 export interface EntityLabelProps {
     entityName: string
@@ -26,6 +25,13 @@ export interface EntityLabelProps {
     /** Set to true for static exports (disables tooltip) */
     isStatic?: boolean
 
+    /** Optional formatted value to display after the entity name (e.g., "1,234") */
+    formattedValue?: string
+    /** Font weight for the formatted value */
+    formattedValueFontWeight?: number
+    /** If true, always place the formatted value on a new line */
+    placeFormattedValueInNewLine?: boolean
+
     /** Called when mouse enters the provider suffix area */
     onProviderMouseEnter?: (seriesName: string) => void
     /** Called when mouse leaves the provider suffix area */
@@ -38,16 +44,18 @@ export interface EntityLabelProps {
 }
 
 /**
- * EntityLabel renders an entity name with optional provider info icon and tooltip.
+ * EntityLabel renders an entity name with optional provider info icon, tooltip,
+ * and formatted value.
  *
  * For entity names with recognized provider suffixes like "Africa (WHO)", it:
  * - Displays the provider suffix in muted (gray) text
  * - Shows an info icon that reveals provider details on hover
- * - Uses avoid-wrap behavior to keep the suffix on one line when possible
+ * - Uses avoid-wrap behavior to keep the suffix with the entity name
  *
- * This implementation uses TextWrap for the main entity name and manually
- * positions the provider suffix as separate SVG elements, avoiding tight
- * coupling with MarkdownTextWrap internals.
+ * When a formatted value is provided (e.g., for slope charts):
+ * - Displays: "Africa (WHO ⓘ) 1,234"
+ * - Value wraps to new line if it doesn't fit
+ * - placeFormattedValueInNewLine forces value to always be on new line
  */
 @observer
 export class EntityLabel extends React.Component<EntityLabelProps> {
@@ -104,55 +112,148 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
         }
     }
 
+    @computed private get valueFontSettings(): {
+        fontSize: number
+        fontWeight?: number
+        fontFamily?: FontFamily
+    } {
+        return {
+            fontSize: this.props.fontSize,
+            fontWeight: this.props.formattedValueFontWeight,
+            fontFamily: this.props.fontFamily,
+        }
+    }
+
     /**
-     * Calculate the width of the provider suffix "(WHO ⓘ)" using Bounds.forText
+     * Width of space character
+     */
+    @computed private get spaceWidth(): number {
+        return Bounds.forText(" ", this.fontSettings).width
+    }
+
+    /**
+     * Font settings for the suffix (always normal weight)
+     */
+    @computed private get suffixFontSettings(): {
+        fontSize: number
+        fontWeight: number
+        fontFamily?: FontFamily
+    } {
+        return {
+            fontSize: this.props.fontSize,
+            fontWeight: 400,
+            fontFamily: this.props.fontFamily,
+        }
+    }
+
+    /**
+     * Calculate the width of the provider suffix "(WHO ⓘ)"
      */
     @computed private get suffixWidth(): number {
         if (!this.parsedProvider) return 0
 
         const textWidth = Bounds.forText(
             `(${this.parsedProvider.providerCode} `,
-            this.fontSettings
+            this.suffixFontSettings
         ).width
-        const closingWidth = Bounds.forText(")", this.fontSettings).width
+        const closingWidth = Bounds.forText(")", this.suffixFontSettings).width
 
         return textWidth + this.iconSize + closingWidth
     }
 
     /**
+     * Calculate the width of the formatted value
+     */
+    @computed private get valueWidth(): number {
+        if (!this.props.formattedValue) return 0
+        return Bounds.forText(this.props.formattedValue, this.valueFontSettings)
+            .width
+    }
+
+    /**
+     * The main entity name (without provider suffix if showing icon)
+     */
+    @computed private get mainName(): string {
+        return this.shouldShowIcon
+            ? this.parsedProvider!.mainName
+            : this.props.entityName
+    }
+
+    /**
+     * Width of just the main name
+     */
+    @computed private get mainNameWidth(): number {
+        return Bounds.forText(this.mainName, this.fontSettings).width
+    }
+
+    /**
+     * Width needed for suffix (with leading space) if showing
+     */
+    @computed private get suffixWithSpaceWidth(): number {
+        return this.shouldShowIcon ? this.spaceWidth + this.suffixWidth : 0
+    }
+
+    /**
+     * Width needed for value (with leading space) if present
+     */
+    @computed private get valueWithSpaceWidth(): number {
+        return this.props.formattedValue ? this.spaceWidth + this.valueWidth : 0
+    }
+
+    /**
+     * Determine if the formatted value should be on a new line.
+     * This happens if:
+     * 1. placeFormattedValueInNewLine is explicitly true, OR
+     * 2. There's a provider suffix (value always on new line with suffix), OR
+     * 3. Everything doesn't fit on one line (avoid-wrap behavior)
+     */
+    @computed private get valueOnNewLine(): boolean {
+        if (!this.props.formattedValue) return false
+        if (this.props.placeFormattedValueInNewLine) return true
+        // Always put value on new line when there's a provider suffix
+        if (this.shouldShowIcon) return true
+
+        // Check if everything fits on one line
+        const totalWidth =
+            this.mainNameWidth +
+            this.suffixWithSpaceWidth +
+            this.valueWithSpaceWidth
+        return totalWidth > this.props.maxWidth
+    }
+
+    /**
      * Determine the maxWidth for the main text TextWrap.
-     * If the suffix won't fit on the same line as the last word,
-     * reduce the maxWidth so the suffix gets its own line.
+     * Reserve space on the last line for suffix (and value if on same line).
      */
     @computed private get mainTextMaxWidth(): number {
-        if (!this.shouldShowIcon) return this.props.maxWidth
-
         const { maxWidth } = this.props
-        const suffixWithSpace =
-            this.suffixWidth + Bounds.forText(" ", this.fontSettings).width
 
-        // First, try to see if the full text (name + suffix) fits on one line
-        const fullTextWidth =
-            Bounds.forText(this.parsedProvider!.mainName, this.fontSettings)
-                .width + suffixWithSpace
-
-        if (fullTextWidth <= maxWidth) {
-            // Everything fits on one line, use full width
+        // If no suffix and no value, use full width
+        if (!this.shouldShowIcon && !this.props.formattedValue) {
             return maxWidth
         }
 
-        // Otherwise, reduce maxWidth so suffix has room on the last line
-        // This implements "avoid-wrap" behavior
-        return Math.max(maxWidth - suffixWithSpace, maxWidth * 0.5)
+        // Calculate what needs to fit on the last line with the main text
+        let reservedWidth = this.suffixWithSpaceWidth
+
+        // If value is NOT on a new line, it also needs to fit on the last line
+        if (this.props.formattedValue && !this.valueOnNewLine) {
+            reservedWidth += this.valueWithSpaceWidth
+        }
+
+        // Check if everything fits on one line
+        const fullWidth = this.mainNameWidth + reservedWidth
+        if (fullWidth <= maxWidth) {
+            return maxWidth
+        }
+
+        // Otherwise, reduce maxWidth so reserved content fits on last line
+        return Math.max(maxWidth - reservedWidth, maxWidth * 0.5)
     }
 
     @computed private get mainTextWrap(): TextWrap {
-        const text = this.shouldShowIcon
-            ? this.parsedProvider!.mainName
-            : this.props.entityName
-
         return new TextWrap({
-            text,
+            text: this.mainName,
             maxWidth: this.mainTextMaxWidth,
             fontSize: this.props.fontSize,
             fontWeight: this.props.fontWeight,
@@ -161,34 +262,8 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
         })
     }
 
-    @computed get width(): number {
-        if (!this.shouldShowIcon) {
-            return this.mainTextWrap.width
-        }
-
-        // Width is the max of all lines
-        // If suffix is on the last line, add space + suffix width to that line
-        const mainWidth = this.mainTextWrap.width
-        const lastLineWidth = this.mainTextWrap.lastLineWidth
-        const suffixOnLastLine =
-            lastLineWidth + this.spaceWidth + this.suffixWidth
-
-        return Math.max(mainWidth, suffixOnLastLine)
-    }
-
-    @computed get height(): number {
-        return this.mainTextWrap.height
-    }
-
     /**
-     * Width of space between main text and suffix
-     */
-    @computed private get spaceWidth(): number {
-        return Bounds.forText(" ", this.fontSettings).width
-    }
-
-    /**
-     * Get the position where the suffix should be rendered (after the last line of text)
+     * Get the position where the suffix should be rendered
      */
     @computed private get suffixPosition():
         | { x: number; y: number }
@@ -200,6 +275,70 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
             x: this.mainTextWrap.lastLineWidth + this.spaceWidth,
             y: lastLineIndex * this.singleLineHeight,
         }
+    }
+
+    /**
+     * Get the position where the formatted value should be rendered
+     */
+    @computed private get valuePosition():
+        | { x: number; y: number }
+        | undefined {
+        if (!this.props.formattedValue) return undefined
+
+        if (this.valueOnNewLine) {
+            // Value on new line, starts at x=0
+            const lineIndex = this.mainTextWrap.lineCount
+            return {
+                x: 0,
+                y: lineIndex * this.singleLineHeight,
+            }
+        }
+
+        // Value on same line as suffix (or main text if no suffix)
+        const lastLineIndex = this.mainTextWrap.lineCount - 1
+        let x = this.mainTextWrap.lastLineWidth + this.spaceWidth
+
+        if (this.shouldShowIcon) {
+            // After suffix
+            x += this.suffixWidth + this.spaceWidth
+        }
+
+        return {
+            x,
+            y: lastLineIndex * this.singleLineHeight,
+        }
+    }
+
+    @computed get width(): number {
+        const mainWidth = this.mainTextWrap.width
+
+        if (!this.shouldShowIcon && !this.props.formattedValue) {
+            return mainWidth
+        }
+
+        // Calculate width of the last line (which has suffix and possibly value)
+        let lastLineWidth = this.mainTextWrap.lastLineWidth
+
+        if (this.shouldShowIcon) {
+            lastLineWidth += this.spaceWidth + this.suffixWidth
+        }
+
+        if (this.props.formattedValue && !this.valueOnNewLine) {
+            lastLineWidth += this.spaceWidth + this.valueWidth
+        }
+
+        // If value is on new line, also consider its width
+        const valueLineWidth = this.valueOnNewLine ? this.valueWidth : 0
+
+        return Math.max(mainWidth, lastLineWidth, valueLineWidth)
+    }
+
+    @computed get height(): number {
+        let height = this.mainTextWrap.height
+        if (this.valueOnNewLine && this.props.formattedValue) {
+            height += this.singleLineHeight
+        }
+        return height
     }
 
     private renderMainText(
@@ -217,9 +356,8 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
         const {
             suffixPosition,
             parsedProvider,
-            singleLineHeight,
             iconSize,
-            fontSettings,
+            suffixFontSettings,
             mainTextWrap,
         } = this
         if (!suffixPosition || !parsedProvider) return null
@@ -232,22 +370,24 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
         )
         const lineY = renderY + suffixPosition.y
 
-        // Measure individual parts for positioning
+        // Measure individual parts for positioning (using suffix font settings - normal weight)
         const openingText = `(${parsedProvider.providerCode} `
-        const openingWidth = Bounds.forText(openingText, fontSettings).width
+        const openingWidth = Bounds.forText(
+            openingText,
+            suffixFontSettings
+        ).width
 
         // Icon vertical positioning - center relative to text baseline
-        // lineY is the text baseline, so we position icon above it
         const iconY = lineY - iconSize * 0.8
 
         return (
             <g className="entity-label__suffix">
-                {/* Opening text "(WHO " */}
+                {/* Opening text "(WHO " - always normal weight */}
                 <text
                     x={x}
                     y={lineY}
-                    fontSize={fontSettings.fontSize}
-                    fontWeight={fontSettings.fontWeight}
+                    fontSize={suffixFontSettings.fontSize}
+                    fontWeight={suffixFontSettings.fontWeight}
                     className="entity-label__text--muted"
                 >
                     {openingText}
@@ -273,17 +413,45 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
                     </svg>
                 </g>
 
-                {/* Closing ")" */}
+                {/* Closing ")" - always normal weight */}
                 <text
                     x={x + openingWidth + iconSize}
                     y={lineY}
-                    fontSize={fontSettings.fontSize}
-                    fontWeight={fontSettings.fontWeight}
+                    fontSize={suffixFontSettings.fontSize}
+                    fontWeight={suffixFontSettings.fontWeight}
                     className="entity-label__text--muted"
                 >
                     )
                 </text>
             </g>
+        )
+    }
+
+    private renderFormattedValue(
+        baseX: number,
+        baseY: number,
+        textProps?: React.SVGProps<SVGTextElement>
+    ): React.ReactElement | null {
+        const { valuePosition, props, mainTextWrap, valueFontSettings } = this
+        if (!valuePosition || !props.formattedValue) return null
+
+        const [, renderY] = mainTextWrap.getPositionForSvgRendering(
+            baseX,
+            baseY
+        )
+        const x = baseX + valuePosition.x
+        const y = renderY + valuePosition.y
+
+        return (
+            <text
+                x={x}
+                y={y}
+                fontSize={valueFontSettings.fontSize}
+                fontWeight={valueFontSettings.fontWeight}
+                {...textProps}
+            >
+                {props.formattedValue}
+            </text>
         )
     }
 
@@ -299,13 +467,16 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
             singleLineHeight,
             iconSize,
             parsedProvider,
-            fontSettings,
+            suffixFontSettings,
         } = this
         if (!suffixPosition || !parsedProvider) return null
 
         // Calculate icon position (after the opening text "(WHO ")
         const openingText = `(${parsedProvider.providerCode} `
-        const openingWidth = Bounds.forText(openingText, fontSettings).width
+        const openingWidth = Bounds.forText(
+            openingText,
+            suffixFontSettings
+        ).width
         const x = baseX + suffixPosition.x + openingWidth
         const y = baseY + suffixPosition.y
 
@@ -353,6 +524,7 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
             <g className="entity-label">
                 {this.renderMainText(x, y, options?.textProps)}
                 {this.renderProviderSuffix(x, y)}
+                {this.renderFormattedValue(x, y, options?.textProps)}
                 {showInteraction && this.renderIconHitArea(x, y)}
             </g>
         )
