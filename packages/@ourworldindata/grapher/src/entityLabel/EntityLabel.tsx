@@ -5,9 +5,9 @@ import { observer } from "mobx-react"
 import { Bounds, FontFamily } from "@ourworldindata/utils"
 import { TextWrap } from "@ourworldindata/components"
 import {
-    parseProviderFromEntityName,
+    parseSuffixFromEntityName,
     PROVIDER_INFO,
-    type ParsedProvider,
+    type ParsedSuffix,
 } from "./ProviderInfo.js"
 
 const INFO_ICON_SIZE_FACTOR = 0.9 // Relative to font size
@@ -103,12 +103,18 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
         return Math.round(this.props.fontSize * INFO_ICON_SIZE_FACTOR)
     }
 
-    @computed private get parsedProvider(): ParsedProvider | undefined {
-        return parseProviderFromEntityName(this.props.entityName)
+    @computed private get parsedSuffix(): ParsedSuffix | undefined {
+        return parseSuffixFromEntityName(this.props.entityName)
     }
 
+    /** Whether to show the suffix in gray (any trailing parenthetical) */
+    @computed private get shouldShowSuffix(): boolean {
+        return !!this.parsedSuffix
+    }
+
+    /** Whether to show the info icon (only for recognized providers) */
     @computed private get shouldShowIcon(): boolean {
-        return !!(this.props.showProviderIcon && this.parsedProvider)
+        return !!(this.props.showProviderIcon && this.parsedSuffix?.isProvider)
     }
 
     @computed private get fontSettings(): {
@@ -171,18 +177,29 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
     }
 
     /**
-     * Calculate the width of the provider suffix "(WHO ⓘ)"
+     * Calculate the width of the suffix "(WHO ⓘ)" or "(whatever)"
      */
     @computed private get suffixWidth(): number {
-        if (!this.parsedProvider) return 0
+        if (!this.parsedSuffix) return 0
 
-        const textWidth = Bounds.forText(
-            `(${this.parsedProvider.providerCode} `,
-            this.suffixFontSettings
-        ).width
-        const closingWidth = Bounds.forText(")", this.suffixFontSettings).width
-
-        return textWidth + this.iconSize + closingWidth
+        if (this.shouldShowIcon) {
+            // Provider suffix with icon: "(WHO ⓘ)"
+            const textWidth = Bounds.forText(
+                `(${this.parsedSuffix.suffix} `,
+                this.suffixFontSettings
+            ).width
+            const closingWidth = Bounds.forText(
+                ")",
+                this.suffixFontSettings
+            ).width
+            return textWidth + this.iconSize + closingWidth
+        } else {
+            // Regular suffix without icon: "(whatever)"
+            return Bounds.forText(
+                `(${this.parsedSuffix.suffix})`,
+                this.suffixFontSettings
+            ).width
+        }
     }
 
     /**
@@ -195,11 +212,11 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
     }
 
     /**
-     * The main entity name (without provider suffix if showing icon)
+     * The main entity name (without suffix if we're showing it separately)
      */
     @computed private get mainName(): string {
-        return this.shouldShowIcon
-            ? this.parsedProvider!.mainName
+        return this.shouldShowSuffix
+            ? this.parsedSuffix!.mainName
             : this.props.entityName
     }
 
@@ -214,7 +231,7 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
      * Width needed for suffix (with leading space) if showing
      */
     @computed private get suffixWithSpaceWidth(): number {
-        return this.shouldShowIcon ? this.spaceWidth + this.suffixWidth : 0
+        return this.shouldShowSuffix ? this.spaceWidth + this.suffixWidth : 0
     }
 
     /**
@@ -228,14 +245,14 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
      * Determine if the formatted value should be on a new line.
      * This happens if:
      * 1. placeFormattedValueInNewLine is explicitly true, OR
-     * 2. There's a provider suffix (value always on new line with suffix), OR
+     * 2. There's a suffix (value always on new line with suffix), OR
      * 3. Everything doesn't fit on one line (avoid-wrap behavior)
      */
     @computed private get valueOnNewLine(): boolean {
         if (!this.props.formattedValue) return false
         if (this.props.placeFormattedValueInNewLine) return true
-        // Always put value on new line when there's a provider suffix
-        if (this.shouldShowIcon) return true
+        // Always put value on new line when there's a suffix
+        if (this.shouldShowSuffix) return true
 
         // Check if everything fits on one line
         const totalWidth =
@@ -253,7 +270,7 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
         const { maxWidth } = this.props
 
         // If no suffix and no value, use full width
-        if (!this.shouldShowIcon && !this.props.formattedValue) {
+        if (!this.shouldShowSuffix && !this.props.formattedValue) {
             return maxWidth
         }
 
@@ -308,7 +325,7 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
     @computed private get suffixPosition():
         | { x: number; y: number }
         | undefined {
-        if (!this.shouldShowIcon) return undefined
+        if (!this.shouldShowSuffix) return undefined
 
         const lastLineIndex = this.mainTextWrap.lineCount - 1
         return {
@@ -338,7 +355,7 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
         const lastLineIndex = this.mainTextWrap.lineCount - 1
         let x = this.mainTextWrap.lastLineWidth + this.spaceWidth
 
-        if (this.shouldShowIcon) {
+        if (this.shouldShowSuffix) {
             // After suffix
             x += this.suffixWidth + this.spaceWidth
         }
@@ -378,7 +395,7 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
         const mainWidth = this.mainTextWrap.width
 
         if (
-            !this.shouldShowIcon &&
+            !this.shouldShowSuffix &&
             !this.props.formattedValue &&
             !this.annotationTextWrap
         ) {
@@ -388,7 +405,7 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
         // Calculate width of the last line (which has suffix and possibly value)
         let lastLineWidth = this.mainTextWrap.lastLineWidth
 
-        if (this.shouldShowIcon) {
+        if (this.shouldShowSuffix) {
             lastLineWidth += this.spaceWidth + this.suffixWidth
         }
 
@@ -428,18 +445,19 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
         return this.mainTextWrap.renderSVG(x, y, { textProps })
     }
 
-    private renderProviderSuffix(
+    private renderSuffix(
         baseX: number,
         baseY: number
     ): React.ReactElement | null {
         const {
             suffixPosition,
-            parsedProvider,
+            parsedSuffix,
+            shouldShowIcon,
             iconSize,
             suffixFontSettings,
             mainTextWrap,
         } = this
-        if (!suffixPosition || !parsedProvider) return null
+        if (!suffixPosition || !parsedSuffix) return null
 
         const x = baseX + suffixPosition.x
         // Use TextWrap's positioning to match the main text baseline
@@ -449,8 +467,25 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
         )
         const lineY = renderY + suffixPosition.y
 
-        // Measure individual parts for positioning (using suffix font settings - normal weight)
-        const openingText = `(${parsedProvider.providerCode} `
+        // For non-provider suffix, render simple gray text
+        if (!shouldShowIcon) {
+            return (
+                <g className="entity-label__suffix">
+                    <text
+                        x={x}
+                        y={lineY}
+                        fontSize={suffixFontSettings.fontSize}
+                        fontWeight={suffixFontSettings.fontWeight}
+                        className="entity-label__text--muted"
+                    >
+                        ({parsedSuffix.suffix})
+                    </text>
+                </g>
+            )
+        }
+
+        // For provider suffix, render with icon
+        const openingText = `(${parsedSuffix.suffix} `
         const openingWidth = Bounds.forText(
             openingText,
             suffixFontSettings
@@ -555,6 +590,7 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
 
     /**
      * Render an invisible hit area over the info icon for hover interactions.
+     * Only rendered when there's a recognized provider suffix with icon.
      */
     private renderIconHitArea(
         baseX: number,
@@ -564,13 +600,15 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
             suffixPosition,
             singleLineHeight,
             iconSize,
-            parsedProvider,
+            parsedSuffix,
+            shouldShowIcon,
             suffixFontSettings,
         } = this
-        if (!suffixPosition || !parsedProvider) return null
+        // Only show hit area for provider icons
+        if (!suffixPosition || !parsedSuffix || !shouldShowIcon) return null
 
         // Calculate icon position (after the opening text "(WHO ")
-        const openingText = `(${parsedProvider.providerCode} `
+        const openingText = `(${parsedSuffix.suffix} `
         const openingWidth = Bounds.forText(
             openingText,
             suffixFontSettings
@@ -615,13 +653,12 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
         y: number,
         options?: { textProps?: React.SVGProps<SVGTextElement> }
     ): React.ReactElement {
-        const { parsedProvider } = this
-        const showInteraction = parsedProvider && !this.props.isStatic
+        const showInteraction = this.shouldShowIcon && !this.props.isStatic
 
         return (
             <g className="entity-label">
                 {this.renderMainText(x, y, options?.textProps)}
-                {this.renderProviderSuffix(x, y)}
+                {this.renderSuffix(x, y)}
                 {this.renderFormattedValue(x, y, options?.textProps)}
                 {this.renderAnnotation(x, y, options?.textProps)}
                 {showInteraction && this.renderIconHitArea(x, y)}
@@ -630,10 +667,12 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
     }
 
     private renderTooltip(): React.ReactElement | null {
-        const { parsedProvider } = this
-        const provider = parsedProvider
-            ? PROVIDER_INFO[parsedProvider.providerCode]
-            : undefined
+        const { parsedSuffix } = this
+        // Only show tooltip for recognized providers
+        const provider =
+            parsedSuffix?.isProvider && parsedSuffix.suffix in PROVIDER_INFO
+                ? PROVIDER_INFO[parsedSuffix.suffix]
+                : undefined
 
         if (!this.tooltipVisible || !provider) return null
 

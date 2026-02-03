@@ -21,26 +21,28 @@ export const PROVIDER_INFO: Record<string, ProviderDefinition> = {
     // Extend as needed...
 }
 
-export interface ParsedProvider {
+export interface ParsedSuffix {
     mainName: string
-    providerCode: string
+    suffix: string
+    isProvider: boolean
 }
 
 /**
- * Parse entity name to extract provider suffix.
- * Returns undefined if no recognized provider suffix found.
+ * Parse entity name to extract trailing parenthetical suffix.
+ * Returns undefined if no suffix found.
  *
- * Example: "Africa (WHO)" -> { mainName: "Africa", providerCode: "WHO" }
+ * Examples:
+ * - "Africa (WHO)" -> { mainName: "Africa", suffix: "WHO", isProvider: true }
+ * - "Something (whatever)" -> { mainName: "Something", suffix: "whatever", isProvider: false }
  */
-export function parseProviderFromEntityName(
+export function parseSuffixFromEntityName(
     entityName: string
-): ParsedProvider | undefined {
-    const match = entityName.match(/^(.+)\s+\(([A-Z]+)\)$/)
+): ParsedSuffix | undefined {
+    const match = entityName.match(/^(.+)\s+\(([^)]+)\)$/)
     if (!match) return undefined
 
-    const [, mainName, providerCode] = match
-    // Only return if provider is in whitelist
-    if (!(providerCode in PROVIDER_INFO)) return undefined
+    const [, mainName, suffix] = match
+    const isProvider = suffix in PROVIDER_INFO
 
-    return { mainName, providerCode }
+    return { mainName, suffix, isProvider }
 }
