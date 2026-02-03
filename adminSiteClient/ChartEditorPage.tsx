@@ -262,11 +262,8 @@ export class ChartEditorPage
         this.selectedDimensions = newDimensions
 
         // Find the matching variable for the new dimensions
-        const matchingVariable = this.multidimData?.relatedVariables.find(
-            (v) =>
-                v.dimensions.filters.every(
-                    (f) => newDimensions[f.name] === f.value
-                )
+        const matchingVariable = this.multidimData?.relatedVariables.find((v) =>
+            v.dimensions.filters.every((f) => newDimensions[f.name] === f.value)
         )
 
         if (matchingVariable) {
@@ -303,9 +300,7 @@ export class ChartEditorPage
         dimensions: Record<string, string>
     ): MultidimRelatedVariable | undefined {
         return this.multidimData?.relatedVariables.find((v) =>
-            v.dimensions.filters.every(
-                (f) => dimensions[f.name] === f.value
-            )
+            v.dimensions.filters.every((f) => dimensions[f.name] === f.value)
         )
     }
 

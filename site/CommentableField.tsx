@@ -166,7 +166,11 @@ interface CommentPopoverProps {
     onClose: () => void
 }
 
-function CommentPopover({ fieldPath, fieldLabel, onClose }: CommentPopoverProps) {
+function CommentPopover({
+    fieldPath,
+    fieldLabel,
+    onClose,
+}: CommentPopoverProps) {
     const ctx = useCommentContext()
     const [content, setContent] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)

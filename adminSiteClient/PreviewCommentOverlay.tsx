@@ -15,19 +15,59 @@ import { dayjs } from "@ourworldindata/utils"
 
 // Field definitions for data pages
 const COMMENTABLE_FIELDS = [
-    { path: "title", label: "Title", selector: ".key-data-description-short__title" },
-    { path: "source", label: "Source", selector: ".key-data__title:contains('Source')" },
-    { path: "lastUpdated", label: "Last updated", selector: ".key-data__title:contains('Last updated')" },
-    { path: "nextUpdate", label: "Next expected update", selector: ".key-data__title:contains('Next expected update')" },
-    { path: "dateRange", label: "Date range", selector: ".key-data__title:contains('Date range')" },
-    { path: "unit", label: "Unit", selector: ".key-data__title:contains('Unit')" },
-    { path: "unitConversionFactor", label: "Unit conversion factor", selector: ".key-data__title:contains('Unit conversion factor')" },
-    { path: "links", label: "Links", selector: ".key-data__title:contains('Links')" },
-    { path: "descriptionKey", label: "Key description", selector: ".key-info__key-description" },
-    { path: "descriptionFromProducer", label: "Description from producer", selector: ".expandable-toggle__label:contains('producer')" },
+    {
+        path: "title",
+        label: "Title",
+        selector: ".key-data-description-short__title",
+    },
+    {
+        path: "source",
+        label: "Source",
+        selector: ".key-data__title:contains('Source')",
+    },
+    {
+        path: "lastUpdated",
+        label: "Last updated",
+        selector: ".key-data__title:contains('Last updated')",
+    },
+    {
+        path: "nextUpdate",
+        label: "Next expected update",
+        selector: ".key-data__title:contains('Next expected update')",
+    },
+    {
+        path: "dateRange",
+        label: "Date range",
+        selector: ".key-data__title:contains('Date range')",
+    },
+    {
+        path: "unit",
+        label: "Unit",
+        selector: ".key-data__title:contains('Unit')",
+    },
+    {
+        path: "unitConversionFactor",
+        label: "Unit conversion factor",
+        selector: ".key-data__title:contains('Unit conversion factor')",
+    },
+    {
+        path: "links",
+        label: "Links",
+        selector: ".key-data__title:contains('Links')",
+    },
+    {
+        path: "descriptionKey",
+        label: "Key description",
+        selector: ".key-info__key-description",
+    },
+    {
+        path: "descriptionFromProducer",
+        label: "Description from producer",
+        selector: ".expandable-toggle__label:contains('producer')",
+    },
 ] as const
 
-type FieldPath = typeof COMMENTABLE_FIELDS[number]["path"] | null
+type FieldPath = (typeof COMMENTABLE_FIELDS)[number]["path"] | null
 
 interface CommentFormProps {
     onSubmit: (content: string) => Promise<void>
@@ -122,12 +162,16 @@ function CommentItem({
         }
     }
 
-    const fieldLabel = COMMENTABLE_FIELDS.find(f => f.path === comment.fieldPath)?.label
+    const fieldLabel = COMMENTABLE_FIELDS.find(
+        (f) => f.path === comment.fieldPath
+    )?.label
 
     return (
         <div className={`preview-comment-item ${isResolved ? "resolved" : ""}`}>
             <div className="preview-comment-header">
-                <span className="preview-comment-author">{comment.userFullName}</span>
+                <span className="preview-comment-author">
+                    {comment.userFullName}
+                </span>
                 <span className="preview-comment-time">
                     {dayjs(comment.createdAt).fromNow()}
                 </span>
@@ -142,7 +186,9 @@ function CommentItem({
                 {!isResolved ? (
                     <button
                         className="btn btn-link btn-sm"
-                        onClick={() => handleAction(() => onResolve(comment.id))}
+                        onClick={() =>
+                            handleAction(() => onResolve(comment.id))
+                        }
                         disabled={isActing}
                         title="Mark as resolved"
                     >
@@ -151,7 +197,9 @@ function CommentItem({
                 ) : (
                     <button
                         className="btn btn-link btn-sm"
-                        onClick={() => handleAction(() => onUnresolve(comment.id))}
+                        onClick={() =>
+                            handleAction(() => onUnresolve(comment.id))
+                        }
                         disabled={isActing}
                         title="Reopen"
                     >
@@ -171,9 +219,7 @@ function CommentItem({
             </div>
             {isResolved && comment.resolvedByFullName && (
                 <div className="preview-comment-resolved-by">
-                    <small>
-                        Resolved by {comment.resolvedByFullName}
-                    </small>
+                    <small>Resolved by {comment.resolvedByFullName}</small>
                 </div>
             )}
         </div>
@@ -257,12 +303,15 @@ export function PreviewCommentOverlay({
 
     const handleResolve = async (id: number) => {
         try {
-            const response = await fetch(`${adminBaseUrl}/api/comments/${id}/resolve`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: "{}",
-            })
+            const response = await fetch(
+                `${adminBaseUrl}/api/comments/${id}/resolve`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: "{}",
+                }
+            )
             if (!response.ok) throw new Error("Failed to resolve comment")
             await fetchComments()
         } catch (err) {
@@ -272,12 +321,15 @@ export function PreviewCommentOverlay({
 
     const handleUnresolve = async (id: number) => {
         try {
-            const response = await fetch(`${adminBaseUrl}/api/comments/${id}/unresolve`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: "{}",
-            })
+            const response = await fetch(
+                `${adminBaseUrl}/api/comments/${id}/unresolve`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: "{}",
+                }
+            )
             if (!response.ok) throw new Error("Failed to unresolve comment")
             await fetchComments()
         } catch (err) {
@@ -300,15 +352,18 @@ export function PreviewCommentOverlay({
     }
 
     // Group comments by field
-    const commentsByField = comments.reduce((acc, comment) => {
-        const field = comment.fieldPath || "_page"
-        if (!acc[field]) acc[field] = []
-        acc[field].push(comment)
-        return acc
-    }, {} as Record<string, DbCommentWithUser[]>)
+    const commentsByField = comments.reduce(
+        (acc, comment) => {
+            const field = comment.fieldPath || "_page"
+            if (!acc[field]) acc[field] = []
+            acc[field].push(comment)
+            return acc
+        },
+        {} as Record<string, DbCommentWithUser[]>
+    )
 
     const filteredComments = selectedField
-        ? comments.filter(c => c.fieldPath === selectedField)
+        ? comments.filter((c) => c.fieldPath === selectedField)
         : comments
 
     return (
@@ -321,7 +376,9 @@ export function PreviewCommentOverlay({
             >
                 <FontAwesomeIcon icon={faComment} />
                 {comments.length > 0 && (
-                    <span className="preview-comment-badge">{comments.length}</span>
+                    <span className="preview-comment-badge">
+                        {comments.length}
+                    </span>
                 )}
             </button>
 
@@ -346,7 +403,11 @@ export function PreviewCommentOverlay({
                             <label>Field:</label>
                             <select
                                 value={selectedField || ""}
-                                onChange={(e) => setSelectedField(e.target.value as FieldPath || null)}
+                                onChange={(e) =>
+                                    setSelectedField(
+                                        (e.target.value as FieldPath) || null
+                                    )
+                                }
                             >
                                 <option value="">All fields</option>
                                 <option value="_page">Page-level</option>
@@ -364,7 +425,9 @@ export function PreviewCommentOverlay({
                             <input
                                 type="checkbox"
                                 checked={showResolved}
-                                onChange={(e) => setShowResolved(e.target.checked)}
+                                onChange={(e) =>
+                                    setShowResolved(e.target.checked)
+                                }
                             />{" "}
                             Show resolved
                         </label>
@@ -377,12 +440,15 @@ export function PreviewCommentOverlay({
                     <div className="preview-comment-sidebar-list">
                         {isLoading ? (
                             <div className="preview-comment-loading">
-                                <FontAwesomeIcon icon={faSpinner} spin /> Loading...
+                                <FontAwesomeIcon icon={faSpinner} spin />{" "}
+                                Loading...
                             </div>
                         ) : error ? (
                             <div className="preview-comment-error">{error}</div>
                         ) : filteredComments.length === 0 ? (
-                            <div className="preview-comment-empty">No comments yet</div>
+                            <div className="preview-comment-empty">
+                                No comments yet
+                            </div>
                         ) : (
                             filteredComments.map((comment) => (
                                 <CommentItem

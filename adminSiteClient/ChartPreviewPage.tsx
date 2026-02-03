@@ -151,7 +151,9 @@ function CommentItem({
                     <small>on: {fieldLabel}</small>
                 </div>
             )}
-            <div className="chart-preview-comment-content">{comment.content}</div>
+            <div className="chart-preview-comment-content">
+                {comment.content}
+            </div>
             <div className="chart-preview-comment-actions">
                 {!isResolved ? (
                     <button
@@ -179,9 +181,7 @@ function CommentItem({
                 {isOwner && (
                     <button
                         className="btn btn-link btn-sm text-danger"
-                        onClick={() =>
-                            handleAction(() => onDelete(comment.id))
-                        }
+                        onClick={() => handleAction(() => onDelete(comment.id))}
                         disabled={isActing}
                         title="Delete comment"
                     >
@@ -351,7 +351,8 @@ export function ChartPreviewPage({ chartId }: { chartId: number }) {
                         <div className="chart-preview-sidebar">
                             <div className="chart-preview-sidebar-header">
                                 <h5>
-                                    <FontAwesomeIcon icon={faComment} /> Comments
+                                    <FontAwesomeIcon icon={faComment} />{" "}
+                                    Comments
                                 </h5>
                                 <button
                                     className="btn btn-link btn-sm"
@@ -409,7 +410,10 @@ export function ChartPreviewPage({ chartId }: { chartId: number }) {
                             <div className="chart-preview-sidebar-list">
                                 {isLoading ? (
                                     <div className="chart-preview-comment-loading">
-                                        <FontAwesomeIcon icon={faSpinner} spin />{" "}
+                                        <FontAwesomeIcon
+                                            icon={faSpinner}
+                                            spin
+                                        />{" "}
                                         Loading...
                                     </div>
                                 ) : error ? (

@@ -9,10 +9,7 @@ import {
     faTimes,
     faSpinner,
 } from "@fortawesome/free-solid-svg-icons"
-import {
-    CommentTargetType,
-    DbCommentWithUser,
-} from "@ourworldindata/types"
+import { CommentTargetType, DbCommentWithUser } from "@ourworldindata/types"
 import { Admin } from "./Admin.js"
 import { dayjs } from "@ourworldindata/utils"
 
@@ -139,7 +136,9 @@ function CommentItem({
                 {!isResolved ? (
                     <button
                         className="btn btn-link btn-sm"
-                        onClick={() => handleAction(() => onResolve(comment.id))}
+                        onClick={() =>
+                            handleAction(() => onResolve(comment.id))
+                        }
                         disabled={isActing}
                         title="Mark as resolved"
                     >
@@ -148,7 +147,9 @@ function CommentItem({
                 ) : (
                     <button
                         className="btn btn-link btn-sm"
-                        onClick={() => handleAction(() => onUnresolve(comment.id))}
+                        onClick={() =>
+                            handleAction(() => onUnresolve(comment.id))
+                        }
                         disabled={isActing}
                         title="Reopen"
                     >
@@ -168,9 +169,7 @@ function CommentItem({
             </div>
             {isResolved && comment.resolvedByFullName && (
                 <div className="comment-resolved-by">
-                    <small>
-                        Resolved by {comment.resolvedByFullName}
-                    </small>
+                    <small>Resolved by {comment.resolvedByFullName}</small>
                 </div>
             )}
         </div>

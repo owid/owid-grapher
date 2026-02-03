@@ -659,8 +659,13 @@ export async function getVariablesRelatedJson(
             dimensions: parseVariableDimensions(row.dimensions),
         }))
         .filter(
-            (v): v is { id: number; name: string; dimensions: VariableDisplayDimension } =>
-                v.dimensions !== null
+            (
+                v
+            ): v is {
+                id: number
+                name: string
+                dimensions: VariableDisplayDimension
+            } => v.dimensions !== null
         )
 
     // Extract unique dimension choices from all related variables

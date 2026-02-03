@@ -25,13 +25,8 @@ export async function getComments(
     res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadonlyTransaction
 ): Promise<{ comments: DbCommentWithUser[] }> {
-    const {
-        targetType,
-        targetId,
-        viewState,
-        fieldPath,
-        includeResolved,
-    } = req.query as unknown as CommentsListParams
+    const { targetType, targetId, viewState, fieldPath, includeResolved } =
+        req.query as unknown as CommentsListParams
 
     if (!targetType || !targetId) {
         throw new JsonError("targetType and targetId are required", 400)
@@ -168,9 +163,7 @@ export async function updateComment(
         throw new JsonError("Content is required", 400)
     }
 
-    const existingComment = await trx(CommentsTableName)
-        .where({ id })
-        .first()
+    const existingComment = await trx(CommentsTableName).where({ id }).first()
 
     if (!existingComment) {
         throw new JsonError("Comment not found", 404)
@@ -201,9 +194,7 @@ export async function resolveComment(
         throw new JsonError("Comment ID is required", 400)
     }
 
-    const existingComment = await trx(CommentsTableName)
-        .where({ id })
-        .first()
+    const existingComment = await trx(CommentsTableName).where({ id }).first()
 
     if (!existingComment) {
         throw new JsonError("Comment not found", 404)
@@ -231,9 +222,7 @@ export async function unresolveComment(
         throw new JsonError("Comment ID is required", 400)
     }
 
-    const existingComment = await trx(CommentsTableName)
-        .where({ id })
-        .first()
+    const existingComment = await trx(CommentsTableName).where({ id }).first()
 
     if (!existingComment) {
         throw new JsonError("Comment not found", 404)
@@ -261,9 +250,7 @@ export async function deleteComment(
         throw new JsonError("Comment ID is required", 400)
     }
 
-    const existingComment = await trx(CommentsTableName)
-        .where({ id })
-        .first()
+    const existingComment = await trx(CommentsTableName).where({ id }).first()
 
     if (!existingComment) {
         throw new JsonError("Comment not found", 404)

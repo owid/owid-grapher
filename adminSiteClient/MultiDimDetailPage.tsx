@@ -16,7 +16,11 @@ import {
     Popconfirm,
 } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faExternalLink, faTrash, faPencil } from "@fortawesome/free-solid-svg-icons"
+import {
+    faExternalLink,
+    faTrash,
+    faPencil,
+} from "@fortawesome/free-solid-svg-icons"
 import { Link } from "./Link.js"
 import urljoin from "url-join"
 import { Admin } from "./Admin.js"
@@ -452,7 +456,9 @@ export function MultiDimDetailPage({ id }: { id: number }) {
                                     rel="noopener"
                                 >
                                     <Space>
-                                        <FontAwesomeIcon icon={faExternalLink} />
+                                        <FontAwesomeIcon
+                                            icon={faExternalLink}
+                                        />
                                         View live
                                     </Space>
                                 </a>
@@ -464,7 +470,9 @@ export function MultiDimDetailPage({ id }: { id: number }) {
                                     rel="noopener"
                                 >
                                     <Space>
-                                        <FontAwesomeIcon icon={faExternalLink} />
+                                        <FontAwesomeIcon
+                                            icon={faExternalLink}
+                                        />
                                         View preview
                                     </Space>
                                 </a>

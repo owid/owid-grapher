@@ -5,7 +5,10 @@ import { Link } from "react-router-dom"
 import { Admin } from "./Admin.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import { VariableDisplayDimension, GrapherInterface } from "@ourworldindata/types"
+import {
+    VariableDisplayDimension,
+    GrapherInterface,
+} from "@ourworldindata/types"
 import { LoadingBlocker } from "./Forms.js"
 import {
     Grapher,
@@ -181,10 +184,7 @@ export function CreateMultidimChartPage({
     }, [relatedData, selectedDimensions])
 
     // Fetch the config for the selected variable
-    const {
-        data: variableConfig,
-        isLoading: isLoadingConfig,
-    } = useQuery({
+    const { data: variableConfig, isLoading: isLoadingConfig } = useQuery({
         queryKey: ["variableConfig", selectedVariable?.id],
         queryFn: () =>
             selectedVariable
@@ -283,7 +283,11 @@ export function CreateMultidimChartPage({
     return (
         <AdminLayout title="Create Chart from Multidimensional Indicator">
             <main className="CreateMultidimChartPage">
-                <Row className="p-3 admin-bar" justify="space-between" align="middle">
+                <Row
+                    className="p-3 admin-bar"
+                    justify="space-between"
+                    align="middle"
+                >
                     <Col flex={1}>
                         <Space direction="vertical" size="small">
                             <Typography.Title className="mb-0" level={4}>
@@ -331,7 +335,9 @@ export function CreateMultidimChartPage({
                                     key={name}
                                     name={name}
                                     values={dimensionChoices[name]}
-                                    selectedValue={selectedDimensions[name] || ""}
+                                    selectedValue={
+                                        selectedDimensions[name] || ""
+                                    }
                                     onChange={(value) =>
                                         handleDimensionChange(name, value)
                                     }
@@ -372,9 +378,7 @@ export function CreateMultidimChartPage({
                                 </div>
                             )}
                             {!isLoadingConfig && effectiveGrapherConfig && (
-                                <ChartPreview
-                                    config={effectiveGrapherConfig}
-                                />
+                                <ChartPreview config={effectiveGrapherConfig} />
                             )}
                             {!isLoadingConfig &&
                                 !effectiveGrapherConfig &&

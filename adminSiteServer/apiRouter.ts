@@ -619,12 +619,20 @@ postRouteWithRWTransaction(apiRouter, "/slack/sendMessage", sendMessageToSlack)
 
 // Comment routes
 getRouteWithROTransaction(apiRouter, "/comments.json", getComments)
-getRouteWithROTransaction(apiRouter, "/comments/count", getUnresolvedCommentsCount)
+getRouteWithROTransaction(
+    apiRouter,
+    "/comments/count",
+    getUnresolvedCommentsCount
+)
 getRouteWithROTransaction(apiRouter, "/comments/:id.json", getCommentById)
 postRouteWithRWTransaction(apiRouter, "/comments", createComment)
 patchRouteWithRWTransaction(apiRouter, "/comments/:id", updateComment)
 postRouteWithRWTransaction(apiRouter, "/comments/:id/resolve", resolveComment)
-postRouteWithRWTransaction(apiRouter, "/comments/:id/unresolve", unresolveComment)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/comments/:id/unresolve",
+    unresolveComment
+)
 deleteRouteWithRWTransaction(apiRouter, "/comments/:id", deleteComment)
 
 // Deploy helpers

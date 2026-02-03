@@ -161,7 +161,10 @@ export class ChartEditorView<
     constructor(props: ChartEditorViewProps<Editor>) {
         super(props)
 
-        makeObservable<ChartEditorView<Editor>, "_isDbSet" | "isCommentSidebarOpen">(this, {
+        makeObservable<
+            ChartEditorView<Editor>,
+            "_isDbSet" | "isCommentSidebarOpen"
+        >(this, {
             database: observable.ref,
             details: observable,
             simulateVisionDeficiency: observable,
@@ -561,9 +564,8 @@ export class ChartEditorView<
                                     name={name}
                                     values={values}
                                     selectedValue={
-                                        this.props.selectedDimensions?.[
-                                            name
-                                        ] || ""
+                                        this.props.selectedDimensions?.[name] ||
+                                        ""
                                     }
                                     onChange={(value) =>
                                         this.props.onDimensionChange?.(

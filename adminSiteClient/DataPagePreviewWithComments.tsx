@@ -181,9 +181,7 @@ function CommentItem({
                 {isOwner && (
                     <button
                         className="btn btn-link btn-sm text-danger"
-                        onClick={() =>
-                            handleAction(() => onDelete(comment.id))
-                        }
+                        onClick={() => handleAction(() => onDelete(comment.id))}
                         disabled={isActing}
                         title="Delete comment"
                     >
@@ -361,7 +359,8 @@ export function DataPagePreviewWithComments({
                         <div className="datapage-preview-sidebar">
                             <div className="datapage-preview-sidebar-header">
                                 <h5>
-                                    <FontAwesomeIcon icon={faComment} /> Comments
+                                    <FontAwesomeIcon icon={faComment} />{" "}
+                                    Comments
                                 </h5>
                                 <button
                                     className="btn btn-link btn-sm"
@@ -451,7 +450,10 @@ export function DataPagePreviewWithComments({
                             <div className="datapage-preview-sidebar-list">
                                 {isLoading ? (
                                     <div className="datapage-comment-loading">
-                                        <FontAwesomeIcon icon={faSpinner} spin />{" "}
+                                        <FontAwesomeIcon
+                                            icon={faSpinner}
+                                            spin
+                                        />{" "}
                                         Loading...
                                     </div>
                                 ) : error ? (
