@@ -915,6 +915,7 @@ export const enrichedBlockExamples: Record<
         bundle: "example-widget",
         size: BlockSize.Wide,
         config: { foo: "bar" },
+        variant: "wide",
         parseErrors: [],
     },
 }
