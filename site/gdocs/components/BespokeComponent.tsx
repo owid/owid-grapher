@@ -89,7 +89,7 @@ export function BespokeComponent({
                 }
 
                 // Mount the component
-                const dispose = module.mount(mountContainer, {
+                const dispose = await module.mount(mountContainer, {
                     variant: block.variant,
                     config: block.config,
                 })
