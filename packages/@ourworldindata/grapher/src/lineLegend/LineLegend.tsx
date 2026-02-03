@@ -1,4 +1,3 @@
-// This implements the line labels that appear to the right of the lines/polygons in LineCharts/StackedAreas.
 import * as _ from "lodash-es"
 import * as React from "react"
 import {
@@ -6,7 +5,9 @@ import {
     makeIdForHumanConsumption,
     excludeUndefined,
 } from "@ourworldindata/utils"
-import { TextWrap, Halo, MarkdownTextWrap } from "@ourworldindata/components"
+import { Halo, TextWrap } from "@ourworldindata/components"
+import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
+import { SeriesLabelState } from "../seriesLabel/SeriesLabelState.js"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { VerticalAxis } from "../axis/Axis"
@@ -140,13 +141,6 @@ class LineLabels extends React.Component<LineLabelsProps> {
         return (
             <g id={makeIdForHumanConsumption("text-labels")}>
                 {this.markers.map(({ series, labelText }, index) => {
-                    const textColor = darkenColorForText(series.color)
-                    const textProps = {
-                        fill: textColor,
-                        opacity: this.textOpacityForSeries(series),
-                        textAnchor: this.anchor,
-                    }
-
                     return (
                         <Halo
                             id={makeIdForHumanConsumption(
@@ -157,21 +151,22 @@ class LineLabels extends React.Component<LineLabelsProps> {
                             show={this.showTextOutline}
                             outlineWidth={
                                 GRAPHER_TEXT_OUTLINE_FACTOR *
-                                series.textWrap.fontSize
+                                series.seriesLabel.fontSettings.fontSize
                             }
                             outlineColor={this.textOutlineColor}
                         >
-                            {series.textWrap.renderSVG(
-                                labelText.x,
-                                labelText.y,
-                                {
-                                    textProps,
-                                    id: makeIdForHumanConsumption(
-                                        "label",
-                                        series.seriesName
-                                    ),
-                                }
-                            )}
+                            <SeriesLabel
+                                id={makeIdForHumanConsumption(
+                                    "label",
+                                    series.seriesName
+                                )}
+                                state={series.seriesLabel}
+                                x={labelText.x}
+                                y={labelText.y}
+                                fill={darkenColorForText(series.color)}
+                                opacity={this.textOpacityForSeries(series)}
+                                textAnchor={this.anchor}
+                            />
                         </Halo>
                     )
                 })}
@@ -202,7 +197,7 @@ class LineLabels extends React.Component<LineLabelsProps> {
                             {series.annotationTextWrap.renderSVG(
                                 labelText.x,
                                 labelText.y +
-                                    series.textWrap.height +
+                                    series.seriesLabel.height +
                                     ANNOTATION_PADDING,
                                 {
                                     textProps: {
@@ -394,44 +389,6 @@ export class LineLegend extends React.Component<LineLegendProps> {
         return this.maxWidth - DEFAULT_CONNECTOR_LINE_WIDTH
     }
 
-    private makeLabelTextWrap(
-        series: LineLabelSeries,
-        { fontWeights }: { fontWeights: { label: number; value?: number } }
-    ): TextWrap | MarkdownTextWrap {
-        if (!series.formattedValue) {
-            return new TextWrap({
-                text: series.label,
-                maxWidth: this.textMaxWidth,
-                fontSize: this.fontSize,
-                fontWeight: fontWeights?.label,
-            })
-        }
-
-        const isTextLabelBold = (fontWeights?.label ?? 400) >= 700
-        const isValueLabelBold = (fontWeights?.value ?? 400) >= 700
-
-        // text label fragments
-        const textLabel = { text: series.label, bold: isTextLabelBold }
-        const valueLabel = {
-            text: series.formattedValue,
-            bold: isValueLabelBold,
-        }
-
-        const newLine = series.placeFormattedValueInNewLine
-            ? "always"
-            : "avoid-wrap"
-
-        return MarkdownTextWrap.fromFragments({
-            main: textLabel,
-            secondary: valueLabel,
-            newLine,
-            textWrapProps: {
-                maxWidth: this.textMaxWidth,
-                fontSize: this.fontSize,
-            },
-        })
-    }
-
     private makeAnnotationTextWrap(
         series: LineLabelSeries
     ): TextWrap | undefined {
@@ -448,15 +405,23 @@ export class LineLegend extends React.Component<LineLegendProps> {
     @computed.struct get sizedSeries(): SizedSeries[] {
         const { fontWeight: globalFontWeight } = this
         return this.props.series.map((series) => {
-            // font weight priority:
-            // series focus state > presense of value label > globally set font weight
             const activeFontWeight = series.focus?.active ? 700 : undefined
             const seriesFontWeight = series.formattedValue ? 700 : undefined
+
+            // Font weight priority:
+            // Series focus state > Presence of value label > Globally set font weight
             const fontWeight =
                 activeFontWeight ?? seriesFontWeight ?? globalFontWeight
 
-            const fontWeights = { label: fontWeight, value: 400 }
-            const textWrap = this.makeLabelTextWrap(series, { fontWeights })
+            const seriesLabel = new SeriesLabelState({
+                text: series.label,
+                maxWidth: this.textMaxWidth,
+                fontSize: this.fontSize,
+                fontWeight,
+                formattedValue: series.formattedValue,
+                placeFormattedValueInNewLine:
+                    series.placeFormattedValueInNewLine,
+            })
 
             const annotationTextWrap = this.makeAnnotationTextWrap(series)
             const annotationWidth = annotationTextWrap?.width ?? 0
@@ -466,10 +431,10 @@ export class LineLegend extends React.Component<LineLegendProps> {
 
             return {
                 ...series,
-                textWrap,
+                seriesLabel,
                 annotationTextWrap,
-                width: Math.max(textWrap.width, annotationWidth),
-                height: textWrap.height + annotationHeight,
+                width: Math.max(seriesLabel.width, annotationWidth),
+                height: seriesLabel.height + annotationHeight,
             }
         })
     }
@@ -510,7 +475,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
 
     private getYPositionForSeriesLabel(series: SizedSeries): number {
         const y = this.yAxis.place(series.yValue)
-        const lineHeight = series.textWrap.singleLineHeight
+        const lineHeight = series.seriesLabel.singleLineHeight
         switch (this.verticalAlign) {
             case VerticalAlign.middle:
                 return y - series.height / 2

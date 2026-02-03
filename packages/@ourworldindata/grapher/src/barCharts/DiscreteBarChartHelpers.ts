@@ -1,7 +1,8 @@
 import * as _ from "lodash-es"
 import { TextWrap, shortenWithEllipsis } from "@ourworldindata/components"
 import { EntityName } from "@ourworldindata/types"
-import { FontSettings } from "./DiscreteBarChartConstants.js"
+import { FontSettings } from "../core/GrapherConstants.js"
+import { SeriesLabelState } from "../seriesLabel/SeriesLabelState.js"
 
 const ANNOTATION_PADDING = 2
 
@@ -200,7 +201,7 @@ export function enrichSeriesWithLabels<
     maxLabelWidth: number
     fontSettings: FontSettings
     annotationFontSettings?: FontSettings
-}): (TSeries & { label: TextWrap; annotationTextWrap?: TextWrap })[] {
+}): (TSeries & { label: SeriesLabelState; annotationTextWrap?: TextWrap })[] {
     // Wrap labels and annotations to fit within the available space
     const wrappedLabels = series.map((series) => {
         const label = series.shortEntityName ?? series.entityName
@@ -273,7 +274,9 @@ export function enrichSeriesWithLabels<
     if (!needsTruncation)
         return series.map((series, index) => ({
             ...series,
-            label: wrappedLabels[index].labelWrap,
+            label: SeriesLabelState.fromTextWrap(
+                wrappedLabels[index].labelWrap
+            ),
             annotationTextWrap: wrappedLabels[index].annotationWrap,
         }))
 
@@ -332,7 +335,7 @@ export function enrichSeriesWithLabels<
 
     return series.map((series, index) => ({
         ...series,
-        label: truncatedLabels[index],
+        label: SeriesLabelState.fromTextWrap(truncatedLabels[index]),
         annotationTextWrap: truncatedAnnotations[index],
     }))
 }
