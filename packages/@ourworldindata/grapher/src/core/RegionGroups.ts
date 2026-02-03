@@ -41,7 +41,9 @@ export interface RegionGroup {
 
 export type EntitiesByRegionGroup = Map<RegionGroupKey, EntityName[]>
 
-type AnyRegionDataProvider = RegionDataProvider | AdditionalRegionDataProvider
+export type AnyRegionDataProvider =
+    | RegionDataProvider
+    | AdditionalRegionDataProvider
 
 export const regionGroupLabels: Record<RegionGroupKey, string> = {
     countries: "Countries",
@@ -147,8 +149,8 @@ export function groupEntitiesByRegionType(
 
     const entitiesByProvider = new Map<AnyRegionDataProvider, EntityName[]>()
     for (const entityName of availableEntityNames) {
-        const parsedEntityName = parseEntityName(entityName)
-        if (parsedEntityName.type === "regionWithProviderSuffix") {
+        const parsedEntityName = parseLabelWithSuffix(entityName)
+        if (parsedEntityName.providerKey) {
             const providerKey = parsedEntityName.providerKey
             if (!entitiesByProvider.get(providerKey))
                 entitiesByProvider.set(providerKey, [])
@@ -171,33 +173,26 @@ export function groupEntitiesByRegionType(
     return entitiesByRegionGroup
 }
 
-type ParsedEntityName =
-    | { type: "plain"; name: string; suffix?: string }
-    | {
-          type: "regionWithProviderSuffix"
-          name: string
-          suffix: string
-          providerKey: AnyRegionDataProvider
-      }
+export interface ParsedLabel {
+    raw: string
+    main: string
+    suffix?: string
+    providerKey?: AnyRegionDataProvider
+}
 
-export function parseEntityName(entityName: string): ParsedEntityName {
-    const match = entityName.match(/^(.+)\s+\(([^)]+)\)$/)
-    if (!match) return { type: "plain", name: entityName }
+export function parseLabelWithSuffix(raw: string): ParsedLabel {
+    const match = raw.match(/^(.+)\s+\(([^)]+)\)$/)
+    if (!match) return { main: raw, raw }
 
-    const [, name, suffix] = match
+    const [, main, suffix] = match
 
-    if (!suffix) return { type: "plain", name: entityName }
+    if (!suffix) return { main: raw, raw }
 
     const providerKey = toProviderKey(suffix)
     if (!providerKey || !isRegionDataProviderKey(providerKey))
-        return { type: "plain", name: entityName, suffix }
+        return { main, suffix, raw }
 
-    return {
-        type: "regionWithProviderSuffix",
-        name,
-        suffix,
-        providerKey,
-    }
+    return { main, suffix, raw, providerKey }
 }
 
 export function isRegionDataProviderKey(

@@ -275,7 +275,7 @@ export class StackedAreaChart
             .map((s) => s.seriesName)
     }
 
-    @action.bound onLineLegendMouseOver(seriesName: SeriesName): void {
+    @action.bound onLineLegendMouseEnter(seriesName: SeriesName): void {
         clearTimeout(this.hoverTimer)
         this.lineLegendHoveredSeriesName = seriesName
     }
@@ -580,7 +580,7 @@ export class StackedAreaChart
                 fontSize={this.fontSize}
                 seriesNamesSortedByImportance={this.seriesSortedByImportance}
                 isStatic={this.isStatic}
-                onMouseOver={this.onLineLegendMouseOver}
+                onMouseEnter={this.onLineLegendMouseEnter}
                 onMouseLeave={this.onLineLegendMouseLeave}
             />
         )

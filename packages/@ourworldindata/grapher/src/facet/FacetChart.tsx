@@ -63,12 +63,16 @@ import {
     ColorScaleBin,
     NumericBin,
 } from "../color/ColorScaleBin"
-import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import { FocusArray } from "../focus/FocusArray"
 import {
     LegendInteractionState,
     LegendStyleConfig,
 } from "../legend/LegendInteractionState"
+import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
+import {
+    SeriesLabelState,
+    SeriesLabelStateOptions,
+} from "../seriesLabel/SeriesLabelState.js"
 
 const SHARED_X_AXIS_MIN_FACET_COUNT = 12
 
@@ -872,12 +876,23 @@ export class FacetChart
         return { fontSize, shortenedLabel: label }
     }
 
+    @computed
+    private get facetLabelSettings(): Omit<SeriesLabelStateOptions, "text"> {
+        return {
+            maxWidth: Infinity, // Facet labels never line break
+            fontWeight: 700,
+            fontSize: this.facetFontSize,
+            showProviderTooltip: !this.manager.isStatic,
+        }
+    }
+
     override componentDidMount(): void {
         exposeInstanceOnWindow(this, "facetChart")
     }
 
     override render(): React.ReactElement {
-        const { facetFontSize, LegendClass, showLegend } = this
+        const { facetFontSize, facetLabelSettings, LegendClass, showLegend } =
+            this
         return (
             <React.Fragment>
                 {showLegend && <LegendClass manager={this} />}
@@ -885,25 +900,45 @@ export class FacetChart
                     const { bounds, contentBounds, seriesName } = facetChart
                     const labelPadding = getLabelPadding(facetFontSize)
 
-                    const { fontSize, shortenedLabel } =
+                    let { fontSize: shrunkFontSize, shortenedLabel } =
                         this.shrinkAndShortenFacetLabel(
                             seriesName,
                             contentBounds.width,
                             facetFontSize
                         )
 
+                    let seriesLabelState = new SeriesLabelState({
+                        text: shortenedLabel,
+                        ...facetLabelSettings,
+                        fontSize: shrunkFontSize,
+                    })
+
+                    // If the info icon causes overflow, shorten the label
+                    // (which also removes the icon because the suffix gets truncated)
+                    if (seriesLabelState.width > contentBounds.width) {
+                        shortenedLabel = shortenWithEllipsis(
+                            shortenedLabel,
+                            contentBounds.width,
+                            { fontSize: shrunkFontSize }
+                        )
+                        seriesLabelState = new SeriesLabelState({
+                            text: shortenedLabel,
+                            ...facetLabelSettings,
+                            fontSize: shrunkFontSize,
+                        })
+                    }
+
                     return (
                         <React.Fragment key={index}>
-                            <text
+                            <SeriesLabel
+                                state={seriesLabelState}
                                 x={contentBounds.x}
-                                y={contentBounds.top - labelPadding}
-                                fill={GRAPHER_DARK_TEXT}
-                                fontSize={fontSize}
-                                style={{ fontWeight: 700 }}
-                            >
-                                {shortenedLabel}
-                                <title>{seriesName}</title>
-                            </text>
+                                y={
+                                    contentBounds.top -
+                                    labelPadding -
+                                    seriesLabelState.singleLineHeight
+                                }
+                            />
                             <g id={makeIdForHumanConsumption(seriesName)}>
                                 <ChartComponent
                                     manager={facetChart.manager}

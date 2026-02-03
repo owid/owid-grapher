@@ -78,6 +78,7 @@ import {
     RegionGroupKey,
     RegionGroup,
     isRegionDataProviderKey,
+    parseLabelWithSuffix,
 } from "../core/RegionGroups"
 import { SearchField } from "../controls/SearchField"
 import { MAP_REGION_LABELS } from "../mapCharts/MapChartConstants.js"
@@ -1680,23 +1681,37 @@ function SelectableEntity({
         radio: RadioButton,
     }[type]
 
-    const nameWords = name.split(" ")
+    const { main: displayName, suffix } = parseLabelWithSuffix(name)
+
+    const locationIcon = (
+        <span className="location-icon">
+            {/* Non-breaking space prevents the icon from wrapping to a new line alone */}
+            {"\u00A0"}
+            <Tippy
+                content="Your current location"
+                theme="grapher-explanation--short"
+                placement="top"
+            >
+                <FontAwesomeIcon icon={faLocationArrow} />
+            </Tippy>
+        </span>
+    )
+
+    const suffixElement = suffix && <span className="suffix"> ({suffix})</span>
+
     const label = isLocal ? (
-        <span className="label-with-location-icon">
-            {nameWords.slice(0, -1).join(" ")}{" "}
-            <span className="label-with-location-icon label-with-location-icon--no-line-break">
-                {nameWords[nameWords.length - 1]}
-                <Tippy
-                    content="Your current location"
-                    theme="grapher-explanation--short"
-                    placement="top"
-                >
-                    <FontAwesomeIcon icon={faLocationArrow} />
-                </Tippy>
-            </span>
+        <span>
+            {displayName}
+            {suffixElement}
+            {locationIcon}
+        </span>
+    ) : suffix ? (
+        <span>
+            {displayName}
+            {suffixElement}
         </span>
     ) : (
-        name
+        displayName
     )
 
     return (
