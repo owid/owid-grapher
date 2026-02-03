@@ -149,12 +149,9 @@ getPlainRouteWithROTransaction(
             trx
         )
 
-        // Inject comment script if comments query param is present
-        if (req.query.comments === "true") {
-            const commentScript = getPreviewCommentScript(variableId)
-            // Inject before closing body tag
-            html = html.replace("</body>", `${commentScript}</body>`)
-        }
+        // Always inject comment script for admin preview pages
+        const commentScript = getPreviewCommentScript(variableId)
+        html = html.replace("</body>", `${commentScript}</body>`)
 
         res.send(html)
     }
@@ -215,17 +212,15 @@ getPlainRouteWithROTransaction(
                 isPreviewing: true,
             })
 
-            // Inject comment script if comments query param is present
-            if (req.query.comments === "true") {
-                const { getMultidimCommentScript } = await import(
-                    "./previewCommentScript.js"
-                )
-                const commentScript = getMultidimCommentScript(
-                    mdd.slug ?? slug,
-                    mdd.config.dimensions?.map((d) => d.slug) ?? []
-                )
-                html = html.replace("</body>", `${commentScript}</body>`)
-            }
+            // Always inject comment script for admin preview pages
+            const { getMultidimCommentScript } = await import(
+                "./previewCommentScript.js"
+            )
+            const commentScript = getMultidimCommentScript(
+                mdd.slug ?? slug,
+                mdd.config.dimensions?.map((d) => d.slug) ?? []
+            )
+            html = html.replace("</body>", `${commentScript}</body>`)
 
             res.send(html)
             return

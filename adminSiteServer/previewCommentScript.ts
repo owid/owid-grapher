@@ -471,20 +471,56 @@ body.comment-mode-active .key-data:hover {
 
         // Close popover on outside click
         document.addEventListener('click', (e) => {
-            if (currentPopover && !currentPopover.contains(e.target) && !e.target.closest('.owid-comment-icon')) {
+            if (currentPopover && !currentPopover.contains(e.target) && !e.target.closest('.owid-comment-icon') && !e.target.closest('.owid-other-views-banner')) {
                 closePopover();
             }
         });
 
-        // Fetch comments (don't add icons yet - wait for user to enable comment mode)
+        // Restore comment mode state from sessionStorage
+        const shouldBeActive = sessionStorage.getItem('owidCommentModeActive') === 'true';
+        if (shouldBeActive) {
+            // Set visual state immediately
+            isCommentModeActive = true;
+            document.body.classList.add('comment-mode-active');
+            toggle.classList.add('active');
+            toggle.querySelector('span:first-child').textContent = '✓ Comment Mode ON';
+
+            // Use MutationObserver to add icons when DOM elements become available
+            waitForElementsAndAddIcons();
+        }
+
         fetchComments();
     }
 
-    // Override toggleCommentMode to add icons on first enable
     let iconsAdded = false;
-    const originalToggle = toggleCommentMode;
-    toggleCommentMode = function() {
+
+    // Watch for key DOM elements to appear and add icons when ready
+    function waitForElementsAndAddIcons() {
+        // Check if elements are already available
+        const hasElements = document.querySelector('.key-data__title') || document.querySelector('.HeaderHTML');
+        if (hasElements) {
+            addCommentIcons();
+            iconsAdded = document.querySelectorAll('.owid-comment-icon').length > 0;
+            return;
+        }
+
+        // Otherwise, watch for them to appear
+        const observer = new MutationObserver((mutations, obs) => {
+            const hasElements = document.querySelector('.key-data__title') || document.querySelector('.HeaderHTML');
+            if (hasElements) {
+                obs.disconnect();
+                addCommentIcons();
+                iconsAdded = document.querySelectorAll('.owid-comment-icon').length > 0;
+            }
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
+
+    function toggleCommentMode() {
         isCommentModeActive = !isCommentModeActive;
+        // Persist state to sessionStorage so it survives page navigation
+        sessionStorage.setItem('owidCommentModeActive', isCommentModeActive ? 'true' : 'false');
         document.body.classList.toggle('comment-mode-active', isCommentModeActive);
 
         const btn = document.querySelector('.owid-comment-toggle');
@@ -492,15 +528,18 @@ body.comment-mode-active .key-data:hover {
         btn.querySelector('span:first-child').textContent = isCommentModeActive ? '✓ Comment Mode ON' : '💬 Comment Mode';
 
         if (isCommentModeActive && !iconsAdded) {
-            // Add icons only when comment mode is first enabled (after hydration)
             addCommentIcons();
-            iconsAdded = true;
+            iconsAdded = document.querySelectorAll('.owid-comment-icon').length > 0;
+            // If icons weren't added yet (elements not ready), watch for them
+            if (!iconsAdded) {
+                waitForElementsAndAddIcons();
+            }
         }
 
         if (!isCommentModeActive) {
             closePopover();
         }
-    };
+    }
 
     // Wait for page to fully load (including React hydration)
     if (document.readyState === 'complete') {
@@ -1009,6 +1048,18 @@ body.comment-mode-active .key-data:hover {
         \`;
     }
 
+    function navigateToView(viewState) {
+        if (!viewState) return; // Can't navigate to "all views"
+        const url = new URL(window.location.href);
+        // Clear existing view params and set new ones
+        DIMENSION_SLUGS.forEach(dim => url.searchParams.delete(dim));
+        Object.entries(viewState).forEach(([key, value]) => {
+            url.searchParams.set(key, value);
+        });
+        // Comment mode state is preserved via sessionStorage automatically
+        window.location.href = url.toString();
+    }
+
     function showAllViewsPopover() {
         closePopover();
         activeTab = 'all';
@@ -1036,12 +1087,14 @@ body.comment-mode-active .key-data:hover {
                 <button class="owid-comment-popover-close">&times;</button>
             </div>
             <div class="owid-comment-popover-list" style="max-height: calc(70vh - 60px)">
-                \${Object.entries(byView).map(([viewKey, data]) => {
+                \${Object.entries(byView).map(([viewKey, data], idx) => {
                     const isCurrentView = viewStatesMatch(data.viewState, currentView);
+                    const isClickable = data.viewState && !isCurrentView;
                     return \`
                         <div style="margin-bottom: 16px;">
-                            <div style="font-size: 12px; font-weight: 600; color: \${isCurrentView ? '#004085' : '#666'}; margin-bottom: 8px; padding: 4px 8px; background: \${isCurrentView ? '#cce5ff' : '#e9ecef'}; border-radius: 4px;">
+                            <div class="view-header" data-view-idx="\${idx}" style="font-size: 12px; font-weight: 600; color: \${isCurrentView ? '#004085' : '#666'}; margin-bottom: 8px; padding: 6px 10px; background: \${isCurrentView ? '#cce5ff' : '#e9ecef'}; border-radius: 4px; \${isClickable ? 'cursor: pointer; transition: all 0.15s;' : ''}">
                                 \${isCurrentView ? '📍 Current: ' : '📊 '}\${viewKey}
+                                \${isClickable ? '<span style="float: right; font-size: 11px; color: #007bff;">→ Go to view</span>' : ''}
                             </div>
                             \${data.comments.map(c => \`
                                 <div class="owid-comment-popover-item" style="margin-left: 8px;">
@@ -1060,7 +1113,28 @@ body.comment-mode-active .key-data:hover {
         document.body.appendChild(popover);
         currentPopover = popover;
 
+        // Store view data for click handlers
+        const viewEntries = Object.entries(byView);
+
         popover.querySelector('.owid-comment-popover-close').addEventListener('click', closePopover);
+
+        // Add click handlers to view headers
+        popover.querySelectorAll('.view-header').forEach(header => {
+            const idx = parseInt(header.dataset.viewIdx);
+            const [, data] = viewEntries[idx];
+            if (data.viewState && !viewStatesMatch(data.viewState, currentView)) {
+                header.addEventListener('mouseenter', () => {
+                    header.style.background = '#dee2e6';
+                });
+                header.addEventListener('mouseleave', () => {
+                    header.style.background = '#e9ecef';
+                });
+                header.addEventListener('click', () => {
+                    navigateToView(data.viewState);
+                });
+            }
+        });
+
         popover.querySelectorAll('.owid-comment-popover-resolve').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 const id = parseInt(e.target.dataset.id);
@@ -1289,7 +1363,7 @@ body.comment-mode-active .key-data:hover {
         document.body.appendChild(toggle);
 
         document.addEventListener('click', (e) => {
-            if (currentPopover && !currentPopover.contains(e.target) && !e.target.closest('.owid-comment-icon')) {
+            if (currentPopover && !currentPopover.contains(e.target) && !e.target.closest('.owid-comment-icon') && !e.target.closest('.owid-other-views-banner')) {
                 closePopover();
             }
         });
@@ -1304,19 +1378,62 @@ body.comment-mode-active .key-data:hover {
             }
         }, 500);
 
+        // Restore comment mode state from sessionStorage
+        const shouldBeActive = sessionStorage.getItem('owidCommentModeActive') === 'true';
+        if (shouldBeActive) {
+            // Set visual state immediately
+            isCommentModeActive = true;
+            document.body.classList.add('comment-mode-active');
+            toggle.classList.add('active');
+            toggle.querySelector('span:first-child').textContent = '✓ Comment Mode ON';
+
+            // Use MutationObserver to add icons when DOM elements become available
+            waitForElementsAndAddIcons();
+        }
+
         fetchComments();
     }
 
     let iconsAdded = false;
+
+    // Watch for key DOM elements to appear and add icons when ready
+    function waitForElementsAndAddIcons() {
+        // Check if elements are already available
+        const hasElements = document.querySelector('.key-data__title') || document.querySelector('.HeaderHTML');
+        if (hasElements) {
+            addCommentIcons();
+            iconsAdded = document.querySelectorAll('.owid-comment-icon').length > 0;
+            return;
+        }
+
+        // Otherwise, watch for them to appear
+        const observer = new MutationObserver((mutations, obs) => {
+            const hasElements = document.querySelector('.key-data__title') || document.querySelector('.HeaderHTML');
+            if (hasElements) {
+                obs.disconnect();
+                addCommentIcons();
+                iconsAdded = document.querySelectorAll('.owid-comment-icon').length > 0;
+            }
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
+
     function toggleCommentMode() {
         isCommentModeActive = !isCommentModeActive;
+        // Persist state to sessionStorage so it survives page navigation
+        sessionStorage.setItem('owidCommentModeActive', isCommentModeActive ? 'true' : 'false');
         document.body.classList.toggle('comment-mode-active', isCommentModeActive);
         const btn = document.querySelector('.owid-comment-toggle');
         btn.classList.toggle('active', isCommentModeActive);
         btn.querySelector('span:first-child').textContent = isCommentModeActive ? '✓ Comment Mode ON' : '💬 Comment Mode';
         if (isCommentModeActive && !iconsAdded) {
             addCommentIcons();
-            iconsAdded = true;
+            iconsAdded = document.querySelectorAll('.owid-comment-icon').length > 0;
+            // If icons weren't added yet (elements not ready), watch for them
+            if (!iconsAdded) {
+                waitForElementsAndAddIcons();
+            }
         }
         if (!isCommentModeActive) {
             closePopover();
