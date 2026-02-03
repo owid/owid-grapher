@@ -333,7 +333,8 @@ export class GdocBase implements OwidGdocBaseInterface {
             this.markdown =
                 enrichedBlocksToMarkdown(
                     this.enrichedBlockSources.flat(),
-                    true
+                    true,
+                    { linkedCallouts: this.linkedCallouts }
                 ) ?? null
         } catch (e) {
             console.error("Error when converting content to markdown", e)

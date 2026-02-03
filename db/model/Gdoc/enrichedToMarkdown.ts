@@ -2,42 +2,93 @@ import * as _ from "lodash-es"
 import {
     EnrichedBlockKeyIndicator,
     gdocUrlRegex,
+    LinkedCallouts,
     RESEARCH_AND_WRITING_DEFAULT_HEADING,
+    SpanCallout,
 } from "@ourworldindata/types"
 import { getLinkType } from "@ourworldindata/components"
 import {
+    checkShouldDataCalloutRender,
+    getCalloutValue,
+    makeLinkedCalloutKey,
     OwidEnrichedGdocBlock,
     Span,
     excludeNullish,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 
-export function spanToMarkdown(s: Span): string {
+/**
+ * Options for markdown conversion functions.
+ * Used to pass linkedCallouts context through the conversion.
+ */
+export interface MarkdownConversionOptions {
+    linkedCallouts?: LinkedCallouts
+    /** URL of the current data-callout block (set when inside a data-callout) */
+    currentDataCalloutUrl?: string
+}
+
+/**
+ * Resolve a span-callout's value from linkedCallouts.
+ * Returns the resolved value or undefined if not found.
+ */
+function resolveSpanCalloutValue(
+    span: SpanCallout,
+    options?: MarkdownConversionOptions
+): string | undefined {
+    if (!options?.linkedCallouts || !options?.currentDataCalloutUrl) {
+        return undefined
+    }
+
+    const key = makeLinkedCalloutKey(options.currentDataCalloutUrl)
+    const linkedCallout = options.linkedCallouts[key]
+
+    if (!linkedCallout?.values) return undefined
+
+    return getCalloutValue(
+        linkedCallout.values,
+        span.functionName,
+        span.parameters
+    )
+}
+
+export function spanToMarkdown(
+    s: Span,
+    options?: MarkdownConversionOptions
+): string {
     return match(s)
         .with({ spanType: "span-simple-text" }, (span) => span.text)
         .with({ spanType: "span-newline" }, () => "\n  ")
         .with({ spanType: "span-link" }, (link) => {
             if (link.url.match(gdocUrlRegex)) {
-                return spansToMarkdown(link.children)
+                return spansToMarkdown(link.children, options)
             }
-            return `[${spansToMarkdown(link.children)}](${link.url})`
+            return `[${spansToMarkdown(link.children, options)}](${link.url})`
         })
         .with(
             { spanType: "span-italic" },
-            (span) => `_${spansToMarkdown(span.children)}_`
+            (span) => `_${spansToMarkdown(span.children, options)}_`
         )
         .with(
             { spanType: "span-bold" },
-            (span) => `**${spansToMarkdown(span.children)}**`
+            (span) => `**${spansToMarkdown(span.children, options)}**`
         )
         .with(
             { spanType: "span-dod" },
-            (span) => `[${spansToMarkdown(span.children)}](#dod:${span.id})`
+            (span) =>
+                `[${spansToMarkdown(span.children, options)}](#dod:${span.id})`
         )
         .with(
             { spanType: "span-guided-chart-link" },
-            (span) => `[${spansToMarkdown(span.children)}](#guide:${span.url})`
+            (span) =>
+                `[${spansToMarkdown(span.children, options)}](#guide:${span.url})`
         )
+        .with({ spanType: "span-callout" }, (span) => {
+            // Try to resolve the actual value from linkedCallouts
+            const resolvedValue = resolveSpanCalloutValue(span, options)
+            if (resolvedValue) return resolvedValue
+            // Fall back to placeholder children
+            return spansToMarkdown(span.children, options)
+        })
         .with(
             {
                 spanType: P.union(
@@ -46,17 +97,19 @@ export function spanToMarkdown(s: Span): string {
                     "span-subscript",
                     "span-superscript",
                     "span-quote",
-                    "span-fallback",
-                    "span-callout"
+                    "span-fallback"
                 ),
             },
-            (other) => spansToMarkdown(other.children)
+            (other) => spansToMarkdown(other.children, options)
         )
         .exhaustive()
 }
 
-export function spansToMarkdown(spans: Span[] | undefined): string {
-    return spans?.map((span) => spanToMarkdown(span)).join("") ?? ""
+export function spansToMarkdown(
+    spans: Span[] | undefined,
+    options?: MarkdownConversionOptions
+): string {
+    return spans?.map((span) => spanToMarkdown(span, options)).join("") ?? ""
 }
 
 const CUSTOM_MARKDOWN_COMPONENTS = {
@@ -118,11 +171,14 @@ export function stripCustomMarkdownComponents(content: string): string {
 
 export function enrichedBlocksToMarkdown(
     blocks: OwidEnrichedGdocBlock[] | undefined,
-    exportComponents: boolean
+    exportComponents: boolean,
+    options?: MarkdownConversionOptions
 ): string | undefined {
     if (!blocks) return undefined
     const result = excludeNullish(
-        blocks.map((block) => enrichedBlockToMarkdown(block, exportComponents))
+        blocks.map((block) =>
+            enrichedBlockToMarkdown(block, exportComponents, options)
+        )
     ).join("\n\n")
     if (result === "") return undefined
     else return result
@@ -130,7 +186,8 @@ export function enrichedBlocksToMarkdown(
 
 export function enrichedBlockToMarkdown(
     block: OwidEnrichedGdocBlock,
-    exportComponents: boolean
+    exportComponents: boolean,
+    options?: MarkdownConversionOptions
 ): string | undefined {
     if (!block.type) return undefined
     return match(block)
@@ -140,7 +197,7 @@ export function enrichedBlockToMarkdown(
                 console.error("Text block value is undefined")
             if (!_.isArray(b.value))
                 console.error("Text block value is not an array", b.value)
-            return spansToMarkdown(b.value)
+            return spansToMarkdown(b.value, options)
         })
         .with({ type: "simple-text" }, (b): string | undefined => b.value.text)
         .with({ type: "all-charts" }, (b): string | undefined =>
@@ -154,7 +211,7 @@ export function enrichedBlockToMarkdown(
             if (!exportComponents) return undefined
             else {
                 const items = b.items
-                    .map((i) => `* ${spansToMarkdown(i)}`)
+                    .map((i) => `* ${spansToMarkdown(i, options)}`)
                     .join("\n")
                 return `<AdditionalCharts>
 ${items}
@@ -175,7 +232,9 @@ ${items}
                 "Chart",
                 {
                     url: b.url,
-                    caption: b.caption ? spansToMarkdown(b.caption) : undefined,
+                    caption: b.caption
+                        ? spansToMarkdown(b.caption, options)
+                        : undefined,
                     size: b.size,
                     // Note: truncated
                 },
@@ -188,7 +247,9 @@ ${items}
                 {
                     name: b.name,
                     size: b.size,
-                    caption: b.caption ? spansToMarkdown(b.caption) : undefined,
+                    caption: b.caption
+                        ? spansToMarkdown(b.caption, options)
+                        : undefined,
                     // Note: truncated
                 },
                 exportComponents
@@ -235,23 +296,31 @@ ${items}
                 {
                     url: b.url,
                     filename: b.filename,
-                    caption: b.caption ? spansToMarkdown(b.caption) : undefined,
+                    caption: b.caption
+                        ? spansToMarkdown(b.caption, options)
+                        : undefined,
                     shouldLoop: String(b.shouldLoop),
                 },
                 exportComponents
             )
         )
         .with({ type: "list" }, (b): string | undefined =>
-            b.items.map((item) => `* ${spansToMarkdown(item.value)}`).join("\n")
+            b.items
+                .map((item) => `* ${spansToMarkdown(item.value, options)}`)
+                .join("\n")
         )
         .with({ type: "people" }, (b): string | undefined =>
             b.items
-                .map((item) => enrichedBlockToMarkdown(item, exportComponents))
+                .map((item) =>
+                    enrichedBlockToMarkdown(item, exportComponents, options)
+                )
                 .join("\n")
         )
         .with({ type: "people-rows" }, (b): string | undefined =>
             b.people
-                .map((item) => enrichedBlockToMarkdown(item, exportComponents))
+                .map((item) =>
+                    enrichedBlockToMarkdown(item, exportComponents, options)
+                )
                 .join("\n")
         )
         .with({ type: "person" }, (b): string | undefined => {
@@ -264,7 +333,7 @@ ${items}
                     ),
                 `### ${b.name}`,
                 b.title,
-                enrichedBlocksToMarkdown(b.text, exportComponents),
+                enrichedBlocksToMarkdown(b.text, exportComponents, options),
             ]
             return _.compact(items).join("\n")
         })
@@ -272,7 +341,7 @@ ${items}
             const quote = b.quote
             const content = b.content
                 .map((block) =>
-                    enrichedBlockToMarkdown(block, exportComponents)
+                    enrichedBlockToMarkdown(block, exportComponents, options)
                 )
                 .join("\n")
 
@@ -289,7 +358,7 @@ ${items}
         .with({ type: "guided-chart" }, (b): string | undefined => {
             return b.content
                 .map((block) =>
-                    enrichedBlockToMarkdown(block, exportComponents)
+                    enrichedBlockToMarkdown(block, exportComponents, options)
                 )
                 .join("\n")
         })
@@ -305,11 +374,11 @@ ${items}
             const prefix = "#".repeat(b.level)
             const text = b.supertitle
                 ? [
-                      spansToMarkdown(b.supertitle),
+                      spansToMarkdown(b.supertitle, options),
                       "\u000b",
-                      spansToMarkdown(b.text),
+                      spansToMarkdown(b.text, options),
                   ].join("")
-                : spansToMarkdown(b.text)
+                : spansToMarkdown(b.text, options)
             return `${prefix} ${text}`
         })
         .with({ type: "horizontal-rule" }, () => "---")
@@ -321,12 +390,12 @@ ${items}
             (b): string | undefined => {
                 const nonNullishLeft = excludeNullish(
                     b.left.map((item) =>
-                        enrichedBlockToMarkdown(item, exportComponents)
+                        enrichedBlockToMarkdown(item, exportComponents, options)
                     )
                 )
                 const nonNullishRight = excludeNullish(
                     b.right.map((item) =>
-                        enrichedBlockToMarkdown(item, exportComponents)
+                        enrichedBlockToMarkdown(item, exportComponents, options)
                     )
                 )
 
@@ -334,13 +403,13 @@ ${items}
             }
         )
         .with({ type: "gray-section" }, (b): string | undefined =>
-            enrichedBlocksToMarkdown(b.items, exportComponents)
+            enrichedBlocksToMarkdown(b.items, exportComponents, options)
         )
         .with({ type: "explore-data-section" }, (b): string | undefined =>
-            enrichedBlocksToMarkdown(b.content, exportComponents)
+            enrichedBlocksToMarkdown(b.content, exportComponents, options)
         )
         .with({ type: "conditional-section" }, (b): string | undefined =>
-            enrichedBlocksToMarkdown(b.content, exportComponents)
+            enrichedBlocksToMarkdown(b.content, exportComponents, options)
         )
         .with({ type: "prominent-link" }, (b): string | undefined => {
             if (b.url.match(gdocUrlRegex)) {
@@ -363,22 +432,24 @@ ${items}
         .with({ type: "missing-data" }, () => undefined)
         .with({ type: "numbered-list" }, (b): string | undefined =>
             b.items
-                .map((item, i) => `${i}. ${spansToMarkdown(item.value)}`)
+                .map(
+                    (item, i) => `${i}. ${spansToMarkdown(item.value, options)}`
+                )
                 .join("\n")
         )
         .with({ type: "aside" }, (b): string | undefined =>
-            spansToMarkdown(b.caption)
+            spansToMarkdown(b.caption, options)
         )
         .with({ type: "expandable-paragraph" }, (b): string | undefined =>
-            enrichedBlocksToMarkdown(b.items, exportComponents)
+            enrichedBlocksToMarkdown(b.items, exportComponents, options)
         )
         .with(
             { type: "expander" },
             (b): string | undefined =>
-                `${b.title}\n${enrichedBlocksToMarkdown(b.content, exportComponents)}`
+                `${b.title}\n${enrichedBlocksToMarkdown(b.content, exportComponents, options)}`
         )
         .with({ type: "topic-page-intro" }, (b): string | undefined =>
-            enrichedBlocksToMarkdown(b.content, exportComponents)
+            enrichedBlocksToMarkdown(b.content, exportComponents, options)
         )
         .with({ type: "latest-data-insights" }, (): undefined => undefined) // Note: dropped
         .with({ type: "key-insights" }, (b): string | undefined => {
@@ -402,7 +473,8 @@ ${items}
                 const content =
                     enrichedBlocksToMarkdown(
                         insight.content,
-                        exportComponents
+                        exportComponents,
+                        options
                     ) ?? ""
 
                 const text = `### ${insight.title}
@@ -429,19 +501,23 @@ ${allInsights}`
 ${links}`
         })
         .with({ type: "align" }, (b): string | undefined =>
-            enrichedBlocksToMarkdown(b.content, exportComponents)
+            enrichedBlocksToMarkdown(b.content, exportComponents, options)
         )
         .with({ type: "entry-summary" }, () => undefined) // Note: dropped
         .with({ type: "table" }, (b): string | undefined => {
             const rows = b.rows.map((row) => {
                 const cells = row.cells.map((cell) =>
-                    enrichedBlocksToMarkdown(cell.content, exportComponents)
+                    enrichedBlocksToMarkdown(
+                        cell.content,
+                        exportComponents,
+                        options
+                    )
                 )
                 return `|${cells.join("|")}|`
             })
             const table = "\n" + rows.join("\n") // markdown tables need a leading empty line
             const caption = b.caption
-                ? `\n\n*${spansToMarkdown(b.caption)}*`
+                ? `\n\n*${spansToMarkdown(b.caption, options)}*`
                 : ""
             return table + caption
         })
@@ -449,7 +525,7 @@ ${links}`
         .with({ type: "blockquote" }, (b): string | undefined => {
             const text = excludeNullish(
                 b.text.map((text) =>
-                    enrichedBlockToMarkdown(text, exportComponents)
+                    enrichedBlockToMarkdown(text, exportComponents, options)
                 )
             ).join("\n\n> ")
             return `> ${text}` + b.citation ? `\n-- ${b.citation}` : ""
@@ -469,7 +545,11 @@ ${links}`
         .with({ type: "key-indicator-collection" }, (b): string | undefined => {
             const keyIndicators = b.blocks
                 .map((keyIndicatorBlock: EnrichedBlockKeyIndicator) =>
-                    enrichedBlockToMarkdown(keyIndicatorBlock, exportComponents)
+                    enrichedBlockToMarkdown(
+                        keyIndicatorBlock,
+                        exportComponents,
+                        options
+                    )
                 )
                 .join("\n")
             return `<KeyIndicatorCollection>\n${keyIndicators}\n</KeyIndicatorCollection>`
@@ -506,8 +586,27 @@ ${links}`
                 .map((link) => `* [${link.text}](${link.url})`)
                 .join("\n")
         })
-        .with({ type: "data-callout" }, (b): string | undefined =>
-            enrichedBlocksToMarkdown(b.content, exportComponents)
-        )
+        .with({ type: "data-callout" }, (b): string | undefined => {
+            // Filter out data-callout blocks if linkedCallouts is not provided
+            // or if any callout values are missing
+            if (!options?.linkedCallouts) return undefined
+
+            const shouldRender = checkShouldDataCalloutRender(
+                b,
+                options.linkedCallouts
+            )
+            if (!shouldRender) return undefined
+
+            // Set the data-callout URL as context for nested span-callout elements
+            const nestedOptions: MarkdownConversionOptions = {
+                ...options,
+                currentDataCalloutUrl: b.url,
+            }
+            return enrichedBlocksToMarkdown(
+                b.content,
+                exportComponents,
+                nestedOptions
+            )
+        })
         .exhaustive()
 }
