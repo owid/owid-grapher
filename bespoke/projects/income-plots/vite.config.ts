@@ -4,6 +4,9 @@ import react from "@vitejs/plugin-react"
 export default defineConfig({
     root: "./src",
     base: "/admin",
+    define: {
+        "process.env.NODE_ENV": JSON.stringify("production"),
+    },
     build: {
         lib: {
             entry: ["main.tsx", "main.scss"],
@@ -16,7 +19,6 @@ export default defineConfig({
     esbuild: {
         target: "es2024", // needed so decorators are compiled by esbuild
     },
-    // TODO: exports: named or preserveMethodNames or sth
     plugins: [
         react({
             babel: {
