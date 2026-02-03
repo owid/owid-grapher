@@ -7,7 +7,7 @@ import {
     excludeUndefined,
 } from "@ourworldindata/utils"
 import { TextWrap, Halo, MarkdownTextWrap } from "@ourworldindata/components"
-import { EntityLabel } from "./EntityLabel.js"
+import { EntityLabel } from "../entityLabel/EntityLabel.js"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { VerticalAxis } from "../axis/Axis"

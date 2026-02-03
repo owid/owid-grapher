@@ -1,5 +1,5 @@
 import { MarkdownTextWrap, TextWrap } from "@ourworldindata/components"
-import { EntityLabel } from "./EntityLabel.js"
+import { EntityLabel } from "../entityLabel/EntityLabel.js"
 import { Bounds } from "@ourworldindata/utils"
 import { ChartSeries } from "../chart/ChartInterface"
 import { InteractionState } from "../interaction/InteractionState"
