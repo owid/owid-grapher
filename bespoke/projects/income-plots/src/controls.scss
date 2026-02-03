@@ -54,6 +54,14 @@
     color: #666;
     margin-right: 8px;
     font-size: 14px;
+
+    // FontAwesome SVG styles - needed for shadow DOM since FA injects styles into document head
+    &.svg-inline--fa {
+        display: inline-block;
+        height: 1em;
+        overflow: visible;
+        vertical-align: -0.125em;
+    }
 }
 
 .search-country-selector-search-input {
