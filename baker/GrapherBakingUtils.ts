@@ -84,22 +84,14 @@ export async function getTagsWithDataInsights(
 }
 
 /**
- * Given a topic tag's name or ID, return its slug
- * Throws an error if no slug is found so we can log it in Sentry
+ * Given a topic tag's name or ID, return its slug.
  */
 export async function getSlugForTopicTag(
     knex: db.KnexReadonlyTransaction,
     identifier: string | number
-): Promise<string> {
-    const propertyToMatch = typeof identifier === "string" ? "slug" : "id"
+): Promise<string | undefined> {
     const tagsByIdAndName = await getTagToSlugMap(knex)
     const slug = tagsByIdAndName[identifier]
-
-    if (!slug) {
-        throw new Error(
-            `No slug found for tag with ${propertyToMatch}: "${identifier}"`
-        )
-    }
 
     return slug
 }

@@ -20,7 +20,6 @@ import {
 } from "@ourworldindata/types"
 import { KnexReadonlyTransaction } from "../db/db.js"
 import { parseFaqs } from "../db/model/Gdoc/rawToEnriched.js"
-import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import { getSlugForTopicTag } from "./GrapherBakingUtils.js"
 import { getShortPageCitation } from "../site/gdocs/utils.js"
 
@@ -135,23 +134,13 @@ export const resolveFaqsForVariable = (
 
 export const getPrimaryTopic = async (
     knex: KnexReadonlyTransaction,
-    tags: string[] = [],
-    slug: string | undefined
+    tags: string[] = []
 ) => {
     const firstTopicTag = tags[0]
     if (!firstTopicTag) return undefined
 
-    let topicSlug: string
-    try {
-        topicSlug = await getSlugForTopicTag(knex, firstTopicTag)
-    } catch {
-        await logErrorAndMaybeCaptureInSentry(
-            new Error(
-                `Data page with slug "${slug}" is using "${firstTopicTag}" as its primary tag, which we are unable to resolve to a tag in the grapher DB`
-            )
-        )
-        return undefined
-    }
+    const topicSlug = await getSlugForTopicTag(knex, firstTopicTag)
+    if (!topicSlug) return undefined
 
     if (topicSlug) {
         const gdoc = await getPublishedGdocBaseObjectBySlug(

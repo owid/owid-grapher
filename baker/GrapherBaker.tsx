@@ -207,8 +207,7 @@ export async function renderDataPageV2(
 
     datapageData.primaryTopic = await getPrimaryTopic(
         knex,
-        datapageData.topicTagsLinks,
-        grapher.slug
+        datapageData.topicTagsLinks
     )
 
     let imageMetadata: Record<string, ImageMetadata> = {}
