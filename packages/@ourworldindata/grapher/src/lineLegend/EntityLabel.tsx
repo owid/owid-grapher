@@ -277,16 +277,25 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
     }
 
     /**
-     * Render an invisible hit area over the provider suffix for hover interactions.
+     * Render an invisible hit area over the info icon for hover interactions.
      */
-    private renderProviderSuffixHitArea(
+    private renderIconHitArea(
         baseX: number,
         baseY: number
     ): React.ReactElement | null {
-        const { suffixPosition, singleLineHeight, suffixWidth } = this
-        if (!suffixPosition) return null
+        const {
+            suffixPosition,
+            singleLineHeight,
+            iconSize,
+            parsedProvider,
+            fontSettings,
+        } = this
+        if (!suffixPosition || !parsedProvider) return null
 
-        const x = baseX + suffixPosition.x
+        // Calculate icon position (after the opening text "(WHO ")
+        const openingText = `(${parsedProvider.providerCode} `
+        const openingWidth = Bounds.forText(openingText, fontSettings).width
+        const x = baseX + suffixPosition.x + openingWidth
         const y = baseY + suffixPosition.y
 
         const handleMouseEnter = (
@@ -304,10 +313,10 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
 
         return (
             <rect
-                className="provider-suffix-hit-area"
+                className="provider-icon-hit-area"
                 x={x}
                 y={y}
-                width={suffixWidth}
+                width={iconSize}
                 height={singleLineHeight}
                 fill="transparent"
                 style={{ pointerEvents: "auto" }}
@@ -333,7 +342,7 @@ export class EntityLabel extends React.Component<EntityLabelProps> {
             <g className="entity-label">
                 {this.renderMainText(x, y, options?.textProps)}
                 {this.renderProviderSuffix(x, y)}
-                {showInteraction && this.renderProviderSuffixHitArea(x, y)}
+                {showInteraction && this.renderIconHitArea(x, y)}
             </g>
         )
     }
