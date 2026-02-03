@@ -89,7 +89,7 @@
         "@tippyjs/react": "^4.2.6",
         "@turf/boolean-intersects": "^7.2.0",
         "@turf/center": "^7.2.0",
-        "@typescript/native-preview": "^7.0.0-dev.20260112.1",
+        "@typescript/native-preview": "^7.0.0-dev.20260203.1",
         "@uiw/react-codemirror": "^4.24.1",
         "@uiw/react-json-view": "^2.0.0-alpha.39",
         "algoliasearch": "^5.46.1",
