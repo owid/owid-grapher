@@ -10,7 +10,10 @@ import { PAGES_INDEX } from "../../site/search/searchUtils.js"
 import { getPagesRecords } from "./utils/pages.js"
 
 const indexPagesToAlgolia = async () => {
-    if (!ALGOLIA_INDEXING) return
+    if (!ALGOLIA_INDEXING) {
+        console.log("Algolia indexing is disabled. Exiting.")
+        process.exit(0)
+    }
 
     const client = getAlgoliaClient()
     if (!client) {

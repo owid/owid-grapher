@@ -221,6 +221,19 @@ export type TopicPageHit = {
 
 export type SearchTopicPageResponse = SearchResponse<TopicPageHit>
 
+export type ProfileHit = {
+    title: string
+    thumbnailUrl: string
+    slug: string
+    excerpt: string
+    type: OwidGdocType.Profile
+    availableEntities: string[]
+    objectID: string
+    __position: number
+}
+
+export type SearchProfileResponse = SearchResponse<ProfileHit>
+
 export type SearchWritingTopicsResponse = {
     title: string
     articles: SearchStackedArticleResponse
