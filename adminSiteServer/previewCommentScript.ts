@@ -63,6 +63,11 @@ body.comment-mode-active .owid-comment-icon {
     align-items: center;
     gap: 4px;
 }
+/* Ensure absolutely positioned icons are visible and clickable */
+body.comment-mode-active .key-info__key-description .owid-comment-icon {
+    z-index: 100;
+    display: flex;
+}
 
 .owid-comment-popover {
     position: fixed;
@@ -302,7 +307,8 @@ body.comment-mode-active .key-data:hover {
 
         const popover = document.createElement('div');
         popover.className = 'owid-comment-popover';
-        popover.style.top = (rect.bottom + window.scrollY + 8) + 'px';
+        // Use viewport coordinates for fixed positioning (no scrollY needed)
+        popover.style.top = Math.min(rect.bottom + 8, window.innerHeight - 450) + 'px';
         popover.style.left = Math.min(rect.left, window.innerWidth - 360) + 'px';
 
         popover.innerHTML = \`
@@ -494,27 +500,23 @@ body.comment-mode-active .key-data:hover {
 
     let iconsAdded = false;
 
-    // Watch for key DOM elements to appear and add icons when ready
+    // Retry adding icons until they appear (handles React hydration timing)
     function waitForElementsAndAddIcons() {
-        // Check if elements are already available
-        const hasElements = document.querySelector('.key-data__title') || document.querySelector('.HeaderHTML');
-        if (hasElements) {
+        addCommentIcons();
+        iconsAdded = document.querySelectorAll('.owid-comment-icon').length > 0;
+        if (iconsAdded) return;
+
+        // Keep trying as DOM updates during React hydration
+        let attempts = 0;
+        const maxAttempts = 20;
+        const interval = setInterval(() => {
+            attempts++;
             addCommentIcons();
             iconsAdded = document.querySelectorAll('.owid-comment-icon').length > 0;
-            return;
-        }
-
-        // Otherwise, watch for them to appear
-        const observer = new MutationObserver((mutations, obs) => {
-            const hasElements = document.querySelector('.key-data__title') || document.querySelector('.HeaderHTML');
-            if (hasElements) {
-                obs.disconnect();
-                addCommentIcons();
-                iconsAdded = document.querySelectorAll('.owid-comment-icon').length > 0;
+            if (iconsAdded || attempts >= maxAttempts) {
+                clearInterval(interval);
             }
-        });
-
-        observer.observe(document.body, { childList: true, subtree: true });
+        }, 100);
     }
 
     function toggleCommentMode() {
@@ -528,12 +530,7 @@ body.comment-mode-active .key-data:hover {
         btn.querySelector('span:first-child').textContent = isCommentModeActive ? '✓ Comment Mode ON' : '💬 Comment Mode';
 
         if (isCommentModeActive && !iconsAdded) {
-            addCommentIcons();
-            iconsAdded = document.querySelectorAll('.owid-comment-icon').length > 0;
-            // If icons weren't added yet (elements not ready), watch for them
-            if (!iconsAdded) {
-                waitForElementsAndAddIcons();
-            }
+            waitForElementsAndAddIcons();
         }
 
         if (!isCommentModeActive) {
@@ -643,6 +640,11 @@ body.comment-mode-active .owid-comment-icon {
     display: inline-flex;
     align-items: center;
     gap: 4px;
+}
+/* Ensure absolutely positioned icons are visible and clickable */
+body.comment-mode-active .key-info__key-description .owid-comment-icon {
+    z-index: 100;
+    display: flex;
 }
 .owid-comment-popover {
     position: fixed;
@@ -1207,7 +1209,8 @@ body.comment-mode-active .key-data:hover {
 
         const popover = document.createElement('div');
         popover.className = 'owid-comment-popover';
-        popover.style.top = (rect.bottom + window.scrollY + 8) + 'px';
+        // Use viewport coordinates for fixed positioning (no scrollY needed)
+        popover.style.top = Math.min(rect.bottom + 8, window.innerHeight - 500) + 'px';
         popover.style.left = Math.min(rect.left, window.innerWidth - 400) + 'px';
 
         popover.innerHTML = \`
@@ -1396,27 +1399,23 @@ body.comment-mode-active .key-data:hover {
 
     let iconsAdded = false;
 
-    // Watch for key DOM elements to appear and add icons when ready
+    // Retry adding icons until they appear (handles React hydration timing)
     function waitForElementsAndAddIcons() {
-        // Check if elements are already available
-        const hasElements = document.querySelector('.key-data__title') || document.querySelector('.HeaderHTML');
-        if (hasElements) {
+        addCommentIcons();
+        iconsAdded = document.querySelectorAll('.owid-comment-icon').length > 0;
+        if (iconsAdded) return;
+
+        // Keep trying as DOM updates during React hydration
+        let attempts = 0;
+        const maxAttempts = 20;
+        const interval = setInterval(() => {
+            attempts++;
             addCommentIcons();
             iconsAdded = document.querySelectorAll('.owid-comment-icon').length > 0;
-            return;
-        }
-
-        // Otherwise, watch for them to appear
-        const observer = new MutationObserver((mutations, obs) => {
-            const hasElements = document.querySelector('.key-data__title') || document.querySelector('.HeaderHTML');
-            if (hasElements) {
-                obs.disconnect();
-                addCommentIcons();
-                iconsAdded = document.querySelectorAll('.owid-comment-icon').length > 0;
+            if (iconsAdded || attempts >= maxAttempts) {
+                clearInterval(interval);
             }
-        });
-
-        observer.observe(document.body, { childList: true, subtree: true });
+        }, 100);
     }
 
     function toggleCommentMode() {
@@ -1428,12 +1427,7 @@ body.comment-mode-active .key-data:hover {
         btn.classList.toggle('active', isCommentModeActive);
         btn.querySelector('span:first-child').textContent = isCommentModeActive ? '✓ Comment Mode ON' : '💬 Comment Mode';
         if (isCommentModeActive && !iconsAdded) {
-            addCommentIcons();
-            iconsAdded = document.querySelectorAll('.owid-comment-icon').length > 0;
-            // If icons weren't added yet (elements not ready), watch for them
-            if (!iconsAdded) {
-                waitForElementsAndAddIcons();
-            }
+            waitForElementsAndAddIcons();
         }
         if (!isCommentModeActive) {
             closePopover();
