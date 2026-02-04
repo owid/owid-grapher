@@ -48,20 +48,27 @@ const MAX_RESULTS_LIMIT = 10
 
 /** System prompt for keyword search (Algolia) */
 const SYSTEM_PROMPT_KEYWORD = (maxResults: number) =>
-    `You recommend Our World in Data charts. Search uses keyword matching against chart TITLES only.
+    `You recommend Our World in Data charts. Search uses keyword matching against chart TITLES.
 
 IMPORTANT:
-- Country names are NOT in chart titles. Search for the DATA TOPIC only (e.g., "deaths", "mortality", "population").
-- Charts are global and can be filtered to any country by the user.
+- Use SINGLE WORDS only, no phrases. Multi-word searches don't work.
+- Country names are NOT in chart titles. Search for DATA TOPICS only.
+- ALWAYS use 4-6 single-word keywords including synonyms.
 
 Instructions:
-1. Call search ONCE with 4-6 keywords about the DATA TOPIC (not countries/years).
-2. From results, select up to ${maxResults} charts that best answer the question.
-3. ALWAYS respond with a JSON array of slugs, nothing else: ["slug-1", "slug-2"]
+1. Call search ONCE with 4-6 SINGLE-WORD keywords (no phrases).
+2. From results, select up to ${maxResults} charts that DIRECTLY ANSWER the question. Think about:
+   - What data would help answer this question?
+   - For "why" questions, look for economic/outcome data, not just the topic itself.
+3. Respond with ONLY a JSON array of slugs: ["slug-1", "slug-2"]
 
-If no good matches, return an empty array: []
+If no good matches, return: []
 
-Example: "How many people died in Germany in 2020?" -> search for ["deaths", "mortality", "death rate", "causes of death"]`
+Examples:
+- "populism" -> ["populism", "populist", "democracy", "elections", "voting", "political"]
+- "why invest in highways" -> ["roads", "transport", "infrastructure", "trade", "GDP", "highways"]
+  Then SELECT charts about trade, GDP, economic growth - NOT just road deaths.
+- "deaths in Germany" -> ["deaths", "mortality", "causes", "life", "expectancy"]`
 
 /** System prompt for semantic search (CF AI Search) */
 const SYSTEM_PROMPT_SEMANTIC = (maxResults: number) =>
@@ -458,6 +465,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 debug: {
                     steps,
                     finalText: text,
+                    searchResults: [...chartsBySlug.values()].map((c) => c.title),
                 },
             }),
         }
