@@ -24,6 +24,50 @@ import { WORLD_ENTITY_NAME } from "./GrapherConstants.js"
 import { match } from "ts-pattern"
 import { GrapherState } from "./GrapherState.js"
 
+interface SelectDefaultEntitiesAsPeersParams {
+    defaultSelection: EntityName[]
+}
+
+interface SelectParentRegionsAsPeersParams {
+    targetCountry: EntityName
+    availableEntities: EntityName[]
+}
+
+interface SelectByClosestValueParams {
+    targetCountry: EntityName
+    availableEntities: EntityName[]
+    additionalDataLoaderFn?: AdditionalGrapherDataFetchFn
+    targetCount?: number
+}
+
+interface SelectByDataRangeParams {
+    availableEntities: EntityName[]
+    dataColumn: CoreColumn
+    randomize?: boolean
+    additionalDataLoaderFn?: AdditionalGrapherDataFetchFn
+    targetCount?: number
+    time?: Time
+}
+
+type WithStrategy<T, S extends PeerCountryStrategy> = T & {
+    peerCountryStrategy: S
+}
+
+type SelectPeerCountriesParams =
+    | WithStrategy<
+          SelectDefaultEntitiesAsPeersParams,
+          PeerCountryStrategy.DefaultSelection
+      >
+    | WithStrategy<
+          SelectParentRegionsAsPeersParams,
+          PeerCountryStrategy.ParentRegions
+      >
+    | WithStrategy<
+          SelectByClosestValueParams,
+          PeerCountryStrategy.GdpPerCapita | PeerCountryStrategy.Population
+      >
+    | WithStrategy<SelectByDataRangeParams, PeerCountryStrategy.DataRange>
+
 /** Check if the given string is a valid PeerCountryStrategy */
 function isValidPeerCountryStrategy(
     candidate: string
@@ -57,7 +101,7 @@ export async function selectPeerCountriesForGrapher(
         options?.targetCountry ?? grapherState.selection.selectedEntityNames[0]
     const defaultSelection = grapherState.authorsVersion.selectedEntityNames
 
-    const availableEntities = grapherState.availableEntityNames
+    const availableEntities = prepareEntitiesForPeerSelection(grapherState)
     if (availableEntities.length === 0) return []
 
     const peerCountryStrategy =
@@ -67,10 +111,6 @@ export async function selectPeerCountriesForGrapher(
     // Peer country selection only makes sense for countries
     const regionInfo = getRegionByName(targetCountry)
     if (!regionInfo || !checkIsCountry(regionInfo)) return []
-
-    const requiredTimes = grapherState.isOnSlopeChartTab
-        ? excludeUndefined([grapherState.startTime, grapherState.endTime])
-        : undefined
 
     const additionalDataLoaderFn = grapherState.additionalDataLoaderFn
     const dataColumn = grapherState.table.get(grapherState.yColumnSlug)
@@ -83,70 +123,45 @@ export async function selectPeerCountriesForGrapher(
         availableEntities,
         additionalDataLoaderFn,
         dataColumn,
-        requiredTimes,
         time,
     })
 }
 
 /** Selects peer countries based on the specified strategy and target entity */
-export async function selectPeerCountries({
-    peerCountryStrategy,
-    targetCountry,
-    defaultSelection,
-    availableEntities,
-    additionalDataLoaderFn,
-    dataColumn,
-    requiredTimes,
-    time,
-}: {
-    peerCountryStrategy: PeerCountryStrategy
-    targetCountry: EntityName
-    defaultSelection: EntityName[]
-    availableEntities: EntityName[]
-    additionalDataLoaderFn?: AdditionalGrapherDataFetchFn
-    dataColumn?: CoreColumn
-    requiredTimes?: Time[]
-    time?: Time
-}): Promise<EntityName[]> {
-    return match(peerCountryStrategy)
-        .with(PeerCountryStrategy.DefaultSelection, () => defaultSelection)
-        .with(PeerCountryStrategy.ParentRegions, () =>
-            selectParentRegionsAsPeers({ targetCountry, availableEntities })
+export async function selectPeerCountries(
+    params: SelectPeerCountriesParams
+): Promise<EntityName[]> {
+    return match(params)
+        .with(
+            { peerCountryStrategy: PeerCountryStrategy.DefaultSelection },
+            ({ defaultSelection }) => defaultSelection
         )
-        .with(PeerCountryStrategy.GdpPerCapita, async () => {
-            if (!isDataLoaderAvailable(additionalDataLoaderFn)) return []
-            return selectPeerCountriesByClosestValue({
-                targetCountry,
-                availableEntities,
-                additionalDataLoaderFn,
-                catalogKey: "gdp",
-                maxPeerRatio: 1.25,
-            })
-        })
-        .with(PeerCountryStrategy.Population, async () => {
-            if (!isDataLoaderAvailable(additionalDataLoaderFn)) return []
-            return selectPeerCountriesByClosestValue({
-                targetCountry,
-                availableEntities,
-                additionalDataLoaderFn,
-                catalogKey: "population",
-                maxPeerRatio: 1.5,
-            })
-        })
-        .with(PeerCountryStrategy.DataRange, async () => {
-            if (
-                !isDataColumnAvailable(dataColumn) ||
-                !isDataLoaderAvailable(additionalDataLoaderFn)
-            )
-                return []
-            return selectPeerCountriesByDataRange({
-                availableEntities,
-                dataColumn,
-                requiredTimes,
-                additionalDataLoaderFn,
-                time,
-            })
-        })
+        .with(
+            { peerCountryStrategy: PeerCountryStrategy.ParentRegions },
+            (params) => selectParentRegionsAsPeers(params)
+        )
+        .with(
+            { peerCountryStrategy: PeerCountryStrategy.GdpPerCapita },
+            async (params) =>
+                selectPeerCountriesByClosestValue({
+                    catalogKey: "gdp",
+                    maxPeerRatio: 1.25,
+                    ...params,
+                })
+        )
+        .with(
+            { peerCountryStrategy: PeerCountryStrategy.Population },
+            async (params) =>
+                selectPeerCountriesByClosestValue({
+                    catalogKey: "population",
+                    maxPeerRatio: 1.5,
+                    ...params,
+                })
+        )
+        .with(
+            { peerCountryStrategy: PeerCountryStrategy.DataRange },
+            async (params) => selectPeerCountriesByDataRange(params)
+        )
         .exhaustive()
 }
 
@@ -175,7 +190,7 @@ function isDataColumnAvailable(
 }
 
 /** Filters entities to only those that have data at all required time points */
-export function filterEntitiesWithDataAtAllTimes({
+function filterEntitiesWithDataAtAllTimes({
     entities,
     dataColumn,
     requiredTimes,
@@ -196,16 +211,38 @@ export function filterEntitiesWithDataAtAllTimes({
 }
 
 /**
+ * Prepares entities for peer selection by filtering to only those with data at
+ * required times (e.g. both start and end times for slope charts).
+ */
+export function prepareEntitiesForPeerSelection(
+    grapherState: GrapherState
+): EntityName[] {
+    const availableEntities = grapherState.availableEntityNames
+
+    const dataColumn = grapherState.table.get(grapherState.yColumnSlug)
+    if (!isDataColumnAvailable(dataColumn)) return availableEntities
+
+    const requiredTimes = grapherState.isOnSlopeChartTab
+        ? excludeUndefined([grapherState.startTime, grapherState.endTime])
+        : []
+
+    if (requiredTimes.length === 0) return availableEntities
+
+    return filterEntitiesWithDataAtAllTimes({
+        entities: availableEntities,
+        dataColumn,
+        requiredTimes,
+    })
+}
+
+/**
  * Selects parent aggregate regions (continents, income groups) that the target
  * country belongs to, plus World.
  */
 export function selectParentRegionsAsPeers({
     targetCountry,
     availableEntities,
-}: {
-    targetCountry: EntityName
-    availableEntities: EntityName[]
-}): EntityName[] {
+}: SelectParentRegionsAsPeersParams): EntityName[] {
     const region = getRegionByName(targetCountry)
 
     // Can't determine comparison entities for non-geographical entities
@@ -249,18 +286,14 @@ async function selectPeerCountriesByClosestValue({
     catalogKey,
     targetCount = 3,
     maxPeerRatio = 1.5,
-}: {
-    targetCountry: EntityName
-    availableEntities: EntityName[]
-    additionalDataLoaderFn: AdditionalGrapherDataFetchFn
+}: SelectByClosestValueParams & {
     catalogKey: CatalogKey
-    /** Number of peer entities to select */
-    targetCount?: number
     /** Maximum ratio difference allowed */
     maxPeerRatio?: number
 }): Promise<EntityName[]> {
     try {
         // Load data
+        if (!isDataLoaderAvailable(additionalDataLoaderFn)) return []
         const data = await additionalDataLoaderFn(catalogKey)
 
         // Only consider _countries_ as candidates for peer selection
@@ -297,43 +330,16 @@ async function selectPeerCountriesByDataRange({
     additionalDataLoaderFn,
     targetCount = 5,
     randomize = false,
-    requiredTimes,
     time,
-}: {
-    availableEntities: EntityName[]
-    dataColumn: CoreColumn
-    additionalDataLoaderFn: AdditionalGrapherDataFetchFn
-    targetCount?: number
-    /** If true, use randomized selection; if false, pick most populous per bucket */
-    randomize?: boolean
-    /** Only include entities with data at all required times */
-    requiredTimes?: Time[]
-    /** Target time for extracting data values */
-    time?: Time
-}): Promise<EntityName[]> {
-    // Filter entities to those with data at required times
-    const relevantEntities = requiredTimes
-        ? filterEntitiesWithDataAtAllTimes({
-              entities: availableEntities,
-              dataColumn,
-              requiredTimes,
-          })
-        : availableEntities
-
-    // If there is at least one country with data, only consider countries as peers;
-    // If there are no countries with data, consider all relevant entities
-    const hasCountryData = relevantEntities.some((entityName) => {
+}: SelectByDataRangeParams): Promise<EntityName[]> {
+    // Only consider countries as candidates for peer selection
+    const candidateEntities = availableEntities.filter((entityName) => {
         const region = getRegionByName(entityName)
         return region && checkIsCountry(region)
     })
-    const candidateEntities = hasCountryData
-        ? relevantEntities.filter((entityName) => {
-              const region = getRegionByName(entityName)
-              return region && checkIsCountry(region)
-          })
-        : relevantEntities
 
     // Extract latest values for candidate entities
+    if (!isDataColumnAvailable(dataColumn)) return []
     const values = new Map<EntityName, number>()
     const targetTime = time ?? dataColumn.maxTime
     for (const entityName of candidateEntities) {
@@ -344,6 +350,7 @@ async function selectPeerCountriesByDataRange({
     }
 
     // Load population data for weighted selection (prefer larger countries)
+    if (!isDataLoaderAvailable(additionalDataLoaderFn)) return []
     const populationData = await additionalDataLoaderFn("population")
     const population = new Map(
         populationData.map((row) => [row.entity, row.value])

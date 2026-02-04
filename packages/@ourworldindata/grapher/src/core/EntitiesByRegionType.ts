@@ -7,13 +7,16 @@ import {
     excludeUndefined,
     getRegionByName,
 } from "@ourworldindata/utils"
-import { CUSTOM_REGION_SOURCE_IDS, isWorldEntityName } from "./GrapherConstants"
+import {
+    CUSTOM_REGION_SOURCE_IDS,
+    CustomAggregateSource,
+    isWorldEntityName,
+} from "./GrapherConstants"
 import * as R from "remeda"
 
 const customAggregateSources = CUSTOM_REGION_SOURCE_IDS.filter(
     (source) => !AGGREGATE_SOURCES.includes(source as AggregateSource)
 )
-type CustomAggregateSource = (typeof customAggregateSources)[number]
 
 const entityRegionTypes = [
     "countries",
