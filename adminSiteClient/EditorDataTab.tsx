@@ -436,6 +436,8 @@ class PeerCountrySection<
         [PeerCountryStrategy.GdpPerCapita]:
             "Countries with similar GDP per capita",
         [PeerCountryStrategy.Population]: "Countries with similar population",
+        [PeerCountryStrategy.DataRange]:
+            "Countries that represent the data range",
         [PeerCountryStrategy.DefaultSelection]: "Default selection",
     }
 

@@ -1,21 +1,25 @@
 import * as R from "remeda"
+import * as _ from "lodash-es"
 import {
     AdditionalGrapherDataFetchFn,
     CatalogKey,
     EntityName,
     PeerCountryStrategy,
     PeerCountryStrategyQueryParam,
+    Time,
 } from "@ourworldindata/types"
 import {
     checkIsAggregate,
     checkIsCountry,
     checkIsIncomeGroup,
     checkIsOwidContinent,
+    excludeUndefined,
     getContinentForCountry,
     getParentRegions,
     getRegionByName,
     Region,
 } from "@ourworldindata/utils"
+import { CoreColumn } from "@ourworldindata/core-table"
 import { WORLD_ENTITY_NAME } from "./GrapherConstants.js"
 import { match } from "ts-pattern"
 import { GrapherState } from "./GrapherState.js"
@@ -41,24 +45,36 @@ export function isValidPeerCountryStrategyQueryParam(
  * takes effect when exactly one entity is selected.
  */
 export async function selectPeerCountriesForGrapher(
-    grapherState: GrapherState
+    grapherState: GrapherState,
+    options?: {
+        peerCountryStrategy?: PeerCountryStrategy
+        targetCountry?: EntityName
+    }
 ): Promise<EntityName[]> {
     if (grapherState.selection.numSelectedEntities !== 1) return []
 
-    const targetCountry = grapherState.selection.selectedEntityNames[0]
+    const targetCountry =
+        options?.targetCountry ?? grapherState.selection.selectedEntityNames[0]
     const defaultSelection = grapherState.authorsVersion.selectedEntityNames
 
     const availableEntities = grapherState.availableEntityNames
     if (availableEntities.length === 0) return []
 
-    const peerCountryStrategy = grapherState.peerCountryStrategy
+    const peerCountryStrategy =
+        options?.peerCountryStrategy ?? grapherState.peerCountryStrategy
     if (!peerCountryStrategy) return []
 
     // Peer country selection only makes sense for countries
     const regionInfo = getRegionByName(targetCountry)
     if (!regionInfo || !checkIsCountry(regionInfo)) return []
 
+    const requiredTimes = grapherState.isOnSlopeChartTab
+        ? excludeUndefined([grapherState.startTime, grapherState.endTime])
+        : undefined
+
     const additionalDataLoaderFn = grapherState.additionalDataLoaderFn
+    const dataColumn = grapherState.table.get(grapherState.yColumnSlug)
+    const time = grapherState.endTime
 
     return selectPeerCountries({
         peerCountryStrategy,
@@ -66,6 +82,9 @@ export async function selectPeerCountriesForGrapher(
         defaultSelection,
         availableEntities,
         additionalDataLoaderFn,
+        dataColumn,
+        requiredTimes,
+        time,
     })
 }
 
@@ -76,12 +95,18 @@ export async function selectPeerCountries({
     defaultSelection,
     availableEntities,
     additionalDataLoaderFn,
+    dataColumn,
+    requiredTimes,
+    time,
 }: {
     peerCountryStrategy: PeerCountryStrategy
     targetCountry: EntityName
     defaultSelection: EntityName[]
     availableEntities: EntityName[]
     additionalDataLoaderFn?: AdditionalGrapherDataFetchFn
+    dataColumn?: CoreColumn
+    requiredTimes?: Time[]
+    time?: Time
 }): Promise<EntityName[]> {
     return match(peerCountryStrategy)
         .with(PeerCountryStrategy.DefaultSelection, () => defaultSelection)
@@ -108,6 +133,20 @@ export async function selectPeerCountries({
                 maxPeerRatio: 1.5,
             })
         })
+        .with(PeerCountryStrategy.DataRange, async () => {
+            if (
+                !isDataColumnAvailable(dataColumn) ||
+                !isDataLoaderAvailable(additionalDataLoaderFn)
+            )
+                return []
+            return selectPeerCountriesByDataRange({
+                availableEntities,
+                dataColumn,
+                requiredTimes,
+                additionalDataLoaderFn,
+                time,
+            })
+        })
         .exhaustive()
 }
 
@@ -121,6 +160,39 @@ function isDataLoaderAvailable(
         return false
     }
     return true
+}
+
+function isDataColumnAvailable(
+    dataColumn?: CoreColumn
+): dataColumn is CoreColumn {
+    if (!dataColumn || dataColumn.isMissing || dataColumn.isEmpty) {
+        console.warn(
+            `dataColumn not available for peer selection. Not selecting any peer countries.`
+        )
+        return false
+    }
+    return true
+}
+
+/** Filters entities to only those that have data at all required time points */
+export function filterEntitiesWithDataAtAllTimes({
+    entities,
+    dataColumn,
+    requiredTimes,
+}: {
+    entities: EntityName[]
+    dataColumn: CoreColumn
+    requiredTimes: Time[]
+}): EntityName[] {
+    if (requiredTimes.length === 0) return entities
+
+    return entities.filter((entityName) => {
+        const entityData = dataColumn.owidRowByEntityNameAndTime.get(entityName)
+        if (!entityData) return false
+        return requiredTimes.every(
+            (time) => entityData.get(time)?.value !== undefined
+        )
+    })
 }
 
 /**
@@ -216,6 +288,68 @@ async function selectPeerCountriesByClosestValue({
         )
         return []
     }
+}
+
+/** Selects countries representing the full data range */
+async function selectPeerCountriesByDataRange({
+    availableEntities,
+    dataColumn,
+    additionalDataLoaderFn,
+    targetCount = 5,
+    randomize = false,
+    requiredTimes,
+    time,
+}: {
+    availableEntities: EntityName[]
+    dataColumn: CoreColumn
+    additionalDataLoaderFn: AdditionalGrapherDataFetchFn
+    targetCount?: number
+    /** If true, use randomized selection; if false, pick most populous per bucket */
+    randomize?: boolean
+    /** Only include entities with data at all required times */
+    requiredTimes?: Time[]
+    /** Target time for extracting data values */
+    time?: Time
+}): Promise<EntityName[]> {
+    // Filter entities to those with data at required times
+    const relevantEntities = requiredTimes
+        ? filterEntitiesWithDataAtAllTimes({
+              entities: availableEntities,
+              dataColumn,
+              requiredTimes,
+          })
+        : availableEntities
+
+    // If there is at least one country with data, only consider countries as peers;
+    // If there are no countries with data, consider all relevant entities
+    const hasCountryData = relevantEntities.some((entityName) => {
+        const region = getRegionByName(entityName)
+        return region && checkIsCountry(region)
+    })
+    const candidateEntities = hasCountryData
+        ? relevantEntities.filter((entityName) => {
+              const region = getRegionByName(entityName)
+              return region && checkIsCountry(region)
+          })
+        : relevantEntities
+
+    // Extract latest values for candidate entities
+    const values = new Map<EntityName, number>()
+    const targetTime = time ?? dataColumn.maxTime
+    for (const entityName of candidateEntities) {
+        const latestValue = dataColumn.owidRowByEntityNameAndTime
+            .get(entityName)
+            ?.get(targetTime)?.value
+        if (latestValue !== undefined) values.set(entityName, latestValue)
+    }
+
+    // Load population data for weighted selection (prefer larger countries)
+    const populationData = await additionalDataLoaderFn("population")
+    const population = new Map(
+        populationData.map((row) => [row.entity, row.value])
+    )
+
+    return findDataRangePeers({ values, population, targetCount, randomize })
 }
 
 /** Finds entities with values closest to a target entity using logarithmic distance */
@@ -333,4 +467,91 @@ const findClosestByLogDistance = ({
         R.take(targetCount),
         R.map((item) => item.entityName)
     )
+}
+
+/**
+ * Finds entities representing the data distribution using stratified sampling.
+ *
+ * Divides data into buckets (quintiles by default) and picks one entity from each:
+ * - When randomize=false (default): picks the most populous country in each bucket
+ * - When randomize=true: random selection weighted by population
+ */
+export function findDataRangePeers({
+    values,
+    population,
+    randomize = false,
+    targetCount = 5,
+}: {
+    values: Map<EntityName, number>
+    /** Population data for weighted selection (prefers larger countries) */
+    population: Map<EntityName, number>
+    targetCount?: number
+    /** If true, use randomized selection; if false, pick most populous */
+    randomize?: boolean
+}): EntityName[] {
+    const sortedData = R.pipe(
+        Array.from(values.entries()),
+        R.map(([entityName, value]) => ({ entityName, value })),
+        R.sortBy((item) => item.value)
+    )
+
+    if (sortedData.length === 0) return []
+
+    const bucketSize = Math.ceil(sortedData.length / targetCount)
+    const buckets = R.chunk(sortedData, bucketSize)
+
+    const selected = R.pipe(
+        buckets,
+        R.map((bucket) => {
+            if (bucket.length === 0) return undefined
+
+            return randomize
+                ? weightedRandomPick(bucket, population)
+                : maxPopulationPick(bucket, population)
+        }),
+        R.filter(R.isDefined)
+    )
+
+    return R.unique(selected)
+}
+
+/** Pick the entity with the highest population from the bucket */
+function maxPopulationPick(
+    bucket: { entityName: EntityName; value: number }[],
+    population: Map<EntityName, number>
+): EntityName | undefined {
+    return _.maxBy(bucket, (item) => population.get(item.entityName) ?? 0)
+        ?.entityName
+}
+
+/** Pick a random entity from the bucket, weighted by population */
+function weightedRandomPick(
+    bucket: { entityName: EntityName; value: number }[],
+    population: Map<EntityName, number>
+): EntityName | undefined {
+    // Calculate weights using population
+    const weights = bucket.map((item) => population.get(item.entityName) ?? 0)
+
+    const totalWeight = R.sum(weights)
+
+    // If no population data is available, just pick a random entity
+    if (totalWeight === 0) return R.sample(bucket, 1)[0]?.entityName
+
+    // Weighted random selection: imagine a number line divided into segments,
+    // where each country's segment size equals its weight. We pick a random
+    // point on the line, then walk through segments until we find which one
+    // contains our point. Countries with larger weights have larger segments,
+    // so they're more likely to be picked.
+    //
+    // Example with weights [5, 3, 2]:
+    //   |------Germany (5)------|--France (3)--|-Belgium (2)-|
+    //   0                        5              8             10
+    // A random point at 6.5 lands in France's segment, so France is picked.
+    let random = Math.random() * totalWeight
+    for (let i = 0; i < bucket.length; i++) {
+        random -= weights[i]
+        if (random <= 0) return bucket[i].entityName
+    }
+
+    return bucket[bucket.length - 1]?.entityName
 }

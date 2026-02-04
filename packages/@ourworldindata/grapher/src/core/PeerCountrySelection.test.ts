@@ -1,6 +1,7 @@
 import { expect, it, describe } from "vitest"
 import {
     findClosestByValue,
+    findDataRangePeers,
     selectParentRegionsAsPeers,
 } from "./PeerCountrySelection.js"
 
@@ -129,5 +130,95 @@ describe(selectParentRegionsAsPeers, () => {
 
         // Should return empty since neither World nor parent regions are available
         expect(result).toEqual([])
+    })
+})
+
+describe(findDataRangePeers, () => {
+    it("is deterministic by default", () => {
+        const values = new Map([
+            ["A", 10],
+            ["B", 20],
+            ["C", 30],
+            ["D", 40],
+            ["E", 50],
+            ["F", 60],
+            ["G", 70],
+            ["H", 80],
+            ["I", 90],
+            ["J", 100],
+        ])
+        const population = new Map<string, number>()
+
+        const peers1 = findDataRangePeers({ values, population })
+        const peers2 = findDataRangePeers({ values, population })
+
+        expect(peers1).toEqual(peers2)
+    })
+
+    it("picks most populous country in each bucket when not randomized", () => {
+        // 10 countries, 5 buckets of 2 each
+        const values = new Map([
+            ["SmallCountry1", 10],
+            ["Germany", 20], // Bucket 1: Germany is more populous
+            ["SmallCountry2", 30],
+            ["France", 40], // Bucket 2: France is more populous
+            ["SmallCountry3", 50],
+            ["Brazil", 60], // Bucket 3: Brazil is more populous
+            ["SmallCountry4", 70],
+            ["Japan", 80], // Bucket 4: Japan is more populous
+            ["SmallCountry5", 90],
+            ["USA", 100], // Bucket 5: USA is more populous
+        ])
+        const population = new Map([
+            ["SmallCountry1", 100_000],
+            ["Germany", 84_000_000],
+            ["SmallCountry2", 200_000],
+            ["France", 67_000_000],
+            ["SmallCountry3", 300_000],
+            ["Brazil", 214_000_000],
+            ["SmallCountry4", 400_000],
+            ["Japan", 125_000_000],
+            ["SmallCountry5", 500_000],
+            ["USA", 330_000_000],
+        ])
+
+        const peers = findDataRangePeers({ values, population })
+
+        // Should pick the most populous country from each bucket
+        expect(peers).toEqual(["Germany", "France", "Brazil", "Japan", "USA"])
+    })
+
+    it("respects targetCount parameter", () => {
+        const values = new Map([
+            ["A", 10],
+            ["B", 20],
+            ["C", 30],
+            ["D", 40],
+            ["E", 50],
+            ["F", 60],
+        ])
+        const population = new Map<string, number>()
+
+        const peers = findDataRangePeers({ values, population, targetCount: 3 })
+
+        expect(peers).toHaveLength(3)
+    })
+
+    it("handles case where there are fewer entities than buckets", () => {
+        const values = new Map([
+            ["A", 10],
+            ["B", 20],
+            ["C", 30],
+        ])
+        const population = new Map<string, number>()
+
+        // Default is 5 buckets, but only 3 entities
+        const result = findDataRangePeers({ values, population })
+
+        // Should return all 3 entities (one per non-empty bucket)
+        expect(result).toHaveLength(3)
+        expect(result).toContain("A")
+        expect(result).toContain("B")
+        expect(result).toContain("C")
     })
 })
