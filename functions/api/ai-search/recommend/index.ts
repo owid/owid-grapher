@@ -57,18 +57,20 @@ IMPORTANT:
 
 Instructions:
 1. Call search ONCE with 4-6 SINGLE-WORD keywords (no phrases).
-2. From results, select up to ${maxResults} charts that DIRECTLY ANSWER the question. Think about:
-   - What data would help answer this question?
-   - For "why" questions, look for economic/outcome data, not just the topic itself.
-3. Respond with ONLY a JSON array of slugs: ["slug-1", "slug-2"]
+2. REVIEW ALL search results and RANK them by how well they answer the question.
+3. Return up to ${maxResults} slugs, ORDERED from most to least relevant:
+   - For "why" questions, prioritize OUTCOME data (economic impact, benefits, statistics)
+   - Ignore charts that only tangentially match keywords but don't answer the question
+   - A chart about "road deaths" does NOT answer "why invest in highways"
+4. Respond with ONLY a JSON array of slugs in relevance order: ["most-relevant", "second-most", ...]
 
 If no good matches, return: []
 
-Examples:
-- "populism" -> ["populism", "populist", "democracy", "elections", "voting", "political"]
-- "why invest in highways" -> ["roads", "transport", "infrastructure", "trade", "GDP", "highways"]
-  Then SELECT charts about trade, GDP, economic growth - NOT just road deaths.
-- "deaths in Germany" -> ["deaths", "mortality", "causes", "life", "expectancy"]`
+Example: "why invest in highways"
+- Search: ["roads", "transport", "infrastructure", "trade", "GDP", "economic"]
+- Results might include: road deaths, trade volume, GDP growth, infrastructure spending...
+- CORRECT: ["trade-volume", "gdp-growth", "infrastructure-spending"] (answer WHY to invest)
+- WRONG: ["road-deaths", "traffic-accidents"] (don't answer the question)`
 
 /** System prompt for semantic search (CF AI Search) */
 const SYSTEM_PROMPT_SEMANTIC = (maxResults: number) =>
@@ -80,10 +82,13 @@ IMPORTANT:
 
 Instructions:
 1. Call search ONCE with a query about the DATA TOPIC (not countries/years).
-2. From results, select up to ${maxResults} charts that best answer the question.
-3. ALWAYS respond with a JSON array of slugs, nothing else: ["slug-1", "slug-2"]
+2. REVIEW ALL search results and RANK them by how well they answer the question.
+3. Return up to ${maxResults} slugs, ORDERED from most to least relevant:
+   - For "why" questions, prioritize OUTCOME data (economic impact, benefits, statistics)
+   - Ignore charts that only tangentially match but don't answer the question
+4. Respond with ONLY a JSON array of slugs in relevance order: ["most-relevant", "second-most", ...]
 
-If no good matches, return an empty array: []
+If no good matches, return: []
 
 Example: "How many people died in Germany in 2020?" -> search for "total deaths mortality death rate"`
 
@@ -465,7 +470,9 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 debug: {
                     steps,
                     finalText: text,
-                    searchResults: [...chartsBySlug.values()].map((c) => c.title),
+                    searchResults: [...chartsBySlug.values()].map(
+                        (c) => c.title
+                    ),
                 },
             }),
         }
