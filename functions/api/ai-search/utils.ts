@@ -91,3 +91,73 @@ export interface AISearchStreamChunk {
     search_query?: string
     has_more?: boolean
 }
+
+/**
+ * Minimal chart info used for recommendations and search results.
+ */
+export interface ChartInfo {
+    title: string
+    slug: string
+    subtitle?: string
+}
+
+/**
+ * Extract text content from Cloudflare Workers AI response.
+ * Handles various response formats: string, { response }, { text }, { content },
+ * and OpenAI-compatible { choices[0].message.content }.
+ */
+export function extractTextFromCFResponse(response: unknown): string {
+    if (typeof response === "string") {
+        return response
+    }
+
+    if (response && typeof response === "object") {
+        const resp = response as Record<string, unknown>
+
+        // CF models may return array directly or as response field
+        if (Array.isArray(resp.response)) {
+            return JSON.stringify(resp.response)
+        }
+        if (typeof resp.response === "string") {
+            return resp.response
+        }
+        if (typeof resp.text === "string") {
+            return resp.text
+        }
+        if (typeof resp.content === "string") {
+            return resp.content
+        }
+
+        // OpenAI-like format
+        if (resp.choices && Array.isArray(resp.choices) && resp.choices[0]) {
+            const choice = resp.choices[0] as Record<string, unknown>
+            if (choice.message && typeof choice.message === "object") {
+                const msg = choice.message as Record<string, unknown>
+                if (typeof msg.content === "string") {
+                    return msg.content
+                }
+            }
+        }
+    }
+
+    return ""
+}
+
+/**
+ * Extract a JSON array from LLM text output.
+ * Returns the parsed array or null if parsing fails.
+ */
+export function extractJsonArray<T>(text: string): T[] | null {
+    try {
+        const jsonMatch = text.match(/\[[\s\S]*\]/)
+        if (jsonMatch) {
+            const parsed = JSON.parse(jsonMatch[0])
+            if (Array.isArray(parsed)) {
+                return parsed as T[]
+            }
+        }
+    } catch {
+        // Parsing failed
+    }
+    return null
+}
