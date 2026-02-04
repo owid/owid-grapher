@@ -1354,9 +1354,6 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
                     renderTriggerValue={renderFilterTriggerValue}
                     renderMenuOption={renderFilterMenuOption}
                     aria-label="Filter by type"
-                    portalContainer={
-                        this.scrollableContainer.current ?? undefined
-                    }
                 />
             </div>
         )
@@ -1394,9 +1391,6 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
                         renderTriggerValue={renderSortTriggerValue}
                         renderMenuOption={renderSortMenuOption}
                         aria-label="Sort by"
-                        portalContainer={
-                            this.scrollableContainer.current ?? undefined
-                        }
                     />
                     <button
                         type="button"
