@@ -196,13 +196,29 @@ async function executeSemanticSearchAndCollect(
 // Provider Implementations
 // =============================================================================
 
+/** AI SDK LanguageModelV1 type (simplified) */
+type LanguageModel = Parameters<typeof generateText>[0]["model"]
+
 /**
- * Run recommendation using OpenAI via AI SDK.
- * Uses agentic approach with tool calling.
+ * Create a language model instance for the given provider.
  */
-async function runWithOpenAI(
+function createModel(
+    provider: "openai" | "gemini",
     apiKey: string,
-    modelId: string,
+    modelId: string
+): LanguageModel {
+    if (provider === "openai") {
+        return createOpenAI({ apiKey })(modelId)
+    }
+    return createGoogleGenerativeAI({ apiKey })(modelId)
+}
+
+/**
+ * Run recommendation using AI SDK with tool calling.
+ * Works with both OpenAI and Gemini models.
+ */
+async function runRecommendation(
+    model: LanguageModel,
     query: string,
     maxResults: number,
     algoliaConfig: AlgoliaConfig,
@@ -213,59 +229,6 @@ async function runWithOpenAI(
     const chartsBySlug = new Map<string, ChartInfo>()
     const searchQueriesUsed: string[] = []
 
-    const openai = createOpenAI({ apiKey })
-    const model = openai(modelId)
-
-    // Build tools using shared helper
-    const { keywordSearchTool, semanticSearchTool } = buildSearchTools(
-        algoliaConfig,
-        baseUrl,
-        chartsBySlug,
-        searchQueriesUsed,
-        ai
-    )
-
-    const systemPrompt =
-        searchMode === "semantic"
-            ? SYSTEM_PROMPT_SEMANTIC(maxResults)
-            : SYSTEM_PROMPT_KEYWORD(maxResults)
-
-    const { text, steps } = await generateText({
-        model,
-        tools: {
-            search:
-                searchMode === "semantic"
-                    ? semanticSearchTool
-                    : keywordSearchTool,
-        },
-        toolChoice: "auto",
-        stopWhen: stepCountIs(2),
-        system: systemPrompt,
-        prompt: query,
-    })
-
-    return {
-        text,
-        searchQueriesUsed,
-        chartsBySlug,
-        steps: steps.map((step) => ({
-            text: step.text,
-            toolCalls: step.toolCalls,
-        })),
-    }
-}
-
-/**
- * Build search tools for use with AI SDK generateText.
- * Shared between OpenAI and Gemini implementations.
- */
-function buildSearchTools(
-    algoliaConfig: AlgoliaConfig,
-    baseUrl: string,
-    chartsBySlug: Map<string, ChartInfo>,
-    searchQueriesUsed: string[],
-    ai: Ai
-) {
     const keywordSearchTool = tool({
         description:
             "Search Our World in Data charts by multiple keyword sets. Returns chart titles and metadata grouped by search query.",
@@ -307,38 +270,6 @@ function buildSearchTools(
             )
         },
     })
-
-    return { keywordSearchTool, semanticSearchTool }
-}
-
-/**
- * Run recommendation using Google Gemini via AI SDK.
- * Uses agentic approach with tool calling (same as OpenAI).
- */
-async function runWithGemini(
-    apiKey: string,
-    modelId: string,
-    query: string,
-    maxResults: number,
-    algoliaConfig: AlgoliaConfig,
-    baseUrl: string,
-    searchMode: SearchMode,
-    ai: Ai
-): Promise<ProviderResult> {
-    const chartsBySlug = new Map<string, ChartInfo>()
-    const searchQueriesUsed: string[] = []
-
-    const google = createGoogleGenerativeAI({ apiKey })
-    const model = google(modelId)
-
-    // Build tools using shared helper
-    const { keywordSearchTool, semanticSearchTool } = buildSearchTools(
-        algoliaConfig,
-        baseUrl,
-        chartsBySlug,
-        searchQueriesUsed,
-        ai
-    )
 
     const systemPrompt =
         searchMode === "semantic"
@@ -464,28 +395,21 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         const algoliaConfig = getAlgoliaConfig(env)
         const agentStartTime = Date.now()
 
-        // Run with appropriate provider
-        const result = isOpenAI
-            ? await runWithOpenAI(
-                  env.OPENAI_API_KEY!,
-                  resolvedModel,
-                  query,
-                  maxResults,
-                  algoliaConfig,
-                  baseUrl,
-                  searchMode,
-                  env.AI
-              )
-            : await runWithGemini(
-                  env.GOOGLE_API_KEY!,
-                  resolvedModel,
-                  query,
-                  maxResults,
-                  algoliaConfig,
-                  baseUrl,
-                  searchMode,
-                  env.AI
-              )
+        // Create model and run recommendation
+        const model = createModel(
+            isOpenAI ? "openai" : "gemini",
+            isOpenAI ? env.OPENAI_API_KEY! : env.GOOGLE_API_KEY!,
+            resolvedModel
+        )
+        const result = await runRecommendation(
+            model,
+            query,
+            maxResults,
+            algoliaConfig,
+            baseUrl,
+            searchMode,
+            env.AI
+        )
 
         const agentEndTime = Date.now()
         const { text, searchQueriesUsed, chartsBySlug, steps } = result
