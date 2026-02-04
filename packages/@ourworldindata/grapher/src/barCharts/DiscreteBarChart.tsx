@@ -377,7 +377,7 @@ export class DiscreteBarChart
         barY: number
         yOffset: number
     }): React.ReactElement {
-        const barColor = series.yColumn.isProjection
+        const barColor = series.isProjection
             ? `url(#${makeProjectedDataPatternId(series.color)})`
             : series.color
 
@@ -562,9 +562,7 @@ export class DiscreteBarChart
     }
 
     private renderDefs(): React.ReactElement | null {
-        const projections = this.series.filter(
-            (series) => series.yColumn.isProjection
-        )
+        const projections = this.series.filter((series) => series.isProjection)
         const uniqProjections = _.uniqBy(projections, (series) => series.color)
         if (projections.length === 0) return null
 
