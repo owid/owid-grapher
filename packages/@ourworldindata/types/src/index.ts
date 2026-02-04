@@ -342,6 +342,8 @@ export {
     type RawBlockNarrativeChart,
     type EnrichedBlockNarrativeChart,
     type OwidEnrichedGdocBlockTypeMap,
+    type RawBlockBespokeComponent,
+    type EnrichedBlockBespokeComponent,
 } from "./gdocTypes/ArchieMlComponents.js"
 export {
     ChartConfigType,

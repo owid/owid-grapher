@@ -1812,7 +1812,8 @@ export function traverseEnrichedBlock(
                     "featured-data-insights",
                     "latest-data-insights",
                     "socials",
-                    "static-viz"
+                    "static-viz",
+                    "bespoke-component"
                 ),
             },
             callback

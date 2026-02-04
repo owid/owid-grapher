@@ -910,4 +910,12 @@ export const enrichedBlockExamples: Record<
         ],
         parseErrors: [],
     },
+    "bespoke-component": {
+        type: "bespoke-component",
+        bundle: "example-widget",
+        size: BlockSize.Wide,
+        config: { foo: "bar" },
+        variant: "wide",
+        parseErrors: [],
+    },
 }

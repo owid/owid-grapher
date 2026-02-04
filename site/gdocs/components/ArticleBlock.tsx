@@ -48,6 +48,7 @@ import LatestDataInsightsBlock from "./LatestDataInsightsBlock.js"
 import { Socials } from "./Socials.js"
 import Person from "./Person.js"
 import NarrativeChart from "./NarrativeChart.js"
+import { BespokeComponent } from "./BespokeComponent.js"
 import { Container, getLayout } from "./layout.js"
 import { Expander } from "./Expander.js"
 import { BlockSize, ChartConfigType } from "@ourworldindata/types"
@@ -937,6 +938,15 @@ function ArticleBlockInternal({
             <Socials
                 className={getLayout("socials", containerType)}
                 links={block.links}
+            />
+        ))
+        .with({ type: "bespoke-component" }, (block) => (
+            <BespokeComponent
+                className={getLayout(
+                    `bespoke-component--${block.size}`,
+                    containerType
+                )}
+                block={block}
             />
         ))
         .exhaustive()

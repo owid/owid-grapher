@@ -60,6 +60,7 @@ import {
     RawBlockScript,
     RawBlockStaticViz,
     RawBlockConditionalSection,
+    RawBlockBespokeComponent,
 } from "@ourworldindata/types"
 import { match } from "ts-pattern"
 
@@ -1000,6 +1001,24 @@ function* rawBlockSocialsToArchieMLString(
     yield "[]"
 }
 
+function* rawBlockBespokeComponentToArchieMLString(
+    block: RawBlockBespokeComponent
+): Generator<string, void, undefined> {
+    yield "{.bespoke-component}"
+    yield* propertyToArchieMLString("bundle", block.value)
+    yield* propertyToArchieMLString("variant", block.value)
+    yield* propertyToArchieMLString("size", block.value)
+    if (block.value.config) {
+        // TODO this doesn't support deep nesting, which in theory the type Record<string, unknown> allows for
+        yield `{.config}`
+        for (const [key, value] of Object.entries(block.value.config)) {
+            yield* propertyToArchieMLString(key, { [key]: value })
+        }
+        yield "{}"
+    }
+    yield "{}"
+}
+
 export function* OwidRawGdocBlockToArchieMLStringGenerator(
     block: OwidRawGdocBlock | RawBlockTableRow
 ): Generator<string, void, undefined> {
@@ -1116,6 +1135,10 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
             rawBlockFeaturedDataInsightsToArchieMLString
         )
         .with({ type: "socials" }, rawBlockSocialsToArchieMLString)
+        .with(
+            { type: "bespoke-component" },
+            rawBlockBespokeComponentToArchieMLString
+        )
         .exhaustive()
     yield* content
 }

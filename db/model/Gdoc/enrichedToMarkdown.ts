@@ -505,5 +505,9 @@ ${links}`
                 .map((link) => `* [${link.text}](${link.url})`)
                 .join("\n")
         })
+        .with(
+            { type: "bespoke-component" },
+            (_): string | undefined => undefined
+        )
         .exhaustive()
 }

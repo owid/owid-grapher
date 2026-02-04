@@ -1144,6 +1144,24 @@ export type EnrichedBlockSocials = {
     links: EnrichedSocialLink[]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockBespokeComponent = {
+    type: "bespoke-component"
+    value: {
+        bundle?: string
+        variant?: string
+        size?: BlockSize
+        config?: Record<string, unknown>
+    }
+}
+
+export type EnrichedBlockBespokeComponent = {
+    type: "bespoke-component"
+    bundle: string
+    variant?: string
+    size: BlockSize
+    config: Record<string, unknown>
+} & EnrichedBlockWithParseErrors
+
 export type OwidRawGdocBlock =
     | RawBlockAllCharts
     | RawBlockAside
@@ -1204,6 +1222,7 @@ export type OwidRawGdocBlock =
     | RawBlockCta
     | RawBlockSocials
     | RawBlockStaticViz
+    | RawBlockBespokeComponent
 
 export type OwidEnrichedGdocBlock =
     | EnrichedBlockAllCharts
@@ -1267,6 +1286,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockCta
     | EnrichedBlockSocials
     | EnrichedBlockStaticViz
+    | EnrichedBlockBespokeComponent
 
 /**
  * A map of all possible block types, with the type as the key and the block type as the value

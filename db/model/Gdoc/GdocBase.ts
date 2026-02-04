@@ -844,7 +844,8 @@ export class GdocBase implements OwidGdocBaseInterface {
                         "featured-data-insights",
                         "latest-data-insights",
                         "socials", // only external links
-                        "subscribe-banner"
+                        "subscribe-banner",
+                        "bespoke-component"
                     ),
                 },
                 () => []
