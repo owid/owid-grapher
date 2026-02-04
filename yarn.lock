@@ -14479,6 +14479,7 @@ __metadata:
     ts-pattern: "npm:^5.8.0"
     uuidv7: "npm:^1.0.1"
     vitest: "npm:^4.0.15"
+    workers-ai-provider: "npm:^3.0.4"
     zod: "npm:^4.1.11"
   languageName: unknown
   linkType: soft
@@ -18522,6 +18523,18 @@ __metadata:
   version: 9.2.0
   resolution: "workerpool@npm:9.2.0"
   checksum: 10/53b7a08001493a2bc24899f562ff6cc0824c942f656c05a68436c3db2c228cb1eea3090d8e726ecba4b02c08b35ace46e1a5435eee50444e683334329a7510da
+  languageName: node
+  linkType: hard
+
+"workers-ai-provider@npm:^3.0.4":
+  version: 3.0.4
+  resolution: "workers-ai-provider@npm:3.0.4"
+  peerDependencies:
+    "@ai-sdk/provider": ^3.0.0
+    "@ai-sdk/provider-utils": ^4.0.0
+    ai: ^6.0.0
+    zod: ^3.25.0 || ^4.0.0
+  checksum: 10/dcfa54658e1730cbc95793fb82f53afd614ed2da5a0ca063685e4b809808d96ec6ff137cc3cdc7d13d63afb473ddd1850a7a61ae548bc12bb3e2240fe6182427
   languageName: node
   linkType: hard
 

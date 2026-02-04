@@ -21,6 +21,7 @@
         "stripe": "^14.20.0",
         "ts-pattern": "^5.8.0",
         "uuidv7": "^1.0.1",
+        "workers-ai-provider": "^3.0.4",
         "zod": "^4.1.11"
     },
     "devDependencies": {
