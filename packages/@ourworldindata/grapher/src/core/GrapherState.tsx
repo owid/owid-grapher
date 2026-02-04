@@ -1329,8 +1329,7 @@ export class GrapherState
         // Peer countries
         if (parsed.peerCountries.status === "valid") {
             if (parsed.peerCountries.value === "auto") {
-                // TODO: the default should be Neighbors
-                this.peerCountryStrategy ??= PeerCountryStrategy.ParentRegions
+                this.peerCountryStrategy ??= PeerCountryStrategy.Neighbors
             } else {
                 this.peerCountryStrategy = parsed.peerCountries.value
             }

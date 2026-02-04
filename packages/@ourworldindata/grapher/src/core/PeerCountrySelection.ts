@@ -2,8 +2,8 @@ import * as R from "remeda"
 import * as _ from "lodash-es"
 import {
     AdditionalGrapherDataFetchFn,
-    CatalogKey,
     EntityName,
+    NumericCatalogKey,
     PeerCountryStrategy,
     PeerCountryStrategyQueryParam,
     Time,
@@ -49,6 +49,13 @@ interface SelectByDataRangeParams {
     time?: Time
 }
 
+interface SelectNeighborsAsPeersParams {
+    targetCountry: EntityName
+    availableEntities: EntityName[]
+    additionalDataLoaderFn?: AdditionalGrapherDataFetchFn
+    targetCount?: number
+}
+
 type WithStrategy<T, S extends PeerCountryStrategy> = T & {
     peerCountryStrategy: S
 }
@@ -67,6 +74,7 @@ type SelectPeerCountriesParams =
           PeerCountryStrategy.GdpPerCapita | PeerCountryStrategy.Population
       >
     | WithStrategy<SelectByDataRangeParams, PeerCountryStrategy.DataRange>
+    | WithStrategy<SelectNeighborsAsPeersParams, PeerCountryStrategy.Neighbors>
 
 /** Check if the given string is a valid PeerCountryStrategy */
 function isValidPeerCountryStrategy(
@@ -162,6 +170,10 @@ export async function selectPeerCountries(
             { peerCountryStrategy: PeerCountryStrategy.DataRange },
             async (params) => selectPeerCountriesByDataRange(params)
         )
+        .with(
+            { peerCountryStrategy: PeerCountryStrategy.Neighbors },
+            async (params) => selectNeighborsAsPeers(params)
+        )
         .exhaustive()
 }
 
@@ -211,25 +223,32 @@ function filterEntitiesWithDataAtAllTimes({
 }
 
 /**
- * Prepares entities for peer selection by filtering to only those with data at
- * required times (e.g. both start and end times for slope charts).
+ * Prepares entities for peer selection by excluding historical geographic
+ * entities and filtering to only those with data at required times
+ * (e.g. both start and end times for slope charts).
  */
 export function prepareEntitiesForPeerSelection(
     grapherState: GrapherState
 ): EntityName[] {
     const availableEntities = grapherState.availableEntityNames
 
+    // Exclude historical geographic entities
+    const relevantEntities = availableEntities.filter((entityName) => {
+        const region = getRegionByName(entityName)
+        return !(region && checkIsCountry(region) && region.isHistorical)
+    })
+
     const dataColumn = grapherState.table.get(grapherState.yColumnSlug)
-    if (!isDataColumnAvailable(dataColumn)) return availableEntities
+    if (!isDataColumnAvailable(dataColumn)) return relevantEntities
 
     const requiredTimes = grapherState.isOnSlopeChartTab
         ? excludeUndefined([grapherState.startTime, grapherState.endTime])
         : []
 
-    if (requiredTimes.length === 0) return availableEntities
+    if (requiredTimes.length === 0) return relevantEntities
 
     return filterEntitiesWithDataAtAllTimes({
-        entities: availableEntities,
+        entities: relevantEntities,
         dataColumn,
         requiredTimes,
     })
@@ -287,7 +306,7 @@ async function selectPeerCountriesByClosestValue({
     targetCount = 3,
     maxPeerRatio = 1.5,
 }: SelectByClosestValueParams & {
-    catalogKey: CatalogKey
+    catalogKey: NumericCatalogKey
     /** Maximum ratio difference allowed */
     maxPeerRatio?: number
 }): Promise<EntityName[]> {
@@ -319,6 +338,39 @@ async function selectPeerCountriesByClosestValue({
             "Failed to select peer countries by closest value:",
             error
         )
+        return []
+    }
+}
+
+/** Selects neighboring countries as peers */
+async function selectNeighborsAsPeers({
+    targetCountry,
+    availableEntities,
+    additionalDataLoaderFn,
+    targetCount = 3,
+}: SelectNeighborsAsPeersParams): Promise<EntityName[]> {
+    try {
+        // Load data
+        if (!isDataLoaderAvailable(additionalDataLoaderFn)) return []
+        const data = await additionalDataLoaderFn("neighbors")
+
+        // Find the target country's neighbors
+        const targetEntry = data.find((entry) => entry.entity === targetCountry)
+        if (!targetEntry) {
+            console.warn(`No neighbors data found for ${targetCountry}`)
+            return []
+        }
+
+        // Filter to only neighbors that are available in the chart's data
+        const availableEntitiesSet = new Set(availableEntities)
+        const availableNeighbors = targetEntry.value.filter((neighbor) =>
+            availableEntitiesSet.has(neighbor)
+        )
+
+        // Return the first x neighbors
+        return availableNeighbors.slice(0, targetCount)
+    } catch (error) {
+        console.error("Failed to select neighbors as peers:", error)
         return []
     }
 }
