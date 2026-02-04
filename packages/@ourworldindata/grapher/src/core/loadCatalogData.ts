@@ -1,12 +1,15 @@
 import * as _ from "lodash-es"
+import { OwidTable } from "@ourworldindata/core-table"
 import {
+    AdditionalGrapherDataFetchFn,
     AssetMap,
     CatalogDataPoint,
     CatalogKey,
+    ColumnSlug,
     ColumnTypeNames,
     OwidColumnDef,
 } from "@ourworldindata/types"
-import { fetchJson, readFromAssetMap } from "./Util.js"
+import { fetchJson, readFromAssetMap } from "@ourworldindata/utils"
 
 /**
  * Gets the asset map key for a catalog path.
@@ -38,7 +41,7 @@ export const columnDefsByCatalogKey: Record<CatalogKey, OwidColumnDef> = {
 }
 
 /** Loads indicator data from the OWID catalog */
-async function _loadCatalogVariableData(
+async function _loadCatalogData(
     key: CatalogKey,
     { baseUrl, assetMap }: { baseUrl: string; assetMap?: AssetMap }
 ): Promise<CatalogDataPoint[]> {
@@ -51,7 +54,29 @@ async function _loadCatalogVariableData(
     return fetchJson<CatalogDataPoint[]>(url)
 }
 
-export const loadCatalogVariableData: (
+export const loadCatalogData = _.memoize(_loadCatalogData)
+
+/** Creates an OwidTable from catalog data points */
+function catalogDataToOwidTable(
+    data: CatalogDataPoint[],
+    columnDef: OwidColumnDef
+): OwidTable {
+    const rows = data.map((point) => ({
+        entityName: point.entity,
+        year: point.year,
+        [columnDef.slug]: point.value,
+    }))
+
+    return new OwidTable(rows, [columnDef])
+}
+
+/** Loads catalog data and transforms it into an OwidTable */
+export async function loadCatalogDataAsOwidTable(
     key: CatalogKey,
-    { baseUrl, assetMap }: { baseUrl: string; assetMap?: AssetMap }
-) => Promise<CatalogDataPoint[]> = _.memoize(_loadCatalogVariableData)
+    loadCatalogDataFn: AdditionalGrapherDataFetchFn
+): Promise<{ table: OwidTable; slug: ColumnSlug }> {
+    const data = await loadCatalogDataFn(key)
+    const columnDef = columnDefsByCatalogKey[key]
+    const table = catalogDataToOwidTable(data, columnDef)
+    return { table, slug: columnDef.slug }
+}

@@ -146,3 +146,5 @@ export {
     selectRegionGroupByPriority,
     isValidPeerCountryStrategyQueryParam,
 } from "./core/PeerCountrySelection.js"
+
+export { loadCatalogData, getCatalogAssetKey } from "./core/loadCatalogData.js"
