@@ -38,6 +38,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ai-sdk/google@npm:^3.0.20":
+  version: 3.0.20
+  resolution: "@ai-sdk/google@npm:3.0.20"
+  dependencies:
+    "@ai-sdk/provider": "npm:3.0.7"
+    "@ai-sdk/provider-utils": "npm:4.0.13"
+  peerDependencies:
+    zod: ^3.25.76 || ^4.1.8
+  checksum: 10/aa029d47fa36bf08603cae32e4ef5081c4604692affe021265d87e658cf2874a252aa7e1fc8b8ebf7f95d8711b50d5667b75f71a3ccacc9b366bbf18e24e4e8a
+  languageName: node
+  linkType: hard
+
 "@ai-sdk/openai@npm:^3.0.0":
   version: 3.0.25
   resolution: "@ai-sdk/openai@npm:3.0.25"
@@ -14455,6 +14467,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "owid-functions@workspace:functions"
   dependencies:
+    "@ai-sdk/google": "npm:^3.0.20"
     "@ai-sdk/openai": "npm:^3.0.0"
     "@cloudflare/workers-types": "npm:^4.20250510.0"
     "@ourworldindata/components": "workspace:^"
