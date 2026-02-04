@@ -275,7 +275,8 @@ export function enrichSeriesWithLabels<
         return series.map((series, index) => ({
             ...series,
             label: SeriesLabelState.fromTextWrap(
-                wrappedLabels[index].labelWrap
+                wrappedLabels[index].labelWrap,
+                { showProviderIcon: true }
             ),
             annotationTextWrap: wrappedLabels[index].annotationWrap,
         }))
@@ -335,7 +336,9 @@ export function enrichSeriesWithLabels<
 
     return series.map((series, index) => ({
         ...series,
-        label: SeriesLabelState.fromTextWrap(truncatedLabels[index]),
+        label: SeriesLabelState.fromTextWrap(truncatedLabels[index], {
+            showProviderIcon: true,
+        }),
         annotationTextWrap: truncatedAnnotations[index],
     }))
 }

@@ -1,7 +1,12 @@
+import * as _ from "lodash-es"
 import { computed, makeObservable } from "mobx"
 import { Bounds, RequiredBy } from "@ourworldindata/utils"
 import { canAppendTextToLastLine, TextWrap } from "@ourworldindata/components"
-import { ParsedLabel, parseLabelWithSuffix } from "../core/RegionGroups.js"
+import {
+    ParsedLabel,
+    parseLabelWithSuffix,
+    RegionWithProviderSuffixParsedLabel,
+} from "../core/RegionGroups.js"
 import { FontSettings } from "../core/GrapherConstants.js"
 import { match } from "ts-pattern"
 
@@ -13,6 +18,7 @@ export interface SeriesLabelStateOptions {
     lineHeight?: number
     formattedValue?: string
     placeFormattedValueInNewLine?: boolean
+    showProviderIcon?: boolean
 }
 
 interface RelativePosition {
@@ -20,11 +26,33 @@ interface RelativePosition {
     dy: number
 }
 
-export interface FragmentLayout {
-    onNewLine: boolean
+interface BaseLayout {
     position: RelativePosition
-    textWrap: TextWrap
+    dimensions: { width: number; height: number }
 }
+
+interface IconLayout extends BaseLayout {
+    type: "icon"
+}
+
+interface SpaceLayout extends BaseLayout {
+    type: "space"
+}
+
+export interface TextLayout extends BaseLayout {
+    type: "text"
+    textWrap: TextWrap
+    onNewLine?: boolean
+}
+
+export interface SuffixLayoutWithIcon extends BaseLayout {
+    type: "suffix-with-icon"
+    onNewLine: boolean
+    parts: [TextLayout, SpaceLayout, IconLayout, TextLayout]
+    providerKey: RegionWithProviderSuffixParsedLabel["providerKey"]
+}
+
+type SuffixLayout = TextLayout | SuffixLayoutWithIcon
 
 /**
  * Manages the layout for a series label in charts.
@@ -43,6 +71,7 @@ export class SeriesLabelState {
         fontWeight: 400,
         lineHeight: 1.1,
         placeFormattedValueInNewLine: false,
+        showProviderIcon: false,
     } as const satisfies Partial<SeriesLabelStateOptions>
 
     constructor(options: SeriesLabelStateOptions) {
@@ -50,13 +79,17 @@ export class SeriesLabelState {
         makeObservable(this)
     }
 
-    static fromTextWrap(textWrap: TextWrap): SeriesLabelState {
+    static fromTextWrap(
+        textWrap: TextWrap,
+        options?: { showProviderIcon?: boolean }
+    ): SeriesLabelState {
         return new SeriesLabelState({
             text: textWrap.text,
             maxWidth: textWrap.maxWidth,
             fontSize: textWrap.fontSize,
             fontWeight: textWrap?.fontWeight,
             lineHeight: textWrap?.lineHeight,
+            showProviderIcon: options?.showProviderIcon,
         })
     }
 
@@ -112,14 +145,28 @@ export class SeriesLabelState {
         return this.parsedText.type === "regionWithProviderSuffix"
     }
 
-    @computed get suffixLayout(): FragmentLayout | undefined {
+    @computed private get iconSize(): number {
+        return Math.round(this.options.fontSize * 0.9)
+    }
+
+    @computed get suffixLayout(): SuffixLayout | undefined {
         if (!this.isRegionWithProviderSuffix) return undefined
 
         const text = `(${this.parsedText.suffix})`
+        const fontSettings = { ...this.fontSettings, fontWeight: 400 }
+
+        const hasIcon =
+            this.options.showProviderIcon &&
+            this.parsedText.type === "regionWithProviderSuffix"
+
+        // When there's an icon, we need extra space for it
+        const spaceWidth = Bounds.forText(" ", this.fontSettings).width
+        const iconWidth = hasIcon ? this.iconSize + spaceWidth : 0
 
         const fitsOnSameLineAsName = canAppendTextToLastLine({
             existingTextWrap: this.nameWrap,
             textToAppend: text,
+            reservedWidth: iconWidth,
         })
 
         const position = calculateRelativeAppendPosition({
@@ -127,18 +174,83 @@ export class SeriesLabelState {
             fitsOnLastLine: fitsOnSameLineAsName,
         })
 
-        const maxWidth = fitsOnSameLineAsName ? Infinity : this.options.maxWidth
-        const fontSettings = { ...this.fontSettings, fontWeight: 400 }
-        const textWrap = new TextWrap({
-            text,
-            maxWidth,
-            ...fontSettings,
-        })
+        if (hasIcon) {
+            const maxWidth = Infinity
+            const textWrapBeforeIcon = new TextWrap({
+                text: `(${this.parsedText.suffix}`,
+                maxWidth,
+                ...fontSettings,
+            })
+            const textWrapAfterIcon = new TextWrap({
+                text: `)`,
+                maxWidth,
+                ...fontSettings,
+            })
 
-        return { onNewLine: !fitsOnSameLineAsName, position, textWrap }
+            const { dx, dy } = position
+            const dxBeforeIcon = dx
+            const dxSpace = dxBeforeIcon + textWrapBeforeIcon.width
+            const dxIcon = dxSpace + spaceWidth
+            const dxAfterIcon = dxIcon + this.iconSize
+
+            const height = textWrapBeforeIcon.height
+
+            const parts: [TextLayout, SpaceLayout, IconLayout, TextLayout] = [
+                {
+                    type: "text",
+                    position: { dx: dxBeforeIcon, dy },
+                    textWrap: textWrapBeforeIcon,
+                    dimensions: textWrapBeforeIcon.dimensions,
+                },
+                {
+                    type: "space",
+                    position: { dx: dxIcon, dy },
+                    dimensions: { width: spaceWidth, height },
+                },
+                {
+                    type: "icon",
+                    position: { dx: dxIcon, dy: dy + 1 }, // Small visual correction
+                    dimensions: { width: this.iconSize, height: this.iconSize },
+                },
+                {
+                    type: "text",
+                    position: { dx: dxAfterIcon, dy },
+                    textWrap: textWrapAfterIcon,
+                    dimensions: textWrapAfterIcon.dimensions,
+                },
+            ]
+
+            const width = _.sumBy(parts, (part) => part.dimensions.width)
+
+            return {
+                type: "suffix-with-icon",
+                onNewLine: !fitsOnSameLineAsName,
+                position,
+                dimensions: { width, height },
+                parts,
+                providerKey: this.parsedText.providerKey,
+            }
+        } else {
+            const maxWidth = fitsOnSameLineAsName
+                ? Infinity
+                : this.options.maxWidth
+            const textWrap = new TextWrap({
+                text,
+                maxWidth,
+                ...fontSettings,
+            })
+
+            return {
+                type: "text",
+                onNewLine: !fitsOnSameLineAsName,
+                position,
+                textWrap,
+                dimensions: textWrap.dimensions,
+            }
+        }
     }
 
-    @computed get valueLayout(): FragmentLayout | undefined {
+    @computed get valueLayout(): TextLayout | undefined {
         const text = this.options.formattedValue
 
         if (!text) return undefined
@@ -153,25 +265,29 @@ export class SeriesLabelState {
         // Always place on new line if there is a suffix
         if (this.suffixLayout) {
             const dy = this.suffixLayout.onNewLine
-                ? this.nameWrap.height + this.suffixLayout.textWrap.height
+                ? this.nameWrap.height + this.suffixLayout.dimensions.height
                 : this.nameWrap.height
 
             return {
+                type: "text",
                 onNewLine: true,
                 position: { dx: 0, dy },
                 textWrap: fullWidthTextWrap,
+                dimensions: fullWidthTextWrap.dimensions,
             }
         }
 
         // Always place on new line if requested
         if (this.options.placeFormattedValueInNewLine) {
             return {
+                type: "text",
                 onNewLine: true,
                 position: calculateRelativeAppendPosition({
                     existingTextWrap: this.nameWrap,
                     fitsOnLastLine: false,
                 }),
                 textWrap: fullWidthTextWrap,
+                dimensions: fullWidthTextWrap.dimensions,
             }
         }
 
@@ -192,13 +308,21 @@ export class SeriesLabelState {
             ...fontSettings,
         })
 
-        return { onNewLine: !fitsOnSameLineAsName, position, textWrap }
+        return {
+            type: "text",
+            onNewLine: !fitsOnSameLineAsName,
+            position,
+            textWrap,
+            dimensions: textWrap.dimensions,
+        }
     }
 
-    private getFragmentWidth(layout: FragmentLayout | undefined): number {
+    private getFragmentWidth(
+        layout?: TextLayout | SuffixLayoutWithIcon
+    ): number {
         if (!layout) return 0
 
-        let width = layout.textWrap.width
+        let width = layout.dimensions.width
 
         // If the fragment doesn't start on a new line, add the name's last line width
         if (!layout.onNewLine) width += this.nameWrap.lastLineWidth
@@ -219,11 +343,11 @@ export class SeriesLabelState {
         let height = this.nameWrap.height
 
         if (this.suffixLayout?.onNewLine) {
-            height += this.suffixLayout.textWrap.height
+            height += this.suffixLayout.dimensions.height
         }
 
         if (this.valueLayout?.onNewLine) {
-            height += this.valueLayout.textWrap.height
+            height += this.valueLayout.dimensions.height
         }
 
         return height

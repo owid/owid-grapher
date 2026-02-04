@@ -139,7 +139,10 @@ class LineLabels extends React.Component<LineLabelsProps> {
 
     @computed private get textLabels(): React.ReactElement {
         return (
-            <g id={makeIdForHumanConsumption("text-labels")}>
+            <g
+                id={makeIdForHumanConsumption("text-labels")}
+                style={{ pointerEvents: "none" }}
+            >
                 {this.markers.map(({ series, labelText }, index) => {
                     return (
                         <Halo
@@ -180,7 +183,10 @@ class LineLabels extends React.Component<LineLabelsProps> {
         )
         if (!markersWithAnnotations) return
         return (
-            <g id={makeIdForHumanConsumption("text-annotations")}>
+            <g
+                id={makeIdForHumanConsumption("text-annotations")}
+                style={{ pointerEvents: "none" }}
+            >
                 {markersWithAnnotations.map(({ series, labelText }, index) => {
                     if (!series.annotationTextWrap) return
                     return (
@@ -219,7 +225,10 @@ class LineLabels extends React.Component<LineLabelsProps> {
     @computed private get connectorLines(): React.ReactElement | undefined {
         if (!this.props.needsConnectorLines) return
         return (
-            <g id={makeIdForHumanConsumption("connectors")}>
+            <g
+                id={makeIdForHumanConsumption("connectors")}
+                style={{ pointerEvents: "none" }}
+            >
                 {this.markers.map(({ series, connectorLine }, index) => {
                     const { x1, x2 } = connectorLine
                     const {
@@ -288,10 +297,10 @@ class LineLabels extends React.Component<LineLabelsProps> {
     override render(): React.ReactElement {
         return (
             <>
+                {!this.props.isStatic && this.interactions}
                 {this.connectorLines}
                 {this.textAnnotations}
                 {this.textLabels}
-                {!this.props.isStatic && this.interactions}
             </>
         )
     }
@@ -421,6 +430,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 formattedValue: series.formattedValue,
                 placeFormattedValueInNewLine:
                     series.placeFormattedValueInNewLine,
+                showProviderIcon: true,
             })
 
             const annotationTextWrap = this.makeAnnotationTextWrap(series)

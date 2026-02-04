@@ -171,14 +171,20 @@ export function groupEntitiesByRegionType(
     return entitiesByRegionGroup
 }
 
-export type ParsedLabel =
-    | { type: "plain"; name: string; suffix?: string }
-    | {
-          type: "regionWithProviderSuffix"
-          name: string
-          suffix: string
-          providerKey: AnyRegionDataProvider
-      }
+interface PlainParsedLabel {
+    type: "plain"
+    name: string
+    suffix?: string
+}
+
+export interface RegionWithProviderSuffixParsedLabel {
+    type: "regionWithProviderSuffix"
+    name: string
+    suffix: string
+    providerKey: AnyRegionDataProvider
+}
+
+export type ParsedLabel = PlainParsedLabel | RegionWithProviderSuffixParsedLabel
 
 export function parseLabelWithSuffix(entityName: string): ParsedLabel {
     const match = entityName.match(/^(.+)\s+\(([^)]+)\)$/)

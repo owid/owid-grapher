@@ -260,6 +260,10 @@ export class TextWrap {
         return _.max(this.lines.map((l) => l.width)) ?? 0
     }
 
+    @computed get dimensions(): { width: number; height: number } {
+        return { width: this.width, height: this.height }
+    }
+
     @computed get lastLineWidth(): number {
         return R.last(this.lines)?.width ?? 0
     }

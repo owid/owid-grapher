@@ -674,6 +674,10 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         return htmlLines.length * this.singleLineHeight
     }
 
+    @computed get dimensions(): { width: number; height: number } {
+        return { width: this.width, height: this.height }
+    }
+
     @computed get style(): any {
         return {
             ...this.fontParams,
@@ -1150,14 +1154,18 @@ function appendReferenceNumbers(
 export function canAppendTextToLastLine({
     existingTextWrap,
     textToAppend,
+    reservedWidth = 0,
 }: {
     existingTextWrap: TextWrap | MarkdownTextWrap
     textToAppend: string
+    /** Width to reserve for non-text elements (e.g. icons) */
+    reservedWidth?: number
 }): boolean {
     const { maxWidth, lastLineWidth, fontSize, props } = existingTextWrap
 
     const spaceWidth = Bounds.forText(" ", { fontSize }).width
-    const availableWidthInLastLine = maxWidth - lastLineWidth - spaceWidth - 10
+    const availableWidthInLastLine =
+        maxWidth - lastLineWidth - spaceWidth - reservedWidth - 10
 
     const secondaryTextWrap = new MarkdownTextWrap({
         ...props,
