@@ -25,15 +25,19 @@ const VALID_PARAMS = new Set([
     "debug",
     "model",
     "search", // "keyword" (default) or "semantic"
+    "verbose", // include all fields in response (default: false)
 ])
 
 // Short aliases for Google Gemini models
 const GEMINI_MODEL_ALIASES: Record<string, string> = {
-    gemini: "gemini-2.5-flash",
+    gemini: "gemini-2.5-flash-lite",
+    "gemini-lite": "gemini-2.5-flash-lite",
     "gemini-2.5-flash": "gemini-2.5-flash",
     "gemini-2.5-flash-lite": "gemini-2.5-flash-lite",
-    "gemini-3-flash": "gemini-3-flash-preview",
 }
+
+// Default model for recommendations
+const DEFAULT_MODEL = "gemini"
 
 const DEFAULT_MAX_RESULTS = 5
 const MAX_RESULTS_LIMIT = 10
@@ -42,29 +46,39 @@ const MAX_RESULTS_LIMIT = 10
 // Prompts
 // =============================================================================
 
-const SLUG_OUTPUT = "ONLY a JSON array of slugs"
-
 /** System prompt for keyword search (Algolia) */
 const SYSTEM_PROMPT_KEYWORD = (maxResults: number) =>
-    `You recommend Our World in Data charts. The search uses keyword matching against chart titles.
+    `You recommend Our World in Data charts. Search uses keyword matching against chart TITLES only.
+
+IMPORTANT:
+- Country names are NOT in chart titles. Search for the DATA TOPIC only (e.g., "deaths", "mortality", "population").
+- Charts are global and can be filtered to any country by the user.
 
 Instructions:
-1. Call search ONCE with 4-6 SINGLE-WORD search keywords that might appear in chart titles. Avoid multi-word phrases.
-2. From results, select up to ${maxResults} charts that BEST answer the question.
-3. ORDER by relevance, respond with ${SLUG_OUTPUT}: ["slug-1", "slug-2"]
+1. Call search ONCE with 4-6 keywords about the DATA TOPIC (not countries/years).
+2. From results, select up to ${maxResults} charts that best answer the question.
+3. ALWAYS respond with a JSON array of slugs, nothing else: ["slug-1", "slug-2"]
 
-Example: "Why invest in highways?" -> ["roads", "transport", "trade", "GDP", "infrastructure"]`
+If no good matches, return an empty array: []
+
+Example: "How many people died in Germany in 2020?" -> search for ["deaths", "mortality", "death rate", "causes of death"]`
 
 /** System prompt for semantic search (CF AI Search) */
 const SYSTEM_PROMPT_SEMANTIC = (maxResults: number) =>
-    `You recommend Our World in Data charts. The search uses semantic matching.
+    `You recommend Our World in Data charts. Search uses semantic matching.
+
+IMPORTANT:
+- Country names are NOT in chart titles. Search for the DATA TOPIC only.
+- Charts are global and can be filtered to any country by the user.
 
 Instructions:
-1. Call search ONCE with a clear, concise search query that captures the data the user is looking for.
-2. From results, select up to ${maxResults} charts that BEST answer the question.
-3. ORDER by relevance, respond with ${SLUG_OUTPUT}: ["slug-1", "slug-2"]
+1. Call search ONCE with a query about the DATA TOPIC (not countries/years).
+2. From results, select up to ${maxResults} charts that best answer the question.
+3. ALWAYS respond with a JSON array of slugs, nothing else: ["slug-1", "slug-2"]
 
-Example: "Why invest in highways?" -> "economic benefits of road infrastructure investment GDP growth trade"`
+If no good matches, return an empty array: []
+
+Example: "How many people died in Germany in 2020?" -> search for "total deaths mortality death rate"`
 
 // =============================================================================
 // Types
@@ -76,7 +90,7 @@ type RecommendedChart = ChartInfo
 interface RecommendResponse {
     query: string
     model: string
-    recommendations: RecommendedChart[]
+    recommendations: RecommendedChart[] | MinimalChartInfo[]
     searchQueries: string[]
     timing: {
         total_ms: number
@@ -98,6 +112,26 @@ interface ProviderResult {
 
 /** Search mode: keyword (Algolia) or semantic (CF AI Search) */
 type SearchMode = "keyword" | "semantic"
+
+/** Minimal chart info for non-verbose response */
+type MinimalChartInfo = Pick<
+    ChartInfo,
+    "title" | "subtitle" | "slug" | "url" | "variantName"
+>
+
+/**
+ * Strip verbose fields from recommendations to reduce response size.
+ * Keeps only essential fields: title, subtitle, slug, url, variantName.
+ */
+function stripVerboseFields(charts: RecommendedChart[]): MinimalChartInfo[] {
+    return charts.map((chart) => ({
+        title: chart.title,
+        subtitle: chart.subtitle,
+        slug: chart.slug,
+        url: chart.url,
+        variantName: chart.variantName,
+    }))
+}
 
 /**
  * Execute multi-query keyword search (Algolia) and collect chart info.
@@ -205,7 +239,7 @@ async function runWithOpenAI(
                     : keywordSearchTool,
         },
         toolChoice: "auto",
-        stopWhen: stepCountIs(3),
+        stopWhen: stepCountIs(2),
         system: systemPrompt,
         prompt: query,
     })
@@ -320,7 +354,7 @@ async function runWithGemini(
                     : keywordSearchTool,
         },
         toolChoice: "auto",
-        stopWhen: stepCountIs(3),
+        stopWhen: stepCountIs(2),
         system: systemPrompt,
         prompt: query,
     })
@@ -364,7 +398,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             MAX_RESULTS_LIMIT
         )
         const debug = url.searchParams.get("debug") === "true"
-        const modelParam = url.searchParams.get("model") || "openai"
+        const verbose = url.searchParams.get("verbose") === "true"
+        const modelParam = url.searchParams.get("model") || DEFAULT_MODEL
         const searchParam = url.searchParams.get("search") || "keyword"
         const searchMode: SearchMode =
             searchParam === "semantic" ? "semantic" : "keyword"
@@ -481,10 +516,15 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             `[AI Search recommend] query="${query}" | model=${resolvedModel} | search=${searchMode} | total=${endTime - startTime}ms | agent=${agentEndTime - agentStartTime}ms | searches=${searchQueriesUsed.length} | results=${recommendations.length}`
         )
 
+        // Strip verbose fields by default to reduce response size
+        const finalRecommendations = verbose
+            ? recommendations
+            : stripVerboseFields(recommendations)
+
         const response: RecommendResponse = {
             query,
             model: resolvedModel,
-            recommendations,
+            recommendations: finalRecommendations,
             searchQueries: searchQueriesUsed,
             timing: {
                 total_ms: endTime - startTime,
