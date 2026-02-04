@@ -30,14 +30,14 @@ export class SlideInDrawer extends React.Component<SlideInDrawerProps> {
 
     override componentDidMount(): void {
         document.addEventListener("keydown", this.onDocumentKeyDown)
-        document.addEventListener("click", this.onDocumentClick, {
+        document.addEventListener("mousedown", this.onDocumentClick, {
             capture: true,
         })
     }
 
     override componentWillUnmount(): void {
         document.removeEventListener("keydown", this.onDocumentKeyDown)
-        document.removeEventListener("click", this.onDocumentClick, {
+        document.removeEventListener("mousedown", this.onDocumentClick, {
             capture: true,
         })
     }
@@ -59,9 +59,18 @@ export class SlideInDrawer extends React.Component<SlideInDrawerProps> {
         if (
             this.active &&
             this.drawerRef?.current &&
-            isTargetOutsideElement(e.target!, this.drawerRef.current)
+            isTargetOutsideElement(e.target!, this.drawerRef.current) &&
+            !this.isTargetInsidePortaledPopover(e.target)
         )
             this.toggleVisibility()
+    }
+
+    private isTargetInsidePortaledPopover(target: EventTarget | null): boolean {
+        if (!(target instanceof Element)) return false
+        // React-aria popovers (e.g. dropdown menus) are portaled to document.body,
+        // so we need to check if the click target is inside one of them.
+        // Note: "portaled-popover" class is defined in Dropdown.tsx. Update both if renaming.
+        return target.closest(".portaled-popover") !== null
     }
 
     @action.bound toggleVisibility(e?: React.MouseEvent): void {
