@@ -3,7 +3,6 @@ import * as R from "remeda"
 import { match } from "ts-pattern"
 import {
     selectPeerCountries,
-    selectRegionGroupByPriority,
     generateFocusedSeriesNamesParam,
     generateSelectedEntityNamesParam,
     GrapherState,
@@ -31,6 +30,7 @@ import {
     Time,
     GrapherSearchResultJson,
     PeerCountryStrategy,
+    AdditionalGrapherDataFetchFn,
 } from "@ourworldindata/types"
 import { constructSearchResultDataTableContent } from "./constructSearchResultDataTableContent"
 import { constructGrapherValuesJson } from "../grapherValuesJson"
@@ -43,6 +43,15 @@ import {
     placeGrapherTabsInMediumVariantGridLayout,
     timeBoundToTimeBoundString,
     stripOuterParentheses,
+    getRegionByName,
+    checkIsCountry,
+    getSiblingRegions,
+    Continent,
+    IncomeGroup,
+    Aggregate,
+    getContinents,
+    getIncomeGroups,
+    getAggregates,
 } from "@ourworldindata/utils"
 import { toPlaintext } from "@ourworldindata/components"
 import { ColumnTypeMap } from "@ourworldindata/core-table"
@@ -271,9 +280,9 @@ export async function pickDisplayEntities(
         const peerCountryStrategy =
             grapherState.peerCountryStrategy ??
             PeerCountryStrategy.ParentRegions
-        const pickedComparisonEntities = await selectPeerCountries({
+        const pickedComparisonEntities = await selectPeerEntitiesForSearch({
             peerCountryStrategy,
-            targetCountry: pickedEntities[0],
+            targetEntity: pickedEntities[0],
             defaultSelection: defaultEntities,
             availableEntities,
             additionalDataLoaderFn: grapherState.additionalDataLoaderFn,
@@ -922,9 +931,9 @@ async function getGrapherQueryParamsForDiscreteBar(
         const peerCountryStrategy =
             grapherState.peerCountryStrategy ??
             PeerCountryStrategy.ParentRegions
-        const comparisonEntities = await selectPeerCountries({
+        const comparisonEntities = await selectPeerEntitiesForSearch({
             peerCountryStrategy,
-            targetCountry: selectedEntities[0],
+            targetEntity: selectedEntities[0],
             defaultSelection: grapherState.selection.selectedEntityNames,
             availableEntities: grapherState.availableEntityNames,
             additionalDataLoaderFn: grapherState.additionalDataLoaderFn,
@@ -1019,6 +1028,124 @@ function findTableSlotKey(
     return layout?.find(
         ({ grapherTab }) => grapherTab === GRAPHER_TAB_NAMES.Table
     )?.slotKey
+}
+
+/**
+ * Selects peer entities for search, handling both countries and aggregate regions.
+ *
+ * For countries: delegates to selectPeerCountries with the ParentRegions strategy.
+ * For aggregate regions: returns sibling regions at the same hierarchical level.
+ * For the World entity: returns continents or income groups if available.
+ */
+export async function selectPeerEntitiesForSearch({
+    peerCountryStrategy,
+    targetEntity,
+    defaultSelection,
+    availableEntities,
+    additionalDataLoaderFn,
+}: {
+    peerCountryStrategy: PeerCountryStrategy
+    targetEntity: EntityName
+    defaultSelection: EntityName[]
+    availableEntities: EntityName[]
+    additionalDataLoaderFn?: AdditionalGrapherDataFetchFn
+}): Promise<EntityName[]> {
+    // Compare World to any aggregate entities (e.g. continents or income groups)
+    if (targetEntity === WORLD_ENTITY_NAME)
+        return selectRegionGroupByPriority(availableEntities)
+
+    // Can't select peers if the target entity is not a geographical region
+    const targetRegion = getRegionByName(targetEntity)
+    if (!targetRegion) return []
+
+    if (checkIsCountry(targetRegion)) {
+        // For countries, use Grapher's peer selection logic
+        return selectPeerCountries({
+            peerCountryStrategy,
+            targetCountry: targetEntity,
+            defaultSelection,
+            availableEntities,
+            additionalDataLoaderFn,
+        })
+    } else {
+        // For aggregate regions, add sibling regions
+        return findAvailableSiblingRegions({ targetRegion, availableEntities })
+    }
+}
+
+/**
+ * Select sibling regions at the same hierarchical level
+ *
+ * For example, Europe -> Asia, Africa, North America, South America, Oceania
+ */
+function findAvailableSiblingRegions({
+    targetRegion,
+    availableEntities,
+}: {
+    targetRegion: Continent | IncomeGroup | Aggregate
+    availableEntities: EntityName[]
+}): EntityName[] {
+    const peers = new Set<EntityName>()
+    const availableEntitySet = new Set(availableEntities)
+
+    const siblings = getSiblingRegions(targetRegion.name)
+    for (const sibling of siblings) {
+        if (availableEntitySet.has(sibling.name)) peers.add(sibling.name)
+    }
+
+    return Array.from(peers)
+}
+
+/**
+ * Finds the best available regions from a set of available entities,
+ * prioritizing OWID continents, then income groups, then other aggregate
+ * regions as defined by the WHO or WB, for example
+ */
+export function selectRegionGroupByPriority(
+    availableEntities: EntityName[],
+    { includeWorld }: { includeWorld: boolean } = { includeWorld: false }
+): EntityName[] {
+    const availableEntitySet = new Set(availableEntities)
+
+    const owidContinents = getContinents()
+    const incomeGroups = getIncomeGroups()
+    const aggregates = getAggregates()
+
+    const aggregatesBySource = R.groupBy(
+        aggregates,
+        (region) => region.definedBy
+    )
+
+    // Sort aggregate groups by count (most regions first)
+    const sortedAggregateGroups = R.pipe(
+        aggregatesBySource,
+        R.values(),
+        R.sortBy((group) => -group.length)
+    )
+
+    const regionGroups = [
+        owidContinents,
+        incomeGroups,
+        ...sortedAggregateGroups,
+    ]
+
+    // Try each group in order of priority and return the first with available regions
+    for (const regionGroup of regionGroups) {
+        const matchingRegions: EntityName[] = regionGroup
+            .filter((region) => availableEntitySet.has(region.name))
+            .map((region) => region.name)
+
+        if (matchingRegions.length > 0) {
+            // Add the World entity if requested and available
+            if (includeWorld && availableEntitySet.has(WORLD_ENTITY_NAME)) {
+                matchingRegions.push(WORLD_ENTITY_NAME)
+            }
+
+            return matchingRegions
+        }
+    }
+
+    return []
 }
 
 /**

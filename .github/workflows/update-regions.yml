@@ -44,6 +44,7 @@ jobs:
                       - [ ] Check if there were any country renames, and if so:
                           - [ ] Create redirects from old to new slugs
                           - [ ] Take extra care :)
+                      - [ ] Check if AGGREGATE_SOURCES in regions.ts needs to be updated (relevant if new aggregate regions were added)
                   branch: "bot/update-regions-${{ steps.date.outputs.date }}"
                   base: "master"
                   add-paths: "packages/@ourworldindata/utils/src/regions.json"

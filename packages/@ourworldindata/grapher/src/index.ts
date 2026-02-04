@@ -143,7 +143,6 @@ export type { MarimekkoChartState } from "./stackedCharts/MarimekkoChartState"
 
 export {
     selectPeerCountries,
-    selectRegionGroupByPriority,
     isValidPeerCountryStrategyQueryParam,
 } from "./core/PeerCountrySelection.js"
 
