@@ -302,6 +302,97 @@ export async function searchCharts(
     }
 }
 
+/**
+ * Result from a single query in a multi-query search
+ */
+export interface SearchChartsMultiResult {
+    query: string
+    hits: EnrichedSearchChartHit[]
+}
+
+/**
+ * Search for charts with multiple queries in a single Algolia API call.
+ * This is more efficient than calling searchCharts multiple times.
+ */
+export async function searchChartsMulti(
+    config: AlgoliaConfig,
+    queries: string[],
+    hitsPerPage: number = 10,
+    baseUrl: string = "https://ourworldindata.org"
+): Promise<SearchChartsMultiResult[]> {
+    if (queries.length === 0) return []
+
+    const indexName = getIndexName(
+        SearchIndexName.ExplorerViewsMdimViewsAndCharts,
+        config.indexPrefix
+    )
+
+    // Build a single request with multiple queries
+    const searchParams = {
+        requests: queries.map((query) => ({
+            indexName,
+            params: new URLSearchParams({
+                query,
+                attributesToRetrieve: DATA_CATALOG_ATTRIBUTES.join(","),
+                hitsPerPage: hitsPerPage.toString(),
+                facetFilters: JSON.stringify([["isIncomeGroupSpecificFM:false"]]),
+            }).toString(),
+        })),
+    }
+
+    const url = `https://${config.appId}-dsn.algolia.net/1/indexes/*/queries`
+
+    const response = await fetch(url, {
+        method: "POST",
+        headers: {
+            "X-Algolia-Application-Id": config.appId,
+            "X-Algolia-API-Key": config.apiKey,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(searchParams),
+    })
+
+    if (!response.ok) {
+        throw new Error(`Algolia search failed: ${response.statusText}`)
+    }
+
+    const data = (await response.json()) as {
+        results: AlgoliaSearchResponse[]
+    }
+
+    // Map results back to queries with cleaned hits
+    return data.results.map((result, i) => ({
+        query: queries[i],
+        hits: result.hits.map((hit): EnrichedSearchChartHit => {
+            const cleanHit: Record<string, unknown> = {}
+            for (const attr of DATA_CATALOG_ATTRIBUTES) {
+                if (attr in hit) {
+                    cleanHit[attr] = (hit as unknown as Record<string, unknown>)[attr]
+                }
+            }
+
+            // Construct URL based on type
+            let hitUrl: string
+            if (cleanHit.type === ChartRecordType.ExplorerView) {
+                const queryParams = (cleanHit.queryParams as string) || ""
+                hitUrl = `${baseUrl}/explorers/${cleanHit.slug}${queryParams}`
+            } else if (cleanHit.type === ChartRecordType.MultiDimView) {
+                const queryParams = (cleanHit.queryParams as string) || ""
+                hitUrl = `${baseUrl}/grapher/${cleanHit.slug}${queryParams}`
+            } else {
+                hitUrl = `${baseUrl}/grapher/${cleanHit.slug}`
+            }
+
+            delete cleanHit.objectID
+
+            return {
+                ...(cleanHit as unknown as SearchChartHit),
+                url: hitUrl,
+            }
+        }),
+    }))
+}
+
 // Minimal set of attributes needed for page search
 const PAGE_ATTRIBUTES = [
     "title",

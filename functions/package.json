@@ -2,6 +2,7 @@
     "name": "owid-functions",
     "type": "module",
     "dependencies": {
+        "@ai-sdk/openai": "^3.0.0",
         "@ourworldindata/components": "workspace:^",
         "@ourworldindata/core-table": "workspace:^",
         "@ourworldindata/explorer": "workspace:^",
@@ -10,6 +11,7 @@
         "@ourworldindata/utils": "workspace:^",
         "@resvg/resvg-wasm": "^2.6.2",
         "@sentry/cloudflare": "^10.27.0",
+        "ai": "^6.0.0",
         "cookie": "^1.0.2",
         "itty-router": "^5.0.17",
         "littlezipper": "^0.1.4",

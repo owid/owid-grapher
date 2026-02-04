@@ -30,6 +30,7 @@ export interface Env {
     ALGOLIA_ID: string
     ALGOLIA_SEARCH_KEY: string
     ALGOLIA_INDEX_PREFIX?: string
+    OPENAI_API_KEY?: string
 }
 // We collect the possible extensions here so we can easily take them into account
 // when handling redirects

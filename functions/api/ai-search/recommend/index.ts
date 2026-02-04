@@ -8,9 +8,9 @@ import { createOpenAI } from "@ai-sdk/openai"
 import { generateText, tool, stepCountIs } from "ai"
 import { z } from "zod"
 import { getAlgoliaConfig } from "../../search/algoliaClient.js"
-import { searchCharts, SearchState } from "../../search/searchApi.js"
+import { searchChartsMulti } from "../../search/searchApi.js"
 
-const VALID_PARAMS = new Set([COMMON_SEARCH_PARAMS.QUERY, "max_results"])
+const VALID_PARAMS = new Set([COMMON_SEARCH_PARAMS.QUERY, "max_results", "debug"])
 
 const DEFAULT_MAX_RESULTS = 5
 const MAX_RESULTS_LIMIT = 10
@@ -55,6 +55,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             ),
             MAX_RESULTS_LIMIT
         )
+        const debug = url.searchParams.get("debug") === "true"
 
         if (!query.trim()) {
             return new Response(
@@ -92,68 +93,62 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
         const chartSearchTool = tool({
             description:
-                "Search Our World in Data charts by keywords. Returns chart titles and metadata. Use specific data-related keywords like 'GDP per capita', 'CO2 emissions', 'life expectancy', etc.",
+                "Search Our World in Data charts by multiple keyword sets IN PARALLEL. Returns chart titles and metadata grouped by search query. Use specific data-related keywords like 'GDP per capita', 'CO2 emissions', 'life expectancy', etc.",
             inputSchema: z.object({
-                keywords: z
-                    .string()
+                searches: z
+                    .array(z.string())
+                    .min(1)
+                    .max(5)
                     .describe(
-                        "Search keywords for finding charts (e.g., 'population growth', 'renewable energy')"
+                        "Array of search keyword strings to run in parallel (e.g., ['life expectancy', 'child mortality', 'poverty rate'])"
                     ),
             }),
-            execute: async ({ keywords }) => {
-                searchQueriesUsed.push(keywords)
+            execute: async ({ searches }) => {
+                searchQueriesUsed.push(...searches)
 
-                const searchState: SearchState = {
-                    query: keywords,
-                    filters: [],
-                    requireAllCountries: false,
-                }
+                // Single Algolia API call with all queries
+                const results = await searchChartsMulti(
+                    algoliaConfig,
+                    searches,
+                    10,
+                    baseUrl
+                )
 
-                try {
-                    const results = await searchCharts(
-                        algoliaConfig,
-                        searchState,
-                        0,
-                        10,
-                        baseUrl
-                    )
-
-                    // Return only essential fields for the LLM to minimize tokens
-                    const charts = results.hits.slice(0, 10).map((hit) => ({
+                // Store all charts for later lookup and return simplified results
+                return results.map((result) => {
+                    const charts = result.hits.map((hit) => ({
                         title: hit.title,
                         subtitle: hit.subtitle,
                         slug: hit.slug,
                     }))
-                    // Store charts for later lookup
                     for (const chart of charts) {
                         chartsBySlug.set(chart.slug, chart)
                     }
-                    return charts
-                } catch (error) {
-                    return []
-                }
+                    return { query: result.query, charts }
+                })
             },
         })
 
 
         const agentStartTime = Date.now()
 
-        const { text } = await generateText({
+        const { text, steps } = await generateText({
             model: openai("gpt-5-mini"),
             tools: {
                 search: chartSearchTool,
             },
-            stopWhen: stepCountIs(5),
+            stopWhen: stepCountIs(2),
             system: `You recommend Our World in Data charts based on user queries.
 
-Instructions:
-1. Search using SHORT keywords (2-4 words max), like "life expectancy", "poverty rate", "child mortality"
-2. Do 1-3 searches with different keywords to cover the user's question
-3. Review ALL search results and select the ${maxResults} MOST RELEVANT charts that directly answer the user's question
-4. Filter out charts that are tangential, too specific, or don't clearly help answer the question
-5. After searching, respond with ONLY a JSON array of the selected chart slugs, ordered by relevance. Example: ["life-expectancy", "share-in-extreme-poverty"]
+The search uses simple keyword matching against chart titles. Use SINGLE WORDS or very common 2-word phrases.
 
-Example: For "Is the world getting better?" search: "life expectancy", "extreme poverty", "child mortality" - then respond with slugs of charts showing global trends, filtering out country-specific comparisons.`,
+Instructions:
+1. Call search ONCE with 4-6 SINGLE-WORD keywords that might appear in chart titles. Avoid multi-word phrases - they often return zero results.
+2. From the results, select up to ${maxResults} charts that BEST answer the user's question
+3. ORDER by relevance - put the most directly relevant charts first
+4. Respond with ONLY a JSON array of slugs: ["slug-1", "slug-2"]
+
+Example: "Why invest in highways?" → search ["roads", "transport", "trade", "GDP", "infrastructure"] → pick charts showing economic/transport data.`,
             prompt: query,
         })
 
@@ -212,6 +207,15 @@ Example: For "Is the world getting better?" search: "life expectancy", "extreme 
                 total_ms: endTime - startTime,
                 agent_ms: agentEndTime - agentStartTime,
             },
+            ...(debug && {
+                debug: {
+                    steps: steps.map((step) => ({
+                        text: step.text,
+                        toolCalls: step.toolCalls,
+                    })),
+                    finalText: text,
+                },
+            }),
         }
 
         return new Response(JSON.stringify(response, null, 2), {
