@@ -25,7 +25,7 @@ Rules:
 - Use terms from OWID chart titles (e.g., "GDP per capita", "CO2 emissions", "fish supply")
 - For vague terms, translate to metrics (e.g., "richer" → "GDP per capita")
 - Do NOT add "rate", "level", "index" unless in original query
-- Ignore country names
+- NEVER include geographic names (countries, continents, regions)
 
 Return ONLY a JSON array of strings.
 

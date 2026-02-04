@@ -437,12 +437,11 @@ async function rerankWithLLMLarge(
     chartList: string,
     modelId: string
 ): Promise<EnrichedSearchChartHit[]> {
-    const systemPrompt = `You are a search relevance expert.
-Analyze the list of charts against the user's query.
-1. Identify charts that are STRICTLY relevant.
-2. DISCARD matches that are only phonetic, spelling errors, or tangentially related.
-3. Charts are already ordered by popularity - preserve this order unless relevance clearly differs.
-4. Call the 'submit_rankings' tool with the final sorted list of indices.`
+    const systemPrompt = `You are a search relevance expert for Our World in Data charts.
+Given a search query and a list of charts, identify which charts are relevant.
+You MUST call the submit_rankings function with the indices of relevant charts.
+If no charts are relevant, call submit_rankings with an empty array [].
+Charts are ordered by popularity - preserve this order unless relevance clearly differs.`
 
     const response = await (
         env.AI.run as (
@@ -469,7 +468,7 @@ Analyze the list of charts against the user's query.
                 function: {
                     name: "submit_rankings",
                     description:
-                        "Submit the final ranked list of relevant chart indices.",
+                        "Submit the ranked list of relevant chart indices. Use empty array [] if none are relevant.",
                     parameters: {
                         type: "object",
                         properties: {
@@ -477,7 +476,7 @@ Analyze the list of charts against the user's query.
                                 type: "array",
                                 items: { type: "number" },
                                 description:
-                                    "List of 0-based indices of relevant charts, sorted by relevance.",
+                                    "0-based indices of relevant charts, sorted by relevance. Empty array if none match.",
                             },
                         },
                         required: ["relevant_indices"],
