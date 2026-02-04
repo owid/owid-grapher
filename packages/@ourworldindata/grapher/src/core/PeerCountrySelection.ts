@@ -223,25 +223,32 @@ function filterEntitiesWithDataAtAllTimes({
 }
 
 /**
- * Prepares entities for peer selection by filtering to only those with data at
- * required times (e.g. both start and end times for slope charts).
+ * Prepares entities for peer selection by excluding historical geographic
+ * entities and filtering to only those with data at required times
+ * (e.g. both start and end times for slope charts).
  */
 export function prepareEntitiesForPeerSelection(
     grapherState: GrapherState
 ): EntityName[] {
     const availableEntities = grapherState.availableEntityNames
 
+    // Exclude historical geographic entities
+    const relevantEntities = availableEntities.filter((entityName) => {
+        const region = getRegionByName(entityName)
+        return !(region && checkIsCountry(region) && region.isHistorical)
+    })
+
     const dataColumn = grapherState.table.get(grapherState.yColumnSlug)
-    if (!isDataColumnAvailable(dataColumn)) return availableEntities
+    if (!isDataColumnAvailable(dataColumn)) return relevantEntities
 
     const requiredTimes = grapherState.isOnSlopeChartTab
         ? excludeUndefined([grapherState.startTime, grapherState.endTime])
         : []
 
-    if (requiredTimes.length === 0) return availableEntities
+    if (requiredTimes.length === 0) return relevantEntities
 
     return filterEntitiesWithDataAtAllTimes({
-        entities: availableEntities,
+        entities: relevantEntities,
         dataColumn,
         requiredTimes,
     })
