@@ -64,10 +64,18 @@ $grid-responsive: (lg, md, sm);
 // Use this when you want a full-page-width grid container
 // 1 (auto) | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 (auto)
 .grid-cols-12-full-width {
-    --outer-column-width: calc((50vw - 640px - var(--grid-gap)));
-    grid-template-columns: var(--outer-column-width) repeat(12, 1fr) var(
-            --outer-column-width
-        );
+    --inner-cols-max-total-width: 1280px;
+
+    // This is the max width of a single column so that 12 of them, plus the 11 gaps between them,
+    // will fit within the inner max total width
+    --single-col-max-width: calc(
+        (var(--inner-cols-max-total-width) - 11 * var(--grid-gap)) / 12
+    );
+
+    grid-template-columns:
+        1fr
+        repeat(12, minmax(0, var(--single-col-max-width)))
+        1fr;
 }
 
 // Use this on an item you want to span till the end of whichever container it's in
