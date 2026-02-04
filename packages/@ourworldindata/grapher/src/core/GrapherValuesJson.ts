@@ -462,7 +462,7 @@ export function constructGrapherValuesJsonFromTable(
     })
 }
 
-const makeDimensionValuesForTimeDirect = (
+export const makeDimensionValuesForTimeDirect = (
     table: OwidTable,
     ySlugs: string[],
     xSlug: string | undefined,
@@ -516,7 +516,7 @@ const getEntityTimesFromTable = (
 /**
  * Find the closest time in a sorted array to the target time.
  */
-const findClosestTimeInArray = (
+export const findClosestTimeInArray = (
     times: Time[],
     target: Time
 ): Time | undefined => {
