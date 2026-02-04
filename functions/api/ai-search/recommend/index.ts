@@ -5,7 +5,6 @@ import {
     COMMON_SEARCH_PARAMS,
     ChartInfo,
     ChartInfoForLLM,
-    extractTextFromCFResponse,
     extractJsonArray,
     searchChartsSemantic,
 } from "../utils.js"
@@ -28,16 +27,6 @@ const VALID_PARAMS = new Set([
     "search", // "keyword" (default) or "semantic"
 ])
 
-// Short aliases for CF Workers AI models
-const CF_MODEL_ALIASES: Record<string, string> = {
-    llama4: "@cf/meta/llama-4-scout-17b-16e-instruct",
-    "llama3.3": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
-    "llama3.1": "@cf/meta/llama-3.1-8b-instruct-fast",
-    qwen: "@cf/qwen/qwen3-30b-a3b-fp8",
-    mistral: "@cf/mistralai/mistral-small-3.1-24b-instruct",
-    granite: "@cf/ibm/granite-4.0-h-micro",
-}
-
 // Short aliases for Google Gemini models
 const GEMINI_MODEL_ALIASES: Record<string, string> = {
     gemini: "gemini-2.5-flash",
@@ -53,69 +42,29 @@ const MAX_RESULTS_LIMIT = 10
 // Prompts
 // =============================================================================
 
-// Shared prompt fragments
-const KEYWORD_INSTRUCTION =
-    "4-6 SINGLE-WORD search keywords that might appear in chart titles"
-const KEYWORD_EXAMPLE = `"Why invest in highways?" -> ["roads", "transport", "trade", "GDP", "infrastructure"]`
-const SEMANTIC_QUERY_INSTRUCTION =
-    "a clear, concise search query (1-2 sentences) that captures the data the user is looking for"
-const SEMANTIC_QUERY_EXAMPLE = `"Why invest in highways?" -> "economic benefits of road infrastructure investment GDP growth trade"`
 const SLUG_OUTPUT = "ONLY a JSON array of slugs"
 
-const PROMPTS = {
-    /** Generate search keywords from user query (used by keyword search) */
-    keywords: (query: string) =>
-        `You help search for data charts on Our World in Data.
-
-Given the user's question, generate ${KEYWORD_INSTRUCTION}.
-Return ONLY a JSON array of keywords, nothing else.
-
-Example: ${KEYWORD_EXAMPLE}
-
-User question: ${query}`,
-
-    /** Generate a semantic search query from user query */
-    semanticQuery: (query: string) =>
-        `You help search for data charts on Our World in Data using semantic search.
-
-Given the user's question, generate ${SEMANTIC_QUERY_INSTRUCTION}.
-Focus on the core data/metrics the user wants. Return ONLY the search query text, nothing else.
-
-Example: ${SEMANTIC_QUERY_EXAMPLE}
-
-User question: ${query}`,
-
-    /** Select best charts from search results (used by CF two-step approach) */
-    selection: (query: string, maxResults: number, searchResults: string) =>
-        `Based on these search results, select the ${maxResults} most relevant charts for: "${query}"
-
-Search results:
-${searchResults}
-
-Return ${SLUG_OUTPUT}, ordered by relevance. Example: ["slug-1", "slug-2"]`,
-
-    /** System prompt for OpenAI agentic approach with tool calling (keyword search) */
-    openaiSystem: (maxResults: number) =>
-        `You recommend Our World in Data charts. The search uses keyword matching against chart titles.
+/** System prompt for keyword search (Algolia) */
+const SYSTEM_PROMPT_KEYWORD = (maxResults: number) =>
+    `You recommend Our World in Data charts. The search uses keyword matching against chart titles.
 
 Instructions:
-1. Call search ONCE with ${KEYWORD_INSTRUCTION}. Avoid multi-word phrases.
+1. Call search ONCE with 4-6 SINGLE-WORD search keywords that might appear in chart titles. Avoid multi-word phrases.
 2. From results, select up to ${maxResults} charts that BEST answer the question.
 3. ORDER by relevance, respond with ${SLUG_OUTPUT}: ["slug-1", "slug-2"]
 
-Example: ${KEYWORD_EXAMPLE}`,
+Example: "Why invest in highways?" -> ["roads", "transport", "trade", "GDP", "infrastructure"]`
 
-    /** System prompt for OpenAI agentic approach with semantic search */
-    openaiSystemSemantic: (maxResults: number) =>
-        `You recommend Our World in Data charts. The search uses semantic matching.
+/** System prompt for semantic search (CF AI Search) */
+const SYSTEM_PROMPT_SEMANTIC = (maxResults: number) =>
+    `You recommend Our World in Data charts. The search uses semantic matching.
 
 Instructions:
-1. Call search ONCE with ${SEMANTIC_QUERY_INSTRUCTION}.
+1. Call search ONCE with a clear, concise search query that captures the data the user is looking for.
 2. From results, select up to ${maxResults} charts that BEST answer the question.
 3. ORDER by relevance, respond with ${SLUG_OUTPUT}: ["slug-1", "slug-2"]
 
-Example: ${SEMANTIC_QUERY_EXAMPLE}`,
-}
+Example: "Why invest in highways?" -> "economic benefits of road infrastructure investment GDP growth trade"`
 
 // =============================================================================
 // Types
@@ -209,118 +158,9 @@ async function executeSemanticSearchAndCollect(
     return [{ query: searchQuery, charts: chartsForLLM }]
 }
 
-/**
- * Parse keywords from LLM response with fallback strategies.
- */
-function parseKeywords(text: string, fallbackQuery: string): string[] {
-    // Try JSON parsing first
-    const parsed = extractJsonArray<string>(text)
-    if (parsed && parsed.length > 0) {
-        return parsed
-    }
-
-    // Fallback: split by common delimiters
-    const fromText = text
-        .replace(/[[\]"']/g, "")
-        .split(/[,\s]+/)
-        .filter((k) => k.length > 2)
-        .slice(0, 6)
-    if (fromText.length > 0) {
-        return fromText
-    }
-
-    // Last resort: use query words
-    const fromQuery = fallbackQuery
-        .split(/\s+/)
-        .filter((w) => w.length > 3)
-        .slice(0, 5)
-    if (fromQuery.length > 0) {
-        return fromQuery
-    }
-
-    // Absolute fallback
-    return [fallbackQuery.split(/\s+/)[0] || fallbackQuery]
-}
-
 // =============================================================================
 // Provider Implementations
 // =============================================================================
-
-/**
- * Run recommendation using CF Workers AI.
- * Uses a two-step approach: first get search keywords, then get final selection.
- */
-async function runWithCFModel(
-    ai: Ai,
-    modelId: string,
-    query: string,
-    maxResults: number,
-    algoliaConfig: AlgoliaConfig,
-    baseUrl: string,
-    searchMode: SearchMode
-): Promise<ProviderResult> {
-    const chartsBySlug = new Map<string, ChartInfo>()
-    const searchQueriesUsed: string[] = []
-    const steps: { text: string; toolCalls: unknown[] }[] = []
-
-    // Step 1: Generate search query (keywords for keyword search, natural language for semantic)
-    const prompt =
-        searchMode === "semantic"
-            ? PROMPTS.semanticQuery(query)
-            : PROMPTS.keywords(query)
-    const queryResponse = await ai.run(modelId as Parameters<Ai["run"]>[0], {
-        messages: [{ role: "user", content: prompt }],
-    })
-    const queryText = extractTextFromCFResponse(queryResponse)
-    steps.push({ text: queryText, toolCalls: [] })
-
-    // Step 2: Execute search (keyword or semantic)
-    let searchResults: { query: string; charts: ChartInfoForLLM[] }[]
-    if (searchMode === "semantic") {
-        // For semantic: use the LLM-generated query directly (trim quotes/whitespace)
-        const semanticQuery = queryText.replace(/^["']|["']$/g, "").trim()
-        console.log("[CF Agent] Using semantic query:", semanticQuery)
-        searchQueriesUsed.push(semanticQuery)
-        searchResults = await executeSemanticSearchAndCollect(
-            ai,
-            semanticQuery,
-            baseUrl,
-            chartsBySlug
-        )
-    } else {
-        // For keyword: parse into array of keywords
-        const keywords = parseKeywords(queryText, query)
-        console.log("[CF Agent] Using keywords:", keywords)
-        searchQueriesUsed.push(...keywords)
-        searchResults = await executeKeywordSearchAndCollect(
-            keywords,
-            algoliaConfig,
-            baseUrl,
-            chartsBySlug
-        )
-    }
-
-    // Step 3: Select best charts
-    const selectionResponse = await ai.run(
-        modelId as Parameters<Ai["run"]>[0],
-        {
-            messages: [
-                {
-                    role: "user",
-                    content: PROMPTS.selection(
-                        query,
-                        maxResults,
-                        JSON.stringify(searchResults)
-                    ),
-                },
-            ],
-        }
-    )
-    const finalText = extractTextFromCFResponse(selectionResponse)
-    steps.push({ text: finalText, toolCalls: [] })
-
-    return { text: finalText, searchQueriesUsed, chartsBySlug, steps }
-}
 
 /**
  * Run recommendation using OpenAI via AI SDK.
@@ -353,8 +193,8 @@ async function runWithOpenAI(
 
     const systemPrompt =
         searchMode === "semantic"
-            ? PROMPTS.openaiSystemSemantic(maxResults)
-            : PROMPTS.openaiSystem(maxResults)
+            ? SYSTEM_PROMPT_SEMANTIC(maxResults)
+            : SYSTEM_PROMPT_KEYWORD(maxResults)
 
     const { text, steps } = await generateText({
         model,
@@ -468,8 +308,8 @@ async function runWithGemini(
 
     const systemPrompt =
         searchMode === "semantic"
-            ? PROMPTS.openaiSystemSemantic(maxResults)
-            : PROMPTS.openaiSystem(maxResults)
+            ? SYSTEM_PROMPT_SEMANTIC(maxResults)
+            : SYSTEM_PROMPT_KEYWORD(maxResults)
 
     const { text, steps } = await generateText({
         model,
@@ -545,17 +385,25 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         const isGemini =
             modelParam === "gemini" || modelParam.startsWith("gemini")
 
+        if (!isOpenAI && !isGemini) {
+            return new Response(
+                JSON.stringify({
+                    error: "Invalid model",
+                    details: `Unknown model: ${modelParam}. Supported: openai, gpt-*, gemini, gemini-*`,
+                }),
+                { status: 400, headers }
+            )
+        }
+
         // Resolve model alias based on provider
         let resolvedModel: string
         if (isOpenAI) {
             // Default to gpt-5-mini: faster than gpt-5-nano despite the name (10s vs 20s+ in testing)
             resolvedModel = modelParam === "openai" ? "gpt-5-mini" : modelParam
-        } else if (isGemini) {
+        } else {
             resolvedModel =
                 GEMINI_MODEL_ALIASES[modelParam] ||
                 modelParam.replace("gemini-", "gemini-")
-        } else {
-            resolvedModel = CF_MODEL_ALIASES[modelParam] || modelParam
         }
 
         // Validate API keys
@@ -582,40 +430,27 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         const agentStartTime = Date.now()
 
         // Run with appropriate provider
-        let result: ProviderResult
-        if (isOpenAI) {
-            result = await runWithOpenAI(
-                env.OPENAI_API_KEY!,
-                resolvedModel,
-                query,
-                maxResults,
-                algoliaConfig,
-                baseUrl,
-                searchMode,
-                env.AI
-            )
-        } else if (isGemini) {
-            result = await runWithGemini(
-                env.GOOGLE_API_KEY!,
-                resolvedModel,
-                query,
-                maxResults,
-                algoliaConfig,
-                baseUrl,
-                searchMode,
-                env.AI
-            )
-        } else {
-            result = await runWithCFModel(
-                env.AI,
-                resolvedModel,
-                query,
-                maxResults,
-                algoliaConfig,
-                baseUrl,
-                searchMode
-            )
-        }
+        const result = isOpenAI
+            ? await runWithOpenAI(
+                  env.OPENAI_API_KEY!,
+                  resolvedModel,
+                  query,
+                  maxResults,
+                  algoliaConfig,
+                  baseUrl,
+                  searchMode,
+                  env.AI
+              )
+            : await runWithGemini(
+                  env.GOOGLE_API_KEY!,
+                  resolvedModel,
+                  query,
+                  maxResults,
+                  algoliaConfig,
+                  baseUrl,
+                  searchMode,
+                  env.AI
+              )
 
         const agentEndTime = Date.now()
         const { text, searchQueriesUsed, chartsBySlug, steps } = result
