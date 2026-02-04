@@ -140,3 +140,9 @@ export type { StackedBarChartState } from "./stackedCharts/StackedBarChartState.
 export type { StackedDiscreteBarChartState } from "./stackedCharts/StackedDiscreteBarChartState"
 export type { ScatterPlotChartState } from "./scatterCharts/ScatterPlotChartState"
 export type { MarimekkoChartState } from "./stackedCharts/MarimekkoChartState"
+
+export {
+    selectPeerCountries,
+    selectRegionGroupByPriority,
+    isValidPeerCountryStrategyQueryParam,
+} from "./core/PeerCountrySelection.js"

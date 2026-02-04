@@ -67,6 +67,7 @@ import {
     GrapherWindowType,
     MapRegionName,
     OwidTableSlugs,
+    PeerCountryStrategy,
 } from "@ourworldindata/types"
 import {
     objectWithPersistablesToObject,
@@ -231,6 +232,7 @@ import { FacetChartManager } from "../facet/FacetChartConstants.js"
 import { EntitySelectorModalManager } from "../modal/EntitySelectorModal.js"
 import { SettingsMenuManager } from "../controls/SettingsMenu.js"
 import { SlopeChartManager } from "../slopeCharts/SlopeChartConstants.js"
+import { selectPeerCountriesForGrapher } from "./PeerCountrySelection.js"
 
 export class GrapherState
     implements
@@ -311,6 +313,9 @@ export class GrapherState
 
     /** Colors for selected entities */
     selectedEntityColors: { [entityName: string]: string | undefined } = {}
+
+    /** Strategy for selecting peer countries for comparison */
+    peerCountryStrategy: PeerCountryStrategy | undefined = undefined
 
     /** Whether the user can change countries, add additional ones or neither */
     addCountryMode = EntitySelectionMode.MultipleEntities
@@ -594,6 +599,8 @@ export class GrapherState
 
     slideShow: SlideShowController<any> | undefined = undefined
 
+    private shouldApplyPeerCountriesOnTableLoad: boolean = false
+
     /** Whether the grapher is running in the editor */
     private isEditor =
         typeof window !== "undefined" && (window as any).isEditor === true
@@ -640,6 +647,7 @@ export class GrapherState
             hideConnectedScatterLines: observable,
             hideScatterLabels: observable.ref,
             scatterPointLabelStrategy: observable,
+            peerCountryStrategy: observable.ref,
             compareEndPointsOnly: observable.ref,
             matchingEntitiesOnly: observable.ref,
             hideTotalValueLabel: observable.ref,
@@ -852,6 +860,14 @@ export class GrapherState
         } else if (this.areSelectedEntitiesDifferentThanAuthors) {
             // User has changed the selection, use theirs
         } else this.applyOriginalSelectionAsAuthored()
+
+        // Add peer countries if requested
+        if (this.shouldApplyPeerCountriesOnTableLoad) {
+            this.applyPeerCountriesIfNeeded()
+
+            // Ensure peer countries are only applied once
+            this.shouldApplyPeerCountriesOnTableLoad = false
+        }
     }
 
     /**
@@ -1297,6 +1313,26 @@ export class GrapherState
         // Table search
         if (parsed.tableSearch.status === "valid") {
             this.dataTableConfig.search = parsed.tableSearch.value
+        }
+
+        // Peer countries
+        if (parsed.peerCountries.status === "valid") {
+            if (parsed.peerCountries.value === "auto") {
+                // TODO: the default should be Neighbors
+                this.peerCountryStrategy ??= PeerCountryStrategy.ParentRegions
+            } else {
+                this.peerCountryStrategy = parsed.peerCountries.value
+            }
+
+            // Apply immediately if we have data, otherwise set flag to apply later
+            if (this.availableEntityNames.length > 0) {
+                void this.applyPeerCountriesIfNeeded()
+            } else {
+                this.shouldApplyPeerCountriesOnTableLoad = true
+            }
+        } else if (parsed.peerCountries.status === "invalid") {
+            // Clear the strategy if an invalid value was provided
+            this.peerCountryStrategy = undefined
         }
     }
 
@@ -3124,6 +3160,23 @@ export class GrapherState
         return this.tableForSelection.availableEntityNames
     }
 
+    @computed private get shouldApplyPeerCountries(): boolean {
+        return (
+            this.peerCountryStrategy !== undefined &&
+            this.availableEntityNames.length > 0 &&
+            // Only apply peer countries if it's unambiguous
+            // which entity is the target entity
+            this.selection.numSelectedEntities === 1
+        )
+    }
+
+    @action.bound private applyPeerCountriesIfNeeded(): void {
+        if (!this.shouldApplyPeerCountries) return
+
+        const peerCountries = selectPeerCountriesForGrapher(this)
+        this.selection.addToSelection(peerCountries)
+    }
+
     @computed get entityRegionTypeGroups(): EntityRegionTypeGroup[] {
         return groupEntityNamesByRegionType(this.availableEntityNames)
     }
@@ -3539,7 +3592,7 @@ export class GrapherState
     }
 
     /** Useful to compare current state against the published grapher */
-    @computed private get authorsVersion(): GrapherState {
+    @computed get authorsVersion(): GrapherState {
         return new GrapherState({
             ...this.legacyConfigAsAuthored,
             manager: undefined,

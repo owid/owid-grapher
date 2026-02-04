@@ -217,6 +217,15 @@ properties:
             - add-country
             - change-country
             - disabled
+    peerCountryStrategy:
+        type: string
+        description: |
+            Strategy for selecting peer countries for comparison
+            - "defaultSelection": Use the chart's default selection as peers
+            - "parentRegions": Use the containing continent, income group, and World as peers
+        enum:
+            - defaultSelection
+            - parentRegions
     entityType:
         type: string
         default: country or region

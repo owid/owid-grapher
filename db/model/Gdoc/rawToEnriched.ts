@@ -164,6 +164,7 @@ import {
     EnrichedBlockScript,
     RawBlockScript,
     blockVisibilitys,
+    VALID_PEER_COUNTRY_STRATEGY_QUERY_PARAMS,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -175,6 +176,7 @@ import {
     validateConditionalSectionLists,
 } from "@ourworldindata/utils"
 import { checkIsInternalLink, getLinkType } from "@ourworldindata/components"
+import { isValidPeerCountryStrategyQueryParam } from "@ourworldindata/grapher"
 import {
     extractUrl,
     getTitleSupertitleFromHeadingText,
@@ -522,6 +524,19 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
 
         const caption = val.caption ? htmlToSpans(val.caption) : []
 
+        const peerCountries = val.peerCountries
+        if (
+            peerCountries !== undefined &&
+            !isValidPeerCountryStrategyQueryParam(peerCountries)
+        ) {
+            return createError(
+                {
+                    message: `Invalid peerCountries property: ${peerCountries}. Valid values are: ${VALID_PEER_COUNTRY_STRATEGY_QUERY_PARAMS.join(", ")}`,
+                },
+                url
+            )
+        }
+
         return omitUndefinedValues({
             type: "chart",
             url,
@@ -529,6 +544,7 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
             size,
             caption: caption.length > 0 ? caption : undefined,
             visibility,
+            peerCountries,
             parseErrors: [],
         }) as EnrichedBlockChart
     }
