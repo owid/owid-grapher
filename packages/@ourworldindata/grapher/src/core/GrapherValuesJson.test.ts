@@ -2,8 +2,14 @@ import { describe, expect, it } from "vitest"
 import {
     GrapherValuesJson,
     GrapherValuesJsonDataPoint,
+    OwidTableSlugs,
 } from "@ourworldindata/types"
-import { isValuesJsonValid } from "./GrapherValuesJson"
+import {
+    isValuesJsonValid,
+    findClosestTimeInArray,
+    makeDimensionValuesForTimeDirect,
+} from "./GrapherValuesJson"
+import { OwidTable } from "@ourworldindata/core-table"
 
 const makeDataPoint = (
     columnSlug: string,
@@ -114,5 +120,182 @@ describe(isValuesJsonValid, () => {
         valuesJson.endValues = undefined
 
         expect(isValuesJsonValid(valuesJson)).toBe(false)
+    })
+})
+
+describe(findClosestTimeInArray, () => {
+    it("returns undefined for empty array", () => {
+        expect(findClosestTimeInArray([], 2000)).toBeUndefined()
+    })
+
+    it("returns the only element for single-element array", () => {
+        expect(findClosestTimeInArray([2000], 1990)).toBe(2000)
+        expect(findClosestTimeInArray([2000], 2000)).toBe(2000)
+        expect(findClosestTimeInArray([2000], 2010)).toBe(2000)
+    })
+
+    it("returns first element when target is before all times", () => {
+        expect(findClosestTimeInArray([2000, 2010, 2020], 1990)).toBe(2000)
+    })
+
+    it("returns last element when target is after all times", () => {
+        expect(findClosestTimeInArray([2000, 2010, 2020], 2030)).toBe(2020)
+    })
+
+    it("returns exact match when target exists in array", () => {
+        expect(findClosestTimeInArray([2000, 2010, 2020], 2010)).toBe(2010)
+    })
+
+    it("returns closer element when target is between two times", () => {
+        // 2004 is closer to 2000 than to 2010
+        expect(findClosestTimeInArray([2000, 2010, 2020], 2004)).toBe(2000)
+        // 2006 is closer to 2010 than to 2000
+        expect(findClosestTimeInArray([2000, 2010, 2020], 2006)).toBe(2010)
+    })
+
+    it("returns earlier element when equidistant", () => {
+        // 2005 is equidistant from 2000 and 2010; should return 2000
+        expect(findClosestTimeInArray([2000, 2010, 2020], 2005)).toBe(2000)
+    })
+
+    it("works with negative times", () => {
+        expect(findClosestTimeInArray([-100, 0, 100], -50)).toBe(-100)
+        expect(findClosestTimeInArray([-100, 0, 100], -49)).toBe(0)
+    })
+})
+
+describe(makeDimensionValuesForTimeDirect, () => {
+    const makeTestTable = (): OwidTable => {
+        return new OwidTable([
+            {
+                [OwidTableSlugs.entityName]: "France",
+                [OwidTableSlugs.time]: 2000,
+                gdp: 1000,
+                population: 60,
+            },
+            {
+                [OwidTableSlugs.entityName]: "France",
+                [OwidTableSlugs.time]: 2010,
+                gdp: 1500,
+                population: 65,
+            },
+            {
+                [OwidTableSlugs.entityName]: "Germany",
+                [OwidTableSlugs.time]: 2000,
+                gdp: 2000,
+                population: 80,
+            },
+            {
+                [OwidTableSlugs.entityName]: "Germany",
+                [OwidTableSlugs.time]: 2010,
+                gdp: 2500,
+                population: 82,
+            },
+        ])
+    }
+
+    it("returns undefined when time is undefined", () => {
+        const table = makeTestTable()
+        expect(
+            makeDimensionValuesForTimeDirect(
+                table,
+                ["gdp"],
+                undefined,
+                "France",
+                undefined
+            )
+        ).toBeUndefined()
+    })
+
+    it("extracts y values for a single column", () => {
+        const table = makeTestTable()
+        const result = makeDimensionValuesForTimeDirect(
+            table,
+            ["gdp"],
+            undefined,
+            "France",
+            2000
+        )
+
+        expect(result).toBeDefined()
+        expect(result?.y).toHaveLength(1)
+        expect(result?.y?.[0].columnSlug).toBe("gdp")
+        expect(result?.y?.[0].value).toBe(1000)
+        expect(result?.y?.[0].time).toBe(2000)
+    })
+
+    it("extracts y values for multiple columns", () => {
+        const table = makeTestTable()
+        const result = makeDimensionValuesForTimeDirect(
+            table,
+            ["gdp", "population"],
+            undefined,
+            "Germany",
+            2010
+        )
+
+        expect(result?.y).toHaveLength(2)
+        expect(result?.y?.[0].value).toBe(2500)
+        expect(result?.y?.[1].value).toBe(82)
+    })
+
+    it("extracts x value when x column is specified", () => {
+        const table = makeTestTable()
+        const result = makeDimensionValuesForTimeDirect(
+            table,
+            ["gdp"],
+            "population",
+            "France",
+            2010
+        )
+
+        expect(result?.y?.[0].value).toBe(1500)
+        expect(result?.x?.columnSlug).toBe("population")
+        expect(result?.x?.value).toBe(65)
+    })
+
+    it("returns data point with only columnSlug when no data exists for entity/time", () => {
+        const table = makeTestTable()
+        const result = makeDimensionValuesForTimeDirect(
+            table,
+            ["gdp"],
+            undefined,
+            "France",
+            2020 // No data for 2020
+        )
+
+        expect(result?.y?.[0].columnSlug).toBe("gdp")
+        expect(result?.y?.[0].value).toBeUndefined()
+    })
+
+    it("returns data point with only columnSlug for non-existent entity", () => {
+        const table = makeTestTable()
+        const result = makeDimensionValuesForTimeDirect(
+            table,
+            ["gdp"],
+            undefined,
+            "Spain", // Entity not in table
+            2000
+        )
+
+        expect(result?.y?.[0].columnSlug).toBe("gdp")
+        expect(result?.y?.[0].value).toBeUndefined()
+    })
+
+    it("applies formatValueForTooltip when provided", () => {
+        const table = makeTestTable()
+        const formatFn = (value: unknown): string | undefined =>
+            value === 1000 ? "Low" : "High"
+
+        const result = makeDimensionValuesForTimeDirect(
+            table,
+            ["gdp"],
+            undefined,
+            "France",
+            2000,
+            formatFn
+        )
+
+        expect(result?.y?.[0].valueLabel).toBe("Low")
     })
 })
