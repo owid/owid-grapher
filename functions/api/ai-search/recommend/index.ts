@@ -8,6 +8,7 @@ import {
     extractJsonArray,
     searchChartsSemantic,
 } from "../utils.js"
+import { ChartRecordType } from "@ourworldindata/types"
 import { createOpenAI } from "@ai-sdk/openai"
 import { createGoogleGenerativeAI } from "@ai-sdk/google"
 import { generateText, tool, stepCountIs } from "ai"
@@ -26,7 +27,17 @@ const VALID_PARAMS = new Set([
     "model",
     "search", // "keyword" (default) or "semantic"
     "verbose", // include all fields in response (default: false)
+    "type", // "chart", "explorer", "multiDim", or "all" (default)
 ])
+
+// Valid type filter values and their mapping to ChartRecordType
+const TYPE_FILTER_MAP: Record<string, ChartRecordType | null> = {
+    all: null, // No filtering
+    chart: ChartRecordType.Chart,
+    explorer: ChartRecordType.ExplorerView,
+    multiDim: ChartRecordType.MultiDimView,
+}
+const VALID_TYPES = Object.keys(TYPE_FILTER_MAP)
 
 // Short aliases for Google Gemini models
 const GEMINI_MODEL_ALIASES: Record<string, string> = {
@@ -34,6 +45,8 @@ const GEMINI_MODEL_ALIASES: Record<string, string> = {
     "gemini-lite": "gemini-2.5-flash-lite",
     "gemini-2.5-flash": "gemini-2.5-flash",
     "gemini-2.5-flash-lite": "gemini-2.5-flash-lite",
+    "gemini-3-flash": "gemini-3-flash-preview",
+    "gemini-3-flash-preview": "gemini-3-flash-preview",
 }
 
 // Default model for recommendations
@@ -155,27 +168,35 @@ function stripVerboseFields(charts: RecommendedChart[]): MinimalChartInfo[] {
  * Execute multi-query keyword search (Algolia) and collect chart info.
  * Stores full chart data in chartsBySlug for API response,
  * but returns minimal info for LLM to keep token usage low.
+ * Optionally filters by type before returning to LLM.
  */
 async function executeKeywordSearchAndCollect(
     searches: string[],
     algoliaConfig: AlgoliaConfig,
     baseUrl: string,
-    chartsBySlug: Map<string, ChartInfo>
+    chartsBySlug: Map<string, ChartInfo>,
+    typeFilter: ChartRecordType | null
 ): Promise<{ query: string; charts: ChartInfoForLLM[] }[]> {
     const results = await searchChartsMulti(
         algoliaConfig,
         searches,
-        10,
+        // Fetch more results if filtering, to ensure enough after filter
+        typeFilter ? 30 : 10,
         baseUrl
     )
 
     return results.map((result) => {
+        // Filter hits by type if specified
+        const filteredHits = typeFilter
+            ? result.hits.filter((hit) => hit.type === typeFilter)
+            : result.hits
+
         // Store full hit data for API response
-        for (const hit of result.hits) {
+        for (const hit of filteredHits) {
             chartsBySlug.set(hit.slug, hit as ChartInfo)
         }
         // Return minimal info for LLM context
-        const chartsForLLM: ChartInfoForLLM[] = result.hits.map((hit) => ({
+        const chartsForLLM: ChartInfoForLLM[] = filteredHits.map((hit) => ({
             title: hit.title,
             slug: hit.slug,
             subtitle: hit.subtitle,
@@ -186,22 +207,35 @@ async function executeKeywordSearchAndCollect(
 
 /**
  * Execute single semantic search (CF AI Search) and collect chart info.
+ * Optionally filters by type before returning to LLM.
  */
 async function executeSemanticSearchAndCollect(
     ai: Ai,
     searchQuery: string,
     baseUrl: string,
-    chartsBySlug: Map<string, ChartInfo>
+    chartsBySlug: Map<string, ChartInfo>,
+    typeFilter: ChartRecordType | null
 ): Promise<{ query: string; charts: ChartInfoForLLM[] }[]> {
-    const result = await searchChartsSemantic(ai, searchQuery, 20, baseUrl)
+    // Fetch more results if filtering, to ensure enough after filter
+    const result = await searchChartsSemantic(
+        ai,
+        searchQuery,
+        typeFilter ? 50 : 20,
+        baseUrl
+    )
+
+    // Filter by type if specified
+    const filteredCharts = typeFilter
+        ? result.charts.filter((chart) => chart.type === typeFilter)
+        : result.charts
 
     // Store full chart data for API response
-    for (const chart of result.charts) {
+    for (const chart of filteredCharts) {
         chartsBySlug.set(chart.slug, chart)
     }
 
     // Return minimal info for LLM context
-    const chartsForLLM: ChartInfoForLLM[] = result.charts.map((chart) => ({
+    const chartsForLLM: ChartInfoForLLM[] = filteredCharts.map((chart) => ({
         title: chart.title,
         slug: chart.slug,
         subtitle: chart.subtitle,
@@ -243,7 +277,8 @@ async function runRecommendation(
     baseUrl: string,
     searchMode: SearchMode,
     ai: Ai,
-    debug: boolean
+    debug: boolean,
+    typeFilter: ChartRecordType | null
 ): Promise<ProviderResult> {
     const chartsBySlug = new Map<string, ChartInfo>()
     const searchQueriesUsed: string[] = []
@@ -264,7 +299,8 @@ async function runRecommendation(
                 searches,
                 algoliaConfig,
                 baseUrl,
-                chartsBySlug
+                chartsBySlug,
+                typeFilter
             )
         },
     })
@@ -285,7 +321,8 @@ async function runRecommendation(
                 ai,
                 searchQuery,
                 baseUrl,
-                chartsBySlug
+                chartsBySlug,
+                typeFilter
             )
         },
     })
@@ -353,6 +390,18 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         const searchParam = url.searchParams.get("search") || "keyword"
         const searchMode: SearchMode =
             searchParam === "semantic" ? "semantic" : "keyword"
+        const typeParam = url.searchParams.get("type") || "all"
+        const typeFilter = TYPE_FILTER_MAP[typeParam]
+
+        if (!(typeParam in TYPE_FILTER_MAP)) {
+            return new Response(
+                JSON.stringify({
+                    error: "Invalid type parameter",
+                    details: `Unknown type: ${typeParam}. Valid types: ${VALID_TYPES.join(", ")}`,
+                }),
+                { status: 400, headers }
+            )
+        }
 
         if (!query.trim()) {
             return new Response(
@@ -428,7 +477,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             baseUrl,
             searchMode,
             env.AI,
-            debug
+            debug,
+            typeFilter
         )
 
         const agentEndTime = Date.now()
@@ -473,9 +523,11 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         }
 
         // Build recommendations from selected slugs (chart already has full data including URL)
+        // Type filtering already applied during search, so just validate slugs here
         const recommendations: RecommendedChart[] = []
         const invalidSlugs: string[] = []
-        for (const slug of selectedSlugs.slice(0, maxResults)) {
+        for (const slug of selectedSlugs) {
+            if (recommendations.length >= maxResults) break
             const chart = chartsBySlug.get(slug)
             if (chart) {
                 recommendations.push(chart)
