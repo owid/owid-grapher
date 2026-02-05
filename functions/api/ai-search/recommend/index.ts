@@ -52,6 +52,14 @@ const GEMINI_MODEL_ALIASES: Record<string, string> = {
 // Default model for recommendations
 const DEFAULT_MODEL = "gemini"
 
+// Gemini pricing per 1M tokens (USD) - from https://ai.google.dev/gemini-api/docs/pricing
+// Format: [inputPricePerMillion, outputPricePerMillion]
+const GEMINI_PRICING: Record<string, [number, number]> = {
+    "gemini-2.5-flash-lite": [0.1, 0.4],
+    "gemini-2.5-flash": [0.15, 0.6],
+    "gemini-3-flash-preview": [0.15, 0.6], // Same as 2.5 flash until pricing announced
+}
+
 const DEFAULT_MAX_RESULTS = 5
 const MAX_RESULTS_LIMIT = 10
 
@@ -65,24 +73,18 @@ const SYSTEM_PROMPT_KEYWORD = (maxResults: number, debug: boolean) =>
 
 SEARCH RULES:
 - Use SINGLE WORDS only, no phrases. Multi-word searches don't work.
-- Country names are NOT in chart titles. Search for DATA TOPICS only.
+- Country names are NOT in chart titles, don't use them!
 - ALWAYS use 4-6 single-word keywords including synonyms.
 
 SELECTION RULES:
-- REVIEW ALL search results and RANK by how well they answer the question
+- REVIEW ALL search results and RANK by how well they relate to the query or answer the question, they don't have to directly answer the question
 - Return up to ${maxResults} slugs, ORDERED from most to least relevant
-- For "why" questions, prioritize OUTCOME data (economic impact, benefits, statistics)
-- Ignore charts that only tangentially match but don't answer the question
+- Ignore unhelpful charts
+- Ignore specific years or countries in the query
 
 RESPONSE FORMAT - YOU MUST RESPOND WITH ONLY JSON, NO OTHER TEXT:
 ${debug ? '[{"slug": "chart-slug", "reason": "brief reason"}]' : '["slug-1", "slug-2"]'}
-
-If no good matches: []
-
-Example for "why invest in highways":
-Search: ["roads", "transport", "infrastructure", "trade", "GDP", "economic"]
-Good response: ${debug ? '[{"slug": "trade-volume", "reason": "shows economic benefits"}]' : '["trade-volume", "gdp-growth"]'}
-Bad response: ${debug ? '[{"slug": "road-deaths", "reason": "..."}]' : '["road-deaths"]'} (doesn't answer WHY)`
+`
 
 /** System prompt for semantic search (CF AI Search) */
 const SYSTEM_PROMPT_SEMANTIC = (maxResults: number, debug: boolean) =>
@@ -100,10 +102,7 @@ SELECTION RULES:
 
 RESPONSE FORMAT - YOU MUST RESPOND WITH ONLY JSON, NO OTHER TEXT:
 ${debug ? '[{"slug": "chart-slug", "reason": "brief reason"}]' : '["slug-1", "slug-2"]'}
-
-If no good matches: []
-
-Example: "How many people died in Germany in 2020?" -> search for "total deaths mortality death rate"`
+`
 
 // =============================================================================
 // Types
@@ -123,12 +122,37 @@ interface RecommendResponse {
     }
 }
 
+/** Token usage from AI SDK */
+interface TokenUsage {
+    inputTokens: number
+    outputTokens: number
+    totalTokens: number
+}
+
+/**
+ * Calculate cost in USD for Gemini models based on token usage.
+ * Returns undefined if pricing is not available for the model.
+ */
+function calculateGeminiCost(
+    modelId: string,
+    usage: TokenUsage
+): number | undefined {
+    const pricing = GEMINI_PRICING[modelId]
+    if (!pricing) return undefined
+
+    const [inputPricePerMillion, outputPricePerMillion] = pricing
+    const inputCost = (usage.inputTokens / 1_000_000) * inputPricePerMillion
+    const outputCost = (usage.outputTokens / 1_000_000) * outputPricePerMillion
+    return inputCost + outputCost
+}
+
 /** Result from running recommendation with any provider */
 interface ProviderResult {
     text: string
     searchQueriesUsed: string[]
     chartsBySlug: Map<string, ChartInfo>
     steps: { text: string; toolCalls: unknown[] }[]
+    usage: TokenUsage
 }
 
 /** Selection with reason (used in debug mode) */
@@ -332,7 +356,7 @@ async function runRecommendation(
             ? SYSTEM_PROMPT_SEMANTIC(maxResults, debug)
             : SYSTEM_PROMPT_KEYWORD(maxResults, debug)
 
-    const { text, steps } = await generateText({
+    const { text, steps, totalUsage } = await generateText({
         model,
         tools: {
             search:
@@ -354,6 +378,11 @@ async function runRecommendation(
             text: step.text,
             toolCalls: step.toolCalls,
         })),
+        usage: {
+            inputTokens: totalUsage.inputTokens ?? 0,
+            outputTokens: totalUsage.outputTokens ?? 0,
+            totalTokens: totalUsage.totalTokens ?? 0,
+        },
     }
 }
 
@@ -482,7 +511,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         )
 
         const agentEndTime = Date.now()
-        const { text, searchQueriesUsed, chartsBySlug, steps } = result
+        const { text, searchQueriesUsed, chartsBySlug, steps, usage } = result
 
         // Parse the LLM's JSON response to get selected slugs
         // In debug mode, format is [{slug, reason}], otherwise just [slug]
@@ -586,6 +615,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                     ),
                     selectionReasons,
                     ...(warnings.length > 0 && { warnings }),
+                    usage,
+                    cost_usd: calculateGeminiCost(resolvedModel, usage),
                 },
             }),
         }
