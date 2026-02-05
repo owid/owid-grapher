@@ -21,10 +21,14 @@ import {
     getRelevantVariableMetadata,
 } from "../../MultiDimBaker.js"
 import { GrapherState } from "@ourworldindata/grapher"
-import { maybeAddChangeInPrefix, parseCatalogPaths } from "./shared.js"
+import {
+    maybeAddChangeInPrefix,
+    parseJsonStringArray,
+    uniqNonEmptyStrings,
+} from "./shared.js"
 import { getMultiDimRedirectTargets } from "../../../db/model/MultiDimRedirects.js"
 import { getMaxViews7d, PageviewsByUrl } from "./pageviews.js"
-import { getDatasetProducersByVariableIds } from "../../../db/model/Dataset.js"
+import { DatasetDimensionsForVariable } from "./types.js"
 
 // Published multi-dim must have a slug.
 type PublishedMultiDimWithSlug = DbEnrichedMultiDimDataPage & { slug: string }
@@ -67,6 +71,35 @@ async function getMultiDimXChartConfigIdMap(trx: db.KnexReadonlyTransaction) {
     )
 }
 
+async function getDatasetDimensionsByVariableIds(
+    trx: db.KnexReadonlyTransaction,
+    variableIds: number[]
+): Promise<Map<number, DatasetDimensionsForVariable>> {
+    if (variableIds.length === 0) return new Map()
+
+    const rows = await trx("dataset_dimensions_by_variable as ddv")
+        .select(
+            "ddv.variableId",
+            "ddv.datasetNamespace",
+            "ddv.datasetVersion",
+            "ddv.datasetProduct",
+            "ddv.datasetProducers"
+        )
+        .whereIn("ddv.variableId", variableIds)
+
+    return new Map(
+        rows.map((row) => [
+            row.variableId as number,
+            {
+                datasetNamespace: row.datasetNamespace,
+                datasetVersion: row.datasetVersion,
+                datasetProduct: row.datasetProduct,
+                datasetProducers: parseJsonStringArray(row.datasetProducers),
+            },
+        ])
+    )
+}
+
 async function getRecords(
     trx: db.KnexReadonlyTransaction,
     multiDim: PublishedMultiDimWithSlug,
@@ -87,10 +120,8 @@ async function getRecords(
     const relevantVariableIds = getRelevantVariableIds(multiDim.config)
     const relevantVariableMetadata =
         await getRelevantVariableMetadata(relevantVariableIds)
-    const datasetProducersByVariableId = await getDatasetProducersByVariableIds(
-        trx,
-        [...relevantVariableIds]
-    )
+    const datasetDimensionsByVariableId =
+        await getDatasetDimensionsByVariableIds(trx, [...relevantVariableIds])
     return multiDim.config.views.map((view) => {
         const viewId = dimensionsToViewId(view.dimensions)
         const id = multiDimXChartConfigIdMap.get(`${multiDim.id}-${viewId}`)
@@ -139,19 +170,20 @@ async function getRecords(
         ])
         const score = views_7d * 10 - title.length
 
-        // Extract catalog paths from indicator metadata
-        const catalogPaths = view.indicators.y
-            .map((ind) => relevantVariableMetadata[ind.id]?.catalogPath)
-            .filter(Boolean) as string[]
-        const { datasetNamespaces, datasetVersions, datasetProducts } =
-            parseCatalogPaths(catalogPaths)
-        const datasetProducers = _.uniq(
-            view.indicators.y
-                .map((ind) => ind.id)
-                .flatMap(
-                    (variableId) =>
-                        datasetProducersByVariableId.get(variableId) ?? []
-                )
+        const datasetDimensions = view.indicators.y
+            .map((ind) => datasetDimensionsByVariableId.get(ind.id))
+            .filter(Boolean)
+        const datasetNamespaces = uniqNonEmptyStrings(
+            datasetDimensions.map((dataset) => dataset?.datasetNamespace)
+        )
+        const datasetVersions = uniqNonEmptyStrings(
+            datasetDimensions.map((dataset) => dataset?.datasetVersion)
+        )
+        const datasetProducts = uniqNonEmptyStrings(
+            datasetDimensions.map((dataset) => dataset?.datasetProduct)
+        )
+        const datasetProducers = uniqNonEmptyStrings(
+            datasetDimensions.map((dataset) => dataset?.datasetProducers)
         )
 
         return {

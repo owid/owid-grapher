@@ -65,6 +65,21 @@ export const processAvailableEntities = (
     )
 }
 
+export const parseJsonStringArray = (
+    raw: string | null | undefined
+): string[] => {
+    if (!raw) return []
+    const parsed = JSON.parse(raw) as Array<string | null>
+    return parsed.filter((item): item is string => !!item)
+}
+
+export const uniqNonEmptyStrings = (
+    values: Array<string | string[] | null | undefined>
+): string[] => {
+    const flattened = values.flatMap((value) => value ?? [])
+    return _.uniq(flattened.filter((value): value is string => !!value))
+}
+
 /**
  * Scale records' positive scores to be between two numbers.
  */
@@ -288,37 +303,6 @@ export function maybeAddChangeInPrefix(
     return shouldAddChangeInPrefix
         ? "Change in " + lowerCaseFirstLetterUnlessAbbreviation(title)
         : title
-}
-
-/**
- * Parses catalog paths and extracts ETL dimensions.
- * Catalog path format: grapher/<namespace>/<version>/<dataset>/<table>#<short_name>
- */
-export function parseCatalogPaths(
-    catalogPaths: (string | null | undefined)[]
-): Pick<
-    DatasetChartRecordDimensions,
-    "datasetNamespaces" | "datasetVersions" | "datasetProducts"
-> {
-    const datasetNamespaces = new Set<string>()
-    const datasetVersions = new Set<string>()
-    const datasetProducts = new Set<string>()
-
-    for (const path of catalogPaths) {
-        if (!path) continue
-        const parts = path.split("/")
-        if (parts.length >= 4) {
-            datasetNamespaces.add(parts[1])
-            datasetVersions.add(parts[2])
-            datasetProducts.add(parts[3])
-        }
-    }
-
-    return {
-        datasetNamespaces: [...datasetNamespaces],
-        datasetVersions: [...datasetVersions],
-        datasetProducts: [...datasetProducts],
-    }
 }
 
 export const EMPTY_DATASET_CHART_RECORD_DIMENSIONS: DatasetChartRecordDimensions =
