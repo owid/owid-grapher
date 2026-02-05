@@ -47,48 +47,48 @@ const MAX_RESULTS_LIMIT = 10
 // =============================================================================
 
 /** System prompt for keyword search (Algolia) */
-const SYSTEM_PROMPT_KEYWORD = (maxResults: number) =>
+const SYSTEM_PROMPT_KEYWORD = (maxResults: number, debug: boolean) =>
     `You recommend Our World in Data charts. Search uses keyword matching against chart TITLES.
 
-IMPORTANT:
+SEARCH RULES:
 - Use SINGLE WORDS only, no phrases. Multi-word searches don't work.
 - Country names are NOT in chart titles. Search for DATA TOPICS only.
 - ALWAYS use 4-6 single-word keywords including synonyms.
 
-Instructions:
-1. Call search ONCE with 4-6 SINGLE-WORD keywords (no phrases).
-2. REVIEW ALL search results and RANK them by how well they answer the question.
-3. Return up to ${maxResults} slugs, ORDERED from most to least relevant:
-   - For "why" questions, prioritize OUTCOME data (economic impact, benefits, statistics)
-   - Ignore charts that only tangentially match keywords but don't answer the question
-   - A chart about "road deaths" does NOT answer "why invest in highways"
-4. Respond with ONLY a JSON array of slugs in relevance order: ["most-relevant", "second-most", ...]
+SELECTION RULES:
+- REVIEW ALL search results and RANK by how well they answer the question
+- Return up to ${maxResults} slugs, ORDERED from most to least relevant
+- For "why" questions, prioritize OUTCOME data (economic impact, benefits, statistics)
+- Ignore charts that only tangentially match but don't answer the question
 
-If no good matches, return: []
+RESPONSE FORMAT - YOU MUST RESPOND WITH ONLY JSON, NO OTHER TEXT:
+${debug ? '[{"slug": "chart-slug", "reason": "brief reason"}]' : '["slug-1", "slug-2"]'}
 
-Example: "why invest in highways"
-- Search: ["roads", "transport", "infrastructure", "trade", "GDP", "economic"]
-- Results might include: road deaths, trade volume, GDP growth, infrastructure spending...
-- CORRECT: ["trade-volume", "gdp-growth", "infrastructure-spending"] (answer WHY to invest)
-- WRONG: ["road-deaths", "traffic-accidents"] (don't answer the question)`
+If no good matches: []
+
+Example for "why invest in highways":
+Search: ["roads", "transport", "infrastructure", "trade", "GDP", "economic"]
+Good response: ${debug ? '[{"slug": "trade-volume", "reason": "shows economic benefits"}]' : '["trade-volume", "gdp-growth"]'}
+Bad response: ${debug ? '[{"slug": "road-deaths", "reason": "..."}]' : '["road-deaths"]'} (doesn't answer WHY)`
 
 /** System prompt for semantic search (CF AI Search) */
-const SYSTEM_PROMPT_SEMANTIC = (maxResults: number) =>
+const SYSTEM_PROMPT_SEMANTIC = (maxResults: number, debug: boolean) =>
     `You recommend Our World in Data charts. Search uses semantic matching.
 
-IMPORTANT:
+SEARCH RULES:
 - Country names are NOT in chart titles. Search for the DATA TOPIC only.
 - Charts are global and can be filtered to any country by the user.
 
-Instructions:
-1. Call search ONCE with a query about the DATA TOPIC (not countries/years).
-2. REVIEW ALL search results and RANK them by how well they answer the question.
-3. Return up to ${maxResults} slugs, ORDERED from most to least relevant:
-   - For "why" questions, prioritize OUTCOME data (economic impact, benefits, statistics)
-   - Ignore charts that only tangentially match but don't answer the question
-4. Respond with ONLY a JSON array of slugs in relevance order: ["most-relevant", "second-most", ...]
+SELECTION RULES:
+- REVIEW ALL search results and RANK by how well they answer the question
+- Return up to ${maxResults} slugs, ORDERED from most to least relevant
+- For "why" questions, prioritize OUTCOME data (economic impact, benefits, statistics)
+- Ignore charts that only tangentially match but don't answer the question
 
-If no good matches, return: []
+RESPONSE FORMAT - YOU MUST RESPOND WITH ONLY JSON, NO OTHER TEXT:
+${debug ? '[{"slug": "chart-slug", "reason": "brief reason"}]' : '["slug-1", "slug-2"]'}
+
+If no good matches: []
 
 Example: "How many people died in Germany in 2020?" -> search for "total deaths mortality death rate"`
 
@@ -116,6 +116,12 @@ interface ProviderResult {
     searchQueriesUsed: string[]
     chartsBySlug: Map<string, ChartInfo>
     steps: { text: string; toolCalls: unknown[] }[]
+}
+
+/** Selection with reason (used in debug mode) */
+interface SelectionWithReason {
+    slug: string
+    reason: string
 }
 
 // =============================================================================
@@ -236,7 +242,8 @@ async function runRecommendation(
     algoliaConfig: AlgoliaConfig,
     baseUrl: string,
     searchMode: SearchMode,
-    ai: Ai
+    ai: Ai,
+    debug: boolean
 ): Promise<ProviderResult> {
     const chartsBySlug = new Map<string, ChartInfo>()
     const searchQueriesUsed: string[] = []
@@ -285,8 +292,8 @@ async function runRecommendation(
 
     const systemPrompt =
         searchMode === "semantic"
-            ? SYSTEM_PROMPT_SEMANTIC(maxResults)
-            : SYSTEM_PROMPT_KEYWORD(maxResults)
+            ? SYSTEM_PROMPT_SEMANTIC(maxResults, debug)
+            : SYSTEM_PROMPT_KEYWORD(maxResults, debug)
 
     const { text, steps } = await generateText({
         model,
@@ -420,30 +427,82 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             algoliaConfig,
             baseUrl,
             searchMode,
-            env.AI
+            env.AI,
+            debug
         )
 
         const agentEndTime = Date.now()
         const { text, searchQueriesUsed, chartsBySlug, steps } = result
 
         // Parse the LLM's JSON response to get selected slugs
-        const selectedSlugs = extractJsonArray<string>(text) || []
+        // In debug mode, format is [{slug, reason}], otherwise just [slug]
+        let selectedSlugs: string[] = []
+        let selectionReasons: Record<string, string> = {}
+
+        if (debug) {
+            const selections = extractJsonArray<SelectionWithReason>(text)
+            if (selections === null) {
+                return new Response(
+                    JSON.stringify({
+                        error: "Failed to parse LLM response",
+                        details:
+                            "The model did not return valid JSON. Try again or use a different model.",
+                        rawResponse: text,
+                    }),
+                    { status: 500, headers }
+                )
+            }
+            selectedSlugs = selections.map((s) => s.slug)
+            selectionReasons = Object.fromEntries(
+                selections.map((s) => [s.slug, s.reason])
+            )
+        } else {
+            const slugs = extractJsonArray<string>(text)
+            if (slugs === null) {
+                return new Response(
+                    JSON.stringify({
+                        error: "Failed to parse LLM response",
+                        details:
+                            "The model did not return valid JSON. Try again or use a different model.",
+                        rawResponse: text,
+                    }),
+                    { status: 500, headers }
+                )
+            }
+            selectedSlugs = slugs
+        }
 
         // Build recommendations from selected slugs (chart already has full data including URL)
         const recommendations: RecommendedChart[] = []
+        const invalidSlugs: string[] = []
         for (const slug of selectedSlugs.slice(0, maxResults)) {
             const chart = chartsBySlug.get(slug)
             if (chart) {
                 recommendations.push(chart)
+            } else {
+                invalidSlugs.push(slug)
             }
         }
 
-        // Fallback: if no valid slugs parsed, use all charts found
-        if (recommendations.length === 0) {
-            for (const [, chart] of chartsBySlug) {
-                if (recommendations.length >= maxResults) break
-                recommendations.push(chart)
-            }
+        // Collect warnings for debug mode
+        const warnings: string[] = []
+        if (chartsBySlug.size === 0) {
+            warnings.push("Search returned no charts")
+        }
+        if (invalidSlugs.length > 0) {
+            warnings.push(
+                `Invalid slugs returned by model: ${invalidSlugs.join(", ")}`
+            )
+        }
+        if (selectedSlugs.length > maxResults) {
+            warnings.push(
+                `Model returned ${selectedSlugs.length} slugs, truncated to ${maxResults}`
+            )
+        }
+        if (recommendations.length === 0 && chartsBySlug.size > 0) {
+            warnings.push(
+                "No valid recommendations: model returned empty or all-invalid slugs"
+            )
         }
 
         const endTime = Date.now()
@@ -473,6 +532,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                     searchResults: [...chartsBySlug.values()].map(
                         (c) => c.title
                     ),
+                    selectionReasons,
+                    ...(warnings.length > 0 && { warnings }),
                 },
             }),
         }
