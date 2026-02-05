@@ -17,7 +17,6 @@ import {
     getContinentForCountry,
     getParentRegions,
     getRegionByName,
-    Region,
 } from "@ourworldindata/utils"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { WORLD_ENTITY_NAME } from "./GrapherConstants.js"
@@ -277,21 +276,26 @@ export function selectParentRegionsAsPeers({
     // Example: Germany -> Europe, Europe (WHO), High income countries
     const parentRegions = getParentRegions(region.name)
 
-    const isAvailable = (region: Region | undefined): region is Region =>
-        region !== undefined && availableEntitySet.has(region.name)
+    const isAvailable = (name: string): boolean => availableEntitySet.has(name)
 
-    // If there is an income group, include it
-    const incomeGroup = parentRegions.find((r) => checkIsIncomeGroup(r))
-    if (isAvailable(incomeGroup)) peers.add(incomeGroup.name)
+    // If there is an available income group, include it
+    const incomeGroup = parentRegions.find(
+        (r) => checkIsIncomeGroup(r) && isAvailable(r.name)
+    )
+    if (incomeGroup) peers.add(incomeGroup.name)
 
-    // If there is an OWID continent, include it;
-    // otherwise include any other aggregate region
-    const owidContinent = parentRegions.find((r) => checkIsOwidContinent(r))
-    const nonOwidContinent = parentRegions.find((r) => checkIsAggregate(r))
-    if (isAvailable(owidContinent)) {
+    // If there is an available OWID continent, include it;
+    // otherwise include any other available aggregate region
+    const owidContinent = parentRegions.find(
+        (r) => checkIsOwidContinent(r) && isAvailable(r.name)
+    )
+    if (owidContinent) {
         peers.add(owidContinent.name)
-    } else if (isAvailable(nonOwidContinent)) {
-        peers.add(nonOwidContinent.name)
+    } else {
+        const aggregate = parentRegions.find(
+            (r) => checkIsAggregate(r) && isAvailable(r.name)
+        )
+        if (aggregate) peers.add(aggregate.name)
     }
 
     return Array.from(peers)
