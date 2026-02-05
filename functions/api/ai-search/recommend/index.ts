@@ -11,6 +11,10 @@ import {
 import { ChartRecordType } from "@ourworldindata/types"
 import { createOpenAI } from "@ai-sdk/openai"
 import { createGoogleGenerativeAI } from "@ai-sdk/google"
+// NOTE: AI SDK's Output.array() would be ideal for forcing JSON output, but Gemini
+// doesn't support structured output combined with tool calling ("Function calling
+// with a response mime type: 'application/json' is unsupported"). So we use text
+// output and parse JSON from the response.
 import { generateText, tool, stepCountIs } from "ai"
 import { z } from "zod"
 import { getAlgoliaConfig, AlgoliaConfig } from "../../search/algoliaClient.js"
@@ -68,40 +72,27 @@ const MAX_RESULTS_LIMIT = 10
 // =============================================================================
 
 /** System prompt for keyword search (Algolia) */
-const SYSTEM_PROMPT_KEYWORD = (maxResults: number, debug: boolean) =>
-    `You recommend Our World in Data charts. Search uses keyword matching against chart TITLES.
+const SYSTEM_PROMPT_KEYWORD = (maxResults: number) =>
+    `You are a chart recommendation API. You output ONLY valid JSON arrays.
 
-SEARCH RULES:
-- Use SINGLE WORDS only, no phrases. Multi-word searches don't work.
-- Country names are NOT in chart titles, don't use them!
-- ALWAYS use 4-6 single-word keywords including synonyms.
+SEARCH: Use 4-6 single keywords (no phrases, no country names).
 
-SELECTION RULES:
-- REVIEW ALL search results and RANK by how well they relate to the query or answer the question, they don't have to directly answer the question
-- Return up to ${maxResults} slugs, ORDERED from most to least relevant
-- Ignore unhelpful charts
-- Ignore specific years or countries in the query
+SELECTION: Pick up to ${maxResults} most relevant chart slugs from search results.
 
-RESPONSE FORMAT - YOU MUST RESPOND WITH ONLY JSON, NO OTHER TEXT:
-${debug ? '[{"slug": "chart-slug", "reason": "brief reason"}]' : '["slug-1", "slug-2"]'}
+CRITICAL: Your entire response must be a JSON array of slugs. Nothing else.
+Example response: ["suicide-rate", "mental-health-prevalence"]
 `
 
 /** System prompt for semantic search (CF AI Search) */
-const SYSTEM_PROMPT_SEMANTIC = (maxResults: number, debug: boolean) =>
-    `You recommend Our World in Data charts. Search uses semantic matching.
+const SYSTEM_PROMPT_SEMANTIC = (maxResults: number) =>
+    `You are a chart recommendation API. You output ONLY valid JSON arrays.
 
-SEARCH RULES:
-- Country names are NOT in chart titles. Search for the DATA TOPIC only.
-- Charts are global and can be filtered to any country by the user.
+SEARCH: Search for the data topic (no country names - charts are global).
 
-SELECTION RULES:
-- REVIEW ALL search results and RANK by how well they answer the question
-- Return up to ${maxResults} slugs, ORDERED from most to least relevant
-- For "why" questions, prioritize OUTCOME data (economic impact, benefits, statistics)
-- Ignore charts that only tangentially match but don't answer the question
+SELECTION: Pick up to ${maxResults} most relevant chart slugs from search results.
 
-RESPONSE FORMAT - YOU MUST RESPOND WITH ONLY JSON, NO OTHER TEXT:
-${debug ? '[{"slug": "chart-slug", "reason": "brief reason"}]' : '["slug-1", "slug-2"]'}
+CRITICAL: Your entire response must be a JSON array of slugs. Nothing else.
+Example response: ["suicide-rate", "mental-health-prevalence"]
 `
 
 // =============================================================================
@@ -155,11 +146,6 @@ interface ProviderResult {
     usage: TokenUsage
 }
 
-/** Selection with reason (used in debug mode) */
-interface SelectionWithReason {
-    slug: string
-    reason: string
-}
 
 // =============================================================================
 // Helpers
@@ -301,7 +287,6 @@ async function runRecommendation(
     baseUrl: string,
     searchMode: SearchMode,
     ai: Ai,
-    debug: boolean,
     typeFilter: ChartRecordType | null
 ): Promise<ProviderResult> {
     const chartsBySlug = new Map<string, ChartInfo>()
@@ -353,8 +338,8 @@ async function runRecommendation(
 
     const systemPrompt =
         searchMode === "semantic"
-            ? SYSTEM_PROMPT_SEMANTIC(maxResults, debug)
-            : SYSTEM_PROMPT_KEYWORD(maxResults, debug)
+            ? SYSTEM_PROMPT_SEMANTIC(maxResults)
+            : SYSTEM_PROMPT_KEYWORD(maxResults)
 
     const { text, steps, totalUsage } = await generateText({
         model,
@@ -506,7 +491,6 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             baseUrl,
             searchMode,
             env.AI,
-            debug,
             typeFilter
         )
 
@@ -514,41 +498,17 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         const { text, searchQueriesUsed, chartsBySlug, steps, usage } = result
 
         // Parse the LLM's JSON response to get selected slugs
-        // In debug mode, format is [{slug, reason}], otherwise just [slug]
-        let selectedSlugs: string[] = []
-        let selectionReasons: Record<string, string> = {}
-
-        if (debug) {
-            const selections = extractJsonArray<SelectionWithReason>(text)
-            if (selections === null) {
-                return new Response(
-                    JSON.stringify({
-                        error: "Failed to parse LLM response",
-                        details:
-                            "The model did not return valid JSON. Try again or use a different model.",
-                        rawResponse: text,
-                    }),
-                    { status: 500, headers }
-                )
-            }
-            selectedSlugs = selections.map((s) => s.slug)
-            selectionReasons = Object.fromEntries(
-                selections.map((s) => [s.slug, s.reason])
+        const selectedSlugs = extractJsonArray<string>(text)
+        if (selectedSlugs === null) {
+            return new Response(
+                JSON.stringify({
+                    error: "Failed to parse LLM response",
+                    details:
+                        "The model did not return valid JSON. Try again or use a different model.",
+                    rawResponse: text,
+                }),
+                { status: 500, headers }
             )
-        } else {
-            const slugs = extractJsonArray<string>(text)
-            if (slugs === null) {
-                return new Response(
-                    JSON.stringify({
-                        error: "Failed to parse LLM response",
-                        details:
-                            "The model did not return valid JSON. Try again or use a different model.",
-                        rawResponse: text,
-                    }),
-                    { status: 500, headers }
-                )
-            }
-            selectedSlugs = slugs
         }
 
         // Build recommendations from selected slugs (chart already has full data including URL)
@@ -613,7 +573,6 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                     searchResults: [...chartsBySlug.values()].map(
                         (c) => c.title
                     ),
-                    selectionReasons,
                     ...(warnings.length > 0 && { warnings }),
                     usage,
                     cost_usd: calculateGeminiCost(resolvedModel, usage),
