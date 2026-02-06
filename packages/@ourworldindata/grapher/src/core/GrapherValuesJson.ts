@@ -228,7 +228,6 @@ const getTransformedColumn = (
     slug?: string
 ): CoreColumn => grapherState.chartState.transformedTable.get(slug)
 
-
 // ============================================================================
 // Direct table-based value extraction (optimized for batch processing)
 // ============================================================================
@@ -384,23 +383,39 @@ export const makeDimensionValuesForTimeDirect = (
     ySlugs: string[],
     xSlug: string | undefined,
     entityName: EntityName,
-    time?: Time
+    targetTime?: Time
 ): GrapherValuesJsonDataPoints | undefined => {
-    if (time === undefined) return undefined
+    if (targetTime === undefined) return undefined
+
+    // For each column, resolve the target time against that column's
+    // entity-specific times. This handles cases where columns have
+    // data for different years.
+    const resolveTimeForColumn = (column: CoreColumn): Time | undefined => {
+        if (column.isMissing) return undefined
+        const entityRows = column.owidRowByEntityNameAndTime.get(entityName)
+        if (!entityRows) return undefined
+        const columnTimes = Array.from(entityRows.keys()).sort((a, b) => a - b)
+        return findClosestTime(columnTimes, targetTime)
+    }
+
+    const column = table.get(xSlug)
+    const resolvedTime = resolveTimeForColumn(column)
+    const xValue = makeDimensionValueForColumnAndTime(
+        column,
+        entityName,
+        resolvedTime ?? targetTime
+    )
 
     return omitUndefinedValues({
-        y: ySlugs.map((ySlug) =>
-            makeDimensionValueForColumnAndTime(
-                table.get(ySlug),
+        y: ySlugs.map((ySlug) => {
+            const column = table.get(ySlug)
+            const resolvedTime = resolveTimeForColumn(column)
+            return makeDimensionValueForColumnAndTime(
+                column,
                 entityName,
-                time
+                resolvedTime ?? targetTime
             )
-        ),
-        x: makeDimensionValueForColumnAndTime(
-            table.get(xSlug),
-            entityName,
-            time
-        ),
+        }),
+        x: xValue,
     })
 }
-

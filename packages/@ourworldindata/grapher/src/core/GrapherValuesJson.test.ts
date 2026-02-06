@@ -93,18 +93,19 @@ describe(makeDimensionValuesForTimeDirect, () => {
         expect(result?.x?.value).toBe(65)
     })
 
-    it("returns data point with only columnSlug when no data exists for entity/time", () => {
+    it("resolves to closest available time when exact time has no data", () => {
         const table = makeTestTable()
         const result = makeDimensionValuesForTimeDirect(
             table,
             ["gdp"],
             undefined,
             "France",
-            2020 // No data for 2020
+            2020 // No data for 2020, closest is 2010
         )
 
         expect(result?.y?.[0].columnSlug).toBe("gdp")
-        expect(result?.y?.[0].value).toBeUndefined()
+        expect(result?.y?.[0].value).toBe(1500) // France GDP at 2010
+        expect(result?.y?.[0].time).toBe(2010)
     })
 
     it("returns data point with only columnSlug for non-existent entity", () => {
