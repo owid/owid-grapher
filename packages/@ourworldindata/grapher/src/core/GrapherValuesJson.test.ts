@@ -6,7 +6,6 @@ import {
 } from "@ourworldindata/types"
 import {
     isValuesJsonValid,
-    findClosestTimeInArray,
     makeDimensionValuesForTimeDirect,
 } from "./GrapherValuesJson"
 import { OwidTable } from "@ourworldindata/core-table"
@@ -123,46 +122,6 @@ describe(isValuesJsonValid, () => {
     })
 })
 
-describe(findClosestTimeInArray, () => {
-    it("returns undefined for empty array", () => {
-        expect(findClosestTimeInArray([], 2000)).toBeUndefined()
-    })
-
-    it("returns the only element for single-element array", () => {
-        expect(findClosestTimeInArray([2000], 1990)).toBe(2000)
-        expect(findClosestTimeInArray([2000], 2000)).toBe(2000)
-        expect(findClosestTimeInArray([2000], 2010)).toBe(2000)
-    })
-
-    it("returns first element when target is before all times", () => {
-        expect(findClosestTimeInArray([2000, 2010, 2020], 1990)).toBe(2000)
-    })
-
-    it("returns last element when target is after all times", () => {
-        expect(findClosestTimeInArray([2000, 2010, 2020], 2030)).toBe(2020)
-    })
-
-    it("returns exact match when target exists in array", () => {
-        expect(findClosestTimeInArray([2000, 2010, 2020], 2010)).toBe(2010)
-    })
-
-    it("returns closer element when target is between two times", () => {
-        // 2004 is closer to 2000 than to 2010
-        expect(findClosestTimeInArray([2000, 2010, 2020], 2004)).toBe(2000)
-        // 2006 is closer to 2010 than to 2000
-        expect(findClosestTimeInArray([2000, 2010, 2020], 2006)).toBe(2010)
-    })
-
-    it("returns earlier element when equidistant", () => {
-        // 2005 is equidistant from 2000 and 2010; should return 2000
-        expect(findClosestTimeInArray([2000, 2010, 2020], 2005)).toBe(2000)
-    })
-
-    it("works with negative times", () => {
-        expect(findClosestTimeInArray([-100, 0, 100], -50)).toBe(-100)
-        expect(findClosestTimeInArray([-100, 0, 100], -49)).toBe(0)
-    })
-})
 
 describe(makeDimensionValuesForTimeDirect, () => {
     const makeTestTable = (): OwidTable => {
