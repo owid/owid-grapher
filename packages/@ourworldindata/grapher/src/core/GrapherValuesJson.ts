@@ -27,6 +27,7 @@ import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { GrapherState } from "./GrapherState"
 import { makeChartState } from "../chart/ChartTypeMap"
 import { MapChartState } from "../mapCharts/MapChartState"
+import { ChartDimension } from "../chart/ChartDimension"
 import { buildSourcesLineFromColumns } from "./sourcesLine"
 
 export function constructGrapherValuesJson(
@@ -298,23 +299,18 @@ export function prepareCalloutTable(
     inputTable: OwidTable,
     config: GrapherInterface
 ): PreparedCalloutTable {
-    const dimensions = config.dimensions ?? []
-
-    // Compute column slug the same way ChartDimension does:
-    // slug ?? variableId.toString()
-    const getColumnSlug = (d: (typeof dimensions)[0]): string | undefined =>
-        d.slug ?? d.variableId?.toString()
+    const chartDimensions = (config.dimensions ?? []).map(
+        (d) => new ChartDimension(d, { table: inputTable })
+    )
 
     // Extract column slugs from dimensions
-    const yColumnSlugs = dimensions
+    const yColumnSlugs = chartDimensions
         .filter((d) => d.property === DimensionProperty.y)
-        .map(getColumnSlug)
-        .filter((slug): slug is string => slug !== undefined)
+        .map((d) => d.slug)
 
-    const xDimension = dimensions.find(
+    const xColumnSlug = chartDimensions.find(
         (d) => d.property === DimensionProperty.x
-    )
-    const xColumnSlug = xDimension ? getColumnSlug(xDimension) : undefined
+    )?.slug
 
     // Get all relevant columns and build column info
     const allSlugs = excludeUndefined([...yColumnSlugs, xColumnSlug])
