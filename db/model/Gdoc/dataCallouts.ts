@@ -363,26 +363,20 @@ export async function prepareCalloutTablesForProfile(
 
     const slugToIdMap = await mapSlugsToIds(knex)
 
-    // Group by chart key to prepare each chart once
-    // Use USA as a representative entity code to create a fetchable URL
-    const urlsByChartKey = new Map<string, string>()
+    // Group by chart key to prepare each chart once.
+    // stripGrapherQueryParams (called by makeCalloutGrapherStateKey) removes
+    // entity-specific params like country, so we can use the chart key directly
+    // as a fetchable URL without needing to substitute $entityCode.
+    const chartKeys = new Set<string>()
     for (const templateUrl of templateUrls) {
-        // Replace $entityCode with a real code to create a fetchable URL
-        // Also handle URL-encoded $ (%24) in case the URL was encoded
-        const fetchableUrl = templateUrl
-            .replace(/\$entityCode/g, "USA")
-            .replace(/%24entityCode/gi, "USA")
-        const chartKey = makeCalloutGrapherStateKey(fetchableUrl)
-        if (!urlsByChartKey.has(chartKey)) {
-            urlsByChartKey.set(chartKey, fetchableUrl)
-        }
+        chartKeys.add(makeCalloutGrapherStateKey(templateUrl))
     }
 
     // Prepare each unique chart's table
-    for (const [chartKey, fetchableUrl] of urlsByChartKey) {
+    for (const chartKey of chartKeys) {
         const tableResult = await prepareCalloutTableForUrl(
             knex,
-            fetchableUrl,
+            chartKey,
             slugToIdMap
         )
         if (!tableResult) continue
