@@ -284,7 +284,6 @@ export interface PreparedCalloutTable {
     times: Time[]
     minTime: Time | undefined
     maxTime: Time | undefined
-    formatValueForTooltip?: (value: PrimitiveType) => string | undefined
 }
 
 /**
@@ -294,8 +293,7 @@ export interface PreparedCalloutTable {
  */
 export function prepareCalloutTable(
     inputTable: OwidTable,
-    config: GrapherInterface,
-    formatValueForTooltip?: (value: PrimitiveType) => string | undefined
+    config: GrapherInterface
 ): PreparedCalloutTable {
     const dimensions = config.dimensions ?? []
 
@@ -354,7 +352,6 @@ export function prepareCalloutTable(
         times,
         minTime,
         maxTime,
-        formatValueForTooltip,
     }
 }
 
@@ -380,7 +377,6 @@ export function constructGrapherValuesJsonFromTable(
         times,
         minTime: configMinTime,
         maxTime: configMaxTime,
-        formatValueForTooltip,
     } = prepared
 
     if (times.length === 0) {
@@ -447,16 +443,14 @@ export function constructGrapherValuesJsonFromTable(
             yColumnSlugs,
             xColumnSlug,
             entityName,
-            startTime,
-            formatValueForTooltip
+            startTime
         ),
         endValues: makeDimensionValuesForTimeDirect(
             inputTable,
             yColumnSlugs,
             xColumnSlug,
             entityName,
-            endTime,
-            formatValueForTooltip
+            endTime
         ),
         source: sourcesLine,
     })
@@ -467,8 +461,7 @@ export const makeDimensionValuesForTimeDirect = (
     ySlugs: string[],
     xSlug: string | undefined,
     entityName: EntityName,
-    time?: Time,
-    formatValueForTooltip?: (value: PrimitiveType) => string | undefined
+    time?: Time
 ): GrapherValuesJsonDataPoints | undefined => {
     if (time === undefined) return undefined
 
@@ -477,15 +470,13 @@ export const makeDimensionValuesForTimeDirect = (
             makeDimensionValueForColumnAndTime(
                 table.get(ySlug),
                 entityName,
-                time,
-                formatValueForTooltip
+                time
             )
         ),
         x: makeDimensionValueForColumnAndTime(
             table.get(xSlug),
             entityName,
-            time,
-            formatValueForTooltip
+            time
         ),
     })
 }

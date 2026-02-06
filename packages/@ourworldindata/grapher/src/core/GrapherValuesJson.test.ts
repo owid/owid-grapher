@@ -282,20 +282,4 @@ describe(makeDimensionValuesForTimeDirect, () => {
         expect(result?.y?.[0].value).toBeUndefined()
     })
 
-    it("applies formatValueForTooltip when provided", () => {
-        const table = makeTestTable()
-        const formatFn = (value: unknown): string | undefined =>
-            value === 1000 ? "Low" : "High"
-
-        const result = makeDimensionValuesForTimeDirect(
-            table,
-            ["gdp"],
-            undefined,
-            "France",
-            2000,
-            formatFn
-        )
-
-        expect(result?.y?.[0].valueLabel).toBe("Low")
-    })
 })
