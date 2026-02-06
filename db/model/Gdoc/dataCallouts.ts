@@ -1,7 +1,6 @@
 import {
     fetchInputTableForConfig,
     getEntityNamesParam,
-    isValuesJsonValid,
     GrapherProgrammaticInterface,
     prepareCalloutTable,
     constructGrapherValuesJsonFromTable,
@@ -300,8 +299,6 @@ export async function loadLinkedCalloutsForBlocks(
                 url.queryParams.time
             )
 
-            if (!isValuesJsonValid(values)) continue
-
             const linkedCalloutsKey = makeLinkedCalloutKey(calloutUrl)
             linkedCallouts[linkedCalloutsKey] = {
                 url: calloutUrl,
@@ -426,10 +423,6 @@ export function computeLinkedCalloutsFromPreparedTables(
             entityName,
             url.queryParams.time
         )
-
-        if (!isValuesJsonValid(values)) {
-            continue
-        }
 
         const key = makeLinkedCalloutKey(calloutUrl)
         linkedCallouts[key] = { url: calloutUrl, values }

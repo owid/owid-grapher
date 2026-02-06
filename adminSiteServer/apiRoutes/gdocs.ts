@@ -3,9 +3,11 @@ import { getCanonicalUrl } from "@ourworldindata/components"
 import {
     GdocsContentSource,
     DbInsertUser,
+    EnrichedBlockDataCallout,
     JsonError,
     GDOCS_BASE_URL,
     gdocUrlRegex,
+    LinkedCallouts,
     PostsGdocsLinksTableName,
     PostsGdocsXImagesTableName,
     PostsGdocsTableName,
@@ -17,8 +19,11 @@ import {
 import {
     checkIsDataInsight,
     checkIsGdocPostExcludingFragments,
+    checkShouldDataCalloutRender,
     getEntitiesForProfile,
     makeCalloutGrapherStateKey,
+    makeLinkedCalloutKey,
+    traverseEnrichedBlock,
     Url,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
@@ -37,14 +42,10 @@ import { GdocAbout } from "../../db/model/Gdoc/GdocAbout.js"
 import { GdocAuthor } from "../../db/model/Gdoc/GdocAuthor.js"
 import { getMinimalGdocPostsByIds } from "../../db/model/Gdoc/GdocBase.js"
 import { GdocDataInsight } from "../../db/model/Gdoc/GdocDataInsight.js"
-import {
-    extractDataCalloutUrls,
-    prepareCalloutTableForUrl,
-} from "../../db/model/Gdoc/dataCallouts.js"
+import { prepareCalloutTableForUrl } from "../../db/model/Gdoc/dataCallouts.js"
 import {
     prepareCalloutTable,
     constructGrapherValuesJsonFromTable,
-    isValuesJsonValid,
 } from "@ourworldindata/grapher"
 import { mapSlugsToIds } from "../../db/model/Chart.js"
 import {
@@ -139,10 +140,17 @@ export async function getGdocCalloutCoverage(
         throw new JsonError("Coverage matrix is only available for profiles")
     }
 
-    // Extract template callout URLs (with $entityCode placeholders) to define rows
-    const templateCalloutUrls = extractDataCalloutUrls(gdoc.content.body ?? [])
+    // Extract data-callout blocks from the template body
+    const dataCalloutBlocks: EnrichedBlockDataCallout[] = []
+    for (const node of gdoc.content.body ?? []) {
+        traverseEnrichedBlock(node, (b) => {
+            if (b.type === "data-callout") {
+                dataCalloutBlocks.push(b as EnrichedBlockDataCallout)
+            }
+        })
+    }
 
-    const rows = templateCalloutUrls.map((url, index) => {
+    const rows = dataCalloutBlocks.map(({ url }, index) => {
         const rowUrl = Url.fromURL(url).updateQueryParams({
             country: undefined,
         }).fullUrl
@@ -161,15 +169,13 @@ export async function getGdocCalloutCoverage(
     // Pre-fetch slug to ID map for efficiency
     const slugToIdMap = await mapSlugsToIds(trx)
 
-    // Group template URLs by their chart key (base chart without entity-specific params)
-    // This lets us prepare each chart's table once and reuse it for all entities
-    const urlsByChartKey = new Map<string, string[]>()
-    for (const url of templateCalloutUrls) {
-        const chartKey = makeCalloutGrapherStateKey(url)
-        if (!urlsByChartKey.has(chartKey)) {
-            urlsByChartKey.set(chartKey, [])
+    // Group blocks by chart key to prepare each chart's table once
+    const chartKeyToUrl = new Map<string, string>()
+    for (const block of dataCalloutBlocks) {
+        const chartKey = makeCalloutGrapherStateKey(block.url)
+        if (!chartKeyToUrl.has(chartKey)) {
+            chartKeyToUrl.set(chartKey, block.url)
         }
-        urlsByChartKey.get(chartKey)!.push(url)
     }
 
     // Prepare tables for each unique chart
@@ -177,10 +183,10 @@ export async function getGdocCalloutCoverage(
         string,
         ReturnType<typeof prepareCalloutTable>
     >()
-    for (const [chartKey, urls] of urlsByChartKey) {
+    for (const [chartKey, templateUrl] of chartKeyToUrl) {
         const result = await prepareCalloutTableForUrl(
             trx,
-            urls[0],
+            templateUrl,
             slugToIdMap
         )
         if (result) {
@@ -192,36 +198,45 @@ export async function getGdocCalloutCoverage(
         }
     }
 
-    // For each entity, check coverage using the optimized extraction
+    // For each entity, check if each block's callout spans can resolve
     for (const entity of entities) {
         const rowCoverage: Record<string, boolean> = {}
 
-        templateCalloutUrls.forEach((templateUrl, index) => {
-            const chartKey = makeCalloutGrapherStateKey(templateUrl)
+        dataCalloutBlocks.forEach((block, index) => {
+            const chartKey = makeCalloutGrapherStateKey(block.url)
             const prepared = preparedTablesByChartKey.get(chartKey)
 
             if (!prepared) {
-                // Chart couldn't be prepared (e.g., explorer URL)
                 rowCoverage[rows[index].id] = false
                 return
             }
 
             // Instantiate the URL with the entity code
-            const instantiatedUrl = Url.fromURL(templateUrl).updateQueryParams({
+            const instantiatedUrl = Url.fromURL(block.url).updateQueryParams({
                 country: entity.code,
             }).fullUrl
             const url = Url.fromURL(instantiatedUrl)
 
-            // Extract values using the optimized method
             const values = constructGrapherValuesJsonFromTable(
                 prepared,
                 entity.name,
                 url.queryParams.time
             )
 
-            // Check if the values are valid (has data)
-            const isValid = isValuesJsonValid(values)
-            rowCoverage[rows[index].id] = isValid
+            // Build a linkedCallouts entry and check if the block can render
+            const linkedCallouts: LinkedCallouts = {
+                [makeLinkedCalloutKey(instantiatedUrl)]: {
+                    url: instantiatedUrl,
+                    values,
+                },
+            }
+            // Use a shallow copy with the instantiated URL so the key lookup matches
+            const instantiatedBlock = { ...block, url: instantiatedUrl }
+            rowCoverage[rows[index].id] =
+                checkShouldDataCalloutRender(
+                    instantiatedBlock,
+                    linkedCallouts
+                )
         })
 
         coverageByEntity[entity.code] = rowCoverage
