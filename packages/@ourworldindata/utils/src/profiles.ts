@@ -519,7 +519,7 @@ export function getCalloutValue(
 
             return dataPoint?.formattedValueShort
         })
-        .with("latestYear", () => {
+        .with("latestTime", () => {
             const shortName = parameters[0]
             const columnSlug = values.columns
                 ? Object.entries(values.columns).find(

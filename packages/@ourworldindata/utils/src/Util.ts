@@ -1973,13 +1973,13 @@ export const guidedChartRegex = /#guide:(https?:\/\/[^\s]+)/
 
 /**
  * Matches plaintext callout token syntax:
- * $latestYear(shortName)
+ * $latestTime(shortName)
  * $latestValue(shortName)
  *
- * Group 1: function name (e.g., "latestYear", "latestValue")
+ * Group 1: function name (e.g., "latestTime", "latestValue")
  * Group 2: parameters (e.g., "shortName")
  */
-export const plaintextCalloutRegex = /\$(latestValue|latestYear)\(([^)]*)\)/g
+export const plaintextCalloutRegex = /\$(latestValue|latestTime)\(([^)]*)\)/g
 
 export function extractDetailsFromSyntax(str: string): string[] {
     return [...str.matchAll(new RegExp(detailOnDemandRegex, "g"))].map(
