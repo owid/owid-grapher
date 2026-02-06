@@ -19,6 +19,8 @@ import {
     getTimeDomainFromQueryString,
     isNegativeInfinity,
     isPositiveInfinity,
+    minTimeBoundFromJSONOrNegativeInfinity,
+    maxTimeBoundFromJSONOrPositiveInfinity,
     omitUndefinedValues,
 } from "@ourworldindata/utils"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
@@ -283,8 +285,8 @@ export interface PreparedCalloutTable {
     columns: GrapherValuesJson["columns"]
     sourcesLine: string
     times: Time[]
-    minTime: Time | undefined
-    maxTime: Time | undefined
+    minTime: Time
+    maxTime: Time
 }
 
 /**
@@ -328,21 +330,11 @@ export function prepareCalloutTable(
     // Get sorted unique times from the table
     const times = inputTable.getTimesUniqSortedAscForColumns(yColumnSlugs)
 
-    // Parse configured time bounds (handle both numeric and string formats)
-    const parseTimeBound = (
-        value: number | string | undefined
-    ): Time | undefined => {
-        if (value === undefined) return undefined
-        if (typeof value === "number") return value
-        // Handle string formats like "earliest", "latest", or numeric strings
-        if (value === "earliest") return times[0]
-        if (value === "latest") return times[times.length - 1]
-        const parsed = parseInt(value, 10)
-        return isNaN(parsed) ? undefined : parsed
-    }
-
-    const minTime = parseTimeBound(config.minTime)
-    const maxTime = parseTimeBound(config.maxTime)
+    // Parse configured time bounds using standard utilities.
+    // These return TimeBound values (-Infinity/+Infinity/number) which get
+    // resolved against actual times via findClosestTime downstream.
+    const minTime = minTimeBoundFromJSONOrNegativeInfinity(config.minTime)
+    const maxTime = maxTimeBoundFromJSONOrPositiveInfinity(config.maxTime)
 
     return {
         inputTable,
@@ -390,14 +382,8 @@ export function constructGrapherValuesJsonFromTable(
 
     // Resolve time bounds against all available times (not entity-specific).
     // Per-column closest-time resolution happens in makeDimensionValueForColumnAndTime.
-    const resolvedMinTime =
-        configMinTime !== undefined
-            ? findClosestTime(times, configMinTime)
-            : times[0]
-    const resolvedMaxTime =
-        configMaxTime !== undefined
-            ? findClosestTime(times, configMaxTime)
-            : times[times.length - 1]
+    const resolvedMinTime = findClosestTime(times, configMinTime)
+    const resolvedMaxTime = findClosestTime(times, configMaxTime)
 
     let endTime: Time | undefined = resolvedMaxTime
     let startTime: Time | undefined =
