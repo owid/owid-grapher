@@ -17,7 +17,6 @@ import { VariableList, VariableListItem } from "./VariableList.js"
 import {
     BAKED_BASE_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
-    ETL_WIZARD_URL,
     EXPLORER_DYNAMIC_THUMBNAIL_URL,
     BAKED_GRAPHER_URL,
 } from "../settings/clientSettings.js"
@@ -30,9 +29,12 @@ import {
 } from "../adminShared/search.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faDownload, faHatWizard } from "@fortawesome/free-solid-svg-icons"
-import { Button } from "antd"
-import urljoin from "url-join"
+import {
+    faDownload,
+    faMagnifyingGlass,
+    faChartColumn,
+} from "@fortawesome/free-solid-svg-icons"
+import { Button, Divider, Space, Typography } from "antd"
 
 interface ExplorerListItem {
     slug: string
@@ -458,11 +460,7 @@ class DatasetEditor extends Component<DatasetEditorProps> {
     }
 
     @computed get collectionUrl(): string | null {
-        const { dataset } = this.props
-        const publishedCharts = dataset.charts.filter(
-            (chart) => chart.isPublished
-        )
-
+        const { publishedCharts } = this
         if (publishedCharts.length === 0) {
             return null
         }
@@ -474,6 +472,15 @@ class DatasetEditor extends Component<DatasetEditorProps> {
 
         const chartsParam = sortedSlugs.join("+")
         return `https://ourworldindata.org/collection/custom?charts=${chartsParam}`
+    }
+
+    @computed get publishedCharts(): ChartListItem[] {
+        const { dataset } = this.props
+        return dataset.charts.filter((chart) => chart.isPublished)
+    }
+
+    @computed get hasPublishedCharts(): boolean {
+        return this.publishedCharts.length > 0
     }
 
     @action.bound onSearchInput(input: string) {
@@ -803,41 +810,56 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                         />
                     </p>
 
-                    <Link
-                        native
-                        to={`/datasets/${dataset.id}.csv`}
-                        className="btn btn-primary"
-                    >
-                        <FontAwesomeIcon icon={faDownload} /> Download CSV
-                    </Link>
-                    {/* Link to Wizard dataset preview */}
-                    <a
-                        href={urljoin(
-                            ETL_WIZARD_URL,
-                            `datasets?datasetId=${dataset.id}`
-                        )}
-                        target="_blank"
-                        className="btn btn-tertiary"
-                        rel="noopener"
-                    >
+                    <Space>
                         <Button
-                            type="default"
-                            icon={<FontAwesomeIcon icon={faHatWizard} />}
+                            type="primary"
+                            size="middle"
+                            href={`/admin/datasets/${dataset.id}.csv`}
+                            icon={<FontAwesomeIcon icon={faDownload} />}
                         >
-                            Explore in Wizard
+                            Download CSV
                         </Button>
-                    </a>
-                    {/* Link to view all published charts in a collection */}
-                    {this.collectionUrl && (
-                        <a
-                            href={this.collectionUrl}
-                            target="_blank"
-                            className="btn btn-secondary"
-                            rel="noopener"
-                        >
-                            View all published charts
-                        </a>
-                    )}
+                        {this.hasPublishedCharts && (
+                            <>
+                                <Divider type="vertical" />
+                                <Space size={0}>
+                                    <Typography.Text type="secondary">
+                                        View published charts:
+                                    </Typography.Text>
+                                    <Button
+                                        type="text"
+                                        size="middle"
+                                        href={`${BAKED_BASE_URL}/search?datasetProducts=${encodeURIComponent(dataset.name)}`}
+                                        target="_blank"
+                                        rel="noopener"
+                                        icon={
+                                            <FontAwesomeIcon
+                                                icon={faMagnifyingGlass}
+                                            />
+                                        }
+                                    >
+                                        in search
+                                    </Button>
+                                    {this.collectionUrl && (
+                                        <Button
+                                            type="text"
+                                            size="middle"
+                                            href={this.collectionUrl}
+                                            target="_blank"
+                                            rel="noopener"
+                                            icon={
+                                                <FontAwesomeIcon
+                                                    icon={faChartColumn}
+                                                />
+                                            }
+                                        >
+                                            in collection
+                                        </Button>
+                                    )}
+                                </Space>
+                            </>
+                        )}
+                    </Space>
                 </section>
 
                 {/* TAB NAVIGATION */}
