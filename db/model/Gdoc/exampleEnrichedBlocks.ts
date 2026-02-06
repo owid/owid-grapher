@@ -923,7 +923,7 @@ export const enrichedBlockExamples: Record<
                     },
                     {
                         spanType: "span-callout",
-                        functionName: "latestYear",
+                        functionName: "latestTime",
                         parameters: ["life_expectancy_0"],
                         children: [],
                     },

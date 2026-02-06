@@ -285,7 +285,7 @@ export async function getCalloutFunctionStrings(
         if (columnInfo?.shortName) {
             functionStringsByName[columnInfo.name] = [
                 `$latestValue(${columnInfo.shortName})`,
-                `$latestYear(${columnInfo.shortName})`,
+                `$latestTime(${columnInfo.shortName})`,
             ]
         }
     }

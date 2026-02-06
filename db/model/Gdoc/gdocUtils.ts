@@ -298,7 +298,7 @@ export function extractFilenamesFromBlock(
 }
 
 /**
- * Transforms plaintext callout tokens (e.g. $latestValue(shortName), $latestYear(shortName))
+ * Transforms plaintext callout tokens (e.g. $latestValue(shortName), $latestTime(shortName))
  * into SpanCallout spans within a span tree.
  */
 function transformCalloutTokensInSpan(span: Span): Span[] {
