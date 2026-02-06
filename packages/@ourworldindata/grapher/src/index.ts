@@ -154,7 +154,6 @@ export { loadCatalogData, getCatalogAssetKey } from "./core/loadCatalogData.js"
 
 export {
     constructGrapherValuesJson,
-    isValuesJsonValid,
     prepareCalloutTable,
     constructGrapherValuesJsonFromTable,
     type PreparedCalloutTable,

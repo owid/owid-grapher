@@ -228,47 +228,6 @@ const getTransformedColumn = (
     slug?: string
 ): CoreColumn => grapherState.chartState.transformedTable.get(slug)
 
-export function isValuesJsonValid(valuesJson: GrapherValuesJson): boolean {
-    const columns = valuesJson.columns
-
-    if (!columns || Object.keys(columns).length === 0) return false
-
-    const isDataPointComplete = (
-        dataPoint: GrapherValuesJsonDataPoint | undefined
-    ): boolean => {
-        if (!dataPoint) return false
-        if (!columns[dataPoint.columnSlug]) return false
-        if (dataPoint.value === undefined) return false
-        if (dataPoint.time === undefined) return false
-        return true
-    }
-
-    const areDataPointsComplete = (
-        dataPoints: GrapherValuesJsonDataPoints | undefined
-    ): boolean => {
-        if (!dataPoints?.y?.length) return false
-        // Use `some` instead of `every` to support comparison charts where
-        // not all indicators have data for all entities/times
-        if (!dataPoints.y.some(isDataPointComplete)) return false
-        if (dataPoints.x && !isDataPointComplete(dataPoints.x)) return false
-        return true
-    }
-
-    if (!valuesJson.endValues) return false
-    if (valuesJson.startTime !== undefined && !valuesJson.startValues)
-        return false
-    if (valuesJson.endTime !== undefined && !valuesJson.endValues) return false
-
-    if (
-        valuesJson.startValues &&
-        !areDataPointsComplete(valuesJson.startValues)
-    )
-        return false
-    if (valuesJson.endValues && !areDataPointsComplete(valuesJson.endValues))
-        return false
-
-    return true
-}
 
 // ============================================================================
 // Direct table-based value extraction (optimized for batch processing)
