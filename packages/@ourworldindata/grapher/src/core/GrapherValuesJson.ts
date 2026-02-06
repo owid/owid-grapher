@@ -15,6 +15,7 @@ import {
 } from "@ourworldindata/types"
 import {
     excludeUndefined,
+    findClosestTime,
     getTimeDomainFromQueryString,
     isNegativeInfinity,
     isPositiveInfinity,
@@ -387,33 +388,16 @@ export function constructGrapherValuesJsonFromTable(
         })
     }
 
-    // Get entity-specific times from the y columns
-    // This matches how GrapherState.times works - filtered to selected entity
-    const entityTimes = getEntityTimesFromTable(
-        inputTable,
-        yColumnSlugs,
-        entityName
-    )
-    const effectiveTimes = entityTimes.length > 0 ? entityTimes : times
-
-    // Resolve time bounds against entity-specific times
-    const resolveTimeBound = (bound: Time): Time | undefined => {
-        if (isNegativeInfinity(bound)) return effectiveTimes[0]
-        if (isPositiveInfinity(bound))
-            return effectiveTimes[effectiveTimes.length - 1]
-        // Find closest time in effectiveTimes
-        return findClosestTimeInArray(effectiveTimes, bound)
-    }
-
-    // Default to chart's configured time range resolved against entity times
+    // Resolve time bounds against all available times (not entity-specific).
+    // Per-column closest-time resolution happens in makeDimensionValueForColumnAndTime.
     const resolvedMinTime =
         configMinTime !== undefined
-            ? resolveTimeBound(configMinTime)
-            : effectiveTimes[0]
+            ? findClosestTime(times, configMinTime)
+            : times[0]
     const resolvedMaxTime =
         configMaxTime !== undefined
-            ? resolveTimeBound(configMaxTime)
-            : effectiveTimes[effectiveTimes.length - 1]
+            ? findClosestTime(times, configMaxTime)
+            : times[times.length - 1]
 
     let endTime: Time | undefined = resolvedMaxTime
     let startTime: Time | undefined =
@@ -424,12 +408,10 @@ export function constructGrapherValuesJsonFromTable(
     if (timeQueryParam) {
         const [rawStartTime, rawEndTime] =
             getTimeDomainFromQueryString(timeQueryParam)
-        const resolvedEndTime = resolveTimeBound(rawEndTime)
-        const resolvedStartTime = resolveTimeBound(rawStartTime)
-        endTime = resolvedEndTime
+        endTime = findClosestTime(times, rawEndTime)
         startTime =
-            resolvedStartTime !== resolvedEndTime
-                ? resolvedStartTime
+            findClosestTime(times, rawStartTime) !== endTime
+                ? findClosestTime(times, rawStartTime)
                 : undefined
     }
 
@@ -481,56 +463,3 @@ export const makeDimensionValuesForTimeDirect = (
     })
 }
 
-/**
- * Get sorted unique times for a specific entity from the table columns.
- * This gives entity-specific times, matching GrapherState.times behavior.
- */
-const getEntityTimesFromTable = (
-    table: OwidTable,
-    columnSlugs: string[],
-    entityName: EntityName
-): Time[] => {
-    const timesSet = new Set<Time>()
-    for (const slug of columnSlugs) {
-        const column = table.get(slug)
-        if (column.isMissing) continue
-        const entityTimes = column.owidRowByEntityNameAndTime.get(entityName)
-        if (entityTimes) {
-            for (const time of entityTimes.keys()) {
-                timesSet.add(time)
-            }
-        }
-    }
-    return Array.from(timesSet).sort((a, b) => a - b)
-}
-
-/**
- * Find the closest time in a sorted array to the target time.
- */
-export const findClosestTimeInArray = (
-    times: Time[],
-    target: Time
-): Time | undefined => {
-    if (times.length === 0) return undefined
-    if (target <= times[0]) return times[0]
-    if (target >= times[times.length - 1]) return times[times.length - 1]
-
-    // Binary search for closest
-    let low = 0
-    let high = times.length - 1
-    while (low < high) {
-        const mid = Math.floor((low + high) / 2)
-        if (times[mid] === target) return target
-        if (times[mid] < target) {
-            low = mid + 1
-        } else {
-            high = mid
-        }
-    }
-
-    // Check which neighbor is closer
-    if (low === 0) return times[0]
-    const prev = times[low - 1]
-    const curr = times[low]
-    return Math.abs(prev - target) <= Math.abs(curr - target) ? prev : curr
-}
