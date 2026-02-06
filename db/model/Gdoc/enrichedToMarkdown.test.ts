@@ -109,7 +109,7 @@ describe("enrichedBlocksToMarkdown", () => {
                             y: [
                                 {
                                     columnSlug: "123",
-                                    formattedValue: "5.2 billion tonnes",
+                                    formattedValueShort: "5.2 billion tonnes",
                                     formattedTime: "2022",
                                 },
                             ],

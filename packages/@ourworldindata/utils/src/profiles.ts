@@ -517,7 +517,7 @@ export function getCalloutValue(
                 return dp.columnSlug === String(columnSlug)
             })
 
-            return dataPoint?.formattedValue
+            return dataPoint?.formattedValueShort
         })
         .with("latestYear", () => {
             const shortName = parameters[0]
