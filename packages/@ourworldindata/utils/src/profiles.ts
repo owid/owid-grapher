@@ -16,6 +16,7 @@ import {
     EnrichedBlockDataCallout,
     GRAPHER_QUERY_PARAM_KEYS,
     GrapherValuesJson,
+    GrapherValuesJsonDataPoint,
     LinkedCallouts,
     ParseError,
     SpanCallout,
@@ -495,6 +496,36 @@ export function checkShouldDataCalloutRender(
 }
 
 /**
+ * Find the y-dimension data point matching the given shortName.
+ * If shortName is omitted and there is exactly one y data point,
+ * it is returned automatically — so single-indicator charts don't
+ * require the column name in the callout syntax.
+ */
+function findYDataPoint(
+    values: GrapherValuesJson,
+    shortName: string | undefined
+): GrapherValuesJsonDataPoint | undefined {
+    if (shortName) {
+        const columnSlug = values.columns
+            ? Object.entries(values.columns).find(
+                  ([_, col]) => col.shortName === shortName
+              )?.[0]
+            : undefined
+        if (!columnSlug) return undefined
+
+        return values.endValues?.y?.find(
+            (dp) => dp.columnSlug === String(columnSlug)
+        )
+    }
+
+    // No shortName provided: use the single y data point if unambiguous
+    const yValues = values.endValues?.y
+    if (yValues?.length === 1) return yValues[0]
+
+    return undefined
+}
+
+/**
  * Look up a value from GrapherValuesJson based on the callout function name.
  * Returns the formatted value or undefined if not found.
  */
@@ -505,34 +536,11 @@ export function getCalloutValue(
 ): string | undefined {
     return match(functionName)
         .with("latestValue", () => {
-            const shortName = parameters[0]
-            const columnSlug = values.columns
-                ? Object.entries(values.columns).find(
-                      ([_, col]) => col.shortName === shortName
-                  )?.[0]
-                : undefined
-            if (!columnSlug) return undefined
-
-            const dataPoint = values.endValues?.y?.find((dp) => {
-                return dp.columnSlug === String(columnSlug)
-            })
-
-            return dataPoint?.formattedValueShort
+            return findYDataPoint(values, parameters[0])
+                ?.formattedValueShort
         })
         .with("latestTime", () => {
-            const shortName = parameters[0]
-            const columnSlug = values.columns
-                ? Object.entries(values.columns).find(
-                      ([_, col]) => col.shortName === shortName
-                  )?.[0]
-                : undefined
-            if (!columnSlug) return undefined
-
-            const dataPoint = values.endValues?.y?.find((dp) => {
-                return dp.columnSlug === String(columnSlug)
-            })
-
-            return dataPoint?.formattedTime
+            return findYDataPoint(values, parameters[0])?.formattedTime
         })
         .exhaustive()
 }
