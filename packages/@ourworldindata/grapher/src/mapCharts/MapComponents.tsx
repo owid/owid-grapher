@@ -50,9 +50,8 @@ export function CountryWithData<Feature extends RenderFeature>({
     hover,
     strokeScale = 1,
     onClick,
-    onTouchStart,
-    onMouseEnter,
-    onMouseLeave,
+    onPointerEnter,
+    onPointerLeave,
 }: {
     feature: Feature
     series: ChoroplethSeries
@@ -61,9 +60,8 @@ export function CountryWithData<Feature extends RenderFeature>({
     hover?: InteractionState
     strokeScale?: number
     onClick?: (event: SVGMouseEvent) => void
-    onTouchStart?: (event: React.TouchEvent<SVGElement>) => void
-    onMouseEnter?: (feature: Feature, event: MouseEvent) => void
-    onMouseLeave?: () => void
+    onPointerEnter?: (feature: Feature, event: PointerEvent) => void
+    onPointerLeave?: (event: PointerEvent) => void
 }): React.ReactElement {
     const isProjection = series.isProjection
     const isHovered = hover?.active ?? false
@@ -90,11 +88,8 @@ export function CountryWithData<Feature extends RenderFeature>({
             fill={fill}
             fillOpacity={fillOpacity}
             onClick={onClick}
-            onTouchStart={onTouchStart}
-            onMouseEnter={(event): void =>
-                onMouseEnter?.(feature, event.nativeEvent)
-            }
-            onMouseLeave={onMouseLeave}
+            onPointerEnter={(e) => onPointerEnter?.(feature, e.nativeEvent)}
+            onPointerLeave={(e) => onPointerLeave?.(e.nativeEvent)}
         />
     )
 }
@@ -107,9 +102,8 @@ export function CountryWithNoData<Feature extends RenderFeature>({
     hover,
     strokeScale = 1,
     onClick,
-    onTouchStart,
-    onMouseEnter,
-    onMouseLeave,
+    onPointerEnter,
+    onPointerLeave,
 }: {
     feature: Feature
     path?: string
@@ -118,9 +112,8 @@ export function CountryWithNoData<Feature extends RenderFeature>({
     hover?: InteractionState
     strokeScale?: number
     onClick?: (event: SVGMouseEvent) => void
-    onTouchStart?: (event: React.TouchEvent<SVGElement>) => void
-    onMouseEnter?: (feature: Feature, event: MouseEvent) => void
-    onMouseLeave?: () => void
+    onPointerEnter?: (feature: Feature, event: PointerEvent) => void
+    onPointerLeave?: (event: PointerEvent) => void
 }): React.ReactElement {
     const isHovered = hover?.active ?? false
 
@@ -142,11 +135,8 @@ export function CountryWithNoData<Feature extends RenderFeature>({
             fill={`url(#${patternId})`}
             fillOpacity={fillOpacity}
             onClick={onClick}
-            onTouchStart={onTouchStart}
-            onMouseEnter={(event): void =>
-                onMouseEnter?.(feature, event.nativeEvent)
-            }
-            onMouseLeave={onMouseLeave}
+            onPointerEnter={(e) => onPointerEnter?.(feature, e.nativeEvent)}
+            onPointerLeave={(e) => onPointerLeave?.(e.nativeEvent)}
         />
     )
 }
@@ -272,13 +262,13 @@ export function InternalValueAnnotation({
 export function ExternalValueAnnotation({
     annotation,
     strokeScale = 1,
-    onMouseEnter,
-    onMouseLeave,
+    onPointerEnter,
+    onPointerLeave,
 }: {
     annotation: ExternalAnnotation
     strokeScale?: number
-    onMouseEnter?: (feature: RenderFeature) => void
-    onMouseLeave?: () => void
+    onPointerEnter?: (feature: RenderFeature, event: PointerEvent) => void
+    onPointerLeave?: (event: PointerEvent) => void
 }): React.ReactElement {
     const { id, text, direction, anchor, placedBounds, fontSize } = annotation
 
@@ -306,8 +296,10 @@ export function ExternalValueAnnotation({
                 strokeWidth={DEFAULT_STROKE_WIDTH / strokeScale}
                 fill={annotation.color}
                 fontWeight={700}
-                onMouseEnter={() => onMouseEnter?.(annotation.feature)}
-                onMouseLeave={onMouseLeave}
+                onPointerEnter={(e) =>
+                    onPointerEnter?.(annotation.feature, e.nativeEvent)
+                }
+                onPointerLeave={(e) => onPointerLeave?.(e.nativeEvent)}
             >
                 {text}
             </text>

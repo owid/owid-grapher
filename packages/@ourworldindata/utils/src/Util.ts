@@ -132,7 +132,11 @@ const getRootSVG = (
 
 export const getRelativeMouse = (
     node: Element | SVGGraphicsElement | SVGSVGElement,
-    event: React.TouchEvent | TouchEvent | { clientX: number; clientY: number }
+    event:
+        | React.TouchEvent
+        | TouchEvent
+        | PointerEvent
+        | { clientX: number; clientY: number }
 ): PointVector => {
     const eventOwner = checkIsTouchEvent(event) ? event.targetTouches[0] : event
 

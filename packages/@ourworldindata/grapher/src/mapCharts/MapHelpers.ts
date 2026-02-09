@@ -28,7 +28,7 @@ export function detectNearbyFeature<Feature extends RenderFeature>({
 }: {
     quadtree: Quadtree<Feature>
     element: SVGGElement
-    event: MouseEvent | TouchEvent
+    event: PointerEvent
     distance?: number
 }): Feature | undefined {
     const groupElement = element.querySelector(`.${GEO_FEATURES_CLASSNAME}`)

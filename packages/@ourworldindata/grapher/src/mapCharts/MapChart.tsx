@@ -61,7 +61,7 @@ import {
 } from "@ourworldindata/types"
 import { ClipPath, makeClipPath } from "../chart/ChartUtils"
 import { NoDataModal } from "../noDataModal/NoDataModal"
-import { Component, createRef } from "react"
+import { Component, createRef, PointerEvent } from "react"
 import { ChoroplethMap } from "./ChoroplethMap"
 import { ChoroplethGlobe } from "./ChoroplethGlobe"
 import { GlobeController } from "./GlobeController"
@@ -156,7 +156,7 @@ export class MapChart
         }
     }
 
-    @action.bound onMapMouseMove(ev: React.MouseEvent): void {
+    @action.bound onMapPointerMove(ev: PointerEvent): void {
         const ref = this.manager?.base?.current
         if (ref) {
             this.tooltipState.position = getRelativeMouse(ref, ev)
@@ -674,7 +674,7 @@ export class MapChart
             <g
                 ref={this.base}
                 className={MAP_CHART_CLASSNAME}
-                onMouseMove={this.onMapMouseMove}
+                onPointerMove={this.onMapPointerMove}
             >
                 {this.renderMapOrGlobe()}
                 {this.renderMapLegend()}
