@@ -232,11 +232,10 @@ export async function getGdocCalloutCoverage(
             }
             // Use a shallow copy with the instantiated URL so the key lookup matches
             const instantiatedBlock = { ...block, url: instantiatedUrl }
-            rowCoverage[rows[index].id] =
-                checkShouldDataCalloutRender(
-                    instantiatedBlock,
-                    linkedCallouts
-                )
+            rowCoverage[rows[index].id] = checkShouldDataCalloutRender(
+                instantiatedBlock,
+                linkedCallouts
+            )
         })
 
         coverageByEntity[entity.code] = rowCoverage
@@ -285,6 +284,7 @@ export async function getCalloutFunctionStrings(
         if (columnInfo?.shortName) {
             functionStringsByName[columnInfo.name] = [
                 `$latestValue(${columnInfo.shortName})`,
+                `$latestValueWithUnit(${columnInfo.shortName})`,
                 `$latestTime(${columnInfo.shortName})`,
             ]
         }

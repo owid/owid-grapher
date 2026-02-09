@@ -32,7 +32,11 @@ export type SpanGuidedChartLink = {
     url: string
 }
 
-export const CALLOUT_FUNCTIONS = ["latestTime", "latestValue"] as const
+export const CALLOUT_FUNCTIONS = [
+    "latestTime",
+    "latestValue",
+    "latestValueWithUnit",
+] as const
 export type CalloutFunction = (typeof CALLOUT_FUNCTIONS)[number]
 
 export type SpanCallout = {

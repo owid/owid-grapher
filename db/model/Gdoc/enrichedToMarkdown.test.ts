@@ -125,7 +125,7 @@ describe("enrichedBlocksToMarkdown", () => {
                     { spanType: "span-simple-text", text: "CO2 emissions: " },
                     {
                         spanType: "span-callout",
-                        functionName: "latestValue",
+                        functionName: "latestValueWithUnit",
                         parameters: ["co2_emissions"],
                         children: [{ spanType: "span-simple-text", text: "" }],
                     },
