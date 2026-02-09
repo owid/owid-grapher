@@ -899,6 +899,7 @@ export class ChoroplethGlobe extends React.Component<{
                 }}
                 style={{
                     cursor: this.hoverFeature ? "pointer" : undefined,
+                    // Remove the 300ms delay on click events and double-tap-to-zoom for touch devices
                     touchAction: "manipulation",
                 }}
             >
