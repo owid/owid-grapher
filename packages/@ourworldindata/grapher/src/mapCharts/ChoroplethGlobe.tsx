@@ -422,15 +422,15 @@ export class ChoroplethGlobe extends React.Component<{
         this.detectNearbyFeature(event)
     }
 
-    @action.bound private onMouseEnterFeature(
+    @action.bound private onPointerEnterFeature(
         feature: GlobeRenderFeature
     ): void {
-        // ignore mouse enter if panning or zooming
+        // ignore pointer enter if panning or zooming
         if (this.isPanningOrZooming) return
         this.setHoverEnterFeature(feature)
     }
 
-    @action.bound private onMouseLeaveFeature(): void {
+    @action.bound private onPointerLeaveFeature(): void {
         // Fixes an issue where clicking on a country that overlaps with the
         // tooltip causes the tooltip to disappear shortly after being rendered
         if (this.isTouchDevice) return
@@ -751,8 +751,8 @@ export class ChoroplethGlobe extends React.Component<{
                             this.onClick(feature)
                         }}
                         onTouchStart={() => this.onTouchStart(feature)}
-                        onMouseEnter={this.onMouseEnterFeature}
-                        onMouseLeave={this.onMouseLeaveFeature}
+                        onPointerEnter={this.onPointerEnterFeature}
+                        onPointerLeave={this.onPointerLeaveFeature}
                     />
                 ))}
             </g>
@@ -812,8 +812,8 @@ export class ChoroplethGlobe extends React.Component<{
                                 this.onClick(feature)
                             }}
                             onTouchStart={() => this.onTouchStart(feature)}
-                            onMouseEnter={this.onMouseEnterFeature}
-                            onMouseLeave={this.onMouseLeaveFeature}
+                            onPointerEnter={this.onPointerEnterFeature}
+                            onPointerLeave={this.onPointerLeaveFeature}
                         />
                     )
                 })}
@@ -851,12 +851,12 @@ export class ChoroplethGlobe extends React.Component<{
                     <ExternalValueAnnotation
                         key={annotation.id}
                         annotation={annotation}
-                        onMouseEnter={action((feature: RenderFeature) =>
+                        onPointerEnter={action((feature: RenderFeature) =>
                             this.setHoverEnterFeature(
                                 feature as GlobeRenderFeature
                             )
                         )}
-                        onMouseLeave={action(() =>
+                        onPointerLeave={action(() =>
                             this.clearHoverEnterFeature()
                         )}
                     />
@@ -894,7 +894,7 @@ export class ChoroplethGlobe extends React.Component<{
                 onMouseMove={(ev: SVGMouseEvent): void =>
                     this.onMouseMove(ev.nativeEvent)
                 }
-                onMouseLeave={this.onMouseLeaveFeature}
+                onPointerLeave={this.onPointerLeaveFeature}
                 onClick={() => {
                     // invoke a click on a feature when clicking nearby one
                     if (this.hoverNearbyFeature)

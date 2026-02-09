@@ -51,8 +51,8 @@ export function CountryWithData<Feature extends RenderFeature>({
     strokeScale = 1,
     onClick,
     onTouchStart,
-    onMouseEnter,
-    onMouseLeave,
+    onPointerEnter,
+    onPointerLeave,
 }: {
     feature: Feature
     series: ChoroplethSeries
@@ -62,8 +62,8 @@ export function CountryWithData<Feature extends RenderFeature>({
     strokeScale?: number
     onClick?: (event: SVGMouseEvent) => void
     onTouchStart?: (event: React.TouchEvent<SVGElement>) => void
-    onMouseEnter?: (feature: Feature, event: MouseEvent) => void
-    onMouseLeave?: () => void
+    onPointerEnter?: (feature: Feature) => void
+    onPointerLeave?: () => void
 }): React.ReactElement {
     const isProjection = series.isProjection
     const isHovered = hover?.active ?? false
@@ -91,10 +91,8 @@ export function CountryWithData<Feature extends RenderFeature>({
             fillOpacity={fillOpacity}
             onClick={onClick}
             onTouchStart={onTouchStart}
-            onMouseEnter={(event): void =>
-                onMouseEnter?.(feature, event.nativeEvent)
-            }
-            onMouseLeave={onMouseLeave}
+            onPointerEnter={() => onPointerEnter?.(feature)}
+            onPointerLeave={onPointerLeave}
         />
     )
 }
@@ -108,8 +106,8 @@ export function CountryWithNoData<Feature extends RenderFeature>({
     strokeScale = 1,
     onClick,
     onTouchStart,
-    onMouseEnter,
-    onMouseLeave,
+    onPointerEnter,
+    onPointerLeave,
 }: {
     feature: Feature
     path?: string
@@ -119,8 +117,8 @@ export function CountryWithNoData<Feature extends RenderFeature>({
     strokeScale?: number
     onClick?: (event: SVGMouseEvent) => void
     onTouchStart?: (event: React.TouchEvent<SVGElement>) => void
-    onMouseEnter?: (feature: Feature, event: MouseEvent) => void
-    onMouseLeave?: () => void
+    onPointerEnter?: (feature: Feature) => void
+    onPointerLeave?: () => void
 }): React.ReactElement {
     const isHovered = hover?.active ?? false
 
@@ -143,10 +141,8 @@ export function CountryWithNoData<Feature extends RenderFeature>({
             fillOpacity={fillOpacity}
             onClick={onClick}
             onTouchStart={onTouchStart}
-            onMouseEnter={(event): void =>
-                onMouseEnter?.(feature, event.nativeEvent)
-            }
-            onMouseLeave={onMouseLeave}
+            onPointerEnter={() => onPointerEnter?.(feature)}
+            onPointerLeave={onPointerLeave}
         />
     )
 }
@@ -272,13 +268,13 @@ export function InternalValueAnnotation({
 export function ExternalValueAnnotation({
     annotation,
     strokeScale = 1,
-    onMouseEnter,
-    onMouseLeave,
+    onPointerEnter,
+    onPointerLeave,
 }: {
     annotation: ExternalAnnotation
     strokeScale?: number
-    onMouseEnter?: (feature: RenderFeature) => void
-    onMouseLeave?: () => void
+    onPointerEnter?: (feature: RenderFeature) => void
+    onPointerLeave?: () => void
 }): React.ReactElement {
     const { id, text, direction, anchor, placedBounds, fontSize } = annotation
 
@@ -306,8 +302,8 @@ export function ExternalValueAnnotation({
                 strokeWidth={DEFAULT_STROKE_WIDTH / strokeScale}
                 fill={annotation.color}
                 fontWeight={700}
-                onMouseEnter={() => onMouseEnter?.(annotation.feature)}
-                onMouseLeave={onMouseLeave}
+                onPointerEnter={() => onPointerEnter?.(annotation.feature)}
+                onPointerLeave={onPointerLeave}
             >
                 {text}
             </text>
