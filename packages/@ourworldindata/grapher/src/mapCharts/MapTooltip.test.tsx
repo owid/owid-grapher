@@ -61,7 +61,7 @@ test("map tooltip renders iff mouseenter", () => {
         'path[data-feature-id="Iceland"]'
     )
     assert(icelandPath, "Iceland path should exist")
-    fireEvent.mouseEnter(icelandPath, {
+    fireEvent.pointerEnter(icelandPath, {
         clientX: 50,
         clientY: 50,
     })
