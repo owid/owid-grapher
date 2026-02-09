@@ -400,7 +400,10 @@ export class ChoroplethMap extends React.Component<{
         }
     }
 
-    @action.bound private onDocumentClick(): void {
+    @action.bound private onDocumentPointerDown(event: PointerEvent): void {
+        // don't dismiss when tapping on a country — let the map's own handlers deal with it
+        if ((event.target as Element).closest?.("[data-feature-id]")) return
+
         this.manager.globeController?.dismissCountryFocus()
         if (this.hoverEnterFeature || this.hoverNearbyFeature) {
             this.hoverEnterFeature = undefined
@@ -584,16 +587,11 @@ export class ChoroplethMap extends React.Component<{
     }
 
     override componentDidMount(): void {
-        document.addEventListener("touchstart", this.onDocumentClick, {
-            capture: true,
-            passive: true,
-        })
+        document.addEventListener("pointerdown", this.onDocumentPointerDown)
     }
 
     override componentWillUnmount(): void {
-        document.removeEventListener("touchstart", this.onDocumentClick, {
-            capture: true,
-        })
+        document.removeEventListener("pointerdown", this.onDocumentPointerDown)
     }
 
     renderInteractive(): React.ReactElement {

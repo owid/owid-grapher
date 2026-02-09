@@ -476,7 +476,10 @@ export class ChoroplethGlobe extends React.Component<{
         }
     }
 
-    @action.bound private onDocumentClick(): void {
+    @action.bound private onDocumentPointerDown(event: PointerEvent): void {
+        // don't dismiss when tapping on a country — let the map's own handlers deal with it
+        if ((event.target as Element).closest?.("[data-feature-id]")) return
+
         this.clearHover()
     }
 
@@ -657,18 +660,13 @@ export class ChoroplethGlobe extends React.Component<{
             this.globeController.jumpToOwidContinent(this.mapConfig.region)
         }
 
-        document.addEventListener("touchstart", this.onDocumentClick, {
-            capture: true,
-            passive: true,
-        })
+        document.addEventListener("pointerdown", this.onDocumentPointerDown)
 
         this.setUpPanningAndZooming()
     }
 
     override componentWillUnmount(): void {
-        document.removeEventListener("touchstart", this.onDocumentClick, {
-            capture: true,
-        })
+        document.removeEventListener("pointerdown", this.onDocumentPointerDown)
     }
 
     renderGlobeOutline(): React.ReactElement {
