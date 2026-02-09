@@ -109,7 +109,6 @@
 @import "css/site-tools.scss";
 @import "css/newsletter-subscription.scss";
 @import "css/lightbox.scss";
-@import "css/alert-banner.scss";
 
 @import "./blocks/front-matter.scss";
 @import "./blocks/expandable-paragraph.scss";
@@ -764,7 +763,6 @@ a.ref sup {
 
 @media print {
     .site-header,
-    .alert-banner,
     .site-footer,
     .cookie-notice,
     .citation-note,
