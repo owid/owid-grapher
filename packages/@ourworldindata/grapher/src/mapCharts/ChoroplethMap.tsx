@@ -373,10 +373,6 @@ export class ChoroplethMap extends React.Component<{
         this.manager.onMapMouseLeave?.()
     }
 
-    @action.bound private onTouchStart(feature: MapRenderFeature): void {
-        this.setHoverEnterFeature(feature)
-    }
-
     @action.bound private onClick(feature: MapRenderFeature): void {
         const {
             isMapSelectionEnabled,
@@ -502,7 +498,6 @@ export class ChoroplethMap extends React.Component<{
 
                             this.onClick(feature)
                         }}
-                        onTouchStart={() => this.onTouchStart(feature)}
                         onPointerEnter={this.onPointerEnter}
                         onPointerLeave={this.onPointerLeave}
                     />
@@ -564,7 +559,6 @@ export class ChoroplethMap extends React.Component<{
 
                                 this.onClick(feature)
                             }}
-                            onTouchStart={() => this.onTouchStart(feature)}
                             onPointerEnter={this.onPointerEnter}
                             onPointerLeave={this.onPointerLeave}
                         />

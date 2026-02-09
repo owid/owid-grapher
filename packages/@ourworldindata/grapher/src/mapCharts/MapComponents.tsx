@@ -50,7 +50,6 @@ export function CountryWithData<Feature extends RenderFeature>({
     hover,
     strokeScale = 1,
     onClick,
-    onTouchStart,
     onPointerEnter,
     onPointerLeave,
 }: {
@@ -61,7 +60,6 @@ export function CountryWithData<Feature extends RenderFeature>({
     hover?: InteractionState
     strokeScale?: number
     onClick?: (event: SVGMouseEvent) => void
-    onTouchStart?: (event: React.TouchEvent<SVGElement>) => void
     onPointerEnter?: (feature: Feature) => void
     onPointerLeave?: () => void
 }): React.ReactElement {
@@ -90,7 +88,6 @@ export function CountryWithData<Feature extends RenderFeature>({
             fill={fill}
             fillOpacity={fillOpacity}
             onClick={onClick}
-            onTouchStart={onTouchStart}
             onPointerEnter={() => onPointerEnter?.(feature)}
             onPointerLeave={onPointerLeave}
         />
@@ -105,7 +102,6 @@ export function CountryWithNoData<Feature extends RenderFeature>({
     hover,
     strokeScale = 1,
     onClick,
-    onTouchStart,
     onPointerEnter,
     onPointerLeave,
 }: {
@@ -116,7 +112,6 @@ export function CountryWithNoData<Feature extends RenderFeature>({
     hover?: InteractionState
     strokeScale?: number
     onClick?: (event: SVGMouseEvent) => void
-    onTouchStart?: (event: React.TouchEvent<SVGElement>) => void
     onPointerEnter?: (feature: Feature) => void
     onPointerLeave?: () => void
 }): React.ReactElement {
@@ -140,7 +135,6 @@ export function CountryWithNoData<Feature extends RenderFeature>({
             fill={`url(#${patternId})`}
             fillOpacity={fillOpacity}
             onClick={onClick}
-            onTouchStart={onTouchStart}
             onPointerEnter={() => onPointerEnter?.(feature)}
             onPointerLeave={onPointerLeave}
         />

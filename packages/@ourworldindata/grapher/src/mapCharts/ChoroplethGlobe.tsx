@@ -476,10 +476,6 @@ export class ChoroplethGlobe extends React.Component<{
         }
     }
 
-    @action.bound private onTouchStart(feature: GlobeRenderFeature): void {
-        this.setHoverEnterFeature(feature)
-    }
-
     @action.bound private onDocumentClick(): void {
         this.clearHover()
     }
@@ -750,7 +746,6 @@ export class ChoroplethGlobe extends React.Component<{
 
                             this.onClick(feature)
                         }}
-                        onTouchStart={() => this.onTouchStart(feature)}
                         onPointerEnter={this.onPointerEnterFeature}
                         onPointerLeave={this.onPointerLeaveFeature}
                     />
@@ -811,7 +806,6 @@ export class ChoroplethGlobe extends React.Component<{
 
                                 this.onClick(feature)
                             }}
-                            onTouchStart={() => this.onTouchStart(feature)}
                             onPointerEnter={this.onPointerEnterFeature}
                             onPointerLeave={this.onPointerLeaveFeature}
                         />
