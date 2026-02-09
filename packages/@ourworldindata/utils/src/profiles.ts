@@ -536,8 +536,10 @@ export function getCalloutValue(
 ): string | undefined {
     return match(functionName)
         .with("latestValue", () => {
-            return findYDataPoint(values, parameters[0])
-                ?.formattedValueShort
+            return findYDataPoint(values, parameters[0])?.formattedValue
+        })
+        .with("latestValueWithUnit", () => {
+            return findYDataPoint(values, parameters[0])?.formattedValueShort
         })
         .with("latestTime", () => {
             return findYDataPoint(values, parameters[0])?.formattedTime
