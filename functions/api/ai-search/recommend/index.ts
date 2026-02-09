@@ -4,7 +4,6 @@ import {
     validateQueryParams,
     COMMON_SEARCH_PARAMS,
     ChartInfo,
-    ChartInfoForLLM,
     extractJsonArray,
     searchChartsSemantic,
 } from "../utils.js"
@@ -44,6 +43,8 @@ const TYPE_FILTER_MAP: Record<string, ChartRecordType | null> = {
 const VALID_TYPES = Object.keys(TYPE_FILTER_MAP)
 
 // Short aliases for Google Gemini models
+// NOTE: gemini-2.5-flash-lite is cheap but unreliable - it sometimes returns empty
+// responses after tool calls. Use gemini-2.5-flash for more consistent results.
 const GEMINI_MODEL_ALIASES: Record<string, string> = {
     gemini: "gemini-2.5-flash-lite",
     "gemini-lite": "gemini-2.5-flash-lite",
@@ -77,10 +78,10 @@ const SYSTEM_PROMPT_KEYWORD = (maxResults: number) =>
 
 SEARCH: Use 4-6 single keywords (no phrases, no country names).
 
-SELECTION: Pick up to ${maxResults} most relevant chart slugs from search results.
+SELECTION: Pick up to ${maxResults} chart indexes from search results, ordered by relevance.
 
-CRITICAL: Your entire response must be a JSON array of slugs. Nothing else.
-Example response: ["suicide-rate", "mental-health-prevalence"]
+CRITICAL: Your entire response must be a JSON array of index numbers. Nothing else.
+Example response: [3, 0, 7, 2]
 `
 
 /** System prompt for semantic search (CF AI Search) */
@@ -89,10 +90,10 @@ const SYSTEM_PROMPT_SEMANTIC = (maxResults: number) =>
 
 SEARCH: Search for the data topic (no country names - charts are global).
 
-SELECTION: Pick up to ${maxResults} most relevant chart slugs from search results.
+SELECTION: Pick up to ${maxResults} chart indexes from search results, ordered by relevance.
 
-CRITICAL: Your entire response must be a JSON array of slugs. Nothing else.
-Example response: ["suicide-rate", "mental-health-prevalence"]
+CRITICAL: Your entire response must be a JSON array of index numbers. Nothing else.
+Example response: [3, 0, 7, 2]
 `
 
 // =============================================================================
@@ -141,7 +142,8 @@ function calculateGeminiCost(
 interface ProviderResult {
     text: string
     searchQueriesUsed: string[]
-    chartsBySlug: Map<string, ChartInfo>
+    /** All charts from search results, in order (index matches what LLM sees) */
+    allCharts: ChartInfo[]
     steps: { text: string; toolCalls: unknown[] }[]
     usage: TokenUsage
 }
@@ -174,19 +176,27 @@ function stripVerboseFields(charts: RecommendedChart[]): MinimalChartInfo[] {
     }))
 }
 
+/** Chart info for LLM with index for reference */
+interface IndexedChartForLLM {
+    i: number // index
+    title: string
+    subtitle?: string
+}
+
 /**
  * Execute multi-query keyword search (Algolia) and collect chart info.
- * Stores full chart data in chartsBySlug for API response,
- * but returns minimal info for LLM to keep token usage low.
+ * Stores full chart data in allCharts array for API response,
+ * but returns minimal indexed info for LLM to keep token usage low.
  * Optionally filters by type before returning to LLM.
+ * Note: searchChartsMulti already deduplicates results across queries.
  */
 async function executeKeywordSearchAndCollect(
     searches: string[],
     algoliaConfig: AlgoliaConfig,
     baseUrl: string,
-    chartsBySlug: Map<string, ChartInfo>,
+    allCharts: ChartInfo[],
     typeFilter: ChartRecordType | null
-): Promise<{ query: string; charts: ChartInfoForLLM[] }[]> {
+): Promise<{ query: string; charts: IndexedChartForLLM[] }[]> {
     const results = await searchChartsMulti(
         algoliaConfig,
         searches,
@@ -201,16 +211,16 @@ async function executeKeywordSearchAndCollect(
             ? result.hits.filter((hit) => hit.type === typeFilter)
             : result.hits
 
-        // Store full hit data for API response
-        for (const hit of filteredHits) {
-            chartsBySlug.set(hit.slug, hit as ChartInfo)
-        }
-        // Return minimal info for LLM context
-        const chartsForLLM: ChartInfoForLLM[] = filteredHits.map((hit) => ({
-            title: hit.title,
-            slug: hit.slug,
-            subtitle: hit.subtitle,
-        }))
+        // Return indexed info for LLM context
+        const chartsForLLM: IndexedChartForLLM[] = filteredHits.map((hit) => {
+            const index = allCharts.length
+            allCharts.push(hit as ChartInfo)
+            return {
+                i: index,
+                title: hit.title,
+                subtitle: hit.subtitle,
+            }
+        })
         return { query: result.query, charts: chartsForLLM }
     })
 }
@@ -223,9 +233,9 @@ async function executeSemanticSearchAndCollect(
     ai: Ai,
     searchQuery: string,
     baseUrl: string,
-    chartsBySlug: Map<string, ChartInfo>,
+    allCharts: ChartInfo[],
     typeFilter: ChartRecordType | null
-): Promise<{ query: string; charts: ChartInfoForLLM[] }[]> {
+): Promise<{ query: string; charts: IndexedChartForLLM[] }[]> {
     // Fetch more results if filtering, to ensure enough after filter
     const result = await searchChartsSemantic(
         ai,
@@ -239,17 +249,16 @@ async function executeSemanticSearchAndCollect(
         ? result.charts.filter((chart) => chart.type === typeFilter)
         : result.charts
 
-    // Store full chart data for API response
-    for (const chart of filteredCharts) {
-        chartsBySlug.set(chart.slug, chart)
-    }
-
-    // Return minimal info for LLM context
-    const chartsForLLM: ChartInfoForLLM[] = filteredCharts.map((chart) => ({
-        title: chart.title,
-        slug: chart.slug,
-        subtitle: chart.subtitle,
-    }))
+    // Return indexed info for LLM context, storing full data
+    const chartsForLLM: IndexedChartForLLM[] = filteredCharts.map((chart) => {
+        const index = allCharts.length
+        allCharts.push(chart)
+        return {
+            i: index,
+            title: chart.title,
+            subtitle: chart.subtitle,
+        }
+    })
 
     return [{ query: searchQuery, charts: chartsForLLM }]
 }
@@ -289,12 +298,12 @@ async function runRecommendation(
     ai: Ai,
     typeFilter: ChartRecordType | null
 ): Promise<ProviderResult> {
-    const chartsBySlug = new Map<string, ChartInfo>()
+    const allCharts: ChartInfo[] = []
     const searchQueriesUsed: string[] = []
 
     const keywordSearchTool = tool({
         description:
-            "Search Our World in Data charts by multiple keyword sets. Returns chart titles and metadata grouped by search query.",
+            "Search Our World in Data charts by multiple keyword sets. Returns indexed chart titles and metadata grouped by search query.",
         inputSchema: z.object({
             searches: z
                 .array(z.string())
@@ -308,7 +317,7 @@ async function runRecommendation(
                 searches,
                 algoliaConfig,
                 baseUrl,
-                chartsBySlug,
+                allCharts,
                 typeFilter
             )
         },
@@ -316,7 +325,7 @@ async function runRecommendation(
 
     const semanticSearchTool = tool({
         description:
-            "Search Our World in Data charts using semantic search. Returns chart titles and metadata.",
+            "Search Our World in Data charts using semantic search. Returns indexed chart titles and metadata.",
         inputSchema: z.object({
             query: z
                 .string()
@@ -330,7 +339,7 @@ async function runRecommendation(
                 ai,
                 searchQuery,
                 baseUrl,
-                chartsBySlug,
+                allCharts,
                 typeFilter
             )
         },
@@ -358,7 +367,7 @@ async function runRecommendation(
     return {
         text,
         searchQueriesUsed,
-        chartsBySlug,
+        allCharts,
         steps: steps.map((step) => ({
             text: step.text,
             toolCalls: step.toolCalls,
@@ -495,54 +504,59 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         )
 
         const agentEndTime = Date.now()
-        const { text, searchQueriesUsed, chartsBySlug, steps, usage } = result
+        const { text, searchQueriesUsed, allCharts, steps, usage } = result
 
-        // Parse the LLM's JSON response to get selected slugs
-        const selectedSlugs = extractJsonArray<string>(text)
-        if (selectedSlugs === null) {
+        // Parse the LLM's JSON response to get selected indexes
+        const selectedIndexes = extractJsonArray<number>(text)
+        if (selectedIndexes === null) {
             return new Response(
                 JSON.stringify({
                     error: "Failed to parse LLM response",
                     details:
                         "The model did not return valid JSON. Try again or use a different model.",
-                    rawResponse: text,
+                    ...(debug && {
+                        rawResponse: text,
+                        debug: {
+                            steps,
+                            searchResults: allCharts.map((c) => c.title),
+                        },
+                    }),
                 }),
                 { status: 500, headers }
             )
         }
 
-        // Build recommendations from selected slugs (chart already has full data including URL)
-        // Type filtering already applied during search, so just validate slugs here
+        // Build recommendations from selected indexes
         const recommendations: RecommendedChart[] = []
-        const invalidSlugs: string[] = []
-        for (const slug of selectedSlugs) {
+        const invalidIndexes: number[] = []
+        for (const index of selectedIndexes) {
             if (recommendations.length >= maxResults) break
-            const chart = chartsBySlug.get(slug)
+            const chart = allCharts[index]
             if (chart) {
                 recommendations.push(chart)
             } else {
-                invalidSlugs.push(slug)
+                invalidIndexes.push(index)
             }
         }
 
         // Collect warnings for debug mode
         const warnings: string[] = []
-        if (chartsBySlug.size === 0) {
+        if (allCharts.length === 0) {
             warnings.push("Search returned no charts")
         }
-        if (invalidSlugs.length > 0) {
+        if (invalidIndexes.length > 0) {
             warnings.push(
-                `Invalid slugs returned by model: ${invalidSlugs.join(", ")}`
+                `Invalid indexes returned by model: ${invalidIndexes.join(", ")}`
             )
         }
-        if (selectedSlugs.length > maxResults) {
+        if (selectedIndexes.length > maxResults) {
             warnings.push(
-                `Model returned ${selectedSlugs.length} slugs, truncated to ${maxResults}`
+                `Model returned ${selectedIndexes.length} indexes, truncated to ${maxResults}`
             )
         }
-        if (recommendations.length === 0 && chartsBySlug.size > 0) {
+        if (recommendations.length === 0 && allCharts.length > 0) {
             warnings.push(
-                "No valid recommendations: model returned empty or all-invalid slugs"
+                "No valid recommendations: model returned empty or all-invalid indexes"
             )
         }
 
@@ -570,9 +584,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 debug: {
                     steps,
                     finalText: text,
-                    searchResults: [...chartsBySlug.values()].map(
-                        (c) => c.title
-                    ),
+                    searchResults: allCharts.map((c) => c.title),
                     ...(warnings.length > 0 && { warnings }),
                     usage,
                     cost_usd: calculateGeminiCost(resolvedModel, usage),

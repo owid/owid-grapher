@@ -360,36 +360,49 @@ export async function searchChartsMulti(
         results: AlgoliaSearchResponse[]
     }
 
-    // Map results back to queries with cleaned hits
+    // Track seen slugs to deduplicate across queries
+    const seenSlugs = new Set<string>()
+
+    // Map results back to queries with cleaned hits, deduplicating across queries
     return data.results.map((result, i) => ({
         query: queries[i],
-        hits: result.hits.map((hit): EnrichedSearchChartHit => {
-            const cleanHit: Record<string, unknown> = {}
-            for (const attr of DATA_CATALOG_ATTRIBUTES) {
-                if (attr in hit) {
-                    cleanHit[attr] = (hit as unknown as Record<string, unknown>)[attr]
+        hits: result.hits
+            .filter((hit) => {
+                const slug = (hit as unknown as Record<string, unknown>)
+                    .slug as string
+                if (seenSlugs.has(slug)) return false
+                seenSlugs.add(slug)
+                return true
+            })
+            .map((hit): EnrichedSearchChartHit => {
+                const cleanHit: Record<string, unknown> = {}
+                for (const attr of DATA_CATALOG_ATTRIBUTES) {
+                    if (attr in hit) {
+                        cleanHit[attr] = (
+                            hit as unknown as Record<string, unknown>
+                        )[attr]
+                    }
                 }
-            }
 
-            // Construct URL based on type
-            let hitUrl: string
-            if (cleanHit.type === ChartRecordType.ExplorerView) {
-                const queryParams = (cleanHit.queryParams as string) || ""
-                hitUrl = `${baseUrl}/explorers/${cleanHit.slug}${queryParams}`
-            } else if (cleanHit.type === ChartRecordType.MultiDimView) {
-                const queryParams = (cleanHit.queryParams as string) || ""
-                hitUrl = `${baseUrl}/grapher/${cleanHit.slug}${queryParams}`
-            } else {
-                hitUrl = `${baseUrl}/grapher/${cleanHit.slug}`
-            }
+                // Construct URL based on type
+                let hitUrl: string
+                if (cleanHit.type === ChartRecordType.ExplorerView) {
+                    const queryParams = (cleanHit.queryParams as string) || ""
+                    hitUrl = `${baseUrl}/explorers/${cleanHit.slug}${queryParams}`
+                } else if (cleanHit.type === ChartRecordType.MultiDimView) {
+                    const queryParams = (cleanHit.queryParams as string) || ""
+                    hitUrl = `${baseUrl}/grapher/${cleanHit.slug}${queryParams}`
+                } else {
+                    hitUrl = `${baseUrl}/grapher/${cleanHit.slug}`
+                }
 
-            delete cleanHit.objectID
+                delete cleanHit.objectID
 
-            return {
-                ...(cleanHit as unknown as SearchChartHit),
-                url: hitUrl,
-            }
-        }),
+                return {
+                    ...(cleanHit as unknown as SearchChartHit),
+                    url: hitUrl,
+                }
+            }),
     }))
 }
 
