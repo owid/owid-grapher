@@ -455,7 +455,11 @@ export class ChoroplethGlobe extends React.Component<{
         this.manager.onMapMouseLeave?.()
     }
 
-    @action.bound private onClick(feature: GlobeRenderFeature): void {
+    @action.bound private onClick(
+        feature: GlobeRenderFeature,
+        event: MouseEvent
+    ): void {
+        event.preventDefault()
         this.setHoverEnterFeature(feature)
 
         // reset the region if necessary
@@ -479,9 +483,9 @@ export class ChoroplethGlobe extends React.Component<{
         }
     }
 
-    @action.bound private onDocumentPointerDown(event: PointerEvent): void {
-        // don't dismiss when tapping on a country — let the map's own handlers deal with it
-        if ((event.target as Element).closest?.("[data-feature-id]")) return
+    @action.bound private onDocumentClick(event: MouseEvent): void {
+        // if the click event is on a country path, then an upstream handler will have called `preventDefault()` on it, which means we can check for that here.
+        if (event.defaultPrevented) return
 
         this.clearHover()
     }
@@ -663,13 +667,15 @@ export class ChoroplethGlobe extends React.Component<{
             this.globeController.jumpToOwidContinent(this.mapConfig.region)
         }
 
-        document.addEventListener("pointerdown", this.onDocumentPointerDown)
+        document.addEventListener("click", this.onDocumentClick, {
+            passive: true,
+        })
 
         this.setUpPanningAndZooming()
     }
 
     override componentWillUnmount(): void {
-        document.removeEventListener("pointerdown", this.onDocumentPointerDown)
+        document.removeEventListener("click", this.onDocumentClick)
     }
 
     renderGlobeOutline(): React.ReactElement {
@@ -745,7 +751,7 @@ export class ChoroplethGlobe extends React.Component<{
                             // catches clicks on 'nearby' features
                             event.stopPropagation()
 
-                            this.onClick(feature)
+                            this.onClick(feature, event.nativeEvent)
                         }}
                         onPointerEnter={this.onPointerEnterFeature}
                         onPointerLeave={this.onPointerLeaveFeature}
@@ -805,7 +811,7 @@ export class ChoroplethGlobe extends React.Component<{
                                 // catches clicks on 'nearby' features
                                 event.stopPropagation()
 
-                                this.onClick(feature)
+                                this.onClick(feature, event.nativeEvent)
                             }}
                             onPointerEnter={this.onPointerEnterFeature}
                             onPointerLeave={this.onPointerLeaveFeature}
@@ -890,10 +896,10 @@ export class ChoroplethGlobe extends React.Component<{
                 onPointerLeave={(e) =>
                     this.onPointerLeaveFeature(e.nativeEvent)
                 }
-                onClick={() => {
+                onClick={(event) => {
                     // invoke a click on a feature when clicking nearby one
                     if (this.hoverNearbyFeature)
-                        this.onClick(this.hoverNearbyFeature)
+                        this.onClick(this.hoverNearbyFeature, event.nativeEvent)
                 }}
                 style={{
                     cursor: this.hoverFeature ? "pointer" : undefined,
