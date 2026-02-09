@@ -207,9 +207,10 @@ export {
     getContinents,
     type Continent,
     getAggregates,
+    getAggregatesBySource,
     type Aggregate,
     type AggregateSource,
-    aggregateSources,
+    AGGREGATE_SOURCES,
     getOthers,
     countriesByName,
     incomeGroupsByName,
@@ -218,6 +219,7 @@ export {
     checkIsCountry,
     checkIsOwidContinent,
     checkIsIncomeGroup,
+    checkIsAggregate,
     getIncomeGroups,
     getCountryNamesForRegion,
     checkHasMembers,
@@ -225,6 +227,7 @@ export {
     getRegionBySlug,
     getParentRegions,
     getSiblingRegions,
+    getContinentForCountry,
     articulateEntity,
 } from "./regions.js"
 export {
@@ -355,9 +358,3 @@ export {
 
 export { placeGrapherTabsInLargeVariantGrid } from "./search/LargeVariantRichDataHelpers.js"
 export { placeGrapherTabsInMediumVariantGridLayout } from "./search/MediumVariantRichDataHelpers.js"
-
-export {
-    loadCatalogVariableData,
-    columnDefsByCatalogKey,
-    getCatalogAssetKey,
-} from "./loadCatalogData.js"

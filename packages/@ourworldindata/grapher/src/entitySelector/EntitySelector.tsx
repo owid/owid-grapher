@@ -29,7 +29,6 @@ import {
     Region,
     getRegionByName,
     makeSafeForCSS,
-    columnDefsByCatalogKey,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
@@ -60,10 +59,9 @@ import { Dropdown } from "../controls/Dropdown"
 import { scaleLinear, type ScaleLinear } from "d3-scale"
 import {
     AdditionalGrapherDataFetchFn,
-    CatalogDataPoint,
-    CatalogKey,
     ColumnSlug,
     EntityName,
+    NumericCatalogKey,
     OwidColumnDef,
     ProjectionColumnInfo,
     Time,
@@ -83,6 +81,10 @@ import {
 } from "../core/EntitiesByRegionType"
 import { SearchField } from "../controls/SearchField"
 import { MAP_REGION_LABELS } from "../mapCharts/MapChartConstants.js"
+import {
+    columnDefsByCatalogKey,
+    loadCatalogDataAsOwidTable,
+} from "../core/loadCatalogData.js"
 
 export type CoreColumnBySlug = Record<ColumnSlug, CoreColumn>
 
@@ -169,12 +171,12 @@ interface FilterDropdownOption {
 
 export const EXTERNAL_SORT_INDICATOR_DEFINITIONS = [
     {
-        catalogKey: "population" satisfies CatalogKey,
+        catalogKey: "population" satisfies NumericCatalogKey,
         slug: columnDefsByCatalogKey["population"].slug,
         label: "Population",
     },
     {
-        catalogKey: "gdp" satisfies CatalogKey,
+        catalogKey: "gdp" satisfies NumericCatalogKey,
         slug: columnDefsByCatalogKey["gdp"].slug,
         label: "GDP per capita (int. $)",
     },
@@ -703,9 +705,10 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
      */
     @computed
     private get externalSortColumnsByCatalogKey(): Partial<
-        Record<CatalogKey, CoreColumn>
+        Record<NumericCatalogKey, CoreColumn>
     > {
-        const matchingColumns: Partial<Record<CatalogKey, CoreColumn>> = {}
+        const matchingColumns: Partial<Record<NumericCatalogKey, CoreColumn>> =
+            {}
         for (const external of EXTERNAL_SORT_INDICATOR_DEFINITIONS) {
             const matchingColumn = this.numericalChartColumns.find((column) =>
                 isExternalSortIndicatorMatch(external.catalogKey, column)
@@ -1231,9 +1234,10 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
                 throw new Error(
                     "additionalDataLoaderFn is not set, can't load sort variables on demand"
                 )
-            const data = await additionalDataLoaderFn(catalogKey)
-            const columnDef = columnDefsByCatalogKey[catalogKey]
-            const table = catalogDataToOwidTable(data, columnDef)
+            const { table } = await loadCatalogDataAsOwidTable(
+                catalogKey,
+                additionalDataLoaderFn
+            )
             const column = table
                 .filterByEntityNames(this.inputTable.availableEntityNames)
                 .interpolateColumnWithTolerance(slug, {
@@ -1350,9 +1354,6 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
                     renderTriggerValue={renderFilterTriggerValue}
                     renderMenuOption={renderFilterMenuOption}
                     aria-label="Filter by type"
-                    portalContainer={
-                        this.scrollableContainer.current ?? undefined
-                    }
                 />
             </div>
         )
@@ -1390,9 +1391,6 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
                         renderTriggerValue={renderSortTriggerValue}
                         renderMenuOption={renderSortMenuOption}
                         aria-label="Sort by"
-                        portalContainer={
-                            this.scrollableContainer.current ?? undefined
-                        }
                     />
                     <button
                         type="button"
@@ -1807,7 +1805,7 @@ function getTitleForSortColumnLabel(column: CoreColumn): string {
 
 /** Determines if a column matches a specific external sort indicator type */
 function isExternalSortIndicatorMatch(
-    key: CatalogKey,
+    key: NumericCatalogKey,
     column: CoreColumn
 ): boolean {
     // Trivial if the slugs match
@@ -1833,18 +1831,4 @@ function isExternalSortIndicatorMatch(
             return matches.length > 0
         })
         .exhaustive()
-}
-
-/** Creates an OwidTable from catalog data points */
-function catalogDataToOwidTable(
-    data: CatalogDataPoint[],
-    columnDef: OwidColumnDef
-): OwidTable {
-    const rows = data.map((point) => ({
-        entityName: point.entity,
-        year: point.year,
-        [columnDef.slug]: point.value,
-    }))
-
-    return new OwidTable(rows, [columnDef])
 }

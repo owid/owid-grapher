@@ -14,16 +14,19 @@ import {
     GrapherProgrammaticInterface,
     useMaybeGlobalGrapherStateRef,
     GuidedChartContext,
+    loadCatalogData,
 } from "@ourworldindata/grapher"
 import {
     extractMultiDimChoicesFromSearchParams,
     GRAPHER_TAB_QUERY_PARAMS,
     GrapherQueryParams,
-    loadCatalogVariableData,
     MultiDimDataPageConfig,
     MultiDimDimensionChoices,
 } from "@ourworldindata/utils"
-import { ArchiveContext } from "@ourworldindata/types"
+import {
+    AdditionalGrapherDataFetchFn,
+    ArchiveContext,
+} from "@ourworldindata/types"
 import { useElementBounds } from "../hooks.js"
 import { cachedGetGrapherConfigByUuid } from "./api.js"
 import MultiDimEmbedSettingsPanel from "./MultiDimEmbedSettingsPanel.js"
@@ -57,11 +60,11 @@ export default function MultiDim({
     const grapherStateRef = useMaybeGlobalGrapherStateRef({
         manager: manager.current,
         queryStr,
-        additionalDataLoaderFn: (catalogKey) =>
-            loadCatalogVariableData(catalogKey, {
+        additionalDataLoaderFn: ((catalogKey) =>
+            loadCatalogData(catalogKey, {
                 baseUrl: CATALOG_URL,
                 assetMap,
-            }),
+            })) as AdditionalGrapherDataFetchFn,
         archiveContext,
         isConfigReady: false,
     })
@@ -91,7 +94,7 @@ export default function MultiDim({
     })
     // We want to preserve the grapher tab when switching between views, except
     // when the switch happens via a guided chart link.
-    const [shouldPreserveTab, setShouldPreserveTab] = useState(false)
+    const [shouldPreserveTab, setShouldPreserveTab] = useState(true)
     const [additionalQueryParams, setAdditionalQueryParams] =
         useState<GrapherQueryParams | null>(null)
 

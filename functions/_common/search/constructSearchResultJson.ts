@@ -2,6 +2,7 @@ import * as _ from "lodash-es"
 import * as R from "remeda"
 import { match } from "ts-pattern"
 import {
+    selectPeerCountriesForGrapher,
     generateFocusedSeriesNamesParam,
     generateSelectedEntityNamesParam,
     GrapherState,
@@ -9,6 +10,7 @@ import {
     MarimekkoChartState,
     ScatterPlotChartState,
     WORLD_ENTITY_NAME,
+    loadCatalogData,
 } from "@ourworldindata/grapher"
 import {
     EntityName,
@@ -27,26 +29,28 @@ import {
     SeriesStrategy,
     Time,
     GrapherSearchResultJson,
+    PeerCountryStrategy,
 } from "@ourworldindata/types"
 import { constructSearchResultDataTableContent } from "./constructSearchResultDataTableContent"
 import { constructGrapherValuesJson } from "../grapherValuesJson"
 import {
     buildChartHitDataDisplayProps,
-    checkIsCountry,
-    getAggregates,
-    getContinents,
-    getIncomeGroups,
-    getParentRegions,
-    getRegionByName,
-    getSiblingRegions,
     getTableColumnCountForGridSlotKey,
-    loadCatalogVariableData,
     omitUndefinedValues,
     getTimeDomainFromQueryString,
     placeGrapherTabsInLargeVariantGrid,
     placeGrapherTabsInMediumVariantGridLayout,
     timeBoundToTimeBoundString,
     stripOuterParentheses,
+    getRegionByName,
+    checkIsCountry,
+    getSiblingRegions,
+    Continent,
+    IncomeGroup,
+    Aggregate,
+    getContinents,
+    getIncomeGroups,
+    getAggregates,
 } from "@ourworldindata/utils"
 import { toPlaintext } from "@ourworldindata/components"
 import { ColumnTypeMap } from "@ourworldindata/core-table"
@@ -58,7 +62,7 @@ export enum RichDataVariant {
 
 type TimeBounds = [Time | undefined, Time | undefined]
 
-export function constructSearchResultJson(
+export async function constructSearchResultJson(
     grapherState: GrapherState,
     {
         variant,
@@ -73,7 +77,7 @@ export function constructSearchResultJson(
         sortedTabs: GrapherTabName[]
         numDataTableRowsPerColumn: number
     }
-): GrapherSearchResultJson | undefined {
+): Promise<GrapherSearchResultJson | undefined> {
     // Prepare data for the big data value display
     const entityForDataDisplay = pickedEntities[0] ?? WORLD_ENTITY_NAME
     const shouldShowDataDisplay = variant !== RichDataVariant.Large
@@ -150,20 +154,23 @@ export function constructSearchResultJson(
     if (!layout) return undefined
 
     // Some charts and preview thumbnails need specific grapher query params
-    const enrichedLayout = layout.map(({ slotKey, grapherTab }) => {
-        const { chartParams, previewParams } = getGrapherQueryParamsForTab({
-            grapherState,
-            tab: grapherTab,
-            timeBounds: pickedTimeBounds,
-        })
+    const enrichedLayout = await Promise.all(
+        layout.map(async ({ slotKey, grapherTab }) => {
+            const { chartParams, previewParams } =
+                await getGrapherQueryParamsForTab({
+                    grapherState,
+                    tab: grapherTab,
+                    timeBounds: pickedTimeBounds,
+                })
 
-        return omitUndefinedValues({
-            slotKey,
-            grapherTab,
-            chartParams,
-            previewParams,
+            return omitUndefinedValues({
+                slotKey,
+                grapherTab,
+                chartParams,
+                previewParams,
+            })
         })
-    })
+    )
 
     const grapherParams = {
         ...grapherState.changedParams,
@@ -257,7 +264,6 @@ export async function pickDisplayEntities(
         chartType,
         addCountryMode,
         selectedEntityNames: defaultEntities,
-        availableEntityNames: availableEntities,
     } = grapherState
     const { seriesStrategy = SeriesStrategy.entity } = grapherState.chartState
     const isEntityStrategy = seriesStrategy === SeriesStrategy.entity
@@ -265,13 +271,13 @@ export async function pickDisplayEntities(
     const isFaceted = facetStrategy !== FacetStrategy.none
 
     /** Find comparison entities and add them to the ones picked by the user */
-    const enrichPickedEntities = () => {
+    const enrichPickedEntities = async () => {
         if (pickedEntities.length === 0) return defaultEntities
 
-        const pickedComparisonEntities = pickComparisonEntities(
-            pickedEntities[0],
-            availableEntities
-        )
+        const pickedComparisonEntities = await selectPeerEntitiesForSearch({
+            grapherState,
+            targetEntity: pickedEntities[0],
+        })
 
         // Default to the default entities if no comparison entities could be found
         const comparisonEntities =
@@ -319,7 +325,7 @@ export async function pickDisplayEntities(
 
         // Find entities for comparison and combine them with the picked entities
         if (pickedEntities.length > 0) {
-            const enrichedEntities = enrichPickedEntities()
+            const enrichedEntities = await enrichPickedEntities()
 
             // If we couldn't find any comparison entities,
             // we try to pick a sensible selection based on the chart data
@@ -400,7 +406,7 @@ async function pickDisplayEntitiesForScatterPlot({
     const { series, colorColumnSlug, sizeColumnSlug } = chartState
 
     // Pick income groups or continents if available
-    const regions = findBestAvailableRegions(
+    const regions = selectRegionGroupByPriority(
         grapherState.availableEntityNames,
         { includeWorld: true }
     )
@@ -477,7 +483,7 @@ async function pickDisplayEntitiesForMarimekko({
     const { items, colorColumnSlug, xColumnSlug } = chartState
 
     // Pick income groups or continents if available
-    const regions = findBestAvailableRegions(
+    const regions = selectRegionGroupByPriority(
         grapherState.availableEntityNames,
         { includeWorld: true }
     )
@@ -541,78 +547,6 @@ async function pickDisplayEntitiesForMarimekko({
     )
 }
 
-/**
- * Finds the best available regions from a set of available entities,
- * prioritizing continents, then  income groups, then other aggregates.
- */
-function findBestAvailableRegions(
-    availableEntities: EntityName[],
-    { includeWorld }: { includeWorld: boolean } = { includeWorld: false }
-) {
-    const availableEntitySet = new Set(availableEntities)
-
-    const regionGroups = [getContinents(), getIncomeGroups(), getAggregates()]
-    for (const regions of regionGroups) {
-        const availableRegions: EntityName[] = regions
-            .filter((region) => availableEntitySet.has(region.name))
-            .map((region) => region.name)
-
-        if (availableRegions.length > 0) {
-            // Also add the World entity if it's available
-            if (includeWorld && availableEntitySet.has(WORLD_ENTITY_NAME)) {
-                availableRegions.push(WORLD_ENTITY_NAME)
-            }
-
-            return availableRegions
-        }
-    }
-    return []
-}
-
-/**
- * Selects relevant comparison entities for a given entity to provide meaningful
- * contextual comparisons in search results.
- */
-function pickComparisonEntities(
-    entity: EntityName,
-    availableEntities: EntityName[]
-): EntityName[] {
-    const availableEntitySet = new Set(availableEntities)
-
-    const comparisonEntities = new Set<EntityName>()
-
-    // Can't determine comparison entities for non-geographical entities
-    const region = getRegionByName(entity)
-    if (!region) return []
-
-    // Compare World to any aggregate entities (e.g. continents or income groups)
-    if (entity === WORLD_ENTITY_NAME)
-        return findBestAvailableRegions(availableEntities)
-
-    // Always include World as a comparison if available
-    if (availableEntitySet.has(WORLD_ENTITY_NAME))
-        comparisonEntities.add(WORLD_ENTITY_NAME)
-
-    if (checkIsCountry(region)) {
-        // For countries: add their parent regions (continent, income group, etc.)
-        // Example: Germany -> Europe, Europe (WHO), High income countries
-        const regions = getParentRegions(region.name)
-        for (const region of regions)
-            if (availableEntitySet.has(region.name))
-                comparisonEntities.add(region.name)
-    } else {
-        // For aggregate regions: add sibling regions at the same hierarchical level
-        // Example: Europe -> Asia, Africa, North America (other continents)
-        const siblings = getSiblingRegions(region.name)
-        for (const sibling of siblings) {
-            if (availableEntitySet.has(sibling.name))
-                comparisonEntities.add(sibling.name)
-        }
-    }
-
-    return Array.from(comparisonEntities)
-}
-
 let _populationDataCache: Map<EntityName, number> | undefined
 /**
  * Fetch the latest population data and return a map from entity name to
@@ -629,7 +563,7 @@ async function fetchLatestPopulationData({
 
     try {
         // Fetch population data from catalog
-        const catalogData = await loadCatalogVariableData("population", {
+        const catalogData = await loadCatalogData("population", {
             baseUrl: catalogUrl,
         })
 
@@ -902,7 +836,7 @@ function configureGrapherStateForMarimekko(
         grapherState.selection.setSelectedEntities(displayEntities)
 }
 
-function getGrapherQueryParamsForTab({
+async function getGrapherQueryParamsForTab({
     grapherState,
     tab,
     timeBounds,
@@ -910,11 +844,15 @@ function getGrapherQueryParamsForTab({
     grapherState: GrapherState
     tab: GrapherTabName
     timeBounds?: TimeBounds
-}): { chartParams?: GrapherQueryParams; previewParams?: GrapherQueryParams } {
+}): Promise<{
+    chartParams?: GrapherQueryParams
+    previewParams?: GrapherQueryParams
+}> {
     // Adjust grapher query params for the preview thumbnail of some chart types
-    const params = match(tab)
-        .with(GRAPHER_TAB_NAMES.DiscreteBar, () =>
-            getGrapherQueryParamsForDiscreteBar(grapherState)
+    const params = await match(tab)
+        .with(
+            GRAPHER_TAB_NAMES.DiscreteBar,
+            async () => await getGrapherQueryParamsForDiscreteBar(grapherState)
         )
         .with(GRAPHER_TAB_NAMES.Marimekko, () =>
             getGrapherQueryParamsForMarimekko(grapherState)
@@ -957,11 +895,12 @@ function getGrapherQueryParamsForMarimekko(
     }
 }
 
-function getGrapherQueryParamsForDiscreteBar(
+async function getGrapherQueryParamsForDiscreteBar(
     grapherState: GrapherState
-):
+): Promise<
     | { chartParams?: GrapherQueryParams; previewParams?: GrapherQueryParams }
-    | undefined {
+    | undefined
+> {
     const overwriteParams: GrapherQueryParams = {}
 
     // Instead of showing a single series per facet,
@@ -980,10 +919,10 @@ function getGrapherQueryParamsForDiscreteBar(
         isEntityStrategy &&
         selectedEntities.length === 1
     ) {
-        const comparisonEntities = pickComparisonEntities(
-            selectedEntities[0],
-            grapherState.availableEntityNames
-        )
+        const comparisonEntities = await selectPeerEntitiesForSearch({
+            grapherState,
+            targetEntity: selectedEntities[0],
+        })
         if (comparisonEntities.length > 1) {
             overwriteParams.country = generateSelectedEntityNamesParam(
                 _.uniq([...selectedEntities, ...comparisonEntities])
@@ -1074,6 +1013,122 @@ function findTableSlotKey(
     return layout?.find(
         ({ grapherTab }) => grapherTab === GRAPHER_TAB_NAMES.Table
     )?.slotKey
+}
+
+/**
+ * Selects peer entities for search, handling both countries and aggregate regions.
+ *
+ * For countries: delegates to selectPeerCountries with the ParentRegions strategy.
+ * For aggregate regions: returns sibling regions at the same hierarchical level.
+ * For the World entity: returns continents or income groups if available.
+ */
+export async function selectPeerEntitiesForSearch({
+    grapherState,
+    targetEntity,
+}: {
+    grapherState: GrapherState
+    targetEntity: EntityName
+}): Promise<EntityName[]> {
+    const availableEntities = grapherState.availableEntityNames
+
+    // Compare World to any aggregate entities (e.g. continents or income groups)
+    if (targetEntity === WORLD_ENTITY_NAME)
+        return selectRegionGroupByPriority(availableEntities)
+
+    // Can't select peers if the target entity is not a geographical region
+    const targetRegion = getRegionByName(targetEntity)
+    if (!targetRegion) return []
+
+    if (checkIsCountry(targetRegion)) {
+        // For backward compatibility, default to the ParentRegions strategy
+        const peerCountryStrategy =
+            grapherState.peerCountryStrategy ??
+            PeerCountryStrategy.ParentRegions
+
+        // For countries, use Grapher's peer selection logic
+        return selectPeerCountriesForGrapher(grapherState, {
+            targetCountry: targetEntity,
+            peerCountryStrategy,
+        })
+    } else {
+        // For aggregate regions, add sibling regions
+        return findAvailableSiblingRegions({ targetRegion, availableEntities })
+    }
+}
+
+/**
+ * Select sibling regions at the same hierarchical level
+ *
+ * For example, Europe -> Asia, Africa, North America, South America, Oceania
+ */
+function findAvailableSiblingRegions({
+    targetRegion,
+    availableEntities,
+}: {
+    targetRegion: Continent | IncomeGroup | Aggregate
+    availableEntities: EntityName[]
+}): EntityName[] {
+    const peers = new Set<EntityName>()
+    const availableEntitySet = new Set(availableEntities)
+
+    const siblings = getSiblingRegions(targetRegion.name)
+    for (const sibling of siblings) {
+        if (availableEntitySet.has(sibling.name)) peers.add(sibling.name)
+    }
+
+    return Array.from(peers)
+}
+
+/**
+ * Finds the best available regions from a set of available entities,
+ * prioritizing OWID continents, then income groups, then other aggregate
+ * regions as defined by the WHO or WB, for example
+ */
+export function selectRegionGroupByPriority(
+    availableEntities: EntityName[],
+    { includeWorld }: { includeWorld: boolean } = { includeWorld: false }
+): EntityName[] {
+    const availableEntitySet = new Set(availableEntities)
+
+    const owidContinents = getContinents()
+    const incomeGroups = getIncomeGroups()
+    const aggregates = getAggregates()
+
+    const aggregatesBySource = R.groupBy(
+        aggregates,
+        (region) => region.definedBy
+    )
+
+    // Sort aggregate groups by count (most regions first)
+    const sortedAggregateGroups = R.pipe(
+        aggregatesBySource,
+        R.values(),
+        R.sortBy((group) => -group.length)
+    )
+
+    const regionGroups = [
+        owidContinents,
+        incomeGroups,
+        ...sortedAggregateGroups,
+    ]
+
+    // Try each group in order of priority and return the first with available regions
+    for (const regionGroup of regionGroups) {
+        const matchingRegions: EntityName[] = regionGroup
+            .filter((region) => availableEntitySet.has(region.name))
+            .map((region) => region.name)
+
+        if (matchingRegions.length > 0) {
+            // Add the World entity if requested and available
+            if (includeWorld && availableEntitySet.has(WORLD_ENTITY_NAME)) {
+                matchingRegions.push(WORLD_ENTITY_NAME)
+            }
+
+            return matchingRegions
+        }
+    }
+
+    return []
 }
 
 /**

@@ -16,7 +16,11 @@ import { execWrapper } from "./execWrapper.js"
 const argv = parseArgs(process.argv.slice(2))
 const filePath = argv._[0] || "/tmp/owid_metadata.sql"
 
-const excludeTables = ["analytics_pageviews", "donors"]
+const excludeTables = [
+    "analytics_pageviews",
+    "analytics_grapher_views",
+    "donors",
+]
 
 async function dataExport(): Promise<void> {
     console.log(`Exporting database structure and metadata to ${filePath}...`)

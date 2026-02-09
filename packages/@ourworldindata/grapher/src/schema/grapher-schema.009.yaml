@@ -217,6 +217,23 @@ properties:
             - add-country
             - change-country
             - disabled
+    peerCountryStrategy:
+        type: string
+        description: |
+            Strategy for selecting peer countries for comparison
+            - "defaultSelection": Use the chart's default selection as peers
+            - "parentRegions": Use the containing continent, income group, and World as peers
+            - "gdpPerCapita": Use countries with similar GDP per capita as peers
+            - "population": Use countries with similar population as peers
+            - "dataRange": Use countries that represent the data range as peers
+            - "neighbors": Use neighboring countries as peers
+        enum:
+            - defaultSelection
+            - parentRegions
+            - gdpPerCapita
+            - population
+            - dataRange
+            - neighbors
     entityType:
         type: string
         default: country or region

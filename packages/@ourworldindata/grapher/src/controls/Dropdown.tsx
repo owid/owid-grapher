@@ -194,8 +194,14 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
                     aria-label="Clear selection"
                 />
             )}
+            {/* Note: "portaled-popover" class is used by SlideInDrawer to detect
+                clicks inside portaled popovers. Update both if renaming. */}
             <Popover
-                className={cx("grapher-dropdown-menu", menuClassName)}
+                className={cx(
+                    "grapher-dropdown-menu",
+                    "portaled-popover",
+                    menuClassName
+                )}
                 offset={4}
                 UNSTABLE_portalContainer={portalContainer}
             >

@@ -36,6 +36,8 @@ export {
     latestGrapherConfigSchema,
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
+    CUSTOM_REGION_SOURCE_IDS,
+    type CustomAggregateSource,
 } from "./core/GrapherConstants"
 export {
     getVariableDataRoute,
@@ -140,3 +142,12 @@ export type { StackedBarChartState } from "./stackedCharts/StackedBarChartState.
 export type { StackedDiscreteBarChartState } from "./stackedCharts/StackedDiscreteBarChartState"
 export type { ScatterPlotChartState } from "./scatterCharts/ScatterPlotChartState"
 export type { MarimekkoChartState } from "./stackedCharts/MarimekkoChartState"
+
+export {
+    selectPeerCountriesForGrapher,
+    selectPeerCountries,
+    isValidPeerCountryStrategyQueryParam,
+    prepareEntitiesForPeerSelection,
+} from "./core/PeerCountrySelection.js"
+
+export { loadCatalogData, getCatalogAssetKey } from "./core/loadCatalogData.js"

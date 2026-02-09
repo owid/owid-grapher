@@ -31,7 +31,7 @@
     },
     {
         "name": "chart",
-        "text": "{.chart}\nurl: \ncaption: \n{}",
+        "text": "{.chart}\nurl: \ncaption: \npeerCountries: \n{}",
         "keyword": "+chart"
     },
     {

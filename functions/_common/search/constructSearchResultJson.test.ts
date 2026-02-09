@@ -10,12 +10,14 @@ import {
 import {
     GrapherState,
     GrapherProgrammaticInterface,
+    WORLD_ENTITY_NAME,
 } from "@ourworldindata/grapher"
 import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
 } from "@ourworldindata/core-table"
 import {
+    selectRegionGroupByPriority,
     getSortedGrapherTabsForChartHit,
     pickDisplayEntities,
 } from "./constructSearchResultJson.js"
@@ -299,5 +301,91 @@ describe(pickDisplayEntities, () => {
                 ...defaultEntities,
             ])
         })
+    })
+})
+
+describe(selectRegionGroupByPriority, () => {
+    it("prefers OWID continents over income groups", () => {
+        const availableEntities = [
+            "Italy",
+            "Europe",
+            "Asia",
+            "High-income countries",
+            "Low-income countries",
+        ]
+
+        const selectedRegions = selectRegionGroupByPriority(availableEntities)
+
+        expect(selectedRegions).toEqual(["Asia", "Europe"])
+    })
+
+    it("selects income groups when no continents are available", () => {
+        const availableEntities = [
+            "High-income countries",
+            "Spain",
+            "Low-income countries",
+            "Africa (WHO)",
+            "Upper-middle-income countries",
+        ]
+
+        const selectedRegions = selectRegionGroupByPriority(availableEntities)
+
+        expect(selectedRegions).toEqual([
+            "High-income countries",
+            "Low-income countries",
+            "Upper-middle-income countries",
+        ])
+    })
+
+    it("selects aggregate regions when neither continents nor income groups are available", () => {
+        const availableEntities = [
+            "Africa (WHO)",
+            "United States",
+            "Germany",
+            "Europe (WHO)",
+            "France",
+        ]
+
+        const selectedRegions = selectRegionGroupByPriority(availableEntities)
+
+        expect(selectedRegions).toEqual(["Africa (WHO)", "Europe (WHO)"])
+    })
+
+    it("selects aggregate regions of a single source", () => {
+        const availableEntities = [
+            "Africa (WHO)",
+            "Africa (WB)",
+            "Europe (WHO)",
+        ]
+
+        const selectedRegions = selectRegionGroupByPriority(availableEntities)
+
+        expect(selectedRegions).toEqual(["Africa (WHO)", "Europe (WHO)"])
+    })
+
+    it("excludes World by default", () => {
+        const availableEntities = [WORLD_ENTITY_NAME, "Europe", "Asia"]
+
+        const selectedRegions = selectRegionGroupByPriority(availableEntities)
+
+        expect(selectedRegions).not.toContain(WORLD_ENTITY_NAME)
+    })
+
+    it("includes World when includeWorld option is true", () => {
+        const availableEntities = [
+            WORLD_ENTITY_NAME,
+            "Europe",
+            "Asia",
+            "Italy",
+            "Africa (WHO)",
+        ]
+
+        const selectedRegions = selectRegionGroupByPriority(availableEntities, {
+            includeWorld: true,
+        })
+
+        expect(selectedRegions).toContain(WORLD_ENTITY_NAME)
+        expect(selectedRegions).toContain("Europe")
+        expect(selectedRegions).toContain("Asia")
     })
 })

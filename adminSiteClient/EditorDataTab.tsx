@@ -1,16 +1,29 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import { differenceOfSets } from "@ourworldindata/utils"
+import {
+    differenceOfSets,
+    getRegionByName,
+    checkIsCountry,
+} from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import cx from "classnames"
 import {
     EntitySelectionMode,
     MissingDataStrategy,
+    PeerCountryStrategy,
     EntityName,
     SeriesName,
 } from "@ourworldindata/types"
-import { GrapherState } from "@ourworldindata/grapher"
+import {
+    GrapherState,
+    selectPeerCountries,
+    prepareEntitiesForPeerSelection,
+} from "@ourworldindata/grapher"
+import {
+    getAvailablePresets,
+    sortEntitiesByLastValue,
+} from "./EntityPresets.js"
 import {
     ColorBox,
     SelectField,
@@ -19,6 +32,7 @@ import {
     BindString,
 } from "./Forms.js"
 import {
+    faDice,
     faLink,
     faMinus,
     faTimes,
@@ -141,6 +155,313 @@ class SeriesListItem extends React.Component<SeriesListItemProps> {
 }
 
 @observer
+class QuickAddSection extends React.Component<{
+    editor: AbstractChartEditor
+}> {
+    @computed get grapherState() {
+        return this.props.editor.grapherState
+    }
+
+    @computed get availablePresets() {
+        return getAvailablePresets(this.grapherState.availableEntityNames)
+    }
+
+    @action.bound onSelectPreset(entities: EntityName[]) {
+        const { grapherState } = this
+        const dataColumn = grapherState.table.get(grapherState.yColumnSlug)
+        const sortedEntities = sortEntitiesByLastValue(entities, dataColumn)
+        grapherState.selection.setSelectedEntities(sortedEntities)
+    }
+
+    @action.bound async onSetDataRange() {
+        const { grapherState } = this
+        const dataColumn = grapherState.table.get(grapherState.yColumnSlug)
+        if (!dataColumn || dataColumn.isMissing || dataColumn.isEmpty) return
+
+        const additionalDataLoaderFn = grapherState.additionalDataLoaderFn
+        if (!additionalDataLoaderFn) return
+
+        const targetCount =
+            grapherState.isDiscreteBar || grapherState.isStackedDiscreteBar
+                ? 12
+                : 6
+
+        const availableEntities = prepareEntitiesForPeerSelection(grapherState)
+        const entities = await selectPeerCountries({
+            peerCountryStrategy: PeerCountryStrategy.DataRange,
+            availableEntities,
+            dataColumn,
+            additionalDataLoaderFn,
+            targetCount,
+            randomize: true,
+        })
+        grapherState.selection.setSelectedEntities(entities)
+    }
+
+    @computed private get shouldShow() {
+        // Presets don't make sense for single entity selection
+        const isSingleEntityMode =
+            this.grapherState.addCountryMode ===
+            EntitySelectionMode.SingleEntity
+
+        // No need for presets if the chart type typically has an empty selection
+        const isChartTypeThatShowsAllEntities =
+            this.grapherState.isScatter || this.grapherState.isMarimekko
+
+        if (isSingleEntityMode || isChartTypeThatShowsAllEntities) return false
+
+        // Check if there's at least one preset to show
+        return (
+            this.availablePresets.length > 0 || this.shouldShowDataRangeButton
+        )
+    }
+
+    @computed private get shouldShowDataRangeButton() {
+        // Data range selection doesn't make sense for stacked charts
+        if (this.grapherState.isStackedArea || this.grapherState.isStackedBar)
+            return false
+
+        // Data range selection doesn't make sense for charts with multiple y-columns
+        const hasMultipleYColumns = this.grapherState.yColumnSlugs.length > 1
+        if (hasMultipleYColumns) return false
+
+        // Data range selection is only supported for countries
+        const availableCountries =
+            this.grapherState.availableEntityNames.filter((entityName) => {
+                const region = getRegionByName(entityName)
+                return region && checkIsCountry(region)
+            })
+        if (availableCountries.length < 10) return false
+
+        const dataColumn = this.grapherState.table.get(
+            this.grapherState.yColumnSlug
+        )
+
+        // Check if a data column exists and has data
+        return dataColumn && !dataColumn.isMissing && !dataColumn.isEmpty
+    }
+
+    override render() {
+        if (!this.shouldShow) return null
+
+        return (
+            <div className="QuickAddSection">
+                <span className="quick-add-label">
+                    Presets{" "}
+                    <span className="quick-add-hint">(replaces selection)</span>
+                    :
+                </span>
+                <div className="quick-add-buttons">
+                    {this.availablePresets.map(({ preset, entities }) => (
+                        <button
+                            key={preset.id}
+                            className="btn btn-outline-secondary"
+                            onClick={() => this.onSelectPreset(entities)}
+                            title={`Replace current selection with ${preset.description}`}
+                        >
+                            {preset.label}
+                        </button>
+                    ))}
+                    {this.shouldShowDataRangeButton && (
+                        <button
+                            className="btn btn-outline-secondary"
+                            onClick={this.onSetDataRange}
+                            title="Replace current selection with countries representing the data range. Click multiple times for different results."
+                        >
+                            <FontAwesomeIcon icon={faDice} /> Data range
+                        </button>
+                    )}
+                </div>
+            </div>
+        )
+    }
+}
+
+@observer
+class AddPeersSection extends React.Component<{
+    editor: AbstractChartEditor
+}> {
+    chosenTargetCountry: EntityName | undefined = undefined
+
+    constructor(props: { editor: AbstractChartEditor }) {
+        super(props)
+        makeObservable(this, { chosenTargetCountry: observable.ref })
+    }
+
+    @computed get grapherState() {
+        return this.props.editor.grapherState
+    }
+
+    /** All selected entities that are countries (not aggregates) */
+    @computed get selectedCountries(): EntityName[] {
+        const { selection } = this.grapherState
+        return selection.selectedEntityNames.filter((entityName) => {
+            const region = getRegionByName(entityName)
+            return region && checkIsCountry(region)
+        })
+    }
+
+    /** The country to use as target for peer selection */
+    @computed get effectiveTargetCountry(): EntityName | undefined {
+        const { selectedCountries, chosenTargetCountry } = this
+        if (selectedCountries.length === 0) return undefined
+
+        // Use the chosen target country if it's still in the selection
+        if (
+            chosenTargetCountry &&
+            selectedCountries.includes(chosenTargetCountry)
+        ) {
+            return chosenTargetCountry
+        }
+
+        // Otherwise, just use the first selected country
+        return selectedCountries[0]
+    }
+
+    @computed get availableEntities(): EntityName[] {
+        return this.grapherState.availableEntityNames
+    }
+
+    private async getParentRegionPeersForCountry(
+        targetCountry: EntityName
+    ): Promise<EntityName[]> {
+        const availableEntities = prepareEntitiesForPeerSelection(
+            this.grapherState
+        )
+        return selectPeerCountries({
+            peerCountryStrategy: PeerCountryStrategy.ParentRegions,
+            targetCountry,
+            availableEntities,
+        })
+    }
+
+    @action.bound onTargetCountryChange(entityName: EntityName) {
+        this.chosenTargetCountry = entityName
+    }
+
+    @action.bound async onAddParentRegionPeers() {
+        if (!this.effectiveTargetCountry) return
+
+        const peers = await this.getParentRegionPeersForCountry(
+            this.effectiveTargetCountry
+        )
+
+        this.grapherState.selection.addToSelection(peers)
+    }
+
+    @action.bound async onAddGdpPerCapitaPeers() {
+        if (!this.effectiveTargetCountry) return
+
+        const availableEntities = prepareEntitiesForPeerSelection(
+            this.grapherState
+        )
+        const peers = await selectPeerCountries({
+            peerCountryStrategy: PeerCountryStrategy.GdpPerCapita,
+            targetCountry: this.effectiveTargetCountry,
+            availableEntities,
+            additionalDataLoaderFn: this.grapherState.additionalDataLoaderFn,
+        })
+
+        this.grapherState.selection.addToSelection(peers)
+    }
+
+    @action.bound async onAddPopulationPeers() {
+        if (!this.effectiveTargetCountry) return
+
+        const availableEntities = prepareEntitiesForPeerSelection(
+            this.grapherState
+        )
+        const peers = await selectPeerCountries({
+            peerCountryStrategy: PeerCountryStrategy.Population,
+            targetCountry: this.effectiveTargetCountry,
+            availableEntities,
+            additionalDataLoaderFn: this.grapherState.additionalDataLoaderFn,
+        })
+
+        this.grapherState.selection.addToSelection(peers)
+    }
+
+    @action.bound async onAddNeighborsPeers() {
+        if (!this.effectiveTargetCountry) return
+
+        const peers = await selectPeerCountries({
+            peerCountryStrategy: PeerCountryStrategy.Neighbors,
+            targetCountry: this.effectiveTargetCountry,
+            availableEntities: this.availableEntities,
+            additionalDataLoaderFn: this.grapherState.additionalDataLoaderFn,
+        })
+
+        this.grapherState.selection.addToSelection(peers)
+    }
+
+    @computed private get shouldShow() {
+        const isSingleEntityMode =
+            this.grapherState.addCountryMode ===
+            EntitySelectionMode.SingleEntity
+
+        return this.effectiveTargetCountry && !isSingleEntityMode
+    }
+
+    override render() {
+        const { effectiveTargetCountry, selectedCountries } = this
+
+        if (!this.shouldShow) return null
+
+        return (
+            <div className="AddPeersSection">
+                <div className="add-peers-header">
+                    Add peers for{" "}
+                    {selectedCountries.length > 1 ? (
+                        <select
+                            className="form-select form-select-sm add-peers-country-select"
+                            value={effectiveTargetCountry}
+                            onChange={(e) =>
+                                this.onTargetCountryChange(e.target.value)
+                            }
+                        >
+                            {selectedCountries.map((country) => (
+                                <option key={country} value={country}>
+                                    {country}
+                                </option>
+                            ))}
+                        </select>
+                    ) : (
+                        <strong>{effectiveTargetCountry}</strong>
+                    )}
+                    :
+                </div>
+                <div className="add-peers-buttons">
+                    <button
+                        className="btn btn-outline-secondary"
+                        onClick={this.onAddParentRegionPeers}
+                    >
+                        + Parent regions
+                    </button>
+                    <button
+                        className="btn btn-outline-secondary"
+                        onClick={this.onAddGdpPerCapitaPeers}
+                    >
+                        + Similar by GDP
+                    </button>
+                    <button
+                        className="btn btn-outline-secondary"
+                        onClick={this.onAddPopulationPeers}
+                    >
+                        + Similar by population
+                    </button>
+                    <button
+                        className="btn btn-outline-secondary"
+                        onClick={this.onAddNeighborsPeers}
+                    >
+                        + Neighbors
+                    </button>
+                </div>
+            </div>
+        )
+    }
+}
+
+@observer
 export class EntitySelectionSection extends React.Component<{
     editor: AbstractChartEditor
 }> {
@@ -158,6 +479,17 @@ export class EntitySelectionSection extends React.Component<{
         return this.props.editor
     }
 
+    @computed get liveSelection() {
+        return this.editor.originalGrapherConfig.selectedEntityNames ?? []
+    }
+
+    @computed get isSelectionDifferentFromLive() {
+        const { liveSelection } = this
+        const currentSelection =
+            this.editor.grapherState.selection.selectedEntityNames
+        return !_.isEqual(liveSelection, currentSelection)
+    }
+
     @action.bound onAddKey(entityName: EntityName) {
         this.editor.grapherState.selection.selectEntity(entityName)
         this.editor.removeInvalidFocusedSeriesNames()
@@ -166,6 +498,16 @@ export class EntitySelectionSection extends React.Component<{
     @action.bound onRemoveKey(entityName: EntityName) {
         this.editor.grapherState.selection.deselectEntity(entityName)
         this.editor.removeInvalidFocusedSeriesNames()
+    }
+
+    @action.bound onClearSelection() {
+        this.editor.grapherState.selection.clearSelection()
+    }
+
+    @action.bound onResetToLive() {
+        this.editor.grapherState.selection.setSelectedEntities(
+            this.liveSelection
+        )
     }
 
     @action.bound onDragEnd(items: { entityName: EntityName }[]) {
@@ -202,7 +544,7 @@ export class EntitySelectionSection extends React.Component<{
         const unselectedEntityNames = _.difference(
             grapherState.availableEntityNames,
             selectedEntityNames
-        )
+        ).sort()
 
         const isEntitySelectionInherited = editor.isPropertyInherited(
             "selectedEntityNames"
@@ -237,6 +579,7 @@ export class EntitySelectionSection extends React.Component<{
                         </button>
                     )}
                 </FieldsRow>
+                <QuickAddSection editor={editor} />
                 <SortableList<SortableListItemType>
                     items={listItems}
                     onChange={this.onDragEnd}
@@ -254,6 +597,28 @@ export class EntitySelectionSection extends React.Component<{
                         </SortableList.Item>
                     )}
                 />
+                <AddPeersSection editor={editor} />
+                <div className="SelectionResetButtons">
+                    {this.liveSelection.length > 0 &&
+                        this.isSelectionDifferentFromLive && (
+                            <button
+                                className="btn btn-secondary"
+                                onClick={this.onResetToLive}
+                                title="Reset to the published selection"
+                            >
+                                Reset to live
+                            </button>
+                        )}
+                    {!selection.isEmpty && (
+                        <button
+                            className="btn btn-secondary"
+                            onClick={this.onClearSelection}
+                            title="Clear current selection"
+                        >
+                            Clear
+                        </button>
+                    )}
+                </div>
                 {isEntitySelectionInherited && (
                     <p style={{ marginTop: "0.5em" }}>
                         <i>
@@ -319,9 +684,9 @@ export class FocusSection extends React.Component<{
         if (focusedSeriesNameSet.size === 0 && availableSeriesNameSet.size < 2)
             return null
 
-        const availableSeriesNames: SeriesName[] = _.sortBy(
-            Array.from(availableSeriesNameSet)
-        )
+        const availableSeriesNames: SeriesName[] = Array.from(
+            availableSeriesNameSet
+        ).sort()
 
         const invalidFocusedSeriesNames = differenceOfSets([
             focusedSeriesNameSet,
@@ -413,6 +778,74 @@ class MissingDataSection<
                     value={grapherState.missingDataStrategy}
                     options={this.missingDataStrategyOptions}
                     onValue={this.onSelectMissingDataStrategy}
+                />
+            </Section>
+        )
+    }
+}
+
+@observer
+class PeerCountrySection<
+    Editor extends AbstractChartEditor,
+> extends React.Component<{ editor: Editor }> {
+    constructor(props: { editor: Editor }) {
+        super(props)
+        makeObservable(this)
+    }
+
+    private peerCountryStrategyLabels: {
+        [key in PeerCountryStrategy]: string
+    } = {
+        [PeerCountryStrategy.ParentRegions]: "Continent, income group & World",
+        [PeerCountryStrategy.GdpPerCapita]:
+            "Countries with similar GDP per capita",
+        [PeerCountryStrategy.Population]: "Countries with similar population",
+        [PeerCountryStrategy.DataRange]:
+            "Countries that represent the data range",
+        [PeerCountryStrategy.DefaultSelection]: "Default selection",
+        [PeerCountryStrategy.Neighbors]: "Neighboring countries",
+    }
+
+    @computed get grapherState() {
+        return this.props.editor.grapherState
+    }
+
+    get peerCountryStrategyOptions(): {
+        value: PeerCountryStrategy | undefined
+        label: string
+    }[] {
+        const options = Object.values(PeerCountryStrategy).map((strategy) => ({
+            value: strategy,
+            label: this.peerCountryStrategyLabels[strategy],
+        }))
+
+        return [{ value: undefined, label: "None" }, ...options]
+    }
+
+    @action.bound onSelectPeerCountryStrategy(value: string | undefined) {
+        this.grapherState.peerCountryStrategy = value
+            ? (value as PeerCountryStrategy)
+            : undefined
+    }
+
+    override render() {
+        const { grapherState } = this
+
+        return (
+            <Section name="Peer countries">
+                <p className="form-section-desc">
+                    Defines how comparison countries are selected when peer
+                    countries are enabled in a gdoc chart component. In search,
+                    peers are shown when a user focuses on a single country.
+                </p>
+                <SelectField
+                    label="Peer country strategy"
+                    value={grapherState.peerCountryStrategy ?? ""}
+                    options={this.peerCountryStrategyOptions.map((opt) => ({
+                        value: opt.value ?? "",
+                        label: opt.label,
+                    }))}
+                    onValue={this.onSelectPeerCountryStrategy}
                 />
             </Section>
         )
@@ -691,6 +1124,7 @@ export class EditorDataTab<
                 {features.canSpecifyMissingDataStrategy && (
                     <MissingDataSection editor={this.props.editor} />
                 )}
+                <PeerCountrySection editor={editor} />
             </div>
         )
     }

@@ -323,17 +323,16 @@ getPlainRouteWithROTransaction(
     "/data-insights{/:pageNumberOrSlug}",
     async (req, res, trx) => {
         const topicName = req.query.topic as string | undefined
-        let topicTag: TopicTag | undefined
-        try {
-            topicTag = topicName
+        const topicSlug = topicName
+            ? await getSlugForTopicTag(trx, topicName)
+            : undefined
+        let topicTag: TopicTag | undefined =
+            topicName && topicSlug
                 ? {
                       name: topicName,
-                      slug: await getSlugForTopicTag(trx, topicName),
+                      slug: topicSlug,
                   }
                 : undefined
-        } catch {
-            topicTag = undefined
-        }
 
         const totalPageCount = calculateDataInsightIndexPageCount(
             await db.getPublishedDataInsightCount(trx, topicTag?.slug)

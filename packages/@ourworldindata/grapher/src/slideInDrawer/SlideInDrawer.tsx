@@ -30,6 +30,9 @@ export class SlideInDrawer extends React.Component<SlideInDrawerProps> {
 
     override componentDidMount(): void {
         document.addEventListener("keydown", this.onDocumentKeyDown)
+        document.addEventListener("pointerdown", this.onDocumentPointerDown, {
+            capture: true,
+        })
         document.addEventListener("click", this.onDocumentClick, {
             capture: true,
         })
@@ -37,6 +40,13 @@ export class SlideInDrawer extends React.Component<SlideInDrawerProps> {
 
     override componentWillUnmount(): void {
         document.removeEventListener("keydown", this.onDocumentKeyDown)
+        document.removeEventListener(
+            "pointerdown",
+            this.onDocumentPointerDown,
+            {
+                capture: true,
+            }
+        )
         document.removeEventListener("click", this.onDocumentClick, {
             capture: true,
         })
@@ -55,13 +65,36 @@ export class SlideInDrawer extends React.Component<SlideInDrawerProps> {
         if (this.active && e.key === "Escape") this.toggleVisibility()
     }
 
+    // Handles mouse/touch/pen – fires before react-aria mounts its
+    // popover underlay, avoiding the race condition with portaled popovers.
+    @action.bound onDocumentPointerDown(e: PointerEvent): void {
+        this.dismissIfOutside(e)
+    }
+
+    // Handles keyboard-initiated activations (Enter/Space) which fire
+    // a synthetic click with detail === 0 and no preceding pointerdown.
     @action.bound onDocumentClick(e: MouseEvent): void {
+        if (e.detail > 0) return // mouse click – already handled by pointerdown
+        this.dismissIfOutside(e)
+    }
+
+    private dismissIfOutside(e: Event): void {
         if (
             this.active &&
             this.drawerRef?.current &&
-            isTargetOutsideElement(e.target!, this.drawerRef.current)
+            isTargetOutsideElement(e.target!, this.drawerRef.current) &&
+            !this.isPortaledPopoverOpen()
         )
             this.toggleVisibility()
+    }
+
+    private isPortaledPopoverOpen(): boolean {
+        // React-aria popovers (e.g. dropdown menus) are portaled to document.body
+        // with a full-viewport underlay. While one is open, suppress drawer dismissal
+        // so that the first click closes the popover (handled by react-aria) and a
+        // subsequent click closes the drawer.
+        // Note: "portaled-popover" class is defined in Dropdown.tsx. Update both if renaming.
+        return document.querySelector(".portaled-popover") !== null
     }
 
     @action.bound toggleVisibility(e?: React.MouseEvent): void {

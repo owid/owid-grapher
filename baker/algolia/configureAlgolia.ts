@@ -58,54 +58,6 @@ export const configureAlgolia = async () => {
         unretrievableAttributes: ["views_7d", "score"],
     }
 
-    const chartsIndexName = getIndexName(SearchIndexName.Charts)
-
-    await client.setSettings({
-        indexName: chartsIndexName,
-        indexSettings: {
-            ...baseSettings,
-            searchableAttributes: [
-                /**
-                 * It may seem unintuitive that we're ranking `keyChartForTags` higher than `title`.
-                 * However, many of the search queries we get are for "topics", like `migration` or
-                 * `tourism`. If for this topic we have a key chart, we want to show that first,
-                 * since that's hand-picked to be super relevant for the topic.
-                 */
-                "unordered(keyChartForTags)",
-                "unordered(title)",
-                "unordered(slug)",
-                "unordered(variantName)",
-                "unordered(subtitle)",
-                "unordered(tags)",
-                "unordered(availableEntities)",
-            ],
-            ranking: [
-                "typo",
-                "words",
-                "exact",
-                "attribute",
-                "custom",
-                "proximity",
-            ],
-            customRanking: [
-                "desc(score)",
-                "desc(numRelatedArticles)",
-                "asc(numDimensions)",
-                "asc(titleLength)",
-            ],
-            attributesToSnippet: ["subtitle:24"],
-            attributeForDistinct: "id",
-            optionalWords: ["vs"],
-
-            // These lines below essentially demote matches in the `subtitle` and `availableEntities` fields:
-            // If we find a match (only) there, then it doesn't count towards `exact`, and is therefore ranked lower.
-            // We also disable prefix matching and typo tolerance on these.
-            disableExactOnAttributes: ["tags", "subtitle", "availableEntities"],
-            disableTypoToleranceOnAttributes: ["subtitle", "availableEntities"],
-            disablePrefixOnAttributes: ["subtitle"],
-        },
-    })
-
     const pagesIndexName = getIndexName(SearchIndexName.Pages)
 
     await client.setSettings({
@@ -227,11 +179,7 @@ export const configureAlgolia = async () => {
     }
 
     // Save synonyms for all indices
-    for (const indexName of [
-        chartsIndexName,
-        pagesIndexName,
-        explorerViewsAndChartsIndexName,
-    ]) {
+    for (const indexName of [pagesIndexName, explorerViewsAndChartsIndexName]) {
         await client.saveSynonyms({
             indexName,
             synonymHit: algoliaSynonyms,

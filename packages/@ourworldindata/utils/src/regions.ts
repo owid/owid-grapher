@@ -67,15 +67,17 @@ export type OwidIncomeGroupName =
     | "OWID_UMC"
     | "OWID_HIC"
 
-export const aggregateSources = [
-    "pew", // Pew Research Center
-    "unm49", // UN M49 (UN country codes for statistical use)
-    "unsd", // UN Statistical Division
-    "unsdg", // UN SDG
+export const AGGREGATE_SOURCES = [
+    "un", // United Nations
     "wb", // World Bank
     "who", // World Health Organization
+    "un_m49_1", // United Nations M49 (top level)
+    "un_m49_2", // United Nations M49 (intermediate level)
+    "un_m49_3", // United Nations M49 (detailed level)
+    "pew", // Pew Research Center
+    "unsdg", // UN SDG
 ] as const
-export type AggregateSource = (typeof aggregateSources)[number]
+export type AggregateSource = (typeof AGGREGATE_SOURCES)[number]
 
 export function checkIsOwidIncomeGroupName(
     name: string
@@ -101,6 +103,10 @@ export function checkIsOwidContinent(region: Region): region is Continent {
 
 export function checkIsIncomeGroup(region: Region): region is IncomeGroup {
     return region.regionType === RegionType.IncomeGroup
+}
+
+export function checkIsAggregate(region: Region): region is Aggregate {
+    return region.regionType === RegionType.Aggregate
 }
 
 export function checkHasMembers(
@@ -154,6 +160,9 @@ export const getIncomeGroups = lazy(
             (entity) => entity.regionType === RegionType.IncomeGroup
         ) as IncomeGroup[]
 )
+
+export const getAggregatesBySource = (source: AggregateSource): Aggregate[] =>
+    getAggregates().filter((r) => r.definedBy === source)
 
 const regionsByName = lazy(() =>
     Object.fromEntries(regions.map((region) => [region.name, region]))
@@ -235,6 +244,18 @@ export const getSiblingRegions = (regionName: string): Region[] => {
     return siblingCodes
         .map(getRegionByCode)
         .filter((region) => region && region.name !== regionName) as Region[]
+}
+
+/**
+ * Gets the OWID continent name for a country.
+ * Returns undefined if the entity is not a country or has no continent.
+ */
+export function getContinentForCountry(
+    countryName: EntityName
+): string | undefined {
+    const parentRegions = getParentRegions(countryName)
+    const continent = parentRegions.find((r) => checkIsOwidContinent(r))
+    return continent?.name
 }
 
 const getCountryNamesForRegionRecursive = (region: Region): string[] => {

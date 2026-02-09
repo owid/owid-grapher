@@ -3,11 +3,13 @@ import {
     generateGrapherImageSrcSet,
     Grapher,
     GrapherState,
+    loadCatalogData,
 } from "@ourworldindata/grapher"
 import {
     GrapherInterface,
     MultiDimDataPageConfigEnriched,
     R2GrapherConfigDirectory,
+    AdditionalGrapherDataFetchFn,
 } from "@ourworldindata/types"
 import {
     excludeUndefined,
@@ -264,6 +266,11 @@ export async function initGrapher(
         throw new StatusError(grapherConfigResponse.status)
     }
 
+    const additionalDataLoaderFn = ((catalogKey) =>
+        loadCatalogData(catalogKey, {
+            baseUrl: env.CATALOG_URL,
+        })) as AdditionalGrapherDataFetchFn
+
     const bounds = new Bounds(0, 0, options.svgWidth, options.svgHeight)
     const grapherState = new GrapherState({
         ...grapherConfigResponse.grapherConfig,
@@ -277,6 +284,7 @@ export async function initGrapher(
             // Set the baseUrl to ensure mdims have correct canonical URL in the metadata json
             baseUrl: `${grapherBaseUrl}/${identifier.id}`,
         },
+        additionalDataLoaderFn,
         ...options.grapherProps,
     })
     grapherState.isExportingToSvgOrPng = true

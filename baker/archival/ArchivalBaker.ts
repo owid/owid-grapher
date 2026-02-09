@@ -58,10 +58,8 @@ import {
     ArchivalTimestamp,
     convertToArchivalDateStringIfNecessary,
     getAllVariableIds,
-    getCatalogAssetKey,
     LARGE_THUMBNAIL_WIDTH,
     LARGEST_IMAGE_WIDTH,
-    loadCatalogVariableData,
 } from "@ourworldindata/utils"
 import { PROD_URL } from "../../site/SiteConstants.js"
 import { getParsedDodsDictionary } from "../../db/model/Dod.js"
@@ -82,7 +80,11 @@ import {
     getArchivedPostVersionsByPostId,
     getLatestArchivedPostVersions,
 } from "../../db/model/ArchivedPostVersion.js"
-import { EXTERNAL_SORT_INDICATOR_DEFINITIONS } from "@ourworldindata/grapher"
+import {
+    EXTERNAL_SORT_INDICATOR_DEFINITIONS,
+    getCatalogAssetKey,
+    loadCatalogData,
+} from "@ourworldindata/grapher"
 
 export interface MinimalChartInfo {
     chartId: number
@@ -170,7 +172,7 @@ export const bakeCatalogData = async (
     await fs.mkdirp(path.join(archiveDir, "catalog"))
 
     for (const { catalogKey } of EXTERNAL_SORT_INDICATOR_DEFINITIONS) {
-        const data = await loadCatalogVariableData(catalogKey, {
+        const data = await loadCatalogData(catalogKey, {
             baseUrl: CATALOG_URL,
         })
 

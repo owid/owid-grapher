@@ -17,6 +17,8 @@ import {
     GrapherChartType,
     DbChartTagJoin,
     TaggableType,
+    EntityName,
+    PeerCountryStrategy,
 } from "@ourworldindata/types"
 import {
     DimensionSlot,
@@ -25,7 +27,14 @@ import {
     POPULATION_INDICATOR_ID_USED_IN_ADMIN,
     findPotentialChartTypeSiblings,
     ChartDimension,
+    SelectionArray,
+    selectPeerCountries,
+    prepareEntitiesForPeerSelection,
 } from "@ourworldindata/grapher"
+import {
+    pickFirstAvailablePreset,
+    sortEntitiesByLastValue,
+} from "./EntityPresets.js"
 import {
     DimensionProperty,
     OwidVariableId,
@@ -131,43 +140,123 @@ class DimensionSlotView<
         this.updateParentConfig()
     }
 
-    @action.bound private updateDefaultSelection() {
+    private pickDefaultEntityForSingleEntityChart({
+        selection,
+        availableEntityNames,
+    }: {
+        selection: SelectionArray
+        availableEntityNames: EntityName[]
+    }): EntityName | undefined {
+        // If there's exactly one entity selected, keep it
+        if (selection.numSelectedEntities === 1) return
+
+        // If there are multiple entities selected, prefer "World" or pick the first one
+        if (selection.numSelectedEntities > 0) {
+            return selection.has(WORLD_ENTITY_NAME)
+                ? WORLD_ENTITY_NAME
+                : selection.selectedEntityNames[0]
+        }
+
+        // If no entities are selected, pick "World" or a random one from the available entities
+        const hasWorld = availableEntityNames.includes(WORLD_ENTITY_NAME)
+        return hasWorld
+            ? WORLD_ENTITY_NAME
+            : R.sample(availableEntityNames, 1).at(0)
+    }
+
+    private async pickDefaultEntitiesForMultiEntityChart({
+        selection,
+        availableEntityNames,
+    }: {
+        selection: SelectionArray
+        availableEntityNames: EntityName[]
+    }): Promise<EntityName[] | undefined> {
+        // Keep the selection if there is one
+        if (selection.numSelectedEntities > 0) return
+
+        // If there are only a few available entities, select them all
+        if (availableEntityNames.length <= 10) return availableEntityNames
+
+        const { grapherState } = this
+        const dataColumn = grapherState.table.get(grapherState.yColumnSlug)
+
+        // Try preset entity groups first (continents, income groups, etc.)
+        const presetEntities = pickFirstAvailablePreset(availableEntityNames)
+        if (presetEntities) {
+            // Sort entities by their last data point value
+            return sortEntitiesByLastValue(presetEntities, dataColumn)
+        }
+
+        // Adjust the number of selected entities based on chart type
+        const targetCount =
+            grapherState.isDiscreteBar || grapherState.isStackedDiscreteBar
+                ? 12
+                : 6
+
+        // Pick random entities as a fallback
+        if (
+            !dataColumn ||
+            dataColumn.isMissing ||
+            dataColumn.isEmpty ||
+            !grapherState.additionalDataLoaderFn
+        )
+            return R.sample(availableEntityNames, targetCount)
+
+        // Use the data range strategy to pick default countries
+        const availableEntities = prepareEntitiesForPeerSelection(grapherState)
+        return selectPeerCountries({
+            peerCountryStrategy: PeerCountryStrategy.DataRange,
+            availableEntities,
+            dataColumn,
+            targetCount,
+            additionalDataLoaderFn: grapherState.additionalDataLoaderFn,
+            randomize: true,
+        })
+    }
+
+    // Called when the chart types or number of y-dimensions change
+    @action.bound private async updateDefaultSelection() {
         const { grapherState } = this.props.editor
         const { selection } = grapherState
 
         const availableEntityNames = grapherState.availableEntityNames
-        const availableEntityNameSet = new Set(
-            grapherState.availableEntityNames
+
+        const nonProjectedYColumns = grapherState.yColumnsFromDimensions.filter(
+            (col) => !col.display?.isProjection
         )
 
         if (grapherState.isScatter || grapherState.isMarimekko) {
-            // chart types that display all entities by default shouldn't select any by default
+            // Chart types that display all entities shouldn't select
+            // any entity by default
             selection.clearSelection()
         } else if (
-            grapherState.yColumnsFromDimensions.length > 1 &&
+            nonProjectedYColumns.length > 1 &&
             !grapherState.isStackedArea &&
             !grapherState.isStackedBar &&
             !grapherState.isStackedDiscreteBar
         ) {
-            // non-stacked charts with multiple y-dimensions should select a single entity by default.
-            // if possible, the currently selected entity is persisted, otherwise "World" is preferred
-            if (selection.numSelectedEntities !== 1) {
-                const entities = availableEntityNameSet.has(WORLD_ENTITY_NAME)
-                    ? [WORLD_ENTITY_NAME]
-                    : R.sample(availableEntityNames, 1)
-                if (entities) selection.setSelectedEntities(entities)
-            }
+            // Non-stacked charts with multiple y-dimensions should select
+            // a single entity by default
+            const pickedEntity = this.pickDefaultEntityForSingleEntityChart({
+                selection,
+                availableEntityNames,
+            })
+            if (pickedEntity) selection.setSelectedEntities([pickedEntity])
+
+            // Update entity selection mode
             grapherState.addCountryMode = EntitySelectionMode.SingleEntity
         } else {
-            // stacked charts or charts with a single y-dimension should select multiple entities by default.
-            // if possible, the currently selected entities are persisted, otherwise a random sample is selected
-            if (selection.numSelectedEntities === 0) {
-                selection.setSelectedEntities(
-                    availableEntityNames.length > 10
-                        ? R.sample(availableEntityNames, 4)
-                        : availableEntityNames
-                )
-            }
+            // Stacked charts or charts with a single y-dimension should
+            // select multiple entities by default
+            const pickedEntities =
+                await this.pickDefaultEntitiesForMultiEntityChart({
+                    selection,
+                    availableEntityNames,
+                })
+            if (pickedEntities?.length)
+                selection.setSelectedEntities(pickedEntities)
+
+            // Update entity selection mode
             grapherState.addCountryMode = EntitySelectionMode.MultipleEntities
         }
     }
@@ -181,15 +270,15 @@ class DimensionSlotView<
                 this.disposers.push(
                     reaction(
                         () => this.grapherState.validChartTypes,
-                        () => {
-                            this.updateDefaultSelection()
+                        async () => {
+                            await this.updateDefaultSelection()
                             this.editor.removeInvalidFocusedSeriesNames()
                         }
                     ),
                     reaction(
                         () => this.grapherState.yColumnsFromDimensions.length,
-                        () => {
-                            this.updateDefaultSelection()
+                        async () => {
+                            await this.updateDefaultSelection()
                             this.editor.removeInvalidFocusedSeriesNames()
                         }
                     )

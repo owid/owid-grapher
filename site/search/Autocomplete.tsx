@@ -95,9 +95,6 @@ const getItemUrl: AutocompleteSource<BaseItem>["getItemUrl"] = ({ item }) =>
 const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
     const indexName = parseIndexName(item.__autocomplete_indexName as string)
     return match(indexName)
-        .with(SearchIndexName.Charts, () => {
-            return urljoin(BAKED_GRAPHER_URL, item.slug as string)
-        })
         .with(SearchIndexName.Pages, () => {
             return getCanonicalUrl(BAKED_BASE_URL, {
                 slug: item.slug as string,
