@@ -2,7 +2,6 @@ import * as _ from "lodash-es"
 import React from "react"
 import {
     Bounds,
-    isTouchDevice,
     makeIdForHumanConsumption,
     excludeUndefined,
     EntityName,
@@ -75,10 +74,6 @@ export class ChoroplethMap extends React.Component<{
             hoverEnterFeature: observable,
             hoverNearbyFeature: observable,
         })
-    }
-
-    @computed private get isTouchDevice(): boolean {
-        return isTouchDevice()
     }
 
     @computed private get manager(): ChoroplethMapManager {
@@ -347,14 +342,19 @@ export class ChoroplethMap extends React.Component<{
         this.detectNearbyFeature(event)
     }
 
-    @action.bound private onPointerEnter(feature: MapRenderFeature): void {
+    @action.bound private onPointerEnter(
+        feature: MapRenderFeature,
+        event: PointerEvent
+    ): void {
+        // on touch, let the click handler set hover so the
+        // tooltip doesn't appear before the click event fires
+        if (event.pointerType === "touch") return
         this.setHoverEnterFeature(feature)
     }
 
-    @action.bound private onPointerLeave(): void {
-        // Fixes an issue where clicking on a country that overlaps with the
-        // tooltip causes the tooltip to disappear shortly after being rendered
-        if (this.isTouchDevice) return
+    @action.bound private onPointerLeave(event: PointerEvent): void {
+        // on touch, the tooltip is dismissed via the document pointerdown handler
+        if (event.pointerType === "touch") return
 
         this.clearHoverEnterFeature()
     }
@@ -613,7 +613,7 @@ export class ChoroplethMap extends React.Component<{
                 onMouseMove={(ev: SVGMouseEvent): void =>
                     this.onMouseMove(ev.nativeEvent)
                 }
-                onPointerLeave={this.onPointerLeave}
+                onPointerLeave={(e) => this.onPointerLeave(e.nativeEvent)}
                 onClick={() => {
                     // invoke a click on a feature when clicking nearby one
                     if (this.hoverNearbyFeature)

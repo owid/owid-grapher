@@ -423,17 +423,20 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @action.bound private onPointerEnterFeature(
-        feature: GlobeRenderFeature
+        feature: GlobeRenderFeature,
+        event: PointerEvent
     ): void {
         // ignore pointer enter if panning or zooming
         if (this.isPanningOrZooming) return
+        // on touch, let the click handler set hover so the
+        // tooltip doesn't appear before the click event fires
+        if (event.pointerType === "touch") return
         this.setHoverEnterFeature(feature)
     }
 
-    @action.bound private onPointerLeaveFeature(): void {
-        // Fixes an issue where clicking on a country that overlaps with the
-        // tooltip causes the tooltip to disappear shortly after being rendered
-        if (this.isTouchDevice) return
+    @action.bound private onPointerLeaveFeature(event: PointerEvent): void {
+        // on touch, the tooltip is dismissed via the document pointerdown handler
+        if (event.pointerType === "touch") return
 
         this.clearHoverEnterFeature()
     }
@@ -886,7 +889,9 @@ export class ChoroplethGlobe extends React.Component<{
                 onMouseMove={(ev: SVGMouseEvent): void =>
                     this.onMouseMove(ev.nativeEvent)
                 }
-                onPointerLeave={this.onPointerLeaveFeature}
+                onPointerLeave={(e) =>
+                    this.onPointerLeaveFeature(e.nativeEvent)
+                }
                 onClick={() => {
                     // invoke a click on a feature when clicking nearby one
                     if (this.hoverNearbyFeature)
