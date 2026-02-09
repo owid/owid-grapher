@@ -897,7 +897,10 @@ export class ChoroplethGlobe extends React.Component<{
                     if (this.hoverNearbyFeature)
                         this.onClick(this.hoverNearbyFeature)
                 }}
-                style={{ cursor: this.hoverFeature ? "pointer" : undefined }}
+                style={{
+                    cursor: this.hoverFeature ? "pointer" : undefined,
+                    touchAction: "manipulation",
+                }}
             >
                 {this.renderGlobeOutline()}
                 <g className={GEO_FEATURES_CLASSNAME}>

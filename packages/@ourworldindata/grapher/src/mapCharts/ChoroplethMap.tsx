@@ -619,7 +619,10 @@ export class ChoroplethMap extends React.Component<{
                     if (this.hoverNearbyFeature)
                         this.onClick(this.hoverNearbyFeature)
                 }}
-                style={{ cursor: this.hoverFeature ? "pointer" : undefined }}
+                style={{
+                    cursor: this.hoverFeature ? "pointer" : undefined,
+                    touchAction: "manipulation",
+                }}
             >
                 <rect
                     x={bounds.x}
