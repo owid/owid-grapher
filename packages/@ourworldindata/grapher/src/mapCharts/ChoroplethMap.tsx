@@ -314,7 +314,7 @@ export class ChoroplethMap extends React.Component<{
     // Otherwise we do a quadtree search for the closest center point of a feature bounds,
     // so that we can hover very small countries without trouble
     @action.bound private detectNearbyFeature(
-        event: MouseEvent | TouchEvent
+        event: PointerEvent
     ): MapRenderFeature | undefined {
         if (this.hoverEnterFeature || !this.base.current) return
 
@@ -338,7 +338,7 @@ export class ChoroplethMap extends React.Component<{
         return nearbyFeature
     }
 
-    @action.bound private onMouseMove(event: MouseEvent): void {
+    @action.bound private onPointerMove(event: PointerEvent): void {
         this.detectNearbyFeature(event)
     }
 
@@ -610,9 +610,7 @@ export class ChoroplethMap extends React.Component<{
                     (ev: SVGMouseEvent): void =>
                         ev.preventDefault() /* Without this, title may get selected while shift clicking */
                 }
-                onMouseMove={(ev: SVGMouseEvent): void =>
-                    this.onMouseMove(ev.nativeEvent)
-                }
+                onPointerMove={(ev): void => this.onPointerMove(ev.nativeEvent)}
                 onPointerLeave={(e) => this.onPointerLeave(e.nativeEvent)}
                 onClick={() => {
                     // invoke a click on a feature when clicking nearby one

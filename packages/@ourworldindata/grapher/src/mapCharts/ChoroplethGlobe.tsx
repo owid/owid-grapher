@@ -180,7 +180,7 @@ export class ChoroplethGlobe extends React.Component<{
     // Otherwise we do a quadtree search for the closest center point of a feature bounds,
     // so that we can hover very small countries without trouble
     @action.bound private detectNearbyFeature(
-        event: MouseEvent | TouchEvent,
+        event: PointerEvent,
         maxDistance = MAP_HOVER_TARGET_RANGE
     ): GlobeRenderFeature | undefined {
         if (this.hoverEnterFeature || !this.base.current) return
@@ -418,7 +418,7 @@ export class ChoroplethGlobe extends React.Component<{
         this.globeController.dismissCountryFocus()
     }
 
-    @action.bound private onMouseMove(event: MouseEvent): void {
+    @action.bound private onPointerMove(event: PointerEvent): void {
         this.detectNearbyFeature(event)
     }
 
@@ -886,9 +886,7 @@ export class ChoroplethGlobe extends React.Component<{
                     (ev: SVGMouseEvent): void =>
                         ev.preventDefault() /* Without this, title may get selected while shift clicking */
                 }
-                onMouseMove={(ev: SVGMouseEvent): void =>
-                    this.onMouseMove(ev.nativeEvent)
-                }
+                onPointerMove={(ev): void => this.onPointerMove(ev.nativeEvent)}
                 onPointerLeave={(e) =>
                     this.onPointerLeaveFeature(e.nativeEvent)
                 }
