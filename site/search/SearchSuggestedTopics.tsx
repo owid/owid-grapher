@@ -14,9 +14,7 @@ interface TopicsApiResponse {
     hits: TopicHit[]
 }
 
-async function fetchSuggestedTopics(
-    query: string
-): Promise<TopicsApiResponse> {
+async function fetchSuggestedTopics(query: string): Promise<TopicsApiResponse> {
     const params = new URLSearchParams({ q: query, limit: "3" })
     const response = await fetch(`/api/ai-search/topics?${params}`)
     return response.json()
@@ -25,7 +23,7 @@ async function fetchSuggestedTopics(
 export const SearchSuggestedTopics = () => {
     const {
         state: { filters, query },
-        actions: { setTopic },
+        actions: { setTopicAndClearQuery },
     } = useSearchContext()
 
     const hasTopicFilter =
@@ -45,13 +43,11 @@ export const SearchSuggestedTopics = () => {
 
     return (
         <div className="search-suggested-topics">
-            <span className="search-suggested-topics__label">
-                Related topics
-            </span>
+            <span className="search-suggested-topics__label">Browse topic</span>
             {hits.map((hit) => (
                 <button
                     type="button"
-                    onClick={() => setTopic(hit.name)}
+                    onClick={() => setTopicAndClearQuery(hit.name)}
                     key={hit.slug}
                     className="search-suggested-topic-button"
                 >

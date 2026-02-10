@@ -1,6 +1,7 @@
-import { queryChartsViaApi, searchQueryKeys } from "./queries.js"
+import { queryCharts, queryChartsViaApi, searchQueryKeys } from "./queries.js"
 import {
     useSelectedRegionNames,
+    useInfiniteSearch,
     useInfiniteSearchViaApi,
 } from "./searchHooks.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
@@ -22,16 +23,29 @@ export const SearchDataResults = ({
 }: {
     isFirstChartLarge: boolean
 }) => {
-    const { analytics } = useSearchContext()
+    const { analytics, useAISearch } = useSearchContext()
     const selectedRegionNames = useSelectedRegionNames()
 
-    const query = useInfiniteSearchViaApi<SearchChartsResponse, SearchChartHit>(
-        {
-            queryKey: (state) => searchQueryKeys.charts(state),
-            queryFn: (state, page) =>
-                queryChartsViaApi(state, page, ENABLE_RERANKING),
-        }
-    )
+    const aiQuery = useInfiniteSearchViaApi<
+        SearchChartsResponse,
+        SearchChartHit
+    >({
+        queryKey: (state) => searchQueryKeys.charts(state),
+        queryFn: (state, page) =>
+            queryChartsViaApi(state, page, ENABLE_RERANKING),
+        enabled: useAISearch,
+    })
+
+    const algoliaQuery = useInfiniteSearch<
+        SearchChartsResponse,
+        SearchChartHit
+    >({
+        queryKey: (state) => searchQueryKeys.charts(state),
+        queryFn: queryCharts,
+        enabled: !useAISearch,
+    })
+
+    const query = useAISearch ? aiQuery : algoliaQuery
 
     const { hits, totalResults, isLoading } = query
 

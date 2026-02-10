@@ -6,24 +6,41 @@ import {
     DataInsightHit,
     SearchDataInsightResponse,
 } from "@ourworldindata/types"
-import { queryDataInsightsViaApi, searchQueryKeys } from "./queries.js"
+import {
+    queryDataInsights,
+    queryDataInsightsViaApi,
+    searchQueryKeys,
+} from "./queries.js"
 import { SearchDataInsightHit } from "./SearchDataInsightHit.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
-import { useInfiniteSearchViaApi } from "./searchHooks.js"
+import { useInfiniteSearch, useInfiniteSearchViaApi } from "./searchHooks.js"
 import { SearchDataInsightsResultsSkeleton } from "./SearchDataInsightsResultsSkeleton.js"
 import { SearchHorizontalDivider } from "./SearchHorizontalDivider.js"
 import { useSearchContext } from "./SearchContext.js"
 
 export function SearchDataInsightsResults() {
-    const { analytics } = useSearchContext()
+    const { analytics, useAISearch } = useSearchContext()
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
-    const query = useInfiniteSearchViaApi<
+
+    const aiQuery = useInfiniteSearchViaApi<
         SearchDataInsightResponse,
         DataInsightHit
     >({
         queryKey: (state) => searchQueryKeys.dataInsights(state),
         queryFn: queryDataInsightsViaApi,
+        enabled: useAISearch,
     })
+
+    const algoliaQuery = useInfiniteSearch<
+        SearchDataInsightResponse,
+        DataInsightHit
+    >({
+        queryKey: (state) => searchQueryKeys.dataInsights(state),
+        queryFn: queryDataInsights,
+        enabled: !useAISearch,
+    })
+
+    const query = useAISearch ? aiQuery : algoliaQuery
 
     const container = useRef<HTMLDivElement>(null)
     const { ref: triggerRef } = useIntersectionObserver({
