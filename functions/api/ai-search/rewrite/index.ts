@@ -115,6 +115,7 @@ Rules:
 - Use ONLY terms from the vocabulary list above
 - Select 1-${limit} most relevant terms
 - Translate user's intent to exact vocabulary matches
+- Do NOT return the original query "${query}" itself as a keyword
 - Return ONLY a JSON array of strings
 
 Query: "${query}"`
@@ -167,6 +168,7 @@ Rules:
 - For vague terms, translate to metrics (e.g., "richer" → "GDP per capita")
 - Do NOT add "rate", "level", "index" unless in original query
 - NEVER include geographic names (countries, continents, regions)
+- Do NOT return the original query "${query}" itself as a keyword
 
 Return ONLY a JSON array of strings.
 
@@ -354,6 +356,12 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             keywords = await rewriteQuery(env, query)
             llmMs = Date.now() - llmStart
         }
+
+        // Filter out keywords that are the same as the query
+        const queryLower = query.toLowerCase().trim()
+        keywords = keywords.filter(
+            (kw) => kw.toLowerCase().trim() !== queryLower
+        )
 
         const endTime = Date.now()
 
