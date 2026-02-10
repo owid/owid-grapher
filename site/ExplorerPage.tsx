@@ -74,13 +74,7 @@ export const ExplorerPage = (props: ExplorerPageSettings) => {
         urlMigrationSpec,
         archiveContext,
     } = props
-    const {
-        explorerTitle,
-        explorerSubtitle,
-        slug,
-        thumbnail,
-        hideAlertBanner,
-    } = program
+    const { explorerTitle, explorerSubtitle, slug, thumbnail } = program
 
     const isOnArchivalPage = archiveContext?.type === "archive-page"
     const assetMaps = isOnArchivalPage ? archiveContext.assets : undefined
@@ -140,7 +134,6 @@ window.Explorer.renderSingleExplorerOnExplorerPage(
             </Head>
             <body className={GRAPHER_PAGE_BODY_CLASS}>
                 <SiteHeader
-                    hideAlertBanner={hideAlertBanner || false}
                     archiveInfo={isOnArchivalPage ? archiveContext : undefined}
                 />
                 <main id={ExplorerContainerId}>

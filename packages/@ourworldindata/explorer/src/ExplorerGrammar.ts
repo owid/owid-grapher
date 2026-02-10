@@ -134,10 +134,5 @@ export const ExplorerGrammar: Grammar = {
         description:
             "You can manually set the column slug(s) to show in the entity picker or else they will be automatically chosen.",
     },
-    hideAlertBanner: {
-        ...BooleanCellDef,
-        keyword: "hideAlertBanner",
-        description: "Set to true to hide the alert banner.",
-    },
     ...GrapherGrammar,
 } as const
