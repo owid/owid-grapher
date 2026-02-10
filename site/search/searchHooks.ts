@@ -124,7 +124,7 @@ export function useInfiniteSearchOffset<T extends SearchResponse<U>, U>({
 }) {
     const { state, liteSearchClient } = useSearchContext()
     const query = useInfiniteQuery<T, Error>({
-        queryKey: queryKey(state),
+        queryKey: ["algolia", ...queryKey(state)],
         queryFn: ({ pageParam }) => {
             if (typeof pageParam !== "number")
                 throw new Error("Invalid pageParam")
@@ -181,8 +181,7 @@ export function useInfiniteSearch<T extends SearchResponse<U>, U>({
     const { state, liteSearchClient } = useSearchContext()
 
     const query = useInfiniteQuery<T, Error>({
-        // All paginated subqueries share the same query key
-        queryKey: queryKey(state),
+        queryKey: ["algolia", ...queryKey(state)],
         queryFn: ({ pageParam }) => {
             if (typeof pageParam !== "number")
                 throw new Error("Invalid pageParam")
@@ -225,7 +224,7 @@ export function useInfiniteSearchViaApi<T extends SearchResponse<U>, U>({
     const { state } = useSearchContext()
 
     const query = useInfiniteQuery<T, Error>({
-        queryKey: queryKey(state),
+        queryKey: ["ai", ...queryKey(state)],
         queryFn: ({ pageParam }) => {
             if (typeof pageParam !== "number")
                 throw new Error("Invalid pageParam")
@@ -274,7 +273,7 @@ export function useInfiniteSearchOffsetViaApi<
 }) {
     const { state } = useSearchContext()
     const query = useInfiniteQuery<T, Error>({
-        queryKey: queryKey(state),
+        queryKey: ["ai", ...queryKey(state)],
         queryFn: ({ pageParam }) => {
             if (typeof pageParam !== "number")
                 throw new Error("Invalid pageParam")

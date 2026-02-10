@@ -18,6 +18,7 @@ interface SearchContextType {
     synonymMap: SynonymMap
     analytics: SiteAnalytics
     useAISearch: boolean
+    setUseAISearch: (value: boolean) => void
 }
 
 export const SearchContext = createContext<SearchContextType | null>(null)

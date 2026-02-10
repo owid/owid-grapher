@@ -5,7 +5,7 @@ import {
     SearchResultType,
 } from "@ourworldindata/types"
 import { LiteClient } from "algoliasearch/lite"
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { match } from "ts-pattern"
 import { useIsFetching } from "@tanstack/react-query"
 
@@ -67,6 +67,8 @@ export const Search = ({
     // Handle analytics tracking (skips initial page load)
     useSearchAnalytics(state, analytics)
 
+    const [useAISearch, setUseAISearch] = useState(USE_AI_SEARCH)
+
     const isFetching = useIsFetching()
 
     // Derived state for template configuration
@@ -93,23 +95,34 @@ export const Search = ({
                 topicTagGraph,
                 synonymMap,
                 analytics,
-                useAISearch: USE_AI_SEARCH,
+                useAISearch,
+                setUseAISearch,
             }}
         >
             <div className="search-controls-container span-cols-12 col-start-2">
-                <Searchbar
-                    // force a component re-mount to sync local query state when
-                    // global state updates. This is relevant in two cases:
-                    // - a new global query is set (e.g. via autocomplete
-                    //   selection)
-                    // - filters are added/removed while an uncommitted local
-                    //   query exists (e.g. selecting a country from the country
-                    //   selector). In this case, we want to reset the local
-                    //   query to match the global one, discarding any
-                    //   uncommitted changes.
-                    key={stateToSearchParams(state).toString()}
-                    allTopics={eligibleTopics}
-                />
+                <div className="search-bar-row">
+                    <Searchbar
+                        // force a component re-mount to sync local query state when
+                        // global state updates. This is relevant in two cases:
+                        // - a new global query is set (e.g. via autocomplete
+                        //   selection)
+                        // - filters are added/removed while an uncommitted local
+                        //   query exists (e.g. selecting a country from the country
+                        //   selector). In this case, we want to reset the local
+                        //   query to match the global one, discarding any
+                        //   uncommitted changes.
+                        key={stateToSearchParams(state).toString()}
+                        allTopics={eligibleTopics}
+                    />
+                    <label className="search-ai-toggle">
+                        <input
+                            type="checkbox"
+                            checked={useAISearch}
+                            onChange={(e) => setUseAISearch(e.target.checked)}
+                        />
+                        AI
+                    </label>
+                </div>
                 <SearchDetectedFilters
                     eligibleRegionNames={eligibleRegionNames}
                 />
