@@ -373,17 +373,12 @@ export class ChoroplethMap extends React.Component<{
         this.manager.onMapMouseLeave?.()
     }
 
-    @action.bound private onClick(
-        feature: MapRenderFeature,
-        event: MouseEvent
-    ): void {
+    @action.bound private onClick(feature: MapRenderFeature): void {
         const {
             isMapSelectionEnabled,
             mapConfig: { selection },
             globeController,
         } = this.manager
-
-        event.preventDefault()
 
         this.setHoverEnterFeature(feature)
 
@@ -405,10 +400,7 @@ export class ChoroplethMap extends React.Component<{
         }
     }
 
-    @action.bound private onDocumentClick(event: MouseEvent): void {
-        // if the click event is on a country path, then an upstream handler will have called `preventDefault()` on it, which means we can check for that here.
-        if (event.defaultPrevented) return
-
+    @action.bound private onDocumentPointerDown(): void {
         this.manager.globeController?.dismissCountryFocus()
         if (this.hoverEnterFeature || this.hoverNearbyFeature) {
             this.hoverEnterFeature = undefined
@@ -504,7 +496,7 @@ export class ChoroplethMap extends React.Component<{
                             // catches clicks on 'nearby' features
                             event.stopPropagation()
 
-                            this.onClick(feature, event.nativeEvent)
+                            this.onClick(feature)
                         }}
                         onPointerEnter={this.onPointerEnter}
                         onPointerLeave={this.onPointerLeave}
@@ -565,7 +557,7 @@ export class ChoroplethMap extends React.Component<{
                                 // catches clicks on 'nearby' features
                                 event.stopPropagation()
 
-                                this.onClick(feature, event.nativeEvent)
+                                this.onClick(feature)
                             }}
                             onPointerEnter={this.onPointerEnter}
                             onPointerLeave={this.onPointerLeave}
@@ -592,13 +584,13 @@ export class ChoroplethMap extends React.Component<{
     }
 
     override componentDidMount(): void {
-        document.addEventListener("click", this.onDocumentClick, {
+        document.addEventListener("pointerdown", this.onDocumentPointerDown, {
             passive: true,
         })
     }
 
     override componentWillUnmount(): void {
-        document.removeEventListener("click", this.onDocumentClick)
+        document.removeEventListener("pointerdown", this.onDocumentPointerDown)
     }
 
     renderInteractive(): React.ReactElement {
@@ -619,10 +611,10 @@ export class ChoroplethMap extends React.Component<{
                 }
                 onPointerMove={(ev): void => this.onPointerMove(ev.nativeEvent)}
                 onPointerLeave={(e) => this.onPointerLeave(e.nativeEvent)}
-                onClick={(event) => {
+                onClick={() => {
                     // invoke a click on a feature when clicking nearby one
                     if (this.hoverNearbyFeature)
-                        this.onClick(this.hoverNearbyFeature, event.nativeEvent)
+                        this.onClick(this.hoverNearbyFeature)
                 }}
                 style={{
                     cursor: this.hoverFeature ? "pointer" : undefined,
