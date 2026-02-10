@@ -211,7 +211,7 @@ describe("AI Search Recommend API endpoint", () => {
     describe("response format", () => {
         beforeEach(() => {
             // Mock generateText to simulate tool execution by calling the tool's execute
-            vi.mocked(generateText).mockImplementation(async (options: any) => {
+            vi.mocked(generateText).mockImplementation(async (options: any): Promise<any> => {
                 // Simulate calling the search tool
                 const searchTool = options.tools?.search
                 if (searchTool?.execute) {
