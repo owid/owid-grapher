@@ -5,6 +5,7 @@ import {
     OwidGdocProfileContent,
     OwidGdocProfileInterface,
     OwidGdocProfileEntitySummary,
+    OwidGdocProfileScope,
 } from "@ourworldindata/types"
 import {
     getRegionByNameOrVariantName,
@@ -15,8 +16,32 @@ import {
 } from "@ourworldindata/utils"
 import * as db from "../../db.js"
 import { GdocBase } from "./GdocBase.js"
+import { loadAndClearLinkedCallouts } from "./dataCallouts.js"
+import { PreparedCalloutTable } from "@ourworldindata/grapher"
 
-const GENERIC_PROFILE_SCOPES = new Set(["countries", "continents", "all"])
+const GENERIC_PROFILE_SCOPES = new Set<OwidGdocProfileScope>([
+    "countries",
+    "continents",
+    "all",
+])
+
+export function checkIsValidGenericScope(
+    scope: string
+): scope is OwidGdocProfileScope {
+    const normalisedScope = scope.toLowerCase()
+    return GENERIC_PROFILE_SCOPES.has(normalisedScope as OwidGdocProfileScope)
+}
+
+export function checkIsEntityNameScope(scope: string): boolean {
+    const normalisedScope = scope.toLowerCase()
+    const scopeWithoutParenthetical =
+        removeTrailingParenthetical(normalisedScope)
+
+    return (
+        !!getRegionByNameOrVariantName(normalisedScope) ||
+        !!getRegionByNameOrVariantName(scopeWithoutParenthetical)
+    )
+}
 
 export class GdocProfile extends GdocBase implements OwidGdocProfileInterface {
     declare content: OwidGdocProfileContent
@@ -24,6 +49,14 @@ export class GdocProfile extends GdocBase implements OwidGdocProfileInterface {
 
     constructor(id?: string) {
         super(id)
+    }
+
+    // Profiles handle callouts via instantiateProfileForEntity, not during loadState.
+    // The template has $entityCode placeholders that can't be fetched until instantiated.
+    override async loadAndClearLinkedCallouts(
+        _knex: db.KnexReadonlyTransaction
+    ): Promise<void> {
+        // No-op for profiles
     }
 
     static create(obj: OwidGdocBaseInterface): GdocProfile {
@@ -62,6 +95,22 @@ export class GdocProfile extends GdocBase implements OwidGdocProfileInterface {
             }
         }
 
+        // Validate exclude values
+        const excludeValues = this.normalisedExcludeValues()
+        const unknownExcludes = excludeValues.filter(
+            (value) => !checkIsEntityNameScope(value)
+        )
+
+        if (unknownExcludes.length > 0) {
+            for (const exclude of unknownExcludes) {
+                errors.push({
+                    property: "exclude",
+                    type: OwidGdocErrorMessageType.Error,
+                    message: `The exclude value '${exclude}' is not a recognised entity name or code.`,
+                })
+            }
+        }
+
         return errors
     }
 
@@ -73,39 +122,47 @@ export class GdocProfile extends GdocBase implements OwidGdocProfileInterface {
             .filter((value) => value.length > 0)
     }
 
+    private normalisedExcludeValues(): string[] {
+        if (!this.content.exclude) return []
+        return this.content.exclude
+            .split(",")
+            .map((value) => value.trim())
+            .filter((value) => value.length > 0)
+    }
+
     private scopeIsRecognised(scope: string): boolean {
-        const normalisedScope = scope.toLowerCase()
-        if (GENERIC_PROFILE_SCOPES.has(normalisedScope)) return true
-
-        // Allow scopes that match entity names, including variations with trailing parentheticals
-        const scopeWithoutParenthetical = removeTrailingParenthetical(scope)
-
-        return (
-            !!getRegionByNameOrVariantName(scope) ||
-            (!!scopeWithoutParenthetical &&
-                !!getRegionByNameOrVariantName(scopeWithoutParenthetical))
-        )
+        return checkIsValidGenericScope(scope) || checkIsEntityNameScope(scope)
     }
 }
 
 /**
  * Renders a profile template for a specific entity by replacing template tokens
  * with entity-specific values.
+ *
+ * For bulk baking (SiteBaker), pass preparedTables to use pre-fetched chart data.
  */
-
-export function instantiateProfileForEntity(
+export async function instantiateProfileForEntity(
     profileTemplate: GdocProfile,
-    entity: ProfileEntity
-): OwidGdocProfileInterface {
-    // Instantiate the content with entity-specific values
+    entity: ProfileEntity,
+    options?: {
+        knex?: db.KnexReadonlyTransaction
+        preparedTables?: Map<string, PreparedCalloutTable>
+    }
+): Promise<OwidGdocProfileInterface> {
     const instantiatedContent = instantiateProfile(
         profileTemplate.content,
         entity
     )
 
+    const { content, linkedCallouts } = await loadAndClearLinkedCallouts(
+        instantiatedContent,
+        options
+    )
+
     return {
         ...profileTemplate,
-        content: instantiatedContent,
+        content,
+        linkedCallouts,
         slug: getSlugForProfileEntity(profileTemplate, entity),
     }
 }

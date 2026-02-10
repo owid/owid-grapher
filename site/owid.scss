@@ -111,7 +111,6 @@
 @import "css/site-tools.scss";
 @import "css/newsletter-subscription.scss";
 @import "css/lightbox.scss";
-@import "css/alert-banner.scss";
 
 @import "./blocks/front-matter.scss";
 @import "./blocks/expandable-paragraph.scss";
@@ -130,7 +129,6 @@
 @import "./gdocs/components/Callout.scss";
 @import "./gdocs/components/ChartPreview.scss";
 @import "./gdocs/components/DataInsightDateline.scss";
-@import "./gdocs/components/DataInsightsNewsletter.scss";
 @import "./gdocs/components/Donors.scss";
 @import "./gdocs/components/GuidedChart.scss";
 @import "./gdocs/components/ProminentLink.scss";
@@ -766,7 +764,6 @@ a.ref sup {
 
 @media print {
     .site-header,
-    .alert-banner,
     .site-footer,
     .cookie-notice,
     .citation-note,

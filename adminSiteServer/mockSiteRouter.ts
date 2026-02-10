@@ -54,6 +54,7 @@ import {
     getEntitiesForProfile,
     ALL_GDOC_TYPES,
 } from "@ourworldindata/utils"
+import { checkShouldProfileRender } from "../db/model/Gdoc/dataCallouts.js"
 import {
     EXPLORERS_ROUTE_FOLDER,
     explorerUrlMigrationsById,
@@ -703,7 +704,10 @@ getPlainRouteWithROTransaction(
                 return res.status(404).send(renderNotFoundPage())
             }
 
-            const entitiesInScope = getEntitiesForProfile(gdoc as GdocProfile)
+            const entitiesInScope = getEntitiesForProfile(
+                gdoc.content.scope,
+                gdoc.content.exclude
+            )
             const isEntityInScope = entitiesInScope.some(
                 (profileEntity) => profileEntity.code === entity.code
             )
@@ -711,10 +715,15 @@ getPlainRouteWithROTransaction(
                 return res.status(404).send(renderNotFoundPage())
             }
 
-            const instantiatedProfile = instantiateProfileForEntity(
+            const instantiatedProfile = await instantiateProfileForEntity(
                 gdoc as GdocProfile,
-                entity
+                entity,
+                { knex: trx }
             )
+
+            if (!checkShouldProfileRender(instantiatedProfile.content)) {
+                return res.status(404).send(renderNotFoundPage())
+            }
 
             return res.send(renderGdoc(instantiatedProfile, true))
         } catch (error) {

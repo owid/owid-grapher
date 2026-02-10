@@ -4,6 +4,7 @@ import {
     DbInsertChartConfig,
     DbRawChartConfig,
     GrapherInterface,
+    parseChartConfig,
     parseChartConfigsRow,
     serializeChartConfig,
 } from "@ourworldindata/types"
@@ -104,4 +105,17 @@ async function updateExistingConfig(
         `,
         [column, serializeChartConfig(config), updatedAt, configId]
     )
+}
+
+export async function getChartConfigByUuid(
+    knex: db.KnexReadonlyTransaction,
+    uuid: string
+): Promise<GrapherInterface | undefined> {
+    const row = await db.knexRawFirst<Pick<DbRawChartConfig, "full">>(
+        knex,
+        `SELECT full FROM chart_configs WHERE id = ?`,
+        [uuid]
+    )
+    if (!row) return undefined
+    return parseChartConfig(row.full)
 }

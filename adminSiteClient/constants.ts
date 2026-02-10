@@ -11,4 +11,5 @@ export const GDOC_DIFF_OMITTABLE_PROPERTIES = [
     "relatedCharts",
     "linkedNarrativeCharts",
     "linkedStaticViz",
+    "linkedCallouts",
 ]

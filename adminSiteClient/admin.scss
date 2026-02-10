@@ -1294,6 +1294,152 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     }
 }
 
+.GdocsCoverageMatrix {
+    padding: 24px;
+}
+
+.GdocsCoverageMatrix__loading,
+.GdocsCoverageMatrix__error,
+.GdocsCoverageMatrix__empty {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    color: #6b7280;
+}
+
+.GdocsCoverageMatrix__error {
+    color: #b91c1c;
+}
+
+.GdocsCoverageMatrix__table-wrapper {
+    overflow: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    background: #fff;
+}
+
+.GdocsCoverageMatrix__table {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: collapse;
+
+    th,
+    td {
+        border: 1px solid #e5e7eb;
+        padding: 6px 8px;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+
+    th {
+        background: #f9fafb;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        text-align: center;
+    }
+}
+
+.GdocsCoverageMatrix__label {
+    position: sticky;
+    left: 0;
+    background: #fff;
+    z-index: 2;
+    max-width: 360px;
+
+    div {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.GdocsCoverageMatrix__cell {
+    width: 14px;
+    height: 14px;
+}
+
+.GdocsCoverageMatrix__cell--present {
+    background: #16a34a;
+}
+
+.GdocsCoverageMatrix__cell--missing {
+    background: #dc2626;
+}
+
+.GdocsCoverageMatrix__legend {
+    display: flex;
+    gap: 16px;
+    padding: 12px 4px;
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.GdocsCoverageMatrix__legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    .GdocsCoverageMatrix__cell {
+        border: 1px solid #e5e7eb;
+    }
+}
+
+.CalloutFunctionsPage {
+    padding: 24px;
+}
+
+.CalloutFunctionsPage__form {
+    margin-top: 16px;
+}
+
+.CalloutFunctionsPage__input-group {
+    display: flex;
+    gap: 8px;
+
+    input {
+        flex: 1;
+    }
+}
+
+.CalloutFunctionsPage__results {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 16px;
+}
+
+.CalloutFunctionsPage__function-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.CalloutFunctionsPage__column-functions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 8px 12px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    ul {
+        width: 100%;
+        margin-top: 8px;
+        li {
+            margin-bottom: 4px;
+            list-style: none;
+        }
+    }
+
+    code {
+        flex: 1;
+        font-size: 14px;
+        color: #1f2937;
+    }
+}
+
 .GdocsSettingsForm {
     .edit-in-gdocs {
         position: relative;

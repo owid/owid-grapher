@@ -2,7 +2,6 @@ import * as _ from "lodash-es"
 import React from "react"
 import {
     Bounds,
-    isTouchDevice,
     makeIdForHumanConsumption,
     excludeUndefined,
     EntityName,
@@ -75,10 +74,6 @@ export class ChoroplethMap extends React.Component<{
             hoverEnterFeature: observable,
             hoverNearbyFeature: observable,
         })
-    }
-
-    @computed private get isTouchDevice(): boolean {
-        return isTouchDevice()
     }
 
     @computed private get manager(): ChoroplethMapManager {
@@ -319,7 +314,7 @@ export class ChoroplethMap extends React.Component<{
     // Otherwise we do a quadtree search for the closest center point of a feature bounds,
     // so that we can hover very small countries without trouble
     @action.bound private detectNearbyFeature(
-        event: MouseEvent | TouchEvent
+        event: PointerEvent
     ): MapRenderFeature | undefined {
         if (this.hoverEnterFeature || !this.base.current) return
 
@@ -343,18 +338,23 @@ export class ChoroplethMap extends React.Component<{
         return nearbyFeature
     }
 
-    @action.bound private onMouseMove(event: MouseEvent): void {
+    @action.bound private onPointerMove(event: PointerEvent): void {
         this.detectNearbyFeature(event)
     }
 
-    @action.bound private onMouseEnter(feature: MapRenderFeature): void {
+    @action.bound private onPointerEnter(
+        feature: MapRenderFeature,
+        event: PointerEvent
+    ): void {
+        // on touch, let the click handler set hover so the
+        // tooltip doesn't appear before the click event fires
+        if (event.pointerType === "touch") return
         this.setHoverEnterFeature(feature)
     }
 
-    @action.bound private onMouseLeave(): void {
-        // Fixes an issue where clicking on a country that overlaps with the
-        // tooltip causes the tooltip to disappear shortly after being rendered
-        if (this.isTouchDevice) return
+    @action.bound private onPointerLeave(event: PointerEvent): void {
+        // on touch, the tooltip is dismissed via the document pointerdown handler
+        if (event.pointerType === "touch") return
 
         this.clearHoverEnterFeature()
     }
@@ -371,10 +371,6 @@ export class ChoroplethMap extends React.Component<{
     @action.bound private clearHoverEnterFeature(): void {
         this.hoverEnterFeature = undefined
         this.manager.onMapMouseLeave?.()
-    }
-
-    @action.bound private onTouchStart(feature: MapRenderFeature): void {
-        this.setHoverEnterFeature(feature)
     }
 
     @action.bound private onClick(feature: MapRenderFeature): void {
@@ -404,7 +400,7 @@ export class ChoroplethMap extends React.Component<{
         }
     }
 
-    @action.bound private onDocumentClick(): void {
+    @action.bound private onDocumentPointerDown(): void {
         this.manager.globeController?.dismissCountryFocus()
         if (this.hoverEnterFeature || this.hoverNearbyFeature) {
             this.hoverEnterFeature = undefined
@@ -445,12 +441,12 @@ export class ChoroplethMap extends React.Component<{
                         key={annotation.id}
                         annotation={annotation}
                         strokeScale={this.viewportScaleSqrt}
-                        onMouseEnter={action((feature: RenderFeature) =>
+                        onPointerEnter={action((feature: RenderFeature) =>
                             this.setHoverEnterFeature(
                                 feature as MapRenderFeature
                             )
                         )}
-                        onMouseLeave={action(() =>
+                        onPointerLeave={action(() =>
                             this.clearHoverEnterFeature()
                         )}
                     />
@@ -502,9 +498,8 @@ export class ChoroplethMap extends React.Component<{
 
                             this.onClick(feature)
                         }}
-                        onTouchStart={() => this.onTouchStart(feature)}
-                        onMouseEnter={this.onMouseEnter}
-                        onMouseLeave={this.onMouseLeave}
+                        onPointerEnter={this.onPointerEnter}
+                        onPointerLeave={this.onPointerLeave}
                     />
                 ))}
             </g>
@@ -564,9 +559,8 @@ export class ChoroplethMap extends React.Component<{
 
                                 this.onClick(feature)
                             }}
-                            onTouchStart={() => this.onTouchStart(feature)}
-                            onMouseEnter={this.onMouseEnter}
-                            onMouseLeave={this.onMouseLeave}
+                            onPointerEnter={this.onPointerEnter}
+                            onPointerLeave={this.onPointerLeave}
                         />
                     )
                 })}
@@ -590,16 +584,13 @@ export class ChoroplethMap extends React.Component<{
     }
 
     override componentDidMount(): void {
-        document.addEventListener("touchstart", this.onDocumentClick, {
-            capture: true,
+        document.addEventListener("pointerdown", this.onDocumentPointerDown, {
             passive: true,
         })
     }
 
     override componentWillUnmount(): void {
-        document.removeEventListener("touchstart", this.onDocumentClick, {
-            capture: true,
-        })
+        document.removeEventListener("pointerdown", this.onDocumentPointerDown)
     }
 
     renderInteractive(): React.ReactElement {
@@ -618,16 +609,18 @@ export class ChoroplethMap extends React.Component<{
                     (ev: SVGMouseEvent): void =>
                         ev.preventDefault() /* Without this, title may get selected while shift clicking */
                 }
-                onMouseMove={(ev: SVGMouseEvent): void =>
-                    this.onMouseMove(ev.nativeEvent)
-                }
-                onMouseLeave={this.onMouseLeave}
+                onPointerMove={(ev): void => this.onPointerMove(ev.nativeEvent)}
+                onPointerLeave={(e) => this.onPointerLeave(e.nativeEvent)}
                 onClick={() => {
                     // invoke a click on a feature when clicking nearby one
                     if (this.hoverNearbyFeature)
                         this.onClick(this.hoverNearbyFeature)
                 }}
-                style={{ cursor: this.hoverFeature ? "pointer" : undefined }}
+                style={{
+                    cursor: this.hoverFeature ? "pointer" : undefined,
+                    // Remove the 300ms delay on click events and double-tap-to-zoom for touch devices
+                    touchAction: "manipulation",
+                }}
             >
                 <rect
                     x={bounds.x}

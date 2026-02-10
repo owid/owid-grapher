@@ -3,6 +3,7 @@ import * as R from "remeda"
 import { match } from "ts-pattern"
 import {
     selectPeerCountriesForGrapher,
+    constructGrapherValuesJson,
     generateFocusedSeriesNamesParam,
     generateSelectedEntityNamesParam,
     GrapherState,
@@ -32,7 +33,6 @@ import {
     PeerCountryStrategy,
 } from "@ourworldindata/types"
 import { constructSearchResultDataTableContent } from "./constructSearchResultDataTableContent"
-import { constructGrapherValuesJson } from "../grapherValuesJson"
 import {
     buildChartHitDataDisplayProps,
     getTableColumnCountForGridSlotKey,

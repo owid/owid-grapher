@@ -6,7 +6,6 @@ import {
 import { SiteNavigation } from "./SiteNavigation.js"
 
 interface SiteHeaderProps {
-    hideAlertBanner?: boolean
     hideDonationFlag?: boolean
     /**
      * Stops the search bar from being rendered, as we show it in the page content on the homepage

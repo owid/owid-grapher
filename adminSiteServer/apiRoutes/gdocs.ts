@@ -3,9 +3,11 @@ import { getCanonicalUrl } from "@ourworldindata/components"
 import {
     GdocsContentSource,
     DbInsertUser,
+    EnrichedBlockDataCallout,
     JsonError,
     GDOCS_BASE_URL,
     gdocUrlRegex,
+    LinkedCallouts,
     PostsGdocsLinksTableName,
     PostsGdocsXImagesTableName,
     PostsGdocsTableName,
@@ -17,6 +19,12 @@ import {
 import {
     checkIsDataInsight,
     checkIsGdocPostExcludingFragments,
+    checkShouldDataCalloutRender,
+    getEntitiesForProfile,
+    makeCalloutGrapherStateKey,
+    makeLinkedCalloutKey,
+    traverseEnrichedBlock,
+    Url,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 import {
@@ -34,6 +42,12 @@ import { GdocAbout } from "../../db/model/Gdoc/GdocAbout.js"
 import { GdocAuthor } from "../../db/model/Gdoc/GdocAuthor.js"
 import { getMinimalGdocPostsByIds } from "../../db/model/Gdoc/GdocBase.js"
 import { GdocDataInsight } from "../../db/model/Gdoc/GdocDataInsight.js"
+import { prepareCalloutTableForUrl } from "../../db/model/Gdoc/dataCallouts.js"
+import {
+    prepareCalloutTable,
+    constructGrapherValuesJsonFromTable,
+} from "@ourworldindata/grapher"
+import { mapSlugsToIds } from "../../db/model/Chart.js"
 import {
     getAllGdocIndexItemsOrderedByUpdatedAt,
     getAndLoadGdocById,
@@ -44,8 +58,9 @@ import {
     setLinksForGdoc,
     GdocLinkUpdateMode,
     upsertGdoc,
-    getGdocBaseObjectById,
     setTagsForGdoc,
+    loadGdocFromGdocBase,
+    getGdocBaseObjectById,
 } from "../../db/model/Gdoc/GdocFactory.js"
 import { GdocHomepage } from "../../db/model/Gdoc/GdocHomepage.js"
 import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
@@ -97,6 +112,188 @@ export async function getIndividualGdoc(
             error: { message: String(error), status: 500 },
         })
     }
+}
+
+export async function getGdocCalloutCoverage(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const id = req.params.id
+    const contentSource = req.query.contentSource as
+        | GdocsContentSource
+        | undefined
+    const acceptSuggestions = req.query.acceptSuggestions === "true"
+
+    const base = await getGdocBaseObjectById(trx, id, true)
+    if (!base) throw new JsonError(`No Google Doc with id ${id} found`, 404)
+
+    const gdoc = await loadGdocFromGdocBase(
+        trx,
+        base,
+        contentSource,
+        acceptSuggestions,
+        { loadState: false }
+    )
+
+    if (gdoc.content.type !== OwidGdocType.Profile) {
+        throw new JsonError("Coverage matrix is only available for profiles")
+    }
+
+    // Extract data-callout blocks from the template body
+    const dataCalloutBlocks: EnrichedBlockDataCallout[] = []
+    for (const node of gdoc.content.body ?? []) {
+        traverseEnrichedBlock(node, (b) => {
+            if (b.type === "data-callout") {
+                dataCalloutBlocks.push(b as EnrichedBlockDataCallout)
+            }
+        })
+    }
+
+    const rows = dataCalloutBlocks.map(({ url }, index) => {
+        const rowUrl = Url.fromURL(url).updateQueryParams({
+            country: undefined,
+        }).fullUrl
+        return {
+            id: `${rowUrl}#${index}`,
+            label: rowUrl,
+        }
+    })
+
+    const entities = getEntitiesForProfile(
+        gdoc.content.scope,
+        gdoc.content.exclude
+    )
+    const coverageByEntity: Record<string, Record<string, boolean>> = {}
+
+    // Pre-fetch slug to ID map for efficiency
+    const slugToIdMap = await mapSlugsToIds(trx)
+
+    // Group blocks by chart key to prepare each chart's table once
+    const chartKeyToUrl = new Map<string, string>()
+    for (const block of dataCalloutBlocks) {
+        const chartKey = makeCalloutGrapherStateKey(block.url)
+        if (!chartKeyToUrl.has(chartKey)) {
+            chartKeyToUrl.set(chartKey, block.url)
+        }
+    }
+
+    // Prepare tables for each unique chart
+    const preparedTablesByChartKey = new Map<
+        string,
+        ReturnType<typeof prepareCalloutTable>
+    >()
+    for (const [chartKey, templateUrl] of chartKeyToUrl) {
+        const result = await prepareCalloutTableForUrl(
+            trx,
+            templateUrl,
+            slugToIdMap
+        )
+        if (result) {
+            const prepared = prepareCalloutTable(
+                result.inputTable,
+                result.config
+            )
+            preparedTablesByChartKey.set(chartKey, prepared)
+        }
+    }
+
+    // For each entity, check if each block's callout spans can resolve
+    for (const entity of entities) {
+        const rowCoverage: Record<string, boolean> = {}
+
+        dataCalloutBlocks.forEach((block, index) => {
+            const chartKey = makeCalloutGrapherStateKey(block.url)
+            const prepared = preparedTablesByChartKey.get(chartKey)
+
+            if (!prepared) {
+                rowCoverage[rows[index].id] = false
+                return
+            }
+
+            // Instantiate the URL with the entity code
+            const instantiatedUrl = Url.fromURL(block.url).updateQueryParams({
+                country: entity.code,
+            }).fullUrl
+            const url = Url.fromURL(instantiatedUrl)
+
+            const values = constructGrapherValuesJsonFromTable(
+                prepared,
+                entity.name,
+                url.queryParams.time
+            )
+
+            // Build a linkedCallouts entry and check if the block can render
+            const linkedCallouts: LinkedCallouts = {
+                [makeLinkedCalloutKey(instantiatedUrl)]: {
+                    url: instantiatedUrl,
+                    values,
+                },
+            }
+            // Use a shallow copy with the instantiated URL so the key lookup matches
+            const instantiatedBlock = { ...block, url: instantiatedUrl }
+            rowCoverage[rows[index].id] = checkShouldDataCalloutRender(
+                instantiatedBlock,
+                linkedCallouts
+            )
+        })
+
+        coverageByEntity[entity.code] = rowCoverage
+    }
+
+    res.send({
+        rows,
+        entities,
+        coverageByEntity,
+    })
+}
+
+/**
+ * Given a chart URL (e.g. /grapher/life-expectancy?country=USA),
+ * returns the available callout function strings that can be used
+ * in data-callout blocks.
+ */
+export async function getCalloutFunctionStrings(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const chartUrl = req.query.url as string | undefined
+    if (!chartUrl) {
+        throw new JsonError("Missing 'url' query parameter", 400)
+    }
+
+    const tableResult = await prepareCalloutTableForUrl(trx, chartUrl)
+    if (!tableResult) {
+        throw new JsonError(`Could not load chart for URL: ${chartUrl}`, 404)
+    }
+
+    const { config, inputTable } = tableResult
+    const prepared = prepareCalloutTable(inputTable, config)
+
+    // Get column short names from the prepared table
+    const columnSlugs = [
+        ...prepared.yColumnSlugs,
+        ...(prepared.xColumnSlug ? [prepared.xColumnSlug] : []),
+    ]
+
+    const functionStringsByName: Record<string, string[]> = {}
+
+    for (const slug of columnSlugs) {
+        const columnInfo = prepared.columns?.[slug]
+        if (columnInfo?.shortName) {
+            functionStringsByName[columnInfo.name] = [
+                `$latestValue(${columnInfo.shortName})`,
+                `$latestValueWithUnit(${columnInfo.shortName})`,
+                `$latestTime(${columnInfo.shortName})`,
+            ]
+        }
+    }
+
+    res.send({
+        url: chartUrl,
+        functionStringsByName,
+    })
 }
 
 /**

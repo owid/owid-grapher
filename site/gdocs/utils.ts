@@ -1,11 +1,6 @@
-import { useContext } from "react"
-
+import { useContext, createContext } from "react"
 import {
-    getCanonicalUrl,
-    getLinkType,
-    getUrlTarget,
-} from "@ourworldindata/components"
-import {
+    CalloutFunction,
     ImageMetadata,
     LinkedChart,
     OwidGdocPostContent,
@@ -18,8 +13,16 @@ import {
     OwidEnrichedGdocBlockTypeMap,
     LinkedStaticViz,
 } from "@ourworldindata/types"
+
+import {
+    getCanonicalUrl,
+    getLinkType,
+    getUrlTarget,
+} from "@ourworldindata/components"
 import {
     formatAuthors,
+    getCalloutValue,
+    makeLinkedCalloutKey,
     traverseEnrichedBlock,
     Url,
 } from "@ourworldindata/utils"
@@ -200,6 +203,37 @@ export const useLinkedStaticViz = (
 ): LinkedStaticViz | undefined => {
     const { linkedStaticViz } = useContext(AttachmentsContext)
     return linkedStaticViz?.[name]
+}
+
+/**
+ * Context provided to span-callout spans within a data-callout block.
+ * Contains the URL and entity from the parent data-callout, and the
+ * linked callout data from attachments.
+ */
+export interface DataCalloutContextType {
+    url: string
+}
+
+export const DataCalloutContext = createContext<DataCalloutContextType | null>(
+    null
+)
+
+export function useCalloutValue(
+    functionName: CalloutFunction,
+    parameters: string[]
+): string | undefined {
+    const { linkedCallouts = {} } = useContext(AttachmentsContext)
+    const calloutContext = useContext(DataCalloutContext)
+
+    if (!calloutContext) return undefined
+
+    const key = makeLinkedCalloutKey(calloutContext.url)
+
+    const linkedCallout = linkedCallouts[key]
+
+    if (!linkedCallout?.values) return undefined
+
+    return getCalloutValue(linkedCallout.values, functionName, parameters)
 }
 
 export function getShortPageCitation(

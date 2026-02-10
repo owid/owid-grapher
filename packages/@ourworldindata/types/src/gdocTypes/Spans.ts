@@ -32,6 +32,20 @@ export type SpanGuidedChartLink = {
     url: string
 }
 
+export const CALLOUT_FUNCTIONS = [
+    "latestTime",
+    "latestValue",
+    "latestValueWithUnit",
+] as const
+export type CalloutFunction = (typeof CALLOUT_FUNCTIONS)[number]
+
+export type SpanCallout = {
+    spanType: "span-callout"
+    functionName: CalloutFunction
+    parameters: string[] // e.g., ["Consumption-based emissions"]
+    children: Span[] // placeholder text from the gdoc link
+}
+
 export type SpanNewline = {
     spanType: "span-newline"
 }
@@ -69,6 +83,7 @@ export type UnformattedSpan = SpanSimpleText | SpanNewline
 
 export type Span =
     | SpanSimpleText
+    | SpanCallout
     | SpanDod
     | SpanGuidedChartLink
     | SpanLink

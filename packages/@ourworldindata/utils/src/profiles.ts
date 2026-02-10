@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import { match } from "ts-pattern"
 import {
     articulateEntity,
     checkHasMembers,
@@ -10,13 +11,20 @@ import {
     type Region,
 } from "./regions.js"
 import {
+    CalloutFunction,
     EnrichedBlockConditionalSection,
-    OwidGdocProfileInterface,
+    EnrichedBlockDataCallout,
+    GRAPHER_QUERY_PARAM_KEYS,
+    GrapherValuesJson,
+    GrapherValuesJsonDataPoint,
+    LinkedCallouts,
     ParseError,
+    SpanCallout,
     type OwidGdocProfileContent,
 } from "@ourworldindata/types"
 
 import { generateToc, traverseEnrichedBlock } from "./Util.js"
+import { Url } from "./urls/Url.js"
 
 export type ProfileEntity = Pick<Region, "name" | "code">
 
@@ -136,9 +144,9 @@ export const instantiateProfile = (
 }
 
 export function getEntitiesForProfile(
-    profileTemplate: OwidGdocProfileInterface
+    scopeRaw: string,
+    excludeRaw?: string
 ): ProfileEntity[] {
-    const scopeRaw = profileTemplate.content.scope
     if (!scopeRaw) return []
 
     const scopeValues = scopeRaw
@@ -177,6 +185,19 @@ export function getEntitiesForProfile(
             scopeValue !== "all"
         ) {
             addEntity(getRegionByNameOrVariantName(scopeValue))
+        }
+    }
+
+    // Remove excluded entities
+    if (excludeRaw) {
+        const excludeValues = excludeRaw
+            .split(",")
+            .map((value) => value.trim().toLowerCase())
+            .filter((value) => value.length > 0)
+
+        for (const excludeValue of excludeValues) {
+            const region = getRegionByNameOrVariantName(excludeValue)
+            if (region?.code) entitiesByCode.delete(region.code)
         }
     }
 
@@ -402,4 +423,126 @@ export function checkShouldConditionalSectionRender({
     const { resolved: excludeRegions } = resolveRegionList(exclude)
 
     return calculateRenderLogic(entityRegion, includeRegions, excludeRegions)
+}
+
+/**
+ * Data callout utils
+ */
+
+// Remove all grapher query params from a URL string
+// What remains is the base URL without any grapher-specific query params
+// e.g. only indicator-specifying query params remain
+export function stripGrapherQueryParams(url: string): string {
+    const urlObj = Url.fromURL(url)
+    const emptyParams = Object.fromEntries(
+        GRAPHER_QUERY_PARAM_KEYS.map((key) => [key, undefined])
+    )
+    const strippedUrl = urlObj.updateQueryParams(emptyParams)
+    return strippedUrl.fullUrl
+}
+
+// "/grapher/life-expectancy?time=2022" and "/grapher/life-expectancy?time=2020"
+// both refer to the same grapher state, so they should have the same key
+export function makeCalloutGrapherStateKey(fullUrl: string): string {
+    const key = stripGrapherQueryParams(fullUrl)
+    return key
+}
+
+// Generate a key for LinkedCallouts based on full URL (including country param)
+export function makeLinkedCalloutKey(fullUrl: string): string {
+    const url = Url.fromURL(fullUrl)
+    const key = url.pathname + url.queryStr
+    return key
+}
+
+/**
+ * Check if a data-callout block has all required values available.
+ * Returns true if all span-callout spans in the block have values in linkedCallouts.
+ */
+export function checkShouldDataCalloutRender(
+    block: EnrichedBlockDataCallout,
+    linkedCallouts: LinkedCallouts
+): boolean {
+    const key = makeLinkedCalloutKey(block.url)
+    const linkedCallout = linkedCallouts[key]
+
+    // If no callout data is available, we can't render
+    if (!linkedCallout?.values) return false
+
+    // Collect all span-callout spans from the content
+    const calloutSpans: SpanCallout[] = []
+    for (const contentBlock of block.content) {
+        traverseEnrichedBlock(contentBlock, _.noop, (span) => {
+            if (span.spanType === "span-callout") {
+                calloutSpans.push(span as SpanCallout)
+            }
+        })
+    }
+
+    // Check if all callout values are available
+    const values = linkedCallout.values
+    for (const calloutSpan of calloutSpans) {
+        const value = getCalloutValue(
+            values,
+            calloutSpan.functionName,
+            calloutSpan.parameters
+        )
+        if (value === undefined) {
+            return false
+        }
+    }
+
+    return true
+}
+
+/**
+ * Find the y-dimension data point matching the given shortName.
+ * If shortName is omitted and there is exactly one y data point,
+ * it is returned automatically — so single-indicator charts don't
+ * require the column name in the callout syntax.
+ */
+function findYDataPoint(
+    values: GrapherValuesJson,
+    shortName: string | undefined
+): GrapherValuesJsonDataPoint | undefined {
+    if (shortName) {
+        const columnSlug = values.columns
+            ? Object.entries(values.columns).find(
+                  ([_, col]) => col.shortName === shortName
+              )?.[0]
+            : undefined
+        if (!columnSlug) return undefined
+
+        return values.endValues?.y?.find(
+            (dp) => dp.columnSlug === String(columnSlug)
+        )
+    }
+
+    // No shortName provided: use the single y data point if unambiguous
+    const yValues = values.endValues?.y
+    if (yValues?.length === 1) return yValues[0]
+
+    return undefined
+}
+
+/**
+ * Look up a value from GrapherValuesJson based on the callout function name.
+ * Returns the formatted value or undefined if not found.
+ */
+export function getCalloutValue(
+    values: GrapherValuesJson,
+    functionName: CalloutFunction,
+    parameters: string[]
+): string | undefined {
+    return match(functionName)
+        .with("latestValue", () => {
+            return findYDataPoint(values, parameters[0])?.formattedValue
+        })
+        .with("latestValueWithUnit", () => {
+            return findYDataPoint(values, parameters[0])?.formattedValueShort
+        })
+        .with("latestTime", () => {
+            return findYDataPoint(values, parameters[0])?.formattedTime
+        })
+        .exhaustive()
 }

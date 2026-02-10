@@ -30,6 +30,7 @@ import {
     instantiateProfileForEntity,
     GdocProfile,
 } from "../db/model/Gdoc/GdocProfile.js"
+import { checkShouldProfileRender } from "../db/model/Gdoc/dataCallouts.js"
 
 interface OwidAdminAppOptions {
     isDev: boolean
@@ -119,37 +120,48 @@ export class OwidAdminApp {
                     ) {
                         const entityCode = req.query.entity as string
                         const entitiesInScope = getEntitiesForProfile(
-                            gdoc as GdocProfile
+                            gdoc.content.scope,
+                            gdoc.content.exclude
                         )
                         const entityInScope = entitiesInScope.find(
                             (profileEntity) => profileEntity.code === entityCode
                         )
-                        if (entityInScope) {
-                            const instantiatedProfile =
-                                instantiateProfileForEntity(
-                                    gdoc as GdocProfile,
-                                    entityInScope
-                                )
-                            res.set("X-Robots-Tag", "noindex")
-                            res.send(
-                                renderToHtmlPage(
-                                    <OwidGdocPage
-                                        baseUrl={BAKED_BASE_URL}
-                                        gdoc={instantiatedProfile}
-                                        debug
-                                        isPreviewing
-                                    />
-                                )
+                        if (!entityInScope) {
+                            res.status(404).send(
+                                "This entity is not in the profile scope."
+                            )
+                            return
+                        }
+                        const instantiatedProfile =
+                            await instantiateProfileForEntity(
+                                gdoc as GdocProfile,
+                                entityInScope,
+                                { knex }
+                            )
+
+                        if (
+                            !checkShouldProfileRender(
+                                instantiatedProfile.content
+                            )
+                        ) {
+                            res.status(404).send(
+                                "This profile has no renderable content for this entity. A profile will not be baked for it."
                             )
                             return
                         }
 
-                        if (!entityInScope) {
-                            res.status(404).send(
-                                "Profile preview not available for this entity."
+                        res.set("X-Robots-Tag", "noindex")
+                        res.send(
+                            renderToHtmlPage(
+                                <OwidGdocPage
+                                    baseUrl={BAKED_BASE_URL}
+                                    gdoc={instantiatedProfile}
+                                    debug
+                                    isPreviewing
+                                />
                             )
-                            return
-                        }
+                        )
+                        return
                     }
 
                     res.set("X-Robots-Tag", "noindex")

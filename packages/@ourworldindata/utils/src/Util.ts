@@ -132,7 +132,11 @@ const getRootSVG = (
 
 export const getRelativeMouse = (
     node: Element | SVGGraphicsElement | SVGSVGElement,
-    event: React.TouchEvent | TouchEvent | { clientX: number; clientY: number }
+    event:
+        | React.TouchEvent
+        | TouchEvent
+        | PointerEvent
+        | { clientX: number; clientY: number }
 ): PointVector => {
     const eventOwner = checkIsTouchEvent(event) ? event.targetTouches[0] : event
 
@@ -1281,6 +1285,7 @@ export function extractGdocPageData(gdoc: OwidGdoc) {
         "linkedCharts",
         "linkedNarrativeCharts",
         "linkedIndicators",
+        "linkedCallouts",
         "imageMetadata",
         "relatedCharts",
     ])
@@ -1776,6 +1781,12 @@ export function traverseEnrichedBlock(
                 traverseEnrichedBlock(node, callback, spanCallback)
             }
         })
+        .with({ type: "data-callout" }, (dataCallout) => {
+            callback(dataCallout)
+            for (const node of dataCallout.content) {
+                traverseEnrichedBlock(node, callback, spanCallback)
+            }
+        })
         .with(
             {
                 type: P.union(
@@ -1833,6 +1844,7 @@ export function spansToUnformattedPlainText(spans: Span[]): string {
                     {
                         spanType: P.union(
                             "span-link",
+                            "span-callout",
                             "span-italic",
                             "span-bold",
                             "span-fallback",
@@ -1962,6 +1974,17 @@ export function lowercaseObjectKeys(
 export const detailOnDemandRegex = /#dod:([\w\-_]+)/
 
 export const guidedChartRegex = /#guide:(https?:\/\/[^\s]+)/
+
+/**
+ * Matches plaintext callout token syntax:
+ * $latestTime(shortName)
+ * $latestValue(shortName)
+ *
+ * Group 1: function name (e.g., "latestTime", "latestValue")
+ * Group 2: parameters (e.g., "shortName")
+ */
+export const plaintextCalloutRegex =
+    /\$(latestValueWithUnit|latestValue|latestTime)\(([^)]*)\)/g
 
 export function extractDetailsFromSyntax(str: string): string[] {
     return [...str.matchAll(new RegExp(detailOnDemandRegex, "g"))].map(

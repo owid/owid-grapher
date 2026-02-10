@@ -73,11 +73,13 @@ import {
     DbRawPostGdoc,
     PostsGdocsTableName,
     LinkedStaticViz,
+    LinkedCallouts,
 } from "@ourworldindata/types"
 import {
     getAllNarrativeChartNames,
     getNarrativeChartsInfo,
 } from "../NarrativeChart.js"
+import { loadAndClearLinkedCallouts } from "./dataCallouts.js"
 
 import { indexBy } from "remeda"
 import {
@@ -274,6 +276,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     latestDataInsights: LatestDataInsight[] = []
     linkedNarrativeCharts?: Record<string, NarrativeChartInfo> = {}
     linkedStaticViz?: Record<string, LinkedStaticViz> = {}
+    linkedCallouts: LinkedCallouts = {}
     _omittableFields: string[] = []
 
     constructor(id?: string) {
@@ -330,7 +333,8 @@ export class GdocBase implements OwidGdocBaseInterface {
             this.markdown =
                 enrichedBlocksToMarkdown(
                     this.enrichedBlockSources.flat(),
-                    true
+                    true,
+                    { linkedCallouts: this.linkedCallouts }
                 ) ?? null
         } catch (e) {
             console.error("Error when converting content to markdown", e)
@@ -559,6 +563,13 @@ export class GdocBase implements OwidGdocBaseInterface {
                 }),
             ])
             .with({ type: "chart" }, (block) => [
+                createLinkFromUrl({
+                    url: block.url,
+                    sourceId: this.id,
+                    componentType: block.type,
+                }),
+            ])
+            .with({ type: "data-callout" }, (block) => [
                 createLinkFromUrl({
                     url: block.url,
                     sourceId: this.id,
@@ -972,6 +983,19 @@ export class GdocBase implements OwidGdocBaseInterface {
         this.linkedStaticViz = _.keyBy(dbResults, "name")
     }
 
+    /**
+     * Load data for all data-callout blocks.
+     * For each callout, we fetch the chart config and construct the values JSON.
+     * Then clear any callouts that have incomplete data.
+     */
+    async loadAndClearLinkedCallouts(
+        knex: db.KnexReadonlyTransaction
+    ): Promise<void> {
+        const result = await loadAndClearLinkedCallouts(this.content, { knex })
+        this.content = result.content
+        this.linkedCallouts = result.linkedCallouts
+    }
+
     async fetchAndEnrichGdoc(
         acceptSuggestions: boolean = false
     ): Promise<void> {
@@ -1274,6 +1298,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         await this.loadLinkedIndicators(knex) // depends on linked charts
         await this.loadNarrativeChartsInfo(knex)
         await this.loadLinkedStaticViz(knex)
+        await this.loadAndClearLinkedCallouts(knex) // clones and reassigns this.content
         await this._loadSubclassAttachments(knex) // for GdocHomepage, mutates linkedCharts and linkedDocuments
         await this.validate(knex)
     }

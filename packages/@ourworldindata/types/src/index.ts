@@ -192,6 +192,7 @@ export {
     type RawBlockAside,
     type RawBlockBlockquote,
     type RawBlockCallout,
+    type RawBlockDataCallout,
     type RawBlockChart,
     type RawBlockExpander,
     type RawBlockChartStory,
@@ -258,6 +259,7 @@ export {
     type EnrichedBlockAside,
     type EnrichedBlockBlockquote,
     type EnrichedBlockCallout,
+    type EnrichedBlockDataCallout,
     type EnrichedBlockChart,
     type EnrichedBlockExpander,
     type EnrichedBlockChartStory,
@@ -368,6 +370,7 @@ export {
     type OwidGdocHomepageContent,
     type OwidGdocHomepageInterface,
     type OwidGdocHomepageMetadata,
+    type OwidGdocProfileScope,
     type OwidGdocProfileContent,
     type OwidGdocProfileInterface,
     type OwidGdocProfileEntitySummary,
@@ -388,6 +391,8 @@ export {
     type LinkedAuthor,
     type LinkedChart,
     type LinkedIndicator,
+    type LinkedCallout,
+    type LinkedCallouts,
     type LinkedStaticViz,
     DYNAMIC_COLLECTION_PAGE_CONTAINER_ID,
     type OwidGdocContent,
@@ -409,8 +414,11 @@ export {
 } from "./gdocTypes/Datapage.js"
 
 export {
+    CALLOUT_FUNCTIONS,
+    type CalloutFunction,
     type Span,
     type SpanBold,
+    type SpanCallout,
     type SpanDod,
     type SpanGuidedChartLink,
     type SpanFallback,
@@ -948,6 +956,7 @@ export {
     type GrapherValuesJson,
     type GrapherValuesJsonDataPoints,
     type GrapherValuesJsonDataPoint,
+    type GrapherValuesJsonDimension,
 } from "./endpointTypes/GrapherValuesJson.js"
 
 export {

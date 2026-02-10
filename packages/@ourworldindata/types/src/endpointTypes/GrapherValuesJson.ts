@@ -12,8 +12,9 @@ export interface GrapherValuesJson {
     source: string
 }
 
-interface GrapherValuesJsonDimension {
+export interface GrapherValuesJsonDimension {
     name: string
+    shortName?: string
     unit?: string
     shortUnit?: string
     isProjection?: boolean

@@ -180,7 +180,7 @@ export class ChoroplethGlobe extends React.Component<{
     // Otherwise we do a quadtree search for the closest center point of a feature bounds,
     // so that we can hover very small countries without trouble
     @action.bound private detectNearbyFeature(
-        event: MouseEvent | TouchEvent,
+        event: PointerEvent,
         maxDistance = MAP_HOVER_TARGET_RANGE
     ): GlobeRenderFeature | undefined {
         if (this.hoverEnterFeature || !this.base.current) return
@@ -418,22 +418,25 @@ export class ChoroplethGlobe extends React.Component<{
         this.globeController.dismissCountryFocus()
     }
 
-    @action.bound private onMouseMove(event: MouseEvent): void {
+    @action.bound private onPointerMove(event: PointerEvent): void {
         this.detectNearbyFeature(event)
     }
 
-    @action.bound private onMouseEnterFeature(
-        feature: GlobeRenderFeature
+    @action.bound private onPointerEnterFeature(
+        feature: GlobeRenderFeature,
+        event: PointerEvent
     ): void {
-        // ignore mouse enter if panning or zooming
+        // ignore pointer enter if panning or zooming
         if (this.isPanningOrZooming) return
+        // on touch, let the click handler set hover so the
+        // tooltip doesn't appear before the click event fires
+        if (event.pointerType === "touch") return
         this.setHoverEnterFeature(feature)
     }
 
-    @action.bound private onMouseLeaveFeature(): void {
-        // Fixes an issue where clicking on a country that overlaps with the
-        // tooltip causes the tooltip to disappear shortly after being rendered
-        if (this.isTouchDevice) return
+    @action.bound private onPointerLeaveFeature(event: PointerEvent): void {
+        // on touch, the tooltip is dismissed via the document pointerdown handler
+        if (event.pointerType === "touch") return
 
         this.clearHoverEnterFeature()
     }
@@ -476,11 +479,7 @@ export class ChoroplethGlobe extends React.Component<{
         }
     }
 
-    @action.bound private onTouchStart(feature: GlobeRenderFeature): void {
-        this.setHoverEnterFeature(feature)
-    }
-
-    @action.bound private onDocumentClick(): void {
+    @action.bound private onDocumentPointerDown(): void {
         this.clearHover()
     }
 
@@ -661,8 +660,7 @@ export class ChoroplethGlobe extends React.Component<{
             this.globeController.jumpToOwidContinent(this.mapConfig.region)
         }
 
-        document.addEventListener("touchstart", this.onDocumentClick, {
-            capture: true,
+        document.addEventListener("pointerdown", this.onDocumentPointerDown, {
             passive: true,
         })
 
@@ -670,9 +668,7 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     override componentWillUnmount(): void {
-        document.removeEventListener("touchstart", this.onDocumentClick, {
-            capture: true,
-        })
+        document.removeEventListener("pointerdown", this.onDocumentPointerDown)
     }
 
     renderGlobeOutline(): React.ReactElement {
@@ -750,9 +746,8 @@ export class ChoroplethGlobe extends React.Component<{
 
                             this.onClick(feature)
                         }}
-                        onTouchStart={() => this.onTouchStart(feature)}
-                        onMouseEnter={this.onMouseEnterFeature}
-                        onMouseLeave={this.onMouseLeaveFeature}
+                        onPointerEnter={this.onPointerEnterFeature}
+                        onPointerLeave={this.onPointerLeaveFeature}
                     />
                 ))}
             </g>
@@ -811,9 +806,8 @@ export class ChoroplethGlobe extends React.Component<{
 
                                 this.onClick(feature)
                             }}
-                            onTouchStart={() => this.onTouchStart(feature)}
-                            onMouseEnter={this.onMouseEnterFeature}
-                            onMouseLeave={this.onMouseLeaveFeature}
+                            onPointerEnter={this.onPointerEnterFeature}
+                            onPointerLeave={this.onPointerLeaveFeature}
                         />
                     )
                 })}
@@ -851,12 +845,12 @@ export class ChoroplethGlobe extends React.Component<{
                     <ExternalValueAnnotation
                         key={annotation.id}
                         annotation={annotation}
-                        onMouseEnter={action((feature: RenderFeature) =>
+                        onPointerEnter={action((feature: RenderFeature) =>
                             this.setHoverEnterFeature(
                                 feature as GlobeRenderFeature
                             )
                         )}
-                        onMouseLeave={action(() =>
+                        onPointerLeave={action(() =>
                             this.clearHoverEnterFeature()
                         )}
                     />
@@ -891,16 +885,20 @@ export class ChoroplethGlobe extends React.Component<{
                     (ev: SVGMouseEvent): void =>
                         ev.preventDefault() /* Without this, title may get selected while shift clicking */
                 }
-                onMouseMove={(ev: SVGMouseEvent): void =>
-                    this.onMouseMove(ev.nativeEvent)
+                onPointerMove={(ev): void => this.onPointerMove(ev.nativeEvent)}
+                onPointerLeave={(e) =>
+                    this.onPointerLeaveFeature(e.nativeEvent)
                 }
-                onMouseLeave={this.onMouseLeaveFeature}
                 onClick={() => {
                     // invoke a click on a feature when clicking nearby one
                     if (this.hoverNearbyFeature)
                         this.onClick(this.hoverNearbyFeature)
                 }}
-                style={{ cursor: this.hoverFeature ? "pointer" : undefined }}
+                style={{
+                    cursor: this.hoverFeature ? "pointer" : undefined,
+                    // Remove the 300ms delay on click events and double-tap-to-zoom for touch devices
+                    touchAction: "manipulation",
+                }}
             >
                 {this.renderGlobeOutline()}
                 <g className={GEO_FEATURES_CLASSNAME}>

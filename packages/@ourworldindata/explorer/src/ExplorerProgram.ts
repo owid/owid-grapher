@@ -164,13 +164,6 @@ export class ExplorerProgram extends GridProgram {
         return this.getLineValue(ExplorerGrammar.googleSheet.keyword)
     }
 
-    get hideAlertBanner() {
-        return (
-            this.getLineValue(ExplorerGrammar.hideAlertBanner.keyword) ===
-            GridBoolean.true
-        )
-    }
-
     get thumbnail() {
         return this.getLineValue(ExplorerGrammar.thumbnail.keyword)
     }
