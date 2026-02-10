@@ -335,7 +335,9 @@ export async function searchChartsMulti(
                 query,
                 attributesToRetrieve: DATA_CATALOG_ATTRIBUTES.join(","),
                 hitsPerPage: hitsPerPage.toString(),
-                facetFilters: JSON.stringify([["isIncomeGroupSpecificFM:false"]]),
+                facetFilters: JSON.stringify([
+                    ["isIncomeGroupSpecificFM:false"],
+                ]),
             }).toString(),
         })),
     }

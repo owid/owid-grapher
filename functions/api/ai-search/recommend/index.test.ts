@@ -211,27 +211,29 @@ describe("AI Search Recommend API endpoint", () => {
     describe("response format", () => {
         beforeEach(() => {
             // Mock generateText to simulate tool execution by calling the tool's execute
-            vi.mocked(generateText).mockImplementation(async (options: any): Promise<any> => {
-                // Simulate calling the search tool
-                const searchTool = options.tools?.search
-                if (searchTool?.execute) {
-                    await searchTool.execute({ searches: ["population"] })
+            vi.mocked(generateText).mockImplementation(
+                async (options: any): Promise<any> => {
+                    // Simulate calling the search tool
+                    const searchTool = options.tools?.search
+                    if (searchTool?.execute) {
+                        await searchTool.execute({ searches: ["population"] })
+                    }
+                    return {
+                        text: '["population-growth", "world-population"]',
+                        steps: [
+                            {
+                                text: "",
+                                toolCalls: [
+                                    {
+                                        toolName: "search",
+                                        input: { searches: ["population"] },
+                                    },
+                                ],
+                            },
+                        ],
+                    }
                 }
-                return {
-                    text: '["population-growth", "world-population"]',
-                    steps: [
-                        {
-                            text: "",
-                            toolCalls: [
-                                {
-                                    toolName: "search",
-                                    input: { searches: ["population"] },
-                                },
-                            ],
-                        },
-                    ],
-                }
-            })
+            )
             vi.mocked(searchChartsMulti).mockResolvedValue([
                 {
                     query: "population",

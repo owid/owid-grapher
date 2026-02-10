@@ -8,9 +8,7 @@ interface RewriteResponse {
     keywords: string[]
 }
 
-async function fetchSuggestedKeywords(
-    query: string
-): Promise<RewriteResponse> {
+async function fetchSuggestedKeywords(query: string): Promise<RewriteResponse> {
     const params = new URLSearchParams({ q: query })
     const response = await fetch(`/api/ai-search/rewrite?${params}`)
     return response.json()

@@ -97,7 +97,11 @@ async function generateEmbeddings(
  */
 async function upsertKeywordsToVectorize(
     vectorize: Vectorize,
-    keywords: Array<{ keyword: string; topic_slug: string; topic_name: string }>,
+    keywords: Array<{
+        keyword: string
+        topic_slug: string
+        topic_name: string
+    }>,
     embeddings: number[][]
 ): Promise<void> {
     const vectors = keywords.map((item, i) => ({
@@ -111,7 +115,9 @@ async function upsertKeywordsToVectorize(
         },
     }))
 
-    console.log(`Upserting ${vectors.length} vectors. First ID: ${vectors[0]?.id}, embedding length: ${vectors[0]?.values.length}`)
+    console.log(
+        `Upserting ${vectors.length} vectors. First ID: ${vectors[0]?.id}, embedding length: ${vectors[0]?.values.length}`
+    )
 
     const result = await vectorize.upsert(vectors)
     console.log(`Upsert result:`, result)
@@ -219,9 +225,10 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
                 message: `Successfully indexed ${keywordPairs.length} keywords`,
                 topics: Object.keys(filteredVocabulary),
                 keywords_per_topic: Object.fromEntries(
-                    Object.entries(filteredVocabulary).map(
-                        ([slug, data]) => [slug, data.keywords.length]
-                    )
+                    Object.entries(filteredVocabulary).map(([slug, data]) => [
+                        slug,
+                        data.keywords.length,
+                    ])
                 ),
                 elapsed_ms: elapsedTime,
             }),

@@ -29,9 +29,7 @@ function parsePageMetadata(result: AISearchResult): {
     title?: string
     slug?: string
 } {
-    const fileAttr = result.attributes.file as
-        | { pagedata?: string }
-        | undefined
+    const fileAttr = result.attributes.file as { pagedata?: string } | undefined
 
     const pagedataStr = fileAttr?.pagedata
     if (pagedataStr && typeof pagedataStr === "string") {
@@ -113,7 +111,12 @@ function buildSourceMap(
         // Add variations with different common folder prefixes
         // The LLM might use topic-pages/ when the actual file is articles/
         const baseName = filenameOnly.replace(/\.md$/, "")
-        for (const prefix of ["topic-pages/", "articles/", "about-pages/", "data-insights/"]) {
+        for (const prefix of [
+            "topic-pages/",
+            "articles/",
+            "about-pages/",
+            "data-insights/",
+        ]) {
             map.set(`${prefix}${baseName}.md`, source)
         }
 
@@ -153,10 +156,14 @@ function findBestSourceMatch(
     }
 
     // Word overlap match - if most words match
-    const refWords = new Set(normalized.split(/\s+/).filter((w) => w.length > 2))
+    const refWords = new Set(
+        normalized.split(/\s+/).filter((w) => w.length > 2)
+    )
     if (refWords.size > 0) {
         for (const [key, source] of sourceMap) {
-            const keyWords = new Set(key.split(/\s+/).filter((w) => w.length > 2))
+            const keyWords = new Set(
+                key.split(/\s+/).filter((w) => w.length > 2)
+            )
             const overlap = [...refWords].filter((w) => keyWords.has(w)).length
             if (overlap >= Math.min(refWords.size, keyWords.size) * 0.5) {
                 return source
@@ -211,7 +218,12 @@ function processTextBuffer(
 
     // Process all complete patterns
     return {
-        output: processCompletePatterns(buffer, sourceMap, usedSources, baseUrl),
+        output: processCompletePatterns(
+            buffer,
+            sourceMap,
+            usedSources,
+            baseUrl
+        ),
         remaining: "",
     }
 }
@@ -232,7 +244,10 @@ function processCompletePatterns(
         /\[([^\]]+)\]\(([^)]+)\)/g,
         (_match, title, slugOrUrl) => {
             // If it's already a full URL, leave it alone
-            if (slugOrUrl.startsWith("http://") || slugOrUrl.startsWith("https://")) {
+            if (
+                slugOrUrl.startsWith("http://") ||
+                slugOrUrl.startsWith("https://")
+            ) {
                 // Track the source if we can match it
                 const source = findBestSourceMatch(slugOrUrl, sourceMap)
                 if (source) {
@@ -260,7 +275,11 @@ function processCompletePatterns(
 
             // No match in source map - strip any path prefix and use just the basename
             const basename = slug.split("/").pop() || slug
-            usedSources.set(basename, { title, slug: basename, url: `${baseUrl}/${basename}` })
+            usedSources.set(basename, {
+                title,
+                slug: basename,
+                url: `${baseUrl}/${basename}`,
+            })
             return `[${title}](${baseUrl}/${basename})`
         }
     )
@@ -368,10 +387,9 @@ Always include relevant source citations inline where you reference information.
             aiSearchOptions.model = model
         }
 
-        const streamResponse =
-            await env.AI.autorag(AI_SEARCH_INSTANCE_NAME).aiSearch(
-                aiSearchOptions
-            )
+        const streamResponse = await env.AI.autorag(
+            AI_SEARCH_INSTANCE_NAME
+        ).aiSearch(aiSearchOptions)
 
         // The streaming response is a Response object with a ReadableStream body
         const streamBody = (streamResponse as Response).body
@@ -391,9 +409,15 @@ Always include relevant source citations inline where you reference information.
             try {
                 const searchResults = await searchPromise
                 if (searchResults.data && searchResults.data.length > 0) {
-                    console.log("[Search results] Filenames:", searchResults.data.map(r => r.filename))
+                    console.log(
+                        "[Search results] Filenames:",
+                        searchResults.data.map((r) => r.filename)
+                    )
                     sourceMap = buildSourceMap(searchResults.data, baseUrl)
-                    console.log("[Source map] Sample entries:", [...sourceMap.entries()].slice(0, 10))
+                    console.log(
+                        "[Source map] Sample entries:",
+                        [...sourceMap.entries()].slice(0, 10)
+                    )
                 }
             } catch (searchError) {
                 console.warn("Failed to fetch sources:", searchError)
@@ -446,7 +470,9 @@ Always include relevant source citations inline where you reference information.
                                 if (output) {
                                     await writer.write(
                                         encoder.encode(
-                                            sseEvent("content", { text: output })
+                                            sseEvent("content", {
+                                                text: output,
+                                            })
                                         )
                                     )
                                 }
@@ -486,7 +512,9 @@ Always include relevant source citations inline where you reference information.
                     )
                     if (output) {
                         await writer.write(
-                            encoder.encode(sseEvent("content", { text: output }))
+                            encoder.encode(
+                                sseEvent("content", { text: output })
+                            )
                         )
                     }
                 }
@@ -524,7 +552,7 @@ Always include relevant source citations inline where you reference information.
             headers: {
                 "Content-Type": "text/event-stream",
                 "Cache-Control": "no-cache",
-                "Connection": "keep-alive",
+                Connection: "keep-alive",
                 "Access-Control-Allow-Origin": "*",
             },
         })

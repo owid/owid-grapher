@@ -84,7 +84,9 @@ async function fetchTopicsFromDatasette(
 
     // Check for Datasette-level errors
     if (!data.ok || data.error) {
-        throw new Error(`Datasette query error: ${data.error || "Unknown error"}`)
+        throw new Error(
+            `Datasette query error: ${data.error || "Unknown error"}`
+        )
     }
 
     // Map rows to TopicData objects
@@ -178,10 +180,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
                 `Generating embeddings for batch ${Math.floor(i / EMBEDDING_BATCH_SIZE) + 1}/${Math.ceil(topics.length / EMBEDDING_BATCH_SIZE)}...`
             )
 
-            const batchEmbeddings = await generateEmbeddings(
-                env.AI,
-                batchTexts
-            )
+            const batchEmbeddings = await generateEmbeddings(env.AI, batchTexts)
             allEmbeddings.push(...batchEmbeddings)
         }
 
