@@ -3,19 +3,15 @@ import {
     getBaseUrl,
     validateQueryParams,
     COMMON_SEARCH_PARAMS,
-    AISearchResult,
-    AISearchResponse,
 } from "../utils.js"
 import topicsData from "./topics.json"
-
-// Name of the AI Search instance in Cloudflare dashboard
-const AI_SEARCH_INSTANCE_NAME = "search-topics"
 
 // Pre-build topics list for LLM (cacheable in system message)
 const TOPICS_LIST = topicsData.map((t) => `- ${t.name}`).join("\n")
 
 const DEFAULT_LIMIT = 10
 const MAX_LIMIT = 50
+const EMBEDDING_MODEL = "@cf/baai/bge-base-en-v1.5"
 
 interface TopicData {
     id: number
@@ -49,102 +45,62 @@ interface TopicsApiResponse {
 }
 
 /**
- * Extract slug from filename (e.g., "topics/climate-change.md" -> "climate-change")
+ * Generate embedding for a query using Workers AI
  */
-function extractSlugFromFilename(filename: string): string {
-    return filename.replace(/^topics\//, "").replace(/\.md$/, "")
-}
-
-/**
- * Extract title from markdown content (first H1 heading)
- */
-function extractTitleFromContent(text: string): string {
-    const match = text.match(/^#\s+(.+)$/m)
-    return match?.[1] ?? ""
-}
-
-/**
- * Decode base64 string to UTF-8 text.
- * Unlike atob() which returns Latin-1, this properly handles UTF-8 encoded data.
- */
-function base64ToUtf8(base64: string): string {
-    const binaryString = atob(base64)
-    const bytes = new Uint8Array(binaryString.length)
-    for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i)
-    }
-    return new TextDecoder("utf-8").decode(bytes)
-}
-
-/**
- * Parse topic metadata from R2 object metadata (stored as base64-encoded JSON in topicdata field)
- */
-function parseTopicData(result: AISearchResult): Partial<TopicData> {
-    const fileAttr = result.attributes.file as
-        | {
-              topicdata?: string
-          }
-        | undefined
-
-    const topicdataStr = fileAttr?.topicdata
-    if (topicdataStr && typeof topicdataStr === "string") {
-        try {
-            // Handle b64- prefix if present
-            const base64Data = topicdataStr.startsWith("b64-")
-                ? topicdataStr.slice(4)
-                : topicdataStr
-            const decoded = base64ToUtf8(base64Data)
-            return JSON.parse(decoded) as TopicData
-        } catch {
-            // Fall through to defaults
-        }
+async function generateQueryEmbedding(
+    ai: Ai,
+    query: string
+): Promise<number[]> {
+    interface EmbeddingResponse {
+        data: number[][]
     }
 
-    return {}
+    const response = (await ai.run(EMBEDDING_MODEL, {
+        text: [query],
+    })) as EmbeddingResponse
+
+    return response.data[0]
 }
 
 /**
- * Transform AI Search results to topics API format
+ * Search topics using Vectorize
  */
-function transformToTopicsApiFormat(
+async function searchTopicsWithVectorize(
+    env: Env,
     query: string,
-    results: AISearchResponse,
     limit: number,
     baseUrl: string
-): Omit<TopicsApiResponse, "mode" | "timing_ms"> {
-    const hits: TopicHit[] = results.data.map((result, index) => {
-        const topicData = parseTopicData(result)
-        const slug = topicData.slug || extractSlugFromFilename(result.filename)
-        const text = result.content[0]?.text ?? ""
-        const name = topicData.name || extractTitleFromContent(text)
+): Promise<TopicHit[]> {
+    // Generate embedding for the query
+    const queryEmbedding = await generateQueryEmbedding(env.AI, query)
+
+    // Query Vectorize with the embedding
+    const results = await env.VECTORIZE_TOPICS.query(queryEmbedding, {
+        topK: limit,
+        returnMetadata: "all",
+    })
+
+    // Transform results to TopicHit format
+    const hits: TopicHit[] = results.matches.map((match, index) => {
+        const metadata = match.metadata as unknown as {
+            id: number
+            name: string
+            slug: string
+            excerpt: string
+        }
 
         return {
-            id: topicData.id ?? 0,
-            name,
-            slug,
-            excerpt: topicData.excerpt || "",
-            url: `${baseUrl}/${slug}`,
+            id: metadata.id,
+            name: metadata.name,
+            slug: metadata.slug,
+            excerpt: metadata.excerpt || "",
+            url: `${baseUrl}/${metadata.slug}`,
             __position: index + 1,
-            score: result.score,
+            score: match.score,
         }
     })
 
-    // Sort by score (descending) - AI Search already returns sorted, but be explicit
-    hits.sort((a, b) => b.score - a.score)
-
-    // Apply limit
-    const limitedHits = hits.slice(0, limit)
-
-    // Re-assign positions after sorting/limiting
-    limitedHits.forEach((hit, index) => {
-        hit.__position = index + 1
-    })
-
-    return {
-        query,
-        hits: limitedHits,
-        nbHits: limitedHits.length,
-    }
+    return hits
 }
 
 /**
@@ -170,21 +126,25 @@ Recommend ONLY topics that are DIRECTLY and STRONGLY related to this query.
     let response: any
     try {
         // Try llama-3.1-8b-instruct-fast which is more commonly available
-        response = await env.AI.run("@cf/meta/llama-3.1-8b-instruct-fast", {
-            messages: [
-                { role: "system", content: systemMessage },
-                { role: "user", content: userMessage },
-            ],
-            temperature: 0.1,
-            max_tokens: 500,
-        })
+        response = await env.AI.run(
+            "@cf/meta/llama-3.1-8b-instruct-fast" as any,
+            {
+                messages: [
+                    { role: "system", content: systemMessage },
+                    { role: "user", content: userMessage },
+                ],
+                temperature: 0.1,
+                max_tokens: 500,
+            }
+        )
     } catch (error) {
         console.error("LLM API error:", error)
         return []
     }
 
     // Parse LLM response - extract JSON array
-    const text = typeof response === "string" ? response : (response.response || "")
+    const text =
+        typeof response === "string" ? response : response.response || ""
     if (!text || typeof text !== "string") {
         console.log("LLM response type issue:", typeof response, response)
         return []
@@ -298,29 +258,19 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 timing_ms,
             }
         } else {
-            // Semantic search via AI Search
-            const fetchSize = Math.min(limit + 10, MAX_LIMIT)
-
-            const results = (await env.AI.autorag(
-                AI_SEARCH_INSTANCE_NAME
-            ).search({
+            // Semantic search via Vectorize
+            const hits = await searchTopicsWithVectorize(
+                env,
                 query,
-                max_num_results: fetchSize,
-                ranking_options: {
-                    score_threshold: 0.1,
-                },
-            })) as AISearchResponse
-
-            const searchResponse = transformToTopicsApiFormat(
-                query,
-                results,
                 limit,
                 baseUrl
             )
 
             const timing_ms = Math.round(performance.now() - startTime)
             response = {
-                ...searchResponse,
+                query,
+                hits,
+                nbHits: hits.length,
                 mode: "semantic",
                 timing_ms,
             }

@@ -1,6 +1,8 @@
 export interface Env {
     ASSETS: Fetcher
     AI: Ai
+    VECTORIZE_TOPICS: Vectorize
+    VECTORIZE_VOCABULARY: Vectorize
     url: URL
     GRAPHER_CONFIG_R2_BUCKET_URL: string
     GRAPHER_CONFIG_R2_BUCKET_FALLBACK_URL: string
@@ -30,8 +32,8 @@ export interface Env {
     ALGOLIA_ID: string
     ALGOLIA_SEARCH_KEY: string
     ALGOLIA_INDEX_PREFIX?: string
-    OPENAI_API_KEY?: string;
-    GOOGLE_API_KEY?: string;
+    OPENAI_API_KEY?: string
+    GOOGLE_API_KEY?: string
     CATALOG_URL: string
 }
 // We collect the possible extensions here so we can easily take them into account

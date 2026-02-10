@@ -17,7 +17,22 @@
     // Workers AI binding for search
     "ai": {
         "binding": "AI",
+        "remote": true
     },
+
+    // Vectorize bindings for semantic search
+    "vectorize": [
+        {
+            "binding": "VECTORIZE_TOPICS",
+            "index_name": "topics",
+            "remote": true
+        },
+        {
+            "binding": "VECTORIZE_VOCABULARY",
+            "index_name": "vocabulary",
+            "remote": true
+        }
+    ],
 
     "vars": {
         // Vars that should be available in all envs, including local dev
