@@ -1,6 +1,6 @@
 # This docker-compose file creates a full local dev environment for grapher to be used
 # in a Visual Studio Code Remote Container extension workflow. It is targeted at the general public to
-# easly get started.
+# easily get started.
 
 # This setup allows for all development to happen inside docker containers, i.e. the host only has to have
 # Docker, VS Code and the VS Code Remote Container extension installed.
@@ -11,7 +11,7 @@
 
 # You should not start this docker-compose file manually. Everything will be managed by the VS Code remote
 # container extension when you open the repo in VS Code (a popup will ask you to open the VS Code window again
-# inside a the devcontainer)
+# inside the devcontainer)
 
 # yaml-language-server: $schema=https://raw.githubusercontent.com/compose-spec/compose-spec/refs/heads/main/schema/compose-spec.json
 
@@ -21,14 +21,9 @@ services:
             context: ./.devcontainer
             dockerfile: Dockerfile
             args:
-                # [Choice] Node.js version: 16, 14, 12
                 VARIANT: 22
-                # On Linux, you may need to update USER_UID and USER_GID below if not your local UID is not 1000.
-                #USER_UID: 1000
-                #USER_GID: 1000
         volumes:
             - .:/workspace:cached
-            # - :/workspace/node_modules
 
         # Overrides default command so things don't shut down after the process ends.
         command: sleep infinity
@@ -45,9 +40,16 @@ services:
     # Stock mysql database. Used for grapher database. Root password is hardcoded for now
     db:
         image: mysql:8
+        # Devcontainer-only: disable TLS to avoid self-signed cert issues for local clients.
+        command:
+            - mysqld
+            - --tls-version=
+            - --auto-generate-certs=OFF
         restart: always
         volumes:
+            - ./devTools/docker/my.cnf:/etc/my.cnf:ro
             - mysql_data:/var/lib/mysql
+            - ./logs:/var/log/mysql
         ports:
             - "3307:3306" # Hardcoded here to 3307 because docker-compose in the VS Code Devcontainer setup is run
             # from the users shell on the host OS where the env vars are not yet set
@@ -76,4 +78,6 @@ services:
 
 volumes:
     mysql_data:
+        name: owid-grapher-devcontainer_mysql_data
     mysql_load_data:
+        name: owid-grapher-devcontainer_mysql_load_data

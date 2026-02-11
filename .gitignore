@@ -57,3 +57,6 @@ playwright-report/
 
 # Claude
 .claude/settings.local.json
+
+# Devcontainer personal setup script
+.devcontainer-personal-setup.sh
