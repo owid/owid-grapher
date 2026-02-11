@@ -163,7 +163,11 @@ export default function Chart({
                     })}
                     data-is-multi-dim={isMultiDim || undefined}
                     data-grapher-src={isExplorer ? undefined : resolvedUrl}
-                    data-explorer-src={isExplorer ? resolvedUrl : undefined}
+                    data-explorer-src={
+                        isExplorer
+                            ? resolvedUrlParsed.fullUrl
+                            : undefined
+                    }
                     style={{
                         width: "100%",
                         border: "0px none",
