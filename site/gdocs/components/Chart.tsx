@@ -164,9 +164,7 @@ export default function Chart({
                     data-is-multi-dim={isMultiDim || undefined}
                     data-grapher-src={isExplorer ? undefined : resolvedUrl}
                     data-explorer-src={
-                        isExplorer
-                            ? resolvedUrlParsed.fullUrl
-                            : undefined
+                        isExplorer ? resolvedUrlParsed.fullUrl : undefined
                     }
                     style={{
                         width: "100%",
