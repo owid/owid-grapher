@@ -1,11 +1,9 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, runInAction, action, makeObservable } from "mobx"
+import { getParentVariableIdFromChartConfig } from "@ourworldindata/utils"
 import {
-    getParentVariableIdFromChartConfig,
-    RawPageview,
-} from "@ourworldindata/utils"
-import {
+    type DbPlainAnalyticsGrapherView,
     GrapherInterface,
     ChartRedirect,
     MinimalTagWithIsTopic,
@@ -42,7 +40,7 @@ export class ChartEditorPage
             logs: observable,
             references: observable,
             redirects: observable,
-            pageviews: observable,
+            views: observable,
             tags: observable,
             availableTags: observable,
         })
@@ -51,7 +49,7 @@ export class ChartEditorPage
     logs: Log[] = []
     references: References | undefined = undefined
     redirects: ChartRedirect[] = []
-    pageviews: RawPageview | undefined = undefined
+    views: DbPlainAnalyticsGrapherView | undefined = undefined
     tags: DbChartTagJoin[] | undefined = undefined
     availableTags: MinimalTagWithIsTopic[] | undefined = undefined
 
@@ -126,14 +124,14 @@ export class ChartEditorPage
         runInAction(() => (this.redirects = json.redirects))
     }
 
-    async fetchPageviews(): Promise<void> {
+    async fetchViews(): Promise<void> {
         const { grapherId } = this.props
         const { admin } = this.context
         const json =
             grapherId === undefined
                 ? {}
-                : await admin.getJSON(`/api/charts/${grapherId}.pageviews.json`)
-        runInAction(() => (this.pageviews = json.pageviews))
+                : await admin.getJSON(`/api/charts/${grapherId}.views.json`)
+        runInAction(() => (this.views = json.views))
     }
 
     async fetchTags(): Promise<void> {
@@ -165,7 +163,7 @@ export class ChartEditorPage
         void this.fetchLogs()
         void this.fetchRefs()
         void this.fetchRedirects()
-        void this.fetchPageviews()
+        void this.fetchViews()
         void this.fetchTags()
         void this.fetchAvailableTags()
     }

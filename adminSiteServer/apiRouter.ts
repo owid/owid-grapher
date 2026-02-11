@@ -138,7 +138,7 @@ import {
     getChartLogsJson,
     getChartReferencesJson,
     getChartRedirectsJson,
-    getChartPageviewsJson,
+    getChartViewsJson,
     createChart,
     setChartTagsHandler,
     updateChart,
@@ -230,8 +230,8 @@ getRouteWithROTransaction(
 )
 getRouteWithROTransaction(
     apiRouter,
-    "/charts/:chartId.pageviews.json",
-    getChartPageviewsJson
+    "/charts/:chartId.views.json",
+    getChartViewsJson
 )
 getRouteWithROTransaction(
     apiRouter,

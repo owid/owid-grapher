@@ -738,7 +738,7 @@ export async function getChartRedirectsJson(
     }
 }
 
-export async function getChartPageviewsJson(
+export async function getChartViewsJson(
     req: Request,
     res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadonlyTransaction
@@ -749,19 +749,19 @@ export async function getChartPageviewsJson(
     )
     if (!slug) return {}
 
-    const pageviewsByUrl = await db.knexRawFirst(
+    const viewsBySlug = await db.knexRawFirst(
         trx,
         `-- sql
         SELECT *
         FROM
-            analytics_pageviews
+            analytics_grapher_views
         WHERE
-            url = ?`,
-        [`https://ourworldindata.org/grapher/${slug}`]
+            grapher_slug = ?`,
+        [slug]
     )
 
     return {
-        pageviews: pageviewsByUrl ?? undefined,
+        views: viewsBySlug ?? undefined,
     }
 }
 

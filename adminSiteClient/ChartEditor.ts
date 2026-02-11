@@ -7,7 +7,7 @@
 
 import * as _ from "lodash-es"
 import {
-    type RawPageview,
+    type DbPlainAnalyticsGrapherView,
     ChartRedirect,
     Json,
     GrapherInterface,
@@ -67,7 +67,7 @@ export interface ChartEditorManager extends AbstractChartEditorManager {
     logs: Log[]
     references: References | undefined
     redirects: ChartRedirect[]
-    pageviews?: RawPageview
+    views?: DbPlainAnalyticsGrapherView
     tags?: DbChartTagJoin[]
     availableTags?: DbChartTagJoin[]
 }
@@ -97,8 +97,8 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         return this.manager.redirects
     }
 
-    @computed get pageviews() {
-        return this.manager.pageviews
+    @computed get views() {
+        return this.manager.views
     }
 
     @computed get tags() {
