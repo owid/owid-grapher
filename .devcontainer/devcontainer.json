@@ -4,33 +4,43 @@
     "dockerComposeFile": "../docker-compose.devcontainer.yml",
     "service": "app",
     "workspaceFolder": "/workspace",
-
     "customizations": {
         "vscode": {
-            "extensions": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode"]
+            "extensions": [
+                "dbaeumer.vscode-eslint",
+                "esbenp.prettier-vscode"
+            ]
         }
     },
-
     // Forward the ports used by the dev environment so they are accessible on the host.
-    "forwardPorts": [3030, 8090, 8788, 3307],
+    "forwardPorts": [
+        3030,
+        8090,
+        8788,
+        3307
+    ],
     "portsAttributes": {
-        "3030": { "label": "Admin Server" },
-        "8090": { "label": "Vite Dev Server" },
-        "8788": { "label": "Cloudflare Functions" },
-        "3307": { "label": "MySQL" }
+        "3030": {
+            "label": "Admin Server"
+        },
+        "8090": {
+            "label": "Vite Dev Server"
+        },
+        "8788": {
+            "label": "Cloudflare Functions"
+        },
+        "3307": {
+            "label": "MySQL"
+        }
     },
-
     "mounts": [
         "source=${localEnv:HOME}/.claude,target=/home/node/.claude,type=bind,consistency=cached",
         "source=${localEnv:HOME}/.pi,target=/home/node/.pi,type=bind,consistency=cached",
         "source=${localEnv:HOME}/.codex,target=/home/node/.codex,type=bind,consistency=cached",
-        "source=${localEnv:HOME}/.devcontainer-personal-setup.sh,target=/home/node/.devcontainer-personal-setup.sh,type=bind,consistency=cached"
     ],
-
-    // If ~/.devcontainer-personal-setup.sh exists on the host, it will be executed
+    // If .devcontainer-personal-setup.sh exists on the host, it will be executed
     // after container creation. Use this for personal tool installations.
-    "postCreateCommand": "if [ -f ~/.devcontainer-personal-setup.sh ]; then bash ~/.devcontainer-personal-setup.sh; fi",
-
+    "postCreateCommand": "if [ -f /workspace/.devcontainer-personal-setup.sh ]; then bash /workspace/.devcontainer-personal-setup.sh; fi",
     // Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
     "remoteUser": "node"
 }
