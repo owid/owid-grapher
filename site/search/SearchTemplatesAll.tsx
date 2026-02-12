@@ -92,7 +92,7 @@ export const SearchTemplatesAll = () => {
                 <>
                     <SearchDataInsightsResults />
                     <SearchDataTopicsResults />
-                    <SearchWritingResults hasTopicPages={false} />
+                    <SearchWritingResults hasTopicPages={false} showProfiles={true} />
                 </>
             ))
             // All + No Topic + No Country + Query
