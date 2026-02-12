@@ -5,6 +5,7 @@ import {
     type SearchChartHit,
     type SearchState,
     type FlatArticleHit,
+    type ProfileHit,
     type TopicPageHit,
     type DataInsightHit,
     type StackedArticleHit,
@@ -80,6 +81,7 @@ export class SiteAnalytics extends GrapherAnalytics {
         hit:
             | SearchChartHit
             | FlatArticleHit
+            | ProfileHit
             | TopicPageHit
             | DataInsightHit
             | StackedArticleHit,
