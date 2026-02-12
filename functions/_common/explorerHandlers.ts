@@ -31,7 +31,6 @@ import {
     prepareSearchParamsBeforeExtractingDataValues,
 } from "./downloadFunctions.js"
 import { assembleMetadata } from "./metadataTools.js"
-import { getDataApiUrl } from "./grapherTools.js"
 import { checkCache } from "./reusableHandlers.js"
 
 async function initGrapherForExplorerView(
@@ -351,12 +350,12 @@ export async function fetchSearchResultDataForExplorerView(
         const shouldIgnoreProjections = searchParams.has("ignoreProjections")
         if (shouldIgnoreProjections) dropProjectionColumns(grapherState)
 
-        const dataApiUrl = getDataApiUrl(env)
+        const catalogUrl = env.CATALOG_URL
         const searchResult = await assembleSearchResultData(grapherState, {
             variant,
             pickedEntities,
             numDataTableRowsPerColumn,
-            dataApiUrl,
+            catalogUrl,
         })
 
         if (searchResult === undefined)
