@@ -22,6 +22,7 @@ import {
     getFilterNamesOfType,
     formatCountryFacetFilters,
     formatTopicFacetFilters,
+    formatFeaturedMetricFacetFilter,
     getSelectableTopics,
     CHARTS_INDEX,
     DATA_CATALOG_ATTRIBUTES,
@@ -151,6 +152,7 @@ export async function queryCharts(
         getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCER),
         "datasetProducers"
     )
+    const fmFacetFilter = formatFeaturedMetricFacetFilter(state.query)
     const facetFilters = [
         ...countryFacetFilters,
         ...topicFacetFilters,
@@ -158,6 +160,7 @@ export async function queryCharts(
         ...datasetNamespaceFacetFilters,
         ...datasetVersionFacetFilters,
         ...datasetProducerFacetFilters,
+        ...fmFacetFilter,
     ]
 
     const searchParams = [

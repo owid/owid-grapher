@@ -213,6 +213,7 @@ async function getRecords(
             views_7d,
             score,
             isIncomeGroupSpecificFM: false,
+            isFM: false,
             datasetNamespaces,
             datasetVersions,
             datasetProducts,

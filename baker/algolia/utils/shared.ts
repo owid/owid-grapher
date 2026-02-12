@@ -284,6 +284,7 @@ export async function createFeaturedMetricRecords(
         featuredMetricRecords.push({
             ...correspondingRecord,
             isIncomeGroupSpecificFM: featuredMetric.isIncomeGroupSpecificFM,
+            isFM: true,
             tags: [featuredMetric.parentTagName],
             objectID,
             availableEntities,

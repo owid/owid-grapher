@@ -416,6 +416,17 @@ export const formatConjunctiveFacetFilters = (
     return setToFacetFilters(facets, attribute)
 }
 
+/**
+ * Returns a facet filter that excludes Featured Metric records when a
+ * free-text query is present. When there is no query (e.g. browsing by
+ * topic), FMs are kept so they can surface at the top of topic pages.
+ */
+export function formatFeaturedMetricFacetFilter(
+    query: string
+): SearchFacetFilters {
+    return query.trim() ? ["isFM:false"] : []
+}
+
 export function formatCountryFacetFilters(
     countries: Set<string>,
     requireAllCountries: boolean

@@ -116,6 +116,17 @@ export function formatCountryFacetFilters(
         : [filters, excludeIncomeGroupFM]
 }
 
+/**
+ * Returns a facet filter that excludes Featured Metric records when a
+ * free-text query is present. When there is no query (e.g. browsing by
+ * topic), FMs are kept so they can surface at the top of topic pages.
+ */
+export function formatFeaturedMetricFacetFilter(
+    query: string
+): (string | string[])[] {
+    return query.trim() ? ["isFM:false"] : []
+}
+
 export function formatTopicFacetFilters(
     topics: Set<string>
 ): (string | string[])[] {
@@ -185,7 +196,12 @@ export async function searchCharts(
     const topicFacetFilters = formatTopicFacetFilters(
         getFilterNamesOfType(state.filters, FilterType.TOPIC)
     )
-    const facetFilters = [...countryFacetFilters, ...topicFacetFilters]
+    const fmFacetFilter = formatFeaturedMetricFacetFilter(state.query)
+    const facetFilters = [
+        ...countryFacetFilters,
+        ...topicFacetFilters,
+        ...fmFacetFilter,
+    ]
 
     const indexName = getIndexName(
         SearchIndexName.ExplorerViewsMdimViewsAndCharts,
