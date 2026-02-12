@@ -17,7 +17,7 @@ ifneq (,$(wildcard ./.env))
 	include .env
 endif
 
-.PHONY: help up up.full up.devcontainer down refresh refresh.wp refresh.full migrate svgtest svgtest.reset bdd bdd.ui
+.PHONY: help up up.full up.devcontainer down refresh refresh.wp refresh.full migrate svgtest svgtest.reset bdd bdd.ui warn-if-localhost-db-host.devcontainer
 
 help:
 	@echo 'Available commands:'
@@ -89,6 +89,7 @@ up.devcontainer: export WRANGLER_PORT ?= 8788
 
 up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.sql.gz node_modules
 	@make validate.env.devcontainer
+	@make warn-if-localhost-db-host.devcontainer
 
 	@if tmux has-session -t $(TMUX_SESSION_NAME) 2>/dev/null; then \
 		echo '==> Killing existing tmux session'; \
@@ -240,6 +241,13 @@ validate.env.devcontainer:
 		do make guard-$$variable 2>/dev/null || exit 1; \
 	done
 	@echo '.env file valid for make up.devcontainer'
+
+warn-if-localhost-db-host.devcontainer:
+	@if [ "$(GRAPHER_DB_HOST)" = "127.0.0.1" ] || [ "$(GRAPHER_DB_HOST)" = "localhost" ]; then \
+		echo '⚠️  WARNING: GRAPHER_DB_HOST in .env is set to localhost/127.0.0.1.'; \
+		echo '    For make up.devcontainer this usually needs to be GRAPHER_DB_HOST=db (and GRAPHER_DB_PORT=3306).'; \
+		echo '    If the admin pane prints dots forever in wait-for-mysql.sh, this is likely the cause.'; \
+	fi
 
 create-if-missing.env.full:
 	@if test ! -f .env; then \
