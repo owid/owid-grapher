@@ -4,7 +4,7 @@ import { ShadowRootContext } from "./ShadowRootContext.tsx"
 
 export const mount = (
     hostElement: HTMLElement,
-    opts?: { variant: string; config: Record<string, unknown> }
+    opts?: { variant: string; config?: Record<string, unknown> }
 ) => {
     // Create a container for React
     const container = document.createElement("div")
@@ -34,4 +34,4 @@ export const mount = (
 }
 
 const container = document.getElementById("root")
-if (container) mount(container)
+if (container) mount(container, { variant: "distribution" })
