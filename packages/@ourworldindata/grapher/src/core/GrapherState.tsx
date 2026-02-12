@@ -1577,10 +1577,11 @@ export class GrapherState
     @computed get isAdmin(): boolean {
         if (typeof window === "undefined") return false
         if (this.isAdminObjectAvailable) return true
+
         // Using this.isAdminObjectAvailable is not enough because it's not
         // available in gdoc previews, which render in an iframe without the
         // admin scaffolding.
-        if (this.adminBaseUrl) {
+        if (this.adminBaseUrl && this.isInIFrame) {
             try {
                 const adminUrl = new URL(this.adminBaseUrl)
                 const currentUrl = new URL(window.location.href)
@@ -1589,6 +1590,7 @@ export class GrapherState
                 return false
             }
         }
+
         return false
     }
 
