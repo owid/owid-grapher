@@ -13,13 +13,13 @@ import { expectInt } from "../../serverUtils/serverUtil.js"
 import { UNCATEGORIZED_TAG_ID } from "../../settings/serverSettings.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash-es"
-import e from "express"
 import { Request } from "../authentication.js"
+import { HandlerResponse } from "../FunctionalRouter.js"
 import * as R from "remeda"
 
 export async function getTagById(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const tagId = expectInt(req.params.tagId) as number | null
@@ -160,7 +160,7 @@ export async function getTagById(
 
 export async function updateTag(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const tagId = expectInt(req.params.tagId)
@@ -205,7 +205,7 @@ You should probably just enable "Searchable in Algolia" for this tag and remove 
 
 export async function createTag(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const tag = req.body
@@ -249,7 +249,7 @@ export async function createTag(
 
 export async function getAllTags(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     return { tags: await db.getMinimalTagsWithIsTopic(trx) }
@@ -257,7 +257,7 @@ export async function getAllTags(
 
 export async function deleteTag(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const tagId = expectInt(req.params.tagId)

@@ -12,13 +12,13 @@ import {
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash-es"
-import e from "express"
 import { Request } from "../authentication.js"
+import { HandlerResponse } from "../FunctionalRouter.js"
 import { isSlugUsedInOtherGrapher } from "../validation.js"
 
 export async function getStaticVizListHandler(
     _req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     return await getEnrichedStaticVizList(trx)
@@ -26,7 +26,7 @@ export async function getStaticVizListHandler(
 
 export async function getStaticVizByIdHandler(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const staticVizId = expectInt(req.params.staticVizId)
@@ -40,7 +40,7 @@ export async function getStaticVizByIdHandler(
 
 export async function createStaticViz(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const parseResult = StaticVizInsertSchema.safeParse(req.body)
@@ -136,7 +136,7 @@ export async function createStaticViz(
 
 export async function updateStaticViz(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const staticVizId = expectInt(req.params.staticVizId)
@@ -259,7 +259,7 @@ export async function updateStaticViz(
 
 export async function deleteStaticViz(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const staticVizId = expectInt(req.params.staticVizId)

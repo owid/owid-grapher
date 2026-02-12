@@ -2,11 +2,11 @@ import { JsonError, FlatTagGraph } from "@ourworldindata/types"
 import * as db from "../../db/db.js"
 import * as R from "remeda"
 import { Request } from "../authentication.js"
-import e from "express"
+import { HandlerResponse } from "../FunctionalRouter.js"
 
 export async function handleGetFlatTagGraph(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const flatTagGraph = await db.getFlatTagGraph(trx)
@@ -15,7 +15,7 @@ export async function handleGetFlatTagGraph(
 
 export async function handlePostTagGraph(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const tagGraph = req.body?.tagGraph as unknown
@@ -57,5 +57,5 @@ export async function handlePostTagGraph(
         throw new JsonError("Invalid tag graph provided", 400)
     }
     await db.updateTagGraph(trx, tagGraph)
-    res.send({ success: true })
+    return { success: true }
 }

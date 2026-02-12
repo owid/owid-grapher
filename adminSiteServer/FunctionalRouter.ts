@@ -5,6 +5,31 @@ import { MULTER_UPLOADS_DIRECTORY } from "../adminShared/validation.js"
 
 const upload = multer({ dest: MULTER_UPLOADS_DIRECTORY })
 
+/**
+ * Restricted Response type that prevents handlers from accidentally sending
+ * responses directly. FunctionalRouter.wrap() calls res.send() on the
+ * handler's return value, so handlers should return data instead of calling
+ * res.send()/res.json()/etc.
+ */
+export type HandlerResponse = Omit<
+    Response,
+    | "send"
+    | "json"
+    | "jsonp"
+    | "end"
+    | "write"
+    | "sendFile"
+    | "sendStatus"
+    | "download"
+    | "render"
+    | "redirect"
+    | "status"
+> & {
+    // Override status() to return HandlerResponse, preventing
+    // res.status(500).json(...) chains
+    status(code: number): HandlerResponse
+}
+
 // Little wrapper to automatically send returned objects as JSON, makes
 // the API code a bit cleaner
 export class FunctionalRouter {
@@ -16,7 +41,7 @@ export class FunctionalRouter {
         this.router.use(express.json({ limit: "50mb" }))
     }
 
-    wrap(callback: (req: Request, res: Response) => Promise<any>) {
+    wrap(callback: (req: Request, res: HandlerResponse) => Promise<any>) {
         return async (req: Request, res: Response, next: NextFunction) => {
             try {
                 res.send(await callback(req, res))
@@ -29,42 +54,42 @@ export class FunctionalRouter {
 
     get(
         targetPath: string,
-        callback: (req: Request, res: Response) => Promise<any>
+        callback: (req: Request, res: HandlerResponse) => Promise<any>
     ) {
         this.router.get(targetPath, this.wrap(callback))
     }
 
     post(
         targetPath: string,
-        callback: (req: Request, res: Response) => Promise<any>
+        callback: (req: Request, res: HandlerResponse) => Promise<any>
     ) {
         this.router.post(targetPath, this.wrap(callback))
     }
 
     patch(
         targetPath: string,
-        callback: (req: Request, res: Response) => Promise<any>
+        callback: (req: Request, res: HandlerResponse) => Promise<any>
     ) {
         this.router.patch(targetPath, this.wrap(callback))
     }
 
     put(
         targetPath: string,
-        callback: (req: Request, res: Response) => Promise<any>
+        callback: (req: Request, res: HandlerResponse) => Promise<any>
     ) {
         this.router.put(targetPath, this.wrap(callback))
     }
 
     delete(
         targetPath: string,
-        callback: (req: Request, res: Response) => Promise<any>
+        callback: (req: Request, res: HandlerResponse) => Promise<any>
     ) {
         this.router.delete(targetPath, this.wrap(callback))
     }
 
     postWithFileUpload(
         targetPath: string,
-        callback: (req: Request, res: Response) => Promise<any>
+        callback: (req: Request, res: HandlerResponse) => Promise<any>
     ) {
         this.router.post(targetPath, upload.single("file"), this.wrap(callback))
     }

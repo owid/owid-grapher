@@ -3,7 +3,7 @@ import * as db from "../../db/db.js"
 import * as dodDb from "../../db/model/Dod.js"
 import { createDodLinkFromUrl } from "../../db/model/Link.js"
 import { Request } from "../authentication.js"
-import e from "express"
+import { HandlerResponse } from "../FunctionalRouter.js"
 import { DodLinksTableName, DodsTableName } from "@ourworldindata/types"
 import { extractLinksFromMarkdown } from "@ourworldindata/utils"
 
@@ -33,7 +33,7 @@ async function updateLinksFromInsertedDod(
 
 export async function getDods(
     _: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     try {
@@ -54,7 +54,7 @@ export async function getDods(
  */
 export async function getParsedDods(
     _: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     try {
@@ -71,7 +71,7 @@ export async function getParsedDods(
 
 export async function getDodsUsage(
     _: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     try {
@@ -88,7 +88,7 @@ export async function getDodsUsage(
 
 export async function updateDod(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const id = Number(req.params.id)
@@ -125,7 +125,7 @@ export async function updateDod(
 
 export async function deleteDod(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const { id } = req.params
@@ -152,7 +152,7 @@ export async function deleteDod(
 
 export async function createDod(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const { content, name } = req.body
