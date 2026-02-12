@@ -126,7 +126,7 @@ describe("instantiateProfile", () => {
         expect(instantiated.title).toEqual("France Energy Profile")
     })
 
-    it("regenerates the table of contents with replaced tokens", () => {
+    it("does not generate TOC (deferred to instantiateProfileForEntity)", () => {
         const country = getCountryByName("Canada") as Country
         const template: OwidGdocProfileContent = {
             ...buildProfileTemplate(),
@@ -148,11 +148,9 @@ describe("instantiateProfile", () => {
 
         const instantiated = instantiateProfile(template, country)
 
-        expect(instantiated.toc?.[0]).toMatchObject({
-            title: "How much does Canada emit?",
-            slug: "how-much-does-canada-emit",
-            isSubheading: false,
-        })
+        // TOC generation is now deferred to instantiateProfileForEntity,
+        // after data-callout blocks with missing data have been cleared
+        expect(instantiated.toc).toBeUndefined()
     })
 
     it("formats possessives for articulated names", () => {
