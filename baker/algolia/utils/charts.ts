@@ -286,6 +286,7 @@ async function buildChartRecord(
 
         views_7d,
         isIncomeGroupSpecificFM: false,
+        isFM: false,
         datasetNamespaces: chart.datasetNamespaces,
         datasetVersions: chart.datasetVersions,
         datasetProducts: chart.datasetProducts,

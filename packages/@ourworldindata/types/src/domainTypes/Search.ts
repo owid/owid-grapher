@@ -85,6 +85,7 @@ export interface ChartRecord {
      * Also only set for FMs: used so that we can filter out income group-specific FMs on a plain data catalog view.
      */
     isIncomeGroupSpecificFM: boolean
+    isFM: boolean
     publishedAt: string
     updatedAt: string
     numDimensions: number

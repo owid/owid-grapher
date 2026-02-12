@@ -703,6 +703,7 @@ async function finalizeRecords(
                 titleLength: record.titleLength,
                 isFirstExplorerView: record.isFirstExplorerView,
                 isIncomeGroupSpecificFM: false,
+                isFM: false,
                 datasetNamespaces: record.datasetNamespaces,
                 datasetVersions: record.datasetVersions,
                 datasetProducts: record.datasetProducts,
