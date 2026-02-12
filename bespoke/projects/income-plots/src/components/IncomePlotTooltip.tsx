@@ -55,13 +55,17 @@ export const IncomePlotTooltip = () => {
     const clientPoint = useClientPoint(context)
     const { getFloatingProps } = useInteractions([hover, clientPoint])
 
-    if (!lineForDisplay || !hoveredEntity) return null
-    const percentageMap = computePercentageBelowLine(
-        rawDataForYear,
-        lineForDisplay,
-        new Set([hoveredEntity])
-    )
-    const percentageForEntity = percentageMap.get(hoveredEntity)
+    if (!lineForDisplay) return null
+
+    let percentageForEntity: number | undefined = undefined
+    if (hoveredEntity) {
+        const percentageMap = computePercentageBelowLine(
+            rawDataForYear,
+            lineForDisplay,
+            new Set([hoveredEntity])
+        )
+        percentageForEntity = percentageMap.get(hoveredEntity)
+    }
 
     return (
         <>
@@ -73,22 +77,26 @@ export const IncomePlotTooltip = () => {
                         style={floatingStyles}
                         {...getFloatingProps()}
                     >
-                        <div className="tooltip--entityName">
-                            {hoveredEntity}
-                        </div>
-                        <div className="tooltip--percentage">
-                            {percentageForEntity !== undefined && (
-                                <>
-                                    {Math.round(percentageForEntity)}% of the
-                                    population earns less than{" "}
-                                    {formatCurrency(
-                                        lineForDisplay * combinedFactor,
-                                        currency
+                        {hoveredEntity && (
+                            <>
+                                <div className="tooltip--entityName">
+                                    {hoveredEntity}
+                                </div>
+                                <div className="tooltip--percentage">
+                                    {percentageForEntity !== undefined && (
+                                        <>
+                                            {Math.round(percentageForEntity)}%
+                                            of the population earns less than{" "}
+                                            {formatCurrency(
+                                                lineForDisplay * combinedFactor,
+                                                currency
+                                            )}
+                                            /{getTimeIntervalStr(timeInterval)}
+                                        </>
                                     )}
-                                    /{getTimeIntervalStr(timeInterval)}
-                                </>
-                            )}
-                        </div>
+                                </div>
+                            </>
+                        )}
                         <div className="tooltip--set-pov-line">
                             Click to set poverty line
                         </div>
