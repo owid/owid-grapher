@@ -2,7 +2,7 @@ import cx from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRightLong } from "@fortawesome/free-solid-svg-icons"
 import { getCanonicalPath } from "@ourworldindata/components"
-import { TopicPageHit } from "@ourworldindata/types"
+import { OwidGdocType, ProfileHit, TopicPageHit } from "@ourworldindata/types"
 
 function truncate(paragraphs: string[]) {
     const maxWords = 35
@@ -29,15 +29,22 @@ function truncate(paragraphs: string[]) {
     return result
 }
 
+function getTagLabel(type: TopicPageHit["type"] | ProfileHit["type"]): string {
+    if (type === OwidGdocType.Profile) return "Country profile"
+    return "Topic page"
+}
+
 export const SearchTopicPageHit = ({
     className,
     hit,
     variant = "small",
+    flagCode,
     onClick,
 }: {
     className?: string
-    hit: TopicPageHit
+    hit: TopicPageHit | ProfileHit
     variant?: "small" | "large"
+    flagCode?: string
     onClick: VoidFunction
 }) => (
     <a
@@ -45,7 +52,19 @@ export const SearchTopicPageHit = ({
         href={getCanonicalPath(hit.slug, hit.type)}
         onClick={onClick}
     >
-        <div className="search-topic-page-hit__tag">Topic page</div>
+        <div className="search-topic-page-hit__tag">
+            {flagCode && (
+                <img
+                    className="search-topic-page-hit__flag"
+                    aria-hidden={true}
+                    height={12}
+                    width={16}
+                    src={`/images/flags/${flagCode}.svg`}
+                    alt=""
+                />
+            )}
+            {getTagLabel(hit.type)}
+        </div>
         <h3 className="search-topic-page-hit__title">
             <span className="search-topic-page-hit__title-text">
                 {hit.title}
@@ -57,6 +76,7 @@ export const SearchTopicPageHit = ({
         </h3>
         <div className="search-topic-page-hit__excerpt">
             {variant === "large" &&
+            "excerptLong" in hit &&
             hit.excerptLong &&
             hit.excerptLong.length > 0 ? (
                 truncate(hit.excerptLong).map((text, index) => (

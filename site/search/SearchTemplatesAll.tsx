@@ -84,7 +84,7 @@ export const SearchTemplatesAll = () => {
                 <>
                     <SearchDataInsightsResults />
                     <SearchDataResults isFirstChartLarge={true} />
-                    <SearchWritingResults />
+                    <SearchWritingResults showProfiles={true} />
                 </>
             ))
             // All + No Topic + Country + No Query
