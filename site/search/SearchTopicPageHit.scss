@@ -15,8 +15,15 @@
 
 .search-topic-page-hit__tag {
     @include h6-black-caps;
+    display: flex;
+    align-items: center;
+    gap: 6px;
     color: $blue-60;
     margin-bottom: 4px;
+}
+
+.search-topic-page-hit__flag {
+    border-radius: 1px;
 }
 
 .search-topic-page-hit__title {
