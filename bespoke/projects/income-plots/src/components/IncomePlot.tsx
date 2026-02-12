@@ -37,6 +37,9 @@ const style = {
     display: "block",
 }
 
+const LABEL_FONT_SIZES = [13, 12, 11] as const
+const CHAR_WIDTH_RATIO = 0.37 // approximate char width as fraction of font size
+
 interface IncomePlotProps {
     width?: number
     height?: number
@@ -153,7 +156,7 @@ const IncomePlotAreasStacked = ({ xScale }: IncomePlotAreasProps) => {
                 const last = R.last(dataForRegion)
 
                 const combined = R.zip(first, last).map(([f, l]) => {
-                    const arr = [f[0], l[1]] as d3.SeriesPoint<number>
+                    const arr = [f[0], l[1]] as d3.SeriesPoint<{ x: number }>
                     arr.data = f.data
                     return arr
                 }) as StackedSeriesPoint
@@ -174,6 +177,224 @@ const IncomePlotAreasStacked = ({ xScale }: IncomePlotAreasProps) => {
             area: area(series),
         }))
     }, [area, stackedData])
+
+    /**
+     * Marcel here: The following code is for placing region labels inside the areas. It was implemented by Claude Code and I don't fully understand it. Be careful!
+     */
+
+    // Place region name labels inside each stacked area.
+    //
+    // We find the best label position using a weighted "pole of inaccessibility":
+    // 1. Build the boundary polygon of each region area in pixel space
+    // 2. Scale x-coordinates by 1/aspectRatio (where aspectRatio = text width /
+    //    text height). In this compressed space, finding the largest inscribed
+    //    circle is equivalent to finding the largest inscribed oval with the
+    //    text's aspect ratio in the original space.
+    // 3. Build a Delaunay triangulation of the scaled boundary points for fast
+    //    nearest-neighbor lookups
+    // 4. Test a grid of candidate points; for each, query the Delaunay to get
+    //    the distance to the nearest boundary in scaled space
+    // 5. The candidate with the maximum distance is the center of the largest
+    //    inscribed text-shaped rectangle
+    //
+    // Once we have that point, we measure the actual available width and height
+    // around it and try font sizes from 12px down to 8px, picking the largest
+    // size where the estimated text dimensions fit comfortably.
+    const regionLabels = useMemo(() => {
+        if (!xScale || !yScale || countriesOrRegionsMode !== "regions")
+            return []
+
+        // Convert each series' data coordinates to pixel space once up front
+        const seriesPixelData = stackedData.map((series) => {
+            return series.map((point) => ({
+                x: xScale(point.data.x),
+                top: yScale(point[1]), // upper edge (smaller y = higher on screen)
+                bot: yScale(point[0]), // lower edge
+            }))
+        })
+
+        return stackedData.map((series, seriesIdx) => {
+            const n = series.length
+            const pxData = seriesPixelData[seriesIdx]
+            const regionName = series.region ?? series.key
+
+            // The text's aspect ratio (width/height) determines how we weight
+            // horizontal vs vertical distances. This ratio is font-size-
+            // independent since both dimensions scale linearly with font size.
+            const textAspect = regionName.length * CHAR_WIDTH_RATIO
+            // Compressing x by this factor transforms the problem so that
+            // Euclidean distance in the scaled space corresponds to how well
+            // a text-shaped rectangle fits in the original space.
+            const xShrink = 1 / textAspect
+
+            // Build the boundary polygon: trace the top edge left-to-right,
+            // then the bottom edge right-to-left, forming a closed loop.
+            // We store both the original (for later measurements) and scaled
+            // (for Delaunay) coordinates.
+            const boundaryPoints: [number, number][] = []
+            const scaledBoundary: [number, number][] = []
+            for (let i = 0; i < n; i++) {
+                boundaryPoints.push([pxData[i].x, pxData[i].top])
+                scaledBoundary.push([pxData[i].x * xShrink, pxData[i].top])
+            }
+            for (let i = n - 1; i >= 0; i--) {
+                boundaryPoints.push([pxData[i].x, pxData[i].bot])
+                scaledBoundary.push([pxData[i].x * xShrink, pxData[i].bot])
+            }
+
+            // Build Delaunay on the scaled boundary so that nearest-neighbor
+            // queries reflect the text's aspect ratio
+            const delaunay = d3.Delaunay.from(scaledBoundary)
+
+            // Search an 80×20 grid of candidate points inside the region.
+            // For each candidate, find the weighted distance to the nearest
+            // boundary point and keep track of the maximum.
+            let bestPoint: [number, number] | null = null
+            let bestDist = 0
+
+            const GRID_X = 80
+            const GRID_Y = 20
+
+            for (let gx = 1; gx < GRID_X; gx++) {
+                // Interpolate between data points to get the x position and
+                // the top/bottom edges of the region at this grid column
+                const t = gx / GRID_X
+                const idx = t * (n - 1)
+                const i0 = Math.floor(idx)
+                const i1 = Math.min(i0 + 1, n - 1)
+                const frac = idx - i0
+
+                const topPx =
+                    pxData[i0].top * (1 - frac) + pxData[i1].top * frac
+                const botPx =
+                    pxData[i0].bot * (1 - frac) + pxData[i1].bot * frac
+                const px = pxData[i0].x * (1 - frac) + pxData[i1].x * frac
+
+                // Skip very thin slices of the region
+                const height = botPx - topPx
+                if (height <= 10) continue
+
+                // Query the Delaunay in scaled x-space
+                const scaledPx = px * xShrink
+
+                for (let gy = 1; gy < GRID_Y; gy++) {
+                    const py = topPx + (gy / GRID_Y) * height
+
+                    // Find nearest boundary point in scaled space
+                    const nearestIdx = delaunay.find(scaledPx, py)
+                    const [sbx, sby] = scaledBoundary[nearestIdx]
+                    const dist = Math.sqrt(
+                        (scaledPx - sbx) ** 2 + (py - sby) ** 2
+                    )
+
+                    if (dist > bestDist) {
+                        bestDist = dist
+                        bestPoint = [px, py]
+                    }
+                }
+            }
+
+            if (!bestPoint) {
+                return {
+                    region: regionName,
+                    point: null,
+                    fontSize: 0,
+                    color: series.color,
+                }
+            }
+
+            // Measure the vertical space (region height) at the best point's
+            // x position by interpolating between the bracketing data points
+            const bestPx = bestPoint[0]
+            let localHeight = 0
+            for (let i = 0; i < n - 1; i++) {
+                if (bestPx >= pxData[i].x && bestPx <= pxData[i + 1].x) {
+                    const f =
+                        (bestPx - pxData[i].x) / (pxData[i + 1].x - pxData[i].x)
+                    const top = pxData[i].top * (1 - f) + pxData[i + 1].top * f
+                    const bot = pxData[i].bot * (1 - f) + pxData[i + 1].bot * f
+                    localHeight = bot - top
+                    break
+                }
+            }
+
+            // Try font sizes from largest to smallest; pick the biggest that
+            // fits both vertically and horizontally with comfortable margin.
+            //
+            // In the scaled space, bestDist is the radius of the largest
+            // inscribed circle. In original space this corresponds to a
+            // rectangle of half-height bestDist and half-width
+            // bestDist * textAspect. A font at size f needs half-height f/2
+            // and half-width (textAspect * f)/2, so text fits when
+            // bestDist >= f/2 (with margin). We still do the explicit
+            // width/height sweep as a precise check.
+            const bestPy = bestPoint[1]
+            let chosenFontSize = 0
+            for (const fontSize of LABEL_FONT_SIZES) {
+                const charWidth = fontSize * CHAR_WIDTH_RATIO
+                const estimatedTextWidth = regionName.length * charWidth
+
+                // The region must be tall enough to contain the text with
+                // breathing room above and below
+                if (localHeight < fontSize * 2.2) continue
+
+                // Measure horizontal space: sweep left and right from the best
+                // point, stopping where the region becomes too narrow to
+                // contain the label vertically (i.e. where the region height
+                // at the label's y-level drops below minHeight)
+                const minHeight = fontSize * 1.5
+                let leftExtent = pxData[0].x
+                let rightExtent = pxData[n - 1].x
+
+                // Sweep leftward
+                for (let i = 0; i < n - 1; i++) {
+                    const midX = (pxData[i].x + pxData[i + 1].x) / 2
+                    if (midX >= bestPx) break
+                    const f =
+                        (midX - pxData[i].x) / (pxData[i + 1].x - pxData[i].x)
+                    const top = pxData[i].top * (1 - f) + pxData[i + 1].top * f
+                    const bot = pxData[i].bot * (1 - f) + pxData[i + 1].bot * f
+                    if (
+                        bestPy < top + minHeight / 2 ||
+                        bestPy > bot - minHeight / 2 ||
+                        bot - top < minHeight
+                    ) {
+                        leftExtent = midX
+                    }
+                }
+                // Sweep rightward
+                for (let i = n - 2; i >= 0; i--) {
+                    const midX = (pxData[i].x + pxData[i + 1].x) / 2
+                    if (midX <= bestPx) break
+                    const f =
+                        (midX - pxData[i].x) / (pxData[i + 1].x - pxData[i].x)
+                    const top = pxData[i].top * (1 - f) + pxData[i + 1].top * f
+                    const bot = pxData[i].bot * (1 - f) + pxData[i + 1].bot * f
+                    if (
+                        bestPy < top + minHeight / 2 ||
+                        bestPy > bot - minHeight / 2 ||
+                        bot - top < minHeight
+                    ) {
+                        rightExtent = midX
+                    }
+                }
+                const localWidth = rightExtent - leftExtent
+
+                // Accept this font size if the text fits with some margin
+                if (localWidth > estimatedTextWidth * 1.3) {
+                    chosenFontSize = fontSize
+                    break
+                }
+            }
+
+            return {
+                region: regionName,
+                point: bestPoint,
+                fontSize: chosenFontSize,
+                color: series.color,
+            }
+        })
+    }, [stackedData, xScale, yScale, countriesOrRegionsMode])
 
     const onMouseLeave = useCallback(
         (entity: string) => {
@@ -235,6 +456,20 @@ const IncomePlotAreasStacked = ({ xScale }: IncomePlotAreasProps) => {
                             stroke="white"
                         />
                     </g>
+                )
+            })}
+            {regionLabels.map((label) => {
+                if (!label.point || !label.fontSize) return null
+                return (
+                    <text
+                        key={label.region}
+                        className="region-label"
+                        x={label.point[0]}
+                        y={label.point[1]}
+                        fontSize={label.fontSize}
+                    >
+                        {label.region}
+                    </text>
                 )
             })}
         </g>
