@@ -82,7 +82,7 @@ const IncomePlotAreasStacked = ({ xScale }: IncomePlotAreasProps) => {
     const xValues = useAtomValue(atomKdeXValues)
     const countryRegionMap = useAtomValue(atomCountryRegionMap)
     const countriesOrRegionsMode = useAtomValue(atomCountriesOrRegionsMode)
-    const selectedCountryNames = useAtomValue(atomSelectedCountryNames)
+    const selectedCountryNames: string[] = [] // Country selection is disabled for stacked mode for now
     const [hoveredEntity, setHoveredEntity] = useAtom(atomHoveredEntity)
     const hoveredEntityType = useAtomValue(atomHoveredEntityType)
     const entityColors = useAtomValue(atomEntityColorMap)

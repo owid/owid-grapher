@@ -222,15 +222,14 @@ export const atomTooltipIsOpen = atom((get) => {
     return hoveredX !== null
 })
 
-export const atomIsInCountryMode = atom((get) => {
-    const mode = get(atomCountriesOrRegionsMode)
-    return mode === "countries"
-})
-
-const atomCountrySelection = atom<string[]>([])
+const atomCountrySelection = atom<string[]>([
+    "China",
+    "United States",
+    "India",
+    "Nigeria",
+])
 export const atomSelectedCountryNames = atom(
     (get) => {
-        if (!get(atomIsInCountryMode)) return []
         return get(atomCountrySelection)
     },
     (get, set, newValue: string[]) => {
@@ -243,17 +242,11 @@ export const atomAvailableCountryNames = atom(async (get) => {
     return rawData.map((d) => d.country).toSorted()
 })
 
-const atomSelectedOnly = atom(false)
-export const atomIsInSingleCountryMode = atom(
-    (get) => {
-        const isInCountryMode = get(atomIsInCountryMode)
-        if (!isInCountryMode) return false
-        return get(atomSelectedOnly)
-    },
-    (get, set, newValue: boolean) => {
-        set(atomSelectedOnly, newValue)
-    }
-)
+export const atomCurrentTab = atom<"global" | "countries">("global")
+
+export const atomIsInSingleCountryMode = atom((get) => {
+    return get(atomCurrentTab) === "countries"
+})
 
 export const atomCurrentEntitiesSorted = atom((get) => {
     const isSingleCountryMode = get(atomIsInSingleCountryMode)
