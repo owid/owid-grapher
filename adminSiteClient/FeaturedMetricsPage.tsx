@@ -126,6 +126,14 @@ function FeaturedMetricList({
     )
 }
 
+// Explorer UI params that don't define the view and should be stripped from FM URLs.
+// These come from ExplorerStandardQueryParams (beyond GrapherQueryParams).
+const EXPLORER_UI_QUERY_PARAM_KEYS = [
+    "pickerSort",
+    "pickerMetric",
+    "hideControls",
+]
+
 function filterUrlQueryParams(url: string): string {
     if (!url) return ""
     if (!url.includes("?")) return url
@@ -141,7 +149,12 @@ function filterUrlQueryParams(url: string): string {
         )
     }
 
-    url = GRAPHER_QUERY_PARAM_KEYS.reduce(
+    const paramsToStrip = [
+        ...GRAPHER_QUERY_PARAM_KEYS,
+        ...EXPLORER_UI_QUERY_PARAM_KEYS,
+    ]
+
+    url = paramsToStrip.reduce(
         (currentUrl, param) => removeQueryParam(currentUrl, param),
         url
     )
