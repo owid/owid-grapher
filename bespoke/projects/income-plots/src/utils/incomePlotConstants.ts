@@ -39,7 +39,7 @@ export const KDE_NUM_BINS = 200
 export const PLOT_WIDTH = 1000
 export const PLOT_HEIGHT = 500
 
-export interface StackedSeriesPoint extends Array<SeriesPoint<number>> {
+export interface StackedSeriesPoint extends Array<SeriesPoint<{ x: number }>> {
     key: string
     country?: string
     region: string
