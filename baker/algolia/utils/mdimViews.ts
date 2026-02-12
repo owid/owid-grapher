@@ -193,11 +193,11 @@ async function getRecords(
         return {
             type: ChartRecordType.MultiDimView,
             objectID: `mdim-view-${id}`,
-            id: `mdim/${slug}${queryStr}`,
+            id: `mdim/${slug}${queryStr ? `?${queryStr}` : ""}`,
             chartId: -1,
             chartConfigId: view.fullConfigId,
             slug,
-            queryParams: queryStr,
+            queryParams: queryStr ? `?${queryStr}` : "",
             title,
             subtitle,
             variantName: chartConfig.variantName,
