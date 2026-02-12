@@ -220,3 +220,184 @@
     color: #555;
     font-size: 14px;
 }
+
+$controlRowHeight: 28px;
+
+// Mixins for slim tab styling, shared with ContentSwitchers.scss
+@mixin slim-tab-item {
+    $visual-gap: 2px;
+
+    position: relative;
+    display: block;
+    color: $light-text;
+    font-size: var(--tabs-font-size, 13px);
+    font-weight: 500;
+    height: $controlRowHeight - 2 * $visual-gap;
+    line-height: $controlRowHeight - 2 * $visual-gap;
+    border-radius: $visual-gap;
+    cursor: pointer;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    user-select: none;
+    text-align: center;
+
+    &[data-hovered] {
+        background-color: $gray-10;
+    }
+}
+@mixin slim-tab-separator {
+    &::before {
+        content: "";
+        display: block;
+        width: 1px;
+        height: calc(100% - 12px);
+        position: absolute;
+        top: 6px;
+        background-color: $gray-20;
+        left: -0.5px;
+    }
+}
+
+.Tabs {
+    position: relative;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
+    // Variant: default
+    &.Tabs--variant-default,
+    &.Tabs--variant-scroll {
+        margin: 16px 0;
+        display: flex;
+
+        .Tabs__Tab {
+            @include grapher_label-2-medium;
+            flex-shrink: 0;
+            display: inline-block;
+            margin: 0 8px 8px 0;
+            padding: 8px;
+            border: 1px solid $blue-10;
+            background: #fff;
+            color: $dark-text;
+            white-space: normal;
+            cursor: pointer;
+            text-wrap: balance;
+
+            &[data-hovered] {
+                background-color: $gray-10;
+                border-color: $gray-10;
+            }
+
+            &[data-selected] {
+                background: $accent-pale-blue;
+                border-color: $accent-pale-blue;
+                color: $blue-90;
+            }
+        }
+    }
+
+    // Variant: horizontal scroll
+    &.Tabs--variant-scroll {
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+
+        $fade-out-width: 40px;
+        padding-right: $fade-out-width;
+        mask-image: linear-gradient(
+            to right,
+            black calc(100% - #{$fade-out-width}),
+            transparent 100%
+        );
+        -webkit-mask-image: linear-gradient(
+            to right,
+            black calc(100% - #{$fade-out-width}),
+            transparent 100%
+        );
+    }
+
+    // Variant: slim
+    &.Tabs--variant-slim {
+        --tab-padding: 16px;
+
+        $light-stroke: $gray-20;
+        $active-fill: $blue-20;
+
+        $border-radius: 4px;
+        $visual-gap: 2px;
+
+        display: flex;
+        height: $controlRowHeight;
+        margin: 0;
+        padding: $visual-gap;
+        // using a box-shadow instead of a border fixes a bug
+        // where the tab items weren't centered when zoomed in or out
+        box-shadow: inset 0 0 0 1px $light-stroke;
+        border-radius: $border-radius;
+
+        .Tabs__Tab {
+            @include slim-tab-item;
+            padding: 0 var(--tab-padding);
+            text-overflow: ellipsis;
+            overflow: hidden;
+
+            &[data-selected] {
+                color: $active-text;
+                background-color: $active-fill;
+            }
+        }
+
+        // separators between tabs
+        .Tabs__Tab + .Tabs__Tab {
+            @include slim-tab-separator;
+        }
+
+        // hide separators when a tab is hovered over or when a tab is active
+        .Tabs__Tab[data-selected]::before,
+        .Tabs__Tab[data-hovered]::before,
+        .Tabs__Tab[data-selected] + .Tabs__Tab::before,
+        .Tabs__Tab[data-hovered] + .Tabs__Tab::before {
+            display: none;
+        }
+    }
+
+    // Variant: stretch
+    &.Tabs--variant-stretch {
+        display: flex;
+        gap: 8px;
+
+        $hover-fill: $gray-10;
+        $active-fill: $accent-pale-blue;
+
+        .Tabs__Tab {
+            flex-grow: 1;
+            flex-shrink: 1;
+
+            @include grapher_label-2-medium;
+            display: inline-block;
+            padding: 8px;
+            border: 1px solid $blue-10;
+            background: #fff;
+            color: $dark-text;
+            cursor: pointer;
+            text-wrap: balance;
+
+            &[data-hovered] {
+                background-color: $hover-fill;
+                border-color: $hover-fill;
+            }
+
+            &[data-selected] {
+                background: $active-fill;
+                border-color: $active-fill;
+                color: $blue-90;
+            }
+        }
+    }
+
+    svg {
+        margin-right: 4px;
+    }
+}
