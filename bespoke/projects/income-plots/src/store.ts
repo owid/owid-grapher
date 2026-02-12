@@ -218,9 +218,8 @@ export const atomCombinedFactor = atom((get) => {
 })
 
 export const atomTooltipIsOpen = atom((get) => {
-    const hoveredEntity = get(atomHoveredEntity)
     const hoveredX = get(atomHoveredX)
-    return hoveredEntity !== null && hoveredX !== null
+    return hoveredX !== null
 })
 
 export const atomIsInCountryMode = atom((get) => {
