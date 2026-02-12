@@ -21,11 +21,11 @@ import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash-es"
 import { Request } from "express"
-import * as e from "express"
+import { HandlerResponse } from "../FunctionalRouter.js"
 
 export async function getDatasets(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const datasets = await db.knexRaw<Record<string, any>>(
@@ -85,7 +85,7 @@ export async function getDatasets(
 
 export async function getDataset(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const datasetId = expectInt(req.params.datasetId)
@@ -325,7 +325,7 @@ export async function getDataset(
 
 export async function updateDataset(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     // Only updates `nonRedistributable` and `tags`, other fields come from ETL
@@ -371,7 +371,7 @@ export async function updateDataset(
 
 export async function setArchived(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const datasetId = expectInt(req.params.datasetId)
@@ -406,7 +406,7 @@ export async function setArchived(
 
 export async function setTags(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const datasetId = expectInt(req.params.datasetId)
@@ -418,7 +418,7 @@ export async function setTags(
 
 export async function republishCharts(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const datasetId = expectInt(req.params.datasetId)

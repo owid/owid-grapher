@@ -4,12 +4,12 @@ import {
     FeaturedMetricsTableName,
 } from "@ourworldindata/types"
 import { Request } from "express"
-import * as e from "express"
+import { HandlerResponse } from "../FunctionalRouter.js"
 import * as db from "../../db/db.js"
 
 export async function createFeaturedMetric(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const { url, parentTagName, ranking, incomeGroup } = req.body
@@ -67,7 +67,7 @@ export async function createFeaturedMetric(
 
 export async function rerankFeaturedMetrics(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const featuredMetrics = req.body
@@ -93,7 +93,7 @@ export async function rerankFeaturedMetrics(
 
 export async function deleteFeaturedMetric(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const { id } = req.params
@@ -120,7 +120,7 @@ export async function deleteFeaturedMetric(
 
 export async function fetchFeaturedMetrics(
     _req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const featuredMetrics = await db.getFeaturedMetricsByParentTagName(trx)

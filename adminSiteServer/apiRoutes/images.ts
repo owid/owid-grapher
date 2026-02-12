@@ -12,28 +12,29 @@ import * as db from "../../db/db.js"
 import * as lodash from "lodash-es"
 
 import { Request } from "../authentication.js"
-import e from "express"
+import { HandlerResponse } from "../FunctionalRouter.js"
 
 export async function getImagesHandler(
     _: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     try {
         const images = await db.getCloudflareImages(trx)
         res.set("Cache-Control", "no-store")
-        res.send({ images })
+        return { images }
     } catch (error) {
         console.error("Error fetching images", error)
-        res.status(500).json({
+        res.status(500)
+        return {
             error: { message: String(error), status: 500 },
-        })
+        }
     }
 }
 
 export async function postImageHandler(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const { filename, type, content } = validateImagePayload(req.body)
@@ -111,7 +112,7 @@ export async function postImageHandler(
  */
 export async function putImageHandler(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const { type, content } = validateImagePayload(req.body)
@@ -201,7 +202,7 @@ export async function putImageHandler(
 // Update alt text via patch
 export async function patchImageHandler(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const { id } = req.params
@@ -245,7 +246,7 @@ export async function patchImageHandler(
 
 export async function deleteImageHandler(
     req: Request,
-    _: e.Response<any, Record<string, any>>,
+    _: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const { id } = req.params
@@ -283,7 +284,7 @@ export async function deleteImageHandler(
 
 export async function getImageUsageHandler(
     _: Request,
-    __: e.Response<any, Record<string, any>>,
+    __: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const usage = await db.getImageUsage(trx)

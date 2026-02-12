@@ -68,13 +68,13 @@ import { enqueueLightningChange } from "./routeUtils.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
-import e from "express"
+import { HandlerResponse } from "../FunctionalRouter.js"
 import { GdocAnnouncement } from "../../db/model/Gdoc/GdocAnnouncement.js"
 import { GdocProfile } from "../../db/model/Gdoc/GdocProfile.js"
 
 export async function getAllGdocIndexItems(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     return getAllGdocIndexItemsOrderedByUpdatedAt(trx)
@@ -82,7 +82,7 @@ export async function getAllGdocIndexItems(
 
 export async function getIndividualGdoc(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const id = req.params.id
@@ -105,18 +105,19 @@ export async function getIndividualGdoc(
         }
 
         res.set("Cache-Control", "no-store")
-        res.send(gdoc)
+        return gdoc
     } catch (error) {
         console.error("Error fetching gdoc", error)
-        res.status(500).json({
+        res.status(500)
+        return {
             error: { message: String(error), status: 500 },
-        })
+        }
     }
 }
 
 export async function getGdocCalloutCoverage(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const id = req.params.id
@@ -241,11 +242,11 @@ export async function getGdocCalloutCoverage(
         coverageByEntity[entity.code] = rowCoverage
     }
 
-    res.send({
+    return {
         rows,
         entities,
         coverageByEntity,
-    })
+    }
 }
 
 /**
@@ -255,7 +256,7 @@ export async function getGdocCalloutCoverage(
  */
 export async function getCalloutFunctionStrings(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const chartUrl = req.query.url as string | undefined
@@ -290,10 +291,10 @@ export async function getCalloutFunctionStrings(
         }
     }
 
-    res.send({
+    return {
         url: chartUrl,
         functionStringsByName,
-    })
+    }
 }
 
 /**
@@ -444,7 +445,7 @@ async function createRedirectForSlugChangeIfNeeded(
  */
 export async function createOrUpdateGdoc(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const { id } = req.params
@@ -501,7 +502,7 @@ async function validateTombstoneRelatedLinkUrl(
 
 export async function deleteGdoc(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const { id } = req.params
@@ -565,7 +566,7 @@ export async function deleteGdoc(
 
 export async function setGdocTags(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const { gdocId } = req.params
@@ -585,7 +586,7 @@ export async function setGdocTags(
  */
 export async function getPreviewGdocIndexRecords(
     _req: Request,
-    res: e.Response<PagesIndexRecordsResponse, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ): Promise<PagesIndexRecordsResponse> {
     const { id } = _req.params
@@ -657,7 +658,7 @@ export async function getPreviewGdocIndexRecords(
  */
 export async function getPublishedGdocTopicSlugs(
     _req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ): Promise<{ slugs: string[] }> {
     const rows = await db.knexRaw<{ slug: string }>(

@@ -26,11 +26,11 @@ import { saveGrapher } from "./charts.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash-es"
 import { Request } from "../authentication.js"
-import e from "express"
+import { HandlerResponse } from "../FunctionalRouter.js"
 
 export async function getChartBulkUpdate(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ): Promise<BulkGrapherConfigResponse<BulkChartEditResponseRow>> {
     const context: OperationContext = {
@@ -91,7 +91,7 @@ export async function getChartBulkUpdate(
 
 export async function updateBulkChartConfigs(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const patchesList = req.body as GrapherConfigPatch[]
@@ -138,7 +138,7 @@ export async function updateBulkChartConfigs(
 
 export async function getVariableAnnotations(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ): Promise<BulkGrapherConfigResponse<VariableAnnotationsResponseRow>> {
     const context: OperationContext = {
@@ -201,7 +201,7 @@ export async function getVariableAnnotations(
 
 export async function updateVariableAnnotations(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const patchesList = req.body as GrapherConfigPatch[]
