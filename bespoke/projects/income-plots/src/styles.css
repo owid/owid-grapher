@@ -129,6 +129,16 @@
         }
     }
 
+    .region-label {
+        fill: rgba(0, 0, 0, 0.9);
+        stroke: rgba(255, 255, 255, 0.8);
+        stroke-width: 3px;
+        paint-order: stroke;
+        pointer-events: none;
+        text-anchor: middle;
+        dominant-baseline: central;
+    }
+
     &:has(.income-plot-series[data-highlighted]) {
         .income-plot-series {
             opacity: 0.35;
