@@ -249,14 +249,14 @@ const IncomePlotAreasStacked = ({ xScale }: IncomePlotAreasProps) => {
             // queries reflect the text's aspect ratio
             const delaunay = new d3.Delaunay(scaledCoords)
 
-            // Search an 80×20 grid of candidate points inside the region.
+            // Search an 50×40 grid of candidate points inside the region.
             // For each candidate, find the weighted distance to the nearest
             // boundary point and keep track of the maximum.
             let bestPoint: [number, number] | null = null
             let bestDistSq = 0 // squared distance (avoids sqrt in inner loop)
 
-            const GRID_X = 80
-            const GRID_Y = 20
+            const GRID_X = 50
+            const GRID_Y = 40
 
             for (let gx = 1; gx < GRID_X; gx++) {
                 // Interpolate between data points to get the x position and
@@ -301,8 +301,7 @@ const IncomePlotAreasStacked = ({ xScale }: IncomePlotAreasProps) => {
             // reduced by a comfort margin (0.65) to ensure breathing room.
             const bestDist = Math.sqrt(bestDistSq)
             const maxFont = bestDist * 2 * 0.65
-            const chosenFontSize =
-                LABEL_FONT_SIZES.find((f) => f <= maxFont) ?? 0
+            const chosenFontSize = LABEL_FONT_SIZES.find((f) => f <= maxFont)
 
             return {
                 region: regionName,
