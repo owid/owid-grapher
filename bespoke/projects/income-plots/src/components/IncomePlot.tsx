@@ -197,9 +197,10 @@ const IncomePlotAreasStacked = ({ xScale }: IncomePlotAreasProps) => {
     // 5. The candidate with the maximum distance is the center of the largest
     //    inscribed text-shaped rectangle
     //
-    // Once we have that point, we measure the actual available width and height
-    // around it and try font sizes from 12px down to 8px, picking the largest
-    // size where the estimated text dimensions fit comfortably.
+    // The bestDist in scaled space directly determines the max font size:
+    // in original space it corresponds to half-height = bestDist and
+    // half-width = bestDist * textAspect. Since text at font size f needs
+    // half-height f/2, the max font is 2 * bestDist (with a comfort margin).
     const regionLabels = useMemo(() => {
         if (!xScale || !yScale || countriesOrRegionsMode !== "regions")
             return []
@@ -227,30 +228,32 @@ const IncomePlotAreasStacked = ({ xScale }: IncomePlotAreasProps) => {
             // a text-shaped rectangle fits in the original space.
             const xShrink = 1 / textAspect
 
-            // Build the boundary polygon: trace the top edge left-to-right,
-            // then the bottom edge right-to-left, forming a closed loop.
-            // We store both the original (for later measurements) and scaled
-            // (for Delaunay) coordinates.
-            const boundaryPoints: [number, number][] = []
-            const scaledBoundary: [number, number][] = []
+            // Build the boundary polygon in scaled space: trace the top edge
+            // left-to-right, then the bottom edge right-to-left.
+            // We use a flat Float64Array for the Delaunay input — it expects
+            // interleaved [x0, y0, x1, y1, ...] coordinates.
+            const numBoundary = n * 2
+            const scaledCoords = new Float64Array(numBoundary * 2)
             for (let i = 0; i < n; i++) {
-                boundaryPoints.push([pxData[i].x, pxData[i].top])
-                scaledBoundary.push([pxData[i].x * xShrink, pxData[i].top])
+                scaledCoords[i * 2] = pxData[i].x * xShrink
+                scaledCoords[i * 2 + 1] = pxData[i].top
             }
-            for (let i = n - 1; i >= 0; i--) {
-                boundaryPoints.push([pxData[i].x, pxData[i].bot])
-                scaledBoundary.push([pxData[i].x * xShrink, pxData[i].bot])
+            for (let i = 0; i < n; i++) {
+                const j = n + i
+                const src = n - 1 - i
+                scaledCoords[j * 2] = pxData[src].x * xShrink
+                scaledCoords[j * 2 + 1] = pxData[src].bot
             }
 
             // Build Delaunay on the scaled boundary so that nearest-neighbor
             // queries reflect the text's aspect ratio
-            const delaunay = d3.Delaunay.from(scaledBoundary)
+            const delaunay = new d3.Delaunay(scaledCoords)
 
             // Search an 80×20 grid of candidate points inside the region.
             // For each candidate, find the weighted distance to the nearest
             // boundary point and keep track of the maximum.
             let bestPoint: [number, number] | null = null
-            let bestDist = 0
+            let bestDistSq = 0 // squared distance (avoids sqrt in inner loop)
 
             const GRID_X = 80
             const GRID_Y = 20
@@ -282,110 +285,24 @@ const IncomePlotAreasStacked = ({ xScale }: IncomePlotAreasProps) => {
 
                     // Find nearest boundary point in scaled space
                     const nearestIdx = delaunay.find(scaledPx, py)
-                    const [sbx, sby] = scaledBoundary[nearestIdx]
-                    const dist = Math.sqrt(
-                        (scaledPx - sbx) ** 2 + (py - sby) ** 2
-                    )
+                    const dx = scaledPx - scaledCoords[nearestIdx * 2]
+                    const dy = py - scaledCoords[nearestIdx * 2 + 1]
+                    const distSq = dx * dx + dy * dy
 
-                    if (dist > bestDist) {
-                        bestDist = dist
+                    if (distSq > bestDistSq) {
+                        bestDistSq = distSq
                         bestPoint = [px, py]
                     }
                 }
             }
 
-            if (!bestPoint) {
-                return {
-                    region: regionName,
-                    point: null,
-                    fontSize: 0,
-                    color: series.color,
-                }
-            }
-
-            // Measure the vertical space (region height) at the best point's
-            // x position by interpolating between the bracketing data points
-            const bestPx = bestPoint[0]
-            let localHeight = 0
-            for (let i = 0; i < n - 1; i++) {
-                if (bestPx >= pxData[i].x && bestPx <= pxData[i + 1].x) {
-                    const f =
-                        (bestPx - pxData[i].x) / (pxData[i + 1].x - pxData[i].x)
-                    const top = pxData[i].top * (1 - f) + pxData[i + 1].top * f
-                    const bot = pxData[i].bot * (1 - f) + pxData[i + 1].bot * f
-                    localHeight = bot - top
-                    break
-                }
-            }
-
-            // Try font sizes from largest to smallest; pick the biggest that
-            // fits both vertically and horizontally with comfortable margin.
-            //
-            // In the scaled space, bestDist is the radius of the largest
-            // inscribed circle. In original space this corresponds to a
-            // rectangle of half-height bestDist and half-width
-            // bestDist * textAspect. A font at size f needs half-height f/2
-            // and half-width (textAspect * f)/2, so text fits when
-            // bestDist >= f/2 (with margin). We still do the explicit
-            // width/height sweep as a precise check.
-            const bestPy = bestPoint[1]
-            let chosenFontSize = 0
-            for (const fontSize of LABEL_FONT_SIZES) {
-                const charWidth = fontSize * CHAR_WIDTH_RATIO
-                const estimatedTextWidth = regionName.length * charWidth
-
-                // The region must be tall enough to contain the text with
-                // breathing room above and below
-                if (localHeight < fontSize * 2.2) continue
-
-                // Measure horizontal space: sweep left and right from the best
-                // point, stopping where the region becomes too narrow to
-                // contain the label vertically (i.e. where the region height
-                // at the label's y-level drops below minHeight)
-                const minHeight = fontSize * 1.5
-                let leftExtent = pxData[0].x
-                let rightExtent = pxData[n - 1].x
-
-                // Sweep leftward
-                for (let i = 0; i < n - 1; i++) {
-                    const midX = (pxData[i].x + pxData[i + 1].x) / 2
-                    if (midX >= bestPx) break
-                    const f =
-                        (midX - pxData[i].x) / (pxData[i + 1].x - pxData[i].x)
-                    const top = pxData[i].top * (1 - f) + pxData[i + 1].top * f
-                    const bot = pxData[i].bot * (1 - f) + pxData[i + 1].bot * f
-                    if (
-                        bestPy < top + minHeight / 2 ||
-                        bestPy > bot - minHeight / 2 ||
-                        bot - top < minHeight
-                    ) {
-                        leftExtent = midX
-                    }
-                }
-                // Sweep rightward
-                for (let i = n - 2; i >= 0; i--) {
-                    const midX = (pxData[i].x + pxData[i + 1].x) / 2
-                    if (midX <= bestPx) break
-                    const f =
-                        (midX - pxData[i].x) / (pxData[i + 1].x - pxData[i].x)
-                    const top = pxData[i].top * (1 - f) + pxData[i + 1].top * f
-                    const bot = pxData[i].bot * (1 - f) + pxData[i + 1].bot * f
-                    if (
-                        bestPy < top + minHeight / 2 ||
-                        bestPy > bot - minHeight / 2 ||
-                        bot - top < minHeight
-                    ) {
-                        rightExtent = midX
-                    }
-                }
-                const localWidth = rightExtent - leftExtent
-
-                // Accept this font size if the text fits with some margin
-                if (localWidth > estimatedTextWidth * 1.3) {
-                    chosenFontSize = fontSize
-                    break
-                }
-            }
+            // bestDist (in scaled space) is the radius of the largest
+            // inscribed circle. The max font size that fits is 2 * bestDist,
+            // reduced by a comfort margin (0.65) to ensure breathing room.
+            const bestDist = Math.sqrt(bestDistSq)
+            const maxFont = bestDist * 2 * 0.65
+            const chosenFontSize =
+                LABEL_FONT_SIZES.find((f) => f <= maxFont) ?? 0
 
             return {
                 region: regionName,
