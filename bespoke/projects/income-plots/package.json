@@ -1,6 +1,8 @@
 {
     "dependencies": {
         "@floating-ui/react": "^0.27.16",
+        "@fortawesome/react-fontawesome": "^3.2.0",
+        "@fortawesome/free-solid-svg-icons": "^7.2.0",
         "@ourworldindata/components": "*",
         "@ourworldindata/types": "*",
         "@ourworldindata/utils": "*",
