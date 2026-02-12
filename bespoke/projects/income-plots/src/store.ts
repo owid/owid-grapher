@@ -72,7 +72,7 @@ export const atomTimeIntervalFactor = atom((get) => {
 })
 
 const atomCountriesOrRegionsModeInternal = atom<"countries" | "regions">(
-    "regions"
+    "countries"
 )
 export const atomCountriesOrRegionsMode = atom(
     (get) => get(atomCountriesOrRegionsModeInternal),
