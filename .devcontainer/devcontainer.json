@@ -6,19 +6,11 @@
     "workspaceFolder": "/workspace",
     "customizations": {
         "vscode": {
-            "extensions": [
-                "dbaeumer.vscode-eslint",
-                "esbenp.prettier-vscode"
-            ]
+            "extensions": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode"]
         }
     },
     // Forward the ports used by the dev environment so they are accessible on the host.
-    "forwardPorts": [
-        3030,
-        8090,
-        8788,
-        3307
-    ],
+    "forwardPorts": [3030, 8090, 8788, 3307],
     "portsAttributes": {
         "3030": {
             "label": "Admin Server"
@@ -36,7 +28,7 @@
     "mounts": [
         "source=${localEnv:HOME}/.claude,target=/home/node/.claude,type=bind,consistency=cached",
         "source=${localEnv:HOME}/.pi,target=/home/node/.pi,type=bind,consistency=cached",
-        "source=${localEnv:HOME}/.codex,target=/home/node/.codex,type=bind,consistency=cached",
+        "source=${localEnv:HOME}/.codex,target=/home/node/.codex,type=bind,consistency=cached"
     ],
     // If .devcontainer-personal-setup.sh exists on the host, it will be executed
     // after container creation. Use this for personal tool installations.
