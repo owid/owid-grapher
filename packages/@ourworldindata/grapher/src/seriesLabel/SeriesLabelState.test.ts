@@ -95,6 +95,7 @@ describe("SeriesLabelState", () => {
 
         expect(icons).toHaveLength(1)
         expect(icons[0].providerKey).toBe("who")
+        // expect(icons[0].entityName).toBe("Africa (WHO)")
         // "(WHO" before icon, ")" after
         expect(suffixes[0].text).toBe("(WHO")
         expect(suffixes[1].text).toBe(")")

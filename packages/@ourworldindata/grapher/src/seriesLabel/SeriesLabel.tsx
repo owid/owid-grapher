@@ -1,5 +1,6 @@
 import * as R from "remeda"
 import Tippy from "@tippyjs/react"
+import { hideAll } from "tippy.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
 import {
@@ -14,7 +15,8 @@ import {
     SpanLine,
 } from "./SeriesLabelState.js"
 import { Bounds, isTouchDevice } from "@ourworldindata/utils"
-import { AnyRegionDataProvider } from "../core/RegionGroups.js"
+import { RegionProviderTooltip } from "./RegionProviderTooltip.js"
+import { getRegionProviderTooltipData } from "./RegionProviderTooltipData.js"
 
 const defaultColors: Record<TextRole, string> = {
     name: GRAPHER_DARK_TEXT,
@@ -328,12 +330,17 @@ function IconFragment({
             <Tippy
                 theme="grapher-explanation"
                 placement="top"
+                interactive={true}
+                appendTo={() => document.body}
+                onShow={(instance) => {
+                    hideAll({ exclude: instance })
+                    onInfoTooltipShow?.()
+                }}
                 content={
-                    <RegionProviderTooltipContent
-                        providerKey={fragment.providerKey}
+                    <RegionProviderTooltip
+                        {...getRegionProviderTooltipData(fragment.providerKey)}
                     />
                 }
-                onShow={onInfoTooltipShow}
             >
                 <rect
                     {...hitAreaBounds.toProps()}
@@ -345,12 +352,4 @@ function IconFragment({
             </Tippy>
         </g>
     )
-}
-
-function RegionProviderTooltipContent({
-    providerKey,
-}: {
-    providerKey: AnyRegionDataProvider
-}): React.ReactElement {
-    return <div>{providerKey}</div>
 }

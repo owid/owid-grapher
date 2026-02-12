@@ -3,12 +3,12 @@ import { match } from "ts-pattern"
 import { computed, makeObservable } from "mobx"
 import { Bounds, excludeUndefined, RequiredBy } from "@ourworldindata/utils"
 import { canAppendTextToLastLine, TextWrap } from "@ourworldindata/components"
-import {
-    AnyRegionDataProvider,
-    ParsedLabel,
-    parseLabel,
-} from "../core/RegionGroups.js"
+import { ParsedLabel, parseLabel } from "../core/RegionGroups.js"
 import { FontSettings } from "../core/GrapherConstants.js"
+import {
+    hasProviderTooltipData,
+    RegionProviderWithTooltipData,
+} from "./RegionProviderTooltipData.js"
 
 export interface SeriesLabelStateOptions {
     text: string
@@ -39,7 +39,7 @@ interface TextFragment extends TextSpan {
 
 interface IconFragment {
     type: "icon"
-    providerKey: AnyRegionDataProvider
+    providerKey: RegionProviderWithTooltipData
     iconSize: number
     width: number
 }
@@ -188,10 +188,14 @@ export class SeriesLabelState {
     @computed private get regionProviderSuffix(): FragmentGroup | undefined {
         if (!this.parsedText.providerKey) return undefined
 
+        const providerKey = this.parsedText.providerKey
+
         const text = `(${this.parsedText.suffix})`
         const fontSettings = { ...this.fontSettings, fontWeight: 400 }
 
-        const shouldShowIcon = this.options.showRegionProviderTooltip
+        const shouldShowIcon =
+             this.options.showRegionProviderTooltip &&
+            hasProviderTooltipData(providerKey, this.options.text)
 
         if (shouldShowIcon) {
             const textBeforeIcon = `(${this.parsedText.suffix}`
@@ -228,7 +232,7 @@ export class SeriesLabelState {
                         type: "icon",
                         width: this.iconSize,
                         iconSize: this.iconSize,
-                        providerKey: this.parsedText.providerKey,
+                        providerKey,
                     },
                     {
                         type: "text",

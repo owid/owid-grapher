@@ -1,0 +1,65 @@
+.region-provider-tooltip {
+    a {
+        @include owid-link-90;
+    }
+
+    max-width: 320px;
+    color: $gray-100;
+    font-size: 0.875rem;
+
+    h3 {
+        margin: 0;
+        font-size: 1em;
+    }
+
+    p {
+        margin: 0;
+    }
+
+    &__map-image {
+        width: 100%;
+        height: auto;
+        border-radius: 4px;
+        // margin-bottom: 12px;
+    }
+
+    &__map-placeholder {
+        width: 100%;
+        height: 80px;
+        background-color: $gray-10;
+        border-radius: 4px;
+        margin-bottom: 12px;
+    }
+
+    &__description {
+        margin: 0;
+    }
+
+    &__region-list {
+        color: $dark-text;
+        font-size: 0.9em;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 12px;
+    }
+
+    &__region {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 4px;
+        line-height: 1.2;
+
+        &--highlighted {
+            font-weight: 700;
+        }
+    }
+
+    &__region-dot {
+        width: 0.8em;
+        height: 0.8em;
+        flex-shrink: 0;
+    }
+}
