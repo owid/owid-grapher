@@ -1,0 +1,385 @@
+.user-survey {
+    color: $blue-90;
+    position: fixed;
+    left: 16px;
+    bottom: 16px;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    background: $white;
+    border-radius: 4px;
+    box-shadow: 0 4px 10px 4px rgba(0, 0, 0, 0.08);
+
+    &:focus,
+    &:focus-visible {
+        outline: none;
+    }
+
+    &--long-list {
+        width: 368px;
+        height: 442px;
+        overflow: hidden;
+    }
+
+    &--short-list {
+        width: 352px;
+        overflow: hidden;
+    }
+
+    &--free-form {
+        width: 352px;
+        overflow: hidden;
+    }
+
+    &--follow-up {
+        width: 352px;
+    }
+}
+
+.user-survey__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    background: $blue-5;
+}
+
+.user-survey__title {
+    @include h3-bold;
+    margin: 0;
+}
+
+.user-survey__close-button {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border-color: $blue-20;
+    background: transparent;
+    color: $blue-50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+        border-color: $blue-20;
+        background: $blue-20;
+        color: $blue-90;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $blue-30;
+        outline-offset: 2px;
+    }
+
+    svg {
+        width: 13px;
+        height: 13px;
+    }
+}
+
+.user-survey__form,
+.user-survey__short-form {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.user-survey__short-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+}
+
+.user-survey__short-legend {
+    @include body-3-bold;
+    color: $blue-90;
+}
+
+.user-survey__free-input {
+    width: 100%;
+    height: 40px;
+    border: 1px solid $blue-20;
+    padding: 8px 16px;
+    @include body-3-medium;
+    color: $blue-90;
+}
+
+.user-survey__free-input,
+.user-survey__follow-up-textarea {
+    &::placeholder {
+        color: $blue-40;
+    }
+
+    &:focus,
+    &:focus-visible {
+        border-color: $blue-30;
+        outline: none;
+    }
+}
+
+.user-survey__fieldset {
+    margin: 0;
+    padding: 0 16px;
+    border: 0;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: $blue-20 $gray-10;
+
+    &::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: $gray-10;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: $blue-20;
+    }
+}
+
+.user-survey__legend {
+    @include body-3-bold;
+    margin: 0;
+    padding: 16px 0 12px;
+    display: block;
+}
+
+.user-survey__options {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-survey__option {
+    padding: 12px 0;
+    border-bottom: none;
+
+    &:first-child {
+        padding-top: 0;
+    }
+
+    &:not(:last-child) {
+        border-bottom: 1px solid $gray-20;
+    }
+}
+
+.user-survey__radio-button {
+    .label {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        color: $blue-90;
+    }
+
+    .outer {
+        top: 1px;
+    }
+}
+
+.user-survey__radio-button--short-list {
+    .label {
+        @include body-3-regular;
+        color: $blue-90;
+    }
+}
+
+.user-survey__option-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.user-survey__option-title {
+    @include label-2-regular;
+}
+
+.user-survey__option-description {
+    @include note-2-regular;
+    color: $blue-50;
+}
+
+.user-survey__other-input-wrapper {
+    position: relative;
+    width: calc(100% - 24px);
+    margin: 12px 0 0 24px;
+}
+
+.user-survey__other-input {
+    width: 100%;
+    height: 32px;
+    padding: 0 28px 0 8px;
+    border: 1px solid $gray-20;
+    border-radius: 4px;
+    color: $blue-90;
+    @include label-2-regular;
+    font-size: 0.8125rem;
+    line-height: 1;
+    letter-spacing: 0.01em;
+
+    &::placeholder {
+        color: $blue-40;
+    }
+
+    &:focus,
+    &:focus-visible {
+        border-color: $blue-30;
+        outline: none;
+    }
+}
+
+.user-survey__other-input-wrapper:focus-within .user-survey__other-input {
+    border-color: $blue-30;
+}
+
+.user-survey__other-input-clear-button {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: $gray-70;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+
+    &:hover {
+        color: $gray-80;
+    }
+
+    svg {
+        width: 12px;
+        height: 12px;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $blue-30;
+        outline-offset: 2px;
+        border-radius: 50%;
+    }
+}
+
+.user-survey__submit-row {
+    padding: 12px 0 16px;
+}
+
+.user-survey__submit-row--sticky {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    background: $white;
+}
+
+.user-survey__submit-button {
+    width: 100%;
+
+    &:disabled {
+        opacity: 0.5;
+    }
+}
+
+.user-survey__follow-up-close-button {
+    margin-left: auto;
+}
+
+.user-survey__follow-up-body {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 16px;
+}
+
+.user-survey__follow-up-top-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.user-survey__follow-up-checkmark {
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    background: #c9edcb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #008211;
+    font-size: 26px;
+}
+
+.user-survey__follow-up-title {
+    @include body-1-bold;
+    margin: 0;
+    margin-bottom: 4px;
+}
+
+.user-survey__follow-up-description {
+    @include body-3-regular;
+    margin: 0;
+    margin-bottom: 20px;
+}
+
+.user-survey__follow-up-label {
+    @include body-3-bold;
+    color: $blue-50;
+    margin-bottom: 12px;
+}
+
+.user-survey__follow-up-textarea {
+    width: 100%;
+    height: 131px;
+    border: 1px solid $gray-20;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    padding: 8px 16px 8px 8px;
+    resize: none;
+    @include label-2-regular;
+    color: $blue-90;
+}
+
+.user-survey__follow-up-error {
+    @include note-1-regular;
+    color: $error-text-color;
+    margin: -8px 0 16px;
+}
+
+.user-survey__follow-up-actions {
+    display: flex;
+    gap: 16px;
+}
+
+.user-survey__follow-up-no-thanks-button {
+    width: 166px;
+    background-color: transparent;
+
+    &:hover {
+        background-color: $blue-20;
+    }
+}
+
+.user-survey__follow-up-submit-button {
+    width: 137px;
+}
+
+@include md-down {
+    .user-survey--long-list,
+    .user-survey--short-list,
+    .user-survey--free-form,
+    .user-survey--follow-up {
+        display: none;
+    }
+}

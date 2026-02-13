@@ -207,31 +207,12 @@ async function handleHtmlPageRequest(
             experimentClassNames
         )
     }
-    const grapherPageWithUpdatedMetaTags = rewriteMetaTags(
+    return rewriteMetaTags(
         url,
         openGraphThumbnailUrl,
         twitterThumbnailUrl,
         grapherPageWithExperimentClasses
     )
-
-    if (cookiesToSet && cookiesToSet.length) {
-        const headers = new Headers(grapherPageWithUpdatedMetaTags.headers)
-        for (const serverCookie of cookiesToSet) {
-            const cookieString = cookie.serialize(
-                serverCookie.name,
-                serverCookie.value,
-                serverCookie.options
-            )
-            headers.append("Set-Cookie", cookieString)
-        }
-        return new Response(grapherPageWithUpdatedMetaTags.body, {
-            status: grapherPageWithUpdatedMetaTags.status,
-            statusText: grapherPageWithUpdatedMetaTags.statusText,
-            headers,
-        })
-    }
-
-    return grapherPageWithUpdatedMetaTags
 }
 
 async function handleConfigRequest(
