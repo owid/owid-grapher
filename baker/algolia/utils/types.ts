@@ -8,7 +8,16 @@ import {
 } from "@ourworldindata/types"
 import { OwidIncomeGroupName } from "@ourworldindata/utils"
 
+export interface DatasetChartRecordDimensions {
+    datasetNamespaces: string[]
+    datasetVersions: string[]
+    datasetProducts: string[]
+    datasetProducers: string[]
+}
+
 /** Charts */
+type JsonArrayString = string
+
 export interface RawChartRecordRow {
     id: number
     slug: string
@@ -16,12 +25,14 @@ export interface RawChartRecordRow {
     numDimensions: string
     publishedAt: string
     updatedAt: string
-    entityNames: string
-    tags: string
-    keyChartForTags: string
+    entityNames: JsonArrayString
+    tags: JsonArrayString
+    keyChartForTags: JsonArrayString
+    catalogPaths: JsonArrayString
+    datasetProducers: JsonArrayString
 }
 
-export interface ParsedChartRecordRow {
+export type ParsedChartRecordRow = {
     id: number
     slug: string
     config: GrapherInterface
@@ -31,13 +42,14 @@ export interface ParsedChartRecordRow {
     entityNames: string[]
     tags: string[]
     keyChartForTags: string[]
-}
+} & DatasetChartRecordDimensions
 
 /** Explorers */
 export interface ExplorerViewGrapherInfo {
     id: number
     title: string
     subtitle: string
+    catalogPaths: string
 }
 
 export type EntitiesByColumnDictionary = Record<
@@ -53,7 +65,9 @@ export type ExplorerIndicatorMetadataFromDb = Pick<
     | "titlePublic"
     | "display"
     | "descriptionShort"
->
+> & {
+    datasetProducers?: string[]
+}
 
 export type ExplorerIndicatorMetadataDictionary = Record<
     string | number,
@@ -88,12 +102,13 @@ export type GrapherUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
     viewGrapherId: number
 }
 
-export type GrapherEnrichedExplorerViewRecord = ExplorerViewBaseRecord & {
-    explorerType: ExplorerType.Grapher
-    viewTitle: string
-    viewSubtitle: string
-    titleLength: number
-}
+export type GrapherEnrichedExplorerViewRecord = ExplorerViewBaseRecord &
+    DatasetChartRecordDimensions & {
+        explorerType: ExplorerType.Grapher
+        viewTitle: string
+        viewSubtitle: string
+        titleLength: number
+    }
 
 export type IndicatorUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
     explorerType: ExplorerType.Indicator
@@ -102,14 +117,15 @@ export type IndicatorUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
     tableSlug: never
 }
 
-export type IndicatorEnrichedExplorerViewRecord = ExplorerViewBaseRecord & {
-    explorerType: ExplorerType.Indicator
-    viewGrapherId: never
-    ySlugs: string[]
-    tableSlug: never
-    availableEntities: string[]
-    titleLength: number
-}
+export type IndicatorEnrichedExplorerViewRecord = ExplorerViewBaseRecord &
+    DatasetChartRecordDimensions & {
+        explorerType: ExplorerType.Indicator
+        viewGrapherId: never
+        ySlugs: string[]
+        tableSlug: never
+        availableEntities: string[]
+        titleLength: number
+    }
 
 export type CsvUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
     explorerType: ExplorerType.Csv
@@ -118,13 +134,14 @@ export type CsvUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
     tableSlug: string
 }
 
-export type CsvEnrichedExplorerViewRecord = ExplorerViewBaseRecord & {
-    explorerType: ExplorerType.Csv
-    viewGrapherId: never
-    ySlugs: string[]
-    tableSlug: string
-    titleLength: number
-}
+export type CsvEnrichedExplorerViewRecord = ExplorerViewBaseRecord &
+    DatasetChartRecordDimensions & {
+        explorerType: ExplorerType.Csv
+        viewGrapherId: never
+        ySlugs: string[]
+        tableSlug: string
+        titleLength: number
+    }
 
 export type EnrichedExplorerRecord =
     | GrapherEnrichedExplorerViewRecord
