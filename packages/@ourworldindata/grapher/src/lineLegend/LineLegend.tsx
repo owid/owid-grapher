@@ -441,7 +441,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 formattedValue: series.formattedValue,
                 placeFormattedValueInNewLine:
                     series.placeFormattedValueInNewLine,
-                showProviderTooltip: !this.props.isStatic,
+                showRegionProviderTooltip: !this.props.isStatic,
                 textAnchor: this.anchor,
             })
 

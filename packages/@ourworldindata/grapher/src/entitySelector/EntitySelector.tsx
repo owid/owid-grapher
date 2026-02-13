@@ -78,7 +78,7 @@ import {
     RegionGroupKey,
     RegionGroup,
     isRegionDataProviderKey,
-    parseLabelWithSuffix,
+    parseLabel,
 } from "../core/RegionGroups"
 import { SearchField } from "../controls/SearchField"
 import { MAP_REGION_LABELS } from "../mapCharts/MapChartConstants.js"
@@ -1681,7 +1681,7 @@ function SelectableEntity({
         radio: RadioButton,
     }[type]
 
-    const { main: displayName, suffix } = parseLabelWithSuffix(name)
+    const { name: displayName, suffix } = parseLabel(name)
 
     const locationIcon = (
         <span className="location-icon">
@@ -1697,21 +1697,12 @@ function SelectableEntity({
         </span>
     )
 
-    const suffixElement = suffix && <span className="suffix"> ({suffix})</span>
-
-    const label = isLocal ? (
+    const label = (
         <span>
             {displayName}
-            {suffixElement}
-            {locationIcon}
+            {suffix && <span className="suffix"> ({suffix})</span>}
+            {isLocal && locationIcon}
         </span>
-    ) : suffix ? (
-        <span>
-            {displayName}
-            {suffixElement}
-        </span>
-    ) : (
-        displayName
     )
 
     return (

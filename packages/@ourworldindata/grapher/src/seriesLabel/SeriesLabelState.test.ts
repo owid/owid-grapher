@@ -79,7 +79,7 @@ describe("SeriesLabelState", () => {
     it("renders provider icon between suffix text fragments", () => {
         const label = makeLabelState({
             text: "Africa (WHO)",
-            showProviderTooltip: true,
+            showRegionProviderTooltip: true,
         })
         const texts = textFragments(label.renderFragments)
         const icons = iconFragments(label.renderFragments)

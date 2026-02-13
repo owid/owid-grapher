@@ -556,8 +556,9 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
             })
         }
 
-        // If newLine is set to 'avoid-wrap', we first try to fit the secondary text
-        // on the same line as the main text. If it doesn't fit, we place it on a new line.
+        // If newLine is set to 'avoid-wrap', we first try to fit the secondary
+        // text on the same line as the main text. If it doesn't fit, we place
+        // it on a new line.
         const mainTextWrap = new MarkdownTextWrap({ ...main, ...textWrapProps })
         const secondaryTextFitsOnSameLine = canAppendTextToLastLine({
             existingTextWrap: mainTextWrap,
@@ -1165,7 +1166,7 @@ export function canAppendTextToLastLine({
 
     const spaceWidth = Bounds.forText(" ", { fontSize }).width
     const availableWidthInLastLine =
-        maxWidth - lastLineWidth - spaceWidth - reservedWidth - 10
+        maxWidth - lastLineWidth - spaceWidth - reservedWidth - 10 // 10px wiggle room
 
     if (availableWidthInLastLine <= 0) return false
 

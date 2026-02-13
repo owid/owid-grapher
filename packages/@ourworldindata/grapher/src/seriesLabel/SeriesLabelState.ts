@@ -1,14 +1,14 @@
 import * as _ from "lodash-es"
+import { match } from "ts-pattern"
 import { computed, makeObservable } from "mobx"
-import { Bounds, RequiredBy } from "@ourworldindata/utils"
+import { Bounds, excludeUndefined, RequiredBy } from "@ourworldindata/utils"
 import { canAppendTextToLastLine, TextWrap } from "@ourworldindata/components"
 import {
     AnyRegionDataProvider,
     ParsedLabel,
-    parseLabelWithSuffix,
+    parseLabel,
 } from "../core/RegionGroups.js"
 import { FontSettings } from "../core/GrapherConstants.js"
-import { match } from "ts-pattern"
 
 export interface SeriesLabelStateOptions {
     text: string
@@ -16,10 +16,10 @@ export interface SeriesLabelStateOptions {
     fontSize: number
     fontWeight?: number
     lineHeight?: number
+    textAnchor?: "start" | "end"
     formattedValue?: string
     placeFormattedValueInNewLine?: boolean
-    showProviderTooltip?: boolean
-    textAnchor?: "start" | "end"
+    showRegionProviderTooltip?: boolean
 }
 
 export type TextFragmentRole = "name" | "suffix" | "value"
@@ -47,8 +47,8 @@ interface SpaceFragment {
 type ContentFragment = TextFragment | IconFragment | SpaceFragment
 
 /**
- * A group of fragments that belong together, e.g. a provider suffix
- * consists of "(WHO" + icon + ")" (i.e. text + icon + text fragments)
+ * A group of fragments that belong together, e.g. a region provider suffix
+ * consists of "(WHO" + icon + ")" (i.e. text + icon + text)
  */
 interface FragmentGroup {
     fragments: ContentFragment[]
@@ -68,7 +68,8 @@ export type IconRenderFragment = IconFragment & Position
 export type RenderFragment = TextRenderFragment | IconRenderFragment
 
 /**
- * Manages the layout for a series label in charts.
+ * Computes layout and positioning for a series label typically rendered
+ * in the chart area
  *
  * A series label can consist of up to three parts:
  * 1. Name: The main label text (e.g. "United States")
@@ -82,7 +83,7 @@ export class SeriesLabelState {
         fontWeight: 400,
         lineHeight: 1.1,
         placeFormattedValueInNewLine: false,
-        showProviderTooltip: false,
+        showRegionProviderTooltip: false,
         textAnchor: "start",
     } as const satisfies Partial<SeriesLabelStateOptions>
 
@@ -95,7 +96,7 @@ export class SeriesLabelState {
         textWrap: TextWrap,
         options?: Pick<
             SeriesLabelStateOptions,
-            "showProviderTooltip" | "textAnchor"
+            "showRegionProviderTooltip" | "textAnchor"
         >
     ): SeriesLabelState {
         return new SeriesLabelState({
@@ -104,7 +105,7 @@ export class SeriesLabelState {
             fontSize: textWrap.fontSize,
             fontWeight: textWrap?.fontWeight,
             lineHeight: textWrap?.lineHeight,
-            showProviderTooltip: options?.showProviderTooltip,
+            showRegionProviderTooltip: options?.showRegionProviderTooltip,
             textAnchor: options?.textAnchor,
         })
     }
@@ -125,13 +126,13 @@ export class SeriesLabelState {
     }
 
     @computed private get parsedText(): ParsedLabel {
-        return parseLabelWithSuffix(this.options.text)
+        return parseLabel(this.options.text)
     }
 
     @computed private get name(): string {
         // Only split the suffix from the main text if it's a region provider
         return this.parsedText.providerKey
-            ? this.parsedText.main
+            ? this.parsedText.name
             : this.parsedText.raw
     }
 
@@ -167,20 +168,21 @@ export class SeriesLabelState {
         return { type: "space", width: this.spaceWidth }
     }
 
+    /**
+     * Representation of the parenthetical region provider suffix (e.g. "(WHO)")
+     *
+     * Some region providers have an associated tooltip, in which case we render
+     * an info icon inside the parentheses. If there is no info icon, the
+     * suffix is rendered in a muted style to visually differentiate it from
+     * the main name.
+     */
     @computed private get regionProviderSuffix(): FragmentGroup | undefined {
-        if (!this.parsedText.providerKey || !this.parsedText.suffix)
-            return undefined
+        if (!this.parsedText.providerKey) return undefined
 
         const text = `(${this.parsedText.suffix})`
         const fontSettings = { ...this.fontSettings, fontWeight: 400 }
-        const shouldShowIcon = this.options.showProviderTooltip
 
-        const iconWidth = shouldShowIcon ? this.iconSize + this.spaceWidth : 0
-        const fitsOnSameLineAsName = canAppendTextToLastLine({
-            existingTextWrap: this.nameWrap,
-            textToAppend: text,
-            reservedWidth: iconWidth,
-        })
+        const shouldShowIcon = this.options.showRegionProviderTooltip
 
         if (shouldShowIcon) {
             const textBeforeIcon = `(${this.parsedText.suffix}`
@@ -194,6 +196,13 @@ export class SeriesLabelState {
                 textAfterIcon,
                 fontSettings
             ).width
+
+            const iconWidthWithSpace = this.iconSize + this.spaceWidth
+            const fitsOnSameLineAsName = canAppendTextToLastLine({
+                existingTextWrap: this.nameWrap,
+                textToAppend: text,
+                reservedWidth: iconWidthWithSpace,
+            })
 
             return {
                 onNewLine: !fitsOnSameLineAsName,
@@ -223,6 +232,12 @@ export class SeriesLabelState {
             }
         } else {
             const width = Bounds.forText(text, fontSettings).width
+
+            const fitsOnSameLineAsName = canAppendTextToLastLine({
+                existingTextWrap: this.nameWrap,
+                textToAppend: text,
+            })
+
             return {
                 onNewLine: !fitsOnSameLineAsName,
                 fragments: [
@@ -239,9 +254,9 @@ export class SeriesLabelState {
     }
 
     @computed private get value(): FragmentGroup | undefined {
-        const text = this.options.formattedValue
-        if (!text) return undefined
+        if (!this.options.formattedValue) return undefined
 
+        const text = this.options.formattedValue
         const fontSettings = { ...this.fontSettings, fontWeight: 400 }
 
         // Always place on new line if there is a suffix or when requested
@@ -266,11 +281,12 @@ export class SeriesLabelState {
             }
         }
 
+        const width = Bounds.forText(text, fontSettings).width
+
         const fitsOnSameLineAsName = canAppendTextToLastLine({
             existingTextWrap: this.nameWrap,
             textToAppend: text,
         })
-        const width = Bounds.forText(text, fontSettings).width
 
         return {
             onNewLine: !fitsOnSameLineAsName,
@@ -286,62 +302,43 @@ export class SeriesLabelState {
         }
     }
 
-    /** Lines of content where each line consists of one or more fragments (text, icon, space) */
+    /** Lines of content where each line consists of one or more fragments */
     @computed private get contentLines(): ContentLine[] {
         const {
             nameWrap,
-            regionProviderSuffix,
+            regionProviderSuffix: suffix,
             value,
+            spaceFragment,
             fontSettings: { fontWeight },
         } = this
 
-        const lines: ContentLine[] = []
+        // Map each line of the name to a fragment
+        const lines: ContentLine[] = nameWrap.lines.map((line) => [
+            {
+                type: "text",
+                role: "name",
+                text: line.text,
+                width: line.width,
+                fontWeight: nameWrap.fontWeight ?? fontWeight,
+            },
+        ])
 
-        // Process each line of the name
-        for (let i = 0; i < nameWrap.lines.length; i++) {
-            const line = nameWrap.lines[i]
-            const lineFragments: ContentLine = [
-                {
-                    type: "text",
-                    role: "name",
-                    text: line.text,
-                    width: line.width,
-                    fontWeight: nameWrap.fontWeight ?? fontWeight,
-                },
-            ]
+        // Reference to the last line of the name
+        const lastNameLine = lines[lines.length - 1]
 
-            // On the last line, append suffix or value if they fit
-            const isLastLine = i === nameWrap.lines.length - 1
-            if (isLastLine) {
-                // Add suffix if on same line
-                if (regionProviderSuffix && !regionProviderSuffix.onNewLine) {
-                    lineFragments.push(this.spaceFragment)
-                    lineFragments.push(...regionProviderSuffix.fragments)
-                }
-
-                // Add value if on same line (only happens when no suffix)
-                if (value && !value.onNewLine) {
-                    lineFragments.push(this.spaceFragment)
-                    lineFragments.push(...value.fragments)
-                }
-            }
-
-            lines.push(lineFragments)
+        // Append suffix and value fragments to the last line or add as new lines
+        const fragmentGroups = excludeUndefined([suffix, value])
+        for (const group of fragmentGroups) {
+            if (group.onNewLine) lines.push(group.fragments)
+            else lastNameLine.push(spaceFragment, ...group.fragments)
         }
-
-        // Add suffix on new line if applicable
-        if (regionProviderSuffix?.onNewLine)
-            lines.push(regionProviderSuffix.fragments)
-
-        // Add value on new line if applicable
-        if (value?.onNewLine) lines.push(value.fragments)
 
         return lines
     }
 
     @computed get width(): number {
         const lineWidths = this.contentLines.map((line) =>
-            _.sumBy(line, (f) => f.width)
+            _.sumBy(line, (fragment) => fragment.width)
         )
         return lineWidths.length > 0 ? Math.max(...lineWidths) : 0
     }
@@ -352,10 +349,10 @@ export class SeriesLabelState {
 
     /** List of positioned fragments ready for rendering */
     @computed get renderFragments(): RenderFragment[] {
-        return this.contentLines.flatMap((line, i) =>
+        return this.contentLines.flatMap((fragments, lineIndex) =>
             positionLineFragments({
-                lineFragments: line,
-                y: i * this.singleLineHeight,
+                fragments: fragments,
+                y: lineIndex * this.singleLineHeight,
                 textAnchor: this.options.textAnchor,
             })
         )
@@ -363,33 +360,31 @@ export class SeriesLabelState {
 }
 
 function positionLineFragments({
-    lineFragments,
+    fragments,
     y,
     textAnchor,
 }: {
-    lineFragments: ContentLine
+    fragments: ContentLine
     y: number
     textAnchor: SeriesLabelStateOptions["textAnchor"]
 }): RenderFragment[] {
-    const fragments: RenderFragment[] = []
+    const renderFragments: RenderFragment[] = []
 
     // Calculate total line width
-    const totalWidth = _.sumBy(lineFragments, (f) => f.width)
+    const totalWidth = _.sumBy(fragments, (f) => f.width)
 
     // Starting x position based on textAnchor
-    // For "start": start at 0, go right
-    // For "end": start at -totalWidth, go right (so rightmost edge is at 0)
     let x = textAnchor === "end" ? -totalWidth : 0
 
-    for (const fragment of lineFragments) {
+    for (const fragment of fragments) {
         match(fragment)
             .with({ type: "text" }, (fragment) => {
-                fragments.push({ ...fragment, x, y })
+                renderFragments.push({ ...fragment, x, y })
                 x += fragment.width
             })
             .with({ type: "icon" }, (fragment) => {
                 const iconYOffset = -fragment.iconSize + 1.5 // Small visual correction
-                fragments.push({ ...fragment, x, y: y + iconYOffset })
+                renderFragments.push({ ...fragment, x, y: y + iconYOffset })
                 x += fragment.width
             })
             .with({ type: "space" }, (fragment) => {
@@ -399,5 +394,5 @@ function positionLineFragments({
             .exhaustive()
     }
 
-    return fragments
+    return renderFragments
 }

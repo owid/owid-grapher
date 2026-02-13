@@ -42,11 +42,6 @@ export interface SeriesLabelProps {
  * If the label includes a region provider suffix, an info icon may be
  * rendered next to the suffix, which shows a tooltip with more information
  * about the region provider on hover.
- *
- * Examples:
- * - "United States"
- * - "Europe (WHO (i))" <- with info icon and tooltip
- * - "United States 70 years"
  */
 export function SeriesLabel({
     state,
@@ -69,21 +64,21 @@ export function SeriesLabel({
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
         >
-            {state.renderFragments.map((fragment, i) =>
+            {state.renderFragments.map((fragment) =>
                 match(fragment)
                     .with({ type: "text" }, (fragment) => (
                         <TextFragment
-                            key={i}
+                            key={fragment.text}
                             x={renderX}
                             y={renderY}
                             fragment={fragment}
-                            fontSize={state.fontSettings.fontSize}
                             color={color}
+                            fontSize={state.fontSettings.fontSize}
                         />
                     ))
                     .with({ type: "icon" }, (fragment) => (
                         <IconFragment
-                            key={i}
+                            key={fragment.providerKey}
                             x={renderX}
                             y={renderY}
                             fragment={fragment}
@@ -156,6 +151,7 @@ function IconFragment({
         fragment.iconSize
     ).expand(padding)
 
+    // The icon has the same color as the suffix text
     const fill = color?.suffix || defaultColors.suffix
 
     return (

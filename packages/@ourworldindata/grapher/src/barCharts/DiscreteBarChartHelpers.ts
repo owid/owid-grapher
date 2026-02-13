@@ -194,7 +194,7 @@ export function enrichSeriesWithLabels<
         fontWeight: 300,
         lineHeight: 1,
     },
-    showProviderTooltip = true,
+    showRegionProviderTooltip = true,
 }: {
     series: readonly TSeries[]
     availableHeightPerSeries: number
@@ -202,7 +202,7 @@ export function enrichSeriesWithLabels<
     maxLabelWidth: number
     fontSettings: FontSettings
     annotationFontSettings?: FontSettings
-    showProviderTooltip?: boolean
+    showRegionProviderTooltip?: boolean
 }): (TSeries & { label: SeriesLabelState; annotationTextWrap?: TextWrap })[] {
     // Wrap labels and annotations to fit within the available space
     const wrappedLabels = series.map((series) => {
@@ -278,7 +278,7 @@ export function enrichSeriesWithLabels<
             ...series,
             label: SeriesLabelState.fromTextWrap(
                 wrappedLabels[index].labelWrap,
-                { showProviderTooltip, textAnchor: "end" }
+                { showRegionProviderTooltip, textAnchor: "end" }
             ),
             annotationTextWrap: wrappedLabels[index].annotationWrap,
         }))
@@ -339,7 +339,7 @@ export function enrichSeriesWithLabels<
     return series.map((series, index) => ({
         ...series,
         label: SeriesLabelState.fromTextWrap(truncatedLabels[index], {
-            showProviderTooltip: true,
+            showRegionProviderTooltip,
             textAnchor: "end",
         }),
         annotationTextWrap: truncatedAnnotations[index],

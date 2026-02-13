@@ -879,10 +879,10 @@ export class FacetChart
     @computed
     private get facetLabelSettings(): Omit<SeriesLabelStateOptions, "text"> {
         return {
-            maxWidth: Infinity, // Facet labels never line break
+            maxWidth: Infinity, // Facet labels never wrap
             fontWeight: 700,
             fontSize: this.facetFontSize,
-            showProviderTooltip: !this.manager.isStatic,
+            showRegionProviderTooltip: !this.manager.isStatic,
         }
     }
 

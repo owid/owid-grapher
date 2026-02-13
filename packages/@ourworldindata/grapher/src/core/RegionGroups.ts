@@ -149,7 +149,7 @@ export function groupEntitiesByRegionType(
 
     const entitiesByProvider = new Map<AnyRegionDataProvider, EntityName[]>()
     for (const entityName of availableEntityNames) {
-        const parsedEntityName = parseLabelWithSuffix(entityName)
+        const parsedEntityName = parseLabel(entityName)
         if (parsedEntityName.providerKey) {
             const providerKey = parsedEntityName.providerKey
             if (!entitiesByProvider.get(providerKey))
@@ -174,25 +174,25 @@ export function groupEntitiesByRegionType(
 }
 
 export interface ParsedLabel {
-    raw: string
-    main: string
-    suffix?: string
-    providerKey?: AnyRegionDataProvider
+    raw: string // e.g. "Africa (UN)"
+    name: string // e.g. "Africa"
+    suffix?: string // e.g. "UN"
+    providerKey?: AnyRegionDataProvider // e.g. "un"
 }
 
-export function parseLabelWithSuffix(raw: string): ParsedLabel {
+export function parseLabel(raw: string): ParsedLabel {
     const match = raw.match(/^(.+)\s+\(([^)]+)\)$/)
-    if (!match) return { main: raw, raw }
+    if (!match) return { raw, name: raw }
 
-    const [, main, suffix] = match
+    const [, name, suffix] = match
 
-    if (!suffix) return { main: raw, raw }
+    if (!suffix) return { raw, name: raw }
 
     const providerKey = toProviderKey(suffix)
     if (!providerKey || !isRegionDataProviderKey(providerKey))
-        return { main, suffix, raw }
+        return { raw, name, suffix }
 
-    return { main, suffix, raw, providerKey }
+    return { raw, name, suffix, providerKey }
 }
 
 export function isRegionDataProviderKey(

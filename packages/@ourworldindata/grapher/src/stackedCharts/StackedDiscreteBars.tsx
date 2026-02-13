@@ -249,7 +249,7 @@ export class StackedDiscreteBars
             minLabelWidth: 0.3 * this.bounds.width,
             maxLabelWidth: 0.66 * this.bounds.width,
             fontSettings: this.labelStyle,
-            showProviderTooltip: !this.manager.isStatic,
+            showRegionProviderTooltip: !this.manager.isStatic,
         })
     }
 
@@ -382,7 +382,6 @@ export class StackedDiscreteBars
                     state={label}
                     x={yAxis.place(this.x0) - labelToBarPadding}
                     y={-label.height / 2}
-                    color={{ name: "#555" }}
                     onMouseEnter={(): void =>
                         this.onEntityMouseEnter(label.text)
                     }

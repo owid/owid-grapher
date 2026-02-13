@@ -143,7 +143,7 @@ export class DiscreteBarChart
             maxLabelWidth: 0.66 * this.bounds.width,
             fontSettings: this.entityLabelStyle,
             annotationFontSettings: this.entityAnnotationStyle,
-            showProviderTooltip: !this.manager.isStatic,
+            showRegionProviderTooltip: !this.manager.isStatic,
         })
     }
 
@@ -415,15 +415,14 @@ export class DiscreteBarChart
     }): React.ReactElement | null {
         if (!series.label) return null
 
+        const opacity = series.focus.background ? GRAPHER_AREA_OPACITY_MUTE : 1
+
         return (
             <SeriesLabel
                 state={series.label}
                 x={series.entityLabelX}
                 y={barY + labelY}
-                color={{ name: "#555" }}
-                opacity={
-                    series.focus.background ? GRAPHER_AREA_OPACITY_MUTE : 1
-                }
+                opacity={opacity}
             />
         )
     }
