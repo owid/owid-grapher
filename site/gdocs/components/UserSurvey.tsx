@@ -22,16 +22,12 @@ import {
     type UserSurveyRoleAnswer,
 } from "@ourworldindata/types"
 import { getExperimentState } from "@ourworldindata/utils"
-import { SiteAnalytics } from "../../SiteAnalytics.js"
 import {
-    getUserSurveyWidgetEligibility,
     markUserSurveyAnswered,
     markUserSurveyDismissed,
 } from "../../userSurvey.js"
 import { useTriggerOnEscape } from "../../hooks.js"
 
-const FEEDBACK_EMAIL_API_URL = "https://feedback.owid.io"
-const FEEDBACK_STORAGE_API_URL = "/api/user-survey"
 const USER_SURVEY_NAME = "user-role-v1"
 const USER_SURVEY_EXPERIMENT_ID = "exp-user-survey-role-v1"
 const USER_SURVEY_FREE_FORM_INPUT_ID = "user-survey-free-form-input"
@@ -40,7 +36,15 @@ const USER_SURVEY_TITLE_ID = "user-survey-title"
 const USER_SURVEY_FOLLOW_UP_TITLE_ID = "user-survey-follow-up-title"
 const USER_SURVEY_FOLLOW_UP_DESCRIPTION_ID = "user-survey-follow-up-description"
 
-const siteAnalytics = new SiteAnalytics()
+type ExperimentArm = "long-list" | "short-list" | "free-form"
+
+const EXPERIMENT_ARM_OPTIONS: ExperimentArm[] = [
+    "long-list",
+    "short-list",
+    "free-form",
+]
+const DEBUG_DEFAULT_EXPERIMENT_ARM: ExperimentArm =
+    getAssignedExperimentArm() ?? "long-list"
 const responseId = uuidv7()
 
 type RoleOption = {
@@ -181,23 +185,15 @@ function getFeedbackEnvironment() {
     return `Current URL: ${window.location.href}\nUser Agent: ${navigator.userAgent}\nViewport: ${window.innerWidth}x${window.innerHeight}`
 }
 
-async function sendFeedbackEmail({ message }: { message: string }) {
-    const response = await fetch(FEEDBACK_EMAIL_API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            name: "",
-            email: "",
-            message,
-            environment: getFeedbackEnvironment(),
-        }),
-    })
+function logSurveyDebug(action: string, payload: object) {
+    console.log(`[UserSurvey debug] ${action}`, payload)
+}
 
-    if (!response.ok) {
-        throw new Error(
-            `Sending user survey feedback failed: ${response.status} ${response.statusText}`
-        )
-    }
+async function sendFeedbackEmail({ message }: { message: string }) {
+    logSurveyDebug("api:send-feedback-email", {
+        message,
+        environment: getFeedbackEnvironment(),
+    })
 }
 
 async function storeFeedback({
@@ -211,22 +207,12 @@ async function storeFeedback({
     feedbackAnswer: string
     roleAnswer: UserSurveyRoleAnswer
 }) {
-    const response = await fetch(FEEDBACK_STORAGE_API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            surveyName,
-            responseId,
-            feedbackAnswer,
-            roleAnswer,
-        }),
+    logSurveyDebug("api:store-feedback", {
+        surveyName,
+        responseId,
+        feedbackAnswer,
+        roleAnswer,
     })
-
-    if (!response.ok) {
-        throw new Error(
-            `Storing user survey feedback failed: ${response.status} ${response.statusText}`
-        )
-    }
 }
 
 async function submitFeedback({
@@ -299,7 +285,7 @@ function logRoleSubmit({
     roleAnswer: UserSurveyRoleAnswer
 }) {
     if (roleAnswer.experimentArm === "free-form") {
-        siteAnalytics.logUserSurveyRoleSubmit({
+        logSurveyDebug("analytics:role-submit", {
             surveyName,
             responseId,
             experimentArm: roleAnswer.experimentArm,
@@ -308,7 +294,7 @@ function logRoleSubmit({
         return
     }
 
-    siteAnalytics.logUserSurveyRoleSubmit({
+    logSurveyDebug("analytics:role-submit", {
         surveyName,
         responseId,
         experimentArm: roleAnswer.experimentArm,
@@ -396,6 +382,59 @@ function UserSurveyDialog({
     )
 }
 
+function UserSurveyDebugPanel({
+    selectedArm,
+    isDismissed,
+    onArmChange,
+    onReset,
+}: {
+    selectedArm: ExperimentArm
+    isDismissed: boolean
+    onArmChange: (arm: ExperimentArm) => void
+    onReset: () => void
+}) {
+    return (
+        <aside className="user-survey-debug" role="region">
+            <label
+                className="user-survey-debug__label"
+                htmlFor="user-survey-debug-arm-select"
+            >
+                Survey debug arm
+            </label>
+            <div className="user-survey-debug__controls">
+                <select
+                    id="user-survey-debug-arm-select"
+                    className="user-survey-debug__select"
+                    value={selectedArm}
+                    onChange={(event) => {
+                        const value = event.target.value
+                        if (
+                            value === "long-list" ||
+                            value === "short-list" ||
+                            value === "free-form"
+                        ) {
+                            onArmChange(value)
+                        }
+                    }}
+                >
+                    {EXPERIMENT_ARM_OPTIONS.map((arm) => (
+                        <option key={arm} value={arm}>
+                            {arm}
+                        </option>
+                    ))}
+                </select>
+                <Button
+                    className="user-survey-debug__reset-button"
+                    theme="outline-light-blue"
+                    onClick={onReset}
+                    text={isDismissed ? "Show widget" : "Reset flow"}
+                    icon={null}
+                />
+            </div>
+        </aside>
+    )
+}
+
 function ThankYouStep({
     onDismiss,
     onSuccess,
@@ -439,7 +478,7 @@ function ThankYouStep({
             roleAnswer,
         })
             .then(() => {
-                siteAnalytics.logUserSurveyFeedbackSubmit({
+                logSurveyDebug("analytics:feedback-submit", {
                     surveyName,
                     responseId,
                     experimentArm: roleAnswer.experimentArm,
@@ -739,99 +778,124 @@ function FreeFormRoleStep({ onDismiss, onAnswered }: UserSurveyRoleStepProps) {
 }
 
 export default function UserSurvey() {
-    const [surveyState, setSurveyState] = useState<SurveyState>(() => {
-        const experimentArm = getUserSurveyWidgetEligibility()
-            ? getAssignedExperimentArm()
-            : null
-        if (experimentArm === null) return { phase: "hidden" }
-        return { phase: "role", experimentArm }
-    })
+    const [activeExperimentArm, setActiveExperimentArm] =
+        useState<ExperimentArm>(DEBUG_DEFAULT_EXPERIMENT_ARM)
+    const [roleAnswer, setRoleAnswer] = useState<UserSurveyRoleAnswer | null>(
+        null
+    )
+    const [isDismissed, setIsDismissed] = useState<boolean>(false)
 
     useEffect(() => {
-        if (surveyState.phase === "role") {
-            siteAnalytics.logUserSurveyRoleShow({
+        if (isDismissed) return
+
+        if (roleAnswer === null) {
+            logSurveyDebug("analytics:role-show", {
                 surveyName: USER_SURVEY_NAME,
                 responseId,
-                experimentArm: surveyState.experimentArm,
+                experimentArm: activeExperimentArm,
             })
-        } else if (surveyState.phase === "thankYou") {
-            siteAnalytics.logUserSurveyThankYouShow({
-                surveyName: USER_SURVEY_NAME,
-                responseId,
-                experimentArm: surveyState.roleAnswer.experimentArm,
-            })
+            return
         }
-    }, [surveyState])
+
+        logSurveyDebug("analytics:thank-you-show", {
+            surveyName: USER_SURVEY_NAME,
+            responseId,
+            experimentArm: activeExperimentArm,
+        })
+    }, [activeExperimentArm, isDismissed, roleAnswer])
 
     function handleRoleAnswered(answer: UserSurveyRoleAnswer) {
-        if (surveyState.phase !== "role") return
-        setSurveyState({
-            phase: "thankYou",
-            roleAnswer: answer,
-        })
+        setRoleAnswer(answer)
         markUserSurveyAnswered()
+        logSurveyDebug("state:answered", { responseId, answer })
     }
 
     function handleDismiss() {
-        if (surveyState.phase === "hidden") return
-        if (surveyState.phase === "role") {
+        if (!roleAnswer) {
             markUserSurveyDismissed()
-            siteAnalytics.logUserSurveyRoleDismiss({
+            logSurveyDebug("analytics:role-dismiss", {
                 surveyName: USER_SURVEY_NAME,
                 responseId,
-                experimentArm: surveyState.experimentArm,
+                experimentArm: activeExperimentArm,
             })
         } else {
-            siteAnalytics.logUserSurveyThankYouDismiss({
+            logSurveyDebug("analytics:thank-you-dismiss", {
                 surveyName: USER_SURVEY_NAME,
                 responseId,
-                experimentArm: surveyState.roleAnswer.experimentArm,
+                experimentArm: activeExperimentArm,
             })
         }
-        setSurveyState({ phase: "hidden" })
+        setIsDismissed(true)
     }
 
-    if (surveyState.phase === "hidden") return null
-    if (surveyState.phase === "thankYou") {
-        return (
+    function handleExperimentArmChange(arm: ExperimentArm) {
+        setActiveExperimentArm(arm)
+        setRoleAnswer(null)
+        setIsDismissed(false)
+        logSurveyDebug("state:experiment-arm-change", { responseId, arm })
+    }
+
+    function handleResetFlow() {
+        setRoleAnswer(null)
+        setIsDismissed(false)
+        logSurveyDebug("state:reset", {
+            responseId,
+            experimentArm: activeExperimentArm,
+        })
+    }
+
+    const surveyWidget =
+        roleAnswer !== null ? (
             <ThankYouStep
                 onDismiss={handleDismiss}
                 onSuccess={() => {
-                    setSurveyState({ phase: "hidden" })
+                    setIsDismissed(true)
                 }}
                 surveyName={USER_SURVEY_NAME}
                 responseId={responseId}
-                roleAnswer={surveyState.roleAnswer}
+                roleAnswer={roleAnswer}
             />
+        ) : (
+            match(activeExperimentArm)
+                .with("long-list", () => (
+                    <ListRoleStep
+                        experimentArm="long-list"
+                        options={LONG_LIST_OPTIONS}
+                        className="user-survey--long-list"
+                        radioButtonGroup="user-survey-long-role"
+                        onDismiss={handleDismiss}
+                        onAnswered={handleRoleAnswered}
+                    />
+                ))
+                .with("short-list", () => (
+                    <ListRoleStep
+                        experimentArm="short-list"
+                        options={SHORT_LIST_OPTIONS}
+                        className="user-survey--short-list"
+                        radioButtonGroup="user-survey-short-role"
+                        radioButtonClassName="user-survey__radio-button--short-list"
+                        onDismiss={handleDismiss}
+                        onAnswered={handleRoleAnswered}
+                    />
+                ))
+                .with("free-form", () => (
+                    <FreeFormRoleStep
+                        onDismiss={handleDismiss}
+                        onAnswered={handleRoleAnswered}
+                    />
+                ))
+                .exhaustive()
         )
-    }
-    return match(surveyState.experimentArm)
-        .with("long-list", () => (
-            <ListRoleStep
-                experimentArm="long-list"
-                options={LONG_LIST_OPTIONS}
-                className="user-survey--long-list"
-                radioButtonGroup="user-survey-long-role"
-                onDismiss={handleDismiss}
-                onAnswered={handleRoleAnswered}
+
+    return (
+        <>
+            <UserSurveyDebugPanel
+                selectedArm={activeExperimentArm}
+                isDismissed={isDismissed}
+                onArmChange={handleExperimentArmChange}
+                onReset={handleResetFlow}
             />
-        ))
-        .with("short-list", () => (
-            <ListRoleStep
-                experimentArm="short-list"
-                options={SHORT_LIST_OPTIONS}
-                className="user-survey--short-list"
-                radioButtonGroup="user-survey-short-role"
-                radioButtonClassName="user-survey__radio-button--short-list"
-                onDismiss={handleDismiss}
-                onAnswered={handleRoleAnswered}
-            />
-        ))
-        .with("free-form", () => (
-            <FreeFormRoleStep
-                onDismiss={handleDismiss}
-                onAnswered={handleRoleAnswered}
-            />
-        ))
-        .exhaustive()
+            {!isDismissed && surveyWidget}
+        </>
+    )
 }

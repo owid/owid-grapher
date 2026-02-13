@@ -36,6 +36,52 @@
     }
 }
 
+.user-survey-debug {
+    position: fixed;
+    left: 16px;
+    top: calc($header-height-md + 16px);
+    z-index: 21;
+    background: $white;
+    border: 1px solid $blue-20;
+    border-radius: 4px;
+    box-shadow: 0 4px 10px 4px rgba(0, 0, 0, 0.08);
+    padding: 12px;
+    width: 300px;
+}
+
+.user-survey-debug__label {
+    @include body-3-bold;
+    display: block;
+    margin-bottom: 8px;
+    color: $blue-90;
+}
+
+.user-survey-debug__controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.user-survey-debug__select {
+    @include body-3-medium;
+    height: 36px;
+    width: 100%;
+    border: 1px solid $blue-20;
+    color: $blue-90;
+    background: $white;
+    padding: 0 10px;
+
+    &:focus,
+    &:focus-visible {
+        outline: none;
+        border-color: $blue-30;
+    }
+}
+
+.user-survey-debug__reset-button {
+    white-space: nowrap;
+}
+
 .user-survey__header {
     display: flex;
     align-items: flex-start;
@@ -376,6 +422,7 @@
 }
 
 @include md-down {
+    .user-survey-debug,
     .user-survey--long-list,
     .user-survey--short-list,
     .user-survey--free-form,
