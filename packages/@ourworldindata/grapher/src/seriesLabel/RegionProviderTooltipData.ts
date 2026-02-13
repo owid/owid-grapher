@@ -11,6 +11,7 @@ import {
 import { ContinentColors } from "../color/CustomSchemes.js"
 import { AnyRegionDataProvider, parseLabel } from "../core/RegionGroups.js"
 import { RegionProviderTooltipProps } from "./RegionProviderTooltip.js"
+import { getCountriesByRegion } from "../mapCharts/MapHelpers.js"
 
 // We only support a subset of region data providers for the tooltip,
 // based on whether we have the necessary data to show in the tooltip
@@ -37,15 +38,6 @@ const descriptionsByKey: Record<TooltipKey, string> = {
     pew: "The **Pew Research Center (Pew)** defines [six world regions](https://ourworldindata.org/world-region-map-definitions#pew-research-center-pew):",
     incomeGroups:
         "The **World Bank** defines [four income groups](https://ourworldindata.org/world-bank-income-groups-explained):",
-}
-
-const chartSlugsByKey: Record<TooltipKey, string> = {
-    wb: "world-regions-according-to-the-world-bank",
-    un: "world-regions-according-to-un",
-    who: "who-regions",
-    unsdg: "world-regions-sdg-united-nations",
-    pew: "world-regions-according-to-pew",
-    incomeGroups: "world-bank-income-groups",
 }
 
 const continentColorsMap = ContinentColors as Record<string, string>
@@ -124,11 +116,6 @@ function getDescriptionForKey(providerKey: TooltipKey): string {
     return descriptionsByKey[providerKey]
 }
 
-function getThumbnailUrlForKey(providerKey: TooltipKey): string {
-    const slug = chartSlugsByKey[providerKey]
-    return `https://ourworldindata.org/grapher/${slug}.png?imType=thumbnail&imMinimal=1`
-}
-
 function getRegionsForKey(
     key: TooltipKey
 ): RegionProviderTooltipProps["regions"] {
@@ -151,12 +138,50 @@ function getRegionsForKey(
     )
 }
 
+function buildCountryMaps(key: TooltipKey): {
+    countryColorMap: Map<string, string>
+    countryRegionMap: Map<string, string>
+} {
+    const colorMap = new Map<string, string>()
+    const regionMap = new Map<string, string>()
+
+    if (key === "incomeGroups") {
+        for (const group of getIncomeGroups()) {
+            const color = continentColorsMap[group.name]
+            if (!color) continue
+            const countries = getCountriesByRegion(group.name)
+            if (!countries) continue
+            for (const country of countries) {
+                colorMap.set(country, color)
+                regionMap.set(country, group.name)
+            }
+        }
+    } else {
+        for (const aggregate of getAggregatesByProvider(key)) {
+            const color = continentColorsMap[aggregate.name]
+            if (!color) continue
+            const parsed = parseLabelWithSuffix(aggregate.name)
+            if (!parsed.providerKey) continue
+            const countries = getCountriesByRegion(aggregate.name)
+            if (!countries) continue
+            for (const country of countries) {
+                colorMap.set(country, color)
+                regionMap.set(country, parsed.main)
+            }
+        }
+    }
+
+    return { countryColorMap: colorMap, countryRegionMap: regionMap }
+}
+
 export function getRegionProviderTooltipData(
     providerKey: TooltipKey
 ): RegionProviderTooltipProps {
+    const { countryColorMap, countryRegionMap } = buildCountryMaps(providerKey)
     return {
         description: getDescriptionForKey(providerKey),
-        imageUrl: getThumbnailUrlForKey(providerKey),
+        countryColorMap,
+        countryRegionMap,
         regions: getRegionsForKey(providerKey),
     }
 }
