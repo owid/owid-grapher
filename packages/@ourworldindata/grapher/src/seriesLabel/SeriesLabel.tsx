@@ -16,7 +16,7 @@ import {
 } from "./SeriesLabelState.js"
 import { Bounds, isTouchDevice } from "@ourworldindata/utils"
 import { RegionProviderTooltip } from "./RegionProviderTooltip.js"
-import { getTooltipData } from "./RegionProviderTooltipData.js"
+import { getRegionProviderTooltipData } from "./RegionProviderTooltipData.js"
 
 const defaultColors: Record<TextRole, string> = {
     name: GRAPHER_DARK_TEXT,
@@ -99,7 +99,7 @@ export function SeriesLabel({
             />
             {iconFragments.map((fragment) => (
                 <IconFragment
-                    key={fragment.providerKey}
+                    key={fragment.tooltipKey}
                     x={renderX}
                     y={renderY}
                     fragment={fragment}
@@ -340,7 +340,7 @@ function IconFragment({
                 }}
                 content={
                     <RegionProviderTooltip
-                        {...getTooltipData(fragment.tooltipKey)}
+                        {...getRegionProviderTooltipData(fragment.tooltipKey)}
                     />
                 }
             >

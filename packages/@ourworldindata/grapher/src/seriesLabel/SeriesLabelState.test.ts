@@ -140,7 +140,7 @@ describe("SeriesLabelState", () => {
     it("income group entity shows icon when showProviderTooltip is true", () => {
         const label = makeLabelState({
             text: "High-income countries",
-            showProviderTooltip: true,
+            showRegionProviderTooltip: true,
         })
         const icons = iconFragments(label.renderFragments)
         expect(icons).toHaveLength(1)

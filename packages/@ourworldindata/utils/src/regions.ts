@@ -201,7 +201,7 @@ export const countriesByName = lazy(() =>
     Object.fromEntries(countries.map((country) => [country.name, country]))
 )
 
-export const incomeGroupsByName = lazy(
+export const incomeGroupsByCode = lazy(
     () =>
         Object.fromEntries(
             regions

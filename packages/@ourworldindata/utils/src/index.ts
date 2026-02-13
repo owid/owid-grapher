@@ -215,7 +215,7 @@ export {
     REGION_DATA_PROVIDERS,
     getOthers,
     countriesByName,
-    incomeGroupsByName,
+    incomeGroupsByCode,
     getRegionAlternativeNames,
     mappableCountries,
     checkIsCountry,

@@ -136,19 +136,13 @@ function getRegionsForKey(
         regionDisplayOrder[key].map((name, i) => [name, i])
     )
 
-    if (key === "incomeGroups") {
-        return R.pipe(
-            getIncomeGroups(),
-            R.sortBy((group) => orderIndex.get(group.name) ?? Infinity),
-            R.map((group) => ({
-                name: group.name,
-                color: continentColorsMap[group.name],
-            }))
-        )
-    }
+    const regions =
+        key === "incomeGroups"
+            ? getIncomeGroups()
+            : getAggregatesByProvider(key)
 
     return R.pipe(
-        getAggregatesByProvider(key),
+        regions,
         R.sortBy((region) => orderIndex.get(region.name) ?? Infinity),
         R.map((region) => ({
             name: parseLabel(region.name).name, // Remove provider suffix for display
@@ -157,7 +151,7 @@ function getRegionsForKey(
     )
 }
 
-export function getTooltipData(
+export function getRegionProviderTooltipData(
     providerKey: TooltipKey
 ): RegionProviderTooltipProps {
     return {
