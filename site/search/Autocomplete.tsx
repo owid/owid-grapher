@@ -34,8 +34,10 @@ import {
     getItemUrlForFilter,
     getPageTypeNameAndIcon,
     SEARCH_BASE_PATH,
+    extractFiltersFromQuery,
 } from "./searchUtils.js"
 import {
+    getUserCountryInformation,
     listedRegionsNames,
     OwidGdocType,
     queryParamsToStr,
@@ -380,6 +382,39 @@ const createFiltersSource = (
     },
 })
 
+/**
+ * Creates a profile source for a specific country. The country name is
+ * determined in `getSources` (which already runs `extractFiltersFromQuery`)
+ * and passed in here so the work isn't duplicated. The full autocomplete
+ * query is forwarded to Algolia so that matching words are highlighted.
+ */
+const createProfileSource = (
+    countryName: string
+): AutocompleteSource<BaseItem> => ({
+    sourceId: "profiles",
+    onSelect: algoliaOnSelect,
+    getItemUrl: algoliaGetItemUrl,
+    getItems({ query }) {
+        if (!liteSearchClient) return []
+
+        return getAlgoliaResults({
+            searchClient: liteSearchClient,
+            queries: [
+                {
+                    indexName: PAGES_INDEX,
+                    params: {
+                        query,
+                        filters: `type:${OwidGdocType.Profile}`,
+                        facetFilters: [[`availableEntities:${countryName}`]],
+                        hitsPerPage: 1,
+                    },
+                },
+            ],
+        })
+    },
+    templates: algoliaItemTemplate,
+})
+
 export const AUTOCOMPLETE_CONTAINER_ID = "#autocomplete"
 
 export function Autocomplete({
@@ -407,6 +442,13 @@ export function Autocomplete({
     const synonymMap = useMemo(() => buildSynonymMap(), [])
 
     const [search, setSearch] = useState<AutocompleteApi<BaseItem> | null>(null)
+
+    const userCountryNameRef = useRef<string | undefined>(undefined)
+    useEffect(() => {
+        void getUserCountryInformation().then((info) => {
+            userCountryNameRef.current = info?.name
+        })
+    }, [])
 
     useEffect(() => {
         if (!containerRef.current) return
@@ -464,11 +506,39 @@ export function Autocomplete({
             getSources({ query }) {
                 const sources: AutocompleteSource<BaseItem>[] = []
                 if (query) {
+                    const filtersSource = createFiltersSource(
+                        allTopics,
+                        synonymMap
+                    )
+
+                    // Detect country in query using extractFiltersFromQuery
+                    // which retains exact matches (unlike suggestFiltersFromQuerySuffix)
+                    const detectedFilters = extractFiltersFromQuery(
+                        query,
+                        listedRegionsNames(),
+                        allTopics,
+                        [],
+                        { threshold: 0.75, limit: 3 },
+                        synonymMap
+                    )
+                    const detectedCountry = detectedFilters.find(
+                        (f) => f.type === FilterType.COUNTRY
+                    )
+
                     sources.push(
-                        createFiltersSource(allTopics, synonymMap),
+                        filtersSource,
                         AlgoliaPagesSource,
                         AlgoliaChartsSource
                     )
+
+                    const countryName =
+                        detectedCountry?.name ?? userCountryNameRef.current
+                    if (countryName) {
+                        const profileSource = createProfileSource(countryName)
+                        // Country in query: profile before pages; geolocation fallback: after pages
+                        const insertIndex = detectedCountry ? 1 : 2
+                        sources.splice(insertIndex, 0, profileSource)
+                    }
                 } else {
                     sources.push(FeaturedSearchesSource)
                 }
@@ -511,6 +581,7 @@ export function Autocomplete({
         containerRef,
         allTopics,
         synonymMap,
+        userCountryNameRef,
     ])
 
     // Register a global shortcut to open the search box on typing "/"
