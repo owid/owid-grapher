@@ -63,6 +63,8 @@
         grid-column: 1 / -1;
         grid-template-columns: subgrid;
 
+        color: color-mix(in oklab, var(--legend-entry-color), var(--gray-100) 30%);
+
         &.legend-entry--has-percentages {
             .legend-entry-label {
                 text-overflow: ellipsis;
@@ -87,6 +89,7 @@
         justify-self: end;
         display: flex;
         gap: 5px;
+        color: var(--gray-80);
     }
 
     .legend-entry-swatch {
