@@ -28,7 +28,7 @@ export const SearchTemplatesAll = () => {
                 <>
                     <SearchDataInsightsResults />
                     <SearchDataResults isFirstChartLarge={false} />
-                    <SearchWritingResults />
+                    <SearchWritingResults showProfiles={true} />
                 </>
             ))
             // All + Topic + No Country + Query
@@ -92,7 +92,10 @@ export const SearchTemplatesAll = () => {
                 <>
                     <SearchDataInsightsResults />
                     <SearchDataTopicsResults />
-                    <SearchWritingResults hasTopicPages={false} showProfiles={true} />
+                    <SearchWritingResults
+                        hasTopicPages={false}
+                        showProfiles={true}
+                    />
                 </>
             ))
             // All + No Topic + No Country + Query
