@@ -123,7 +123,7 @@ export async function getTagById(
         trx,
         `-- sql
                 SELECT ${oldChartFieldList},
-                    round(agv.views_365d / 365, 1) as pageviewsPerDay,
+                    round(agv.views_365d / 365, 1) as grapherViewsPerDay,
                     crv.narrativeChartsCount,
                     crv.referencesCount
                 FROM charts

@@ -196,7 +196,7 @@ export async function getDataset(
         trx,
         `-- sql
             SELECT ${oldChartFieldList},
-                round(agv.views_365d / 365, 1) as pageviewsPerDay,
+                round(agv.views_365d / 365, 1) as grapherViewsPerDay,
                 crv.narrativeChartsCount,
                 crv.referencesCount
             FROM charts
@@ -297,7 +297,7 @@ export async function getDataset(
         published: boolean
         createdAt: string
         updatedAt: string
-        pageviewsPerDay: number
+        grapherViewsPerDay: number
     }>(
         trx,
         `-- sql
@@ -310,14 +310,14 @@ export async function getDataset(
             mdp.published,
             mdp.createdAt,
             mdp.updatedAt,
-            ROUND(COALESCE(agv.views_365d, 0) / 365, 1) as pageviewsPerDay
+            ROUND(COALESCE(agv.views_365d, 0) / 365, 1) as grapherViewsPerDay
         FROM multi_dim_data_pages mdp
         JOIN multi_dim_x_chart_configs mdxcc ON mdxcc.multiDimId = mdp.id
         JOIN variables v ON v.id = mdxcc.variableId
         LEFT JOIN analytics_grapher_views agv ON agv.grapher_slug = mdp.slug
         WHERE v.datasetId = ?
         GROUP BY mdp.id, agv.views_365d
-        ORDER BY pageviewsPerDay DESC
+        ORDER BY grapherViewsPerDay DESC
         `,
         [datasetId]
     )

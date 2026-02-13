@@ -55,7 +55,7 @@ interface MultiDimListItem {
     published: boolean
     createdAt: string
     updatedAt: string
-    pageviewsPerDay: number
+    grapherViewsPerDay: number
 }
 
 interface DatasetPageData {
@@ -263,7 +263,7 @@ class MultiDimList extends Component<MultiDimListProps> {
                         <th>Slug</th>
                         <th>Title</th>
                         <th>Status</th>
-                        <th>Views per day</th>
+                        <th>Grapher views/day</th>
                         <th>Last updated</th>
                         <th>Created</th>
                     </tr>
@@ -340,7 +340,8 @@ class MultiDimList extends Component<MultiDimListProps> {
                                 )}
                             </td>
                             <td>
-                                {mdim.pageviewsPerDay?.toLocaleString() ?? "0"}
+                                {mdim.grapherViewsPerDay?.toLocaleString() ??
+                                    "0"}
                             </td>
                             <td>
                                 <Timeago time={mdim.updatedAt} />
@@ -467,7 +468,7 @@ class DatasetEditor extends Component<DatasetEditorProps> {
 
         // Sort by pageviews descending (most views first)
         const sortedSlugs = publishedCharts
-            .sort((a, b) => b.pageviewsPerDay - a.pageviewsPerDay)
+            .sort((a, b) => b.grapherViewsPerDay - a.grapherViewsPerDay)
             .map((chart) => chart.slug)
 
         const chartsParam = sortedSlugs.join("+")

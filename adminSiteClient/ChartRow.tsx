@@ -141,7 +141,7 @@ export class ChartRow extends React.Component<ChartRowProps> {
                         by={highlight(chart.lastEditedBy)}
                     />
                 </td>
-                <td>{chart.pageviewsPerDay?.toLocaleString() ?? "0"}</td>
+                <td>{chart.grapherViewsPerDay?.toLocaleString() ?? "0"}</td>
                 <td>{chart.narrativeChartsCount?.toLocaleString() ?? "0"}</td>
                 <td>{chart.referencesCount?.toLocaleString() ?? "0"}</td>
                 <td>

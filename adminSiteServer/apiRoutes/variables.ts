@@ -246,7 +246,7 @@ export async function getVariablesVariableIdJson(
         trx,
         `-- sql
                 SELECT ${oldChartFieldList}, charts.isInheritanceEnabled, chart_configs.full AS config,
-                    round(agv.views_365d / 365, 1) as pageviewsPerDay,
+                    round(agv.views_365d / 365, 1) as grapherViewsPerDay,
                     crv.narrativeChartsCount,
                     crv.referencesCount
                 FROM charts

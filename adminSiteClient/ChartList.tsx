@@ -54,13 +54,13 @@ export interface ChartListItem {
     isInheritanceEnabled?: boolean
 
     tags: DbChartTagJoin[]
-    pageviewsPerDay: number
+    grapherViewsPerDay: number
     narrativeChartsCount: number
     referencesCount: number
 }
 
 export type SortConfig = {
-    field: "pageviewsPerDay" | "narrativeChartsCount" | "referencesCount"
+    field: "grapherViewsPerDay" | "narrativeChartsCount" | "referencesCount"
     direction: "asc" | "desc"
 } | null
 
@@ -189,8 +189,8 @@ export class ChartList extends React.Component<ChartListProps> {
 
         const { direction, field } = this.sortConfig
         const getValue =
-            field === "pageviewsPerDay"
-                ? (chart: ChartListItem) => chart.pageviewsPerDay
+            field === "grapherViewsPerDay"
+                ? (chart: ChartListItem) => chart.grapherViewsPerDay
                 : field === "narrativeChartsCount"
                   ? (chart: ChartListItem) => chart.narrativeChartsCount
                   : (chart: ChartListItem) => chart.referencesCount
@@ -229,15 +229,16 @@ export class ChartList extends React.Component<ChartListProps> {
         const hasMoreCharts = this.chartsFiltered.length > this.maxVisibleCharts
 
         const getSortIndicator = () => {
-            if (!sortConfig || sortConfig.field !== "pageviewsPerDay") return ""
+            if (!sortConfig || sortConfig.field !== "grapherViewsPerDay")
+                return ""
             return sortConfig.direction === "desc" ? " ↓" : " ↑"
         }
 
         const handleSortClick = () => {
-            if (!sortConfig || sortConfig.field !== "pageviewsPerDay") {
-                onSort({ field: "pageviewsPerDay", direction: "desc" })
+            if (!sortConfig || sortConfig.field !== "grapherViewsPerDay") {
+                onSort({ field: "grapherViewsPerDay", direction: "desc" })
             } else if (sortConfig.direction === "desc") {
-                onSort({ field: "pageviewsPerDay", direction: "asc" })
+                onSort({ field: "grapherViewsPerDay", direction: "asc" })
             } else {
                 onSort(null)
             }
@@ -313,7 +314,7 @@ export class ChartList extends React.Component<ChartListProps> {
                                 style={{ cursor: "pointer" }}
                                 onClick={handleSortClick}
                             >
-                                Views per day{getSortIndicator()}
+                                Grapher views/day{getSortIndicator()}
                             </th>
                             <th
                                 style={{ cursor: "pointer" }}
