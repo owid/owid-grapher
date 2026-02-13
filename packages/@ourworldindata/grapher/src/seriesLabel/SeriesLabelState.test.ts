@@ -94,7 +94,7 @@ describe("SeriesLabelState", () => {
         const suffixes = texts.filter((f) => f.role === "suffix")
 
         expect(icons).toHaveLength(1)
-        expect(icons[0].providerKey).toBe("who")
+        expect(icons[0].tooltipKey).toBe("who")
         // expect(icons[0].entityName).toBe("Africa (WHO)")
         // "(WHO" before icon, ")" after
         expect(suffixes[0].text).toBe("(WHO")
@@ -135,6 +135,16 @@ describe("SeriesLabelState", () => {
         expect(label.width).toBe(textWidth(text))
         const texts = textFragments(label.positionedFragments)
         expect(texts.every((f) => f.role === "name")).toBe(true)
+    })
+
+    it("income group entity shows icon when showProviderTooltip is true", () => {
+        const label = makeLabelState({
+            text: "High-income countries",
+            showProviderTooltip: true,
+        })
+        const icons = iconFragments(label.renderFragments)
+        expect(icons).toHaveLength(1)
+        expect(icons[0].tooltipKey).toBe("incomeGroups")
     })
 
     it("textAnchor defaults to start", () => {

@@ -24,7 +24,7 @@ import {
     getUserNavigatorLanguagesNonEnglish,
     getRegionAlternativeNames,
     convertDaysSinceEpochToDate,
-    checkIsOwidIncomeGroupName,
+    checkIsOwidIncomeGroupCode,
     checkHasMembers,
     Region,
     getRegionByName,
@@ -353,7 +353,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
 
             const countryRegionsWithoutIncomeGroups = localCountryInfo.regions
                 ? localCountryInfo.regions.filter(
-                      (region) => !checkIsOwidIncomeGroupName(region)
+                      (region) => !checkIsOwidIncomeGroupCode(region)
                   )
                 : []
 

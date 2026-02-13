@@ -1,13 +1,18 @@
 import * as _ from "lodash-es"
 import { match } from "ts-pattern"
 import { computed, makeObservable } from "mobx"
-import { Bounds, excludeUndefined, RequiredBy } from "@ourworldindata/utils"
+import {
+    Bounds,
+    excludeUndefined,
+    checkIsOwidIncomeGroupName,
+    RequiredBy,
+} from "@ourworldindata/utils"
 import { canAppendTextToLastLine, TextWrap } from "@ourworldindata/components"
 import { ParsedLabel, parseLabel } from "../core/RegionGroups.js"
 import { FontSettings } from "../core/GrapherConstants.js"
 import {
     hasProviderTooltipData,
-    RegionProviderWithTooltipData,
+    TooltipKey,
 } from "./RegionProviderTooltipData.js"
 
 export interface SeriesLabelStateOptions {
@@ -39,7 +44,7 @@ interface TextFragment extends TextSpan {
 
 interface IconFragment {
     type: "icon"
-    providerKey: RegionProviderWithTooltipData
+    tooltipKey: TooltipKey
     iconSize: number
     width: number
 }
@@ -231,7 +236,7 @@ export class SeriesLabelState {
                         type: "icon",
                         width: this.iconSize,
                         iconSize: this.iconSize,
-                        providerKey,
+                        tooltipKey: providerKey,
                     },
                     {
                         type: "text",
@@ -265,15 +270,36 @@ export class SeriesLabelState {
         }
     }
 
+    @computed private get incomeGroupIcon(): FragmentGroup | undefined {
+        if (
+            !this.options.showRegionProviderTooltip ||
+            !checkIsOwidIncomeGroupName(this.options.text)
+        )
+            return undefined
+
+        return {
+            onNewLine: false,
+            fragments: [
+                {
+                    type: "icon",
+                    width: this.iconSize,
+                    iconSize: this.iconSize,
+                    tooltipKey: "incomeGroups",
+                },
+            ],
+        }
+    }
+
     @computed private get value(): FragmentGroup | undefined {
         if (!this.options.formattedValue) return undefined
 
         const text = this.options.formattedValue
         const fontSettings = { ...this.fontSettings, fontWeight: 400 }
 
-        // Always place on new line if there is a suffix or when requested
+        // Always place on new line if there is a suffix/icon or when requested
         const forceNewLine =
             this.regionProviderSuffix ||
+            this.incomeGroupIcon ||
             this.options.placeFormattedValueInNewLine
 
         if (forceNewLine) {
@@ -320,6 +346,7 @@ export class SeriesLabelState {
             nameWrap,
             regionProviderSuffix: suffix,
             value,
+            incomeGroupIcon: icon,
             spaceFragment,
             fontSettings: { fontWeight },
         } = this
@@ -338,8 +365,8 @@ export class SeriesLabelState {
         // Reference to the last line of the name
         const lastNameLine = lines[lines.length - 1]
 
-        // Append suffix and value fragments to the last line or add as new lines
-        const fragmentGroups = excludeUndefined([suffix, value])
+        // Append suffix/icon/value fragments to the last line or add as new lines
+        const fragmentGroups = excludeUndefined([suffix, icon, value])
         for (const group of fragmentGroups) {
             if (group.onNewLine) lines.push(group.fragments)
             else lastNameLine.push(spaceFragment, ...group.fragments)

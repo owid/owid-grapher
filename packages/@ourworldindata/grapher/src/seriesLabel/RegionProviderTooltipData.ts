@@ -3,6 +3,7 @@ import {
     checkIsAggregate,
     EntityName,
     getAggregatesByProvider,
+    getIncomeGroups,
     getRegionByName,
     getRegionByShortName,
     RegionDataProvider,
@@ -26,26 +27,31 @@ const providersWithTooltipDataAsSet = new Set<string>(providersWithTooltipData)
 export type RegionProviderWithTooltipData =
     (typeof providersWithTooltipData)[number]
 
-const descriptionsByKey: Record<RegionProviderWithTooltipData, string> = {
+export type TooltipKey = RegionProviderWithTooltipData | "incomeGroups"
+
+const descriptionsByKey: Record<TooltipKey, string> = {
     wb: "The **World Bank (WB)** defines [seven world regions](https://ourworldindata.org/world-region-map-definitions#world-bank-wb-continents):",
     un: "The **United Nations Statistical Division (UNSD)** establishes and maintains a geoscheme based on the [M49 coding classification](https://unstats.un.org/unsd/methodology/m49). At the highest level, the M49 classification categorizes countries into [five principal regions](https://ourworldindata.org/world-region-map-definitions#united-nations-un):",
     who: "The **World Health Organization (WHO)** defines [six world regions](https://ourworldindata.org/world-region-map-definitions#world-health-organization-who):",
     unsdg: "When reporting data on the Sustainable Development Goals, the **United Nations (UN)** defines [eight world regions](https://ourworldindata.org/world-region-map-definitions#united-nations-sustainable-development-goals-un-sdg):",
     pew: "The **Pew Research Center (Pew)** defines [six world regions](https://ourworldindata.org/world-region-map-definitions#pew-research-center-pew):",
+    incomeGroups:
+        "The **World Bank** defines [four income groups](https://ourworldindata.org/world-bank-income-groups-explained):",
 }
 
-const chartSlugsByKey: Record<RegionProviderWithTooltipData, string> = {
+const chartSlugsByKey: Record<TooltipKey, string> = {
     wb: "world-regions-according-to-the-world-bank",
     un: "world-regions-according-to-un",
     who: "who-regions",
     unsdg: "world-regions-sdg-united-nations",
     pew: "world-regions-according-to-pew",
+    incomeGroups: "world-bank-income-groups",
 }
 
 const continentColorsMap = ContinentColors as Record<string, string>
 
 // Geographic display order: left-to-right on the map
-const regionDisplayOrder: Record<RegionProviderWithTooltipData, string[]> = {
+const regionDisplayOrder: Record<TooltipKey, string[]> = {
     wb: [
         "North America (WB)",
         "Latin America and Caribbean (WB)",
@@ -89,6 +95,12 @@ const regionDisplayOrder: Record<RegionProviderWithTooltipData, string[]> = {
         "Europe (Pew)",
         "Asia-Pacific (Pew)",
     ],
+    incomeGroups: [
+        "Low-income countries",
+        "Lower-middle-income countries",
+        "Upper-middle-income countries",
+        "High-income countries",
+    ],
 }
 
 export function hasProviderTooltipData(
@@ -108,25 +120,32 @@ export function hasProviderTooltipData(
     return true
 }
 
-function getDescriptionForKey(
-    providerKey: RegionProviderWithTooltipData
-): string {
+function getDescriptionForKey(providerKey: TooltipKey): string {
     return descriptionsByKey[providerKey]
 }
 
-function getThumbnailUrlForKey(
-    providerKey: RegionProviderWithTooltipData
-): string {
+function getThumbnailUrlForKey(providerKey: TooltipKey): string {
     const slug = chartSlugsByKey[providerKey]
     return `https://ourworldindata.org/grapher/${slug}.png?imType=thumbnail&imMinimal=1`
 }
 
 function getRegionsForKey(
-    key: RegionProviderWithTooltipData
+    key: TooltipKey
 ): RegionProviderTooltipProps["regions"] {
     const orderIndex = new Map(
         regionDisplayOrder[key].map((name, i) => [name, i])
     )
+
+    if (key === "incomeGroups") {
+        return R.pipe(
+            getIncomeGroups(),
+            R.sortBy((group) => orderIndex.get(group.name) ?? Infinity),
+            R.map((group) => ({
+                name: group.name,
+                color: continentColorsMap[group.name],
+            }))
+        )
+    }
 
     return R.pipe(
         getAggregatesByProvider(key),
@@ -138,8 +157,8 @@ function getRegionsForKey(
     )
 }
 
-export function getRegionProviderTooltipData(
-    providerKey: RegionProviderWithTooltipData
+export function getTooltipData(
+    providerKey: TooltipKey
 ): RegionProviderTooltipProps {
     return {
         description: getDescriptionForKey(providerKey),

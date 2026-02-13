@@ -45,6 +45,7 @@ export interface Continent extends BaseRegion {
 
 export interface IncomeGroup extends BaseRegion {
     name: OwidIncomeGroupName
+    code: OwidIncomeGroupCode
     regionType: RegionType.IncomeGroup
     members: string[]
 }
@@ -61,7 +62,13 @@ type OwidContinentName =
     | "Oceania"
     | "South America"
 
-export type OwidIncomeGroupName =
+type OwidIncomeGroupName =
+    | "Low-income countries"
+    | "Lower-middle-income countries"
+    | "Upper-middle-income countries"
+    | "High-income countries"
+
+export type OwidIncomeGroupCode =
     | "OWID_LIC"
     | "OWID_LMC"
     | "OWID_UMC"
@@ -83,15 +90,16 @@ export function isRegionDataProvider(key: string): key is RegionDataProvider {
     return REGION_DATA_PROVIDERS.includes(key as RegionDataProvider)
 }
 
+export function checkIsOwidIncomeGroupCode(
+    code: string
+): code is OwidIncomeGroupCode {
+    return getIncomeGroups().some((incomeGroup) => incomeGroup.code === code)
+}
+
 export function checkIsOwidIncomeGroupName(
     name: string
 ): name is OwidIncomeGroupName {
-    return (
-        name === "OWID_LIC" ||
-        name === "OWID_LMC" ||
-        name === "OWID_UMC" ||
-        name === "OWID_HIC"
-    )
+    return getIncomeGroups().some((incomeGroup) => incomeGroup.name === name)
 }
 
 export function checkIsCountry(region: Region): region is Country {
@@ -197,9 +205,9 @@ export const incomeGroupsByName = lazy(
     () =>
         Object.fromEntries(
             regions
-                .filter((region) => checkIsOwidIncomeGroupName(region.code))
+                .filter((region) => checkIsOwidIncomeGroupCode(region.code))
                 .map((region) => [region.code, region])
-        ) as Record<OwidIncomeGroupName, IncomeGroup>
+        ) as Record<OwidIncomeGroupCode, IncomeGroup>
 )
 
 const countriesBySlug = lazy(() =>
