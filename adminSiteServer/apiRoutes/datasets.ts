@@ -195,10 +195,7 @@ export async function getDataset(
     const charts = await db.knexRaw<OldChartFieldList>(
         trx,
         `-- sql
-            SELECT ${oldChartFieldList},
-                round(agv.views_365d / 365, 1) as grapherViewsPerDay,
-                crv.narrativeChartsCount,
-                crv.referencesCount
+            SELECT ${oldChartFieldList}
             FROM charts
             JOIN chart_configs ON chart_configs.id = charts.configId
             JOIN chart_dimensions AS cd ON cd.chartId = charts.id

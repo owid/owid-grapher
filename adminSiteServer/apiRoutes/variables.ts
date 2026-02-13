@@ -239,16 +239,11 @@ export async function getVariablesVariableIdJson(
         OldChartFieldList & {
             isInheritanceEnabled: DbPlainChart["isInheritanceEnabled"]
             config: DbRawChartConfig["full"]
-            narrativeChartsCount: number
-            referencesCount: number
         }
     >(
         trx,
         `-- sql
-                SELECT ${oldChartFieldList}, charts.isInheritanceEnabled, chart_configs.full AS config,
-                    round(agv.views_365d / 365, 1) as grapherViewsPerDay,
-                    crv.narrativeChartsCount,
-                    crv.referencesCount
+                SELECT ${oldChartFieldList}, charts.isInheritanceEnabled, chart_configs.full AS config
                 FROM charts
                 JOIN chart_configs ON chart_configs.id = charts.configId
                 JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
