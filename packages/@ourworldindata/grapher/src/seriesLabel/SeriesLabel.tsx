@@ -333,7 +333,9 @@ function IconFragment({
                 interactive={true}
                 appendTo={() => document.body}
                 onShow={(instance) => {
+                    // Hide any other open tooltips
                     hideAll({ exclude: instance })
+
                     onInfoTooltipShow?.()
                 }}
                 content={

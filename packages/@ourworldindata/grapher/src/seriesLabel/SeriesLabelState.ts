@@ -188,13 +188,12 @@ export class SeriesLabelState {
     @computed private get regionProviderSuffix(): FragmentGroup | undefined {
         if (!this.parsedText.providerKey) return undefined
 
-        const providerKey = this.parsedText.providerKey
-
         const text = `(${this.parsedText.suffix})`
         const fontSettings = { ...this.fontSettings, fontWeight: 400 }
 
+        const providerKey = this.parsedText.providerKey
         const shouldShowIcon =
-             this.options.showRegionProviderTooltip &&
+            this.options.showRegionProviderTooltip &&
             hasProviderTooltipData(providerKey, this.options.text)
 
         if (shouldShowIcon) {

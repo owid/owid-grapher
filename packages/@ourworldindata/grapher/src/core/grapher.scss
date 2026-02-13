@@ -82,12 +82,12 @@ $zindex-controls-drawer: 150;
 
 // These rules are currently used elsewhere in the site. e.g. Explorers
 // so we can't scope them to be grapher-only
-@import "../seriesLabel/SeriesLabel.scss";
 @import "../controls/entityPicker/EntityPicker.scss";
 @import "../fullScreen/FullScreen.scss";
 @import "../../../components/src/Checkbox.scss";
 @import "../../../components/src/RadioButton.scss";
 @import "../../../components/src/loadingIndicator/LoadingIndicator.scss";
+@import "../seriesLabel/RegionProviderTooltip.scss";
 
 @import "../../../components/src/closeButton/CloseButton.scss";
 @import "../../../components/src/OverlayHeader.scss";

@@ -8,12 +8,11 @@ import {
     RegionDataProvider,
 } from "@ourworldindata/utils"
 import { ContinentColors } from "../color/CustomSchemes.js"
-import {
-    AnyRegionDataProvider,
-    parseLabelWithSuffix,
-} from "../core/RegionGroups.js"
+import { AnyRegionDataProvider, parseLabel } from "../core/RegionGroups.js"
 import { RegionProviderTooltipProps } from "./RegionProviderTooltip.js"
 
+// We only support a subset of region data providers for the tooltip,
+// based on whether we have the necessary data to show in the tooltip
 const providersWithTooltipData = [
     "wb",
     "un",
@@ -21,6 +20,7 @@ const providersWithTooltipData = [
     "unsdg",
     "pew",
 ] as const satisfies RegionDataProvider[]
+
 const providersWithTooltipDataAsSet = new Set<string>(providersWithTooltipData)
 
 export type RegionProviderWithTooltipData =
@@ -44,7 +44,7 @@ const chartSlugsByKey: Record<RegionProviderWithTooltipData, string> = {
 
 const continentColorsMap = ContinentColors as Record<string, string>
 
-// Geographic display order: left-to-right on the globe
+// Geographic display order: left-to-right on the map
 const regionDisplayOrder: Record<RegionProviderWithTooltipData, string[]> = {
     wb: [
         "North America (WB)",
@@ -130,18 +130,11 @@ function getRegionsForKey(
 
     return R.pipe(
         getAggregatesByProvider(key),
-        R.map((aggregate) => {
-            const parsed = parseLabelWithSuffix(aggregate.name)
-            if (!parsed.providerKey) return undefined
-            return {
-                name: parsed.main,
-                fullName: aggregate.name,
-                color: continentColorsMap[aggregate.name],
-            }
-        }),
-        R.filter(R.isDefined),
-        R.sortBy((region) => orderIndex.get(region.fullName) ?? Infinity),
-        R.map(({ name, color }) => ({ name, color }))
+        R.sortBy((region) => orderIndex.get(region.name) ?? Infinity),
+        R.map((region) => ({
+            name: parseLabel(region.name).name, // Remove provider suffix for display
+            color: continentColorsMap[region.name],
+        }))
     )
 }
 
