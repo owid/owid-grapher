@@ -28,7 +28,9 @@ export interface RawChartRecordRow {
     entityNames: JsonArrayString
     tags: JsonArrayString
     keyChartForTags: JsonArrayString
-    catalogPaths: JsonArrayString
+    datasetNamespaces: JsonArrayString
+    datasetVersions: JsonArrayString
+    datasetProducts: JsonArrayString
     datasetProducers: JsonArrayString
 }
 
@@ -49,7 +51,17 @@ export interface ExplorerViewGrapherInfo {
     id: number
     title: string
     subtitle: string
-    catalogPaths: string
+    datasetNamespaces: JsonArrayString
+    datasetVersions: JsonArrayString
+    datasetProducts: JsonArrayString
+    datasetProducers: JsonArrayString
+}
+
+export type DatasetDimensionsForVariable = {
+    datasetNamespace?: string | null
+    datasetVersion?: string | null
+    datasetProduct?: string | null
+    datasetProducers: string[]
 }
 
 export type EntitiesByColumnDictionary = Record<
@@ -65,9 +77,8 @@ export type ExplorerIndicatorMetadataFromDb = Pick<
     | "titlePublic"
     | "display"
     | "descriptionShort"
-> & {
-    datasetProducers?: string[]
-}
+> &
+    DatasetDimensionsForVariable
 
 export type ExplorerIndicatorMetadataDictionary = Record<
     string | number,

@@ -16,8 +16,8 @@ import { ParsedChartRecordRow, RawChartRecordRow } from "./types.js"
 import { getUniqueNamesFromTagHierarchies } from "@ourworldindata/utils"
 import {
     maybeAddChangeInPrefix,
-    parseCatalogPaths,
     processAvailableEntities,
+    parseJsonStringArray,
 } from "./shared.js"
 import { GrapherState } from "@ourworldindata/grapher"
 import { toPlaintext } from "@ourworldindata/components"
@@ -52,14 +52,10 @@ const parseAndProcessChartRecords = (
 
     const config = parseChartConfig(rawRecord.config)
 
-    // Parse catalog paths to extract ETL dimensions
-    const catalogPathsArray = JSON.parse(rawRecord.catalogPaths) as string[]
-    const { datasetNamespaces, datasetVersions, datasetProducts } =
-        parseCatalogPaths(catalogPathsArray)
-
-    const datasetProducers = JSON.parse(
-        rawRecord.datasetProducers as string
-    ) as string[]
+    const datasetNamespaces = parseJsonStringArray(rawRecord.datasetNamespaces)
+    const datasetVersions = parseJsonStringArray(rawRecord.datasetVersions)
+    const datasetProducts = parseJsonStringArray(rawRecord.datasetProducts)
+    const datasetProducers = parseJsonStringArray(rawRecord.datasetProducers)
 
     return {
         ...rawRecord,
@@ -158,31 +154,6 @@ export const getChartsRecords = async (
                  ) s
             GROUP BY s.chartId
         ),
-        catalog_paths AS (
-            SELECT s.chartId,
-                   COALESCE(JSON_ARRAYAGG(s.catalogPath), JSON_ARRAY()) AS catalogPaths
-            FROM (
-                     SELECT DISTINCT cd.chartId, v.catalogPath
-                     FROM chart_dimensions cd
-                              LEFT JOIN variables v ON cd.variableId = v.id
-                     WHERE v.catalogPath IS NOT NULL
-                 ) s
-            GROUP BY s.chartId
-        ),
-        origin_producers AS (
-            SELECT s.chartId,
-                   COALESCE(JSON_ARRAYAGG(s.producer), JSON_ARRAY()) AS datasetProducers
-            FROM (
-                     SELECT DISTINCT cd.chartId, TRIM(o.producer) AS producer
-                     FROM chart_dimensions cd
-                              INNER JOIN indexable_charts ic ON ic.id = cd.chartId
-                              JOIN origins_variables ov ON cd.variableId = ov.variableId
-                              JOIN origins o ON ov.originId = o.id
-                     WHERE o.producer IS NOT NULL
-                       AND TRIM(o.producer) != ''
-                 ) s
-            GROUP BY s.chartId
-        ),
         chart_tags_names AS (
             SELECT s.chartId,
                    COALESCE(JSON_ARRAYAGG(s.name), JSON_ARRAY()) AS tags
@@ -220,14 +191,15 @@ export const getChartsRecords = async (
                c.publishedAt,
                c.updatedAt,
                COALESCE(en.entityNames, '[]') AS entityNames,
-               COALESCE(cp.catalogPaths, '[]') AS catalogPaths,
-               COALESCE(op.datasetProducers, '[]') AS datasetProducers,
+               COALESCE(ddc.datasetNamespaces, '[]') AS datasetNamespaces,
+               COALESCE(ddc.datasetVersions, '[]') AS datasetVersions,
+               COALESCE(ddc.datasetProducts, '[]') AS datasetProducts,
+               COALESCE(ddc.datasetProducers, '[]') AS datasetProducers,
                ctn.tags,
                COALESCE(kct.keyChartForTags, '[]') AS keyChartForTags
         FROM indexable_charts c
                  LEFT JOIN entity_names en ON c.id = en.chartId
-                 LEFT JOIN catalog_paths cp ON c.id = cp.chartId
-                 LEFT JOIN origin_producers op ON c.id = op.chartId
+                 LEFT JOIN dataset_dimensions_by_chart ddc ON c.id = ddc.chartId
                  INNER JOIN chart_tag_counts tc ON c.id = tc.chartId
                  LEFT JOIN chart_tags_names ctn ON c.id = ctn.chartId
                  LEFT JOIN key_chart_tags kct ON c.id = kct.chartId

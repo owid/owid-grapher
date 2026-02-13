@@ -30,10 +30,6 @@ import { DATA_API_URL } from "../../../settings/serverSettings.js"
 import { getUniqueNamesFromTagHierarchies } from "@ourworldindata/utils"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import {
-    getDatasetProducersByChartIds,
-    getDatasetProducersByVariableIds,
-} from "../../../db/model/Dataset.js"
-import {
     CsvUnenrichedExplorerViewRecord,
     EnrichedExplorerRecord,
     EntitiesByColumnDictionary,
@@ -52,9 +48,10 @@ import {
     EMPTY_DATASET_CHART_RECORD_DIMENSIONS,
     MAX_NON_FM_RECORD_SCORE,
     maybeAddChangeInPrefix,
-    parseCatalogPaths,
+    parseJsonStringArray,
     processAvailableEntities as processRecordAvailableEntities,
     scaleRecordScores,
+    uniqNonEmptyStrings,
 } from "./shared.js"
 
 /**
@@ -178,27 +175,31 @@ async function fetchIndicatorMetadata(
     )
 
     const rawMetadataFromDb = await trx
-        .table("variables")
+        .table("variables as v")
         .select(
-            "id",
-            "catalogPath",
-            "name",
-            "titlePublic",
-            "display",
-            "descriptionShort"
+            "v.id",
+            "v.catalogPath",
+            "v.name",
+            "v.titlePublic",
+            "v.display",
+            "v.descriptionShort",
+            "ddv.datasetNamespace",
+            "ddv.datasetVersion",
+            "ddv.datasetProduct",
+            "ddv.datasetProducers"
         )
-        .whereIn("id", [...ids])
-        .orWhereIn("catalogPath", [...etlPaths])
-
-    const datasetProducersByVariableId = await getDatasetProducersByVariableIds(
-        trx,
-        rawMetadataFromDb.map((row) => row.id)
-    )
+        .leftJoin(
+            "dataset_dimensions_by_variable as ddv",
+            "v.id",
+            "ddv.variableId"
+        )
+        .whereIn("v.id", [...ids])
+        .orWhereIn("v.catalogPath", [...etlPaths])
 
     const metadataFromDB = rawMetadataFromDb.map((row) => ({
         ...row,
         display: row.display ? JSON.parse(row.display) : {},
-        datasetProducers: datasetProducersByVariableId.get(row.id) ?? [],
+        datasetProducers: parseJsonStringArray(row.datasetProducers),
     })) as ExplorerIndicatorMetadataFromDb[]
 
     const indicatorMetadataByIdAndPath = {
@@ -422,15 +423,20 @@ const fetchGrapherInfo = async (
             trx.raw("charts.id as id"),
             trx.raw("chart_configs.full->>'$.title' as title"),
             trx.raw("chart_configs.full->>'$.subtitle' as subtitle"),
-            trx.raw("JSON_ARRAYAGG(v.catalogPath) as catalogPaths")
+            "ddc.datasetNamespaces",
+            "ddc.datasetVersions",
+            "ddc.datasetProducts",
+            "ddc.datasetProducers"
         )
         .from("charts")
         .join("chart_configs", { "charts.configId": "chart_configs.id" })
-        .leftJoin("chart_dimensions as cd", "charts.id", "cd.chartId")
-        .leftJoin("variables as v", "cd.variableId", "v.id")
+        .leftJoin(
+            "dataset_dimensions_by_chart as ddc",
+            "charts.id",
+            "ddc.chartId"
+        )
         .whereIn("charts.id", grapherIds)
         .andWhereRaw("chart_configs.full->>'$.isPublished' = 'true'")
-        .groupBy("charts.id")
         .then((rows) => _.keyBy(rows, "id"))
 }
 
@@ -438,8 +444,7 @@ async function enrichRecordWithGrapherInfo(
     record: GrapherUnenrichedExplorerViewRecord,
     grapherInfo: Record<number, ExplorerViewGrapherInfo>,
     availableEntities: Map<number, { availableEntities: string[] }>,
-    explorerInfo: MinimalExplorerInfo,
-    datasetProducersByChartId: Map<number, string[]>
+    explorerInfo: MinimalExplorerInfo
 ): Promise<GrapherEnrichedExplorerViewRecord | undefined> {
     const grapher = grapherInfo[record.viewGrapherId]
     if (!grapher) {
@@ -450,11 +455,10 @@ async function enrichRecordWithGrapherInfo(
         return
     }
 
-    const catalogPaths = grapher.catalogPaths
-        ? (JSON.parse(grapher.catalogPaths) as (string | null)[])
-        : []
-    const { datasetNamespaces, datasetVersions, datasetProducts } =
-        parseCatalogPaths(catalogPaths)
+    const datasetNamespaces = parseJsonStringArray(grapher.datasetNamespaces)
+    const datasetVersions = parseJsonStringArray(grapher.datasetVersions)
+    const datasetProducts = parseJsonStringArray(grapher.datasetProducts)
+    const datasetProducers = parseJsonStringArray(grapher.datasetProducers)
 
     return {
         ...record,
@@ -467,8 +471,7 @@ async function enrichRecordWithGrapherInfo(
         datasetNamespaces,
         datasetVersions,
         datasetProducts,
-        datasetProducers:
-            datasetProducersByChartId.get(record.viewGrapherId) ?? [],
+        datasetProducers,
     }
 }
 
@@ -488,10 +491,6 @@ const enrichWithGrapherData = async (
         trx,
         grapherIds
     )
-    const datasetProducersByChartId = await getDatasetProducersByChartIds(
-        trx,
-        grapherIds
-    )
 
     const enrichedRecords: GrapherEnrichedExplorerViewRecord[] = []
     for (const record of records) {
@@ -499,8 +498,7 @@ const enrichWithGrapherData = async (
             record,
             grapherInfo,
             availableEntities,
-            explorerInfo,
-            datasetProducersByChartId
+            explorerInfo
         )
         if (enrichedRecord) enrichedRecords.push(enrichedRecord)
     }
@@ -560,14 +558,21 @@ async function enrichRecordWithIndicatorData(
         record.yVariableIds
     ).filter(Boolean)
 
-    const allEntityNames = indicatorMetadata.flatMap((meta) => meta.entityNames)
-
-    const datasetProducers = _.uniq(
-        indicatorMetadata.flatMap((meta) => meta.datasetProducers ?? [])
+    const availableEntities = uniqNonEmptyStrings(
+        indicatorMetadata.map((meta) => meta.entityNames)
     )
 
-    const uniqueNonEmptyEntityNames = _.uniq(allEntityNames).filter(
-        (name): name is string => !!name
+    const datasetNamespaces = uniqNonEmptyStrings(
+        indicatorMetadata.map((meta) => meta.datasetNamespace)
+    )
+    const datasetVersions = uniqNonEmptyStrings(
+        indicatorMetadata.map((meta) => meta.datasetVersion)
+    )
+    const datasetProducts = uniqNonEmptyStrings(
+        indicatorMetadata.map((meta) => meta.datasetProduct)
+    )
+    const datasetProducers = uniqNonEmptyStrings(
+        indicatorMetadata.map((meta) => meta.datasetProducers)
     )
 
     const firstYIndicator = record.yVariableIds[0]
@@ -592,14 +597,9 @@ async function enrichRecordWithIndicatorData(
     const viewSubtitle =
         record.viewSubtitle || (indicatorInfo.descriptionShort as string)
 
-    // Extract catalog paths from indicator metadata
-    const catalogPaths = indicatorMetadata.map((meta) => meta.catalogPath)
-    const { datasetNamespaces, datasetVersions, datasetProducts } =
-        parseCatalogPaths(catalogPaths)
-
     return {
         ...record,
-        availableEntities: uniqueNonEmptyEntityNames,
+        availableEntities,
         viewTitle,
         viewSubtitle,
         titleLength: viewTitle.length,

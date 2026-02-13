@@ -1,91 +1,41 @@
 import { describe, expect, it } from "vitest"
-import { parseCatalogPaths } from "./shared.js"
+import { parseJsonStringArray, uniqNonEmptyStrings } from "./shared.js"
 
-describe("parseCatalogPaths", () => {
-    it("parses valid catalog paths", () => {
-        const paths = [
-            "grapher/who/2024-08-06/ghe/mortality#deaths",
-            "grapher/faostat/2024-03-14/faostat_tcl/faostat_tcl_flat#sugar",
-        ]
-        const result = parseCatalogPaths(paths)
-        expect(result).toEqual({
-            datasetNamespaces: ["who", "faostat"],
-            datasetVersions: ["2024-08-06", "2024-03-14"],
-            datasetProducts: ["ghe", "faostat_tcl"],
-        })
+describe("parseJsonStringArray", () => {
+    it("returns empty array for null or undefined", () => {
+        expect(parseJsonStringArray(null)).toEqual([])
+        expect(parseJsonStringArray(undefined)).toEqual([])
     })
 
-    it("deduplicates values from multiple paths with same dimensions", () => {
-        const paths = [
-            "grapher/who/2024-08-06/ghe/mortality#deaths",
-            "grapher/who/2024-08-06/ghe/other#rate",
-        ]
-        const result = parseCatalogPaths(paths)
-        expect(result).toEqual({
-            datasetNamespaces: ["who"],
-            datasetVersions: ["2024-08-06"],
-            datasetProducts: ["ghe"],
-        })
+    it("filters nulls from parsed arrays", () => {
+        const raw = JSON.stringify(["who", null, "faostat"])
+        expect(parseJsonStringArray(raw)).toEqual(["who", "faostat"])
     })
 
-    // Real scenario: some variables have NULL catalogPath in the database
-    // JSON_ARRAYAGG produces arrays like: [null, null, "grapher/...", "grapher/..."]
-    it("filters out null values in mixed array", () => {
-        const paths = [
-            null,
-            null,
-            "grapher/demography/2024-07-15/population/historical#population",
-            "grapher/regions/2023-01-01/regions/regions#owid_region",
-        ]
-        const result = parseCatalogPaths(paths)
-        expect(result).toEqual({
-            datasetNamespaces: ["demography", "regions"],
-            datasetVersions: ["2024-07-15", "2023-01-01"],
-            datasetProducts: ["population", "regions"],
-        })
+    it("filters empty strings", () => {
+        const raw = JSON.stringify(["who", "", "faostat"])
+        expect(parseJsonStringArray(raw)).toEqual(["who", "faostat"])
     })
 
-    // Real scenario: all variables for a chart have NULL catalogPath
-    // JSON_ARRAYAGG produces: [null] or [null, null]
-    it("returns empty arrays when all paths are null", () => {
-        const paths = [null]
-        const result = parseCatalogPaths(paths)
-        expect(result).toEqual({
-            datasetNamespaces: [],
-            datasetVersions: [],
-            datasetProducts: [],
-        })
+    it("handles empty arrays", () => {
+        const raw = JSON.stringify([])
+        expect(parseJsonStringArray(raw)).toEqual([])
+    })
+})
+
+describe("uniqNonEmptyStrings", () => {
+    it("deduplicates and filters empty values from strings", () => {
+        const result = uniqNonEmptyStrings(["who", "", "faostat", "who", null])
+        expect(result).toEqual(["who", "faostat"])
     })
 
-    it("returns empty arrays for empty input", () => {
-        const result = parseCatalogPaths([])
-        expect(result).toEqual({
-            datasetNamespaces: [],
-            datasetVersions: [],
-            datasetProducts: [],
-        })
-    })
-
-    it("handles undefined values", () => {
-        const paths = [undefined, "grapher/who/2024-08-06/ghe/mortality#deaths"]
-        const result = parseCatalogPaths(paths)
-        expect(result).toEqual({
-            datasetNamespaces: ["who"],
-            datasetVersions: ["2024-08-06"],
-            datasetProducts: ["ghe"],
-        })
-    })
-
-    it("skips malformed paths with fewer than 4 segments", () => {
-        const paths = [
-            "grapher/who", // too short
-            "grapher/who/2024-08-06/ghe/mortality#deaths", // valid
-        ]
-        const result = parseCatalogPaths(paths)
-        expect(result).toEqual({
-            datasetNamespaces: ["who"],
-            datasetVersions: ["2024-08-06"],
-            datasetProducts: ["ghe"],
-        })
+    it("flattens and deduplicates string arrays", () => {
+        const result = uniqNonEmptyStrings([
+            ["who", "faostat"],
+            ["faostat", ""],
+            undefined,
+            "who",
+        ])
+        expect(result).toEqual(["who", "faostat"])
     })
 })
