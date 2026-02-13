@@ -37,6 +37,7 @@ import {
     indexIndividualGdocPost,
     removeIndividualGdocPostFromIndex,
     getIndividualGdocRecords,
+    getPreprocessedIndexableText,
 } from "../../baker/algolia/utils/pages.js"
 import { GdocAbout } from "../../db/model/Gdoc/GdocAbout.js"
 import { GdocAuthor } from "../../db/model/Gdoc/GdocAuthor.js"
@@ -583,22 +584,36 @@ export async function setGdocTags(
 /**
  * Generate a preview of Algolia index records for a gdoc.
  * Returns the records that would be created when indexing this gdoc.
+ *
+ * When `?raw=true` is passed, returns the preprocessed indexable text
+ * (same pre-index cleanup as Algolia records, before chunk serialization).
  */
 export async function getPreviewGdocIndexRecords(
-    _req: Request,
+    req: Request,
     res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
-): Promise<PagesIndexRecordsResponse> {
-    const { id } = _req.params
-    const contentSource = _req.query.contentSource as
+): Promise<PagesIndexRecordsResponse | { plaintext: string | undefined }> {
+    const { id } = req.params
+    const contentSource = req.query.contentSource as
         | GdocsContentSource
         | undefined
+    const raw = req.query.raw === "true"
 
     try {
         const gdoc = await getAndLoadGdocById(trx, id, contentSource, false)
 
         if (!gdoc) {
             throw new JsonError(`No Google Doc with id ${id} found`)
+        }
+
+        res.set("Cache-Control", "no-store")
+
+        if (raw) {
+            const plaintext = getPreprocessedIndexableText(
+                gdoc.content.body,
+                gdoc.linkedCallouts
+            )
+            return { plaintext }
         }
 
         const gdocJson = gdoc.toJSON()
@@ -608,8 +623,6 @@ export async function getPreviewGdocIndexRecords(
         const fallbackDate = gdocJson.publishedAt ?? new Date()
         gdocJson.publishedAt = fallbackDate
         gdocJson.updatedAt ??= fallbackDate
-
-        res.set("Cache-Control", "no-store")
 
         // Only generate records for posts (excluding fragments)
         if (
