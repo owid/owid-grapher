@@ -330,6 +330,14 @@ const createFiltersSource = (
                             />
                         </span>
                     ))
+                    // dataset filters are not suggested in autocomplete
+                    .with(
+                        FilterType.DATASET_PRODUCT,
+                        FilterType.DATASET_NAMESPACE,
+                        FilterType.DATASET_VERSION,
+                        FilterType.DATASET_PRODUCER,
+                        () => <></>
+                    )
                     // query filters are filtered out in getItems
                     .with(FilterType.QUERY, () => <></>)
                     .exhaustive()

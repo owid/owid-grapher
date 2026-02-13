@@ -121,6 +121,15 @@ export const SearchAutocomplete = ({
                     logSearchAutocompleteClick()
                     setQueries(localQuery || filter.name) // only use filter.name for default searches, as it may be lagging
                 })
+                .with(
+                    FilterType.DATASET_PRODUCT,
+                    FilterType.DATASET_NAMESPACE,
+                    FilterType.DATASET_VERSION,
+                    FilterType.DATASET_PRODUCER,
+                    () => {
+                        // no-op: dataset filters are not suggested in autocomplete
+                    }
+                )
                 .exhaustive()
             setShowSuggestions(false)
         },
