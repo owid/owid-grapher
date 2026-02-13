@@ -30,6 +30,7 @@ import {
     handleGetExplorer,
     handlePutExplorer,
     handleDeleteExplorer,
+    getExplorerRecordsJson,
 } from "./apiRoutes/explorer.js"
 import {
     getAllGdocIndexItems,
@@ -60,6 +61,7 @@ import {
     handlePostMultiDimRedirect,
     handleDeleteMultiDimRedirect,
     handleGetAllMultiDimRedirects,
+    getMdimRecordsJson,
 } from "./apiRoutes/mdims.js"
 import {
     fetchAllWork,
@@ -142,6 +144,7 @@ import {
     updateChart,
     deleteChart,
     getChartTagsJson,
+    getChartRecordsJson,
 } from "./apiRoutes/charts.js"
 import { getChartConfig } from "./apiRoutes/chartConfigs.js"
 import {
@@ -234,6 +237,11 @@ getRouteWithROTransaction(
     apiRouter,
     "/charts/:chartId.tags.json",
     getChartTagsJson
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/charts/:chartId/records",
+    getChartRecordsJson
 )
 postRouteWithRWTransaction(apiRouter, "/charts", createChart)
 postRouteWithRWTransaction(
@@ -392,6 +400,11 @@ getRouteWithROTransaction(apiRouter, "/images/usage", getImageUsageHandler)
 // Mdim routes
 getRouteWithROTransaction(apiRouter, "/multi-dims.json", handleGetMultiDims)
 getRouteWithROTransaction(apiRouter, "/multi-dims/:id", handleGetMultiDim)
+getRouteWithROTransaction(
+    apiRouter,
+    "/multi-dims/:id/records",
+    getMdimRecordsJson
+)
 putRouteWithRWTransaction(
     apiRouter,
     "/multi-dims/:catalogPath",
@@ -421,6 +434,11 @@ deleteRouteWithRWTransaction(
 
 // Explorer routes
 getRouteWithROTransaction(apiRouter, "/explorers/:slug", handleGetExplorer)
+getRouteWithROTransaction(
+    apiRouter,
+    "/explorers/:slug/records",
+    getExplorerRecordsJson
+)
 putRouteWithRWTransaction(apiRouter, "/explorers/:slug", handlePutExplorer)
 deleteRouteWithRWTransaction(
     apiRouter,

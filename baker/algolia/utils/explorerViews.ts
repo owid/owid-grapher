@@ -23,12 +23,13 @@ import {
     ChartRecord,
     ChartRecordType,
     ExplorerType,
+    IndexingContext,
 } from "@ourworldindata/types"
 
 import * as db from "../../../db/db.js"
 import { DATA_API_URL } from "../../../settings/serverSettings.js"
 import { getUniqueNamesFromTagHierarchies } from "@ourworldindata/utils"
-import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
+import { createExplorersIndexingContext } from "./context.js"
 import {
     CsvUnenrichedExplorerViewRecord,
     EnrichedExplorerRecord,
@@ -820,13 +821,11 @@ export const getExplorerViewRecordsForExplorer = async (
     return finalizeRecords(enrichedRecords, slug, pageviews, explorerInfo)
 }
 
-async function getExplorersWithInheritedTags(trx: db.KnexReadonlyTransaction) {
+async function getExplorersWithInheritedTags(
+    trx: db.KnexReadonlyTransaction,
+    topicHierarchies: IndexingContext["topicHierarchies"]
+) {
     const explorersBySlug = await db.getPublishedExplorersBySlug(trx)
-    // The DB query gets the tags for the explorer, but we need to add the parent tags as well.
-    // This isn't done in the query because it would require a recursive CTE.
-    // It's easier to write that query once, separately, and reuse it.
-    const topicHierarchiesByChildName =
-        await db.getTopicHierarchiesByChildName(trx)
     const publishedExplorersWithTags = []
 
     for (const explorer of Object.values(explorersBySlug)) {
@@ -842,7 +841,7 @@ async function getExplorersWithInheritedTags(trx: db.KnexReadonlyTransaction) {
         }
         const topicTags = getUniqueNamesFromTagHierarchies(
             explorer.tags,
-            topicHierarchiesByChildName
+            topicHierarchies
         )
 
         publishedExplorersWithTags.push({
@@ -856,14 +855,24 @@ async function getExplorersWithInheritedTags(trx: db.KnexReadonlyTransaction) {
 
 export const getExplorerViewRecords = async (
     trx: db.KnexReadonlyTransaction,
-    skipGrapherViews = false
+    options?: {
+        slug?: string
+        skipGrapherViews?: boolean
+        baseContext?: IndexingContext
+    }
 ): Promise<FinalizedExplorerRecord[]> => {
+    const { slug, skipGrapherViews = false, baseContext } = options ?? {}
+
     console.log("Getting explorer view records")
     if (skipGrapherViews) {
         console.log("(Skipping grapher views)")
     }
-    const publishedExplorersWithTags = await getExplorersWithInheritedTags(trx)
-    const pageviews = await getAnalyticsPageviewsByUrlObj(trx)
+
+    const context = await createExplorersIndexingContext(trx, baseContext)
+
+    const publishedExplorersWithTags = (
+        await getExplorersWithInheritedTags(trx, context.topicHierarchies)
+    ).filter((e) => slug === undefined || e.slug === slug)
 
     const explorerAdminServer = new ExplorerAdminServer()
 
@@ -873,7 +882,7 @@ export const getExplorerViewRecords = async (
             getExplorerViewRecordsForExplorer(
                 trx,
                 explorerInfo,
-                pageviews,
+                context.pageviews,
                 explorerAdminServer,
                 skipGrapherViews
             ),

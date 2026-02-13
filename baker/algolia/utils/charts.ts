@@ -5,15 +5,18 @@ import {
     parseChartConfig,
     ChartRecord,
     ChartRecordType,
+    ChartsIndexingContext,
+    IndexingContext,
     ChartSlugRedirectsTableName,
 } from "@ourworldindata/types"
 import * as db from "../../../db/db.js"
-import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import { getRelatedArticles } from "../../../db/model/Post.js"
 import { getPublishedLinksTo } from "../../../db/model/Link.js"
-import { isPathRedirectedToExplorer } from "../../../explorerAdminServer/ExplorerRedirects.js"
 import { ParsedChartRecordRow, RawChartRecordRow } from "./types.js"
-import { getUniqueNamesFromTagHierarchies } from "@ourworldindata/utils"
+import {
+    excludeNullish,
+    getUniqueNamesFromTagHierarchies,
+} from "@ourworldindata/utils"
 import {
     maybeAddChangeInPrefix,
     processAvailableEntities,
@@ -21,14 +24,16 @@ import {
 } from "./shared.js"
 import { GrapherState } from "@ourworldindata/grapher"
 import { toPlaintext } from "@ourworldindata/components"
-import { getMaxViews7d, PageviewsByUrl } from "./pageviews.js"
+import { getMaxViews7d } from "./pageviews.js"
+import { createChartsIndexingContext } from "./context.js"
+import pMap from "p-map"
 
-const computeChartScore = (record: Omit<ChartRecord, "score">): number => {
-    const { numRelatedArticles, views_7d } = record
-    return numRelatedArticles * 500 + views_7d
-}
+const computeChartScore = (
+    numRelatedArticles: number,
+    views_7d: number
+): number => numRelatedArticles * 500 + views_7d
 
-const parseAndProcessChartRecords = (
+const parseRawChartRecord = (
     rawRecord: RawChartRecordRow
 ): ParsedChartRecordRow => {
     let parsedEntities: string[] = []
@@ -70,19 +75,22 @@ const parseAndProcessChartRecords = (
     }
 }
 
-async function getChartRedirectSlugsByChartId(
+export async function getChartRedirectSlugsByChartId(
     knex: db.KnexReadonlyTransaction,
-    chartIds: number[]
+    chartIds?: number[]
 ): Promise<Map<number, string[]>> {
     const redirectMap = new Map<number, string[]>()
-    if (chartIds.length === 0) return redirectMap
 
-    const redirects = await knex<{
+    let query = knex<{
         chart_id: number
         slug: string
-    }>(ChartSlugRedirectsTableName)
-        .select("chart_id", "slug")
-        .whereIn("chart_id", chartIds)
+    }>(ChartSlugRedirectsTableName).select("chart_id", "slug")
+
+    if (chartIds?.length) {
+        query = query.whereIn("chart_id", chartIds)
+    }
+
+    const redirects = await query
 
     for (const redirect of redirects) {
         const existing = redirectMap.get(redirect.chart_id)
@@ -94,22 +102,31 @@ async function getChartRedirectSlugsByChartId(
 }
 
 function getChartViews7d(
-    pageviews: PageviewsByUrl,
+    context: ChartsIndexingContext,
     slug: string,
-    redirectSlugs: string[]
+    chartId: number
 ): number {
+    const redirectSlugs = context.redirectsByChartId.get(chartId) ?? []
     const urls = [
         `/grapher/${slug}`,
         ...redirectSlugs.map((redirectSlug) => `/grapher/${redirectSlug}`),
     ]
-    return getMaxViews7d(pageviews, urls)
+    return getMaxViews7d(context.pageviews, urls)
 }
 
-export const getChartsRecords = async (
-    knex: db.KnexReadonlyTransaction
-): Promise<ChartRecord[]> => {
-    console.log("Fetching charts to index")
-    const chartsToIndex = await db.knexRaw<RawChartRecordRow>(
+/**
+ * Fetches raw chart data from the database.
+ * Can be scoped to specific chart IDs for preview.
+ */
+async function getRawChartsRecords(
+    knex: db.KnexReadonlyTransaction,
+    chartIds?: number[]
+): Promise<RawChartRecordRow[]> {
+    const chartIdFilter = chartIds?.length
+        ? `AND c.id IN (${chartIds.join(",")})`
+        : ""
+
+    return db.knexRaw<RawChartRecordRow>(
         knex,
         `-- sql
         WITH indexable_charts AS (
@@ -142,13 +159,16 @@ export const getChartsRecords = async (
                     )
                 )
             )
+            ${chartIdFilter}
         ),
+        -- Scope aggregations to indexable_charts for performance and chartId filtering.
         entity_names AS (
             SELECT s.chartId,
                    COALESCE(JSON_ARRAYAGG(s.name), JSON_ARRAY()) AS entityNames
             FROM (
                      SELECT DISTINCT ce.chartId, e.name
                      FROM charts_x_entities ce
+                              INNER JOIN indexable_charts ic ON ic.id = ce.chartId
                               LEFT JOIN entities e ON ce.entityId = e.id
                      WHERE e.name IS NOT NULL
                  ) s
@@ -160,6 +180,7 @@ export const getChartsRecords = async (
             FROM (
                      SELECT ct.chartId, t.name
                      FROM chart_tags ct
+                              INNER JOIN indexable_charts ic ON ic.id = ct.chartId
                               LEFT JOIN tags t on ct.tagId = t.id
                      WHERE t.name IS NOT NULL
                  ) s
@@ -171,6 +192,7 @@ export const getChartsRecords = async (
             FROM (
                      SELECT ct.chartId, t.name
                      FROM chart_tags ct
+                              INNER JOIN indexable_charts ic ON ic.id = ct.chartId
                               LEFT JOIN tags t on ct.tagId = t.id
                      WHERE ct.keyChartLevel = ${KeyChartLevel.Top}
                          AND t.name IS NOT NULL
@@ -181,6 +203,7 @@ export const getChartsRecords = async (
             SELECT ct.chartId,
                    COUNT(t.id) AS tagCount
             FROM chart_tags ct
+                     INNER JOIN indexable_charts ic ON ic.id = ct.chartId
                      LEFT JOIN tags t on ct.tagId = t.id
             GROUP BY ct.chartId
         )
@@ -206,79 +229,93 @@ export const getChartsRecords = async (
         WHERE tc.tagCount >= 1
     `
     )
+}
 
-    const parsedRows = chartsToIndex.map(parseAndProcessChartRecords)
+/**
+ * Builds a ChartRecord from parsed chart data and context.
+ * This is a mostly-pure transform (still needs knex for related articles lookup).
+ */
+async function buildChartRecord(
+    knex: db.KnexReadonlyTransaction,
+    chart: ParsedChartRecordRow,
+    context: ChartsIndexingContext
+): Promise<ChartRecord | null> {
+    const grapherState = new GrapherState(chart.config)
 
-    const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
-    const chartRedirectSlugsByChartId = await getChartRedirectSlugsByChartId(
+    const relatedArticles = (await getRelatedArticles(knex, chart.id)) ?? []
+    const linksFromGdocs = await getPublishedLinksTo(
         knex,
-        parsedRows.map((row) => row.id)
+        [chart.slug],
+        ContentGraphLinkType.Grapher
     )
 
-    const topicHierarchiesByChildName =
-        await db.getTopicHierarchiesByChildName(knex)
+    const title = maybeAddChangeInPrefix(
+        chart.config.title,
+        grapherState.shouldAddChangeInPrefixToTitle
+    )
+    const plaintextSubtitle = _.isNil(chart.config.subtitle)
+        ? undefined
+        : toPlaintext(chart.config.subtitle)
 
-    const records: ChartRecord[] = []
-    for (const c of parsedRows) {
-        const grapherState = new GrapherState(c.config)
+    const topicTags = getUniqueNamesFromTagHierarchies(
+        chart.tags,
+        context.topicHierarchies
+    )
+    // Number of references to this chart in all our posts
+    const numRelatedArticles = relatedArticles.length + linksFromGdocs.length
+    const views_7d = getChartViews7d(context, chart.slug, chart.id)
 
-        // Our search currently cannot render explorers, so don't index them because
-        // otherwise they will fail when rendered in the search results
-        if (isPathRedirectedToExplorer(`/grapher/${c.slug}`)) continue
+    return {
+        objectID: chart.id.toString(),
+        id: `grapher/${chart.slug}`,
+        type: ChartRecordType.Chart,
+        chartId: chart.id,
+        slug: chart.slug,
+        title,
+        variantName: chart.config.variantName ?? "",
+        subtitle: plaintextSubtitle,
+        availableEntities: chart.entityNames,
+        numDimensions: parseInt(chart.numDimensions),
+        availableTabs: grapherState.availableTabs,
+        publishedAt: chart.publishedAt,
+        updatedAt: chart.updatedAt,
+        tags: topicTags,
+        keyChartForTags: chart.keyChartForTags as string[],
+        titleLength: chart.config.title?.length ?? 0,
+        numRelatedArticles,
 
-        const relatedArticles = (await getRelatedArticles(knex, c.id)) ?? []
-        const linksFromGdocs = await getPublishedLinksTo(
-            knex,
-            [c.slug],
-            ContentGraphLinkType.Grapher
-        )
-
-        const title = maybeAddChangeInPrefix(
-            c.config.title,
-            grapherState.shouldAddChangeInPrefixToTitle
-        )
-        const plaintextSubtitle = _.isNil(c.config.subtitle)
-            ? undefined
-            : toPlaintext(c.config.subtitle)
-
-        const topicTags = getUniqueNamesFromTagHierarchies(
-            c.tags,
-            topicHierarchiesByChildName
-        )
-
-        const record = {
-            objectID: c.id.toString(),
-            id: `grapher/${c.slug}`,
-            type: ChartRecordType.Chart,
-            chartId: c.id,
-            slug: c.slug,
-            title,
-            variantName: c.config.variantName,
-            subtitle: plaintextSubtitle,
-            availableEntities: c.entityNames,
-            numDimensions: parseInt(c.numDimensions),
-            availableTabs: grapherState.availableTabs,
-            publishedAt: c.publishedAt,
-            updatedAt: c.updatedAt,
-            tags: topicTags,
-            keyChartForTags: c.keyChartForTags as string[],
-            titleLength: c.config.title?.length ?? 0,
-            // Number of references to this chart in all our posts and pages
-            numRelatedArticles: relatedArticles.length + linksFromGdocs.length,
-            views_7d: getChartViews7d(
-                pageviews,
-                c.slug,
-                chartRedirectSlugsByChartId.get(c.id) ?? []
-            ),
-            isIncomeGroupSpecificFM: false,
-            datasetNamespaces: c.datasetNamespaces,
-            datasetVersions: c.datasetVersions,
-            datasetProducts: c.datasetProducts,
-            datasetProducers: c.datasetProducers,
-        } as ChartRecord
-        const score = computeChartScore(record)
-        records.push({ ...record, score })
+        views_7d,
+        isIncomeGroupSpecificFM: false,
+        datasetNamespaces: chart.datasetNamespaces,
+        datasetVersions: chart.datasetVersions,
+        datasetProducts: chart.datasetProducts,
+        datasetProducers: chart.datasetProducers,
+        score: computeChartScore(numRelatedArticles, views_7d),
     }
+}
 
-    return records
+/**
+ * Gets chart records for Algolia indexing.
+ */
+export const getChartsRecords = async (
+    knex: db.KnexReadonlyTransaction,
+    options?: { chartIds?: number[]; baseContext?: IndexingContext }
+): Promise<ChartRecord[]> => {
+    const { chartIds, baseContext } = options ?? {}
+
+    const context = await createChartsIndexingContext(
+        knex,
+        chartIds,
+        baseContext
+    )
+
+    const rawChartsRecords = await getRawChartsRecords(knex, chartIds)
+    const parsedCharts = rawChartsRecords.map(parseRawChartRecord)
+    const recordsOrNull = await pMap(
+        parsedCharts,
+        (chart) => buildChartRecord(knex, chart, context),
+        { concurrency: 10 }
+    )
+
+    return excludeNullish(recordsOrNull)
 }

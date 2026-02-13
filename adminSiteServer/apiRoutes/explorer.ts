@@ -12,6 +12,7 @@ import * as db from "../../db/db.js"
 import { upsertExplorer, getExplorerBySlug } from "../../db/model/Explorer.js"
 import { enqueueJob, updateExplorerRefreshStatus } from "../../db/model/Jobs.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
+import { getExplorerViewRecords } from "../../baker/algolia/utils/explorerViews.js"
 
 function validateExplorerSlug(slug: string): void {
     if (!isValidSlug(slug)) {
@@ -165,4 +166,22 @@ export async function handleDeleteExplorer(
     }
 
     return { success: true }
+}
+
+/**
+ * Generate a preview of Algolia index records for an explorer.
+ * Returns the records that would be created when indexing this explorer.
+ */
+export async function getExplorerRecordsJson(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const { slug } = req.params
+    validateExplorerSlug(slug)
+    const records = await getExplorerViewRecords(trx, {
+        slug,
+        skipGrapherViews: true,
+    })
+    return { records }
 }
