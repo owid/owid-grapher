@@ -17,7 +17,11 @@ import {
 } from "../utils/incomePlotUtils.ts"
 import { WORLD_ENTITY_NAME } from "../utils/incomePlotConstants.ts"
 
-export const IncomePlotLegend = () => {
+export const IncomePlotLegend = ({
+    isMobile = false,
+}: {
+    isMobile?: boolean
+}) => {
     const entries = useAtomValue(atomLegendEntries)
     const [hoveredEntity, setHoveredEntity] = useAtom(atomHoveredEntity)
     const povertyLine = useAtomValue(atomCustomPovertyLine)
