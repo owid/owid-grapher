@@ -132,7 +132,11 @@ export const IncomePlotControlsRowTop = () => {
     )
 }
 
-export const IncomePlotControlsRowBottom = () => {
+export const IncomePlotControlsRowBottom = ({
+    isMobile = false,
+}: {
+    isMobile?: boolean
+}) => {
     const [timeInterval, nextTimeInterval] = useAtom(atomTimeInterval)
     const [currentYear] = useAtom(atomCurrentYear)
     const [currentCurrency, nextCurrency] = useAtom(atomCurrentCurrency)
