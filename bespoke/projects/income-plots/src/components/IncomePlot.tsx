@@ -43,6 +43,7 @@ const CHAR_WIDTH_RATIO = 0.37 // approximate char width as fraction of font size
 interface IncomePlotProps {
     width?: number
     height?: number
+    isMobile?: boolean
 }
 
 interface IncomePlotClipPathProps {
@@ -725,6 +726,7 @@ const IncomePlotPointer = ({
 export function IncomePlot({
     width = PLOT_WIDTH,
     height = PLOT_HEIGHT,
+    isMobile = false,
 }: IncomePlotProps) {
     const svgRef = useRef<SVGSVGElement>(null)
 
@@ -782,54 +784,62 @@ export function IncomePlot({
     )
 
     return (
-        <div
-            className="income-plot-chart"
-            style={{ position: "relative", width, height, maxWidth: "100%" }}
-        >
-            <IncomePlotLegend />
-            <svg
-                ref={svgRef}
-                className="income-plot-chart-svg"
-                width={width}
-                height={height}
-                viewBox={`0 0 ${width} ${height}`}
-                style={style}
-                onMouseMove={onMouseMove}
-                onMouseLeave={onMouseLeave}
-                onClick={onClick}
+        <>
+            <div
+                className="income-plot-chart"
+                style={{
+                    position: "relative",
+                    width,
+                    height,
+                    maxWidth: "100%",
+                }}
             >
-                <IncomePlotClipPath xScale={xScale} />
-                <IncomePlotXAxis
-                    xScale={xScale}
+                {!isMobile && <IncomePlotLegend isMobile={false} />}
+                <svg
+                    ref={svgRef}
+                    className="income-plot-chart-svg"
+                    width={width}
                     height={height}
-                    marginBottom={marginBottom}
-                    marginTop={marginTop}
-                />
-                {isSingleCountryMode ? (
-                    <IncomePlotAreasUnstacked xScale={xScale} />
-                ) : (
-                    <IncomePlotAreasStacked xScale={xScale} />
-                )}
-                <IncomePlotIntPovertyLine
-                    xScale={xScale}
-                    marginTop={marginTop}
-                    height={height}
-                    marginBottom={marginBottom}
-                />
-                <IncomePlotCustomPovertyLine
-                    xScale={xScale}
-                    marginTop={marginTop}
-                    height={height}
-                    marginBottom={marginBottom}
-                />
-                <IncomePlotPointer
-                    xScale={xScale}
-                    marginTop={marginTop}
-                    height={height}
-                    marginBottom={marginBottom}
-                />
-            </svg>
-            <IncomePlotTooltip />
-        </div>
+                    viewBox={`0 0 ${width} ${height}`}
+                    style={style}
+                    onMouseMove={onMouseMove}
+                    onMouseLeave={onMouseLeave}
+                    onClick={onClick}
+                >
+                    <IncomePlotClipPath xScale={xScale} />
+                    <IncomePlotXAxis
+                        xScale={xScale}
+                        height={height}
+                        marginBottom={marginBottom}
+                        marginTop={marginTop}
+                    />
+                    {isSingleCountryMode ? (
+                        <IncomePlotAreasUnstacked xScale={xScale} />
+                    ) : (
+                        <IncomePlotAreasStacked xScale={xScale} />
+                    )}
+                    <IncomePlotIntPovertyLine
+                        xScale={xScale}
+                        marginTop={marginTop}
+                        height={height}
+                        marginBottom={marginBottom}
+                    />
+                    <IncomePlotCustomPovertyLine
+                        xScale={xScale}
+                        marginTop={marginTop}
+                        height={height}
+                        marginBottom={marginBottom}
+                    />
+                    <IncomePlotPointer
+                        xScale={xScale}
+                        marginTop={marginTop}
+                        height={height}
+                        marginBottom={marginBottom}
+                    />
+                </svg>
+                <IncomePlotTooltip />
+            </div>
+            {isMobile && <IncomePlotLegend isMobile={true} />}
+        </>
     )
 }

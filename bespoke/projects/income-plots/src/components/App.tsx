@@ -1,4 +1,4 @@
-import { Suspense } from "react"
+import { Suspense, useRef } from "react"
 import { IncomePlot } from "./IncomePlot.tsx"
 import {
     IncomePlotControlsRowBottom,
@@ -7,11 +7,19 @@ import {
 import { PLOT_HEIGHT, PLOT_WIDTH } from "../utils/incomePlotConstants.ts"
 import { useAtomValue } from "jotai"
 import { atomCurrentYear } from "../store.ts"
+import { useResizeObserver } from "usehooks-ts"
 
 export const App = () => {
     const currentYear = useAtomValue(atomCurrentYear)
+    const containerRef = useRef<HTMLDivElement>(null)
+    const { width = PLOT_WIDTH } = useResizeObserver({
+        ref: containerRef as React.RefObject<HTMLDivElement>,
+    })
+
+    const isMobile = width < 720
+
     return (
-        <div>
+        <div ref={containerRef}>
             <IncomePlotControlsRowTop />
             <div
                 style={{
@@ -22,10 +30,10 @@ export const App = () => {
                 }}
             >
                 <Suspense fallback={<>Loading...</>}>
-                    <IncomePlot key={currentYear} />
+                    <IncomePlot key={currentYear} isMobile={isMobile} />
                 </Suspense>
             </div>
-            <IncomePlotControlsRowBottom />
+            <IncomePlotControlsRowBottom isMobile={isMobile} />
         </div>
     )
 }
