@@ -105,6 +105,13 @@
     }
 }
 
+.income-plot-chart + .income-plot-legend {
+    position: static;
+    width: auto;
+    border: none;
+    padding: 8px 0;
+}
+
 .income-plot-chart {
     .plot-series-stacked {
         .income-plot-series .area-bg {
