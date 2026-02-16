@@ -14,7 +14,8 @@
         "react": "^19.2.0",
         "react-aria-components": "^1.13.0",
         "react-dom": "^19.2.0",
-        "remeda": "^2.32.0"
+        "remeda": "^2.32.0",
+        "usehooks-ts": "^3.1.1"
     },
     "devDependencies": {
         "@types/d3": "^7.4.3",
