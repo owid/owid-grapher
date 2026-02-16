@@ -1,9 +1,10 @@
 import { useAtom, useAtomValue } from "jotai"
 import {
-    atomCustomPovertyLine,
-    atomCustomPovertyLineFormatted,
+    atomCombinedFactor,
+    atomCurrentCurrency,
     atomHoveredEntity,
     atomLegendEntries,
+    atomPovertyLineForLegend,
     atomRawDataForYear,
     atomTimeInterval,
 } from "../store.ts"
@@ -12,6 +13,7 @@ import cx from "classnames"
 import { useMemo } from "react"
 import {
     computePercentageBelowLine,
+    formatCurrency,
     getTimeIntervalStr,
     roundPercentage,
 } from "../utils/incomePlotUtils.ts"
@@ -24,8 +26,13 @@ export const IncomePlotLegend = ({
 }) => {
     const entries = useAtomValue(atomLegendEntries)
     const [hoveredEntity, setHoveredEntity] = useAtom(atomHoveredEntity)
-    const povertyLine = useAtomValue(atomCustomPovertyLine)
-    const povertyLineFormatted = useAtomValue(atomCustomPovertyLineFormatted)
+    const povertyLine = useAtomValue(atomPovertyLineForLegend)
+    const currency = useAtomValue(atomCurrentCurrency)
+    const combinedFactor = useAtomValue(atomCombinedFactor)
+    const povertyLineFormatted =
+        povertyLine !== null
+            ? formatCurrency(povertyLine * combinedFactor, currency)
+            : null
     const rawDataForYear = useAtomValue(atomRawDataForYear)
     const timeInterval = useAtomValue(atomTimeInterval)
 
@@ -54,7 +61,11 @@ export const IncomePlotLegend = ({
     }, [entries, percentageBelowLineMap])
 
     return (
-        <div className="income-plot-legend">
+        <div
+            className={cx("income-plot-legend", {
+                "income-plot-legend--mobile": isMobile,
+            })}
+        >
             {percentageBelowLineMap && povertyLineFormatted && (
                 <div className="legend-poverty-line-header">
                     Share of population that earns less than{" "}
