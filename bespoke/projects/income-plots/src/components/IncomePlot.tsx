@@ -30,16 +30,17 @@ import { IncomePlotLegend } from "./IncomePlotLegend.tsx"
 const style = {
     fontFamily:
         'Lato, "Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif',
-    fontSize: "11.5px",
+    fontSize: "13px",
     maxWidth: "100%",
     display: "block",
 }
 
-const LABEL_FONT_SIZES = [13, 12, 11] as const
-const CHAR_WIDTH_RATIO = 0.37 // approximate char width as fraction of font size
+const LABEL_FONT_SIZES = [13, 12, 11, 10, 9] as const
+const CHAR_WIDTH_RATIO = 0.4 // approximate char width as fraction of font size
 
 interface IncomePlotProps {
     aspectRatio?: number
+    width: number
     isMobile?: boolean
 }
 
@@ -537,6 +538,7 @@ interface IncomePlotXAxisProps {
     height: number
     marginBottom: number
     marginTop: number
+    isMobile?: boolean
 }
 
 const IncomePlotXAxis = ({
@@ -544,6 +546,7 @@ const IncomePlotXAxis = ({
     height,
     marginBottom,
     marginTop,
+    isMobile,
 }: IncomePlotXAxisProps) => {
     const xAxisRef = useRef<SVGGElement>(null)
 
@@ -554,6 +557,7 @@ const IncomePlotXAxis = ({
         if (!xAxisRef.current || !xScale) return
 
         const g = d3.select(xAxisRef.current)
+        const tickMarkPoints = isMobile ? [1, 3] : [1, 2, 3, 5]
 
         const [min, max] = xScale.domain()
         const xTicks: number[] = []
@@ -563,7 +567,7 @@ const IncomePlotXAxis = ({
             power++
         ) {
             const base = Math.pow(10, power)
-            ;[1, 2, 3, 5].forEach((multiplier) => {
+            tickMarkPoints.forEach((multiplier) => {
                 const val = (base * multiplier) / combinedFactor
                 if (val >= min && val <= max) xTicks.push(val)
             })
@@ -596,6 +600,7 @@ const IncomePlotXAxis = ({
         marginTop,
         currentCurrency,
         combinedFactor,
+        isMobile,
     ])
 
     return (
@@ -749,6 +754,7 @@ const IncomePlotPointer = ({
 export function IncomePlot({
     aspectRatio = 1,
     isMobile = false,
+    width,
 }: IncomePlotProps) {
     const svgRef = useRef<SVGSVGElement>(null)
 
@@ -765,7 +771,7 @@ export function IncomePlot({
     const marginBottom = 30
     const marginLeft = 20
 
-    const plotWidth = 1000
+    const plotWidth = Math.min(width, 1000)
     const plotHeight = plotWidth / aspectRatio
 
     const xScale = useMemo(() => {
@@ -834,6 +840,7 @@ export function IncomePlot({
                         height={plotHeight}
                         marginBottom={marginBottom}
                         marginTop={marginTop}
+                        isMobile={isMobile}
                     />
                     {isSingleCountryMode ? (
                         <IncomePlotAreasUnstacked
