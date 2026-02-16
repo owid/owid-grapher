@@ -167,9 +167,8 @@ describe("SeriesLabelState", () => {
     it("spanLines has correct structure for plain label", () => {
         const label = makeLabelState({ text: "United States" })
         expect(label.spanLines).toHaveLength(1)
-        expect(label.spanLines[0].dy).toBe(0)
-        expect(label.spanLines[0].spans).toHaveLength(1)
-        expect(label.spanLines[0].spans[0]).toMatchObject({
+        expect(label.spanLines[0]).toHaveLength(1)
+        expect(label.spanLines[0][0]).toMatchObject({
             role: "name",
             text: "United States",
         })
@@ -178,7 +177,7 @@ describe("SeriesLabelState", () => {
     it("spanLines merges spaces into suffix text", () => {
         const label = makeLabelState({ text: "Africa (WHO)" })
         expect(label.spanLines).toHaveLength(1)
-        const spans = label.spanLines[0].spans
+        const spans = label.spanLines[0]
         // name + suffix with space merged in
         expect(spans).toHaveLength(2)
         expect(spans[0]).toMatchObject({ role: "name", text: "Africa" })
@@ -194,9 +193,7 @@ describe("SeriesLabelState", () => {
             formattedValue: "72%",
         })
         expect(label.spanLines).toHaveLength(2)
-        expect(label.spanLines[0].dy).toBe(0)
-        expect(label.spanLines[1].dy).toBeGreaterThan(0)
-        expect(label.spanLines[1].spans[0]).toMatchObject({
+        expect(label.spanLines[1][0]).toMatchObject({
             role: "value",
             text: "72%",
         })
