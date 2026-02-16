@@ -32,8 +32,8 @@ import {
     getFirstBlockOfType,
     takeConsecutiveBlocksOfType,
 } from "../../../site/gdocs/utils.js"
-import { getPrefixedGdocPath, toPlaintext } from "@ourworldindata/components"
-import { stripCustomMarkdownComponents } from "../../../db/model/Gdoc/enrichedToMarkdown.js"
+import { getPrefixedGdocPath } from "@ourworldindata/components"
+import { enrichedBlocksToIndexableText } from "../../../db/model/Gdoc/enrichedToIndexableText.js"
 
 const computePageScore = (record: Omit<PageRecord, "score">): number => {
     const { importance, views_7d } = record
@@ -167,24 +167,28 @@ function getExcerptLongFromGdoc(
     )
 }
 
-function formatGdocMarkdown(content: string): string {
-    const simplifiedMarkdown = stripCustomMarkdownComponents(content)
-    // We still have some markdown gore that MarkdownTextWrap can't handle. Easier to just remove all asterisks.
-    const withoutAsterisks = simplifiedMarkdown.replaceAll("*", "")
-    const withoutMarkdown = toPlaintext(withoutAsterisks)
-    const withoutNewlines = withoutMarkdown.replaceAll("\n", " ")
+/** Remove characters that shouldn't appear in search results but could
+ *  affect chunk boundaries (e.g. arrow symbols used in data insights). */
+function stripNonSearchableCharacters(content: string): string {
+    return content.replaceAll("→", "")
+}
 
-    // Doing this after removing markdown links because otherwise we need to handle
-    // - [word](link).1
-    // - [word.](link)1
-    // - word.1
-    const withoutFootnotes = withoutNewlines.replaceAll(
-        /([A-Za-z]\.)\d{1,2}/g,
-        "$1"
-    )
-    // This is used in many data insights but shouldn't be shown in search results
-    const withoutArrow = withoutFootnotes.replaceAll("→", "")
-    return withoutArrow
+/** Build indexable body text with linked-callout resolution and lightweight
+ *  cleanup (remove non-searchable symbols), while preserving paragraph breaks. */
+export function getPreprocessedIndexableText(
+    body: OwidGdocPostInterface["content"]["body"] | undefined,
+    linkedCallouts: OwidGdocPostInterface["linkedCallouts"]
+): string {
+    const indexableText = enrichedBlocksToIndexableText(body, {
+        linkedCallouts,
+    })
+    return stripNonSearchableCharacters(indexableText ?? "")
+}
+
+/** Collapse paragraph separators so each chunk is a single line of text
+ *  suitable for an Algolia record. */
+function flattenToSingleLine(chunk: string): string {
+    return chunk.replace(/\n+/g, " ")
 }
 
 const getPostImportance = (
@@ -225,11 +229,16 @@ async function generateGdocRecords(
             continue
         }
 
-        // Only rendering the blocks - not the page nav, title, byline, etc
-        const plaintextContent = gdoc.markdown
-            ? formatGdocMarkdown(gdoc.markdown)
-            : ""
+        // Only rendering the main content - not the page nav, title, byline, etc
+        // Keep paragraph separators at this stage for semantic chunking and
+        // apply only pre-index cleanup (e.g. remove non-searchable symbols).
+        const plaintextContent = getPreprocessedIndexableText(
+            gdoc.content.body,
+            gdoc.linkedCallouts
+        )
 
+        // Chunk first while `\n\n` boundaries still exist. Flattening happens
+        // later per chunk to satisfy Algolia's single-line record content.
         const chunks = chunkParagraphs(plaintextContent, 1000)
         let i = 0
 
@@ -252,7 +261,7 @@ async function generateGdocRecords(
                 type: gdoc.content.type,
                 slug: gdoc.slug,
                 title: gdoc.content.title || "",
-                content: chunk,
+                content: flattenToSingleLine(chunk),
                 views_7d:
                     pageviews[getPrefixedGdocPath("", gdoc)]?.views_7d ?? 0,
                 excerpt: getExcerptFromGdoc(gdoc),
