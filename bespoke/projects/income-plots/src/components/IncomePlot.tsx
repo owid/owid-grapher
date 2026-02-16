@@ -21,8 +21,6 @@ import {
 } from "../store.ts"
 import {
     INT_POVERTY_LINE,
-    PLOT_HEIGHT,
-    PLOT_WIDTH,
     StackedSeriesPoint,
 } from "../utils/incomePlotConstants.ts"
 import * as R from "remeda"
@@ -41,8 +39,7 @@ const LABEL_FONT_SIZES = [13, 12, 11] as const
 const CHAR_WIDTH_RATIO = 0.37 // approximate char width as fraction of font size
 
 interface IncomePlotProps {
-    width?: number
-    height?: number
+    aspectRatio?: number
     isMobile?: boolean
 }
 
@@ -74,9 +71,10 @@ const IncomePlotClipPath = ({ xScale }: IncomePlotClipPathProps) => {
 
 interface IncomePlotAreasProps {
     xScale: d3.ScaleLogarithmic<number, number> | null
+    height: number
 }
 
-const IncomePlotAreasStacked = ({ xScale }: IncomePlotAreasProps) => {
+const IncomePlotAreasStacked = ({ xScale, height }: IncomePlotAreasProps) => {
     const ref = useRef<SVGGElement>(null)
 
     const points = useAtomValue(atomKdeDataForYear)
@@ -134,8 +132,8 @@ const IncomePlotAreasStacked = ({ xScale }: IncomePlotAreasProps) => {
         return d3
             .scaleLinear()
             .domain([0, yMax])
-            .range([PLOT_HEIGHT - 30, 30])
-    }, [xScale, yMax])
+            .range([height - 30, 30])
+    }, [height, xScale, yMax])
 
     // Area Generator
     const area = useMemo(() => {
@@ -231,20 +229,45 @@ const IncomePlotAreasStacked = ({ xScale }: IncomePlotAreasProps) => {
 
             // Build the boundary polygon in scaled space: trace the top edge
             // left-to-right, then the bottom edge right-to-left.
-            // We use a flat Float64Array for the Delaunay input — it expects
-            // interleaved [x0, y0, x1, y1, ...] coordinates.
-            const numBoundary = n * 2
-            const scaledCoords = new Float64Array(numBoundary * 2)
-            for (let i = 0; i < n; i++) {
-                scaledCoords[i * 2] = pxData[i].x * xShrink
-                scaledCoords[i * 2 + 1] = pxData[i].top
+            // We subdivide each edge segment so that vertex spacing in
+            // scaled space is at most MAX_SEG_LEN px. This ensures that
+            // "nearest vertex" closely approximates "nearest edge".
+            const MAX_SEG_LEN = 4
+            const boundaryPoints: number[] = []
+
+            const addSubdividedEdge = (
+                points: typeof pxData,
+                getY: (p: (typeof pxData)[0]) => number
+            ) => {
+                for (let i = 0; i < points.length - 1; i++) {
+                    const x0 = points[i].x * xShrink
+                    const y0 = getY(points[i])
+                    const x1 = points[i + 1].x * xShrink
+                    const y1 = getY(points[i + 1])
+                    const segLen = Math.hypot(x1 - x0, y1 - y0)
+                    const subdivisions = Math.max(
+                        1,
+                        Math.ceil(segLen / MAX_SEG_LEN)
+                    )
+                    for (let s = 0; s < subdivisions; s++) {
+                        const t = s / subdivisions
+                        boundaryPoints.push(
+                            x0 + t * (x1 - x0),
+                            y0 + t * (y1 - y0)
+                        )
+                    }
+                }
+                // Add the last point
+                const last = points[points.length - 1]
+                boundaryPoints.push(last.x * xShrink, getY(last))
             }
-            for (let i = 0; i < n; i++) {
-                const j = n + i
-                const src = n - 1 - i
-                scaledCoords[j * 2] = pxData[src].x * xShrink
-                scaledCoords[j * 2 + 1] = pxData[src].bot
-            }
+
+            // Top edge left-to-right
+            addSubdividedEdge(pxData, (p) => p.top)
+            // Bottom edge right-to-left
+            addSubdividedEdge([...pxData].reverse(), (p) => p.bot)
+
+            const scaledCoords = new Float64Array(boundaryPoints)
 
             // Build Delaunay on the scaled boundary so that nearest-neighbor
             // queries reflect the text's aspect ratio
@@ -393,7 +416,7 @@ const IncomePlotAreasStacked = ({ xScale }: IncomePlotAreasProps) => {
     )
 }
 
-const IncomePlotAreasUnstacked = ({ xScale }: IncomePlotAreasProps) => {
+const IncomePlotAreasUnstacked = ({ xScale, height }: IncomePlotAreasProps) => {
     const ref = useRef<SVGGElement>(null)
 
     const points = useAtomValue(atomKdeDataForYear)
@@ -423,8 +446,8 @@ const IncomePlotAreasUnstacked = ({ xScale }: IncomePlotAreasProps) => {
         return d3
             .scaleLinear()
             .domain([0, yMax])
-            .range([PLOT_HEIGHT - 30, 30])
-    }, [xScale, yMax])
+            .range([height - 30, 30])
+    }, [xScale, yMax, height])
 
     // Area Generator
     const area = useMemo(() => {
@@ -724,8 +747,7 @@ const IncomePlotPointer = ({
 }
 
 export function IncomePlot({
-    width = PLOT_WIDTH,
-    height = PLOT_HEIGHT,
+    aspectRatio = 1,
     isMobile = false,
 }: IncomePlotProps) {
     const svgRef = useRef<SVGSVGElement>(null)
@@ -743,6 +765,9 @@ export function IncomePlot({
     const marginBottom = 30
     const marginLeft = 20
 
+    const plotWidth = 1000
+    const plotHeight = plotWidth / aspectRatio
+
     const xScale = useMemo(() => {
         const xMin = R.first(xValues)
         const xMax = R.last(xValues)
@@ -751,9 +776,9 @@ export function IncomePlot({
         const xScale = d3
             .scaleLog()
             .domain(xDomain)
-            .range([marginLeft, width - marginRight])
+            .range([marginLeft, plotWidth - marginRight])
         return xScale
-    }, [xValues, width])
+    }, [xValues, plotWidth])
 
     const onMouseMove = useCallback(
         (event: MouseEvent) => {
@@ -789,8 +814,6 @@ export function IncomePlot({
                 className="income-plot-chart"
                 style={{
                     position: "relative",
-                    width,
-                    height,
                     maxWidth: "100%",
                 }}
             >
@@ -798,9 +821,8 @@ export function IncomePlot({
                 <svg
                     ref={svgRef}
                     className="income-plot-chart-svg"
-                    width={width}
-                    height={height}
-                    viewBox={`0 0 ${width} ${height}`}
+                    width={plotWidth}
+                    viewBox={`0 0 ${plotWidth} ${plotHeight}`}
                     style={style}
                     onMouseMove={onMouseMove}
                     onMouseLeave={onMouseLeave}
@@ -809,31 +831,37 @@ export function IncomePlot({
                     <IncomePlotClipPath xScale={xScale} />
                     <IncomePlotXAxis
                         xScale={xScale}
-                        height={height}
+                        height={plotHeight}
                         marginBottom={marginBottom}
                         marginTop={marginTop}
                     />
                     {isSingleCountryMode ? (
-                        <IncomePlotAreasUnstacked xScale={xScale} />
+                        <IncomePlotAreasUnstacked
+                            xScale={xScale}
+                            height={plotHeight}
+                        />
                     ) : (
-                        <IncomePlotAreasStacked xScale={xScale} />
+                        <IncomePlotAreasStacked
+                            xScale={xScale}
+                            height={plotHeight}
+                        />
                     )}
                     <IncomePlotIntPovertyLine
                         xScale={xScale}
                         marginTop={marginTop}
-                        height={height}
+                        height={plotHeight}
                         marginBottom={marginBottom}
                     />
                     <IncomePlotCustomPovertyLine
                         xScale={xScale}
                         marginTop={marginTop}
-                        height={height}
+                        height={plotHeight}
                         marginBottom={marginBottom}
                     />
                     <IncomePlotPointer
                         xScale={xScale}
                         marginTop={marginTop}
-                        height={height}
+                        height={plotHeight}
                         marginBottom={marginBottom}
                     />
                 </svg>
