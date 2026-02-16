@@ -1,4 +1,11 @@
-import { MouseEvent, useCallback, useEffect, useMemo, useRef } from "react"
+import {
+    MouseEvent,
+    PointerEvent,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+} from "react"
 import { useAtom, useAtomValue, useSetAtom } from "jotai"
 import * as d3 from "d3"
 import { formatCurrency } from "../utils/incomePlotUtils.ts"
@@ -786,9 +793,12 @@ export function IncomePlot({
         return xScale
     }, [xValues, plotWidth])
 
-    const onMouseMove = useCallback(
-        (event: MouseEvent) => {
+    const onPointerMove = useCallback(
+        (event: PointerEvent) => {
             if (!xScale || !svgRef.current) return
+
+            // Don't show tooltip or hover line for touch events
+            if (event.pointerType === "touch") return
 
             const [mx] = d3.pointer(event, svgRef.current)
             const xVal = xScale.invert(mx)
@@ -797,7 +807,7 @@ export function IncomePlot({
         [xScale, setHoveredX]
     )
 
-    const onMouseLeave = useCallback(() => {
+    const onPointerLeave = useCallback(() => {
         setHoveredEntity(null)
         setHoveredX(null)
     }, [setHoveredEntity, setHoveredX])
@@ -830,8 +840,8 @@ export function IncomePlot({
                     width={plotWidth}
                     viewBox={`0 0 ${plotWidth} ${plotHeight}`}
                     style={style}
-                    onMouseMove={onMouseMove}
-                    onMouseLeave={onMouseLeave}
+                    onPointerMove={onPointerMove}
+                    onPointerLeave={onPointerLeave}
                     onClick={onClick}
                 >
                     <IncomePlotClipPath xScale={xScale} />
