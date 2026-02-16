@@ -142,7 +142,7 @@ describe("SeriesLabelState", () => {
             text: "High-income countries",
             showRegionProviderTooltip: true,
         })
-        const icons = iconFragments(label.renderFragments)
+        const icons = iconFragments(label.positionedFragments)
         expect(icons).toHaveLength(1)
         expect(icons[0].tooltipKey).toBe("incomeGroups")
     })
