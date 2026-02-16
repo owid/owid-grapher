@@ -83,7 +83,11 @@ const atomCountriesOrRegionsModeInternal = atom<"countries" | "regions">(
     "countries"
 )
 export const atomCountriesOrRegionsMode = atom(
-    (get) => get(atomCountriesOrRegionsModeInternal),
+    (get) => {
+        const isSingleCountryMode = get(atomIsInSingleCountryMode)
+        if (isSingleCountryMode) return "countries"
+        return get(atomCountriesOrRegionsModeInternal)
+    },
     (get, set) => {
         set(atomCountriesOrRegionsModeInternal, (current) =>
             current === "countries" ? "regions" : "countries"
