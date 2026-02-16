@@ -71,8 +71,22 @@ async function main(args: ReturnType<typeof parseArguments>) {
             liveChartUrl,
         })
     )
-    const summary = `<p class="summary">Number of differences: ${sections.length}</p>`
-    const content = summary + sections.join("\n")
+
+    // Count chart types for filtering
+    const chartTypeCounts = _.countBy(
+        svgRecords,
+        (record) => record.chartType ?? "Unknown"
+    )
+    const sortedChartTypes = Object.entries(chartTypeCounts).sort(
+        ([, a], [, b]) => b - a
+    )
+
+    const filterDropdown = createChartTypeFilter(
+        sortedChartTypes,
+        sections.length
+    )
+    const summary = `<p class="summary">Showing <span id="visible-count">${sections.length}</span> of ${sections.length} differences</p>`
+    const content = filterDropdown + summary + sections.join("\n")
     await fs.writeFile(outFile, createHtml(content))
 }
 
@@ -117,6 +131,26 @@ void main(argv)
 
 function escapeQuestionMark(str: string) {
     return str.replace(/\?/g, "%3F")
+}
+
+function createChartTypeFilter(
+    chartTypeCounts: [string, number][],
+    totalCount: number
+) {
+    const options = chartTypeCounts
+        .map(
+            ([chartType, count]) =>
+                `<option value="${chartType}">${chartType} (${count})</option>`
+        )
+        .join("\n")
+
+    return `<div class="filter-container">
+        <label for="chart-type-filter">Chart Type:</label>
+        <select id="chart-type-filter">
+            <option value="all" selected>All (${totalCount})</option>
+            ${options}
+        </select>
+    </div>`
 }
 
 function createTabControls() {
@@ -216,7 +250,7 @@ function createComparisonView(args: {
     liveChartUrl: string
 }) {
     const { svgRecord, compareChartUrl, liveChartUrl } = args
-    const { svgFilename, viewId } = args.svgRecord
+    const { svgFilename, viewId, chartType } = args.svgRecord
 
     const referenceFilenameUrl = path.join(args.referencesDirName, svgFilename)
     const differenceFilenameUrl = path.join(
@@ -235,7 +269,9 @@ function createComparisonView(args: {
         svgFilename
     )
 
-    return `<section data-slug="${viewId}">
+    const chartTypeAttr = chartType ?? "Unknown"
+
+    return `<section data-slug="${viewId}" data-chart-type="${chartTypeAttr}">
         <div class="header-with-actions">
             <h2>${viewId}</h2>
             <button class="copy-slug-btn" data-slug="${viewId}" title="Copy to clipboard">
@@ -282,6 +318,49 @@ function createHtml(content: string) {
             border: 1px solid #d0d7de;
             border-radius: 6px;
             color: #24292e;
+        }
+
+        /* Filter dropdown */
+        .filter-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: white;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+        }
+
+        .filter-container label {
+            font-weight: 500;
+            color: #24292e;
+        }
+
+        .filter-container select {
+            padding: 8px 12px;
+            border: 1px solid #d1d5da;
+            border-radius: 6px;
+            background: #fafbfc;
+            font-size: 0.9rem;
+            color: #24292e;
+            cursor: pointer;
+            min-width: 200px;
+        }
+
+        .filter-container select:hover {
+            border-color: #a0a8b0;
+        }
+
+        .filter-container select:focus {
+            outline: none;
+            border-color: #0969da;
+            box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.15);
+        }
+
+        section.hidden {
+            display: none;
         }
 
         section {
@@ -557,6 +636,34 @@ function createHtml(content: string) {
     <script>
         // Track which diffs have been rendered
         const renderedDiffs = new Set();
+
+        // Chart type filtering
+        const chartTypeFilter = document.getElementById('chart-type-filter');
+        const visibleCountSpan = document.getElementById('visible-count');
+
+        function filterByChartType(chartType) {
+            const sections = document.querySelectorAll('section[data-chart-type]');
+            let visibleCount = 0;
+
+            sections.forEach(section => {
+                if (chartType === 'all' || section.dataset.chartType === chartType) {
+                    section.classList.remove('hidden');
+                    visibleCount++;
+                } else {
+                    section.classList.add('hidden');
+                }
+            });
+
+            if (visibleCountSpan) {
+                visibleCountSpan.textContent = visibleCount;
+            }
+        }
+
+        if (chartTypeFilter) {
+            chartTypeFilter.addEventListener('change', (e) => {
+                filterByChartType(e.target.value);
+            });
+        }
 
         // Tab switching functionality
         document.addEventListener('click', (e) => {
