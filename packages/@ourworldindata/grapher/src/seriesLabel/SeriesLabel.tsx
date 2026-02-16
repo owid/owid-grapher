@@ -104,6 +104,7 @@ export function SeriesLabel({
                     y={renderY}
                     fragment={fragment}
                     fill={colors.suffix}
+                    regionName={state.regionName}
                     onMouseEnter={onMouseEnter}
                     onMouseLeave={onMouseLeave}
                     onInfoTooltipShow={onInfoTooltipShow}
@@ -290,6 +291,7 @@ function IconFragment({
     y,
     fragment,
     fill,
+    regionName,
     onMouseEnter,
     onMouseLeave,
     onInfoTooltipShow,
@@ -298,6 +300,7 @@ function IconFragment({
     y: number
     fragment: PositionedIconFragment
     fill: string
+    regionName?: string
     onMouseEnter?: React.MouseEventHandler<SVGElement>
     onMouseLeave?: React.MouseEventHandler<SVGElement>
     onInfoTooltipShow?: () => void
@@ -341,6 +344,7 @@ function IconFragment({
                 content={
                     <RegionProviderTooltip
                         {...getRegionProviderTooltipData(fragment.tooltipKey)}
+                        currentRegion={regionName}
                     />
                 }
             >

@@ -150,6 +150,11 @@ export class SeriesLabelState {
             : this.parsedText.raw
     }
 
+    /** The parsed region name without the provider suffix (e.g. "Europe" from "Europe (WHO)") */
+    @computed get regionName(): string | undefined {
+        return this.parsedText.providerKey ? this.parsedText.name : undefined
+    }
+
     @computed private get nameWrap(): TextWrap {
         return new TextWrap({
             text: this.name,

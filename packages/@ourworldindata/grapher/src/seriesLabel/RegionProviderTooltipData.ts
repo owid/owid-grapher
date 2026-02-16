@@ -160,13 +160,13 @@ function buildCountryMaps(key: TooltipKey): {
         for (const aggregate of getAggregatesByProvider(key)) {
             const color = continentColorsMap[aggregate.name]
             if (!color) continue
-            const parsed = parseLabelWithSuffix(aggregate.name)
+            const parsed = parseLabel(aggregate.name)
             if (!parsed.providerKey) continue
             const countries = getCountriesByRegion(aggregate.name)
             if (!countries) continue
             for (const country of countries) {
                 colorMap.set(country, color)
-                regionMap.set(country, parsed.main)
+                regionMap.set(country, parsed.name)
             }
         }
     }

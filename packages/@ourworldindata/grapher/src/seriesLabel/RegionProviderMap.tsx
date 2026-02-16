@@ -9,14 +9,16 @@ const MUTED_OPACITY = 0.4
 
 interface RegionProviderMapProps {
     countryColorMap: Map<string, string>
+    countryRegionMap: Map<string, string>
     highlightColor?: string
-    onCountryHover?: (countryName: string | undefined) => void
+    onRegionHover?: (region: string | undefined) => void
 }
 
 export function RegionProviderMap({
     countryColorMap,
+    countryRegionMap,
     highlightColor,
-    onCountryHover,
+    onRegionHover,
 }: RegionProviderMapProps): React.ReactElement {
     const features = getGeoFeaturesForMap(MapRegionName.World)
     const clearTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
@@ -26,16 +28,19 @@ export function RegionProviderMap({
     const handleHover = useCallback(
         (countryName: string | undefined) => {
             if (clearTimer.current) clearTimeout(clearTimer.current)
-            if (countryName) {
-                onCountryHover?.(countryName)
+            const region = countryName
+                ? countryRegionMap.get(countryName)
+                : undefined
+            if (region) {
+                onRegionHover?.(region)
             } else {
                 clearTimer.current = setTimeout(
-                    () => onCountryHover?.(undefined),
+                    () => onRegionHover?.(undefined),
                     200
                 )
             }
         },
-        [onCountryHover]
+        [countryRegionMap, onRegionHover]
     )
 
     const viewBox = useMemo(() => {
