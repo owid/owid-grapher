@@ -25,7 +25,7 @@ export const App = () => {
     const { height: windowHeight, width: windowWidth } = useWindowSize()
     const isPortrait = windowHeight >= windowWidth
 
-    const aspectRatio = isMobile && isPortrait ? 1 : 5 / 3
+    const aspectRatio = isMobile && isPortrait ? 0.9 : 5 / 3
 
     return (
         <div ref={containerRef}>
@@ -41,6 +41,7 @@ export const App = () => {
                 <Suspense fallback={<>Loading...</>}>
                     <IncomePlot
                         key={currentYear}
+                        width={width}
                         aspectRatio={aspectRatio}
                         isMobile={isMobile}
                     />
