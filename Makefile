@@ -26,8 +26,8 @@ help:
 	@echo '  make up                     start dev environment via docker-compose and tmux'
 	@echo '  make down                   stop any services still running'
 	@echo '  make refresh                (while up) download a new grapher snapshot and update MySQL'
-	@echo '  make refresh.pageviews      (while up) download and load pageviews from the private datasette instance'
-	@echo '  make refresh.full           (while up) run refresh and refresh.pageviews'
+	@echo '  make refresh.analytics      (while up) download and load analytics from the private datasette instance'
+	@echo '  make refresh.full           (while up) run refresh and refresh.analytics'
 	@echo '  make migrate                (while up) run any outstanding db migrations'
 	@echo '  make test                   run full suite (except db tests) of CI checks including unit tests'
 	@echo '  make dbtest                 run db test suite that needs a running mysql db'
@@ -167,9 +167,9 @@ refresh.atomic:
 	@echo '!!! If you use ETL, wipe indicators from your R2 staging with `rclone delete r2:owid-api-staging/[yourname]/ ' \
 	'--fast-list --transfers 32 --checkers 32  --verbose`'
 
-refresh.pageviews: node_modules
-	@echo '==> Refreshing pageviews'
-	yarn refreshPageviews
+refresh.analytics: node_modules
+	@echo '==> Refreshing analytics'
+	yarn refreshAnalytics
 
 sync-images:
 	@echo 'Task has been deprecated.'
@@ -182,7 +182,7 @@ sync-cloudflare-images: node_modules
 	@echo '==> Syncing images table with Cloudflare Images'
 	@yarn syncCloudflareImages
 
-refresh.full: refresh refresh.pageviews
+refresh.full: refresh refresh.analytics
 	@echo '==> Full refresh completed'
 
 down: export COMPOSE_PROJECT_NAME ?= owid-grapher

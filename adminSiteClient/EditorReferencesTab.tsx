@@ -77,15 +77,15 @@ export class EditorReferencesTabForChart extends Component<{
         return this.props.editor.redirects || []
     }
 
-    @computed get pageviews() {
-        return this.props.editor.pageviews
+    @computed get views() {
+        return this.props.editor.views
     }
 
     @action.bound appendRedirect(redirect: ChartRedirect) {
         this.props.editor.manager.redirects.push(redirect)
     }
 
-    renderPageview(views: number | undefined) {
+    renderViewCount(views: number | undefined) {
         return views !== undefined
             ? formatValue(views, { unit: "views" })
             : "No data"
@@ -95,38 +95,35 @@ export class EditorReferencesTabForChart extends Component<{
         return (
             <div className="EditorReferencesTab">
                 <section>
-                    <h5>Pageviews</h5>
+                    <h5>Chart views</h5>
                     <div>
                         <div>
                             <strong>Last 7 days:</strong>{" "}
-                            {this.renderPageview(this.pageviews?.views_7d)}
+                            {this.renderViewCount(this.views?.views_7d)}
                         </div>
                         <div>
                             <strong>Last 14 days:</strong>{" "}
-                            {this.renderPageview(this.pageviews?.views_14d)}
+                            {this.renderViewCount(this.views?.views_14d)}
                         </div>
                         <div>
                             <strong>Last 365 days:</strong>{" "}
-                            {this.renderPageview(this.pageviews?.views_365d)}
+                            {this.renderViewCount(this.views?.views_365d)}
                         </div>
                         <div>
                             <strong>
-                                Average pageviews per day over the last year:
+                                Average views per day over the last year:
                             </strong>{" "}
-                            {this.renderPageview(
-                                this.pageviews?.views_365d
-                                    ? _.round(
-                                          this.pageviews?.views_365d / 365,
-                                          1
-                                      )
+                            {this.renderViewCount(
+                                this.views?.views_365d
+                                    ? _.round(this.views?.views_365d / 365, 1)
                                     : undefined
                             )}
                         </div>
                     </div>
                     <small className="form-text text-muted">
-                        Pageview numbers are inaccurate when the chart has been
-                        published or renamed recently. The numbers are updated
-                        nightly.
+                        Chart view numbers include all views of this chart
+                        (direct, embedded, and in articles). The numbers are
+                        updated nightly.
                     </small>
                 </section>
                 <section>

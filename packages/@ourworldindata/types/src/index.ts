@@ -527,6 +527,10 @@ export {
     AnalyticsPageviewsTableName,
 } from "./dbTypes/AnalyticsPageviews.js"
 export {
+    type DbPlainAnalyticsGrapherView,
+    AnalyticsGrapherViewsTableName,
+} from "./dbTypes/AnalyticsGrapherViews.js"
+export {
     type DbInsertArchivedChartVersion,
     type DbPlainArchivedChartVersion,
     type DbEnrichedArchivedChartVersion,

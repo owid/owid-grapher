@@ -515,6 +515,9 @@ export interface OldChartFieldList {
     publishedAt: Date
     publishedByUserId: number
     publishedBy: string
+    grapherViewsPerDay: number
+    narrativeChartsCount: number
+    referencesCount: number
     isExplorable: boolean
 }
 
@@ -534,7 +537,10 @@ export const oldChartFieldList = `
         lastEditedByUser.fullName AS lastEditedBy,
         charts.publishedAt,
         charts.publishedByUserId,
-        publishedByUser.fullName AS publishedBy
+        publishedByUser.fullName AS publishedBy,
+        round(agv.views_365d / 365, 1) as grapherViewsPerDay,
+        crv.narrativeChartsCount,
+        crv.referencesCount
     `
 // TODO: replace this with getBySlug and pick
 

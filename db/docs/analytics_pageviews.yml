@@ -5,7 +5,7 @@ metadata:
 
         Availability:
         - Production and staging databases: populated with live data
-        - Local development: empty by default, populated via `make refresh.pageviews`
+        - Local development: empty by default, populated via `make refresh.analytics`
 
         Usage for popularity sorting:
         This table is commonly used for joining to sort content by popularity based on the `url` column.

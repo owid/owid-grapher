@@ -27,7 +27,7 @@
         "lerna": "echo 'Lerna is not needed anymore; this script is here for compatibility with ops, remove it after the merge!'",
         "runRegionsUpdater": "tsx --tsconfig tsconfig.tsx.json devTools/regionsUpdater/update.ts",
         "runDbMigrations": "tsx --tsconfig tsconfig.tsx.json node_modules/typeorm/cli.js migration:run -d db/dataSource.ts",
-        "refreshPageviews": "tsx --tsconfig tsconfig.tsx.json db/refreshPageviewsFromDatasette.ts",
+        "refreshAnalytics": "tsx --tsconfig tsconfig.tsx.json db/refreshAnalyticsFromDatasette.ts",
         "refreshExplorerViews": "tsx --tsconfig tsconfig.tsx.json devTools/refreshExplorerViews.ts",
         "revertLastDbMigration": "tsx --tsconfig tsconfig.tsx.json node_modules/typeorm/cli.js migration:revert -d db/dataSource.ts",
         "startAdminServer": "tsx --tsconfig tsconfig.tsx.json adminSiteServer/app.ts",
