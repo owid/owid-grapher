@@ -95,9 +95,9 @@ export const IncomePlotLegend = ({
                             style={
                                 {
                                     "--legend-entry-color": entry.color,
-                                    "--legend-entry-percentage":
+                                    "--legend-entry-percentage-value":
                                         percentageBelow !== undefined
-                                            ? `${R.round(percentageBelow, 1)}px`
+                                            ? R.round(percentageBelow, 1)
                                             : "",
                                 } as React.CSSProperties
                             }
