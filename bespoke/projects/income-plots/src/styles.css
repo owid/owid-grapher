@@ -63,7 +63,11 @@
         grid-column: 1 / -1;
         grid-template-columns: subgrid;
 
-        color: color-mix(in oklab, var(--legend-entry-color), var(--gray-100) 30%);
+        color: color-mix(
+            in oklab,
+            var(--legend-entry-color),
+            var(--gray-100) 30%
+        );
 
         &.legend-entry--has-percentages {
             .legend-entry-label {
