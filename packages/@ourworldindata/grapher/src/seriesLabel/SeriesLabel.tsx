@@ -11,6 +11,7 @@ import {
     TextRenderFragment,
     IconRenderFragment,
     TextFragmentRole,
+    TextLine,
 } from "./SeriesLabelState.js"
 import { Bounds, isTouchDevice } from "@ourworldindata/utils"
 import { AnyRegionDataProvider } from "../core/RegionGroups.js"
@@ -57,27 +58,35 @@ export function SeriesLabel({
     // Get the corrected position for SVG text rendering
     const [renderX, renderY] = state.getPositionForSvgRendering(x, y)
 
-    const [textFragments, iconFragments] = R.partition(
-        state.renderFragments,
-        (f) => f.type === "text"
-    )
-
-    const props = { id, opacity, onMouseEnter, onMouseLeave }
     const fontSize = state.fontSettings.fontSize.toFixed(2)
     const colors = { ...defaultColors, ...color }
+    const props = { id, opacity, onMouseEnter, onMouseLeave }
 
-    if (iconFragments.length === 0) {
+    if (!state.hasIcons) {
+        // Use native textAnchor for text alignment. This delegates
+        // alignment to the browser, making rendering resilient to font
+        // measurement inaccuracies (e.g. when a fallback font is used
+        // during static image export).
         return (
-            <LabelText
+            <NativeAlignedLabelText
                 x={renderX}
                 y={renderY}
-                fragments={textFragments}
+                textLines={state.textLines}
+                textAnchor={state.textAnchor}
                 fontSize={fontSize}
                 colors={colors}
                 {...props}
             />
         )
     }
+
+    // When icons are present, use manually positioned fragments.
+    // This only happens in interactive environments where the correct
+    // fonts are loaded and text measurement is accurate.
+    const [textFragments, iconFragments] = R.partition(
+        state.renderFragments,
+        (f) => f.type === "text"
+    )
 
     return (
         <g {...props}>
@@ -101,6 +110,67 @@ export function SeriesLabel({
                 />
             ))}
         </g>
+    )
+}
+
+/**
+ * Renders label text using the browser's native textAnchor for alignment.
+ *
+ * Each line's first tspan gets explicit x/y coordinates, creating a new
+ * SVG "text chunk". Subsequent tspans on the same line omit x so they
+ * flow inline within the same chunk. The textAnchor on the parent <text>
+ * element then aligns each chunk (line) as a unit.
+ */
+function NativeAlignedLabelText({
+    x,
+    y,
+    textLines,
+    textAnchor,
+    fontSize,
+    colors,
+    id,
+    opacity,
+    onMouseEnter,
+    onMouseLeave,
+}: {
+    x: number
+    y: number
+    textLines: TextLine[]
+    textAnchor: "start" | "end"
+    fontSize: string
+    colors: Record<TextFragmentRole, string>
+    id?: string
+    opacity?: number
+    onMouseEnter?: React.MouseEventHandler<SVGElement>
+    onMouseLeave?: React.MouseEventHandler<SVGElement>
+}): React.ReactElement {
+    return (
+        <text
+            id={id}
+            textAnchor={textAnchor}
+            fontSize={fontSize}
+            opacity={opacity}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
+        >
+            {textLines.map((line, lineIndex) =>
+                line.spans.map((span, spanIndex) => (
+                    <tspan
+                        key={`${lineIndex}-${spanIndex}`}
+                        x={spanIndex === 0 ? x.toFixed(1) : undefined}
+                        y={
+                            spanIndex === 0
+                                ? (y + line.y).toFixed(1)
+                                : undefined
+                        }
+                        fontWeight={span.fontWeight}
+                        fill={colors[span.role]}
+                    >
+                        {span.text}
+                    </tspan>
+                ))
+            )}
+        </text>
     )
 }
 

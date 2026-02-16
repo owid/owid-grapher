@@ -127,4 +127,70 @@ describe("SeriesLabelState", () => {
         const texts = textFragments(label.renderFragments)
         expect(texts.every((f) => f.role === "name")).toBe(true)
     })
+
+    it("textAnchor defaults to start", () => {
+        const label = makeLabelState({ text: "Test" })
+        expect(label.textAnchor).toBe("start")
+    })
+
+    it("textAnchor returns configured value", () => {
+        const label = makeLabelState({ text: "Test", textAnchor: "end" })
+        expect(label.textAnchor).toBe("end")
+    })
+
+    it("hasIcons is false for plain labels", () => {
+        const label = makeLabelState({ text: "United States" })
+        expect(label.hasIcons).toBe(false)
+    })
+
+    it("hasIcons is false for provider suffix without tooltip", () => {
+        const label = makeLabelState({ text: "Africa (WHO)" })
+        expect(label.hasIcons).toBe(false)
+    })
+
+    it("hasIcons is true when showRegionProviderTooltip is enabled", () => {
+        const label = makeLabelState({
+            text: "Africa (WHO)",
+            showRegionProviderTooltip: true,
+        })
+        expect(label.hasIcons).toBe(true)
+    })
+
+    it("textLines has correct structure for plain label", () => {
+        const label = makeLabelState({ text: "United States" })
+        expect(label.textLines).toHaveLength(1)
+        expect(label.textLines[0].y).toBe(0)
+        expect(label.textLines[0].spans).toHaveLength(1)
+        expect(label.textLines[0].spans[0]).toMatchObject({
+            role: "name",
+            text: "United States",
+        })
+    })
+
+    it("textLines merges spaces into suffix text", () => {
+        const label = makeLabelState({ text: "Africa (WHO)" })
+        expect(label.textLines).toHaveLength(1)
+        const spans = label.textLines[0].spans
+        // name + suffix with space merged in
+        expect(spans).toHaveLength(2)
+        expect(spans[0]).toMatchObject({ role: "name", text: "Africa" })
+        expect(spans[1]).toMatchObject({
+            role: "suffix",
+            text: " (WHO)",
+        })
+    })
+
+    it("textLines places value on a separate line", () => {
+        const label = makeLabelState({
+            text: "Africa (WHO)",
+            formattedValue: "72%",
+        })
+        expect(label.textLines).toHaveLength(2)
+        expect(label.textLines[0].y).toBe(0)
+        expect(label.textLines[1].y).toBeGreaterThan(0)
+        expect(label.textLines[1].spans[0]).toMatchObject({
+            role: "value",
+            text: "72%",
+        })
+    })
 })

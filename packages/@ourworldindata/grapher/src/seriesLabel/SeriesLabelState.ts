@@ -67,6 +67,18 @@ export type IconRenderFragment = IconFragment & Position
 
 export type RenderFragment = TextRenderFragment | IconRenderFragment
 
+export interface TextSpan {
+    text: string
+    fontWeight: number
+    role: TextFragmentRole
+}
+
+export interface TextLine {
+    /** Relative y offset from the label's top */
+    y: number
+    spans: TextSpan[]
+}
+
 /**
  * Computes layout and positioning for a series label typically rendered
  * in the chart area
@@ -123,6 +135,10 @@ export class SeriesLabelState {
 
     @computed get text(): string {
         return this.options.text
+    }
+
+    @computed get textAnchor(): "start" | "end" {
+        return this.options.textAnchor
     }
 
     @computed private get parsedText(): ParsedLabel {
@@ -334,6 +350,44 @@ export class SeriesLabelState {
         }
 
         return lines
+    }
+
+    @computed get hasIcons(): boolean {
+        return this.contentLines.some((line) =>
+            line.some((f) => f.type === "icon")
+        )
+    }
+
+    /**
+     * Content lines transformed for native SVG text rendering.
+     * Space fragments are merged into adjacent text, and non-text
+     * fragments are excluded.
+     */
+    @computed get textLines(): TextLine[] {
+        return this.contentLines.map((line, lineIndex) => {
+            const spans: TextSpan[] = []
+            let needsSpace = false
+
+            for (const fragment of line) {
+                if (fragment.type === "space") {
+                    needsSpace = true
+                    continue
+                }
+                if (fragment.type !== "text") continue
+
+                spans.push({
+                    text: needsSpace ? " " + fragment.text : fragment.text,
+                    fontWeight: fragment.fontWeight,
+                    role: fragment.role,
+                })
+                needsSpace = false
+            }
+
+            return {
+                y: lineIndex * this.singleLineHeight,
+                spans,
+            }
+        })
     }
 
     @computed get width(): number {
