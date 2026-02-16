@@ -100,8 +100,12 @@
         display: inline-block;
         background-color: var(--legend-entry-color);
         height: var(--legend-swatch-size);
-        width: var(--legend-entry-percentage, var(--legend-swatch-size));
+        width: var(--legend-swatch-size);
         justify-self: end;
+
+        .legend-entry--has-percentages & {
+            width: calc(var(--legend-entry-percentage-value, 0) * 1px);
+        }
     }
 
     &.income-plot-legend--mobile {
@@ -117,6 +121,15 @@
 
         .legend-entry-percentage-container {
             justify-self: end;
+            width: 100%;
+            justify-content: flex-end;
+        }
+
+        .legend-entry-swatch {
+            .legend-entry--has-percentages & {
+                /* 40px we need to subtract to make space for the percentage text */
+                width: calc(var(--legend-entry-percentage-value, 0) * (100% - 40px) / 100);
+            }
         }
     }
 }
