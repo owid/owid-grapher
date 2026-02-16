@@ -22,13 +22,18 @@ export interface SeriesLabelStateOptions {
     showRegionProviderTooltip?: boolean
 }
 
-export type TextFragmentRole = "name" | "suffix" | "value"
+export type TextRole = "name" | "suffix" | "value"
 
-interface TextFragment {
-    type: "text"
-    role: TextFragmentRole
+export interface TextSpan {
+    role: TextRole
     text: string
     fontWeight: number
+}
+
+export type SpanLine = TextSpan[]
+
+interface TextFragment extends TextSpan {
+    type: "text"
     width: number
 }
 
@@ -62,22 +67,10 @@ interface Position {
     y: number
 }
 
-export type TextRenderFragment = TextFragment & Position
-export type IconRenderFragment = IconFragment & Position
+export type PositionedTextFragment = TextFragment & Position
+export type PositionedIconFragment = IconFragment & Position
 
-export type RenderFragment = TextRenderFragment | IconRenderFragment
-
-export interface TextSpan {
-    text: string
-    fontWeight: number
-    role: TextFragmentRole
-}
-
-export interface TextLine {
-    /** Relative y offset from the label's top */
-    y: number
-    spans: TextSpan[]
-}
+export type PositionedFragment = PositionedTextFragment | PositionedIconFragment
 
 /**
  * Computes layout and positioning for a series label typically rendered
@@ -358,38 +351,6 @@ export class SeriesLabelState {
         )
     }
 
-    /**
-     * Content lines transformed for native SVG text rendering.
-     * Space fragments are merged into adjacent text, and non-text
-     * fragments are excluded.
-     */
-    @computed get textLines(): TextLine[] {
-        return this.contentLines.map((line, lineIndex) => {
-            const spans: TextSpan[] = []
-            let needsSpace = false
-
-            for (const fragment of line) {
-                if (fragment.type === "space") {
-                    needsSpace = true
-                    continue
-                }
-                if (fragment.type !== "text") continue
-
-                spans.push({
-                    text: needsSpace ? " " + fragment.text : fragment.text,
-                    fontWeight: fragment.fontWeight,
-                    role: fragment.role,
-                })
-                needsSpace = false
-            }
-
-            return {
-                y: lineIndex * this.singleLineHeight,
-                spans,
-            }
-        })
-    }
-
     @computed get width(): number {
         const lineWidths = this.contentLines.map((line) =>
             _.sumBy(line, (fragment) => fragment.width)
@@ -401,8 +362,13 @@ export class SeriesLabelState {
         return this.contentLines.length * this.singleLineHeight
     }
 
+    /** Content lines transformed for native SVG text rendering */
+    @computed get spanLines(): SpanLine[] {
+        return this.contentLines.map((line) => extractTextSpans(line))
+    }
+
     /** List of positioned fragments ready for rendering */
-    @computed get renderFragments(): RenderFragment[] {
+    @computed get positionedFragments(): PositionedFragment[] {
         return this.contentLines.flatMap((fragments, lineIndex) =>
             positionLineFragments({
                 fragments: fragments,
@@ -413,6 +379,26 @@ export class SeriesLabelState {
     }
 }
 
+/** Convert line fragments to text spans, merging spaces into adjacent text */
+function extractTextSpans(line: ContentLine): TextSpan[] {
+    const fragments = line.filter(
+        (f) => f.type === "text" || f.type === "space"
+    )
+
+    return fragments
+        .map((fragment, i) => {
+            if (fragment.type === "space") return undefined
+            const followsSpace = fragments[i - 1]?.type === "space"
+            return {
+                text: followsSpace ? " " + fragment.text : fragment.text,
+                fontWeight: fragment.fontWeight,
+                role: fragment.role,
+            }
+        })
+        .filter((span) => span !== undefined)
+}
+
+/** Position fragments in a line based on their width and the textAnchor */
 function positionLineFragments({
     fragments,
     y,
@@ -421,8 +407,8 @@ function positionLineFragments({
     fragments: ContentLine
     y: number
     textAnchor: SeriesLabelStateOptions["textAnchor"]
-}): RenderFragment[] {
-    const renderFragments: RenderFragment[] = []
+}): PositionedFragment[] {
+    const positionedFragments: PositionedFragment[] = []
 
     // Calculate total line width
     const totalWidth = _.sumBy(fragments, (f) => f.width)
@@ -433,12 +419,12 @@ function positionLineFragments({
     for (const fragment of fragments) {
         match(fragment)
             .with({ type: "text" }, (fragment) => {
-                renderFragments.push({ ...fragment, x, y })
+                positionedFragments.push({ ...fragment, x, y })
                 x += fragment.width
             })
             .with({ type: "icon" }, (fragment) => {
                 const iconYOffset = -fragment.iconSize + 1.5 // Small visual correction
-                renderFragments.push({ ...fragment, x, y: y + iconYOffset })
+                positionedFragments.push({ ...fragment, x, y: y + iconYOffset })
                 x += fragment.width
             })
             .with({ type: "space" }, (fragment) => {
@@ -448,5 +434,5 @@ function positionLineFragments({
             .exhaustive()
     }
 
-    return renderFragments
+    return positionedFragments
 }

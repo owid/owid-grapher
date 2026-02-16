@@ -3,9 +3,9 @@ import { Bounds } from "@ourworldindata/utils"
 import {
     SeriesLabelState,
     SeriesLabelStateOptions,
-    TextRenderFragment,
-    IconRenderFragment,
-    RenderFragment,
+    PositionedTextFragment,
+    PositionedIconFragment,
+    PositionedFragment,
 } from "./SeriesLabelState"
 
 const FONT_SIZE = 14
@@ -29,12 +29,20 @@ function makeLabelState(
     })
 }
 
-function textFragments(fragments: RenderFragment[]): TextRenderFragment[] {
-    return fragments.filter((f) => f.type === "text") as TextRenderFragment[]
+function textFragments(
+    fragments: PositionedFragment[]
+): PositionedTextFragment[] {
+    return fragments.filter(
+        (f) => f.type === "text"
+    ) as PositionedTextFragment[]
 }
 
-function iconFragments(fragments: RenderFragment[]): IconRenderFragment[] {
-    return fragments.filter((f) => f.type === "icon") as IconRenderFragment[]
+function iconFragments(
+    fragments: PositionedFragment[]
+): PositionedIconFragment[] {
+    return fragments.filter(
+        (f) => f.type === "icon"
+    ) as PositionedIconFragment[]
 }
 
 describe("SeriesLabelState", () => {
@@ -44,7 +52,7 @@ describe("SeriesLabelState", () => {
         expect(label.width).toBe(textWidth("United States"))
         expect(label.height).toBe(FONT_SIZE * LINE_HEIGHT)
 
-        const texts = textFragments(label.renderFragments)
+        const texts = textFragments(label.positionedFragments)
         expect(texts).toHaveLength(1)
         expect(texts[0]).toMatchObject({ role: "name", x: 0, y: 0 })
     })
@@ -52,7 +60,7 @@ describe("SeriesLabelState", () => {
     it("splits provider suffix into separate fragments on the same line", () => {
         const label = makeLabelState({ text: "Africa (WHO)" })
 
-        const texts = textFragments(label.renderFragments)
+        const texts = textFragments(label.positionedFragments)
         const names = texts.filter((f) => f.role === "name")
         const suffixes = texts.filter((f) => f.role === "suffix")
 
@@ -81,8 +89,8 @@ describe("SeriesLabelState", () => {
             text: "Africa (WHO)",
             showRegionProviderTooltip: true,
         })
-        const texts = textFragments(label.renderFragments)
-        const icons = iconFragments(label.renderFragments)
+        const texts = textFragments(label.positionedFragments)
+        const icons = iconFragments(label.positionedFragments)
         const suffixes = texts.filter((f) => f.role === "suffix")
 
         expect(icons).toHaveLength(1)
@@ -102,7 +110,7 @@ describe("SeriesLabelState", () => {
 
         expect(label.height).toBe(FONT_SIZE * LINE_HEIGHT * 2)
 
-        const texts = textFragments(label.renderFragments)
+        const texts = textFragments(label.positionedFragments)
         const value = texts.find((f) => f.role === "value")!
         expect(value.x).toBe(0)
         expect(value.y).toBeGreaterThan(0)
@@ -114,7 +122,7 @@ describe("SeriesLabelState", () => {
             textAnchor: "end",
         })
         // All fragments should have non-positive x (right edge at 0)
-        for (const fragment of label.renderFragments) {
+        for (const fragment of label.positionedFragments) {
             expect(fragment.x).toBeLessThanOrEqual(0)
         }
     })
@@ -124,7 +132,7 @@ describe("SeriesLabelState", () => {
         const label = makeLabelState({ text })
 
         expect(label.width).toBe(textWidth(text))
-        const texts = textFragments(label.renderFragments)
+        const texts = textFragments(label.positionedFragments)
         expect(texts.every((f) => f.role === "name")).toBe(true)
     })
 
@@ -156,21 +164,21 @@ describe("SeriesLabelState", () => {
         expect(label.hasIcons).toBe(true)
     })
 
-    it("textLines has correct structure for plain label", () => {
+    it("spanLines has correct structure for plain label", () => {
         const label = makeLabelState({ text: "United States" })
-        expect(label.textLines).toHaveLength(1)
-        expect(label.textLines[0].y).toBe(0)
-        expect(label.textLines[0].spans).toHaveLength(1)
-        expect(label.textLines[0].spans[0]).toMatchObject({
+        expect(label.spanLines).toHaveLength(1)
+        expect(label.spanLines[0].dy).toBe(0)
+        expect(label.spanLines[0].spans).toHaveLength(1)
+        expect(label.spanLines[0].spans[0]).toMatchObject({
             role: "name",
             text: "United States",
         })
     })
 
-    it("textLines merges spaces into suffix text", () => {
+    it("spanLines merges spaces into suffix text", () => {
         const label = makeLabelState({ text: "Africa (WHO)" })
-        expect(label.textLines).toHaveLength(1)
-        const spans = label.textLines[0].spans
+        expect(label.spanLines).toHaveLength(1)
+        const spans = label.spanLines[0].spans
         // name + suffix with space merged in
         expect(spans).toHaveLength(2)
         expect(spans[0]).toMatchObject({ role: "name", text: "Africa" })
@@ -180,15 +188,15 @@ describe("SeriesLabelState", () => {
         })
     })
 
-    it("textLines places value on a separate line", () => {
+    it("spanLines places value on a separate line", () => {
         const label = makeLabelState({
             text: "Africa (WHO)",
             formattedValue: "72%",
         })
-        expect(label.textLines).toHaveLength(2)
-        expect(label.textLines[0].y).toBe(0)
-        expect(label.textLines[1].y).toBeGreaterThan(0)
-        expect(label.textLines[1].spans[0]).toMatchObject({
+        expect(label.spanLines).toHaveLength(2)
+        expect(label.spanLines[0].dy).toBe(0)
+        expect(label.spanLines[1].dy).toBeGreaterThan(0)
+        expect(label.spanLines[1].spans[0]).toMatchObject({
             role: "value",
             text: "72%",
         })

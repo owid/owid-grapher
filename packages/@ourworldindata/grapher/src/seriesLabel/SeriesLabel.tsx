@@ -8,15 +8,15 @@ import {
 } from "../color/ColorConstants.js"
 import {
     SeriesLabelState,
-    TextRenderFragment,
-    IconRenderFragment,
-    TextFragmentRole,
-    TextLine,
+    PositionedTextFragment,
+    PositionedIconFragment,
+    TextRole,
+    SpanLine,
 } from "./SeriesLabelState.js"
 import { Bounds, isTouchDevice } from "@ourworldindata/utils"
 import { AnyRegionDataProvider } from "../core/RegionGroups.js"
 
-const defaultColors: Record<TextFragmentRole, string> = {
+const defaultColors: Record<TextRole, string> = {
     name: GRAPHER_DARK_TEXT,
     value: GRAPHER_DARK_TEXT,
     suffix: GRAPHER_LIGHT_TEXT,
@@ -27,7 +27,7 @@ export interface SeriesLabelProps {
     x: number
     y: number
     id?: string
-    color?: Partial<Record<TextFragmentRole, string>>
+    color?: Partial<Record<TextRole, string>>
     opacity?: number
     onMouseEnter?: React.MouseEventHandler<SVGElement>
     onMouseLeave?: React.MouseEventHandler<SVGElement>
@@ -62,18 +62,16 @@ export function SeriesLabel({
     const colors = { ...defaultColors, ...color }
     const props = { id, opacity, onMouseEnter, onMouseLeave }
 
+    // Rely on browser rendering if there are no icons
     if (!state.hasIcons) {
-        // Use native textAnchor for text alignment. This delegates
-        // alignment to the browser, making rendering resilient to font
-        // measurement inaccuracies (e.g. when a fallback font is used
-        // during static image export).
         return (
             <NativeAlignedLabelText
                 x={renderX}
                 y={renderY}
-                textLines={state.textLines}
+                spanLines={state.spanLines}
                 textAnchor={state.textAnchor}
                 fontSize={fontSize}
+                lineHeight={state.singleLineHeight}
                 colors={colors}
                 {...props}
             />
@@ -84,7 +82,7 @@ export function SeriesLabel({
     // This only happens in interactive environments where the correct
     // fonts are loaded and text measurement is accurate.
     const [textFragments, iconFragments] = R.partition(
-        state.renderFragments,
+        state.positionedFragments,
         (f) => f.type === "text"
     )
 
@@ -113,20 +111,13 @@ export function SeriesLabel({
     )
 }
 
-/**
- * Renders label text using the browser's native textAnchor for alignment.
- *
- * Each line's first tspan gets explicit x/y coordinates, creating a new
- * SVG "text chunk". Subsequent tspans on the same line omit x so they
- * flow inline within the same chunk. The textAnchor on the parent <text>
- * element then aligns each chunk (line) as a unit.
- */
 function NativeAlignedLabelText({
     x,
     y,
-    textLines,
+    spanLines,
     textAnchor,
     fontSize,
+    lineHeight,
     colors,
     id,
     opacity,
@@ -135,10 +126,11 @@ function NativeAlignedLabelText({
 }: {
     x: number
     y: number
-    textLines: TextLine[]
+    spanLines: SpanLine[]
     textAnchor: "start" | "end"
     fontSize: string
-    colors: Record<TextFragmentRole, string>
+    lineHeight: number
+    colors: Record<TextRole, string>
     id?: string
     opacity?: number
     onMouseEnter?: React.MouseEventHandler<SVGElement>
@@ -147,28 +139,30 @@ function NativeAlignedLabelText({
     return (
         <text
             id={id}
+            x={x.toFixed(1)}
+            y={y.toFixed(1)}
             textAnchor={textAnchor}
             fontSize={fontSize}
             opacity={opacity}
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
         >
-            {textLines.map((line, lineIndex) =>
-                line.spans.map((span, spanIndex) => (
-                    <tspan
-                        key={`${lineIndex}-${spanIndex}`}
-                        x={spanIndex === 0 ? x.toFixed(1) : undefined}
-                        y={
-                            spanIndex === 0
-                                ? (y + line.y).toFixed(1)
-                                : undefined
-                        }
-                        fontWeight={span.fontWeight}
-                        fill={colors[span.role]}
-                    >
-                        {span.text}
-                    </tspan>
-                ))
+            {spanLines.map((spans, lineIndex) =>
+                spans.map((span, spanIndex) => {
+                    const isFirstLine = lineIndex === 0
+                    const isLineStart = spanIndex === 0
+                    return (
+                        <tspan
+                            key={span.text}
+                            x={isLineStart ? x.toFixed(1) : undefined}
+                            dy={isFirstLine ? undefined : lineHeight.toFixed(1)}
+                            fontWeight={span.fontWeight}
+                            fill={colors[span.role]}
+                        >
+                            {span.text}
+                        </tspan>
+                    )
+                })
             )}
         </text>
     )
@@ -187,9 +181,9 @@ function LabelText({
 }: {
     x: number
     y: number
-    fragments: TextRenderFragment[]
+    fragments: PositionedTextFragment[]
     fontSize: string
-    colors: Record<TextFragmentRole, string>
+    colors: Record<TextRole, string>
     id?: string
     opacity?: number
     onMouseEnter?: React.MouseEventHandler<SVGElement>
@@ -245,7 +239,7 @@ function TextFragment({
 }: {
     x: number
     y: number
-    fragment: TextRenderFragment
+    fragment: PositionedTextFragment
     fontSize: string
     fill: string
     id?: string
@@ -274,7 +268,7 @@ function TextSpanFragment({
 }: {
     x: number
     y: number
-    fragment: TextRenderFragment
+    fragment: PositionedTextFragment
     fill: string
 }): React.ReactElement {
     return (
@@ -300,7 +294,7 @@ function IconFragment({
 }: {
     x: number
     y: number
-    fragment: IconRenderFragment
+    fragment: PositionedIconFragment
     fill: string
     onMouseEnter?: React.MouseEventHandler<SVGElement>
     onMouseLeave?: React.MouseEventHandler<SVGElement>

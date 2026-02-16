@@ -143,40 +143,27 @@ class LineLabels extends React.Component<LineLabelsProps> {
                 id={makeIdForHumanConsumption("text-labels")}
                 style={{ pointerEvents: "none" }}
             >
-                {this.markers.map(({ series, labelText }, index) => {
+                {this.markers.map(({ series, labelText }) => {
                     const color = darkenColorForText(series.color)
                     return (
-                        <Halo
+                        <SeriesLabel
+                            key={series.seriesLabel.text}
                             id={makeIdForHumanConsumption(
-                                "outline",
+                                "label",
                                 series.seriesName
                             )}
-                            key={getSeriesKey(series, index)}
-                            show={this.showTextOutline}
-                            outlineWidth={
-                                GRAPHER_TEXT_OUTLINE_FACTOR *
-                                series.seriesLabel.fontSettings.fontSize
+                            state={series.seriesLabel}
+                            x={labelText.x}
+                            y={labelText.y}
+                            color={{ name: color, value: color }}
+                            opacity={this.textOpacityForSeries(series)}
+                            onMouseEnter={() =>
+                                this.props.onMouseEnter?.(series)
                             }
-                            outlineColor={this.textOutlineColor}
-                        >
-                            <SeriesLabel
-                                id={makeIdForHumanConsumption(
-                                    "label",
-                                    series.seriesName
-                                )}
-                                state={series.seriesLabel}
-                                x={labelText.x}
-                                y={labelText.y}
-                                color={{ name: color, value: color }}
-                                opacity={this.textOpacityForSeries(series)}
-                                onMouseEnter={() =>
-                                    this.props.onMouseEnter?.(series)
-                                }
-                                onMouseLeave={() =>
-                                    this.props.onMouseLeave?.(series)
-                                }
-                            />
-                        </Halo>
+                            onMouseLeave={() =>
+                                this.props.onMouseLeave?.(series)
+                            }
+                        />
                     )
                 })}
             </g>
