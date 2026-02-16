@@ -1,12 +1,12 @@
-import { Suspense, useRef } from "react"
+import { Suspense, useEffect, useMemo, useRef } from "react"
 import { IncomePlot } from "./IncomePlot.tsx"
 import {
     IncomePlotControlsRowBottom,
     IncomePlotControlsRowTop,
 } from "./IncomePlotControlsRow.tsx"
 import { PLOT_HEIGHT, PLOT_WIDTH } from "../utils/incomePlotConstants.ts"
-import { useAtomValue } from "jotai"
-import { atomCurrentYear } from "../store.ts"
+import { useAtomValue, useSetAtom } from "jotai"
+import { atomCurrentYear, atomIsMobile } from "../store.ts"
 import { useResizeObserver } from "usehooks-ts"
 
 export const App = () => {
@@ -16,7 +16,12 @@ export const App = () => {
         ref: containerRef as React.RefObject<HTMLDivElement>,
     })
 
-    const isMobile = width < 720
+    const setIsMobile = useSetAtom(atomIsMobile)
+
+    const isMobile = useMemo(() => width < 720, [width])
+    useEffect(() => {
+        setIsMobile(isMobile)
+    }, [isMobile, setIsMobile])
 
     return (
         <div ref={containerRef}>
