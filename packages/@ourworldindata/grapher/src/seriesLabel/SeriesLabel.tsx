@@ -1,4 +1,4 @@
-import { match } from "ts-pattern"
+import * as R from "remeda"
 import Tippy from "@tippyjs/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
@@ -57,40 +57,108 @@ export function SeriesLabel({
     // Get the corrected position for SVG text rendering
     const [renderX, renderY] = state.getPositionForSvgRendering(x, y)
 
+    const [textFragments, iconFragments] = R.partition(
+        state.renderFragments,
+        (f) => f.type === "text"
+    )
+
+    const props = { id, opacity, onMouseEnter, onMouseLeave }
+    const fontSize = state.fontSettings.fontSize.toFixed(2)
+    const colors = { ...defaultColors, ...color }
+
+    if (iconFragments.length === 0) {
+        return (
+            <LabelText
+                x={renderX}
+                y={renderY}
+                fragments={textFragments}
+                fontSize={fontSize}
+                colors={colors}
+                {...props}
+            />
+        )
+    }
+
     return (
-        <g
+        <g {...props}>
+            <LabelText
+                x={renderX}
+                y={renderY}
+                fragments={textFragments}
+                fontSize={fontSize}
+                colors={colors}
+            />
+            {iconFragments.map((fragment) => (
+                <IconFragment
+                    key={fragment.providerKey}
+                    x={renderX}
+                    y={renderY}
+                    fragment={fragment}
+                    fill={colors.suffix}
+                    onMouseEnter={onMouseEnter}
+                    onMouseLeave={onMouseLeave}
+                    onInfoTooltipShow={onInfoTooltipShow}
+                />
+            ))}
+        </g>
+    )
+}
+
+function LabelText({
+    x,
+    y,
+    fragments,
+    fontSize,
+    colors,
+    id,
+    opacity,
+    onMouseEnter,
+    onMouseLeave,
+}: {
+    x: number
+    y: number
+    fragments: TextRenderFragment[]
+    fontSize: string
+    colors: Record<TextFragmentRole, string>
+    id?: string
+    opacity?: number
+    onMouseEnter?: React.MouseEventHandler<SVGElement>
+    onMouseLeave?: React.MouseEventHandler<SVGElement>
+}): React.ReactElement {
+    if (fragments.length === 1) {
+        return (
+            <TextFragment
+                id={id}
+                x={x}
+                y={y}
+                fragment={fragments[0]}
+                fontSize={fontSize}
+                fill={colors[fragments[0].role]}
+                opacity={opacity}
+                onMouseEnter={onMouseEnter}
+                onMouseLeave={onMouseLeave}
+            />
+        )
+    }
+
+    return (
+        <text
             id={id}
+            fontSize={fontSize}
             opacity={opacity}
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
         >
-            {state.renderFragments.map((fragment) =>
-                match(fragment)
-                    .with({ type: "text" }, (fragment) => (
-                        <TextFragment
-                            key={fragment.text}
-                            x={renderX}
-                            y={renderY}
-                            fragment={fragment}
-                            color={color}
-                            fontSize={state.fontSettings.fontSize}
-                        />
-                    ))
-                    .with({ type: "icon" }, (fragment) => (
-                        <IconFragment
-                            key={fragment.providerKey}
-                            x={renderX}
-                            y={renderY}
-                            fragment={fragment}
-                            color={color}
-                            onMouseEnter={onMouseEnter}
-                            onMouseLeave={onMouseLeave}
-                            onInfoTooltipShow={onInfoTooltipShow}
-                        />
-                    ))
-                    .exhaustive()
-            )}
-        </g>
+            {fragments.map((fragment) => (
+                <TextSpanFragment
+                    key={fragment.text}
+                    x={x}
+                    y={y}
+                    fragment={fragment}
+                    fill={colors[fragment.role]}
+                />
+            ))}
+        </text>
     )
 }
 
@@ -99,26 +167,55 @@ function TextFragment({
     y,
     fragment,
     fontSize,
-    color,
+    fill,
+    id,
+    opacity,
+    onMouseEnter,
+    onMouseLeave,
 }: {
     x: number
     y: number
     fragment: TextRenderFragment
-    fontSize: number
-    color?: Partial<Record<TextFragmentRole, string>>
+    fontSize: string
+    fill: string
+    id?: string
+    opacity?: number
+    onMouseEnter?: React.MouseEventHandler<SVGElement>
+    onMouseLeave?: React.MouseEventHandler<SVGElement>
 }): React.ReactElement {
-    const fill = color?.[fragment.role] || defaultColors[fragment.role]
-
     return (
         <text
-            x={x + fragment.x}
-            y={y + fragment.y}
-            fontSize={fontSize.toFixed(2)}
+            id={id}
+            fontSize={fontSize}
+            opacity={opacity}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
+        >
+            <TextSpanFragment x={x} y={y} fragment={fragment} fill={fill} />
+        </text>
+    )
+}
+
+function TextSpanFragment({
+    x,
+    y,
+    fragment,
+    fill,
+}: {
+    x: number
+    y: number
+    fragment: TextRenderFragment
+    fill: string
+}): React.ReactElement {
+    return (
+        <tspan
+            x={(x + fragment.x).toFixed(1)}
+            y={(y + fragment.y).toFixed(1)}
             fontWeight={fragment.fontWeight}
             fill={fill}
         >
             {fragment.text}
-        </text>
+        </tspan>
     )
 }
 
@@ -126,7 +223,7 @@ function IconFragment({
     x,
     y,
     fragment,
-    color,
+    fill,
     onMouseEnter,
     onMouseLeave,
     onInfoTooltipShow,
@@ -134,7 +231,7 @@ function IconFragment({
     x: number
     y: number
     fragment: IconRenderFragment
-    color?: Partial<Record<TextFragmentRole, string>>
+    fill: string
     onMouseEnter?: React.MouseEventHandler<SVGElement>
     onMouseLeave?: React.MouseEventHandler<SVGElement>
     onInfoTooltipShow?: () => void
@@ -150,9 +247,6 @@ function IconFragment({
         fragment.iconSize,
         fragment.iconSize
     ).expand(padding)
-
-    // The icon has the same color as the suffix text
-    const fill = color?.suffix || defaultColors.suffix
 
     return (
         <g>
