@@ -29,6 +29,8 @@ export interface RawDataForYearRecord extends RawDataRecord {
     avgsLog2: number[]
 }
 
+export const atomIsMobile = atom(false)
+
 const atomCustomPovertyLineInternal = atom(3)
 export const atomShowCustomPovertyLine = atom(false)
 export const atomCustomPovertyLine = atom(
@@ -41,6 +43,12 @@ export const atomCustomPovertyLine = atom(
         set(atomCustomPovertyLineInternal, newValue)
     }
 )
+export const atomPovertyLineForLegend = atom((get) => {
+    const line = get(atomCustomPovertyLine)
+    const isMobile = get(atomIsMobile)
+    if (line === null && isMobile) return 3
+    return line
+})
 export const atomCustomPovertyLineFormatted = atom((get) => {
     const line = get(atomCustomPovertyLine)
     if (line === null) return null
@@ -165,7 +173,7 @@ export const atomKdeDataForYearGroupedByRegion = atom(async (get) => {
 export const atomLegendEntries = atom((get) => {
     const currentEntities = get(atomCurrentEntitiesSorted)
     const entityColors = get(atomEntityColorMap)
-    const hasPovertyLine = get(atomCustomPovertyLine) !== null
+    const hasPovertyLine = get(atomPovertyLineForLegend) !== null
     const map = currentEntities.map((entity) => {
         const colorEntry = entityColors.get(entity)
         return {

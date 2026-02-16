@@ -103,13 +103,22 @@
         width: var(--legend-entry-percentage, var(--legend-swatch-size));
         justify-self: end;
     }
-}
 
-.income-plot-chart + .income-plot-legend {
-    position: static;
-    width: auto;
-    border: none;
-    padding: 8px 0;
+    &.income-plot-legend--mobile {
+        position: static;
+        width: auto;
+        border: none;
+        padding: 8px 0;
+        user-select: none;
+
+        .legend-entries-container {
+            grid-template-columns: 1fr 2fr;
+        }
+
+        .legend-entry-percentage-container {
+            justify-self: end;
+        }
+    }
 }
 
 .income-plot-chart {
