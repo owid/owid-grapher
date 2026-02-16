@@ -36,9 +36,6 @@ export const KDE_BANDWIDTH = 0.1
 export const KDE_EXTENT = [0.25, 1000].map(Math.log2) as [number, number]
 export const KDE_NUM_BINS = 200
 
-export const PLOT_WIDTH = 1000
-export const PLOT_HEIGHT = 500
-
 export interface StackedSeriesPoint extends Array<SeriesPoint<{ x: number }>> {
     key: string
     country?: string
