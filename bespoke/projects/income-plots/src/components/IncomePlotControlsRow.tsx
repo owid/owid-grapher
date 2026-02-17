@@ -143,13 +143,13 @@ export const IncomePlotControlsRowBottom = ({
 
     return (
         <div className="income-plot-controls-bottom">
-            <button onClick={nextTimeInterval} className="control-pill">
+            <button onClick={() => nextTimeInterval()} className="control-pill">
                 {R.toTitleCase(timeInterval)}
             </button>
             <span className="control-text">income or consumption in</span>
             <button className="control-pill">{currentYear}</button>
             <span className="control-text">in</span>
-            <button onClick={nextCurrency} className="control-pill">
+            <button onClick={() => nextCurrency()} className="control-pill">
                 {currentCurrency === "INTD"
                     ? "international-$"
                     : R.toUpperCase(currentCurrency)}

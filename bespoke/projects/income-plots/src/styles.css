@@ -223,3 +223,135 @@
         font-style: italic;
     }
 }
+
+/* Drawer (mobile settings panel) */
+
+.income-plot-drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+
+    &.income-plot-drawer-backdrop--open {
+        opacity: 1;
+        pointer-events: auto;
+    }
+}
+
+.income-plot-drawer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 201;
+    background: white;
+    border-radius: 4px 4px 0 0;
+    box-shadow:
+        0px -7px 16px 0px rgba(0, 0, 0, 0.06),
+        0px -29px 29px 0px rgba(0, 0, 0, 0.05),
+        0px -66px 39px 0px rgba(0, 0, 0, 0.03);
+    padding: 16px;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+
+    &.income-plot-drawer--open {
+        transform: translateY(0);
+    }
+}
+
+.income-plot-drawer__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.income-plot-drawer__title {
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #a1a1a1;
+}
+
+.income-plot-drawer__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 9999px;
+    border: 1px solid var(--gray-20);
+    background: none;
+    cursor: pointer;
+    color: var(--gray-80);
+
+    &:hover {
+        background: #f5f5f5;
+    }
+}
+
+.income-plot-drawer__sections {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.income-plot-drawer__section-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gray-80);
+    margin-bottom: 8px;
+}
+
+.income-plot-drawer__button-group {
+    display: flex;
+    gap: 8px;
+}
+
+.income-plot-drawer__button {
+    height: 40px;
+    padding: 0 16px;
+    border-radius: 4px;
+    border: 1px solid var(--gray-20);
+    background: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.13px;
+    color: #858585;
+    white-space: nowrap;
+
+    &.income-plot-drawer__button--active {
+        background: var(--blue-20);
+        border-color: var(--blue-20);
+        color: #1d3d63;
+    }
+}
+
+.income-plot-drawer__divider {
+    height: 1px;
+    background: var(--gray-20);
+}
+
+.income-plot-drawer-trigger {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 8px auto 0;
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: 1px solid var(--gray-20);
+    background: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gray-80);
+
+    &:hover {
+        background: #f5f5f5;
+    }
+}
