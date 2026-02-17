@@ -175,7 +175,7 @@ export async function handleDeleteExplorer(
  */
 export async function getExplorerRecordsJson(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const { slug } = req.params

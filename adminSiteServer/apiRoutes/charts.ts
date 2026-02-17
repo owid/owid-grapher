@@ -913,7 +913,7 @@ export async function deleteChart(
  */
 export async function getChartRecordsJson(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const chartId = expectInt(req.params.chartId)

@@ -555,7 +555,7 @@ export async function handleGetAllMultiDimRedirects(
  */
 export async function getMdimRecordsJson(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const id = expectInt(req.params.id)
