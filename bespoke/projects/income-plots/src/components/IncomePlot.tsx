@@ -564,10 +564,13 @@ const IncomePlotXAxis = ({
         if (!xAxisRef.current || !xScale) return
 
         const g = d3.select(xAxisRef.current)
-        const tickMarkPoints = isMobile ? [1, 3] : [1, 2, 3, 5]
+        const tickMarkPoints = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        const tickMarkPointsToDisplay = isMobile ? [1, 3] : [1, 2, 3, 5]
 
         const [min, max] = xScale.domain()
-        const xTicks: number[] = []
+
+        // Mapping from tick value to whether the label should be shown on the axis
+        const xTicks: Map<number, boolean> = new Map()
         for (
             let power = Math.floor(Math.log10(min * combinedFactor));
             Math.pow(10, power) <= max * combinedFactor;
@@ -576,19 +579,26 @@ const IncomePlotXAxis = ({
             const base = Math.pow(10, power)
             tickMarkPoints.forEach((multiplier) => {
                 const val = (base * multiplier) / combinedFactor
-                if (val >= min && val <= max) xTicks.push(val)
+                if (val >= min && val <= max)
+                    xTicks.set(
+                        val,
+                        tickMarkPointsToDisplay.includes(multiplier)
+                    )
             })
         }
 
         const xAxis = d3
             .axisBottom(xScale)
-            .tickValues(xTicks)
-            .tickFormat((d) =>
-                formatCurrency(
+            .tickValues(Array.from(xTicks.keys()))
+            .tickFormat((d) => {
+                const shouldShowLabel = xTicks.get(d as number) ?? false
+                if (!shouldShowLabel) return ""
+                return formatCurrency(
                     (d as number) * combinedFactor,
-                    currentCurrency as any
+                    currentCurrency,
+                    { formatShort: true }
                 )
-            )
+            })
             .tickSizeOuter(0)
 
         g.call(xAxis)
