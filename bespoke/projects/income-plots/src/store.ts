@@ -29,7 +29,7 @@ export interface RawDataForYearRecord extends RawDataRecord {
     avgsLog2: number[]
 }
 
-export const atomIsMobile = atom(false)
+export const atomisNarrow = atom(false)
 
 const atomCustomPovertyLineInternal = atom(3)
 export const atomShowCustomPovertyLine = atom(false)
@@ -45,8 +45,8 @@ export const atomCustomPovertyLine = atom(
 )
 export const atomPovertyLineForLegend = atom((get) => {
     const line = get(atomCustomPovertyLine)
-    const isMobile = get(atomIsMobile)
-    if (line === null && isMobile) return 3
+    const isNarrow = get(atomisNarrow)
+    if (line === null && isNarrow) return 3
     return line
 })
 export const atomCustomPovertyLineFormatted = atom((get) => {
