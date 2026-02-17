@@ -14,13 +14,20 @@ import * as R from "remeda"
 
 const currencyFormatterCache = new Map<Currency, Intl.NumberFormat>()
 
-export function formatCurrency(num: number, currency: Currency) {
+export function formatCurrency(
+    num: number,
+    currency: Currency,
+    { formatShort }: { formatShort?: boolean } = {}
+) {
     if (currency === "INTD") {
         if (num >= 1_000_000) return "$" + Math.round(num / 1_000_000) + "M"
         if (num >= 1_000) return "$" + Math.round(num / 1_000) + "k"
         if (num >= 10) return "$" + roundSigFig(num, 2)
-        if (num >= 1) return "$" + (Math.round(num * 10) / 10).toFixed(2)
-        else return "$" + R.round(num, 1).toFixed(2)
+        if (num >= 1) {
+            if (formatShort && Math.round(num) === num)
+                return "$" + Math.round(num)
+            return "$" + (Math.round(num * 10) / 10).toFixed(2)
+        } else return "$" + R.round(num, 1).toFixed(2)
     }
 
     let formatter = currencyFormatterCache.get(currency)
