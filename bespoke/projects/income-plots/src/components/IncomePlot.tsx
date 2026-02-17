@@ -48,7 +48,7 @@ const CHAR_WIDTH_RATIO = 0.4 // approximate char width as fraction of font size
 interface IncomePlotProps {
     aspectRatio?: number
     width: number
-    isMobile?: boolean
+    isNarrow?: boolean
 }
 
 interface IncomePlotClipPathProps {
@@ -545,7 +545,7 @@ interface IncomePlotXAxisProps {
     height: number
     marginBottom: number
     marginTop: number
-    isMobile?: boolean
+    isNarrow?: boolean
 }
 
 const IncomePlotXAxis = ({
@@ -553,7 +553,7 @@ const IncomePlotXAxis = ({
     height,
     marginBottom,
     marginTop,
-    isMobile,
+    isNarrow,
 }: IncomePlotXAxisProps) => {
     const xAxisRef = useRef<SVGGElement>(null)
 
@@ -565,7 +565,7 @@ const IncomePlotXAxis = ({
 
         const g = d3.select(xAxisRef.current)
         const tickMarkPoints = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-        const tickMarkPointsToDisplay = isMobile ? [1, 3] : [1, 2, 3, 5]
+        const tickMarkPointsToDisplay = isNarrow ? [1, 3] : [1, 2, 3, 5]
 
         const [min, max] = xScale.domain()
 
@@ -617,7 +617,7 @@ const IncomePlotXAxis = ({
         marginTop,
         currentCurrency,
         combinedFactor,
-        isMobile,
+        isNarrow,
     ])
 
     return (
@@ -770,7 +770,7 @@ const IncomePlotPointer = ({
 
 export function IncomePlot({
     aspectRatio = 1,
-    isMobile = false,
+    isNarrow = false,
     width,
 }: IncomePlotProps) {
     const svgRef = useRef<SVGSVGElement>(null)
@@ -843,7 +843,7 @@ export function IncomePlot({
                     maxWidth: "100%",
                 }}
             >
-                {!isMobile && <IncomePlotLegend isMobile={false} />}
+                {!isNarrow && <IncomePlotLegend isNarrow={false} />}
                 <svg
                     ref={svgRef}
                     className="income-plot-chart-svg"
@@ -860,7 +860,7 @@ export function IncomePlot({
                         height={plotHeight}
                         marginBottom={marginBottom}
                         marginTop={marginTop}
-                        isMobile={isMobile}
+                        isNarrow={isNarrow}
                     />
                     {isSingleCountryMode ? (
                         <IncomePlotAreasUnstacked
@@ -894,7 +894,7 @@ export function IncomePlot({
                 </svg>
                 <IncomePlotTooltip />
             </div>
-            {isMobile && <IncomePlotLegend isMobile={true} />}
+            {isNarrow && <IncomePlotLegend isNarrow={true} />}
         </>
     )
 }
