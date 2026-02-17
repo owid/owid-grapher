@@ -6,6 +6,8 @@ import {
     TIME_INTERVAL_FACTORS,
     TIME_INTERVALS,
     WORLD_ENTITY_NAME,
+    type TimeInterval,
+    type Currency,
 } from "./utils/incomePlotConstants.ts"
 import data from "./data/incomeBins.json"
 import { sleep } from "@ourworldindata/utils"
@@ -66,11 +68,15 @@ export const atomTimeInterval = atom(
         const idx = get(atomTimeIntervalIdx)
         return TIME_INTERVALS[idx]
     },
-    // Advance to the next time interval
-    (get, set) => {
-        const idx = get(atomTimeIntervalIdx)
-        const nextIdx = (idx + 1) % TIME_INTERVALS.length
-        set(atomTimeIntervalIdx, nextIdx)
+    // Set a specific time interval, or advance to the next one if none given
+    (get, set, newValue?: TimeInterval) => {
+        if (newValue !== undefined) {
+            const idx = TIME_INTERVALS.indexOf(newValue)
+            if (idx !== -1) set(atomTimeIntervalIdx, idx)
+        } else {
+            const idx = get(atomTimeIntervalIdx)
+            set(atomTimeIntervalIdx, (idx + 1) % TIME_INTERVALS.length)
+        }
     }
 )
 
@@ -88,10 +94,14 @@ export const atomCountriesOrRegionsMode = atom(
         if (isSingleCountryMode) return "countries"
         return get(atomCountriesOrRegionsModeInternal)
     },
-    (get, set) => {
-        set(atomCountriesOrRegionsModeInternal, (current) =>
-            current === "countries" ? "regions" : "countries"
-        )
+    (get, set, newValue?: "countries" | "regions") => {
+        if (newValue !== undefined) {
+            set(atomCountriesOrRegionsModeInternal, newValue)
+        } else {
+            set(atomCountriesOrRegionsModeInternal, (current) =>
+                current === "countries" ? "regions" : "countries"
+            )
+        }
     }
 )
 
@@ -213,8 +223,13 @@ export const atomCurrentCurrency = atom(
         const idx = get(atomCurrenctCurrencyIdx)
         return CURRENCIES[idx]
     },
-    (get, set) => {
-        set(atomCurrenctCurrencyIdx, (idx) => (idx + 1) % CURRENCIES.length)
+    (get, set, newValue?: Currency) => {
+        if (newValue !== undefined) {
+            const idx = CURRENCIES.indexOf(newValue)
+            if (idx !== -1) set(atomCurrenctCurrencyIdx, idx)
+        } else {
+            set(atomCurrenctCurrencyIdx, (idx) => (idx + 1) % CURRENCIES.length)
+        }
     }
 )
 
