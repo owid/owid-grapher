@@ -5,7 +5,7 @@ import {
     IncomePlotControlsRowTop,
 } from "./IncomePlotControlsRow.tsx"
 import { useAtomValue, useSetAtom } from "jotai"
-import { atomCurrentYear, atomIsMobile } from "../store.ts"
+import { atomCurrentYear, atomisNarrow } from "../store.ts"
 import { useResizeObserver, useWindowSize } from "usehooks-ts"
 
 export const App = () => {
@@ -15,17 +15,17 @@ export const App = () => {
         ref: containerRef as React.RefObject<HTMLDivElement>,
     })
 
-    const setIsMobile = useSetAtom(atomIsMobile)
+    const setisNarrow = useSetAtom(atomisNarrow)
 
-    const isMobile = useMemo(() => !!(width && width < 720), [width])
+    const isNarrow = useMemo(() => !!(width && width < 720), [width])
     useEffect(() => {
-        setIsMobile(isMobile)
-    }, [isMobile, setIsMobile])
+        setisNarrow(isNarrow)
+    }, [isNarrow, setisNarrow])
 
     const { height: windowHeight, width: windowWidth } = useWindowSize()
     const isPortrait = windowHeight >= windowWidth
 
-    const aspectRatio = isMobile && isPortrait ? 0.9 : 5 / 3
+    const aspectRatio = isNarrow && isPortrait ? 0.9 : 5 / 3
 
     return (
         <div ref={containerRef}>
@@ -43,11 +43,11 @@ export const App = () => {
                         key={currentYear}
                         width={width}
                         aspectRatio={aspectRatio}
-                        isMobile={isMobile}
+                        isNarrow={isNarrow}
                     />
                 </Suspense>
             </div>
-            <IncomePlotControlsRowBottom isMobile={isMobile} />
+            <IncomePlotControlsRowBottom isNarrow={isNarrow} />
         </div>
     )
 }

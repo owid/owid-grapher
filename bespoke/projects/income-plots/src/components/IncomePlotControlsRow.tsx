@@ -133,9 +133,9 @@ export const IncomePlotControlsRowTop = () => {
 }
 
 export const IncomePlotControlsRowBottom = ({
-    isMobile = false,
+    isNarrow = false,
 }: {
-    isMobile?: boolean
+    isNarrow?: boolean
 }) => {
     const [timeInterval, nextTimeInterval] = useAtom(atomTimeInterval)
     const [currentYear] = useAtom(atomCurrentYear)
