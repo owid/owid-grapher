@@ -25,10 +25,10 @@ import {
     formatFeaturedMetricFacetFilter,
     getSelectableTopics,
     CHARTS_INDEX,
+    PAGES_INDEX,
     DATA_CATALOG_ATTRIBUTES,
     formatDisjunctiveFacetFilters,
 } from "./searchUtils.js"
-import { getIndexName } from "./searchClient.js"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
 
 function makeStateForKey(state: SearchState) {
@@ -206,7 +206,7 @@ export async function queryDataInsights(
 
     const searchParams = [
         {
-            indexName: getIndexName(SearchIndexName.Pages),
+            indexName: PAGES_INDEX,
             query,
             filters: `type:${OwidGdocType.DataInsight}`,
             facetFilters: formatTopicFacetFilters(selectedTopics),
@@ -261,7 +261,7 @@ export async function queryArticles(
 
     const searchParams = [
         {
-            indexName: getIndexName(SearchIndexName.Pages),
+            indexName: PAGES_INDEX,
             query,
             filters: `type:${OwidGdocType.Article} OR type:${OwidGdocType.AboutPage}`,
             facetFilters: formatTopicFacetFilters(selectedTopics),
@@ -304,7 +304,7 @@ export async function queryTopicPages(
 
     const searchParams = [
         {
-            indexName: getIndexName(SearchIndexName.Pages),
+            indexName: PAGES_INDEX,
             query: state.query,
             filters: `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`,
             facetFilters: formatTopicFacetFilters(selectedTopics),
@@ -340,7 +340,7 @@ export async function queryWritingTopics(
 
         return [
             {
-                indexName: getIndexName(SearchIndexName.Pages),
+                indexName: PAGES_INDEX,
                 attributesToRetrieve: [
                     "title",
                     "slug",
@@ -355,7 +355,7 @@ export async function queryWritingTopics(
                 hitsPerPage: 3,
             },
             {
-                indexName: getIndexName(SearchIndexName.Pages),
+                indexName: PAGES_INDEX,
                 attributesToRetrieve: ["title", "slug", "type"],
                 filters: `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`,
                 facetFilters: topicFacetFilters,
