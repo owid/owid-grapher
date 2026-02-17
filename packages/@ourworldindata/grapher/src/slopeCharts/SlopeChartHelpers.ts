@@ -19,7 +19,11 @@ import {
 export function getYAxisConfigDefaults(
     config?: AxisConfigInterface
 ): AxisConfigInterface {
-    return { nice: config?.scaleType !== ScaleType.log }
+    return {
+        nice: config?.scaleType !== ScaleType.log,
+        // Default to 0 if not set
+        min: 0,
+    }
 }
 
 export function toPlacedSlopeChartSeries(
