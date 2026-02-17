@@ -8,8 +8,6 @@ import { IncomePlotDrawer } from "./IncomePlotDrawer.tsx"
 import { useAtomValue, useSetAtom } from "jotai"
 import { atomCurrentYear, atomisNarrow } from "../store.ts"
 import { useResizeObserver, useWindowSize } from "usehooks-ts"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faGear } from "@fortawesome/free-solid-svg-icons"
 
 export const App = () => {
     const currentYear = useAtomValue(atomCurrentYear)
@@ -35,7 +33,10 @@ export const App = () => {
 
     return (
         <div ref={containerRef}>
-            <IncomePlotControlsRowTop />
+            <IncomePlotControlsRowTop
+                isNarrow={isNarrow}
+                onOpenSettings={() => setDrawerOpen(true)}
+            />
             <div
                 style={{
                     width: "max-content",
@@ -55,20 +56,10 @@ export const App = () => {
             </div>
             <IncomePlotControlsRowBottom isNarrow={isNarrow} />
             {isNarrow && (
-                <>
-                    <button
-                        className="income-plot-drawer-trigger"
-                        onClick={() => setDrawerOpen(true)}
-                        aria-label="Open settings"
-                    >
-                        <FontAwesomeIcon icon={faGear} />
-                        Settings
-                    </button>
-                    <IncomePlotDrawer
-                        isOpen={drawerOpen}
-                        onClose={closeDrawer}
-                    />
-                </>
+                <IncomePlotDrawer
+                    isOpen={drawerOpen}
+                    onClose={closeDrawer}
+                />
             )}
         </div>
     )
