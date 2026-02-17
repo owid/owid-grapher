@@ -1,12 +1,15 @@
-import { Suspense, useEffect, useMemo, useRef } from "react"
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { IncomePlot } from "./IncomePlot.tsx"
 import {
     IncomePlotControlsRowBottom,
     IncomePlotControlsRowTop,
 } from "./IncomePlotControlsRow.tsx"
+import { IncomePlotDrawer } from "./IncomePlotDrawer.tsx"
 import { useAtomValue, useSetAtom } from "jotai"
 import { atomCurrentYear, atomisNarrow } from "../store.ts"
 import { useResizeObserver, useWindowSize } from "usehooks-ts"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faGear } from "@fortawesome/free-solid-svg-icons"
 
 export const App = () => {
     const currentYear = useAtomValue(atomCurrentYear)
@@ -26,6 +29,9 @@ export const App = () => {
     const isPortrait = windowHeight >= windowWidth
 
     const aspectRatio = isNarrow && isPortrait ? 0.9 : 5 / 3
+
+    const [drawerOpen, setDrawerOpen] = useState(false)
+    const closeDrawer = useCallback(() => setDrawerOpen(false), [])
 
     return (
         <div ref={containerRef}>
@@ -48,6 +54,22 @@ export const App = () => {
                 </Suspense>
             </div>
             <IncomePlotControlsRowBottom isNarrow={isNarrow} />
+            {isNarrow && (
+                <>
+                    <button
+                        className="income-plot-drawer-trigger"
+                        onClick={() => setDrawerOpen(true)}
+                        aria-label="Open settings"
+                    >
+                        <FontAwesomeIcon icon={faGear} />
+                        Settings
+                    </button>
+                    <IncomePlotDrawer
+                        isOpen={drawerOpen}
+                        onClose={closeDrawer}
+                    />
+                </>
+            )}
         </div>
     )
 }
