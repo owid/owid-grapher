@@ -1,5 +1,4 @@
 import { roundSigFig } from "@ourworldindata/utils"
-import * as d3 from "d3"
 import * as fastKde from "fast-kde"
 import {
     Currency,
