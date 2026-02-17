@@ -15,7 +15,7 @@ import cx from "classnames"
 import * as React from "react"
 import { Tabs as AriaTabs, TabList, Tab } from "react-aria-components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faGlobe, faFlag } from "@fortawesome/free-solid-svg-icons"
+import { faGlobe, faFlag, faGear } from "@fortawesome/free-solid-svg-icons"
 
 export interface TabItem<TabKey extends string = string> {
     key: TabKey
@@ -59,7 +59,13 @@ export const Tabs = <TabKey extends string = string>({
     )
 }
 
-export const IncomePlotControlsRowTop = () => {
+export const IncomePlotControlsRowTop = ({
+    isNarrow = false,
+    onOpenSettings,
+}: {
+    isNarrow?: boolean
+    onOpenSettings?: () => void
+}) => {
     const [currentTab, setCurrentTab] = useAtom(atomCurrentTab)
     const [countriesOrRegionsMode, nextCountriesOrRegionsMode] = useAtom(
         atomCountriesOrRegionsMode
@@ -97,7 +103,16 @@ export const IncomePlotControlsRowTop = () => {
                 selectedKey={currentTab}
                 onChange={setCurrentTab}
             />
-            {isGlobal && (
+            {isNarrow && onOpenSettings && (
+                <button
+                    className="income-plot-drawer-trigger"
+                    onClick={onOpenSettings}
+                    aria-label="Open settings"
+                >
+                    <FontAwesomeIcon icon={faGear} />
+                </button>
+            )}
+            {isGlobal && !isNarrow && (
                 <div className="regions-countries-toggle">
                     <span
                         className={cx("toggle-label", {
@@ -127,7 +142,7 @@ export const IncomePlotControlsRowTop = () => {
                     </span>
                 </div>
             )}
-            {isCountries && <IncomePlotCountrySelector />}
+            {isCountries && !isNarrow && <IncomePlotCountrySelector />}
         </div>
     )
 }

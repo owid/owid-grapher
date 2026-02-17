@@ -310,6 +310,10 @@
 .income-plot-drawer__button-group {
     display: flex;
     gap: 8px;
+
+    > * {
+        flex: 1;
+    }
 }
 
 .income-plot-drawer__button {
