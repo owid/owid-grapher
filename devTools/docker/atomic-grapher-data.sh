@@ -145,9 +145,30 @@ swapGrapherDb() {
         _mysql --database="$GRAPHER_DB_NAME" -e "DROP VIEW IF EXISTS $VIEW"
     done
 
-    # Recreate views in main DB using the extracted definitions
-    for VIEW in "${!VIEW_DEFS[@]}"; do
-        _mysql --database="$GRAPHER_DB_NAME" -e "${VIEW_DEFS[$VIEW]}"
+    # Recreate views in main DB using the extracted definitions.
+    # Use a retry loop to handle view-on-view dependencies (ordering)
+    # and gracefully skip views that reference removed tables/columns.
+    REMAINING_VIEWS=("${!VIEW_DEFS[@]}")
+    ATTEMPT=1
+    while [ ${#REMAINING_VIEWS[@]} -gt 0 ]; do
+        FAILED_VIEWS=()
+        for VIEW in "${REMAINING_VIEWS[@]}"; do
+            if ! _mysql --database="$GRAPHER_DB_NAME" -e "${VIEW_DEFS[$VIEW]}" 2>/dev/null; then
+                FAILED_VIEWS+=("$VIEW")
+            fi
+        done
+
+        # If no progress was made, these views are truly broken - stop retrying
+        if [ ${#FAILED_VIEWS[@]} -eq ${#REMAINING_VIEWS[@]} ]; then
+            echo "WARNING: Could not create ${#FAILED_VIEWS[@]} view(s) after $ATTEMPT attempt(s):"
+            for VIEW in "${FAILED_VIEWS[@]}"; do
+                echo "  - $VIEW"
+            done
+            break
+        fi
+
+        REMAINING_VIEWS=("${FAILED_VIEWS[@]}")
+        ((ATTEMPT++))
     done
 
     echo "==> Cleaning up"
