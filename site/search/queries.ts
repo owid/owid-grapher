@@ -28,6 +28,7 @@ import {
     DATA_CATALOG_ATTRIBUTES,
     formatDisjunctiveFacetFilters,
 } from "./searchUtils.js"
+import { getIndexName } from "./searchClient.js"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
 
 function makeStateForKey(state: SearchState) {
@@ -205,7 +206,7 @@ export async function queryDataInsights(
 
     const searchParams = [
         {
-            indexName: SearchIndexName.Pages,
+            indexName: getIndexName(SearchIndexName.Pages),
             query,
             filters: `type:${OwidGdocType.DataInsight}`,
             facetFilters: formatTopicFacetFilters(selectedTopics),
@@ -260,7 +261,7 @@ export async function queryArticles(
 
     const searchParams = [
         {
-            indexName: SearchIndexName.Pages,
+            indexName: getIndexName(SearchIndexName.Pages),
             query,
             filters: `type:${OwidGdocType.Article} OR type:${OwidGdocType.AboutPage}`,
             facetFilters: formatTopicFacetFilters(selectedTopics),
@@ -303,7 +304,7 @@ export async function queryTopicPages(
 
     const searchParams = [
         {
-            indexName: SearchIndexName.Pages,
+            indexName: getIndexName(SearchIndexName.Pages),
             query: state.query,
             filters: `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`,
             facetFilters: formatTopicFacetFilters(selectedTopics),
@@ -339,7 +340,7 @@ export async function queryWritingTopics(
 
         return [
             {
-                indexName: SearchIndexName.Pages,
+                indexName: getIndexName(SearchIndexName.Pages),
                 attributesToRetrieve: [
                     "title",
                     "slug",
@@ -354,7 +355,7 @@ export async function queryWritingTopics(
                 hitsPerPage: 3,
             },
             {
-                indexName: SearchIndexName.Pages,
+                indexName: getIndexName(SearchIndexName.Pages),
                 attributesToRetrieve: ["title", "slug", "type"],
                 filters: `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`,
                 facetFilters: topicFacetFilters,
