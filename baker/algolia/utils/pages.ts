@@ -17,9 +17,9 @@ import {
     Span,
 } from "@ourworldindata/utils"
 import { getAlgoliaClient } from "../configureAlgolia.js"
-import { PageRecord, SearchIndexName } from "@ourworldindata/types"
+import { PageRecord } from "@ourworldindata/types"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
-import { getIndexName } from "../../../site/search/searchClient.js"
+import { PAGES_INDEX } from "../../../site/search/searchUtils.js"
 import type { Hit, SearchClient } from "@algolia/client-search"
 import { match, P } from "ts-pattern"
 import { gdocFromJSON } from "../../../db/model/Gdoc/GdocFactory.js"
@@ -374,7 +374,7 @@ export async function indexIndividualGdocPost(
         )
         return
     }
-    const indexName = getIndexName(SearchIndexName.Pages)
+    const indexName = PAGES_INDEX
 
     const existingRecordsForPost: Hit[] = await getExistingRecordsForSlug(
         client,
@@ -472,7 +472,7 @@ export async function removeIndividualGdocPostFromIndex(
         )
         return
     }
-    const indexName = getIndexName(SearchIndexName.Pages)
+    const indexName = PAGES_INDEX
     const existingRecordsForPost: Hit[] = await getExistingRecordsForSlug(
         client,
         indexName,

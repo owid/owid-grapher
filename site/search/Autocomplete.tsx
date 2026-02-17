@@ -26,11 +26,16 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../../settings/clientSettings.js"
+import { DEFAULT_SEARCH_PLACEHOLDER, parseIndexName } from "./searchClient.js"
 import {
-    DEFAULT_SEARCH_PLACEHOLDER,
-    getIndexName,
-    parseIndexName,
-} from "./searchClient.js"
+    PAGES_INDEX,
+    CHARTS_INDEX,
+    suggestFiltersFromQuerySuffix,
+    getFilterIcon,
+    getItemUrlForFilter,
+    getPageTypeNameAndIcon,
+    SEARCH_BASE_PATH,
+} from "./searchUtils.js"
 import {
     listedRegionsNames,
     OwidGdocType,
@@ -40,13 +45,6 @@ import { SiteAnalytics } from "../SiteAnalytics.js"
 import Mousetrap from "mousetrap"
 import { match } from "ts-pattern"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
-import {
-    suggestFiltersFromQuerySuffix,
-    getFilterIcon,
-    getItemUrlForFilter,
-    getPageTypeNameAndIcon,
-    SEARCH_BASE_PATH,
-} from "./searchUtils.js"
 import { buildSynonymMap } from "./synonymUtils.js"
 import { SearchFilterPill } from "./SearchFilterPill.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -192,7 +190,7 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
             searchClient: liteSearchClient,
             queries: [
                 {
-                    indexName: getIndexName(SearchIndexName.Pages),
+                    indexName: PAGES_INDEX,
                     params: {
                         query,
                         hitsPerPage: 2,
@@ -200,9 +198,7 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                     },
                 },
                 {
-                    indexName: getIndexName(
-                        SearchIndexName.ExplorerViewsMdimViewsAndCharts
-                    ),
+                    indexName: CHARTS_INDEX,
                     params: {
                         query,
                         hitsPerPage: 3,
