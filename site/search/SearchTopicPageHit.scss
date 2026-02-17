@@ -24,6 +24,7 @@
     margin: 0;
     color: $blue-90;
     margin-bottom: 8px;
+    text-wrap: balance;
 
     @include sm-only {
         font-size: 16px;
