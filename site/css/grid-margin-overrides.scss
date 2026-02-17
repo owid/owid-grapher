@@ -75,6 +75,14 @@
     }
 }
 
+/* If a data callout directly follows a heading, and its first child is a heading, set that heading's top margin to 0 */
+.centered-article-container
+    .article-block__heading
+    + .article-block__data-callout
+    > .article-block__heading:first-child {
+    margin-top: 0;
+}
+
 .centered-article-container--linear-topic-page {
     /*** Rule 1: the table of contents is responsible for adding spacing (and dividers) with the surrounding content */
     // Set the bottom margin of any element that comes before a table of contents to 0 */
