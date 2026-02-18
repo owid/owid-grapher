@@ -1,7 +1,12 @@
 import * as _ from "lodash-es"
 import { match } from "ts-pattern"
 import { computed, makeObservable } from "mobx"
-import { Bounds, excludeUndefined, RequiredBy } from "@ourworldindata/utils"
+import {
+    Bounds,
+    excludeUndefined,
+    checkIsOwidIncomeGroupName,
+    RequiredBy,
+} from "@ourworldindata/utils"
 import { canAppendTextToLastLine, TextWrap } from "@ourworldindata/components"
 import {
     AnyRegionDataProvider,
@@ -19,10 +24,16 @@ export interface SeriesLabelStateOptions {
     textAnchor?: "start" | "end"
     formattedValue?: string
     placeFormattedValueInNewLine?: boolean
-    showRegionProviderTooltip?: boolean
+    showRegionTooltip?: boolean
 }
 
-export type TextRole = "name" | "suffix" | "value"
+export type TooltipKey = AnyRegionDataProvider | "incomeGroups"
+
+export type TextRole =
+    | "name"
+    | "value"
+    | "regionProviderSuffix"
+    | "incomeGroupIcon"
 
 export interface TextSpan {
     role: TextRole
@@ -39,7 +50,7 @@ interface TextFragment extends TextSpan {
 
 interface IconFragment {
     type: "icon"
-    providerKey: AnyRegionDataProvider
+    tooltipKey: TooltipKey
     iconSize: number
     width: number
 }
@@ -79,7 +90,7 @@ export class SeriesLabelState {
         fontWeight: 400,
         lineHeight: 1.1,
         placeFormattedValueInNewLine: false,
-        showRegionProviderTooltip: false,
+        showRegionTooltip: false,
         textAnchor: "start",
     } as const satisfies Partial<SeriesLabelStateOptions>
 
@@ -92,7 +103,7 @@ export class SeriesLabelState {
         textWrap: TextWrap,
         options?: Pick<
             SeriesLabelStateOptions,
-            "showRegionProviderTooltip" | "textAnchor"
+            "showRegionTooltip" | "textAnchor"
         >
     ): SeriesLabelState {
         return new SeriesLabelState({
@@ -101,7 +112,7 @@ export class SeriesLabelState {
             fontSize: textWrap.fontSize,
             fontWeight: textWrap?.fontWeight,
             lineHeight: textWrap?.lineHeight,
-            showRegionProviderTooltip: options?.showRegionProviderTooltip,
+            showRegionTooltip: options?.showRegionTooltip,
             textAnchor: options?.textAnchor,
         })
     }
@@ -180,7 +191,7 @@ export class SeriesLabelState {
         if (!this.parsedText.providerKey) return undefined
 
         const fontSettings = { ...this.fontSettings, fontWeight: 400 }
-        const shouldShowIcon = this.options.showRegionProviderTooltip
+        const shouldShowIcon = this.options.showRegionTooltip
 
         if (shouldShowIcon) {
             const textBeforeIcon = `(${this.parsedText.suffix}`
@@ -198,7 +209,7 @@ export class SeriesLabelState {
             return [
                 {
                     type: "text",
-                    role: "suffix",
+                    role: "regionProviderSuffix",
                     text: textBeforeIcon,
                     width: textBeforeWidth,
                     fontWeight: fontSettings.fontWeight,
@@ -208,11 +219,11 @@ export class SeriesLabelState {
                     type: "icon",
                     width: this.iconSize,
                     iconSize: this.iconSize,
-                    providerKey: this.parsedText.providerKey,
+                    tooltipKey: this.parsedText.providerKey,
                 },
                 {
                     type: "text",
-                    role: "suffix",
+                    role: "regionProviderSuffix",
                     text: textAfterIcon,
                     width: textAfterWidth,
                     fontWeight: fontSettings.fontWeight,
@@ -225,7 +236,7 @@ export class SeriesLabelState {
             return [
                 {
                     type: "text",
-                    role: "suffix",
+                    role: "regionProviderSuffix",
                     text,
                     width,
                     fontWeight: fontSettings.fontWeight,
@@ -252,6 +263,25 @@ export class SeriesLabelState {
         ]
     }
 
+    @computed private get incomeGroupFragments():
+        | ContentFragment[]
+        | undefined {
+        if (
+            !this.options.showRegionTooltip ||
+            !checkIsOwidIncomeGroupName(this.options.text)
+        )
+            return undefined
+
+        return [
+            {
+                type: "icon",
+                width: this.iconSize,
+                iconSize: this.iconSize,
+                tooltipKey: "incomeGroups",
+            },
+        ]
+    }
+
     /**
      * Which fragment group (if any) shares the last line with the name.
      *
@@ -262,10 +292,13 @@ export class SeriesLabelState {
     @computed private get roleOnNameLine():
         | Exclude<TextRole, "name">
         | undefined {
+        // If there's an income group icon, it must be placed on the same line as the name
+        if (this.incomeGroupFragments) return "incomeGroupIcon"
+
         // Suffix has priority
         if (this.suffixFragments) {
             const suffixText = `(${this.parsedText.suffix})`
-            const reservedWidth = this.options.showRegionProviderTooltip
+            const reservedWidth = this.options.showRegionTooltip
                 ? this.iconSize + this.spaceWidth
                 : 0
             const fits = canAppendTextToLastLine({
@@ -273,7 +306,7 @@ export class SeriesLabelState {
                 textToAppend: suffixText,
                 reservedWidth,
             })
-            return fits ? "suffix" : undefined
+            return fits ? "regionProviderSuffix" : undefined
         }
 
         // Only consider value if not forced to new line
@@ -294,7 +327,16 @@ export class SeriesLabelState {
     }[] {
         return excludeUndefined([
             this.suffixFragments
-                ? { role: "suffix", fragments: this.suffixFragments }
+                ? {
+                      role: "regionProviderSuffix",
+                      fragments: this.suffixFragments,
+                  }
+                : undefined,
+            this.incomeGroupFragments
+                ? {
+                      role: "incomeGroupIcon",
+                      fragments: this.incomeGroupFragments,
+                  }
                 : undefined,
             this.valueFragments
                 ? { role: "value", fragments: this.valueFragments }

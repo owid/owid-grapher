@@ -72,7 +72,11 @@ describe("SeriesLabelState", () => {
             [{ role: "name", text: "Latin America and", fontWeight: 400 }],
             [
                 { role: "name", text: "the Caribbean", fontWeight: 400 },
-                { role: "suffix", text: " (UN)", fontWeight: 400 },
+                {
+                    role: "regionProviderSuffix",
+                    text: " (UN)",
+                    fontWeight: 400,
+                },
             ],
         ])
     })
@@ -106,7 +110,11 @@ describe("SeriesLabelState", () => {
         expect(label.spanLines).toEqual([
             [
                 { role: "name", text: "Africa", fontWeight: 400 },
-                { role: "suffix", text: " (WHO)", fontWeight: 400 },
+                {
+                    role: "regionProviderSuffix",
+                    text: " (WHO)",
+                    fontWeight: 400,
+                },
             ],
             [{ role: "value", text: "72%", fontWeight: 400 }],
         ])
@@ -124,7 +132,11 @@ describe("SeriesLabelState", () => {
         expect(label.spanLines).toEqual([
             [
                 { role: "name", text: "Africa", fontWeight: 700 },
-                { role: "suffix", text: " (WHO)", fontWeight: 400 },
+                {
+                    role: "regionProviderSuffix",
+                    text: " (WHO)",
+                    fontWeight: 400,
+                },
             ],
             [{ role: "value", text: "72%", fontWeight: 400 }],
         ])
@@ -135,14 +147,14 @@ describe("SeriesLabelState", () => {
             text: "Africa (WHO)",
             maxWidth: Infinity,
             fontSize: FONT_SIZE,
-            showRegionProviderTooltip: true,
+            showRegionTooltip: true,
         })
 
         expect(label.positionedFragments).toMatchObject([
             { type: "text", role: "name", text: "Africa" },
-            { type: "text", role: "suffix", text: "(WHO" },
-            { type: "icon", providerKey: "who" },
-            { type: "text", role: "suffix", text: ")" },
+            { type: "text", role: "regionProviderSuffix", text: "(WHO" },
+            { type: "icon", tooltipKey: "who" },
+            { type: "text", role: "regionProviderSuffix", text: ")" },
         ])
     })
 
@@ -151,7 +163,7 @@ describe("SeriesLabelState", () => {
             text: "Africa (FAKE)",
             maxWidth: Infinity,
             fontSize: FONT_SIZE,
-            showRegionProviderTooltip: true,
+            showRegionTooltip: true,
         })
 
         expect(label.positionedFragments).toMatchObject([
@@ -175,5 +187,19 @@ describe("SeriesLabelState", () => {
         for (const fragment of label.positionedFragments) {
             expect(fragment.x).toBeLessThanOrEqual(0)
         }
+    })
+
+    it("shows an icon for income group labels when enabled", () => {
+        const label = new SeriesLabelState({
+            text: "High-income countries",
+            maxWidth: Infinity,
+            fontSize: FONT_SIZE,
+            showRegionTooltip: true,
+        })
+
+        expect(label.positionedFragments).toMatchObject([
+            { type: "text", role: "name", text: "High-income countries" },
+            { type: "icon", tooltipKey: "incomeGroups" },
+        ])
     })
 })

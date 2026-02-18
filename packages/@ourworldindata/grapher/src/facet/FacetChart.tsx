@@ -887,7 +887,7 @@ export class FacetChart
             maxWidth: Infinity, // Facet labels never wrap
             fontWeight: 700,
             fontSize: this.facetFontSize,
-            showRegionProviderTooltip: !this.manager.isStatic,
+            showRegionTooltip: !this.manager.isStatic,
         }
     }
 

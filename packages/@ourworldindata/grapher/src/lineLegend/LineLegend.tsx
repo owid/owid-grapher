@@ -401,7 +401,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 formattedValue: series.formattedValue,
                 placeFormattedValueInNewLine:
                     series.placeFormattedValueInNewLine,
-                showRegionProviderTooltip: !this.props.isStatic,
+                showRegionTooltip: !this.props.isStatic,
             })
 
             const annotationTextWrap = this.makeAnnotationTextWrap(series)

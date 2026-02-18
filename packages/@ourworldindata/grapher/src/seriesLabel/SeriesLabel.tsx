@@ -12,14 +12,15 @@ import {
     PositionedIconFragment,
     TextRole,
     SpanLine,
+    TooltipKey,
 } from "./SeriesLabelState.js"
 import { Bounds, isTouchDevice } from "@ourworldindata/utils"
-import { AnyRegionDataProvider } from "../core/RegionGroups.js"
 
 const defaultColors: Record<TextRole, string> = {
     name: GRAPHER_DARK_TEXT,
     value: GRAPHER_DARK_TEXT,
-    suffix: GRAPHER_LIGHT_TEXT,
+    regionProviderSuffix: GRAPHER_LIGHT_TEXT,
+    incomeGroupIcon: GRAPHER_LIGHT_TEXT,
 }
 
 export interface SeriesLabelProps {
@@ -95,11 +96,11 @@ export function SeriesLabel({
             />
             {iconFragments.map((fragment) => (
                 <IconFragment
-                    key={fragment.providerKey}
+                    key={fragment.tooltipKey}
                     x={renderX}
                     y={renderY}
                     fragment={fragment}
-                    fill={colors.suffix}
+                    fill={colors.regionProviderSuffix}
                     onMouseEnter={onMouseEnter}
                     onMouseLeave={onMouseLeave}
                     onInfoTooltipShow={onInfoTooltipShow}
@@ -334,9 +335,7 @@ function IconFragment({
                 theme="grapher-explanation"
                 placement="top"
                 content={
-                    <RegionProviderTooltipContent
-                        providerKey={fragment.providerKey}
-                    />
+                    <RegionTooltipContent tooltipKey={fragment.tooltipKey} />
                 }
                 onShow={onInfoTooltipShow}
             >
@@ -352,10 +351,10 @@ function IconFragment({
     )
 }
 
-function RegionProviderTooltipContent({
-    providerKey,
+function RegionTooltipContent({
+    tooltipKey,
 }: {
-    providerKey: AnyRegionDataProvider
+    tooltipKey: TooltipKey
 }): React.ReactElement {
-    return <div>{providerKey}</div>
+    return <div>{tooltipKey}</div>
 }

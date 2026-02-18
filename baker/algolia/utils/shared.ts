@@ -2,7 +2,7 @@ import * as _ from "lodash-es"
 import {
     countries,
     countriesByName,
-    incomeGroupsByName,
+    incomeGroupsByCode,
     DbPlainFeaturedMetricWithParentTagName,
     FeaturedMetricIncomeGroup,
     removeTrailingParenthetical,
@@ -156,7 +156,7 @@ function getCorrespondingIncomeGroup(
     >
 ) {
     const owidIncomeGroupName = incomeGroupMap[incomeGroupName]
-    const countriesByIncomeGroup = incomeGroupsByName()
+    const countriesByIncomeGroup = incomeGroupsByCode()
     return countriesByIncomeGroup[owidIncomeGroupName]
 }
 

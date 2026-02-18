@@ -6,7 +6,7 @@ import {
     ChartRecord,
     ExplorerType,
 } from "@ourworldindata/types"
-import { OwidIncomeGroupName } from "@ourworldindata/utils"
+import { OwidIncomeGroupCode } from "@ourworldindata/utils"
 
 export interface DatasetChartRecordDimensions {
     datasetNamespaces: string[]
@@ -183,7 +183,7 @@ export const REAL_FM_INCOME_GROUPS: Exclude<
  */
 export const incomeGroupMap: Record<
     Exclude<FeaturedMetricIncomeGroup, FeaturedMetricIncomeGroup.Default>,
-    OwidIncomeGroupName
+    OwidIncomeGroupCode
 > = {
     [FeaturedMetricIncomeGroup.Low]: "OWID_LIC",
     [FeaturedMetricIncomeGroup.LowerMiddle]: "OWID_LMC",
