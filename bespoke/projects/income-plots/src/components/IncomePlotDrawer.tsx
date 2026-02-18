@@ -1,10 +1,16 @@
-import { useAtom } from "jotai"
+import { useAtom, useAtomValue } from "jotai"
 import {
     atomTimeInterval,
     atomCurrentCurrency,
     atomCountriesOrRegionsMode,
+    atomCurrentTab,
+    atomAvailableCountryNames,
+    atomSelectedCountryNames,
 } from "../store.ts"
 import { TIME_INTERVALS, TimeInterval } from "../utils/incomePlotConstants.ts"
+import { Suspense, useMemo, useState } from "react"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
 
 interface IncomePlotDrawerProps {
     isOpen: boolean
@@ -27,10 +33,103 @@ const MODE_OPTIONS = [
     { value: "countries" as const, label: "Show countries" },
 ]
 
+function DrawerCountrySelectorInner() {
+    const availableCountryNames = useAtomValue(atomAvailableCountryNames)
+    const [selectedCountryNames, setSelectedCountryNames] = useAtom(
+        atomSelectedCountryNames
+    )
+    const [searchQuery, setSearchQuery] = useState("")
+    const [showSelectedOnly, setShowSelectedOnly] = useState(false)
+
+    const selectedSet = useMemo(
+        () => new Set(selectedCountryNames),
+        [selectedCountryNames]
+    )
+
+    const filteredCountries = useMemo(() => {
+        let countries = availableCountryNames
+        if (showSelectedOnly) {
+            countries = countries.filter((c) => selectedSet.has(c))
+        }
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase()
+            countries = countries.filter((c) =>
+                c.toLowerCase().includes(query)
+            )
+        }
+        return countries
+    }, [availableCountryNames, showSelectedOnly, selectedSet, searchQuery])
+
+    const handleToggleCountry = (countryName: string) => {
+        if (selectedSet.has(countryName)) {
+            setSelectedCountryNames(
+                selectedCountryNames.filter((c) => c !== countryName)
+            )
+        } else {
+            setSelectedCountryNames([...selectedCountryNames, countryName])
+        }
+    }
+
+    return (
+        <div className="drawer-country-selector">
+            <div className="drawer-country-selector__search">
+                <FontAwesomeIcon
+                    icon={faMagnifyingGlass}
+                    className="drawer-country-selector__search-icon"
+                />
+                <input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search and select countries"
+                    className="drawer-country-selector__search-input"
+                />
+            </div>
+            <label className="drawer-country-selector__toggle">
+                <input
+                    type="checkbox"
+                    checked={showSelectedOnly}
+                    onChange={(e) => setShowSelectedOnly(e.target.checked)}
+                    className="drawer-country-selector__toggle-checkbox"
+                />
+                <span className="drawer-country-selector__toggle-label">
+                    Show selected countries only ({selectedCountryNames.length})
+                </span>
+            </label>
+            <div className="drawer-country-selector__list">
+                {filteredCountries.map((country) => (
+                    <label
+                        key={country}
+                        className="drawer-country-selector__item"
+                    >
+                        <input
+                            type="checkbox"
+                            checked={selectedSet.has(country)}
+                            onChange={() => handleToggleCountry(country)}
+                            className="drawer-country-selector__checkbox"
+                        />
+                        <span className="drawer-country-selector__country-name">
+                            {country}
+                        </span>
+                    </label>
+                ))}
+            </div>
+        </div>
+    )
+}
+
+function DrawerCountrySelector() {
+    return (
+        <Suspense>
+            <DrawerCountrySelectorInner />
+        </Suspense>
+    )
+}
+
 export function IncomePlotDrawer({ isOpen, onClose }: IncomePlotDrawerProps) {
     const [timeInterval, setTimeInterval] = useAtom(atomTimeInterval)
     const [currency, setCurrency] = useAtom(atomCurrentCurrency)
     const [mode, setMode] = useAtom(atomCountriesOrRegionsMode)
+    const currentTab = useAtomValue(atomCurrentTab)
 
     return (
         <>
@@ -74,9 +173,7 @@ export function IncomePlotDrawer({ isOpen, onClose }: IncomePlotDrawerProps) {
                                 <button
                                     key={interval}
                                     className={`income-plot-drawer__button${timeInterval === interval ? " income-plot-drawer__button--active" : ""}`}
-                                    onClick={() =>
-                                        setTimeInterval(interval)
-                                    }
+                                    onClick={() => setTimeInterval(interval)}
                                 >
                                     {TIME_INTERVAL_LABELS[interval]}
                                 </button>
@@ -105,22 +202,28 @@ export function IncomePlotDrawer({ isOpen, onClose }: IncomePlotDrawerProps) {
 
                     <div className="income-plot-drawer__divider" />
 
-                    <div className="income-plot-drawer__section">
-                        <div className="income-plot-drawer__section-label">
-                            Chart options
+                    {currentTab === "global" && (
+                        <div className="income-plot-drawer__section">
+                            <div className="income-plot-drawer__section-label">
+                                Chart options
+                            </div>
+                            <div className="income-plot-drawer__button-group">
+                                {MODE_OPTIONS.map((opt) => (
+                                    <button
+                                        key={opt.value}
+                                        className={`income-plot-drawer__button${mode === opt.value ? " income-plot-drawer__button--active" : ""}`}
+                                        onClick={() => setMode(opt.value)}
+                                    >
+                                        {opt.label}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
-                        <div className="income-plot-drawer__button-group">
-                            {MODE_OPTIONS.map((opt) => (
-                                <button
-                                    key={opt.value}
-                                    className={`income-plot-drawer__button${mode === opt.value ? " income-plot-drawer__button--active" : ""}`}
-                                    onClick={() => setMode(opt.value)}
-                                >
-                                    {opt.label}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+                    )}
+
+                    {currentTab === "countries" && (
+                        <DrawerCountrySelector />
+                    )}
                 </div>
             </div>
         </>
