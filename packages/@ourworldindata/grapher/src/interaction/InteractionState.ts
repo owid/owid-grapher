@@ -27,6 +27,20 @@ export class InteractionState {
     }
 
     /**
+     * Creates an InteractionState by comparing a given value against the
+     * currently active value
+     */
+    static for<T>(
+        currentValue: T | undefined,
+        activeValue: T | undefined
+    ): InteractionState {
+        const isInteractedWith =
+            activeValue !== undefined && currentValue === activeValue
+        const isInteractionModeActive = activeValue !== undefined
+        return new InteractionState(isInteractedWith, isInteractionModeActive)
+    }
+
+    /**
      * Whether the chart is in an idle state, i.e. no series are currently
      * being interacted with
      */

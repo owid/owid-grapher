@@ -61,6 +61,7 @@ export const regionGroupLabels: Record<RegionGroupKey, string> = {
     un_m49_3: "United Nations regions",
 
     // Regions defined by an institution, but we don't have region definitions in regions.json for these (we recognize them by their suffix)
+    maddison: "Maddison Project Database regions",
     unsdg: "UN Sustainable Development Goals regions",
     unm49: "United Nations M49 regions",
     unsd: "UN Statistics Division regions",
@@ -81,7 +82,7 @@ function toProviderKey(
     providerSuffix: string
 ): AnyRegionDataProvider | undefined {
     const candidate = providerSuffix.toLowerCase().replaceAll(" ", "")
-    return isRegionDataProviderKey(candidate) ? candidate : undefined
+    return isAnyRegionDataProviderKey(candidate) ? candidate : undefined
 }
 
 export function groupEntitiesByRegionType(
@@ -189,13 +190,13 @@ export function parseLabel(raw: string): ParsedLabel {
     if (!suffix) return { raw, name: raw }
 
     const providerKey = toProviderKey(suffix)
-    if (!providerKey || !isRegionDataProviderKey(providerKey))
+    if (!providerKey || !isAnyRegionDataProviderKey(providerKey))
         return { raw, name, suffix }
 
     return { raw, name, suffix, providerKey }
 }
 
-export function isRegionDataProviderKey(
+export function isAnyRegionDataProviderKey(
     candidate: string
 ): candidate is AnyRegionDataProvider {
     return regionDataProviderSet.has(candidate as any)
