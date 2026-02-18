@@ -26,6 +26,12 @@
     }
 }
 
+.income-plot-chart-svg {
+    .tick {
+        color: var(--gray-100);
+    }
+}
+
 .income-plot-legend {
     position: absolute;
     right: 12px;
