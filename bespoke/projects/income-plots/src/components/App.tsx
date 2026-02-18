@@ -61,7 +61,7 @@ export const App = () => {
                     />
                 </Suspense>
             </div>
-            <IncomePlotControlsRowBottom isNarrow={isNarrow} />
+            {!isNarrow && <IncomePlotControlsRowBottom />}
             {isNarrow && (
                 <IncomePlotDrawer isOpen={drawerOpen} onClose={closeDrawer} />
             )}
