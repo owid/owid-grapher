@@ -17,7 +17,7 @@ ifneq (,$(wildcard ./.env))
 	include .env
 endif
 
-.PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest svgtest.reset bdd bdd.ui
+.PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest svgtest.reset bdd bdd.ui check-not-prod
 
 help:
 	@echo 'Available commands:'
@@ -138,10 +138,7 @@ migrate: node_modules
 	yarn runDbMigrations
 
 refresh:
-	@if grep -q "ENV=production" .env; then \
-		echo "ERROR: Cannot run refresh in production environment."; \
-		exit 1; \
-	fi
+	@make check-not-prod
 
 	@echo '==> Downloading chart data'
 	./devTools/docker/download-grapher-metadata-mysql.sh
@@ -153,10 +150,7 @@ refresh:
 	'--fast-list --transfers 32 --checkers 32  --verbose`'
 
 refresh.atomic:
-	@if grep -q "ENV=production" .env; then \
-		echo "ERROR: Cannot run refresh in production environment."; \
-		exit 1; \
-	fi
+	@make check-not-prod
 
 	@echo '==> Downloading chart data'
 	./devTools/docker/download-grapher-metadata-mysql.sh
@@ -239,6 +233,16 @@ check-port-3306:
 		echo "Your database port is set to 3306.\
 		\nThis will likely conflict with any pre-existing MySQL instances you have running.\
 		\nWe recommend using a different port (like 3307)";\
+	fi
+
+check-not-prod:
+	@if grep -q "ENV=production" .env; then \
+		echo "ERROR: Cannot run this command in production environment."; \
+		exit 1; \
+	fi
+	@if [ "${GRAPHER_DB_HOST}" = "prod-db.owid.io" ]; then \
+		echo "ERROR: GRAPHER_DB_HOST is set to prod-db.owid.io. Refusing to run against the production database."; \
+		exit 1; \
 	fi
 
 tmp-downloads/owid_metadata.sql.gz:
