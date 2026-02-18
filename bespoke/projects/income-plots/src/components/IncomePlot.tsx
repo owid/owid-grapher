@@ -604,7 +604,11 @@ const IncomePlotXAxis = ({
         g.call(xAxis)
 
         g.select(".domain").remove()
-        g.selectAll(".tick line")
+
+        // Add grid lines for ticks that have labels
+        g.selectAll<SVGGElement, number>(".tick")
+            .filter((d) => xTicks.get(d) === true)
+            .select("line")
             .clone()
             .attr("y2", -(height - marginBottom - marginTop))
             .attr("stroke-opacity", 0.1)
