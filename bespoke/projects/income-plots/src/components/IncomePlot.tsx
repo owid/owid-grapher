@@ -153,29 +153,35 @@ const IncomePlotAreasStacked = ({ xScale, height }: IncomePlotAreasProps) => {
             .y1((d) => yScale(d[1]))
     }, [xScale, yScale])
 
-    const stackedData = useMemo(() => {
-        if (countriesOrRegionsMode === "countries") return stackedSeries
-        else {
-            // Re-stack the already stacked data by regions
-            const grouped = R.groupBy(stackedSeries, (d) => d.region)
-            return Object.values(grouped).map((dataForRegion) => {
-                const first = R.first(dataForRegion)
-                const last = R.last(dataForRegion)
+    const regionStackedData = useMemo(() => {
+        // Re-stack the already stacked data by regions.
+        // We need to compute this even when we are in country mode, so that we have this data available for `regionLabels` below.
+        const grouped = R.groupBy(stackedSeries, (d) => d.region)
+        return Object.values(grouped).map((dataForRegion) => {
+            const first = R.first(dataForRegion)
+            const last = R.last(dataForRegion)
 
-                const combined = R.zip(first, last).map(([f, l]) => {
-                    const arr = [f[0], l[1]] as d3.SeriesPoint<{ x: number }>
-                    arr.data = f.data
-                    return arr
-                }) as StackedSeriesPoint
+            const combined = R.zip(first, last).map(([f, l]) => {
+                const arr = [f[0], l[1]] as d3.SeriesPoint<{ x: number }>
+                arr.data = f.data
+                return arr
+            }) as StackedSeriesPoint
 
-                combined.key = first.region
-                combined.region = first.region
-                combined.color = first.color
+            combined.key = first.region
+            combined.region = first.region
+            combined.color = first.color
 
-                return combined
-            })
-        }
-    }, [countriesOrRegionsMode, stackedSeries])
+            return combined
+        })
+    }, [stackedSeries])
+
+    const stackedData = useMemo(
+        () =>
+            countriesOrRegionsMode === "countries"
+                ? stackedSeries
+                : regionStackedData,
+        [countriesOrRegionsMode, stackedSeries, regionStackedData]
+    )
 
     const seriesWithAreas = useMemo(() => {
         if (!area) return []
@@ -209,11 +215,10 @@ const IncomePlotAreasStacked = ({ xScale, height }: IncomePlotAreasProps) => {
     // half-width = bestDist * textAspect. Since text at font size f needs
     // half-height f/2, the max font is 2 * bestDist (with a comfort margin).
     const regionLabels = useMemo(() => {
-        if (!xScale || !yScale || countriesOrRegionsMode !== "regions")
-            return []
+        if (!xScale || !yScale) return []
 
         // Convert each series' data coordinates to pixel space once up front
-        const seriesPixelData = stackedData.map((series) => {
+        const seriesPixelData = regionStackedData.map((series) => {
             return series.map((point) => ({
                 x: xScale(point.data.x),
                 top: yScale(point[1]), // upper edge (smaller y = higher on screen)
@@ -221,7 +226,7 @@ const IncomePlotAreasStacked = ({ xScale, height }: IncomePlotAreasProps) => {
             }))
         })
 
-        return stackedData.map((series, seriesIdx) => {
+        return regionStackedData.map((series, seriesIdx) => {
             const n = series.length
             const pxData = seriesPixelData[seriesIdx]
             const regionName = series.region ?? series.key
@@ -342,7 +347,7 @@ const IncomePlotAreasStacked = ({ xScale, height }: IncomePlotAreasProps) => {
                 color: series.color,
             }
         })
-    }, [stackedData, xScale, yScale, countriesOrRegionsMode])
+    }, [regionStackedData, xScale, yScale])
 
     const onMouseLeave = useCallback(
         (entity: string) => {
