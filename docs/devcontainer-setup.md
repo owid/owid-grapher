@@ -1,72 +1,139 @@
 # Visual Studio Code Devcontainer setup
 
-This page describes how to run our develpment environment entirely within a VS Code devcontainer setup - i.e. without installing NodeJS, Mysql etc locally. All that is required is to have [VS Code](https://code.visualstudio.com/) with the [remote containers extension](https://code.visualstudio.com/docs/remote/containers) and the [docker runtime](https://www.docker.com/) installed.
+This page explains how to run our development environment entirely inside a VS Code devcontainer (no local Node.js/MySQL install required).
 
-⚠ If you are on Windows, make sure that you configure git to use linux line endings (LF) instead of windows line endings (CRLF) before checking out this repository on your local machine. Follow the [Set up git on windows](./before-you-start-on-windows.md) instructions.
+## Prerequisites
 
-Once you have the tools mentioned above installed, just open this repository in VS Code. You should see a notice in the lower left that asks if you want to open this again inside a devcontainer. Answer yes and it will spin that up. Note that the first time you run this it needs to download and ingest the database which takes 5-20 minutes. To see if the database loading has finished refer to the [Checking the docker compose logs](#checking-the-docker-compose-logs) section.
+- [VS Code](https://code.visualstudio.com/)
+- [Dev Containers extension](https://code.visualstudio.com/docs/remote/containers)
+- [Docker](https://www.docker.com/)
 
-If you had the devcontainer setup running previously and get a message on the lower right asking to rebuild the devcontainer then confirm this to apply any changes to the configuration that have been made.
+⚠️ If you are on Windows, configure git to use LF line endings before checkout. See [Set up git on windows](./before-you-start-on-windows.md).
 
-Once the database has been loaded run the following steps in VS Code's terminal (i.e. the terminal running inside the devcontainer). On MacOS, the first run of this can be slow due to an issue with yarn and docker - if so just be patient.
+## Open the repository in the devcontainer
+
+Open this repository in VS Code. You should get a prompt to reopen in a devcontainer.
+
+- Click **Reopen in Container**
+- If VS Code asks you to rebuild later, accept so config changes are applied
+
+On first run, database download + import can take ~5–20 minutes.
+See [Checking the docker compose logs](#checking-the-docker-compose-logs).
+
+## Important when switching from non-devcontainer setup
+
+If you already have a `.env` from `make up` / `make up.full`, it may break `make up.devcontainer`.
+
+`make up.devcontainer` only auto-copies `.env.devcontainer` when `.env` is missing.
+So if `.env` already exists, update it (or replace it) before starting.
+
+Recommended:
+
+```bash
+cp .env .env.backup
+cp .env.devcontainer .env
+```
+
+At minimum, make sure these values are set for devcontainer mode:
+
+- `GRAPHER_DB_HOST=db`
+- `GRAPHER_DB_PORT=3306`
+- `GRAPHER_TEST_DB_HOST=db`
+- `GRAPHER_TEST_DB_PORT=3306`
+- `ADMIN_SERVER_HOST=0.0.0.0`
+- `VITE_HOST=0.0.0.0`
+- `WRANGLER_IP=0.0.0.0`
+
+If `GRAPHER_DB_HOST` is `localhost` / `127.0.0.1`, admin startup often gets stuck printing dots in `wait-for-mysql.sh`.
+
+## Start the dev servers
+
+In the VS Code terminal (inside the devcontainer), run:
 
 ```bash
 make up.devcontainer
 ```
 
-This will run [tmux](https://github.com/tmux/tmux/wiki/Getting-Started) and create 3 panels that you can switch between with `<C-b>, n` (i.e. press `CTLR` (on PC)/`CMD` (on Mac) and `b`, then release and press `n`). Mouse support is enabled so you should be able to scroll through the panels and click them in the bottom row. A short welcome message is printed on the initial pane - if you scroll up here you will see a quick cheatsheet with various commands.
+This starts a tmux session with panes for:
 
-Now navigate to http://localhost:3030/admin/charts in a browser and have a look at the admin interface. The default user account is `admin@example.com` with a password of `admin`
+- admin server
+- vite dev server
+- local Cloudflare Functions (`wrangler pages dev`)
+- welcome/help pane
 
-To stop the admin servers, press `<C-b>, Q` in the terminal to kill the window and end all 3 processes when you are done. Close VS Code to shut down all docker containers and free up the resources of running the MySQL docker container.
+Switch panes with `<Ctrl-b>`, then `n`.
+
+## Access from your host browser
+
+Use your normal host browser:
+
+- Admin: http://localhost:3030/admin/charts
+- Site (Vite): http://localhost:8090
+- Cloudflare Functions: http://localhost:8788
+
+VS Code devcontainer port forwarding handles host access.
+The services are configured to bind to `0.0.0.0` so forwarding works reliably.
+
+Default admin login:
+
+- Email: `admin@example.com`
+- Password: `admin`
+
+## Stop the servers
+
+In tmux, press `<Ctrl-b>`, then `Q` to kill the session.
+
+Closing the VS Code window also shuts down the devcontainer services.
 
 ## Accessing MySQL
 
-If you want to access MySQL you have two options. ⚠ Note that depending on which one you choose, you will have to use different ports!
+Depending on where you connect from, use different host/port values.
 
-1. From the terminal
+### 1) From inside the devcontainer terminal
 
-    In the VS Code terminal that executes inside the devcontainer, run the MySQL command line client:
+```bash
+mysql --skip-ssl -h db -u grapher -pgrapher grapher
+```
 
-    ```bash
-    mysql -h db -u grapher -pgrapher grapher
-    ```
+`--skip-ssl` is needed to avoid the process of accepting self-sign certificates that mysql provisions in the container.
 
-    This will show a MySQL prompt. See the https://dev.mysql.com/doc/refman/8.0/en/getting-information.html for how to query the database in this interface.
+### 2) From a desktop DB app on your host (e.g. DBeaver)
 
-2. From a desktop application
-
-    For more complex interactions it can be useful to run a program like the free [DBeaver](https://dbeaver.io/) database manager. When you install this on your system, enter the following information when creating a connection to the database:
-
-    | Setting       | Value                                                           |
-    | ------------- | --------------------------------------------------------------- |
-    | Database type | MySQL                                                           |
-    | Server        | localhost                                                       |
-    | User          | grapher                                                         |
-    | Password      | grapher                                                         |
-    | Port          | 3307 (<- this is different than the default to avoid conflicts) |
-    | Database      | grapher                                                         |
+| Setting       | Value                   |
+| ------------- | ----------------------- |
+| Database type | MySQL                   |
+| Server        | localhost               |
+| User          | grapher                 |
+| Password      | grapher                 |
+| Port          | 3307 (host-mapped port) |
+| Database      | grapher                 |
 
 ## Running tests
 
-Run vitest:
-
-```sh
+```bash
 yarn test
 ```
 
 ## Checking the docker compose logs
 
-This section explains how to check the logs for the database loading script that runs the first time you use this setup.
+When using Dev Containers, there are two terminal contexts:
 
-An important note first: when using the VS Code Devcontainers extension, there is difference between the terminal in VS Code and a normal terminal that you open on your computer (i.e. your normal Windows or Mac terminal). The VS Code terminal gives you a shell running **inside** the development container. It has access to all the tools like node, yarn etc that you need to compile and run the codebase. It does not have access to the docker runtime though which is running the container. A normal terminal is the opposite, it operates **outside** the container - it has access to the docker command line tools but not all the tools running inside the development container.
+- **Inside devcontainer (VS Code terminal):** has node/yarn tools
+- **Outside devcontainer (host terminal):** has docker CLI
 
-To check the status, make sure you run the following commands in a terminal **outside** your devcontainer, in the working directory root of this repository:
+To inspect container logs, run this in a host terminal at repo root:
 
 ```bash
 docker compose -f docker-compose.devcontainer.yml logs -f
 ```
 
-This will follow all log entries (i.e. it will print log statements while they happen) of all three containers: the app-1 container (your devcontainer with node, yarn etc), the db-1 container (MySQL), and the db-load-data container (that loads the data and then stops). On the first run of the devcontainer setup, this last container will download two gz files into the tmp-downloads folder and then ingest them into the MySQL database. This whole process can take between 5 and 20 minutes. When it is done you should see this message:
+This shows logs for:
+
+- `app` (devcontainer)
+- `db` (MySQL)
+- `db-load-data` (one-off DB loading)
+
+On first setup, `db-load-data` downloads SQL dumps into `tmp-downloads/` and imports them.
+When done, you should see:
 
 ✅ All done, grapher DB is loaded ✅

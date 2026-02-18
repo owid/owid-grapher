@@ -14,6 +14,6 @@ fi
 : "${GRAPHER_TEST_DB_HOST:?Need to set GRAPHER_TEST_DB_HOST non-empty}"
 : "${GRAPHER_TEST_DB_PORT:?Need to set GRAPHER_TEST_DB_PORT non-empty}"
 
-while ! mysql -u$GRAPHER_TEST_DB_USER -p$GRAPHER_TEST_DB_PASS -h $GRAPHER_TEST_DB_HOST --port=$GRAPHER_TEST_DB_PORT -e 'select 1 from _test_db_ready' $GRAPHER_TEST_DB_NAME &>/dev/null; do
+while ! mysql --skip-ssl -u$GRAPHER_TEST_DB_USER -p$GRAPHER_TEST_DB_PASS -h $GRAPHER_TEST_DB_HOST --port=$GRAPHER_TEST_DB_PORT -e 'select 1 from _test_db_ready' $GRAPHER_TEST_DB_NAME &>/dev/null; do
     sleep 1
 done

@@ -22,6 +22,9 @@ createAndFillGrapherDb() {
     echo "Waiting for DB to be online"
     mysqladmin ping -h$DB_ROOT_HOST -uroot --password=$DB_ROOT_PASS --wait=30
 
+    echo "Creating user '$GRAPHER_DB_USER'"
+    _mysql -e "CREATE USER IF NOT EXISTS '$GRAPHER_DB_USER' IDENTIFIED BY '$GRAPHER_DB_PASS'; GRANT ALL PRIVILEGES ON * . * TO '$GRAPHER_DB_USER'; FLUSH PRIVILEGES;"
+
     DB_EXISTS=$(_mysql -e "SHOW DATABASES LIKE '"${GRAPHER_DB_NAME}"';" | grep "${GRAPHER_DB_NAME}" > /dev/null; echo "$?")
 
     if [ $DB_EXISTS -eq 0 ];then
@@ -36,9 +39,6 @@ createAndFillGrapherDb() {
         echo "could not find owid_metadata.sql.gz - please download it before running this script"
         return 1;
     fi
-
-    echo "Creating user '$GRAPHER_DB_USER'"
-    _mysql -e "CREATE USER IF NOT EXISTS '$GRAPHER_DB_USER' IDENTIFIED BY '$GRAPHER_DB_PASS'; GRANT ALL PRIVILEGES ON * . * TO '$GRAPHER_DB_USER'; FLUSH PRIVILEGES;"
 
     source "$( dirname -- "${BASH_SOURCE[0]}" )/refresh-grapher-data.sh"
     return 0

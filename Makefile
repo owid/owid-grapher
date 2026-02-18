@@ -17,7 +17,7 @@ ifneq (,$(wildcard ./.env))
 	include .env
 endif
 
-.PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest svgtest.reset bdd bdd.ui
+.PHONY: help up up.full up.devcontainer down refresh refresh.wp refresh.full migrate svgtest svgtest.reset bdd bdd.ui warn-if-localhost-db-host.devcontainer
 
 help:
 	@echo 'Available commands:'
@@ -81,22 +81,37 @@ up: require create-if-missing.env tmp-downloads/owid_metadata.sql.gz node_module
 		set -g mouse on \
 		|| make down
 
+up.devcontainer: export DEBUG = 'knex:query'
+up.devcontainer: export TMUX_SESSION_NAME ?= grapher
+up.devcontainer: export ADMIN_SERVER_PORT ?= 3030
+up.devcontainer: export VITE_PORT ?= 8090
+up.devcontainer: export WRANGLER_PORT ?= 8788
+
 up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.sql.gz node_modules
-	@make validate.env
-	@make check-port-3306
+	@make validate.env.devcontainer
+	@make warn-if-localhost-db-host.devcontainer
+
+	@if tmux has-session -t $(TMUX_SESSION_NAME) 2>/dev/null; then \
+		echo '==> Killing existing tmux session'; \
+		tmux kill-session -t $(TMUX_SESSION_NAME); \
+	fi
 
 	@echo '==> Starting dev environment'
 	@mkdir -p logs
-	tmux new-session -s grapher \
+	tmux new-session -s $(TMUX_SESSION_NAME) \
 		-n admin \
 			'devTools/docker/wait-for-mysql.sh && yarn startAdminDevServer' \; \
 			set remain-on-exit on \; \
+		set-option -g default-shell $(SCRIPT_SHELL) \; \
 		new-window -n vite 'yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
-		new-window -n welcome 'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) VITE_PORT=$(VITE_PORT) devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
+		new-window -n functions 'yarn startLocalCloudflareFunctions' \; \
+			set remain-on-exit on \; \
+		new-window -n welcome 'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) VITE_PORT=$(VITE_PORT) WRANGLER_PORT=$(WRANGLER_PORT) devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
 		bind X kill-pane \; \
-		bind Q kill-server
+		bind Q kill-server \; \
+		set -g mouse on
 
 up.full: export DEBUG = 'knex:query'
 up.full: export COMPOSE_PROJECT_NAME ?= owid-grapher
@@ -219,6 +234,20 @@ validate.env:
 		do make guard-$$variable 2>/dev/null || exit 1; \
 	done
 	@echo '.env file valid for make up'
+
+validate.env.devcontainer:
+	@echo '==> Validating your .env file for make up.devcontainer'
+	@grep '=' .env.devcontainer | grep -v optional | sed 's/=.*//' | while read variable; \
+		do make guard-$$variable 2>/dev/null || exit 1; \
+	done
+	@echo '.env file valid for make up.devcontainer'
+
+warn-if-localhost-db-host.devcontainer:
+	@if [ "$(GRAPHER_DB_HOST)" = "127.0.0.1" ] || [ "$(GRAPHER_DB_HOST)" = "localhost" ]; then \
+		echo '⚠️  WARNING: GRAPHER_DB_HOST in .env is set to localhost/127.0.0.1.'; \
+		echo '    For make up.devcontainer this usually needs to be GRAPHER_DB_HOST=db (and GRAPHER_DB_PORT=3306).'; \
+		echo '    If the admin pane prints dots forever in wait-for-mysql.sh, this is likely the cause.'; \
+	fi
 
 create-if-missing.env.full:
 	@if test ! -f .env; then \
