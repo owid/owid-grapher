@@ -1,4 +1,11 @@
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import {
+    Suspense,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react"
 import { IncomePlot } from "./IncomePlot.tsx"
 import {
     IncomePlotControlsRowBottom,
@@ -26,7 +33,7 @@ export const App = () => {
     const { height: windowHeight, width: windowWidth } = useWindowSize()
     const isPortrait = windowHeight >= windowWidth
 
-    const aspectRatio = isNarrow && isPortrait ? 0.9 : 5 / 3
+    const aspectRatio = isNarrow && isPortrait ? 1.1 : 5 / 3
 
     const [drawerOpen, setDrawerOpen] = useState(false)
     const closeDrawer = useCallback(() => setDrawerOpen(false), [])
@@ -56,10 +63,7 @@ export const App = () => {
             </div>
             <IncomePlotControlsRowBottom isNarrow={isNarrow} />
             {isNarrow && (
-                <IncomePlotDrawer
-                    isOpen={drawerOpen}
-                    onClose={closeDrawer}
-                />
+                <IncomePlotDrawer isOpen={drawerOpen} onClose={closeDrawer} />
             )}
         </div>
     )
