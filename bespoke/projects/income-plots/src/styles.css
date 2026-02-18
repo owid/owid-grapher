@@ -134,7 +134,10 @@
         .legend-entry-swatch {
             .legend-entry--has-percentages & {
                 /* 40px we need to subtract to make space for the percentage text */
-                width: calc(var(--legend-entry-percentage-value, 0) * (100% - 40px) / 100);
+                width: calc(
+                    var(--legend-entry-percentage-value, 0) * (100% - 40px) /
+                        100
+                );
             }
         }
     }
@@ -257,7 +260,9 @@
     border-radius: 4px 4px 0 0;
     padding: 16px;
     transform: translateY(100%);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
 
     max-height: 80svh;
     display: flex;
@@ -397,7 +402,6 @@
     font-size: 14px;
     background: transparent;
     color: var(--gray-80);
-
 
     &::placeholder {
         color: #a1a1a1;
