@@ -119,23 +119,21 @@ export const IncomePlotControlsRowTop = ({
                             active: countriesOrRegionsMode === "regions",
                         })}
                         onClick={() => {
-                            if (countriesOrRegionsMode !== "regions")
-                                nextCountriesOrRegionsMode()
+                            nextCountriesOrRegionsMode("regions")
                         }}
                     >
                         Show regions
                     </span>
                     <LabeledSwitch
                         value={countriesOrRegionsMode === "countries"}
-                        onToggle={nextCountriesOrRegionsMode}
+                        onToggle={() => nextCountriesOrRegionsMode()}
                     />
                     <span
                         className={cx("toggle-label", {
                             active: countriesOrRegionsMode === "countries",
                         })}
                         onClick={() => {
-                            if (countriesOrRegionsMode !== "countries")
-                                nextCountriesOrRegionsMode()
+                            nextCountriesOrRegionsMode("countries")
                         }}
                     >
                         Show countries
