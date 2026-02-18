@@ -20,6 +20,7 @@ import { createBaseIndexingContext } from "./utils/context.js"
 import { getIndexName } from "../../site/search/searchClient.js"
 import { SearchIndexName } from "@ourworldindata/types"
 import { getMdimViewRecords } from "./utils/mdimViews.js"
+import { reportFeaturedMetricFailuresToSlack } from "./utils/slackReport.js"
 
 const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
     if (!ALGOLIA_INDEXING) return
@@ -36,41 +37,45 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
         )
     }
 
-    const records = await db.knexReadonlyTransaction(async (trx) => {
-        // Create shared base context once for all record getters
-        const baseContext = await createBaseIndexingContext(trx)
-        const explorerViews = await getExplorerViewRecords(trx, {
-            skipGrapherViews: true,
-            baseContext,
-        })
-        const mdimViews = await getMdimViewRecords(trx, { baseContext })
-        const grapherViews = await getChartsRecords(trx, { baseContext })
-        // Scale grapher records and the default explorer views between 1000 and 10000,
-        // Scale the remaining explorer views between 0 and 1000.
-        // This is because Graphers are generally higher quality than Explorers and we don't want
-        // the data catalog to smother Grapher results with hundreds of low-quality Explorer results.
-        const scaledGrapherViews = scaleRecordScores(grapherViews, [
-            1000,
-            MAX_NON_FM_RECORD_SCORE,
-        ])
-        const scaledExplorerViews = scaleExplorerRecordScores(explorerViews)
-        const scaledMdimViews = scaleRecordScores(mdimViews, [
-            1000,
-            MAX_NON_FM_RECORD_SCORE,
-        ])
+    const { records, failures } = await db.knexReadonlyTransaction(
+        async (trx) => {
+            // Create shared base context once for all record getters
+            const baseContext = await createBaseIndexingContext(trx)
+            const explorerViews = await getExplorerViewRecords(trx, {
+                skipGrapherViews: true,
+                baseContext,
+            })
+            const mdimViews = await getMdimViewRecords(trx, { baseContext })
+            const grapherViews = await getChartsRecords(trx, { baseContext })
+            // Scale grapher records and the default explorer views between 1000 and 10000,
+            // Scale the remaining explorer views between 0 and 1000.
+            // This is because Graphers are generally higher quality than Explorers and we don't want
+            // the data catalog to smother Grapher results with hundreds of low-quality Explorer results.
+            const scaledGrapherViews = scaleRecordScores(grapherViews, [
+                1000,
+                MAX_NON_FM_RECORD_SCORE,
+            ])
+            const scaledExplorerViews = scaleExplorerRecordScores(explorerViews)
+            const scaledMdimViews = scaleRecordScores(mdimViews, [
+                1000,
+                MAX_NON_FM_RECORD_SCORE,
+            ])
 
-        const records = [
-            ...scaledGrapherViews,
-            ...scaledExplorerViews,
-            ...scaledMdimViews,
-        ]
-        const featuredMetricRecords = await createFeaturedMetricRecords(
-            trx,
-            records
-        )
+            const records = [
+                ...scaledGrapherViews,
+                ...scaledExplorerViews,
+                ...scaledMdimViews,
+            ]
+            const { records: featuredMetricRecords, failures } =
+                await createFeaturedMetricRecords(trx, records)
 
-        return [...records, ...featuredMetricRecords]
-    }, db.TransactionCloseMode.Close)
+            return {
+                records: [...records, ...featuredMetricRecords],
+                failures,
+            }
+        },
+        db.TransactionCloseMode.Close
+    )
 
     console.log(`Indexing ${records.length} records`)
     await client.replaceAllObjects({
@@ -78,6 +83,8 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
         objects: records as Array<Record<string, any>>,
     })
     console.log(`Indexing complete`)
+
+    await reportFeaturedMetricFailuresToSlack(failures)
 }
 
 indexExplorerViewsMdimViewsAndChartsToAlgolia().catch(async (e) => {
