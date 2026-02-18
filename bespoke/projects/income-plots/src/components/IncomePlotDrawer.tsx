@@ -53,9 +53,7 @@ function DrawerCountrySelectorInner() {
         }
         if (searchQuery) {
             const query = searchQuery.toLowerCase()
-            countries = countries.filter((c) =>
-                c.toLowerCase().includes(query)
-            )
+            countries = countries.filter((c) => c.toLowerCase().includes(query))
         }
         return countries
     }, [availableCountryNames, showSelectedOnly, selectedSet, searchQuery])
@@ -221,9 +219,7 @@ export function IncomePlotDrawer({ isOpen, onClose }: IncomePlotDrawerProps) {
                         </div>
                     )}
 
-                    {currentTab === "countries" && (
-                        <DrawerCountrySelector />
-                    )}
+                    {currentTab === "countries" && <DrawerCountrySelector />}
                 </div>
             </div>
         </>
