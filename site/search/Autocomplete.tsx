@@ -379,6 +379,10 @@ export function Autocomplete({
 
         const search = autocomplete({
             placeholder,
+            // Setting the `enterKeyHint` fixes a bug on Samsung phones where
+            // characters may be deleted when typing.
+            // https://support.algolia.com/hc/en-us/articles/35765245191057-Why-are-characters-being-deleted-from-Autocomplete-when-typing-on-a-Samsung-device
+            enterKeyHint: "search",
             detachedMediaQuery,
             container: containerRef.current,
             classNames: {
