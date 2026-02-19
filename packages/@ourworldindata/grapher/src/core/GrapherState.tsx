@@ -1883,8 +1883,6 @@ export class GrapherState
         return [
             GRAPHER_TAB_NAMES.LineChart,
             GRAPHER_TAB_NAMES.SlopeChart,
-            GRAPHER_TAB_NAMES.StackedArea,
-            GRAPHER_TAB_NAMES.StackedBar,
         ].includes(tabName as any)
     }
 
