@@ -2,31 +2,23 @@ import * as R from "remeda"
 import {
     checkIsAggregate,
     EntityName,
+    Aggregate,
+    IncomeGroup,
     getAggregatesByProvider,
     getIncomeGroups,
     Region,
     RegionDataProvider,
+    RequiredBy,
+    regionDataProviderNames,
 } from "@ourworldindata/utils"
-import { ContinentColors } from "../color/CustomSchemes.js"
-import { AnyRegionDataProvider, parseLabel } from "../core/RegionGroups.js"
+import {
+    CategoricalColorsPaletteC,
+    ContinentColors,
+} from "../color/CustomSchemes.js"
+import { parseLabel } from "../core/RegionGroups.js"
 import { getCountriesByRegion } from "../mapCharts/MapHelpers.js"
 
-// We only support a subset of region data providers for the tooltip,
-// based on whether we have the necessary data to show in the tooltip
-const providersWithTooltipData = [
-    "wb",
-    "un",
-    "who",
-    "unsdg",
-    "pew",
-] as const satisfies RegionDataProvider[]
-
-const providersWithTooltipDataAsSet = new Set<string>(providersWithTooltipData)
-
-export type RegionProviderWithTooltipData =
-    (typeof providersWithTooltipData)[number]
-
-export type TooltipKey = RegionProviderWithTooltipData | "incomeGroups"
+export type TooltipKey = RegionDataProvider | "incomeGroups"
 
 export interface TooltipRegion {
     name: EntityName
@@ -36,19 +28,22 @@ export interface TooltipRegion {
 }
 
 const continentColorsMap = ContinentColors as Record<EntityName, string>
+const categoricalMapColors = CategoricalColorsPaletteC
 
-const descriptions: Record<TooltipKey, string> = {
+const customDescriptions: Partial<Record<TooltipKey, string>> = {
     wb: "The **World Bank (WB)** defines [seven world regions](https://ourworldindata.org/world-region-map-definitions#world-bank-wb-continents):",
     un: "The **United Nations Statistical Division (UNSD)** establishes and maintains a geoscheme based on the [M49 coding classification](https://unstats.un.org/unsd/methodology/m49). At the highest level, the M49 classification categorizes countries into [six principal regions](https://ourworldindata.org/world-region-map-definitions#united-nations-un):",
     who: "The **World Health Organization (WHO)** defines [six world regions](https://ourworldindata.org/world-region-map-definitions#world-health-organization-who):",
     unsdg: "When reporting data on the Sustainable Development Goals, the **United Nations (UN)** defines [eight world regions](https://ourworldindata.org/world-region-map-definitions#united-nations-sustainable-development-goals-un-sdg):",
     pew: "The **Pew Research Center (Pew)** defines [six world regions](https://ourworldindata.org/world-region-map-definitions#pew-research-center-pew):",
+    // Must be included here because we don't auto-generate a description for income groups
     incomeGroups:
         "The **World Bank** defines [four income groups](https://ourworldindata.org/world-bank-income-groups-explained):",
 }
 
-// Geographic display order: left-to-right on the map
-const regionDisplayOrder: Record<TooltipKey, string[]> = {
+// Geographic display order: left-to-right on the map.
+// Providers without a custom order will be sorted alphabetically.
+const customRegionDisplayOrder: Partial<Record<TooltipKey, string[]>> = {
     wb: [
         "North America (WB)",
         "Latin America and Caribbean (WB)",
@@ -101,38 +96,56 @@ const regionDisplayOrder: Record<TooltipKey, string[]> = {
 }
 
 export function hasTooltipData(
-    providerKey: AnyRegionDataProvider,
     region: Region
-): providerKey is RegionProviderWithTooltipData {
-    if (!providersWithTooltipDataAsSet.has(providerKey)) return false
-
-    // Verify the regions entry has the right definedBy field
-    // This is important for cases like the "UN" suffix which could refer to
-    // multiple provider schemes (e.g. un, un_m49_1, un_m49_2, un_m49_3)
-    return checkIsAggregate(region) && region.definedBy === providerKey
+): region is RequiredBy<Aggregate, "definedBy"> {
+    return checkIsAggregate(region) && region.definedBy !== undefined
 }
 
 export function getDescriptionForKey(key: TooltipKey): string {
-    return descriptions[key]
+    if (customDescriptions[key]) return customDescriptions[key]
+
+    // It's safe to assume the key is a RegionDataProvider
+    // since income groups have a custom description
+    const provider = key as RegionDataProvider
+
+    const providerName = regionDataProviderNames[provider]
+    const regions = getAggregatesByProvider(provider)
+    const regionCount = regions.length
+
+    // Extract the suffix from the first region's name to include in the description
+    const firstRegion = regions[0]
+    const suffix = firstRegion ? parseLabel(firstRegion.name).suffix : undefined
+    const labelWithSuffix = suffix
+        ? `${providerName} (${suffix})`
+        : providerName
+
+    return `The **${labelWithSuffix}** defines ${regionCount} world regions:`
 }
 
 export function getRegionsForKey(key: TooltipKey): TooltipRegion[] {
-    const orderIndex = new Map(
-        regionDisplayOrder[key].map((name, i) => [name, i])
-    )
-
     const regions =
         key === "incomeGroups"
             ? getIncomeGroups()
             : getAggregatesByProvider(key)
 
+    const customOrder = customRegionDisplayOrder[key]
+    const sortFn = (region: Aggregate | IncomeGroup): number | string => {
+        if (customOrder) {
+            const index = customOrder.indexOf(region.name)
+            return index >= 0 ? index : Infinity
+        }
+        return parseLabel(region.name).name
+    }
+
     return R.pipe(
         regions,
-        R.sortBy((region) => orderIndex.get(region.name) ?? Infinity),
-        R.map((region) => ({
+        R.sortBy(sortFn),
+        R.map((region, index) => ({
             name: region.name,
             displayName: parseLabel(region.name).name, // Strip suffix
-            color: continentColorsMap[region.name],
+            color:
+                continentColorsMap[region.name] ??
+                categoricalMapColors[index % categoricalMapColors.length],
             members: [...(getCountriesByRegion(region.name) ?? [])],
         }))
     )

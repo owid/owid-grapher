@@ -213,6 +213,7 @@ export {
     type Aggregate,
     type RegionDataProvider,
     REGION_DATA_PROVIDERS,
+    regionDataProviderNames,
     getOthers,
     countriesByName,
     incomeGroupsByCode,

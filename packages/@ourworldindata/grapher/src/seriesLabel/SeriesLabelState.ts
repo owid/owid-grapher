@@ -193,12 +193,9 @@ export class SeriesLabelState {
             return { tooltipKey: "incomeGroups", regionName: region.name }
 
         // Check if it's a region provider with tooltip data
-        if (
-            this.parsedText.providerKey &&
-            hasTooltipData(this.parsedText.providerKey, region)
-        ) {
+        if (this.parsedText.providerKey && hasTooltipData(region)) {
             return {
-                tooltipKey: this.parsedText.providerKey,
+                tooltipKey: region.definedBy,
                 regionName: region.name,
             }
         }
