@@ -14,9 +14,9 @@ const analytics = new SiteAnalytics()
 
 export default function LinkedA({ span }: { span: SpanLink }) {
     const linkType = getLinkType(span.url)
-    const { archiveContext } = useDocumentContext()
+    const { archiveContext, isPreviewing } = useDocumentContext()
     const isOnArchivalPage = archiveContext?.type === "archive-page"
-    const { linkedDocument } = useLinkedDocument(span.url)
+    const { linkedDocument, errorMessage } = useLinkedDocument(span.url)
     const { linkedChart } = useLinkedChart(span.url)
 
     if (linkType === "url") {
@@ -76,6 +76,13 @@ export default function LinkedA({ span }: { span: SpanLink }) {
             <a href={linkedDocument.url} className="span-link">
                 <SpanElements spans={span.children} />
             </a>
+        )
+    }
+    if (errorMessage && isPreviewing) {
+        return (
+            <span className="span-link--error" title={errorMessage}>
+                <SpanElements spans={span.children} />
+            </span>
         )
     }
     return <SpanElements spans={span.children} />
