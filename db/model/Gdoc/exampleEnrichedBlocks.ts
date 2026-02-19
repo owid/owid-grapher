@@ -947,4 +947,19 @@ export const enrichedBlockExamples: Record<
         ],
         parseErrors: [],
     },
+    "country-profile-selector": {
+        type: "country-profile-selector",
+        url: "https://docs.google.com/document/d/ABC123/edit",
+        title: "Country profiles",
+        description: "Explore key metrics on energy consumption and sources.",
+        defaultCountries: [
+            "United Kingdom",
+            "United States",
+            "China",
+            "Nigeria",
+            "India",
+            "Brazil",
+        ],
+        parseErrors: [],
+    },
 }

@@ -61,6 +61,7 @@ import {
     RawBlockStaticViz,
     RawBlockConditionalSection,
     RawBlockDataCallout,
+    RawBlockCountryProfileSelector,
 } from "@ourworldindata/types"
 import { match } from "ts-pattern"
 
@@ -1019,6 +1020,17 @@ function* rawBlockDataCalloutToArchieMLString(
     yield "{}"
 }
 
+function* rawBlockCountryProfileSelectorToArchieMLString(
+    block: RawBlockCountryProfileSelector
+): Generator<string, void, undefined> {
+    yield "{.country-profile-selector}"
+    yield* propertyToArchieMLString("url", block.value)
+    yield* propertyToArchieMLString("title", block.value)
+    yield* propertyToArchieMLString("description", block.value)
+    yield* propertyToArchieMLString("defaultCountries", block.value)
+    yield "{}"
+}
+
 export function* OwidRawGdocBlockToArchieMLStringGenerator(
     block: OwidRawGdocBlock | RawBlockTableRow
 ): Generator<string, void, undefined> {
@@ -1136,6 +1148,10 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         )
         .with({ type: "socials" }, rawBlockSocialsToArchieMLString)
         .with({ type: "data-callout" }, rawBlockDataCalloutToArchieMLString)
+        .with(
+            { type: "country-profile-selector" },
+            rawBlockCountryProfileSelectorToArchieMLString
+        )
         .exhaustive()
     yield* content
 }
