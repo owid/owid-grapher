@@ -23,6 +23,7 @@ import { PAGES_INDEX } from "../../../site/search/searchUtils.js"
 import type { Hit, SearchClient } from "@algolia/client-search"
 import { match, P } from "ts-pattern"
 import { gdocFromJSON } from "../../../db/model/Gdoc/GdocFactory.js"
+import { GdocBase } from "../../../db/model/Gdoc/GdocBase.js"
 import {
     BAKED_BASE_URL,
     CLOUDFLARE_IMAGES_URL,
@@ -176,8 +177,16 @@ function stripNonSearchableCharacters(content: string): string {
 /** Build indexable body text with linked-callout resolution and lightweight
  *  cleanup (remove non-searchable symbols), while preserving paragraph breaks. */
 export function getPreprocessedIndexableText(
-    body: OwidGdocPostInterface["content"]["body"] | undefined,
-    linkedCallouts: OwidGdocPostInterface["linkedCallouts"]
+    body:
+        | (
+              | OwidGdocPostInterface
+              | OwidGdocDataInsightInterface
+          )["content"]["body"]
+        | undefined,
+    linkedCallouts: (
+        | OwidGdocPostInterface
+        | OwidGdocDataInsightInterface
+    )["linkedCallouts"]
 ): string {
     const indexableText = enrichedBlocksToIndexableText(body, {
         linkedCallouts,
@@ -300,6 +309,15 @@ export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
         | OwidGdocPostInterface
         | OwidGdocDataInsightInterface
     )[]
+
+    // Only load linkedCallouts — the sole attachment that affects indexed
+    // text (via span-callout resolution in enrichedBlocksToIndexableText).
+    // Full loadState is unnecessary here and adds ~90 s of overhead.
+    // If a new loadState step ever mutates content.body, update this too
+    // (see the corresponding note in GdocBase.loadState).
+    for (const gdoc of gdocs) {
+        await (gdoc as GdocBase).loadAndClearLinkedCallouts(knex)
+    }
 
     const cloudflareImagesByFilename = await db
         .getCloudflareImages(knex)
