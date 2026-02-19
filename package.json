@@ -11,7 +11,7 @@
         "buildLocalBake": "tsx --tsconfig tsconfig.tsx.json baker/buildLocalBake.ts",
         "buildViteAdmin": "NODE_OPTIONS=--max-old-space-size=8192 vite build --config vite.config-admin.mts && yarn buildViteBespoke",
         "buildViteArchive": "NODE_OPTIONS=--max-old-space-size=8192 vite build --config vite.config-archive.mts",
-        "buildViteBespoke": "cd bespoke/projects/income-plots && npm i && npm run build",
+        "buildViteBespoke": "cd bespoke/projects/income-plots && npm i && npm run build && cp ./src/index-dist.html ../../../dist/income-plots/index.html",
         "buildViteSite": "NODE_OPTIONS=--max-old-space-size=8192 vite build --config vite.config-site.mts",
         "buildVite": "yarn buildViteSite && yarn buildViteAdmin",
         "bakeGdocPosts": "tsx --tsconfig tsconfig.tsx.json baker/bakeGdocPosts.ts",
