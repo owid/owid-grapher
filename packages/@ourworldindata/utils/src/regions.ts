@@ -86,17 +86,6 @@ export const REGION_DATA_PROVIDERS = [
 ] as const
 export type RegionDataProvider = (typeof REGION_DATA_PROVIDERS)[number]
 
-export const regionDataProviderNames: Record<RegionDataProvider, string> = {
-    wb: "World Bank",
-    un: "United Nations",
-    who: "World Health Organization",
-    un_m49_1: "United Nations",
-    un_m49_2: "United Nations",
-    un_m49_3: "United Nations",
-    unsdg: "United Nations",
-    pew: "Pew Research Center",
-}
-
 export function isRegionDataProvider(key: string): key is RegionDataProvider {
     return REGION_DATA_PROVIDERS.includes(key as RegionDataProvider)
 }

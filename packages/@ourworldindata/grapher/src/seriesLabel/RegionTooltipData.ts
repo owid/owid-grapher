@@ -9,7 +9,6 @@ import {
     Region,
     RegionDataProvider,
     RequiredBy,
-    regionDataProviderNames,
 } from "@ourworldindata/utils"
 import {
     CategoricalColorsPaletteC,
@@ -30,13 +29,18 @@ export interface TooltipRegion {
 const continentColorsMap = ContinentColors as Record<EntityName, string>
 const categoricalMapColors = CategoricalColorsPaletteC
 
-const customDescriptions: Partial<Record<TooltipKey, string>> = {
+const descriptions: Record<TooltipKey, string> = {
     wb: "The **World Bank (WB)** defines [seven world regions](https://ourworldindata.org/world-region-map-definitions#world-bank-wb-continents):",
-    un: "The **United Nations Statistical Division (UNSD)** establishes and maintains a geoscheme based on the [M49 coding classification](https://unstats.un.org/unsd/methodology/m49). At the highest level, the M49 classification categorizes countries into [six principal regions](https://ourworldindata.org/world-region-map-definitions#united-nations-un):",
     who: "The **World Health Organization (WHO)** defines [six world regions](https://ourworldindata.org/world-region-map-definitions#world-health-organization-who):",
     unsdg: "When reporting data on the Sustainable Development Goals, the **United Nations (UN)** defines [eight world regions](https://ourworldindata.org/world-region-map-definitions#united-nations-sustainable-development-goals-un-sdg):",
     pew: "The **Pew Research Center (Pew)** defines [six world regions](https://ourworldindata.org/world-region-map-definitions#pew-research-center-pew):",
-    // Must be included here because we don't auto-generate a description for income groups
+    un: "The **United Nations Statistical Division (UNSD)** establishes and maintains a geographic classification based on the [M49 coding system](https://unstats.un.org/unsd/methodology/m49). At the highest level, the M49 classification categorizes countries into [six regions](https://ourworldindata.org/world-region-map-definitions#united-nations-un):",
+    un_m49_1:
+        "The **United Nations Statistical Division (UNSD)** establishes and maintains a geographic classification based on the [M49 coding system](https://unstats.un.org/unsd/methodology/m49). At the highest level, the M49 classification categorizes countries into five regions:",
+    un_m49_2:
+        "The **United Nations Statistical Division (UNSD)** establishes and maintains a geographic classification based on the [M49 coding system](https://unstats.un.org/unsd/methodology/m49). At level 2, the M49 classification categorizes countries into 17 regions:",
+    un_m49_3:
+        "The **United Nations Statistical Division (UNSD)** establishes and maintains a geographic classification based on the [M49 coding system](https://unstats.un.org/unsd/methodology/m49). At level 3, the M49 classification provides more granular subdivisions, including separate regions for parts of Africa and the Americas:",
     incomeGroups:
         "The **World Bank** defines [four income groups](https://ourworldindata.org/world-bank-income-groups-explained):",
 }
@@ -102,24 +106,7 @@ export function hasTooltipData(
 }
 
 export function getDescriptionForKey(key: TooltipKey): string {
-    if (customDescriptions[key]) return customDescriptions[key]
-
-    // It's safe to assume the key is a RegionDataProvider
-    // since income groups have a custom description
-    const provider = key as RegionDataProvider
-
-    const providerName = regionDataProviderNames[provider]
-    const regions = getAggregatesByProvider(provider)
-    const regionCount = regions.length
-
-    // Extract the suffix from the first region's name to include in the description
-    const firstRegion = regions[0]
-    const suffix = firstRegion ? parseLabel(firstRegion.name).suffix : undefined
-    const labelWithSuffix = suffix
-        ? `${providerName} (${suffix})`
-        : providerName
-
-    return `The **${labelWithSuffix}** defines ${regionCount} world regions:`
+    return descriptions[key]
 }
 
 export function getRegionsForKey(key: TooltipKey): TooltipRegion[] {
