@@ -12,6 +12,7 @@ import {
     OwidGdocPostInterface,
     OwidEnrichedGdocBlockTypeMap,
     LinkedStaticViz,
+    OwidGdocType,
 } from "@ourworldindata/types"
 
 import {
@@ -22,6 +23,7 @@ import {
 import {
     formatAuthors,
     getCalloutValue,
+    getRegionByNameOrVariantName,
     makeLinkedCalloutKey,
     traverseEnrichedBlock,
     Url,
@@ -98,11 +100,22 @@ export const getLinkedDocumentUrl = (
     if (IS_ARCHIVE) {
         baseUrl = PROD_URL
     }
+
+    // Handle ?entity=X for profile-type docs
+    const parsedUrl = Url.fromURL(originalUrl)
+    const entityParam = parsedUrl.queryParams.entity
+    if (linkedDocument.type === OwidGdocType.Profile && entityParam) {
+        const region = getRegionByNameOrVariantName(entityParam)
+        if (region) {
+            return `${baseUrl}/profile/${linkedDocument.slug}/${region.slug}`
+        }
+    }
+
     const canonicalUrl = getCanonicalUrl(baseUrl, {
         slug: linkedDocument.slug,
         content: { type: linkedDocument.type },
     })
-    const hash = Url.fromURL(originalUrl).hash
+    const hash = parsedUrl.hash
     return `${canonicalUrl}${hash}`
 }
 
@@ -127,6 +140,32 @@ export const useLinkedDocument = (
         return { errorMessage }
     } else if (!linkedDocument.published) {
         errorMessage = `Article with slug "${linkedDocument.slug}" isn't published.`
+    }
+
+    // Validate profile-type docs: must have ?entity=X with a valid entity
+    const parsedUrl = Url.fromURL(url)
+    const entityParam = parsedUrl.queryParams.entity
+    if (linkedDocument.type === OwidGdocType.Profile && !errorMessage) {
+        if (!entityParam) {
+            errorMessage = `Profile link must include a ?entity= parameter (e.g. ?entity=France).`
+        } else {
+            const region = getRegionByNameOrVariantName(entityParam)
+            if (!region) {
+                errorMessage = `Unknown country name "${entityParam}" in profile link.`
+            } else if (!linkedDocument.availableEntityCodes) {
+                errorMessage = `Unable to determine available countries for profile "${linkedDocument.slug}".`
+            } else if (
+                !linkedDocument.availableEntityCodes.includes(region.code)
+            ) {
+                errorMessage = `Country "${entityParam}" is not available for profile "${linkedDocument.slug}".`
+            }
+        }
+    }
+
+    // Don't return a linked document with a URL when there's a country
+    // validation error — this prevents rendering a broken link
+    if (errorMessage) {
+        return { errorMessage }
     }
 
     return {

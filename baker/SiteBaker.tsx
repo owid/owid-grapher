@@ -178,6 +178,7 @@ export class SiteBaker {
     progressBar: ProgressBar
     explorerAdminServer: ExplorerAdminServer
     bakeSteps: BakeStepConfig
+    private _renderedProfileEntityCodes: Map<string, string[]> = new Map()
 
     constructor(
         bakedSiteDir: string,
@@ -248,6 +249,8 @@ export class SiteBaker {
                 profileTemplate.content.exclude
             )
 
+            const renderedCodes: string[] = []
+
             for (const entity of entities) {
                 // Pass pre-prepared tables to avoid redundant API calls
                 const instantiatedProfile = await instantiateProfileForEntity(
@@ -260,12 +263,31 @@ export class SiteBaker {
                     continue
                 }
 
+                renderedCodes.push(entity.code)
+
                 const html = renderGdoc(instantiatedProfile)
                 const outPath = path.join(
                     this.bakedSiteDir,
                     `${instantiatedProfile.slug}.html`
                 )
                 await this.stageWrite(outPath, html)
+            }
+
+            this._renderedProfileEntityCodes.set(
+                profileTemplate.id,
+                renderedCodes
+            )
+        }
+
+        // Update prefetched linkedDocuments cache with filtered entity codes
+        if (this._prefetchedAttachmentsCache) {
+            for (const [gdocId, renderedCodes] of this
+                ._renderedProfileEntityCodes) {
+                const linkedDoc =
+                    this._prefetchedAttachmentsCache.linkedDocuments[gdocId]
+                if (linkedDoc) {
+                    linkedDoc.availableEntityCodes = renderedCodes
+                }
             }
         }
     }

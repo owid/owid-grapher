@@ -284,20 +284,18 @@ export async function getMinimalGdocBaseObjects(
             postTypes,
         }
     )
-    return rows.map((row) => {
-        return {
-            id: row.id,
-            title: row.title,
-            slug: row.slug,
-            authors: JSON.parse(row.authors) as string[],
-            publishedAt: formatDate(row.publishedAt),
-            published: !!row.published,
-            subtitle: row.subtitle,
-            excerpt: row.excerpt,
-            type: row.type as OwidGdocType,
-            "featured-image": row["featured-image"],
-        } satisfies OwidGdocMinimalPostInterface
-    })
+    return rows.map((row) => ({
+        id: row.id,
+        title: row.title,
+        slug: row.slug,
+        authors: JSON.parse(row.authors) as string[],
+        publishedAt: formatDate(row.publishedAt),
+        published: !!row.published,
+        subtitle: row.subtitle,
+        excerpt: row.excerpt,
+        type: row.type as OwidGdocType,
+        "featured-image": row["featured-image"],
+    }))
 }
 
 export async function getPublishedGdocBaseObjectBySlug(
