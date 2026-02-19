@@ -62,6 +62,10 @@ export function ResponsiveCausesOfDeathTreemap({
           })
         : dimensions.height
 
+    // Don't render if there's no space to draw (can happen briefly when the
+    // ResizeObserver fires before the container has been laid out)
+    const hasValidDimensions = dimensions.width > 0 && height > 0
+
     return (
         <div ref={ref}>
             <CausesOfDeathChartContext.Provider value={{ isMobile: isNarrow }}>
@@ -69,16 +73,18 @@ export function ResponsiveCausesOfDeathTreemap({
                     <CausesOfDeathLegend metadata={metadata} data={data} />
                 )}
 
-                <CausesOfDeathTreemap
-                    data={data}
-                    timeSeriesData={timeSeriesData}
-                    metadata={metadata}
-                    entityName={entityName}
-                    year={year}
-                    ageGroup={ageGroup}
-                    width={dimensions.width}
-                    height={height}
-                />
+                {hasValidDimensions && (
+                    <CausesOfDeathTreemap
+                        data={data}
+                        timeSeriesData={timeSeriesData}
+                        metadata={metadata}
+                        entityName={entityName}
+                        year={year}
+                        ageGroup={ageGroup}
+                        width={dimensions.width}
+                        height={height}
+                    />
+                )}
             </CausesOfDeathChartContext.Provider>
         </div>
     )
