@@ -67,9 +67,10 @@
         margin-top: 0;
     }
 
-    /* Set the bottom margin of any element that comes before an image or chart to 0 */
+    /* Set the bottom margin of any element that comes before various block elements to 0 */
     [class*="article-block__"]:has(+ .article-block__image),
     [class*="article-block__"]:has(+ .article-block__static-viz),
+    [class*="article-block__"]:has(+ .article-block__country-profile-selector),
     [class*="article-block__"]:has(+ .article-block__chart) {
         margin-bottom: 0;
     }

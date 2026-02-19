@@ -218,6 +218,7 @@ export const SearchWritingResults = ({
     })
 
     const profileSlots = Math.min(profilesQuery.totalResults, 2)
+    const profilesRequestDone = !showProfiles || !profilesQuery.isLoading
 
     const articlesQuery = useInfiniteSearchOffset<
         SearchFlatArticleResponse,
@@ -229,14 +230,14 @@ export const SearchWritingResults = ({
         },
         firstPageSize: 4 - profileSlots,
         laterPageSize: 6,
+        enabled: profilesRequestDone,
     })
 
     const noArticles = articlesQuery.totalResults === 0
     const articleSlots = Math.min(articlesQuery.totalResults, 4 - profileSlots)
     const topicFirstPageSize = 6 - profileSlots - articleSlots
 
-    const dependenciesLoaded =
-        !articlesQuery.isLoading && (!showProfiles || !profilesQuery.isLoading)
+    const dependenciesLoaded = !articlesQuery.isLoading && profilesRequestDone
 
     const topicsQuery = useInfiniteSearchOffset<
         SearchTopicPageResponse,

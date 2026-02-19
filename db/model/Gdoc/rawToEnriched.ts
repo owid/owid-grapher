@@ -152,6 +152,8 @@ import {
     RawBlockCookieNotice,
     PullQuoteAlignment,
     pullquoteAlignments,
+    RawBlockCountryProfileSelector,
+    EnrichedBlockCountryProfileSelector,
     RawBlockExpander,
     EnrichedBlockExpander,
     blockAlignments,
@@ -286,6 +288,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "featured-data-insights" }, parseFeaturedDataInsights)
         .with({ type: "homepage-intro" }, parseHomepageIntro)
         .with({ type: "socials" }, parseSocials)
+        .with({ type: "country-profile-selector" }, parseCountryProfileSelector)
         .exhaustive()
 }
 
@@ -3098,5 +3101,34 @@ export const parseScript = (raw: RawBlockScript): EnrichedBlockScript => {
         type: "script",
         lines: goodText.map((text) => spansToSimpleString(text.value)),
         parseErrors: [],
+    }
+}
+
+function parseCountryProfileSelector(
+    raw: RawBlockCountryProfileSelector
+): EnrichedBlockCountryProfileSelector {
+    const parseErrors: ParseError[] = []
+    const val = raw.value
+
+    if (!val.url) {
+        parseErrors.push({
+            message: "country-profile-selector block is missing a url field",
+        })
+    }
+
+    const defaultCountries = val.defaultCountries
+        ? val.defaultCountries
+              .split(",")
+              .map((s) => s.trim())
+              .filter((s) => s.length > 0)
+        : []
+
+    return {
+        type: "country-profile-selector",
+        url: extractUrl(val.url ?? ""),
+        title: val.title,
+        description: val.description,
+        defaultCountries,
+        parseErrors,
     }
 }
