@@ -25,5 +25,8 @@
     "Prettier-SQL.keywordCase": "upper",
     "Prettier-SQL.SQLFlavourOverride": "mysql",
     "Prettier-SQL.expressionWidth": 80,
-    "oxc.formatting.enable": true
+    "oxc.formatting.enable": true,
+    "[typescriptreact]": {
+        "editor.defaultFormatter": "oxc.oxc-vscode"
+    }
 }
