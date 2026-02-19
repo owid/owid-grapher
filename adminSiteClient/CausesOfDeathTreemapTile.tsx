@@ -25,6 +25,8 @@ export function CausesOfDeathTreemapTile({
     const width = node.x1 - node.x0
     const height = node.y1 - node.y0
 
+    if (!Number.isFinite(width) || !Number.isFinite(height)) return null
+
     const color = getCategoryColor(category)
 
     return (
