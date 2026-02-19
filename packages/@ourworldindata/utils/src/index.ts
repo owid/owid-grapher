@@ -223,6 +223,7 @@ export {
     getCountryNamesForRegion,
     checkHasMembers,
     getRegionByName,
+    getRegionByCode,
     getRegionBySlug,
     getRegionByShortName,
     getParentRegions,

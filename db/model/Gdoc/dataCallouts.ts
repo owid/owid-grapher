@@ -24,6 +24,7 @@ import {
     searchParamsToMultiDimView,
     makeCalloutGrapherStateKey,
     checkShouldDataCalloutRender,
+    getEntitiesForProfile,
 } from "@ourworldindata/utils"
 import {
     ExplorerProgram,
@@ -515,4 +516,48 @@ export async function loadAndClearLinkedCallouts<
     clearIncompleteDataCallouts(clonedContent, linkedCallouts)
 
     return { content: clonedContent, linkedCallouts }
+}
+
+/**
+ * Compute which entity codes actually have chart data for a profile.
+ *
+ * Uses prepareCalloutTablesForProfile to fetch chart data, then checks
+ * which scope entities appear in the union of inputTable.availableEntityNames
+ * across all prepared tables.
+ *
+ * If the profile has no data-callouts, all scope entities are considered available.
+ */
+export async function computeAvailableEntityCodes(
+    knex: db.KnexReadonlyTransaction,
+    profileContent: OwidGdocProfileContent
+): Promise<string[]> {
+    const scopeEntities = getEntitiesForProfile(
+        profileContent.scope,
+        profileContent.exclude
+    )
+
+    if (scopeEntities.length === 0) return []
+
+    const preparedTables = await prepareCalloutTablesForProfile(
+        knex,
+        profileContent
+    )
+
+    // No data-callouts means the profile has other content — all scope entities are available
+    if (preparedTables.size === 0) {
+        return scopeEntities.map((e) => e.code)
+    }
+
+    // Union of entity names that have data in any chart
+    const entityNamesWithData = new Set<string>()
+    for (const prepared of preparedTables.values()) {
+        for (const name of prepared.inputTable.availableEntityNames) {
+            entityNamesWithData.add(name as string)
+        }
+    }
+
+    // Filter scope entities to those with data in at least one chart
+    return scopeEntities
+        .filter((e) => entityNamesWithData.has(e.name))
+        .map((e) => e.code)
 }
