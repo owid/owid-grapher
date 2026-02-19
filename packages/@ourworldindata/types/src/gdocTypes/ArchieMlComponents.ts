@@ -1161,6 +1161,24 @@ export type EnrichedBlockSocials = {
     links: EnrichedSocialLink[]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockCountryProfileSelector = {
+    type: "country-profile-selector"
+    value: {
+        url?: string
+        title?: string
+        description?: string
+        defaultCountries?: string
+    }
+}
+
+export type EnrichedBlockCountryProfileSelector = {
+    type: "country-profile-selector"
+    url: string
+    title?: string
+    description?: string
+    defaultCountries: string[]
+} & EnrichedBlockWithParseErrors
+
 export type OwidRawGdocBlock =
     | RawBlockAllCharts
     | RawBlockAside
@@ -1222,6 +1240,7 @@ export type OwidRawGdocBlock =
     | RawBlockCta
     | RawBlockSocials
     | RawBlockStaticViz
+    | RawBlockCountryProfileSelector
 
 export type OwidEnrichedGdocBlock =
     | EnrichedBlockAllCharts
@@ -1286,6 +1305,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockCta
     | EnrichedBlockSocials
     | EnrichedBlockStaticViz
+    | EnrichedBlockCountryProfileSelector
 
 /**
  * A map of all possible block types, with the type as the key and the block type as the value
