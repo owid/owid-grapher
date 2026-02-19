@@ -258,5 +258,10 @@
         "name": "featured-metrics",
         "text": "{.featured-metrics}\n{}",
         "keyword": "+featured-metrics"
+    },
+    {
+        "name": "country-profile-selector",
+        "text": "{.country-profile-selector}\nurl: \n{}",
+        "keyword": "+country-profile-selector"
     }
 ]

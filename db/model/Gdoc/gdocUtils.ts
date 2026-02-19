@@ -288,7 +288,8 @@ export function extractFilenamesFromBlock(
                     "table",
                     "text",
                     "topic-page-intro",
-                    "data-callout"
+                    "data-callout",
+                    "country-profile-selector"
                 ),
             },
             _.noop
