@@ -148,7 +148,7 @@ export const getRegionByName = (name: string): Region | undefined =>
 export const getRegionBySlug = (slug: string): Region | undefined =>
     regionsBySlug()[slug]
 
-const getRegionByCode = (code: string): Region | undefined =>
+export const getRegionByCode = (code: string): Region | undefined =>
     regionsByCode()[code]
 
 export const getRegionByShortName = (shortName: string): Region | undefined =>
