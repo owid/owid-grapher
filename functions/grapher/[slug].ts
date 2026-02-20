@@ -227,7 +227,8 @@ async function handleConfigRequest(
     const grapherPageResp = await fetchUnparsedGrapherConfig(
         { type: "slug", id: slug },
         env,
-        etag
+        etag,
+        shouldCache
     )
 
     if (grapherPageResp.status === 304) {
@@ -239,13 +240,30 @@ async function handleConfigRequest(
         throw new StatusError(404)
     }
 
+    if (grapherPageResp.status !== 200) {
+        console.log(
+            "Returning non-200 config response for",
+            slug,
+            grapherPageResp.status
+        )
+        return new Response(grapherPageResp.body as any, {
+            status: grapherPageResp.status,
+            headers: {
+                "Cache-Control": "no-cache",
+                "Content-Type":
+                    grapherPageResp.headers.get("Content-Type") ??
+                    "application/json",
+            },
+        })
+    }
+
     const cacheControl = shouldCache
         ? "s-maxage=300, max-age=0, must-revalidate"
         : "no-cache"
 
     //grapherPageResp.headers.set("Cache-Control", cacheControl)
     return new Response(grapherPageResp.body as any, {
-        status: 200,
+        status: grapherPageResp.status,
         headers: {
             "Content-Type": "application/json",
             "Cache-Control": cacheControl,
