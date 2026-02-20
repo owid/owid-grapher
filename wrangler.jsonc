@@ -14,6 +14,12 @@
 
     "pages_build_output_dir": "./localBake",
 
+    "r2_buckets": [
+        {
+            "bucket_name": "owid-user-surveys-staging",
+            "binding": "USER_SURVEYS_R2",
+        },
+    ],
     "vars": {
         // Vars that should be available in all envs, including local dev
         "ENV": "development",
@@ -25,6 +31,12 @@
     },
     "env": {
         "preview": {
+            "r2_buckets": [
+                {
+                    "bucket_name": "owid-user-surveys-staging",
+                    "binding": "USER_SURVEYS_R2",
+                },
+            ],
             "vars": {
                 // Overrides for CF preview deployments
                 "MAILGUN_DOMAIN": "mg.ourworldindata.org",
@@ -42,6 +54,12 @@
         "production": {
             // Overrides for CF production deployment
             "compatibility_date": "2025-05-05",
+            "r2_buckets": [
+                {
+                    "bucket_name": "owid-user-surveys",
+                    "binding": "USER_SURVEYS_R2",
+                },
+            ],
             "vars": {
                 "ENV": "production",
                 "MAILGUN_DOMAIN": "mg.ourworldindata.org",
