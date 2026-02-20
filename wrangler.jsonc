@@ -16,6 +16,16 @@
 
     "r2_buckets": [
         {
+            "bucket_name": "owid-grapher-configs-staging",
+            "binding": "GRAPHER_CONFIG_R2_BUCKET",
+            "remote": true,
+        },
+        {
+            "bucket_name": "owid-grapher-configs",
+            "binding": "GRAPHER_CONFIG_R2_BUCKET_FALLBACK",
+            "remote": true,
+        },
+        {
             "bucket_name": "owid-user-surveys-staging",
             "binding": "USER_SURVEYS_R2",
         },
@@ -32,6 +42,16 @@
     "env": {
         "preview": {
             "r2_buckets": [
+                {
+                    "bucket_name": "owid-grapher-configs-staging",
+                    "binding": "GRAPHER_CONFIG_R2_BUCKET",
+                    "remote": true,
+                },
+                {
+                    "bucket_name": "owid-grapher-configs",
+                    "binding": "GRAPHER_CONFIG_R2_BUCKET_FALLBACK",
+                    "remote": true,
+                },
                 {
                     "bucket_name": "owid-user-surveys-staging",
                     "binding": "USER_SURVEYS_R2",
@@ -55,6 +75,11 @@
             // Overrides for CF production deployment
             "compatibility_date": "2025-05-05",
             "r2_buckets": [
+                {
+                    "bucket_name": "owid-grapher-configs",
+                    "binding": "GRAPHER_CONFIG_R2_BUCKET",
+                    "remote": true,
+                },
                 {
                     "bucket_name": "owid-user-surveys",
                     "binding": "USER_SURVEYS_R2",
