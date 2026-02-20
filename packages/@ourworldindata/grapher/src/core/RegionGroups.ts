@@ -76,6 +76,7 @@ export const regionGroupLabels: Record<RegionGroupKey, string> = {
     undp: "UN Development Programme regions",
     wid: "World Inequality Database regions",
     oecd: "OECD regions", // Organisation for Economic Co-operation and Development
+    ilo: "International Labour Organization regions",
 }
 
 function toProviderKey(
