@@ -69,29 +69,37 @@ export function getDataApiUrl(env: Env) {
     )
 }
 
+function buildResponseFromR2Object(
+    r2Object: R2ObjectBody | R2Object
+): Response {
+    const headers = new Headers()
+    r2Object.writeHttpMetadata(headers)
+    headers.set("ETag", r2Object.httpEtag)
+
+    if ("body" in r2Object) {
+        return new Response(r2Object.body, { status: 200, headers })
+    }
+
+    return new Response(null, { status: 304, headers })
+}
+
 export async function fetchFromR2(
-    url: URL,
+    bucket: R2Bucket,
+    key: string,
     etag: string | undefined,
-    fallbackUrl?: URL,
     _shouldCache: boolean = true
 ) {
-    const headers = new Headers()
-    if (etag) headers.set("If-None-Match", etag)
-    const init = {
-        // HOTFIX 2026-02-20 - disabling caching always because we had fetch errors with R2 and internal caching. Revisit this soon to see if we can re-enable caching.
-        // cf: shouldCache
-        //     ? { cacheEverything: true, cacheTtl: WORKER_CACHE_TIME_IN_SECONDS }
-        //     : { cacheEverything: false },
-        cf: { cacheEverything: false },
-        headers,
+    const object = etag
+        ? await bucket.get(key, {
+              onlyIf: new Headers({ "If-None-Match": etag }),
+          })
+        : await bucket.get(key)
+
+    if (!object) {
+        return new Response(null, { status: 404 })
     }
-    const primaryResponse = await fetch(url.toString(), init)
-    // The fallback URL here is used so that on staging or dev we can fallback
-    // to the production bucket if the file is not found in the branch bucket
-    if (primaryResponse.status === 404 && fallbackUrl) {
-        return fetch(fallbackUrl.toString(), init)
-    }
-    return primaryResponse
+
+    return buildResponseFromR2Object(object)
 }
 
 export async function fetchUnparsedGrapherConfig(
@@ -100,6 +108,10 @@ export async function fetchUnparsedGrapherConfig(
     etag?: string,
     shouldCache: boolean = true
 ) {
+    if (!env.GRAPHER_CONFIG_R2_BUCKET) {
+        throw new Error("Missing GRAPHER_CONFIG_R2_BUCKET binding")
+    }
+
     // The top level directory is either the bucket path (should be set in dev environments and production)
     // or the branch name on preview staging environments
     console.log("branch", env.CF_PAGES_BRANCH)
@@ -116,28 +128,40 @@ export async function fetchUnparsedGrapherConfig(
 
     console.log("fetching grapher config from this key", key)
 
-    const requestUrl = new URL(key, env.GRAPHER_CONFIG_R2_BUCKET_URL)
+    const primaryResponse = await fetchFromR2(
+        env.GRAPHER_CONFIG_R2_BUCKET,
+        key,
+        etag,
+        shouldCache
+    )
+    if (primaryResponse.status !== 404) {
+        return primaryResponse
+    }
 
-    let fallbackUrl
-
-    if (
-        env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK_URL &&
-        env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH
-    ) {
-        const topLevelDirectory = env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH
-        const fallbackKey = excludeUndefined([
-            topLevelDirectory,
-            directory,
-            `${identifier.id}.json`,
-        ]).join("/")
-        fallbackUrl = new URL(
-            fallbackKey,
-            env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK_URL
+    // On staging and local development we can optionally fallback to the production bucket
+    // if the config was not found in the branch bucket.
+    if (!env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH) {
+        return primaryResponse
+    }
+    if (!env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK) {
+        throw new Error(
+            "GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH is set but GRAPHER_CONFIG_R2_BUCKET_FALLBACK binding is missing"
         )
     }
 
-    // Fetch grapher config
-    return fetchFromR2(requestUrl, etag, fallbackUrl, shouldCache)
+    const fallbackKey = excludeUndefined([
+        env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH,
+        directory,
+        `${identifier.id}.json`,
+    ]).join("/")
+    console.log("fetching grapher config from fallback key", fallbackKey)
+
+    return fetchFromR2(
+        env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK,
+        fallbackKey,
+        etag,
+        shouldCache
+    )
 }
 
 async function fetchMultiDimGrapherConfig(
