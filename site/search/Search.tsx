@@ -3,11 +3,9 @@ import {
     FilterType,
     TemplateConfig,
     SearchResultType,
-    SearchState,
-    SearchUrlParam,
 } from "@ourworldindata/types"
 import { LiteClient } from "algoliasearch/lite"
-import { useMemo } from "react"
+import { useMemo, useRef } from "react"
 import { match } from "ts-pattern"
 import { useIsFetching } from "@tanstack/react-query"
 
@@ -35,15 +33,6 @@ import { buildSynonymMap } from "./synonymUtils.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { PoweredBy } from "react-instantsearch"
 import { listedRegionsNames } from "@ourworldindata/utils"
-
-function makeSearchbarKey(state: SearchState): string {
-    const searchParams = stateToSearchParams(state)
-    // Don't re-render the searchbar when the result type changes to prevent
-    // autofocusing the input. It opened the keyboard on mobile.
-    // https://github.com/owid/owid-grapher/issues/5930
-    searchParams.delete(SearchUrlParam.RESULT_TYPE)
-    return searchParams.toString()
-}
 
 export const Search = ({
     topicTagGraph,
@@ -77,6 +66,13 @@ export const Search = ({
     useSearchAnalytics(state, analytics)
 
     const isFetching = useIsFetching()
+
+    // Only autofocus the searchbar on the very first mount, not on re-mounts
+    // triggered by state changes (which would open the keyboard on mobile).
+    // https://github.com/owid/owid-grapher/issues/5930
+    const isFirstMountRef = useRef(true)
+    const shouldAutoFocus = isFirstMountRef.current
+    isFirstMountRef.current = false
 
     // Derived state for template configuration
     const topicType = getSelectedTopicType(state.filters, eligibleAreas)
@@ -116,7 +112,8 @@ export const Search = ({
                     //   selector). In this case, we want to reset the local
                     //   query to match the global one, discarding any
                     //   uncommitted changes.
-                    key={makeSearchbarKey(state)}
+                    key={stateToSearchParams(state).toString()}
+                    autoFocus={shouldAutoFocus}
                     allTopics={eligibleTopics}
                 />
                 <SearchDetectedFilters

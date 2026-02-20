@@ -13,6 +13,7 @@ export const SearchInput = forwardRef(
     (
         {
             value,
+            autoFocus,
             setLocalQuery,
             setGlobalQuery,
             onBackspaceEmpty,
@@ -20,6 +21,7 @@ export const SearchInput = forwardRef(
             resetButton,
         }: {
             value: string
+            autoFocus: boolean
             setLocalQuery: (query: string) => void
             setGlobalQuery: (query: string) => void
             onBackspaceEmpty: () => void
@@ -126,7 +128,7 @@ export const SearchInput = forwardRef(
                         enterKeyHint="search"
                         value={value}
                         role="combobox"
-                        autoFocus
+                        autoFocus={autoFocus}
                         aria-expanded={showSuggestions}
                         aria-controls={autocompleteId}
                         aria-activedescendant={activeOptionId}
