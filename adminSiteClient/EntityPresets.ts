@@ -4,7 +4,7 @@ import {
     getIncomeGroups,
     getAggregatesByProvider,
     RegionDataProvider,
-    REGION_DATA_PROVIDERS,
+    getRegionDataProviders,
 } from "@ourworldindata/utils"
 import {
     ADDITIONAL_REGION_DATA_PROVIDERS,
@@ -106,8 +106,8 @@ export const STATIC_ENTITY_PRESETS: EntityPreset[] = [
         description: "World Bank income groups",
         entities: getIncomeGroups().map((r) => r.name),
     },
-    // Add all aggregate sources
-    ...REGION_DATA_PROVIDERS.map(
+    // Add all region providers as separate presets (UN, WB, WHO, etc.)
+    ...getRegionDataProviders().map(
         (provider): EntityPreset => ({
             id: provider,
             label: REGION_DATA_PROVIDER_LABELS[provider],

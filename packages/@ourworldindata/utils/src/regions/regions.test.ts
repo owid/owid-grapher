@@ -1,21 +1,13 @@
 import { describe, expect, it } from "vitest"
 
+import type { Continent, IncomeGroup, Aggregate } from "./regionsTypes.js"
 import {
-    isCountryName,
     getCountryBySlug,
     getRegionByNameOrVariantName,
     getRegionByName,
     getCountryNamesForRegion,
-    Continent,
-    IncomeGroup,
-    Aggregate,
     articulateEntity,
-} from "./regions.js"
-
-it("isCountryName", () => {
-    expect(isCountryName("United States")).toEqual(true)
-    expect(isCountryName("Not a country")).toEqual(false)
-})
+} from "./regionsUtils.js"
 
 it("getCountryBySlug", () => {
     expect(getCountryBySlug("united-states")).toMatchObject({

@@ -2,7 +2,7 @@ import * as _ from "lodash-es"
 import { EntityName } from "@ourworldindata/types"
 import {
     RegionDataProvider,
-    REGION_DATA_PROVIDERS,
+    getRegionDataProviders,
     Country,
     excludeUndefined,
     getRegionByName,
@@ -14,22 +14,25 @@ import {
 } from "./GrapherConstants"
 import * as R from "remeda"
 
+/** Region data providers defined in the regions.data.ts file */
+const regionDataProviders = getRegionDataProviders()
+/** Additional region data providers not specified by the ETL */
 const additionalRegionDataProviders = ADDITIONAL_REGION_DATA_PROVIDERS.filter(
-    (source) => !REGION_DATA_PROVIDERS.includes(source as RegionDataProvider)
+    (provider) => !regionDataProviders.includes(provider as RegionDataProvider)
 )
 
-const regionDataProviders = [
-    ...REGION_DATA_PROVIDERS,
+const allRegionDataProviders = [
+    ...regionDataProviders,
     ...additionalRegionDataProviders,
 ]
-const regionDataProviderSet = new Set(regionDataProviders)
+const allRegionDataProviderSet = new Set(allRegionDataProviders)
 
 const regionGroupKeys = [
     "countries",
-    "continents", // owid continents
+    "continents", // OWID continents
     "incomeGroups",
     "historicalCountries", // e.g. USSR, Austria-Hungary
-    ...REGION_DATA_PROVIDERS,
+    ...regionDataProviders,
     ...additionalRegionDataProviders,
 ] as const
 export type RegionGroupKey = (typeof regionGroupKeys)[number]
@@ -51,7 +54,7 @@ export const regionGroupLabels: Record<RegionGroupKey, string> = {
     incomeGroups: "Income groups",
     historicalCountries: "Historical countries and regions", // e.g. USSR, Austria-Hungary
 
-    // Regions defined by an institution, and where we have region definition about what constitutes these regions in regions.json
+    // Regions defined by an institution, and where we have region definition about what constitutes these regions in regions.ts
     who: "World Health Organization regions",
     wb: "World Bank regions",
     pew: "Pew Research Center regions",
@@ -60,7 +63,7 @@ export const regionGroupLabels: Record<RegionGroupKey, string> = {
     un_m49_2: "United Nations regions",
     un_m49_3: "United Nations regions",
 
-    // Regions defined by an institution, but we don't have region definitions in regions.json for these (we recognize them by their suffix)
+    // Regions defined by an institution, but we don't have region definitions in regions.ts for these (we recognize them by their suffix)
     maddison: "Maddison Project Database regions",
     unsdg: "UN Sustainable Development Goals regions",
     unm49: "United Nations M49 regions",
@@ -200,7 +203,7 @@ export function parseLabel(raw: string): ParsedLabel {
 export function isAnyRegionDataProviderKey(
     candidate: string
 ): candidate is AnyRegionDataProvider {
-    return regionDataProviderSet.has(candidate as any)
+    return allRegionDataProviderSet.has(candidate as any)
 }
 
 export function isEntityRegionGroupKey(
