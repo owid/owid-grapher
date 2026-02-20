@@ -8,6 +8,7 @@ import {
     makeLinkedCalloutKey,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
+import { htmlToEnrichedBlocks } from "./htmlToEnriched.js"
 
 export interface IndexableTextConversionOptions {
     linkedCallouts?: LinkedCallouts
@@ -236,18 +237,12 @@ export function enrichedBlockToIndexableText(
                     const $ = cheerio.load(b.value)
                     const cells: string[] = []
                     $("td, th").each((_, cell) => {
-                        const cellElement = $(cell)
-                        const listItems = cellElement
-                            .find("li")
-                            .toArray()
-                            .map((item) =>
-                                $(item).text().replace(/\s+/g, " ").trim()
-                            )
-                            .filter((item) => item.length > 0)
-                        const text =
-                            listItems.length > 0
-                                ? joinBlocksAsSentences(listItems, ";")
-                                : cellElement.text().replace(/\s+/g, " ").trim()
+                        const cellHtml = $(cell).html() ?? ""
+                        const blocks = htmlToEnrichedBlocks(cellHtml)
+                        const text = enrichedBlocksToIndexableText(
+                            blocks,
+                            options
+                        )
                         if (text) cells.push(text)
                     })
                     return cells.join(" | ") || undefined

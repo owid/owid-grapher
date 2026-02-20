@@ -225,6 +225,17 @@ describe("enrichedBlocksToIndexableText", () => {
         )
     })
 
+    it("should include non-list text alongside list items in HTML table cells", () => {
+        const block: EnrichedBlockHtml = {
+            type: "html",
+            parseErrors: [],
+            value: "<table><tr><td><p>Heading text</p><ul><li>Item 1</li><li>Item 2</li></ul></td></tr></table>",
+        }
+        expect(enrichedBlocksToIndexableText([block])).toBe(
+            "Heading text.\n\nItem 1; Item 2"
+        )
+    })
+
     it("should include callout title and content in indexable text", () => {
         const block: OwidEnrichedGdocBlock = {
             type: "callout",
