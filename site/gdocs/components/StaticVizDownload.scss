@@ -135,14 +135,13 @@
 .static-viz-download-modal__description {
     @include body-2-regular;
     margin: 0;
-    color: $gray-80;
+    color: $gray-70;
     a {
         @include owid-link-60;
-        color: $gray-80;
+        color: $gray-70;
     }
     .markdown-text-wrap {
         display: block;
-        color: $gray-70;
     }
 
     .markdown-text-wrap__line {
