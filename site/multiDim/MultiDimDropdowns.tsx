@@ -17,6 +17,7 @@ const MultiDimDropdowns = forwardRef<
         resolvedSettings: MultiDimDimensionChoices
         onChange: (settings: MultiDimDimensionChoices) => void
         collapsedCount: number
+        disabled?: boolean
     }
 >(function MultiDimDropdowns(
     {
@@ -25,6 +26,7 @@ const MultiDimDropdowns = forwardRef<
         resolvedSettings,
         onChange,
         collapsedCount,
+        disabled,
     },
     ref
 ) {
@@ -49,6 +51,7 @@ const MultiDimDropdowns = forwardRef<
                             [dim.slug]: value,
                         })
                     }}
+                    disabled={disabled}
                 />
             ))}
             {needsToggle && (
