@@ -40,6 +40,7 @@ help:
 	@echo '  make svgtest.explorers      generate an SVG test report for explorers only'
 	@echo '  make local-bake             do a full local site bake'
 	@echo '  make archive                create an archived version of our charts'
+	@echo '  make chrome-extension       build the chrome extension'
 	@echo
 	@echo '  GRAPHER + CLOUDFLARE (staff-only)'
 	@echo '  make up.full                start dev environment via docker-compose and tmux'
@@ -403,6 +404,10 @@ archive: node_modules
 	@echo '==> Creating archived page versions'
 	PRIMARY_ENV_FILE=.env.archive yarn buildViteArchive
 	PRIMARY_ENV_FILE=.env.archive yarn tsx --tsconfig tsconfig.tsx.json ./baker/archival/archiveChangedPages.ts --latestDir
+
+chrome-extension: node_modules
+	@echo '==> Building chrome extension'
+	yarn buildChromeExtension
 
 clean:
 	rm -rf node_modules

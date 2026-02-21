@@ -11,14 +11,16 @@ import {
     PostsGdocsTableName,
     PostsGdocsComponentsTableName,
     PagesIndexRecordsResponse,
-    RedirectsTableName,
     OwidGdocType,
+    RedirectsTableName,
 } from "@ourworldindata/types"
 import {
     checkIsDataInsight,
     checkIsGdocPostExcludingFragments,
 } from "@ourworldindata/utils"
-import { match } from "ts-pattern"
+import { match, P } from "ts-pattern"
+import { docs as googleDocs } from "@googleapis/docs"
+import { OwidGoogleAuth } from "../../db/OwidGoogleAuth.js"
 import {
     checkHasChanges,
     getPublishingAction,
@@ -451,6 +453,110 @@ export async function getPreviewGdocIndexRecords(
         console.error("Error generating gdoc index records", error)
         if (error instanceof Error) throw error
         throw new Error(String(error))
+    }
+}
+
+/**
+ * Pure proxy to Google Docs API - returns raw Schema$Document.
+ * No parsing, no database access - credentials stay server-side.
+ * Used by Chrome extension for fast, frequent content refreshes.
+ */
+export async function getGdocRaw(
+    req: Request,
+    res: e.Response<any, Record<string, any>>
+    // Note: no trx parameter - no DB access needed
+) {
+    const { id } = req.params
+
+    try {
+        const docsClient = googleDocs({
+            version: "v1",
+            auth: OwidGoogleAuth.getGoogleReadonlyAuth(),
+        })
+
+        const { data } = await docsClient.documents.get({
+            documentId: id,
+            suggestionsViewMode: "PREVIEW_WITHOUT_SUGGESTIONS",
+        })
+
+        res.set("Cache-Control", "no-store")
+        return data
+    } catch (error) {
+        console.error("Error fetching raw gdoc", error)
+        if (
+            error instanceof Error &&
+            "code" in error &&
+            (error as any).code === 404
+        ) {
+            throw new JsonError(`Google Doc with id "${id}" not found`, 404)
+        }
+        throw error
+    }
+}
+
+/**
+ * Loads attachment context for a gdoc from the database.
+ * Returns linked charts, images, authors, documents, etc.
+ * Used by Chrome extension - slower but cached, fetched infrequently.
+ */
+export async function getGdocAttachments(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const { id } = req.params
+
+    // First check if the gdoc exists in the database
+    const gdocBase = await getGdocBaseObjectById(trx, id, true)
+
+    if (!gdocBase) {
+        // If not in DB, return empty attachments - the doc may be new
+        res.set("Cache-Control", "no-store")
+        return {
+            linkedAuthors: [],
+            linkedCharts: {},
+            linkedIndicators: {},
+            linkedDocuments: {},
+            imageMetadata: {},
+            relatedCharts: [],
+            linkedNarrativeCharts: {},
+            linkedStaticViz: {},
+            tags: [],
+        }
+    }
+
+    // Load the full gdoc with all attachments
+    const gdoc = await getAndLoadGdocById(
+        trx,
+        id,
+        GdocsContentSource.Internal // Use DB content, just need attachments
+    )
+
+    // Return only attachment context
+    res.set("Cache-Control", "no-store")
+    return {
+        linkedAuthors: gdoc.linkedAuthors,
+        linkedCharts: gdoc.linkedCharts,
+        linkedIndicators: gdoc.linkedIndicators,
+        linkedDocuments: gdoc.linkedDocuments,
+        imageMetadata: gdoc.imageMetadata,
+        relatedCharts: match(gdoc)
+            .with(
+                {
+                    content: {
+                        type: P.union(
+                            OwidGdocType.Article,
+                            OwidGdocType.LinearTopicPage,
+                            OwidGdocType.TopicPage
+                        ),
+                    },
+                },
+                (g) => (g as any).relatedCharts ?? []
+            )
+            .otherwise(() => []),
+        linkedNarrativeCharts: gdoc.linkedNarrativeCharts ?? {},
+        linkedStaticViz: gdoc.linkedStaticViz ?? {},
+        tags: gdoc.tags ?? [],
     }
 }
 

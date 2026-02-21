@@ -1,0 +1,33 @@
+{
+    "extends": "../devTools/tsconfigs/tsconfig.base.json",
+    "compilerOptions": {
+        "target": "ES2023",
+        "useDefineForClassFields": true,
+        "lib": ["DOM", "DOM.Iterable", "ES2023", "ESNext"],
+        "module": "ESNext",
+        "skipLibCheck": true,
+        "moduleResolution": "bundler",
+        "allowImportingTsExtensions": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "noEmit": true,
+        "outDir": "../itsJustJavascript/chrome-extension",
+        "jsx": "react-jsx",
+        "strict": true,
+        "noUnusedLocals": false,
+        "noUnusedParameters": false,
+        "noFallthroughCasesInSwitch": true,
+        "paths": {
+            "*": ["./*"],
+            "@owid/*": ["../packages/*", "../*"]
+        },
+        "types": ["chrome", "vite/client"]
+    },
+    "include": ["src", "../db/types/**/*.d.ts"],
+    "references": [
+        { "path": "../db" },
+        { "path": "../site" },
+        { "path": "../packages/@ourworldindata/types" },
+        { "path": "../packages/@ourworldindata/utils" }
+    ]
+}

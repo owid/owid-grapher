@@ -1,0 +1,36 @@
+{
+    "manifest_version": 3,
+    "name": "OWID Article Preview",
+    "version": "1.0.0",
+    "description": "Preview OWID articles authored in Google Docs",
+    "permissions": ["sidePanel", "activeTab", "storage", "cookies", "tabs"],
+    "host_permissions": [
+        "https://docs.google.com/*",
+        "https://admin.owid.io/*",
+        "https://api.ourworldindata.org/*",
+        "https://ourworldindata.org/*",
+        "http://localhost:3030/*"
+    ],
+    "background": {
+        "service_worker": "background/service-worker.js",
+        "type": "module"
+    },
+    "content_scripts": [
+        {
+            "matches": ["https://docs.google.com/document/*"],
+            "js": ["content/content-script.js"]
+        }
+    ],
+    "side_panel": {
+        "default_path": "sidepanel/sidepanel.html"
+    },
+    "options_ui": {
+        "page": "options/options.html",
+        "open_in_tab": false
+    },
+    "icons": {
+        "16": "icons/icon16.png",
+        "48": "icons/icon48.png",
+        "128": "icons/icon128.png"
+    }
+}

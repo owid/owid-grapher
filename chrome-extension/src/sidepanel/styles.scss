@@ -1,0 +1,189 @@
+// OWID Preview Extension Styles
+// These styles ONLY apply to the extension UI (toolbar, errors, etc.)
+// The preview content uses OWID site styles from owid.scss
+
+// Variables for extension UI only
+$extension-primary-color: #002147;
+$extension-error-color: #c0392b;
+$extension-warning-color: #f39c12;
+$extension-text-muted: #666666;
+
+// Main container for the extension
+.owid-preview-extension {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+// Toolbar - extension UI element
+.toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background-color: $extension-primary-color;
+    border-bottom: 1px solid #e0e0e0;
+    gap: 8px;
+}
+
+.toolbar-left {
+    display: flex;
+    gap: 8px;
+}
+
+.toolbar-right {
+    display: flex;
+    align-items: center;
+}
+
+.toolbar-button {
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: $extension-primary-color;
+    background-color: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover:not(:disabled) {
+        background-color: #f5f5f5;
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+.toolbar-button-secondary {
+    color: #ffffff;
+    background-color: transparent;
+    border-color: rgba(255, 255, 255, 0.5);
+
+    &:hover:not(:disabled) {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+}
+
+.auto-refresh-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #ffffff;
+    font-size: 13px;
+    cursor: pointer;
+
+    input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+}
+
+// Loading state - extension UI element
+.loading-state {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    color: $extension-text-muted;
+
+    p {
+        margin: 0;
+    }
+}
+
+// Error states - extension UI elements
+.error-state,
+.auth-error {
+    padding: 24px;
+    text-align: center;
+
+    h2 {
+        margin: 0 0 12px;
+        font-size: 18px;
+        color: $extension-error-color;
+    }
+
+    p {
+        margin: 0 0 16px;
+        color: $extension-text-muted;
+    }
+}
+
+.login-link {
+    display: inline-block;
+    margin-bottom: 12px;
+    padding: 10px 20px;
+    color: #ffffff;
+    background-color: $extension-primary-color;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 500;
+
+    &:hover {
+        background-color: lighten($extension-primary-color, 10%);
+    }
+}
+
+.retry-button {
+    display: inline-block;
+    padding: 8px 16px;
+    color: $extension-primary-color;
+    background-color: transparent;
+    border: 1px solid $extension-primary-color;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+
+    &:hover {
+        background-color: rgba($extension-primary-color, 0.1);
+    }
+}
+
+// Preview errors - extension UI element
+.preview-errors {
+    padding: 12px 16px;
+    margin: 8px;
+    background-color: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 4px;
+
+    h4 {
+        margin: 0 0 8px;
+        font-size: 14px;
+        color: darken($extension-warning-color, 10%);
+    }
+
+    ul {
+        margin: 0;
+        padding-left: 20px;
+
+        li {
+            margin-bottom: 4px;
+            font-size: 13px;
+
+            &.error-error {
+                color: $extension-error-color;
+            }
+
+            &.error-warning {
+                color: darken($extension-warning-color, 10%);
+            }
+        }
+    }
+}
+
+// Minimal adjustments for sidepanel context
+// Keep OWID styles intact but ensure images don't overflow
+#owid-document-root {
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+}
