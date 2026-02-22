@@ -408,53 +408,6 @@
     }
 }
 
-.drawer-country-selector__toggle {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-}
-
-.drawer-country-selector__toggle-checkbox {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 29px;
-    height: 16px;
-    border-radius: 8px;
-    background: #dadada;
-    position: relative;
-    cursor: pointer;
-    transition: background 0.2s ease;
-    flex-shrink: 0;
-    margin: 0;
-
-    &::after {
-        content: "";
-        position: absolute;
-        top: 2px;
-        left: 2px;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background: white;
-        transition: transform 0.2s ease;
-    }
-
-    &:checked {
-        background: #98a9bd;
-
-        &::after {
-            transform: translateX(13px);
-        }
-    }
-}
-
-.drawer-country-selector__toggle-label {
-    font-size: 13px;
-    letter-spacing: 0.13px;
-    color: var(--gray-80);
-}
-
 .drawer-country-selector__list {
     display: flex;
     flex-direction: column;

@@ -39,7 +39,6 @@ function DrawerCountrySelectorInner() {
         atomSelectedCountryNames
     )
     const [searchQuery, setSearchQuery] = useState("")
-    const [showSelectedOnly, setShowSelectedOnly] = useState(false)
 
     const selectedSet = useMemo(
         () => new Set(selectedCountryNames),
@@ -47,16 +46,12 @@ function DrawerCountrySelectorInner() {
     )
 
     const filteredCountries = useMemo(() => {
-        let countries = availableCountryNames
-        if (showSelectedOnly) {
-            countries = countries.filter((c) => selectedSet.has(c))
-        }
-        if (searchQuery) {
-            const query = searchQuery.toLowerCase()
-            countries = countries.filter((c) => c.toLowerCase().includes(query))
-        }
-        return countries
-    }, [availableCountryNames, showSelectedOnly, selectedSet, searchQuery])
+        if (!searchQuery) return availableCountryNames
+        const query = searchQuery.toLowerCase()
+        return availableCountryNames.filter((c) =>
+            c.toLowerCase().includes(query)
+        )
+    }, [availableCountryNames, searchQuery])
 
     const handleToggleCountry = (countryName: string) => {
         if (selectedSet.has(countryName)) {
@@ -82,17 +77,6 @@ function DrawerCountrySelectorInner() {
                     className="drawer-country-selector__search-input"
                 />
             </div>
-            <label className="drawer-country-selector__toggle">
-                <input
-                    type="checkbox"
-                    checked={showSelectedOnly}
-                    onChange={(e) => setShowSelectedOnly(e.target.checked)}
-                    className="drawer-country-selector__toggle-checkbox"
-                />
-                <span className="drawer-country-selector__toggle-label">
-                    Show selected countries only ({selectedCountryNames.length})
-                </span>
-            </label>
             <div className="drawer-country-selector__list">
                 {filteredCountries.map((country) => (
                     <label
