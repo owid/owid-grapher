@@ -1,7 +1,6 @@
 import { roundSigFig } from "@ourworldindata/utils"
 import * as fastKde from "fast-kde"
 import {
-    Currency,
     KDE_BANDWIDTH,
     KDE_EXTENT,
     KDE_NUM_BINS,
@@ -10,15 +9,17 @@ import {
 } from "./incomePlotConstants.ts"
 import { type RawDataForYearRecord } from "../store.ts"
 import * as R from "remeda"
+import { IntDollarConversionKeyInfo } from "../types.ts"
 
-const currencyFormatterCache = new Map<Currency, Intl.NumberFormat>()
+const currencyFormatterCache = new Map<string, Intl.NumberFormat>()
 
 export function formatCurrency(
     num: number,
-    currency: Currency,
+    currency: IntDollarConversionKeyInfo,
     { formatShort }: { formatShort?: boolean } = {}
 ) {
-    if (currency === "INTD") {
+    const currencyCode = currency.currency_code
+    if (currencyCode === "INTD") {
         if (num >= 1_000_000) return "$" + Math.round(num / 1_000_000) + "M"
         if (num >= 1_000) return "$" + Math.round(num / 1_000) + "k"
         if (num >= 10) return "$" + roundSigFig(num, 2)
@@ -29,16 +30,16 @@ export function formatCurrency(
         } else return "$" + R.round(num, 1).toFixed(2)
     }
 
-    let formatter = currencyFormatterCache.get(currency)
+    let formatter = currencyFormatterCache.get(currencyCode)
     if (!formatter) {
         formatter = new Intl.NumberFormat("en-US", {
             style: "currency",
-            currency: currency,
+            currency: currencyCode,
             trailingZeroDisplay: "stripIfInteger",
             notation: "engineering",
             maximumSignificantDigits: 2,
         })
-        currencyFormatterCache.set(currency, formatter)
+        currencyFormatterCache.set(currencyCode, formatter)
     }
     return formatter
         .format(num)
