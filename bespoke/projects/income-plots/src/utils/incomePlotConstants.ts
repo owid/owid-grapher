@@ -12,6 +12,11 @@ export type TimeInterval = (typeof TIME_INTERVALS)[number]
 
 export const TIME_INTERVAL_FACTORS = [1, 365 / 12, 365] as const
 
+export const INT_DOLLAR_CONVERSIONS_URL =
+    "https://owid-public.owid.io/marcel-bespoke-data-viz-02-2026/poverty-plots/int_dollar_conversions.json"
+
+export const DETECT_COUNTRY_URL = "https://detect-country.owid.io/"
+
 export const CURRENCIES = ["INTD", "USD", "EUR", "SEK"] as const
 export type Currency = (typeof CURRENCIES)[number]
 export const DEFAULT_CURRENCY: Currency = "INTD"
