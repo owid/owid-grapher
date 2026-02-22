@@ -193,7 +193,8 @@ export const atomKdeDataForYearGroupedByRegion = atom(async (get) => {
 export const atomIntDollarConversions = atom(async () => {
     try {
         const res = await fetch(INT_DOLLAR_CONVERSIONS_URL)
-        return (await res.json()) as IntDollarConversions
+        const data = (await res.json()) as IntDollarConversions
+        return data.filter((c) => c.currency_code)
     } catch {
         return undefined
     }
