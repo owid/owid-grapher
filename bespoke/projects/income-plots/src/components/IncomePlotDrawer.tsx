@@ -10,7 +10,10 @@ import {
 import { TIME_INTERVALS, TimeInterval } from "../utils/incomePlotConstants.ts"
 import { Suspense, useMemo, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
+import {
+    faMagnifyingGlass,
+    faXmark,
+} from "@fortawesome/free-solid-svg-icons"
 
 interface IncomePlotDrawerProps {
     isOpen: boolean
@@ -129,19 +132,7 @@ export function IncomePlotDrawer({ isOpen, onClose }: IncomePlotDrawerProps) {
                         onClick={onClose}
                         aria-label="Close settings"
                     >
-                        <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 14 14"
-                            fill="none"
-                        >
-                            <path
-                                d="M1 1L13 13M13 1L1 13"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                            />
-                        </svg>
+                        <FontAwesomeIcon icon={faXmark} />
                     </button>
                 </div>
 
