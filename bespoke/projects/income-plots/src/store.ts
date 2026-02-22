@@ -1,17 +1,19 @@
 import { atom } from "jotai"
 import {
-    CURRENCIES,
-    CURRENCY_FACTORS,
     DEFAULT_YEAR,
     DETECT_COUNTRY_URL,
     INT_DOLLAR_CONVERSIONS_URL,
+    INT_DOLLAR_CONVERSION_KEY_INFO,
     TIME_INTERVAL_FACTORS,
     TIME_INTERVALS,
     WORLD_ENTITY_NAME,
     type TimeInterval,
-    type Currency,
 } from "./utils/incomePlotConstants.ts"
-import type { IntDollarConversions, DetectCountryResponse } from "./types.ts"
+import type {
+    IntDollarConversions,
+    DetectCountryResponse,
+    IntDollarConversionKeyInfo,
+} from "./types.ts"
 import data from "./data/incomeBins.json"
 import { sleep } from "@ourworldindata/utils"
 import {
@@ -252,25 +254,13 @@ export const atomHoveredEntityType = atom((get) => {
 export const atomHoveredX = atom<number | null>(null)
 
 // Currency
-const atomCurrenctCurrencyIdx = atom(0)
-export const atomCurrentCurrency = atom(
-    (get) => {
-        const idx = get(atomCurrenctCurrencyIdx)
-        return CURRENCIES[idx]
-    },
-    (get, set, newValue?: Currency) => {
-        if (newValue !== undefined) {
-            const idx = CURRENCIES.indexOf(newValue)
-            if (idx !== -1) set(atomCurrenctCurrencyIdx, idx)
-        } else {
-            set(atomCurrenctCurrencyIdx, (idx) => (idx + 1) % CURRENCIES.length)
-        }
-    }
+export const atomCurrentCurrency = atom<IntDollarConversionKeyInfo>(
+    INT_DOLLAR_CONVERSION_KEY_INFO
 )
 
 export const atomCurrentCurrencyFactor = atom((get) => {
     const currency = get(atomCurrentCurrency)
-    return CURRENCY_FACTORS[currency]
+    return currency.conversion_factor
 })
 
 export const atomCombinedFactor = atom((get) => {

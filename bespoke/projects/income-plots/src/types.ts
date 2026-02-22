@@ -13,6 +13,14 @@ export interface IntDollarConversionEntry {
 
 export type IntDollarConversions = IntDollarConversionEntry[]
 
+export interface IntDollarConversionKeyInfo {
+    currency_code: string
+    currency_name: string
+    conversion_factor: number
+    country?: string
+    country_code?: string
+}
+
 export interface DetectCountryResponse {
     country?: {
         code?: string
