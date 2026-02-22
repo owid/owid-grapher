@@ -8,7 +8,11 @@ import {
     atomSelectedCountryNames,
     atomLocalCurrencyConversion,
 } from "../store.ts"
-import { TIME_INTERVALS, TimeInterval } from "../utils/incomePlotConstants.ts"
+import {
+    INT_DOLLAR_CONVERSION_KEY_INFO,
+    TIME_INTERVALS,
+    TimeInterval,
+} from "../utils/incomePlotConstants.ts"
 import { loadable } from "jotai/utils"
 import { Suspense, useMemo, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -165,14 +169,19 @@ export function IncomePlotDrawer({ isOpen, onClose }: IncomePlotDrawerProps) {
                         </div>
                         <div className="income-plot-drawer__button-group">
                             <button
-                                className={`income-plot-drawer__button${currency === "INTD" ? " income-plot-drawer__button--active" : ""}`}
-                                onClick={() => setCurrency("INTD")}
+                                className={`income-plot-drawer__button${currency.currency_code === "INTD" ? " income-plot-drawer__button--active" : ""}`}
+                                onClick={() =>
+                                    setCurrency(INT_DOLLAR_CONVERSION_KEY_INFO)
+                                }
                             >
                                 International-$
                             </button>
                             <button
-                                className={`income-plot-drawer__button${currency === "USD" ? " income-plot-drawer__button--active" : ""}`}
-                                onClick={() => setCurrency("USD")}
+                                className={`income-plot-drawer__button${currency.currency_code !== "INTD" ? " income-plot-drawer__button--active" : ""}`}
+                                onClick={() =>
+                                    localConversion &&
+                                    setCurrency(localConversion)
+                                }
                                 disabled={!localConversion}
                             >
                                 {localConversion
