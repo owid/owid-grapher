@@ -3,12 +3,15 @@ import {
     CURRENCIES,
     CURRENCY_FACTORS,
     DEFAULT_YEAR,
+    DETECT_COUNTRY_URL,
+    INT_DOLLAR_CONVERSIONS_URL,
     TIME_INTERVAL_FACTORS,
     TIME_INTERVALS,
     WORLD_ENTITY_NAME,
     type TimeInterval,
     type Currency,
 } from "./utils/incomePlotConstants.ts"
+import type { IntDollarConversions, DetectCountryResponse } from "./types.ts"
 import data from "./data/incomeBins.json"
 import { sleep } from "@ourworldindata/utils"
 import {
@@ -106,6 +109,7 @@ export const atomCountriesOrRegionsMode = atom(
 )
 
 // Data
+
 export const atomRawDataForYear = atom(async (get, { signal }) => {
     const year = get(atomCurrentYear)
 
@@ -181,6 +185,37 @@ export const atomKdeDataForYearGroupedByRegion = atom(async (get) => {
         }
     )
     return Object.values(transformed)
+})
+
+// Currency conversion data (incl. country detection)
+export const atomIntDollarConversions = atom(async () => {
+    try {
+        const res = await fetch(INT_DOLLAR_CONVERSIONS_URL)
+        return (await res.json()) as IntDollarConversions
+    } catch {
+        return undefined
+    }
+})
+
+export const atomDetectedCountry = atom(async () => {
+    try {
+        const res = await fetch(DETECT_COUNTRY_URL)
+        return (await res.json()) as DetectCountryResponse
+    } catch {
+        return undefined
+    }
+})
+
+export const atomLocalCurrencyConversion = atom(async (get) => {
+    const conversions = await get(atomIntDollarConversions)
+    const detectedCountry = await get(atomDetectedCountry)
+    const countryCode = detectedCountry?.country?.code
+    if (!countryCode) return null
+
+    const conversion = conversions?.find((c) => c.country_code === countryCode)
+    if (!conversion) return null
+
+    return conversion
 })
 
 // Legend
