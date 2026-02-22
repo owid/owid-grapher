@@ -148,7 +148,7 @@ export const IncomePlotControlsRowTop = ({
 export const IncomePlotControlsRowBottom = () => {
     const [timeInterval, nextTimeInterval] = useAtom(atomTimeInterval)
     const [currentYear] = useAtom(atomCurrentYear)
-    const [currentCurrency, nextCurrency] = useAtom(atomCurrentCurrency)
+    const [currentCurrency, setCurrency] = useAtom(atomCurrentCurrency)
 
     return (
         <div className="income-plot-controls-bottom">
@@ -158,11 +158,11 @@ export const IncomePlotControlsRowBottom = () => {
             <span className="control-text">income or consumption in</span>
             <button className="control-pill">{currentYear}</button>
             <span className="control-text">in</span>
-            <button onClick={() => nextCurrency()} className="control-pill">
-                {currentCurrency === "INTD"
+            {/* <button onClick={() => nextCurrency()} className="control-pill">
+                {currentCurrency.currency_code === "INTD"
                     ? "international-$"
-                    : R.toUpperCase(currentCurrency)}
-            </button>
+                    : R.toUpperCase(currentCurrency.currency_name)}
+            </button> */}
         </div>
     )
 }
