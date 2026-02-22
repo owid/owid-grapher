@@ -6,14 +6,15 @@ import {
     atomCurrentTab,
     atomAvailableCountryNames,
     atomSelectedCountryNames,
+    atomLocalCurrencyConversion,
 } from "../store.ts"
 import { TIME_INTERVALS, TimeInterval } from "../utils/incomePlotConstants.ts"
+import { loadable } from "jotai/utils"
 import { Suspense, useMemo, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import {
-    faMagnifyingGlass,
-    faXmark,
-} from "@fortawesome/free-solid-svg-icons"
+
+const loadableLocalCurrencyConversion = loadable(atomLocalCurrencyConversion)
+import { faMagnifyingGlass, faXmark } from "@fortawesome/free-solid-svg-icons"
 
 interface IncomePlotDrawerProps {
     isOpen: boolean
@@ -25,11 +26,6 @@ const TIME_INTERVAL_LABELS: Record<TimeInterval, string> = {
     monthly: "Monthly",
     yearly: "Yearly",
 }
-
-const CURRENCY_OPTIONS = [
-    { value: "INTD" as const, label: "International-$" },
-    { value: "USD" as const, label: "Local currency" },
-]
 
 const MODE_OPTIONS = [
     { value: "regions" as const, label: "Show regions" },
@@ -115,6 +111,13 @@ export function IncomePlotDrawer({ isOpen, onClose }: IncomePlotDrawerProps) {
     const [currency, setCurrency] = useAtom(atomCurrentCurrency)
     const [mode, setMode] = useAtom(atomCountriesOrRegionsMode)
     const currentTab = useAtomValue(atomCurrentTab)
+    const localConversionLoadable = useAtomValue(
+        loadableLocalCurrencyConversion
+    )
+    const localConversion =
+        localConversionLoadable.state === "hasData"
+            ? localConversionLoadable.data
+            : null
 
     return (
         <>
@@ -161,15 +164,21 @@ export function IncomePlotDrawer({ isOpen, onClose }: IncomePlotDrawerProps) {
                             Currency
                         </div>
                         <div className="income-plot-drawer__button-group">
-                            {CURRENCY_OPTIONS.map((opt) => (
-                                <button
-                                    key={opt.value}
-                                    className={`income-plot-drawer__button${currency === opt.value ? " income-plot-drawer__button--active" : ""}`}
-                                    onClick={() => setCurrency(opt.value)}
-                                >
-                                    {opt.label}
-                                </button>
-                            ))}
+                            <button
+                                className={`income-plot-drawer__button${currency === "INTD" ? " income-plot-drawer__button--active" : ""}`}
+                                onClick={() => setCurrency("INTD")}
+                            >
+                                International-$
+                            </button>
+                            <button
+                                className={`income-plot-drawer__button${currency === "USD" ? " income-plot-drawer__button--active" : ""}`}
+                                onClick={() => setCurrency("USD")}
+                                disabled={!localConversion}
+                            >
+                                {localConversion
+                                    ? `${localConversion.currency_name} (${localConversion.country})`
+                                    : "Local currency"}
+                            </button>
                         </div>
                     </div>
 
