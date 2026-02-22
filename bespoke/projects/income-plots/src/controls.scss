@@ -221,6 +221,65 @@
     font-size: 14px;
 }
 
+.currency-select {
+    position: relative;
+    display: inline-block;
+}
+
+.currency-select__trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.currency-select__chevron {
+    font-size: 10px;
+    opacity: 0.6;
+}
+
+.currency-select__popover {
+    position: absolute;
+    z-index: 100;
+    margin-top: 4px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    max-height: 300px;
+    overflow-y: auto;
+    min-width: 200px;
+}
+
+.currency-select__listbox {
+    outline: none;
+    padding: 4px 0;
+}
+
+.currency-select__section-header {
+    padding: 4px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.currency-select__item {
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    outline: none;
+
+    &[data-focused] {
+        background: $blue-5;
+    }
+
+    &[data-selected] {
+        font-weight: 700;
+        color: $blue-90;
+    }
+}
+
 $controlRowHeight: 28px;
 
 // Mixins for slim tab styling, shared with ContentSwitchers.scss
