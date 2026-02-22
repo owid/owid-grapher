@@ -1,6 +1,7 @@
 :root,
 :host {
     --gray-20: #e7e7e7;
+    --gray-60: #a1a1a1;
     --gray-80: #5b5b5b;
     --gray-100: #2d2d2d;
     --blue-20: #dbe5f0;
@@ -289,7 +290,7 @@
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 1.2px;
-    color: #a1a1a1;
+    color: var(--gray-60);
 }
 
 .income-plot-drawer__close {
