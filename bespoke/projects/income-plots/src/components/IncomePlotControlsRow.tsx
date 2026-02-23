@@ -12,7 +12,7 @@ import {
 import { INT_DOLLAR_CONVERSION_KEY_INFO } from "../utils/incomePlotConstants.ts"
 import * as R from "remeda"
 import { IncomePlotCountrySelector } from "./IncomePlotCountrySelector.tsx"
-import { LabeledSwitch } from "@ourworldindata/components"
+import { LabeledSwitch } from "./LabeledSwitch.tsx"
 import cx from "classnames"
 
 import * as React from "react"
@@ -141,32 +141,12 @@ export const IncomePlotControlsRowTop = ({
                 </button>
             )}
             {isGlobal && !isNarrow && (
-                <div className="regions-countries-toggle">
-                    <span
-                        className={cx("toggle-label", {
-                            active: countriesOrRegionsMode === "regions",
-                        })}
-                        onClick={() => {
-                            nextCountriesOrRegionsMode("regions")
-                        }}
-                    >
-                        Show regions
-                    </span>
-                    <LabeledSwitch
-                        value={countriesOrRegionsMode === "countries"}
-                        onToggle={() => nextCountriesOrRegionsMode()}
-                    />
-                    <span
-                        className={cx("toggle-label", {
-                            active: countriesOrRegionsMode === "countries",
-                        })}
-                        onClick={() => {
-                            nextCountriesOrRegionsMode("countries")
-                        }}
-                    >
-                        Show countries
-                    </span>
-                </div>
+                <LabeledSwitch
+                    value={countriesOrRegionsMode === "countries"}
+                    onToggle={() => nextCountriesOrRegionsMode()}
+                    leftLabel="Show regions"
+                    rightLabel="Show countries"
+                />
             )}
             {isCountries && !isNarrow && <IncomePlotCountrySelector />}
         </div>
