@@ -1,4 +1,6 @@
 import { atom } from "jotai"
+import { loadable } from "jotai/utils"
+import { atomEffect } from "jotai-effect"
 import {
     DEFAULT_YEAR,
     DETECT_COUNTRY_URL,
@@ -316,3 +318,33 @@ export const atomEntityColorMap = atom((get) => {
     const currentEntities = get(atomCurrentEntitiesSorted)
     return assignColors(currentEntities)
 })
+
+const loadableDetectedCountry = loadable(atomDetectedCountry)
+const loadableAvailableCountries = loadable(atomAvailableCountryNames)
+
+const atomHasLocalCountryBeenIncludedInSelection = atom(false)
+export const atomEffectIncludeLocalCountryInSelection = atomEffect(
+    (get, set) => {
+        const hasLocalCountryBeenIncluded = get(
+            atomHasLocalCountryBeenIncludedInSelection
+        )
+        if (hasLocalCountryBeenIncluded) return
+
+        const detectedCountry = get(loadableDetectedCountry)
+        const availableCountries = get(loadableAvailableCountries)
+        const selectedCountries = get(atomSelectedCountryNames)
+
+        if (
+            detectedCountry.state !== "hasData" ||
+            availableCountries.state !== "hasData"
+        )
+            return
+        const countryName = detectedCountry.data?.country?.name
+        if (!countryName) return
+        if (!availableCountries.data.includes(countryName)) return
+        if (selectedCountries.includes(countryName)) return
+
+        set(atomCountrySelection, [countryName, ...selectedCountries])
+        set(atomHasLocalCountryBeenIncludedInSelection, true)
+    }
+)
