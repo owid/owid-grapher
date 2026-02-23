@@ -121,6 +121,7 @@ export {
     mapGrapherTabNameToQueryParam,
     mapGrapherTabNameToConfigOption,
     makeLabelForGrapherTab,
+    VALID_CHART_TYPE_COMBINATIONS,
 } from "./chart/ChartTabs"
 export {
     renderGrapherIntoContainer,

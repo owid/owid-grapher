@@ -441,6 +441,53 @@ $nav-height: 45px;
         justify-content: space-between;
         align-items: center;
     }
+
+    .chart-type-group {
+        margin-bottom: 12px;
+
+        .chart-type-group__label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .chart-type-group__description {
+            display: block;
+            font-size: 0.75rem;
+            font-style: italic;
+            margin-bottom: 7px;
+        }
+
+        .chart-type-group__grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+
+            .ant-tag-checkable {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                margin: 0;
+                padding: 5px 10px;
+                border: 1px solid #d9d9d9;
+                background: white;
+
+                &:hover {
+                    border-color: #396d8f;
+                    color: inherit;
+                }
+
+                &.ant-tag-checkable-checked {
+                    background: #e6f0f8;
+                    border-color: #396d8f;
+                    color: #2a4d65;
+                }
+            }
+        }
+    }
 }
 
 .EditorExportTab {
