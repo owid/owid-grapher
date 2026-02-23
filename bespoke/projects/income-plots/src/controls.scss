@@ -505,6 +505,7 @@ $controlRowHeight: 28px;
 
         .Tabs__Tab {
             @include slim-tab-item;
+            transform: translateY($visual-gap);
             padding: 0 var(--tab-padding);
             text-overflow: ellipsis;
             overflow: hidden;
