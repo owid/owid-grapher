@@ -21,6 +21,7 @@ import {
     ExperimentState,
 } from "@ourworldindata/utils"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
+import { FeaturedMetrics } from "./FeaturedMetrics.js"
 import StickyNav from "./blocks/StickyNav.js"
 import {
     ADMIN_BASE_URL,
@@ -34,6 +35,7 @@ import { processRelatedResearch } from "./dataPage.js"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import { DocumentContext } from "./gdocs/DocumentContext.js"
+import { BlockQueryClientProvider } from "./gdocs/components/BlockQueryClientProvider.js"
 import { faArrowRight, faArrowDown } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { DataInsightLink } from "@ourworldindata/types"
@@ -127,7 +129,6 @@ export const DataPageV2Content = ({
     }, [])
 
     const { isPageInExperiment, assignedExperiments } = experimentState
-
     return (
         <AttachmentsContext.Provider
             value={{
@@ -246,10 +247,23 @@ export const DataPageV2Content = ({
                         )}
                         {datapageData.allCharts &&
                         datapageData.allCharts.length > 0 ? (
-                            <div className="section-wrapper section-wrapper__related-charts">
+                            <div
+                                className={`section-wrapper ${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}all-charts--show`}
+                            >
                                 <h2
                                     className="related-charts__title"
-                                    id="all-charts"
+                                    id={
+                                        isPageInExperiment &&
+                                        assignedExperiments &&
+                                        assignedExperiments[
+                                            `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
+                                        ] &&
+                                        assignedExperiments[
+                                            `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
+                                        ] !== "all-charts"
+                                            ? ""
+                                            : "all-charts"
+                                    }
                                 >
                                     Explore charts that include this data
                                 </h2>
@@ -260,6 +274,32 @@ export const DataPageV2Content = ({
                                 </div>
                             </div>
                         ) : null}
+                        {datapageData.primaryTopic && (
+                            <div
+                                className={`section-wrapper section-wrapper__related-charts ${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}featured-metrics--show`}
+                                id={
+                                    isPageInExperiment &&
+                                    assignedExperiments &&
+                                    assignedExperiments[
+                                        `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
+                                    ] &&
+                                    assignedExperiments[
+                                        `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
+                                    ] === "featured-metrics"
+                                        ? "all-charts"
+                                        : ""
+                                }
+                            >
+                                <BlockQueryClientProvider>
+                                    <FeaturedMetrics
+                                        topicName={
+                                            datapageData.primaryTopic.topicTag
+                                        }
+                                        isDataPage={true}
+                                    />
+                                </BlockQueryClientProvider>
+                            </div>
+                        )}
                     </div>
                     <div className="col-start-2 span-cols-12">
                         <AboutThisData

@@ -241,6 +241,10 @@ $experiments: (
         treat20,
         treat21,
     ),
+    exp-all-charts-vs-featured-v1: (
+        all-charts,
+        featured-metrics,
+    ),
 );
 
 @each $exp, $arms in $experiments {
@@ -268,6 +272,21 @@ $experiments: (
             // when arm is active, hide the matching --hide
             &--#{$a} &--#{$a}--hide {
                 display: none;
+            }
+        }
+    }
+}
+
+// styles specific to experiment exp-all-charts-vs-featured-v1
+.exp-all-charts-vs-featured-v1 {
+    $arms: map.get($experiments, exp-all-charts-vs-featured-v1);
+    @each $a in $arms {
+        &--#{$a} .DataPageContent {
+            .section-wrapper__related-charts {
+                border-bottom: none !important;
+            }
+            .featured-metrics__title {
+                @include datapage-section-title;
             }
         }
     }
