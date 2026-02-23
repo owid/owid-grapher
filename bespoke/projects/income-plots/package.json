@@ -1,8 +1,8 @@
 {
     "dependencies": {
         "@floating-ui/react": "^0.27.16",
-        "@fortawesome/react-fontawesome": "^3.2.0",
         "@fortawesome/free-solid-svg-icons": "^7.2.0",
+        "@fortawesome/react-fontawesome": "^3.2.0",
         "@ourworldindata/components": "*",
         "@ourworldindata/types": "*",
         "@ourworldindata/utils": "*",
@@ -11,6 +11,7 @@
         "fast-kde": "^0.2.2",
         "jotai": "^2.15.1",
         "jotai-devtools": "^0.13.0",
+        "jotai-effect": "^2.2.3",
         "react": "^19.2.0",
         "react-aria-components": "^1.13.0",
         "react-dom": "^19.2.0",
