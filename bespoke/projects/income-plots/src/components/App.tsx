@@ -12,11 +12,17 @@ import {
     IncomePlotControlsRowTop,
 } from "./IncomePlotControlsRow.tsx"
 import { IncomePlotDrawer } from "./IncomePlotDrawer.tsx"
-import { useAtomValue, useSetAtom } from "jotai"
-import { atomCurrentYear, atomisNarrow } from "../store.ts"
+import { useAtom, useAtomValue, useSetAtom } from "jotai"
+import {
+    atomCurrentYear,
+    atomEffectIncludeLocalCountryInSelection,
+    atomisNarrow,
+} from "../store.ts"
 import { useResizeObserver, useWindowSize } from "usehooks-ts"
 
 export const App = () => {
+    useAtom(atomEffectIncludeLocalCountryInSelection) // include local country in selection once the local country is detected
+
     const currentYear = useAtomValue(atomCurrentYear)
     const containerRef = useRef<HTMLDivElement>(null)
     const { width = 0 } = useResizeObserver({
