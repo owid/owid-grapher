@@ -54,7 +54,6 @@ export const App = () => {
                 style={{
                     width: "max-content",
                     maxWidth: width,
-                    margin: "auto",
                     aspectRatio: aspectRatio,
                 }}
             >
@@ -66,8 +65,8 @@ export const App = () => {
                         isNarrow={isNarrow}
                     />
                 </Suspense>
+                {!isNarrow && <IncomePlotControlsRowBottom />}
             </div>
-            {!isNarrow && <IncomePlotControlsRowBottom />}
             {isNarrow && (
                 <IncomePlotDrawer isOpen={drawerOpen} onClose={closeDrawer} />
             )}
