@@ -6,6 +6,26 @@ import { Experiment } from "./Experiment.js"
  */
 export const experiments: Experiment[] = [
     new Experiment({
+        id: "all-charts-vs-featured-v1",
+        expires: "2026-12-31T00:00:00.000Z",
+        arms: [
+            { id: "all-charts", fraction: 0.8 },
+            { id: "featured-metrics", fraction: 0.2 },
+        ],
+        paths: [
+            "/grapher/democracy-index-eiu",
+            "/grapher/co-emissions-per-capita",
+            "/grapher/life-expectancy",
+            "/grapher/child-mortality",
+            "/grapher/population",
+            "/grapher/carbon-intensity-electricity",
+            "/grapher/human-rights-index-vdem",
+            "/grapher/share-of-population-in-extreme-poverty",
+            "/grapher/economic-inequality-gini-index",
+            "/grapher/per-capita-energy-use",
+        ],
+    }),
+    new Experiment({
         id: "user-survey-role-v1",
         expires: "2026-03-20T00:00:00.000Z",
         arms: [
