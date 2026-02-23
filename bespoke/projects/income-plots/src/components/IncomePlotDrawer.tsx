@@ -6,18 +6,16 @@ import {
     atomCurrentTab,
     atomAvailableCountryNames,
     atomSelectedCountryNames,
-    atomLocalCurrencyConversion,
+    loadableLocalCurrencyConversion,
 } from "../store.ts"
 import {
     INT_DOLLAR_CONVERSION_KEY_INFO,
     TIME_INTERVALS,
     TimeInterval,
 } from "../utils/incomePlotConstants.ts"
-import { loadable } from "jotai/utils"
 import { Suspense, useMemo, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
-const loadableLocalCurrencyConversion = loadable(atomLocalCurrencyConversion)
 import { faMagnifyingGlass, faXmark } from "@fortawesome/free-solid-svg-icons"
 
 interface IncomePlotDrawerProps {
