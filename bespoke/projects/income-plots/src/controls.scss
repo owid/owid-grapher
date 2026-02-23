@@ -307,6 +307,10 @@
     max-height: 600px;
 }
 
+.currency-select__listbox .react-aria-ListBoxSection {
+    margin-top: 8px;
+}
+
 .currency-select__section-header {
     padding: 4px 12px;
     font-size: 11px;
