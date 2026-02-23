@@ -245,14 +245,65 @@
     border: 1px solid #ddd;
     border-radius: 4px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    max-height: 300px;
-    overflow-y: auto;
-    min-width: 200px;
+    min-width: 240px;
+    display: flex;
+    flex-direction: column;
+    max-height: 350px;
+}
+
+.currency-select__search {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+
+    .react-aria-Input {
+        border: none;
+        background: transparent;
+        font-size: 13px;
+        font-family: inherit;
+        color: #333;
+        outline: none;
+        padding: 0;
+        flex: 1;
+        min-width: 0;
+
+        &::placeholder {
+            color: #999;
+        }
+    }
+
+    .clear-button {
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        color: #999;
+        display: flex;
+        align-items: center;
+
+        &:hover {
+            color: #333;
+        }
+    }
+}
+
+.currency-select__search-icon {
+    color: #999;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.currency-select__clear-icon {
+    font-size: 10px;
 }
 
 .currency-select__listbox {
     outline: none;
     padding: 4px 0;
+    overflow-y: auto;
+    max-height: 600px;
 }
 
 .currency-select__section-header {

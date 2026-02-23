@@ -30,6 +30,10 @@ import {
     SelectValue,
     ListBoxSection,
     Header,
+    Autocomplete,
+    useFilter,
+    SearchField,
+    Input,
 } from "react-aria-components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -37,6 +41,8 @@ import {
     faFlag,
     faGear,
     faChevronDown,
+    faSearch,
+    faX,
 } from "@fortawesome/free-solid-svg-icons"
 import type { IntDollarConversionKeyInfo } from "../types.ts"
 
@@ -178,6 +184,8 @@ export const IncomePlotControlsRowBottom = () => {
     const conversionsLoadable = useAtomValue(loadableConversions)
     const localConversionLoadable = useAtomValue(loadableLocalConversion)
 
+    const { contains } = useFilter({ sensitivity: "base" })
+
     const conversions =
         conversionsLoadable.state === "hasData"
             ? conversionsLoadable.data
@@ -248,45 +256,67 @@ export const IncomePlotControlsRowBottom = () => {
                     />
                 </Button>
                 <Popover className="currency-select__popover">
-                    <ListBox className="currency-select__listbox">
-                        <ListBoxItem
-                            id="INTD"
-                            textValue="International Dollar"
-                            className="currency-select__item"
+                    <Autocomplete filter={contains}>
+                        <SearchField
+                            aria-label="Search countries and currencies"
+                            autoFocus
+                            className="currency-select__search"
                         >
-                            International-$
-                        </ListBoxItem>
-                        {localConversion && (
+                            <FontAwesomeIcon
+                                icon={faSearch}
+                                className="currency-select__search-icon"
+                            />
+                            <Input
+                                placeholder={"Search countries and currencies"}
+                                className="react-aria-Input inset"
+                            />
+                            <Button className="clear-button">
+                                <FontAwesomeIcon
+                                    icon={faX}
+                                    className="currency-select__clear-icon"
+                                />
+                            </Button>
+                        </SearchField>
+                        <ListBox className="currency-select__listbox">
+                            <ListBoxItem
+                                id="INTD"
+                                textValue="International Dollar"
+                                className="currency-select__item"
+                            >
+                                International-$
+                            </ListBoxItem>
+                            {localConversion && (
+                                <ListBoxSection>
+                                    <Header className="currency-select__section-header">
+                                        Suggested
+                                    </Header>
+                                    <ListBoxItem
+                                        id={localConversion.country_code}
+                                        textValue={`${localConversion.country} ${localConversion.currency_name}`}
+                                        className="currency-select__item"
+                                    >
+                                        {localConversion.country} (
+                                        {localConversion.currency_name})
+                                    </ListBoxItem>
+                                </ListBoxSection>
+                            )}
                             <ListBoxSection>
                                 <Header className="currency-select__section-header">
-                                    Suggested
+                                    All countries
                                 </Header>
-                                <ListBoxItem
-                                    id={localConversion.country_code}
-                                    textValue={`${localConversion.country} ${localConversion.currency_name}`}
-                                    className="currency-select__item"
-                                >
-                                    {localConversion.country} (
-                                    {localConversion.currency_name})
-                                </ListBoxItem>
+                                {conversionOptions.map((c) => (
+                                    <ListBoxItem
+                                        key={c.country_code}
+                                        id={c.country_code}
+                                        textValue={`${c.country} ${c.currency_name}`}
+                                        className="currency-select__item"
+                                    >
+                                        {c.country} ({c.currency_name})
+                                    </ListBoxItem>
+                                ))}
                             </ListBoxSection>
-                        )}
-                        <ListBoxSection>
-                            <Header className="currency-select__section-header">
-                                All countries
-                            </Header>
-                            {conversionOptions.map((c) => (
-                                <ListBoxItem
-                                    key={c.country_code}
-                                    id={c.country_code}
-                                    textValue={`${c.country} ${c.currency_name}`}
-                                    className="currency-select__item"
-                                >
-                                    {c.country} ({c.currency_name})
-                                </ListBoxItem>
-                            ))}
-                        </ListBoxSection>
-                    </ListBox>
+                        </ListBox>
+                    </Autocomplete>
                 </Popover>
             </Select>
         </div>
