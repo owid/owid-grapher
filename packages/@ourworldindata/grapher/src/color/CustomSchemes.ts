@@ -1,6 +1,10 @@
 import * as _ from "lodash-es"
 import { lazy } from "@ourworldindata/utils"
-import { ColorSchemeInterface, ColorSchemeName } from "@ourworldindata/types"
+import {
+    Color,
+    ColorSchemeInterface,
+    ColorSchemeName,
+} from "@ourworldindata/types"
 import * as R from "remeda"
 
 // TODO: Initialize CustomColorSchemes lazily
@@ -695,7 +699,7 @@ export const BinaryMapPaletteE = {
 
 CustomColorSchemes.push(BinaryMapPaletteE)
 
-export const OwidMapColors = {
+export const OwidMapColors: Record<string, Color> = {
     // Main
     MutedDenim: "#526F9B",
     SoftOrange: "#CC7641",

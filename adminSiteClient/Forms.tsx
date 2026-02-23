@@ -8,7 +8,13 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import { useState } from "react"
-import { bind, dayjs, Tippy, copyToClipboard } from "@ourworldindata/utils"
+import {
+    bind,
+    dayjs,
+    Tippy,
+    copyToClipboard,
+    ColorSchemeName,
+} from "@ourworldindata/utils"
 import { action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import cx from "classnames"
@@ -676,6 +682,7 @@ interface ColorBoxProps {
     color: string | undefined
     onColor: (color: string | undefined) => void
     showLineChartColors: boolean
+    baseColorScheme?: ColorSchemeName
 }
 
 @observer
@@ -694,6 +701,7 @@ export class ColorBox extends React.Component<ColorBoxProps> {
                             color={color}
                             onColor={this.props.onColor}
                             showLineChartColors={this.props.showLineChartColors}
+                            baseColorScheme={this.props.baseColorScheme}
                         />
                         <div
                             style={{
