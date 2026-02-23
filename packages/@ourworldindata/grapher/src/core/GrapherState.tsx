@@ -2759,6 +2759,20 @@ export class GrapherState
         return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.ScatterPlot)
     }
 
+    @computed get hasStackedArea(): boolean {
+        return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.StackedArea)
+    }
+
+    @computed get hasStackedBar(): boolean {
+        return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.StackedBar)
+    }
+
+    @computed get hasStackedDiscreteBar(): boolean {
+        return this.validChartTypeSet.has(
+            GRAPHER_CHART_TYPES.StackedDiscreteBar
+        )
+    }
+
     @computed get supportsMultipleYColumns(): boolean {
         return !this.isScatter
     }
@@ -3224,14 +3238,17 @@ export class GrapherState
 
     @computed get sortConfig(): SortConfig {
         const sortConfig = { ...this._sortConfig }
-        // In relative mode, where the values for every entity sum up to 100%, sorting by total
-        // doesn't make sense. It's also jumpy because of some rounding errors. For this reason,
-        // we sort by entity name instead.
-        // Marimekko charts are special and there we don't do this forcing of sort order
+        // In relative mode, where the values for every entity sum up to 100%,
+        // sorting by total doesn't make sense. It's also jumpy because of some
+        // rounding errors. For this reason, we sort by entity name instead
         if (
-            !this.isOnMarimekkoTab &&
             this.isRelativeMode &&
-            sortConfig.sortBy === SortBy.total
+            sortConfig.sortBy === SortBy.total &&
+            // No need to do this for Marimekko and discrete bar charts
+            // since relative mode means something else for Marimekko charts
+            // and discrete bar charts don't support relative mode
+            !this.isOnMarimekkoTab &&
+            !this.isOnDiscreteBarTab
         ) {
             sortConfig.sortBy = SortBy.entityName
             sortConfig.sortOrder = SortOrder.asc
