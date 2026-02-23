@@ -1,9 +1,11 @@
 @import "../../../../packages/@ourworldindata/components/src/styles/colors.scss";
 @import "../../../../packages/@ourworldindata/components/src/styles/variables.scss";
 @import "../../../../packages/@ourworldindata/components/src/styles/typography.scss";
-@import "../../../../packages/@ourworldindata/grapher/src/core/grapher.scss";
-@import "../../../../packages/@ourworldindata/components/src/LabeledSwitch/LabeledSwitch.scss";
-@import "../../../../packages/@ourworldindata/components/src/Checkbox.scss";
+@import "../../../../packages/@ourworldindata/grapher/src/core/typography.scss";
+
+$dark-text: $gray-80;
+$light-text: $gray-70;
+$active-text: $blue-90;
 
 .income-plot-controls-top {
     height: 30px;
@@ -17,25 +19,74 @@
     color: #333;
 }
 
-.regions-countries-toggle {
+.labeled-switch {
     display: flex;
     align-items: center;
     gap: 8px;
 
-    .labeled-switch {
-        display: inline;
+    &__label {
+        cursor: pointer;
+        color: #555;
+        user-select: none;
+
+        &--active {
+            color: #333;
+            font-weight: 700;
+        }
     }
-}
 
-.toggle-label {
-    cursor: pointer;
-    color: #555;
-    user-select: none;
-}
+    &__toggle {
+        display: inline-flex;
+        align-items: center;
+        cursor: pointer;
+    }
 
-.toggle-label.active {
-    color: #333;
-    font-weight: 700;
+    &__input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    &__track {
+        width: 29px;
+        height: 16px;
+        background: $gray-30;
+        border-radius: 8px;
+        position: relative;
+        transition: background 200ms;
+    }
+
+    &__thumb {
+        width: 10px;
+        height: 10px;
+        background: $gray-70;
+        border-radius: 5px;
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        transition: transform 333ms;
+    }
+
+    &__toggle:hover &__thumb {
+        background: $gray-80;
+    }
+
+    &__input:checked + &__track {
+        background: $blue-20;
+
+        .labeled-switch__thumb {
+            background: $blue-50;
+            transform: translateX(13px);
+        }
+    }
+
+    &__toggle:hover &__input:checked + &__track .labeled-switch__thumb {
+        background: darken($blue-50, 13%);
+    }
+
+    &__input:focus-visible + &__track {
+        outline: 2px solid $blue-50;
+    }
 }
 
 .search-country-selector-button {
