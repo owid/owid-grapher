@@ -4,20 +4,19 @@ import {
     atomCurrentCurrency,
     atomCurrentTab,
     atomCurrentYear,
-    atomIntDollarConversions,
-    atomLocalCurrencyConversion,
     atomSelectedCountryNames,
     atomTimeInterval,
+    loadableIntDollarConversions,
+    loadableLocalCurrencyConversion,
 } from "../store.ts"
 import { INT_DOLLAR_CONVERSION_KEY_INFO } from "../utils/incomePlotConstants.ts"
-import { loadable } from "jotai/utils"
 import * as R from "remeda"
 import { IncomePlotCountrySelector } from "./IncomePlotCountrySelector.tsx"
 import { LabeledSwitch } from "@ourworldindata/components"
 import cx from "classnames"
 
 import * as React from "react"
-import { useMemo, useState } from "react"
+import { useMemo } from "react"
 import {
     Tabs as AriaTabs,
     TabList,
@@ -45,9 +44,6 @@ import {
     faX,
 } from "@fortawesome/free-solid-svg-icons"
 import type { IntDollarConversionKeyInfo } from "../types.ts"
-
-const loadableConversions = loadable(atomIntDollarConversions)
-const loadableLocalConversion = loadable(atomLocalCurrencyConversion)
 
 export interface TabItem<TabKey extends string = string> {
     key: TabKey
@@ -181,8 +177,10 @@ export const IncomePlotControlsRowBottom = () => {
     const [timeInterval, nextTimeInterval] = useAtom(atomTimeInterval)
     const [currentYear] = useAtom(atomCurrentYear)
     const [currentCurrency, setCurrency] = useAtom(atomCurrentCurrency)
-    const conversionsLoadable = useAtomValue(loadableConversions)
-    const localConversionLoadable = useAtomValue(loadableLocalConversion)
+    const conversionsLoadable = useAtomValue(loadableIntDollarConversions)
+    const localConversionLoadable = useAtomValue(
+        loadableLocalCurrencyConversion
+    )
 
     const { contains } = useFilter({ sensitivity: "base" })
 

@@ -319,8 +319,12 @@ export const atomEntityColorMap = atom((get) => {
     return assignColors(currentEntities)
 })
 
-const loadableDetectedCountry = loadable(atomDetectedCountry)
-const loadableAvailableCountries = loadable(atomAvailableCountryNames)
+export const loadableIntDollarConversions = loadable(atomIntDollarConversions)
+export const loadableLocalCurrencyConversion = loadable(
+    atomLocalCurrencyConversion
+)
+export const loadableDetectedCountry = loadable(atomDetectedCountry)
+export const loadableAvailableCountries = loadable(atomAvailableCountryNames)
 
 const atomHasLocalCountryBeenIncludedInSelection = atom(false)
 export const atomEffectIncludeLocalCountryInSelection = atomEffect(
