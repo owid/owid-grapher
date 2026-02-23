@@ -248,7 +248,7 @@ export const DataPageV2Content = ({
                         {datapageData.allCharts &&
                         datapageData.allCharts.length > 0 ? (
                             <div
-                                className={`section-wrapper ${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}all-charts--show`}
+                                className={`section-wrapper section-wrapper__related-charts ${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}all-charts--show`}
                             >
                                 <h2
                                     className="related-charts__title"
@@ -276,7 +276,7 @@ export const DataPageV2Content = ({
                         ) : null}
                         {datapageData.primaryTopic && (
                             <div
-                                className={`section-wrapper section-wrapper__related-charts ${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}featured-metrics--show`}
+                                className={`section-wrapper ${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}featured-metrics--show`}
                                 id={
                                     isPageInExperiment &&
                                     assignedExperiments &&
