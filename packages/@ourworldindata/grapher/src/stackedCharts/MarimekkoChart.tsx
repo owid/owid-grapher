@@ -30,7 +30,11 @@ import {
     VerticalAlign,
     ColorScaleConfigInterface,
 } from "@ourworldindata/types"
-import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
+import {
+    OwidTable,
+    CoreColumn,
+    ColumnTypeMap,
+} from "@ourworldindata/core-table"
 import { getShortNameForEntity } from "../chart/ChartUtils"
 import {
     LEGEND_STYLE_FOR_STACKED_CHARTS,
@@ -593,7 +597,10 @@ export class MarimekkoChart
                         )}
                         {colorColumn &&
                             !colorColumn.isMissing &&
-                            tooltipItem?.entityColor && (
+                            tooltipItem?.entityColor &&
+                            !(
+                                colorColumn instanceof ColumnTypeMap.Continent
+                            ) && (
                                 <TooltipValue
                                     label={
                                         colorScale.legendDescription ??

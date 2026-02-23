@@ -10,7 +10,7 @@ import {
     Time,
     RequiredBy,
 } from "@ourworldindata/utils"
-import { CoreColumn } from "@ourworldindata/core-table"
+import { ColumnTypeMap, CoreColumn } from "@ourworldindata/core-table"
 import {
     Tooltip,
     TooltipState,
@@ -321,7 +321,8 @@ function TooltipValueColor({
 }: TooltipValueRangeProps): React.ReactElement | null {
     const { colorColumn, colorScale } = chartState
 
-    if (colorColumn.isMissing) return null
+    if (colorColumn.isMissing || colorColumn instanceof ColumnTypeMap.Continent)
+        return null
 
     const value = values.at(-1)
     const colorValue = value?.color
