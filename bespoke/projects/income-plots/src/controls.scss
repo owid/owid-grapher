@@ -54,6 +54,7 @@ $active-text: $blue-90;
         border-radius: 8px;
         position: relative;
         transition: background 200ms;
+        top: 1px; // small adjustment
     }
 
     &__thumb {
