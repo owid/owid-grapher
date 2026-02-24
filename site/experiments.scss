@@ -16,15 +16,6 @@ are hidden, while blocks with "{experimentId}--{armId}--hide" are shown.
 @use "sass:map";
 
 $experiments: (
-    exp-data-page-insight-btns-2: (
-        control1,
-        treat00,
-        treat10,
-        treat01,
-        treat11,
-        treat20,
-        treat21,
-    ),
     exp-all-charts-vs-featured-v1: (
         all-charts,
         featured-metrics,
@@ -76,65 +67,6 @@ $experiments: (
 
         &--#{$a} .article-block__featured-metrics > h1 {
             text-align: left;
-        }
-    }
-}
-
-// styles specific to experiment exp-data-page-insight-btns-2
-.exp-data-page-insight-btns-2 {
-    $arms: map.get($experiments, exp-data-page-insight-btns-2);
-    @each $a in $arms {
-        &--#{$a} .DataPageContent {
-            .chart-key-info {
-                padding-bottom: 0;
-                @include sm-up {
-                    padding-bottom: 0;
-                }
-            }
-
-            .insight-links__title {
-                @include h2-bold;
-                & {
-                    margin: 24px 0 16px;
-                }
-
-                @include sm-up {
-                    margin: 24px 0 24px;
-                }
-            }
-
-            .insight-links__items,
-            .insight-links__items--left {
-                display: flex;
-                flex-direction: column;
-                gap: 16px;
-
-                > * {
-                    padding: 12px 24px;
-                }
-
-                .item__type {
-                    @include h6-black-caps;
-
-                    margin-bottom: 4px;
-                    margin-top: 0;
-                    color: $blue-30;
-                }
-
-                .item__title {
-                    font-size: 16px;
-                    margin: 0;
-                }
-                .item__icon {
-                    margin-left: 0.5rem;
-                }
-            }
-
-            .insight-links__items--left {
-                > * {
-                    text-align: left;
-                }
-            }
         }
     }
 }
