@@ -317,6 +317,13 @@ CustomColorSchemes.push({
     colorSets: [CategoricalColorsPaletteA, CategoricalColorsPaletteC],
 })
 
+export const IncomeGroupColors = {
+    HighIncome: "#0d8553",
+    UpperMiddleIncome: "#a1cb81",
+    LowerMiddleIncome: "#df9fdb",
+    LowIncome: "#974e94",
+} as const
+
 export const ContinentColors = {
     Africa: OwidDistinctColors.Mauve,
     Antarctica: OwidDistinctColors.DarkCopper,
@@ -387,6 +394,12 @@ export const ContinentColors = {
     "Sub-Saharan Africa (Pew)": OwidDistinctColors.DarkMauve,
     "Latin America-Caribbean (Pew)": OwidDistinctColors.Maroon,
     "Middle East-North Africa (Pew)": OwidDistinctColors.Camel,
+
+    // Income groups
+    "High-income countries": IncomeGroupColors.HighIncome,
+    "Upper-middle-income countries": IncomeGroupColors.UpperMiddleIncome,
+    "Lower-middle-income countries": IncomeGroupColors.LowerMiddleIncome,
+    "Low-income countries": IncomeGroupColors.LowIncome,
 } as const
 
 // Used for looking up color names from hex values
