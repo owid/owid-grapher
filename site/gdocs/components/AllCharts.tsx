@@ -16,6 +16,7 @@ import { Button } from "@ourworldindata/components"
 
 type AllChartsProps = EnrichedBlockAllCharts & {
     className?: string
+    id?: string
 }
 
 function sortRelatedCharts(
@@ -45,7 +46,7 @@ function sortRelatedCharts(
 }
 
 export function AllCharts(props: AllChartsProps) {
-    const { heading, top, className } = props
+    const { heading, top, className, id = ALL_CHARTS_ID } = props
     const { relatedCharts, tags } = useContext(AttachmentsContext)
     if (relatedCharts.length === 0) return null
 
@@ -59,18 +60,11 @@ export function AllCharts(props: AllChartsProps) {
     const sortedRelatedCharts = sortRelatedCharts(relatedCharts, topSlugs)
     return (
         <div className={cx(className)}>
-            <h1
-                className="article-block__heading h1-semibold"
-                id={ALL_CHARTS_ID}
-            >
+            <h1 className="article-block__heading h1-semibold" id={id}>
                 <span>
                     {firstTag ? `Key Charts on ${firstTag.name}` : heading}
                 </span>
-                <a
-                    className="deep-link"
-                    aria-labelledby={ALL_CHARTS_ID}
-                    href={`#${ALL_CHARTS_ID}`}
-                />
+                <a className="deep-link" aria-labelledby={id} href={`#${id}`} />
             </h1>
             <Button
                 theme="solid-vermillion"
