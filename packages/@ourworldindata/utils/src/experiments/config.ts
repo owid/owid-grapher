@@ -6,7 +6,7 @@ import { Experiment } from "./Experiment.js"
  */
 export const experiments: Experiment[] = [
     /*
-     * Experiment: data-page-insight-btns-2
+     * Experiment: all-charts-vs-featured-v1
      *
      * This experiment trials the "Featured metrics" block in place of the "All Charts" block on
      * a sample of modular topic pages and data pages. The goal of the experiment is to
