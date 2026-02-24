@@ -61,10 +61,10 @@ export const experiments: Experiment[] = [
             "/grapher/eating-disorders-prevalence",
             "/grapher/share-electricity-nuclear",
             "/grapher/mean-years-of-schooling-long-run",
-            "/grapher/trade-as-share-of-gdp",
             "/grapher/female-homicide-victims",
             "/grapher/share-of-individuals-using-the-internet",
             "/grapher/prevalence-of-undernourishment",
+            "/grapher/incidence-of-hivaids",
         ],
     }),
     new Experiment({
