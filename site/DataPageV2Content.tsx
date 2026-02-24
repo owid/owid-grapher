@@ -1,5 +1,4 @@
 import { useMemo, useEffect, useState } from "react"
-import cx from "classnames"
 import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import {
     REUSE_THIS_WORK_SECTION_ID,
@@ -14,7 +13,6 @@ import {
     joinTitleFragments,
     ImageMetadata,
     excludeNull,
-    queryParamsToStr,
     defaultExperimentState,
     getExperimentState,
     ExperimentState,
