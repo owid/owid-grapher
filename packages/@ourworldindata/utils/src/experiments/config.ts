@@ -5,6 +5,18 @@ import { Experiment } from "./Experiment.js"
  * Hard-coded active experiments.
  */
 export const experiments: Experiment[] = [
+    /*
+     * Experiment: data-page-insight-btns-2
+     *
+     * This experiment trials the "Featured metrics" block in place of the "All Charts" block on
+     * a sample of modular topic pages and data pages. The goal of the experiment is to
+     * get a feel for differences in user engagement, controlling for the the location it appears.
+     *
+     * Conditions:
+     * - (a) status quo (all charts block)
+     * - (b) featured metrics block (treatment)
+     *
+     */
     new Experiment({
         id: "all-charts-vs-featured-v1",
         expires: "2026-12-31T00:00:00.000Z",
@@ -13,6 +25,23 @@ export const experiments: Experiment[] = [
             { id: "featured-metrics", fraction: 0.3 },
         ],
         paths: [
+            // modular topic pages
+            "/population-growth",
+            "/poverty",
+            "/co2-and-greenhouse-gas-emissions",
+            "/life-expectancy",
+            "/agricultural-production",
+            "/natural-disasters",
+            "/causes-of-death",
+            "/war-and-peace",
+            "/migration",
+            "/artificial-intelligence",
+            "/child-mortality",
+            "/economic-growth",
+            "/economic-inequality",
+            "/democracy",
+            "/climate-change",
+            // data pages
             "/grapher/democracy-index-eiu",
             "/grapher/gdp-per-capita-worldbank",
             "/grapher/co-emissions-per-capita",
