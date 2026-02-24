@@ -127,8 +127,8 @@ export const DataPageV2Content = ({
             setExperimentState(s)
         }
     }, [])
-
     const { isPageInExperiment, assignedExperiments } = experimentState
+
     return (
         <AttachmentsContext.Provider
             value={{
@@ -248,16 +248,13 @@ export const DataPageV2Content = ({
                         {datapageData.allCharts &&
                         datapageData.allCharts.length > 0 ? (
                             <div
-                                className={`section-wrapper section-wrapper__related-charts ${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}all-charts--show`}
+                                className={`section-wrapper section-wrapper__related-charts ${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}featured-metrics--hide`}
                             >
                                 <h2
                                     className="related-charts__title"
                                     id={
                                         isPageInExperiment &&
                                         assignedExperiments &&
-                                        assignedExperiments[
-                                            `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                                        ] &&
                                         assignedExperiments[
                                             `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
                                         ] !== "all-charts"
@@ -280,9 +277,6 @@ export const DataPageV2Content = ({
                                 id={
                                     isPageInExperiment &&
                                     assignedExperiments &&
-                                    assignedExperiments[
-                                        `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                                    ] &&
                                     assignedExperiments[
                                         `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
                                     ] === "featured-metrics"
