@@ -29,11 +29,9 @@ import {
     HorizontalAxisComponent,
     VerticalAxisZeroLine,
 } from "../axis/AxisViews"
-import {
-    InitialVerticalLabelsSeries,
-    VerticalLabelsState,
-} from "../verticalLabels/VerticalLabelsState"
-import { VerticalLabels } from "../verticalLabels/VerticalLabels"
+import { InitialSimpleLabelSeries } from "../verticalLabels/SimpleVerticalLabelsTypes"
+import { SimpleVerticalLabelsState } from "../verticalLabels/SimpleVerticalLabelsState"
+import { SimpleVerticalLabels } from "../verticalLabels/SimpleVerticalLabels"
 import { darkenColorForLine } from "../color/ColorUtils.js"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 
@@ -190,7 +188,9 @@ export class LineChartThumbnail
             .yRange()
     }
 
-    @computed private get endLabelsState(): VerticalLabelsState | undefined {
+    @computed private get endLabelsState():
+        | SimpleVerticalLabelsState
+        | undefined {
         if (!this.manager.showLegend) return undefined
 
         let labelCandidateSeries = this.chartState.series
@@ -234,15 +234,15 @@ export class LineChartThumbnail
             return { ...labelSeries, point: endPoint }
         })
 
-        return new VerticalLabelsState(series, {
+        return new SimpleVerticalLabelsState(series, {
             fontSize: this.labelFontSize,
             fontWeight: 500,
             yRange: this.labelsRange,
             minSpacing: 2,
             resolveCollision: (
-                s1: InitialVerticalLabelsSeries,
-                s2: InitialVerticalLabelsSeries
-            ): InitialVerticalLabelsSeries => {
+                s1: InitialSimpleLabelSeries,
+                s2: InitialSimpleLabelSeries
+            ): InitialSimpleLabelSeries => {
                 const endPoint1 = endPointBySeriesName.get(s1.seriesName)
                 const endPoint2 = endPointBySeriesName.get(s2.seriesName)
 
@@ -258,7 +258,9 @@ export class LineChartThumbnail
         })
     }
 
-    @computed private get startLabelsState(): VerticalLabelsState | undefined {
+    @computed private get startLabelsState():
+        | SimpleVerticalLabelsState
+        | undefined {
         if (!this.manager.showLegend) return undefined
 
         const showEntityNames =
@@ -319,16 +321,16 @@ export class LineChartThumbnail
             })
             .filter((series) => series !== undefined)
 
-        return new VerticalLabelsState(series, {
+        return new SimpleVerticalLabelsState(series, {
             fontSize: this.labelFontSize,
             fontWeight: 500,
             maxWidth: showEntityNames ? 0.25 * this.bounds.width : undefined,
             minSpacing: showEntityNames ? 5 : 2,
             yRange: this.labelsRange,
             resolveCollision: (
-                s1: InitialVerticalLabelsSeries,
-                s2: InitialVerticalLabelsSeries
-            ): InitialVerticalLabelsSeries => {
+                s1: InitialSimpleLabelSeries,
+                s2: InitialSimpleLabelSeries
+            ): InitialSimpleLabelSeries => {
                 // Prefer to label series that have an end label
                 if (this.visibleEndLabels.has(s1.seriesName)) return s1
                 if (this.visibleEndLabels.has(s2.seriesName)) return s2
@@ -415,7 +417,7 @@ export class LineChartThumbnail
                     <Dot key={index} point={point} />
                 ))}
                 {this.startLabelsState && (
-                    <VerticalLabels
+                    <SimpleVerticalLabels
                         state={this.startLabelsState}
                         yAxis={this.dualAxis.verticalAxis}
                         x={this.innerBounds.left - LABEL_PADDING}
@@ -423,7 +425,7 @@ export class LineChartThumbnail
                     />
                 )}
                 {this.endLabelsState && (
-                    <VerticalLabels
+                    <SimpleVerticalLabels
                         state={this.endLabelsState}
                         yAxis={this.dualAxis.verticalAxis}
                         x={this.innerBounds.right + LABEL_PADDING}
