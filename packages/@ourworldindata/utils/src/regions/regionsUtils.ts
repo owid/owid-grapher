@@ -1,124 +1,32 @@
 import * as _ from "lodash-es"
-import entities from "./regions.json"
-import { lazy } from "./Util.js"
 import { EntityName } from "@ourworldindata/types"
-
-export enum RegionType {
-    Country = "country",
-    Other = "other",
-    Aggregate = "aggregate",
-    Continent = "continent",
-    IncomeGroup = "income_group",
-}
-
-export interface BaseRegion {
-    regionType: RegionType
-    name: string
-    code: string
-    slug: string
-    shortName?: string
-}
-
-export interface Country extends BaseRegion {
-    regionType: RegionType.Country | RegionType.Other
-    shortCode?: string
-    isMappable?: boolean
-    isHistorical?: boolean
-    isUnlisted?: boolean
-    variantNames?: string[]
-    article?: string
-}
-
-export interface Aggregate extends BaseRegion {
-    regionType: RegionType.Aggregate
-    definedBy?: RegionDataProvider
-    translationCodes?: string[]
-    members: string[]
-}
-
-export interface Continent extends BaseRegion {
-    name: OwidContinentName
-    regionType: RegionType.Continent
-    translationCodes?: string[]
-    members: string[]
-}
-
-export interface IncomeGroup extends BaseRegion {
-    name: OwidIncomeGroupName
-    code: OwidIncomeGroupCode
-    regionType: RegionType.IncomeGroup
-    members: string[]
-}
-
-export type Region = Country | Aggregate | Continent | IncomeGroup
-
-export const regions: Region[] = entities as Region[]
-
-type OwidContinentName =
-    | "Africa"
-    | "Asia"
-    | "Europe"
-    | "North America"
-    | "Oceania"
-    | "South America"
-
-type OwidIncomeGroupName =
-    | "Low-income countries"
-    | "Lower-middle-income countries"
-    | "Upper-middle-income countries"
-    | "High-income countries"
-
-export type OwidIncomeGroupCode =
-    | "OWID_LIC"
-    | "OWID_LMC"
-    | "OWID_UMC"
-    | "OWID_HIC"
-
-export const REGION_DATA_PROVIDERS = [
-    "un", // United Nations
-    "wb", // World Bank
-    "who", // World Health Organization
-    "un_m49_1", // United Nations M49 (top level)
-    "un_m49_2", // United Nations M49 (intermediate level)
-    "un_m49_3", // United Nations M49 (detailed level)
-    "pew", // Pew Research Center
-    "unsdg", // UN SDG
-] as const
-export type RegionDataProvider = (typeof REGION_DATA_PROVIDERS)[number]
-
-export function isRegionDataProvider(key: string): key is RegionDataProvider {
-    return REGION_DATA_PROVIDERS.includes(key as RegionDataProvider)
-}
-
-export function checkIsOwidIncomeGroupCode(
-    code: string
-): code is OwidIncomeGroupCode {
-    return getIncomeGroups().some((incomeGroup) => incomeGroup.code === code)
-}
-
-export function checkIsOwidIncomeGroupName(
-    name: string
-): name is OwidIncomeGroupName {
-    return getIncomeGroups().some((incomeGroup) => incomeGroup.name === name)
-}
+import { lazy } from "../Util.js"
+import { regions } from "./regions.js"
+import type {
+    Region,
+    Country,
+    Aggregate,
+    Continent,
+    IncomeGroup,
+    OwidIncomeGroupCode,
+    RegionDataProvider,
+    AggregateWithDefinedBy,
+} from "./regionsTypes.js"
 
 export function checkIsCountry(region: Region): region is Country {
-    return (
-        region.regionType === RegionType.Country ||
-        region.regionType === RegionType.Other
-    )
-}
-
-export function checkIsOwidContinent(region: Region): region is Continent {
-    return region.regionType === RegionType.Continent
-}
-
-export function checkIsIncomeGroup(region: Region): region is IncomeGroup {
-    return region.regionType === RegionType.IncomeGroup
+    return region.regionType === "country" || region.regionType === "other"
 }
 
 export function checkIsAggregate(region: Region): region is Aggregate {
-    return region.regionType === RegionType.Aggregate
+    return region.regionType === "aggregate"
+}
+
+export function checkIsOwidContinent(region: Region): region is Continent {
+    return region.regionType === "continent"
+}
+
+export function checkIsIncomeGroup(region: Region): region is IncomeGroup {
+    return region.regionType === "income_group"
 }
 
 export function checkHasMembers(
@@ -127,17 +35,17 @@ export function checkHasMembers(
     return region !== undefined && "members" in region
 }
 
+export function checkIsOwidIncomeGroupCode(
+    code: string
+): code is OwidIncomeGroupCode {
+    return getIncomeGroups().some((incomeGroup) => incomeGroup.code === code)
+}
+
 export const countries: Country[] = regions.filter(
-    (entity) =>
-        entity.regionType === RegionType.Country &&
+    (entity): entity is Country =>
+        entity.regionType === "country" &&
         !entity.isUnlisted &&
         !entity.isHistorical
-) as Country[]
-
-export const listedRegionsNames = lazy(() =>
-    regions
-        .filter((entity) => checkIsCountry(entity) && !entity.isUnlisted)
-        .map((entity) => entity.name)
 )
 
 export const mappableCountries: Country[] = regions.filter(
@@ -145,33 +53,38 @@ export const mappableCountries: Country[] = regions.filter(
         checkIsCountry(country) && !!country.isMappable
 )
 
-export const getOthers = lazy(
-    () =>
-        entities.filter(
-            (entity) => entity.regionType === RegionType.Other
-        ) as Country[]
+export const getContinents = lazy(() =>
+    regions.filter((entity): entity is Continent =>
+        checkIsOwidContinent(entity)
+    )
 )
 
-export const getAggregates = lazy(
-    () =>
-        entities.filter(
-            (entity) => entity.regionType === RegionType.Aggregate
-        ) as Aggregate[]
+export const getIncomeGroups = lazy(() =>
+    regions.filter((entity): entity is IncomeGroup =>
+        checkIsIncomeGroup(entity)
+    )
 )
 
-export const getContinents = lazy(
-    () =>
-        entities.filter(
-            (entity) => entity.regionType === RegionType.Continent
-        ) as Continent[]
+export const getAggregates = lazy(() =>
+    regions.filter((entity): entity is Aggregate => checkIsAggregate(entity))
 )
 
-export const getIncomeGroups = lazy(
-    () =>
-        entities.filter(
-            (entity) => entity.regionType === RegionType.IncomeGroup
-        ) as IncomeGroup[]
+export const listedRegionsNames = lazy(() =>
+    regions
+        .filter((entity) => checkIsCountry(entity) && !entity.isUnlisted)
+        .map((entity) => entity.name)
 )
+
+export const getRegionDataProviders = lazy(() => [
+    ...new Set(
+        regions
+            .filter(
+                (r): r is AggregateWithDefinedBy =>
+                    r.regionType === "aggregate" && "definedBy" in r
+            )
+            .map((r) => r.definedBy)
+    ),
+])
 
 export const getAggregatesByProvider = (
     provider: RegionDataProvider
@@ -197,22 +110,60 @@ const regionsByShortName = lazy(() =>
     )
 )
 
-export const countriesByName = lazy(() =>
-    Object.fromEntries(countries.map((country) => [country.name, country]))
+const regionsByNameOrVariantNameLowercase = lazy(
+    () =>
+        new Map(
+            regions.flatMap((region) => {
+                const names = [region.name.toLowerCase()]
+                if ("variantNames" in region && region.variantNames) {
+                    names.push(
+                        ...region.variantNames.map((variant) =>
+                            variant.toLowerCase()
+                        )
+                    )
+                }
+                return names.map((name) => [name, region])
+            })
+        )
 )
 
-export const incomeGroupsByCode = lazy(
-    () =>
-        Object.fromEntries(
-            regions
-                .filter((region) => checkIsOwidIncomeGroupCode(region.code))
-                .map((region) => [region.code, region])
-        ) as Record<OwidIncomeGroupCode, IncomeGroup>
+export const countriesByName = lazy(() =>
+    Object.fromEntries(countries.map((country) => [country.name, country]))
 )
 
 const countriesBySlug = lazy(() =>
     Object.fromEntries(countries.map((country) => [country.slug, country]))
 )
+
+export const incomeGroupsByCode = lazy(
+    () =>
+        Object.fromEntries(
+            getIncomeGroups().map((region) => [region.code, region])
+        ) as Record<OwidIncomeGroupCode, IncomeGroup>
+)
+
+export const getRegionByName = (name: string): Region | undefined =>
+    regionsByName()[name]
+
+export const getRegionBySlug = (slug: string): Region | undefined =>
+    regionsBySlug()[slug]
+
+const getRegionByCode = (code: string): Region | undefined =>
+    regionsByCode()[code]
+
+export const getRegionByShortName = (shortName: string): Region | undefined =>
+    regionsByShortName()[shortName]
+
+export const getRegionByNameOrVariantName = (
+    nameOrVariantName: string
+): Region | undefined =>
+    regionsByNameOrVariantNameLowercase().get(nameOrVariantName.toLowerCase())
+
+export const getCountryByName = (name: string): Country | undefined =>
+    countriesByName()[name]
+
+export const getCountryBySlug = (slug: string): Country | undefined =>
+    countriesBySlug()[slug]
 
 /**
  * Lazy-loaded map of region names to their parent regions.
@@ -264,7 +215,10 @@ export const getSiblingRegions = (regionName: string): Region[] => {
     )
     return siblingCodes
         .map(getRegionByCode)
-        .filter((region) => region && region.name !== regionName) as Region[]
+        .filter(
+            (region): region is Region =>
+                region !== undefined && region.name !== regionName
+        )
 }
 
 /**
@@ -296,55 +250,6 @@ export const getCountryNamesForRegion = (
 ): string[] => {
     return getCountryNamesForRegionRecursive(region)
 }
-
-const regionsByNameOrVariantNameLowercase = lazy(
-    () =>
-        new Map(
-            regions.flatMap((region) => {
-                const names = [region.name.toLowerCase()]
-                if ("variantNames" in region && region.variantNames) {
-                    names.push(
-                        ...region.variantNames.map((variant) =>
-                            variant.toLowerCase()
-                        )
-                    )
-                }
-                return names.map((name) => [name, region])
-            })
-        )
-)
-
-const currentAndHistoricalCountryNames = lazy(() =>
-    regions
-        .filter(({ regionType }) => regionType === RegionType.Country)
-        .map(({ name }) => name.toLowerCase())
-)
-
-export const isCountryName = (name: string): boolean =>
-    currentAndHistoricalCountryNames().includes(name.toLowerCase())
-
-export const getCountryByName = (name: string): Country | undefined =>
-    countriesByName()[name]
-
-export const getCountryBySlug = (slug: string): Country | undefined =>
-    countriesBySlug()[slug]
-
-export const getRegionByName = (name: string): Region | undefined =>
-    regionsByName()[name]
-
-export const getRegionBySlug = (slug: string): Region | undefined =>
-    regionsBySlug()[slug]
-
-const getRegionByCode = (code: string): Region | undefined =>
-    regionsByCode()[code]
-
-export const getRegionByShortName = (shortName: string): Region | undefined =>
-    regionsByShortName()[shortName]
-
-export const getRegionByNameOrVariantName = (
-    nameOrVariantName: string
-): Region | undefined =>
-    regionsByNameOrVariantNameLowercase().get(nameOrVariantName.toLowerCase())
 
 const _IntlDisplayNamesInstances = new Map<string, Intl.DisplayNames>()
 const getRegionTranslation = (
@@ -382,26 +287,21 @@ export const getRegionAlternativeNames = (
                 }
             }
 
-            const codesForTranslation =
-                ("translationCodes" in region && region.translationCodes) ||
-                ("shortCode" in region && region.shortCode)
-            if (codesForTranslation) {
-                const translations = languages
-                    .flatMap((lang) => {
-                        if (Array.isArray(codesForTranslation))
-                            return codesForTranslation.map((code) =>
-                                getRegionTranslation(code, lang)
-                            )
-                        else
-                            return getRegionTranslation(
-                                codesForTranslation,
-                                lang
-                            )
-                    })
-                    .filter((name) => name !== undefined)
+            const translationCodes =
+                "translationCodes" in region
+                    ? region.translationCodes
+                    : undefined
+            const shortCode =
+                "shortCode" in region ? region.shortCode : undefined
 
-                translations.forEach((translation) => names.add(translation))
-            }
+            const codes = translationCodes ?? (shortCode ? [shortCode] : [])
+            const translations = languages
+                .flatMap((lang) =>
+                    codes.map((code) => getRegionTranslation(code, lang))
+                )
+                .filter((name) => name !== undefined)
+
+            translations.forEach((translation) => names.add(translation))
             _regionAlternativeNames.set(regionName, Array.from(names))
         } else {
             _regionAlternativeNames.set(regionName, undefined)

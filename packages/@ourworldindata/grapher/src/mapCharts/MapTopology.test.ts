@@ -3,7 +3,7 @@ import { expect, it } from "vitest"
 import { MapTopology } from "./MapTopology"
 import { regions, checkIsCountry } from "@ourworldindata/utils"
 
-it("contains the same list of mappable countries as regions.json", () => {
+it("contains the same list of mappable countries as regions.ts", () => {
     const inTopology = MapTopology.objects.world.geometries.map(
             (region: any) => region.id
         ),

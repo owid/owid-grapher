@@ -1,14 +1,9 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
-import regions from "@ourworldindata/utils/src/regions.json"
+import { regions } from "@ourworldindata/utils"
 
-interface Region {
-    name: string
-    code?: string
-}
-
-// Build name -> code mapping from regions.json
+// Build name -> code mapping from regions data
 const nameToCode: Record<string, string> = {}
-for (const region of regions as Region[]) {
+for (const region of regions) {
     if (region.code) {
         nameToCode[region.name] = region.code
     }
