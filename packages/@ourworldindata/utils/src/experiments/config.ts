@@ -21,7 +21,11 @@ export const experiments: Experiment[] = [
         expires: "2026-12-31T00:00:00.000Z",
         arms: [
             { id: "all-charts", fraction: 0.7 },
-            { id: "featured-metrics", fraction: 0.3 },
+            {
+                id: "featured-metrics",
+                fraction: 0.3,
+                replaysSessionSampleRate: 0.25,
+            },
         ],
         paths: [
             // modular topic pages
