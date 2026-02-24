@@ -10,8 +10,8 @@ import {
     GRAPHER_AREA_OPACITY_FOCUS,
     GRAPHER_AREA_OPACITY_MUTE,
 } from "../core/GrapherConstants"
-import { TextWrap } from "@ourworldindata/components"
 import { InteractionState } from "../interaction/InteractionState.js"
+import { SeriesLabelState } from "../seriesLabel/SeriesLabelState.js"
 import { LegendStyleConfig } from "../legend/LegendInteractionState"
 
 export const AREA_OPACITY = {
@@ -101,7 +101,7 @@ export interface Item {
 }
 
 export interface SizedItem extends Item {
-    label: TextWrap
+    label: SeriesLabelState
 }
 
 export interface PlacedItem extends SizedItem {

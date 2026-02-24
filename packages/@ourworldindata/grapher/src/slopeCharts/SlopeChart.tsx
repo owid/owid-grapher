@@ -369,9 +369,7 @@ export class SlopeChart
             isStatic: this.manager.isStatic,
             yRange: this.lineLegendYRange,
             verticalAlign: VerticalAlign.top,
-            showTextOutlines: true,
-            textOutlineColor: this.backgroundColor,
-            onMouseOver: this.onLineLegendMouseOver,
+            onMouseEnter: this.onLineLegendMouseEnter,
             onMouseLeave: this.onLineLegendMouseLeave,
         }
     }
@@ -677,7 +675,7 @@ export class SlopeChart
     }
 
     private hoverTimer?: number
-    @action.bound onLineLegendMouseOver(seriesName: SeriesName): void {
+    @action.bound onLineLegendMouseEnter(seriesName: SeriesName): void {
         clearTimeout(this.hoverTimer)
         this.hoveredSeriesName = seriesName
     }

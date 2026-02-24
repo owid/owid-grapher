@@ -1,4 +1,3 @@
-// This implements the line labels that appear to the right of the lines/polygons in LineCharts/StackedAreas.
 import * as _ from "lodash-es"
 import * as React from "react"
 import {
@@ -6,25 +5,20 @@ import {
     makeIdForHumanConsumption,
     excludeUndefined,
 } from "@ourworldindata/utils"
-import { TextWrap, Halo, MarkdownTextWrap } from "@ourworldindata/components"
+import { TextWrap } from "@ourworldindata/components"
+import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
+import { SeriesLabelState } from "../seriesLabel/SeriesLabelState.js"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { VerticalAxis } from "../axis/Axis"
-import {
-    Color,
-    EntityName,
-    SeriesName,
-    VerticalAlign,
-} from "@ourworldindata/types"
+import { EntityName, SeriesName, VerticalAlign } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
     GRAPHER_FONT_SCALE_12,
     GRAPHER_OPACITY_MUTE,
-    GRAPHER_TEXT_OUTLINE_FACTOR,
 } from "../core/GrapherConstants"
 import { darkenColorForText } from "../color/ColorUtils"
 import { AxisConfig } from "../axis/AxisConfig.js"
-import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
 import {
     findImportantSeriesThatFitIntoTheAvailableSpace,
     findSeriesThatFitIntoTheAvailableSpace,
@@ -63,13 +57,11 @@ function stackGroupVertically(
 interface LineLabelsProps {
     series: PlacedSeries[]
     needsConnectorLines: boolean
-    showTextOutline?: boolean
-    textOutlineColor?: Color
     anchor?: "start" | "end"
     isStatic?: boolean
     cursor?: string
     onClick?: (series: PlacedSeries) => void
-    onMouseOver?: (series: PlacedSeries) => void
+    onMouseEnter?: (series: PlacedSeries) => void
     onMouseLeave?: (series: PlacedSeries) => void
 }
 
@@ -82,14 +74,6 @@ class LineLabels extends React.Component<LineLabelsProps> {
 
     @computed private get anchor(): "start" | "end" {
         return this.props.anchor ?? "start"
-    }
-
-    @computed private get showTextOutline(): boolean {
-        return this.props.showTextOutline ?? false
-    }
-
-    @computed private get textOutlineColor(): Color {
-        return this.props.textOutlineColor ?? GRAPHER_BACKGROUND_DEFAULT
     }
 
     private textOpacityForSeries(series: PlacedSeries): number {
@@ -138,41 +122,31 @@ class LineLabels extends React.Component<LineLabelsProps> {
 
     @computed private get textLabels(): React.ReactElement {
         return (
-            <g id={makeIdForHumanConsumption("text-labels")}>
+            <g
+                id={makeIdForHumanConsumption("text-labels")}
+                style={{ pointerEvents: "none" }}
+            >
                 {this.markers.map(({ series, labelText }, index) => {
-                    const textColor = darkenColorForText(series.color)
-                    const textProps = {
-                        fill: textColor,
-                        opacity: this.textOpacityForSeries(series),
-                        textAnchor: this.anchor,
-                    }
-
+                    const color = darkenColorForText(series.color)
                     return (
-                        <Halo
+                        <SeriesLabel
+                            key={getSeriesKey(series, index)}
                             id={makeIdForHumanConsumption(
-                                "outline",
+                                "label",
                                 series.seriesName
                             )}
-                            key={getSeriesKey(series, index)}
-                            show={this.showTextOutline}
-                            outlineWidth={
-                                GRAPHER_TEXT_OUTLINE_FACTOR *
-                                series.textWrap.fontSize
+                            state={series.seriesLabel}
+                            x={labelText.x}
+                            y={labelText.y}
+                            color={{ name: color, value: color }}
+                            opacity={this.textOpacityForSeries(series)}
+                            onMouseEnter={() =>
+                                this.props.onMouseEnter?.(series)
                             }
-                            outlineColor={this.textOutlineColor}
-                        >
-                            {series.textWrap.renderSVG(
-                                labelText.x,
-                                labelText.y,
-                                {
-                                    textProps,
-                                    id: makeIdForHumanConsumption(
-                                        "label",
-                                        series.seriesName
-                                    ),
-                                }
-                            )}
-                        </Halo>
+                            onMouseLeave={() =>
+                                this.props.onMouseLeave?.(series)
+                            }
+                        />
                     )
                 })}
             </g>
@@ -185,24 +159,18 @@ class LineLabels extends React.Component<LineLabelsProps> {
         )
         if (!markersWithAnnotations) return
         return (
-            <g id={makeIdForHumanConsumption("text-annotations")}>
+            <g
+                id={makeIdForHumanConsumption("text-annotations")}
+                style={{ pointerEvents: "none" }}
+            >
                 {markersWithAnnotations.map(({ series, labelText }, index) => {
                     if (!series.annotationTextWrap) return
                     return (
-                        <Halo
-                            id={series.seriesName}
-                            key={getSeriesKey(series, index)}
-                            show={this.showTextOutline}
-                            outlineWidth={
-                                GRAPHER_TEXT_OUTLINE_FACTOR *
-                                series.annotationTextWrap.fontSize
-                            }
-                            outlineColor={this.textOutlineColor}
-                        >
+                        <React.Fragment key={getSeriesKey(series, index)}>
                             {series.annotationTextWrap.renderSVG(
                                 labelText.x,
                                 labelText.y +
-                                    series.textWrap.height +
+                                    series.seriesLabel.height +
                                     ANNOTATION_PADDING,
                                 {
                                     textProps: {
@@ -214,7 +182,7 @@ class LineLabels extends React.Component<LineLabelsProps> {
                                     },
                                 }
                             )}
-                        </Halo>
+                        </React.Fragment>
                     )
                 })}
             </g>
@@ -224,7 +192,10 @@ class LineLabels extends React.Component<LineLabelsProps> {
     @computed private get connectorLines(): React.ReactElement | undefined {
         if (!this.props.needsConnectorLines) return
         return (
-            <g id={makeIdForHumanConsumption("connectors")}>
+            <g
+                id={makeIdForHumanConsumption("connectors")}
+                style={{ pointerEvents: "none" }}
+            >
                 {this.markers.map(({ series, connectorLine }, index) => {
                     const { x1, x2 } = connectorLine
                     const {
@@ -268,7 +239,9 @@ class LineLabels extends React.Component<LineLabelsProps> {
                     return (
                         <g
                             key={getSeriesKey(series, index)}
-                            onMouseOver={() => this.props.onMouseOver?.(series)}
+                            onMouseEnter={() =>
+                                this.props.onMouseEnter?.(series)
+                            }
                             onMouseLeave={() =>
                                 this.props.onMouseLeave?.(series)
                             }
@@ -293,10 +266,10 @@ class LineLabels extends React.Component<LineLabelsProps> {
     override render(): React.ReactElement {
         return (
             <>
+                {!this.props.isStatic && this.interactions}
                 {this.connectorLines}
                 {this.textAnnotations}
                 {this.textLabels}
-                {!this.props.isStatic && this.interactions}
             </>
         )
     }
@@ -316,15 +289,13 @@ export interface LineLegendProps {
     // presentation
     fontSize?: number
     fontWeight?: number
-    showTextOutlines?: boolean
-    textOutlineColor?: Color
 
     // used to determine which series should be labelled when there is limited space
     seriesNamesSortedByImportance?: SeriesName[]
 
     // interactions
     isStatic?: boolean // don't add interactions if true
-    onMouseOver?: (key: SeriesName) => void
+    onMouseEnter?: (key: SeriesName) => void
     onMouseLeave?: () => void
 }
 
@@ -393,42 +364,8 @@ export class LineLegend extends React.Component<LineLegendProps> {
         return this.maxWidth - DEFAULT_CONNECTOR_LINE_WIDTH
     }
 
-    private makeLabelTextWrap(
-        series: LineLabelSeries,
-        { fontWeights }: { fontWeights: { label: number; value?: number } }
-    ): TextWrap | MarkdownTextWrap {
-        if (!series.formattedValue) {
-            return new TextWrap({
-                text: series.label,
-                maxWidth: this.textMaxWidth,
-                fontSize: this.fontSize,
-                fontWeight: fontWeights?.label,
-            })
-        }
-
-        const isTextLabelBold = (fontWeights?.label ?? 400) >= 700
-        const isValueLabelBold = (fontWeights?.value ?? 400) >= 700
-
-        // text label fragments
-        const textLabel = { text: series.label, bold: isTextLabelBold }
-        const valueLabel = {
-            text: series.formattedValue,
-            bold: isValueLabelBold,
-        }
-
-        const newLine = series.placeFormattedValueInNewLine
-            ? "always"
-            : "avoid-wrap"
-
-        return MarkdownTextWrap.fromFragments({
-            main: textLabel,
-            secondary: valueLabel,
-            newLine,
-            textWrapProps: {
-                maxWidth: this.textMaxWidth,
-                fontSize: this.fontSize,
-            },
-        })
+    @computed private get xAnchor(): "start" | "end" {
+        return this.props.xAnchor ?? "start"
     }
 
     private makeAnnotationTextWrap(
@@ -447,15 +384,25 @@ export class LineLegend extends React.Component<LineLegendProps> {
     @computed.struct get sizedSeries(): SizedSeries[] {
         const { fontWeight: globalFontWeight } = this
         return this.props.series.map((series) => {
-            // font weight priority:
-            // series focus state > presense of value label > globally set font weight
             const activeFontWeight = series.focus?.active ? 700 : undefined
             const seriesFontWeight = series.formattedValue ? 700 : undefined
+
+            // Font weight priority:
+            // Series focus state > Presence of value label > Globally set font weight
             const fontWeight =
                 activeFontWeight ?? seriesFontWeight ?? globalFontWeight
 
-            const fontWeights = { label: fontWeight, value: 400 }
-            const textWrap = this.makeLabelTextWrap(series, { fontWeights })
+            const seriesLabel = new SeriesLabelState({
+                text: series.label,
+                maxWidth: this.textMaxWidth,
+                fontSize: this.fontSize,
+                fontWeight,
+                textAnchor: this.xAnchor,
+                formattedValue: series.formattedValue,
+                placeFormattedValueInNewLine:
+                    series.placeFormattedValueInNewLine,
+                showRegionProviderTooltip: !this.props.isStatic,
+            })
 
             const annotationTextWrap = this.makeAnnotationTextWrap(series)
             const annotationWidth = annotationTextWrap?.width ?? 0
@@ -465,10 +412,10 @@ export class LineLegend extends React.Component<LineLegendProps> {
 
             return {
                 ...series,
-                textWrap,
+                seriesLabel,
                 annotationTextWrap,
-                width: Math.max(textWrap.width, annotationWidth),
-                height: textWrap.height + annotationHeight,
+                width: Math.max(seriesLabel.width, annotationWidth),
+                height: seriesLabel.height + annotationHeight,
             }
         })
     }
@@ -488,8 +435,8 @@ export class LineLegend extends React.Component<LineLegendProps> {
             : this.maxLabelWidth + MARKER_MARGIN
     }
 
-    @computed get onMouseOver(): any {
-        return this.props.onMouseOver ?? _.noop
+    @computed get onMouseEnter(): any {
+        return this.props.onMouseEnter ?? _.noop
     }
     @computed get onMouseLeave(): any {
         return this.props.onMouseLeave ?? _.noop
@@ -506,7 +453,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
 
     private getYPositionForSeriesLabel(series: SizedSeries): number {
         const y = this.yAxis.place(series.yValue)
-        const lineHeight = series.textWrap.singleLineHeight
+        const lineHeight = series.seriesLabel.singleLineHeight
         switch (this.verticalAlign) {
             case VerticalAlign.middle:
                 return y - series.height / 2
@@ -700,12 +647,10 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 <LineLabels
                     series={this.placedSeries}
                     needsConnectorLines={this.needsLines}
-                    showTextOutline={this.props.showTextOutlines}
-                    textOutlineColor={this.props.textOutlineColor}
                     anchor={this.props.xAnchor}
                     isStatic={this.props.isStatic}
-                    onMouseOver={(series): void =>
-                        this.onMouseOver(series.seriesName)
+                    onMouseEnter={(series): void =>
+                        this.onMouseEnter(series.seriesName)
                     }
                     onMouseLeave={(series): void =>
                         this.onMouseLeave(series.seriesName)

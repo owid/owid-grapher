@@ -10,6 +10,7 @@ import {
 import { TextWrap } from "@ourworldindata/components"
 import { InteractionState } from "../interaction/InteractionState.js"
 import { ColumnSlug } from "@ourworldindata/utils"
+import { SeriesLabelState } from "../seriesLabel/SeriesLabelState.js"
 
 export interface DiscreteBarSeries extends ChartSeries {
     entityName: string
@@ -24,7 +25,7 @@ export interface DiscreteBarSeries extends ChartSeries {
 }
 
 export interface SizedDiscreteBarSeries extends DiscreteBarSeries {
-    label: TextWrap
+    label: SeriesLabelState
     annotationTextWrap?: TextWrap
 }
 
@@ -69,12 +70,6 @@ export interface DiscreteBarItem {
 export type YColumnMode =
     | { type: "independent"; slugs: ColumnSlug[] }
     | { type: "combined"; slugs: ColumnSlug[]; info: ProjectionColumnInfo }
-
-export interface FontSettings {
-    fontSize: number
-    fontWeight: number
-    lineHeight: number
-}
 
 export const BACKGROUND_COLOR = "#fff"
 export const BAR_SPACING_FACTOR = 0.35
