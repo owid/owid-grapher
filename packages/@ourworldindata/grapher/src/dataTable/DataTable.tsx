@@ -41,7 +41,7 @@ import {
 } from "../core/GrapherConstants"
 import * as R from "remeda"
 import { makeSelectionArray } from "../chart/ChartUtils"
-import { isEntityRegionType } from "../core/EntitiesByRegionType"
+import { isEntityRegionGroupKey } from "../core/RegionGroups"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
     DataTableColumnKey,
@@ -1328,5 +1328,7 @@ function isCommonDataTableFilter(
 export function isValidDataTableFilter(
     candidate: string
 ): candidate is DataTableFilter {
-    return isCommonDataTableFilter(candidate) || isEntityRegionType(candidate)
+    return (
+        isCommonDataTableFilter(candidate) || isEntityRegionGroupKey(candidate)
+    )
 }

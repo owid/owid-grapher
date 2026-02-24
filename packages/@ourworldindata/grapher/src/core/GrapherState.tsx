@@ -176,11 +176,11 @@ import {
 } from "../timeline/TimelineController.js"
 import { TooltipManager } from "../tooltip/TooltipProps.js"
 import {
-    EntityRegionTypeGroup,
-    groupEntityNamesByRegionType,
-    EntityNamesByRegionType,
-    isEntityRegionType,
-} from "./EntitiesByRegionType.js"
+    RegionGroup,
+    groupEntitiesByRegionType,
+    EntitiesByRegionGroup,
+    isEntityRegionGroupKey,
+} from "./RegionGroups.js"
 import {
     MinimalNarrativeChartInfo,
     GrapherProgrammaticInterface,
@@ -1070,8 +1070,8 @@ export class GrapherState
                     ? this.selection.selectedEntityNames
                     : availableEntities
             )
-            .when(isEntityRegionType, (filter) => {
-                const regionNames = this.entityNamesByRegionType.get(filter)
+            .when(isEntityRegionGroupKey, (filter) => {
+                const regionNames = this.entitiesByRegionGroup.get(filter)
                 return regionNames ?? availableEntities
             })
             .exhaustive()
@@ -3188,14 +3188,14 @@ export class GrapherState
         }
     }
 
-    @computed get entityRegionTypeGroups(): EntityRegionTypeGroup[] {
-        return groupEntityNamesByRegionType(this.availableEntityNames)
+    @computed get regionGroups(): RegionGroup[] {
+        return groupEntitiesByRegionType(this.availableEntityNames)
     }
 
-    @computed get entityNamesByRegionType(): EntityNamesByRegionType {
+    @computed get entitiesByRegionGroup(): EntitiesByRegionGroup {
         return new Map(
-            this.entityRegionTypeGroups.map(({ regionType, entityNames }) => [
-                regionType,
+            this.regionGroups.map(({ regionGroupKey, entityNames }) => [
+                regionGroupKey,
                 entityNames,
             ])
         )

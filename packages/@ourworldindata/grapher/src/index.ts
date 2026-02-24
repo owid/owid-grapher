@@ -36,8 +36,8 @@ export {
     latestGrapherConfigSchema,
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
-    CUSTOM_REGION_SOURCE_IDS,
-    type CustomAggregateSource,
+    ADDITIONAL_REGION_DATA_PROVIDERS,
+    type AdditionalRegionDataProvider,
 } from "./core/GrapherConstants"
 export {
     getVariableDataRoute,
