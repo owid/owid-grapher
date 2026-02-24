@@ -533,7 +533,6 @@ class VariablesSection<
     }
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 const TagsSection = (props: {
     chartId: number | undefined
     tags: DbChartTagJoin[] | undefined
@@ -771,8 +770,6 @@ export class EditorBasicTab<
     }
 }
 
-// The rule doesn't support class components in the same file.
-// eslint-disable-next-line react-refresh/only-export-components
 function IndicatorChartInfo(props: { editor: IndicatorChartEditor }) {
     const { variableId, grapherState } = props.editor
 
@@ -794,8 +791,6 @@ function IndicatorChartInfo(props: { editor: IndicatorChartEditor }) {
     )
 }
 
-// The rule doesn't support class components in the same file.
-// eslint-disable-next-line react-refresh/only-export-components
 function NarrativeChartInfo(props: { editor: NarrativeChartEditor }) {
     const { name = "" } = props.editor.manager
 

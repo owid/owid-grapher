@@ -116,7 +116,7 @@ export const makeMidLabels = (
         const nextPos = series.points[i + 1].position
         const nextSegment = nextPos.subtract(v.position)
 
-        let pos = v.position
+        let pos: PointVector
         if (prevPos && prevSegment) {
             const normals = prevSegment
                 .add(nextSegment)

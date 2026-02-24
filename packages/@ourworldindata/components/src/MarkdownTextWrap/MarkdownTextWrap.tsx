@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as _ from "lodash-es"
 import { CSSProperties } from "react"
 import * as React from "react"
@@ -801,8 +802,6 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     }
 }
 
-// The rule doesn't support class components in the same file.
-// eslint-disable-next-line react-refresh/only-export-components
 function MarkdownTextWrapLine({
     line,
 }: {

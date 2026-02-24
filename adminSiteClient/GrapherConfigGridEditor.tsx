@@ -104,8 +104,6 @@ import { SortableList } from "./SortableList.js"
 
 type Disposer = () => void
 
-// The rule doesn't support class components in the same file.
-// eslint-disable-next-line react-refresh/only-export-components
 function HotColorScaleRenderer() {
     return <div style={{ color: "gray" }}>Color scale</div>
 }

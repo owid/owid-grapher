@@ -38,8 +38,6 @@ const amountsByInterval = {
 
 const analytics = new SiteAnalytics()
 
-// The rule doesn't support class components in the same file.
-// eslint-disable-next-line react-refresh/only-export-components
 function EveryOrgSection({
     buttonVariant,
 }: {
