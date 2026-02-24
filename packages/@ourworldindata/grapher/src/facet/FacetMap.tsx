@@ -511,11 +511,11 @@ export class FacetMap
         const mapAspectRatio = MAP_VIEWPORT_FACETED_WORLD.ratio
 
         // Find the map's width and height
-        let mapWidth = bounds.width
+        const mapWidth = bounds.width
         let mapHeight = mapWidth / mapAspectRatio
         if (mapHeight > bounds.height) {
             mapHeight = bounds.height
-            mapWidth = mapHeight * mapAspectRatio
+            // mapWidth = mapHeight * mapAspectRatio
         }
 
         // Move the label closer to the map if there is vertical padding

@@ -76,7 +76,7 @@ export async function generateAltTextFromUrl(imageUrl: string): Promise<{
     success: true
     altText: string
 }> {
-    let altText: string | null = ""
+    let altText: string | null
     try {
         altText = await fetchGptGeneratedAltText(imageUrl)
     } catch (error) {

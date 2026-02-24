@@ -648,7 +648,7 @@ export async function getPreviewGdocIndexRecords(
     } catch (error) {
         console.error("Error generating gdoc index records", error)
         if (error instanceof Error) throw error
-        throw new Error(String(error))
+        throw new Error(String(error), { cause: error })
     }
 }
 

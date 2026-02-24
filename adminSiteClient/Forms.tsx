@@ -1379,35 +1379,36 @@ export const CatalogPathField = ({
         const [datasetName, indicatorName] = catalogPath.split("#")
 
         if (!datasetName || !indicatorName) tokenizedCatalogPath = catalogPath
-
-        // Tokenize, color and word-break any slashes, underscores, and hashes
-        tokenizedCatalogPath = (
-            <>
-                {[...datasetName].map((char, i) => {
-                    if (char === "/")
-                        return (
-                            <span key={i} style={{ color: "gray" }}>
-                                <wbr />/
-                            </span>
-                        )
-                    return char
-                })}
-                <span style={{ color: "#91577c" }}>
-                    <wbr />#
-                </span>
-                <span style={{ color: "#2162e6" }}>
-                    {[...indicatorName].map((char, i) => {
-                        if (char === "_")
+        else {
+            // Tokenize, color and word-break any slashes, underscores, and hashes
+            tokenizedCatalogPath = (
+                <>
+                    {[...datasetName].map((char, i) => {
+                        if (char === "/")
                             return (
-                                <span key={i}>
-                                    <wbr />_
+                                <span key={i} style={{ color: "gray" }}>
+                                    <wbr />/
                                 </span>
                             )
                         return char
                     })}
-                </span>
-            </>
-        )
+                    <span style={{ color: "#91577c" }}>
+                        <wbr />#
+                    </span>
+                    <span style={{ color: "#2162e6" }}>
+                        {[...indicatorName].map((char, i) => {
+                            if (char === "_")
+                                return (
+                                    <span key={i}>
+                                        <wbr />_
+                                    </span>
+                                )
+                            return char
+                        })}
+                    </span>
+                </>
+            )
+        }
     }
 
     return (

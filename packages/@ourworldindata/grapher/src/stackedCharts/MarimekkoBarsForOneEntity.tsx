@@ -134,8 +134,8 @@ function MarimekkoBar({
             : BAR_OPACITY.DEFAULT
     const overalOpacity = isPlaceholder ? 0.2 : 1.0
 
-    let barY: number = 0
-    let barHeight: number = 0
+    let barY: number
+    let barHeight: number
     if (bar.kind === BarShape.Bar) {
         barY = dualAxis.verticalAxis.place(y0 + bar.yPoint.valueOffset)
         barHeight =
