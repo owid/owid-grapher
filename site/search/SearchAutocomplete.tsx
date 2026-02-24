@@ -158,7 +158,7 @@ export const SearchAutocomplete = ({
             <ul id={getSearchAutocompleteId()} role="listbox">
                 {suggestions.map((filter, index) => (
                     <li
-                        key={filter.name}
+                        key={`${filter.type}:${filter.name}`}
                         className={cx("search-autocomplete-item", {
                             "search-autocomplete-item--active":
                                 index === activeIndex,
