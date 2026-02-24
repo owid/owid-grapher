@@ -86,6 +86,10 @@ export const REGION_DATA_PROVIDERS = [
 ] as const
 export type RegionDataProvider = (typeof REGION_DATA_PROVIDERS)[number]
 
+export function isRegionDataProvider(key: string): key is RegionDataProvider {
+    return REGION_DATA_PROVIDERS.includes(key as RegionDataProvider)
+}
+
 export function checkIsOwidIncomeGroupCode(
     code: string
 ): code is OwidIncomeGroupCode {
@@ -183,6 +187,14 @@ const regionsBySlug = lazy(() =>
 
 const regionsByCode = lazy(() =>
     Object.fromEntries(regions.map((region) => [region.code, region]))
+)
+
+const regionsByShortName = lazy(() =>
+    Object.fromEntries(
+        regions
+            .filter((region) => region.shortName)
+            .map((region) => [region.shortName, region])
+    )
 )
 
 export const countriesByName = lazy(() =>
@@ -325,6 +337,9 @@ export const getRegionBySlug = (slug: string): Region | undefined =>
 
 const getRegionByCode = (code: string): Region | undefined =>
     regionsByCode()[code]
+
+export const getRegionByShortName = (shortName: string): Region | undefined =>
+    regionsByShortName()[shortName]
 
 export const getRegionByNameOrVariantName = (
     nameOrVariantName: string

@@ -4,16 +4,16 @@ import { computed, makeObservable } from "mobx"
 import {
     Bounds,
     excludeUndefined,
-    checkIsOwidIncomeGroupName,
     RequiredBy,
+    getRegionByName,
+    getRegionByShortName,
+    EntityName,
+    checkIsIncomeGroup,
 } from "@ourworldindata/utils"
 import { canAppendTextToLastLine, TextWrap } from "@ourworldindata/components"
-import {
-    AnyRegionDataProvider,
-    ParsedLabel,
-    parseLabel,
-} from "../core/RegionGroups.js"
+import { ParsedLabel, parseLabel } from "../core/RegionGroups.js"
 import { FontSettings } from "../core/GrapherConstants.js"
+import { hasTooltipData, TooltipKey } from "./RegionTooltipData.js"
 
 export interface SeriesLabelStateOptions {
     text: string
@@ -26,8 +26,6 @@ export interface SeriesLabelStateOptions {
     placeFormattedValueInNewLine?: boolean
     showRegionTooltip?: boolean
 }
-
-export type TooltipKey = AnyRegionDataProvider | "incomeGroups"
 
 export type TextRole =
     | "name"
@@ -50,7 +48,8 @@ interface TextFragment extends TextSpan {
 
 interface IconFragment {
     type: "icon"
-    tooltipKey: TooltipKey
+    tooltipKey: TooltipKey // e.g. "un"
+    regionName: EntityName // e.g. "Africa (UN)"
     iconSize: number
     width: number
 }
@@ -179,6 +178,34 @@ export class SeriesLabelState {
         return { type: "space", width: this.spaceWidth }
     }
 
+    @computed private get regionIconInfo():
+        | { tooltipKey: TooltipKey; regionName: EntityName }
+        | undefined {
+        if (!this.options.showRegionTooltip) return
+
+        const region =
+            getRegionByName(this.options.text) ??
+            getRegionByShortName(this.options.text)
+        if (!region) return
+
+        // Check if the region is an income group
+        if (checkIsIncomeGroup(region))
+            return { tooltipKey: "incomeGroups", regionName: region.name }
+
+        // Check if it's a region provider with tooltip data
+        if (
+            this.parsedText.providerKey &&
+            hasTooltipData(this.parsedText.providerKey, region)
+        ) {
+            return {
+                tooltipKey: this.parsedText.providerKey,
+                regionName: region.name,
+            }
+        }
+
+        return
+    }
+
     /**
      * Fragments for the parenthetical region provider suffix (e.g. "(WHO)")
      *
@@ -191,9 +218,11 @@ export class SeriesLabelState {
         if (!this.parsedText.providerKey) return undefined
 
         const fontSettings = { ...this.fontSettings, fontWeight: 400 }
-        const shouldShowIcon = this.options.showRegionTooltip
 
-        if (shouldShowIcon) {
+        if (
+            this.regionIconInfo &&
+            this.regionIconInfo.tooltipKey !== "incomeGroups"
+        ) {
             const textBeforeIcon = `(${this.parsedText.suffix}`
             const textAfterIcon = `)`
 
@@ -219,7 +248,7 @@ export class SeriesLabelState {
                     type: "icon",
                     width: this.iconSize,
                     iconSize: this.iconSize,
-                    tooltipKey: this.parsedText.providerKey,
+                    ...this.regionIconInfo,
                 },
                 {
                     type: "text",
@@ -267,8 +296,8 @@ export class SeriesLabelState {
         | ContentFragment[]
         | undefined {
         if (
-            !this.options.showRegionTooltip ||
-            !checkIsOwidIncomeGroupName(this.options.text)
+            !this.regionIconInfo ||
+            this.regionIconInfo.tooltipKey !== "incomeGroups"
         )
             return undefined
 
@@ -277,7 +306,7 @@ export class SeriesLabelState {
                 type: "icon",
                 width: this.iconSize,
                 iconSize: this.iconSize,
-                tooltipKey: "incomeGroups",
+                ...this.regionIconInfo,
             },
         ]
     }
@@ -298,7 +327,7 @@ export class SeriesLabelState {
         // Suffix has priority
         if (this.suffixFragments) {
             const suffixText = `(${this.parsedText.suffix})`
-            const reservedWidth = this.options.showRegionTooltip
+            const reservedWidth = this.regionIconInfo
                 ? this.iconSize + this.spaceWidth
                 : 0
             const fits = canAppendTextToLastLine({

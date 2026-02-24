@@ -202,4 +202,22 @@ describe("SeriesLabelState", () => {
             { type: "icon", tooltipKey: "incomeGroups" },
         ])
     })
+
+    it("resolves region from a short entity name", () => {
+        const label = new SeriesLabelState({
+            text: "MENA, Afghanistan and Pakistan (WB)", // Short name
+            maxWidth: Infinity,
+            fontSize: FONT_SIZE,
+            showRegionTooltip: true,
+        })
+
+        const iconFragment = label.positionedFragments.find(
+            (f) => f.type === "icon"
+        )
+
+        // The region name should be resolved correctly even if the label uses a shorter name
+        expect(iconFragment?.regionName).toBe(
+            "Middle East, North Africa, Afghanistan and Pakistan (WB)"
+        )
+    })
 })

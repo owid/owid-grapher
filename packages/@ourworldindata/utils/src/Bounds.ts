@@ -336,6 +336,10 @@ export class Bounds {
         ]
     }
 
+    toViewBox(): string {
+        return `${this.x} ${this.y} ${this.width} ${this.height}`
+    }
+
     xRange(): [number, number] {
         return [this.left, this.right]
     }

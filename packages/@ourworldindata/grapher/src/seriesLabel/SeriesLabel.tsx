@@ -1,5 +1,7 @@
+import React, { useState } from "react"
 import * as R from "remeda"
 import Tippy from "@tippyjs/react"
+import { hideAll } from "tippy.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
 import {
@@ -12,9 +14,10 @@ import {
     PositionedIconFragment,
     TextRole,
     SpanLine,
-    TooltipKey,
 } from "./SeriesLabelState.js"
 import { Bounds, isTouchDevice } from "@ourworldindata/utils"
+import { RegionTooltip } from "./RegionTooltip.js"
+import { getDescriptionForKey, getRegionsForKey } from "./RegionTooltipData.js"
 
 const defaultColors: Record<TextRole, string> = {
     name: GRAPHER_DARK_TEXT,
@@ -101,6 +104,7 @@ export function SeriesLabel({
                     y={renderY}
                     fragment={fragment}
                     fill={colors.regionProviderSuffix}
+                    regionName={fragment.regionName}
                     onMouseEnter={onMouseEnter}
                     onMouseLeave={onMouseLeave}
                     onInfoTooltipShow={onInfoTooltipShow}
@@ -294,6 +298,7 @@ function IconFragment({
     y,
     fragment,
     fill,
+    regionName,
     onMouseEnter,
     onMouseLeave,
     onInfoTooltipShow,
@@ -302,10 +307,14 @@ function IconFragment({
     y: number
     fragment: PositionedIconFragment
     fill: string
+    regionName: string
     onMouseEnter?: React.MouseEventHandler<SVGElement>
     onMouseLeave?: React.MouseEventHandler<SVGElement>
     onInfoTooltipShow?: () => void
 }): React.ReactElement {
+    // Used as react key to remount RegionTooltip with fresh state
+    const [tooltipRemountKey, setTooltipRemountKey] = useState(false)
+
     const iconX = x + fragment.x
     const iconY = y + fragment.y
 
@@ -334,10 +343,26 @@ function IconFragment({
             <Tippy
                 theme="grapher-explanation"
                 placement="top"
+                interactive={!isTouchDevice()}
+                appendTo={() => document.body}
+                onShow={(instance) => {
+                    // Hide any other open tooltips
+                    hideAll({ exclude: instance })
+
+                    onInfoTooltipShow?.()
+                }}
+                // Changing the key forces RegionTooltip to remount on the
+                // next show, resetting its internal hover state back to
+                // the initially highlighted region
+                onHidden={() => setTooltipRemountKey((k) => !k)}
                 content={
-                    <RegionTooltipContent tooltipKey={fragment.tooltipKey} />
+                    <RegionTooltip
+                        key={tooltipRemountKey.toString()}
+                        description={getDescriptionForKey(fragment.tooltipKey)}
+                        regions={getRegionsForKey(fragment.tooltipKey)}
+                        initiallyHighlightedRegion={regionName}
+                    />
                 }
-                onShow={onInfoTooltipShow}
             >
                 <rect
                     {...hitAreaBounds.toProps()}
@@ -349,12 +374,4 @@ function IconFragment({
             </Tippy>
         </g>
     )
-}
-
-function RegionTooltipContent({
-    tooltipKey,
-}: {
-    tooltipKey: TooltipKey
-}): React.ReactElement {
-    return <div>{tooltipKey}</div>
 }

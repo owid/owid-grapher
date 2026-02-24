@@ -227,10 +227,12 @@ export {
     checkHasMembers,
     getRegionByName,
     getRegionBySlug,
+    getRegionByShortName,
     getParentRegions,
     getSiblingRegions,
     getContinentForCountry,
     articulateEntity,
+    isRegionDataProvider,
 } from "./regions.js"
 export {
     instantiateProfile,

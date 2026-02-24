@@ -395,6 +395,16 @@ export const ContinentColors = {
     "Latin America-Caribbean (Pew)": OwidDistinctColors.Maroon,
     "Middle East-North Africa (Pew)": OwidDistinctColors.Camel,
 
+    // UN SDG regions
+    "Australia and New Zealand (UN SDG)": OwidDistinctColors.Teal,
+    "Central and Southern Asia (UN SDG)": OwidDistinctColors.OliveGreen,
+    "Eastern and South-Eastern Asia (UN SDG)": OwidDistinctColors.Copper,
+    "Europe and Northern America (UN SDG)": OwidDistinctColors.Denim,
+    "Latin America and the Caribbean (UN SDG)": OwidDistinctColors.Maroon,
+    "Northern Africa and Western Asia (UN SDG)": OwidDistinctColors.Camel,
+    "Oceania (UN SDG)": OwidDistinctColors.Turquoise,
+    "Sub-Saharan Africa (UN SDG)": OwidDistinctColors.DarkMauve,
+
     // Income groups
     "High-income countries": IncomeGroupColors.HighIncome,
     "Upper-middle-income countries": IncomeGroupColors.UpperMiddleIncome,

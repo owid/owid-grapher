@@ -3146,6 +3146,7 @@ __metadata:
     react-move: "npm:^6.5.0"
     remeda: "npm:^2.32.0"
     simple-statistics: "npm:^7.8.8"
+    tippy.js: "npm:^6.3.7"
     topojson-client: "npm:^3.1.0"
     ts-pattern: "npm:^5.8.0"
     url-join: "npm:^5.0.0"
@@ -17248,7 +17249,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tippy.js@npm:^6.3.1":
+"tippy.js@npm:^6.3.1, tippy.js@npm:^6.3.7":
   version: 6.3.7
   resolution: "tippy.js@npm:6.3.7"
   dependencies:
