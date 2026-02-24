@@ -22,12 +22,14 @@ export type FeaturedMetricsProps = {
     topicName: string
     className?: string
     isDataPage?: boolean
+    id?: string
 }
 
 export const FeaturedMetrics = ({
     topicName,
     className,
     isDataPage = false,
+    id = FEATURED_METRICS_ID,
 }: FeaturedMetricsProps) => {
     const liteSearchClient = getLiteSearchClient()
 
@@ -68,10 +70,7 @@ export const FeaturedMetrics = ({
     const searchHref = `${SEARCH_BASE_PATH}?${params.toString()}`
 
     return (
-        <section
-            className={cx(className, "needs-dividers")}
-            id={FEATURED_METRICS_ID}
-        >
+        <section className={cx(className, "needs-dividers")} id={id}>
             {isDataPage ? (
                 <h2 className="featured-metrics__title">
                     <span>More Data on {topicName}</span>
@@ -81,8 +80,8 @@ export const FeaturedMetrics = ({
                     <span>Featured Data on {topicName}</span>
                     <a
                         className="deep-link"
-                        aria-labelledby={FEATURED_METRICS_ID}
-                        href={`#${FEATURED_METRICS_ID}`}
+                        aria-labelledby={id}
+                        href={`#${id}`}
                     />
                 </h1>
             )}
