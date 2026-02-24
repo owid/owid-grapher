@@ -347,6 +347,7 @@ class ColorsSection extends Component<ColorsSectionProps> {
                     scale={scale}
                     onChange={this.props.onChange}
                     showLineChartColors={this.props.showLineChartColors}
+                    baseColorScheme={scale.baseColorScheme}
                 />
             </Section>
         )
@@ -356,6 +357,7 @@ class ColorsSection extends Component<ColorsSectionProps> {
 interface ColorSchemeEditorProps {
     scale: ColorScale
     showLineChartColors: boolean
+    baseColorScheme?: ColorSchemeName
     onChange?: () => void
 }
 
@@ -377,6 +379,7 @@ class ColorSchemeEditor extends Component<ColorSchemeEditorProps> {
                                     showLineChartColors={
                                         this.props.showLineChartColors
                                     }
+                                    baseColorScheme={this.props.baseColorScheme}
                                     onChange={this.props.onChange}
                                 />
                             )
@@ -389,6 +392,7 @@ class ColorSchemeEditor extends Component<ColorSchemeEditorProps> {
                                 showLineChartColors={
                                     this.props.showLineChartColors
                                 }
+                                baseColorScheme={this.props.baseColorScheme}
                                 onChange={this.props.onChange}
                             />
                         )
@@ -469,6 +473,7 @@ interface NumericBinViewProps {
     bin: NumericBin
     index: number
     showLineChartColors: boolean
+    baseColorScheme?: ColorSchemeName
     onChange?: () => void
 }
 
@@ -558,6 +563,7 @@ class NumericBinView extends Component<NumericBinViewProps> {
                     color={bin.color}
                     onColor={this.onColor}
                     showLineChartColors={this.props.showLineChartColors}
+                    baseColorScheme={this.props.baseColorScheme}
                 />
                 <div className="range">
                     <span>
@@ -602,6 +608,7 @@ interface CategoricalBinViewProps {
     scale: ColorScale
     bin: CategoricalBin
     showLineChartColors: boolean
+    baseColorScheme?: ColorSchemeName
     onChange?: () => void
 }
 
@@ -657,6 +664,7 @@ class CategoricalBinView extends Component<CategoricalBinViewProps> {
                     color={bin.color}
                     onColor={this.onColor}
                     showLineChartColors={this.props.showLineChartColors}
+                    baseColorScheme={this.props.baseColorScheme}
                 />
                 <TextField value={bin.value} disabled={true} onValue={_.noop} />
                 <Toggle

@@ -697,6 +697,7 @@ $defs:
             - OwidCategoricalC
             - OwidCategoricalD
             - OwidCategoricalE
+            - OwidCategoricalMap
             - OwidEnergy
             - OwidEnergyLines
             - OwidDistinctLines

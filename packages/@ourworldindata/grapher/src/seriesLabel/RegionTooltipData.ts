@@ -11,8 +11,8 @@ import {
     RequiredBy,
 } from "@ourworldindata/utils"
 import {
-    CategoricalColorsPaletteC,
-    ContinentColors,
+    CategoricalMapPalette17,
+    MapContinentColors,
 } from "../color/CustomSchemes.js"
 import { parseLabel } from "../core/RegionGroups.js"
 import { getCountriesByRegion } from "../mapCharts/MapHelpers.js"
@@ -26,8 +26,8 @@ export interface TooltipRegion {
     members: string[]
 }
 
-const continentColorsMap = ContinentColors as Record<EntityName, string>
-const categoricalMapColors = CategoricalColorsPaletteC
+const continentColorsMap = MapContinentColors as Record<EntityName, string>
+const categoricalMapColors = CategoricalMapPalette17
 
 const descriptions: Record<TooltipKey, string> = {
     wb: "The **World Bank (WB)** defines [seven world regions](https://ourworldindata.org/world-region-map-definitions#world-bank-wb-continents):",
