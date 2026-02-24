@@ -170,6 +170,9 @@ function ArticleBlockInternal({
                             assignedExperiments &&
                             assignedExperiments[
                                 `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
+                            ] &&
+                            assignedExperiments[
+                                `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
                             ] !== "all-charts"
                                 ? ""
                                 : "all-charts"
@@ -185,6 +188,9 @@ function ArticleBlockInternal({
                                 id={
                                     isPageInExperiment &&
                                     assignedExperiments &&
+                                    assignedExperiments[
+                                        `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
+                                    ] &&
                                     assignedExperiments[
                                         `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
                                     ] === "featured-metrics"
