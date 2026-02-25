@@ -5,8 +5,8 @@ import * as React from "react"
 import { useState } from "react"
 import { useSearchContext } from "./SearchContext.js"
 import { useSelectedTopic } from "./searchHooks.js"
-import { getSelectableTopics } from "./searchUtils.js"
-import { SearchTopicType } from "@ourworldindata/types"
+import { getSelectableTopics, buildFilterTestId } from "./searchUtils.js"
+import { FilterType, SearchTopicType } from "@ourworldindata/types"
 
 export const SearchTopicsRefinementList = ({
     topicType,
@@ -57,6 +57,11 @@ export const SearchTopicsRefinementList = ({
                             <li className="search-topics-refinement-list__list-item">
                                 <button
                                     aria-label={`Filter by ${topic}`}
+                                    data-testid={buildFilterTestId(
+                                        "search-refinement-button",
+                                        FilterType.TOPIC,
+                                        topic
+                                    )}
                                     onClick={() => setTopic(topic)}
                                 >
                                     <span className="body-3-medium">

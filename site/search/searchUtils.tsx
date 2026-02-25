@@ -926,6 +926,21 @@ export const getSearchAutocompleteId = () => "search-autocomplete-listbox"
 export const getSearchAutocompleteItemId = (index: number) =>
     index >= 0 ? `search-autocomplete-item-${index}` : undefined
 
+export const buildFilterTestId = (
+    baseTestId: string,
+    filterType: FilterType,
+    filterName: string
+): string => {
+    // Topic names use " and " internally but are displayed as " & ".
+    // See also getTopicFromUrl in search.steps.ts for the same
+    // transformation applied to URL params.
+    const displayName =
+        filterType === FilterType.TOPIC
+            ? filterName.replaceAll(" and ", " & ")
+            : filterName
+    return `${baseTestId}-${filterType}-${encodeURIComponent(displayName)}`
+}
+
 export const getFilterAriaLabel = (
     filter: Filter,
     action: "add" | "remove"
