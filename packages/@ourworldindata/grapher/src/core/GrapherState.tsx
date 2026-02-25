@@ -370,8 +370,17 @@ export class GrapherState
     /** Which logo to show on the upper right side */
     logo: LogoOption | undefined = undefined
 
-    /** Whether to hide the legend */
+    /**
+     * Whether to hide a chart's legend. Applies to line charts, stacked
+     * discrete bar charts and stacked bar charts
+     */
     hideLegend: boolean | undefined = false
+
+    /**
+     * Whether to hide the inline series labels drawn at the end of each
+     * series. Applies to line, slope, and stacked area charts
+     */
+    hideSeriesLabels: boolean | undefined = false
 
     /** Whether to hide the logo */
     hideLogo: boolean | undefined = undefined
@@ -641,6 +650,7 @@ export class GrapherState
             stackMode: observable.ref,
             showNoDataArea: observable.ref,
             hideLegend: observable.ref,
+            hideSeriesLabels: observable.ref,
             logo: observable.ref,
             hideLogo: observable.ref,
             hideRelativeToggle: observable.ref,
@@ -1430,6 +1440,10 @@ export class GrapherState
 
     @computed get xAxisConfig(): Readonly<AxisConfigInterface> {
         return this.xAxis.toObject()
+    }
+
+    @computed get showSeriesLabels(): boolean {
+        return !this.hideSeriesLabels
     }
 
     @computed get showLegend(): boolean {

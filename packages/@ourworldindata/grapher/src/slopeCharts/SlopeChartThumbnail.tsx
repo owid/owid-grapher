@@ -212,7 +212,7 @@ export class SlopeChartThumbnail
     @computed private get endLabelsState():
         | SimpleVerticalLabelsState
         | undefined {
-        if (!this.manager.showLegend) return undefined
+        if (!this.manager.showSeriesLabels) return undefined
 
         const series = this.labelCandidateSeries.map((series) => {
             const { seriesName, color } = series
@@ -244,7 +244,7 @@ export class SlopeChartThumbnail
     @computed private get startLabelsState():
         | SimpleVerticalLabelsState
         | undefined {
-        if (!this.manager.showLegend) return undefined
+        if (!this.manager.showSeriesLabels) return undefined
 
         const showEntityNames =
             !this.manager.isDisplayedAlongsideComplementaryTable

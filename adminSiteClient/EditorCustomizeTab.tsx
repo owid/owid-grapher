@@ -913,13 +913,25 @@ export class EditorCustomizeTab<
                     />
                 )}
                 <Section name="Legend">
-                    {features.hideLegend && (
+                    {features.canHideLegend && (
                         <FieldsRow>
                             <Toggle
                                 label={`Hide legend`}
                                 value={!!grapherState.hideLegend}
                                 onValue={(value) =>
                                     (grapherState.hideLegend =
+                                        value || undefined)
+                                }
+                            />
+                        </FieldsRow>
+                    )}
+                    {features.canHideSeriesLabels && (
+                        <FieldsRow>
+                            <Toggle
+                                label={`Hide series labels`}
+                                value={!!grapherState.hideSeriesLabels}
+                                onValue={(value) =>
+                                    (grapherState.hideSeriesLabels =
                                         value || undefined)
                                 }
                             />

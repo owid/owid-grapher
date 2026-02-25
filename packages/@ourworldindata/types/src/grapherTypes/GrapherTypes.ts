@@ -547,6 +547,7 @@ export interface GrapherInterface extends SortConfig {
 
     showNoDataArea?: boolean
     hideLegend?: boolean
+    hideSeriesLabels?: boolean
     logo?: LogoOption
     hideLogo?: boolean
     hideRelativeToggle?: boolean
@@ -682,6 +683,7 @@ export const grapherKeysToSerialize = [
     "stackMode",
     "showNoDataArea",
     "hideLegend",
+    "hideSeriesLabels",
     "logo",
     "hideLogo",
     "hideRelativeToggle",
