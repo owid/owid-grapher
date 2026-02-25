@@ -66,7 +66,8 @@ export class EditorFeatures {
         return (
             this.grapherState.hasLineChart ||
             this.grapherState.hasSlopeChart ||
-            this.grapherState.hasStackedArea
+            this.grapherState.hasStackedArea ||
+            this.grapherState.hasScatter
         )
     }
 
