@@ -122,10 +122,7 @@ export class StackedAreaChartThumbnail
     @computed private get verticalLabelsState():
         | SimpleVerticalLabelsState
         | undefined {
-        if (
-            !this.manager.showSeriesLabels ||
-            this.manager.isDisplayedAlongsideComplementaryTable
-        )
+        if (!this.manager.showSeriesLabels || this.manager.useMinimalLabeling)
             return undefined
 
         const series = excludeUndefined(

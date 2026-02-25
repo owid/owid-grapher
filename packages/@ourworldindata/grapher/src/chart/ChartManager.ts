@@ -33,7 +33,7 @@ export interface ChartManager {
     transformedTable?: OwidTable
 
     variant?: GrapherVariant
-    isDisplayedAlongsideComplementaryTable?: boolean
+    useMinimalLabeling?: boolean
     chartAreaPadding?: number
 
     isExportingToSvgOrPng?: boolean

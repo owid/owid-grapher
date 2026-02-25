@@ -283,10 +283,7 @@ export class StackedBarChart
     }
 
     @computed private get showLegend(): boolean {
-        return (
-            !!this.manager.showLegend &&
-            !this.manager.isDisplayedAlongsideComplementaryTable
-        )
+        return !!this.manager.showLegend
     }
 
     @computed private get sidebarWidth(): number {

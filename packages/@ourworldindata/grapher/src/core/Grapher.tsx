@@ -85,7 +85,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     baseFontSize?: number
     staticBounds?: Bounds
     variant?: GrapherVariant
-    isDisplayedAlongsideComplementaryTable?: boolean
+    useMinimalLabeling?: boolean
 
     hideTitle?: boolean
     hideSubtitle?: boolean
