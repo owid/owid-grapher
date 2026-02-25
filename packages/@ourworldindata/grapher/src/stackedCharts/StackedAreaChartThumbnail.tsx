@@ -123,7 +123,7 @@ export class StackedAreaChartThumbnail
         | SimpleVerticalLabelsState
         | undefined {
         if (
-            !this.manager.showLegend ||
+            !this.manager.showSeriesLabels ||
             this.manager.isDisplayedAlongsideComplementaryTable
         )
             return undefined
