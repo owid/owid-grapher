@@ -263,8 +263,7 @@ export class LineChartThumbnail
         | undefined {
         if (!this.manager.showSeriesLabels) return undefined
 
-        const showEntityNames =
-            !this.manager.isDisplayedAlongsideComplementaryTable
+        const showValueLabelsOnly = this.manager.useMinimalLabeling
 
         let labelCandidateSeries = this.chartState.series
 
@@ -298,9 +297,9 @@ export class LineChartThumbnail
                 const value = startPoint?.y ?? 0
 
                 const yPosition = this.outerBoundsVerticalAxis.place(value)
-                const label = showEntityNames
-                    ? seriesName
-                    : this.formatLabel(value)
+                const label = showValueLabelsOnly
+                    ? this.formatLabel(value)
+                    : seriesName
 
                 const color = this.chartState.hasColorScale
                     ? darkenColorForLine(
@@ -324,8 +323,10 @@ export class LineChartThumbnail
         return new SimpleVerticalLabelsState(series, {
             fontSize: this.labelFontSize,
             fontWeight: 500,
-            maxWidth: showEntityNames ? 0.25 * this.bounds.width : undefined,
-            minSpacing: showEntityNames ? 5 : 2,
+            maxWidth: showValueLabelsOnly
+                ? undefined
+                : 0.25 * this.bounds.width,
+            minSpacing: showValueLabelsOnly ? 2 : 5,
             yRange: this.labelsRange,
             resolveCollision: (
                 s1: InitialSimpleLabelSeries,
