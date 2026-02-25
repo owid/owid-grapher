@@ -6,9 +6,7 @@ const tables = [
     { table: "chart_revisions", column: "config" },
 ]
 
-export class SetHasMapTabForChartsWithDefaultMapView1748449653633
-    implements MigrationInterface
-{
+export class SetHasMapTabForChartsWithDefaultMapView1748449653633 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         for (const { table, column } of tables) {
             // Find all charts that show a map by default (tab=map),

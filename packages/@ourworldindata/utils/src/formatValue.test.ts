@@ -6,7 +6,7 @@ import {
 import { formatValue } from "./formatValue"
 
 describe("rounding to a fixed number of decimals", () => {
-    // prettier-ignore
+    // oxfmt-ignore
     const cases: [string, number, string, TickFormattingOptions][] = [
         ["default", 1, "1", {}],
         ["default negative", -1, "-1", {}],
@@ -99,7 +99,7 @@ describe("rounding to a fixed number of decimals", () => {
 })
 
 describe("rounding to significant figures", () => {
-    // prettier-ignore
+    // oxfmt-ignore
     const cases: [string, number, string, TickFormattingOptions][] = [
         ["default", 1, "1.00", {}],
         ["default negative", -1, "-1.00", {}],

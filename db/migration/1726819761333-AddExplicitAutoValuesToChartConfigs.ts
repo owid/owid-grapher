@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddExplicitAutoValuesToChartConfigs1726819761333
-    implements MigrationInterface
-{
+export class AddExplicitAutoValuesToChartConfigs1726819761333 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         const addExplicitAutoValueToFullChartConfigs = async (
             jsonPath: string,

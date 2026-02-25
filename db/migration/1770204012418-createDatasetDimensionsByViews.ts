@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class CreateDatasetDimensionsByViews1770204012418
-    implements MigrationInterface
-{
+export class CreateDatasetDimensionsByViews1770204012418 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             CREATE VIEW dataset_dimensions_by_variable AS

@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
 export class RenameGdocByline1684946878935 implements MigrationInterface {
-    /* 
+    /*
      before: {  "byline" : "Max Roser, Hannah Ritchie" }
      after:  {  "authors" : ["Max Roser", "Hannah Ritchie"] }
     */

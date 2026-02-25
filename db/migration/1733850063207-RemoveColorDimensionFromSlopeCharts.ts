@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class RemoveColorDimensionFromSlopeCharts1733850063207
-    implements MigrationInterface
-{
+export class RemoveColorDimensionFromSlopeCharts1733850063207 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // remove color dimension for all slope charts
         // the y-dimension always comes first and the color dimension second,

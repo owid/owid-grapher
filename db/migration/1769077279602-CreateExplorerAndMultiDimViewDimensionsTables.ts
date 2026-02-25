@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class CreateExplorerAndMultiDimViewDimensionsTables1769077279602
-    implements MigrationInterface
-{
+export class CreateExplorerAndMultiDimViewDimensionsTables1769077279602 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             CREATE TABLE explorer_view_dimensions (

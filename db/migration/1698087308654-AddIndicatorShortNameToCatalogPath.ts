@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddIndicatorShortNameToCatalogPath1698087308654
-    implements MigrationInterface
-{
+export class AddIndicatorShortNameToCatalogPath1698087308654 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(
             `UPDATE variables

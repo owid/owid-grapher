@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class RedirectDataRouteToSearchRoute1756454969419
-    implements MigrationInterface
-{
+export class RedirectDataRouteToSearchRoute1756454969419 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Validation 1: Check if /data redirect already exists
         const existingDataRedirect = await queryRunner.query(

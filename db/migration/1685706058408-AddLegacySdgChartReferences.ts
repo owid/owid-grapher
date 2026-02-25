@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddLegacySdgChartReferences1685706058408
-    implements MigrationInterface
-{
+export class AddLegacySdgChartReferences1685706058408 implements MigrationInterface {
     private async insertSlug(
         queryRunner: QueryRunner,
         slug: string

@@ -1,7 +1,7 @@
 // @ts-check
 
 /** @type {import('@yarnpkg/types')} */
-const { defineConfig } = require(`@yarnpkg/types`);
+const { defineConfig } = require(`@yarnpkg/types`)
 
 /**
  * @typedef {import('@yarnpkg/types').Yarn.Constraints.Context} Context

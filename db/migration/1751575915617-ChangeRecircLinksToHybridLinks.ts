@@ -24,9 +24,7 @@ function selectRecircComponents(
     )
 }
 
-export class ChangeRecircLinksToHybridLinks1751575915617
-    implements MigrationInterface
-{
+export class ChangeRecircLinksToHybridLinks1751575915617 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         const gdocsWithRecircLinks =
             await selectGdocsWithRecircLinks(queryRunner)

@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddVirtualGdocsTypeColumn1712843782834
-    implements MigrationInterface
-{
+export class AddVirtualGdocsTypeColumn1712843782834 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
         ALTER TABLE posts_gdocs

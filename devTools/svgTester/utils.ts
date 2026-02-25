@@ -40,7 +40,7 @@ import {
     legacyToOwidTableAndDimensionsWithMandatorySlug,
     migrateGrapherConfigToLatestVersion,
 } from "@ourworldindata/grapher"
-import prettier from "prettier"
+import { format } from "oxfmt"
 import { hashMd5 } from "../../serverUtils/hash.js"
 import * as R from "remeda"
 import ReactDOMServer from "react-dom/server"
@@ -452,10 +452,8 @@ async function prepareSvgForComparison(svg: string): Promise<string> {
 }
 
 async function formatSvg(svg: string): Promise<string> {
-    return await prettier.format(svg, {
-        parser: "html",
-        tabWidth: 4,
-    })
+    const result = await format("input.html", svg)
+    return result.code
 }
 
 /** Remove all non-deterministic parts of the svg and then calculate an md5 hash */

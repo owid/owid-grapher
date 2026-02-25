@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class RemoveMinPopulationFilter1652693645426
-    implements MigrationInterface
-{
+export class RemoveMinPopulationFilter1652693645426 implements MigrationInterface {
     name = "RemoveMinPopulationFilter1652693645426"
 
     public async up(queryRunner: QueryRunner): Promise<void> {

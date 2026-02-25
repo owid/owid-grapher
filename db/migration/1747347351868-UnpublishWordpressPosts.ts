@@ -7,9 +7,7 @@ const LAST_SLUGS = [
     "history-of-poverty-data-appendix",
 ]
 
-export class UnpublishWordpressPosts1747347351868
-    implements MigrationInterface
-{
+export class UnpublishWordpressPosts1747347351868 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(
             `-- sql

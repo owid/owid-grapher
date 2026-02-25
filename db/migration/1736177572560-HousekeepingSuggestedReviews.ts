@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class HousekeepingSuggestedReviews1736177572560
-    implements MigrationInterface
-{
+export class HousekeepingSuggestedReviews1736177572560 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             CREATE TABLE IF NOT EXISTS housekeeping_suggested_reviews (

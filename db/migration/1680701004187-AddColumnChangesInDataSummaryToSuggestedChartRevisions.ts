@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddColumnChangesInDataSummaryToSuggestedChartRevisions1680701004187
-    implements MigrationInterface
-{
+export class AddColumnChangesInDataSummaryToSuggestedChartRevisions1680701004187 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(
             `ALTER TABLE suggested_chart_revisions

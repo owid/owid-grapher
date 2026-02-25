@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddPostsGdocsLinksTargetIndexes1755013960275
-    implements MigrationInterface
-{
+export class AddPostsGdocsLinksTargetIndexes1755013960275 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Add composite index for optimal performance on target + sourceId queries
         // This index can also be used for queries that only filter on target (leftmost prefix rule)

@@ -22,8 +22,8 @@
         "fetchServerStatus": "tsx --tsconfig tsconfig.tsx.json baker/liveCommit.ts",
         "fixLint": "eslint . --fix",
         "fixLintChanged": "bash -c 'files=$((git diff --name-only --diff-filter=ACMRTUXB && git diff --name-only --cached --diff-filter=ACMRTUXB) | sort -u | grep -E \"\\.(tsx?|jsx?|ts|js)$\" | tr \"\\n\" \" \"); if [ -n \"$files\" ]; then eslint --fix $files; else echo \"No uncommitted files to fix with eslint\"; fi'",
-        "fixPrettierAll": "yarn prettier --write \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss,yml}\"",
-        "fixPrettierChanged": "bash -c 'files=$((git diff --name-only --diff-filter=ACMRTUXB && git diff --name-only --cached --diff-filter=ACMRTUXB) | sort -u | grep -E \"\\.(tsx?|jsx?|ts|js|json|md|html|css|scss|yml)$\" | tr \"\\n\" \" \"); if [ -n \"$files\" ]; then yarn prettier --write $files; else echo \"No uncommitted files to fix with prettier\"; fi'",
+        "fixFormatAll": "yarn oxfmt",
+        "fixFormatChanged": "bash -c 'files=$((git diff --name-only --diff-filter=ACMRTUXB && git diff --name-only --cached --diff-filter=ACMRTUXB) | sort -u | grep -E \"\\.(tsx?|jsx?|ts|js|json|md|html|css|scss|yml)$\" | tr \"\\n\" \" \"); if [ -n \"$files\" ]; then yarn oxfmt $files; else echo \"No uncommitted files to format\"; fi'",
         "lerna": "echo 'Lerna is not needed anymore; this script is here for compatibility with ops, remove it after the merge!'",
         "runRegionsUpdater": "tsx --tsconfig tsconfig.tsx.json devTools/regionsUpdater/update.ts",
         "runDbMigrations": "tsx --tsconfig tsconfig.tsx.json node_modules/typeorm/cli.js migration:run -d db/dataSource.ts",
@@ -40,8 +40,8 @@
         "testBundlemon": "yarn buildViteSite && bundlemon",
         "testLint": "eslint .",
         "testLintChanged": "bash -c 'files=$((git diff --name-only --diff-filter=ACMRTUXB && git diff --name-only --cached --diff-filter=ACMRTUXB) | sort -u | grep -E \"\\.(tsx?|jsx?|ts|js)$\" | tr \"\\n\" \" \"); if [ -n \"$files\" ]; then eslint $files; else echo \"No uncommitted files to lint\"; fi'",
-        "testPrettierAll": "yarn prettier --check \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss,yml}\"",
-        "testPrettierChanged": "bash -c 'files=$((git diff --name-only --diff-filter=ACMRTUXB && git diff --name-only --cached --diff-filter=ACMRTUXB) | sort -u | grep -E \"\\.(tsx?|jsx?|ts|js|json|md|html|css|scss|yml)$\" | tr \"\\n\" \" \"); if [ -n \"$files\" ]; then yarn prettier --check $files; else echo \"No uncommitted files to check with prettier\"; fi'",
+        "testFormatAll": "yarn oxfmt --check",
+        "testFormatChanged": "bash -c 'files=$((git diff --name-only --diff-filter=ACMRTUXB && git diff --name-only --cached --diff-filter=ACMRTUXB) | sort -u | grep -E \"\\.(tsx?|jsx?|ts|js|json|md|html|css|scss|yml)$\" | tr \"\\n\" \" \"); if [ -n \"$files\" ]; then yarn oxfmt --check $files; else echo \"No uncommitted files to check formatting\"; fi'",
         "test": "vitest",
         "testBdd": "yarn bddgen && yarn playwright test",
         "checkRaycastSnippets": "tsx --tsconfig tsconfig.tsx.json devTools/gdocs/raycastSnippets/generateRaycastSnippets.ts --check",
@@ -239,8 +239,8 @@
         "http-server": "^14.1.1",
         "husky": "^9.0.11",
         "lint-staged": "^16.2.6",
+        "oxfmt": "^0.35.0",
         "playwright-bdd": "^8.4.2",
-        "prettier": "^3.6.0",
         "sass": "^1.89.2",
         "schema-dts": "^1.1.5",
         "topojson-server": "^3.0.1",
@@ -255,12 +255,8 @@
         "preact@npm:^10.13.2": "patch:preact@npm%3A10.17.0#~/.yarn/patches/preact-npm-10.17.0-e831e619a5.patch",
         "preact@npm:^10.10.0": "patch:preact@npm%3A10.17.0#~/.yarn/patches/preact-npm-10.17.0-e831e619a5.patch"
     },
-    "prettier": {
-        "trailingComma": "es5",
-        "semi": false
-    },
     "lint-staged": {
-        "*.{tsx,ts,jsx,js,json,md,html,css,scss,yml}": "yarn prettier --write"
+        "*": "yarn oxfmt --no-error-on-unmatched-pattern"
     },
     "name": "grapher",
     "workspaces": [

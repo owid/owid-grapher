@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddMultiDimIdConfigMd5SlugIndex1729600015045
-    implements MigrationInterface
-{
+export class AddMultiDimIdConfigMd5SlugIndex1729600015045 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             ALTER TABLE multi_dim_data_pages

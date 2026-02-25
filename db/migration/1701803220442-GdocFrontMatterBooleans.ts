@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class GdocFrontMatterBooleans1701803220442
-    implements MigrationInterface
-{
+export class GdocFrontMatterBooleans1701803220442 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         const gdocs: { id: string; content: string }[] =
             await queryRunner.query(

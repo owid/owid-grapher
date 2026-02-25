@@ -15,8 +15,7 @@ export interface IndicatorChartInfo {
     isPublished: boolean
 }
 
-export interface IndicatorChartEditorManager
-    extends AbstractChartEditorManager {
+export interface IndicatorChartEditorManager extends AbstractChartEditorManager {
     variableId: number
     references: References | undefined
     isNewGrapher?: boolean

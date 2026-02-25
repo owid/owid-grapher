@@ -1,9 +1,7 @@
 import { mergeGrapherConfigs } from "@ourworldindata/utils"
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class SetYAxisMinDefaultToZero1729763649580
-    implements MigrationInterface
-{
+export class SetYAxisMinDefaultToZero1729763649580 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // charts with inheritance disabled:
         // set yAxis.min explicitly to "auto" for line charts

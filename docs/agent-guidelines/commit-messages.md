@@ -1,6 +1,6 @@
 These instructions apply to creating new git commits.
 
-Before you make a commit, run `yarn fixPrettierChanged > /dev/null 2>&1 && yarn typecheck` and `yarn testLintChanged` and fix any errors that might come up.
+Before you make a commit, run `yarn fixFormatChanged > /dev/null 2>&1 && yarn typecheck` and `yarn testLintChanged` and fix any errors that might come up.
 
 For the message, use an emoji from the table below as the start of the commit and add the 🤖 immediately afterwards to indicate this code was written by an AI. Have a look at the last 10 commit messages to get a sense for the style. If the change is simple, try to fit it into one short line, otherwise use a short first line, then an empty line and then create a terse but complete description of the changes.
 

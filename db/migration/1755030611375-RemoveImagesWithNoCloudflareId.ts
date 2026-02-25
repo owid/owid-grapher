@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class RemoveImagesWithNoCloudflareId1755030611375
-    implements MigrationInterface
-{
+export class RemoveImagesWithNoCloudflareId1755030611375 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             DELETE FROM images 

@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddMissingSchemaURLsToConfigs1689156258161
-    implements MigrationInterface
-{
+export class AddMissingSchemaURLsToConfigs1689156258161 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         const tables = {
             suggested_chart_revisions: "suggestedConfig",

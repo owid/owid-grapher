@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class ChartAddGeneratedColumns1683577595565
-    implements MigrationInterface
-{
+export class ChartAddGeneratedColumns1683577595565 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
         ALTER TABLE charts

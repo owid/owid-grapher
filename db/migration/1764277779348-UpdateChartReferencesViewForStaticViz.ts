@@ -4,9 +4,7 @@ import {
     REFERENCE_SOURCES,
 } from "../chartReferencesViewHelper.js"
 
-export class UpdateChartReferencesViewForStaticViz1764277779348
-    implements MigrationInterface
-{
+export class UpdateChartReferencesViewForStaticViz1764277779348 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Recreate the chart_references_view to include static_viz references
         await createChartReferencesView(queryRunner, [

@@ -1,9 +1,7 @@
 import * as _ from "lodash-es"
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class ChartsFixSchemaViolations1686644029475
-    implements MigrationInterface
-{
+export class ChartsFixSchemaViolations1686644029475 implements MigrationInterface {
     private fixConfigs(
         charts: { id: number; config: Record<string, any> }[]
     ): { id: number; config: string }[] {

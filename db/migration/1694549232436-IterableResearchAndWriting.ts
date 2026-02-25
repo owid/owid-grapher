@@ -1,9 +1,7 @@
 import { OwidGdocPostContent } from "@ourworldindata/utils"
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class IterableResearchAndWriting1694549232436
-    implements MigrationInterface
-{
+export class IterableResearchAndWriting1694549232436 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await migrateResearchAndWritingBlocks(queryRunner, (node) => {
             const primary = node.primary as any

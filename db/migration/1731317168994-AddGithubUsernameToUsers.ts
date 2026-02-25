@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddGithubUsernameToUsers1731317168994
-    implements MigrationInterface
-{
+export class AddGithubUsernameToUsers1731317168994 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Add 'githubUsername' column using raw SQL
         await queryRunner.query(`

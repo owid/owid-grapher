@@ -97,9 +97,7 @@ async function replaceColors(
     }
 }
 
-export class MigrateMapCustomCategoryColors1771509136386
-    implements MigrationInterface
-{
+export class MigrateMapCustomCategoryColors1771509136386 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await replaceColors(queryRunner, Object.entries(HEX_MIGRATION))
     }

@@ -23,7 +23,7 @@ import {
 const env = getAdminTestEnv()
 
 describe("Tag graph and breadcrumbs", { timeout: 15000 }, () => {
-    // prettier-ignore
+    // oxfmt-ignore
     const dummyTags: DbInsertTag[] = [
         { name: TagGraphRootName, id: 1  },
         { name: "Energy and Environment", id: 2  },
@@ -342,7 +342,7 @@ describe("Tag graph and breadcrumbs", { timeout: 15000 }, () => {
                 // Here, Women's Employment has 2 paths:
                 // 1. Poverty and Economic Development > Women's Employment
                 // 2. Human Rights > Women's Rights > Women's Employment
-                // prettier-ignore
+                // oxfmt-ignore
                 await env.testKnex!(TagsTableName).insert([
                     { name: "Human Rights", id: 7 },
                     { name: "Women's Rights", slug: "womens-rights", id: 8 },

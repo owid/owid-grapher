@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class MoreGranularKeyChartSorting1692284452006
-    implements MigrationInterface
-{
+export class MoreGranularKeyChartSorting1692284452006 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Update chart_tags table to rename isKeyChart to keyChartLevel
         await queryRunner.query(`

@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class RemoveRelativeModeFromDiscreteBarCharts1735896576517
-    implements MigrationInterface
-{
+export class RemoveRelativeModeFromDiscreteBarCharts1735896576517 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
             -- sql

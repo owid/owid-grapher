@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class OwidTeamDefaultGdocsAuthor1689688196662
-    implements MigrationInterface
-{
+export class OwidTeamDefaultGdocsAuthor1689688196662 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
             UPDATE posts_gdocs 

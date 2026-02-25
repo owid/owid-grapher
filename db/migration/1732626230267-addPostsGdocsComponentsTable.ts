@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddPostsGdocsComponentsTable1732626230267
-    implements MigrationInterface
-{
+export class AddPostsGdocsComponentsTable1732626230267 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
 CREATE TABLE posts_gdocs_components (

@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddExplorerVariablesTable1689327366854
-    implements MigrationInterface
-{
+export class AddExplorerVariablesTable1689327366854 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
           CREATE TABLE \`explorer_variables\` (

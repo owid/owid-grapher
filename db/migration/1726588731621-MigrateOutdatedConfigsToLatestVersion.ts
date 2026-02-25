@@ -2,9 +2,7 @@ import { migrateGrapherConfigToLatestVersion } from "@ourworldindata/grapher"
 import { GrapherInterface } from "@ourworldindata/types"
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class MigrateOutdatedConfigsToLatestVersion1726588731621
-    implements MigrationInterface
-{
+export class MigrateOutdatedConfigsToLatestVersion1726588731621 implements MigrationInterface {
     private migrateConfig(config: Record<string, any>): GrapherInterface {
         try {
             return migrateGrapherConfigToLatestVersion(config)

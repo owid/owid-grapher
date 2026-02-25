@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class CreateMultiDimXChartConfigs1729684787090
-    implements MigrationInterface
-{
+export class CreateMultiDimXChartConfigs1729684787090 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             CREATE TABLE multi_dim_x_chart_configs (

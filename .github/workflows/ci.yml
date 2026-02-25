@@ -63,7 +63,7 @@ jobs:
             - name: Run typecheck (legacy)
               run: yarn tsc -b
 
-    prettier:
+    format:
         runs-on: ubuntu-latest
 
         steps:
@@ -74,8 +74,8 @@ jobs:
               with:
                   runPostinstallScripts: false
 
-            - name: Run prettier
-              run: yarn testPrettierAll
+            - name: Check formatting
+              run: yarn testFormatAll
 
     eslint:
         runs-on: ubuntu-latest

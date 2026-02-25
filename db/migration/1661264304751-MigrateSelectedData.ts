@@ -36,8 +36,7 @@ interface GrapherInterfaceAfterMigration extends GrapherInterface {
     selectedEntityIds?: number[]
 }
 
-interface GrapherInterfaceBeforeMigration
-    extends GrapherInterfaceAfterMigration {
+interface GrapherInterfaceBeforeMigration extends GrapherInterfaceAfterMigration {
     selectedData?: EntitySelection[]
 }
 
