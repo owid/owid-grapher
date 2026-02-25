@@ -28,23 +28,35 @@ export function VerticalLabels({
     const { renderSeries, annotatedSeries, textAnchor } = state
 
     return (
-        <g id={makeFigmaId("vertical-labels")} transform={`translate(${x}, 0)`}>
+        <g id={makeFigmaId("line-labels")} className="LineLabels">
             {interactive && (
                 <InteractionOverlays
                     series={state.placedSeries}
                     anchor={textAnchor}
+                    x={x}
                     onMouseEnter={onMouseEnter}
                     onMouseLeave={onMouseLeave}
                 />
             )}
             {state.needsConnectorLines && (
-                <ConnectorLines series={renderSeries} />
+                <ConnectorLines series={renderSeries} x={x} />
             )}
-            {state.hasAnnotatedSeries && (
-                <Annotations series={annotatedSeries} anchor={textAnchor} />
+            {state.hasAnnotatedSeries ? (
+                <Annotations
+                    series={annotatedSeries}
+                    anchor={textAnchor}
+                    x={x}
+                />
+            ) : (
+                <Annotations
+                    series={annotatedSeries}
+                    anchor={textAnchor}
+                    x={x}
+                />
             )}
             <Labels
                 series={renderSeries}
+                x={x}
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
             />
@@ -54,10 +66,12 @@ export function VerticalLabels({
 
 function Labels({
     series,
+    x = 0,
     onMouseEnter,
     onMouseLeave,
 }: {
     series: RenderLabelSeries[]
+    x?: number
     onMouseEnter?: (key: SeriesName) => void
     onMouseLeave?: (key: SeriesName) => void
 }): React.ReactElement {
@@ -70,7 +84,7 @@ function Labels({
                         key={getSeriesKey(series, index)}
                         id={makeFigmaId("label", series.seriesName)}
                         state={series.seriesLabel}
-                        x={series.labelCoords.x}
+                        x={series.labelCoords.x + x}
                         y={series.labelCoords.y}
                         color={{ name: color, value: color }}
                         opacity={series.opacity}
@@ -86,9 +100,11 @@ function Labels({
 function Annotations({
     series,
     anchor,
+    x = 0,
 }: {
     series: RenderLabelSeries[]
     anchor: "start" | "end"
+    x?: number
 }): React.ReactElement | null {
     return (
         <g
@@ -100,7 +116,7 @@ function Annotations({
                 return (
                     <React.Fragment key={getSeriesKey(series, index)}>
                         {series.annotationTextWrap.renderSVG(
-                            series.labelCoords.x,
+                            series.labelCoords.x + x,
                             series.labelCoords.y +
                                 series.seriesLabel.height +
                                 ANNOTATION_PADDING,
@@ -122,13 +138,18 @@ function Annotations({
 
 function ConnectorLines({
     series,
+    x = 0,
 }: {
     series: RenderLabelSeries[]
+    x?: number
 }): React.ReactElement {
     return (
         <g id={makeFigmaId("connectors")} style={{ pointerEvents: "none" }}>
             {series.map((series, index) => {
-                const { startX, endX } = series.connectorLineCoords
+                const { startX: _startX, endX: _endX } =
+                    series.connectorLineCoords
+                const startX = _startX + x
+                const endX = _endX + x
                 const {
                     level,
                     totalLevels,
@@ -162,11 +183,13 @@ function ConnectorLines({
 function InteractionOverlays({
     series,
     anchor,
+    x: xOffset = 0,
     onMouseEnter,
     onMouseLeave,
 }: {
     series: PlacedLabelSeries[]
     anchor: "start" | "end"
+    x?: number
     onMouseEnter?: (key: SeriesName) => void
     onMouseLeave?: (key: SeriesName) => void
 }): React.ReactElement {
@@ -174,9 +197,9 @@ function InteractionOverlays({
         <g>
             {series.map((series, index) => {
                 const x =
-                    anchor === "start"
+                    (anchor === "start"
                         ? series.origBounds.x
-                        : series.origBounds.x - series.bounds.width
+                        : series.origBounds.x - series.bounds.width) + xOffset
                 return (
                     <g
                         key={getSeriesKey(series, index)}
