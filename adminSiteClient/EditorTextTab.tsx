@@ -5,7 +5,7 @@ import { getErrorMessageRelatedQuestionUrl } from "@ourworldindata/grapher"
 import { copyToClipboard, slugify } from "@ourworldindata/utils"
 import { action, computed, makeObservable, observable, runInAction } from "mobx"
 import { observer } from "mobx-react"
-import React, { Component } from "react"
+import { Component } from "react"
 import { isChartEditorInstance } from "./ChartEditor.js"
 import {
     AutoTextField,
@@ -35,7 +35,13 @@ interface EditorTextTabProps<Editor> {
 export class EditorTextTab<
     Editor extends AbstractChartEditor,
 > extends Component<EditorTextTabProps<Editor>> {
+    // Slugs for the origin URL autocomplete dropdown, fetched on mount
+    // from the same endpoint used by TagEditPage
     topicSlugs: string[] = []
+
+    // Tracks whether the user has started hovering or arrow-keying through
+    // dropdown options. When true, we hide the "Enter to use custom URL"
+    // hint since it's no longer relevant. Resets when the user types.
     isNavigatingDropdown = false
 
     constructor(props: EditorTextTabProps<Editor>) {
@@ -133,6 +139,9 @@ export class EditorTextTab<
         return !!this.props.editor.grapherState.isPublished
     }
 
+    // Dropdown options for the origin URL autocomplete. Posts that already
+    // reference this chart appear first (most relevant), followed by all
+    // published topic page slugs sorted alphabetically.
     @computed get originUrlOptions(): {
         value: string
         label: string
@@ -164,6 +173,7 @@ export class EditorTextTab<
 
     @action.bound onOriginUrlChange(value: string): void {
         this.props.editor.grapherState.originUrl = value || undefined
+        // Reset so the custom URL hint reappears as the user types more
         this.isNavigatingDropdown = false
     }
 
@@ -171,11 +181,10 @@ export class EditorTextTab<
         this.isNavigatingDropdown = true
     }
 
-    highlightMatch(text: string, query: string): React.ReactNode {
+    // Bold the substring matching the user's query in each dropdown option
+    highlightMatch(text: string, query: string): JSX.Element | string {
         if (!query) return text
-        const lowerText = text.toLowerCase()
-        const lowerQuery = query.toLowerCase()
-        const idx = lowerText.indexOf(lowerQuery)
+        const idx = text.toLowerCase().indexOf(query.toLowerCase())
         if (idx === -1) return text
         return (
             <>
@@ -386,9 +395,8 @@ export class EditorTextTab<
                                                 ↵ Enter to use custom URL
                                             </div>
                                         )}
-                                        {/* eslint-disable-next-line jsx-a11y/mouse-events-have-key-events */}
                                         <div
-                                            onMouseOver={
+                                            onMouseEnter={
                                                 this.onDropdownNavigated
                                             }
                                         >
