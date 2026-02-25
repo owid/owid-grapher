@@ -5,7 +5,7 @@ import {
     Bounds,
     exposeInstanceOnWindow,
     PointVector,
-    makeIdForHumanConsumption,
+    makeFigmaId,
     guid,
     excludeUndefined,
     getRelativeMouse,
@@ -876,7 +876,7 @@ export class SlopeChart
 
     private renderSlopes() {
         return (
-            <g id={makeIdForHumanConsumption("slopes")}>
+            <g id={makeFigmaId("slopes")}>
                 {this.renderSeries.map((series) => (
                     <Slope
                         key={series.seriesName}
@@ -1019,7 +1019,7 @@ export class SlopeChart
         const { startX, endX } = this
 
         return (
-            <g id={makeIdForHumanConsumption("horizontal-axis")}>
+            <g id={makeFigmaId("horizontal-axis")}>
                 <MarkX
                     label={this.formattedStartTime}
                     x={startX}

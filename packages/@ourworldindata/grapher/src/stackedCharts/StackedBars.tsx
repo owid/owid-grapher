@@ -4,10 +4,7 @@ import { observer } from "mobx-react"
 import { SeriesName, Time } from "@ourworldindata/types"
 import { DualAxis } from "../axis/Axis"
 import { BAR_OPACITY, StackedPoint, StackedSeries } from "./StackedConstants"
-import {
-    makeIdForHumanConsumption,
-    makeSafeForCSS,
-} from "@ourworldindata/utils"
+import { makeFigmaId, makeSafeForCSS } from "@ourworldindata/utils"
 import { StackedBarSegment } from "./StackedBarSegment"
 import { CoreColumn } from "@ourworldindata/core-table"
 
@@ -61,7 +58,7 @@ export class StackedBars extends React.Component<StackedBarsProps> {
                     return (
                         <g
                             key={index}
-                            id={makeIdForHumanConsumption(series.seriesName)}
+                            id={makeFigmaId(series.seriesName)}
                             className={
                                 makeSafeForCSS(series.seriesName) + "-segments"
                             }
@@ -78,7 +75,7 @@ export class StackedBars extends React.Component<StackedBarsProps> {
                                 return (
                                     <StackedBarSegment
                                         key={index}
-                                        id={makeIdForHumanConsumption(
+                                        id={makeFigmaId(
                                             formatColumn.formatTime(bar.time)
                                         )}
                                         bar={bar}

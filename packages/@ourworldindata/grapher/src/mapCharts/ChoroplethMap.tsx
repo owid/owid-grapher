@@ -2,7 +2,7 @@ import * as _ from "lodash-es"
 import React from "react"
 import {
     Bounds,
-    makeIdForHumanConsumption,
+    makeFigmaId,
     excludeUndefined,
     EntityName,
     MapRegionName,
@@ -413,7 +413,7 @@ export class ChoroplethMap extends React.Component<{
         if (this.internalAnnotations.length === 0) return
 
         return (
-            <g id={makeIdForHumanConsumption("annotations-internal")}>
+            <g id={makeFigmaId("annotations-internal")}>
                 {this.internalAnnotations.map((annotation) => (
                     <InternalValueAnnotation
                         key={annotation.id}
@@ -433,7 +433,7 @@ export class ChoroplethMap extends React.Component<{
 
         return (
             <g
-                id={makeIdForHumanConsumption("annotations-external")}
+                id={makeFigmaId("annotations-external")}
                 className="ExternalAnnotations"
             >
                 {this.externalAnnotations.map((annotation) => (
@@ -459,7 +459,7 @@ export class ChoroplethMap extends React.Component<{
         if (this.backgroundFeatures.length === 0) return
 
         return (
-            <g id={makeIdForHumanConsumption("countries-background")}>
+            <g id={makeFigmaId("countries-background")}>
                 {this.backgroundFeatures.map((feature) => (
                     <BackgroundCountry key={feature.id} feature={feature} />
                 ))}
@@ -473,7 +473,7 @@ export class ChoroplethMap extends React.Component<{
 
         return (
             <g
-                id={makeIdForHumanConsumption("countries-without-data")}
+                id={makeFigmaId("countries-without-data")}
                 className="noDataFeatures"
             >
                 <defs>
@@ -510,7 +510,7 @@ export class ChoroplethMap extends React.Component<{
         if (this.sortedFeaturesWithData.length === 0) return
 
         return (
-            <g id={makeIdForHumanConsumption("countries-with-data")}>
+            <g id={makeFigmaId("countries-with-data")}>
                 {this.manager.hasProjectedData && (
                     <defs>
                         {/* Pattern used by the map legend for the projected data bin */}
@@ -570,10 +570,7 @@ export class ChoroplethMap extends React.Component<{
 
     renderStatic(): React.ReactElement {
         return (
-            <g
-                id={makeIdForHumanConsumption("map")}
-                transform={this.matrixTransform}
-            >
+            <g id={makeFigmaId("map")} transform={this.matrixTransform}>
                 {this.renderFeaturesInBackground()}
                 {this.renderFeaturesWithoutData()}
                 {this.renderFeaturesWithData()}

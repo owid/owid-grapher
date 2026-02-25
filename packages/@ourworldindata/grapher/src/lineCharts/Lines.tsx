@@ -3,7 +3,7 @@ import React from "react"
 import {
     Bounds,
     PointVector,
-    makeIdForHumanConsumption,
+    makeFigmaId,
     pointsToPath,
 } from "@ourworldindata/utils"
 import { computed, makeObservable } from "mobx"
@@ -111,7 +111,7 @@ export class Lines extends React.Component<LinesProps> {
 
         const outline = (
             <LinePath
-                id={makeIdForHumanConsumption("outline", series.displayName)}
+                id={makeFigmaId("outline", series.displayName)}
                 placedPoints={series.placedPoints}
                 stroke={outlineColor}
                 strokeWidth={outlineWidth.toFixed(1)}
@@ -120,7 +120,7 @@ export class Lines extends React.Component<LinesProps> {
 
         const line = this.props.multiColor ? (
             <MultiColorPolyline
-                id={makeIdForHumanConsumption("line", series.seriesName)}
+                id={makeFigmaId("line", series.seriesName)}
                 points={series.placedPoints}
                 strokeLinejoin="round"
                 strokeWidth={strokeWidth.toFixed(1)}
@@ -129,7 +129,7 @@ export class Lines extends React.Component<LinesProps> {
             />
         ) : (
             <LinePath
-                id={makeIdForHumanConsumption("line", series.seriesName)}
+                id={makeFigmaId("line", series.seriesName)}
                 placedPoints={series.placedPoints}
                 stroke={color}
                 strokeWidth={strokeWidth.toFixed(1)}
@@ -175,12 +175,10 @@ export class Lines extends React.Component<LinesProps> {
             : undefined
 
         return (
-            <g id={makeIdForHumanConsumption("datapoints", series.displayName)}>
+            <g id={makeFigmaId("datapoints", series.displayName)}>
                 {series.placedPoints.map((value, index) => (
                     <circle
-                        id={makeIdForHumanConsumption(
-                            horizontalAxis.formatTick(value.time)
-                        )}
+                        id={makeFigmaId(horizontalAxis.formatTick(value.time))}
                         key={index}
                         cx={value.x}
                         cy={value.y}
@@ -209,9 +207,7 @@ export class Lines extends React.Component<LinesProps> {
     }
 
     private renderStatic(): React.ReactElement {
-        return (
-            <g id={makeIdForHumanConsumption("lines")}>{this.renderLines()}</g>
-        )
+        return <g id={makeFigmaId("lines")}>{this.renderLines()}</g>
     }
 
     private renderInteractive(): React.ReactElement {

@@ -7,7 +7,7 @@ import {
     Time,
     HorizontalAlign,
     EntityName,
-    makeIdForHumanConsumption,
+    makeFigmaId,
     dyFromAlign,
     exposeInstanceOnWindow,
     bind,
@@ -362,7 +362,7 @@ export class StackedDiscreteBars
         return (
             <g
                 key={entityName}
-                id={makeIdForHumanConsumption(entityName)}
+                id={makeFigmaId(entityName)}
                 className="bar"
                 transform={`translate(0, ${state.translateY ?? 0})`}
                 opacity={opacity}
@@ -437,7 +437,7 @@ export class StackedDiscreteBars
         return (
             <>
                 {this.renderAxis()}
-                <g id={makeIdForHumanConsumption("bars")}>
+                <g id={makeFigmaId("bars")}>
                     {this.placedItems.map((item) =>
                         this.renderRow({
                             data: item,
@@ -522,14 +522,14 @@ export class StackedDiscreteBars
 
         return (
             <g
-                id={makeIdForHumanConsumption(bar.seriesName)}
+                id={makeFigmaId(bar.seriesName)}
                 onMouseEnter={(): void =>
                     props?.onMouseEnter(entity, bar.seriesName)
                 }
                 onMouseLeave={props?.onMouseLeave}
             >
                 <rect
-                    id={makeIdForHumanConsumption("bar")}
+                    id={makeFigmaId("bar")}
                     x={0}
                     y={0}
                     transform={`translate(${barX}, ${-barHeight / 2})`}

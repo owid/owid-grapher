@@ -5,7 +5,7 @@ import {
     makeSafeForCSS,
     Time,
     lastOfNonEmptyArray,
-    makeIdForHumanConsumption,
+    makeFigmaId,
     bind,
 } from "@ourworldindata/utils"
 import { computed, makeObservable } from "mobx"
@@ -147,7 +147,7 @@ export class StackedAreas extends React.Component<AreasProps> {
 
             return (
                 <path
-                    id={makeIdForHumanConsumption(series.seriesName)}
+                    id={makeFigmaId(series.seriesName)}
                     className={makeSafeForCSS(series.seriesName) + "-area"}
                     key={series.seriesName + "-area"}
                     strokeLinecap="round"
@@ -186,7 +186,7 @@ export class StackedAreas extends React.Component<AreasProps> {
 
             return (
                 <path
-                    id={makeIdForHumanConsumption(placedSeries.seriesName)}
+                    id={makeFigmaId(placedSeries.seriesName)}
                     className={
                         makeSafeForCSS(placedSeries.seriesName) + "-border"
                     }
@@ -211,12 +211,9 @@ export class StackedAreas extends React.Component<AreasProps> {
 
     override render(): React.ReactElement {
         return (
-            <g
-                className="Areas"
-                id={makeIdForHumanConsumption("stacked-areas")}
-            >
-                <g id={makeIdForHumanConsumption("areas")}>{this.areas}</g>
-                <g id={makeIdForHumanConsumption("borders")}>{this.borders}</g>
+            <g className="Areas" id={makeFigmaId("stacked-areas")}>
+                <g id={makeFigmaId("areas")}>{this.areas}</g>
+                <g id={makeFigmaId("borders")}>{this.borders}</g>
             </g>
         )
     }

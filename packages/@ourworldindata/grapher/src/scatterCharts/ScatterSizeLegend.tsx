@@ -5,7 +5,7 @@ import { scaleLinear, ScaleLinear } from "d3-scale"
 import { TextWrap, Halo } from "@ourworldindata/components"
 import {
     Color,
-    makeIdForHumanConsumption,
+    makeFigmaId,
     OwidVariableRoundingMode,
 } from "@ourworldindata/utils"
 import {
@@ -234,7 +234,7 @@ export class ScatterSizeLegend {
     ): React.ReactElement {
         const centerX = targetX + this.maxWidth / 2
         return (
-            <g id={makeIdForHumanConsumption("size-legend")} {...renderOptions}>
+            <g id={makeFigmaId("size-legend")} {...renderOptions}>
                 {this.renderLegend(targetX, targetY)}
                 {this.label.renderSVG(
                     centerX,
