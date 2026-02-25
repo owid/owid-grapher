@@ -421,7 +421,7 @@ export class GrapherState
      */
     hideTimeline: boolean | undefined = undefined
 
-    /** Stack mode. Only absolute and relative are actively used. */
+    /** Stack mode */
     stackMode = StackMode.absolute
 
     /** Whether to zoom to the selected data points */
