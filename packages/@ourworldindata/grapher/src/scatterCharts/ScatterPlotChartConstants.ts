@@ -142,6 +142,7 @@ export interface ScatterPointsWithLabelsProps {
     noDataModalManager: NoDataModalManager
     disableIntroAnimation?: boolean
     hideScatterLabels?: boolean
+    hideEntityLabels?: boolean
     quadtree?: Quadtree<ScatterPointQuadtreeNode>
     backgroundColor?: Color
     hideFocusRing?: boolean
