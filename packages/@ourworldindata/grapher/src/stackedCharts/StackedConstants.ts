@@ -11,38 +11,38 @@ import {
     GRAPHER_AREA_OPACITY_MUTE,
 } from "../core/GrapherConstants"
 import { InteractionState } from "../interaction/InteractionState.js"
+import { HighlightState } from "../interaction/HighlightState.js"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState.js"
 import { LegendStyleConfig } from "../legend/LegendInteractionState"
 
-export type HighlightState = "focus" | "default" | "muted"
-
-export const AREA_OPACITY: Record<HighlightState, number> = {
+export const areaOpacityByState: Record<HighlightState, number> = {
     default: GRAPHER_AREA_OPACITY_DEFAULT,
     focus: GRAPHER_AREA_OPACITY_FOCUS,
     muted: GRAPHER_AREA_OPACITY_MUTE,
 } as const
 
-export const BAR_OPACITY = AREA_OPACITY
+export const barOpacityByState = areaOpacityByState
 
-export const BORDER_OPACITY = {
-    DEFAULT: 0.7,
-    FOCUS: 1,
-    MUTE: 0.3,
+export const borderOpacityByState: Record<HighlightState, number> = {
+    default: 0.7,
+    focus: 1,
+    muted: 0.3,
 } as const
 
-export const BORDER_WIDTH = {
-    DEFAULT: 0.5,
-    FOCUS: 1.5,
+export const borderWidthByState: Record<HighlightState, number> = {
+    default: 0.5,
+    focus: 1.5,
+    muted: 0.5,
 } as const
 
 export const LEGEND_STYLE_FOR_STACKED_CHARTS: LegendStyleConfig = {
     marker: {
-        default: { opacity: AREA_OPACITY.default },
-        focused: { opacity: AREA_OPACITY.focus },
-        muted: { opacity: AREA_OPACITY.muted },
+        default: { opacity: areaOpacityByState.default },
+        focused: { opacity: areaOpacityByState.focus },
+        muted: { opacity: areaOpacityByState.muted },
     },
     text: {
-        muted: { opacity: AREA_OPACITY.muted },
+        muted: { opacity: areaOpacityByState.muted },
     },
 }
 

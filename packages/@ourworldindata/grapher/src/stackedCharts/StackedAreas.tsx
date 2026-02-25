@@ -14,9 +14,9 @@ import { observer } from "mobx-react"
 import { DualAxis } from "../axis/Axis"
 import { rgb } from "d3-color"
 import {
-    AREA_OPACITY,
-    BORDER_OPACITY,
-    BORDER_WIDTH,
+    areaOpacityByState,
+    borderOpacityByState,
+    borderWidthByState,
     StackedPlacedPoint,
     StackedPlacedSeries,
     StackedPoint,
@@ -139,11 +139,11 @@ export class StackedAreas extends React.Component<AreasProps> {
             const points = [...placedPoints, ...prevPoints.toReversed()]
             const opacity =
                 !this.isHoverModeActive && !this.isFocusModeActive
-                    ? AREA_OPACITY.default // normal opacity
+                    ? areaOpacityByState.default // normal opacity
                     : hoveredSeriesName === series.seriesName ||
                         series.focus?.active
-                      ? AREA_OPACITY.focus // hovered or focused
-                      : AREA_OPACITY.muted // background
+                      ? areaOpacityByState.focus // hovered or focused
+                      : areaOpacityByState.muted // background
 
             return (
                 <path
@@ -173,16 +173,16 @@ export class StackedAreas extends React.Component<AreasProps> {
         return placedSeriesArr.map((placedSeries) => {
             const opacity =
                 !this.isHoverModeActive && !this.isFocusModeActive
-                    ? BORDER_OPACITY.DEFAULT // normal opacity
+                    ? borderOpacityByState.default // normal opacity
                     : hoveredSeriesName === placedSeries.seriesName ||
                         placedSeries.focus?.active
-                      ? BORDER_OPACITY.FOCUS // hovered or focused
-                      : BORDER_OPACITY.MUTE // background
+                      ? borderOpacityByState.focus // hovered or focused
+                      : borderOpacityByState.muted // background
             const strokeWidth =
                 hoveredSeriesName === placedSeries.seriesName ||
                 placedSeries.focus?.active
-                    ? BORDER_WIDTH.FOCUS
-                    : BORDER_WIDTH.DEFAULT
+                    ? borderWidthByState.focus
+                    : borderWidthByState.default
 
             return (
                 <path

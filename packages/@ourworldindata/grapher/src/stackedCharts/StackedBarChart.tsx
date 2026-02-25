@@ -31,7 +31,7 @@ import {
 } from "../core/GrapherConstants"
 import { StackedBarChartState } from "./StackedBarChartState.js"
 import {
-    BAR_OPACITY,
+    barOpacityByState,
     LEGEND_STYLE_FOR_STACKED_CHARTS,
     StackedPoint,
     StackedSeries,
@@ -423,8 +423,8 @@ export class StackedBarChart
 
                             const color = point?.color ?? seriesColor
                             const opacity = focused
-                                ? BAR_OPACITY.focus
-                                : BAR_OPACITY.default
+                                ? barOpacityByState.focus
+                                : barOpacityByState.default
                             const swatch = { color, opacity }
 
                             return { name, swatch, blurred, focused, values }

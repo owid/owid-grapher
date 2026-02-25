@@ -3,7 +3,11 @@ import * as React from "react"
 import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Time } from "@ourworldindata/utils"
-import { BAR_OPACITY, StackedPoint, StackedSeries } from "./StackedConstants"
+import {
+    barOpacityByState,
+    StackedPoint,
+    StackedSeries,
+} from "./StackedConstants"
 import { VerticalAxis } from "../axis/Axis"
 
 interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
@@ -52,7 +56,7 @@ export class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
     }
 
     @computed get trueOpacity(): number {
-        return this.mouseOver ? BAR_OPACITY.focus : this.props.opacity
+        return this.mouseOver ? barOpacityByState.focus : this.props.opacity
     }
 
     @action.bound onBarMouseOver(): void {

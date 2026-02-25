@@ -147,8 +147,7 @@ export class StackedDiscreteBarChart
             chartState: { hasFocusedColumn, focusArray },
         } = this
 
-        // If no column focus or legend hover is active, all items are default
-        // (entity focus doesn't affect the legend)
+        // No column is focused and no legend item is hovered
         if (!legendHoverSeriesName && !hasFocusedColumn) {
             return LegendInteractionState.Default
         }
