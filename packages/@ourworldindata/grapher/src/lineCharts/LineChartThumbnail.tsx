@@ -191,7 +191,7 @@ export class LineChartThumbnail
     @computed private get endLabelsState():
         | SimpleVerticalLabelsState
         | undefined {
-        if (!this.manager.showLegend) return undefined
+        if (!this.manager.showSeriesLabels) return undefined
 
         let labelCandidateSeries = this.chartState.series
 
@@ -261,9 +261,9 @@ export class LineChartThumbnail
     @computed private get startLabelsState():
         | SimpleVerticalLabelsState
         | undefined {
-        if (!this.manager.showLegend) return undefined
+        if (!this.manager.showSeriesLabels) return undefined
 
-        const showEntityNames =
+        const showSeriesLabels =
             !this.manager.isDisplayedAlongsideComplementaryTable
 
         let labelCandidateSeries = this.chartState.series
@@ -298,7 +298,7 @@ export class LineChartThumbnail
                 const value = startPoint?.y ?? 0
 
                 const yPosition = this.outerBoundsVerticalAxis.place(value)
-                const label = showEntityNames
+                const label = showSeriesLabels
                     ? seriesName
                     : this.formatLabel(value)
 
@@ -324,8 +324,8 @@ export class LineChartThumbnail
         return new SimpleVerticalLabelsState(series, {
             fontSize: this.labelFontSize,
             fontWeight: 500,
-            maxWidth: showEntityNames ? 0.25 * this.bounds.width : undefined,
-            minSpacing: showEntityNames ? 5 : 2,
+            maxWidth: showSeriesLabels ? 0.25 * this.bounds.width : undefined,
+            minSpacing: showSeriesLabels ? 5 : 2,
             yRange: this.labelsRange,
             resolveCollision: (
                 s1: InitialSimpleLabelSeries,

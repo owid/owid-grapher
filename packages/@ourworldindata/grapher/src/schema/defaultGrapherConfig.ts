@@ -68,6 +68,7 @@ export const defaultGrapherConfig = {
     invertColorScheme: false,
     logo: "owid",
     hideLegend: false,
+    hideSeriesLabels: false,
     hideLogo: false,
     hideRelativeToggle: true,
     hideConnectedScatterLines: false,

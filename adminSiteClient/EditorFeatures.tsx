@@ -62,12 +62,11 @@ export class EditorFeatures {
         return this.grapherState.hasDiscreteBar
     }
 
-    @computed get hideLegend() {
+    @computed get canHideSeriesLabels() {
         return (
             this.grapherState.hasLineChart ||
             this.grapherState.hasSlopeChart ||
-            this.grapherState.hasStackedArea ||
-            this.grapherState.hasStackedDiscreteBar
+            this.grapherState.hasStackedArea
         )
     }
 

@@ -395,7 +395,15 @@ properties:
     hideLegend:
         type: boolean
         default: false
-        description: Whether to hide the legend
+        description: |
+            Whether to hide a chart's legend. Applies to line charts,
+            stacked discrete bar charts and stacked bar charts
+    hideSeriesLabels:
+        type: boolean
+        default: false
+        description: |
+            Whether to hide the inline series labels drawn at the end
+            of each series. Applies to line, slope, and stacked area charts
     hideLogo:
         type: boolean
         default: false
