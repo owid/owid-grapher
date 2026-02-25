@@ -486,8 +486,6 @@ properties:
         enum:
             - absolute
             - relative
-            - grouped
-            - stacked
     zoomToSelection:
         type: boolean
         default: false
