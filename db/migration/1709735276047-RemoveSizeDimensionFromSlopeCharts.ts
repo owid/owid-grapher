@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class RemoveSizeDimensionFromSlopeCharts1709735276047
-    implements MigrationInterface
-{
+export class RemoveSizeDimensionFromSlopeCharts1709735276047 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         const configColumns = [
             { table: "charts", column: "config" },

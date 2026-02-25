@@ -318,7 +318,7 @@ components:
                         - "SlopeChart"
                         - "DiscreteBar"
                         - "Marimekko"
-                publishedAt: 
+                publishedAt:
                     type: string
                     format: date-time
                     description: Publication date of the chart (ISO 8601 format)

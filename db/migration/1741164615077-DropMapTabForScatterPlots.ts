@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class DropMapTabForScatterPlots1741164615077
-    implements MigrationInterface
-{
+export class DropMapTabForScatterPlots1741164615077 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Drop the map tab for all scatter plots (hasMapTab is false by default)
         await queryRunner.query(`-- sql

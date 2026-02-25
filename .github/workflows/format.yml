@@ -1,15 +1,15 @@
-name: Prettify
+name: Format
 on:
     push:
         branches: [master]
     pull_request:
         branches: [master]
 
-# Runs `prettier` on a pull request so everything is nice and pretty!
+# Runs `oxfmt` on a pull request so everything is nice and formatted!
 # If something's wrong, a new commit fixing the issues will automatically be pushed to the PR branch.
 
 jobs:
-    prettify:
+    format:
         runs-on: ubuntu-latest
 
         steps:
@@ -22,9 +22,9 @@ jobs:
               with:
                   runPostinstallScripts: false
 
-            - name: Run prettier
-              run: yarn fixPrettierAll
+            - name: Run formatter
+              run: yarn fixFormatAll
 
             - uses: stefanzweifel/git-auto-commit-action@v7
               with:
-                  commit_message: "🤖 style: prettify code"
+                  commit_message: "🤖 style: format code"

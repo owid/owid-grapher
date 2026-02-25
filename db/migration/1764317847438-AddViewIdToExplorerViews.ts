@@ -51,9 +51,7 @@ function dimensionsToViewId(
         .toLowerCase()
 }
 
-export class AddViewIdToExplorerViews1764317847438
-    implements MigrationInterface
-{
+export class AddViewIdToExplorerViews1764317847438 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Add viewId column as nullable
         await queryRunner.query(`-- sql

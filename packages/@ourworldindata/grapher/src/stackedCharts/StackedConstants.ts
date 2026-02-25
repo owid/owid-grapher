@@ -59,8 +59,9 @@ export interface StackedPoint<PositionType extends StackedPointPositionType> {
     color?: string
 }
 
-export interface StackedSeries<PositionType extends StackedPointPositionType>
-    extends ChartSeries {
+export interface StackedSeries<
+    PositionType extends StackedPointPositionType,
+> extends ChartSeries {
     points: StackedPoint<PositionType>[]
     columnSlug?: string
     isProjection?: boolean

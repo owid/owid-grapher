@@ -23,9 +23,7 @@ const tablesWithoutTimestamps = [
     "details",
 ]
 
-export class AutomatedCreatedUpdatedTimestamps1675107812815
-    implements MigrationInterface
-{
+export class AutomatedCreatedUpdatedTimestamps1675107812815 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Modify the existing tables that have a createdAt and updatedAt column
         // to use the automatic CURRENT_TIMESTAMP and ON UPDATE CURRENT_TIMESTAMP

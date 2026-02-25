@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class UnpublishRedirectedWPArticles1712742455229
-    implements MigrationInterface
-{
+export class UnpublishRedirectedWPArticles1712742455229 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
         UPDATE posts p

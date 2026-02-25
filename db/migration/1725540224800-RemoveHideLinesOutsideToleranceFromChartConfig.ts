@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class RemoveHideLinesOutsideToleranceFromChartConfig1725540224800
-    implements MigrationInterface
-{
+export class RemoveHideLinesOutsideToleranceFromChartConfig1725540224800 implements MigrationInterface {
     private remove_hide_lines_outside_tolerance(field: string): string {
         return `${field} = JSON_REMOVE(
           ${field},

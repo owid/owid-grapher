@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class CreateSuggestedChartRevisionsTable1618193628982
-    implements MigrationInterface
-{
+export class CreateSuggestedChartRevisionsTable1618193628982 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<any> {
         await queryRunner.query(
             `CREATE TABLE \`suggested_chart_revisions\` (

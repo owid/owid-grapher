@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class ReplaceVariablesDataPath1686637499720
-    implements MigrationInterface
-{
+export class ReplaceVariablesDataPath1686637499720 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(
             `

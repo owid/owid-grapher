@@ -127,9 +127,7 @@ const slugs = [
     "women-informed-decisions-health-sexual-relations",
 ]
 
-export class MakeSingleTimeLineChartIntoDiscreteBar1752507843440
-    implements MigrationInterface
-{
+export class MakeSingleTimeLineChartIntoDiscreteBar1752507843440 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(
             `-- sql

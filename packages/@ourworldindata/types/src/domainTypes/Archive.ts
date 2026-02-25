@@ -31,8 +31,10 @@ export interface ArchivedPageVersion {
 }
 
 // Information about an archived chart that is necessary for rendering the archived page, incl. navigation and assets
-export interface ArchiveMetaInformation
-    extends Omit<ArchivedPageVersion, "type"> {
+export interface ArchiveMetaInformation extends Omit<
+    ArchivedPageVersion,
+    "type"
+> {
     archiveNavigation: ArchiveSiteNavigationInfo
     assets: {
         runtime: AssetMap

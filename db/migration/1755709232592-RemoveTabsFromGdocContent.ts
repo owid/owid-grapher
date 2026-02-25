@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class RemoveTabsFromGdocContent1755709232592
-    implements MigrationInterface
-{
+export class RemoveTabsFromGdocContent1755709232592 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             UPDATE posts_gdocs
