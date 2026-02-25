@@ -1,10 +1,10 @@
 import { TextWrap } from "@ourworldindata/components"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState.js"
 import { Bounds } from "@ourworldindata/utils"
-import { ChartSeries } from "../chart/ChartInterface"
-import { InteractionState } from "../interaction/InteractionState"
+import { ChartSeries } from "../chart/ChartInterface.js"
+import { InteractionState } from "../interaction/InteractionState.js"
 
-export interface LineLabelSeries extends ChartSeries {
+export interface LabelSeries extends ChartSeries {
     label: string
     yValue: number
     annotation?: string
@@ -15,7 +15,7 @@ export interface LineLabelSeries extends ChartSeries {
     focus?: InteractionState
 }
 
-export interface SizedSeries extends LineLabelSeries {
+export interface SizedLabelSeries extends LabelSeries {
     seriesLabel: SeriesLabelState
     annotationTextWrap?: TextWrap
     width: number
@@ -23,11 +23,17 @@ export interface SizedSeries extends LineLabelSeries {
     fontWeight?: number
 }
 
-export interface PlacedSeries extends SizedSeries {
+export interface PlacedLabelSeries extends SizedLabelSeries {
     origBounds: Bounds
     bounds: Bounds
     repositions: number
     level: number
     totalLevels: number
     midY: number
+}
+
+export interface RenderLabelSeries extends PlacedLabelSeries {
+    labelCoords: { x: number; y: number }
+    connectorLineCoords: { startX: number; endX: number }
+    opacity: number
 }

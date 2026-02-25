@@ -1,13 +1,13 @@
 import * as _ from "lodash-es"
 import {
     computeCandidateScores,
-    LineLegendFilterAlgorithmContext,
+    VerticalLabelsFilterAlgorithmContext,
     pickAsManyAsPossibleWithRetry,
     pickCandidate,
     pickCandidateWithMaxDistanceToReferenceCandidate,
     pickCandidateWithRetry,
-} from "./LineLegendHelpers"
-import { PlacedSeries } from "./LineLegendTypes"
+} from "./VerticalLabelsHelpers"
+import { PlacedLabelSeries } from "./VerticalLabelsTypes"
 
 /**
  * Keep a subset of series that fit within the available height, prioritizing by
@@ -16,10 +16,10 @@ import { PlacedSeries } from "./LineLegendTypes"
  * Note that more important (but longer) series names might be skipped if they don't fit.
  */
 export function findImportantSeriesThatFitIntoTheAvailableSpace(
-    seriesSortedByImportance: PlacedSeries[],
+    seriesSortedByImportance: PlacedLabelSeries[],
     availableHeight: number
 ) {
-    let context: LineLegendFilterAlgorithmContext = {
+    let context: VerticalLabelsFilterAlgorithmContext = {
         candidates: new Set(seriesSortedByImportance),
         availableHeight,
         sortedKeepSeries: [],
@@ -38,7 +38,7 @@ export function findImportantSeriesThatFitIntoTheAvailableSpace(
         ])
     )
 
-    const getMostImportantCandidate = (candidates: PlacedSeries[]) =>
+    const getMostImportantCandidate = (candidates: PlacedLabelSeries[]) =>
         _.maxBy(candidates, (c) => importanceScore.get(c.seriesName))
 
     // focused series have priority
@@ -71,10 +71,10 @@ export function findImportantSeriesThatFitIntoTheAvailableSpace(
  * score that fits into the available space.
  */
 export function findSeriesThatFitIntoTheAvailableSpace(
-    series: PlacedSeries[],
+    series: PlacedLabelSeries[],
     availableHeight: number
-): PlacedSeries[] {
-    let context: LineLegendFilterAlgorithmContext = {
+): PlacedLabelSeries[] {
+    let context: VerticalLabelsFilterAlgorithmContext = {
         candidates: new Set(series),
         availableHeight,
         sortedKeepSeries: [],
@@ -129,7 +129,7 @@ export function findSeriesThatFitIntoTheAvailableSpace(
         )
 
         // pick the candidate with the highest score
-        const getBestCandidate = (candidates: PlacedSeries[]) =>
+        const getBestCandidate = (candidates: PlacedLabelSeries[]) =>
             _.maxBy(candidates, (c) => scoreMap.get(c.seriesName))
 
         context = pickCandidateWithRetry({

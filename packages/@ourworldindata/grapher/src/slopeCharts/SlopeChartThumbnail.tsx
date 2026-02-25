@@ -26,11 +26,9 @@ import {
 import { Bounds, SeriesName } from "@ourworldindata/utils"
 import { VerticalAxis } from "../axis/Axis"
 import { Slope } from "./Slope"
-import {
-    InitialVerticalLabelsSeries,
-    VerticalLabelsState,
-} from "../verticalLabels/VerticalLabelsState"
-import { VerticalLabels } from "../verticalLabels/VerticalLabels"
+import { InitialSimpleLabelSeries } from "../verticalLabels/SimpleVerticalLabelsTypes.js"
+import { SimpleVerticalLabelsState } from "../verticalLabels/SimpleVerticalLabelsState"
+import { SimpleVerticalLabels } from "../verticalLabels/SimpleVerticalLabels"
 import { MarkX } from "./MarkX"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 
@@ -211,7 +209,9 @@ export class SlopeChartThumbnail
             .yRange()
     }
 
-    @computed private get endLabelsState(): VerticalLabelsState | undefined {
+    @computed private get endLabelsState():
+        | SimpleVerticalLabelsState
+        | undefined {
         if (!this.manager.showLegend) return undefined
 
         const series = this.labelCandidateSeries.map((series) => {
@@ -233,7 +233,7 @@ export class SlopeChartThumbnail
             }
         })
 
-        return new VerticalLabelsState(series, {
+        return new SimpleVerticalLabelsState(series, {
             fontSize: this.labelFontSize,
             fontWeight: 500,
             minSpacing: 2,
@@ -241,7 +241,9 @@ export class SlopeChartThumbnail
         })
     }
 
-    @computed private get startLabelsState(): VerticalLabelsState | undefined {
+    @computed private get startLabelsState():
+        | SimpleVerticalLabelsState
+        | undefined {
         if (!this.manager.showLegend) return undefined
 
         const showEntityNames =
@@ -263,16 +265,16 @@ export class SlopeChartThumbnail
             }
         })
 
-        return new VerticalLabelsState(series, {
+        return new SimpleVerticalLabelsState(series, {
             fontSize: this.labelFontSize,
             fontWeight: 500,
             maxWidth: showEntityNames ? 0.25 * this.bounds.width : undefined,
             minSpacing: showEntityNames ? 5 : 2,
             yRange: this.labelsRange,
             resolveCollision: (
-                s1: InitialVerticalLabelsSeries,
-                s2: InitialVerticalLabelsSeries
-            ): InitialVerticalLabelsSeries => {
+                s1: InitialSimpleLabelSeries,
+                s2: InitialSimpleLabelSeries
+            ): InitialSimpleLabelSeries => {
                 // Prefer to label series that have an end label
                 if (this.visibleEndLabels.has(s1.seriesName)) return s1
                 if (this.visibleEndLabels.has(s2.seriesName)) return s2
@@ -348,7 +350,7 @@ export class SlopeChartThumbnail
                     ))}
                 </g>
                 {this.startLabelsState && (
-                    <VerticalLabels
+                    <SimpleVerticalLabels
                         state={this.startLabelsState}
                         yAxis={this.yAxis}
                         x={this.innerBounds.left - LABEL_PADDING}
@@ -356,7 +358,7 @@ export class SlopeChartThumbnail
                     />
                 )}
                 {this.endLabelsState && (
-                    <VerticalLabels
+                    <SimpleVerticalLabels
                         state={this.endLabelsState}
                         yAxis={this.yAxis}
                         x={this.innerBounds.right + LABEL_PADDING}
