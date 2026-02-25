@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import { makeIdForHumanConsumption } from "@ourworldindata/utils"
+import { makeFigmaId } from "@ourworldindata/utils"
 import { TextWrap } from "@ourworldindata/components"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -183,7 +183,7 @@ export class VerticalColorLegend extends React.Component<{
         const { series, rectSize, rectPadding } = this
 
         return (
-            <g id={makeIdForHumanConsumption("labels")}>
+            <g id={makeFigmaId("labels")}>
                 {series.map((series) => {
                     const style = this.getTextStyleConfig(series.bin)
 
@@ -206,7 +206,7 @@ export class VerticalColorLegend extends React.Component<{
         const { series, rectSize, rectPadding } = this
 
         return (
-            <g id={makeIdForHumanConsumption("swatches")}>
+            <g id={makeFigmaId("swatches")}>
                 {series.map((series) => {
                     const style = this.getMarkerStyleConfig(series.bin)
 
@@ -217,7 +217,7 @@ export class VerticalColorLegend extends React.Component<{
 
                     return (
                         <rect
-                            id={makeIdForHumanConsumption(series.textWrap.text)}
+                            id={makeFigmaId(series.textWrap.text)}
                             key={series.textWrap.text}
                             x={this.legendX}
                             y={renderedTextPosition[1] - rectSize}
@@ -279,7 +279,7 @@ export class VerticalColorLegend extends React.Component<{
     override render(): React.ReactElement {
         return (
             <g
-                id={makeIdForHumanConsumption("vertical-color-legend")}
+                id={makeFigmaId("vertical-color-legend")}
                 className="ScatterColorLegend clickable"
             >
                 {this.title &&

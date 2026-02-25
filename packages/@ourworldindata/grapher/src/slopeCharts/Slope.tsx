@@ -1,4 +1,4 @@
-import { makeIdForHumanConsumption, PointVector } from "@ourworldindata/utils"
+import { makeFigmaId, PointVector } from "@ourworldindata/utils"
 import { GRAPHER_OPACITY_MUTE } from "../core/GrapherConstants"
 import { RenderSlopeChartSeries } from "./SlopeChartConstants"
 
@@ -34,7 +34,7 @@ export function Slope({
         <>
             {showOutline && (
                 <LineWithDots
-                    id={makeIdForHumanConsumption("outline", displayName)}
+                    id={makeFigmaId("outline", displayName)}
                     startPoint={startPoint}
                     endPoint={endPoint}
                     radius={dotRadius + 2 * outlineWidth}
@@ -43,7 +43,7 @@ export function Slope({
                 />
             )}
             <LineWithDots
-                id={makeIdForHumanConsumption("slope", displayName)}
+                id={makeFigmaId("slope", displayName)}
                 startPoint={startPoint}
                 endPoint={endPoint}
                 radius={dotRadius}
@@ -75,21 +75,21 @@ function LineWithDots({
     return (
         <g id={id} opacity={opacity} className="slope">
             <circle
-                id={makeIdForHumanConsumption("start-point")}
+                id={makeFigmaId("start-point")}
                 cx={startPoint.x}
                 cy={startPoint.y}
                 r={radius}
                 fill={color}
             />
             <circle
-                id={makeIdForHumanConsumption("end-point")}
+                id={makeFigmaId("end-point")}
                 cx={endPoint.x}
                 cy={endPoint.y}
                 r={radius}
                 fill={color}
             />
             <line
-                id={makeIdForHumanConsumption("line")}
+                id={makeFigmaId("line")}
                 x1={startPoint.x}
                 y1={startPoint.y}
                 x2={endPoint.x}

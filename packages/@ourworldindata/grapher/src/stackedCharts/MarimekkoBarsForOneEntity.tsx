@@ -1,4 +1,4 @@
-import { makeIdForHumanConsumption } from "@ourworldindata/utils"
+import { makeFigmaId } from "@ourworldindata/utils"
 import { DualAxis } from "../axis/Axis"
 import {
     Bar,
@@ -87,7 +87,7 @@ export function MarimekkoBarsForOneEntity(
     return (
         <g
             key={entityName}
-            id={makeIdForHumanConsumption("bar", entityName)}
+            id={makeFigmaId("bar", entityName)}
             className="bar"
             transform={`translate(${currentX}, ${labelYOffset})`}
             onMouseOver={(ev): void => onEntityMouseOver?.(entityName, ev)}

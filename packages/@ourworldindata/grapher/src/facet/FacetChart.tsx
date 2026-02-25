@@ -12,7 +12,7 @@ import {
     PositionMap,
     HorizontalAlign,
     Color,
-    makeIdForHumanConsumption,
+    makeFigmaId,
     exposeInstanceOnWindow,
     SplitBoundsPadding,
 } from "@ourworldindata/utils"
@@ -945,7 +945,7 @@ export class FacetChart
                                     labelPadding
                                 }
                             />
-                            <g id={makeIdForHumanConsumption(seriesName)}>
+                            <g id={makeFigmaId(seriesName)}>
                                 <ChartComponent
                                     manager={facetChart.manager}
                                     chartType={this.chartTypeName}

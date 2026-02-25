@@ -10,7 +10,7 @@ export {
     getRelativeMouse,
     exposeInstanceOnWindow,
     makeSafeForCSS,
-    makeIdForHumanConsumption,
+    makeFigmaId,
     formatDay,
     formatYear,
     numberMagnitude,

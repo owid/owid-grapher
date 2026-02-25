@@ -7,7 +7,7 @@ import {
     Time,
     HorizontalAlign,
     AxisAlign,
-    makeIdForHumanConsumption,
+    makeFigmaId,
     dyFromAlign,
 } from "@ourworldindata/utils"
 import { computed, makeObservable } from "mobx"
@@ -387,7 +387,7 @@ export class DiscreteBarChart
             <rect
                 key={`bar-${series.seriesName}`}
                 className="bar"
-                id={makeIdForHumanConsumption(series.seriesName)}
+                id={makeFigmaId(series.seriesName)}
                 x={0}
                 y={0}
                 transform={`translate(${series.barX}, ${barY + yOffset})`}
@@ -494,7 +494,7 @@ export class DiscreteBarChart
     private renderBars(): React.ReactElement {
         const yOffset = -this.barHeight / 2
         return (
-            <g id={makeIdForHumanConsumption("bars")}>
+            <g id={makeFigmaId("bars")}>
                 {this.placedSeries.map((series) =>
                     this.renderBar({ series, barY: series.barY, yOffset })
                 )}
@@ -504,7 +504,7 @@ export class DiscreteBarChart
 
     private renderEntityLabels(): React.ReactElement {
         return (
-            <g id={makeIdForHumanConsumption("entity-labels")}>
+            <g id={makeFigmaId("entity-labels")}>
                 {this.placedSeries.map((series) => {
                     const labelY = series.entityLabelY - series.barY
                     return (
@@ -532,7 +532,7 @@ export class DiscreteBarChart
         if (!hasAnnotations) return null
 
         return (
-            <g id={makeIdForHumanConsumption("entity-annotations")}>
+            <g id={makeFigmaId("entity-annotations")}>
                 {this.placedSeries.map((series) => {
                     const annotationY = series.annotationY
                         ? series.annotationY - series.barY
@@ -549,7 +549,7 @@ export class DiscreteBarChart
 
     private renderValueLabels(): React.ReactElement {
         return (
-            <g id={makeIdForHumanConsumption("value-labels")}>
+            <g id={makeFigmaId("value-labels")}>
                 {this.placedSeries.map((series) => {
                     const label = this.formatValue(series)
                     const labelY = 0 // Value label is centered on the bar
@@ -646,7 +646,7 @@ export class DiscreteBarChart
                 update={handlePositionUpdate}
             >
                 {(nodes): React.ReactElement => (
-                    <g id={makeIdForHumanConsumption("bar-rows")}>
+                    <g id={makeFigmaId("bar-rows")}>
                         {nodes.map((node) =>
                             this.renderRow({
                                 series: node.data,
@@ -701,7 +701,7 @@ export class DiscreteBarChart
         return (
             <g
                 ref={this.base}
-                id={makeIdForHumanConsumption("discrete-bar-chart")}
+                id={makeFigmaId("discrete-bar-chart")}
                 className="DiscreteBarChart"
             >
                 {this.renderDefs()}

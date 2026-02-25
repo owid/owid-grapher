@@ -5,7 +5,7 @@ import {
     GridParameters,
     HorizontalAlign,
     Color,
-    makeIdForHumanConsumption,
+    makeFigmaId,
     exposeInstanceOnWindow,
     SplitBoundsPadding,
 } from "@ourworldindata/utils"
@@ -587,7 +587,7 @@ export class FacetMap
                             >
                                 {seriesName}
                             </text>
-                            <g id={makeIdForHumanConsumption(seriesName)}>
+                            <g id={makeFigmaId(seriesName)}>
                                 <ChartComponent
                                     manager={series.manager}
                                     chartType={GRAPHER_MAP_TYPE}

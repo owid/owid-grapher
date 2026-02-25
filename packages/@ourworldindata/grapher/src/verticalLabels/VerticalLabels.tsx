@@ -1,5 +1,5 @@
 import * as React from "react"
-import { makeIdForHumanConsumption } from "@ourworldindata/utils"
+import { makeFigmaId } from "@ourworldindata/utils"
 import { SeriesName } from "@ourworldindata/types"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
 import { darkenColorForText } from "../color/ColorUtils.js"
@@ -28,10 +28,7 @@ export function VerticalLabels({
     const { renderSeries, annotatedSeries, textAnchor } = state
 
     return (
-        <g
-            id={makeIdForHumanConsumption("vertical-labels")}
-            transform={`translate(${x}, 0)`}
-        >
+        <g id={makeFigmaId("vertical-labels")} transform={`translate(${x}, 0)`}>
             {interactive && (
                 <InteractionOverlays
                     series={state.placedSeries}
@@ -65,19 +62,13 @@ function Labels({
     onMouseLeave?: (key: SeriesName) => void
 }): React.ReactElement {
     return (
-        <g
-            id={makeIdForHumanConsumption("text-labels")}
-            style={{ pointerEvents: "none" }}
-        >
+        <g id={makeFigmaId("text-labels")} style={{ pointerEvents: "none" }}>
             {series.map((series, index) => {
                 const color = darkenColorForText(series.color)
                 return (
                     <SeriesLabel
                         key={getSeriesKey(series, index)}
-                        id={makeIdForHumanConsumption(
-                            "label",
-                            series.seriesName
-                        )}
+                        id={makeFigmaId("label", series.seriesName)}
                         state={series.seriesLabel}
                         x={series.labelCoords.x}
                         y={series.labelCoords.y}
@@ -101,7 +92,7 @@ function Annotations({
 }): React.ReactElement | null {
     return (
         <g
-            id={makeIdForHumanConsumption("text-annotations")}
+            id={makeFigmaId("text-annotations")}
             style={{ pointerEvents: "none" }}
         >
             {series.map((series, index) => {
@@ -135,10 +126,7 @@ function ConnectorLines({
     series: RenderLabelSeries[]
 }): React.ReactElement {
     return (
-        <g
-            id={makeIdForHumanConsumption("connectors")}
-            style={{ pointerEvents: "none" }}
-        >
+        <g id={makeFigmaId("connectors")} style={{ pointerEvents: "none" }}>
             {series.map((series, index) => {
                 const { startX, endX } = series.connectorLineCoords
                 const {
@@ -158,7 +146,7 @@ function ConnectorLines({
 
                 return (
                     <path
-                        id={makeIdForHumanConsumption(series.seriesName)}
+                        id={makeFigmaId(series.seriesName)}
                         key={getSeriesKey(series, index)}
                         d={d}
                         stroke={lineColor}

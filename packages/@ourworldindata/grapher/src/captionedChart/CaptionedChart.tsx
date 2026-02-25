@@ -5,7 +5,7 @@ import { observer } from "mobx-react"
 import {
     Bounds,
     exposeInstanceOnWindow,
-    makeIdForHumanConsumption,
+    makeFigmaId,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap, LoadingIndicator } from "@ourworldindata/components"
 import { Header, StaticHeader } from "../header/Header"
@@ -444,7 +444,7 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
         return (
             <>
                 <line
-                    id={makeIdForHumanConsumption("separator-line")}
+                    id={makeFigmaId("separator-line")}
                     x1={this.framePaddingHorizontal}
                     y1={this.bounds.height}
                     x2={
@@ -455,7 +455,7 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
                     stroke="#e7e7e7"
                 ></line>
                 <g
-                    id={makeIdForHumanConsumption("details")}
+                    id={makeFigmaId("details")}
                     transform={`translate(15, ${
                         // + padding below the grey line
                         this.bounds.height + this.framePaddingVertical

@@ -1,5 +1,5 @@
 import * as R from "remeda"
-import { PointVector, makeIdForHumanConsumption } from "@ourworldindata/utils"
+import { PointVector, makeFigmaId } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
 import * as React from "react"
 import { MultiColorPolyline } from "./MultiColorPolyline"
@@ -47,7 +47,7 @@ export class ScatterPoint extends React.Component<ScatterPointProps> {
 
         return (
             <g
-                id={makeIdForHumanConsumption(series.seriesName, "datapoint")}
+                id={makeFigmaId(series.seriesName, "datapoint")}
                 key={series.displayKey}
                 className={series.displayKey}
                 onMouseEnter={
@@ -114,10 +114,7 @@ export class ScatterLine extends React.Component<ScatterLineProps> {
 
         return (
             <g
-                id={makeIdForHumanConsumption(
-                    "scatter-line",
-                    series.displayKey
-                )}
+                id={makeFigmaId("scatter-line", series.displayKey)}
                 key={series.displayKey}
                 className={series.displayKey}
             >
