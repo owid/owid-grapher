@@ -13,7 +13,6 @@ import { LiteClient, liteClient } from "algoliasearch/lite"
 import { createLocalStorageRecentSearchesPlugin } from "@algolia/autocomplete-plugin-recent-searches"
 import {
     ChartRecordType,
-    SearchIndexName,
     Filter,
     FilterType,
     SynonymMap,
@@ -26,7 +25,7 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../../settings/clientSettings.js"
-import { DEFAULT_SEARCH_PLACEHOLDER, parseIndexName } from "./searchClient.js"
+import { DEFAULT_SEARCH_PLACEHOLDER } from "./searchClient.js"
 import {
     PAGES_INDEX,
     CHARTS_INDEX,
@@ -43,6 +42,7 @@ import {
 } from "@ourworldindata/utils"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import Mousetrap from "mousetrap"
+import * as Sentry from "@sentry/react"
 import { match } from "ts-pattern"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { buildSynonymMap } from "./synonymUtils.js"
@@ -91,9 +91,9 @@ const getItemUrl: AutocompleteSource<BaseItem>["getItemUrl"] = ({ item }) =>
 // The slugs we index to Algolia don't include grapher/, explorers/, or data-insights/ subdirectories
 // Prepend them with this function when we need them
 const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
-    const indexName = parseIndexName(item.__autocomplete_indexName as string)
+    const indexName = item.__autocomplete_indexName as string
     return match(indexName)
-        .with(SearchIndexName.Pages, () => {
+        .with(PAGES_INDEX, () => {
             return getCanonicalUrl(BAKED_BASE_URL, {
                 slug: item.slug as string,
                 content: {
@@ -101,7 +101,7 @@ const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
                 },
             })
         })
-        .with(SearchIndexName.ExplorerViewsMdimViewsAndCharts, () => {
+        .with(CHARTS_INDEX, () => {
             return match(item.type as ChartRecordType)
                 .with(ChartRecordType.ExplorerView, () => {
                     const url = new URL(
@@ -136,7 +136,13 @@ const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
                 })
                 .exhaustive()
         })
-        .exhaustive()
+        .otherwise(() => {
+            Sentry.captureMessage(
+                `Unknown Algolia index name: ${indexName}`,
+                { level: "error" }
+            )
+            return urljoin(BAKED_BASE_URL, item.slug as string)
+        })
 }
 
 const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
@@ -211,21 +217,29 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
 
     templates: {
         item: ({ item, components }) => {
-            const index = parseIndexName(
-                item.__autocomplete_indexName as string
-            )
+            const indexName = item.__autocomplete_indexName as string
 
-            const indexLabel =
-                index === SearchIndexName.ExplorerViewsMdimViewsAndCharts
-                    ? item.type === ChartRecordType.ExplorerView
-                        ? "Explorer"
-                        : "Chart"
-                    : getPageTypeNameAndIcon(item.type as OwidGdocType).name
-
-            const indexIcon =
-                index === SearchIndexName.ExplorerViewsMdimViewsAndCharts
-                    ? faLineChart
-                    : getPageTypeNameAndIcon(item.type as OwidGdocType).icon
+            const { label: indexLabel, icon: indexIcon } = match(indexName)
+                .with(CHARTS_INDEX, () => ({
+                    label:
+                        item.type === ChartRecordType.ExplorerView
+                            ? "Explorer"
+                            : "Chart",
+                    icon: faLineChart,
+                }))
+                .with(PAGES_INDEX, () => {
+                    const { name, icon } = getPageTypeNameAndIcon(
+                        item.type as OwidGdocType
+                    )
+                    return { label: name, icon }
+                })
+                .otherwise(() => {
+                    Sentry.captureMessage(
+                        `Unknown Algolia index name: ${indexName}`,
+                        { level: "error" }
+                    )
+                    return { label: "Result", icon: faSearch }
+                })
 
             return (
                 <span

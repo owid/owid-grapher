@@ -14,7 +14,6 @@ import {
     StackedArticleHit,
     TopicPageHit,
     FilterType,
-    SearchIndexName,
     SearchFlatArticleResponse,
 } from "@ourworldindata/types"
 import { type LiteClient } from "algoliasearch/lite"
@@ -42,29 +41,17 @@ function makeStateForKey(state: SearchState) {
 export const searchQueryKeys = {
     topicTagGraph: ["topicTagGraph"] as const,
     charts: (state: SearchState) =>
-        [
-            SearchIndexName.ExplorerViewsMdimViewsAndCharts,
-            "charts",
-            makeStateForKey(state),
-        ] as const,
+        [CHARTS_INDEX, "charts", makeStateForKey(state)] as const,
     dataTopics: (state: SearchState) =>
-        [
-            SearchIndexName.ExplorerViewsMdimViewsAndCharts,
-            "topics",
-            makeStateForKey(state),
-        ] as const,
+        [CHARTS_INDEX, "topics", makeStateForKey(state)] as const,
     dataInsights: (state: SearchState) =>
-        [
-            SearchIndexName.Pages,
-            "data-insights",
-            makeStateForKey(state),
-        ] as const,
+        [PAGES_INDEX, "data-insights", makeStateForKey(state)] as const,
     articles: (state: SearchState) =>
-        [SearchIndexName.Pages, "articles", makeStateForKey(state)] as const,
+        [PAGES_INDEX, "articles", makeStateForKey(state)] as const,
     topicPages: (state: SearchState) =>
-        [SearchIndexName.Pages, "topic-pages", makeStateForKey(state)] as const,
+        [PAGES_INDEX, "topic-pages", makeStateForKey(state)] as const,
     writingTopics: (state: SearchState) =>
-        [SearchIndexName.Pages, "topics", makeStateForKey(state)] as const,
+        [PAGES_INDEX, "topics", makeStateForKey(state)] as const,
 } as const
 
 export const chartHitQueryKeys = {
