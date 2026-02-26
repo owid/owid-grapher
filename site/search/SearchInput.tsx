@@ -16,6 +16,7 @@ export const SearchInput = forwardRef(
             setLocalQuery,
             setGlobalQuery,
             onBackspaceEmpty,
+            autoFocus,
             children,
             resetButton,
         }: {
@@ -23,6 +24,7 @@ export const SearchInput = forwardRef(
             setLocalQuery: (query: string) => void
             setGlobalQuery: (query: string) => void
             onBackspaceEmpty: () => void
+            autoFocus: boolean
             children?: ReactNode
             resetButton?: React.ReactNode
         },
@@ -126,7 +128,7 @@ export const SearchInput = forwardRef(
                         enterKeyHint="search"
                         value={value}
                         role="combobox"
-                        autoFocus
+                        autoFocus={autoFocus}
                         aria-expanded={showSuggestions}
                         aria-controls={autocompleteId}
                         aria-activedescendant={activeOptionId}

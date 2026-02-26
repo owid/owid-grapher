@@ -68,6 +68,13 @@ Feature: Search autocomplete
         When I type "gdp" in the search autocomplete input
         Then suggestions should be visible
 
+    Scenario: Autofocus is only applied on initial load
+        Given I am on the search page
+        Then the search autocomplete input should be focused
+        When I select the topic refinement "Population & Demographic Change"
+        Then I see "Population & Demographic Change" as an active topic filter
+        And the search autocomplete input should not be focused
+
     Scenario: Sync local query
         Given I am on the search page
         When I select the topic refinement "Population & Demographic Change"
