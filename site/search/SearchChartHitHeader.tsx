@@ -1,7 +1,7 @@
 import cx from "classnames"
 import { Highlight } from "react-instantsearch"
-import { getIndexName } from "./searchClient.js"
-import { SearchChartHit, SearchIndexName } from "@ourworldindata/types"
+import { CHARTS_INDEX } from "./searchUtils.js"
+import { SearchChartHit } from "@ourworldindata/types"
 
 interface SearchChartHitHeaderProps {
     hit: SearchChartHit
@@ -29,9 +29,7 @@ export function SearchChartHitHeader({
             })}
             href={url}
             onClick={() => onClick(null)}
-            data-algolia-index={getIndexName(
-                SearchIndexName.ExplorerViewsMdimViewsAndCharts
-            )}
+            data-algolia-index={CHARTS_INDEX}
             data-algolia-object-id={hit.objectID}
             data-algolia-position={hit.__position}
         >

@@ -357,6 +357,7 @@ export const constructConfigUrl = ({
 export const CHARTS_INDEX = getIndexName(
     SearchIndexName.ExplorerViewsMdimViewsAndCharts
 )
+export const PAGES_INDEX = getIndexName(SearchIndexName.Pages)
 export const DATA_CATALOG_ATTRIBUTES = [
     "title",
     "slug",

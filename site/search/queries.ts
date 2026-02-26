@@ -14,7 +14,6 @@ import {
     StackedArticleHit,
     TopicPageHit,
     FilterType,
-    SearchIndexName,
     SearchFlatArticleResponse,
 } from "@ourworldindata/types"
 import { type LiteClient } from "algoliasearch/lite"
@@ -25,6 +24,7 @@ import {
     formatFeaturedMetricFacetFilter,
     getSelectableTopics,
     CHARTS_INDEX,
+    PAGES_INDEX,
     DATA_CATALOG_ATTRIBUTES,
     formatDisjunctiveFacetFilters,
 } from "./searchUtils.js"
@@ -41,29 +41,17 @@ function makeStateForKey(state: SearchState) {
 export const searchQueryKeys = {
     topicTagGraph: ["topicTagGraph"] as const,
     charts: (state: SearchState) =>
-        [
-            SearchIndexName.ExplorerViewsMdimViewsAndCharts,
-            "charts",
-            makeStateForKey(state),
-        ] as const,
+        [CHARTS_INDEX, "charts", makeStateForKey(state)] as const,
     dataTopics: (state: SearchState) =>
-        [
-            SearchIndexName.ExplorerViewsMdimViewsAndCharts,
-            "topics",
-            makeStateForKey(state),
-        ] as const,
+        [CHARTS_INDEX, "topics", makeStateForKey(state)] as const,
     dataInsights: (state: SearchState) =>
-        [
-            SearchIndexName.Pages,
-            "data-insights",
-            makeStateForKey(state),
-        ] as const,
+        [PAGES_INDEX, "data-insights", makeStateForKey(state)] as const,
     articles: (state: SearchState) =>
-        [SearchIndexName.Pages, "articles", makeStateForKey(state)] as const,
+        [PAGES_INDEX, "articles", makeStateForKey(state)] as const,
     topicPages: (state: SearchState) =>
-        [SearchIndexName.Pages, "topic-pages", makeStateForKey(state)] as const,
+        [PAGES_INDEX, "topic-pages", makeStateForKey(state)] as const,
     writingTopics: (state: SearchState) =>
-        [SearchIndexName.Pages, "topics", makeStateForKey(state)] as const,
+        [PAGES_INDEX, "topics", makeStateForKey(state)] as const,
 } as const
 
 export const chartHitQueryKeys = {
@@ -205,7 +193,7 @@ export async function queryDataInsights(
 
     const searchParams = [
         {
-            indexName: SearchIndexName.Pages,
+            indexName: PAGES_INDEX,
             query,
             filters: `type:${OwidGdocType.DataInsight}`,
             facetFilters: formatTopicFacetFilters(selectedTopics),
@@ -260,7 +248,7 @@ export async function queryArticles(
 
     const searchParams = [
         {
-            indexName: SearchIndexName.Pages,
+            indexName: PAGES_INDEX,
             query,
             filters: `type:${OwidGdocType.Article} OR type:${OwidGdocType.AboutPage}`,
             facetFilters: formatTopicFacetFilters(selectedTopics),
@@ -303,7 +291,7 @@ export async function queryTopicPages(
 
     const searchParams = [
         {
-            indexName: SearchIndexName.Pages,
+            indexName: PAGES_INDEX,
             query: state.query,
             filters: `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`,
             facetFilters: formatTopicFacetFilters(selectedTopics),
@@ -339,7 +327,7 @@ export async function queryWritingTopics(
 
         return [
             {
-                indexName: SearchIndexName.Pages,
+                indexName: PAGES_INDEX,
                 attributesToRetrieve: [
                     "title",
                     "slug",
@@ -354,7 +342,7 @@ export async function queryWritingTopics(
                 hitsPerPage: 3,
             },
             {
-                indexName: SearchIndexName.Pages,
+                indexName: PAGES_INDEX,
                 attributesToRetrieve: ["title", "slug", "type"],
                 filters: `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`,
                 facetFilters: topicFacetFilters,

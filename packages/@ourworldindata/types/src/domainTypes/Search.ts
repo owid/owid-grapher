@@ -105,14 +105,6 @@ export enum SearchIndexName {
     ExplorerViewsMdimViewsAndCharts = "explorer-views-and-charts",
 }
 
-export type SearchCategoryFilter = SearchIndexName | "all"
-
-export const searchCategoryFilters: [string, SearchCategoryFilter][] = [
-    ["All", "all"],
-    ["Research & Writing", SearchIndexName.Pages],
-    ["Charts", SearchIndexName.ExplorerViewsMdimViewsAndCharts],
-]
-
 interface BaseSearchChartHit {
     title: string
     slug: string
