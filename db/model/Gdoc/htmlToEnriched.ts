@@ -1014,4 +1014,19 @@ function getEnrichedBlockTextFromBlockParseResult(
     }
 }
 
+/**
+ * Convert an HTML fragment into enriched blocks by unwrapping the
+ * top-level element and converting its children.  Used by the indexing
+ * pipeline so that raw-HTML table cells go through the same
+ * enriched-block → plaintext path as regular table cells.
+ */
+export function htmlToEnrichedBlocks(html: string): OwidEnrichedGdocBlock[] {
+    const $ = cheerio.load(html)
+    const body = $("body")[0]
+    if (!body) return []
+    const context: ParseContext = { $, htmlTagCounts: {} }
+    const result = unwrapElement(body, context)
+    return result.content.filter(isArchieMlComponent)
+}
+
 //#endregion
