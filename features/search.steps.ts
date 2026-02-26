@@ -19,27 +19,39 @@ const getSearchAutocompleteInput = (page: Page): Locator =>
 const getHomepageAutocompleteInput = (page: Page): Locator =>
     page.getByTestId("autocomplete-input")
 
-const getUrlParam = (url: string, param: string): string | null => {
-    const params = new URL(url).searchParams
-    return params.get(param)
+const getUrlParam = (url: string | URL, param: string): string | null => {
+    const raw = (url instanceof URL ? url : new URL(url)).searchParams.get(
+        param
+    )
+    if (param === SearchUrlParam.TOPIC && raw) {
+        return raw.replaceAll(" and ", " & ")
+    }
+    return raw
 }
 
-const getTopicFromUrl = (url: string): string | null => {
-    const topic = getUrlParam(url, SearchUrlParam.TOPIC)
-    // Topic names use " and " in URLs but are displayed as " & ".
-    // See also buildFilterTestId in searchUtils.tsx for the same
-    // transformation applied to test IDs.
-    return topic?.replaceAll(" and ", " & ") ?? null
+// Polls the URL until the given param matches the expected value.
+// URL sanitization happens asynchronously in a React useEffect, so
+// a synchronous page.url() check can see stale params. This helper
+// uses Playwright's polling toHaveURL() to wait for the final state.
+//   - null:     param should be absent
+//   - string:   exact match
+//   - string[]: every value present in the "~"-separated param
+const expectUrlParam = async (
+    page: Page,
+    param: string,
+    value: string | string[] | null
+): Promise<void> => {
+    await expect(page).toHaveURL((url) => {
+        const raw = getUrlParam(url, param)
+        if (value === null) return raw === null
+        if (Array.isArray(value)) {
+            if (!raw) return false
+            const present = raw.split("~").map((c) => c.trim())
+            return value.every((v) => present.includes(v))
+        }
+        return raw === value
+    })
 }
-
-const getQueryFromUrl = (url: string): string | null =>
-    getUrlParam(url, SearchUrlParam.QUERY)
-
-const getCountriesFromUrl = (url: string): string | null =>
-    getUrlParam(url, SearchUrlParam.COUNTRY)
-
-const getResultTypeFromUrl = (url: string): string | null =>
-    getUrlParam(url, SearchUrlParam.RESULT_TYPE)
 
 // --- Given steps ---
 
@@ -216,100 +228,91 @@ Then(
 )
 
 Then("the url contains the topic filter {string}", async ({ page }, topic) => {
-    const topicInUrl = getTopicFromUrl(page.url())
-    expect(topicInUrl).toBe(topic)
+    await expectUrlParam(page, SearchUrlParam.TOPIC, topic)
 })
 
 Then("the url no longer contains topic filters", async ({ page }) => {
-    const topicInUrl = getTopicFromUrl(page.url())
-    expect(topicInUrl).toBeNull()
+    await expectUrlParam(page, SearchUrlParam.TOPIC, null)
 })
 
 Then("the url no longer contains country filters", async ({ page }) => {
-    const countriesInUrl = getCountriesFromUrl(page.url())
-    expect(countriesInUrl).toBeNull()
+    await expectUrlParam(page, SearchUrlParam.COUNTRY, null)
 })
 
 Then("the url no longer contains query filters", async ({ page }) => {
-    const queryInUrl = getQueryFromUrl(page.url())
-    expect(queryInUrl).toBeNull()
+    await expectUrlParam(page, SearchUrlParam.QUERY, null)
 })
 
 Then(
     "the url contains the country filter {string}",
     async ({ page }, country) => {
-        const countriesInUrl = getCountriesFromUrl(page.url())
-        expect(countriesInUrl).toBeTruthy()
-        const countries = countriesInUrl!.split("~").map((item) => item.trim())
-        expect(countries).toContain(country)
+        await expectUrlParam(page, SearchUrlParam.COUNTRY, [country])
     }
 )
 
 Then(
     "the url contains the result type {string}",
     async ({ page }, resultType) => {
-        const resultTypeInUrl = getResultTypeFromUrl(page.url())
-        expect(resultTypeInUrl).toBe(resultType)
+        await expectUrlParam(page, SearchUrlParam.RESULT_TYPE, resultType)
     }
 )
 
 Then(
     "the url contains the query {string} and the topic filter {string}",
     async ({ page }, query, topic) => {
-        expect(getQueryFromUrl(page.url())).toBe(query)
-        expect(getTopicFromUrl(page.url())).toBe(topic)
+        await expectUrlParam(page, SearchUrlParam.QUERY, query)
+        await expectUrlParam(page, SearchUrlParam.TOPIC, topic)
     }
 )
 
 Then(
     "the url contains the query {string}, the topic filter {string}, and the country {string}",
     async ({ page }, query, topic, country) => {
-        expect(getQueryFromUrl(page.url())).toBe(query)
-        expect(getTopicFromUrl(page.url())).toBe(topic)
-        expect(getCountriesFromUrl(page.url())).toBe(country)
+        await expectUrlParam(page, SearchUrlParam.QUERY, query)
+        await expectUrlParam(page, SearchUrlParam.TOPIC, topic)
+        await expectUrlParam(page, SearchUrlParam.COUNTRY, country)
     }
 )
 
 Then(
     "the url contains the query {string} and the country {string}",
     async ({ page }, query, country) => {
-        expect(getQueryFromUrl(page.url())).toBe(query)
-        expect(getCountriesFromUrl(page.url())).toBe(country)
+        await expectUrlParam(page, SearchUrlParam.QUERY, query)
+        await expectUrlParam(page, SearchUrlParam.COUNTRY, country)
     }
 )
 
 Then(
     "the url contains the query {string} and the countries {string}, {string}, {string}, and {string}",
     async ({ page }, query, country1, country2, country3, country4) => {
-        expect(getQueryFromUrl(page.url())).toBe(query)
-        const countriesParam = getCountriesFromUrl(page.url())
-        expect(countriesParam).toBeTruthy()
-        const countries = countriesParam!.split("~").map((c) => c.trim())
-        expect(countries).toContain(country1)
-        expect(countries).toContain(country2)
-        expect(countries).toContain(country3)
-        expect(countries).toContain(country4)
+        await expectUrlParam(page, SearchUrlParam.QUERY, query)
+        await expectUrlParam(page, SearchUrlParam.COUNTRY, [
+            country1,
+            country2,
+            country3,
+            country4,
+        ])
     }
 )
 
 Then("the url contains the query {string}", async ({ page }, query) => {
-    expect(getQueryFromUrl(page.url())).toBe(query)
+    await expectUrlParam(page, SearchUrlParam.QUERY, query)
 })
 
 Then(
     "the url is sanitized to only contain the query {string}",
     async ({ page }, query) => {
-        expect(getQueryFromUrl(page.url())).toBe(query)
-        expect(getCountriesFromUrl(page.url())).toBeNull()
-        expect(getTopicFromUrl(page.url())).toBeNull()
+        await expectUrlParam(page, SearchUrlParam.QUERY, query)
+        await expectUrlParam(page, SearchUrlParam.COUNTRY, null)
+        await expectUrlParam(page, SearchUrlParam.TOPIC, null)
     }
 )
 
 Then(
     "the url is sanitized to only contain the country {string}",
     async ({ page }, country) => {
-        expect(getCountriesFromUrl(page.url())).toBe(country)
-        expect(getQueryFromUrl(page.url())).toBeNull()
+        await expectUrlParam(page, SearchUrlParam.COUNTRY, country)
+        await expectUrlParam(page, SearchUrlParam.QUERY, null)
     }
 )
 
