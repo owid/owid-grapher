@@ -49,7 +49,11 @@ import { GdocsEditLink } from "./GdocsEditLink.js"
 import { openSuccessNotification } from "./gdocsNotifications.js"
 import { GdocsDiffButton } from "./GdocsDiffButton.js"
 import { GdocsDiff } from "./GdocsDiff.js"
-import { GdocsRecordsPreview } from "./GdocsRecordsPreview.js"
+import {
+    GdocsRecordsPreview,
+    RecordsPreviewModeToggle,
+    RecordsPreviewMode,
+} from "./GdocsRecordsPreview.js"
 import {
     BAKED_BASE_URL,
     PUBLISHED_AT_FORMAT,
@@ -86,6 +90,8 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     >()
     const [isDiffOpen, setDiffOpen] = useState(false)
     const [isRecordsOpen, setRecordsOpen] = useState(false)
+    const [recordsPreviewMode, setRecordsPreviewMode] =
+        useState<RecordsPreviewMode>("records")
     const [errors, setErrors] = React.useState<OwidGdocErrorMessage[]>()
     const { admin } = useContext(AdminAppContext)
     const store = useGdocsStore()
@@ -581,13 +587,20 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                 <Drawer
                     placement="bottom"
                     size="large"
-                    title="Algolia index preview"
+                    title="Index preview"
+                    extra={
+                        <RecordsPreviewModeToggle
+                            mode={recordsPreviewMode}
+                            onChange={setRecordsPreviewMode}
+                        />
+                    }
                     onClose={() => setRecordsOpen(false)}
                     open={isRecordsOpen}
                 >
                     <GdocsRecordsPreview
                         gdocId={currentGdoc.id}
                         open={isRecordsOpen}
+                        mode={recordsPreviewMode}
                     />
                 </Drawer>
 
