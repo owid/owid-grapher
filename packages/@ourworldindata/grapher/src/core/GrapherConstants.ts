@@ -100,7 +100,7 @@ export const isWorldEntityName = (entityName: EntityName): boolean =>
 
 export const CONTINENTS_INDICATOR_ID = 900801 // "Countries Continent"
 export const POPULATION_INDICATOR_ID_USED_IN_ADMIN = 953899 // "Population (various sources, 2024-07-15)"
-export const GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ADMIN = 900793 // "GDP per capita - Maddison Project Database (2024-04-26)"
+export const GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ADMIN = 1144914 // "GDP per capita, PPP (constant 2021 international $)"
 
 export const isContinentsVariableId = (id: string | number): boolean =>
     id.toString() === CONTINENTS_INDICATOR_ID.toString()
