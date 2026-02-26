@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react"
+import { useCallback, useState } from "react"
 import {
     AssetMap,
     generateSourceProps,
@@ -89,7 +89,6 @@ export default function Image(props: {
     // Manually-passed image data (for StaticViz)
     imageData?: ImageMetadata
     smallImageData?: ImageMetadata
-    DownloadButton?: React.ReactNode
 }) {
     const {
         filename,
@@ -101,7 +100,6 @@ export default function Image(props: {
         preferSmallFilename,
         imageData,
         smallImageData,
-        DownloadButton,
     } = props
 
     const className = cx("image", props.className, {
@@ -174,15 +172,13 @@ export default function Image(props: {
         assetMap
     )
 
-    const downloadButton = !isInteractive
-        ? null
-        : (DownloadButton ??
-          (!shouldHideDownloadButton && (
-              <FloatingDownloadButton
-                  label="Download"
-                  onClick={() => void handleDownload()}
-              />
-          )))
+    const downloadButton =
+        isInteractive && !shouldHideDownloadButton ? (
+            <FloatingDownloadButton
+                label="Download"
+                onClick={() => void handleDownload()}
+            />
+        ) : null
 
     return (
         <div className={className}>
@@ -218,6 +214,7 @@ export default function Image(props: {
                     width={activeImage.originalWidth}
                     height={activeImage.originalHeight}
                     alt={alt}
+                    hideDownload={shouldHideDownloadButton}
                 />
             )}
         </div>
