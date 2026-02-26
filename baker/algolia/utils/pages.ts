@@ -17,7 +17,7 @@ import {
     Span,
 } from "@ourworldindata/utils"
 import { getAlgoliaClient } from "../configureAlgolia.js"
-import { PageRecord } from "@ourworldindata/types"
+import { PageRecord, OwidGdocProfileInterface } from "@ourworldindata/types"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import { PAGES_INDEX } from "../../../site/search/searchUtils.js"
 import type { Hit, SearchClient } from "@algolia/client-search"
@@ -176,17 +176,14 @@ function stripNonSearchableCharacters(content: string): string {
 
 /** Build indexable body text with linked-callout resolution and lightweight
  *  cleanup (remove non-searchable symbols), while preserving paragraph breaks. */
-export function getPreprocessedIndexableText(
-    body:
-        | (
-              | OwidGdocPostInterface
-              | OwidGdocDataInsightInterface
-          )["content"]["body"]
-        | undefined,
-    linkedCallouts: (
+export function getPreprocessedIndexableText<
+    IndexableGdoc extends
         | OwidGdocPostInterface
         | OwidGdocDataInsightInterface
-    )["linkedCallouts"]
+        | OwidGdocProfileInterface,
+>(
+    body: IndexableGdoc["content"]["body"] | undefined,
+    linkedCallouts: IndexableGdoc["linkedCallouts"]
 ): string {
     const indexableText = enrichedBlocksToIndexableText(body, {
         linkedCallouts,
