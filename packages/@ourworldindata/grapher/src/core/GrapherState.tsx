@@ -2390,6 +2390,20 @@ export class GrapherState
         )
     }
 
+    /** Check if 'vs. x-axis label' should be added to the title */
+    @computed private get shouldAddXIndicatorLabelToTitle(): boolean {
+        return (
+            // Only add if currently on the scatter tab
+            this.isOnScatterTab &&
+            // Don't add if the main chart type is a scatter
+            !this.isScatter &&
+            // Check if an x-column is available
+            this.isReady &&
+            !!this.xColumnSlug &&
+            this.inputTable.has(this.xColumnSlug)
+        )
+    }
+
     @computed get currentTitle(): string {
         let text = this.displayTitle.trim()
         if (text.length === 0) return text
@@ -2402,6 +2416,15 @@ export class GrapherState
         ): string => {
             const separator = text.endsWith("?") ? "" : ","
             return `${text}${separator} ${annotation}`
+        }
+
+        // Add the x-axis label to the title for secondary scatter plots
+        if (this.shouldAddXIndicatorLabelToTitle) {
+            const xAxisLabel =
+                this.xAxisConfig.label ??
+                this.inputTable.get(this.xColumnSlug).titlePublicOrDisplayName
+                    .title
+            if (xAxisLabel) text += ` vs. ${xAxisLabel}`
         }
 
         if (this.shouldAddEntitySuffixToTitle) {
