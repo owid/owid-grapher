@@ -291,7 +291,7 @@ export class FacetMap
                 table,
                 transformedTable: transformedTableFromGrapher,
                 fontSize: facetFontSize,
-                showLegend: false,
+                hideMapLegend: true,
                 backgroundColor,
                 isStatic,
                 mapColumnSlug,

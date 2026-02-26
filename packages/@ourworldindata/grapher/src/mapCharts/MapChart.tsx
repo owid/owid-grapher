@@ -238,7 +238,7 @@ export class MapChart
             legendStyleConfig,
         } = this
 
-        if (this.manager.showLegend) return undefined
+        if (!this.manager.hideMapLegend) return undefined
 
         return {
             numericLegendData,
@@ -537,7 +537,8 @@ export class MapChart
         | undefined {
         if (this.manager.isDisplayedAlongsideComplementaryTable)
             return undefined
-        return this.manager.showLegend && this.categoricalLegendData.length > 1
+        return !this.manager.hideMapLegend &&
+            this.categoricalLegendData.length > 1
             ? new HorizontalCategoricalColorLegend({ manager: this })
             : undefined
     }
@@ -547,7 +548,7 @@ export class MapChart
         | undefined {
         if (this.manager.isDisplayedAlongsideComplementaryTable)
             return undefined
-        return this.manager.showLegend && this.numericLegendData.length > 1
+        return !this.manager.hideMapLegend && this.numericLegendData.length > 1
             ? new HorizontalNumericColorLegend({ manager: this })
             : undefined
     }

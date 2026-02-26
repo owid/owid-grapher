@@ -143,6 +143,7 @@ export interface MapChartManager extends ChartManager {
     highlightedTimesInTooltip?: [Time, Time]
     mapViewport?: MapViewport
     isFaceted?: boolean
+    hideMapLegend?: boolean
     logGrapherInteractionEvent?: (
         action: GrapherInteractionEvent,
         target?: string
