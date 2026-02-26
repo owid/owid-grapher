@@ -23,6 +23,7 @@ import {
     formatDate,
     excludeUndefined,
     Url,
+    getRegionByNameOrVariantName,
 } from "@ourworldindata/utils"
 import { docs as googleDocs, type docs_v1 } from "@googleapis/docs"
 import { gdocToArchie } from "./gdocToArchie.js"
@@ -79,7 +80,10 @@ import {
     getAllNarrativeChartNames,
     getNarrativeChartsInfo,
 } from "../NarrativeChart.js"
-import { loadAndClearLinkedCallouts } from "./dataCallouts.js"
+import {
+    loadAndClearLinkedCallouts,
+    computeAvailableEntityCodes,
+} from "./dataCallouts.js"
 
 import { indexBy } from "remeda"
 import {
@@ -1111,8 +1115,9 @@ export class GdocBase implements OwidGdocBaseInterface {
             await match(link)
                 .with({ linkType: ContentGraphLinkType.Gdoc }, () => {
                     const id = getUrlTarget(link.target)
-                    const doesGdocExist = Boolean(this.linkedDocuments[id])
-                    const isGdocPublished = this.linkedDocuments[id]?.published
+                    const linkedDoc = this.linkedDocuments[id]
+                    const doesGdocExist = Boolean(linkedDoc)
+                    const isGdocPublished = linkedDoc?.published
                     if (!doesGdocExist || !isGdocPublished) {
                         linkErrors.push({
                             property: "linkedDocuments",
@@ -1123,6 +1128,46 @@ export class GdocBase implements OwidGdocBaseInterface {
                             } gdoc with ID "${link.target}"`,
                             type: OwidGdocErrorMessageType.Warning,
                         })
+                    }
+
+                    // Validate profile links: must have ?entity=X with a valid, available entity
+                    if (
+                        linkedDoc?.type === OwidGdocType.Profile &&
+                        doesGdocExist &&
+                        isGdocPublished
+                    ) {
+                        const queryParams = Url.fromURL(
+                            link.queryString
+                        ).queryParams
+                        const entityParam = queryParams.entity
+                        if (!entityParam) {
+                            linkErrors.push({
+                                property: "linkedDocuments",
+                                message: `Link with text "${link.text}" to profile "${linkedDoc.slug}" must include a ?entity= parameter (e.g. ?entity=France).`,
+                                type: OwidGdocErrorMessageType.Error,
+                            })
+                        } else {
+                            const region =
+                                getRegionByNameOrVariantName(entityParam)
+                            if (!region) {
+                                linkErrors.push({
+                                    property: "linkedDocuments",
+                                    message: `Link with text "${link.text}" to profile "${linkedDoc.slug}" has unknown entity "${entityParam}".`,
+                                    type: OwidGdocErrorMessageType.Error,
+                                })
+                            } else if (
+                                linkedDoc.availableEntityCodes &&
+                                !linkedDoc.availableEntityCodes.includes(
+                                    region.code
+                                )
+                            ) {
+                                linkErrors.push({
+                                    property: "linkedDocuments",
+                                    message: `Link with text "${link.text}" to profile "${linkedDoc.slug}": entity "${entityParam}" is not available for this profile.`,
+                                    type: OwidGdocErrorMessageType.Error,
+                                })
+                            }
+                        }
                     }
                 })
                 .with({ linkType: ContentGraphLinkType.Grapher }, async () => {
@@ -1366,7 +1411,20 @@ export async function getMinimalGdocPostsByIds(
             WHERE id in (:ids)`,
         { ids }
     )
-    return rows.map(rawGdocToMinimalPost)
+    const posts = rows.map(rawGdocToMinimalPost)
+
+    // Enrich profile-type docs with data-availability-filtered entity codes
+    for (let i = 0; i < rows.length; i++) {
+        if (posts[i].type === OwidGdocType.Profile) {
+            const content = JSON.parse(rows[i].content)
+            if (content.scope) {
+                posts[i].availableEntityCodes =
+                    await computeAvailableEntityCodes(knex, content)
+            }
+        }
+    }
+
+    return posts
 }
 
 export async function getMinimalAuthorsByNames(
