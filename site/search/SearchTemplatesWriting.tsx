@@ -1,12 +1,12 @@
-import { match } from "ts-pattern"
-import { useSearchContext } from "./SearchContext.js"
-import { SearchTopicType } from "@ourworldindata/types"
-import { SearchWritingResults } from "./SearchWritingResults.js"
-import { SearchDataInsightsResults } from "./SearchDataInsightsResults.js"
-import { SearchWritingTopicsResults } from "./SearchWritingTopicsResults.js"
+import { match } from "ts-pattern";
+import { useSearchContext } from "./SearchContext.js";
+import { SearchTopicType } from "@ourworldindata/types";
+import { SearchWritingResults } from "./SearchWritingResults.js";
+import { SearchDataInsightsResults } from "./SearchDataInsightsResults.js";
+import { SearchWritingTopicsResults } from "./SearchWritingTopicsResults.js";
 
 export const SearchTemplatesWriting = () => {
-    const { templateConfig } = useSearchContext()
+    const { templateConfig } = useSearchContext();
 
     return (
         match([
@@ -97,5 +97,5 @@ export const SearchTemplatesWriting = () => {
             // Writing + No Topic + No Country + No Query
             .with([null, false, false], () => <SearchWritingTopicsResults />)
             .exhaustive()
-    )
-}
+    );
+};
