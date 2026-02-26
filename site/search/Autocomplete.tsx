@@ -137,10 +137,9 @@ const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
                 .exhaustive()
         })
         .otherwise(() => {
-            Sentry.captureMessage(
-                `Unknown Algolia index name: ${indexName}`,
-                { level: "error" }
-            )
+            Sentry.captureMessage(`Unknown Algolia index name: ${indexName}`, {
+                level: "error",
+            })
             return urljoin(BAKED_BASE_URL, item.slug as string)
         })
 }
