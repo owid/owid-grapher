@@ -1,5 +1,5 @@
 $schema: "http://json-schema.org/draft-07/schema#"
-$id: "https://files.ourworldindata.org/schemas/grapher-schema.009.json"
+$id: "https://files.ourworldindata.org/schemas/grapher-schema.010.json"
 # If you update the required keys, make sure that the mergeGrapherConfigs and
 # diffGrapherConfigs functions both reflect this change
 required:
@@ -14,12 +14,12 @@ properties:
         type: string
         description: Url of the concrete schema version to use to validate this document
         format: uri
-        default: "https://files.ourworldindata.org/schemas/grapher-schema.009.json"
+        default: "https://files.ourworldindata.org/schemas/grapher-schema.010.json"
         # We restrict the $schema field to a single value since we expect all
         # configs in our database to be valid against the latest schema.
         # If we ever need to validate configs against multiple schema versions,
         # we can remove this constraint.
-        const: "https://files.ourworldindata.org/schemas/grapher-schema.009.json"
+        const: "https://files.ourworldindata.org/schemas/grapher-schema.010.json"
     id:
         type: integer
         description: Internal database id
@@ -392,12 +392,6 @@ properties:
             - owid
             - core+owid
             - gv+owid
-    hideLegend:
-        type: boolean
-        default: false
-        description: |
-            Whether to hide a chart's legend. Applies to line charts,
-            stacked discrete bar charts and stacked bar charts
     hideSeriesLabels:
         type: boolean
         default: false

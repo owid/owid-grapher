@@ -1,9 +1,4 @@
-import {
-    EntitySelectionMode,
-    GrapherInterface,
-    ScaleType,
-    merge,
-} from "@ourworldindata/utils"
+import { EntitySelectionMode, ScaleType, merge } from "@ourworldindata/utils"
 import { MigrationInterface, QueryRunner } from "typeorm"
 
 export class MigrateSlopeCharts1733850122191 implements MigrationInterface {
@@ -54,7 +49,7 @@ export class MigrateSlopeCharts1733850122191 implements MigrationInterface {
     public async down(): Promise<void> {}
 }
 
-const configUpdates: { id: number; config: GrapherInterface }[] = [
+const configUpdates = [
     {
         id: 414,
         config: {

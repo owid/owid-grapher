@@ -371,12 +371,6 @@ export class GrapherState
     logo: LogoOption | undefined = undefined
 
     /**
-     * Whether to hide a chart's legend. Applies to line charts, stacked
-     * discrete bar charts and stacked bar charts
-     */
-    hideLegend: boolean | undefined = false
-
-    /**
      * Whether to hide the inline series labels drawn at the end of each
      * series. Applies to line, slope, and stacked area charts
      */
@@ -525,6 +519,9 @@ export class GrapherState
     })
 
     variant = GrapherVariant.Default
+
+    /** Whether to hide a chart's legends */
+    hideLegend: boolean | undefined = false
 
     /**
      * Indicates whether the chart is embedded alongside a complementary table.
@@ -2370,7 +2367,9 @@ export class GrapherState
         return !!(
             !this.forceHideAnnotationFieldsInTitle?.entity &&
             this.isOnChartTab &&
-            (seriesStrategy !== SeriesStrategy.entity || !this.showLegend) &&
+            (seriesStrategy !== SeriesStrategy.entity ||
+                !this.showLegend ||
+                !this.showSeriesLabels) &&
             selectedEntityNames.length === 1 &&
             (showEntityAnnotation ||
                 this.canChangeEntity ||
