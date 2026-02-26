@@ -513,6 +513,7 @@ export class ScatterPlotChart
                 tooltipSeriesName={this.tooltipSeries?.seriesName}
                 disableIntroAnimation={this.manager.disableIntroAnimation}
                 hideScatterLabels={this.hideScatterLabels}
+                hideEntityLabels={!this.manager.showSeriesLabels}
                 onMouseEnter={this.onScatterMouseEnter}
                 onMouseLeave={this.onScatterMouseLeave}
                 onClick={this.onScatterClick}
