@@ -447,6 +447,7 @@ export function Autocomplete({
         const input =
             containerRef.current.querySelector<HTMLInputElement>("input")
         if (input) {
+            input.dataset.testid = "autocomplete-input"
             const inputId = input.id
             const button = containerRef.current.querySelector(
                 `label[for='${inputId}'] button`
