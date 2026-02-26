@@ -20,7 +20,7 @@ import { match } from "ts-pattern"
  *
  * This also determines the order of chart types in the UI.
  */
-const VALID_CHART_TYPE_COMBINATIONS = [
+export const VALID_CHART_TYPE_COMBINATIONS = [
     [
         GRAPHER_CHART_TYPES.LineChart,
         GRAPHER_CHART_TYPES.SlopeChart,
