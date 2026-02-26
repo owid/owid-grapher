@@ -26,9 +26,11 @@ import { SearchWritingResultsSkeleton } from "./SearchWritingResultsSkeleton.js"
 import { SearchHorizontalDivider } from "./SearchHorizontalDivider.js"
 import { useSearchContext } from "./SearchContext.js"
 
-type PageHit = TopicPageHit | ProfileHit
+type TopicOrProfileHit = TopicPageHit | ProfileHit
 
-function isPageHit(hit: FlatArticleHit | PageHit): hit is PageHit {
+function isTopicOrProfileHit(
+    hit: FlatArticleHit | TopicOrProfileHit
+): hit is TopicOrProfileHit {
     return (
         hit.type === OwidGdocType.TopicPage ||
         hit.type === OwidGdocType.LinearTopicPage ||
@@ -36,8 +38,8 @@ function isPageHit(hit: FlatArticleHit | PageHit): hit is PageHit {
     )
 }
 
-function renderPageHit(
-    hit: PageHit,
+function renderTopicOrProfileHit(
+    hit: TopicOrProfileHit,
     index: number,
     hasLargeTopic: boolean,
     analytics: ReturnType<typeof useSearchContext>["analytics"]
@@ -84,7 +86,7 @@ function SingleColumnResults({
 }) {
     const { analytics } = useSearchContext()
 
-    const allHits: (FlatArticleHit | PageHit)[] = [
+    const allHits: (FlatArticleHit | TopicOrProfileHit)[] = [
         ...profiles,
         ..._.zip(articlePages, topicPages).flatMap(
             ([articlePage, topicPage]) => [
@@ -96,8 +98,13 @@ function SingleColumnResults({
     return (
         <div className="search-writing-results__single-column">
             {allHits.map((hit, index) => {
-                if (isPageHit(hit)) {
-                    return renderPageHit(hit, index, hasLargeTopic, analytics)
+                if (isTopicOrProfileHit(hit)) {
+                    return renderTopicOrProfileHit(
+                        hit,
+                        index,
+                        hasLargeTopic,
+                        analytics
+                    )
                 } else {
                     return (
                         <SearchFlatArticleHit
@@ -131,13 +138,17 @@ function MultiColumnResults({
     const { analytics } = useSearchContext()
 
     // Profiles appear before topic pages in the tiles
-    const allPageHits: PageHit[] = [...profiles, ...topics]
+    const allTopicOrProfileHits: TopicOrProfileHit[] = [...profiles, ...topics]
 
     // Calculate interleaved layout: 4 topics for every 5 articles (ratio
     // maintained proportionally).
     const interleavedCount = Math.round((articles.length * 4) / 5)
-    const interleavedPageHits = allPageHits.slice(0, interleavedCount)
-    const remainingPageHits = allPageHits.slice(interleavedCount)
+    const interleavedTopicOrProfileHits = allTopicOrProfileHits.slice(
+        0,
+        interleavedCount
+    )
+    const remainingTopicOrProfileHits =
+        allTopicOrProfileHits.slice(interleavedCount)
     return (
         <div className="search-writing-results__grid">
             {articles.length > 0 && (
@@ -156,19 +167,24 @@ function MultiColumnResults({
                     ))}
                 </div>
             )}
-            {interleavedPageHits.length > 0 && (
+            {interleavedTopicOrProfileHits.length > 0 && (
                 <div className="search-writing-results__topics">
-                    {interleavedPageHits.map((hit, index) =>
-                        renderPageHit(hit, index, hasLargeTopic, analytics)
+                    {interleavedTopicOrProfileHits.map((hit, index) =>
+                        renderTopicOrProfileHit(
+                            hit,
+                            index,
+                            hasLargeTopic,
+                            analytics
+                        )
                     )}
                 </div>
             )}
-            {remainingPageHits.length > 0 && (
+            {remainingTopicOrProfileHits.length > 0 && (
                 <div className="search-writing-results__overflow">
-                    {remainingPageHits.map((hit, index) =>
-                        renderPageHit(
+                    {remainingTopicOrProfileHits.map((hit, index) =>
+                        renderTopicOrProfileHit(
                             hit,
-                            interleavedPageHits.length + index,
+                            interleavedTopicOrProfileHits.length + index,
                             hasLargeTopic,
                             analytics
                         )
@@ -196,7 +212,7 @@ export const SearchWritingResults = ({
         queryFn: (liteSearchClient, state, offset, length) => {
             return queryProfiles(liteSearchClient, state, offset, length)
         },
-        firstPageSize: 4,
+        firstPageSize: 2,
         laterPageSize: 4,
         enabled: showProfiles,
     })

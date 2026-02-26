@@ -19,11 +19,7 @@ import {
     articulateEntity,
 } from "@ourworldindata/utils"
 import { getAlgoliaClient } from "../configureAlgolia.js"
-import {
-    PageRecord,
-    OwidGdocProfileInterface,
-    OwidGdocBaseInterface,
-} from "@ourworldindata/types"
+import { PageRecord, OwidGdocProfileInterface } from "@ourworldindata/types"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import { PAGES_INDEX } from "../../../site/search/searchUtils.js"
 import type { Hit, SearchClient } from "@algolia/client-search"
@@ -57,7 +53,10 @@ const computePageScore = (record: Omit<PageRecord, "score">): number => {
 }
 
 const getThumbnailUrl = (
-    gdoc: OwidGdocBaseInterface,
+    gdoc:
+        | OwidGdocPostInterface
+        | OwidGdocDataInsightInterface
+        | OwidGdocProfileInterface,
     cloudflareImages: Record<string, DbEnrichedImage>
 ): string => {
     if (gdoc.content.type === OwidGdocType.DataInsight) {

@@ -34,7 +34,6 @@ import {
     getItemUrlForFilter,
     getPageTypeNameAndIcon,
     SEARCH_BASE_PATH,
-    extractFiltersFromQuery,
 } from "./searchUtils.js"
 import {
     getUserCountryInformation,
@@ -383,13 +382,18 @@ const createFiltersSource = (
 })
 
 /**
- * Creates a profile source for a specific country. The country name is
- * determined in `getSources` (which already runs `extractFiltersFromQuery`)
- * and passed in here so the work isn't duplicated. The full autocomplete
- * query is forwarded to Algolia so that matching words are highlighted.
+ * Creates a profile source that boosts the user's geolocated country
+ * using Algolia's `optionalFilters`. This avoids running expensive
+ * client-side country detection on every keystroke while still ensuring:
+ * - "energy" → "Energy in Canada" (boosted by geolocation)
+ * - "canada" → Canada profiles (matched by Algolia on title)
+ * - "energy france" → "Energy in France" (matched naturally)
+ *
+ * Requires the `filters` ranking criterion in the index settings
+ * (see configureAlgolia.ts).
  */
 const createProfileSource = (
-    countryName: string
+    countryName: string | undefined
 ): AutocompleteSource<BaseItem> => ({
     sourceId: "profiles",
     onSelect: algoliaOnSelect,
@@ -405,7 +409,11 @@ const createProfileSource = (
                     params: {
                         query,
                         filters: `type:${OwidGdocType.Profile}`,
-                        facetFilters: [[`availableEntities:${countryName}`]],
+                        ...(countryName && {
+                            optionalFilters: [
+                                `availableEntities:${countryName}`,
+                            ],
+                        }),
                         hitsPerPage: 1,
                     },
                 },
@@ -506,39 +514,12 @@ export function Autocomplete({
             getSources({ query }) {
                 const sources: AutocompleteSource<BaseItem>[] = []
                 if (query) {
-                    const filtersSource = createFiltersSource(
-                        allTopics,
-                        synonymMap
-                    )
-
-                    // Detect country in query using extractFiltersFromQuery
-                    // which retains exact matches (unlike suggestFiltersFromQuerySuffix)
-                    const detectedFilters = extractFiltersFromQuery(
-                        query,
-                        listedRegionsNames(),
-                        allTopics,
-                        [],
-                        { threshold: 0.75, limit: 3 },
-                        synonymMap
-                    )
-                    const detectedCountry = detectedFilters.find(
-                        (f) => f.type === FilterType.COUNTRY
-                    )
-
                     sources.push(
-                        filtersSource,
+                        createFiltersSource(allTopics, synonymMap),
+                        createProfileSource(userCountryNameRef.current),
                         AlgoliaPagesSource,
                         AlgoliaChartsSource
                     )
-
-                    const countryName =
-                        detectedCountry?.name ?? userCountryNameRef.current
-                    if (countryName) {
-                        const profileSource = createProfileSource(countryName)
-                        // Country in query: profile before pages; geolocation fallback: after pages
-                        const insertIndex = detectedCountry ? 1 : 2
-                        sources.splice(insertIndex, 0, profileSource)
-                    }
                 } else {
                     sources.push(FeaturedSearchesSource)
                 }
