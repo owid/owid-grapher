@@ -126,11 +126,7 @@ export class StackedBarChartThumbnail
     @computed private get verticalLabelsState():
         | SimpleVerticalLabelsState
         | undefined {
-        if (
-            !this.manager.showLegend ||
-            this.manager.isDisplayedAlongsideComplementaryTable
-        )
-            return undefined
+        if (!this.manager.showLegend) return undefined
 
         const series = excludeUndefined(
             this.chartState.series.map((series, seriesIndex) => {

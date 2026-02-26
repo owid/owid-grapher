@@ -528,7 +528,7 @@ export class GrapherState
      * If that's the case, the chart can be simplified (e.g. hide legends or
      * annotations) since the table serves as an additional source of information.
      */
-    isDisplayedAlongsideComplementaryTable = false
+    useMinimalLabeling = false
 
     // Bounds
     staticBounds: Bounds = DEFAULT_GRAPHER_BOUNDS
@@ -734,7 +734,7 @@ export class GrapherState
             hasTableTab: observable,
             hideShareButton: observable,
             hideExploreTheDataButton: observable,
-            isDisplayedAlongsideComplementaryTable: observable,
+            useMinimalLabeling: observable,
         })
 
         this.updateFromObject(options)
@@ -1444,6 +1444,9 @@ export class GrapherState
     }
 
     @computed get showLegend(): boolean {
+        // Don't show any legends in minimal mode
+        if (this.useMinimalLabeling) return false
+
         // Hide the legend for stacked bar charts if the legend only ever shows a single entity
         if (this.isOnStackedBarTab) {
             const seriesStrategy =
@@ -1457,6 +1460,10 @@ export class GrapherState
         }
 
         return !this.hideLegend
+    }
+
+    @computed get showMapLegend(): boolean {
+        return !this.useMinimalLabeling
     }
 
     private isChartTypeThatShowsAllEntities(

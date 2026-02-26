@@ -90,7 +90,7 @@ const getThumbnailOptions = (params: URLSearchParams): ImageOptions => {
 
     if (params.has("imMinimal")) {
         if (!options.grapherProps) options.grapherProps = {}
-        options.grapherProps.isDisplayedAlongsideComplementaryTable =
+        options.grapherProps.useMinimalLabeling =
             params.get("imMinimal")! === "1"
     }
 
@@ -128,7 +128,7 @@ export const extractOptions = (params: URLSearchParams): ImageOptions => {
         if (!options.grapherProps) options.grapherProps = {}
         options.grapherProps.variant = GrapherVariant.Uncaptioned
         if (params.has("imMinimal")) {
-            options.grapherProps.isDisplayedAlongsideComplementaryTable =
+            options.grapherProps.useMinimalLabeling =
                 params.get("imMinimal")! === "1"
         }
     }

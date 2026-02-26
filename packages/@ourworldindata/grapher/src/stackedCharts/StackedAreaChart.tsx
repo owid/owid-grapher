@@ -190,8 +190,7 @@ export class StackedAreaChart
 
     @computed private get showLegend(): boolean {
         return (
-            !!this.manager.showSeriesLabels &&
-            !this.manager.isDisplayedAlongsideComplementaryTable
+            !!this.manager.showSeriesLabels && !this.manager.useMinimalLabeling
         )
     }
 

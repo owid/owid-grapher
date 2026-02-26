@@ -68,7 +68,7 @@ export class MarimekkoChartThumbnail
     }
 
     @computed private get shouldShowVerticalAxis(): boolean {
-        return !!this.manager.isDisplayedAlongsideComplementaryTable
+        return !!this.manager.useMinimalLabeling
     }
 
     @computed private get yAxisConfig(): AxisConfig {
