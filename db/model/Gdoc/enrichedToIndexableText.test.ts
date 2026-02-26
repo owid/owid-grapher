@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest"
 import { enrichedBlocksToIndexableText } from "./enrichedToIndexableText.js"
 import {
     BlockSize,
-    EnrichedBlockChart,
     EnrichedBlockDataCallout,
     EnrichedBlockHeading,
     EnrichedBlockHtml,
@@ -404,12 +403,13 @@ describe("enrichedBlocksToIndexableText", () => {
         )
     })
 
-    it("should return undefined for component blocks", () => {
-        const block: EnrichedBlockChart = {
-            type: "chart",
+    it("should return undefined for a prominent-link block", () => {
+        const block: OwidEnrichedGdocBlock = {
+            type: "prominent-link",
             parseErrors: [],
-            url: "https://ourworldindata.org/grapher/example",
-            size: BlockSize.Wide,
+            url: "https://ourworldindata.org/some-page",
+            title: "Some page",
+            description: "A description",
         }
         expect(enrichedBlocksToIndexableText([block])).toBeUndefined()
     })
@@ -592,7 +592,7 @@ describe("enrichedBlocksToIndexableText", () => {
         ).toBeUndefined()
     })
 
-    it("should skip component blocks and return remaining text", () => {
+    it("should skip caption-less chart blocks and return surrounding text", () => {
         const blocks: OwidEnrichedGdocBlock[] = [
             {
                 type: "text",
@@ -612,6 +612,33 @@ describe("enrichedBlocksToIndexableText", () => {
             },
         ]
         expect(enrichedBlocksToIndexableText(blocks)).toBe("Before.\n\nAfter")
+    })
+
+    it("should include chart caption between surrounding text blocks", () => {
+        const blocks: OwidEnrichedGdocBlock[] = [
+            {
+                type: "text",
+                parseErrors: [],
+                value: [{ spanType: "span-simple-text", text: "Before" }],
+            },
+            {
+                type: "chart",
+                parseErrors: [],
+                url: "https://ourworldindata.org/grapher/example",
+                size: BlockSize.Wide,
+                caption: [
+                    { spanType: "span-simple-text", text: "Chart caption" },
+                ],
+            },
+            {
+                type: "text",
+                parseErrors: [],
+                value: [{ spanType: "span-simple-text", text: "After" }],
+            },
+        ]
+        expect(enrichedBlocksToIndexableText(blocks)).toBe(
+            "Before.\n\nChart caption.\n\nAfter"
+        )
     })
 
     it("should preserve spacing around list content", () => {
