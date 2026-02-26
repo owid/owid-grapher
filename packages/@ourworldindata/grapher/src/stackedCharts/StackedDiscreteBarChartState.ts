@@ -128,6 +128,13 @@ export class StackedDiscreteBarChartState implements ChartState {
         return this.focusArray.hasFocusedSeries
     }
 
+    /** True if any column (as opposed to any entity) is focused */
+    @computed get hasFocusedColumn(): boolean {
+        return this.focusArray.seriesNames.some((name) =>
+            this.seriesNameSet.has(name)
+        )
+    }
+
     @computed get missingDataStrategy(): MissingDataStrategy {
         return this.manager.missingDataStrategy || MissingDataStrategy.auto
     }
@@ -206,6 +213,10 @@ export class StackedDiscreteBarChartState implements ChartState {
         )
     }
 
+    @computed get seriesNameSet(): Set<string> {
+        return new Set(this.series.map((s) => s.seriesName))
+    }
+
     @computed get items(): readonly Item[] {
         const entityNames = this.selectionArray.selectedEntityNames
         const items = entityNames
@@ -223,6 +234,7 @@ export class StackedDiscreteBarChartState implements ChartState {
                             columnSlug: series.columnSlug!,
                             color: series.color,
                             seriesName: series.seriesName,
+                            focus: this.focusArray.state(series.seriesName),
                         }
                     })
                 )

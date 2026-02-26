@@ -30,7 +30,7 @@ import {
     toTooltipTableColumns,
 } from "../tooltip/Tooltip"
 import { StackedAreaChartState } from "./StackedAreaChartState.js"
-import { AREA_OPACITY, StackedSeries } from "./StackedConstants"
+import { areaOpacityByState, StackedSeries } from "./StackedConstants"
 import {
     makeClipPath,
     isTargetOutsideElement,
@@ -249,11 +249,11 @@ export class StackedAreaChart
                 categoricalLegendData,
                 legendStyleConfig: {
                     marker: {
-                        default: { opacity: AREA_OPACITY.DEFAULT },
-                        focused: { opacity: AREA_OPACITY.FOCUS },
-                        muted: { opacity: AREA_OPACITY.MUTE },
+                        default: { opacity: areaOpacityByState.default },
+                        focused: { opacity: areaOpacityByState.focus },
+                        muted: { opacity: areaOpacityByState.muted },
                     },
-                    text: { muted: { opacity: AREA_OPACITY.MUTE } },
+                    text: { muted: { opacity: areaOpacityByState.muted } },
                 },
             }
         }
@@ -506,8 +506,8 @@ export class StackedAreaChart
                         const focused = name === target.series
                         const values = [point?.fake ? undefined : point?.value]
                         const opacity = focused
-                            ? AREA_OPACITY.FOCUS
-                            : AREA_OPACITY.DEFAULT
+                            ? areaOpacityByState.focus
+                            : areaOpacityByState.default
                         const swatch = { color, opacity }
 
                         return {

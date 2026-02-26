@@ -19,8 +19,12 @@ import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
     GRAPHER_FONT_SCALE_12,
-    GRAPHER_OPACITY_MUTE,
 } from "../core/GrapherConstants"
+import { InteractionState } from "../interaction/InteractionState"
+import {
+    HighlightState,
+    resolveHighlightState,
+} from "../interaction/HighlightState"
 import {
     HorizontalAxisComponent,
     HorizontalAxisGridLines,
@@ -41,7 +45,7 @@ import {
 } from "../tooltip/Tooltip"
 import {
     Bar,
-    BAR_OPACITY,
+    barOpacityByState,
     PlacedItem,
     SizedItem,
     StackedPoint,
@@ -66,13 +70,7 @@ export interface StackedDiscreteBarChartManager extends ChartManager {
 
 interface StackedBarChartContext {
     yAxis: HorizontalAxis
-    targetTime?: number
-    timeColumn: CoreColumn
-    formatColumn: CoreColumn
     formatValueForLabel: (value: number) => string
-    focusSeriesName?: string
-    hoverSeriesName?: string
-    hoverEntityName?: string
     barHeight: number
     x0: number
     baseFontSize: number
@@ -85,7 +83,7 @@ interface StackedDiscreteBarsProps {
         entityName: string
         seriesName?: string
     }>
-    focusSeriesName?: SeriesName
+    legendHoverSeriesName?: SeriesName
 }
 
 @observer
@@ -113,8 +111,8 @@ export class StackedDiscreteBars
         return this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS
     }
 
-    @computed private get focusSeriesName(): SeriesName | undefined {
-        return this.props.focusSeriesName
+    @computed private get legendHoverSeriesName(): SeriesName | undefined {
+        return this.props.legendHoverSeriesName
     }
 
     @computed private get tooltipState(): TooltipState<{
@@ -311,6 +309,57 @@ export class StackedDiscreteBars
         this.clearTooltip()
     }
 
+    /**
+     * Get the interaction state for a series.
+     * Combines persistent focus, transient legend hover, and tooltip hover.
+     */
+    private getInteractionStateForSeries(
+        seriesName: SeriesName,
+        entityName?: EntityName
+    ): InteractionState {
+        const { focusArray, hasFocusedColumn } = this.chartState
+
+        const target = this.tooltipState.target
+        const isHovered =
+            entityName !== undefined &&
+            target?.entityName === entityName &&
+            target?.seriesName === seriesName
+
+        const isActive =
+            isHovered ||
+            this.legendHoverSeriesName === seriesName ||
+            focusArray.has(seriesName)
+
+        const hasInteraction =
+            isHovered ||
+            this.legendHoverSeriesName !== undefined ||
+            hasFocusedColumn
+
+        return new InteractionState(isActive, hasInteraction)
+    }
+
+    private getInteractionStateForEntity(
+        entityName: EntityName
+    ): InteractionState {
+        return this.chartState.focusArray.state(entityName)
+    }
+
+    private getHighlightStateForBar(
+        entityName: EntityName,
+        seriesName: SeriesName
+    ): HighlightState {
+        return resolveHighlightState(
+            this.getInteractionStateForEntity(entityName),
+            this.getInteractionStateForSeries(seriesName, entityName)
+        )
+    }
+
+    private getHighlightStateForEntity(entityName: EntityName): HighlightState {
+        return resolveHighlightState(
+            this.getInteractionStateForEntity(entityName)
+        )
+    }
+
     override render(): React.ReactElement {
         return this.manager.isStatic
             ? this.renderStatic()
@@ -324,14 +373,8 @@ export class StackedDiscreteBars
     @computed private get chartContext(): StackedBarChartContext {
         return {
             yAxis: this.yAxis,
-            targetTime: this.manager.endTime,
-            timeColumn: this.inputTable.timeColumn,
-            formatColumn: this.formatColumn,
             formatValueForLabel: this.formatValueForLabel,
             barHeight: this.barHeight,
-            focusSeriesName: this.focusSeriesName,
-            hoverSeriesName: this.tooltipState.target?.seriesName,
-            hoverEntityName: this.tooltipState.target?.entityName,
             x0: this.x0,
             baseFontSize: this.baseFontSize,
         }
@@ -350,7 +393,8 @@ export class StackedDiscreteBars
         const totalLabel = this.formatValueForLabel(totalValue)
         const showLabelInsideBar = bars.length > 1
 
-        const opacity = data.focus.background ? GRAPHER_OPACITY_MUTE : 1
+        const highlightState = this.getHighlightStateForEntity(entityName)
+        const opacity = barOpacityByState[highlightState]
 
         // We can't just take the last bar here because if the last bar has a negative value,
         // its position on the chart (valueOffset + value) might actually be leftmost rather than rightmost.
@@ -365,16 +409,20 @@ export class StackedDiscreteBars
                 id={makeFigmaId(entityName)}
                 className="bar"
                 transform={`translate(0, ${state.translateY ?? 0})`}
-                opacity={opacity}
             >
                 {bars.map((bar) => (
                     <StackedDiscreteBars.Bar
                         key={bar.seriesName}
-                        entity={entityName}
                         bar={bar}
                         chartContext={this.chartContext}
+                        highlightState={this.getHighlightStateForBar(
+                            entityName,
+                            bar.seriesName
+                        )}
                         showLabelInsideBar={showLabelInsideBar}
-                        onMouseEnter={this.onEntityMouseEnter}
+                        onMouseEnter={(): void =>
+                            this.onEntityMouseEnter(entityName, bar.seriesName)
+                        }
                         onMouseLeave={this.onEntityMouseLeave}
                     />
                 ))}
@@ -382,6 +430,7 @@ export class StackedDiscreteBars
                     state={label}
                     x={yAxis.place(this.x0) - labelToBarPadding}
                     y={-label.height / 2}
+                    opacity={opacity}
                     onMouseEnter={(): void =>
                         this.onEntityMouseEnter(label.text)
                     }
@@ -394,6 +443,7 @@ export class StackedDiscreteBars
                             yAxis.place(lastValue) + labelToBarPadding
                         }, 0)`}
                         dy={dyFromAlign(VerticalAlign.middle)}
+                        opacity={opacity}
                         {...this.totalValueLabelStyle}
                     >
                         {totalLabel}
@@ -455,10 +505,6 @@ export class StackedDiscreteBars
             timing: { duration: 350, ease: easeQuadOut },
         })
 
-        // needs to be referenced here, otherwise it's not updated in the renderRow function
-        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-        this.focusSeriesName
-
         return (
             <>
                 {this.renderAxis()}
@@ -479,21 +525,16 @@ export class StackedDiscreteBars
 
     private static Bar(props: {
         bar: Bar
-        entity: string
         chartContext: StackedBarChartContext
+        highlightState: HighlightState
         showLabelInsideBar: boolean
-        onMouseEnter: (entityName: string, seriesName?: string) => void
+        onMouseEnter: () => void
         onMouseLeave: () => void
     }): React.ReactElement {
-        const { entity, bar, chartContext } = props
-        const { yAxis, formatValueForLabel, focusSeriesName, barHeight } =
-            chartContext
+        const { bar, chartContext, highlightState } = props
+        const { yAxis, formatValueForLabel, barHeight } = chartContext
 
-        const isFaint =
-            focusSeriesName !== undefined && focusSeriesName !== bar.seriesName
-        const isHover =
-            chartContext.hoverSeriesName === bar.seriesName &&
-            chartContext.hoverEntityName === entity
+        // Compute bar position and dimensions
         let barX = yAxis.place(chartContext.x0 + bar.point.valueOffset)
         const barWidth = Math.abs(
             yAxis.place(bar.point.value) - yAxis.place(chartContext.x0)
@@ -502,31 +543,29 @@ export class StackedDiscreteBars
         // Place bars that represent negative values on the left
         if (bar.point.value < 0) barX -= barWidth
 
+        // Compute label properties
         const barLabel = formatValueForLabel(bar.point.value)
         const labelFontSize = GRAPHER_FONT_SCALE_12 * chartContext.baseFontSize
         const labelBounds = Bounds.forText(barLabel, {
             fontSize: labelFontSize,
         })
+
         // Check that we have enough space to show the bar label
         const showLabelInsideBar =
             props.showLabelInsideBar &&
             labelBounds.width < 0.85 * barWidth &&
             labelBounds.height < 0.85 * barHeight
-        const labelColor = isDarkColor(bar.color) ? "#fff" : "#000"
 
-        const opacity = isHover
-            ? BAR_OPACITY.FOCUS
-            : isFaint
-              ? BAR_OPACITY.MUTE
-              : BAR_OPACITY.DEFAULT
+        const isLabelColorDark = !isDarkColor(bar.color)
+        const labelColor = isLabelColorDark ? "#000" : "#fff"
+
+        const opacity = barOpacityByState[highlightState]
 
         return (
             <g
                 id={makeFigmaId(bar.seriesName)}
-                onMouseEnter={(): void =>
-                    props?.onMouseEnter(entity, bar.seriesName)
-                }
-                onMouseLeave={props?.onMouseLeave}
+                onMouseEnter={props.onMouseEnter}
+                onMouseLeave={props.onMouseLeave}
             >
                 <rect
                     id={makeFigmaId("bar")}
@@ -546,7 +585,7 @@ export class StackedDiscreteBars
                         width={barWidth}
                         height={barHeight}
                         fill={labelColor}
-                        opacity={isFaint ? 0 : 1}
+                        opacity={isLabelColorDark ? opacity : 1}
                         fontSize={labelFontSize}
                         textAnchor="middle"
                         dy={dyFromAlign(VerticalAlign.middle)}

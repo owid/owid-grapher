@@ -3,7 +3,11 @@ import { makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { SeriesName, Time } from "@ourworldindata/types"
 import { DualAxis } from "../axis/Axis"
-import { BAR_OPACITY, StackedPoint, StackedSeries } from "./StackedConstants"
+import {
+    barOpacityByState,
+    StackedPoint,
+    StackedSeries,
+} from "./StackedConstants"
 import { makeFigmaId, makeSafeForCSS } from "@ourworldindata/utils"
 import { StackedBarSegment } from "./StackedBarSegment"
 import { CoreColumn } from "@ourworldindata/core-table"
@@ -52,8 +56,8 @@ export class StackedBars extends React.Component<StackedBarsProps> {
                     const opacity =
                         (isLegendHovered || hoveredSeriesNames.length === 0) &&
                         !series.focus?.background
-                            ? BAR_OPACITY.DEFAULT
-                            : BAR_OPACITY.MUTE
+                            ? barOpacityByState.default
+                            : barOpacityByState.muted
 
                     return (
                         <g
@@ -67,11 +71,11 @@ export class StackedBars extends React.Component<StackedBarsProps> {
                                 const xPos =
                                     horizontalAxis.place(bar.position) -
                                     barWidth / 2
-                                const barOpacity =
+                                const finalOpacity =
                                     bar === hoveredBar ||
                                     series.focus?.active ||
                                     isLegendHovered
-                                        ? BAR_OPACITY.FOCUS
+                                        ? barOpacityByState.focus
                                         : opacity
 
                                 return (
@@ -83,7 +87,7 @@ export class StackedBars extends React.Component<StackedBarsProps> {
                                         bar={bar}
                                         color={bar.color ?? series.color}
                                         xOffset={xPos}
-                                        opacity={barOpacity}
+                                        opacity={finalOpacity}
                                         yAxis={verticalAxis}
                                         series={series}
                                         onBarMouseOver={onBarMouseOver}
