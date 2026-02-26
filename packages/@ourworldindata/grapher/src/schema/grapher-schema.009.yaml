@@ -278,6 +278,7 @@ properties:
             - slope
             - discrete-bar
             - marimekko
+            - scatter
     xAxis:
         $ref: "#/$defs/axis"
     yAxis:

@@ -9,7 +9,12 @@ import {
 } from "@ourworldindata/core-table"
 import { DefaultColorScheme } from "../color/CustomSchemes"
 import { GrapherState } from "../core/GrapherState"
-import { GRAPHER_CHART_TYPES, SortBy, SortOrder } from "@ourworldindata/types"
+import {
+    GRAPHER_CHART_TYPES,
+    GRAPHER_TAB_CONFIG_OPTIONS,
+    SortBy,
+    SortOrder,
+} from "@ourworldindata/types"
 import { MarimekkoChart } from "./MarimekkoChart"
 import {
     BarShape,
@@ -1074,4 +1079,27 @@ it("does not extend time range based on color column data", () => {
 
     // The chart should show data for 2020, not 2023
     expect(chartState.series[0].points.every((p) => p.time <= 2020)).toBe(true)
+})
+
+it("ignores x-axis when scatter is also available", () => {
+    const table = SynthesizeGDPTable({
+        timeRange: [2000, 2001],
+        entityCount: 5,
+    })
+
+    const grapher = new GrapherState({
+        table,
+        chartTypes: [
+            GRAPHER_CHART_TYPES.ScatterPlot,
+            GRAPHER_CHART_TYPES.Marimekko,
+        ],
+        tab: GRAPHER_TAB_CONFIG_OPTIONS.marimekko,
+        ySlugs: SampleColumnSlugs.GDP,
+        xSlug: SampleColumnSlugs.Population,
+    })
+
+    const marimekkoState = grapher.chartState as MarimekkoChartState
+
+    // xColumnSlug should be undefined because scatter is available
+    expect(marimekkoState.xColumnSlug).toBeUndefined()
 })

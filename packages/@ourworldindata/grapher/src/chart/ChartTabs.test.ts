@@ -2,7 +2,8 @@ import { expect, it, describe } from "vitest"
 import { findValidChartTypeCombination } from "./ChartTabs"
 import { GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 
-const { LineChart, SlopeChart, ScatterPlot, StackedArea } = GRAPHER_CHART_TYPES
+const { LineChart, SlopeChart, StackedArea, StackedDiscreteBar } =
+    GRAPHER_CHART_TYPES
 
 describe(findValidChartTypeCombination, () => {
     it("works for valid chart type combinations", () => {
@@ -22,7 +23,7 @@ describe(findValidChartTypeCombination, () => {
     })
 
     it("ignores invalid chart types in a combination", () => {
-        const chartTypes = [LineChart, ScatterPlot, SlopeChart]
+        const chartTypes = [LineChart, StackedArea, SlopeChart]
         expect(findValidChartTypeCombination(chartTypes)).toEqual([
             LineChart,
             SlopeChart,
@@ -35,7 +36,7 @@ describe(findValidChartTypeCombination, () => {
     })
 
     it("returns undefined if no valid chart type combination is found", () => {
-        const chartTypes = [StackedArea, ScatterPlot]
+        const chartTypes = [StackedArea, StackedDiscreteBar]
         expect(findValidChartTypeCombination(chartTypes)).toBeUndefined()
     })
 })

@@ -26,6 +26,7 @@ const VALID_CHART_TYPE_COMBINATIONS = [
         GRAPHER_CHART_TYPES.SlopeChart,
         GRAPHER_CHART_TYPES.DiscreteBar,
         GRAPHER_CHART_TYPES.Marimekko,
+        GRAPHER_CHART_TYPES.ScatterPlot,
     ],
 ]
 

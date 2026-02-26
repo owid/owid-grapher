@@ -798,6 +798,12 @@ export class EditorCustomizeTab<
                 </Section>
                 {features.canCustomizeXAxis && (
                     <Section name="X Axis">
+                        {/* If a scatter tab is present, then x-axis settings only apply to the scatter plot */}
+                        {!grapherState.isScatter && grapherState.hasScatter && (
+                            <small className="form-text text-muted mt-0 mb-2">
+                                X axis settings only apply to the scatter plot
+                            </small>
+                        )}
                         {features.canCustomizeXAxisScale && (
                             <React.Fragment>
                                 <FieldsRow>
