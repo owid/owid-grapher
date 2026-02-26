@@ -563,6 +563,9 @@ export async function deleteGdoc(
     if (gdoc.published && checkIsGdocPostExcludingFragments(gdoc)) {
         await removeIndividualGdocPostFromIndex(gdoc)
     }
+    if (gdoc.published && checkIsProfile(gdoc)) {
+        await removeIndividualProfileFromIndex(gdoc as unknown as GdocProfile)
+    }
     if (gdoc.published) {
         if (!tombstone && gdocSlug && gdocSlug !== "/") {
             // Assets have TTL of one week in Cloudflare. Add a redirect to make sure
@@ -639,6 +642,16 @@ export async function getPreviewGdocIndexRecords(
         const fallbackDate = gdocJson.publishedAt ?? new Date()
         gdocJson.publishedAt = fallbackDate
         gdocJson.updatedAt ??= fallbackDate
+
+        if (checkIsProfile(gdocJson)) {
+            const payload: PagesIndexRecordsResponse = {
+                records: [],
+                count: 0,
+                message:
+                    "Profile preview is not supported — profiles are indexed at publish time for all entities",
+            }
+            return payload
+        }
 
         // Only generate records for posts (excluding fragments)
         if (
