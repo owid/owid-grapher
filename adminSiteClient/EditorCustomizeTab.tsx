@@ -300,10 +300,6 @@ class SortOrderSection<
     override render() {
         return (
             <Section name="Sort Order">
-                <small className="form-text text-muted">
-                    For line charts the sort order is only applied when it's
-                    collapsed to a bar chart.
-                </small>
                 <div className="form-group">
                     Sort by
                     <Select
@@ -463,7 +459,7 @@ class TimelineSection<
         return (
             <Section name="Timeline selection">
                 <FieldsRow>
-                    {features.timeDomain && (
+                    {features.canSelectTimeRange && (
                         <TimeField
                             store={this.grapherState}
                             field="minTime"
@@ -482,7 +478,7 @@ class TimelineSection<
                         store={this.grapherState}
                         field="maxTime"
                         label={
-                            features.timeDomain
+                            features.canSelectTimeRange
                                 ? "Selection end"
                                 : "Selected year"
                         }
@@ -494,47 +490,45 @@ class TimelineSection<
                         allowLinking={editor.canPropertyBeInherited("maxTime")}
                     />
                 </FieldsRow>
-                {features.timelineRange && (
-                    <FieldsRow>
-                        <TimeField
-                            store={this.grapherState}
-                            field="timelineMinTime"
-                            label="Timeline min"
-                            defaultValue={TimeBoundValue.negativeInfinity}
-                            parentValue={minTimeBoundFromJSONOrNegativeInfinity(
-                                editor.activeParentConfig?.timelineMinTime
-                            )}
-                            isInherited={editor.isPropertyInherited(
-                                "timelineMinTime"
-                            )}
-                            allowLinking={editor.canPropertyBeInherited(
-                                "timelineMinTime"
-                            )}
-                        />
-                        <TimeField
-                            store={this.grapherState}
-                            field="timelineMaxTime"
-                            label="Timeline max"
-                            defaultValue={TimeBoundValue.positiveInfinity}
-                            parentValue={maxTimeBoundFromJSONOrPositiveInfinity(
-                                editor.activeParentConfig?.timelineMaxTime
-                            )}
-                            isInherited={editor.isPropertyInherited(
-                                "timelineMaxTime"
-                            )}
-                            allowLinking={editor.canPropertyBeInherited(
-                                "timelineMaxTime"
-                            )}
-                        />
-                    </FieldsRow>
-                )}
+                <FieldsRow>
+                    <TimeField
+                        store={this.grapherState}
+                        field="timelineMinTime"
+                        label="Timeline min"
+                        defaultValue={TimeBoundValue.negativeInfinity}
+                        parentValue={minTimeBoundFromJSONOrNegativeInfinity(
+                            editor.activeParentConfig?.timelineMinTime
+                        )}
+                        isInherited={editor.isPropertyInherited(
+                            "timelineMinTime"
+                        )}
+                        allowLinking={editor.canPropertyBeInherited(
+                            "timelineMinTime"
+                        )}
+                    />
+                    <TimeField
+                        store={this.grapherState}
+                        field="timelineMaxTime"
+                        label="Timeline max"
+                        defaultValue={TimeBoundValue.positiveInfinity}
+                        parentValue={maxTimeBoundFromJSONOrPositiveInfinity(
+                            editor.activeParentConfig?.timelineMaxTime
+                        )}
+                        isInherited={editor.isPropertyInherited(
+                            "timelineMaxTime"
+                        )}
+                        allowLinking={editor.canPropertyBeInherited(
+                            "timelineMaxTime"
+                        )}
+                    />
+                </FieldsRow>
                 <FieldsRow>
                     <Toggle
                         label="Hide timeline"
                         value={!!grapherState.hideTimeline}
                         onValue={this.onToggleHideTimeline}
                     />
-                    {features.showYearLabels && (
+                    {features.canToggleShowYearLabels && (
                         <Toggle
                             label="Always show year labels"
                             value={!!grapherState.showYearLabels}
@@ -567,11 +561,11 @@ class ComparisonLineSection<
 
         const options = []
 
-        if (features.customComparisonLine) {
+        if (features.canSpecifyCustomComparisonLines) {
             options.push({ label: "y", value: "yEquals" })
         }
 
-        if (features.verticalComparisonLine) {
+        if (features.canSpecifyVerticalComparisonLines) {
             options.push({ label: "x", value: "xEquals" })
         }
 
@@ -979,7 +973,7 @@ export class EditorCustomizeTab<
                         </FieldsRow>
                     </Section>
                 )}
-                {features.comparisonLine && (
+                {features.canSpecifyComparisonLines && (
                     <ComparisonLineSection editor={this.props.editor} />
                 )}
             </div>
