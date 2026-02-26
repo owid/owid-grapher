@@ -2308,13 +2308,14 @@ export class GrapherState
         // If the given combination is not valid, then ignore all but the first chart type
         if (!validChartTypes) return this.chartTypes.slice(0, 1)
 
-        // Projected data is only supported for line charts
+        // Projected data is only supported for line and discrete bar charts
         const isLineChart = validChartTypes[0] === GRAPHER_CHART_TYPES.LineChart
         if (isLineChart && this.hasProjectedData) {
-            return [
-                GRAPHER_CHART_TYPES.LineChart,
-                GRAPHER_CHART_TYPES.DiscreteBar,
-            ]
+            return validChartTypes.filter(
+                (type) =>
+                    type === GRAPHER_CHART_TYPES.LineChart ||
+                    type === GRAPHER_CHART_TYPES.DiscreteBar
+            )
         }
 
         return validChartTypes
