@@ -204,8 +204,6 @@ import {
     CookieKey,
     GRAPHER_PROD_URL,
     BASE_FONT_SIZE,
-    isContinentsVariableId,
-    isPopulationVariableETLPath,
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
     STATIC_EXPORT_DETAIL_SPACING,
@@ -219,7 +217,10 @@ import {
 } from "./GrapherQueryParamParser.js"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
 import { getErrorMessageRelatedQuestionUrl } from "./relatedQuestion.js"
-import { buildSourcesLineFromColumns } from "./sourcesLine.js"
+import {
+    buildSourcesLineFromColumns,
+    pickColumnsForSourcesLine,
+} from "./sourcesLine.js"
 import { ChartManager } from "../chart/ChartManager.js"
 import { CaptionedChartManager } from "../captionedChart/CaptionedChart.js"
 import { SourcesModalManager } from "../modal/SourcesModal.js"
@@ -2605,46 +2606,17 @@ export class GrapherState
         this._baseFontSize = val
     }
 
-    private getColumnSlugsForCondensedSources(): string[] {
-        const { xColumnSlug, sizeColumnSlug, colorColumnSlug, hasMarimekko } =
-            this
-        const columnSlugs: string[] = []
-
-        // Exclude "Countries Continent" if it's used as the color dimension in a scatter plot, slope chart etc.
-        if (
-            colorColumnSlug !== undefined &&
-            !isContinentsVariableId(colorColumnSlug)
-        )
-            columnSlugs.push(colorColumnSlug)
-
-        if (xColumnSlug !== undefined) {
-            const xColumn = this.inputTable.get(xColumnSlug)
-                .def as OwidColumnDef
-            // Exclude population variable if it's used as the x dimension in a marimekko
-            if (
-                !hasMarimekko ||
-                !isPopulationVariableETLPath(xColumn?.catalogPath ?? "")
-            )
-                columnSlugs.push(xColumnSlug)
-        }
-
-        // Exclude population variable if it's used as the size dimension in a scatter plot
-        if (sizeColumnSlug !== undefined) {
-            const sizeColumn = this.inputTable.get(sizeColumnSlug)
-                .def as OwidColumnDef
-            if (!isPopulationVariableETLPath(sizeColumn?.catalogPath ?? ""))
-                columnSlugs.push(sizeColumnSlug)
-        }
-        return columnSlugs
-    }
-
     @computed private get defaultSourcesLine(): string {
-        const { yColumnSlugs } = this
-        const columnSlugs = [...yColumnSlugs]
-        columnSlugs.push(...this.getColumnSlugsForCondensedSources())
-        return buildSourcesLineFromColumns(
-            this.inputTable.getColumns(_.uniq(columnSlugs))
-        )
+        const columnSlugs = pickColumnsForSourcesLine({
+            table: this.inputTable,
+            yColumnSlugs: this.yColumnSlugs,
+            xColumnSlug: this.xColumnSlug,
+            sizeColumnSlug: this.sizeColumnSlug,
+            colorColumnSlug: this.colorColumnSlug,
+            isOnMarimekkoTab: this.isOnMarimekkoTab,
+        })
+        const columns = this.inputTable.getColumns(columnSlugs)
+        return buildSourcesLineFromColumns(columns)
     }
 
     @computed private get axisDimensions(): ChartDimension[] {
