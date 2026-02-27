@@ -4,62 +4,112 @@ import * as _ from "lodash-es"
 import {
     OwidGdocType,
     FlatArticleHit,
+    ProfileHit,
     SearchFlatArticleResponse,
+    SearchProfileResponse,
     SearchTopicPageResponse,
     TopicPageHit,
 } from "@ourworldindata/types"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
-import { searchQueryKeys, queryArticles, queryTopicPages } from "./queries.js"
+import {
+    searchQueryKeys,
+    queryArticles,
+    queryProfiles,
+    queryTopicPages,
+} from "./queries.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
 import { useInfiniteSearchOffset } from "./searchHooks.js"
 import { SearchFlatArticleHit } from "./SearchFlatArticleHit.js"
+import { SearchProfileHit } from "./SearchProfileHit.js"
 import { SearchTopicPageHit } from "./SearchTopicPageHit.js"
 import { SearchWritingResultsSkeleton } from "./SearchWritingResultsSkeleton.js"
 import { SearchHorizontalDivider } from "./SearchHorizontalDivider.js"
 import { useSearchContext } from "./SearchContext.js"
 
+type TopicOrProfileHit = TopicPageHit | ProfileHit
+
+function isTopicOrProfileHit(
+    hit: FlatArticleHit | TopicOrProfileHit
+): hit is TopicOrProfileHit {
+    return (
+        hit.type === OwidGdocType.TopicPage ||
+        hit.type === OwidGdocType.LinearTopicPage ||
+        hit.type === OwidGdocType.Profile
+    )
+}
+
+function renderTopicOrProfileHit(
+    hit: TopicOrProfileHit,
+    index: number,
+    hasLargeTopic: boolean,
+    analytics: ReturnType<typeof useSearchContext>["analytics"]
+) {
+    if (hit.type === OwidGdocType.Profile) {
+        return (
+            <SearchProfileHit
+                key={hit.objectID}
+                hit={hit}
+                onClick={() => {
+                    analytics.logSiteSearchResultClick(hit, {
+                        position: index + 1,
+                        source: "search",
+                    })
+                }}
+            />
+        )
+    }
+    return (
+        <SearchTopicPageHit
+            key={hit.objectID}
+            hit={hit}
+            variant={hasLargeTopic ? "large" : undefined}
+            onClick={() => {
+                analytics.logSiteSearchResultClick(hit, {
+                    position: index + 1,
+                    source: "search",
+                })
+            }}
+        />
+    )
+}
+
 function SingleColumnResults({
     articlePages,
     topicPages,
+    profiles,
     hasLargeTopic,
 }: {
     articlePages: SearchFlatArticleResponse[]
     topicPages: SearchTopicPageResponse[]
+    profiles: ProfileHit[]
     hasLargeTopic: boolean
 }) {
     const { analytics } = useSearchContext()
 
-    const allHits = _.zip(articlePages, topicPages).flatMap(
-        ([articlePage, topicPage]) => [
-            ...(articlePage?.hits || []),
-            ...(topicPage?.hits || []),
-        ]
-    )
+    const allHits: (FlatArticleHit | TopicOrProfileHit)[] = [
+        ...profiles,
+        ..._.zip(articlePages, topicPages).flatMap(
+            ([articlePage, topicPage]) => [
+                ...(articlePage?.hits || []),
+                ...(topicPage?.hits || []),
+            ]
+        ),
+    ]
     return (
         <div className="search-writing-results__single-column">
             {allHits.map((hit, index) => {
-                if (
-                    hit.type === OwidGdocType.TopicPage ||
-                    hit.type === OwidGdocType.LinearTopicPage
-                ) {
-                    return (
-                        <SearchTopicPageHit
-                            key={hit.objectID}
-                            hit={hit}
-                            variant={hasLargeTopic ? "large" : undefined}
-                            onClick={() => {
-                                analytics.logSiteSearchResultClick(hit, {
-                                    position: index + 1,
-                                    source: "search",
-                                })
-                            }}
-                        />
+                if (isTopicOrProfileHit(hit)) {
+                    return renderTopicOrProfileHit(
+                        hit,
+                        index,
+                        hasLargeTopic,
+                        analytics
                     )
                 } else {
                     return (
                         <SearchFlatArticleHit
                             key={hit.objectID}
-                            hit={hit as FlatArticleHit}
+                            hit={hit}
                             onClick={() => {
                                 analytics.logSiteSearchResultClick(hit, {
                                     position: index + 1,
@@ -77,18 +127,28 @@ function SingleColumnResults({
 function MultiColumnResults({
     articles,
     topics,
+    profiles,
     hasLargeTopic,
 }: {
     articles: FlatArticleHit[]
     topics: TopicPageHit[]
+    profiles: ProfileHit[]
     hasLargeTopic: boolean
 }) {
     const { analytics } = useSearchContext()
+
+    // Profiles appear before topic pages in the tiles
+    const allTopicOrProfileHits: TopicOrProfileHit[] = [...profiles, ...topics]
+
     // Calculate interleaved layout: 4 topics for every 5 articles (ratio
     // maintained proportionally).
-    const interleavedTopicsCount = Math.round((articles.length * 4) / 5)
-    const interleavedTopics = topics.slice(0, interleavedTopicsCount)
-    const remainingTopics = topics.slice(interleavedTopicsCount)
+    const interleavedCount = Math.round((articles.length * 4) / 5)
+    const interleavedTopicOrProfileHits = allTopicOrProfileHits.slice(
+        0,
+        interleavedCount
+    )
+    const remainingTopicOrProfileHits =
+        allTopicOrProfileHits.slice(interleavedCount)
     return (
         <div className="search-writing-results__grid">
             {articles.length > 0 && (
@@ -107,39 +167,28 @@ function MultiColumnResults({
                     ))}
                 </div>
             )}
-            {interleavedTopics.length > 0 && (
+            {interleavedTopicOrProfileHits.length > 0 && (
                 <div className="search-writing-results__topics">
-                    {interleavedTopics.map((hit, index) => (
-                        <SearchTopicPageHit
-                            key={hit.objectID}
-                            hit={hit}
-                            variant={hasLargeTopic ? "large" : undefined}
-                            onClick={() => {
-                                analytics.logSiteSearchResultClick(hit, {
-                                    position: index + 1,
-                                    source: "search",
-                                })
-                            }}
-                        />
-                    ))}
+                    {interleavedTopicOrProfileHits.map((hit, index) =>
+                        renderTopicOrProfileHit(
+                            hit,
+                            index,
+                            hasLargeTopic,
+                            analytics
+                        )
+                    )}
                 </div>
             )}
-            {remainingTopics.length > 0 && (
+            {remainingTopicOrProfileHits.length > 0 && (
                 <div className="search-writing-results__overflow">
-                    {remainingTopics.map((hit, index) => (
-                        <SearchTopicPageHit
-                            key={hit.objectID}
-                            hit={hit}
-                            variant={hasLargeTopic ? "large" : undefined}
-                            onClick={() => {
-                                analytics.logSiteSearchResultClick(hit, {
-                                    position:
-                                        interleavedTopics.length + index + 1,
-                                    source: "search",
-                                })
-                            }}
-                        />
-                    ))}
+                    {remainingTopicOrProfileHits.map((hit, index) =>
+                        renderTopicOrProfileHit(
+                            hit,
+                            interleavedTopicOrProfileHits.length + index,
+                            hasLargeTopic,
+                            analytics
+                        )
+                    )}
                 </div>
             )}
         </div>
@@ -148,10 +197,26 @@ function MultiColumnResults({
 
 export const SearchWritingResults = ({
     hasTopicPages = true,
+    showProfiles = false,
 }: {
     hasTopicPages?: boolean
+    showProfiles?: boolean
 }) => {
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
+
+    const profilesQuery = useInfiniteSearchOffset<
+        SearchProfileResponse,
+        ProfileHit
+    >({
+        queryKey: (state) => searchQueryKeys.profiles(state),
+        queryFn: (liteSearchClient, state, offset, length) => {
+            return queryProfiles(liteSearchClient, state, offset, length)
+        },
+        firstPageSize: 2,
+        laterPageSize: 4,
+        enabled: showProfiles,
+    })
+
     const articlesQuery = useInfiniteSearchOffset<
         SearchFlatArticleResponse,
         FlatArticleHit
@@ -180,11 +245,22 @@ export const SearchWritingResults = ({
     })
 
     const hasLargeTopic = topicsQuery.totalResults === 1
-    const totalCount = articlesQuery.totalResults + topicsQuery.totalResults
-    const hasNextPage = articlesQuery.hasNextPage || topicsQuery.hasNextPage
+    const totalCount =
+        articlesQuery.totalResults +
+        topicsQuery.totalResults +
+        profilesQuery.totalResults
+    const hasNextPage =
+        articlesQuery.hasNextPage ||
+        topicsQuery.hasNextPage ||
+        profilesQuery.hasNextPage
     const isFetchingNextPage =
-        articlesQuery.isFetchingNextPage || topicsQuery.isFetchingNextPage
-    const isLoading = articlesQuery.isLoading || topicsQuery.isLoading
+        articlesQuery.isFetchingNextPage ||
+        topicsQuery.isFetchingNextPage ||
+        profilesQuery.isFetchingNextPage
+    const isLoading =
+        articlesQuery.isLoading ||
+        topicsQuery.isLoading ||
+        profilesQuery.isLoading
 
     const fetchNextPage = () =>
         Promise.all([
@@ -192,6 +268,9 @@ export const SearchWritingResults = ({
                 ? articlesQuery.fetchNextPage()
                 : undefined,
             topicsQuery.hasNextPage ? topicsQuery.fetchNextPage() : undefined,
+            profilesQuery.hasNextPage
+                ? profilesQuery.fetchNextPage()
+                : undefined,
         ])
 
     if (!isLoading && totalCount === 0) return null
@@ -210,12 +289,14 @@ export const SearchWritingResults = ({
                             <SingleColumnResults
                                 articlePages={articlesQuery.data?.pages || []}
                                 topicPages={topicsQuery.data?.pages || []}
+                                profiles={profilesQuery.hits}
                                 hasLargeTopic={hasLargeTopic}
                             />
                         ) : (
                             <MultiColumnResults
                                 articles={articlesQuery.hits}
                                 topics={topicsQuery.hits}
+                                profiles={profilesQuery.hits}
                                 hasLargeTopic={hasLargeTopic}
                             />
                         )}

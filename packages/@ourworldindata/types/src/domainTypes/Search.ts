@@ -24,6 +24,7 @@ export const PagesIndexRecordSchema = z.object({
     modifiedDate: z.optional(z.string()),
     tags: z.optional(z.array(z.string())),
     thumbnailUrl: z.string(),
+    availableEntities: z.optional(z.array(z.string())),
 })
 
 export type PageRecord = z.infer<typeof PagesIndexRecordSchema>
@@ -219,6 +220,19 @@ export type TopicPageHit = {
 }
 
 export type SearchTopicPageResponse = SearchResponse<TopicPageHit>
+
+export type ProfileHit = {
+    title: string
+    thumbnailUrl: string
+    slug: string
+    excerpt: string
+    type: OwidGdocType.Profile
+    availableEntities: string[]
+    objectID: string
+    __position: number
+}
+
+export type SearchProfileResponse = SearchResponse<ProfileHit>
 
 export type SearchWritingTopicsResponse = {
     title: string

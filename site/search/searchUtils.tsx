@@ -47,6 +47,7 @@ import {
     faBullhorn,
     faDatabase,
     faFileLines,
+    faFlag,
     faLightbulb,
     faTag,
     IconDefinition,
@@ -1120,8 +1121,8 @@ export function getPageTypeNameAndIcon(pageType: OwidGdocType): {
             icon: faBullhorn,
         }))
         .with(OwidGdocType.Profile, () => ({
-            name: "Profile",
-            icon: faFileLines,
+            name: "Country Profile",
+            icon: faFlag,
         }))
         .with(
             OwidGdocType.Author, // Should never be indexed

@@ -42,7 +42,15 @@ export const configureAlgolia = async () => {
         indexLanguages: ["en"],
 
         // see https://www.algolia.com/doc/guides/managing-results/relevance-overview/in-depth/ranking-criteria/
-        ranking: ["typo", "words", "exact", "proximity", "attribute", "custom"],
+        ranking: [
+            "typo",
+            "words",
+            "filters",
+            "exact",
+            "proximity",
+            "attribute",
+            "custom",
+        ],
         alternativesAsExact: [
             "ignorePlurals",
             "singleWordSynonym",
@@ -79,6 +87,7 @@ export const configureAlgolia = async () => {
                 "afterDistinct(type)",
                 "afterDistinct(searchable(tags))",
                 "afterDistinct(searchable(authors))",
+                "afterDistinct(availableEntities)",
             ],
 
             // These lines below essentially demote matches in the `content` (i.e. fulltext) field:

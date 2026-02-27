@@ -20,7 +20,7 @@ export const SearchTemplatesAll = () => {
                 <>
                     <SearchDataInsightsResults />
                     <SearchDataResults isFirstChartLarge={true} />
-                    <SearchWritingResults />
+                    <SearchWritingResults showProfiles={true} />
                 </>
             ))
             // All + Topic + Country + No Query
@@ -28,7 +28,7 @@ export const SearchTemplatesAll = () => {
                 <>
                     <SearchDataInsightsResults />
                     <SearchDataResults isFirstChartLarge={false} />
-                    <SearchWritingResults />
+                    <SearchWritingResults showProfiles={true} />
                 </>
             ))
             // All + Topic + No Country + Query
@@ -84,7 +84,7 @@ export const SearchTemplatesAll = () => {
                 <>
                     <SearchDataInsightsResults />
                     <SearchDataResults isFirstChartLarge={true} />
-                    <SearchWritingResults />
+                    <SearchWritingResults showProfiles={true} />
                 </>
             ))
             // All + No Topic + Country + No Query
@@ -92,7 +92,10 @@ export const SearchTemplatesAll = () => {
                 <>
                     <SearchDataInsightsResults />
                     <SearchDataTopicsResults />
-                    <SearchWritingResults hasTopicPages={false} />
+                    <SearchWritingResults
+                        hasTopicPages={false}
+                        showProfiles={true}
+                    />
                 </>
             ))
             // All + No Topic + No Country + Query

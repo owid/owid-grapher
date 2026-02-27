@@ -15,6 +15,8 @@ import {
     TopicPageHit,
     FilterType,
     SearchFlatArticleResponse,
+    SearchProfileResponse,
+    ProfileHit,
 } from "@ourworldindata/types"
 import { type LiteClient } from "algoliasearch/lite"
 import {
@@ -52,6 +54,8 @@ export const searchQueryKeys = {
         [PAGES_INDEX, "topic-pages", makeStateForKey(state)] as const,
     writingTopics: (state: SearchState) =>
         [PAGES_INDEX, "topics", makeStateForKey(state)] as const,
+    profiles: (state: SearchState) =>
+        [PAGES_INDEX, "profiles", makeStateForKey(state)] as const,
 } as const
 
 export const chartHitQueryKeys = {
@@ -312,6 +316,52 @@ export async function queryTopicPages(
     return liteSearchClient
         .search(searchParams)
         .then((response) => response.results[0] as SearchTopicPageResponse)
+}
+
+export async function queryProfiles(
+    liteSearchClient: LiteClient,
+    state: SearchState,
+    offset: number = 0,
+    length: number
+): Promise<SearchProfileResponse> {
+    const selectedCountryNames = getFilterNamesOfType(
+        state.filters,
+        FilterType.COUNTRY
+    )
+    const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
+
+    const facetFilters = [
+        ...formatCountryFacetFilters(
+            selectedCountryNames,
+            state.requireAllCountries
+        ),
+        ...formatTopicFacetFilters(selectedTopics),
+    ]
+
+    const searchParams = [
+        {
+            indexName: PAGES_INDEX,
+            query: state.query,
+            filters: `type:${OwidGdocType.Profile}`,
+            facetFilters,
+            attributesToRetrieve: [
+                "title",
+                "thumbnailUrl",
+                "slug",
+                "excerpt",
+                "type",
+                "availableEntities",
+            ],
+            highlightPreTag: "<mark>",
+            highlightPostTag: "</mark>",
+            offset,
+            length,
+        },
+    ]
+
+    return liteSearchClient
+        .search<ProfileHit>(searchParams)
+        .then((response) => response.results[0] as SearchProfileResponse)
 }
 
 export async function queryWritingTopics(
