@@ -320,6 +320,13 @@ Then("the search autocomplete input should be focused", async ({ page }) => {
     await expect(getSearchAutocompleteInput(page)).toBeFocused()
 })
 
+Then(
+    "the search autocomplete input should not be focused",
+    async ({ page }) => {
+        await expect(getSearchAutocompleteInput(page)).not.toBeFocused()
+    }
+)
+
 Then("suggestions should not be visible", async ({ page }) => {
     const suggestions = page.getByTestId("search-autocomplete-listbox")
     await expect(suggestions).not.toBeVisible()
