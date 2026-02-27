@@ -446,6 +446,7 @@ export class LineChart
     @action.bound private onVerticalLabelMouseEnter(
         seriesName: SeriesName
     ): void {
+        this.chartState.focusArray.clear()
         clearTimeout(this.hoverTimer)
         this.hoveredLabelSeriesName = seriesName
     }

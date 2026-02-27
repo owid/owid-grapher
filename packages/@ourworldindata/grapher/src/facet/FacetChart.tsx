@@ -804,6 +804,7 @@ export class FacetChart
     private legendHoverBin: ColorScaleBin | undefined = undefined
 
     @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
+        this.focusArray.clear()
         this.legendHoverBin = bin
     }
 

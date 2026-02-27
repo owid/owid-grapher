@@ -678,6 +678,7 @@ export class SlopeChart
 
     private hoverTimer?: number
     @action.bound onVerticalLabelMouseEnter(seriesName: SeriesName): void {
+        this.chartState.focusArray.clear()
         clearTimeout(this.hoverTimer)
         this.hoveredSeriesName = seriesName
     }
@@ -701,6 +702,7 @@ export class SlopeChart
     }
 
     @action.bound onSlopeMouseOver(series: SlopeChartSeries): void {
+        this.chartState.focusArray.clear()
         this.hoveredSeriesName = series.seriesName
         this.tooltipState.target = { series }
     }

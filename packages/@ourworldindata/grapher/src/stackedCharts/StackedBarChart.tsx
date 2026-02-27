@@ -436,6 +436,7 @@ export class StackedBarChart
     }
 
     @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
+        this.chartState.focusArray.clear()
         this.hoverColor = bin.color
     }
 
@@ -444,6 +445,7 @@ export class StackedBarChart
     }
 
     @action.bound onLabelMouseOver(tick: TickmarkPlacement): void {
+        this.chartState.focusArray.clear()
         this.hoveredTick = tick
     }
 
@@ -455,6 +457,7 @@ export class StackedBarChart
         bar: StackedPoint<Time>,
         series: StackedSeries<Time>
     ): void {
+        this.chartState.focusArray.clear()
         this.tooltipState.target = { bar, series }
     }
 

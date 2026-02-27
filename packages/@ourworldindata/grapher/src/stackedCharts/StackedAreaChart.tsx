@@ -213,6 +213,7 @@ export class StackedAreaChart
     }
 
     @action.bound private onAreaMouseEnter(seriesName: SeriesName): void {
+        this.chartState.focusArray.clear()
         if (this.tooltipState.target) {
             _.extend(this.tooltipState.target, { series: seriesName })
         } else {
@@ -286,6 +287,7 @@ export class StackedAreaChart
     @action.bound private onVerticalLabelMouseEnter(
         seriesName: SeriesName
     ): void {
+        this.chartState.focusArray.clear()
         clearTimeout(this.hoverTimer)
         this.hoveredLabelSeriesName = seriesName
     }

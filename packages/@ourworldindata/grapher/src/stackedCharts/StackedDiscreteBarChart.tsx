@@ -167,6 +167,7 @@ export class StackedDiscreteBarChart
     }
 
     @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
+        this.chartState.focusArray.clear()
         this.focusSeriesName = R.first(
             this.series
                 .map((s) => s.seriesName)
