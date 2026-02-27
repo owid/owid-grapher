@@ -113,7 +113,7 @@ export interface EntitySelectorManager {
     selection: SelectionArray
     entityType?: string
     entityTypePlural?: string
-    activeColumnSlugs?: string[]
+    inputColumnSlugs?: ColumnSlug[]
     isEntitySelectorModalOrDrawerOpen?: boolean
     canChangeEntity?: boolean
     canHighlightEntities?: boolean
@@ -304,7 +304,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         // We don't want to update the sort config when `sortOptions` are not ready,
         // because the new chart dimensions are currently loading
         if (!this.manager.isReady) return
-        if (!this.manager.activeColumnSlugs?.length) return
+        if (!this.manager.inputColumnSlugs?.length) return
 
         // Check whether the current sort option is still available in the newly-updated
         // sortOptions
@@ -687,12 +687,12 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
 
     @computed private get numericalChartColumns(): CoreColumn[] {
         const {
-            activeColumnSlugs = [],
+            inputColumnSlugs = [],
             mapColumnSlug,
             isOnMapTab,
         } = this.manager
 
-        const activeSlugs = isOnMapTab ? [mapColumnSlug] : activeColumnSlugs
+        const activeSlugs = isOnMapTab ? [mapColumnSlug] : inputColumnSlugs
 
         return activeSlugs
             .map((slug) => this.table.get(slug))

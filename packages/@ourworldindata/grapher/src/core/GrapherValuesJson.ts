@@ -28,7 +28,10 @@ import { GrapherState } from "./GrapherState"
 import { makeChartState } from "../chart/ChartTypeMap"
 import { MapChartState } from "../mapCharts/MapChartState"
 import { ChartDimension } from "../chart/ChartDimension"
-import { buildSourcesLineFromColumns } from "./sourcesLine"
+import {
+    buildSourcesLineFromColumns,
+    pickColumnsForSourcesLine,
+} from "./sourcesLine"
 
 export function constructGrapherValuesJson(
     grapherState: GrapherState,
@@ -265,9 +268,14 @@ export function prepareCalloutTable(
     const yColumnSlugs = chartDimensions
         .filter((d) => d.property === DimensionProperty.y)
         .map((d) => d.slug)
-
     const xColumnSlug = chartDimensions.find(
         (d) => d.property === DimensionProperty.x
+    )?.slug
+    const colorColumnSlug = chartDimensions.find(
+        (d) => d.property === DimensionProperty.color
+    )?.slug
+    const sizeColumnSlug = chartDimensions.find(
+        (d) => d.property === DimensionProperty.size
     )?.slug
 
     // Get all relevant columns and build column info
@@ -277,9 +285,18 @@ export function prepareCalloutTable(
     )
 
     // Build sources line from columns
+    const columnSlugsForSourcesLine = pickColumnsForSourcesLine({
+        table: inputTable,
+        yColumnSlugs,
+        xColumnSlug,
+        sizeColumnSlug,
+        colorColumnSlug,
+    })
     const sourcesLine =
         config.sourceDesc ??
-        buildSourcesLineFromColumns(inputTable.getColumns(_.uniq(yColumnSlugs)))
+        buildSourcesLineFromColumns(
+            inputTable.getColumns(columnSlugsForSourcesLine)
+        )
 
     // Get sorted unique times from the table
     const times = inputTable.getTimesUniqSortedAscForColumns(yColumnSlugs)
