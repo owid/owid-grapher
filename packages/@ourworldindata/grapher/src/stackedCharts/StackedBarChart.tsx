@@ -230,8 +230,11 @@ export class StackedBarChart
         const hoveredColors = this.stackedSeries
             .filter((g) => hoveredSeriesNames.indexOf(g.seriesName) !== -1)
             .map((g) => g.color)
+        const focusedColors = this.stackedSeries
+            .filter((g) => g.focus?.active)
+            .map((g) => g.color)
         const activeColors = _.uniq(
-            excludeUndefined([...hoveredColors, hoverColor])
+            excludeUndefined([...focusedColors, ...hoveredColors, hoverColor])
         )
 
         return activeColors
