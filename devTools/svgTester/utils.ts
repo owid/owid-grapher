@@ -39,6 +39,7 @@ import {
     legacyToOwidTableAndDimensions,
     legacyToOwidTableAndDimensionsWithMandatorySlug,
     migrateGrapherConfigToLatestVersion,
+    GrapherState,
 } from "@ourworldindata/grapher"
 import prettier from "prettier"
 import { hashMd5 } from "../../serverUtils/hash.js"
@@ -374,6 +375,29 @@ export async function saveGrapherSchemaAndData(
     ])
 }
 
+function resolveFocusPlaceholderInQueryString(
+    queryStr: string | undefined,
+    grapherState: GrapherState
+): { focusedSeriesName?: string; resolvedQueryStr: string } {
+    if (!queryStr) return { resolvedQueryStr: "" }
+
+    const params = new URLSearchParams(queryStr)
+    const focus = params.get("focus")
+
+    if (!focus || !focus.startsWith("<")) return { resolvedQueryStr: queryStr }
+
+    const seriesName = grapherState.chartState.series[0]?.seriesName
+
+    if (focus === "<firstSeries>" && seriesName) {
+        const focusedSeriesName = seriesName
+        params.set("focus", focusedSeriesName)
+        return { focusedSeriesName, resolvedQueryStr: params.toString() }
+    } else {
+        params.delete("focus")
+        return { resolvedQueryStr: params.toString() }
+    }
+}
+
 export async function renderSvg({
     dir,
     queryStr,
@@ -390,24 +414,18 @@ export async function renderSvg({
 
     const timeStart = Date.now()
 
+    // Drop the focus param because it may contain a placeholder value
+    // (the focused entity/column is manually added later)
+    const queryStrWithoutFocus = new URLSearchParams(queryStr)
+    queryStrWithoutFocus.delete("focus")
+
     const grapher = initGrapherForSvgExport(
         {
             ...configAndData.config,
             adminBaseUrl: "https://ourworldindata.org",
             bakedGrapherURL: "https://ourworldindata.org/grapher",
         },
-        queryStr
-    )
-    const { width, height } = grapher.grapherState.defaultBounds
-    const outFilename = buildSvgOutFilename(
-        {
-            slug: dir.viewId,
-            version: configAndData.config.version ?? 0,
-            width,
-            height,
-            queryStr,
-        },
-        { shouldHashQueryStr: true }
+        queryStrWithoutFocus.toString()
     )
 
     grapher.grapherState.inputTable = legacyToOwidTableAndDimensions(
@@ -415,6 +433,28 @@ export async function renderSvg({
         grapher.grapherState.dimensions,
         grapher.grapherState.selectedEntityColors
     )
+
+    // Resolve focus placeholders after the chart has data and series are available
+    const { focusedSeriesName, resolvedQueryStr } =
+        resolveFocusPlaceholderInQueryString(queryStr, grapher.grapherState)
+
+    // Set the focused series if applicable
+    if (focusedSeriesName !== undefined) {
+        grapher.grapherState.focusArray.clearAllAndAdd(focusedSeriesName)
+    }
+
+    const { width, height } = grapher.grapherState.defaultBounds
+    const outFilename = buildSvgOutFilename(
+        {
+            slug: dir.viewId,
+            version: configAndData.config.version ?? 0,
+            width,
+            height,
+            queryStr: resolvedQueryStr,
+        },
+        { shouldHashQueryStr: true }
+    )
+
     const durationReceiveData = Date.now() - timeStart
 
     const svg = await grapher.grapherState.generateStaticSvg(
@@ -425,7 +465,7 @@ export async function renderSvg({
     const svgRecord: SvgRecord = {
         viewId: dir.viewId,
         chartType: grapher.grapherState.activeTab,
-        queryStr,
+        queryStr: resolvedQueryStr,
         md5: await processSvgAndCalculateHash(svg),
         svgFilename: outFilename,
         performance: {
