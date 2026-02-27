@@ -227,6 +227,7 @@ properties:
             - "population": Use countries with similar population as peers
             - "dataRange": Use countries that represent the data range as peers
             - "neighbors": Use neighboring countries as peers
+            - "none": Don't automatically add peer countries (useful in search)
         enum:
             - defaultSelection
             - parentRegions
@@ -234,6 +235,7 @@ properties:
             - population
             - dataRange
             - neighbors
+            - none
     entityType:
         type: string
         default: country or region
