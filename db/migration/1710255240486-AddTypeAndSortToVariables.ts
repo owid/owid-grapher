@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddTypeAndSortToVariables1710255240486
-    implements MigrationInterface
-{
+export class AddTypeAndSortToVariables1710255240486 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(
             `ALTER TABLE variables

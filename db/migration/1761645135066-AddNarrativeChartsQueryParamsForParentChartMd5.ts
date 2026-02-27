@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddNarrativeChartsQueryParamsForParentChartMd51761645135066
-    implements MigrationInterface
-{
+export class AddNarrativeChartsQueryParamsForParentChartMd51761645135066 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             ALTER TABLE narrative_charts

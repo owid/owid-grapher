@@ -254,7 +254,7 @@ test: node_modules
 	yarn run eslint
 
 	@echo '==> Checking formatting'
-	yarn testPrettierAll
+	yarn testFormatAll
 
 	@echo '==> Checking Raycast snippets'
 	yarn checkRaycastSnippets
@@ -320,11 +320,11 @@ lint: node_modules
 
 check-formatting: node_modules
 	@echo '==> Checking formatting'
-	yarn testPrettierAll
+	yarn testFormatAll
 
 format: node_modules
 	@echo '==> Fixing formatting'
-	yarn fixPrettierAll
+	yarn fixFormatAll
 
 unittest: node_modules
 	@echo '==> Running tests'

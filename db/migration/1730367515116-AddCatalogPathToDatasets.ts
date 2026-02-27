@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddCatalogPathToDatasets1730367515116
-    implements MigrationInterface
-{
+export class AddCatalogPathToDatasets1730367515116 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(
             "DROP INDEX `unique_short_name_version_namespace` ON `datasets`"

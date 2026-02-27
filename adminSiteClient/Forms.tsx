@@ -659,8 +659,7 @@ export class EditableList extends React.Component<{
     }
 }
 
-export interface EditableListItemProps
-    extends React.HTMLAttributes<HTMLLIElement> {
+export interface EditableListItemProps extends React.HTMLAttributes<HTMLLIElement> {
     className?: string
 }
 

@@ -21,8 +21,7 @@ export interface Chart {
     isChild: boolean
 }
 
-export interface NarrativeChartEditorManager
-    extends AbstractChartEditorManager {
+export interface NarrativeChartEditorManager extends AbstractChartEditorManager {
     history: History
     narrativeChartId?: number
     name?: string

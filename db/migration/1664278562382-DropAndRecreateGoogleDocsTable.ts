@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class DropAndRecreateGoogleDocsTable1664278562382
-    implements MigrationInterface
-{
+export class DropAndRecreateGoogleDocsTable1664278562382 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // by the time this migration is run, the posts_gdocs table has already been
         // created but should not hold any data. So we can just drop it and

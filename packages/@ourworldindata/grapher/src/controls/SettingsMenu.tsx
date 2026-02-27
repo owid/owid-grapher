@@ -51,7 +51,8 @@ const {
 } = GRAPHER_CHART_TYPES
 
 export interface SettingsMenuManager
-    extends AbsRelToggleManager,
+    extends
+        AbsRelToggleManager,
         NoDataAreaToggleManager,
         FacetYDomainToggleManager,
         ZoomToggleManager,

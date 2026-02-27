@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class CloudflareImagesReplacedBy1734369183234
-    implements MigrationInterface
-{
+export class CloudflareImagesReplacedBy1734369183234 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             ALTER TABLE images

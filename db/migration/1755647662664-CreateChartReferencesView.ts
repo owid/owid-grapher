@@ -5,9 +5,7 @@ import {
     REFERENCE_SOURCES,
 } from "../chartReferencesViewHelper.js"
 
-export class CreateChartReferencesView1755647662664
-    implements MigrationInterface
-{
+export class CreateChartReferencesView1755647662664 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await createChartReferencesView(queryRunner, [
             REFERENCE_SOURCES.gdocs,

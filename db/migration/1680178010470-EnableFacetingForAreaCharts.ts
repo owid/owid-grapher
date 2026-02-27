@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class EnableFacetingForAreaCharts1680178010470
-    implements MigrationInterface
-{
+export class EnableFacetingForAreaCharts1680178010470 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
             UPDATE charts

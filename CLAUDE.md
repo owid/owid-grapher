@@ -2,13 +2,13 @@
 
 - yarn typecheck: runs the typescript typechecker across all files
 - yarn testLintChanged: run eslint on changed files
-- yarn testPrettierChanged: run prettier on changed files
-- yarn fixPrettierChanged: attempt to fix prettier issues on changed files
+- yarn testFormatChanged: check formatting on changed files
+- yarn fixFormatChanged: fix formatting on changed files
 - yarn test run --reporter dot: run unit tests. Uses vitest, can take one or more test filenames to only run a subset.
 - make migrate: apply migrations
 - make dbtest: run database and api tests
 
-When you have completed implementing a big set of changes, run `yarn fixPrettierChanged > /dev/null 2>&1 && yarn typecheck` and fix any errors you have.
+When you have completed implementing a big set of changes, run `yarn fixFormatChanged > /dev/null 2>&1 && yarn typecheck` and fix any errors you have.
 
 When you want to create a git commit, refer to docs/agent-guidelines/commit-messages.md for instructions.
 

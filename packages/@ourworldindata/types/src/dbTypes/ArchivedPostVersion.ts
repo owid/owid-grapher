@@ -10,12 +10,13 @@ export interface DbInsertArchivedPostVersion {
     manifest: JsonString
 }
 
-export interface DbPlainArchivedPostVersion
-    extends Required<DbInsertArchivedPostVersion> {
+export interface DbPlainArchivedPostVersion extends Required<DbInsertArchivedPostVersion> {
     id: number
 }
 
-export interface DbEnrichedArchivedPostVersion
-    extends Omit<DbPlainArchivedPostVersion, "manifest"> {
+export interface DbEnrichedArchivedPostVersion extends Omit<
+    DbPlainArchivedPostVersion,
+    "manifest"
+> {
     manifest: Record<string, any> // TODO: Turn into more specific type
 }

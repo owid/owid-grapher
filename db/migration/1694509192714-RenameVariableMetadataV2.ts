@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class RenameVariableMetadataV21694509192714
-    implements MigrationInterface
-{
+export class RenameVariableMetadataV21694509192714 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
             ALTER TABLE variables

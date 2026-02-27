@@ -15,8 +15,7 @@ export interface BulkGrapherConfigResponseRow {
     updatedAt: string
 }
 
-export interface VariableAnnotationsResponseRow
-    extends BulkGrapherConfigResponseRow {
+export interface VariableAnnotationsResponseRow extends BulkGrapherConfigResponseRow {
     name: string
     datasetname: string
     namespacename: string

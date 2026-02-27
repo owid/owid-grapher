@@ -3,9 +3,7 @@ import { MigrationInterface, QueryRunner } from "typeorm"
 // We have to recreate this because new columns were added in the
 // AddUpdatedAtInWordpressToPosts1676042584151 and AddCreatedAtToPosts1676470290267
 // migrations
-export class RecreatePostsWithGdocPublishStatusView1678398619296
-    implements MigrationInterface
-{
+export class RecreatePostsWithGdocPublishStatusView1678398619296 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
         drop view if exists posts_with_gdoc_publish_status;

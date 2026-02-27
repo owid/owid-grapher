@@ -110,9 +110,7 @@ const excludedSlugs = [
     "world-trade-exports-constant-prices",
 ]
 
-export class AddDiscreteBarChartTabToAllLineCharts1752507940867
-    implements MigrationInterface
-{
+export class AddDiscreteBarChartTabToAllLineCharts1752507940867 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         for (const { table, column } of tables) {
             // Add a discrete bar chart tab to all line charts.

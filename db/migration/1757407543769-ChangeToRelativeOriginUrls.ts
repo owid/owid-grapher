@@ -6,9 +6,7 @@ const tables = [
     { table: "chart_revisions", column: "config" },
 ]
 
-export class ChangeToRelativeOriginUrls1757407543769
-    implements MigrationInterface
-{
+export class ChangeToRelativeOriginUrls1757407543769 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         for (const { table, column } of tables) {
             await queryRunner.query(`-- sql

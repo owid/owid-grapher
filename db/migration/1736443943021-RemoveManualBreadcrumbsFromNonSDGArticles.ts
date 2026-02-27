@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class RemoveManualBreadcrumbsFromNonSDGArticles1736443943021
-    implements MigrationInterface
-{
+export class RemoveManualBreadcrumbsFromNonSDGArticles1736443943021 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         /* As of 09-01-2025, the articles affected by this migration are:
         - https://ourworldindata.org/renewable-energy

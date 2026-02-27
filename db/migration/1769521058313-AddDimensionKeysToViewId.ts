@@ -201,9 +201,7 @@ async function backfillMultiDimViewIds(
     }
 }
 
-export class AddDimensionKeysToViewId1769521058313
-    implements MigrationInterface
-{
+export class AddDimensionKeysToViewId1769521058313 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await backfillExplorerViewIds(queryRunner, dimensionsToCanonicalViewId)
         await backfillMultiDimViewIds(queryRunner, "to-canonical")

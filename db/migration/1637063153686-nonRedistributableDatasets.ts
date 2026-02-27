@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class nonRedistributableDatasets1637063153686
-    implements MigrationInterface
-{
+export class nonRedistributableDatasets1637063153686 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
             ALTER TABLE datasets

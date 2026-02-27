@@ -10,12 +10,13 @@ export interface DbInsertArchivedMultiDimVersion {
     manifest: JsonString
 }
 
-export interface DbPlainArchivedMultiDimVersion
-    extends Required<DbInsertArchivedMultiDimVersion> {
+export interface DbPlainArchivedMultiDimVersion extends Required<DbInsertArchivedMultiDimVersion> {
     id: number
 }
 
-export interface DbEnrichedArchivedMultiDimVersion
-    extends Omit<DbPlainArchivedMultiDimVersion, "manifest"> {
+export interface DbEnrichedArchivedMultiDimVersion extends Omit<
+    DbPlainArchivedMultiDimVersion,
+    "manifest"
+> {
     manifest: Record<string, any> // TODO: Turn into more specific type
 }

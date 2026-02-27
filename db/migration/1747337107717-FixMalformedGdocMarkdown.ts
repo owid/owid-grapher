@@ -2,9 +2,7 @@ import { MigrationInterface, QueryRunner } from "typeorm"
 import { enrichedBlocksToMarkdown } from "../model/Gdoc/enrichedToMarkdown.js"
 import { gdocFromJSON } from "../model/Gdoc/GdocFactory.js"
 
-export class FixMalformedGdocMarkdown1747337107717
-    implements MigrationInterface
-{
+export class FixMalformedGdocMarkdown1747337107717 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         const malformedGdocQuery = `-- sql
             SELECT

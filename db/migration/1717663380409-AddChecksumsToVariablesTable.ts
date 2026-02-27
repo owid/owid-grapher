@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddChecksumsToVariablesTable1717663380409
-    implements MigrationInterface
-{
+export class AddChecksumsToVariablesTable1717663380409 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
         ALTER TABLE variables

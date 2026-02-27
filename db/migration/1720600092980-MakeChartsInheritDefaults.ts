@@ -2,9 +2,7 @@ import { MigrationInterface, QueryRunner } from "typeorm"
 import { diffGrapherConfigs, mergeGrapherConfigs } from "@ourworldindata/utils"
 import { defaultGrapherConfig } from "@ourworldindata/grapher"
 
-export class MakeChartsInheritDefaults1720600092980
-    implements MigrationInterface
-{
+export class MakeChartsInheritDefaults1720600092980 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         const charts = (await queryRunner.query(
             `-- sql

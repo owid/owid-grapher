@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class ChartTagIsKeyChartNonNull1675374345914
-    implements MigrationInterface
-{
+export class ChartTagIsKeyChartNonNull1675374345914 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
         UPDATE chart_tags

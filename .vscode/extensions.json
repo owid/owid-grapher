@@ -2,7 +2,7 @@
     "recommendations": [
         "dbaeumer.vscode-eslint",
         "editorconfig.editorconfig",
-        "esbenp.prettier-vscode",
+        "oxc.oxc-vscode",
         "mrmlnc.vscode-scss",
         "vitest.explorer",
         "ms-playwright.playwright",

@@ -45,8 +45,9 @@ export interface ChartComponentProps<TState extends ChartState = ChartState> {
     bounds?: Bounds
 }
 
-interface ChartComponentClass<T extends ChartState = ChartState>
-    extends ComponentClass<ChartComponentProps<T>> {
+interface ChartComponentClass<
+    T extends ChartState = ChartState,
+> extends ComponentClass<ChartComponentProps<T>> {
     new (props: ChartComponentProps<T>): Component & ChartInterface
 }
 

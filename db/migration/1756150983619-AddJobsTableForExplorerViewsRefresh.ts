@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddJobsTableForExplorerViewsRefresh1756150983619
-    implements MigrationInterface
-{
+export class AddJobsTableForExplorerViewsRefresh1756150983619 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Create jobs table for async job queue
         // No unique constraint on (type, payload) to allow multiple rows and fix coalescing race conditions

@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class CreateMultiDimRedirects1764156630580
-    implements MigrationInterface
-{
+export class CreateMultiDimRedirects1764156630580 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             CREATE TABLE multi_dim_redirects (

@@ -6,9 +6,7 @@ const tables = [
     { table: "chart_revisions", column: "config" },
 ]
 
-export class RemoveColorScaleMinValue1750251210487
-    implements MigrationInterface
-{
+export class RemoveColorScaleMinValue1750251210487 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         for (const { table, column } of tables) {
             await queryRunner.query(

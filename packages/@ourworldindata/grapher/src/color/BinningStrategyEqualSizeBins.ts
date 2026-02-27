@@ -50,9 +50,8 @@ const getTargetBinCountForEqualSizeBinsStrategy = (
         .with("equalSizeBins-normal", () =>
             hasMidpoint ? ([3, 6] as const) : ([5, 9] as const)
         )
-        .with(
-            P.union("equalSizeBins-many-bins", "equalSizeBins-percent"),
-            () => (hasMidpoint ? ([4, 8] as const) : ([8, 12] as const))
+        .with(P.union("equalSizeBins-many-bins", "equalSizeBins-percent"), () =>
+            hasMidpoint ? ([4, 8] as const) : ([8, 12] as const)
         )
         .exhaustive()
 }

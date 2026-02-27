@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddWordpressPostArchieMlJsonColumn1666871402674
-    implements MigrationInterface
-{
+export class AddWordpressPostArchieMlJsonColumn1666871402674 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             ALTER TABLE posts

@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class MultiDimNarrativeCharts1747214839803
-    implements MigrationInterface
-{
+export class MultiDimNarrativeCharts1747214839803 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(
             `-- sql

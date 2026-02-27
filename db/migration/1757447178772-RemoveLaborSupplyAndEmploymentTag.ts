@@ -2,9 +2,7 @@ import { MigrationInterface, QueryRunner } from "typeorm"
 
 // Migrate all FKs that point to "Labor Supply & Employment" to point to
 // "Labor Force Participation & Employment", then delete the old tag.
-export class RemoveLaborSupplyAndEmploymentTag1757447178772
-    implements MigrationInterface
-{
+export class RemoveLaborSupplyAndEmploymentTag1757447178772 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         const [oldId, newId] = await queryRunner
             .query(

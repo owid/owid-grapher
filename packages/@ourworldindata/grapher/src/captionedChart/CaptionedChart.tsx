@@ -46,7 +46,8 @@ import { getChartSvgProps } from "../chart/ChartUtils"
 import { StaticChartWrapper } from "../chart/StaticChartWrapper"
 
 export interface CaptionedChartManager
-    extends ChartManager,
+    extends
+        ChartManager,
         MapChartManager,
         FooterManager,
         HeaderManager,
