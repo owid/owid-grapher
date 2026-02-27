@@ -30,10 +30,9 @@ export default function DataInsightDateline({
         } else if (date.isYesterday()) {
             formattedDate = "Yesterday"
         } else {
-            formattedDate = publishedAt.toLocaleDateString(
-                "en-US",
-                formatOptions
-            )
+            formattedDate = date
+                .toDate()
+                .toLocaleDateString("en-US", formatOptions)
         }
     } else {
         formattedDate = "Unpublished"

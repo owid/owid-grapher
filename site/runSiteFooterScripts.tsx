@@ -27,6 +27,12 @@ import {
     _OWID_DATA_INSIGHTS_INDEX_PAGE_DATA,
     DataInsightsIndexPageContent,
 } from "./DataInsightsIndexPageContent.js"
+import {
+    _OWID_LATEST_PAGE_DATA,
+    LatestPageContent,
+    LatestPageContentProps,
+    LATEST_PAGE_CONTAINER_ID,
+} from "./LatestPageContent.js"
 import { runAllGraphersLoadedListener } from "./runAllGraphersLoadedListener.js"
 import {
     __OWID_EXPLORER_INDEX_PAGE_PROPS,
@@ -124,6 +130,17 @@ async function hydrateDataInsightsIndexPage() {
                 <DataInsightsIndexPageContent {...props} />
             </DebugProvider>
         )
+    }
+}
+
+function hydrateLatestPage() {
+    const props: LatestPageContentProps = (window as any)[
+        _OWID_LATEST_PAGE_DATA
+    ]
+    const container = document.querySelector(`#${LATEST_PAGE_CONTAINER_ID}`)
+
+    if (container && props) {
+        hydrateRoot(container, <LatestPageContent {...props} />)
     }
 }
 
@@ -399,6 +416,14 @@ export const runSiteFooterScripts = async (
             runSiteTools()
             runCookiePreferencesManager()
             runUserSurveyWidget()
+            break
+        case SiteFooterContext.latestPage:
+            hydrateLatestPage()
+            runSiteNavigation(hideDonationFlag)
+            runSiteTools()
+            runCookiePreferencesManager()
+            runUserSurveyWidget()
+            void runDetailsOnDemand()
             break
         case SiteFooterContext.dynamicCollectionPage:
             // Don't break, run default case too
