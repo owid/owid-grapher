@@ -1,5 +1,5 @@
 import cx from "classnames"
-import { useContext } from "react"
+import { useContext, useState, useEffect } from "react"
 
 import Callout from "./Callout.js"
 import ChartStory from "./ChartStory.js"
@@ -13,10 +13,15 @@ import List from "./List.js"
 import NumberedList from "./NumberedList.js"
 import Image, { ImageParentContainer } from "./Image.js"
 import {
+    EXPERIMENT_ARM_SEPARATOR,
+    EXPERIMENT_PREFIX,
     OwidEnrichedGdocBlock,
     spansToUnformattedPlainText,
     TocHeadingWithTitleSupertitle,
     Url,
+    defaultExperimentState,
+    getExperimentState,
+    ExperimentState,
 } from "@ourworldindata/utils"
 import { CodeSnippet, convertHeadingTextToId } from "@ourworldindata/components"
 import SDGGrid from "./SDGGrid.js"
@@ -97,6 +102,19 @@ function ArticleBlockInternal({
         rightIsChart ? rightBlock.url : ""
     )
 
+    // note: experimentState should NOT be used to conditionally render content b/c
+    // it will cause a flash of content before js loads.
+    const [experimentState, setExperimentState] = useState<ExperimentState>(
+        defaultExperimentState
+    )
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const s = getExperimentState()
+            setExperimentState(s)
+        }
+    }, [])
+    const { isPageInExperiment, assignedExperiments } = experimentState
+
     if (block.parseErrors.filter(({ isWarning }) => !isWarning).length > 0) {
         return (
             <BlockErrorFallback
@@ -125,12 +143,70 @@ function ArticleBlockInternal({
                 ) : null}
             </aside>
         ))
-        .with({ type: "all-charts" }, (block) => (
-            <AllCharts
-                {...block}
-                className={getLayout("all-charts", containerType)}
-            />
-        ))
+        .with({ type: "all-charts" }, (block) => {
+            const layoutClassName = getLayout("featured-metrics", containerType)
+            const topicName = tags[0]?.name
+
+            if (!topicName) {
+                return (
+                    <BlockErrorFallback
+                        className={layoutClassName}
+                        error={{
+                            name: `Error in ${block.type}`,
+                            message:
+                                "Featured metrics requires at least one tag on the document.",
+                        }}
+                    />
+                )
+            }
+
+            return (
+                <>
+                    <AllCharts
+                        {...block}
+                        id={
+                            isPageInExperiment &&
+                            assignedExperiments &&
+                            assignedExperiments[
+                                `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
+                            ] &&
+                            assignedExperiments[
+                                `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
+                            ] !== "all-charts"
+                                ? ""
+                                : "all-charts"
+                        }
+                        className={cx(
+                            getLayout("all-charts", containerType),
+                            `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}featured-metrics--hide`
+                        )}
+                    />
+                    <>
+                        <BlockQueryClientProvider>
+                            <FeaturedMetrics
+                                id={
+                                    isPageInExperiment &&
+                                    assignedExperiments &&
+                                    assignedExperiments[
+                                        `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
+                                    ] &&
+                                    assignedExperiments[
+                                        `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
+                                    ] === "featured-metrics"
+                                        ? "all-charts"
+                                        : ""
+                                }
+                                topicName={topicName}
+                                className={cx(
+                                    layoutClassName,
+                                    `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}featured-metrics--show`
+                                )}
+                            />
+                        </BlockQueryClientProvider>
+                    </>
+                </>
+            )
+        })
         .with({ type: "chart" }, (block) => {
             const resolvedUrl = linkedChart?.resolvedUrl ?? block.url
             const { isExplorer, queryParams } = Url.fromURL(resolvedUrl)
