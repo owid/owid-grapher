@@ -163,6 +163,7 @@ getPlainRouteWithROTransaction(
                 await renderPreviewDataPageOrGrapherPage(
                     chart.config,
                     chart.id,
+                    chart.forceDatapage,
                     trx
                 )
             res.send(previewDataPageOrGrapherPage)
@@ -189,6 +190,7 @@ getPlainRouteWithROTransaction(
                 await renderPreviewDataPageOrGrapherPage(
                     chart.config,
                     chart.id,
+                    chart.forceDatapage,
                     trx
                 )
             res.send(previewDataPageOrGrapherPage)
