@@ -47,7 +47,7 @@ import {
     EXPLORE_DATA_SECTION_DEFAULT_TITLE,
     EXPLORE_DATA_SECTION_ID,
 } from "@ourworldindata/types"
-import { PointVector } from "./PointVector.js"
+import { Point, PointVector } from "./PointVector.js"
 import * as React from "react"
 import { match, P } from "ts-pattern"
 import urlSlug from "url-slug"
@@ -391,12 +391,12 @@ export const guid = (): number => (_guidsDisabledForTesting ? 1 : ++_guid)
 export const TESTING_ONLY_disable_guid = (): boolean =>
     (_guidsDisabledForTesting = true)
 
-// Take an array of points and make it into an SVG path specification string
-export const pointsToPath = (points: Array<[number, number]>): string => {
+/** Create an SVG path from an array of points */
+export const pointsToPath = (points: Point[]): string => {
     let path = ""
     for (let i = 0; i < points.length; i++) {
-        if (i === 0) path += `M${points[i][0]} ${points[i][1]}`
-        else path += `L${points[i][0]} ${points[i][1]}`
+        if (i === 0) path += `M${points[i].x} ${points[i].y}`
+        else path += `L${points[i].x} ${points[i].y}`
     }
     return path
 }

@@ -10,6 +10,7 @@ import {
     dyFromAlign,
     textAnchorFromAlign,
     makeFigmaId,
+    Point,
 } from "@ourworldindata/utils"
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
@@ -211,7 +212,7 @@ export class VerticalAxisZeroLine extends React.Component<VerticalAxisZeroLinePr
 
 interface DualAxisViewProps {
     dualAxis: DualAxis
-    highlightValue?: { x: number; y: number }
+    highlightValue?: Point
     showTickMarks?: boolean
     labelColor?: string
     tickColor?: string

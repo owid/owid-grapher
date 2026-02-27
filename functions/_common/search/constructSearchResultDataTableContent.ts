@@ -307,7 +307,7 @@ function buildDataTableContentForStackedDiscreteBarChart({
 
             let rows = series.points
                 .map((point) => {
-                    if (point.fake || point.interpolated) return undefined
+                    if (point.missing || point.interpolated) return undefined
                     return {
                         point,
                         seriesName: series.seriesName,
@@ -357,7 +357,7 @@ function buildDataTableContentForStackedDiscreteBarChart({
             let rows: TableRow[] = item?.bars
                 .map((bar) => {
                     const point = bar.point
-                    if (point.fake || point.interpolated) return undefined
+                    if (point.missing || point.interpolated) return undefined
                     return {
                         seriesName: bar.seriesName,
                         label: bar.seriesName,

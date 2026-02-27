@@ -6,6 +6,7 @@ import {
     getRelativeMouse,
     makeFigmaId,
     Url,
+    Point,
 } from "@ourworldindata/utils"
 import {
     DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
@@ -380,7 +381,7 @@ abstract class AbstractFooter<
     }
 
     base = React.createRef<HTMLDivElement>()
-    tooltipTarget: { x: number; y: number } | undefined = undefined
+    tooltipTarget: Point | undefined = undefined
 
     @action.bound private onMouseMove(e: MouseEvent): void {
         const cc = this.base.current?.querySelector(".cclogo")

@@ -570,7 +570,10 @@ export class StackedDiscreteBars
                 ({ entityName }) => entityName === target?.entityName
             ),
             hasNotice = item?.bars.some(
-                ({ point }) => !point.fake && point.time !== targetTime
+                ({ point }) =>
+                    !point.missing &&
+                    !point.interpolated &&
+                    point.time !== targetTime
             ),
             targetNotice = hasNotice
                 ? timeColumn.formatValue(targetTime)
@@ -617,8 +620,10 @@ export class StackedDiscreteBars
                             const {
                                 seriesName: name,
                                 color,
-                                point: { value, time, fake: blurred },
+                                point: { value, time, missing, interpolated },
                             } = bar
+
+                            const blurred = missing || interpolated
 
                             return {
                                 name,

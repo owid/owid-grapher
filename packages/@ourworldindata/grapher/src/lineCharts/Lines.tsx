@@ -240,7 +240,6 @@ interface LinePathProps extends React.SVGProps<SVGPathElement> {
 
 function LinePath(props: LinePathProps): React.ReactElement {
     const { placedPoints, ...pathProps } = props
-    const coords = placedPoints.map(({ x, y }) => [x, y] as [number, number])
     return (
         <path
             fill="none"
@@ -248,7 +247,7 @@ function LinePath(props: LinePathProps): React.ReactElement {
             strokeLinejoin="round"
             stroke={DEFAULT_LINE_COLOR}
             {...pathProps}
-            d={pointsToPath(coords)}
+            d={pointsToPath(placedPoints)}
         />
     )
 }
