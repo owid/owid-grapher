@@ -608,5 +608,6 @@ ${links}`
                 nestedOptions
             )
         })
+        .with({ type: "country-profile-selector" }, () => undefined)
         .exhaustive()
 }

@@ -815,6 +815,14 @@ export class GdocBase implements OwidGdocBaseInterface {
                 }
                 return links
             })
+            .with({ type: "country-profile-selector" }, (block) => [
+                createLinkFromUrl({
+                    url: block.url,
+                    sourceId: this.id,
+                    componentType: block.type,
+                    text: block.title ?? "Country profile selector",
+                }),
+            ])
             .with(
                 {
                     // no urls directly on any of these blocks
@@ -1131,10 +1139,12 @@ export class GdocBase implements OwidGdocBaseInterface {
                     }
 
                     // Validate profile links: must have ?entity=X with a valid, available entity
+                    // (skip for country-profile-selector, which links to the profile itself)
                     if (
                         linkedDoc?.type === OwidGdocType.Profile &&
                         doesGdocExist &&
-                        isGdocPublished
+                        isGdocPublished &&
+                        link.componentType !== "country-profile-selector"
                     ) {
                         const queryParams = Url.fromURL(
                             link.queryString

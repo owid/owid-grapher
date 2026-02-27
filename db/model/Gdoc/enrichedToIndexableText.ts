@@ -425,7 +425,8 @@ export function enrichedBlockToIndexableText(
                         "sdg-grid",
                         "sdg-toc",
                         "socials",
-                        "subscribe-banner"
+                        "subscribe-banner",
+                        "country-profile-selector"
                     ),
                 },
                 (): undefined => undefined

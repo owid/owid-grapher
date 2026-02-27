@@ -1,0 +1,133 @@
+.centered-article-container--topic-page,
+.centered-article-container--article {
+    .article-block__country-profile-selector {
+        background-color: $blue-5;
+        margin: 36px 0;
+        padding: 48px;
+        @include sm-only {
+            padding: 24px 0;
+        }
+        .country-profile-selector__panel {
+            background-color: #fff;
+        }
+    }
+}
+
+.centered-article-container--linear-topic-page {
+    @include sm-only {
+        &.centered-article-container--heading-variant-light
+            .article-block__country-profile-selector
+            + .article-block__heading {
+            margin-top: 72px;
+        }
+    }
+
+    .article-block__country-profile-selector {
+        margin: 48px 0;
+        @include sm-only {
+            margin: 24px 0;
+        }
+        .country-profile-selector__panel {
+            background-color: $blue-5;
+        }
+    }
+}
+
+.country-profile-selector__title {
+    color: $blue-90;
+    margin-bottom: 16px;
+    margin-top: 0;
+}
+
+.country-profile-selector__description {
+    color: $blue-60;
+}
+
+.country-profile-selector__panel {
+    padding: 24px;
+    @include md-up {
+        margin-left: calc(-1 * var(--grid-gap));
+    }
+}
+
+.country-profile-selector__search-wrapper {
+    position: relative;
+    margin-bottom: 24px;
+}
+.country-profile-selector__search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: $blue-30;
+    pointer-events: none;
+}
+
+.country-profile-selector__search {
+    padding: 10px;
+    padding-left: 36px; // to make space for the search icon
+    padding-right: 32px; // to make space for the clear button
+    width: 100%;
+    color: $blue-50;
+    border: 1px solid $blue-10;
+    :focus,
+    &:focus-visible {
+        outline: none;
+        border-color: $blue-50;
+    }
+}
+
+.country-profile-selector__clear-button {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 0;
+    border: none;
+    background-color: transparent;
+    color: $blue-30;
+    &:hover {
+        color: $blue-50;
+    }
+}
+
+.country-profile-selector__grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.country-profile-selector__country {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    flex: 1 1 calc(50% - 8px); // target 2 columns (8px = half of 16px gap)
+    min-width: min-content; // don't shrink below text width — wraps to own row instead
+    max-width: 100%;
+}
+
+.country-profile-selector__flag {
+    height: 16px;
+    margin-right: 8px;
+    outline: 1px solid $blue-10;
+}
+
+.country-profile-selector__country-name {
+    color: $blue-90;
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.country-profile-selector__arrow {
+    margin-left: 8px;
+}
+
+.country-profile-selector__no-results {
+    margin-top: 0;
+    grid-column: span 2;
+}

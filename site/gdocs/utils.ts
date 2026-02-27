@@ -142,23 +142,21 @@ export const useLinkedDocument = (
         errorMessage = `Article with slug "${linkedDocument.slug}" isn't published.`
     }
 
-    // Validate profile-type docs: must have ?entity=X with a valid entity
+    // Validate ?entity=X for profile-type docs (when provided)
     const parsedUrl = Url.fromURL(url)
     const entityParam = parsedUrl.queryParams.entity
-    if (linkedDocument.type === OwidGdocType.Profile && !errorMessage) {
-        if (!entityParam) {
-            errorMessage = `Profile link must include a ?entity= parameter (e.g. ?entity=France).`
-        } else {
-            const region = getRegionByNameOrVariantName(entityParam)
-            if (!region) {
-                errorMessage = `Unknown country name "${entityParam}" in profile link.`
-            } else if (!linkedDocument.availableEntityCodes) {
-                errorMessage = `Unable to determine available countries for profile "${linkedDocument.slug}".`
-            } else if (
-                !linkedDocument.availableEntityCodes.includes(region.code)
-            ) {
-                errorMessage = `Country "${entityParam}" is not available for profile "${linkedDocument.slug}".`
-            }
+    if (
+        linkedDocument.type === OwidGdocType.Profile &&
+        entityParam &&
+        !errorMessage
+    ) {
+        const region = getRegionByNameOrVariantName(entityParam)
+        if (!region) {
+            errorMessage = `Unknown entity name "${entityParam}" in profile link.`
+        } else if (!linkedDocument.availableEntityCodes) {
+            errorMessage = `Unable to determine available entities for profile "${linkedDocument.slug}".`
+        } else if (!linkedDocument.availableEntityCodes.includes(region.code)) {
+            errorMessage = `Entity "${entityParam}" is not available for profile "${linkedDocument.slug}".`
         }
     }
 
