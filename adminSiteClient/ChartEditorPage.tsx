@@ -43,6 +43,7 @@ export class ChartEditorPage
             views: observable,
             tags: observable,
             availableTags: observable,
+            forceDatapage: observable.ref,
         })
     }
 
@@ -52,6 +53,7 @@ export class ChartEditorPage
     views: DbPlainAnalyticsGrapherView | undefined = undefined
     tags: DbChartTagJoin[] | undefined = undefined
     availableTags: MinimalTagWithIsTopic[] | undefined = undefined
+    forceDatapage: boolean | undefined = undefined
 
     patchConfig: GrapherInterface = {}
     parentConfig: GrapherInterface | undefined = undefined
@@ -77,6 +79,7 @@ export class ChartEditorPage
             )
             this.parentConfig = parent?.config
             this.isInheritanceEnabled = parent?.isActive ?? true
+            this.forceDatapage = parent?.forceDatapage ?? false
         } else if (grapherConfig) {
             const parentIndicatorId =
                 getParentVariableIdFromChartConfig(grapherConfig)
@@ -87,8 +90,10 @@ export class ChartEditorPage
                 )
             }
             this.isInheritanceEnabled = true
+            this.forceDatapage = false
         } else {
             this.isInheritanceEnabled = true
+            this.forceDatapage = false
         }
     }
 

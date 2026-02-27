@@ -352,6 +352,17 @@ export class EditorTextTab<
                         placeholder="e.g. IHME"
                         helpText="Optional variant name for distinguishing charts with the same title"
                     />
+                    {isChartEditorInstance(editor) && (
+                        <Toggle
+                            label="Force to be a data page"
+                            secondaryLabel="Use metadata from the first Y indicator (same behavior as multi-dimensional data pages)."
+                            value={editor.forceDatapage}
+                            onValue={action(
+                                (value: boolean) =>
+                                    (editor.manager.forceDatapage = value)
+                            )}
+                        />
+                    )}
                 </Section>
                 {(this.hasCopyAdminURLButton ||
                     this.hasCopyGrapherURLButton) && (

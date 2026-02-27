@@ -578,14 +578,20 @@ export async function getAllChartsForIndicator(
  * Returns the indicator ID to use for datapage metadata if the grapher is
  * eligible for a datapage, otherwise undefined.
  *
- * If we have a single Y indicator and it has schema version >= 2, meaning it
- * has the metadata necessary to render a datapage, AND if the metadata includes
- * text for at least one of the description* fields or titlePublic, then we can
- * use it in a datapage.
+ * By default, datapages require exactly one Y indicator.
+ *
+ * If `forceDatapage` is enabled, we instead use the first Y indicator for
+ * metadata (same behavior as mdims), even when there are multiple Y indicators.
+ *
+ * The selected indicator must have schema version >= 2 and include text for at
+ * least one of the description* fields or titlePublic.
  */
 export async function getDatapageIndicatorId(
     knex: db.KnexReadonlyTransaction,
-    grapher: GrapherInterface
+    grapher: GrapherInterface,
+    options?: {
+        forceDatapage?: boolean
+    }
 ): Promise<number | undefined> {
     const yVariableIds = grapher
         .dimensions!.filter((d) => d.property === DimensionProperty.y)
@@ -598,33 +604,39 @@ export async function getDatapageIndicatorId(
     // is a special case where time is the X axis. Marimekko charts are the other chart that uses
     // the X dimension but there we usually map population on X which should not prevent us from
     // showing a data page.
-    if (
-        yVariableIds.length === 1 &&
-        (grapher.chartTypes?.[0] !== GRAPHER_CHART_TYPES.ScatterPlot ||
-            xVariableIds.length === 0)
-    ) {
-        const variableId = yVariableIds[0]
-        const result = await knexRawFirst<{ id: number }>(
-            knex,
-            `-- sql
-                SELECT id
-                FROM variables
-                WHERE id = ?
-                  AND schemaVersion >= 2
-                  AND (
-                    (descriptionShort IS NOT NULL AND descriptionShort != '') OR
-                    (descriptionProcessing IS NOT NULL AND descriptionProcessing != '') OR
-                    (descriptionKey IS NOT NULL AND descriptionKey != '' AND descriptionKey != '[]') OR
-                    (descriptionFromProducer IS NOT NULL AND descriptionFromProducer != '') OR
-                    (titlePublic IS NOT NULL AND titlePublic != '')
-                  )
-            `,
-            [variableId]
-        )
+    const isScatterWithMappedX =
+        grapher.chartTypes?.[0] === GRAPHER_CHART_TYPES.ScatterPlot &&
+        xVariableIds.length > 0
+    const shouldUseFirstYIndicator = options?.forceDatapage === true
 
-        return result?.id
+    let variableId: number | undefined
+    if (shouldUseFirstYIndicator) {
+        variableId = yVariableIds[0]
+    } else if (yVariableIds.length === 1 && !isScatterWithMappedX) {
+        variableId = yVariableIds[0]
     }
-    return undefined
+
+    if (!variableId) return undefined
+
+    const result = await knexRawFirst<{ id: number }>(
+        knex,
+        `-- sql
+            SELECT id
+            FROM variables
+            WHERE id = ?
+              AND schemaVersion >= 2
+              AND (
+                (descriptionShort IS NOT NULL AND descriptionShort != '') OR
+                (descriptionProcessing IS NOT NULL AND descriptionProcessing != '') OR
+                (descriptionKey IS NOT NULL AND descriptionKey != '' AND descriptionKey != '[]') OR
+                (descriptionFromProducer IS NOT NULL AND descriptionFromProducer != '') OR
+                (titlePublic IS NOT NULL AND titlePublic != '')
+              )
+        `,
+        [variableId]
+    )
+
+    return result?.id
 }
 
 // TODO: these are domain functions and should live somewhere else
@@ -917,7 +929,10 @@ export const readSQLasDF = async (
 
 export async function getVariableOfDatapageIfApplicable(
     knex: db.KnexReadonlyTransaction,
-    grapher: GrapherInterface
+    grapher: GrapherInterface,
+    options?: {
+        forceDatapage?: boolean
+    }
 ): Promise<
     | {
           id: number
@@ -925,7 +940,7 @@ export async function getVariableOfDatapageIfApplicable(
       }
     | undefined
 > {
-    const indicatorId = await getDatapageIndicatorId(knex, grapher)
+    const indicatorId = await getDatapageIndicatorId(knex, grapher, options)
     if (indicatorId) {
         const fullMetadata = await getVariableMetadata(indicatorId, {
             noCache: true,
