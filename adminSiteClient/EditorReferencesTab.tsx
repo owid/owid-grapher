@@ -1,5 +1,4 @@
 import * as _ from "lodash-es"
-/* eslint-disable react-refresh/only-export-components */
 
 import { Component, createContext, Fragment, useState } from "react"
 import { observer } from "mobx-react"

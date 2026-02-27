@@ -12,7 +12,7 @@ import {
     countries,
     regions,
     getRegionByNameOrVariantName,
-} from "./regions.js"
+} from "./regions/index.js"
 import {
     OwidGdocType,
     type OwidGdocProfileContent,

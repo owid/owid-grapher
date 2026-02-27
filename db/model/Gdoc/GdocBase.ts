@@ -1290,6 +1290,10 @@ export class GdocBase implements OwidGdocBaseInterface {
         ]
     }
 
+    // NOTE: The Algolia bulk indexer (getPagesRecords in baker/algolia/utils/pages.ts)
+    // only calls loadAndClearLinkedCallouts — the sole step that mutates
+    // this.content.body.  If you add a step here that also mutates body content,
+    // update the Algolia indexer to call it too.
     async loadState(knex: db.KnexReadonlyTransaction): Promise<void> {
         await this.loadLinkedAuthors(knex)
         await this.loadLinkedDocuments(knex)

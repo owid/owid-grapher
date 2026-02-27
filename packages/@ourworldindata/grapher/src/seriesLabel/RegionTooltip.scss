@@ -1,0 +1,61 @@
+.region-tooltip {
+    $muted-opacity: 0.3;
+    $outline: #333333;
+
+    max-width: 320px;
+    color: $gray-100;
+    font-size: 0.875rem;
+
+    a {
+        @include owid-link-90;
+        color: inherit;
+    }
+
+    p {
+        margin: 0;
+    }
+
+    .map-container {
+        margin: 8px 0;
+    }
+
+    .map {
+        width: 100%;
+        height: auto;
+        display: block;
+
+        path {
+            stroke: $outline;
+            stroke-width: 0.3;
+        }
+    }
+
+    .legend {
+        color: $dark-text;
+        font-size: 0.9em;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 12px;
+    }
+
+    .legend-item {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 4px;
+        line-height: 1.2;
+        cursor: default;
+    }
+
+    .swatch {
+        width: 0.8em;
+        height: 0.8em;
+        flex-shrink: 0;
+        position: relative;
+        top: 1px; // Small visual correction
+        outline: 0.5px solid $outline;
+    }
+
+    .muted {
+        opacity: $muted-opacity;
+    }
+}

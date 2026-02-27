@@ -9,7 +9,7 @@ import {
     VerticalAlign,
     dyFromAlign,
     textAnchorFromAlign,
-    makeIdForHumanConsumption,
+    makeFigmaId,
 } from "@ourworldindata/utils"
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
@@ -38,7 +38,7 @@ export class VerticalAxisGridLines extends React.Component<VerticalAxisGridLines
 
         return (
             <g
-                id={makeIdForHumanConsumption("horizontal-grid-lines")}
+                id={makeFigmaId("horizontal-grid-lines")}
                 className={classNames("AxisGridLines", "horizontalLines")}
             >
                 {axis.getTickValues().map((t) => {
@@ -53,9 +53,7 @@ export class VerticalAxisGridLines extends React.Component<VerticalAxisGridLines
 
                     return (
                         <line
-                            id={makeIdForHumanConsumption(
-                                verticalAxis.formatTick(t.value)
-                            )}
+                            id={makeFigmaId(verticalAxis.formatTick(t.value))}
                             className={className}
                             key={t.value}
                             x1={bounds.left.toFixed(2)}
@@ -99,7 +97,7 @@ export class HorizontalAxisGridLines extends React.Component<HorizontalAxisGridL
 
         return (
             <g
-                id={makeIdForHumanConsumption("vertical-grid-lines")}
+                id={makeFigmaId("vertical-grid-lines")}
                 className={classNames("AxisGridLines", "verticalLines")}
             >
                 {axis.getTickValues().map((t) => {
@@ -112,9 +110,7 @@ export class HorizontalAxisGridLines extends React.Component<HorizontalAxisGridL
 
                     return (
                         <line
-                            id={makeIdForHumanConsumption(
-                                horizontalAxis.formatTick(t.value)
-                            )}
+                            id={makeFigmaId(horizontalAxis.formatTick(t.value))}
                             key={t.value}
                             x1={axis.place(t.value)}
                             y1={bounds.bottom.toFixed(2)}
@@ -162,7 +158,7 @@ export class HorizontalAxisZeroLine extends React.Component<HorizontalAxisZeroLi
 
         return (
             <line
-                id={makeIdForHumanConsumption("vertical-zero-line")}
+                id={makeFigmaId("vertical-zero-line")}
                 x1={x.toFixed(2)}
                 y1={bounds.bottom.toFixed(2)}
                 x2={x.toFixed(2)}
@@ -200,7 +196,7 @@ export class VerticalAxisZeroLine extends React.Component<VerticalAxisZeroLinePr
 
         return (
             <line
-                id={makeIdForHumanConsumption("horizontal-zero-line")}
+                id={makeFigmaId("horizontal-zero-line")}
                 x1={bounds.left.toFixed(2)}
                 y1={y.toFixed(2)}
                 x2={bounds.right.toFixed(2)}
@@ -347,16 +343,11 @@ export class VerticalAxisComponent extends React.Component<VerticalAxisComponent
             bounds.left + verticalAxis.width - verticalAxis.tickPadding
 
         return (
-            <g
-                id={makeIdForHumanConsumption("vertical-axis")}
-                className="VerticalAxis"
-            >
+            <g id={makeFigmaId("vertical-axis")} className="VerticalAxis">
                 {shouldShowLogNotice && logNoticeTextWrap && (
                     <React.Fragment key={logNoticeTextWrap.text}>
                         {logNoticeTextWrap.renderSVG(tickX, bounds.top, {
-                            id: makeIdForHumanConsumption(
-                                "vertical-axis-log-notice"
-                            ),
+                            id: makeFigmaId("vertical-axis-log-notice"),
                             textProps: {
                                 fill: tickColor || GRAPHER_DARK_TEXT,
                                 textAnchor: textAnchorFromAlign(
@@ -371,9 +362,7 @@ export class VerticalAxisComponent extends React.Component<VerticalAxisComponent
                 {labelTextWrap && (
                     <React.Fragment key={labelTextWrap.text}>
                         {labelTextWrap.renderSVG(bounds.left, bounds.top, {
-                            id: makeIdForHumanConsumption(
-                                "vertical-axis-label"
-                            ),
+                            id: makeFigmaId("vertical-axis-label"),
                             textProps: {
                                 fill: labelColor || GRAPHER_DARK_TEXT,
                             },
@@ -382,12 +371,10 @@ export class VerticalAxisComponent extends React.Component<VerticalAxisComponent
                     </React.Fragment>
                 )}
                 {showTickMarks && (
-                    <g id={makeIdForHumanConsumption("tick-marks")}>
+                    <g id={makeFigmaId("tick-marks")}>
                         {visibleTickLabels.map((label) => (
                             <VerticalAxisTickMark
-                                id={makeIdForHumanConsumption(
-                                    label.formattedValue
-                                )}
+                                id={makeFigmaId(label.formattedValue)}
                                 key={label.value}
                                 tickMarkYPosition={verticalAxis.place(
                                     label.value
@@ -401,7 +388,7 @@ export class VerticalAxisComponent extends React.Component<VerticalAxisComponent
                     </g>
                 )}
                 {!config.hideTickLabels && (
-                    <g id={makeIdForHumanConsumption("tick-labels")}>
+                    <g id={makeFigmaId("tick-labels")}>
                         {visibleTickLabels.map((label) => {
                             const { value, y, xAlign, yAlign, formattedValue } =
                                 label
@@ -509,16 +496,11 @@ export class HorizontalAxisComponent extends React.Component<{
         }
 
         return (
-            <g
-                id={makeIdForHumanConsumption("horizontal-axis")}
-                className="HorizontalAxis"
-            >
+            <g id={makeFigmaId("horizontal-axis")} className="HorizontalAxis">
                 {label && (
                     <React.Fragment key={label.text}>
                         {label.renderSVG(axis.rangeCenter, labelYPosition, {
-                            id: makeIdForHumanConsumption(
-                                "horizontal-axis-label"
-                            ),
+                            id: makeFigmaId("horizontal-axis-label"),
                             textProps: {
                                 fill: labelColor || GRAPHER_DARK_TEXT,
                                 textAnchor: "middle",
@@ -528,13 +510,11 @@ export class HorizontalAxisComponent extends React.Component<{
                     </React.Fragment>
                 )}
                 {showTickMarks && (
-                    <g id={makeIdForHumanConsumption("tick-marks")}>
+                    <g id={makeFigmaId("tick-marks")}>
                         {visibleTickLabels.map((label) => (
                             <line
                                 key={label.value}
-                                id={makeIdForHumanConsumption(
-                                    label.formattedValue
-                                )}
+                                id={makeFigmaId(label.formattedValue)}
                                 x1={axis.place(label.value)}
                                 y1={tickMarksYPosition - tickMarkWidth / 2}
                                 x2={axis.place(label.value)}
@@ -546,7 +526,7 @@ export class HorizontalAxisComponent extends React.Component<{
                     </g>
                 )}
                 {showTickLabels && (
-                    <g id={makeIdForHumanConsumption("tick-labels")}>
+                    <g id={makeFigmaId("tick-labels")}>
                         {visibleTickLabels.map((label) => (
                             <text
                                 key={label.value}

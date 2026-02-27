@@ -10,7 +10,7 @@ import {
     SortOrder,
     getRelativeMouse,
     EntitySelectionMode,
-    makeIdForHumanConsumption,
+    makeFigmaId,
     dyFromAlign,
     exposeInstanceOnWindow,
 } from "@ourworldindata/utils"
@@ -30,7 +30,11 @@ import {
     VerticalAlign,
     ColorScaleConfigInterface,
 } from "@ourworldindata/types"
-import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
+import {
+    OwidTable,
+    CoreColumn,
+    ColumnTypeMap,
+} from "@ourworldindata/core-table"
 import { getShortNameForEntity } from "../chart/ChartUtils"
 import {
     LEGEND_STYLE_FOR_STACKED_CHARTS,
@@ -524,7 +528,7 @@ export class MarimekkoChart
         return (
             <g
                 ref={this.base}
-                id={makeIdForHumanConsumption("marimekko-chart")}
+                id={makeFigmaId("marimekko-chart")}
                 className="MarimekkoChart"
                 onMouseMove={(ev): void => this.onMouseMove(ev)}
                 onMouseLeave={(): void => this.dismissTooltip()}
@@ -593,7 +597,10 @@ export class MarimekkoChart
                         )}
                         {colorColumn &&
                             !colorColumn.isMissing &&
-                            tooltipItem?.entityColor && (
+                            tooltipItem?.entityColor &&
+                            !(
+                                colorColumn instanceof ColumnTypeMap.Continent
+                            ) && (
                                 <TooltipValue
                                     label={
                                         colorScale.legendDescription ??
@@ -996,10 +1003,7 @@ export class MarimekkoChart
                         : markerNetHeight - directionUnawareMakerYMid
                 labelLines.push(
                     <g
-                        id={makeIdForHumanConsumption(
-                            "label-line",
-                            item.labelKey
-                        )}
+                        id={makeFigmaId("label-line", item.labelKey)}
                         className="indicator"
                         key={`labelline-${item.labelKey}`}
                     >
@@ -1025,7 +1029,7 @@ export class MarimekkoChart
 
             labelLines.push(
                 <g
-                    id={makeIdForHumanConsumption("label-line", item.labelKey)}
+                    id={makeFigmaId("label-line", item.labelKey)}
                     className="indicator"
                     key={`labelline-${item.labelKey}`}
                 >
@@ -1051,7 +1055,7 @@ export class MarimekkoChart
         const placedLabels = this.labelsWithPlacementInfo.map((item) => (
             <g
                 key={`label-${item.labelKey}`}
-                id={makeIdForHumanConsumption("label", item.labelKey)}
+                id={makeFigmaId("label", item.labelKey)}
                 className="bar-label"
                 transform={`translate(${item.correctedPlacement}, ${labelOffset})`}
             >

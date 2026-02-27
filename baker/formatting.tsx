@@ -35,7 +35,7 @@ export const formatImages = ($: cheerio.CheerioAPI) => {
         // dimensions (e.g. remove 800x600).
         const src = el.attribs["src"]
         const parsedPath = path.parse(src)
-        let originalFilename = ""
+        let originalFilename: string
 
         if (parsedPath.ext !== ".svg") {
             originalFilename = parsedPath.name.replace(/-\d+x\d+$/, "")

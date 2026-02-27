@@ -1,9 +1,16 @@
 import { ChartManager } from "../chart/ChartManager"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { ChartSeries } from "../chart/ChartInterface"
-import { Color, CoreValueType, Time } from "@ourworldindata/types"
+import {
+    Color,
+    CoreValueType,
+    ProjectionColumnInfo,
+    Time,
+} from "@ourworldindata/types"
 import { TextWrap } from "@ourworldindata/components"
 import { InteractionState } from "../interaction/InteractionState.js"
+import { ColumnSlug } from "@ourworldindata/utils"
+import { SeriesLabelState } from "../seriesLabel/SeriesLabelState.js"
 
 export interface DiscreteBarSeries extends ChartSeries {
     entityName: string
@@ -14,10 +21,11 @@ export interface DiscreteBarSeries extends ChartSeries {
     colorValue?: CoreValueType
     annotation?: string
     focus: InteractionState
+    isProjection?: boolean
 }
 
 export interface SizedDiscreteBarSeries extends DiscreteBarSeries {
-    label: TextWrap
+    label: SeriesLabelState
     annotationTextWrap?: TextWrap
 }
 
@@ -39,6 +47,7 @@ export interface DiscreteBarChartManager extends ChartManager {
     endTime?: Time
     hasLineChart?: boolean // used to pick color scheme
     hasSlopeChart?: boolean // used to pick color scheme
+    projectionColumnInfoBySlug?: Map<ColumnSlug, ProjectionColumnInfo>
 }
 
 export interface DiscreteBarItem {
@@ -48,13 +57,19 @@ export interface DiscreteBarItem {
     time: number
     colorValue?: CoreValueType
     color?: Color
+    isProjection?: boolean
 }
 
-export interface FontSettings {
-    fontSize: number
-    fontWeight: number
-    lineHeight: number
-}
+/**
+ * Describes how Y columns are handled.
+ *
+ * - "independent": Each Y column is treated independently and plotted as its own series.
+ * - "combined": A historical and projection column pair are merged into a single
+ *   series, with projections indicated appropriately.
+ */
+export type YColumnMode =
+    | { type: "independent"; slugs: ColumnSlug[] }
+    | { type: "combined"; slugs: ColumnSlug[]; info: ProjectionColumnInfo }
 
 export const BACKGROUND_COLOR = "#fff"
 export const BAR_SPACING_FACTOR = 0.35

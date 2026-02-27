@@ -94,6 +94,7 @@ function getPreferredSchemesByType(
             ColorSchemeName.BinaryMapPaletteC,
             ColorSchemeName.BinaryMapPaletteD,
             ColorSchemeName.BinaryMapPaletteE,
+            ColorSchemeName.OwidCategoricalMap,
         ])
         .exhaustive()
 }

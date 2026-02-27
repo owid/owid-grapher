@@ -202,13 +202,11 @@
                 z-index: -1;
             }
 
-            .label-with-location-icon {
-                &--no-line-break {
-                    white-space: nowrap;
-                }
+            .location-icon {
+                white-space: nowrap;
 
                 svg {
-                    margin-left: 6px;
+                    margin-left: 2px;
                     font-size: 0.9em;
                     color: $gray-60;
 
@@ -217,6 +215,10 @@
                         outline: none;
                     }
                 }
+            }
+
+            .suffix {
+                color: $light-text;
             }
         }
 

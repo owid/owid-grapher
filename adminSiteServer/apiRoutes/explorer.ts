@@ -3,7 +3,8 @@ import {
     DbPlainUser,
     ExplorersTableName,
 } from "@ourworldindata/types"
-import e, { Request, Response } from "express"
+import { Request } from "express"
+import { HandlerResponse } from "../FunctionalRouter.js"
 
 import { isValidSlug } from "../../serverUtils/serverUtil.js"
 
@@ -22,7 +23,7 @@ function validateExplorerSlug(slug: string): void {
 
 export async function addExplorerTags(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const { slug } = req.params
@@ -44,7 +45,7 @@ export async function addExplorerTags(
 
 export async function deleteExplorerTags(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const { slug } = req.params
@@ -57,7 +58,7 @@ export async function deleteExplorerTags(
 
 export async function handleGetExplorer(
     req: Request,
-    res: Response,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const { slug } = req.params
@@ -71,7 +72,7 @@ export async function handleGetExplorer(
 
 export async function handlePutExplorer(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const { slug } = req.params
@@ -127,7 +128,7 @@ export async function handlePutExplorer(
 
 export async function handleDeleteExplorer(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const { slug } = req.params
@@ -174,7 +175,7 @@ export async function handleDeleteExplorer(
  */
 export async function getExplorerRecordsJson(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const { slug } = req.params

@@ -157,7 +157,10 @@ function handleComponent<T extends OwidEnrichedGdocBlock>(
                 components.push(...childComponents)
             }
         } catch (e) {
-            throw new Error(`Error iterating ${String(prop)} for ${path}: ${e}`)
+            throw new Error(
+                `Error iterating ${String(prop)} for ${path}: ${e}`,
+                { cause: e }
+            )
         }
     }
 

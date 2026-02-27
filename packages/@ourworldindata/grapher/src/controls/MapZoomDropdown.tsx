@@ -11,7 +11,7 @@ import {
     GlobeRegionName,
     mappableCountries,
     MapRegionName,
-    checkIsOwidIncomeGroupName,
+    checkIsOwidIncomeGroupCode,
     getUserCountryInformation,
     regions,
 } from "@ourworldindata/utils"
@@ -205,7 +205,7 @@ export class MapZoomDropdown extends React.Component<{
 
             const countryRegionsWithoutIncomeGroups = localCountryInfo.regions
                 ? localCountryInfo.regions.filter(
-                      (region) => !checkIsOwidIncomeGroupName(region)
+                      (region) => !checkIsOwidIncomeGroupCode(region)
                   )
                 : []
 

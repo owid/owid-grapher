@@ -8,7 +8,7 @@ import {
     ALGOLIA_SEARCH_KEY,
 } from "../../settings/clientSettings.js"
 import { SEARCH_EVAL_URL } from "../../settings/serverSettings.js"
-import { getIndexName } from "./searchClient.js"
+import { PAGES_INDEX } from "./searchUtils.js"
 import { algoliasearch, SearchClient } from "algoliasearch"
 
 /* eslint-disable no-console */
@@ -64,7 +64,7 @@ const evaluateAndPrint = async (name: string): Promise<void> => {
 
 const evaluateArticleSearch = async (name: string): Promise<SearchResults> => {
     const ds = await fetchQueryDataset(name)
-    const indexName = getIndexName("pages")
+    const indexName = PAGES_INDEX
 
     // make a search client
     const client = getClient()

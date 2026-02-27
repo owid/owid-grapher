@@ -11,12 +11,12 @@ import {
     fetchGptGeneratedTextFromImage,
 } from "../imagesHelpers.js"
 import * as db from "../../db/db.js"
-import e from "express"
 import { Request } from "../authentication.js"
+import { HandlerResponse } from "../FunctionalRouter.js"
 
 export async function suggestGptTopics(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ): Promise<Record<"topics", DbChartTagJoin[]>> {
     const chartId = parseIntOrUndefined(req.params.chartId)
@@ -37,7 +37,7 @@ export async function suggestGptTopics(
 
 export async function suggestGptAltTextForCloudflareImage(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ): Promise<{
     success: true
@@ -58,7 +58,7 @@ export async function suggestGptAltTextForCloudflareImage(
 
 export async function suggestGptAltText(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     _trx: db.KnexReadonlyTransaction
 ): Promise<{
     success: true
@@ -76,7 +76,7 @@ export async function generateAltTextFromUrl(imageUrl: string): Promise<{
     success: true
     altText: string
 }> {
-    let altText: string | null = ""
+    let altText: string | null
     try {
         altText = await fetchGptGeneratedAltText(imageUrl)
     } catch (error) {
@@ -96,7 +96,7 @@ export async function generateAltTextFromUrl(imageUrl: string): Promise<{
 
 export async function extractTextFromImage(
     req: Request,
-    _res: e.Response<any, Record<string, any>>
+    _res: HandlerResponse
 ): Promise<{
     success: true
     text: string

@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test"
 import { defineBddConfig } from "playwright-bdd"
-import { ENV } from "./settings/clientSettings.ts"
+import { BAKED_BASE_URL, ENV } from "./settings/clientSettings.ts"
 
 const testDir = defineBddConfig({
     features: "features/**/*.feature",
@@ -13,6 +13,9 @@ const testDir = defineBddConfig({
 export default defineConfig({
     testDir,
     reporter: ENV === "development" ? [["line"]] : [["dot"]],
+    use: {
+        baseURL: `${BAKED_BASE_URL}${ENV !== "development" ? ".tail6e23.ts.net" : ""}`,
+    },
     projects: [
         {
             name: "chromium",

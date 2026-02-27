@@ -5,7 +5,7 @@ import * as _ from "lodash-es"
 import {
     Bounds,
     dyFromAlign,
-    makeIdForHumanConsumption,
+    makeFigmaId,
     VerticalAlign,
 } from "@ourworldindata/utils"
 import {
@@ -188,12 +188,7 @@ export class VerticalComparisonLine extends React.Component<
         const { x, y1, y2 } = this.lineCoordinates
 
         return (
-            <g
-                id={makeIdForHumanConsumption(
-                    "comparison-line",
-                    this.lineConfig.label
-                )}
-            >
+            <g id={makeFigmaId("comparison-line", this.lineConfig.label)}>
                 <line
                     x1={x}
                     y1={y1}

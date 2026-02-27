@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 /* Forms.tsx
  * ================
  *
@@ -7,7 +8,13 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import { useState } from "react"
-import { bind, dayjs, Tippy, copyToClipboard } from "@ourworldindata/utils"
+import {
+    bind,
+    dayjs,
+    Tippy,
+    copyToClipboard,
+    ColorSchemeName,
+} from "@ourworldindata/utils"
 import { action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import cx from "classnames"
@@ -675,6 +682,7 @@ interface ColorBoxProps {
     color: string | undefined
     onColor: (color: string | undefined) => void
     showLineChartColors: boolean
+    baseColorScheme?: ColorSchemeName
 }
 
 @observer
@@ -693,6 +701,7 @@ export class ColorBox extends React.Component<ColorBoxProps> {
                             color={color}
                             onColor={this.props.onColor}
                             showLineChartColors={this.props.showLineChartColors}
+                            baseColorScheme={this.props.baseColorScheme}
                         />
                         <div
                             style={{
@@ -1378,35 +1387,36 @@ export const CatalogPathField = ({
         const [datasetName, indicatorName] = catalogPath.split("#")
 
         if (!datasetName || !indicatorName) tokenizedCatalogPath = catalogPath
-
-        // Tokenize, color and word-break any slashes, underscores, and hashes
-        tokenizedCatalogPath = (
-            <>
-                {[...datasetName].map((char, i) => {
-                    if (char === "/")
-                        return (
-                            <span key={i} style={{ color: "gray" }}>
-                                <wbr />/
-                            </span>
-                        )
-                    return char
-                })}
-                <span style={{ color: "#91577c" }}>
-                    <wbr />#
-                </span>
-                <span style={{ color: "#2162e6" }}>
-                    {[...indicatorName].map((char, i) => {
-                        if (char === "_")
+        else {
+            // Tokenize, color and word-break any slashes, underscores, and hashes
+            tokenizedCatalogPath = (
+                <>
+                    {[...datasetName].map((char, i) => {
+                        if (char === "/")
                             return (
-                                <span key={i}>
-                                    <wbr />_
+                                <span key={i} style={{ color: "gray" }}>
+                                    <wbr />/
                                 </span>
                             )
                         return char
                     })}
-                </span>
-            </>
-        )
+                    <span style={{ color: "#91577c" }}>
+                        <wbr />#
+                    </span>
+                    <span style={{ color: "#2162e6" }}>
+                        {[...indicatorName].map((char, i) => {
+                            if (char === "_")
+                                return (
+                                    <span key={i}>
+                                        <wbr />_
+                                    </span>
+                                )
+                            return char
+                        })}
+                    </span>
+                </>
+            )
+        }
     }
 
     return (

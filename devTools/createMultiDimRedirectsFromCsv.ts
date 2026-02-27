@@ -157,7 +157,8 @@ function getViewConfigId(
     } catch (error) {
         if (error instanceof Error) {
             throw new Error(
-                `Line ${entry.lineNumber}: ${error.message} for target '${entry.target}'`
+                `Line ${entry.lineNumber}: ${error.message} for target '${entry.target}'`,
+                { cause: error }
             )
         }
         throw error

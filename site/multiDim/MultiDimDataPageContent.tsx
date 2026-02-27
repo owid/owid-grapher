@@ -128,6 +128,11 @@ export function DataPageContent({
     const [searchParams, setSearchParams] = useSearchParams()
     const [varDatapageData, setVarDatapageData] =
         useState<VariableDataPageData | null>(null)
+
+    // Workaround to prevent a race condition when switching between views.
+    // https://github.com/owid/owid-grapher/issues/5727
+    const [isLoadingView, setIsLoadingView] = useState(false)
+
     const inputTableFetcher = useMemo(
         () =>
             getCachingInputTableFetcher(
@@ -166,6 +171,7 @@ export function DataPageContent({
             if (!variableId) return
 
             grapherState.isDataReady = false
+            setIsLoadingView(true)
 
             const datapageDataPromise = cachedGetVariableMetadata(
                 variableId,
@@ -262,6 +268,7 @@ export function DataPageContent({
                     }
                 })
                 .catch(Sentry.captureException)
+                .finally(() => setIsLoadingView(false))
         },
         [
             assetMap,
@@ -417,6 +424,7 @@ export function DataPageContent({
                                 config={config}
                                 settings={settings}
                                 onChange={handleSettingsChange}
+                                disabled={isLoadingView}
                             />
                         </div>
                     </div>

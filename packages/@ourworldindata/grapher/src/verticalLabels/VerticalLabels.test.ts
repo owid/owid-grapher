@@ -2,9 +2,9 @@ import { expect, it, describe } from "vitest"
 
 import { PartialBy } from "@ourworldindata/utils"
 import { AxisConfig } from "../axis/AxisConfig"
-import { LineLegend } from "./LineLegend"
-import { LEGEND_ITEM_MIN_SPACING } from "./LineLegendConstants"
-import { LineLabelSeries } from "./LineLegendTypes"
+import { VerticalLabelsState } from "./VerticalLabelsState"
+import { LEGEND_ITEM_MIN_SPACING } from "./VerticalLabelsConstants"
+import { LabelSeries } from "./VerticalLabelsTypes"
 import { InteractionState } from "../interaction/InteractionState"
 
 const makeAxis = ({
@@ -22,8 +22,8 @@ const makeAxis = ({
 }
 
 const makeSeries = (
-    series: PartialBy<LineLabelSeries, "label" | "color">[]
-): LineLabelSeries[] =>
+    series: PartialBy<LabelSeries, "label" | "color">[]
+): LabelSeries[] =>
     series.map((s) => ({
         label: s.seriesName,
         color: "blue",
@@ -40,35 +40,32 @@ const series = makeSeries([
 ])
 
 it("can create a new legend", () => {
-    const legend = new LineLegend({
-        series,
-        yAxis: makeAxis({ yRange: [0, 100] }),
+    const state = new VerticalLabelsState(series, {
+        yAxis: () => makeAxis({ yRange: [0, 100] }),
     })
 
-    expect(legend.visibleSeriesNames.length).toEqual(2)
+    expect(state.visibleSeriesNames.length).toEqual(2)
 })
 
 describe("dropping labels", () => {
     it("drops labels that don't fit into the available space", () => {
-        const lineLegend = new LineLegend({
-            series,
-            yAxis: makeAxis({ yRange: [0, 50] }),
+        const state = new VerticalLabelsState(series, {
+            yAxis: () => makeAxis({ yRange: [0, 50] }),
         })
 
         // two labels are given, but only one fits
-        expect(lineLegend.sizedSeries).toHaveLength(2)
-        expect(lineLegend.visibleSeriesNames).toEqual(["Canada"])
+        expect(state.sizedSeries).toHaveLength(2)
+        expect(state.visibleSeriesNames).toEqual(["Canada"])
     })
 
     it("prioritises labels based on importance sorting", () => {
-        const lineLegend = new LineLegend({
-            series,
-            yAxis: makeAxis({ yRange: [0, 50] }),
+        const state = new VerticalLabelsState(series, {
+            yAxis: () => makeAxis({ yRange: [0, 50] }),
             seriesNamesSortedByImportance: ["Mexico", "Canada"],
         })
 
         // 'Mexico' is picked since it's given higher importance
-        expect(lineLegend.visibleSeriesNames).toEqual(["Mexico"])
+        expect(state.visibleSeriesNames).toEqual(["Mexico"])
     })
 
     it("skips more important series if they don't fit", () => {
@@ -79,9 +76,8 @@ describe("dropping labels", () => {
             { seriesName: "Democratic Republic of Congo", yValue: 45 },
         ])
 
-        const lineLegend = new LineLegend({
-            series,
-            yAxis: makeAxis({ yRange: [0, 50] }),
+        const state = new VerticalLabelsState(series, {
+            yAxis: () => makeAxis({ yRange: [0, 50] }),
             maxWidth: 100,
             seriesNamesSortedByImportance: [
                 "Mexico",
@@ -92,11 +88,7 @@ describe("dropping labels", () => {
         })
 
         // 'Democratic Republic of Congo' is skipped since it doesn't fit
-        expect(lineLegend.visibleSeriesNames).toEqual([
-            "Canada",
-            "Mexico",
-            "Spain",
-        ])
+        expect(state.visibleSeriesNames).toEqual(["Canada", "Mexico", "Spain"])
     })
 
     it("prioritises to label focused series", () => {
@@ -105,13 +97,12 @@ describe("dropping labels", () => {
             focus: new InteractionState(s.seriesName === "Mexico", true),
         }))
 
-        const lineLegendWithFocus = new LineLegend({
-            series: seriesWithFocus,
-            yAxis: makeAxis({ yRange: [0, 50] }),
+        const stateWithFocus = new VerticalLabelsState(seriesWithFocus, {
+            yAxis: () => makeAxis({ yRange: [0, 50] }),
         })
 
         // 'Mexico' is picked since it's focused
-        expect(lineLegendWithFocus.visibleSeriesNames).toEqual(["Mexico"])
+        expect(stateWithFocus.visibleSeriesNames).toEqual(["Mexico"])
     })
 
     it("uses all available space", () => {
@@ -123,25 +114,20 @@ describe("dropping labels", () => {
         ])
 
         const yRange: [number, number] = [0, 50]
-        const lineLegend = new LineLegend({
-            series,
-            yAxis: makeAxis({ yRange }),
+        const state = new VerticalLabelsState(series, {
+            yAxis: () => makeAxis({ yRange }),
         })
 
         // 'Spain' is dropped since it doesn't fit
-        expect(lineLegend.visibleSeriesNames).toEqual([
-            "Canada",
-            "Mexico",
-            "France",
-        ])
+        expect(state.visibleSeriesNames).toEqual(["Canada", "Mexico", "France"])
 
         // verify that we can't fit 'Spain' into the available space
-        const droppedLabel = lineLegend.sizedSeries.find(
+        const droppedLabel = state.sizedSeries.find(
             (series) => series.seriesName === "Spain"
         )!
         const droppedLabelHeight = droppedLabel.height + LEGEND_ITEM_MIN_SPACING
         const availableHeight = yRange[1] - yRange[0]
-        const remainingHeight = availableHeight - lineLegend.visibleSeriesHeight
+        const remainingHeight = availableHeight - state.visibleSeriesHeight
         expect(remainingHeight).toBeLessThan(droppedLabelHeight)
     })
 
@@ -152,12 +138,11 @@ describe("dropping labels", () => {
             { seriesName: "France", yValue: 90 },
         ])
 
-        const lineLegend = new LineLegend({
-            series,
-            yAxis: makeAxis({ yRange: [0, 40] }),
+        const state = new VerticalLabelsState(series, {
+            yAxis: () => makeAxis({ yRange: [0, 40] }),
         })
 
-        expect(lineLegend.visibleSeriesNames).toEqual(["Canada", "France"])
+        expect(state.visibleSeriesNames).toEqual(["Canada", "France"])
     })
 
     it("picks labels from the edges, skipping long labels", () => {
@@ -168,15 +153,14 @@ describe("dropping labels", () => {
             { seriesName: "Democratic Republic of Congo", yValue: 90 },
         ])
 
-        const lineLegend = new LineLegend({
-            series,
+        const state = new VerticalLabelsState(series, {
             maxWidth: 100,
-            yAxis: makeAxis({ yRange: [0, 60] }),
+            yAxis: () => makeAxis({ yRange: [0, 60] }),
         })
 
         // the two outermost labels don't fit both into the available space.
         // so 'Canada' is picked instead of 'United States of America'
-        expect(lineLegend.visibleSeriesNames).toEqual([
+        expect(state.visibleSeriesNames).toEqual([
             "Canada",
             "Democratic Republic of Congo",
         ])
@@ -192,16 +176,11 @@ describe("dropping labels", () => {
             { seriesName: "Peru", yValue: 90 },
         ])
 
-        const lineLegend = new LineLegend({
-            series,
-            yAxis: makeAxis({ yRange: [0, 50] }),
+        const state = new VerticalLabelsState(series, {
+            yAxis: () => makeAxis({ yRange: [0, 50] }),
         })
 
         // drops 'Mexico', 'Brazil' and 'Argentina' since they're close to each other
-        expect(lineLegend.visibleSeriesNames).toEqual([
-            "Canada",
-            "Chile",
-            "Peru",
-        ])
+        expect(state.visibleSeriesNames).toEqual(["Canada", "Chile", "Peru"])
     })
 })

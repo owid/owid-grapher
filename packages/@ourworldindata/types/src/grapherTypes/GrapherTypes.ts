@@ -470,6 +470,7 @@ export enum ColorSchemeName {
     OwidCategoricalC = "OwidCategoricalC",
     OwidCategoricalD = "OwidCategoricalD",
     OwidCategoricalE = "OwidCategoricalE",
+    OwidCategoricalMap = "OwidCategoricalMap",
     OwidEnergy = "OwidEnergy",
     OwidEnergyLines = "OwidEnergyLines",
     OwidDistinctLines = "OwidDistinctLines",

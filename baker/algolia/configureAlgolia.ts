@@ -10,8 +10,8 @@ import {
     ALGOLIA_SECRET_KEY,
 } from "../../settings/serverSettings.js"
 import { countries, excludeUndefined } from "@ourworldindata/utils"
-import { SearchIndexName } from "@ourworldindata/types"
 import { getIndexName } from "../../site/search/searchClient.js"
+import { PAGES_INDEX, CHARTS_INDEX } from "../../site/search/searchUtils.js"
 import { synonyms } from "../../site/search/synonymUtils.js"
 
 export const CONTENT_GRAPH_ALGOLIA_INDEX = getIndexName("graph")
@@ -58,7 +58,7 @@ export const configureAlgolia = async () => {
         unretrievableAttributes: ["views_7d", "score"],
     }
 
-    const pagesIndexName = getIndexName(SearchIndexName.Pages)
+    const pagesIndexName = PAGES_INDEX
 
     await client.setSettings({
         indexName: pagesIndexName,
@@ -90,9 +90,7 @@ export const configureAlgolia = async () => {
         },
     })
 
-    const explorerViewsAndChartsIndexName = getIndexName(
-        SearchIndexName.ExplorerViewsMdimViewsAndCharts
-    )
+    const explorerViewsAndChartsIndexName = CHARTS_INDEX
 
     await client.setSettings({
         indexName: explorerViewsAndChartsIndexName,
@@ -147,6 +145,7 @@ export const configureAlgolia = async () => {
                 "availableEntities",
                 "type",
                 "isIncomeGroupSpecificFM",
+                "isFM",
                 "datasetNamespaces",
                 "datasetVersions",
                 "datasetProducts",

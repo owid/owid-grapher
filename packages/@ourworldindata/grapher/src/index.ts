@@ -33,11 +33,12 @@ export {
     Patterns,
     CONTINENTS_INDICATOR_ID,
     POPULATION_INDICATOR_ID_USED_IN_ADMIN,
+    GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ADMIN,
     latestGrapherConfigSchema,
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
-    CUSTOM_REGION_SOURCE_IDS,
-    type CustomAggregateSource,
+    ADDITIONAL_REGION_DATA_PROVIDERS,
+    type AdditionalRegionDataProvider,
 } from "./core/GrapherConstants"
 export {
     getVariableDataRoute,
@@ -55,6 +56,7 @@ export { DimensionSlot } from "./chart/DimensionSlot"
 export { EntityPicker } from "./controls/entityPicker/EntityPicker"
 export type { EntityPickerManager } from "./controls/entityPicker/EntityPickerConstants"
 export { getColorSchemeForChartType } from "./color/ColorSchemes"
+export { OwidMapColors } from "./color/CustomSchemes"
 export {
     isCategoricalBin,
     isNumericBin,
@@ -119,6 +121,7 @@ export {
     mapGrapherTabNameToQueryParam,
     mapGrapherTabNameToConfigOption,
     makeLabelForGrapherTab,
+    VALID_CHART_TYPE_COMBINATIONS,
 } from "./chart/ChartTabs"
 export {
     renderGrapherIntoContainer,

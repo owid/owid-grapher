@@ -23,11 +23,9 @@ import {
     VerticalAxisZeroLine,
 } from "../axis/AxisViews"
 import { StackedBars } from "./StackedBars"
-import {
-    InitialVerticalLabelsSeries,
-    VerticalLabelsState,
-} from "../verticalLabels/VerticalLabelsState"
-import { VerticalLabels } from "../verticalLabels/VerticalLabels"
+import { InitialSimpleLabelSeries } from "../verticalLabels/SimpleVerticalLabelsTypes.js"
+import { SimpleVerticalLabelsState } from "../verticalLabels/SimpleVerticalLabelsState"
+import { SimpleVerticalLabels } from "../verticalLabels/SimpleVerticalLabels"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 
 const LEGEND_PADDING = 4
@@ -126,7 +124,7 @@ export class StackedBarChartThumbnail
     }
 
     @computed private get verticalLabelsState():
-        | VerticalLabelsState
+        | SimpleVerticalLabelsState
         | undefined {
         if (
             !this.manager.showLegend ||
@@ -150,15 +148,15 @@ export class StackedBarChartThumbnail
             })
         )
 
-        return new VerticalLabelsState(series, {
+        return new SimpleVerticalLabelsState(series, {
             fontSize: this.labelFontSize,
             fontWeight: 500,
             maxWidth: 0.25 * this.bounds.width,
             yRange: this.labelsRange,
             resolveCollision: (
-                s1: InitialVerticalLabelsSeries,
-                s2: InitialVerticalLabelsSeries
-            ): InitialVerticalLabelsSeries => {
+                s1: InitialSimpleLabelSeries,
+                s2: InitialSimpleLabelSeries
+            ): InitialSimpleLabelSeries => {
                 const series1 = this.chartState.seriesByName.get(s1.seriesName)
                 const series2 = this.chartState.seriesByName.get(s2.seriesName)
 
@@ -208,7 +206,7 @@ export class StackedBarChartThumbnail
                     formatColumn={this.chartState.formatColumn}
                 />
                 {this.verticalLabelsState && (
-                    <VerticalLabels
+                    <SimpleVerticalLabels
                         state={this.verticalLabelsState}
                         yAxis={this.dualAxis.verticalAxis}
                         x={this.innerBounds.right + LEGEND_PADDING}

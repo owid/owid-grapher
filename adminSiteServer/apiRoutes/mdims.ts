@@ -24,6 +24,7 @@ import {
 } from "../multiDim.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import { Request } from "../authentication.js"
+import { HandlerResponse } from "../FunctionalRouter.js"
 import * as db from "../../db/db.js"
 import { getMdimViewRecords } from "../../baker/algolia/utils/mdimViews.js"
 import {
@@ -31,7 +32,6 @@ import {
     validateMultiDimSlug,
     isValidCatalogPath,
 } from "../validation.js"
-import e from "express"
 import * as z from "zod"
 
 function buildRedirectTargetDescription(
@@ -195,7 +195,7 @@ async function createSlugChangeRedirect(
 
 export async function handleGetMultiDims(
     _req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     try {
@@ -228,7 +228,7 @@ export async function handleGetMultiDims(
 
 export async function handleGetMultiDim(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const id = expectInt(req.params.id)
@@ -249,7 +249,7 @@ export async function handleGetMultiDim(
 
 export async function handlePutMultiDim(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const { catalogPath } = req.params
@@ -278,7 +278,7 @@ export async function handlePutMultiDim(
 
 export async function handlePatchMultiDim(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const id = expectInt(req.params.id)
@@ -337,7 +337,7 @@ export async function handlePatchMultiDim(
 
 export async function handleGetMultiDimRedirects(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const multiDimId = expectInt(req.params.id)
@@ -374,7 +374,7 @@ const postMultiDimRedirectSchema = z.object({
 
 export async function handlePostMultiDimRedirect(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const multiDimId = expectInt(req.params.id)
@@ -454,7 +454,7 @@ export async function handlePostMultiDimRedirect(
 
 export async function handleDeleteMultiDimRedirect(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const redirectId = expectInt(req.params.redirectId)
@@ -495,7 +495,7 @@ export async function handleDeleteMultiDimRedirect(
 
 export async function handleGetAllMultiDimRedirects(
     _req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const rows = await db.knexRaw<{
@@ -555,7 +555,7 @@ export async function handleGetAllMultiDimRedirects(
  */
 export async function getMdimRecordsJson(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const id = expectInt(req.params.id)

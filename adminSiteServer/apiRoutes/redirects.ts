@@ -9,11 +9,11 @@ import { expectInt } from "../../serverUtils/serverUtil.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
-import e from "express"
+import { HandlerResponse } from "../FunctionalRouter.js"
 
 export async function handleGetSiteRedirects(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     return { redirects: await getRedirects(trx) }
@@ -21,7 +21,7 @@ export async function handleGetSiteRedirects(
 
 export async function handlePostNewSiteRedirect(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const { source, target } = req.body
@@ -63,7 +63,7 @@ export async function handlePostNewSiteRedirect(
 
 export async function handleDeleteSiteRedirect(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const id = expectInt(req.params.id)
@@ -81,7 +81,7 @@ export async function handleDeleteSiteRedirect(
 
 export async function handleGetRedirects(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     return {
@@ -104,7 +104,7 @@ export async function handleGetRedirects(
 
 export async function handlePostNewChartRedirect(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const chartId = expectInt(req.params.chartId)
@@ -125,7 +125,7 @@ export async function handlePostNewChartRedirect(
 
 export async function handleDeleteChartRedirect(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const id = expectInt(req.params.id)

@@ -1,29 +1,33 @@
 import * as _ from "lodash-es"
 import { SeriesName } from "@ourworldindata/utils"
-import { PlacedSeries } from "./LineLegendTypes"
-import { LEGEND_ITEM_MIN_SPACING } from "./LineLegendConstants"
+import { PlacedLabelSeries } from "./VerticalLabelsTypes"
+import { LEGEND_ITEM_MIN_SPACING } from "./VerticalLabelsConstants"
 import * as R from "remeda"
 
 type Bracket = [number, number]
 
-export interface LineLegendFilterAlgorithmContext {
-    candidates: Set<PlacedSeries> // remaining candidates to be considered for placement
+export interface VerticalLabelsFilterAlgorithmContext {
+    candidates: Set<PlacedLabelSeries> // remaining candidates to be considered for placement
     availableHeight: number
-    sortedKeepSeries: PlacedSeries[] // series that have been picked to be labelled, sorted by their y position
+    sortedKeepSeries: PlacedLabelSeries[] // series that have been picked to be labelled, sorted by their y position
     keepSeriesHeight: number // total height of the picked series
 }
 
 interface PickFromCandidateSubsetParams {
-    context: LineLegendFilterAlgorithmContext
-    candidateSubset: PlacedSeries[]
+    context: VerticalLabelsFilterAlgorithmContext
+    candidateSubset: PlacedLabelSeries[]
     getCandidateFromSubset?: (
-        candidateSubset: PlacedSeries[]
-    ) => PlacedSeries | undefined
+        candidateSubset: PlacedLabelSeries[]
+    ) => PlacedLabelSeries | undefined
 }
 
-const dist = (c1: PlacedSeries, c2: PlacedSeries) => Math.abs(c1.midY - c2.midY)
+const dist = (c1: PlacedLabelSeries, c2: PlacedLabelSeries) =>
+    Math.abs(c1.midY - c2.midY)
 
-function getNewHeight(currentHeight: number, candidate: PlacedSeries): number {
+function getNewHeight(
+    currentHeight: number,
+    candidate: PlacedLabelSeries
+): number {
     // if the candidate is the first one, don't add padding
     const padding = currentHeight === 0 ? 0 : LEGEND_ITEM_MIN_SPACING
     return currentHeight + candidate.bounds.height + padding
@@ -56,9 +60,9 @@ function findBracket(
  * Add a candidate to the list of picked series and update the context accordingly.
  */
 export function pickCandidate(
-    context: LineLegendFilterAlgorithmContext,
-    candidate: PlacedSeries
-): LineLegendFilterAlgorithmContext {
+    context: VerticalLabelsFilterAlgorithmContext,
+    candidate: PlacedLabelSeries
+): VerticalLabelsFilterAlgorithmContext {
     let { candidates, sortedKeepSeries, keepSeriesHeight } = context
 
     // insert into sortedKeepSeries at the right position
@@ -82,8 +86,8 @@ export function pickCandidate(
  * Remove a candidate from the list of candidates to be considered for placement.
  */
 function dismissCandidate(
-    context: LineLegendFilterAlgorithmContext,
-    candidate: PlacedSeries
+    context: VerticalLabelsFilterAlgorithmContext,
+    candidate: PlacedLabelSeries
 ) {
     const { candidates } = context
     candidates.delete(candidate)
@@ -104,7 +108,7 @@ function dismissCandidate(
  */
 function pickFromCandidateSubsetWithRetry(
     params: PickFromCandidateSubsetParams & { maxCandidatesToPick?: number }
-): LineLegendFilterAlgorithmContext {
+): VerticalLabelsFilterAlgorithmContext {
     let {
         context,
         candidateSubset,
@@ -120,7 +124,7 @@ function pickFromCandidateSubsetWithRetry(
 
     // if a custom function to get a candidate is provided, use it
     // otherwise, pop the last candidate
-    const getCandidate = (): PlacedSeries | undefined => {
+    const getCandidate = (): PlacedLabelSeries | undefined => {
         if (getCandidateFromSubset) {
             const candidate = getCandidateFromSubset(remainingCandidates)
             if (candidate) {
@@ -168,7 +172,7 @@ function pickFromCandidateSubsetWithRetry(
  */
 export function pickAsManyAsPossibleWithRetry(
     params: PickFromCandidateSubsetParams
-): LineLegendFilterAlgorithmContext {
+): VerticalLabelsFilterAlgorithmContext {
     return pickFromCandidateSubsetWithRetry(params)
 }
 
@@ -184,7 +188,7 @@ export function pickAsManyAsPossibleWithRetry(
  */
 export function pickCandidateWithRetry(
     params: PickFromCandidateSubsetParams
-): LineLegendFilterAlgorithmContext {
+): VerticalLabelsFilterAlgorithmContext {
     return pickFromCandidateSubsetWithRetry({
         ...params,
         maxCandidatesToPick: 1,
@@ -192,13 +196,13 @@ export function pickCandidateWithRetry(
 }
 
 export function pickCandidateWithMaxDistanceToReferenceCandidate(params: {
-    context: LineLegendFilterAlgorithmContext
-    candidateSubset: PlacedSeries[]
-    referenceCandidate: PlacedSeries
-}): LineLegendFilterAlgorithmContext {
+    context: VerticalLabelsFilterAlgorithmContext
+    candidateSubset: PlacedLabelSeries[]
+    referenceCandidate: PlacedLabelSeries
+}): VerticalLabelsFilterAlgorithmContext {
     const { context, candidateSubset, referenceCandidate } = params
 
-    const getMaxDistCandidate = (candidates: PlacedSeries[]) =>
+    const getMaxDistCandidate = (candidates: PlacedLabelSeries[]) =>
         _.maxBy(candidates, (c) => dist(c, referenceCandidate))
 
     return pickCandidateWithRetry({
@@ -214,8 +218,8 @@ export function pickCandidateWithMaxDistanceToReferenceCandidate(params: {
  * labels.
  */
 export function computeCandidateScores(
-    candidates: PlacedSeries[],
-    sortedKeepSeries: PlacedSeries[]
+    candidates: PlacedLabelSeries[],
+    sortedKeepSeries: PlacedLabelSeries[]
 ): Map<SeriesName, number> {
     const scoreMap = new Map<SeriesName, number>()
 
@@ -248,6 +252,6 @@ export function computeCandidateScores(
     return scoreMap
 }
 
-export function getSeriesKey(series: PlacedSeries, index: number): string {
+export function getSeriesKey(series: PlacedLabelSeries, index: number): string {
     return `${series.seriesName}-${index}`
 }

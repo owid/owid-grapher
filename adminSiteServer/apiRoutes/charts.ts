@@ -67,7 +67,7 @@ import { getLogsByChartId } from "../getLogsByChartId.js"
 import { getChartsRecords } from "../../baker/algolia/utils/charts.js"
 
 import { Request } from "../authentication.js"
-import e from "express"
+import { HandlerResponse } from "../FunctionalRouter.js"
 import { DataInsightMinimalInformation } from "../../adminShared/AdminTypes.js"
 import {
     validateNewGrapherSlug,
@@ -575,7 +575,7 @@ export async function updateGrapherConfigsInR2(
 
 export async function getChartsJson(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const limit = parseIntOrUndefined(req.query.limit as string) ?? 10000
@@ -601,7 +601,7 @@ export async function getChartsJson(
 
 export async function getChartsCsv(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const limit = parseIntOrUndefined(req.query.limit as string) ?? 10000
@@ -661,7 +661,7 @@ export async function getChartsCsv(
 
 export async function getChartConfigJson(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     return expectChartById(trx, req.params.chartId)
@@ -669,7 +669,7 @@ export async function getChartConfigJson(
 
 export async function getChartParentJson(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const chartId = expectInt(req.params.chartId)
@@ -687,7 +687,7 @@ export async function getChartParentJson(
 
 export async function getChartPatchConfigJson(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const chartId = expectInt(req.params.chartId)
@@ -697,7 +697,7 @@ export async function getChartPatchConfigJson(
 
 export async function getChartLogsJson(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     return {
@@ -710,7 +710,7 @@ export async function getChartLogsJson(
 
 export async function getChartReferencesJson(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const references = {
@@ -724,7 +724,7 @@ export async function getChartReferencesJson(
 
 export async function getChartRedirectsJson(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     return {
@@ -737,7 +737,7 @@ export async function getChartRedirectsJson(
 
 export async function getChartViewsJson(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const slug = await getChartSlugById(
@@ -764,7 +764,7 @@ export async function getChartViewsJson(
 
 export async function getChartTagsJson(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const chartId = expectInt(req.params.chartId)
@@ -784,7 +784,7 @@ export async function getChartTagsJson(
 
 export async function createChart(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     let shouldInherit: boolean | undefined
@@ -807,7 +807,7 @@ export async function createChart(
 
 export async function setChartTagsHandler(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const chartId = expectInt(req.params.chartId)
@@ -819,7 +819,7 @@ export async function setChartTagsHandler(
 
 export async function updateChart(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     let shouldInherit: boolean | undefined
@@ -854,7 +854,7 @@ export async function updateChart(
 
 export async function deleteChart(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const chart = await expectChartById(trx, req.params.chartId)
@@ -913,7 +913,7 @@ export async function deleteChart(
  */
 export async function getChartRecordsJson(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const chartId = expectInt(req.params.chartId)

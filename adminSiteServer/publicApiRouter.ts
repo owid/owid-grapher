@@ -1,5 +1,4 @@
-import e from "express"
-import { FunctionalRouter } from "./FunctionalRouter.js"
+import { FunctionalRouter, HandlerResponse } from "./FunctionalRouter.js"
 import { Request, Response } from "./authentication.js"
 import * as db from "../db/db.js"
 import { getNarrativeChartNameConfigMap } from "../db/model/NarrativeChart.js"
@@ -31,7 +30,7 @@ getRouteWithROTransaction(
     "/narrative-chart-map",
     async (
         _req: Request,
-        _res: e.Response<any, Record<string, any>>,
+        _res: HandlerResponse,
         trx: db.KnexReadonlyTransaction
     ) => {
         const narrativeChartMap = await getNarrativeChartNameConfigMap(trx)

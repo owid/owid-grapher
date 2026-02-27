@@ -1,6 +1,6 @@
 import { JsonError } from "@ourworldindata/types"
 import { Request } from "express"
-import * as e from "express"
+import { HandlerResponse } from "../FunctionalRouter.js"
 import * as db from "../../db/db.js"
 import * as Figma from "figma-api"
 import { FIGMA_API_KEY } from "../../settings/serverSettings.js"
@@ -9,7 +9,7 @@ const figmaApi = new Figma.Api({ personalAccessToken: FIGMA_API_KEY })
 
 export async function getFigmaImageUrl(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     _trx: db.KnexReadonlyTransaction
 ) {
     const { fileId, nodeId } = req.query as Record<string, string>

@@ -2,7 +2,7 @@ import * as _ from "lodash-es"
 import {
     countries,
     countriesByName,
-    incomeGroupsByName,
+    incomeGroupsByCode,
     DbPlainFeaturedMetricWithParentTagName,
     FeaturedMetricIncomeGroup,
     removeTrailingParenthetical,
@@ -10,7 +10,6 @@ import {
     Url,
     lowerCaseFirstLetterUnlessAbbreviation,
 } from "@ourworldindata/utils"
-import * as Sentry from "@sentry/node"
 import {
     getFeaturedMetricsByParentTagName,
     KnexReadonlyTransaction,
@@ -157,7 +156,7 @@ function getCorrespondingIncomeGroup(
     >
 ) {
     const owidIncomeGroupName = incomeGroupMap[incomeGroupName]
-    const countriesByIncomeGroup = incomeGroupsByName()
+    const countriesByIncomeGroup = incomeGroupsByCode()
     return countriesByIncomeGroup[owidIncomeGroupName]
 }
 
@@ -245,10 +244,19 @@ function expandDefaultFeaturedMetrics(
     )
 }
 
+export interface FeaturedMetricFailure {
+    url: string
+}
+
+export interface FeaturedMetricRecordsResult {
+    records: ChartRecord[]
+    failures: FeaturedMetricFailure[]
+}
+
 export async function createFeaturedMetricRecords(
     trx: KnexReadonlyTransaction,
     records: ChartRecord[]
-): Promise<ChartRecord[]> {
+): Promise<FeaturedMetricRecordsResult> {
     const featuredMetricsWithParentTagName =
         await getFeaturedMetricsByParentTagName(trx).then((fms) =>
             Object.values(fms).flat()
@@ -259,6 +267,7 @@ export async function createFeaturedMetricRecords(
     )
 
     const featuredMetricRecords: ChartRecord[] = []
+    const failures: FeaturedMetricFailure[] = []
 
     for (const featuredMetric of expandedFeaturedMetrics) {
         const correspondingRecord = findMatchingRecordByPathnameAndQueryParams(
@@ -266,9 +275,12 @@ export async function createFeaturedMetricRecords(
             featuredMetric
         )
         if (!correspondingRecord) {
-            const error = `Featured metric "${featuredMetric.url}" not found in records`
-            console.error(error)
-            Sentry.captureException(error)
+            console.error(
+                `Featured metric "${featuredMetric.url}" not found in records`
+            )
+            failures.push({
+                url: featuredMetric.url,
+            })
             continue
         }
 
@@ -284,6 +296,7 @@ export async function createFeaturedMetricRecords(
         featuredMetricRecords.push({
             ...correspondingRecord,
             isIncomeGroupSpecificFM: featuredMetric.isIncomeGroupSpecificFM,
+            isFM: true,
             tags: [featuredMetric.parentTagName],
             objectID,
             availableEntities,
@@ -292,7 +305,7 @@ export async function createFeaturedMetricRecords(
         })
     }
 
-    return featuredMetricRecords
+    return { records: featuredMetricRecords, failures }
 }
 
 export function maybeAddChangeInPrefix(

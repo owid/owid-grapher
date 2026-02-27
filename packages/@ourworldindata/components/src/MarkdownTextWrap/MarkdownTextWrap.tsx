@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as _ from "lodash-es"
 import { CSSProperties } from "react"
 import * as React from "react"
@@ -556,22 +557,15 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
             })
         }
 
-        // if newLine is set to 'avoid-wrap', we first try to fit the secondary text
-        // on the same line as the main text. If it doesn't fit, we place it on a new line.
-
+        // If newLine is set to 'avoid-wrap', we first try to fit the secondary
+        // text on the same line as the main text. If it doesn't fit, we place
+        // it on a new line.
         const mainTextWrap = new MarkdownTextWrap({ ...main, ...textWrapProps })
-        const secondaryTextWrap = new MarkdownTextWrap({
-            text: secondaryMarkdownText,
-            ...textWrapProps,
-            maxWidth:
-                mainTextWrap.maxWidth -
-                mainTextWrap.lastLineWidth -
-                Bounds.forText(" ", textWrapProps).width -
-                10, // arbitrary wiggle room
+        const secondaryTextFitsOnSameLine = canAppendTextToLastLine({
+            existingTextWrap: mainTextWrap,
+            textToAppend: secondaryMarkdownText,
         })
 
-        const secondaryTextFitsOnSameLine =
-            secondaryTextWrap.svgLines.length === 1
         if (secondaryTextFitsOnSameLine) {
             return new MarkdownTextWrap({
                 text: combinedTextContinued,
@@ -801,8 +795,6 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     }
 }
 
-// The rule doesn't support class components in the same file.
-// eslint-disable-next-line react-refresh/only-export-components
 function MarkdownTextWrapLine({
     line,
 }: {
@@ -1153,6 +1145,33 @@ function appendReferenceNumbers(
     )
 
     return appendedTokens
+}
+
+export function canAppendTextToLastLine({
+    existingTextWrap,
+    textToAppend,
+    reservedWidth = 0,
+}: {
+    existingTextWrap: TextWrap | MarkdownTextWrap
+    textToAppend: string
+    /** Width to reserve for non-text elements (e.g. icons) */
+    reservedWidth?: number
+}): boolean {
+    const { maxWidth, lastLineWidth, fontSize, props } = existingTextWrap
+
+    const spaceWidth = Bounds.forText(" ", { fontSize }).width
+    const availableWidthInLastLine =
+        maxWidth - lastLineWidth - spaceWidth - reservedWidth - 10 // 10px wiggle room
+
+    if (availableWidthInLastLine <= 0) return false
+
+    const secondaryTextWrap = new MarkdownTextWrap({
+        ...props,
+        text: textToAppend,
+        maxWidth: availableWidthInLastLine,
+    })
+
+    return secondaryTextWrap.svgLines.length === 1
 }
 
 function maybeBoldMarkdownText({

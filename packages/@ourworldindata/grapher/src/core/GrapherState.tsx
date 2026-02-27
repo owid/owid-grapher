@@ -176,11 +176,11 @@ import {
 } from "../timeline/TimelineController.js"
 import { TooltipManager } from "../tooltip/TooltipProps.js"
 import {
-    EntityRegionTypeGroup,
-    groupEntityNamesByRegionType,
-    EntityNamesByRegionType,
-    isEntityRegionType,
-} from "./EntitiesByRegionType.js"
+    RegionGroup,
+    groupEntitiesByRegionType,
+    EntitiesByRegionGroup,
+    isEntityRegionGroupKey,
+} from "./RegionGroups.js"
 import {
     MinimalNarrativeChartInfo,
     GrapherProgrammaticInterface,
@@ -421,7 +421,7 @@ export class GrapherState
      */
     hideTimeline: boolean | undefined = undefined
 
-    /** Stack mode. Only absolute and relative are actively used. */
+    /** Stack mode */
     stackMode = StackMode.absolute
 
     /** Whether to zoom to the selected data points */
@@ -1070,8 +1070,8 @@ export class GrapherState
                     ? this.selection.selectedEntityNames
                     : availableEntities
             )
-            .when(isEntityRegionType, (filter) => {
-                const regionNames = this.entityNamesByRegionType.get(filter)
+            .when(isEntityRegionGroupKey, (filter) => {
+                const regionNames = this.entitiesByRegionGroup.get(filter)
                 return regionNames ?? availableEntities
             })
             .exhaustive()
@@ -1883,15 +1883,23 @@ export class GrapherState
         return [
             GRAPHER_TAB_NAMES.LineChart,
             GRAPHER_TAB_NAMES.SlopeChart,
-            GRAPHER_TAB_NAMES.StackedArea,
-            GRAPHER_TAB_NAMES.StackedBar,
         ].includes(tabName as any)
+    }
+
+    private checkSingleTimeSelectionPreferred = (
+        tabName: GrapherTabName
+    ): boolean => {
+        // Scatter plots can show a time range, but a single time is preferred
+        return [GRAPHER_TAB_NAMES.ScatterPlot].includes(tabName as any)
     }
 
     @action.bound ensureTimeHandlesAreSensibleForTab(
         tab: GrapherTabName
     ): void {
-        if (this.checkOnlySingleTimeSelectionPossible(tab)) {
+        if (
+            this.checkOnlySingleTimeSelectionPossible(tab) ||
+            this.checkSingleTimeSelectionPreferred(tab)
+        ) {
             this.ensureHandlesAreOnSameTime()
         } else if (this.checkOnlyTimeRangeSelectionPossible(tab)) {
             this.ensureHandlesAreOnDifferentTimes()
@@ -2300,13 +2308,14 @@ export class GrapherState
         // If the given combination is not valid, then ignore all but the first chart type
         if (!validChartTypes) return this.chartTypes.slice(0, 1)
 
-        // Projected data is only supported for line charts
+        // Projected data is only supported for line and discrete bar charts
         const isLineChart = validChartTypes[0] === GRAPHER_CHART_TYPES.LineChart
         if (isLineChart && this.hasProjectedData) {
-            return [
-                GRAPHER_CHART_TYPES.LineChart,
-                GRAPHER_CHART_TYPES.DiscreteBar,
-            ]
+            return validChartTypes.filter(
+                (type) =>
+                    type === GRAPHER_CHART_TYPES.LineChart ||
+                    type === GRAPHER_CHART_TYPES.DiscreteBar
+            )
         }
 
         return validChartTypes
@@ -2381,6 +2390,20 @@ export class GrapherState
         )
     }
 
+    /** Check if 'vs. x-axis label' should be added to the title */
+    @computed private get shouldAddXIndicatorLabelToTitle(): boolean {
+        return (
+            // Only add if currently on the scatter tab
+            this.isOnScatterTab &&
+            // Don't add if the main chart type is a scatter
+            !this.isScatter &&
+            // Check if an x-column is available
+            this.isReady &&
+            !!this.xColumnSlug &&
+            this.inputTable.has(this.xColumnSlug)
+        )
+    }
+
     @computed get currentTitle(): string {
         let text = this.displayTitle.trim()
         if (text.length === 0) return text
@@ -2393,6 +2416,15 @@ export class GrapherState
         ): string => {
             const separator = text.endsWith("?") ? "" : ","
             return `${text}${separator} ${annotation}`
+        }
+
+        // Add the x-axis label to the title for secondary scatter plots
+        if (this.shouldAddXIndicatorLabelToTitle) {
+            const xAxisLabel =
+                this.xAxisConfig.label ??
+                this.inputTable.get(this.xColumnSlug).titlePublicOrDisplayName
+                    .title
+            if (xAxisLabel) text += ` vs. ${xAxisLabel}`
         }
 
         if (this.shouldAddEntitySuffixToTitle) {
@@ -2751,6 +2783,20 @@ export class GrapherState
         return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.ScatterPlot)
     }
 
+    @computed get hasStackedArea(): boolean {
+        return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.StackedArea)
+    }
+
+    @computed get hasStackedBar(): boolean {
+        return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.StackedBar)
+    }
+
+    @computed get hasStackedDiscreteBar(): boolean {
+        return this.validChartTypeSet.has(
+            GRAPHER_CHART_TYPES.StackedDiscreteBar
+        )
+    }
+
     @computed get supportsMultipleYColumns(): boolean {
         return !this.isScatter
     }
@@ -2868,6 +2914,7 @@ export class GrapherState
             xColumnSlug,
             isOnMarimekkoTab,
             isStackedChartSplitByMetric,
+            hasScatter,
         } = this
 
         if (isOnLineChartTab || isOnSlopeChartTab)
@@ -2885,7 +2932,9 @@ export class GrapherState
         )
             return false
 
-        if (isOnMarimekkoTab && xColumnSlug === undefined) return false
+        // Disable relative mode for Marimekko charts without an x dimension
+        if (isOnMarimekkoTab && (!xColumnSlug || hasScatter)) return false
+
         return !hideRelativeToggle
     }
 
@@ -3190,14 +3239,14 @@ export class GrapherState
         }
     }
 
-    @computed get entityRegionTypeGroups(): EntityRegionTypeGroup[] {
-        return groupEntityNamesByRegionType(this.availableEntityNames)
+    @computed get regionGroups(): RegionGroup[] {
+        return groupEntitiesByRegionType(this.availableEntityNames)
     }
 
-    @computed get entityNamesByRegionType(): EntityNamesByRegionType {
+    @computed get entitiesByRegionGroup(): EntitiesByRegionGroup {
         return new Map(
-            this.entityRegionTypeGroups.map(({ regionType, entityNames }) => [
-                regionType,
+            this.regionGroups.map(({ regionGroupKey, entityNames }) => [
+                regionGroupKey,
                 entityNames,
             ])
         )
@@ -3213,14 +3262,17 @@ export class GrapherState
 
     @computed get sortConfig(): SortConfig {
         const sortConfig = { ...this._sortConfig }
-        // In relative mode, where the values for every entity sum up to 100%, sorting by total
-        // doesn't make sense. It's also jumpy because of some rounding errors. For this reason,
-        // we sort by entity name instead.
-        // Marimekko charts are special and there we don't do this forcing of sort order
+        // In relative mode, where the values for every entity sum up to 100%,
+        // sorting by total doesn't make sense. It's also jumpy because of some
+        // rounding errors. For this reason, we sort by entity name instead
         if (
-            !this.isOnMarimekkoTab &&
             this.isRelativeMode &&
-            sortConfig.sortBy === SortBy.total
+            sortConfig.sortBy === SortBy.total &&
+            // No need to do this for Marimekko and discrete bar charts
+            // since relative mode means something else for Marimekko charts
+            // and discrete bar charts don't support relative mode
+            !this.isOnMarimekkoTab &&
+            !this.isOnDiscreteBarTab
         ) {
             sortConfig.sortBy = SortBy.entityName
             sortConfig.sortOrder = SortOrder.asc

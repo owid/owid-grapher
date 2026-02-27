@@ -7,7 +7,7 @@ import {
     Time,
     HorizontalAlign,
     AxisAlign,
-    makeIdForHumanConsumption,
+    makeFigmaId,
     dyFromAlign,
 } from "@ourworldindata/utils"
 import { computed, makeObservable } from "mobx"
@@ -19,6 +19,7 @@ import {
     GRAPHER_FONT_SCALE_12,
     GRAPHER_AREA_OPACITY_DEFAULT,
     GRAPHER_AREA_OPACITY_MUTE,
+    FontSettings,
 } from "../core/GrapherConstants"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { HorizontalAxisZeroLine } from "../axis/AxisViews"
@@ -28,7 +29,6 @@ import {
     BAR_SPACING_FACTOR,
     DiscreteBarChartManager,
     DiscreteBarSeries,
-    FontSettings,
     PlacedDiscreteBarSeries,
     SizedDiscreteBarSeries,
 } from "./DiscreteBarChartConstants"
@@ -43,6 +43,7 @@ import {
     makeProjectedDataPatternId,
     enrichSeriesWithLabels,
 } from "./DiscreteBarChartHelpers"
+import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
 import { OwidTable } from "@ourworldindata/core-table"
 import { HorizontalAxis } from "../axis/Axis"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
@@ -142,6 +143,7 @@ export class DiscreteBarChart
             maxLabelWidth: 0.66 * this.bounds.width,
             fontSettings: this.entityLabelStyle,
             annotationFontSettings: this.entityAnnotationStyle,
+            showRegionTooltip: !this.manager.isStatic,
         })
     }
 
@@ -377,7 +379,7 @@ export class DiscreteBarChart
         barY: number
         yOffset: number
     }): React.ReactElement {
-        const barColor = series.yColumn.isProjection
+        const barColor = series.isProjection
             ? `url(#${makeProjectedDataPatternId(series.color)})`
             : series.color
 
@@ -385,7 +387,7 @@ export class DiscreteBarChart
             <rect
                 key={`bar-${series.seriesName}`}
                 className="bar"
-                id={makeIdForHumanConsumption(series.seriesName)}
+                id={makeFigmaId(series.seriesName)}
                 x={0}
                 y={0}
                 transform={`translate(${series.barX}, ${barY + yOffset})`}
@@ -413,15 +415,16 @@ export class DiscreteBarChart
     }): React.ReactElement | null {
         if (!series.label) return null
 
-        return series.label.renderSVG(series.entityLabelX, barY + labelY, {
-            textProps: {
-                fill: "#555",
-                textAnchor: "end",
-                opacity: series.focus.background
-                    ? GRAPHER_AREA_OPACITY_MUTE
-                    : 1,
-            },
-        })
+        const opacity = series.focus.background ? GRAPHER_AREA_OPACITY_MUTE : 1
+
+        return (
+            <SeriesLabel
+                state={series.label}
+                x={series.entityLabelX}
+                y={barY + labelY}
+                opacity={opacity}
+            />
+        )
     }
 
     private renderEntityAnnotation({
@@ -491,7 +494,7 @@ export class DiscreteBarChart
     private renderBars(): React.ReactElement {
         const yOffset = -this.barHeight / 2
         return (
-            <g id={makeIdForHumanConsumption("bars")}>
+            <g id={makeFigmaId("bars")}>
                 {this.placedSeries.map((series) =>
                     this.renderBar({ series, barY: series.barY, yOffset })
                 )}
@@ -501,7 +504,7 @@ export class DiscreteBarChart
 
     private renderEntityLabels(): React.ReactElement {
         return (
-            <g id={makeIdForHumanConsumption("entity-labels")}>
+            <g id={makeFigmaId("entity-labels")}>
                 {this.placedSeries.map((series) => {
                     const labelY = series.entityLabelY - series.barY
                     return (
@@ -529,7 +532,7 @@ export class DiscreteBarChart
         if (!hasAnnotations) return null
 
         return (
-            <g id={makeIdForHumanConsumption("entity-annotations")}>
+            <g id={makeFigmaId("entity-annotations")}>
                 {this.placedSeries.map((series) => {
                     const annotationY = series.annotationY
                         ? series.annotationY - series.barY
@@ -546,7 +549,7 @@ export class DiscreteBarChart
 
     private renderValueLabels(): React.ReactElement {
         return (
-            <g id={makeIdForHumanConsumption("value-labels")}>
+            <g id={makeFigmaId("value-labels")}>
                 {this.placedSeries.map((series) => {
                     const label = this.formatValue(series)
                     const labelY = 0 // Value label is centered on the bar
@@ -562,9 +565,7 @@ export class DiscreteBarChart
     }
 
     private renderDefs(): React.ReactElement | null {
-        const projections = this.series.filter(
-            (series) => series.yColumn.isProjection
-        )
+        const projections = this.series.filter((series) => series.isProjection)
         const uniqProjections = _.uniqBy(projections, (series) => series.color)
         if (projections.length === 0) return null
 
@@ -645,7 +646,7 @@ export class DiscreteBarChart
                 update={handlePositionUpdate}
             >
                 {(nodes): React.ReactElement => (
-                    <g id={makeIdForHumanConsumption("bar-rows")}>
+                    <g id={makeFigmaId("bar-rows")}>
                         {nodes.map((node) =>
                             this.renderRow({
                                 series: node.data,
@@ -700,7 +701,7 @@ export class DiscreteBarChart
         return (
             <g
                 ref={this.base}
-                id={makeIdForHumanConsumption("discrete-bar-chart")}
+                id={makeFigmaId("discrete-bar-chart")}
                 className="DiscreteBarChart"
             >
                 {this.renderDefs()}

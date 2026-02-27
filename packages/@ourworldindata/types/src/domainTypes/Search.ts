@@ -85,6 +85,7 @@ export interface ChartRecord {
      * Also only set for FMs: used so that we can filter out income group-specific FMs on a plain data catalog view.
      */
     isIncomeGroupSpecificFM: boolean
+    isFM: boolean
     publishedAt: string
     updatedAt: string
     numDimensions: number
@@ -103,14 +104,6 @@ export enum SearchIndexName {
     Pages = "pages",
     ExplorerViewsMdimViewsAndCharts = "explorer-views-and-charts",
 }
-
-export type SearchCategoryFilter = SearchIndexName | "all"
-
-export const searchCategoryFilters: [string, SearchCategoryFilter][] = [
-    ["All", "all"],
-    ["Research & Writing", SearchIndexName.Pages],
-    ["Charts", SearchIndexName.ExplorerViewsMdimViewsAndCharts],
-]
 
 interface BaseSearchChartHit {
     title: string

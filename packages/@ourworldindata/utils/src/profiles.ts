@@ -9,7 +9,7 @@ import {
     getRegionByNameOrVariantName,
     regions,
     type Region,
-} from "./regions.js"
+} from "./regions/index.js"
 import {
     CalloutFunction,
     EnrichedBlockConditionalSection,

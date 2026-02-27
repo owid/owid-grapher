@@ -12,24 +12,28 @@ import {
 import { observer } from "mobx-react"
 import {
     EntitySelectionMode,
-    StackMode,
-    ALL_GRAPHER_CHART_TYPES,
+    GRAPHER_CHART_TYPES,
+    GRAPHER_TAB_NAMES,
     GrapherChartType,
     DbChartTagJoin,
     TaggableType,
     EntityName,
     PeerCountryStrategy,
+    ALL_GRAPHER_CHART_TYPES,
+    StackMode,
 } from "@ourworldindata/types"
 import {
     DimensionSlot,
     WORLD_ENTITY_NAME,
     CONTINENTS_INDICATOR_ID,
     POPULATION_INDICATOR_ID_USED_IN_ADMIN,
+    GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ADMIN,
     findPotentialChartTypeSiblings,
     ChartDimension,
     SelectionArray,
     selectPeerCountries,
     prepareEntitiesForPeerSelection,
+    VALID_CHART_TYPE_COMBINATIONS,
 } from "@ourworldindata/grapher"
 import {
     pickFirstAvailablePreset,
@@ -39,8 +43,9 @@ import {
     DimensionProperty,
     OwidVariableId,
     OwidChartDimensionInterface,
+    areSetsEqual,
 } from "@ourworldindata/utils"
-import { FieldsRow, Section, SelectField, TextField, Toggle } from "./Forms.js"
+import { Section, TextField } from "./Forms.js"
 import { VariableSelector } from "./VariableSelector.js"
 import { DimensionCard } from "./DimensionCard.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
@@ -59,9 +64,10 @@ import {
 } from "./NarrativeChartEditor.js"
 import * as R from "remeda"
 import { SortableList } from "./SortableList.js"
-import { CodeSnippet } from "@ourworldindata/components"
+import { CodeSnippet, GrapherTabIcon } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faFile, faArrowsUpDown } from "@fortawesome/free-solid-svg-icons"
+import { Tag } from "antd"
 
 interface DimensionSlotViewProps<Editor> {
     slot: DimensionSlot
@@ -305,11 +311,7 @@ class DimensionSlotView<
             )
         }
 
-        this.grapherState.updateAuthoredVersion({
-            dimensions: grapherState.dimensions.map((dim) => dim.toObject()),
-        })
-        grapherState.seriesColorMap?.clear()
-        await this.editor.reloadGrapherData()
+        await this.editor.commitDimensionsAndReloadData()
     }
 
     @action.bound private updateParentConfig() {
@@ -497,14 +499,7 @@ class VariablesSection<
             return dimObj
         })
 
-        // Set all dimensions from the new configs
-        grapherState.setDimensionsFromConfigs(newDimensions)
-
-        grapherState.updateAuthoredVersion({
-            dimensions: grapherState.dimensions.map((dim) => dim.toObject()),
-        })
-        grapherState.seriesColorMap?.clear()
-        await this.props.editor.reloadGrapherData()
+        await this.props.editor.commitDimensionsAndReloadData(newDimensions)
     }
 
     override render() {
@@ -533,7 +528,6 @@ class VariablesSection<
     }
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 const TagsSection = (props: {
     chartId: number | undefined
     tags: DbChartTagJoin[] | undefined
@@ -585,8 +579,6 @@ export class EditorBasicTab<
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    private chartTypeOptionNone = "None"
-
     constructor(props: EditorBasicTabProps<Editor>) {
         super(props)
         makeObservable(this)
@@ -599,77 +591,152 @@ export class EditorBasicTab<
         }
     }
 
-    @action.bound onChartTypeChange(value: string) {
-        const { grapherState } = this.props.editor
+    @computed private get chartTypeGroups() {
+        const groups: {
+            label: string
+            description?: string
+            chartTypes: GrapherChartType[]
+        }[] = []
 
-        grapherState.chartTypes =
-            value === this.chartTypeOptionNone
-                ? []
-                : [value as GrapherChartType]
+        for (const chartTypes of VALID_CHART_TYPE_COMBINATIONS) {
+            const isSingleYIndicatorGroup = chartTypes.includes(
+                GRAPHER_CHART_TYPES.LineChart
+            )
 
-        if (grapherState.isMarimekko) {
-            grapherState.hideRelativeToggle = false
-            grapherState.stackMode = StackMode.relative
+            if (isSingleYIndicatorGroup) {
+                const label = "Single y-indicator charts"
+                groups.push({ label, chartTypes })
+            } else {
+                const label = chartTypes.join(", ")
+                groups.push({ label, chartTypes })
+            }
         }
 
-        // Give scatterplots a default color and size dimensions
-        if (grapherState.isScatter) {
-            const hasColor = grapherState.dimensions.find(
-                (d) => d.property === DimensionProperty.color
-            )
-            if (!hasColor)
-                grapherState.addDimension({
-                    variableId: CONTINENTS_INDICATOR_ID,
-                    property: DimensionProperty.color,
-                })
-
-            const hasSize = grapherState.dimensions.find(
-                (d) => d.property === DimensionProperty.size
-            )
-            if (!hasSize)
-                grapherState.addDimension({
-                    variableId: POPULATION_INDICATOR_ID_USED_IN_ADMIN,
-                    property: DimensionProperty.size,
-                })
-        }
-
-        // since the parent config depends on the chart type
-        // (scatters don't have a parent), we might need to update
-        // the parent config when the type changes
-        this.updateParentConfig()
-    }
-
-    @computed private get chartTypeOptions(): {
-        value: string
-        label: string
-    }[] {
-        const chartTypeOptions = ALL_GRAPHER_CHART_TYPES.map((key) => ({
-            value: key,
-            label: _.startCase(key),
-        }))
-
-        return [
-            ...chartTypeOptions,
-            { value: this.chartTypeOptionNone, label: "No chart tab" },
-        ]
-    }
-
-    @computed get chartTypeSiblings(): GrapherChartType[] {
-        const { grapherState } = this.props.editor
-
-        const siblings =
-            findPotentialChartTypeSiblings(grapherState.validChartTypes) ?? []
-
-        // exclude the primary chart type
-        return siblings.filter(
-            (chartType) => chartType !== grapherState.chartType
+        const assigned: Set<GrapherChartType> = new Set(
+            groups.flatMap((group) => group.chartTypes)
         )
+
+        // Collect all unassigned chart types into a single "Other" group
+        const otherChartTypes = ALL_GRAPHER_CHART_TYPES.filter(
+            (chartType) => !assigned.has(chartType)
+        )
+        if (otherChartTypes.length > 0) {
+            groups.push({
+                label: "Other chart types",
+                description:
+                    "Can't be combined — selecting any will deselect all types above",
+                chartTypes: otherChartTypes,
+            })
+        }
+
+        return groups
+    }
+
+    @action.bound private applyDefaultsForPrimaryChartType(
+        chartType: GrapherChartType
+    ): void {
+        if (chartType === GRAPHER_CHART_TYPES.Marimekko) {
+            this.applyDefaultsForMarimekko()
+        } else if (chartType === GRAPHER_CHART_TYPES.ScatterPlot) {
+            void this.applyDefaultsForScatter()
+        }
+    }
+
+    @action.bound private async applyDefaultsForSecondaryChartType(
+        chartType: GrapherChartType
+    ): Promise<void> {
+        if (chartType === GRAPHER_CHART_TYPES.ScatterPlot) {
+            void this.applyDefaultsForScatter()
+        }
+    }
+
+    @action.bound private applyDefaultsForMarimekko(): void {
+        const { grapherState } = this.props.editor
+
+        grapherState.hideRelativeToggle = false
+        grapherState.stackMode = StackMode.relative
+    }
+
+    @action.bound
+    private async applyDefaultsForScatter(): Promise<void> {
+        const { grapherState } = this.props.editor
+        const { editor } = this.props
+
+        const existingDimensions = grapherState.dimensions.map((dim) =>
+            dim.toObject()
+        )
+        const newDimensions: OwidChartDimensionInterface[] = [
+            ...existingDimensions,
+        ]
+
+        // Add default x indicator if not already present
+        const hasX = existingDimensions.find(
+            (d) => d.property === DimensionProperty.x
+        )
+        if (!hasX)
+            newDimensions.push({
+                variableId: GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ADMIN,
+                property: DimensionProperty.x,
+            })
+
+        // Add default color indicator if not already present
+        const hasColor = existingDimensions.find(
+            (d) => d.property === DimensionProperty.color
+        )
+        if (!hasColor)
+            newDimensions.push({
+                variableId: CONTINENTS_INDICATOR_ID,
+                property: DimensionProperty.color,
+            })
+
+        // Add default size indicator if not already present
+        const hasSize = existingDimensions.find(
+            (d) => d.property === DimensionProperty.size
+        )
+        if (!hasSize)
+            newDimensions.push({
+                variableId: POPULATION_INDICATOR_ID_USED_IN_ADMIN,
+                property: DimensionProperty.size,
+            })
+
+        // Update dimensions if any new ones were added
+        if (newDimensions.length > existingDimensions.length) {
+            await editor.commitDimensionsAndReloadData(newDimensions)
+        }
     }
 
     @action.bound private addChartType(chartType: GrapherChartType): void {
         const { grapherState } = this.props.editor
         if (grapherState.validChartTypeSet.has(chartType)) return
-        grapherState.chartTypes = [...grapherState.chartTypes, chartType]
+
+        // Check if the added chart type is compatible with the currently selected types
+        const activeGroup =
+            grapherState.chartTypes.length > 0
+                ? findPotentialChartTypeSiblings(grapherState.chartTypes)
+                : undefined
+        const addedChartTypeGroup = findPotentialChartTypeSiblings([chartType])
+        const isCompatible =
+            addedChartTypeGroup !== undefined &&
+            activeGroup !== undefined &&
+            areSetsEqual(new Set(addedChartTypeGroup), new Set(activeGroup))
+
+        if (isCompatible) {
+            // Append if the newly added chart type belongs to the same group
+            grapherState.chartTypes = [...grapherState.chartTypes, chartType]
+        } else {
+            // Replace all with just the new type if incompatible
+            grapherState.chartTypes = [chartType]
+        }
+
+        if (grapherState.chartType === chartType) {
+            void this.applyDefaultsForPrimaryChartType(chartType)
+        } else {
+            void this.applyDefaultsForSecondaryChartType(chartType)
+        }
+
+        // The parent config depends on the chart type
+        // (e.g. scatters don't have a parent), so update it when types change
+        this.updateParentConfig()
     }
 
     @action.bound private removeChartType(chartType: GrapherChartType): void {
@@ -677,14 +744,9 @@ export class EditorBasicTab<
         grapherState.chartTypes = grapherState.chartTypes.filter(
             (type) => type !== chartType
         )
-    }
-
-    @action.bound private toggleChartType(
-        chartType: GrapherChartType,
-        shouldHaveChartType: boolean
-    ): void {
-        if (shouldHaveChartType) this.addChartType(chartType)
-        else this.removeChartType(chartType)
+        // The parent config depends on the chart type
+        // (e.g. scatters don't have a parent), so update it when types change
+        this.updateParentConfig()
     }
 
     @action.bound onSaveTags(tags: DbChartTagJoin[]) {
@@ -718,35 +780,56 @@ export class EditorBasicTab<
                     ))}
 
                 <Section name="Tabs">
-                    <SelectField
-                        label="Type of chart"
-                        value={
-                            grapherState.chartType ?? this.chartTypeOptionNone
-                        }
-                        onValue={this.onChartTypeChange}
-                        options={this.chartTypeOptions}
-                    />
-                    <FieldsRow>
-                        <Toggle
-                            label="Map tab"
-                            value={grapherState.hasMapTab}
-                            onValue={(shouldHaveMapTab) =>
-                                (grapherState.hasMapTab = shouldHaveMapTab)
-                            }
-                        />
-                        {this.chartTypeSiblings.map((chartType) => (
-                            <Toggle
-                                key={chartType}
-                                label={_.startCase(chartType)}
-                                value={grapherState.validChartTypeSet.has(
-                                    chartType
-                                )}
-                                onValue={(value) =>
-                                    this.toggleChartType(chartType, value)
+                    {this.chartTypeGroups.map((group, i) => (
+                        <div key={i} className="chart-type-group">
+                            <label className="chart-type-group__label text-muted">
+                                {group.label}
+                            </label>
+                            {group.description && (
+                                <small className="chart-type-group__description text-muted">
+                                    {group.description}
+                                </small>
+                            )}
+                            <div className="chart-type-group__grid">
+                                {group.chartTypes.map((chartType) => (
+                                    <Tag.CheckableTag
+                                        key={chartType}
+                                        checked={grapherState.validChartTypeSet.has(
+                                            chartType
+                                        )}
+                                        onChange={(checked) =>
+                                            checked
+                                                ? this.addChartType(chartType)
+                                                : this.removeChartType(
+                                                      chartType
+                                                  )
+                                        }
+                                    >
+                                        <GrapherTabIcon tab={chartType} />{" "}
+                                        {_.startCase(chartType)}
+                                    </Tag.CheckableTag>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                    <div className="chart-type-group">
+                        <label className="chart-type-group__label text-muted">
+                            Map tab
+                        </label>
+                        <div className="chart-type-group__grid">
+                            <Tag.CheckableTag
+                                checked={grapherState.hasMapTab}
+                                onChange={(checked) =>
+                                    (grapherState.hasMapTab = checked)
                                 }
-                            />
-                        ))}
-                    </FieldsRow>
+                            >
+                                <GrapherTabIcon
+                                    tab={GRAPHER_TAB_NAMES.WorldMap}
+                                />{" "}
+                                Map
+                            </Tag.CheckableTag>
+                        </div>
+                    </div>
                 </Section>
                 {!isIndicatorChart && (
                     <VariablesSection
@@ -771,8 +854,6 @@ export class EditorBasicTab<
     }
 }
 
-// The rule doesn't support class components in the same file.
-// eslint-disable-next-line react-refresh/only-export-components
 function IndicatorChartInfo(props: { editor: IndicatorChartEditor }) {
     const { variableId, grapherState } = props.editor
 
@@ -794,8 +875,6 @@ function IndicatorChartInfo(props: { editor: IndicatorChartEditor }) {
     )
 }
 
-// The rule doesn't support class components in the same file.
-// eslint-disable-next-line react-refresh/only-export-components
 function NarrativeChartInfo(props: { editor: NarrativeChartEditor }) {
     const { name = "" } = props.editor.manager
 

@@ -13,11 +13,13 @@ export const MultiDimSettingsPanel = ({
     config,
     settings,
     onChange,
+    disabled,
 }: {
     className?: string
     config: MultiDimDataPageConfig
     settings: MultiDimDimensionChoices
     onChange: (settings: MultiDimDimensionChoices) => void
+    disabled?: boolean
 }) => {
     const { dimensions } = config
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
@@ -45,6 +47,7 @@ export const MultiDimSettingsPanel = ({
                 resolvedSettings={resolvedSettings}
                 onChange={onChange}
                 collapsedCount={collapsedCount}
+                disabled={disabled}
             />
         </div>
     )

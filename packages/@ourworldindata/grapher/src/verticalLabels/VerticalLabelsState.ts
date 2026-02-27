@@ -1,154 +1,430 @@
-import * as R from "remeda"
-import { computed } from "mobx"
-import { Bounds, RequiredBy, VerticalAlign } from "@ourworldindata/utils"
+import * as _ from "lodash-es"
+import { Bounds, excludeUndefined, RequiredBy } from "@ourworldindata/utils"
 import { TextWrap } from "@ourworldindata/components"
+import { SeriesLabelState } from "../seriesLabel/SeriesLabelState.js"
+import { computed } from "mobx"
+import { VerticalAxis } from "../axis/Axis.js"
+import { EntityName, SeriesName, VerticalAlign } from "@ourworldindata/types"
+import {
+    BASE_FONT_SIZE,
+    GRAPHER_FONT_SCALE_12,
+    GRAPHER_OPACITY_MUTE,
+} from "../core/GrapherConstants.js"
+import { AxisConfig } from "../axis/AxisConfig.js"
+import {
+    findImportantSeriesThatFitIntoTheAvailableSpace,
+    findSeriesThatFitIntoTheAvailableSpace,
+} from "./VerticalLabelsFilterAlgorithms.js"
+import {
+    ANNOTATION_PADDING,
+    DEFAULT_CONNECTOR_LINE_WIDTH,
+    DEFAULT_FONT_WEIGHT,
+    LEGEND_ITEM_MIN_SPACING,
+    MARKER_MARGIN,
+} from "./VerticalLabelsConstants.js"
+import {
+    LabelSeries,
+    PlacedLabelSeries,
+    SizedLabelSeries,
+    RenderLabelSeries,
+} from "./VerticalLabelsTypes"
 
-interface VerticalLabelsOptions {
-    /** Font size for the labels */
-    fontSize: number
-
-    /** Font weight for the labels */
-    fontWeight?: number
-
-    /** Line height multiplier for multi-line labels (defaults to 1) */
-    lineHeight?: number
-
-    /** Maximum width for labels (no restriction by default) */
+export interface VerticalLabelsStateOptions {
+    yAxis?: () => VerticalAxis // Passed as getter to avoid MobX dependency cycles
+    yRange?: () => [number, number] // Passed as getter to avoid MobX dependency cycles
     maxWidth?: number
-
-    /** Labels outside of this range are hidden */
-    yRange?: [number, number]
-
-    /** Minimum space between labels in pixels to prevent overlap */
-    minSpacing?: number
-
-    /** Controls how the label is aligned relative to the y-position */
+    fontSize?: number
+    fontWeight?: number
     verticalAlign?: VerticalAlign
-
-    /** Function to resolve collisions between two overlapping labels by choosing which one to keep */
-    resolveCollision?: (
-        s1: InitialVerticalLabelsSeries,
-        s2: InitialVerticalLabelsSeries
-    ) => InitialVerticalLabelsSeries
+    textAnchor?: "start" | "end"
+    showRegionTooltip?: boolean
+    seriesNamesSortedByImportance?: SeriesName[]
 }
 
-export interface InitialVerticalLabelsSeries {
-    seriesName: string
-    value: number
-    label: string
-    yPosition: number
-    color: string
-}
-
-interface SizedVerticalLabelsSeries extends InitialVerticalLabelsSeries {
-    textWrap: TextWrap
-    bounds: Bounds
-}
-
-type VerticalLabelsSeries = SizedVerticalLabelsSeries
-
+/**
+ * Manages layout and visibility of vertical series labels, handling sizing,
+ * placement, collision resolution, and filtering when space is limited
+ */
 export class VerticalLabelsState {
-    private initialSeries: InitialVerticalLabelsSeries[]
-    private initialOptions: VerticalLabelsOptions
+    private initialSeries: LabelSeries[]
+    private initialOptions: VerticalLabelsStateOptions
 
     private defaultOptions = {
-        lineHeight: 1,
+        fontSize: BASE_FONT_SIZE,
+        fontWeight: DEFAULT_FONT_WEIGHT,
         maxWidth: Infinity,
-        minSpacing: 5,
         verticalAlign: VerticalAlign.middle,
-        fontWeight: 400,
-    } as const satisfies Partial<VerticalLabelsOptions>
+        textAnchor: "start",
+        showRegionTooltip: true,
+    } as const satisfies Partial<VerticalLabelsStateOptions>
 
-    constructor(
-        series: InitialVerticalLabelsSeries[],
-        options: VerticalLabelsOptions
-    ) {
+    constructor(series: LabelSeries[], options: VerticalLabelsStateOptions) {
         this.initialSeries = series
         this.initialOptions = options
     }
 
     @computed private get options(): RequiredBy<
-        VerticalLabelsOptions,
+        VerticalLabelsStateOptions,
         keyof typeof this.defaultOptions
     > {
         return { ...this.defaultOptions, ...this.initialOptions }
     }
 
-    @computed
-    private get sizedSeries(): SizedVerticalLabelsSeries[] {
-        const { fontSize, fontWeight, maxWidth, verticalAlign, lineHeight } =
-            this.options
+    @computed get textAnchor(): "start" | "end" {
+        return this.options.textAnchor
+    }
 
-        return this.initialSeries.map((series) => {
-            const { label, yPosition } = series
+    @computed get fontSize(): number {
+        return Math.floor(GRAPHER_FONT_SCALE_12 * this.options.fontSize)
+    }
 
-            const textWrap = new TextWrap({
-                text: label,
-                maxWidth,
-                fontSize,
-                fontWeight,
-                lineHeight,
-                verticalAlign,
-            })
+    @computed private get yAxis(): VerticalAxis {
+        return this.options.yAxis?.() ?? new VerticalAxis(new AxisConfig())
+    }
 
-            const [x, y] = textWrap.getPositionForSvgRendering(0, yPosition)
-            const bounds = new Bounds(x, y, textWrap.width, textWrap.height)
+    @computed private get textMaxWidth(): number {
+        return this.options.maxWidth - DEFAULT_CONNECTOR_LINE_WIDTH
+    }
 
-            return { ...series, textWrap, bounds }
+    private makeAnnotationTextWrap(series: LabelSeries): TextWrap | undefined {
+        if (!series.annotation) return undefined
+        const maxWidth = Math.min(this.textMaxWidth, 150)
+        return new TextWrap({
+            text: series.annotation,
+            maxWidth,
+            fontSize: this.fontSize * 0.9,
+            lineHeight: 1,
         })
     }
 
-    @computed get series(): VerticalLabelsSeries[] {
-        const { minSpacing, resolveCollision, yRange } = this.options
+    @computed.struct get sizedSeries(): SizedLabelSeries[] {
+        const { fontWeight: globalFontWeight } = this.options
+        return this.initialSeries.map((series) => {
+            const activeFontWeight = series.focus?.active ? 700 : undefined
+            const seriesFontWeight = series.formattedValue ? 700 : undefined
 
-        const margin = minSpacing > 0 ? minSpacing / 2 : 0
-        const margins = { top: margin, bottom: margin }
+            // Font weight priority:
+            // Series focus state > Presence of value label > Globally set font weight
+            const fontWeight =
+                activeFontWeight ?? seriesFontWeight ?? globalFontWeight
 
-        const series = this.sizedSeries.map((series) => ({
-            ...series,
-            // Bounds used to detect collisions. They're a bit larger than the
-            // text bounds to account for the minimum spacing between labels.
-            collisionBounds: series.bounds.expand(margins),
-            // None of the series are initially hidden
-            isHidden: false,
-        }))
+            const seriesLabel = new SeriesLabelState({
+                text: series.label,
+                maxWidth: this.textMaxWidth,
+                fontSize: this.fontSize,
+                fontWeight,
+                textAnchor: this.options.textAnchor,
+                formattedValue: series.formattedValue,
+                placeFormattedValueInNewLine:
+                    series.placeFormattedValueInNewLine,
+                showRegionTooltip: this.options.showRegionTooltip,
+            })
 
-        // Hide labels that are overlapping or too close to each other
-        for (let i = 0; i < series.length; i++) {
-            const s1 = series[i]
-            if (s1.isHidden) continue
+            const annotationTextWrap = this.makeAnnotationTextWrap(series)
+            const annotationWidth = annotationTextWrap?.width ?? 0
+            const annotationHeight = annotationTextWrap
+                ? ANNOTATION_PADDING + annotationTextWrap.height
+                : 0
 
-            // Check if the label is out of bounds
-            if (
-                yRange &&
-                (s1.bounds.top < yRange[1] || s1.bounds.bottom > yRange[0])
-            ) {
-                s1.isHidden = true
-                continue
+            return {
+                ...series,
+                seriesLabel,
+                annotationTextWrap,
+                width: Math.max(seriesLabel.width, annotationWidth),
+                height: seriesLabel.height + annotationHeight,
             }
+        })
+    }
 
-            // Check if the label is overlapping with any other label
-            for (let j = i + 1; j < series.length; j++) {
-                const s2 = series[j]
-                if (s2.isHidden) continue
+    @computed private get maxLabelWidth(): number {
+        const { sizedSeries = [] } = this
+        return _.max(sizedSeries.map((d) => d.width)) ?? 0
+    }
 
-                if (s1.collisionBounds.hasVerticalOverlap(s2.collisionBounds)) {
-                    const picked = resolveCollision?.(s1, s2) ?? s1
-
-                    if (picked === s1) s2.isHidden = true
-                    else s1.isHidden = true
-                }
-            }
-        }
-
-        return series
-            .filter((series) => !series.isHidden)
-            .map((series) => R.omit(series, ["isHidden", "collisionBounds"]))
+    /**
+     * Stable width that might be slightly inaccurate because it always
+     * includes space for connector lines. This is useful to prevent layout
+     * shifts when connector lines toggle on/off, and avoids circular
+     * dependencies in layout calculations
+     */
+    @computed get stableWidth(): number {
+        return this.maxLabelWidth + DEFAULT_CONNECTOR_LINE_WIDTH + MARKER_MARGIN
     }
 
     @computed get width(): number {
-        const labelWidths = this.series.map((series) => series.textWrap.width)
-        const maxLabelWidth = R.firstBy(labelWidths, [R.identity(), "desc"])
-        return maxLabelWidth ?? 0
+        return this.needsConnectorLines
+            ? this.stableWidth
+            : this.maxLabelWidth + MARKER_MARGIN
     }
+
+    @computed private get legendY(): [number, number] {
+        const range = this.options.yRange?.() ?? this.yAxis.range
+        return [Math.min(range[1], range[0]), Math.max(range[1], range[0])]
+    }
+
+    private getYPositionForSeriesLabel(series: SizedLabelSeries): number {
+        const y = this.yAxis.place(series.yValue)
+        const lineHeight = series.seriesLabel.singleLineHeight
+        switch (this.options.verticalAlign) {
+            case VerticalAlign.middle:
+                return y - series.height / 2
+            case VerticalAlign.top:
+                return y - lineHeight / 2
+            case VerticalAlign.bottom:
+                return y - series.height + lineHeight / 2
+        }
+    }
+
+    // Naive initial placement of each mark at the target height, before collision detection
+    @computed
+    private get initialPlacedSeries(): PlacedLabelSeries[] {
+        const { yAxis, legendY } = this
+        const legendX = 0
+
+        const [legendYMin, legendYMax] = legendY
+
+        return this.sizedSeries.map((series) => {
+            const labelHeight = series.height
+            const labelWidth = series.width + DEFAULT_CONNECTOR_LINE_WIDTH
+
+            const midY = yAxis.place(series.yValue)
+            const origBounds = new Bounds(
+                legendX,
+                midY - series.height / 2,
+                labelWidth,
+                labelHeight
+            )
+
+            // ensure label doesn't go beyond the top or bottom of the chart
+            const initialY = this.getYPositionForSeriesLabel(series)
+            const y = Math.min(
+                Math.max(initialY, legendYMin),
+                legendYMax - labelHeight
+            )
+            const bounds = new Bounds(legendX, y, labelWidth, labelHeight)
+
+            return {
+                ...series,
+                y,
+                midY,
+                origBounds,
+                bounds,
+                repositions: 0,
+                level: 0,
+                totalLevels: 0,
+            }
+        })
+    }
+
+    @computed get initialPlacedSeriesByName(): Map<
+        EntityName,
+        PlacedLabelSeries
+    > {
+        return new Map(this.initialPlacedSeries.map((d) => [d.seriesName, d]))
+    }
+
+    @computed get placedSeries(): PlacedLabelSeries[] {
+        const [yLegendMin, yLegendMax] = this.legendY
+
+        // ensure list is sorted by the visual position in ascending order
+        const sortedSeries = _.sortBy(
+            this.visiblePlacedSeries,
+            (label) => label.midY
+        )
+
+        const groups: PlacedLabelSeries[][] = sortedSeries.map((mark) => [
+            { ...mark },
+        ])
+
+        let hasOverlap
+
+        do {
+            hasOverlap = false
+            for (let i = 0; i < groups.length - 1; i++) {
+                const topGroup = groups[i]
+                const bottomGroup = groups[i + 1]
+                const topBounds = groupBounds(topGroup)
+                const bottomBounds = groupBounds(bottomGroup)
+                if (topBounds.intersects(bottomBounds)) {
+                    const overlapHeight =
+                        topBounds.bottom -
+                        bottomBounds.top +
+                        LEGEND_ITEM_MIN_SPACING
+                    const newHeight =
+                        topBounds.height +
+                        LEGEND_ITEM_MIN_SPACING +
+                        bottomBounds.height
+                    const targetY =
+                        topBounds.top -
+                        overlapHeight *
+                            (bottomGroup.length /
+                                (topGroup.length + bottomGroup.length))
+                    const overflowTop = Math.max(yLegendMin - targetY, 0)
+                    const overflowBottom = Math.max(
+                        targetY + newHeight - yLegendMax,
+                        0
+                    )
+                    const newY = targetY + overflowTop - overflowBottom
+                    const newGroup = [...topGroup, ...bottomGroup]
+                    stackGroupVertically(newGroup, newY)
+                    groups.splice(i, 2, newGroup)
+                    hasOverlap = true
+                    break
+                }
+            }
+        } while (hasOverlap && groups.length > 1)
+
+        for (const group of groups) {
+            let currentLevel = 0
+            let prevSign = 0
+            for (const series of group) {
+                const currentSign = Math.sign(
+                    series.bounds.y - series.origBounds.y
+                )
+                if (prevSign === currentSign) {
+                    currentLevel -= currentSign
+                }
+                series.level = currentLevel
+                prevSign = currentSign
+            }
+            const minLevel = _.min(group.map((mark) => mark.level)) as number
+            const maxLevel = _.max(group.map((mark) => mark.level)) as number
+            for (const mark of group) {
+                mark.level -= minLevel
+                mark.totalLevels = maxLevel - minLevel + 1
+            }
+        }
+
+        return groups.flat()
+    }
+
+    @computed private get seriesSortedByImportance():
+        | PlacedLabelSeries[]
+        | undefined {
+        if (!this.options.seriesNamesSortedByImportance) return undefined
+        return excludeUndefined(
+            this.options.seriesNamesSortedByImportance.map((seriesName) =>
+                this.initialPlacedSeriesByName.get(seriesName)
+            )
+        )
+    }
+
+    private computeHeight(series: PlacedLabelSeries[]): number {
+        return (
+            _.sumBy(series, (series) => series.bounds.height) +
+            (series.length - 1) * LEGEND_ITEM_MIN_SPACING
+        )
+    }
+
+    @computed get visiblePlacedSeries(): PlacedLabelSeries[] {
+        const { initialPlacedSeries, seriesSortedByImportance, legendY } = this
+        const availableHeight = Math.abs(legendY[1] - legendY[0])
+        const totalHeight = this.computeHeight(initialPlacedSeries)
+
+        // early return if filtering is not needed
+        if (totalHeight <= availableHeight) return initialPlacedSeries
+
+        // if a list of series sorted by importance is provided, use it
+        if (seriesSortedByImportance) {
+            return findImportantSeriesThatFitIntoTheAvailableSpace(
+                seriesSortedByImportance,
+                availableHeight
+            )
+        }
+
+        // otherwise use the default filtering
+        return findSeriesThatFitIntoTheAvailableSpace(
+            initialPlacedSeries,
+            availableHeight
+        )
+    }
+
+    @computed get visibleSeriesNames(): SeriesName[] {
+        return this.visiblePlacedSeries.map((series) => series.seriesName)
+    }
+
+    @computed get visibleSeriesHeight(): number {
+        return this.computeHeight(this.visiblePlacedSeries)
+    }
+
+    // Does this placement need line markers or is the position of the labels already clear?
+    @computed get needsConnectorLines(): boolean {
+        return this.placedSeries.some((series) => series.totalLevels > 1)
+    }
+
+    @computed get maxLevel(): number {
+        return _.max(this.placedSeries.map((series) => series.totalLevels)) ?? 0
+    }
+
+    @computed get renderSeries(): RenderLabelSeries[] {
+        const direction = this.options.textAnchor === "start" ? 1 : -1
+        const markerMargin = direction * MARKER_MARGIN
+        const connectorLineWidth = direction * DEFAULT_CONNECTOR_LINE_WIDTH
+
+        return this.placedSeries.map((series) => {
+            const { x } = series.origBounds
+            const connectorLineCoords = {
+                startX: x + markerMargin,
+                endX: x + connectorLineWidth - markerMargin,
+            }
+
+            const textX = this.needsConnectorLines
+                ? connectorLineCoords.endX + markerMargin
+                : x + markerMargin
+            const textY = series.bounds.y
+
+            const opacity = getTextOpacityForSeries(series)
+
+            return {
+                ...series,
+                labelCoords: { x: textX, y: textY },
+                connectorLineCoords,
+                opacity,
+            }
+        })
+    }
+
+    @computed get annotatedSeries(): RenderLabelSeries[] {
+        return this.renderSeries.filter((series) => series.annotationTextWrap)
+    }
+
+    @computed get hasAnnotatedSeries(): boolean {
+        return this.annotatedSeries.length > 0
+    }
+}
+
+function groupBounds(group: PlacedLabelSeries[]): Bounds {
+    const first = group[0]
+    const last = group[group.length - 1]
+    const height = last.bounds.bottom - first.bounds.top
+    const width = Math.max(first.bounds.width, last.bounds.width)
+    return new Bounds(first.bounds.x, first.bounds.y, width, height)
+}
+
+function stackGroupVertically(
+    group: PlacedLabelSeries[],
+    y: number
+): PlacedLabelSeries[] {
+    let currentY = y
+    group.forEach((mark) => {
+        mark.bounds = mark.bounds.set({ y: currentY })
+        mark.repositions += 1
+        currentY += mark.bounds.height + LEGEND_ITEM_MIN_SPACING
+    })
+    return group
+}
+
+function getTextOpacityForSeries(series: PlacedLabelSeries): number {
+    const { hover, focus } = series
+
+    if (hover && focus) {
+        const isInForeground =
+            hover.active || focus.active || (focus.idle && hover.idle)
+        return isInForeground ? 1 : GRAPHER_OPACITY_MUTE
+    }
+
+    if (hover) return hover.background ? GRAPHER_OPACITY_MUTE : 1
+    if (focus) return focus.background ? GRAPHER_OPACITY_MUTE : 1
+
+    return 1
 }

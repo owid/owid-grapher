@@ -876,7 +876,7 @@ export class Explorer
 
     @computed private get currentChoiceParams(): ExplorerChoiceParams {
         const { decisionMatrix } = this.explorerProgram
-        return decisionMatrix.currentParams
+        return decisionMatrix.toConstrainedOptions()
     }
 
     @computed get queryParams(): ExplorerFullQueryParams {
@@ -934,7 +934,10 @@ export class Explorer
                 () =>
                     this.grapher?.debounceMode
                         ? debouncedPushParams()
-                        : pushParams()
+                        : pushParams(),
+                // Fire immediately to update the URL if initial params were
+                // invalid (e.g. an unavailable choice was requested)
+                { fireImmediately: true }
             )
         )
     }

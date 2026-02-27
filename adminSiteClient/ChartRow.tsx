@@ -182,8 +182,6 @@ export class ChartRow extends React.Component<ChartRowProps> {
     }
 }
 
-// The rule doesn't support class components in the same file.
-// eslint-disable-next-line react-refresh/only-export-components
 function InheritanceStatus({ chart }: { chart: ChartListItem }) {
     // if no information is available, return an empty cell
     if (
