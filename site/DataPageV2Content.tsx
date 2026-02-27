@@ -1,4 +1,5 @@
 import { useMemo, useEffect, useState } from "react"
+import cx from "classnames"
 import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import {
     REUSE_THIS_WORK_SECTION_ID,
@@ -16,6 +17,7 @@ import {
     defaultExperimentState,
     getExperimentState,
     ExperimentState,
+    shuffleArray,
 } from "@ourworldindata/utils"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import { FeaturedMetrics } from "./FeaturedMetrics.js"
@@ -33,6 +35,9 @@ import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import { DocumentContext } from "./gdocs/DocumentContext.js"
 import { BlockQueryClientProvider } from "./gdocs/components/BlockQueryClientProvider.js"
+import { Autocomplete } from "./search/Autocomplete.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
 
 declare global {
     interface Window {
@@ -41,6 +46,21 @@ declare global {
     }
 }
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
+
+const SUGGESTED_SEARCHES = [
+    { slug: "child-mortality", query: "Infant mortality" },
+    {
+        slug: "child-mortality",
+        query: "Causes of death in children under five",
+    },
+    {
+        slug: "child-mortality",
+        query: "Diarrheal disease deaths in children under five",
+    },
+    { slug: "child-mortality", query: "Pneumonia risk factors" },
+    { slug: "child-mortality", query: "Share of children vaccinated" },
+    { slug: "child-mortality", query: "Maternal mortality ratio" },
+]
 
 export const DataPageV2Content = ({
     datapageData,
@@ -112,6 +132,7 @@ export const DataPageV2Content = ({
     }, [])
     const { isPageInExperiment, assignedExperiments } = experimentState
 
+    const suggestedSearchesOrientation = "horizontal"
     return (
         <AttachmentsContext.Provider
             value={{
@@ -185,6 +206,24 @@ export const DataPageV2Content = ({
                                 />
                             )}
 
+                            <div
+                                className={`datapage-search-wrapper span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2 ${EXPERIMENT_PREFIX}-data-page-search-v1${EXPERIMENT_ARM_SEPARATOR}treat1--show ${EXPERIMENT_PREFIX}-data-page-search-v1${EXPERIMENT_ARM_SEPARATOR}treat2--show`}
+                            >
+                                <div className="datapage-search">
+                                    <Autocomplete
+                                        className="span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2"
+                                        panelClassName="datapage-search__panel"
+                                        placeholder="What do you want to see next?"
+                                    />
+                                    <SuggestedSearches
+                                        grapherSlug={grapherConfig.slug}
+                                        orientation={
+                                            suggestedSearchesOrientation
+                                        }
+                                    />
+                                </div>
+                            </div>
+
                             <AboutThisData
                                 datapageData={datapageData}
                                 hasFaq={!!faqEntries?.faqs.length}
@@ -192,7 +231,9 @@ export const DataPageV2Content = ({
                             />
                         </div>
                     </div>
-                    <div className="col-start-2 span-cols-12">
+                    <div
+                        className={`col-start-2 span-cols-12 ${EXPERIMENT_PREFIX}-data-page-search-v1${EXPERIMENT_ARM_SEPARATOR}treat2--hide`}
+                    >
                         {relatedResearch && relatedResearch.length > 0 && (
                             <DataPageResearchAndWriting
                                 relatedResearch={relatedResearch}
@@ -273,5 +314,53 @@ export const DataPageV2Content = ({
                 </div>
             </DocumentContext.Provider>
         </AttachmentsContext.Provider>
+    )
+}
+
+const SuggestedSearches = ({
+    grapherSlug,
+    orientation = "horizontal",
+}: {
+    grapherSlug: string | undefined
+    orientation?: "horizontal" | "vertical"
+}) => {
+    const shuffledSuggestions = useMemo(() => {
+        if (!grapherSlug) return []
+        const filtered = SUGGESTED_SEARCHES.filter(
+            (s) => s.slug === grapherSlug
+        )
+        return shuffleArray(filtered)
+    }, [grapherSlug])
+
+    if (shuffledSuggestions.length === 0) return null
+
+    const isVertical = orientation === "vertical"
+
+    return (
+        <div
+            className={cx(
+                "suggested-searches",
+                isVertical && "suggested-searches--vertical"
+            )}
+        >
+            {shuffledSuggestions.map((suggestion, index) => (
+                <a
+                    key={index}
+                    href={`/search?q=${encodeURIComponent(suggestion.query)}`}
+                    className={cx(
+                        "suggested-search-item",
+                        isVertical && "suggested-search-item--vertical"
+                    )}
+                >
+                    <FontAwesomeIcon
+                        icon={faMagnifyingGlass}
+                        className="suggested-search-item__icon"
+                    />
+                    <span className="suggested-search-item__text">
+                        {suggestion.query}
+                    </span>
+                </a>
+            ))}
+        </div>
     )
 }

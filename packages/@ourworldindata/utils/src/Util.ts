@@ -565,7 +565,7 @@ export const sampleFrom = <T>(
 
 // A seeded array shuffle
 // https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
-const shuffleArray = <T>(array: T[], seed = Date.now()): T[] => {
+export const shuffleArray = <T>(array: T[], seed = Date.now()): T[] => {
     const rand = getRandomNumberGenerator(0, 100, seed)
     const clonedArr = array.slice()
     for (let index = clonedArr.length - 1; index > 0; index--) {

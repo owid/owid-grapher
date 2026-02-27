@@ -20,6 +20,11 @@ $experiments: (
         all-charts,
         featured-metrics,
     ),
+    exp-data-page-search-v1: (
+        control,
+        treat1,
+        treat2,
+    ),
 );
 
 @each $exp, $arms in $experiments {
@@ -67,6 +72,118 @@ $experiments: (
 
         &--#{$a} .article-block__featured-metrics > h1 {
             text-align: left;
+        }
+    }
+}
+
+// styles specific to experiment exp-data-page-search-v1
+.exp-data-page-search-v1 {
+    $arms: map.get($experiments, exp-data-page-search-v1);
+    @each $a in $arms {
+        &--#{$a} .DataPageContent {
+            .datapage-search {
+                #autocomplete {
+                    height: 56px;
+                    background-color: #fff;
+                }
+
+                .aa-DetachedFormContainer .aa-Form,
+                .aa-Autocomplete[aria-expanded="true"] .aa-Form,
+                .aa-Form {
+                    background-color: #fff;
+                    border-color: $blue-20;
+                    height: 56px;
+                }
+
+                .aa-DetachedSearchButton {
+                    background-color: #fff;
+                    border-radius: 0;
+                    justify-content: space-between;
+                    cursor: text;
+                    height: 56px;
+                }
+
+                .aa-DetachedSearchButtonIcon {
+                    position: absolute;
+                    right: 0;
+                    background: white;
+                    svg {
+                        fill: $blue-50;
+                    }
+                }
+
+                .aa-DetachedSearchButtonPlaceholder {
+                    display: block;
+                    margin-left: 16px;
+                    white-space: nowrap;
+                    color: $blue-40;
+                    width: calc(100% - 56px);
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    // Explicit line-height to prevent Safari from clipping descenders (g,
+                    // y, p, etc.) with overflow: hidden. The taller line box gives room for
+                    // descenders inside the clipping boundary.
+                    line-height: 1.4;
+                }
+
+                .aa-Input {
+                    padding: 40px 0;
+                    font-size: 1rem;
+                    &::placeholder {
+                        color: $blue-40;
+                    }
+
+                    &:placeholder-shown {
+                        text-overflow: ellipsis;
+                    }
+                }
+
+                .aa-InputWrapperPrefix {
+                    display: initial;
+                    margin-right: 8px;
+                }
+
+                .aa-Input::placeholder {
+                    color: $blue-30;
+                }
+
+                .suggested-searches {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 12px 16px;
+                    margin-top: 12px;
+                    margin-bottom: 12px;
+                }
+
+                .suggested-searches--vertical {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 12px;
+                }
+
+                .suggested-search-item {
+                    background-color: $blue-10;
+                    border-radius: 24px;
+                    padding: 5.5px 16px;
+                    @include body-3-medium;
+                    color: $blue-90;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    text-decoration: none;
+
+                    &:hover {
+                        color: $blue-60;
+                    }
+                }
+
+                .suggested-search-item__icon {
+                    color: $blue-50;
+                }
+            }
+            .datapage-search__panel {
+                box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.05);
+            }
         }
     }
 }
