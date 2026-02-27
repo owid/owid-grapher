@@ -690,6 +690,7 @@ async function finalizeRecords(
                 numDimensions: record.yVariableIds.length,
                 numRelatedArticles: 0,
                 title: record.viewTitle as string,
+                containerTitle: explorerInfo.title,
                 subtitle: record.viewSubtitle!,
                 slug: explorerInfo.slug,
                 queryParams: record.viewQueryParams,

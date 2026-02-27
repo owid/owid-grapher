@@ -360,6 +360,7 @@ export const CHARTS_INDEX = getIndexName(
 export const PAGES_INDEX = getIndexName(SearchIndexName.Pages)
 export const DATA_CATALOG_ATTRIBUTES = [
     "title",
+    "containerTitle",
     "slug",
     "availableEntities",
     "originalAvailableEntities",

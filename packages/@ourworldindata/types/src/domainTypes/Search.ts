@@ -60,6 +60,7 @@ export interface ChartRecord {
     slug: string
     queryParams?: string
     title: string
+    containerTitle?: string
     subtitle: string | undefined
     variantName: string
     availableTabs: GrapherTabName[]
@@ -107,6 +108,7 @@ export enum SearchIndexName {
 
 interface BaseSearchChartHit {
     title: string
+    containerTitle?: string
     slug: string
     availableEntities: string[]
     originalAvailableEntities?: string[]
