@@ -1,6 +1,3 @@
-// Todo: remove this.
-// Any display changes really can be computed columns. And then charts just need xColumnSlug, sizeColumnSlug, yColumnSlug (or yColumnSlugs) et cetera
-
 import { observable, computed, makeObservable } from "mobx"
 import {
     trimObject,

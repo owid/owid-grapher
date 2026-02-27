@@ -133,6 +133,7 @@ import {
     findValidChartTypeCombination,
     mapChartTypeNameToTabConfigOption,
     mapTabConfigOptionToChartTypeName,
+    getSupportedDimensionsForChartTypes,
 } from "../chart/ChartTabs.js"
 import { makeChartState } from "../chart/ChartTypeMap.js"
 import {
@@ -828,8 +829,8 @@ export class GrapherState
         // These properties wouldn't be serialized in the JSON config by default,
         // so this code extracts them and adds them to the serialized object.
         // Color properties from the color column are stored as obj.colorScale
-        if (this.colorColumnSlug && !obj.colorScale) {
-            const colorColumn = this.inputTable.get(this.colorColumnSlug)
+        if (this.inputColorColumnSlug && !obj.colorScale) {
+            const colorColumn = this.inputTable.get(this.inputColorColumnSlug)
             const colorScaleConfig = ColorScaleConfig.fromDSL(colorColumn.def)
             if (colorScaleConfig) obj.colorScale = colorScaleConfig.toObject()
         }
@@ -898,23 +899,27 @@ export class GrapherState
     @computed get tableAfterColorAndSizeToleranceApplication(): OwidTable {
         let table = this.inputTable
 
-        if (this.hasScatter && this.sizeColumnSlug) {
+        if (this.hasScatter && this.inputSizeColumnSlug) {
             const tolerance =
-                table.get(this.sizeColumnSlug)?.display?.tolerance ?? Infinity
-            table = table.interpolateColumnWithTolerance(this.sizeColumnSlug, {
-                toleranceOverride: tolerance,
-            })
+                table.get(this.inputSizeColumnSlug)?.display?.tolerance ??
+                Infinity
+            table = table.interpolateColumnWithTolerance(
+                this.inputSizeColumnSlug,
+                {
+                    toleranceOverride: tolerance,
+                }
+            )
         }
 
         if (
             (this.hasScatter || this.hasMarimekko) &&
-            this.categoricalColorColumnSlug
+            this.inputCategoricalColorColumnSlug
         ) {
             const tolerance =
-                table.get(this.categoricalColorColumnSlug)?.display
+                table.get(this.inputCategoricalColorColumnSlug)?.display
                     ?.tolerance ?? Infinity
             table = table.interpolateColumnWithTolerance(
-                this.categoricalColorColumnSlug,
+                this.inputCategoricalColorColumnSlug,
                 { toleranceOverride: tolerance }
             )
         }
@@ -1104,12 +1109,13 @@ export class GrapherState
     }
 
     private prepareTableForDownload(table: OwidTable): OwidTable {
-        const activeSlugs = this.activeColumnSlugs
+        const dataSlugs = this.inputColumnSlugs
 
         // x and y column slugs
-        const xySlugs = [this.xColumnSlug, ...this.yColumnSlugs].filter(
-            (slug) => slug !== undefined
-        )
+        const xySlugs = [
+            this.inputXColumnSlug,
+            ...this.inputYColumnSlugs,
+        ].filter((slug) => slug !== undefined)
 
         // Time column slug to include in the downloaded table
         const timeSlug = table.timeColumn.slug
@@ -1129,7 +1135,7 @@ export class GrapherState
             table.entityNameSlug, // Entity name column
             table.entityCodeSlug, // Entity code column
             timeSlug, // Time column
-            ...activeSlugs, // Data columns
+            ...dataSlugs, // Data columns
             ...originalTimeSlugs, // Original time columns
             ...annotationSlugs, // Annotation columns
         ])
@@ -2115,17 +2121,14 @@ export class GrapherState
         }
     }
 
-    // Get the dimension slots appropriate for this type of chart
+    /** Dimension slots appropriate for the given chart types */
     @computed get dimensionSlots(): DimensionSlot[] {
-        const xAxis = new DimensionSlot(this, DimensionProperty.x)
-        const yAxis = new DimensionSlot(this, DimensionProperty.y)
-        const color = new DimensionSlot(this, DimensionProperty.color)
-        const size = new DimensionSlot(this, DimensionProperty.size)
-
-        if (this.hasScatter) return [yAxis, xAxis, size, color]
-        if (this.hasMarimekko) return [yAxis, xAxis, color]
-        if (this.hasLineChart || this.hasDiscreteBar) return [yAxis, color]
-        return [yAxis]
+        const dimensionProperties = getSupportedDimensionsForChartTypes(
+            this.validChartTypes
+        )
+        return dimensionProperties.map(
+            (property) => new DimensionSlot(this, property)
+        )
     }
 
     @computed.struct get filledDimensions(): ChartDimension[] {
@@ -2499,7 +2502,7 @@ export class GrapherState
             .map((dim) => dim.column)
     }
 
-    @computed get yColumnSlugs(): string[] {
+    @computed private get inputYColumnSlugs(): string[] {
         return this.ySlugs
             ? this.ySlugs.split(" ")
             : this.dimensions
@@ -2507,39 +2510,83 @@ export class GrapherState
                   .map((dim) => dim.columnSlug)
     }
 
-    @computed get yColumnSlug(): string | undefined {
+    @computed private get inputYColumnSlug(): string | undefined {
         return this.ySlugs
             ? this.ySlugs.split(" ")[0]
             : this.getSlugForProperty(DimensionProperty.y)
     }
 
-    @computed get xColumnSlug(): string | undefined {
+    @computed private get inputXColumnSlug(): string | undefined {
         return this.xSlug ?? this.getSlugForProperty(DimensionProperty.x)
     }
 
-    @computed get sizeColumnSlug(): string | undefined {
+    @computed private get inputSizeColumnSlug(): string | undefined {
         return this.sizeSlug ?? this.getSlugForProperty(DimensionProperty.size)
     }
 
-    @computed get colorColumnSlug(): string | undefined {
+    @computed private get inputColorColumnSlug(): string | undefined {
         return (
             this.colorSlug ?? this.getSlugForProperty(DimensionProperty.color)
         )
     }
 
-    @computed get numericColorColumnSlug(): string | undefined {
-        if (!this.colorColumnSlug) return undefined
+    @computed private get inputNumericColorColumnSlug(): string | undefined {
+        if (!this.inputColorColumnSlug) return undefined
 
-        const colorColumn = this.inputTable.get(this.colorColumnSlug)
+        const colorColumn = this.inputTable.get(this.inputColorColumnSlug)
         if (!colorColumn.isMissing && colorColumn.hasNumberFormatting)
-            return this.colorColumnSlug
+            return this.inputColorColumnSlug
 
         return undefined
     }
 
-    @computed get categoricalColorColumnSlug(): string | undefined {
-        if (!this.colorColumnSlug) return undefined
-        return this.numericColorColumnSlug ? undefined : this.colorColumnSlug
+    @computed private get inputCategoricalColorColumnSlug():
+        | string
+        | undefined {
+        if (!this.inputColorColumnSlug) return undefined
+        return this.inputNumericColorColumnSlug
+            ? undefined
+            : this.inputColorColumnSlug
+    }
+
+    /** Y column slugs used by the active tab */
+    @computed get yColumnSlugs(): ColumnSlug[] {
+        return this.inputYColumnSlugs
+    }
+
+    /** Y column slug used by the active tab */
+    @computed get yColumnSlug(): ColumnSlug | undefined {
+        return this.inputYColumnSlug
+    }
+
+    /** Color column slug used by the active tab */
+    @computed get colorColumnSlug(): ColumnSlug | undefined {
+        if (!this.inputColorColumnSlug) return undefined
+
+        // Line and DiscreteBar charts only support numeric color columns
+        if (this.isOnLineChartTab || this.isOnDiscreteBarTab) {
+            return this.inputNumericColorColumnSlug
+        }
+
+        // ScatterPlot and Marimekko charts only support categorical color columns
+        if (this.isOnScatterTab || this.isOnMarimekkoTab) {
+            return this.inputCategoricalColorColumnSlug
+        }
+
+        return this.inputColorColumnSlug
+    }
+
+    /** X column slug used by the active tab */
+    @computed get xColumnSlug(): ColumnSlug | undefined {
+        // Marimekkos ignore the x column when there's also a scatter plot
+        if (this.isOnMarimekkoTab && this.hasScatter) return undefined
+
+        return this.inputXColumnSlug
+    }
+
+    /** Size column slug used by the active tab */
+    @computed get sizeColumnSlug(): ColumnSlug | undefined {
+        return this.inputSizeColumnSlug
     }
 
     @computed private get yScaleType(): ScaleType | undefined {
@@ -2566,32 +2613,19 @@ export class GrapherState
         return this.sourceDesc ?? this.defaultSourcesLine
     }
 
-    /** Columns that are used as a dimension in the currently active view */
-    @computed get activeColumnSlugs(): string[] {
-        const { yColumnSlugs, xColumnSlug, sizeColumnSlug, colorColumnSlug } =
-            this
-
+    /** All column slugs configured by the author (y, x, size, color) */
+    @computed get inputColumnSlugs(): ColumnSlug[] {
         return excludeUndefined([
-            ...yColumnSlugs,
-            xColumnSlug,
-            sizeColumnSlug,
-            colorColumnSlug,
+            ...this.inputYColumnSlugs,
+            this.inputXColumnSlug,
+            this.inputSizeColumnSlug,
+            this.inputColorColumnSlug,
         ])
     }
 
-    @computed get columnsWithSourcesExtensive(): CoreColumn[] {
-        const { yColumnSlugs, xColumnSlug, sizeColumnSlug, colorColumnSlug } =
-            this
-
-        const columnSlugs = excludeUndefined([
-            ...yColumnSlugs,
-            xColumnSlug,
-            sizeColumnSlug,
-            colorColumnSlug,
-        ])
-
+    @computed get inputColumnsWithSources(): CoreColumn[] {
         return this.inputTable
-            .getColumns(_.uniq(columnSlugs))
+            .getColumns(_.uniq(this.inputColumnSlugs))
             .filter(
                 (column) =>
                     !!column.source.name || !_.isEmpty(column.def.origins)
@@ -2613,7 +2647,7 @@ export class GrapherState
             xColumnSlug: this.xColumnSlug,
             sizeColumnSlug: this.sizeColumnSlug,
             colorColumnSlug: this.colorColumnSlug,
-            isOnMarimekkoTab: this.isOnMarimekkoTab,
+            activeTab: this.activeTab,
         })
         const columns = this.inputTable.getColumns(columnSlugs)
         return buildSourcesLineFromColumns(columns)
@@ -2886,7 +2920,6 @@ export class GrapherState
             xColumnSlug,
             isOnMarimekkoTab,
             isStackedChartSplitByMetric,
-            hasScatter,
         } = this
 
         if (isOnLineChartTab || isOnSlopeChartTab)
@@ -2905,7 +2938,7 @@ export class GrapherState
             return false
 
         // Disable relative mode for Marimekko charts without an x dimension
-        if (isOnMarimekkoTab && (!xColumnSlug || hasScatter)) return false
+        if (isOnMarimekkoTab && !xColumnSlug) return false
 
         return !hideRelativeToggle
     }

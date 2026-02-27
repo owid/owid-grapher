@@ -76,7 +76,7 @@ export interface DownloadModalManager {
     showAdminControls?: boolean
     isWikimediaExport?: boolean
     isPublished?: boolean
-    activeColumnSlugs?: string[]
+    inputColumnSlugs?: string[]
     isServerSideDownloadAvailable?: boolean
     logImageDownloadEvent?: (action: GrapherImageDownloadEvent) => void
     activeDownloadModalTab: DownloadModalTabName
@@ -573,7 +573,7 @@ interface DataDownloadContextClientSide extends DataDownloadContextBase {
     // Only needed for local CSV generation
     fullTable: OwidTable
     filteredTable: OwidTable
-    activeColumnSlugs: string[] | undefined
+    inputColumnSlugs: string[] | undefined
 }
 
 const createCsvBlobLocally = async (ctx: DataDownloadContextClientSide) => {
@@ -924,7 +924,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
             fullTable: props.manager.tableForDownload ?? BlankOwidTable(),
             filteredTable:
                 props.manager.filteredTableForDownload ?? BlankOwidTable(),
-            activeColumnSlugs: props.manager.activeColumnSlugs,
+            inputColumnSlugs: props.manager.inputColumnSlugs,
         }
     }, [
         props.manager.baseUrl,
@@ -933,7 +933,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
         props.manager.externalQueryParams,
         props.manager.tableForDownload,
         props.manager.filteredTableForDownload,
-        props.manager.activeColumnSlugs,
+        props.manager.inputColumnSlugs,
     ])
 
     const onDownloadClick = useCallback(

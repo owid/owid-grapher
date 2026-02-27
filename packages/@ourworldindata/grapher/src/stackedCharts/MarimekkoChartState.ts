@@ -138,9 +138,6 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
     }
 
     @computed get xColumnSlug(): string | undefined {
-        // If scatter is also enabled, marimekko charts should ignore the x-axis
-        if (this.manager.hasScatter) return undefined
-
         return this.manager.xColumnSlug
     }
 
@@ -151,8 +148,7 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
     }
 
     @computed get colorColumnSlug(): string | undefined {
-        // Marimekko charts only support categorical variables as color dimension
-        return this.manager.categoricalColorColumnSlug
+        return this.manager.colorColumnSlug
     }
 
     @computed get colorColumn(): CoreColumn {

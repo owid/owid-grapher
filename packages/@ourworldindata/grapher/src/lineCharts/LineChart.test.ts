@@ -359,7 +359,7 @@ describe("color scale", () => {
 
         const manager: LineChartManager = {
             yColumnSlugs: ["y"],
-            numericColorColumnSlug: "color",
+            colorColumnSlug: "color",
             table: table,
             selection: ["usa"],
             seriesStrategy: SeriesStrategy.column,
@@ -422,7 +422,7 @@ describe("color scale", () => {
         )
         const manager: LineChartManager = {
             yColumnSlugs: ["y"],
-            numericColorColumnSlug: "y",
+            colorColumnSlug: "y",
             table: table,
             selection: ["usa"],
             seriesStrategy: SeriesStrategy.column,

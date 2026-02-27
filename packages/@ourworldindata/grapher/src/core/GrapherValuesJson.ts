@@ -12,7 +12,6 @@ import {
     Time,
     DimensionProperty,
     GrapherInterface,
-    GRAPHER_CHART_TYPES,
 } from "@ourworldindata/types"
 import {
     excludeUndefined,
@@ -33,7 +32,6 @@ import {
     buildSourcesLineFromColumns,
     pickColumnsForSourcesLine,
 } from "./sourcesLine"
-import { resolveDefaultChartType } from "../chart/ChartTabs.js"
 
 export function constructGrapherValuesJson(
     grapherState: GrapherState,
@@ -287,14 +285,12 @@ export function prepareCalloutTable(
     )
 
     // Build sources line from columns
-    const defaultChartView = resolveDefaultChartType(config)
     const columnSlugsForSourcesLine = pickColumnsForSourcesLine({
         table: inputTable,
         yColumnSlugs,
         xColumnSlug,
         sizeColumnSlug,
         colorColumnSlug,
-        isOnMarimekkoTab: defaultChartView === GRAPHER_CHART_TYPES.Marimekko,
     })
     const sourcesLine =
         config.sourceDesc ??
