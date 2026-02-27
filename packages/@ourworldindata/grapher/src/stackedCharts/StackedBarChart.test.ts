@@ -28,7 +28,7 @@ it("can create a chart", () => {
     selection.addToSelection(table.sampleEntityName(1))
     expect(chartState.errorInfo.reason).toEqual("")
     const chart = new StackedBarChart({ chartState })
-    expect(chart.stackedSeries[0].points.length).toEqual(10)
+    expect(chart.series[0].points.length).toEqual(10)
 })
 
 describe("stackedbar chart with columns as series", () => {
@@ -42,10 +42,10 @@ describe("stackedbar chart with columns as series", () => {
     const chart = new StackedBarChart({ chartState })
 
     it("render the legend items in the same stack order as the chart, bottom stack item on bottom of chart", () => {
-        expect(chart.stackedSeries.length).toEqual(2)
+        expect(chart.series.length).toEqual(2)
         // The stacking happens bottom to top, so we need to .reverse()
         expect(
-            chart.stackedSeries.map((series) => series.seriesName).toReversed()
+            chart.series.map((series) => series.seriesName).toReversed()
         ).toEqual([SampleColumnSlugs.GDP, SampleColumnSlugs.Population])
     })
 })
@@ -61,8 +61,8 @@ describe("stackedbar chart with entities as series", () => {
     const chart = new StackedBarChart({ chartState })
 
     it("can render complete data correctly", () => {
-        expect(chart.stackedSeries.length).toEqual(5)
-        expect(chart.stackedSeries[0].points[0].value).toBeTruthy()
+        expect(chart.series.length).toEqual(5)
+        expect(chart.series[0].points[0].value).toBeTruthy()
     })
 
     it("can handle a missing row", () => {
@@ -74,8 +74,8 @@ describe("stackedbar chart with entities as series", () => {
         }
         const chartState = new StackedBarChartState({ manager })
         const chart = new StackedBarChart({ chartState })
-        expect(chart.stackedSeries.length).toEqual(5)
-        expect(chart.stackedSeries[0].points[0].value).toBeTruthy()
+        expect(chart.series.length).toEqual(5)
+        expect(chart.series[0].points[0].value).toBeTruthy()
     })
 })
 
@@ -95,9 +95,9 @@ it("filters non-numeric values", () => {
     }
     const chartState = new StackedBarChartState({ manager })
     const chart = new StackedBarChart({ chartState })
-    expect(chart.stackedSeries.length).toEqual(2)
+    expect(chart.series.length).toEqual(2)
     expect(
-        chart.stackedSeries.every((series) =>
+        chart.series.every((series) =>
             series.points.every(
                 (point) => _.isNumber(point.position) && _.isNumber(point.value)
             )
@@ -130,8 +130,8 @@ it("should not mark any values as interpolated by default", () => {
     const chart = new StackedBarChart({ chartState })
 
     // indices are reversed because stacked charts reverse the stacking order
-    const pointsFrance = chart.stackedSeries[1].points
-    const pointsUK = chart.stackedSeries[0].points
+    const pointsFrance = chart.series[1].points
+    const pointsUK = chart.series[0].points
 
     expect(pointsFrance[0].interpolated).toBeFalsy() // year = 2000
     expect(pointsFrance[1].interpolated).toBeFalsy() // year = 2001

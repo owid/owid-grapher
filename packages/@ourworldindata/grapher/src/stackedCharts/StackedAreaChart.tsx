@@ -10,7 +10,7 @@ import {
     exposeInstanceOnWindow,
 } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
-import { SeriesName, SeriesStrategy } from "@ourworldindata/types"
+import { SeriesName, SeriesStrategy, Time } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
@@ -30,7 +30,11 @@ import {
     toTooltipTableColumns,
 } from "../tooltip/Tooltip"
 import { StackedAreaChartState } from "./StackedAreaChartState.js"
-import { AREA_OPACITY, StackedSeries } from "./StackedConstants"
+import {
+    AREA_OPACITY,
+    StackedPlacedSeries,
+    StackedSeries,
+} from "./StackedConstants"
 import {
     makeClipPath,
     isTargetOutsideElement,
@@ -47,7 +51,7 @@ import { HorizontalColorLegendManager } from "../legend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { InteractionState } from "../interaction/InteractionState"
-import { resolveCollision } from "./StackedUtils"
+import { resolveCollision, toPlacedStackedAreaSeries } from "./StackedUtils"
 
 const STACKED_AREA_CHART_CLASS_NAME = "StackedArea"
 
@@ -155,12 +159,10 @@ export class StackedAreaChart
         return new AxisConfig({ ...custom, ...xAxisConfig }, this)
     }
 
-    private hoverStateForSeries(
-        series: StackedSeries<number>
-    ): InteractionState {
+    private hoverStateForSeries(series: StackedSeries<Time>): InteractionState {
         return getHoverStateForSeries(series, {
             isHoverModeActive: this.isHoverModeActive,
-            hoveredSeriesNames: this.hoveredSeriesNames,
+            hoveredSeriesNames: excludeUndefined([this.hoveredSeriesName]),
         })
     }
 
@@ -168,7 +170,7 @@ export class StackedAreaChart
         const isEntityStrategy =
             this.chartState.seriesStrategy === SeriesStrategy.entity
 
-        return this.stackedSeries
+        return this.series
             .map((series, index) => ({
                 color: series.color,
                 seriesName: series.seriesName,
@@ -261,12 +263,9 @@ export class StackedAreaChart
     }
 
     @computed private get seriesSortedByImportance(): string[] {
-        return this.stackedSeries
+        return this.series
             .toSorted(
-                (
-                    s1: StackedSeries<number>,
-                    s2: StackedSeries<number>
-                ): number => {
+                (s1: StackedSeries<Time>, s2: StackedSeries<Time>): number => {
                     const PREFER_S1 = -1
                     const PREFER_S2 = 1
 
@@ -323,11 +322,11 @@ export class StackedAreaChart
 
     @computed private get hoveredSeriesName(): SeriesName | undefined {
         return (
-            // if the chart area is hovered
+            // If the chart area is hovered
             this.tooltipState.target?.series ??
-            // if a label is hovered
+            // If a label is hovered
             this.hoveredLabelSeriesName ??
-            // if the facet legend is hovered
+            // If the facet legend is hovered
             this.facetLegendHoveredSeriesName
         )
     }
@@ -335,15 +334,11 @@ export class StackedAreaChart
     @computed private get isHoverModeActive(): boolean {
         return (
             !!this.hoveredSeriesName ||
-            // if the external legend is hovered, we want to mute
+            // If the external legend is hovered, we want to mute
             // all non-hovered series even if the chart doesn't plot
             // the currently hovered series
             !!this.manager.externalLegendHoverBin
         )
-    }
-
-    @computed private get hoveredSeriesNames(): string[] {
-        return this.hoveredSeriesName ? [this.hoveredSeriesName] : []
     }
 
     @action.bound private onCursorMove(
@@ -359,7 +354,7 @@ export class StackedAreaChart
 
         if (!ref) return undefined
 
-        const { stackedSeries: series } = this
+        const { series } = this
         const mouse = getRelativeMouse(ref, ev.nativeEvent)
         const boxPadding = isMobile() ? 44 : 25
 
@@ -403,7 +398,7 @@ export class StackedAreaChart
     @computed private get activeXVerticalLine():
         | React.ReactElement
         | undefined {
-        const { dualAxis, stackedSeries: series } = this
+        const { dualAxis, series } = this
         const { horizontalAxis, verticalAxis } = dualAxis
         const hoveredPointIndex = this.tooltipState.target?.index
         if (hoveredPointIndex === undefined) return undefined
@@ -453,7 +448,7 @@ export class StackedAreaChart
         if (!target) return undefined
 
         // Grab the first value to get the year from
-        const { stackedSeries: series } = this
+        const { series } = this
         const hoveredPointIndex = target.index
         const bottomSeriesPoint = series[0].points[hoveredPointIndex]
         if (!bottomSeriesPoint) return undefined
@@ -601,16 +596,15 @@ export class StackedAreaChart
                 {this.renderAxis()}
                 {this.renderVerticalLabels()}
                 <StackedAreas
-                    dualAxis={this.dualAxis}
-                    seriesArr={this.stackedSeries}
-                    hoveredSeriesName={this.hoveredSeriesName}
+                    series={this.placedSeries}
+                    baselineY={this.baselineY}
                 />
             </>
         )
     }
 
     renderInteractive(): React.ReactElement {
-        const { bounds, dualAxis, renderUid, stackedSeries: series } = this
+        const { bounds, dualAxis, renderUid } = this
 
         const clipPath = makeClipPath({
             renderUid,
@@ -642,9 +636,8 @@ export class StackedAreaChart
                 <g clipPath={clipPath.id}>
                     {this.renderVerticalLabels()}
                     <StackedAreas
-                        dualAxis={dualAxis}
-                        seriesArr={series}
-                        hoveredSeriesName={this.hoveredSeriesName}
+                        series={this.renderSeries}
+                        baselineY={this.baselineY}
                         onAreaMouseEnter={this.onAreaMouseEnter}
                         onAreaMouseLeave={this.onAreaMouseLeave}
                     />
@@ -683,7 +676,22 @@ export class StackedAreaChart
         return [this.bounds.top, this.bounds.bottom]
     }
 
-    @computed private get stackedSeries(): readonly StackedSeries<number>[] {
+    @computed private get series(): readonly StackedSeries<Time>[] {
         return this.chartState.series
+    }
+
+    @computed private get placedSeries(): StackedPlacedSeries<Time>[] {
+        return toPlacedStackedAreaSeries(this.series, this.dualAxis)
+    }
+
+    @computed private get renderSeries(): StackedPlacedSeries<Time>[] {
+        return this.placedSeries.map((series) => ({
+            ...series,
+            hover: this.hoverStateForSeries(series),
+        }))
+    }
+
+    @computed private get baselineY(): number {
+        return this.dualAxis.verticalAxis.range[0]
     }
 }

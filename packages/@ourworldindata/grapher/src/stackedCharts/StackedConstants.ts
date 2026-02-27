@@ -59,6 +59,15 @@ export interface StackedPoint<PositionType extends StackedPointPositionType> {
     color?: string
 }
 
+export interface PlacedStackedBarPoint<
+    PositionType extends StackedPointPositionType,
+> extends StackedPoint<PositionType> {
+    x: number
+    y: number
+    barWidth: number
+    barHeight: number
+}
+
 export interface StackedSeries<PositionType extends StackedPointPositionType>
     extends ChartSeries {
     points: StackedPoint<PositionType>[]
@@ -67,6 +76,13 @@ export interface StackedSeries<PositionType extends StackedPointPositionType>
     isAllZeros?: boolean
     shortEntityName?: string
     focus?: InteractionState
+    hover?: InteractionState
+}
+
+export interface PlacedStackedBarSeries<
+    PositionType extends StackedPointPositionType,
+> extends Omit<StackedSeries<PositionType>, "points"> {
+    points: PlacedStackedBarPoint<PositionType>[]
 }
 
 export interface StackedPlacedSeries<
