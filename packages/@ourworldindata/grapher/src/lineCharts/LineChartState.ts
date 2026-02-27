@@ -143,8 +143,7 @@ export class LineChartState implements ChartState, ColorScaleManager {
     }
 
     @computed get colorColumnSlug(): string | undefined {
-        // Line charts only support numeric variables as color dimension
-        return this.manager.numericColorColumnSlug
+        return this.manager.colorColumnSlug
     }
 
     @computed get yColumns(): CoreColumn[] {

@@ -8,9 +8,7 @@ import {
     GrapherTabName,
     GrapherTabConfigOption,
     GrapherTabQueryParam,
-    GrapherInterface,
-    GrapherChartOrMapType,
-    GRAPHER_MAP_TYPE,
+    DimensionProperty,
 } from "@ourworldindata/types"
 import * as R from "remeda"
 import { match } from "ts-pattern"
@@ -182,22 +180,23 @@ export const isMapTab = (
     tab === GRAPHER_TAB_NAMES.WorldMap
 
 /**
- * Resolves the default chart or map type based on the chart config.
- *
- * Does not validate that the resolved type is actually available.
- * For example, returns 'WorldMap' if config.tab is "map" even when
- * hasMapTab is false.
+ * Returns which dimension properties are supported for the given chart types.
+ * Returns the union of all dimensions needed across all chart types.
  */
-export function resolveDefaultChartType(
-    config: GrapherInterface
-): GrapherChartOrMapType | undefined {
-    return match(config.tab)
-        .returnType<GrapherChartOrMapType | undefined>()
-        .with(GRAPHER_TAB_CONFIG_OPTIONS.table, () => undefined)
-        .with(GRAPHER_TAB_CONFIG_OPTIONS.map, () => GRAPHER_MAP_TYPE)
-        .with(GRAPHER_TAB_CONFIG_OPTIONS.chart, undefined, () => {
-            // Skips a validation step that GrapherState usually does
-            return config.chartTypes?.[0] ?? GRAPHER_CHART_TYPES.LineChart
-        })
-        .otherwise((tab) => mapTabConfigOptionToChartTypeName(tab))
+export const getSupportedDimensionsForChartTypes = (
+    chartTypes: GrapherChartType[]
+): DimensionProperty[] => {
+    const chartTypeSet = new Set(chartTypes)
+
+    const { y, x, color, size } = DimensionProperty
+
+    const hasScatter = chartTypeSet.has(GRAPHER_CHART_TYPES.ScatterPlot)
+    const hasMarimekko = chartTypeSet.has(GRAPHER_CHART_TYPES.Marimekko)
+    const hasLineChart = chartTypeSet.has(GRAPHER_CHART_TYPES.LineChart)
+    const hasDiscreteBar = chartTypeSet.has(GRAPHER_CHART_TYPES.DiscreteBar)
+
+    if (hasScatter) return [y, x, size, color]
+    if (hasMarimekko) return [y, x, color]
+    if (hasLineChart || hasDiscreteBar) return [y, color]
+    return [y]
 }
