@@ -29,12 +29,12 @@ import {
     GrapherInterface,
     LegacyGrapherInterface,
     DetailDictionary,
-    GrapherTooltipAnchor,
     NarrativeChartInfo,
     ArchiveContext,
     AdditionalGrapherDataFetchFn,
     GrapherVariant,
     Time,
+    GrapherTooltipAnchor,
 } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
 import {
@@ -570,7 +570,7 @@ export class Grapher extends React.Component<GrapherProps> {
                     <BodyPortal>
                         <TooltipContainer
                             tooltipManager={this.grapherState}
-                            anchor={GrapherTooltipAnchor.bottom}
+                            anchor={GrapherTooltipAnchor.Bottom}
                         />
                     </BodyPortal>
                 ) : (

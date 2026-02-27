@@ -172,7 +172,7 @@ export function TooltipTable({
 
     // if the tooltip is pinned to the bottom, show the total at the top,
     // so that it's always visible even if the tooltip is scrollable
-    const showTotalsAtTop = context?.anchor === GrapherTooltipAnchor.bottom
+    const showTotalsAtTop = context?.anchor === GrapherTooltipAnchor.Bottom
 
     const totalsCells = R.zip(columns, totals).map(([column, total]) => (
         <td key={column?.label} className="series-value">
