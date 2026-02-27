@@ -2,7 +2,7 @@ import { TextWrap } from "@ourworldindata/components"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState.js"
 import { Bounds, Point } from "@ourworldindata/utils"
 import { ChartSeries } from "../chart/ChartInterface.js"
-import { InteractionState } from "../interaction/InteractionState.js"
+import { Emphasis } from "../interaction/Emphasis.js"
 
 export interface LabelSeries extends ChartSeries {
     label: string
@@ -11,8 +11,7 @@ export interface LabelSeries extends ChartSeries {
     formattedValue?: string
     placeFormattedValueInNewLine?: boolean
     yRange?: [number, number]
-    hover?: InteractionState
-    focus?: InteractionState
+    emphasis?: Emphasis
 }
 
 export interface SizedLabelSeries extends LabelSeries {
@@ -35,5 +34,4 @@ export interface PlacedLabelSeries extends SizedLabelSeries {
 export interface RenderLabelSeries extends PlacedLabelSeries {
     labelCoords: Point
     connectorLineCoords: { startX: number; endX: number }
-    opacity: number
 }

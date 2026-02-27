@@ -15,7 +15,10 @@ import { Bounds, excludeUndefined } from "@ourworldindata/utils"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { Time } from "@ourworldindata/types"
-import { PlacedStackedBarSeries } from "./StackedConstants"
+import {
+    PlacedStackedBarSeries,
+    RenderStackedBarSeries,
+} from "./StackedConstants"
 import {
     getXAxisConfigDefaultsForStackedBar,
     resolveCollision,
@@ -30,6 +33,7 @@ import { InitialSimpleLabelSeries } from "../verticalLabels/SimpleVerticalLabels
 import { SimpleVerticalLabelsState } from "../verticalLabels/SimpleVerticalLabelsState"
 import { SimpleVerticalLabels } from "../verticalLabels/SimpleVerticalLabels"
 import { NoDataModal } from "../noDataModal/NoDataModal"
+import { resolveEmphasis } from "../interaction/Emphasis.js"
 
 const LEGEND_PADDING = 4
 
@@ -187,6 +191,13 @@ export class StackedBarChartThumbnail
         return toPlacedStackedBarSeries(this.chartState.series, this.dualAxis)
     }
 
+    @computed private get renderSeries(): RenderStackedBarSeries<Time>[] {
+        return this.placedSeries.map((series) => ({
+            ...series,
+            emphasis: resolveEmphasis({ focus: series.focus }),
+        }))
+    }
+
     override render(): React.ReactElement {
         if (this.chartState.errorInfo.reason)
             return (
@@ -208,7 +219,7 @@ export class StackedBarChartThumbnail
                     bounds={this.dualAxis.bounds}
                     showEndpointsOnly
                 />
-                <StackedBars series={this.placedSeries} />
+                <StackedBars series={this.renderSeries} />
                 {this.verticalLabelsState && (
                     <SimpleVerticalLabels
                         state={this.verticalLabelsState}

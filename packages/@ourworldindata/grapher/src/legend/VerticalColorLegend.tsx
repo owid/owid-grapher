@@ -11,11 +11,11 @@ import {
 import { ColorScaleBin, NumericBin } from "../color/ColorScaleBin"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import {
-    LegendInteractionState,
     LegendStyleConfig,
     LegendMarkerStyle,
     LegendTextStyle,
-} from "../legend/LegendInteractionState"
+} from "./LegendStyleConfig"
+import { Emphasis } from "../interaction/Emphasis"
 
 export interface VerticalColorLegendManager {
     maxLegendWidth?: number
@@ -28,7 +28,7 @@ export interface VerticalColorLegendManager {
     legendX?: number
     legendY?: number
     isStatic?: boolean
-    getLegendBinState?: (bin: ColorScaleBin) => LegendInteractionState
+    resolveLegendBinEmphasis?: (bin: ColorScaleBin) => Emphasis
     legendStyleConfig?: LegendStyleConfig
     categoricalLegendStyleConfig?: LegendStyleConfig
 }
@@ -156,11 +156,8 @@ export class VerticalColorLegend extends React.Component<{
         )
     }
 
-    private getBinState(bin: ColorScaleBin): LegendInteractionState {
-        return (
-            this.manager.getLegendBinState?.(bin) ??
-            LegendInteractionState.Default
-        )
+    private getBinState(bin: ColorScaleBin): Emphasis {
+        return this.manager.resolveLegendBinEmphasis?.(bin) ?? Emphasis.Default
     }
 
     private getTextStyleConfig(bin: ColorScaleBin): LegendTextStyle {

@@ -8,19 +8,32 @@ import {
 } from "@ourworldindata/utils"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import { GRAPHER_OPACITY_MUTE } from "../core/GrapherConstants"
 import {
     DEFAULT_LINE_COLOR,
     DEFAULT_LINE_OUTLINE_WIDTH,
     DEFAULT_MARKER_RADIUS,
     DEFAULT_STROKE_WIDTH,
-    LinesProps,
+    LINE_STYLE,
     PlacedLineChartSeries,
     RenderLineChartSeries,
 } from "./LineChartConstants"
+import { Emphasis } from "../interaction/Emphasis"
 import { getSeriesKey } from "../chart/ChartUtils"
 import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
 import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline"
+import { DualAxis } from "../axis/Axis.js"
+
+export interface LinesProps {
+    dualAxis: DualAxis
+    series: RenderLineChartSeries[]
+    hidePoints?: boolean
+    lineStrokeWidth?: number
+    lineOutlineWidth?: number
+    markerRadius?: number
+    isStatic?: boolean
+    multiColor?: boolean
+    backgroundColor?: string
+}
 
 @observer
 export class Lines extends React.Component<LinesProps> {
@@ -41,7 +54,7 @@ export class Lines extends React.Component<LinesProps> {
         return this.props.markerRadius ?? DEFAULT_MARKER_RADIUS
     }
 
-    @computed private get strokeWidth(): number {
+    @computed private get baseStrokeWidth(): number {
         return this.props.lineStrokeWidth ?? DEFAULT_STROKE_WIDTH
     }
 
@@ -70,23 +83,14 @@ export class Lines extends React.Component<LinesProps> {
     }
 
     private seriesHasMarkers(series: RenderLineChartSeries): boolean {
-        if (
-            series.hover.background ||
-            series.isProjection ||
-            // if the series has a line, but there is another one that hasn't, then
-            // don't show markers since the plotted line is likely a smoothed version
-            (this.hasMarkersOnlySeries && !series.plotMarkersOnly)
-        )
-            return false
-        return !series.focus.background || series.hover.active
-    }
+        // Don't show markers for projected data
+        if (series.isProjection) return false
 
-    private seriesIsInForeground(series: RenderLineChartSeries): boolean {
-        return (
-            series.hover.active ||
-            series.focus.active ||
-            (series.focus.idle && series.hover.idle)
-        )
+        // If the series has a line, but there is another one that hasn't, then
+        // don't show markers since the plotted line is likely a smoothed version
+        if (this.hasMarkersOnlySeries && !series.plotMarkersOnly) return false
+
+        return series.emphasis !== Emphasis.Muted
     }
 
     private renderLine(
@@ -95,17 +99,15 @@ export class Lines extends React.Component<LinesProps> {
         if (series.plotMarkersOnly) return
         const { isProjection } = series
 
-        const isInForeground = this.seriesIsInForeground(series)
+        const style = LINE_STYLE[series.emphasis]
 
         const color = series.placedPoints[0]?.color ?? DEFAULT_LINE_COLOR
 
+        const strokeWidth = style.strokeWidthFactor * this.baseStrokeWidth
+        const strokeOpacity = style.opacity
         const strokeDasharray = isProjection ? "2,3" : undefined
-        const strokeWidth = isInForeground
-            ? this.strokeWidth
-            : 0.66 * this.strokeWidth
-        const strokeOpacity = isInForeground ? 1 : GRAPHER_OPACITY_MUTE
 
-        const showOutline = isInForeground
+        const showOutline = style.showOutline
         const outlineColor = this.outlineColor
         const outlineWidth = strokeWidth + this.outlineWidth * 2
 
@@ -163,9 +165,7 @@ export class Lines extends React.Component<LinesProps> {
 
         if (hideMarkers && !forceMarkers) return
 
-        const opacity = this.seriesIsInForeground(series)
-            ? 1
-            : GRAPHER_OPACITY_MUTE
+        const opacity = LINE_STYLE[series.emphasis].opacity
 
         const outlineColor = series.plotMarkersOnly
             ? this.outlineColor

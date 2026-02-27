@@ -1,11 +1,12 @@
 import * as React from "react"
 import { Time } from "@ourworldindata/types"
 import {
-    BAR_OPACITY,
     PlacedStackedPoint,
     RenderStackedBarSeries,
+    STACKED_BAR_STYLE,
 } from "./StackedConstants"
 import { makeFigmaId, makeSafeForCSS } from "@ourworldindata/utils"
+import { Emphasis } from "../interaction/Emphasis"
 
 export function StackedBars({
     series,
@@ -21,62 +22,44 @@ export function StackedBars({
 }): React.ReactElement {
     return (
         <>
-            {series.map((series, index) => {
-                const isHoverModeActive =
-                    series.hover !== undefined && !series.hover.idle
-                const opacity =
-                    (!isHoverModeActive || series.hover?.active) &&
-                    !series.focus?.background
-                        ? BAR_OPACITY.DEFAULT
-                        : BAR_OPACITY.MUTE
+            {series.map((series, index) => (
+                <g
+                    key={index}
+                    id={makeFigmaId(series.seriesName)}
+                    className={makeSafeForCSS(series.seriesName) + "-segments"}
+                >
+                    {series.placedPoints.map((bar, index) => {
+                        // TODO: don't render zero height bars
+                        // if (bar.missing) return null
 
-                return (
-                    <g
-                        key={index}
-                        id={makeFigmaId(series.seriesName)}
-                        className={
-                            makeSafeForCSS(series.seriesName) + "-segments"
-                        }
-                    >
-                        {series.placedPoints.map((bar, index) => {
-                            // TODO: don't render zero height bars
-                            // if (bar.missing) return null
+                        const isHovered = bar.time === series.hoverTime
+                        const emphasis = isHovered
+                            ? Emphasis.Highlighted
+                            : (series.emphasis ?? Emphasis.Default)
+                        const barOpacity = STACKED_BAR_STYLE[emphasis].opacity
 
-                            const isHovered =
-                                series.hoverTime !== undefined &&
-                                bar.time === series.hoverTime
-                            const barOpacity =
-                                isHovered ||
-                                series.focus?.active ||
-                                series.hover?.active
-                                    ? BAR_OPACITY.FOCUS
-                                    : opacity
-
-                            return (
-                                <rect
-                                    key={index}
-                                    // TODO: drop undefined check
-                                    id={
-                                        bar.formattedTime !== undefined
-                                            ? makeFigmaId(bar.formattedTime)
-                                            : "0"
-                                    }
-                                    x={bar.x}
-                                    y={bar.y}
-                                    width={bar.barWidth}
-                                    height={bar.barHeight}
-                                    fill={bar.color ?? series.color}
-                                    opacity={barOpacity}
-                                    onMouseOver={() =>
-                                        onMouseOver?.(bar, series)
-                                    }
-                                    onMouseLeave={() => onMouseLeave?.()}
-                                />
-                            )
-                        })}
-                    </g>
-                )
-            })}
+                        return (
+                            <rect
+                                key={index}
+                                // TODO: drop undefined check
+                                id={
+                                    bar.formattedTime !== undefined
+                                        ? makeFigmaId(bar.formattedTime)
+                                        : "0"
+                                }
+                                x={bar.x}
+                                y={bar.y}
+                                width={bar.barWidth}
+                                height={bar.barHeight}
+                                fill={bar.color ?? series.color}
+                                opacity={barOpacity}
+                                onMouseOver={() => onMouseOver?.(bar, series)}
+                                onMouseLeave={() => onMouseLeave?.()}
+                            />
+                        )
+                    })}
+                </g>
+            ))}
         </>
     )
 }
