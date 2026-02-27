@@ -104,6 +104,7 @@ export const configureAlgolia = async () => {
                 "unordered(tags)",
                 "unordered(availableEntities)",
                 "unordered(originalAvailableEntities)",
+                "unordered(datasetProducers)",
             ],
             ranking: [
                 "typo",
