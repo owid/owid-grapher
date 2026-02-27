@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { LogoOption, RelatedQuestionsConfig } from "@ourworldindata/types"
 import { getErrorMessageRelatedQuestionUrl } from "@ourworldindata/grapher"
 import { copyToClipboard, slugify } from "@ourworldindata/utils"
-import { action, computed, makeObservable } from "mobx"
+import { action, computed, makeObservable, observable, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import { Component } from "react"
 import { isChartEditorInstance } from "./ChartEditor.js"
@@ -20,7 +20,7 @@ import {
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { ErrorMessages } from "./ChartEditorTypes.js"
 import { isNarrativeChartEditorInstance } from "./NarrativeChartEditor.js"
-import { Button as AntdButton, Space } from "antd"
+import { AutoComplete, Button as AntdButton, Space } from "antd"
 import {
     BAKED_GRAPHER_URL,
     ADMIN_BASE_URL,
@@ -35,9 +35,35 @@ interface EditorTextTabProps<Editor> {
 export class EditorTextTab<
     Editor extends AbstractChartEditor,
 > extends Component<EditorTextTabProps<Editor>> {
+    // Slugs for the origin URL autocomplete dropdown, fetched on mount
+    // from the same endpoint used by TagEditPage
+    topicSlugs: string[] = []
+
+    // Tracks whether the user has started hovering or arrow-keying through
+    // dropdown options. When true, we hide the "Enter to use custom URL"
+    // hint since it's no longer relevant. Resets when the user types.
+    isNavigatingDropdown = false
+
     constructor(props: EditorTextTabProps<Editor>) {
         super(props)
-        makeObservable(this)
+        makeObservable(this, {
+            topicSlugs: observable,
+            isNavigatingDropdown: observable,
+        })
+    }
+
+    override componentDidMount(): void {
+        void this.fetchTopicSlugs()
+    }
+
+    async fetchTopicSlugs(): Promise<void> {
+        const { admin } = this.props.editor.manager
+        const json = await admin.getJSON<{ slugs: string[] }>(
+            "/api/gdocs/publishedTopicSlugs"
+        )
+        runInAction(() => {
+            this.topicSlugs = json.slugs
+        })
     }
 
     @action.bound onSlug(slug: string) {
@@ -111,6 +137,62 @@ export class EditorTextTab<
 
     @computed get hasCopyGrapherURLButton() {
         return !!this.props.editor.grapherState.isPublished
+    }
+
+    // Dropdown options for the origin URL autocomplete. Posts that already
+    // reference this chart appear first (most relevant), followed by all
+    // published topic page slugs sorted alphabetically.
+    @computed get originUrlOptions(): {
+        value: string
+        label: string
+        suffix?: string
+    }[] {
+        const topicOptions = this.topicSlugs
+            .slice()
+            .sort((a, b) => a.localeCompare(b))
+            .map((slug) => ({
+                value: `/${slug}`,
+                label: `/${slug}`,
+            }))
+
+        const { editor } = this.props
+        if (isChartEditorInstance(editor) && editor.references) {
+            const refOptions = [
+                ...(editor.references.postsWordpress ?? []),
+                ...(editor.references.postsGdocs ?? []),
+            ].map((post) => ({
+                value: post.url,
+                label: post.url,
+                suffix: "(referenced by this chart)",
+            }))
+            return [...refOptions, ...topicOptions]
+        }
+
+        return topicOptions
+    }
+
+    @action.bound onOriginUrlChange(value: string): void {
+        this.props.editor.grapherState.originUrl = value || undefined
+        // Reset so the custom URL hint reappears as the user types more
+        this.isNavigatingDropdown = false
+    }
+
+    @action.bound onDropdownNavigated(): void {
+        this.isNavigatingDropdown = true
+    }
+
+    // Bold the substring matching the user's query in each dropdown option
+    highlightMatch(text: string, query: string): JSX.Element | string {
+        if (!query) return text
+        const idx = text.toLowerCase().indexOf(query.toLowerCase())
+        if (idx === -1) return text
+        return (
+            <>
+                {text.slice(0, idx)}
+                <strong>{text.slice(idx, idx + query.length)}</strong>
+                {text.slice(idx + query.length)}
+            </>
+        )
     }
 
     override render() {
@@ -245,31 +327,96 @@ export class EditorTextTab<
                         helpText="Short comma-separated list of source names"
                         softCharacterLimit={60}
                     />
-                    <BindString
-                        label="Origin url"
-                        field="originUrl"
-                        store={grapherState}
-                        placeholder={"e.g. /poverty"}
-                        helpText="The page containing this chart where more context can be found. Both relative and absolute URLs are accepted."
-                        errorMessage={this.errorMessages.originUrl}
-                    />
-                    {isChartEditorInstance(editor) &&
-                        editor.references &&
-                        (editor.references.postsWordpress?.length ||
-                            editor.references.postsGdocs?.length) && (
-                            <div className="originSuggestions">
-                                <p>Origin url suggestions</p>
-                                <ul>
-                                    {[
-                                        ...(editor.references.postsWordpress ??
-                                            []),
-                                        ...(editor.references.postsGdocs ?? []),
-                                    ].map((post) => (
-                                        <li key={post.id}>{post.url}</li>
-                                    ))}
-                                </ul>
+                    <div className="form-group">
+                        <label>Origin url</label>
+                        <AutoComplete
+                            style={{ width: "100%" }}
+                            value={grapherState.originUrl ?? ""}
+                            onChange={this.onOriginUrlChange}
+                            options={this.originUrlOptions}
+                            filterOption={(inputValue, option) =>
+                                option?.value
+                                    .toLowerCase()
+                                    .includes(inputValue.toLowerCase()) ?? false
+                            }
+                            optionRender={(option) => {
+                                const data = option.data as {
+                                    value: string
+                                    suffix?: string
+                                }
+                                const query = grapherState.originUrl ?? ""
+                                return (
+                                    <span>
+                                        {this.highlightMatch(data.value, query)}
+                                        {data.suffix && (
+                                            <span
+                                                style={{
+                                                    color: "#888",
+                                                    marginLeft: 6,
+                                                    fontSize: "0.85em",
+                                                }}
+                                            >
+                                                {data.suffix}
+                                            </span>
+                                        )}
+                                    </span>
+                                )
+                            }}
+                            placeholder="e.g. /poverty — or type any URL"
+                            allowClear
+                            onKeyDown={(e) => {
+                                if (
+                                    e.key === "ArrowDown" ||
+                                    e.key === "ArrowUp"
+                                ) {
+                                    this.onDropdownNavigated()
+                                }
+                            }}
+                            dropdownRender={(menu) => {
+                                const val = grapherState.originUrl ?? ""
+                                const showHint =
+                                    val.length > 4 &&
+                                    !this.isNavigatingDropdown &&
+                                    !this.originUrlOptions.some(
+                                        (o) => o.value === val
+                                    )
+                                return (
+                                    <>
+                                        {showHint && (
+                                            <div
+                                                style={{
+                                                    padding: "4px 12px",
+                                                    color: "#999",
+                                                    fontSize: "0.8em",
+                                                    borderBottom:
+                                                        "1px solid #f0f0f0",
+                                                }}
+                                            >
+                                                ↵ Enter to use custom URL
+                                            </div>
+                                        )}
+                                        <div
+                                            onMouseEnter={
+                                                this.onDropdownNavigated
+                                            }
+                                        >
+                                            {menu}
+                                        </div>
+                                    </>
+                                )
+                            }}
+                        />
+                        <small className="form-text text-muted">
+                            The page containing this chart where more context
+                            can be found. Choose a topic page from the dropdown
+                            or type any relative or absolute URL.
+                        </small>
+                        {this.errorMessages.originUrl && (
+                            <div style={{ color: "red" }}>
+                                {this.errorMessages.originUrl}
                             </div>
                         )}
+                    </div>
 
                     <BindAutoStringExt
                         label="Footer note"
