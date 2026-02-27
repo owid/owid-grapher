@@ -98,6 +98,7 @@ export const configureAlgolia = async () => {
             ...baseSettings,
             searchableAttributes: [
                 "unordered(title)",
+                "unordered(containerTitle)",
                 "unordered(slug)",
                 "unordered(variantName)",
                 "unordered(subtitle)",

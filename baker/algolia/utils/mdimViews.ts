@@ -157,6 +157,7 @@ async function getRecords(
                 "",
             grapherState.shouldAddChangeInPrefixToTitle
         )
+        const containerTitle = multiDim.config.title.title
         const subtitle = toPlaintext(
             metadata.descriptionShort || chartConfig.subtitle || ""
         )
@@ -199,6 +200,7 @@ async function getRecords(
             slug,
             queryParams: queryStr ? `?${queryStr}` : "",
             title,
+            containerTitle,
             subtitle,
             variantName: chartConfig.variantName,
             availableTabs: grapherState.availableTabs,
