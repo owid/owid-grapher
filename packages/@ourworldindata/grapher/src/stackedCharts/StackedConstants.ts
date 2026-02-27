@@ -8,41 +8,63 @@ import {
 import { ChartSeries } from "../chart/ChartInterface"
 import {
     GRAPHER_AREA_OPACITY_DEFAULT,
-    GRAPHER_AREA_OPACITY_FOCUS,
-    GRAPHER_AREA_OPACITY_MUTE,
+    GRAPHER_AREA_OPACITY_HIGHLIGHTED,
+    GRAPHER_AREA_OPACITY_MUTED,
 } from "../core/GrapherConstants"
 import { Point } from "@ourworldindata/utils"
 import { InteractionState } from "../interaction/InteractionState.js"
+import { Emphasis } from "../interaction/Emphasis"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState.js"
-import { LegendStyleConfig } from "../legend/LegendInteractionState"
+import { LegendStyleConfig } from "../legend/LegendStyleConfig"
 
-export const AREA_OPACITY = {
-    DEFAULT: GRAPHER_AREA_OPACITY_DEFAULT,
-    FOCUS: GRAPHER_AREA_OPACITY_FOCUS,
-    MUTE: GRAPHER_AREA_OPACITY_MUTE,
+const opacityByEmphasis: Record<Emphasis, number> = {
+    [Emphasis.Default]: GRAPHER_AREA_OPACITY_DEFAULT,
+    [Emphasis.Highlighted]: GRAPHER_AREA_OPACITY_HIGHLIGHTED,
+    [Emphasis.Muted]: GRAPHER_AREA_OPACITY_MUTED,
 } as const
 
-export const BAR_OPACITY = AREA_OPACITY
+export interface StackedAreaStyleConfig {
+    fillOpacity: number
+    borderOpacity: number
+    borderWidth: number
+}
 
-export const BORDER_OPACITY = {
-    DEFAULT: 0.7,
-    FOCUS: 1,
-    MUTE: 0.3,
-} as const
+export interface StackedBarStyleConfig {
+    opacity: number
+}
 
-export const BORDER_WIDTH = {
-    DEFAULT: 0.5,
-    FOCUS: 1.5,
-} as const
+export const STACKED_AREA_STYLE: Record<Emphasis, StackedAreaStyleConfig> = {
+    [Emphasis.Default]: {
+        fillOpacity: opacityByEmphasis.default,
+        borderOpacity: 0.7,
+        borderWidth: 0.5,
+    },
+    [Emphasis.Highlighted]: {
+        fillOpacity: opacityByEmphasis.highlighted,
+        borderOpacity: 1,
+        borderWidth: 1.5,
+    },
+    [Emphasis.Muted]: {
+        fillOpacity: opacityByEmphasis.muted,
+        borderOpacity: 0.3,
+        borderWidth: 0.5,
+    },
+}
+
+export const STACKED_BAR_STYLE: Record<Emphasis, StackedBarStyleConfig> = {
+    [Emphasis.Default]: { opacity: opacityByEmphasis.default },
+    [Emphasis.Highlighted]: { opacity: opacityByEmphasis.highlighted },
+    [Emphasis.Muted]: { opacity: opacityByEmphasis.muted },
+}
 
 export const LEGEND_STYLE_FOR_STACKED_CHARTS: LegendStyleConfig = {
     marker: {
-        default: { opacity: AREA_OPACITY.DEFAULT },
-        focused: { opacity: AREA_OPACITY.FOCUS },
-        muted: { opacity: AREA_OPACITY.MUTE },
+        default: { opacity: opacityByEmphasis.default },
+        highlighted: { opacity: opacityByEmphasis.highlighted },
+        muted: { opacity: opacityByEmphasis.muted },
     },
     text: {
-        muted: { opacity: AREA_OPACITY.MUTE },
+        muted: { opacity: opacityByEmphasis.muted },
     },
 }
 
@@ -108,6 +130,7 @@ export interface PlacedStackedAreaSeries<
 export interface RenderStackedBarSeries<
     PositionType extends StackedPointPositionType,
 > extends PlacedStackedBarSeries<PositionType> {
+    emphasis?: Emphasis
     hover?: InteractionState
     hoverTime?: Time
 }
@@ -115,6 +138,7 @@ export interface RenderStackedBarSeries<
 export interface RenderStackedAreaSeries<
     PositionType extends StackedPointPositionType,
 > extends PlacedStackedAreaSeries<PositionType> {
+    emphasis?: Emphasis
     hover?: InteractionState
 }
 

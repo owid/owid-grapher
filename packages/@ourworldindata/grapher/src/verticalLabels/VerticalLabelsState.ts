@@ -8,7 +8,6 @@ import { EntityName, SeriesName, VerticalAlign } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
     GRAPHER_FONT_SCALE_12,
-    GRAPHER_OPACITY_MUTE,
 } from "../core/GrapherConstants.js"
 import { AxisConfig } from "../axis/AxisConfig.js"
 import {
@@ -22,6 +21,7 @@ import {
     LEGEND_ITEM_MIN_SPACING,
     MARKER_MARGIN,
 } from "./VerticalLabelsConstants.js"
+import { Emphasis } from "../interaction/Emphasis.js"
 import {
     LabelSeries,
     PlacedLabelSeries,
@@ -98,15 +98,10 @@ export class VerticalLabelsState {
     }
 
     @computed.struct get sizedSeries(): SizedLabelSeries[] {
-        const { fontWeight: globalFontWeight } = this.options
+        const { fontWeight: defaultFontWeight } = this.options
         return this.initialSeries.map((series) => {
-            const activeFontWeight = series.focus?.active ? 700 : undefined
             const seriesFontWeight = series.formattedValue ? 700 : undefined
-
-            // Font weight priority:
-            // Series focus state > Presence of value label > Globally set font weight
-            const fontWeight =
-                activeFontWeight ?? seriesFontWeight ?? globalFontWeight
+            const fontWeight = seriesFontWeight ?? defaultFontWeight
 
             const seriesLabel = new SeriesLabelState({
                 text: series.label,
@@ -373,13 +368,13 @@ export class VerticalLabelsState {
                 : x + markerMargin
             const textY = series.bounds.y
 
-            const opacity = getTextOpacityForSeries(series)
+            const emphasis = series.emphasis ?? Emphasis.Default
 
             return {
                 ...series,
                 labelCoords: { x: textX, y: textY },
                 connectorLineCoords,
-                opacity,
+                emphasis,
             }
         })
     }
@@ -412,19 +407,4 @@ function stackGroupVertically(
         currentY += mark.bounds.height + LEGEND_ITEM_MIN_SPACING
     })
     return group
-}
-
-function getTextOpacityForSeries(series: PlacedLabelSeries): number {
-    const { hover, focus } = series
-
-    if (hover && focus) {
-        const isInForeground =
-            hover.active || focus.active || (focus.idle && hover.idle)
-        return isInForeground ? 1 : GRAPHER_OPACITY_MUTE
-    }
-
-    if (hover) return hover.background ? GRAPHER_OPACITY_MUTE : 1
-    if (focus) return focus.background ? GRAPHER_OPACITY_MUTE : 1
-
-    return 1
 }

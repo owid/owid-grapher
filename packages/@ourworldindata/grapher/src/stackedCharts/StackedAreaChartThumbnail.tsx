@@ -19,13 +19,17 @@ import {
     VerticalAxisZeroLine,
 } from "../axis/AxisViews"
 import { Time } from "@ourworldindata/types"
-import { PlacedStackedAreaSeries } from "./StackedConstants"
+import {
+    PlacedStackedAreaSeries,
+    RenderStackedAreaSeries,
+} from "./StackedConstants"
 import { StackedAreas } from "./StackedAreas"
 import { InitialSimpleLabelSeries } from "../verticalLabels/SimpleVerticalLabelsTypes.js"
 import { SimpleVerticalLabelsState } from "../verticalLabels/SimpleVerticalLabelsState"
 import { SimpleVerticalLabels } from "../verticalLabels/SimpleVerticalLabels"
 import { resolveCollision, toPlacedStackedAreaSeries } from "./StackedUtils"
 import { NoDataModal } from "../noDataModal/NoDataModal"
+import { resolveEmphasis } from "../interaction/Emphasis.js"
 
 const LEGEND_PADDING = 4
 
@@ -181,6 +185,13 @@ export class StackedAreaChartThumbnail
         return toPlacedStackedAreaSeries(this.chartState.series, this.dualAxis)
     }
 
+    @computed private get renderSeries(): RenderStackedAreaSeries<Time>[] {
+        return this.placedSeries.map((series) => ({
+            ...series,
+            emphasis: resolveEmphasis({ focus: series.focus }),
+        }))
+    }
+
     override render(): React.ReactElement {
         if (this.chartState.errorInfo.reason)
             return (
@@ -202,7 +213,7 @@ export class StackedAreaChartThumbnail
                     bounds={this.dualAxis.bounds}
                     showEndpointsOnly
                 />
-                <StackedAreas series={this.placedSeries} />
+                <StackedAreas series={this.renderSeries} />
                 {this.verticalLabelsState && (
                     <SimpleVerticalLabels
                         state={this.verticalLabelsState}

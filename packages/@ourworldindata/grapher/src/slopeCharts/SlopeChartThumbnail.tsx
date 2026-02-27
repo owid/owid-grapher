@@ -345,7 +345,6 @@ export class SlopeChartThumbnail
                             strokeWidth={1.5}
                             outlineWidth={0}
                             outlineStroke={this.manager.backgroundColor}
-                            unfocusedStyle="faded"
                         />
                     ))}
                 </g>

@@ -69,8 +69,8 @@ import {
     GRAPHER_BACKGROUND_DEFAULT,
     GRAPHER_DARK_TEXT,
 } from "../color/ColorConstants"
-import { FocusArray } from "../focus/FocusArray"
 import { LabelSeries } from "../verticalLabels/VerticalLabelsTypes"
+import { resolveEmphasis } from "../interaction/Emphasis"
 import { SlopeChartState } from "./SlopeChartState"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
@@ -140,10 +140,6 @@ export class SlopeChart
 
     @computed private get missingDataStrategy(): MissingDataStrategy {
         return this.chartState.missingDataStrategy
-    }
-
-    @computed private get focusArray(): FocusArray {
-        return this.chartState.focusArray
     }
 
     @computed private get formatColumn(): CoreColumn {
@@ -572,8 +568,10 @@ export class SlopeChart
             formattedValue: showSeriesName ? formattedValue : undefined,
             placeFormattedValueInNewLine: this.useCompactLayout,
             yValue: value,
-            focus: series.focus,
-            hover: this.hoverStateForSeries(series),
+            emphasis: resolveEmphasis({
+                focus: series.focus,
+                hover: this.hoverStateForSeries(series),
+            }),
         }
     }
 

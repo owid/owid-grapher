@@ -64,10 +64,8 @@ import {
     NumericBin,
 } from "../color/ColorScaleBin"
 import { FocusArray } from "../focus/FocusArray"
-import {
-    LegendInteractionState,
-    LegendStyleConfig,
-} from "../legend/LegendInteractionState"
+import { LegendStyleConfig } from "../legend/LegendStyleConfig"
+import { Emphasis } from "../interaction/Emphasis"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
 import {
     SeriesLabelState,
@@ -812,17 +810,14 @@ export class FacetChart
         this.legendHoverBin = undefined
     }
 
-    getLegendBinState(bin: ColorScaleBin): LegendInteractionState {
-        if (!this.activeColors && !this.hoverColors)
-            return LegendInteractionState.Default
+    resolveLegendBinEmphasis(bin: ColorScaleBin): Emphasis {
+        if (!this.activeColors && !this.hoverColors) return Emphasis.Default
 
         const isHovered = this.hoverColors?.includes(bin.color)
-        if (isHovered) return LegendInteractionState.Focused
+        if (isHovered) return Emphasis.Highlighted
 
         const isActive = this.activeColors?.includes(bin.color)
-        return isActive
-            ? LegendInteractionState.Focused
-            : LegendInteractionState.Muted
+        return isActive ? Emphasis.Highlighted : Emphasis.Muted
     }
 
     @computed get legendStyleConfig(): LegendStyleConfig | undefined {

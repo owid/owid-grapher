@@ -31,18 +31,18 @@ import {
 } from "../core/GrapherConstants"
 import { StackedBarChartState } from "./StackedBarChartState.js"
 import {
-    BAR_OPACITY,
     LEGEND_STYLE_FOR_STACKED_CHARTS,
     StackedPoint,
     StackedSeries,
     PlacedStackedBarSeries,
     RenderStackedBarSeries,
+    STACKED_BAR_STYLE,
 } from "./StackedConstants"
-import { LegendInteractionState } from "../legend/LegendInteractionState"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { Color, HorizontalAlign, SeriesName } from "@ourworldindata/types"
 import { makeClipPath, getHoverStateForSeries } from "../chart/ChartUtils"
 import { InteractionState } from "../interaction/InteractionState"
+import { resolveEmphasis, Emphasis } from "../interaction/Emphasis"
 import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
@@ -260,15 +260,12 @@ export class StackedBarChart
         return activeColors
     }
 
-    getLegendBinState(bin: ColorScaleBin): LegendInteractionState {
+    resolveLegendBinEmphasis(bin: ColorScaleBin): Emphasis {
         const isActive = this.activeColors?.includes(bin.color)
 
-        if (this.activeColors.length === 0)
-            return LegendInteractionState.Default
+        if (this.activeColors.length === 0) return Emphasis.Default
 
-        return isActive
-            ? LegendInteractionState.Focused
-            : LegendInteractionState.Muted
+        return isActive ? Emphasis.Highlighted : Emphasis.Muted
     }
 
     @computed get categoricalLegendData(): CategoricalBin[] {
@@ -438,9 +435,10 @@ export class StackedBarChart
                             const values = [fake ? undefined : point?.value]
 
                             const color = point?.color ?? seriesColor
-                            const opacity = focused
-                                ? BAR_OPACITY.FOCUS
-                                : BAR_OPACITY.DEFAULT
+                            const emphasis = focused
+                                ? Emphasis.Highlighted
+                                : Emphasis.Default
+                            const opacity = STACKED_BAR_STYLE[emphasis].opacity
                             const swatch = { color, opacity }
 
                             return { name, swatch, blurred, focused, values }
@@ -608,14 +606,20 @@ export class StackedBarChart
     @computed
     private get renderSeries(): readonly RenderStackedBarSeries<Time>[] {
         const { target } = this.tooltipState
-        return this.placedSeries.map((series) => ({
-            ...series,
-            hover: this.hoverStateForSeries(series),
-            hoverTime:
-                target?.series.seriesName === series.seriesName
-                    ? target.bar.time
-                    : undefined,
-        }))
+        return this.placedSeries.map((series) => {
+            const hover = this.hoverStateForSeries(series)
+            const emphasis = resolveEmphasis({ hover, focus: series.focus })
+
+            return {
+                ...series,
+                emphasis,
+                hover,
+                hoverTime:
+                    target?.series.seriesName === series.seriesName
+                        ? target.bar.time
+                        : undefined,
+            }
+        })
     }
 
     animSelection?: Selection<BaseType, unknown, SVGGElement | null, unknown>

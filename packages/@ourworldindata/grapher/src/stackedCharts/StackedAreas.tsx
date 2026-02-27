@@ -6,12 +6,8 @@ import {
 } from "@ourworldindata/utils"
 import { SeriesName, Time } from "@ourworldindata/types"
 import { rgb } from "d3-color"
-import {
-    AREA_OPACITY,
-    BORDER_OPACITY,
-    BORDER_WIDTH,
-    RenderStackedAreaSeries,
-} from "./StackedConstants"
+import { STACKED_AREA_STYLE, RenderStackedAreaSeries } from "./StackedConstants"
+import { Emphasis } from "../interaction/Emphasis.js"
 
 export function StackedAreas({
     series,
@@ -22,9 +18,6 @@ export function StackedAreas({
     onMouseEnter?: (seriesName: SeriesName) => void
     onMouseLeave?: () => void
 }): React.ReactElement {
-    const isHoverModeActive = series.some((series) => series.hover?.active)
-    const isFocusModeActive = series.some((series) => series.focus?.active)
-
     return (
         <g className="Areas" id={makeFigmaId("stacked-areas")}>
             <g id={makeFigmaId("areas")}>
@@ -32,8 +25,6 @@ export function StackedAreas({
                     <Area
                         key={series.seriesName}
                         series={series}
-                        isHoverModeActive={isHoverModeActive}
-                        isFocusModeActive={isFocusModeActive}
                         onMouseEnter={onMouseEnter}
                         onMouseLeave={onMouseLeave}
                     />
@@ -44,8 +35,6 @@ export function StackedAreas({
                     <Border
                         key={series.seriesName}
                         series={series}
-                        isHoverModeActive={isHoverModeActive}
-                        isFocusModeActive={isFocusModeActive}
                         onMouseEnter={onMouseEnter}
                         onMouseLeave={onMouseLeave}
                     />
@@ -57,23 +46,14 @@ export function StackedAreas({
 
 function Area({
     series,
-    isHoverModeActive,
-    isFocusModeActive,
     onMouseEnter,
     onMouseLeave,
 }: {
     series: RenderStackedAreaSeries<Time>
-    isHoverModeActive: boolean
-    isFocusModeActive: boolean
     onMouseEnter?: (seriesName: SeriesName) => void
     onMouseLeave?: () => void
 }): React.ReactElement {
-    const opacity =
-        !isHoverModeActive && !isFocusModeActive
-            ? AREA_OPACITY.DEFAULT // normal opacity
-            : series.hover?.active || series.focus?.active
-              ? AREA_OPACITY.FOCUS // hovered or focused
-              : AREA_OPACITY.MUTE // background
+    const style = STACKED_AREA_STYLE[series.emphasis ?? Emphasis.Default]
 
     return (
         <path
@@ -83,7 +63,7 @@ function Area({
             strokeLinecap="round"
             d={pointsToPath(series.areaPoints)}
             fill={series.color}
-            fillOpacity={opacity}
+            fillOpacity={style.fillOpacity}
             onMouseEnter={(): void => {
                 onMouseEnter?.(series.seriesName)
             }}
@@ -96,27 +76,14 @@ function Area({
 
 function Border({
     series,
-    isHoverModeActive,
-    isFocusModeActive,
     onMouseEnter,
     onMouseLeave,
 }: {
     series: RenderStackedAreaSeries<Time>
-    isHoverModeActive: boolean
-    isFocusModeActive: boolean
     onMouseEnter?: (seriesName: SeriesName) => void
     onMouseLeave?: () => void
 }): React.ReactElement {
-    const opacity =
-        !isHoverModeActive && !isFocusModeActive
-            ? BORDER_OPACITY.DEFAULT // normal opacity
-            : series.hover?.active || series.focus?.active
-              ? BORDER_OPACITY.FOCUS // hovered or focused
-              : BORDER_OPACITY.MUTE // background
-    const strokeWidth =
-        series.hover?.active || series.focus?.active
-            ? BORDER_WIDTH.FOCUS
-            : BORDER_WIDTH.DEFAULT
+    const style = STACKED_AREA_STYLE[series.emphasis ?? Emphasis.Default]
 
     return (
         <path
@@ -126,8 +93,8 @@ function Border({
             strokeLinecap="round"
             d={pointsToPath(series.placedPoints)}
             stroke={rgb(series.color).darker(0.5).toString()}
-            strokeOpacity={opacity}
-            strokeWidth={strokeWidth}
+            strokeOpacity={style.borderOpacity}
+            strokeWidth={style.borderWidth}
             fill="none"
             onMouseEnter={(): void => {
                 onMouseEnter?.(series.seriesName)

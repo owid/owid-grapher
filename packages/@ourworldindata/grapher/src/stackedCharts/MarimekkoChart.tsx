@@ -53,10 +53,8 @@ import {
     HorizontalColorLegendManager,
 } from "../legend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
-import {
-    LegendInteractionState,
-    LegendStyleConfig,
-} from "../legend/LegendInteractionState"
+import { LegendStyleConfig } from "../legend/LegendStyleConfig"
+import { Emphasis } from "../interaction/Emphasis"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { ColorScale } from "../color/ColorScale"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -331,21 +329,19 @@ export class MarimekkoChart
         return []
     }
 
-    getLegendBinState(bin: ColorScaleBin): LegendInteractionState {
+    resolveLegendBinEmphasis(bin: ColorScaleBin): Emphasis {
         const { focusColorBin } = this
 
         // If nothing is focused, all items are active
         if (!focusColorBin && this.hoverColors.length === 0)
-            return LegendInteractionState.Default
+            return Emphasis.Default
 
         const isHovered = this.hoverColors?.includes(bin.color)
-        if (isHovered) return LegendInteractionState.Focused
+        if (isHovered) return Emphasis.Highlighted
 
         // Check if this bin matches the focused color bin
         const isFocused = focusColorBin && bin.equals(focusColorBin)
-        return isFocused
-            ? LegendInteractionState.Focused
-            : LegendInteractionState.Muted
+        return isFocused ? Emphasis.Highlighted : Emphasis.Muted
     }
 
     legendStyleConfig: LegendStyleConfig = LEGEND_STYLE_FOR_STACKED_CHARTS
