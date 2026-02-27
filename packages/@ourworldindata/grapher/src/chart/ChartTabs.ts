@@ -8,6 +8,9 @@ import {
     GrapherTabName,
     GrapherTabConfigOption,
     GrapherTabQueryParam,
+    GrapherInterface,
+    GrapherChartOrMapType,
+    GRAPHER_MAP_TYPE,
 } from "@ourworldindata/types"
 import * as R from "remeda"
 import { match } from "ts-pattern"
@@ -177,3 +180,24 @@ export const isMapTab = (
     tab: GrapherTabName
 ): tab is typeof GRAPHER_TAB_NAMES.WorldMap =>
     tab === GRAPHER_TAB_NAMES.WorldMap
+
+/**
+ * Resolves the default chart or map type based on the chart config.
+ *
+ * Does not validate that the resolved type is actually available.
+ * For example, returns 'WorldMap' if config.tab is "map" even when
+ * hasMapTab is false.
+ */
+export function resolveDefaultChartType(
+    config: GrapherInterface
+): GrapherChartOrMapType | undefined {
+    return match(config.tab)
+        .returnType<GrapherChartOrMapType | undefined>()
+        .with(GRAPHER_TAB_CONFIG_OPTIONS.table, () => undefined)
+        .with(GRAPHER_TAB_CONFIG_OPTIONS.map, () => GRAPHER_MAP_TYPE)
+        .with(GRAPHER_TAB_CONFIG_OPTIONS.chart, undefined, () => {
+            // Skips a validation step that GrapherState usually does
+            return config.chartTypes?.[0] ?? GRAPHER_CHART_TYPES.LineChart
+        })
+        .otherwise((tab) => mapTabConfigOptionToChartTypeName(tab))
+}
