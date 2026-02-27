@@ -1,0 +1,579 @@
+@import "../../../../packages/@ourworldindata/components/src/styles/colors.scss";
+@import "../../../../packages/@ourworldindata/components/src/styles/variables.scss";
+@import "../../../../packages/@ourworldindata/components/src/styles/typography.scss";
+@import "../../../../packages/@ourworldindata/grapher/src/core/typography.scss";
+
+$dark-text: $gray-80;
+$light-text: $gray-70;
+$active-text: $blue-90;
+
+.income-plot-controls-top {
+    height: 30px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    font-family:
+        "Lato", "Helvetica Neue", Helvetica, Arial, "Liberation Sans",
+        sans-serif;
+    font-size: 14px;
+    color: #333;
+}
+
+.labeled-switch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &__label {
+        cursor: pointer;
+        color: #555;
+        user-select: none;
+
+        &--active {
+            color: #333;
+            font-weight: 700;
+        }
+    }
+
+    &__toggle {
+        display: inline-flex;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    &__input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    &__track {
+        width: 29px;
+        height: 16px;
+        background: $gray-30;
+        border-radius: 8px;
+        position: relative;
+        transition: background 200ms;
+        top: 1px; // small adjustment
+    }
+
+    &__thumb {
+        width: 10px;
+        height: 10px;
+        background: $gray-70;
+        border-radius: 5px;
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        transition: transform 333ms;
+    }
+
+    &__toggle:hover &__thumb {
+        background: $gray-80;
+    }
+
+    &__input:checked + &__track {
+        background: $blue-20;
+
+        .labeled-switch__thumb {
+            background: $blue-50;
+            transform: translateX(13px);
+        }
+    }
+
+    &__toggle:hover &__input:checked + &__track .labeled-switch__thumb {
+        background: darken($blue-50, 13%);
+    }
+
+    &__input:focus-visible + &__track {
+        outline: 2px solid $blue-50;
+    }
+}
+
+.search-country-selector-button {
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 6px 10px;
+    cursor: text;
+    width: 260px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.search-country-selector__search-icon {
+    color: #666;
+    margin-right: 8px;
+    font-size: 14px;
+
+    // FontAwesome SVG styles - needed for shadow DOM since FA injects styles into document head
+    &.svg-inline--fa {
+        display: inline-block;
+        height: 1em;
+        overflow: visible;
+        vertical-align: -0.125em;
+    }
+}
+
+.search-country-selector-search-input {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 14px;
+    background: transparent;
+    color: #333;
+}
+
+.search-country-selector-search-input::placeholder {
+    color: #888;
+}
+
+.search-country-selector-list-container {
+    background: white;
+    border: 1px solid #e6e7e8;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    width: 260px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 4px 0;
+    margin-top: 4px;
+}
+
+.search-country-selector-list {
+    outline: none;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    max-height: 400px;
+}
+
+.search-country-selector-list__item {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #333;
+    border-bottom: 1px solid #f0f0f0;
+    outline: none;
+    transition: background-color 0.1s ease;
+}
+
+.search-country-selector-list__item:last-child {
+    border-bottom: none;
+}
+
+.search-country-selector-clear-container {
+    padding: 8px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.search-country-selector-clear-all {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+}
+
+.search-country-selector-clear-all:hover {
+    color: #333;
+}
+
+.search-country-selector-list__item:hover,
+.search-country-selector-list__item[data-focused] {
+    background-color: #f9f9f9;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    margin-right: 12px;
+}
+
+.search-country-selector-list__item input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    cursor: pointer;
+    position: relative;
+    background-color: white;
+    margin: 0;
+}
+
+.search-country-selector-list__item input[type="checkbox"]:checked {
+    background-color: #607d8b; /* Slate blueish color from image */
+    border-color: #607d8b;
+}
+
+.search-country-selector-list__item input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    left: 5px;
+    top: 2px;
+    width: 6px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.country-name {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.income-plot-controls-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-family:
+        "Lato", "Helvetica Neue", Helvetica, Arial, "Liberation Sans",
+        sans-serif;
+    font-size: 14px;
+    color: #333;
+}
+
+.control-pill {
+    background: $blue-5;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 4px 14px;
+    font-size: 14px;
+    color: $blue-90;
+    cursor: pointer;
+    font-family:
+        "Lato", "Helvetica Neue", Helvetica, Arial, "Liberation Sans",
+        sans-serif;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+        background: #e8e8e8;
+    }
+
+    &:active {
+        background: #ddd;
+    }
+}
+
+.control-text {
+    color: #555;
+    font-size: 14px;
+}
+
+.currency-select {
+    position: relative;
+    display: inline-block;
+}
+
+.currency-select__trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.currency-select__chevron {
+    font-size: 10px;
+    opacity: 0.6;
+}
+
+.currency-select__popover {
+    position: absolute;
+    z-index: 100;
+    margin-top: 4px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 240px;
+    display: flex;
+    flex-direction: column;
+    max-height: 350px;
+}
+
+.currency-select__search {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+
+    .react-aria-Input {
+        border: none;
+        background: transparent;
+        font-size: 13px;
+        font-family: inherit;
+        color: #333;
+        outline: none;
+        padding: 0;
+        flex: 1;
+        min-width: 0;
+
+        &::placeholder {
+            color: #999;
+        }
+    }
+
+    .clear-button {
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        color: #999;
+        display: flex;
+        align-items: center;
+
+        &:hover {
+            color: #333;
+        }
+    }
+}
+
+.currency-select__search-icon {
+    color: #999;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.currency-select__clear-icon {
+    font-size: 10px;
+}
+
+.currency-select__listbox {
+    outline: none;
+    padding: 4px 0;
+    overflow-y: auto;
+    max-height: 600px;
+}
+
+.currency-select__listbox .react-aria-ListBoxSection {
+    margin-top: 8px;
+}
+
+.currency-select__section-header {
+    padding: 4px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.currency-select__item {
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    outline: none;
+
+    &[data-focused] {
+        background: $blue-5;
+    }
+
+    &[data-selected] {
+        font-weight: 700;
+        color: $blue-90;
+    }
+}
+
+$controlRowHeight: 28px;
+
+// Mixins for slim tab styling, shared with ContentSwitchers.scss
+@mixin slim-tab-item {
+    $visual-gap: 2px;
+
+    position: relative;
+    display: block;
+    color: $light-text;
+    font-size: var(--tabs-font-size, 13px);
+    font-weight: 500;
+    height: $controlRowHeight - 2 * $visual-gap;
+    line-height: $controlRowHeight - 2 * $visual-gap;
+    border-radius: $visual-gap;
+    cursor: pointer;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    user-select: none;
+    text-align: center;
+
+    &[data-hovered] {
+        background-color: $gray-10;
+    }
+}
+@mixin slim-tab-separator {
+    &::before {
+        content: "";
+        display: block;
+        width: 1px;
+        height: calc(100% - 12px);
+        position: absolute;
+        top: 6px;
+        background-color: $gray-20;
+        left: -0.5px;
+    }
+}
+
+.Tabs {
+    position: relative;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
+    // Variant: default
+    &.Tabs--variant-default,
+    &.Tabs--variant-scroll {
+        margin: 16px 0;
+        display: flex;
+
+        .Tabs__Tab {
+            @include grapher_label-2-medium;
+            flex-shrink: 0;
+            display: inline-block;
+            margin: 0 8px 8px 0;
+            padding: 8px;
+            border: 1px solid $blue-10;
+            background: #fff;
+            color: $dark-text;
+            white-space: normal;
+            cursor: pointer;
+            text-wrap: balance;
+
+            &[data-hovered] {
+                background-color: $gray-10;
+                border-color: $gray-10;
+            }
+
+            &[data-selected] {
+                background: $accent-pale-blue;
+                border-color: $accent-pale-blue;
+                color: $blue-90;
+            }
+        }
+    }
+
+    // Variant: horizontal scroll
+    &.Tabs--variant-scroll {
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+
+        $fade-out-width: 40px;
+        padding-right: $fade-out-width;
+        mask-image: linear-gradient(
+            to right,
+            black calc(100% - #{$fade-out-width}),
+            transparent 100%
+        );
+        -webkit-mask-image: linear-gradient(
+            to right,
+            black calc(100% - #{$fade-out-width}),
+            transparent 100%
+        );
+    }
+
+    // Variant: slim
+    &.Tabs--variant-slim {
+        --tab-padding: 10px;
+
+        $light-stroke: $gray-20;
+        $active-fill: $blue-20;
+
+        $border-radius: 4px;
+        $visual-gap: 2px;
+
+        display: flex;
+        height: $controlRowHeight;
+        margin: 0;
+        padding: $visual-gap;
+        // using a box-shadow instead of a border fixes a bug
+        // where the tab items weren't centered when zoomed in or out
+        box-shadow: inset 0 0 0 1px $light-stroke;
+        border-radius: $border-radius;
+
+        gap: 1px;
+        padding-left: 4px;
+        padding-right: 4px;
+
+        .Tabs__Tab {
+            @include slim-tab-item;
+            transform: translateY($visual-gap);
+            padding: 0 var(--tab-padding);
+            text-overflow: ellipsis;
+            overflow: hidden;
+            transition:
+                background-color 0.15s ease,
+                color 0.15s ease;
+
+            &[data-selected] {
+                color: $active-text;
+                font-weight: 700;
+                background-color: $active-fill;
+            }
+        }
+
+        // separators between tabs
+        .Tabs__Tab + .Tabs__Tab {
+            @include slim-tab-separator;
+        }
+
+        // hide separators when a tab is hovered over or when a tab is active
+        .Tabs__Tab[data-selected]::before,
+        .Tabs__Tab[data-hovered]::before,
+        .Tabs__Tab[data-selected] + .Tabs__Tab::before,
+        .Tabs__Tab[data-hovered] + .Tabs__Tab::before {
+            display: none;
+        }
+    }
+
+    // Variant: stretch
+    &.Tabs--variant-stretch {
+        display: flex;
+        gap: 8px;
+
+        $hover-fill: $gray-10;
+        $active-fill: $accent-pale-blue;
+
+        .Tabs__Tab {
+            flex-grow: 1;
+            flex-shrink: 1;
+
+            @include grapher_label-2-medium;
+            display: inline-block;
+            padding: 8px;
+            border: 1px solid $blue-10;
+            background: #fff;
+            color: $dark-text;
+            cursor: pointer;
+            text-wrap: balance;
+
+            &[data-hovered] {
+                background-color: $hover-fill;
+                border-color: $hover-fill;
+            }
+
+            &[data-selected] {
+                background: $active-fill;
+                border-color: $active-fill;
+                color: $blue-90;
+            }
+        }
+    }
+
+    svg {
+        margin-right: 4px;
+    }
+}
