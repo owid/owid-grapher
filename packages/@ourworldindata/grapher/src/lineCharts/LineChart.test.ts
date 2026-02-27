@@ -303,7 +303,7 @@ describe("externalLegendBins", () => {
         const chartState = new LineChartState({
             manager: {
                 ...baseManager,
-                showLegend: true,
+                showSeriesLabels: true,
             },
         })
         const chart = new LineChart({ chartState })
@@ -314,7 +314,7 @@ describe("externalLegendBins", () => {
         const chartState = new LineChartState({
             manager: {
                 ...baseManager,
-                showLegend: false,
+                showSeriesLabels: false,
             },
         })
         const chart = new LineChart({ chartState })

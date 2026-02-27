@@ -320,7 +320,9 @@ export class FacetChart
 
         return series.map((series, index) => {
             const { bounds } = gridBoundsArr[index]
+
             const showLegend = !this.hideFacetLegends
+            const showSeriesLabels = !this.hideFacetLegends
 
             const hidePoints = true
             const hideNoDataSection = true
@@ -331,6 +333,7 @@ export class FacetChart
                 table,
                 fontSize,
                 showLegend,
+                showSeriesLabels,
                 hidePoints,
                 yColumnSlug,
                 xColumnSlug,

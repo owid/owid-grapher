@@ -370,8 +370,11 @@ export class GrapherState
     /** Which logo to show on the upper right side */
     logo: LogoOption | undefined = undefined
 
-    /** Whether to hide the legend */
-    hideLegend: boolean | undefined = false
+    /**
+     * Whether to hide the inline series labels drawn at the end of each
+     * series. Applies to line, slope, and stacked area charts
+     */
+    hideSeriesLabels: boolean | undefined = false
 
     /** Whether to hide the logo */
     hideLogo: boolean | undefined = undefined
@@ -517,6 +520,9 @@ export class GrapherState
 
     variant = GrapherVariant.Default
 
+    /** Whether to hide a chart's legends */
+    hideLegend: boolean | undefined = false
+
     /**
      * Indicates whether the chart is embedded alongside a complementary table.
      * If that's the case, the chart can be simplified (e.g. hide legends or
@@ -641,6 +647,7 @@ export class GrapherState
             stackMode: observable.ref,
             showNoDataArea: observable.ref,
             hideLegend: observable.ref,
+            hideSeriesLabels: observable.ref,
             logo: observable.ref,
             hideLogo: observable.ref,
             hideRelativeToggle: observable.ref,
@@ -1430,6 +1437,10 @@ export class GrapherState
 
     @computed get xAxisConfig(): Readonly<AxisConfigInterface> {
         return this.xAxis.toObject()
+    }
+
+    @computed get showSeriesLabels(): boolean {
+        return !this.hideSeriesLabels
     }
 
     @computed get showLegend(): boolean {
@@ -2356,7 +2367,9 @@ export class GrapherState
         return !!(
             !this.forceHideAnnotationFieldsInTitle?.entity &&
             this.isOnChartTab &&
-            (seriesStrategy !== SeriesStrategy.entity || !this.showLegend) &&
+            (seriesStrategy !== SeriesStrategy.entity ||
+                !this.showLegend ||
+                !this.showSeriesLabels) &&
             selectedEntityNames.length === 1 &&
             (showEntityAnnotation ||
                 this.canChangeEntity ||
