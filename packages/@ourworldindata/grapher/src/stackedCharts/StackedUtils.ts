@@ -8,7 +8,16 @@ import {
     omitUndefinedValues,
     AxisConfigInterface,
 } from "@ourworldindata/utils"
-import { StackedPointPositionType, StackedSeries } from "./StackedConstants"
+import {
+    StackedPlacedPoint,
+    StackedPlacedSeries,
+    StackedPoint,
+    StackedPointPositionType,
+    StackedSeries,
+    PlacedStackedBarSeries,
+} from "./StackedConstants"
+import { DualAxis } from "../axis/Axis"
+import { Time } from "@ourworldindata/types"
 import { StackedBarChartState } from "./StackedBarChartState.js"
 
 // This method shift up the Y Values of a Series with Points in place.
@@ -139,4 +148,102 @@ export function getXAxisConfigDefaultsForStackedBar(
         domainValues: chartState.xValues,
         ticks: chartState.xValues.map((value) => ({ value, priority: 2 })),
     }
+}
+
+function placeStackedAreaPoint(
+    point: StackedPoint<number>,
+    dualAxis: DualAxis
+): StackedPlacedPoint {
+    const { horizontalAxis, verticalAxis } = dualAxis
+    return [
+        horizontalAxis.place(point.position),
+        verticalAxis.place(point.value + point.valueOffset),
+    ]
+}
+
+// This places a whole series, but the points only represent the top of the area.
+// Later steps are necessary to display them as a filled area.
+function placeStackedAreaSeries(
+    series: StackedSeries<number>,
+    dualAxis: DualAxis
+): StackedPlacedPoint[] {
+    const { horizontalAxis, verticalAxis } = dualAxis
+
+    if (series.points.length > 1) {
+        return series.points.map((point) =>
+            placeStackedAreaPoint(point, dualAxis)
+        )
+    } else if (series.points.length === 1) {
+        // We only have one point, so make it so it stretches out over the whole x axis range
+        // There are two cases here that we need to consider:
+        // (1) In unfaceted charts, the x domain will be a single year, so we need to ensure that the area stretches
+        //     out over the full range of the x axis.
+        // (2) In faceted charts, the x domain may span multiple years, so we need to ensure that the area stretches
+        //     out only over year - 0.5 to year + 0.5, additionally making sure we don't put points outside the x range.
+        //
+        // -@marcelgerber, 2023-04-24
+        const point = series.points[0]
+        const y = verticalAxis.place(point.value + point.valueOffset)
+        const singleValueXDomain =
+            horizontalAxis.domain[0] === horizontalAxis.domain[1]
+
+        if (singleValueXDomain) {
+            // Case (1)
+            return [
+                [horizontalAxis.range[0], y],
+                [horizontalAxis.range[1], y],
+            ]
+        } else {
+            // Case (2)
+            const leftX = Math.max(
+                horizontalAxis.place(point.position - 0.5),
+                horizontalAxis.range[0]
+            )
+            const rightX = Math.min(
+                horizontalAxis.place(point.position + 0.5),
+                horizontalAxis.range[1]
+            )
+
+            return [
+                [leftX, y],
+                [rightX, y],
+            ]
+        }
+    } else return []
+}
+
+export function toPlacedStackedAreaSeries(
+    series: readonly StackedSeries<Time>[],
+    dualAxis: DualAxis
+): StackedPlacedSeries<Time>[] {
+    return series
+        .filter((series) => !series.isAllZeros)
+        .map((series) => ({
+            ...series,
+            placedPoints: placeStackedAreaSeries(series, dualAxis),
+        }))
+}
+
+export function toPlacedStackedBarSeries(
+    series: readonly StackedSeries<Time>[],
+    dualAxis: DualAxis
+): readonly PlacedStackedBarSeries<Time>[] {
+    const { horizontalAxis, verticalAxis } = dualAxis
+    const barWidth = (horizontalAxis.bandWidth ?? 0) * 0.8
+
+    return series.map((series) => ({
+        ...series,
+        points: series.points.map((bar) => {
+            const x = horizontalAxis.place(bar.position) - barWidth / 2
+            const y =
+                bar.value < 0
+                    ? verticalAxis.place(bar.valueOffset)
+                    : verticalAxis.place(bar.value + bar.valueOffset)
+            const barHeight =
+                bar.value < 0
+                    ? verticalAxis.place(bar.valueOffset + bar.value) - y
+                    : verticalAxis.place(bar.valueOffset) - y
+            return { ...bar, x, y, barWidth, barHeight }
+        }),
+    }))
 }
