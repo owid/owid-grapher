@@ -43,6 +43,7 @@ export class ChartEditorPage
             views: observable,
             tags: observable,
             availableTags: observable,
+            forceDatapage: observable.ref,
         })
     }
 
@@ -52,6 +53,7 @@ export class ChartEditorPage
     views: DbPlainAnalyticsGrapherView | undefined = undefined
     tags: DbChartTagJoin[] | undefined = undefined
     availableTags: MinimalTagWithIsTopic[] | undefined = undefined
+    forceDatapage: boolean | undefined = undefined
 
     patchConfig: GrapherInterface = {}
     parentConfig: GrapherInterface | undefined = undefined
@@ -72,11 +74,17 @@ export class ChartEditorPage
     async fetchParentConfig(): Promise<void> {
         const { grapherId, grapherConfig } = this.props
         if (grapherId !== undefined) {
-            const parent = await this.context.admin.getJSON(
-                `/api/charts/${grapherId}.parent.json`
-            )
+            const [parent, settings] = await Promise.all([
+                this.context.admin.getJSON(
+                    `/api/charts/${grapherId}.parent.json`
+                ),
+                this.context.admin.getJSON(
+                    `/api/charts/${grapherId}.settings.json`
+                ),
+            ])
             this.parentConfig = parent?.config
             this.isInheritanceEnabled = parent?.isActive ?? true
+            this.forceDatapage = settings?.forceDatapage ?? false
         } else if (grapherConfig) {
             const parentIndicatorId =
                 getParentVariableIdFromChartConfig(grapherConfig)
@@ -87,8 +95,10 @@ export class ChartEditorPage
                 )
             }
             this.isInheritanceEnabled = true
+            this.forceDatapage = false
         } else {
             this.isInheritanceEnabled = true
+            this.forceDatapage = false
         }
     }
 

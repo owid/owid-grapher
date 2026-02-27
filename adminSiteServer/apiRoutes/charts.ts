@@ -30,6 +30,7 @@ import { NarrativeChartMinimalInformation } from "../../adminSiteClient/ChartEdi
 import { denormalizeLatestCountryData } from "../../baker/countryIndexes.js"
 import {
     getChartConfigById,
+    getForceDatapageByChartId,
     getPatchConfigByChartId,
     getParentByChartConfig,
     isInheritanceEnabledForChart,
@@ -240,9 +241,15 @@ const saveNewChart = async (
     {
         config,
         user,
+        forceDatapage = false,
         // new charts inherit by default
         shouldInherit = true,
-    }: { config: GrapherInterface; user: DbPlainUser; shouldInherit?: boolean }
+    }: {
+        config: GrapherInterface
+        user: DbPlainUser
+        forceDatapage?: boolean
+        shouldInherit?: boolean
+    }
 ): Promise<{
     chartConfigId: Base64String
     patchConfig: GrapherInterface
@@ -278,10 +285,10 @@ const saveNewChart = async (
     const result = await db.knexRawInsert(
         knex,
         `-- sql
-            INSERT INTO charts (configId, isInheritanceEnabled, lastEditedAt, lastEditedByUserId)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO charts (configId, isInheritanceEnabled, forceDatapage, lastEditedAt, lastEditedByUserId)
+            VALUES (?, ?, ?, ?, ?)
         `,
-        [chartConfigId, shouldInherit, new Date(), user.id]
+        [chartConfigId, shouldInherit, forceDatapage, new Date(), user.id]
     )
 
     // The chart config itself has an id field that should store the id of the chart - update the chart now so this is true
@@ -312,6 +319,7 @@ const updateExistingChart = async (
         config: GrapherInterface
         user: DbPlainUser
         chartId: number
+        forceDatapage?: boolean
         // if undefined, keep inheritance as is.
         // if true or false, enable or disable inheritance
         shouldInherit?: boolean
@@ -354,15 +362,18 @@ const updateExistingChart = async (
         fullConfig
     )
 
+    const forceDatapage =
+        params.forceDatapage ?? (await getForceDatapageByChartId(knex, chartId))
+
     // update charts row
     await db.knexRaw(
         knex,
         `-- sql
             UPDATE charts
-            SET isInheritanceEnabled=?, updatedAt=?, lastEditedAt=?, lastEditedByUserId=?
+            SET isInheritanceEnabled=?, forceDatapage=?, updatedAt=?, lastEditedAt=?, lastEditedByUserId=?
             WHERE id = ?
         `,
-        [shouldInherit, now, now, user.id, chartId]
+        [shouldInherit, forceDatapage, now, now, user.id, chartId]
     )
 
     return { chartConfigId, patchConfig, fullConfig }
@@ -374,12 +385,14 @@ export const saveGrapher = async (
         user,
         newConfig,
         existingConfig,
+        forceDatapage,
         shouldInherit,
         referencedVariablesMightChange = true,
     }: {
         user: DbPlainUser
         newConfig: GrapherInterface
         existingConfig?: GrapherInterface
+        forceDatapage?: boolean
         // if undefined, keep inheritance as is.
         // if true or false, enable or disable inheritance
         shouldInherit?: boolean
@@ -449,6 +462,7 @@ export const saveGrapher = async (
             config: newConfig,
             user,
             chartId,
+            forceDatapage,
             shouldInherit,
         })
         chartConfigId = configs.chartConfigId
@@ -458,6 +472,7 @@ export const saveGrapher = async (
         const configs = await saveNewChart(knex, {
             config: newConfig,
             user,
+            forceDatapage,
             shouldInherit,
         })
         chartConfigId = configs.chartConfigId
@@ -685,6 +700,16 @@ export async function getChartParentJson(
     })
 }
 
+export async function getChartSettingsJson(
+    req: Request,
+    res: HandlerResponse,
+    trx: db.KnexReadonlyTransaction
+) {
+    const chartId = expectInt(req.params.chartId)
+    const forceDatapage = await getForceDatapageByChartId(trx, chartId)
+    return { forceDatapage }
+}
+
 export async function getChartPatchConfigJson(
     req: Request,
     res: HandlerResponse,
@@ -791,11 +816,16 @@ export async function createChart(
     if (req.query.inheritance) {
         shouldInherit = req.query.inheritance === "enable"
     }
+    let forceDatapage: boolean | undefined
+    if (req.query.forceDatapage) {
+        forceDatapage = req.query.forceDatapage === "true"
+    }
 
     try {
         const { chartId } = await saveGrapher(trx, {
             user: res.locals.user,
             newConfig: req.body,
+            forceDatapage,
             shouldInherit,
         })
 
@@ -826,6 +856,10 @@ export async function updateChart(
     if (req.query.inheritance) {
         shouldInherit = req.query.inheritance === "enable"
     }
+    let forceDatapage: boolean | undefined
+    if (req.query.forceDatapage) {
+        forceDatapage = req.query.forceDatapage === "true"
+    }
 
     const existingConfig = await expectChartById(trx, req.params.chartId)
 
@@ -834,6 +868,7 @@ export async function updateChart(
             user: res.locals.user,
             newConfig: req.body,
             existingConfig,
+            forceDatapage,
             shouldInherit,
         })
 

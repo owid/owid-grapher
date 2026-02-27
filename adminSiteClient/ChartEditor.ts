@@ -70,6 +70,7 @@ export interface ChartEditorManager extends AbstractChartEditorManager {
     views?: DbPlainAnalyticsGrapherView
     tags?: DbChartTagJoin[]
     availableTags?: DbChartTagJoin[]
+    forceDatapage?: boolean
 }
 
 export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
@@ -107,6 +108,10 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
 
     @computed get availableTags() {
         return this.manager.availableTags
+    }
+
+    @computed get forceDatapage() {
+        return this.manager.forceDatapage ?? false
     }
 
     /** parent variable id, derived from the config */
@@ -183,6 +188,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
 
         const query = new URLSearchParams({
             inheritance: shouldEnableInheritance ? "enable" : "disable",
+            forceDatapage: String(this.forceDatapage),
         })
         const targetUrl = isNewGrapher
             ? `/api/charts?${query}`
@@ -228,6 +234,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
 
         const query = new URLSearchParams({
             inheritance: shouldEnableInheritance ? "enable" : "disable",
+            forceDatapage: String(this.forceDatapage),
         })
         const targetUrl = `/api/charts?${query}`
 

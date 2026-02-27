@@ -187,6 +187,7 @@ export async function loadLinkedChartsForSlugs(
                     chart.config,
                     originalSlug,
                     {
+                        forceDatapage: chart.forceDatapage,
                         archivedPageVersion:
                             archivedChartVersions[chartId] || undefined,
                     }
@@ -1395,14 +1396,22 @@ export async function makeGrapherLinkedChart(
     knex: db.KnexReadonlyTransaction,
     config: GrapherInterface,
     originalSlug: string,
-    { archivedPageVersion }: { archivedPageVersion?: ArchivedPageVersion } = {}
+    {
+        forceDatapage,
+        archivedPageVersion,
+    }: {
+        forceDatapage?: boolean
+        archivedPageVersion?: ArchivedPageVersion
+    } = {}
 ): Promise<LinkedChart> {
     const resolvedSlug = config.slug ?? ""
     const resolvedTitle = config.title ?? ""
     const subtitle = toPlaintext(config.subtitle ?? "")
     const resolvedUrl = `${BASE_URL}/grapher/${resolvedSlug}`
     const tab = config.tab ?? GRAPHER_TAB_CONFIG_OPTIONS.chart
-    const indicatorId = await getDatapageIndicatorId(knex, config)
+    const indicatorId = await getDatapageIndicatorId(knex, config, {
+        forceDatapage,
+    })
 
     return {
         configType: ChartConfigType.Grapher,

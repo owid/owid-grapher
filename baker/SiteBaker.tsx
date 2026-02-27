@@ -434,6 +434,7 @@ export class SiteBaker {
                                 chart.config,
                                 chart.slug,
                                 {
+                                    forceDatapage: chart.forceDatapage,
                                     archivedPageVersion:
                                         archivedVersions.charts[chart.id] ||
                                         undefined,
