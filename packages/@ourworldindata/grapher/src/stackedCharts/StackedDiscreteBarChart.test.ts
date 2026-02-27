@@ -64,14 +64,14 @@ it("can display a StackedDiscreteBar chart in relative mode", () => {
             value: 40,
             valueOffset: 0,
             time: 2000,
-            fake: false,
+            missing: false,
         },
         {
             position: "Spain",
             value: 30,
             valueOffset: 0,
             time: 2000,
-            fake: false,
+            missing: false,
         },
     ])
     expect(chartState.series[1].points).toEqual([
@@ -80,14 +80,14 @@ it("can display a StackedDiscreteBar chart in relative mode", () => {
             value: 60,
             valueOffset: 40,
             time: 2000,
-            fake: false,
+            missing: false,
         },
         {
             position: "Spain",
             value: 70,
             valueOffset: 30,
             time: 2000,
-            fake: false,
+            missing: false,
         },
     ])
 })
@@ -122,14 +122,14 @@ it("can display a chart with missing variable data for some entities", () => {
             value: 20,
             valueOffset: 0,
             time: 2000,
-            fake: false,
+            missing: false,
         },
         {
             position: "Spain",
             value: 0,
             valueOffset: 0,
             time: 0,
-            fake: true,
+            missing: true,
         },
     ])
     expect(chartState.series[1].points).toEqual([
@@ -138,14 +138,14 @@ it("can display a chart with missing variable data for some entities", () => {
             value: 0,
             valueOffset: 20,
             time: 0,
-            fake: true,
+            missing: true,
         },
         {
             position: "Spain",
             value: 14,
             valueOffset: 0,
             time: 2000,
-            fake: false,
+            missing: false,
         },
     ])
 })
@@ -182,7 +182,7 @@ it("can display a chart with missing variable data for some entities, while hidi
             value: 10,
             valueOffset: 0,
             time: 2000,
-            fake: false,
+            missing: false,
         },
     ])
     expect(chartState.series[1].points).toEqual([
@@ -191,7 +191,7 @@ it("can display a chart with missing variable data for some entities, while hidi
             value: 20,
             valueOffset: 10,
             time: 2000,
-            fake: false,
+            missing: false,
         },
     ])
 })
@@ -228,7 +228,7 @@ it("can display a chart with missing variable data for some entities, while hidi
             value: 25,
             valueOffset: 0,
             time: 2000,
-            fake: false,
+            missing: false,
         },
     ])
     expect(chartState.series[1].points).toEqual([
@@ -237,7 +237,7 @@ it("can display a chart with missing variable data for some entities, while hidi
             value: 75,
             valueOffset: 25,
             time: 2000,
-            fake: false,
+            missing: false,
         },
     ])
 })
@@ -268,14 +268,14 @@ it("can display chart with negative values", () => {
             value: -20,
             valueOffset: 0,
             time: 2000,
-            fake: false,
+            missing: false,
         },
         {
             position: "Spain",
             value: 40,
             valueOffset: 0,
             time: 2000,
-            fake: false,
+            missing: false,
         },
     ])
 
@@ -286,14 +286,14 @@ it("can display chart with negative values", () => {
             // offset is 0 because the previous series has a negative value
             valueOffset: 0,
             time: 2000,
-            fake: false,
+            missing: false,
         },
         {
             position: "Spain",
             value: 10,
             valueOffset: 40,
             time: 2000,
-            fake: false,
+            missing: false,
         },
     ])
 })

@@ -256,7 +256,7 @@ export {
     deleteRuntimeAndUnchangedProps,
 } from "./persistable/Persistable.js"
 
-export { PointVector } from "./PointVector.js"
+export { PointVector, type Point } from "./PointVector.js"
 
 export { OwidVariableDisplayConfig } from "./OwidVariable.js"
 

@@ -3,6 +3,7 @@ import {
     EntityName,
     OwidVariableRow,
     SeriesName,
+    Time,
 } from "@ourworldindata/types"
 import { ChartSeries } from "../chart/ChartInterface"
 import {
@@ -10,6 +11,7 @@ import {
     GRAPHER_AREA_OPACITY_FOCUS,
     GRAPHER_AREA_OPACITY_MUTE,
 } from "../core/GrapherConstants"
+import { Point } from "@ourworldindata/utils"
 import { InteractionState } from "../interaction/InteractionState.js"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState.js"
 import { LegendStyleConfig } from "../legend/LegendInteractionState"
@@ -44,19 +46,37 @@ export const LEGEND_STYLE_FOR_STACKED_CHARTS: LegendStyleConfig = {
     },
 }
 
+/** Either categorical (e.g. country names), or ordinal (e.g. years)  */
 export type StackedPointPositionType = string | number
 
-export type StackedPlacedPoint = [number, number]
-
-// PositionType can be categorical (e.g. country names), or ordinal (e.g. years).
 export interface StackedPoint<PositionType extends StackedPointPositionType> {
     position: PositionType
     value: number
     valueOffset: number
     time: number
-    interpolated?: boolean
-    fake?: boolean
+    formattedTime?: string
     color?: string
+    missing?: boolean
+    interpolated?: boolean
+}
+
+export interface PlacedStackedPoint<
+    PositionType extends StackedPointPositionType,
+> extends StackedPoint<PositionType> {
+    x: number
+    y: number
+    barWidth: number
+    barHeight: number
+}
+
+export interface StackedRawSeries<
+    PositionType extends StackedPointPositionType,
+> {
+    seriesName: SeriesName
+    isProjection?: boolean
+    rows: OwidVariableRow<PositionType>[]
+    focus: InteractionState
+    shortEntityName?: string
 }
 
 export interface StackedSeries<
@@ -70,20 +90,32 @@ export interface StackedSeries<
     focus?: InteractionState
 }
 
-export interface StackedPlacedSeries<
+export interface PlacedStackedBarSeries<
     PositionType extends StackedPointPositionType,
 > extends StackedSeries<PositionType> {
-    placedPoints: Array<StackedPlacedPoint>
+    placedPoints: PlacedStackedPoint<PositionType>[]
 }
 
-export interface StackedRawSeries<
+export interface PlacedStackedAreaSeries<
     PositionType extends StackedPointPositionType,
-> {
-    seriesName: SeriesName
-    isProjection?: boolean
-    rows: OwidVariableRow<PositionType>[]
-    focus: InteractionState
-    shortEntityName?: string
+> extends StackedSeries<PositionType> {
+    /** Top edge border of the area */
+    placedPoints: Point[]
+    /** Points defining the filled area polygon */
+    areaPoints: Point[]
+}
+
+export interface RenderStackedBarSeries<
+    PositionType extends StackedPointPositionType,
+> extends PlacedStackedBarSeries<PositionType> {
+    hover?: InteractionState
+    hoverTime?: Time
+}
+
+export interface RenderStackedAreaSeries<
+    PositionType extends StackedPointPositionType,
+> extends PlacedStackedAreaSeries<PositionType> {
+    hover?: InteractionState
 }
 
 export interface Bar {

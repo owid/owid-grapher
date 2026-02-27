@@ -10,6 +10,7 @@ import {
     EntityName,
     checkIsIncomeGroup,
     checkIsOwidContinent,
+    Point,
 } from "@ourworldindata/utils"
 import { canAppendTextToLastLine, TextWrap } from "@ourworldindata/components"
 import { ParsedLabel, parseLabel } from "../core/RegionGroups.js"
@@ -60,13 +61,8 @@ type ContentFragment = TextFragment | IconFragment | SpaceFragment
 
 type ContentLine = ContentFragment[]
 
-interface Position {
-    x: number
-    y: number
-}
-
-export type PositionedTextFragment = TextFragment & Position
-export type PositionedIconFragment = IconFragment & Position
+export type PositionedTextFragment = TextFragment & Point
+export type PositionedIconFragment = IconFragment & Point
 
 export type PositionedFragment = PositionedTextFragment | PositionedIconFragment
 
