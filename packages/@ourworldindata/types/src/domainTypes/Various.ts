@@ -37,6 +37,7 @@ export enum SiteFooterContext {
     explorerIndexPage = "explorerIndexPage",
     default = "default",
     dataInsightsIndexPage = "data-insights-index-page",
+    latestPage = "latestPage",
     searchPage = "search-page",
     subscribePage = "subscribe-page",
 }
