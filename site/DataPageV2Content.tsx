@@ -1,11 +1,10 @@
-import { useMemo, useEffect, useState, ReactNode } from "react"
+import { useMemo, useEffect, useState } from "react"
 import cx from "classnames"
 import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import {
     REUSE_THIS_WORK_SECTION_ID,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
     DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
-    Button,
 } from "@ourworldindata/components"
 import {
     EXPERIMENT_ARM_SEPARATOR,
@@ -15,12 +14,13 @@ import {
     joinTitleFragments,
     ImageMetadata,
     excludeNull,
-    queryParamsToStr,
     defaultExperimentState,
     getExperimentState,
     ExperimentState,
+    shuffleArray,
 } from "@ourworldindata/utils"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
+import { FeaturedMetrics } from "./FeaturedMetrics.js"
 import StickyNav from "./blocks/StickyNav.js"
 import {
     ADMIN_BASE_URL,
@@ -34,9 +34,10 @@ import { processRelatedResearch } from "./dataPage.js"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import { DocumentContext } from "./gdocs/DocumentContext.js"
-import { faArrowRight, faArrowDown } from "@fortawesome/free-solid-svg-icons"
+import { BlockQueryClientProvider } from "./gdocs/components/BlockQueryClientProvider.js"
+import { Autocomplete } from "./search/Autocomplete.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { DataInsightLink } from "@ourworldindata/types"
+import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
 
 declare global {
     interface Window {
@@ -45,6 +46,21 @@ declare global {
     }
 }
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
+
+const SUGGESTED_SEARCHES = [
+    { slug: "child-mortality", query: "Infant mortality" },
+    {
+        slug: "child-mortality",
+        query: "Causes of death in children under five",
+    },
+    {
+        slug: "child-mortality",
+        query: "Diarrheal disease deaths in children under five",
+    },
+    { slug: "child-mortality", query: "Pneumonia risk factors" },
+    { slug: "child-mortality", query: "Share of children vaccinated" },
+    { slug: "child-mortality", query: "Maternal mortality ratio" },
+]
 
 export const DataPageV2Content = ({
     datapageData,
@@ -103,17 +119,6 @@ export const DataPageV2Content = ({
         datapageData.topicTagsLinks ?? []
     )
 
-    // insight link for when only a single link is shown
-    let insightsHref: string | undefined
-    if (datapageData.primaryTopic) {
-        const topicSlug = tagToSlugMap[datapageData.primaryTopic.topicTag]
-        if (datapageData.hasDataInsights) {
-            insightsHref = `/data-insights${queryParamsToStr({ topic: datapageData.primaryTopic.topicTag })}`
-        } else {
-            insightsHref = `/${topicSlug}`
-        }
-    }
-
     // note: experimentState should NOT be used to conditionally render content b/c
     // it will cause a flash of content before js loads.
     const [experimentState, setExperimentState] = useState<ExperimentState>(
@@ -125,9 +130,9 @@ export const DataPageV2Content = ({
             setExperimentState(s)
         }
     }, [])
-
     const { isPageInExperiment, assignedExperiments } = experimentState
 
+    const suggestedSearchesOrientation = "horizontal"
     return (
         <AttachmentsContext.Provider
             value={{
@@ -201,44 +206,34 @@ export const DataPageV2Content = ({
                                 />
                             )}
 
-                            {/* A/B experiment: data-page-insight-btns-2 */}
-                            {insightsHref && (
-                                <InsightLinksInsightButtonsFull
-                                    insightsHref={insightsHref}
-                                    dataInsights={datapageData.dataInsights}
-                                />
-                            )}
+                            <div
+                                className={`datapage-search-wrapper span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2 ${EXPERIMENT_PREFIX}-data-page-search-v1${EXPERIMENT_ARM_SEPARATOR}treat1--show ${EXPERIMENT_PREFIX}-data-page-search-v1${EXPERIMENT_ARM_SEPARATOR}treat2--show`}
+                            >
+                                <div className="datapage-search">
+                                    <Autocomplete
+                                        className="span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2"
+                                        panelClassName="datapage-search__panel"
+                                        placeholder="What do you want to see next?"
+                                    />
+                                    <SuggestedSearches
+                                        grapherSlug={grapherConfig.slug}
+                                        orientation={
+                                            suggestedSearchesOrientation
+                                        }
+                                    />
+                                </div>
+                            </div>
 
                             <AboutThisData
                                 datapageData={datapageData}
                                 hasFaq={!!faqEntries?.faqs.length}
-                                className={cx(
-                                    "exp-data-page-insight-btns-2--control1--hide",
-                                    "exp-data-page-insight-btns-2--treat00--hide",
-                                    "exp-data-page-insight-btns-2--treat10--hide",
-                                    "exp-data-page-insight-btns-2--treat01--hide",
-                                    "exp-data-page-insight-btns-2--treat11--hide",
-                                    "exp-data-page-insight-btns-2--treat20--hide",
-                                    "exp-data-page-insight-btns-2--treat21--hide"
-                                )}
-                                id={
-                                    // if visitor is assigned to an arm other than
-                                    // the pure control, don't give this section an id
-                                    isPageInExperiment &&
-                                    assignedExperiments &&
-                                    assignedExperiments[
-                                        "exp-data-page-insight-btns-2"
-                                    ] &&
-                                    assignedExperiments[
-                                        "exp-data-page-insight-btns-2"
-                                    ] !== "control"
-                                        ? ""
-                                        : DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
-                                }
+                                id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
                             />
                         </div>
                     </div>
-                    <div className="col-start-2 span-cols-12">
+                    <div
+                        className={`col-start-2 span-cols-12 ${EXPERIMENT_PREFIX}-data-page-search-v1${EXPERIMENT_ARM_SEPARATOR}treat2--hide`}
+                    >
                         {relatedResearch && relatedResearch.length > 0 && (
                             <DataPageResearchAndWriting
                                 relatedResearch={relatedResearch}
@@ -246,10 +241,23 @@ export const DataPageV2Content = ({
                         )}
                         {datapageData.allCharts &&
                         datapageData.allCharts.length > 0 ? (
-                            <div className="section-wrapper section-wrapper__related-charts">
+                            <div
+                                className={`section-wrapper section-wrapper__related-charts ${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}featured-metrics--hide`}
+                            >
                                 <h2
                                     className="related-charts__title"
-                                    id="all-charts"
+                                    id={
+                                        isPageInExperiment &&
+                                        assignedExperiments &&
+                                        assignedExperiments[
+                                            `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
+                                        ] &&
+                                        assignedExperiments[
+                                            `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
+                                        ] !== "all-charts"
+                                            ? ""
+                                            : "all-charts"
+                                    }
                                 >
                                     Explore charts that include this data
                                 </h2>
@@ -260,35 +268,32 @@ export const DataPageV2Content = ({
                                 </div>
                             </div>
                         ) : null}
-                    </div>
-                    <div className="col-start-2 span-cols-12">
-                        <AboutThisData
-                            datapageData={datapageData}
-                            hasFaq={!!faqEntries?.faqs.length}
-                            className={cx(
-                                "exp-data-page-insight-btns-2--control1--show",
-                                "exp-data-page-insight-btns-2--treat00--show",
-                                "exp-data-page-insight-btns-2--treat10--show",
-                                "exp-data-page-insight-btns-2--treat01--show",
-                                "exp-data-page-insight-btns-2--treat11--show",
-                                "exp-data-page-insight-btns-2--treat20--show",
-                                "exp-data-page-insight-btns-2--treat21--show"
-                            )}
-                            id={
-                                // if visitor is assigned to an arm other than
-                                // the pure control, give this section an id
-                                isPageInExperiment &&
-                                assignedExperiments &&
-                                assignedExperiments[
-                                    "exp-data-page-insight-btns-2"
-                                ] &&
-                                assignedExperiments[
-                                    "exp-data-page-insight-btns-2"
-                                ] !== "control"
-                                    ? DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
-                                    : ""
-                            }
-                        />
+                        {datapageData.primaryTopic && (
+                            <div
+                                className={`section-wrapper ${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}featured-metrics--show`}
+                                id={
+                                    isPageInExperiment &&
+                                    assignedExperiments &&
+                                    assignedExperiments[
+                                        `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
+                                    ] &&
+                                    assignedExperiments[
+                                        `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
+                                    ] === "featured-metrics"
+                                        ? "all-charts"
+                                        : ""
+                                }
+                            >
+                                <BlockQueryClientProvider>
+                                    <FeaturedMetrics
+                                        topicName={
+                                            datapageData.primaryTopic.topicTag
+                                        }
+                                        isDataPage={true}
+                                    />
+                                </BlockQueryClientProvider>
+                            </div>
+                        )}
                     </div>
                     <MetadataSection
                         attributionShort={datapageData.attributionShort}
@@ -312,175 +317,50 @@ export const DataPageV2Content = ({
     )
 }
 
-/**
- * A/B experiment: data-page-insight-btns-2
- *
- * Renders the insight buttons for each experimental arm in the
- * data-page-insight-btns-2 experiment.
- */
-const InsightLinksInsightButtonsFull = ({
-    insightsHref,
-    dataInsights,
+const SuggestedSearches = ({
+    grapherSlug,
+    orientation = "horizontal",
 }: {
-    insightsHref: string
-    dataInsights?: DataInsightLink[]
+    grapherSlug: string | undefined
+    orientation?: "horizontal" | "vertical"
 }) => {
-    const experimentId = "data-page-insight-btns-2"
-    return (
-        <>
-            <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat00--show`}
-            >
-                <Button
-                    text="Data sources and processing"
-                    href={`#${DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}`}
-                    theme="solid-blue"
-                    icon={faArrowDown}
-                    dataTrackNote="btn_click__about_the_data"
-                />
-            </InsightLinks>
-            <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat10--show`}
-            >
-                <Button
-                    text="Insights about this data"
-                    href={insightsHref}
-                    theme="solid-blue"
-                    icon={faArrowRight}
-                    dataTrackNote="btn_click__insights"
-                />
-            </InsightLinks>
-            <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat01--show`}
-            >
-                <Button
-                    text="Data sources and processing"
-                    href={`#${DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}`}
-                    theme="solid-blue"
-                    icon={faArrowDown}
-                    dataTrackNote="btn_click__about_the_data"
-                />
-                <Button
-                    text="Related articles"
-                    href="#research-and-writing"
-                    theme="solid-blue"
-                    icon={faArrowDown}
-                    dataTrackNote="btn_click__research_and_writing"
-                />
-                <Button
-                    text="Related charts"
-                    href="#all-charts"
-                    theme="solid-blue"
-                    icon={faArrowDown}
-                    dataTrackNote="btn_click__related_charts"
-                />
-            </InsightLinks>
-            <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat11--show`}
-            >
-                <Button
-                    text="Insights about this data"
-                    href={insightsHref}
-                    theme="solid-blue"
-                    icon={faArrowRight}
-                    dataTrackNote="btn_click__insights"
-                />
-                <Button
-                    text="Related articles"
-                    href="#research-and-writing"
-                    theme="solid-blue"
-                    icon={faArrowDown}
-                    dataTrackNote="btn_click__research_and_writing"
-                />
-                <Button
-                    text="Related charts"
-                    href="#all-charts"
-                    theme="solid-blue"
-                    icon={faArrowDown}
-                    dataTrackNote="btn_click__related_charts"
-                />
-            </InsightLinks>
-            {dataInsights?.length && (
-                <InsightLinks
-                    className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat20--show`}
-                    itemClassName="col-start-3 col-lg-start-3 span-cols-8 span-lg-cols-8 span-sm-cols-12"
-                    textAlignLeft={true}
-                >
-                    <LinkToDataInsight
-                        insightLink={dataInsights[0]}
-                        dataTrackNote="btn_click__insight"
-                    />
-                </InsightLinks>
-            )}
-            {dataInsights && (
-                <InsightLinks
-                    className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat21--show`}
-                    itemClassName="col-start-3 col-lg-start-3 span-cols-8 span-lg-cols-8 span-sm-cols-12"
-                    textAlignLeft={true}
-                >
-                    {dataInsights.map((link, i) => (
-                        <LinkToDataInsight
-                            key={link.slug}
-                            insightLink={link}
-                            dataTrackNote={`btn_click__insight${i}`}
-                        />
-                    ))}
-                </InsightLinks>
-            )}
-        </>
-    )
-}
+    const shuffledSuggestions = useMemo(() => {
+        if (!grapherSlug) return []
+        const filtered = SUGGESTED_SEARCHES.filter(
+            (s) => s.slug === grapherSlug
+        )
+        return shuffleArray(filtered)
+    }, [grapherSlug])
 
-const InsightLinks = ({
-    className,
-    itemClassName = "span-cols-4 span-lg-cols-4 span-sm-cols-12",
-    textAlignLeft = false,
-    children,
-}: {
-    className: string
-    itemClassName?: string
-    textAlignLeft?: boolean
-    children: ReactNode
-}) => {
-    return (
-        <div className={cx("grid", className)}>
-            <div
-                className={cx(
-                    textAlignLeft
-                        ? "insight-links__items--left"
-                        : "insight-links__items",
-                    itemClassName
-                )}
-            >
-                {children}
-            </div>
-        </div>
-    )
-}
+    if (shuffledSuggestions.length === 0) return null
 
-const LinkToDataInsight = ({
-    insightLink,
-    dataTrackNote,
-}: {
-    insightLink: DataInsightLink
-    dataTrackNote?: string
-}) => {
+    const isVertical = orientation === "vertical"
+
     return (
-        <a
-            href={`/data-insights/${insightLink.slug}`}
-            className="grid grid-cols-12 span-cols-4 span-lg-cols-6 span-sm-cols-12 owid-btn owid-btn--solid-blue"
-            data-track-note={dataTrackNote}
+        <div
+            className={cx(
+                "suggested-searches",
+                isVertical && "suggested-searches--vertical"
+            )}
         >
-            <div className="span-cols-12">
-                <p className="item__type">Data insight</p>
-                <span className="item__title">
-                    {insightLink.title}
+            {shuffledSuggestions.map((suggestion, index) => (
+                <a
+                    key={index}
+                    href={`/search?q=${encodeURIComponent(suggestion.query)}`}
+                    className={cx(
+                        "suggested-search-item",
+                        isVertical && "suggested-search-item--vertical"
+                    )}
+                >
                     <FontAwesomeIcon
-                        className="item__icon"
-                        icon={faArrowRight}
+                        icon={faMagnifyingGlass}
+                        className="suggested-search-item__icon"
                     />
-                </span>
-            </div>
-        </a>
+                    <span className="suggested-search-item__text">
+                        {suggestion.query}
+                    </span>
+                </a>
+            ))}
+        </div>
     )
 }

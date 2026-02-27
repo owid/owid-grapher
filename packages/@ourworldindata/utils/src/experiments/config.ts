@@ -1,10 +1,128 @@
-import { SENTRY_DEFAULT_REPLAYS_SESSION_SAMPLE_RATE } from "@ourworldindata/types"
 import { Experiment } from "./Experiment.js"
 
 /*
  * Hard-coded active experiments.
  */
 export const experiments: Experiment[] = [
+    /*
+     * Experiment: dp-search-v1
+     *
+     * This experiment trials a search block on data pages beneath the grapher, compared
+     * to the status quo of no search block. The search block surfaces a search input
+     * and a list of suggested searches. This experiment is run on a sample of data pages.
+     * The goal of the experiment is to get a feel for user demand for horizontal navigation,
+     * both in absolute terms and in terms of the kinds of content they organically want to
+     * navigate to next.
+     *
+     * Conditions:
+     * - (a) status quo (control)
+     * - (b) search block shown (treat1)
+     * - (c) search block shown, with other horizontal nav affordances removed (treat2)
+     *
+     */
+    new Experiment({
+        id: "data-page-search-v1",
+        expires: "2026-12-31T00:00:00.000Z",
+        arms: [
+            { id: "control", fraction: 0.8 },
+            {
+                id: "treat1",
+                fraction: 0.1,
+                replaysSessionSampleRate: 0.25,
+            },
+            {
+                id: "treat2",
+                fraction: 0.1,
+                replaysSessionSampleRate: 0.25,
+            },
+        ],
+        paths: [
+            // data pages
+            "/grapher/democracy-index-eiu",
+            "/grapher/gdp-per-capita-worldbank",
+            "/grapher/co-emissions-per-capita",
+            "/grapher/life-expectancy",
+            "/grapher/child-mortality",
+            "/grapher/population",
+            "/grapher/human-rights-index-vdem",
+            "/grapher/share-of-population-in-extreme-poverty",
+            "/grapher/economic-inequality-gini-index",
+            "/grapher/per-capita-energy-use",
+            "/grapher/children-born-per-woman",
+            "/grapher/nuclear-warhead-stockpiles-lines",
+            "/grapher/daily-per-capita-caloric-supply",
+            "/grapher/eating-disorders-prevalence",
+            "/grapher/share-electricity-nuclear",
+            "/grapher/mean-years-of-schooling-long-run",
+            "/grapher/female-homicide-victims",
+            "/grapher/share-of-individuals-using-the-internet",
+            "/grapher/prevalence-of-undernourishment",
+            "/grapher/incidence-of-hivaids",
+        ],
+    }),
+    /*
+     * Experiment: all-charts-vs-featured-v1
+     *
+     * This experiment trials the "Featured metrics" block in place of the "All Charts" block on
+     * a sample of modular topic pages and data pages. The goal of the experiment is to
+     * get a feel for differences in user engagement, controlling for the the location it appears.
+     *
+     * Conditions:
+     * - (a) status quo (all charts block)
+     * - (b) featured metrics block (treatment)
+     *
+     */
+    new Experiment({
+        id: "all-charts-vs-featured-v1",
+        expires: "2026-12-31T00:00:00.000Z",
+        arms: [
+            { id: "all-charts", fraction: 0.7 },
+            {
+                id: "featured-metrics",
+                fraction: 0.3,
+                replaysSessionSampleRate: 0.25,
+            },
+        ],
+        paths: [
+            // modular topic pages
+            "/population-growth",
+            "/poverty",
+            "/co2-and-greenhouse-gas-emissions",
+            "/life-expectancy",
+            "/agricultural-production",
+            "/natural-disasters",
+            "/causes-of-death",
+            "/war-and-peace",
+            "/migration",
+            "/artificial-intelligence",
+            "/child-mortality",
+            "/economic-growth",
+            "/economic-inequality",
+            "/democracy",
+            "/climate-change",
+            // data pages
+            "/grapher/democracy-index-eiu",
+            "/grapher/gdp-per-capita-worldbank",
+            "/grapher/co-emissions-per-capita",
+            "/grapher/life-expectancy",
+            "/grapher/child-mortality",
+            "/grapher/population",
+            "/grapher/human-rights-index-vdem",
+            "/grapher/share-of-population-in-extreme-poverty",
+            "/grapher/economic-inequality-gini-index",
+            "/grapher/per-capita-energy-use",
+            "/grapher/children-born-per-woman",
+            "/grapher/nuclear-warhead-stockpiles-lines",
+            "/grapher/daily-per-capita-caloric-supply",
+            "/grapher/eating-disorders-prevalence",
+            "/grapher/share-electricity-nuclear",
+            "/grapher/mean-years-of-schooling-long-run",
+            "/grapher/female-homicide-victims",
+            "/grapher/share-of-individuals-using-the-internet",
+            "/grapher/prevalence-of-undernourishment",
+            "/grapher/incidence-of-hivaids",
+        ],
+    }),
     new Experiment({
         id: "user-survey-role-v1",
         expires: "2026-03-20T00:00:00.000Z",
@@ -14,59 +132,5 @@ export const experiments: Experiment[] = [
             { id: "free-form", fraction: 1 / 3 },
         ],
         paths: ["/"],
-    }),
-    new Experiment({
-        /*
-         * Experiment: data-page-insight-btns-2
-         *
-         * Goal of experiment is to better understand user demand for "insights"
-         * when viewing a data page. Each arm shows the user one or more buttons
-         * beneath the grapher, varying the number of buttons and the type of text in
-         * these buttons.
-         *
-         * Conditions:
-         * - (a) "placebo" vs "generic" vs "specific" text
-         *     - placebo text is button text that does not refer to insights (e.g. "Data sources and measurement")
-         *     - generic text is button text that refers to a generic insights page (e.g. "View insights about this data")
-         *     - specific text is button text that describes a concrete insight (e.g. "Women live longer than men, but how much longer varies widely around the world")
-         * - (b) 1 vs 3 links shown
-         * Control arm: no changes
-         * Control arm control1: "what you should know about this data" block is moved down the page (also the case in all treatment arms)
-         * Treatment arm treat00: placebo - 1 link
-         * Treatment arm treat10: generic - 1 link
-         * Treatment arm treat01: placebo - 3 links
-         * Treatment arm treat11: generic - 3 links
-         * Treatment arm treat20: specific - 1 link
-         * Treatment arm treat21: specific - 3 links
-         */
-        id: "data-page-insight-btns-2",
-        expires: "2025-10-01T00:00:00.000Z",
-        arms: [
-            {
-                id: "control",
-                fraction: 0.51,
-                replaysSessionSampleRate:
-                    SENTRY_DEFAULT_REPLAYS_SESSION_SAMPLE_RATE,
-            },
-            { id: "control1", fraction: 0.07, replaysSessionSampleRate: 1 },
-            { id: "treat00", fraction: 0.07, replaysSessionSampleRate: 1 },
-            { id: "treat10", fraction: 0.07, replaysSessionSampleRate: 1 },
-            { id: "treat01", fraction: 0.07, replaysSessionSampleRate: 1 },
-            { id: "treat11", fraction: 0.07, replaysSessionSampleRate: 1 },
-            { id: "treat20", fraction: 0.07, replaysSessionSampleRate: 1 },
-            { id: "treat21", fraction: 0.07, replaysSessionSampleRate: 1 },
-        ],
-        paths: [
-            "/grapher/co-emissions-per-capita",
-            "/grapher/life-expectancy",
-            "/grapher/child-mortality",
-            "/grapher/population",
-            "/grapher/population-density",
-            "/grapher/carbon-intensity-electricity",
-            "/grapher/human-rights-index-vdem",
-            "/grapher/share-of-population-in-extreme-poverty",
-            "/grapher/economic-inequality-gini-index",
-            "/grapher/per-capita-energy-use",
-        ],
     }),
 ]
