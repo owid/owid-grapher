@@ -134,6 +134,7 @@ import {
     getChartsCsv,
     getChartConfigJson,
     getChartParentJson,
+    getChartSettingsJson,
     getChartPatchConfigJson,
     getChartLogsJson,
     getChartReferencesJson,
@@ -207,6 +208,11 @@ getRouteWithROTransaction(
     apiRouter,
     "/charts/:chartId.parent.json",
     getChartParentJson
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/charts/:chartId.settings.json",
+    getChartSettingsJson
 )
 getRouteWithROTransaction(
     apiRouter,
