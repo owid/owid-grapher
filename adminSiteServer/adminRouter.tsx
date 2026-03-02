@@ -159,11 +159,14 @@ getPlainRouteWithROTransaction(
         const chartId = expectInt(req.params.id)
         const chart = await getChartConfigById(trx, chartId)
         if (chart) {
+            const forceDatapage = req.query.forceDatapage
+                ? req.query.forceDatapage === "true"
+                : chart.forceDatapage
             const previewDataPageOrGrapherPage =
                 await renderPreviewDataPageOrGrapherPage(
                     chart.config,
                     chart.id,
-                    chart.forceDatapage,
+                    forceDatapage,
                     trx
                 )
             res.send(previewDataPageOrGrapherPage)
