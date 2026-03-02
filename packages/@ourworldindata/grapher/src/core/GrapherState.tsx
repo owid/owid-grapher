@@ -1532,7 +1532,7 @@ export class GrapherState
         return makeChartState(chartType, this)
     }
 
-    @computed get chartSeriesNames(): SeriesName[] {
+    @computed private get chartSeriesNames(): SeriesName[] {
         if (!this.isReady) return []
 
         // Collect series names from all chart instances when faceted
@@ -1548,6 +1548,16 @@ export class GrapherState
         }
 
         return this.chartState.series.map((series) => series.seriesName)
+    }
+
+    @computed get focusableSeriesNames(): SeriesName[] {
+        if (this.isOnStackedDiscreteBarTab) {
+            return [
+                ...this.chartSeriesNames,
+                ...this.selection.selectedEntityNames,
+            ]
+        }
+        return this.chartSeriesNames
     }
 
     @computed get isStatic(): boolean {

@@ -351,7 +351,7 @@ describe("sorting", () => {
         const chartState = new StackedDiscreteBarChartState({
             manager: baseManager,
         })
-        expect(chartState.sortedItems.map((item) => item.entityName)).toEqual([
+        expect(chartState.sortedRows.map((item) => item.entityName)).toEqual([
             "Spain",
             "France",
             "Germany",
@@ -369,7 +369,7 @@ describe("sorting", () => {
             },
         })
 
-        expect(chartState.sortedItems.map((item) => item.entityName)).toEqual([
+        expect(chartState.sortedRows.map((item) => item.entityName)).toEqual([
             "France",
             "Germany",
             "Spain",
@@ -387,7 +387,7 @@ describe("sorting", () => {
             },
         })
 
-        expect(chartState.sortedItems.map((item) => item.entityName)).toEqual([
+        expect(chartState.sortedRows.map((item) => item.entityName)).toEqual([
             "Spain",
             "France",
             "Germany",
@@ -405,7 +405,7 @@ describe("sorting", () => {
             },
         })
 
-        expect(chartState.sortedItems.map((item) => item.entityName)).toEqual([
+        expect(chartState.sortedRows.map((item) => item.entityName)).toEqual([
             "Spain",
             "France",
             "Germany",
@@ -425,7 +425,7 @@ describe("sorting", () => {
             },
         })
 
-        expect(chartState.sortedItems.map((item) => item.entityName)).toEqual(
+        expect(chartState.sortedRows.map((item) => item.entityName)).toEqual(
             selection
         )
     })
@@ -442,7 +442,7 @@ describe("sorting", () => {
             },
         })
 
-        expect(chartState.sortedItems.map((item) => item.entityName)).toEqual([
+        expect(chartState.sortedRows.map((item) => item.entityName)).toEqual([
             "Spain",
             "Germany",
             "France",
@@ -471,7 +471,7 @@ describe("sorting", () => {
         })
 
         // Expected behavior: Belgium and Germany are sorted first because they have values.
-        expect(chartState.sortedItems.map((item) => item.entityName)).toEqual([
+        expect(chartState.sortedRows.map((item) => item.entityName)).toEqual([
             "Belgium",
             "Germany",
             "Spain",
