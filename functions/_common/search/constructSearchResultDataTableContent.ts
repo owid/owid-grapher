@@ -343,11 +343,11 @@ function buildDataTableContentForStackedDiscreteBarChart({
             // otherwise use the first entity in the chart.
             const focusedEntityName = grapherState.focusArray.seriesNames[0]
             const focusedItem = focusedEntityName
-                ? chartState.sortedItems.find(
+                ? chartState.sortedRows.find(
                       (item) => item.entityName === focusedEntityName
                   )
                 : undefined
-            const item = focusedItem ?? chartState.sortedItems[0]
+            const item = focusedItem ?? chartState.sortedRows[0]
 
             type TableRow = SearchChartHitDataTableProps["rows"][number] & {
                 columnSlug: string

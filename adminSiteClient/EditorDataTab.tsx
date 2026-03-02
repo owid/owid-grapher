@@ -673,14 +673,13 @@ export class FocusSection extends React.Component<{
         const focusedSeriesNameSet = grapherState.focusArray.seriesNameSet
         const focusedSeriesNames = grapherState.focusArray.seriesNames
 
-        // series available to highlight are those that are currently plotted
-        const seriesNameSet = new Set(grapherState.chartSeriesNames)
+        const seriesNameSet = new Set(grapherState.focusableSeriesNames)
         const availableSeriesNameSet = differenceOfSets([
             seriesNameSet,
             focusedSeriesNameSet,
         ])
 
-        // focusing only makes sense for two or more plotted series
+        // Focusing only makes sense for two or more plotted series
         if (focusedSeriesNameSet.size === 0 && availableSeriesNameSet.size < 2)
             return null
 

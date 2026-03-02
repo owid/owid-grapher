@@ -1,10 +1,4 @@
-import {
-    Color,
-    EntityName,
-    OwidVariableRow,
-    SeriesName,
-    Time,
-} from "@ourworldindata/types"
+import { OwidVariableRow, SeriesName, Time } from "@ourworldindata/types"
 import { ChartSeries } from "../chart/ChartInterface"
 import {
     GRAPHER_AREA_OPACITY_DEFAULT,
@@ -14,7 +8,6 @@ import {
 import { Point } from "@ourworldindata/utils"
 import { InteractionState } from "../interaction/InteractionState.js"
 import { Emphasis } from "../interaction/Emphasis"
-import { SeriesLabelState } from "../seriesLabel/SeriesLabelState.js"
 import { LegendStyleConfig } from "../legend/LegendStyleConfig"
 
 const opacityByEmphasis: Record<Emphasis, number> = {
@@ -140,27 +133,4 @@ export interface RenderStackedAreaSeries<
 > extends PlacedStackedAreaSeries<PositionType> {
     emphasis?: Emphasis
     hover?: InteractionState
-}
-
-export interface Bar {
-    color: Color
-    seriesName: string
-    columnSlug: string
-    point: StackedPoint<EntityName>
-}
-
-export interface Item {
-    entityName: string
-    shortEntityName?: string
-    bars: Bar[]
-    totalValue: number
-    focus: InteractionState
-}
-
-export interface SizedItem extends Item {
-    label: SeriesLabelState
-}
-
-export interface PlacedItem extends SizedItem {
-    yPosition: number
 }

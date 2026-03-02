@@ -186,7 +186,6 @@ export class EditorFeatures {
         return (
             !this.grapherState.isScatter &&
             !this.grapherState.isMarimekko &&
-            !this.grapherState.isStackedDiscreteBar &&
             this.grapherState.isOnChartTab
         )
     }
