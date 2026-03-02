@@ -26,8 +26,10 @@ import { useArchiveVersions } from "./versions.js"
 export const DATE_FORMAT = "MMMM D, YYYY"
 export const TIME_FORMAT = "HH:mm"
 
-export interface ArchiveNavigationProps
-    extends Omit<ArchiveSiteNavigationInfo, "contentType"> {
+export interface ArchiveNavigationProps extends Omit<
+    ArchiveSiteNavigationInfo,
+    "contentType"
+> {
     archivalDate: ArchivalDateString
 }
 

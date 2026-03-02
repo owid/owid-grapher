@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddPresentationToVariables1688372371221
-    implements MigrationInterface
-{
+export class AddPresentationToVariables1688372371221 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(
             `-- sql

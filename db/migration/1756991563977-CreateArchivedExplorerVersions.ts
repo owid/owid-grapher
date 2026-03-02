@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class CreateArchivedExplorerVersions1756991563977
-    implements MigrationInterface
-{
+export class CreateArchivedExplorerVersions1756991563977 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             CREATE TABLE archived_explorer_versions (

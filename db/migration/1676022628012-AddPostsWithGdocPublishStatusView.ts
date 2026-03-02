@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddPostsWithGdocPublishStatusView1676022628012
-    implements MigrationInterface
-{
+export class AddPostsWithGdocPublishStatusView1676022628012 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
         create view posts_with_gdoc_publish_status as

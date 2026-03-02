@@ -60,8 +60,10 @@ import {
 } from "../settings/clientSettings.js"
 import urljoin from "url-join"
 
-interface VariablePageData
-    extends Omit<OwidVariableWithDataAndSource, "source"> {
+interface VariablePageData extends Omit<
+    OwidVariableWithDataAndSource,
+    "source"
+> {
     datasetNamespace: string
     charts: ChartListItem[]
     grapherConfig: GrapherInterface | undefined
@@ -92,13 +94,10 @@ const getDifference = <T extends object>(object: T, base: T): Partial<T> => {
     return changes(object, base)
 }
 
-class VariableEditable
-    implements
-        Omit<
-            OwidVariableWithDataAndSource,
-            "id" | "values" | "years" | "entities"
-        >
-{
+class VariableEditable implements Omit<
+    OwidVariableWithDataAndSource,
+    "id" | "values" | "years" | "entities"
+> {
     name = ""
     unit = ""
     shortUnit = ""

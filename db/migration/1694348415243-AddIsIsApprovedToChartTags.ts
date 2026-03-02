@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddIsIsApprovedToChartTags1694348415243
-    implements MigrationInterface
-{
+export class AddIsIsApprovedToChartTags1694348415243 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
         ALTER TABLE chart_tags

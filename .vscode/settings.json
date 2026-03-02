@@ -3,7 +3,7 @@
     "editor.insertSpaces": true,
     "editor.tabSize": 4,
     "editor.detectIndentation": false,
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "oxc.oxc-vscode",
     "files.insertFinalNewline": false,
     "search.exclude": {
         ".yarn": true,
@@ -25,5 +25,5 @@
     "Prettier-SQL.keywordCase": "upper",
     "Prettier-SQL.SQLFlavourOverride": "mysql",
     "Prettier-SQL.expressionWidth": 80,
-    "prettier.semi": false
+    "oxc.formatting.enable": true
 }

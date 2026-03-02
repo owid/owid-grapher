@@ -18,9 +18,7 @@ const slugs = [
     "5-year-survival-rate-of-cancers-among-female-patients-in-england",
 ]
 
-export class RetainMultiEntitySelectionForChartsSplitByMetric1737580227406
-    implements MigrationInterface
-{
+export class RetainMultiEntitySelectionForChartsSplitByMetric1737580227406 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Charts faceted by metric used to ignore the 'change-country' setting
         // and offer multi-entity selection always. The code change that comes

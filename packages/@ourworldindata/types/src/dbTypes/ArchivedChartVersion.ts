@@ -10,12 +10,13 @@ export interface DbInsertArchivedChartVersion {
     manifest: JsonString
 }
 
-export interface DbPlainArchivedChartVersion
-    extends Required<DbInsertArchivedChartVersion> {
+export interface DbPlainArchivedChartVersion extends Required<DbInsertArchivedChartVersion> {
     id: number
 }
 
-export interface DbEnrichedArchivedChartVersion
-    extends Omit<DbPlainArchivedChartVersion, "manifest"> {
+export interface DbEnrichedArchivedChartVersion extends Omit<
+    DbPlainArchivedChartVersion,
+    "manifest"
+> {
     manifest: Record<string, any> // TODO: Turn into more specific type
 }

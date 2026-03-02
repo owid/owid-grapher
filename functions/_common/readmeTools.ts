@@ -27,8 +27,10 @@ export function* getCitationLines(
     yield "### How to cite this data"
     yield ""
     yield "#### In-line citation"
-    yield `If you have limited space (e.g. in data visualizations), you can use this abbreviated in-line citation:` +
-        markdownNewlineEnding
+    yield (
+        `If you have limited space (e.g. in data visualizations), you can use this abbreviated in-line citation:` +
+            markdownNewlineEnding
+    )
     const attributionFragments = getAttributionFragmentsFromVariable({
         ...def,
         source: { name: def.sourceName },
@@ -98,13 +100,17 @@ export function* getKeyDataLines(
 ): Generator<string, void, unknown> {
     const lastUpdated = getLastUpdatedFromVariable(def)
     if (lastUpdated)
-        yield `Last updated: ${formatSourceDate(lastUpdated, "MMMM D, YYYY")}` +
-            markdownNewlineEnding
+        yield (
+            `Last updated: ${formatSourceDate(lastUpdated, "MMMM D, YYYY")}` +
+                markdownNewlineEnding
+        )
 
     const nextUpdate = getNextUpdateFromVariable(def)
     if (nextUpdate)
-        yield `Next update: ${formatSourceDate(nextUpdate, "MMMM YYYY")}` +
-            markdownNewlineEnding
+        yield (
+            `Next update: ${formatSourceDate(nextUpdate, "MMMM YYYY")}` +
+                markdownNewlineEnding
+        )
 
     const dateRange = def.timespan ? getDateRange(def.timespan) : undefined
     if (dateRange) yield `Date range: ${dateRange}` + markdownNewlineEnding
@@ -117,8 +123,10 @@ export function* getKeyDataLines(
             ? col.unitConversionFactor
             : undefined
     if (unitConversionFactor)
-        yield `Unit conversion factor: ${unitConversionFactor}` +
-            markdownNewlineEnding
+        yield (
+            `Unit conversion factor: ${unitConversionFactor}` +
+                markdownNewlineEnding
+        )
 }
 
 export function yieldMultilineTextAsLines(line: string): string[] {
@@ -143,14 +151,20 @@ export function* getSources(
         yield ""
         yield `#### ${source.label}`
         if (source.dataPublishedBy)
-            yield `Data published by: ${source.dataPublishedBy.trim()}` +
-                markdownNewlineEnding
+            yield (
+                `Data published by: ${source.dataPublishedBy.trim()}` +
+                    markdownNewlineEnding
+            )
         if (source.retrievedOn)
-            yield `Retrieved on: ${source.retrievedOn.trim()}` +
-                markdownNewlineEnding
+            yield (
+                `Retrieved on: ${source.retrievedOn.trim()}` +
+                    markdownNewlineEnding
+            )
         if (source.retrievedFrom)
-            yield `Retrieved from: ${source.retrievedFrom.trim()}` +
-                markdownNewlineEnding
+            yield (
+                `Retrieved from: ${source.retrievedFrom.trim()}` +
+                    markdownNewlineEnding
+            )
     }
 }
 

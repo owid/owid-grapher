@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class FixChartsXParentsViewNullChartType1768494494681
-    implements MigrationInterface
-{
+export class FixChartsXParentsViewNullChartType1768494494681 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Fix the charts_x_parents view to include charts with NULL chartType
         // These are charts with chartTypes=[] (no chart tab, only map),

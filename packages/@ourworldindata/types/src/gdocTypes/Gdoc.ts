@@ -402,11 +402,10 @@ export interface OwidGdocErrorMessage {
 }
 
 // see also: getOwidGdocFromJSON()
-export interface OwidGdocJSON
-    extends Omit<
-        OwidGdocPostInterface,
-        "createdAt" | "publishedAt" | "updatedAt"
-    > {
+export interface OwidGdocJSON extends Omit<
+    OwidGdocPostInterface,
+    "createdAt" | "publishedAt" | "updatedAt"
+> {
     createdAt: string
     publishedAt: string | null
     updatedAt: string | null

@@ -10,8 +10,10 @@ export interface DbInsertPostGdocComponent {
 
 export type DbRawPostGdocComponent = Required<DbInsertPostGdocComponent>
 
-export interface DbEnrichedPostGdocComponent
-    extends Omit<DbRawPostGdocComponent, "config"> {
+export interface DbEnrichedPostGdocComponent extends Omit<
+    DbRawPostGdocComponent,
+    "config"
+> {
     config: Record<string, unknown>
 }
 

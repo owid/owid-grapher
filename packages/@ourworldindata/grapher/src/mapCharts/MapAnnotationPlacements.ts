@@ -10,8 +10,10 @@ interface RawAnnotationPlacement {
     bridgeCountries?: string[]
 }
 
-interface EnrichedAnnotationPlacement
-    extends Omit<RawAnnotationPlacement, "bridgeCountries"> {
+interface EnrichedAnnotationPlacement extends Omit<
+    RawAnnotationPlacement,
+    "bridgeCountries"
+> {
     bridgeFeatures?: GeoFeature[]
 }
 
