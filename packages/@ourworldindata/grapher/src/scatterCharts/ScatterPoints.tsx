@@ -4,14 +4,14 @@ import { observer } from "mobx-react"
 import * as React from "react"
 import { MultiColorPolyline } from "./MultiColorPolyline"
 import {
-    ScatterRenderSeries,
+    RenderScatterSeries,
     SCATTER_POINT_OPACITY,
     SCATTER_POINT_STROKE_WIDTH,
 } from "./ScatterPlotChartConstants"
 import { Triangle } from "./Triangle"
 
 interface ScatterPointProps {
-    series: ScatterRenderSeries
+    series: RenderScatterSeries
     hideFocusRing?: boolean
     isLayerMode?: boolean
     onMouseEnter?: (seriesName: string) => void
@@ -82,7 +82,7 @@ export class ScatterPoint extends React.Component<ScatterPointProps> {
 }
 
 interface ScatterLineProps {
-    series: ScatterRenderSeries
+    series: RenderScatterSeries
     isLayerMode: boolean
     onMouseEnter?: (seriesName: string) => void
     onMouseLeave?: () => void

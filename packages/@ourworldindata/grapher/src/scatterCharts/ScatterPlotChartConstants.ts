@@ -1,14 +1,11 @@
-import { ScaleLinear } from "d3-scale"
 import { Quadtree } from "d3-quadtree"
 import { OwidTable } from "@ourworldindata/core-table"
 import { DualAxis } from "../axis/Axis"
 import { ChartManager } from "../chart/ChartManager"
 import { NoDataModalManager } from "../noDataModal/NoDataModal"
-import { ColorScale } from "../color/ColorScale"
 import {
     ScatterPointLabelStrategy,
     EntitySelectionMode,
-    SeriesName,
     Color,
     Time,
     EntityName,
@@ -93,16 +90,24 @@ export const SCATTER_LABEL_DEFAULT_FONT_SIZE_FACTOR: number =
 export const SCATTER_LABEL_FONT_SIZE_FACTOR_WHEN_HIDDEN_LINES: number =
     GRAPHER_FONT_SCALE_12
 
-export interface ScatterRenderSeries extends ChartSeries {
-    displayKey: string
-    size: number
-    fontSize: number
+// Positioned series — data mapped to screen coordinates
+export interface PlacedScatterSeries extends ChartSeries {
+    label: string
     points: ScatterRenderPoint[]
+    displayKey: string
+    size: number // representative radius (last point)
+    fontSize: number
     text: string
-    isHover?: boolean
-    isTooltip?: boolean
-    isFocus?: boolean
-    isForeground?: boolean
+    isScaleColor?: boolean
+    offsetVector: PointVector
+}
+
+// Interaction-state-resolved series — ready for rendering and label placement
+export interface RenderScatterSeries extends PlacedScatterSeries {
+    isHover: boolean
+    isFocus: boolean
+    isForeground: boolean
+    isTooltip: boolean
     offsetVector: PointVector
     startLabel?: ScatterLabel
     midLabels: ScatterLabel[]
@@ -116,7 +121,7 @@ export interface ScatterLabel {
     fontWeight: number
     color: Color
     bounds: Bounds
-    series: ScatterRenderSeries
+    series: RenderScatterSeries
     isHidden?: boolean
     isStart?: boolean
     isMid?: boolean
@@ -124,17 +129,11 @@ export interface ScatterLabel {
 }
 
 export interface ScatterPointsWithLabelsProps {
-    seriesArray: ScatterSeries[]
-    hoveredSeriesNames?: SeriesName[]
-    focusedSeriesNames?: SeriesName[]
-    isHoverModeActive?: boolean
-    tooltipSeriesName?: SeriesName
+    seriesArray: RenderScatterSeries[]
+    isLayerMode: boolean
     dualAxis: DualAxis
-    colorScale?: ColorScale
-    sizeScale: ScaleLinear<number, number>
-    fontScale?: ScaleLinear<number, number>
     baseFontSize: number
-    onMouseEnter?: (series: ScatterSeries) => void
+    onMouseEnter?: (seriesName: string) => void
     onMouseLeave?: () => void
     onClick?: () => void
     isConnected: boolean
@@ -152,7 +151,7 @@ export const SCATTER_QUADTREE_SAMPLING_DISTANCE = 10
 export const SCATTER_POINT_HOVER_TARGET_RANGE = 20
 
 export interface ScatterPointQuadtreeNode {
-    series: ScatterSeries
+    series: { seriesName: string }
     x: number
     y: number
 }

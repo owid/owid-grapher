@@ -1,16 +1,13 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
 import { type BaseType, type Selection, select } from "d3-selection"
-import { ScaleLinear } from "d3-scale"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { SortOrder } from "@ourworldindata/types"
 import {
     Bounds,
     PointVector,
     sortNumeric,
-    makeSafeForCSS,
     getRelativeMouse,
-    intersection,
     guid,
     makeFigmaId,
 } from "@ourworldindata/utils"
@@ -21,14 +18,9 @@ import { Halo } from "@ourworldindata/components"
 import { MultiColorPolyline } from "./MultiColorPolyline"
 import {
     ScatterPointsWithLabelsProps,
-    ScatterRenderSeries,
+    RenderScatterSeries,
     ScatterLabel,
-    ScatterSeries,
-    SCATTER_LINE_MIN_WIDTH,
-    SCATTER_POINT_MIN_RADIUS,
     SCATTER_POINT_HOVER_TARGET_RANGE,
-    ScatterRenderPoint,
-    SCATTER_LABEL_MIN_FONT_SIZE_FACTOR,
 } from "./ScatterPlotChartConstants"
 import { ScatterLine, ScatterPoint } from "./ScatterPoints"
 import {
@@ -38,67 +30,32 @@ import {
     labelPriority,
 } from "./ScatterUtils"
 import { Triangle } from "./Triangle"
-import { ColorScale } from "../color/ColorScale"
-import {
-    BASE_FONT_SIZE,
-    GRAPHER_TEXT_OUTLINE_FACTOR,
-} from "../core/GrapherConstants"
+import { GRAPHER_TEXT_OUTLINE_FACTOR } from "../core/GrapherConstants"
 
 // This is the component that actually renders the points. The higher level ScatterPlot class renders points, legends, comparison lines, etc.
 @observer
 export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLabelsProps> {
     base = React.createRef<SVGGElement>()
 
-    // closest point by quadtree search
-    private nearSeries: ScatterSeries | undefined = undefined
-    // currently hovered-over point via mouseenter/leave
-    private overSeries: ScatterSeries | undefined = undefined
+    // closest point by quadtree search (series name)
+    private nearSeriesName: string | undefined = undefined
+    // currently hovered-over point via mouseenter/leave (series name)
+    private overSeriesName: string | undefined = undefined
 
     constructor(props: ScatterPointsWithLabelsProps) {
         super(props)
 
-        makeObservable<ScatterPointsWithLabels, "nearSeries" | "overSeries">(
-            this,
-            {
-                nearSeries: observable,
-                overSeries: observable,
-            }
-        )
+        makeObservable<
+            ScatterPointsWithLabels,
+            "nearSeriesName" | "overSeriesName"
+        >(this, {
+            nearSeriesName: observable,
+            overSeriesName: observable,
+        })
     }
 
-    @computed private get seriesArray(): ScatterSeries[] {
-        return this.props.seriesArray
-    }
-
-    @computed private get focusedSeriesNames(): string[] {
-        return (
-            intersection(
-                this.props.focusedSeriesNames || [],
-                this.seriesArray.map((g) => g.seriesName)
-            ) ?? []
-        )
-    }
-
-    @computed private get hoveredSeriesNames(): string[] {
-        return this.props.hoveredSeriesNames ?? []
-    }
-
-    @computed private get tooltipSeriesName(): string | undefined {
-        return this.props.tooltipSeriesName
-    }
-
-    // Layered mode occurs when any entity on the chart is hovered or focused
-    // Then, a special "foreground" set of entities is rendered over the background
     @computed private get isLayerMode(): boolean {
-        return (
-            this.focusedSeriesNames.length > 0 ||
-            this.hoveredSeriesNames.length > 0 ||
-            this.props.isHoverModeActive ||
-            // if the user has selected entities that are not in the chart,
-            // we want to move all entities into the background
-            ((this.props.focusedSeriesNames ?? []).length > 0 &&
-                this.focusedSeriesNames.length === 0)
-        )
+        return this.props.isLayerMode
     }
 
     @computed private get bounds(): Bounds {
@@ -107,143 +64,48 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
 
     // When focusing multiple entities, we hide some information to declutter
     @computed private get isSubtleForeground(): boolean {
+        const focused = this.props.seriesArray.filter((s) => s.isFocus)
         return (
-            this.focusedSeriesNames.length > 1 &&
+            focused.length > 1 &&
             this.props.seriesArray.some((series) => series.points.length > 2)
         )
-    }
-
-    @computed private get colorScale(): ColorScale | undefined {
-        return this.props.colorScale
-    }
-
-    @computed private get sizeScale(): ScaleLinear<number, number> {
-        return this.props.sizeScale
-    }
-
-    @computed private get fontScale(): ScaleLinear<number, number> | undefined {
-        return this.props.fontScale
     }
 
     @computed private get hideScatterLabels(): boolean {
         return !!this.props.hideScatterLabels
     }
 
-    @computed private get hideEntityLabels(): boolean {
-        return !!this.props.hideEntityLabels
-    }
-
-    private getPointRadius(value: number | undefined): number {
-        const radius =
-            value !== undefined
-                ? this.sizeScale(value)
-                : this.sizeScale.range()[0]
-        // We are enforcing the minimum radius/width just before render,
-        // it should not be enforced earlier than that.
-        return Math.max(
-            radius,
-            this.props.isConnected
-                ? SCATTER_LINE_MIN_WIDTH
-                : SCATTER_POINT_MIN_RADIUS
-        )
-    }
-
-    private getLabelFontSize(value: number | undefined): number {
-        if (!this.fontScale) return BASE_FONT_SIZE
-        const fontSize =
-            value !== undefined
-                ? this.fontScale(value)
-                : this.fontScale.range()[0]
-        return Math.max(
-            fontSize,
-            SCATTER_LABEL_MIN_FONT_SIZE_FACTOR * this.props.baseFontSize
-        )
-    }
-
     @computed private get hideConnectedScatterLines(): boolean {
         return this.props.hideConnectedScatterLines
     }
 
-    // Pre-transform data for rendering
-    @computed private get initialRenderSeries(): ScatterRenderSeries[] {
-        const { seriesArray, colorScale, bounds } = this
-        const xAxis = this.props.dualAxis.horizontalAxis.clone()
-        xAxis.range = bounds.xRange()
-        const yAxis = this.props.dualAxis.verticalAxis.clone()
-        yAxis.range = this.bounds.yRange()
-
-        return sortNumeric(
-            seriesArray.map((series): ScatterRenderSeries => {
-                const points = series.points.map(
-                    (point): ScatterRenderPoint => {
-                        const scaleColor =
-                            colorScale !== undefined
-                                ? colorScale.getColor(point.color)
-                                : undefined
-                        return {
-                            position: new PointVector(
-                                Math.floor(xAxis.place(point.x)),
-                                Math.floor(yAxis.place(point.y))
-                            ),
-                            color: scaleColor ?? series.color,
-                            size: this.getPointRadius(point.size),
-                            time: point.time,
-                            label: point.label,
-                        }
-                    }
-                )
-
-                return {
-                    seriesName: series.seriesName,
-                    displayKey: "key-" + makeSafeForCSS(series.seriesName),
-                    color: series.color,
-                    size: R.last(points)!.size,
-                    fontSize: this.getLabelFontSize(
-                        R.last(series.points)!.size
-                    ),
-                    points,
-                    text: series.label,
-                    midLabels: [],
-                    allLabels: [],
-                    offsetVector: PointVector.zero,
-                }
-            }),
-            (d) => d.size,
-            SortOrder.desc
-        )
+    @computed private get focusedSeriesNames(): string[] {
+        return this.props.seriesArray
+            .filter((s) => s.isFocus)
+            .map((s) => s.seriesName)
     }
 
-    @computed private get renderSeries(): ScatterRenderSeries[] {
-        // Draw the largest points first so that smaller ones can sit on top of them
-        const renderData = this.initialRenderSeries
+    @computed private get hoveredSeriesNames(): string[] {
+        return this.props.seriesArray
+            .filter((s) => s.isHover)
+            .map((s) => s.seriesName)
+    }
 
-        for (const series of renderData) {
-            series.isHover = this.hoveredSeriesNames.includes(series.seriesName)
-            series.isFocus = this.focusedSeriesNames.includes(series.seriesName)
-            series.isTooltip = this.tooltipSeriesName === series.seriesName
-            series.isForeground = series.isHover || series.isFocus
-            if (series.isHover) series.size += 1
+    @computed private get renderSeries(): RenderScatterSeries[] {
+        const renderData = this.props.seriesArray
+        const labelOpts = {
+            isSubtleForeground: this.isSubtleForeground,
+            hideConnectedScatterLines: this.hideConnectedScatterLines,
+            baseFontSize: this.props.baseFontSize,
         }
 
         for (const series of renderData) {
-            series.startLabel = makeStartLabel(
-                series,
-                this.isSubtleForeground,
-                this.hideConnectedScatterLines,
-                this.props.baseFontSize
-            )
-            series.midLabels = makeMidLabels(
-                series,
-                this.isSubtleForeground,
-                this.hideConnectedScatterLines,
-                this.props.baseFontSize
-            )
-            series.endLabel = makeEndLabel(
-                series,
-                this.isSubtleForeground,
-                this.hideConnectedScatterLines,
-                this.props.baseFontSize
-            )
+            series.midLabels = []
+            series.allLabels = []
+
+            series.startLabel = makeStartLabel(series, labelOpts)
+            series.midLabels = makeMidLabels(series, labelOpts)
+            series.endLabel = makeEndLabel(series, labelOpts)
             series.allLabels = [series.startLabel]
                 .concat(series.midLabels)
                 .concat([series.endLabel])
@@ -368,17 +230,14 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
     // Otherwise we fall back to the dot that the cursor is currently hovering over (if any)
 
     @action.bound onPointMouseEnter(seriesName: string): void {
-        this.overSeries = this.seriesArray.find(
-            (series) => series.seriesName === seriesName
-        )
+        this.overSeriesName = seriesName
         // only select if we're not already close to another point's center
-        if (this.overSeries && !this.nearSeries)
-            this.props.onMouseEnter?.(this.overSeries)
+        if (!this.nearSeriesName) this.props.onMouseEnter?.(seriesName)
     }
 
     @action.bound onPointMouseLeave(): void {
-        this.overSeries = undefined
-        if (!this.nearSeries) this.props.onMouseLeave?.()
+        this.overSeriesName = undefined
+        if (!this.nearSeriesName) this.props.onMouseLeave?.()
     }
 
     @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>): void {
@@ -387,33 +246,34 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
 
             // be more fine grained about finding nearby points when the cursor is
             // already hovering over a larger dot in the background
-            const range = this.overSeries
+            const range = this.overSeriesName
                 ? SCATTER_POINT_HOVER_TARGET_RANGE / 4
                 : SCATTER_POINT_HOVER_TARGET_RANGE
 
             // search for closest point to cursor position within range
-            const nearby = this.props.quadtree?.find(x, y, range)?.series
-            if (nearby) {
+            const nearby = this.props.quadtree?.find(x, y, range)
+            const nearbyName = nearby?.series.seriesName
+            if (nearbyName) {
                 // only trigger listener if the selection has changed
-                if (nearby.seriesName !== this.nearSeries?.seriesName) {
-                    this.props.onMouseEnter?.(nearby)
+                if (nearbyName !== this.nearSeriesName) {
+                    this.props.onMouseEnter?.(nearbyName)
                 }
-            } else if (this.nearSeries) {
+            } else if (this.nearSeriesName) {
                 // if we've just moved out of range of a nearby point, fall back to
                 // the currently hovered-over dot (if there is one)
                 this.props.onMouseLeave?.()
-                if (this.overSeries) {
-                    this.props.onMouseEnter?.(this.overSeries)
+                if (this.overSeriesName) {
+                    this.props.onMouseEnter?.(this.overSeriesName)
                 }
             }
-            this.nearSeries = nearby
+            this.nearSeriesName = nearbyName
         }
     }
 
     @action.bound onMouseLeave(): void {
         // hide tooltip and clear hover state when leaving the chart's bounds
-        this.nearSeries = undefined
-        this.overSeries = undefined
+        this.nearSeriesName = undefined
+        this.overSeriesName = undefined
         if (this.props.onMouseLeave) this.props.onMouseLeave()
     }
 
@@ -421,11 +281,11 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
         if (this.props.onClick) this.props.onClick()
     }
 
-    @computed get backgroundSeries(): ScatterRenderSeries[] {
+    @computed get backgroundSeries(): RenderScatterSeries[] {
         return this.renderSeries.filter((series) => !series.isForeground)
     }
 
-    @computed get foregroundSeries(): ScatterRenderSeries[] {
+    @computed get foregroundSeries(): RenderScatterSeries[] {
         return this.renderSeries.filter((series) => !!series.isForeground)
     }
 

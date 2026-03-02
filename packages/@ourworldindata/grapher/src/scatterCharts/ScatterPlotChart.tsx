@@ -3,7 +3,7 @@ import React from "react"
 import { EntitySelectionMode, SeriesName, Color } from "@ourworldindata/types"
 import { observable, computed, action, makeObservable } from "mobx"
 import { ScaleLinear, scaleSqrt } from "d3-scale"
-import { Quadtree, quadtree } from "d3-quadtree"
+import { quadtree, Quadtree } from "d3-quadtree"
 import { pairs } from "d3-array"
 import { quantize, interpolate } from "d3-interpolate"
 import {
@@ -11,11 +11,11 @@ import {
     excludeUndefined,
     getRelativeMouse,
     exposeInstanceOnWindow,
-    PointVector,
     Bounds,
     isTouchDevice,
-    makeFigmaId,
     guid,
+    makeFigmaId,
+    PointVector,
 } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
 import { NoDataModal } from "../noDataModal/NoDataModal"
@@ -56,8 +56,14 @@ import {
     SCATTER_POINT_OPACITY,
     SeriesPoint,
     ScatterPointQuadtreeNode,
+    PlacedScatterSeries,
+    RenderScatterSeries,
     SCATTER_QUADTREE_SAMPLING_DISTANCE,
 } from "./ScatterPlotChartConstants"
+import {
+    toPlacedScatterSeries,
+    toRenderScatterSeries,
+} from "./ScatterPlotChartHelpers"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
 import { ColorScaleBin } from "../color/ColorScaleBin"
 import { LegendStyleConfig } from "../legend/LegendStyleConfig"
@@ -67,13 +73,13 @@ import {
     ScatterSizeLegendManager,
 } from "./ScatterSizeLegend"
 import { TooltipState } from "../tooltip/Tooltip"
-import { NoDataSection } from "./NoDataSection"
 import { ScatterPlotChartState } from "./ScatterPlotChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { toSizeRange } from "./ScatterUtils.js"
 import { ScatterPlotTooltip } from "./ScatterPlotTooltip"
 import { GRAY_100, GRAY_60 } from "../color/ColorConstants"
 import { INACTIVE_SCATTER_POINT_COLOR } from "./ScatterPoints"
+import { NoDataSection } from "./NoDataSection.js"
 
 export type ScatterPlotChartProps = ChartComponentProps<ScatterPlotChartState>
 
@@ -266,7 +272,7 @@ export class ScatterPlotChart
         )
     }
 
-    @computed private get selectedEntityNames(): string[] {
+    @computed get selectedEntityNames(): string[] {
         return this.chartState.selectionArray.selectedEntityNames
     }
 
@@ -295,8 +301,9 @@ export class ScatterPlotChart
         return new ConnectedScatterLegend(this)
     }
 
-    @action.bound private onScatterMouseEnter(series: ScatterSeries): void {
-        this.tooltipState.target = { series }
+    @action.bound private onScatterMouseEnter(seriesName: string): void {
+        const series = this.series.find((s) => s.seriesName === seriesName)
+        if (series) this.tooltipState.target = { series }
     }
 
     @action.bound private onScatterMouseLeave(): void {
@@ -430,29 +437,14 @@ export class ScatterPlotChart
     }
 
     @computed private get quadtree(): Quadtree<ScatterPointQuadtreeNode> {
-        const {
-            series: seriesArray,
-            dualAxis: { horizontalAxis, verticalAxis, innerBounds },
-        } = this
-
-        const xAxis = horizontalAxis.clone()
-        xAxis.range = innerBounds.xRange()
-        const yAxis = verticalAxis.clone()
-        yAxis.range = innerBounds.yRange()
-
-        const nodes: ScatterPointQuadtreeNode[] = seriesArray.flatMap(
+        const nodes: ScatterPointQuadtreeNode[] = this.placedSeries.flatMap(
             (series) => {
-                const points = series.points.map((point) => {
-                    return new PointVector(
-                        xAxis.place(point.x),
-                        yAxis.place(point.y)
-                    )
-                })
+                const points = series.points.map((p) => p.position)
 
                 // add single points as is
                 if (points.length < 2)
                     return points.map((point) => ({
-                        series,
+                        series: { seriesName: series.seriesName },
                         x: point.x,
                         y: point.y,
                     }))
@@ -475,7 +467,7 @@ export class ScatterPlotChart
                         )
 
                     return coords.map((point) => ({
-                        series,
+                        series: { seriesName: series.seriesName },
                         x: point.x,
                         y: point.y,
                     }))
@@ -495,18 +487,10 @@ export class ScatterPlotChart
                 noDataModalManager={this.manager}
                 isConnected={this.chartState.isConnected}
                 hideConnectedScatterLines={this.hideConnectedScatterLines}
-                seriesArray={this.series}
+                seriesArray={this.scatterRenderSeries}
+                isLayerMode={this.isLayerMode}
                 dualAxis={this.dualAxis}
-                colorScale={
-                    !this.colorColumn.isMissing ? this.colorScale : undefined
-                }
-                sizeScale={this.sizeScale}
-                fontScale={this.fontScale}
                 baseFontSize={this.fontSize}
-                focusedSeriesNames={this.selectedEntityNames}
-                hoveredSeriesNames={this.hoveredSeriesNames}
-                isHoverModeActive={this.isHoverModeActive}
-                tooltipSeriesName={this.tooltipSeries?.seriesName}
                 disableIntroAnimation={this.manager.disableIntroAnimation}
                 hideScatterLabels={this.hideScatterLabels}
                 hideEntityLabels={!this.manager.showSeriesLabels}
@@ -545,7 +529,7 @@ export class ScatterPlotChart
             .range(this.sizeRange)
     }
 
-    @computed private get fontScale(): ScaleLinear<number, number> {
+    @computed get fontScale(): ScaleLinear<number, number> {
         const defaultFontSize =
             SCATTER_LABEL_DEFAULT_FONT_SIZE_FACTOR * this.fontSize
         const minFactor = this.manager.isNarrow
@@ -564,6 +548,31 @@ export class ScatterPlotChart
                       [defaultFontSize, defaultFontSize]
                     : [minFontSize, maxFontSize]
             )
+    }
+
+    @computed get placedSeries(): PlacedScatterSeries[] {
+        return toPlacedScatterSeries(this.series, {
+            dualAxis: this.dualAxis,
+            colorScale: !this.colorColumn.isMissing
+                ? this.colorScale
+                : undefined,
+            sizeScale: this.sizeScale,
+            fontScale: this.fontScale,
+            baseFontSize: this.fontSize,
+            isConnected: this.chartState.isConnected,
+        })
+    }
+
+    @computed private get scatterRenderSeries(): RenderScatterSeries[] {
+        return toRenderScatterSeries(this.placedSeries, {
+            hoveredSeriesNames: this.hoveredSeriesNames,
+            focusedSeriesNames: this.selectedEntityNames,
+            tooltipSeriesName: this.tooltipSeries?.seriesName,
+        })
+    }
+
+    @computed private get isLayerMode(): boolean {
+        return this.selectedEntityNames.length > 0 || this.isHoverModeActive
     }
 
     @computed private get sizeLegend(): ScatterSizeLegend | undefined {
@@ -806,7 +815,7 @@ export class ScatterPlotChart
         return this.chartState.toHorizontalAxis(this.xAxisConfig)
     }
 
-    @computed private get series(): ScatterSeries[] {
+    @computed get series(): ScatterSeries[] {
         return this.chartState.series
     }
 }

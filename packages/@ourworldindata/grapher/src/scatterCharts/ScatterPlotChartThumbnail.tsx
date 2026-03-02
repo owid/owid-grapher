@@ -1,4 +1,3 @@
-import * as _ from "lodash-es"
 import React from "react"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -14,11 +13,15 @@ import {
 } from "../core/GrapherConstants"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import {
-    SCATTER_LINE_MIN_WIDTH,
-    SCATTER_POINT_MIN_RADIUS,
     ScatterPlotManager,
+    PlacedScatterSeries,
+    RenderScatterSeries,
 } from "./ScatterPlotChartConstants"
 import { toSizeRange } from "./ScatterUtils"
+import {
+    toPlacedScatterSeries,
+    toRenderScatterSeries,
+} from "./ScatterPlotChartHelpers"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
 import { NoDataModal } from "../noDataModal/NoDataModal"
@@ -95,20 +98,29 @@ export class ScatterPlotChartThumbnail
             .range(this.sizeRange)
     }
 
-    private getPointRadius(value: number | undefined): number {
-        const radius =
-            value !== undefined
-                ? this.sizeScale(value)
-                : this.sizeScale.range()[0]
+    @computed private get placedSeries(): PlacedScatterSeries[] {
+        return toPlacedScatterSeries(this.chartState.series, {
+            dualAxis: this.dualAxis,
+            colorScale: !this.chartState.colorColumn.isMissing
+                ? this.chartState.colorScale
+                : undefined,
+            sizeScale: this.sizeScale,
+            baseFontSize: this.fontSize,
+            isConnected: this.chartState.isConnected,
+        })
+    }
 
-        // We are enforcing the minimum radius/width just before render,
-        // it should not be enforced earlier than that.
-        return Math.max(
-            radius,
-            this.props.chartState.isConnected
-                ? SCATTER_LINE_MIN_WIDTH
-                : SCATTER_POINT_MIN_RADIUS
-        )
+    @computed private get renderSeries(): RenderScatterSeries[] {
+        const selectedNames = this.chartState.selectionArray.selectedEntityNames
+        return toRenderScatterSeries(this.placedSeries, {
+            hoveredSeriesNames: [],
+            focusedSeriesNames: selectedNames,
+            tooltipSeriesName: undefined,
+        })
+    }
+
+    @computed private get isLayerMode(): boolean {
+        return this.chartState.selectionArray.selectedEntityNames.length > 0
     }
 
     override render(): React.ReactElement {
@@ -134,18 +146,10 @@ export class ScatterPlotChartThumbnail
                     hideConnectedScatterLines={
                         !!this.manager.hideConnectedScatterLines
                     }
-                    seriesArray={this.chartState.series}
+                    seriesArray={this.renderSeries}
+                    isLayerMode={this.isLayerMode}
                     dualAxis={this.dualAxis}
-                    colorScale={
-                        !this.chartState.colorColumn.isMissing
-                            ? this.chartState.colorScale
-                            : undefined
-                    }
-                    sizeScale={this.sizeScale}
                     baseFontSize={this.fontSize}
-                    focusedSeriesNames={
-                        this.chartState.selectionArray.selectedEntityNames
-                    }
                     hideScatterLabels={true}
                     backgroundColor={this.manager.backgroundColor}
                 />

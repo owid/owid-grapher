@@ -14,7 +14,7 @@ import {
     SCATTER_POINT_MAX_RADIUS,
     ScatterLabel,
     ScatterRenderPoint,
-    ScatterRenderSeries,
+    RenderScatterSeries,
 } from "./ScatterPlotChartConstants"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
 import { ScatterPlotChartState } from "./ScatterPlotChartState"
@@ -30,13 +30,19 @@ export const labelPriority = (label: ScatterLabel): number => {
     return priority
 }
 
+export interface ScatterLabelOptions {
+    isSubtleForeground: boolean
+    hideConnectedScatterLines: boolean
+    baseFontSize: number
+}
+
 // Create the start year label for a series
 export const makeStartLabel = (
-    series: ScatterRenderSeries,
-    isSubtleForeground: boolean,
-    hideConnectedScatterLines: boolean,
-    baseFontSize: number
+    series: RenderScatterSeries,
+    opts: ScatterLabelOptions
 ): ScatterLabel | undefined => {
+    const { isSubtleForeground, hideConnectedScatterLines, baseFontSize } = opts
+
     // No room to label the year if it's a single point
     if (!series.isForeground || series.points.length <= 1) return undefined
 
@@ -86,11 +92,11 @@ export const makeStartLabel = (
 // Make labels for the points between start and end on a series
 // Positioned using normals of the line segments
 export const makeMidLabels = (
-    series: ScatterRenderSeries,
-    isSubtleForeground: boolean,
-    hideConnectedScatterLines: boolean,
-    baseFontSize: number
+    series: RenderScatterSeries,
+    opts: ScatterLabelOptions
 ): ScatterLabel[] => {
+    const { isSubtleForeground, hideConnectedScatterLines, baseFontSize } = opts
+
     if (
         !series.isForeground ||
         series.points.length <= 1 ||
@@ -172,11 +178,10 @@ export const makeMidLabels = (
 // are present
 // This is also the one label in the case of a single point
 export const makeEndLabel = (
-    series: ScatterRenderSeries,
-    isSubtleForeground: boolean,
-    hideConnectedScatterLines: boolean,
-    baseFontSize: number
+    series: RenderScatterSeries,
+    opts: ScatterLabelOptions
 ): ScatterLabel => {
+    const { isSubtleForeground, hideConnectedScatterLines, baseFontSize } = opts
     const lastValue = R.last(series.points) as ScatterRenderPoint
     const lastPos = lastValue.position
     const fontSize = hideConnectedScatterLines
@@ -186,16 +191,8 @@ export const makeEndLabel = (
     const fontWeight =
         series.isForeground && !hideConnectedScatterLines ? 700 : 400
 
-    let offsetVector = PointVector.up
-    if (series.points.length > 1) {
-        const prevValue = series.points[series.points.length - 2]
-        const prevPos = prevValue.position
-        offsetVector = lastPos.subtract(prevPos)
-    }
-    series.offsetVector = offsetVector
-
     const labelPos = lastPos.add(
-        offsetVector
+        series.offsetVector
             .normalize()
             .times(series.points.length === 1 ? lastValue.size + 1 : 5)
     )

@@ -27,7 +27,7 @@ import {
     GRAPHER_CHART_TYPES,
 } from "@ourworldindata/types"
 import { ContinentColors } from "../color/CustomSchemes"
-import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
+import { toPlacedScatterSeries } from "./ScatterPlotChartHelpers"
 import { GrapherState } from "../core/GrapherState"
 import { InteractionState } from "../interaction/InteractionState.js"
 
@@ -962,27 +962,18 @@ describe("correct bubble sizes", () => {
         const chartState = new ScatterPlotChartState({ manager })
         const chart = new ScatterPlotChart({ chartState })
 
-        const scatterPoints = new ScatterPointsWithLabels({
-            noDataModalManager: manager,
-            isConnected: chartState["isConnected"],
-            hideConnectedScatterLines: chart["hideConnectedScatterLines"],
-            seriesArray: chart["series"],
-            dualAxis: chart["dualAxis"],
-            sizeScale: chart["sizeScale"],
-            fontScale: chart["fontScale"],
-            baseFontSize: chart["fontSize"],
-            focusedSeriesNames: chart["selectedEntityNames"],
-            hoveredSeriesNames: chart["hoveredSeriesNames"],
-            onMouseEnter: chart["onScatterMouseEnter"],
-            onMouseLeave: chart["onScatterMouseLeave"],
-            onClick: chart["onScatterClick"],
-            quadtree: chart["quadtree"],
+        const placedSeries = toPlacedScatterSeries(chart.series, {
+            dualAxis: chart.dualAxis,
+            colorScale: !chartState.colorColumn.isMissing
+                ? chartState.colorScale
+                : undefined,
+            sizeScale: chart.sizeScale,
+            fontScale: chart.fontScale,
+            baseFontSize: chartState.fontSize,
+            isConnected: chartState.isConnected,
         })
 
-        const sortedRenderSeries = _.sortBy(
-            scatterPoints["initialRenderSeries"],
-            (s) => s.seriesName
-        )
+        const sortedRenderSeries = _.sortBy(placedSeries, (s) => s.seriesName)
 
         expect(sortedRenderSeries[0].seriesName).toEqual("SWE")
         expect(sortedRenderSeries[0].size).toEqual(SCATTER_POINT_MIN_RADIUS)
@@ -1027,27 +1018,18 @@ describe("correct bubble sizes", () => {
         const chartState = new ScatterPlotChartState({ manager })
         const chart = new ScatterPlotChart({ chartState })
 
-        const scatterPoints = new ScatterPointsWithLabels({
-            noDataModalManager: manager,
-            isConnected: chartState["isConnected"],
-            hideConnectedScatterLines: chart["hideConnectedScatterLines"],
-            seriesArray: chart["series"],
-            dualAxis: chart["dualAxis"],
-            sizeScale: chart["sizeScale"],
-            fontScale: chart["fontScale"],
-            baseFontSize: chart["fontSize"],
-            focusedSeriesNames: chart["selectedEntityNames"],
-            hoveredSeriesNames: chart["hoveredSeriesNames"],
-            onMouseEnter: chart["onScatterMouseEnter"],
-            onMouseLeave: chart["onScatterMouseLeave"],
-            onClick: chart["onScatterClick"],
-            quadtree: chart["quadtree"],
+        const placedSeries = toPlacedScatterSeries(chart.series, {
+            dualAxis: chart.dualAxis,
+            colorScale: !chartState.colorColumn.isMissing
+                ? chartState.colorScale
+                : undefined,
+            sizeScale: chart.sizeScale,
+            fontScale: chart.fontScale,
+            baseFontSize: chartState.fontSize,
+            isConnected: chartState.isConnected,
         })
 
-        const sortedRenderSeries = _.sortBy(
-            scatterPoints["initialRenderSeries"],
-            (s) => s.seriesName
-        )
+        const sortedRenderSeries = _.sortBy(placedSeries, (s) => s.seriesName)
 
         expect(sortedRenderSeries[0].seriesName).toEqual("SWE")
         expect(sortedRenderSeries[0].size).toEqual(SCATTER_POINT_DEFAULT_RADIUS)
