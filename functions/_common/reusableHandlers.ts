@@ -14,11 +14,7 @@ export async function checkCache(
 
     console.log("Cache check result", maybeCached ? "hit" : "miss")
 
-    if (maybeCached) {
-        // Cached responses are immutable, so we have to clone them,
-        // so that the corsify middleware can add CORS headers
-        return new Response(maybeCached.body, maybeCached)
-    }
+    if (maybeCached) return maybeCached
 
     return null
 }

@@ -12666,10 +12666,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"itty-router@npm:^5.0.17":
-  version: 5.0.17
-  resolution: "itty-router@npm:5.0.17"
-  checksum: 10/5af87433b7ce1dc5c72c70bbf75e9676082381e6c101ac14fd5621e9d8a7e25cae97506b8654812b508d7f717aa8a881393888b4091112e33089d7b1aabd53d3
+"itty-router@npm:^5.0.23":
+  version: 5.0.23
+  resolution: "itty-router@npm:5.0.23"
+  checksum: 10/29c0e63f21c9d410c1b400433de8f559b843894e971dcc37d3d795b06c957a3199d3142c44055b8c37a105912de63c9494e19755e36e5ad77abc1f204a3431c6
   languageName: node
   linkType: hard
 
@@ -14316,7 +14316,7 @@ __metadata:
     "@types/react": "npm:^19.2.2"
     "@types/react-dom": "npm:^19.2.2"
     cookie: "npm:^1.0.2"
-    itty-router: "npm:^5.0.17"
+    itty-router: "npm:^5.0.23"
     littlezipper: "npm:^0.1.4"
     react: "npm:^19.2.0"
     react-dom: "npm:^19.2.0"
