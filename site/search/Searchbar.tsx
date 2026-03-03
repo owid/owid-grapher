@@ -12,7 +12,13 @@ import { SearchResetButton } from "./SearchResetButton.js"
 import { useSearchContext } from "./SearchContext.js"
 import { useSelectedRegionNames } from "./searchHooks.js"
 
-export const Searchbar = ({ allTopics }: { allTopics: string[] }) => {
+export const Searchbar = ({
+    allTopics,
+    autoFocus,
+}: {
+    allTopics: string[]
+    autoFocus: boolean
+}) => {
     const {
         state,
         actions: {
@@ -73,6 +79,7 @@ export const Searchbar = ({ allTopics }: { allTopics: string[] }) => {
                         setLocalQuery={setLocalQuery}
                         setGlobalQuery={setQuery}
                         onBackspaceEmpty={removeLastFilter}
+                        autoFocus={autoFocus}
                         resetButton={
                             <SearchResetButton
                                 disabled={!(localQuery || filters.length)}

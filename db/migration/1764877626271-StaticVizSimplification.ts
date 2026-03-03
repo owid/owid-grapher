@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class StaticVizSimplification1764877626271
-    implements MigrationInterface
-{
+export class StaticVizSimplification1764877626271 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Rename slug column to name
         await queryRunner.query(`-- sql

@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddArchivedChartVersionTable1738847640394
-    implements MigrationInterface
-{
+export class AddArchivedChartVersionTable1738847640394 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             CREATE TABLE archived_chart_versions (

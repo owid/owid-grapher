@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class BackfillExplorerAndMultiDimViewDimensions1769077301485
-    implements MigrationInterface
-{
+export class BackfillExplorerAndMultiDimViewDimensions1769077301485 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             INSERT INTO explorer_view_dimensions (chartConfigId, dimensions)

@@ -47,8 +47,8 @@ jobs:
                       yarn tsx --tsconfig tsconfig.tsx.json devTools/schema/generate-default-object-from-schema.ts $json.name --save-ts packages/@ourworldindata/grapher/src/schema/defaultGrapherConfig.ts })
               shell: nu {0}
 
-            - name: Run prettier
-              run: yarn fixPrettierAll
+            - name: Run formatter
+              run: yarn fixFormatAll
 
             - uses: stefanzweifel/git-auto-commit-action@v7
               with:

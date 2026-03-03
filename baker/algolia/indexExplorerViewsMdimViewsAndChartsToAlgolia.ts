@@ -17,16 +17,13 @@ import {
 } from "./utils/shared.js"
 import { getChartsRecords } from "./utils/charts.js"
 import { createBaseIndexingContext } from "./utils/context.js"
-import { getIndexName } from "../../site/search/searchClient.js"
-import { SearchIndexName } from "@ourworldindata/types"
+import { CHARTS_INDEX } from "../../site/search/searchUtils.js"
 import { getMdimViewRecords } from "./utils/mdimViews.js"
 import { reportFeaturedMetricFailuresToSlack } from "./utils/slackReport.js"
 
 const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
     if (!ALGOLIA_INDEXING) return
-    const indexName = getIndexName(
-        SearchIndexName.ExplorerViewsMdimViewsAndCharts
-    )
+    const indexName = CHARTS_INDEX
     console.log(
         `Indexing explorer views and charts to the "${indexName}" index on Algolia`
     )

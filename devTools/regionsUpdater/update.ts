@@ -7,7 +7,7 @@ import {
     type Polygon,
     type MultiPolygon,
 } from "geojson"
-import prettier from "prettier"
+import { format } from "oxfmt"
 import * as _ from "lodash-es"
 
 const ETL_REGIONS_URL =
@@ -121,12 +121,9 @@ const GENERATED_FILE_HEADER = [
     "// Do not edit manually. Run `yarn runRegionsUpdater` to regenerate.\n\n",
 ].join("\n")
 
-function prettifiedTs(content: string): Promise<string> {
-    return prettier.format(content, {
-        parser: "typescript",
-        tabWidth: 4,
-        semi: false,
-    })
+async function prettifiedTs(content: string): Promise<string> {
+    const result = await format("input.ts", content, { semi: false })
+    return result.code
 }
 
 function csvToJson(val: string, col: string) {
@@ -145,7 +142,7 @@ function csvToJson(val: string, col: string) {
 }
 
 async function prettifiedTopology(geoJson: FeatureCollection): Promise<string> {
-    // make sure the MapTopology.ts file will be diff-able even after running prettier on the repo
+    // make sure the MapTopology.ts file will be diff-able even after running code formatter on the repo
     const topoData = topology({ world: geoJson }),
         arcs = _.remove(topoData.arcs),
         arcJson = arcs
@@ -169,7 +166,7 @@ async function prettifiedTopology(geoJson: FeatureCollection): Promise<string> {
     )
     return formatted.replace(
         /^( {4}arcs:\s*\[)\]/m,
-        `\n    // prettier-ignore\n$1\n      ${arcJson}\n    ]`
+        `\n    // oxfmt-ignore\n$1\n      ${arcJson}\n    ]`
     )
 }
 

@@ -187,6 +187,7 @@ export async function loadLinkedChartsForSlugs(
                     chart.config,
                     originalSlug,
                     {
+                        forceDatapage: chart.forceDatapage,
                         archivedPageVersion:
                             archivedChartVersions[chartId] || undefined,
                     }
@@ -1290,6 +1291,10 @@ export class GdocBase implements OwidGdocBaseInterface {
         ]
     }
 
+    // NOTE: The Algolia bulk indexer (getPagesRecords in baker/algolia/utils/pages.ts)
+    // only calls loadAndClearLinkedCallouts — the sole step that mutates
+    // this.content.body.  If you add a step here that also mutates body content,
+    // update the Algolia indexer to call it too.
     async loadState(knex: db.KnexReadonlyTransaction): Promise<void> {
         await this.loadLinkedAuthors(knex)
         await this.loadLinkedDocuments(knex)
@@ -1391,14 +1396,22 @@ export async function makeGrapherLinkedChart(
     knex: db.KnexReadonlyTransaction,
     config: GrapherInterface,
     originalSlug: string,
-    { archivedPageVersion }: { archivedPageVersion?: ArchivedPageVersion } = {}
+    {
+        forceDatapage,
+        archivedPageVersion,
+    }: {
+        forceDatapage?: boolean
+        archivedPageVersion?: ArchivedPageVersion
+    } = {}
 ): Promise<LinkedChart> {
     const resolvedSlug = config.slug ?? ""
     const resolvedTitle = config.title ?? ""
     const subtitle = toPlaintext(config.subtitle ?? "")
     const resolvedUrl = `${BASE_URL}/grapher/${resolvedSlug}`
     const tab = config.tab ?? GRAPHER_TAB_CONFIG_OPTIONS.chart
-    const indicatorId = await getDatapageIndicatorId(knex, config)
+    const indicatorId = await getDatapageIndicatorId(knex, config, {
+        forceDatapage,
+    })
 
     return {
         configType: ChartConfigType.Grapher,

@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddColumnViews365toPageviews1684842968906
-    implements MigrationInterface
-{
+export class AddColumnViews365toPageviews1684842968906 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(
             `ALTER TABLE pageviews

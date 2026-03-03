@@ -15,12 +15,12 @@ export class DimensionSlot {
     }
 
     @computed get name(): string {
-        const names = {
-            y: this.grapherState.isDiscreteBar ? "X axis" : "Y axis",
+        const names: Record<DimensionProperty, string> = {
+            y: "Y axis",
             x: "X axis",
             size: "Size",
             color: "Color",
-            filter: "Filter",
+            table: "Table",
         }
 
         return (names as any)[this.property] || ""

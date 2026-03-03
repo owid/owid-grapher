@@ -357,8 +357,10 @@ export const constructConfigUrl = ({
 export const CHARTS_INDEX = getIndexName(
     SearchIndexName.ExplorerViewsMdimViewsAndCharts
 )
+export const PAGES_INDEX = getIndexName(SearchIndexName.Pages)
 export const DATA_CATALOG_ATTRIBUTES = [
     "title",
+    "containerTitle",
     "slug",
     "availableEntities",
     "originalAvailableEntities",
@@ -925,6 +927,21 @@ export const getSearchAutocompleteId = () => "search-autocomplete-listbox"
 
 export const getSearchAutocompleteItemId = (index: number) =>
     index >= 0 ? `search-autocomplete-item-${index}` : undefined
+
+export const buildFilterTestId = (
+    baseTestId: string,
+    filterType: FilterType,
+    filterName: string
+): string => {
+    // Topic names use " and " internally but are displayed as " & ".
+    // See also getTopicFromUrl in search.steps.ts for the same
+    // transformation applied to URL params.
+    const displayName =
+        filterType === FilterType.TOPIC
+            ? filterName.replaceAll(" and ", " & ")
+            : filterName
+    return `${baseTestId}-${filterType}-${encodeURIComponent(displayName)}`
+}
 
 export const getFilterAriaLabel = (
     filter: Filter,

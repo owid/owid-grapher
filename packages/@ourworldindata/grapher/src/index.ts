@@ -33,6 +33,7 @@ export {
     Patterns,
     CONTINENTS_INDICATOR_ID,
     POPULATION_INDICATOR_ID_USED_IN_ADMIN,
+    GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ADMIN,
     latestGrapherConfigSchema,
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
@@ -120,6 +121,7 @@ export {
     mapGrapherTabNameToQueryParam,
     mapGrapherTabNameToConfigOption,
     makeLabelForGrapherTab,
+    VALID_CHART_TYPE_COMBINATIONS,
 } from "./chart/ChartTabs"
 export {
     renderGrapherIntoContainer,

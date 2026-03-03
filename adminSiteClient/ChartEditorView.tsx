@@ -396,6 +396,9 @@ export class ChartEditorView<
         const { grapherState, availableTabs } = editor
 
         const chartEditor = isChartEditorInstance(editor) ? editor : undefined
+        const queryParams = chartEditor?.forceDatapage
+            ? "?forceDatapage=true"
+            : ""
 
         return (
             <>
@@ -501,7 +504,7 @@ export class ChartEditorView<
                     {grapherState.id && (
                         <a
                             className="preview"
-                            href={`/admin/charts/${grapherState.id}/preview`}
+                            href={`/admin/charts/${grapherState.id}/preview${queryParams}`}
                             target="_blank"
                             rel="noopener"
                         >

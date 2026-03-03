@@ -60,6 +60,7 @@ export interface ChartRecord {
     slug: string
     queryParams?: string
     title: string
+    containerTitle?: string
     subtitle: string | undefined
     variantName: string
     availableTabs: GrapherTabName[]
@@ -105,16 +106,9 @@ export enum SearchIndexName {
     ExplorerViewsMdimViewsAndCharts = "explorer-views-and-charts",
 }
 
-export type SearchCategoryFilter = SearchIndexName | "all"
-
-export const searchCategoryFilters: [string, SearchCategoryFilter][] = [
-    ["All", "all"],
-    ["Research & Writing", SearchIndexName.Pages],
-    ["Charts", SearchIndexName.ExplorerViewsMdimViewsAndCharts],
-]
-
 interface BaseSearchChartHit {
     title: string
+    containerTitle?: string
     slug: string
     availableEntities: string[]
     originalAvailableEntities?: string[]

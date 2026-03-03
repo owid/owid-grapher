@@ -5,7 +5,7 @@ import {
     PagesIndexRecordsResponse,
     PagesIndexRecordsResponseSchema,
 } from "@ourworldindata/types"
-import { Alert, Card, Space, Spin, Tag } from "antd"
+import { Alert, Card, Radio, Space, Spin, Tag } from "antd"
 import { useQuery } from "@tanstack/react-query"
 import JSONView from "@uiw/react-json-view"
 
@@ -41,18 +41,41 @@ const RecordCard = ({
     )
 }
 
+export type RecordsPreviewMode = "records" | "plaintext"
+
+export const RecordsPreviewModeToggle = ({
+    mode,
+    onChange,
+}: {
+    mode: RecordsPreviewMode
+    onChange: (mode: RecordsPreviewMode) => void
+}) => (
+    <Radio.Group
+        value={mode}
+        onChange={(e) => onChange(e.target.value)}
+        optionType="button"
+        buttonStyle="solid"
+        size="small"
+    >
+        <Radio.Button value="records">Algolia records</Radio.Button>
+        <Radio.Button value="plaintext">Plain text</Radio.Button>
+    </Radio.Group>
+)
+
 export const GdocsRecordsPreview = ({
     gdocId,
     open,
+    mode,
 }: {
     gdocId: string
     open: boolean
+    mode: RecordsPreviewMode
 }) => {
     const { admin } = useContext(AdminAppContext)
 
-    const { data, isFetching, error } = useQuery({
+    const recordsQuery = useQuery({
         queryKey: ["gdocRecords", gdocId],
-        enabled: open,
+        enabled: open && mode === "records",
         queryFn: async (): Promise<PagesIndexRecordsResponse> => {
             const response = await admin.getJSON(`/api/gdocs/${gdocId}/records`)
             return PagesIndexRecordsResponseSchema.parse(response)
@@ -60,13 +83,30 @@ export const GdocsRecordsPreview = ({
         staleTime: 60 * 1000,
     })
 
+    const plaintextQuery = useQuery({
+        queryKey: ["gdocPlaintext", gdocId],
+        enabled: open && mode === "plaintext",
+        queryFn: async (): Promise<{ plaintext: string | undefined }> => {
+            return admin.getJSON(
+                `/api/gdocs/${gdocId}/records?raw=true`
+            ) as Promise<{ plaintext: string | undefined }>
+        },
+        staleTime: 60 * 1000,
+    })
+
+    const activeQuery = mode === "records" ? recordsQuery : plaintextQuery
+    const isFetching = activeQuery.isFetching
+    const error = activeQuery.error
+
     return (
         <Space direction="vertical" size="large" style={{ width: "100%" }}>
             {isFetching && (
                 <div style={{ textAlign: "center", padding: 48 }}>
                     <Spin size="large" />
                     <div style={{ marginTop: 16 }}>
-                        Generating index records...
+                        {mode === "records"
+                            ? "Generating index records..."
+                            : "Extracting plain text..."}
                     </div>
                 </div>
             )}
@@ -82,43 +122,77 @@ export const GdocsRecordsPreview = ({
                 />
             )}
 
-            {data && !isFetching && (
+            {mode === "records" && recordsQuery.data && !isFetching && (
                 <>
-                    {data.message && (
-                        <Alert message={data.message} type="info" showIcon />
+                    {recordsQuery.data.message && (
+                        <Alert
+                            message={recordsQuery.data.message}
+                            type="info"
+                            showIcon
+                        />
                     )}
 
-                    {data.count > 0 && (
+                    {recordsQuery.data.count > 0 && (
                         <>
                             <Alert
-                                message={`This document will be split into ${data.count} searchable record${
-                                    data.count === 1 ? "" : "s"
+                                message={`This document will be split into ${recordsQuery.data.count} searchable record${
+                                    recordsQuery.data.count === 1 ? "" : "s"
                                 } in Algolia`}
                                 type="success"
                                 showIcon
                             />
 
                             <div>
-                                {data.records.map((record, index) => (
-                                    <RecordCard
-                                        key={record.objectID}
-                                        record={record}
-                                        index={index}
-                                    />
-                                ))}
+                                {recordsQuery.data.records.map(
+                                    (record, index) => (
+                                        <RecordCard
+                                            key={record.objectID}
+                                            record={record}
+                                            index={index}
+                                        />
+                                    )
+                                )}
                             </div>
                         </>
                     )}
 
-                    {data.count === 0 && !data.message && (
+                    {recordsQuery.data.count === 0 &&
+                        !recordsQuery.data.message && (
+                            <Alert
+                                message="No records would be generated"
+                                description="This document has no indexable content"
+                                type="warning"
+                                showIcon
+                            />
+                        )}
+                </>
+            )}
+
+            {mode === "plaintext" && plaintextQuery.data && !isFetching && (
+                <Card size="small">
+                    {plaintextQuery.data.plaintext ? (
+                        <pre
+                            style={{
+                                whiteSpace: "pre-wrap",
+                                wordBreak: "break-word",
+                                margin: 0,
+                                fontSize: 13,
+                                lineHeight: 1.6,
+                                maxHeight: "70vh",
+                                overflow: "auto",
+                            }}
+                        >
+                            {plaintextQuery.data.plaintext}
+                        </pre>
+                    ) : (
                         <Alert
-                            message="No records would be generated"
-                            description="This document has no indexable content"
+                            message="No plain text content"
+                            description="This document has no extractable text content"
                             type="warning"
                             showIcon
                         />
                     )}
-                </>
+                </Card>
             )}
         </Space>
     )

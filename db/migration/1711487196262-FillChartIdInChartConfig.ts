@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class FillChartIdInChartConfig1711487196262
-    implements MigrationInterface
-{
+export class FillChartIdInChartConfig1711487196262 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             UPDATE charts

@@ -1,6 +1,10 @@
 import { useCallback, useMemo } from "react"
 import { useSearchContext } from "./SearchContext.js"
-import { getFilterIcon, extractFiltersFromQuery } from "./searchUtils.js"
+import {
+    buildFilterTestId,
+    getFilterIcon,
+    extractFiltersFromQuery,
+} from "./searchUtils.js"
 import { FilterType, ScoredFilterPositioned } from "@ourworldindata/types"
 import { SearchFilterPill } from "./SearchFilterPill.js"
 
@@ -50,8 +54,14 @@ export const SearchDetectedFilters = ({
     if (!manualFilters.length) return null
 
     return (
-        <div className="search-detected-filters">
-            <span className="search-detected-filters__label">
+        <div
+            className="search-detected-filters"
+            data-testid="search-detected-filters"
+        >
+            <span
+                className="search-detected-filters__label"
+                data-testid="search-detected-filters-label"
+            >
                 Did you mean?
             </span>
 
@@ -61,6 +71,11 @@ export const SearchDetectedFilters = ({
                     onClick={() => handleFilterClick(filter)}
                     key={i}
                     className="search-detected-filter-button"
+                    data-testid={buildFilterTestId(
+                        "search-detected-filter-button",
+                        filter.type,
+                        filter.name
+                    )}
                 >
                     <SearchFilterPill
                         icon={getFilterIcon(filter)}

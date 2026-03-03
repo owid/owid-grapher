@@ -74,6 +74,7 @@ type SelectPeerCountriesParams =
       >
     | WithStrategy<SelectByDataRangeParams, PeerCountryStrategy.DataRange>
     | WithStrategy<SelectNeighborsAsPeersParams, PeerCountryStrategy.Neighbors>
+    | { peerCountryStrategy: PeerCountryStrategy.None }
 
 /** Check if the given string is a valid PeerCountryStrategy */
 function isValidPeerCountryStrategy(
@@ -145,6 +146,7 @@ export async function selectPeerCountries(
     params: SelectPeerCountriesParams
 ): Promise<EntityName[]> {
     return match(params)
+        .with({ peerCountryStrategy: PeerCountryStrategy.None }, () => [])
         .with(
             { peerCountryStrategy: PeerCountryStrategy.DefaultSelection },
             ({ defaultSelection }) => defaultSelection

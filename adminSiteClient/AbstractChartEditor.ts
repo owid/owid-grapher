@@ -6,7 +6,10 @@ import {
     PostReference,
     SeriesName,
 } from "@ourworldindata/utils"
-import { ContentGraphLinkType } from "@ourworldindata/types"
+import {
+    ContentGraphLinkType,
+    OwidChartDimensionInterface,
+} from "@ourworldindata/types"
 import {
     action,
     computed,
@@ -292,6 +295,20 @@ export abstract class AbstractChartEditor<
             grapherState.selectedEntityColors
         )
         if (inputTable) grapherState.inputTable = inputTable
+    }
+
+    @action.bound async commitDimensionsAndReloadData(
+        newDimensions?: OwidChartDimensionInterface[]
+    ): Promise<void> {
+        const { grapherState } = this
+        if (newDimensions) {
+            grapherState.setDimensionsFromConfigs(newDimensions)
+        }
+        grapherState.updateAuthoredVersion({
+            dimensions: grapherState.dimensions.map((dim) => dim.toObject()),
+        })
+        grapherState.seriesColorMap?.clear()
+        await this.reloadGrapherData()
     }
 
     abstract get isNewGrapher(): boolean

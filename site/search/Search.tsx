@@ -5,7 +5,7 @@ import {
     SearchResultType,
 } from "@ourworldindata/types"
 import { LiteClient } from "algoliasearch/lite"
-import { useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { match } from "ts-pattern"
 import { useIsFetching } from "@tanstack/react-query"
 
@@ -15,6 +15,7 @@ import {
     getSelectedTopicType,
     getEffectiveResultType,
     hasDatasetFilters,
+    isBrowsing,
 } from "./searchUtils.js"
 import { useTagGraphTopics, useSearchAnalytics } from "./searchHooks.js"
 import { stateToSearchParams, useSearchParamsState } from "./searchState.js"
@@ -67,6 +68,15 @@ export const Search = ({
 
     const isFetching = useIsFetching()
 
+    // Autofocus only on the first mount if the user is browsing.
+    const [shouldAutoFocus, setShouldAutoFocus] = useState(() =>
+        isBrowsing(state.filters, state.query)
+    )
+
+    useEffect(() => {
+        setShouldAutoFocus(false)
+    }, [])
+
     // Derived state for template configuration
     const topicType = getSelectedTopicType(state.filters, eligibleAreas)
     const templateConfig: TemplateConfig = {
@@ -106,6 +116,7 @@ export const Search = ({
                     //   query to match the global one, discarding any
                     //   uncommitted changes.
                     key={stateToSearchParams(state).toString()}
+                    autoFocus={shouldAutoFocus}
                     allTopics={eligibleTopics}
                 />
                 <SearchDetectedFilters

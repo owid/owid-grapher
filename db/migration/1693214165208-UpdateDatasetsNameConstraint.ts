@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class UpdateDatasetsNameConstraint1693214165208
-    implements MigrationInterface
-{
+export class UpdateDatasetsNameConstraint1693214165208 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
             ALTER TABLE datasets

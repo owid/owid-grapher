@@ -2,9 +2,7 @@ import * as _ from "lodash-es"
 import { MigrationInterface, QueryRunner } from "typeorm"
 import { OwidGdocPostContent } from "@ourworldindata/utils"
 
-export class UpdateGdocCalloutComponent1685091238139
-    implements MigrationInterface
-{
+export class UpdateGdocCalloutComponent1685091238139 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // sanity check that the migration works
         recursivelyFixCalloutComponents(testItemBefore)

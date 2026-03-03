@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class MigrateExcludeIncludeEntities1740064108477
-    implements MigrationInterface
-{
+export class MigrateExcludeIncludeEntities1740064108477 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // This query touches all configs where `excludedEntities` or `includedEntities`
         // are present and converts the existing array of ids to an array of names.

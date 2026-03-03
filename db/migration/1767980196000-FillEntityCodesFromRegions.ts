@@ -9,9 +9,7 @@ for (const region of regions) {
     }
 }
 
-export class FillEntityCodesFromRegions1767980196000
-    implements MigrationInterface
-{
+export class FillEntityCodesFromRegions1767980196000 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Get all entities with null codes
         const entitiesWithNullCode = await queryRunner.query(`

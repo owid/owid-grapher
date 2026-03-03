@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddChartDiffApprovalsTable1715081027513
-    implements MigrationInterface
-{
+export class AddChartDiffApprovalsTable1715081027513 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             CREATE TABLE chart_diff_approvals (

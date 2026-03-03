@@ -225,6 +225,8 @@ export enum PeerCountryStrategy {
     DefaultSelection = "defaultSelection",
     /** Use geographically neighboring countries as peers */
     Neighbors = "neighbors",
+    /** Don't automatically add any peer countries (useful in search) */
+    None = "none",
 }
 
 export type PeerCountryStrategyQueryParam = PeerCountryStrategy | "auto"

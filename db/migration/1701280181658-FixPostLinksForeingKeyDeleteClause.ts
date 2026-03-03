@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class FixPostLinksForeingKeyDeleteClause1701280181658
-    implements MigrationInterface
-{
+export class FixPostLinksForeingKeyDeleteClause1701280181658 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
             ALTER TABLE posts_links

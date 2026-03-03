@@ -6,6 +6,7 @@ import {
     getSearchAutocompleteId,
     getSearchAutocompleteItemId,
     getFilterAriaLabel,
+    buildFilterTestId,
     splitIntoWords,
     isNotStopWord,
 } from "./searchUtils.js"
@@ -155,7 +156,11 @@ export const SearchAutocomplete = ({
 
     return (
         <div className="search-autocomplete-container">
-            <ul id={getSearchAutocompleteId()} role="listbox">
+            <ul
+                id={getSearchAutocompleteId()}
+                data-testid="search-autocomplete-listbox"
+                role="listbox"
+            >
                 {suggestions.map((filter, index) => (
                     <li
                         key={`${filter.type}:${filter.name}`}
@@ -188,9 +193,11 @@ export const SearchAutocomplete = ({
                             }
                             onMouseEnter={() => setActiveIndex(index)}
                             aria-label={getFilterAriaLabel(filter, "add")}
-                            data-testid={`search-autocomplete-button-${
-                                filter.type
-                            }-${encodeURIComponent(filter.name)}`}
+                            data-testid={buildFilterTestId(
+                                "search-autocomplete-button",
+                                filter.type,
+                                filter.name
+                            )}
                         >
                             <SearchAutocompleteItemContents
                                 filter={filter}

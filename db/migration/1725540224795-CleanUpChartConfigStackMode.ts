@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class CleanUpChartConfigStackMode1725540224795
-    implements MigrationInterface
-{
+export class CleanUpChartConfigStackMode1725540224795 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
           UPDATE chart_configs cc
