@@ -8,10 +8,16 @@ import {
 } from "@ourworldindata/types"
 import { parseArchivalDate } from "@ourworldindata/utils"
 
+export const GTM_MARKER_BEGIN = "OWID:GTM-BEGIN"
+export const GTM_MARKER_END = "OWID:GTM-END"
+
 export const GTMScriptTags = ({ gtmId }: { gtmId: string }) => {
     if (!gtmId || /["']/.test(gtmId)) return null
     return (
         <>
+            {/* The OWID:GTM markers are used by the Wikipedia archive script
+                to strip analytics from archived pages. Do not remove them. */}
+            <script data-owid-marker={GTM_MARKER_BEGIN} />
             <script
                 dangerouslySetInnerHTML={{
                     __html: `/* Prepare Google Tag Manager */
@@ -31,6 +37,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','${gtmId}');`,
                 }}
             />
+            <script data-owid-marker={GTM_MARKER_END} />
         </>
     )
 }

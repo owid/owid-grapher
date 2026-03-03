@@ -186,3 +186,25 @@ After that, it sends the changed archive files to R2 (bucket `owid-archive`) usi
 ### Append-only nature of the archive
 
 Overall, the archive is essentially append-only. We don't delete any archived pages, any archived versions of a page, or any assets or variables that were ever created as part of an archive. This is important for the integrity of the archive, for the integrity of past citations, and to ensure that the JS code of past archived pages keeps working.
+
+## Wikipedia archive
+
+Wikipedia embeds OWID interactive charts via the OWID Gadget, but requires that embedded content does not include third-party analytics. To satisfy this, we produce a secondary copy of the archive with Google Tag Manager scripts removed, served at `wikipedia-archive.ourworldindata.org`.
+
+The `createWikipediaArchive.ts` script takes the main archive as input and produces the Wikipedia archive as output. It classifies each file into one of three actions:
+
+- **strip-gtm**: HTML files under `grapher/` or `explorers/` (data pages) — GTM `<script>` tags are stripped via regex and the cleaned HTML is written to the output directory.
+- **hardlink**: all other files (shared assets, hashed bundles, `robots.txt`, etc.) — hard-linked to avoid duplicating data on disk.
+- **skip**: post files (paired `SLUG.html` + `SLUG.manifest.json` not under `grapher/` or `explorers/`) — omitted entirely, since the Wikipedia archive only serves data pages. The top-level `images/` and `videos/` directories are also skipped, since they are only used by articles and chart thumbnails are generated dynamically by the Cloudflare Worker.
+
+GTM scripts in `Head.tsx` are wrapped with `data-owid-marker` attributes (`OWID:GTM-BEGIN` / `OWID:GTM-END`) so the regex can reliably identify and strip them. The GTM references in the JS bundle (`GrapherAnalytics.ts` pushes to `window.dataLayer`) are harmless — without the GTM `<script>` tags, nothing reads that array.
+
+### Running locally
+
+```sh
+make wikipedia-archive   # runs `make archive` first, then strips analytics
+```
+
+### Production deployment
+
+The Wikipedia archive is built and uploaded to R2 (bucket `owid-wikipedia-archive`) by [`deploy-wikipedia-archive.sh`](https://github.com/owid/ops/blob/main/templates/owid-cloudflare-prod/deploy-wikipedia-archive.sh) in the ops repo. The script deletes the local output directory before each run so `rclone copy` only uploads newly created files; R2 accumulates every page ever archived.

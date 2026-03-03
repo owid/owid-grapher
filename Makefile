@@ -410,5 +410,9 @@ archive: node_modules
 	PRIMARY_ENV_FILE=.env.archive yarn buildViteArchive
 	PRIMARY_ENV_FILE=.env.archive yarn tsx --tsconfig tsconfig.tsx.json ./baker/archival/archiveChangedPages.ts --latestDir
 
+wikipedia-archive: archive
+	@echo '==> Creating Wikipedia archive (stripping analytics)'
+	yarn tsx --tsconfig tsconfig.tsx.json ./baker/archival/createWikipediaArchive.ts
+
 clean:
 	rm -rf node_modules
