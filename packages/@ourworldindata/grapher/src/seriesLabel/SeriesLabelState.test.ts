@@ -203,6 +203,20 @@ describe("SeriesLabelState", () => {
         ])
     })
 
+    it("shows an icon for continent labels when enabled", () => {
+        const label = new SeriesLabelState({
+            text: "Africa",
+            maxWidth: Infinity,
+            fontSize: FONT_SIZE,
+            showRegionTooltip: true,
+        })
+
+        expect(label.positionedFragments).toMatchObject([
+            { type: "text", role: "name", text: "Africa" },
+            { type: "icon", tooltipKey: "continents" },
+        ])
+    })
+
     it("resolves region from a short entity name", () => {
         const label = new SeriesLabelState({
             text: "MENA, Afghanistan and Pakistan (WB)", // Short name

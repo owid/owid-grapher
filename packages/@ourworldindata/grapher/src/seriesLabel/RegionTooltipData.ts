@@ -3,8 +3,10 @@ import {
     checkIsAggregate,
     EntityName,
     Aggregate,
+    Continent,
     IncomeGroup,
     getAggregatesByProvider,
+    getContinents,
     getIncomeGroups,
     Region,
     RegionDataProvider,
@@ -17,7 +19,7 @@ import {
 import { parseLabel } from "../core/RegionGroups.js"
 import { getCountriesByRegion } from "../mapCharts/MapHelpers.js"
 
-export type TooltipKey = RegionDataProvider | "incomeGroups"
+export type TooltipKey = RegionDataProvider | "incomeGroups" | "continents"
 
 export interface TooltipRegion {
     name: EntityName
@@ -43,11 +45,21 @@ const descriptions: Record<TooltipKey, string> = {
         "The **United Nations Statistical Division (UNSD)** establishes and maintains a geographic classification based on the [M49 coding system](https://unstats.un.org/unsd/methodology/m49). At level 3, the M49 classification provides more granular subdivisions, including separate regions for parts of Africa and the Americas:",
     incomeGroups:
         "The **World Bank** defines [four income groups](https://ourworldindata.org/world-bank-income-groups-explained):",
+    continents:
+        "Our team defines [six world regions](https://ourworldindata.org/world-region-map-definitions#our-world-in-data):",
 }
 
 // Geographic display order: left-to-right on the map.
 // Providers without a custom order will be sorted alphabetically.
 const customRegionDisplayOrder: Partial<Record<TooltipKey, string[]>> = {
+    continents: [
+        "North America",
+        "South America",
+        "Africa",
+        "Europe",
+        "Asia",
+        "Oceania",
+    ],
     wb: [
         "North America (WB)",
         "Latin America and Caribbean (WB)",
@@ -113,10 +125,14 @@ export function getRegionsForKey(key: TooltipKey): TooltipRegion[] {
     const regions =
         key === "incomeGroups"
             ? getIncomeGroups()
-            : getAggregatesByProvider(key)
+            : key === "continents"
+              ? getContinents()
+              : getAggregatesByProvider(key)
 
     const customOrder = customRegionDisplayOrder[key]
-    const sortFn = (region: Aggregate | IncomeGroup): number | string => {
+    const sortFn = (
+        region: Aggregate | IncomeGroup | Continent
+    ): number | string => {
         if (customOrder) {
             const index = customOrder.indexOf(region.name)
             return index >= 0 ? index : Infinity
