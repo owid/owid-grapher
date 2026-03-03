@@ -51,4 +51,15 @@ describe(getLinkedDocumentUrl, () => {
         )
         expect(url).toBe("https://ourworldindata.org/a-slug")
     })
+
+    it("preserves the fragment when rewriting profile links with ?entity=", () => {
+        const url = getLinkedDocumentUrl(
+            { slug: "air-pollution", type: OwidGdocType.Profile },
+            "https://docs.google.com/document/d/abcd/edit?entity=France#my-heading",
+            "https://ourworldindata.org"
+        )
+        expect(url).toBe(
+            "https://ourworldindata.org/profile/air-pollution/france#my-heading"
+        )
+    })
 })
