@@ -1,4 +1,4 @@
-import { EnrichedBlockWithParseErrors } from "./generic.js";
+import { EnrichedBlockWithParseErrors } from "./generic.js"
 
 export type RawBlockCountryProfileSelector = {
     type: "country-profile-selector"
