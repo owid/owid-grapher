@@ -1,11 +1,14 @@
 import { useMemo } from "react"
 import * as R from "remeda"
+import { ArchiveVersions } from "@ourworldindata/types"
 import { useVersionsQuery, UseVersionsQueryOptions } from "./queries.js"
 
 export function useArchiveVersions(
     versionsFileUrl?: string,
     options?: UseVersionsQueryOptions
-) {
+): Omit<ReturnType<typeof useVersionsQuery>, "data"> & {
+    data: ArchiveVersions["versions"]
+} {
     const result = useVersionsQuery(versionsFileUrl, options)
 
     const versions = useMemo(() => {

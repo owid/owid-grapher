@@ -25,7 +25,7 @@
         "noImplicitReturns": true,
         "allowJs": false,
         "sourceMap": true,
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
         "jsx": "react-jsx",
 
         "experimentalDecorators": false,
