@@ -22,6 +22,7 @@ import { ErrorMessages } from "./ChartEditorTypes.js"
 import { isNarrativeChartEditorInstance } from "./NarrativeChartEditor.js"
 import { AutoComplete, Button as AntdButton, Space } from "antd"
 import {
+    BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
     ADMIN_BASE_URL,
 } from "../settings/clientSettings.js"
@@ -160,11 +161,14 @@ export class EditorTextTab<
             const refOptions = [
                 ...(editor.references.postsWordpress ?? []),
                 ...(editor.references.postsGdocs ?? []),
-            ].map((post) => ({
-                value: post.url,
-                label: post.url,
-                suffix: "(referenced by this chart)",
-            }))
+            ].map((post) => {
+                const relativeUrl = post.url.replace(BAKED_BASE_URL, "")
+                return {
+                    value: relativeUrl,
+                    label: relativeUrl,
+                    suffix: "(referenced by this chart)",
+                }
+            })
             return [...refOptions, ...topicOptions]
         }
 
@@ -172,7 +176,7 @@ export class EditorTextTab<
     }
 
     @action.bound onOriginUrlChange(value: string): void {
-        this.props.editor.grapherState.originUrl = value || undefined
+        this.props.editor.grapherState.originUrl = value.trim() || undefined
         // Reset so the custom URL hint reappears as the user types more
         this.isNavigatingDropdown = false
     }
