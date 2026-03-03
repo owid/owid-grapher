@@ -53,7 +53,6 @@ export function StackedDiscreteBarRow({
     return (
         <g
             id={makeFigmaId(entityName)}
-            className="bar"
             transform={`translate(0, ${translateY})`}
             opacity={1}
         >

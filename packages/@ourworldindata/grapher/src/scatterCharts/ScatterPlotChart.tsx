@@ -708,7 +708,7 @@ export class ScatterPlotChart
 
     renderInteractive(): React.ReactElement {
         return (
-            <g className="ScatterPlot" onMouseMove={this.onScatterMouseMove}>
+            <g onMouseMove={this.onScatterMouseMove}>
                 {this.clipPath.element}
                 <DualAxisComponent
                     dualAxis={this.dualAxis}

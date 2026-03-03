@@ -394,7 +394,6 @@ export class DiscreteBarChart
         return (
             <rect
                 key={`bar-${series.seriesName}`}
-                className="bar"
                 id={makeFigmaId(series.seriesName)}
                 x={0}
                 y={0}
@@ -600,7 +599,6 @@ export class DiscreteBarChart
         return (
             <g
                 key={`row-${series.seriesName}`}
-                className="bar-row"
                 transform={`translate(0, ${state.translateY})`}
             >
                 {this.renderBar({
@@ -699,11 +697,7 @@ export class DiscreteBarChart
 
     private renderInteractive(): React.ReactElement {
         return (
-            <g
-                ref={this.base}
-                id={makeFigmaId("discrete-bar-chart")}
-                className="DiscreteBarChart"
-            >
+            <g ref={this.base} id={makeFigmaId("discrete-bar-chart")}>
                 {this.renderDefs()}
                 {this.renderLegend()}
                 {this.renderAxis()}
