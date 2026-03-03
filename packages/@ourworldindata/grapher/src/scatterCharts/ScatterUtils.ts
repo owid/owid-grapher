@@ -13,7 +13,7 @@ import {
     SCATTER_POINT_DEFAULT_RADIUS,
     SCATTER_POINT_MAX_RADIUS,
     ScatterLabel,
-    ScatterRenderPoint,
+    ScatterPlacedPoint,
     RenderScatterSeries,
 } from "./ScatterPlotChartConstants"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
@@ -53,8 +53,8 @@ export const makeStartLabel = (
               ? (8 / BASE_FONT_SIZE) * baseFontSize
               : (9 / BASE_FONT_SIZE) * baseFontSize
           : (7 / BASE_FONT_SIZE) * baseFontSize
-    const firstValue = series.points[0]
-    const nextValue = series.points[1]
+    const firstValue = series.placedPoints[0]
+    const nextValue = series.placedPoints[1]
     const nextSegment = nextValue.position.subtract(firstValue.position)
 
     const pos = firstValue.position.subtract(nextSegment.normalize().times(5))
@@ -116,10 +116,10 @@ export const makeMidLabels = (
     // label all the way to the end for the tooltip series, otherwise to n-1
     const lastIndex = series.isTooltip && !series.isFocus ? Infinity : -1
 
-    return series.points.slice(1, lastIndex).map((v, i) => {
-        const prevPos = i > 0 && series.points[i - 1].position
+    return series.placedPoints.slice(1, lastIndex).map((v, i) => {
+        const prevPos = i > 0 && series.placedPoints[i - 1].position
         const prevSegment = prevPos && v.position.subtract(prevPos)
-        const nextPos = series.points[i + 1].position
+        const nextPos = series.placedPoints[i + 1].position
         const nextSegment = nextPos.subtract(v.position)
 
         let pos: PointVector
@@ -182,7 +182,7 @@ export const makeEndLabel = (
     opts: ScatterLabelOptions
 ): ScatterLabel => {
     const { isSubtleForeground, hideConnectedScatterLines, baseFontSize } = opts
-    const lastValue = R.last(series.points) as ScatterRenderPoint
+    const lastValue = R.last(series.placedPoints) as ScatterPlacedPoint // TODO: drop as
     const lastPos = lastValue.position
     const fontSize = hideConnectedScatterLines
         ? SCATTER_LABEL_FONT_SIZE_FACTOR_WHEN_HIDDEN_LINES * baseFontSize

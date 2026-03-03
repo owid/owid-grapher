@@ -8,7 +8,7 @@ import { ColorScale } from "../color/ColorScale"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 import {
     ScatterSeries,
-    ScatterRenderPoint,
+    ScatterPlacedPoint,
     PlacedScatterSeries,
     RenderScatterSeries,
     SCATTER_POINT_MIN_RADIUS,
@@ -39,7 +39,7 @@ function getLabelFontSize(
     return Math.max(fontSize, SCATTER_LABEL_MIN_FONT_SIZE_FACTOR * baseFontSize)
 }
 
-function computeOffsetVector(points: ScatterRenderPoint[]): PointVector {
+function computeOffsetVector(points: ScatterPlacedPoint[]): PointVector {
     if (points.length <= 1) return PointVector.up
     const lastPos = points[points.length - 1].position
     const prevPos = points[points.length - 2].position
@@ -73,38 +73,45 @@ export function toPlacedScatterSeries(
 
     return sortNumeric(
         seriesArray.map((series): PlacedScatterSeries => {
-            const points = series.points.map((point): ScatterRenderPoint => {
-                const scaleColor =
-                    colorScale !== undefined
-                        ? colorScale.getColor(point.color)
-                        : undefined
-                return {
-                    position: new PointVector(
-                        Math.floor(xAxis.place(point.x)),
-                        Math.floor(yAxis.place(point.y))
-                    ),
-                    color: scaleColor ?? series.color,
-                    size: getPointRadius(point.size, sizeScale, isConnected),
-                    time: point.time,
-                    label: point.label,
+            const placedPoints = series.points.map(
+                (point): ScatterPlacedPoint => {
+                    const scaleColor =
+                        colorScale !== undefined
+                            ? colorScale.getColor(point.color)
+                            : undefined
+                    return {
+                        position: new PointVector(
+                            Math.floor(xAxis.place(point.x)),
+                            Math.floor(yAxis.place(point.y))
+                        ),
+                        color: scaleColor ?? series.color,
+                        size: getPointRadius(
+                            point.size,
+                            sizeScale,
+                            isConnected
+                        ),
+                        time: point.time,
+                        label: point.label,
+                    }
                 }
-            })
+            )
 
             return {
+                ...series,
                 seriesName: series.seriesName,
                 label: series.label,
                 displayKey: "key-" + makeSafeForCSS(series.seriesName),
                 color: series.color,
-                size: R.last(points)!.size,
+                size: R.last(placedPoints)!.size,
                 fontSize: getLabelFontSize(
                     R.last(series.points)!.size,
                     fontScale,
                     baseFontSize
                 ),
-                points,
+                placedPoints: placedPoints,
                 text: series.label,
                 isScaleColor: series.isScaleColor,
-                offsetVector: computeOffsetVector(points),
+                offsetVector: computeOffsetVector(placedPoints),
             }
         }),
         (d) => d.size,

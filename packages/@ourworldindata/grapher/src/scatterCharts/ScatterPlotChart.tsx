@@ -3,7 +3,7 @@ import React from "react"
 import { EntitySelectionMode, SeriesName, Color } from "@ourworldindata/types"
 import { observable, computed, action, makeObservable } from "mobx"
 import { ScaleLinear, scaleSqrt } from "d3-scale"
-import { quadtree, Quadtree } from "d3-quadtree"
+import { Quadtree, quadtree } from "d3-quadtree"
 import { pairs } from "d3-array"
 import { quantize, interpolate } from "d3-interpolate"
 import {
@@ -11,11 +11,11 @@ import {
     excludeUndefined,
     getRelativeMouse,
     exposeInstanceOnWindow,
+    PointVector,
     Bounds,
     isTouchDevice,
-    guid,
     makeFigmaId,
-    PointVector,
+    guid,
 } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
 import { NoDataModal } from "../noDataModal/NoDataModal"
@@ -54,7 +54,7 @@ import {
     SCATTER_LABEL_MAX_FONT_SIZE_FACTOR,
     SCATTER_LABEL_MIN_FONT_SIZE_FACTOR,
     SCATTER_POINT_OPACITY,
-    SeriesPoint,
+    ScatterSeriesPoint,
     ScatterPointQuadtreeNode,
     PlacedScatterSeries,
     RenderScatterSeries,
@@ -73,13 +73,13 @@ import {
     ScatterSizeLegendManager,
 } from "./ScatterSizeLegend"
 import { TooltipState } from "../tooltip/Tooltip"
+import { NoDataSection } from "./NoDataSection.js"
 import { ScatterPlotChartState } from "./ScatterPlotChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { toSizeRange } from "./ScatterUtils.js"
 import { ScatterPlotTooltip } from "./ScatterPlotTooltip"
 import { GRAY_100, GRAY_60 } from "../color/ColorConstants"
 import { INACTIVE_SCATTER_POINT_COLOR } from "./ScatterPoints"
-import { NoDataSection } from "./NoDataSection.js"
 
 export type ScatterPlotChartProps = ChartComponentProps<ScatterPlotChartState>
 
@@ -272,7 +272,7 @@ export class ScatterPlotChart
         )
     }
 
-    @computed get selectedEntityNames(): string[] {
+    @computed private get selectedEntityNames(): string[] {
         return this.chartState.selectionArray.selectedEntityNames
     }
 
@@ -301,9 +301,8 @@ export class ScatterPlotChart
         return new ConnectedScatterLegend(this)
     }
 
-    @action.bound private onScatterMouseEnter(seriesName: string): void {
-        const series = this.series.find((s) => s.seriesName === seriesName)
-        if (series) this.tooltipState.target = { series }
+    @action.bound private onScatterMouseEnter(series: ScatterSeries): void {
+        this.tooltipState.target = { series }
     }
 
     @action.bound private onScatterMouseLeave(): void {
@@ -439,12 +438,12 @@ export class ScatterPlotChart
     @computed private get quadtree(): Quadtree<ScatterPointQuadtreeNode> {
         const nodes: ScatterPointQuadtreeNode[] = this.placedSeries.flatMap(
             (series) => {
-                const points = series.points.map((p) => p.position)
+                const points = series.placedPoints.map((p) => p.position)
 
                 // add single points as is
                 if (points.length < 2)
                     return points.map((point) => ({
-                        series: { seriesName: series.seriesName },
+                        series,
                         x: point.x,
                         y: point.y,
                     }))
@@ -467,7 +466,7 @@ export class ScatterPlotChart
                         )
 
                     return coords.map((point) => ({
-                        series: { seriesName: series.seriesName },
+                        series,
                         x: point.x,
                         y: point.y,
                     }))
@@ -799,7 +798,7 @@ export class ScatterPlotChart
         return this.chartState.compareEndPointsOnly
     }
 
-    @computed get allPoints(): SeriesPoint[] {
+    @computed get allPoints(): ScatterSeriesPoint[] {
         return this.chartState.allPoints
     }
 

@@ -12,7 +12,7 @@ import {
     SCATTER_POINT_DEFAULT_COLOR,
     ScatterPlotManager,
     ScatterSeries,
-    SeriesPoint,
+    ScatterSeriesPoint,
 } from "./ScatterPlotChartConstants"
 import { computed, makeObservable } from "mobx"
 import {
@@ -316,7 +316,9 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
         return new AxisConfig(this.manager.yAxisConfig, this)
     }
 
-    private removePointsOutsidePlane(points: SeriesPoint[]): SeriesPoint[] {
+    private removePointsOutsidePlane(
+        points: ScatterSeriesPoint[]
+    ): ScatterSeriesPoint[] {
         const { xAxisConfig, yAxisConfig } = this
 
         if (
@@ -354,7 +356,8 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
         return label
     }
 
-    @computed private get allPointsBeforeEndpointsFilter(): SeriesPoint[] {
+    @computed
+    private get allPointsBeforeEndpointsFilter(): ScatterSeriesPoint[] {
         const { entityNameColumn, timeColumn } = this.transformedTable
         const { xColumn, yColumn, sizeColumn, colorColumn } = this
 
@@ -428,18 +431,18 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
         return this.series.some((s) => s.points.length > 1)
     }
 
-    @computed get allPoints(): SeriesPoint[] {
+    @computed get allPoints(): ScatterSeriesPoint[] {
         return this.series.flatMap((series) => series.points)
     }
 
-    @computed private get selectedPoints(): SeriesPoint[] {
+    @computed private get selectedPoints(): ScatterSeriesPoint[] {
         const seriesNamesSet = this.seriesNamesToHighlight
         return this.allPoints.filter(
             (point) => point.entityName && seriesNamesSet.has(point.entityName)
         )
     }
 
-    @computed get pointsForAxisDomains(): SeriesPoint[] {
+    @computed get pointsForAxisDomains(): ScatterSeriesPoint[] {
         if (
             !this.selectionArray.numSelectedEntities ||
             !this.manager.zoomToSelection

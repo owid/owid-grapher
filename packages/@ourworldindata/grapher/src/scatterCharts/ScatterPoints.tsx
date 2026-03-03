@@ -31,7 +31,7 @@ export class ScatterPoint extends React.Component<ScatterPointProps> {
             onMouseEnter,
             onMouseLeave,
         } = this.props
-        const value = R.first(series.points)
+        const value = R.first(series.placedPoints)
         if (value === undefined) return null
 
         const color =
@@ -103,8 +103,8 @@ export class ScatterLine extends React.Component<ScatterLineProps> {
                 />
             )
 
-        const firstValue = R.first(series.points)
-        const lastValue = R.last(series.points)
+        const firstValue = R.first(series.placedPoints)
+        const lastValue = R.last(series.placedPoints)
         if (firstValue === undefined || lastValue === undefined) return null
 
         let rotation = PointVector.angle(series.offsetVector, PointVector.up)
@@ -127,7 +127,7 @@ export class ScatterLine extends React.Component<ScatterLineProps> {
                     opacity={opacity}
                 />
                 <MultiColorPolyline
-                    points={series.points.map((v) => ({
+                    points={series.placedPoints.map((v) => ({
                         x: v.position.x,
                         y: v.position.y,
                         color: isLayerMode ? "#ccc" : v.color,

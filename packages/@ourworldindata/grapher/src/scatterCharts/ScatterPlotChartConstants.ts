@@ -21,6 +21,22 @@ import { Bounds, PointVector } from "@ourworldindata/utils"
 import { ChartSeries } from "../chart/ChartInterface"
 import { InteractionState } from "../interaction/InteractionState.js"
 
+export const SCATTER_POINT_DEFAULT_COLOR = "#932834" // used when no color dimension is present
+export const SCATTER_POINT_MIN_RADIUS: number = 2 // only enforced in rendered points, not in scale
+export const SCATTER_POINT_MAX_RADIUS: number = 18
+export const SCATTER_POINT_OPACITY: number = 0.8
+export const SCATTER_POINT_STROKE_WIDTH: number = 0.5
+export const SCATTER_POINT_DEFAULT_RADIUS: number = 3
+export const SCATTER_LINE_MIN_WIDTH: number = 0.5 // only enforced in rendered lines, not in scale
+export const SCATTER_LINE_MAX_WIDTH: number = 2
+export const SCATTER_LINE_DEFAULT_WIDTH: number = 1
+export const SCATTER_LABEL_MIN_FONT_SIZE_FACTOR: number = GRAPHER_FONT_SCALE_10
+export const SCATTER_LABEL_MAX_FONT_SIZE_FACTOR: number = GRAPHER_FONT_SCALE_13
+export const SCATTER_LABEL_DEFAULT_FONT_SIZE_FACTOR: number =
+    GRAPHER_FONT_SCALE_10_5
+export const SCATTER_LABEL_FONT_SIZE_FACTOR_WHEN_HIDDEN_LINES: number =
+    GRAPHER_FONT_SCALE_12
+
 export interface ScatterPlotManager extends ChartManager {
     hideConnectedScatterLines?: boolean
     scatterPointLabelStrategy?: ScatterPointLabelStrategy
@@ -39,12 +55,12 @@ export interface ScatterPlotManager extends ChartManager {
 
 export interface ScatterSeries extends ChartSeries {
     label: string
-    points: SeriesPoint[]
+    points: ScatterSeriesPoint[]
     isScaleColor?: boolean
     focus: InteractionState
 }
 
-export interface SeriesPoint {
+export interface ScatterSeriesPoint {
     x: number
     y: number
     size?: number
@@ -63,7 +79,8 @@ export interface SeriesPoint {
     }
 }
 
-export interface ScatterRenderPoint {
+// todo: inherit from ScatterSeriesPoint
+export interface ScatterPlacedPoint {
     position: PointVector
     color: Color
     size: number
@@ -74,26 +91,9 @@ export interface ScatterRenderPoint {
     }
 }
 
-export const SCATTER_POINT_DEFAULT_COLOR = "#932834" // used when no color dimension is present
-export const SCATTER_POINT_MIN_RADIUS: number = 2 // only enforced in rendered points, not in scale
-export const SCATTER_POINT_MAX_RADIUS: number = 18
-export const SCATTER_POINT_OPACITY: number = 0.8
-export const SCATTER_POINT_STROKE_WIDTH: number = 0.5
-export const SCATTER_POINT_DEFAULT_RADIUS: number = 3
-export const SCATTER_LINE_MIN_WIDTH: number = 0.5 // only enforced in rendered lines, not in scale
-export const SCATTER_LINE_MAX_WIDTH: number = 2
-export const SCATTER_LINE_DEFAULT_WIDTH: number = 1
-export const SCATTER_LABEL_MIN_FONT_SIZE_FACTOR: number = GRAPHER_FONT_SCALE_10
-export const SCATTER_LABEL_MAX_FONT_SIZE_FACTOR: number = GRAPHER_FONT_SCALE_13
-export const SCATTER_LABEL_DEFAULT_FONT_SIZE_FACTOR: number =
-    GRAPHER_FONT_SCALE_10_5
-export const SCATTER_LABEL_FONT_SIZE_FACTOR_WHEN_HIDDEN_LINES: number =
-    GRAPHER_FONT_SCALE_12
-
-// Positioned series — data mapped to screen coordinates
-export interface PlacedScatterSeries extends ChartSeries {
+export interface PlacedScatterSeries extends ScatterSeries {
     label: string
-    points: ScatterRenderPoint[]
+    placedPoints: ScatterPlacedPoint[]
     displayKey: string
     size: number // representative radius (last point)
     fontSize: number
@@ -102,7 +102,6 @@ export interface PlacedScatterSeries extends ChartSeries {
     offsetVector: PointVector
 }
 
-// Interaction-state-resolved series — ready for rendering and label placement
 export interface RenderScatterSeries extends PlacedScatterSeries {
     isHover: boolean
     isFocus: boolean
@@ -133,7 +132,7 @@ export interface ScatterPointsWithLabelsProps {
     isLayerMode: boolean
     dualAxis: DualAxis
     baseFontSize: number
-    onMouseEnter?: (seriesName: string) => void
+    onMouseEnter?: (series: ScatterSeries) => void
     onMouseLeave?: () => void
     onClick?: () => void
     isConnected: boolean
@@ -151,7 +150,7 @@ export const SCATTER_QUADTREE_SAMPLING_DISTANCE = 10
 export const SCATTER_POINT_HOVER_TARGET_RANGE = 20
 
 export interface ScatterPointQuadtreeNode {
-    series: { seriesName: string }
+    series: ScatterSeries
     x: number
     y: number
 }

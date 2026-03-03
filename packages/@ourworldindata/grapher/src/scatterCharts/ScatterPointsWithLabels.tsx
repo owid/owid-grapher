@@ -359,7 +359,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
         return (
             <g id={makeFigmaId("points")}>
                 {this.foregroundSeries.map((series) => {
-                    const lastPoint = R.last(series.points)!
+                    const lastPoint = R.last(series.placedPoints)!
                     const strokeWidth =
                         (hideConnectedScatterLines
                             ? 3
@@ -381,7 +381,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                             />
                         )
 
-                    const firstValue = R.first(series.points)
+                    const firstValue = R.first(series.placedPoints)
                     const opacity = isSubtleForeground ? 0.9 : 1
                     const radius = hideConnectedScatterLines
                         ? strokeWidth
@@ -399,11 +399,13 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                         >
                             {!hideConnectedScatterLines && (
                                 <MultiColorPolyline
-                                    points={series.points.map((point) => ({
-                                        x: point.position.x,
-                                        y: point.position.y,
-                                        color: point.color,
-                                    }))}
+                                    points={series.placedPoints.map(
+                                        (point) => ({
+                                            x: point.position.x,
+                                            y: point.position.y,
+                                            color: point.color,
+                                        })
+                                    )}
                                     strokeWidth={strokeWidth}
                                     opacity={opacity}
                                 />
@@ -421,7 +423,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                                     />
                                 )}
                             {(series.isHover || hideConnectedScatterLines) &&
-                                series.points
+                                series.placedPoints
                                     .slice(
                                         1,
                                         hideConnectedScatterLines

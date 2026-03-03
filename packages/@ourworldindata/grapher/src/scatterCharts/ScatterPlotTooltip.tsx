@@ -21,7 +21,7 @@ import {
     TooltipValue,
 } from "../tooltip/Tooltip"
 import { FooterItem, TooltipFooterIcon } from "../tooltip/TooltipProps.js"
-import { ScatterSeries, SeriesPoint } from "./ScatterPlotChartConstants"
+import { ScatterSeries, ScatterSeriesPoint } from "./ScatterPlotChartConstants"
 import { ScatterPlotChartState } from "./ScatterPlotChartState"
 
 export interface ScatterPlotTooltipProps {
@@ -31,8 +31,8 @@ export interface ScatterPlotTooltipProps {
 
 interface TooltipValueRangeProps {
     chartState: ScatterPlotChartState
-    points?: SeriesPoint[]
-    values: SeriesPoint[]
+    points?: ScatterSeriesPoint[]
+    values: ScatterSeriesPoint[]
     showSignificanceSuperscript?: boolean
     showOriginalTimes?: boolean
 }
@@ -43,11 +43,11 @@ export class ScatterPlotTooltip extends React.Component<ScatterPlotTooltipProps>
         return this.props.chartState
     }
 
-    @computed private get points(): SeriesPoint[] {
+    @computed private get points(): ScatterSeriesPoint[] {
         return this.props.tooltipState.target?.series.points ?? []
     }
 
-    @computed private get values(): SeriesPoint[] {
+    @computed private get values(): ScatterSeriesPoint[] {
         return excludeNullish(
             _.uniq([R.first(this.points), R.last(this.points)])
         )
@@ -348,7 +348,7 @@ function TooltipValueColor({
 function hasSameVariableWithTimeOverride(
     xColumn: CoreColumn,
     yColumn: CoreColumn,
-    points: SeriesPoint[]
+    points: ScatterSeriesPoint[]
 ): boolean {
     // Check if there is exactly one point
     if (points.length !== 1) return false
@@ -407,8 +407,8 @@ function makeToleranceNotice({
 
 function getXValuesWithTimes(
     chartState: ScatterPlotChartState,
-    points: SeriesPoint[],
-    values: SeriesPoint[]
+    points: ScatterSeriesPoint[],
+    values: ScatterSeriesPoint[]
 ): {
     values: number[]
     originalTimes: (number | undefined)[]
@@ -466,8 +466,8 @@ function getXValuesWithTimes(
 
 function getYValuesWithTimes(
     chartState: ScatterPlotChartState,
-    points: SeriesPoint[],
-    values: SeriesPoint[]
+    points: ScatterSeriesPoint[],
+    values: ScatterSeriesPoint[]
 ): {
     values: number[]
     originalTimes: (number | undefined)[]
