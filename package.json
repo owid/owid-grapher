@@ -114,7 +114,7 @@
         "filenamify": "^6.0.0",
         "fparser": "^3.1.0",
         "fs-extra": "^11.1.1",
-        "glob": "^10.5.0",
+        "glob": "^13.0.6",
         "google-auth-library": "^10.1.0",
         "handsontable": "^15.1.0",
         "history": "4",

@@ -11819,7 +11819,7 @@ __metadata:
     flag-icons: "npm:^7.5.0"
     fparser: "npm:^3.1.0"
     fs-extra: "npm:^11.1.1"
-    glob: "npm:^10.5.0"
+    glob: "npm:^13.0.6"
     google-auth-library: "npm:^10.1.0"
     handsontable: "npm:^15.1.0"
     happy-dom: "npm:^20.0.8"
