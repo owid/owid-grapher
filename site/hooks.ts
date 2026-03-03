@@ -166,15 +166,6 @@ export const useMobxStateToReactState = <T>(
     return state
 }
 
-declare global {
-    interface Window {
-        navigation?: {
-            addEventListener: (type: string, listener: () => void) => void
-            removeEventListener: (type: string, listener: () => void) => void
-        }
-    }
-}
-
 export const useWindowQueryParams = () => {
     function subscribe(callback: () => void) {
         const navigation = window.navigation
