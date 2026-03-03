@@ -211,6 +211,23 @@ function createCodeDiffView(
     const referenceContent = fs.readFileSync(referenceFilename, "utf-8")
     const differencesContent = fs.readFileSync(differencesFilename, "utf-8")
 
+    // Skip diff computation for very large files because the diff algorithm is too slow
+    const MAX_LINES_FOR_DIFF = 20_000
+    const refLineCount = referenceContent.split("\n").length
+    const diffLineCount = differencesContent.split("\n").length
+    if (
+        refLineCount > MAX_LINES_FOR_DIFF ||
+        diffLineCount > MAX_LINES_FOR_DIFF
+    ) {
+        return `<div class="tab-pane" data-pane="code-diff">
+        <div class="code-diff-container" data-diff="" data-truncated="true" data-skipped="true">
+            <div style="padding: 24px; text-align: center; color: #57606a;">
+                Code diff skipped: files are too large (${Math.max(refLineCount, diffLineCount).toLocaleString()} lines).
+            </div>
+        </div>
+    </div>`
+    }
+
     // Generate unified diff with just the filename as the title
     const unifiedDiff = Diff.createTwoFilesPatch(
         svgFilename,
@@ -688,8 +705,8 @@ function createHtml(content: string) {
                     const slug = section.dataset.slug;
                     const diffId = slug;
 
-                    // Only render once per section
-                    if (diffContainer && !renderedDiffs.has(diffId)) {
+                    // Only render once per section, and skip if diff was too large
+                    if (diffContainer && !renderedDiffs.has(diffId) && !diffContainer.dataset.skipped) {
                         const diffString = diffContainer.dataset.diff;
                         const isTruncated = diffContainer.dataset.truncated === 'true';
 
