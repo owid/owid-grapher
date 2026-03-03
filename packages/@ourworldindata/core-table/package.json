@@ -14,7 +14,7 @@
     "@ourworldindata/types": "workspace:^",
     "@ourworldindata/utils": "workspace:^",
     "d3": "^7.9.0",
-    "dayjs": "^1.11.11",
+    "dayjs": "^1.11.19",
     "papaparse": "^5.5.3",
     "remeda": "^2.32.0"
   },

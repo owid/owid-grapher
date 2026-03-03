@@ -15,7 +15,7 @@
     "@sentry/browser": "^10.40.0",
     "@tippyjs/react": "^4.2.6",
     "d3": "^7.9.0",
-    "dayjs": "^1.11.11",
+    "dayjs": "^1.11.19",
     "fuzzysort": "^3.1.0",
     "js-cookie": "^3.0.5",
     "lodash-es": "^4.17.23",
