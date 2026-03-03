@@ -146,7 +146,7 @@ export class ScatterPlotChartThumbnail
                     hideConnectedScatterLines={
                         !!this.manager.hideConnectedScatterLines
                     }
-                    seriesArray={this.renderSeries}
+                    series={this.renderSeries}
                     isLayerMode={this.isLayerMode}
                     dualAxis={this.dualAxis}
                     baseFontSize={this.fontSize}

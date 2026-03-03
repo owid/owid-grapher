@@ -1,8 +1,8 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
 import { type BaseType, type Selection, select } from "d3-selection"
-import { NoDataModal } from "../noDataModal/NoDataModal"
-import { SortOrder } from "@ourworldindata/types"
+import { NoDataModal, NoDataModalManager } from "../noDataModal/NoDataModal"
+import { Color, SortOrder } from "@ourworldindata/types"
 import {
     Bounds,
     PointVector,
@@ -17,10 +17,11 @@ import * as React from "react"
 import { Halo } from "@ourworldindata/components"
 import { MultiColorPolyline } from "./MultiColorPolyline"
 import {
-    ScatterPointsWithLabelsProps,
     RenderScatterSeries,
     ScatterLabel,
     SCATTER_POINT_HOVER_TARGET_RANGE,
+    ScatterSeries,
+    ScatterPointQuadtreeNode,
 } from "./ScatterPlotChartConstants"
 import { ScatterLine, ScatterPoint } from "./ScatterPoints"
 import {
@@ -31,27 +32,43 @@ import {
 } from "./ScatterUtils"
 import { Triangle } from "./Triangle"
 import { GRAPHER_TEXT_OUTLINE_FACTOR } from "../core/GrapherConstants"
+import { DualAxis } from "../axis/Axis.js"
+import { Quadtree } from "d3-quadtree"
 
-// This is the component that actually renders the points. The higher level ScatterPlot class renders points, legends, comparison lines, etc.
+interface ScatterPointsWithLabelsProps {
+    series: RenderScatterSeries[]
+    dualAxis: DualAxis
+    isConnected: boolean
+    isLayerMode: boolean
+    baseFontSize: number
+    hideConnectedScatterLines: boolean
+    noDataModalManager: NoDataModalManager
+    disableIntroAnimation?: boolean
+    hideScatterLabels?: boolean
+    quadtree?: Quadtree<ScatterPointQuadtreeNode>
+    backgroundColor?: Color
+    hideFocusRing?: boolean
+    onMouseEnter?: (series: ScatterSeries) => void
+    onMouseLeave?: () => void
+    onClick?: () => void
+}
+
 @observer
 export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLabelsProps> {
     base = React.createRef<SVGGElement>()
 
-    // closest point by quadtree search (series name)
-    private nearSeriesName: string | undefined = undefined
-    // currently hovered-over point via mouseenter/leave (series name)
-    private overSeriesName: string | undefined = undefined
+    /** Closest point by quadtree search */
+    private nearSeries: ScatterSeries | undefined = undefined
+    /** Currently hovered-over point via mouseenter/leave */
+    private overSeries: ScatterSeries | undefined = undefined
 
     constructor(props: ScatterPointsWithLabelsProps) {
         super(props)
 
-        makeObservable<
-            ScatterPointsWithLabels,
-            "nearSeriesName" | "overSeriesName"
-        >(this, {
-            nearSeriesName: observable,
-            overSeriesName: observable,
-        })
+        makeObservable<ScatterPointsWithLabels, "nearSeries" | "overSeries">(
+            this,
+            { nearSeries: observable, overSeries: observable }
+        )
     }
 
     @computed private get isLayerMode(): boolean {
@@ -64,10 +81,10 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
 
     // When focusing multiple entities, we hide some information to declutter
     @computed private get isSubtleForeground(): boolean {
-        const focused = this.props.seriesArray.filter((s) => s.isFocus)
+        const focused = this.props.series.filter((s) => s.isFocus)
         return (
             focused.length > 1 &&
-            this.props.seriesArray.some((series) => series.points.length > 2)
+            this.props.series.some((series) => series.points.length > 2)
         )
     }
 
@@ -80,19 +97,19 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
     }
 
     @computed private get focusedSeriesNames(): string[] {
-        return this.props.seriesArray
+        return this.props.series
             .filter((s) => s.isFocus)
             .map((s) => s.seriesName)
     }
 
     @computed private get hoveredSeriesNames(): string[] {
-        return this.props.seriesArray
+        return this.props.series
             .filter((s) => s.isHover)
             .map((s) => s.seriesName)
     }
 
     @computed private get renderSeries(): RenderScatterSeries[] {
-        const renderData = this.props.seriesArray
+        const renderData = this.props.series
         const labelOpts = {
             isSubtleForeground: this.isSubtleForeground,
             hideConnectedScatterLines: this.hideConnectedScatterLines,
@@ -230,50 +247,52 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
     // Otherwise we fall back to the dot that the cursor is currently hovering over (if any)
 
     @action.bound onPointMouseEnter(seriesName: string): void {
-        this.overSeriesName = seriesName
+        this.overSeries = this.props.series.find(
+            (series) => series.seriesName === seriesName
+        )
         // only select if we're not already close to another point's center
-        if (!this.nearSeriesName) this.props.onMouseEnter?.(seriesName)
+        if (this.overSeries && !this.nearSeries)
+            this.props.onMouseEnter?.(this.overSeries)
     }
 
     @action.bound onPointMouseLeave(): void {
-        this.overSeriesName = undefined
-        if (!this.nearSeriesName) this.props.onMouseLeave?.()
+        this.overSeries = undefined
+        if (!this.nearSeries) this.props.onMouseLeave?.()
     }
 
     @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>): void {
         if (this.base.current) {
             const { x, y } = getRelativeMouse(this.base.current, ev)
 
-            // be more fine grained about finding nearby points when the cursor is
+            // Be more fine grained about finding nearby points when the cursor is
             // already hovering over a larger dot in the background
-            const range = this.overSeriesName
+            const range = this.overSeries
                 ? SCATTER_POINT_HOVER_TARGET_RANGE / 4
                 : SCATTER_POINT_HOVER_TARGET_RANGE
 
-            // search for closest point to cursor position within range
-            const nearby = this.props.quadtree?.find(x, y, range)
-            const nearbyName = nearby?.series.seriesName
-            if (nearbyName) {
-                // only trigger listener if the selection has changed
-                if (nearbyName !== this.nearSeriesName) {
-                    this.props.onMouseEnter?.(nearbyName)
+            // Search for closest point to cursor position within range
+            const nearby = this.props.quadtree?.find(x, y, range)?.series
+            if (nearby) {
+                // Only trigger listener if the selection has changed
+                if (nearby.seriesName !== this.nearSeries?.seriesName) {
+                    this.props.onMouseEnter?.(nearby)
                 }
-            } else if (this.nearSeriesName) {
-                // if we've just moved out of range of a nearby point, fall back to
+            } else if (this.nearSeries) {
+                // If we've just moved out of range of a nearby point, fall back to
                 // the currently hovered-over dot (if there is one)
                 this.props.onMouseLeave?.()
-                if (this.overSeriesName) {
-                    this.props.onMouseEnter?.(this.overSeriesName)
+                if (this.overSeries) {
+                    this.props.onMouseEnter?.(this.overSeries)
                 }
             }
-            this.nearSeriesName = nearbyName
+            this.nearSeries = nearby
         }
     }
 
     @action.bound onMouseLeave(): void {
-        // hide tooltip and clear hover state when leaving the chart's bounds
-        this.nearSeriesName = undefined
-        this.overSeriesName = undefined
+        // Hide tooltip and clear hover state when leaving the chart's bounds
+        this.nearSeries = undefined
+        this.overSeries = undefined
         if (this.props.onMouseLeave) this.props.onMouseLeave()
     }
 

@@ -486,7 +486,7 @@ export class ScatterPlotChart
                 noDataModalManager={this.manager}
                 isConnected={this.chartState.isConnected}
                 hideConnectedScatterLines={this.hideConnectedScatterLines}
-                seriesArray={this.scatterRenderSeries}
+                series={this.scatterRenderSeries}
                 isLayerMode={this.isLayerMode}
                 dualAxis={this.dualAxis}
                 baseFontSize={this.fontSize}

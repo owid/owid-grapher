@@ -127,25 +127,6 @@ export interface ScatterLabel {
     isEnd?: boolean
 }
 
-export interface ScatterPointsWithLabelsProps {
-    seriesArray: RenderScatterSeries[]
-    isLayerMode: boolean
-    dualAxis: DualAxis
-    baseFontSize: number
-    onMouseEnter?: (series: ScatterSeries) => void
-    onMouseLeave?: () => void
-    onClick?: () => void
-    isConnected: boolean
-    hideConnectedScatterLines: boolean
-    noDataModalManager: NoDataModalManager
-    disableIntroAnimation?: boolean
-    hideScatterLabels?: boolean
-    hideEntityLabels?: boolean
-    quadtree?: Quadtree<ScatterPointQuadtreeNode>
-    backgroundColor?: Color
-    hideFocusRing?: boolean
-}
-
 export const SCATTER_QUADTREE_SAMPLING_DISTANCE = 10
 export const SCATTER_POINT_HOVER_TARGET_RANGE = 20
 
