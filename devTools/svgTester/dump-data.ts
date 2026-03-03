@@ -28,7 +28,10 @@ import { hideBin } from "yargs/helpers"
 import * as utils from "./utils.js"
 import pMap from "p-map"
 import { ExplorerAdminServer } from "../../explorerAdminServer/ExplorerAdminServer.js"
-import { getAnalyticsPageviewsByUrlObj } from "../../db/model/Pageview.js"
+import {
+    getAnalyticsPageviewsByUrlObj,
+    assertAnalyticsPageviewsPopulated,
+} from "../../db/model/Pageview.js"
 import { transformExplorerProgramToResolveCatalogPaths } from "../../db/model/ExplorerCatalogResolver.js"
 import { ExplorerViewManifest } from "./utils.js"
 
@@ -409,6 +412,10 @@ async function main(args: ReturnType<typeof parseArguments>) {
             .with("thumbnails", async () => {
                 // Thumbnails uses a manifest to specify which charts to test
                 // The actual data is read from the graphers suite
+                await knexReadonlyTransaction(
+                    assertAnalyticsPageviewsPopulated,
+                    TransactionCloseMode.Close
+                )
                 const charts = await knexReadonlyTransaction(
                     getMostViewedGraphersPerChartType,
                     TransactionCloseMode.Close
@@ -441,6 +448,10 @@ async function main(args: ReturnType<typeof parseArguments>) {
             .with("grapher-views", async () => {
                 // Grapher-views uses a manifest to specify which charts to test
                 // The actual data is read from the graphers suite
+                await knexReadonlyTransaction(
+                    assertAnalyticsPageviewsPopulated,
+                    TransactionCloseMode.Close
+                )
                 const charts = await knexReadonlyTransaction(
                     getMostViewedGraphersPerChartType,
                     TransactionCloseMode.Close
@@ -480,6 +491,10 @@ async function main(args: ReturnType<typeof parseArguments>) {
                 })
             })
             .with("explorers", async () => {
+                await knexReadonlyTransaction(
+                    assertAnalyticsPageviewsPopulated,
+                    TransactionCloseMode.Close
+                )
                 const explorerAdminServer = new ExplorerAdminServer()
                 const targetTotalViews = args.targetViews
 
