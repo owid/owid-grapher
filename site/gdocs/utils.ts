@@ -107,7 +107,7 @@ export const getLinkedDocumentUrl = (
     if (linkedDocument.type === OwidGdocType.Profile && entityParam) {
         const region = getRegionByNameOrVariantName(entityParam)
         if (region) {
-            return `${baseUrl}/profile/${linkedDocument.slug}/${region.slug}`
+            return `${baseUrl}/profile/${linkedDocument.slug}/${region.slug}${parsedUrl.hash}`
         }
     }
 

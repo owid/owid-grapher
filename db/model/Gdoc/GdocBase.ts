@@ -84,6 +84,7 @@ import {
     loadAndClearLinkedCallouts,
     computeAvailableEntityCodes,
 } from "./dataCallouts.js"
+import pMap from "p-map"
 
 import { indexBy } from "remeda"
 import {
@@ -1415,15 +1416,21 @@ export async function getMinimalGdocPostsByIds(
     const posts = rows.map(rawGdocToMinimalPost)
 
     // Enrich profile-type docs with data-availability-filtered entity codes
-    for (let i = 0; i < rows.length; i++) {
-        if (posts[i].type === OwidGdocType.Profile) {
-            const content = JSON.parse(rows[i].content)
-            if (content.scope) {
-                posts[i].availableEntityCodes =
-                    await computeAvailableEntityCodes(knex, content)
-            }
-        }
-    }
+    await pMap(
+        rows,
+        async (row, i) => {
+            if (posts[i].type !== OwidGdocType.Profile) return
+
+            const content = JSON.parse(row.content)
+            if (!content.scope) return
+
+            posts[i].availableEntityCodes = await computeAvailableEntityCodes(
+                knex,
+                content
+            )
+        },
+        { concurrency: 4 }
+    )
 
     return posts
 }
