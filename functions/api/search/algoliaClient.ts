@@ -6,11 +6,18 @@ export interface AlgoliaConfig {
     indexPrefix?: string
 }
 
-// TODO: Roll back before merging — hardcoded for staging testing
-export function getAlgoliaConfig(_env: Env): AlgoliaConfig {
+export function getAlgoliaConfig(env: Env): AlgoliaConfig {
+    const appId = env.ALGOLIA_ID
+    const apiKey = env.ALGOLIA_SEARCH_KEY
+
+    if (!appId || !apiKey) {
+        throw new Error("Missing ALGOLIA_ID or ALGOLIA_SEARCH_KEY")
+    }
+
     return {
-        appId: "ASCB5XMYF2",
-        apiKey: "bafe9c4659e5657bf750a38fbee5c269",
+        appId,
+        apiKey,
+        indexPrefix: env.ALGOLIA_INDEX_PREFIX,
     }
 }
 

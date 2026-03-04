@@ -1,9 +1,5 @@
-import { queryCharts, queryChartsViaApi, searchQueryKeys } from "./queries.js"
-import {
-    useSelectedRegionNames,
-    useInfiniteSearch,
-    useInfiniteSearchViaApi,
-} from "./searchHooks.js"
+import { queryCharts, searchQueryKeys } from "./queries.js"
+import { useSelectedRegionNames, useInfiniteSearch } from "./searchHooks.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
 import {
     SearchChartsResponse,
@@ -15,37 +11,18 @@ import { SearchChartHitComponent } from "./SearchChartHitComponent.js"
 import { SearchHorizontalDivider } from "./SearchHorizontalDivider.js"
 import { useSearchContext } from "./SearchContext.js"
 
-// Enable AI reranking for the first page of results
-const ENABLE_RERANKING = true
-
 export const SearchDataResults = ({
     isFirstChartLarge,
 }: {
     isFirstChartLarge: boolean
 }) => {
-    const { analytics, useAISearch } = useSearchContext()
+    const { analytics } = useSearchContext()
     const selectedRegionNames = useSelectedRegionNames()
 
-    const aiQuery = useInfiniteSearchViaApi<
-        SearchChartsResponse,
-        SearchChartHit
-    >({
-        queryKey: (state) => searchQueryKeys.charts(state),
-        queryFn: (state, page) =>
-            queryChartsViaApi(state, page, ENABLE_RERANKING),
-        enabled: useAISearch,
-    })
-
-    const algoliaQuery = useInfiniteSearch<
-        SearchChartsResponse,
-        SearchChartHit
-    >({
+    const query = useInfiniteSearch<SearchChartsResponse, SearchChartHit>({
         queryKey: (state) => searchQueryKeys.charts(state),
         queryFn: queryCharts,
-        enabled: !useAISearch,
     })
-
-    const query = useAISearch ? aiQuery : algoliaQuery
 
     const { hits, totalResults, isLoading } = query
 

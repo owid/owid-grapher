@@ -12,15 +12,10 @@ import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import {
     searchQueryKeys,
     queryArticles,
-    queryArticlesViaApi,
     queryTopicPages,
-    queryTopicPagesViaApi,
 } from "./queries.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
-import {
-    useInfiniteSearchOffset,
-    useInfiniteSearchOffsetViaApi,
-} from "./searchHooks.js"
+import { useInfiniteSearchOffset } from "./searchHooks.js"
 import { SearchFlatArticleHit } from "./SearchFlatArticleHit.js"
 import { SearchTopicPageHit } from "./SearchTopicPageHit.js"
 import { SearchWritingResultsSkeleton } from "./SearchWritingResultsSkeleton.js"
@@ -160,22 +155,9 @@ export const SearchWritingResults = ({
 }: {
     hasTopicPages?: boolean
 }) => {
-    const { useAISearch } = useSearchContext()
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
 
-    const aiArticlesQuery = useInfiniteSearchOffsetViaApi<
-        SearchFlatArticleResponse,
-        FlatArticleHit
-    >({
-        queryKey: (state) => searchQueryKeys.articles(state),
-        queryFn: (state, offset, length) =>
-            queryArticlesViaApi(state, offset, length),
-        firstPageSize: 2,
-        laterPageSize: 6,
-        enabled: useAISearch,
-    })
-
-    const algoliaArticlesQuery = useInfiniteSearchOffset<
+    const articlesQuery = useInfiniteSearchOffset<
         SearchFlatArticleResponse,
         FlatArticleHit
     >({
@@ -183,25 +165,11 @@ export const SearchWritingResults = ({
         queryFn: queryArticles,
         firstPageSize: 2,
         laterPageSize: 6,
-        enabled: !useAISearch,
     })
 
-    const articlesQuery = useAISearch ? aiArticlesQuery : algoliaArticlesQuery
     const noArticles = articlesQuery.totalResults === 0
 
-    const aiTopicsQuery = useInfiniteSearchOffsetViaApi<
-        SearchTopicPageResponse,
-        TopicPageHit
-    >({
-        queryKey: (state) => searchQueryKeys.topicPages(state),
-        queryFn: (state, offset, length) =>
-            queryTopicPagesViaApi(state, offset, length),
-        firstPageSize: noArticles ? 6 : 2,
-        laterPageSize: noArticles ? 6 : 4,
-        enabled: useAISearch && hasTopicPages && !articlesQuery.isLoading,
-    })
-
-    const algoliaTopicsQuery = useInfiniteSearchOffset<
+    const topicsQuery = useInfiniteSearchOffset<
         SearchTopicPageResponse,
         TopicPageHit
     >({
@@ -209,10 +177,8 @@ export const SearchWritingResults = ({
         queryFn: queryTopicPages,
         firstPageSize: noArticles ? 6 : 2,
         laterPageSize: noArticles ? 6 : 4,
-        enabled: !useAISearch && hasTopicPages && !articlesQuery.isLoading,
+        enabled: hasTopicPages && !articlesQuery.isLoading,
     })
-
-    const topicsQuery = useAISearch ? aiTopicsQuery : algoliaTopicsQuery
 
     const hasLargeTopic = topicsQuery.totalResults === 1
     const totalCount = articlesQuery.totalResults + topicsQuery.totalResults

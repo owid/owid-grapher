@@ -30,7 +30,7 @@ vi.mock("../../search/searchApi.js", () => ({
     searchChartsMulti: vi.fn(),
 }))
 
-describe("AI Search Recommend API endpoint", () => {
+describe("AI Search Agent API endpoint", () => {
     const mockEnv: Env = {
         OPENAI_API_KEY: "test-openai-key",
         GOOGLE_API_KEY: "test-google-key",
@@ -46,7 +46,7 @@ describe("AI Search Recommend API endpoint", () => {
     describe("parameter validation", () => {
         it("returns 400 when query is missing", async () => {
             const request = new Request(
-                "http://localhost/api/ai-search/recommend"
+                "http://localhost/api/ai-search/agent"
             )
             const response = await onRequestGet({
                 request,
@@ -60,7 +60,7 @@ describe("AI Search Recommend API endpoint", () => {
 
         it("returns 400 when query is empty", async () => {
             const request = new Request(
-                "http://localhost/api/ai-search/recommend?q="
+                "http://localhost/api/ai-search/agent?q="
             )
             const response = await onRequestGet({
                 request,
@@ -74,7 +74,7 @@ describe("AI Search Recommend API endpoint", () => {
 
         it("returns 400 for invalid query parameters", async () => {
             const request = new Request(
-                "http://localhost/api/ai-search/recommend?q=test&invalid_param=value"
+                "http://localhost/api/ai-search/agent?q=test&invalid_param=value"
             )
             const response = await onRequestGet({
                 request,
@@ -88,7 +88,7 @@ describe("AI Search Recommend API endpoint", () => {
 
         it("returns 400 for invalid model", async () => {
             const request = new Request(
-                "http://localhost/api/ai-search/recommend?q=test&model=claude"
+                "http://localhost/api/ai-search/agent?q=test&model=claude"
             )
             const response = await onRequestGet({
                 request,
@@ -109,7 +109,7 @@ describe("AI Search Recommend API endpoint", () => {
             } as unknown as Env
 
             const request = new Request(
-                "http://localhost/api/ai-search/recommend?q=test&model=openai"
+                "http://localhost/api/ai-search/agent?q=test&model=openai"
             )
             const response = await onRequestGet({
                 request,
@@ -128,7 +128,7 @@ describe("AI Search Recommend API endpoint", () => {
             } as unknown as Env
 
             const request = new Request(
-                "http://localhost/api/ai-search/recommend?q=test&model=gemini"
+                "http://localhost/api/ai-search/agent?q=test&model=gemini"
             )
             const response = await onRequestGet({
                 request,
@@ -167,7 +167,7 @@ describe("AI Search Recommend API endpoint", () => {
 
         it("defaults to gemini model", async () => {
             const request = new Request(
-                "http://localhost/api/ai-search/recommend?q=test"
+                "http://localhost/api/ai-search/agent?q=test"
             )
             const response = await onRequestGet({
                 request,
@@ -181,7 +181,7 @@ describe("AI Search Recommend API endpoint", () => {
 
         it("uses OpenAI when model=openai", async () => {
             const request = new Request(
-                "http://localhost/api/ai-search/recommend?q=test&model=openai"
+                "http://localhost/api/ai-search/agent?q=test&model=openai"
             )
             const response = await onRequestGet({
                 request,
@@ -195,7 +195,7 @@ describe("AI Search Recommend API endpoint", () => {
 
         it("resolves gemini aliases correctly", async () => {
             const request = new Request(
-                "http://localhost/api/ai-search/recommend?q=test&model=gemini-2.5-flash"
+                "http://localhost/api/ai-search/agent?q=test&model=gemini-2.5-flash"
             )
             const response = await onRequestGet({
                 request,
@@ -263,7 +263,7 @@ describe("AI Search Recommend API endpoint", () => {
 
         it("returns recommendations in correct format", async () => {
             const request = new Request(
-                "http://localhost/api/ai-search/recommend?q=population"
+                "http://localhost/api/ai-search/agent?q=population"
             )
             const response = await onRequestGet({
                 request,
@@ -300,7 +300,7 @@ describe("AI Search Recommend API endpoint", () => {
 
         it("strips verbose fields by default", async () => {
             const request = new Request(
-                "http://localhost/api/ai-search/recommend?q=population"
+                "http://localhost/api/ai-search/agent?q=population"
             )
             const response = await onRequestGet({
                 request,
@@ -325,7 +325,7 @@ describe("AI Search Recommend API endpoint", () => {
 
         it("includes all fields when verbose=true", async () => {
             const request = new Request(
-                "http://localhost/api/ai-search/recommend?q=population&verbose=true"
+                "http://localhost/api/ai-search/agent?q=population&verbose=true"
             )
             const response = await onRequestGet({
                 request,
@@ -343,7 +343,7 @@ describe("AI Search Recommend API endpoint", () => {
 
         it("includes debug info when debug=true", async () => {
             const request = new Request(
-                "http://localhost/api/ai-search/recommend?q=population&debug=true"
+                "http://localhost/api/ai-search/agent?q=population&debug=true"
             )
             const response = await onRequestGet({
                 request,
@@ -361,7 +361,7 @@ describe("AI Search Recommend API endpoint", () => {
 
         it("respects max_results parameter", async () => {
             const request = new Request(
-                "http://localhost/api/ai-search/recommend?q=population&max_results=1"
+                "http://localhost/api/ai-search/agent?q=population&max_results=1"
             )
             const response = await onRequestGet({
                 request,
@@ -381,7 +381,7 @@ describe("AI Search Recommend API endpoint", () => {
             vi.mocked(generateText).mockRejectedValue(new Error("API error"))
 
             const request = new Request(
-                "http://localhost/api/ai-search/recommend?q=test"
+                "http://localhost/api/ai-search/agent?q=test"
             )
             const response = await onRequestGet({
                 request,

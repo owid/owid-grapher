@@ -17,8 +17,6 @@ interface SearchContextType {
     topicTagGraph: TagGraphRoot
     synonymMap: SynonymMap
     analytics: SiteAnalytics
-    useAISearch: boolean
-    setUseAISearch: (value: boolean) => void
 }
 
 export const SearchContext = createContext<SearchContextType | null>(null)

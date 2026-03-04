@@ -60,11 +60,8 @@ export const DATA_API_URL: string =
 export const CATALOG_URL: string =
     process.env.CATALOG_URL ?? "https://catalog.ourworldindata.org"
 
-export const USE_AI_SEARCH: boolean = process.env.USE_AI_SEARCH === "true"
-
-// TODO: Roll back before merging — hardcoded for staging testing
-export const ALGOLIA_ID: string = "ASCB5XMYF2"
-export const ALGOLIA_SEARCH_KEY: string = "bafe9c4659e5657bf750a38fbee5c269"
+export const ALGOLIA_ID: string = process.env.ALGOLIA_ID ?? ""
+export const ALGOLIA_SEARCH_KEY: string = process.env.ALGOLIA_SEARCH_KEY ?? ""
 export const ALGOLIA_INDEX_PREFIX: string =
     process.env.ALGOLIA_INDEX_PREFIX ?? ""
 

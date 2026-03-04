@@ -5,7 +5,7 @@ import {
     SearchResultType,
 } from "@ourworldindata/types"
 import { LiteClient } from "algoliasearch/lite"
-import { useMemo, useState } from "react"
+import { useMemo } from "react"
 import { match } from "ts-pattern"
 import { useIsFetching } from "@tanstack/react-query"
 
@@ -32,7 +32,6 @@ import { buildSynonymMap } from "./synonymUtils.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { PoweredBy } from "react-instantsearch"
 import { listedRegionsNames } from "@ourworldindata/utils"
-import { USE_AI_SEARCH } from "../../settings/clientSettings.js"
 
 export const Search = ({
     topicTagGraph,
@@ -65,8 +64,6 @@ export const Search = ({
     // Handle analytics tracking (skips initial page load)
     useSearchAnalytics(state, analytics)
 
-    const [useAISearch, setUseAISearch] = useState(USE_AI_SEARCH)
-
     const isFetching = useIsFetching()
 
     // Derived state for template configuration
@@ -93,8 +90,6 @@ export const Search = ({
                 topicTagGraph,
                 synonymMap,
                 analytics,
-                useAISearch,
-                setUseAISearch,
             }}
         >
             <div className="search-controls-container span-cols-12 col-start-2">
@@ -112,14 +107,6 @@ export const Search = ({
                         key={stateToSearchParams(state).toString()}
                         allTopics={eligibleTopics}
                     />
-                    <label className="search-ai-toggle">
-                        <input
-                            type="checkbox"
-                            checked={useAISearch}
-                            onChange={(e) => setUseAISearch(e.target.checked)}
-                        />
-                        AI
-                    </label>
                 </div>
                 <SearchDetectedFilters
                     eligibleRegionNames={eligibleRegionNames}

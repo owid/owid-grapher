@@ -562,7 +562,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         const endTime = Date.now()
 
         console.log(
-            `[AI Search recommend] query="${query}" | model=${resolvedModel} | search=${searchMode} | total=${endTime - startTime}ms | agent=${agentEndTime - agentStartTime}ms | searches=${searchQueriesUsed.length} | results=${recommendations.length}`
+            `[AI Search agent] query="${query}" | model=${resolvedModel} | search=${searchMode} | total=${endTime - startTime}ms | agent=${agentEndTime - agentStartTime}ms | searches=${searchQueriesUsed.length} | results=${recommendations.length}`
         )
 
         // Strip verbose fields by default to reduce response size
@@ -598,7 +598,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             },
         })
     } catch (error) {
-        console.error("AI Search recommend error:", error)
+        console.error("AI Search agent error:", error)
 
         return new Response(
             JSON.stringify({
