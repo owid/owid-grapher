@@ -30,6 +30,8 @@ import { SearchTemplatesData } from "./SearchTemplatesData.js"
 import { SearchTemplatesWriting } from "./SearchTemplatesWriting.js"
 import { SearchNoResults } from "./SearchNoResults.js"
 import { SearchDetectedFilters } from "./SearchDetectedFilters.js"
+import { SearchSuggestedTopics } from "./SearchSuggestedTopics.js"
+import { SearchSuggestedKeywords } from "./SearchSuggestedKeywords.js"
 import { buildSynonymMap } from "./synonymUtils.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { PoweredBy } from "react-instantsearch"
@@ -122,6 +124,8 @@ export const Search = ({
                 <SearchDetectedFilters
                     eligibleRegionNames={eligibleRegionNames}
                 />
+                <SearchSuggestedTopics />
+                <SearchSuggestedKeywords />
             </div>
             <div className="search-filters span-cols-12 col-start-2">
                 <SearchTopicsRefinementList topicType={topicType} />

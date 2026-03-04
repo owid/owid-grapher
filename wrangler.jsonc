@@ -14,6 +14,26 @@
 
     "pages_build_output_dir": "./localBake",
 
+    // Workers AI binding for search
+    "ai": {
+        "binding": "AI",
+        "remote": true
+    },
+
+    // Vectorize bindings for semantic search
+    "vectorize": [
+        {
+            "binding": "VECTORIZE_TOPICS",
+            "index_name": "topics",
+            "remote": true
+        },
+        {
+            "binding": "VECTORIZE_VOCABULARY",
+            "index_name": "vocabulary",
+            "remote": true
+        }
+    ],
+
     "r2_buckets": [
         {
             "bucket_name": "owid-user-surveys-staging",
@@ -31,6 +51,9 @@
     },
     "env": {
         "preview": {
+            "ai": {
+                "binding": "AI",
+            },
             "r2_buckets": [
                 {
                     "bucket_name": "owid-user-surveys-staging",
@@ -53,6 +76,9 @@
         },
         "production": {
             // Overrides for CF production deployment
+            "ai": {
+                "binding": "AI",
+            },
             "compatibility_date": "2025-05-05",
             "r2_buckets": [
                 {
