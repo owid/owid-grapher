@@ -113,6 +113,7 @@ export interface EntitySelectorManager {
     selection: SelectionArray
     entityType?: string
     entityTypePlural?: string
+    // TODO: Use the column slugs currently in use, if possible
     inputColumnSlugs?: ColumnSlug[]
     isEntitySelectorModalOrDrawerOpen?: boolean
     canChangeEntity?: boolean
