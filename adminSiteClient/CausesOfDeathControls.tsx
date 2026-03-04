@@ -156,9 +156,9 @@ function EntityDropdown({
             onChange={onChange}
             className={className}
             isLoading={isLoading}
-            placeholder="Select a region..."
+            placeholder="Select a country or region..."
             isSearchable={true}
-            aria-label="Select a region"
+            aria-label="Select a country or region"
             renderTriggerValue={(option) => (
                 <EntityDropdownLabel option={option} />
             )}
@@ -221,7 +221,7 @@ function EntityDropdownLabel({
     if (!option) return null
     return (
         <>
-            <span className="label">Region: </span>
+            <span className="label">Country/region: </span>
             {option.label}
         </>
     )

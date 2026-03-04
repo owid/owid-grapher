@@ -1,6 +1,6 @@
 import { formatValue } from "@ourworldindata/utils"
 import { OwidVariableRoundingMode } from "@ourworldindata/types"
-import { COUNTRIES_WITH_DEFINITE_ARTICLE } from "./CausesOfDeathConstants.js"
+import { regionsWithArticle } from "./CausesOfDeathConstants.js"
 
 export function formatCount(
     value: number,
@@ -25,7 +25,7 @@ export function formatShare(value: number): string {
 }
 
 export function formatCountryName(countryName: string): string {
-    if (COUNTRIES_WITH_DEFINITE_ARTICLE.includes(countryName)) {
+    if (regionsWithArticle.has(countryName)) {
         return `the ${countryName}`
     }
     return countryName

@@ -88,16 +88,16 @@ function CausesOfDeathHeader({
             ? "globally"
             : `in ${formatCountryName(entityName)}`
 
+    const title =
+        entityName === "World"
+            ? `What did ${ageGroupName} die from in ${year}?`
+            : `What did ${ageGroupName} in ${formatCountryName(entityName)} die from in ${year}?`
+
     return (
         <div className="causes-of-death-header">
             <OwidLogo />
             <header className="causes-of-death-header__content">
-                <h1>
-                    {`What do ${ageGroupName} die from?`}{" "}
-                    <span>
-                        Causes of death {location} in {year}
-                    </span>
-                </h1>
+                <h1>{title}</h1>
                 <p className="causes-of-death-header__subtitle">
                     The size of the entire visualization represents the total
                     number of deaths {location} in {year}:{" "}
@@ -168,11 +168,7 @@ function getAgeGroupDisplayName({
     sex: string
 }): string {
     const ageGroupName =
-        ageGroup === "All ages"
-            ? "people"
-            : ageGroup === "Children under 5"
-              ? "children"
-              : ageGroup.toLowerCase()
+        ageGroup === "All ages" ? "people" : ageGroup.toLowerCase()
 
     if (sex === "Male") {
         return ageGroupName
