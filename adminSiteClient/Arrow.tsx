@@ -7,8 +7,10 @@ export type Coords = [number, number]
 
 export type HeadAnchor = "start" | "end" | "both"
 
-export interface ArrowProps
-    extends Omit<React.SVGProps<SVGGElement>, "start" | "end"> {
+export interface ArrowProps extends Omit<
+    React.SVGProps<SVGGElement>,
+    "start" | "end"
+> {
     /** start coordinates */
     start?: Coords
     /** end coordinates */
