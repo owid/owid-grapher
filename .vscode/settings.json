@@ -4,6 +4,8 @@
     "editor.tabSize": 4,
     "editor.detectIndentation": false,
     "editor.defaultFormatter": "oxc.oxc-vscode",
+
+    "oxc.fmt.configPath": ".oxfmtrc.json",
     "files.insertFinalNewline": false,
     "search.exclude": {
         ".yarn": true,
@@ -20,13 +22,18 @@
     "typescript.preferences.importModuleSpecifierEnding": "js",
     "javascript.preferences.importModuleSpecifierEnding": "js",
     "[sql]": {
-        "editor.defaultFormatter": "inferrinizzard.prettier-sql-vscode"
+        "editor.defaultFormatter": "ReneSaarsoo.sql-formatter-vsc"
     },
-    "Prettier-SQL.keywordCase": "upper",
-    "Prettier-SQL.SQLFlavourOverride": "mysql",
-    "Prettier-SQL.expressionWidth": 80,
-    "oxc.formatting.enable": true,
+    "SQL-Formatter-VSCode.denseOperators": true,
+    "SQL-Formatter-VSCode.linesBetweenQueries": 1,
+    "SQL-Formatter-VSCode.insertSpacesOverride": true,
+    "SQL-Formatter-VSCode.ignoreTabSettings": true,
+    "SQL-Formatter-VSCode.tabSizeOverride": 2,
+    "SQL-Formatter-VSCode.dialect": "mysql",
     "[typescriptreact]": {
+        "editor.defaultFormatter": "oxc.oxc-vscode"
+    },
+    "[typescript]": {
         "editor.defaultFormatter": "oxc.oxc-vscode"
     }
 }
