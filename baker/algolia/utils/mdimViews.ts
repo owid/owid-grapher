@@ -1,4 +1,4 @@
-import * as _ from "lodash-es"
+import * as _ from "lodash-es";
 import {
     ChartConfigsTableName,
     DbEnrichedMultiDimDataPage,
@@ -9,77 +9,77 @@ import {
     dimensionsToViewId,
     MultiDimXChartConfigsTableName,
     parseChartConfig,
-} from "@ourworldindata/utils"
-import { toPlaintext } from "@ourworldindata/components"
-import * as db from "../../../db/db.js"
-import { getAllPublishedMultiDimDataPages } from "../../../db/model/MultiDimDataPage.js"
-import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
+} from "@ourworldindata/utils";
+import { toPlaintext } from "@ourworldindata/components";
+import * as db from "../../../db/db.js";
+import { getAllPublishedMultiDimDataPages } from "../../../db/model/MultiDimDataPage.js";
+import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js";
 import {
     ChartRecord,
     ChartRecordType,
     IndexingContext,
-} from "@ourworldindata/types"
-import { createMdimIndexingContext } from "./context.js"
+} from "@ourworldindata/types";
+import { createMdimIndexingContext } from "./context.js";
 import {
     getRelevantVariableIds,
     getRelevantVariableMetadata,
-} from "../../MultiDimBaker.js"
-import { GrapherState } from "@ourworldindata/grapher"
+} from "../../MultiDimBaker.js";
+import { GrapherState } from "@ourworldindata/grapher";
 import {
     maybeAddChangeInPrefix,
     parseJsonStringArray,
     uniqNonEmptyStrings,
-} from "./shared.js"
-import { getMultiDimRedirectTargets } from "../../../db/model/MultiDimRedirects.js"
-import { getMaxViews7d, PageviewsByUrl } from "./pageviews.js"
-import { DatasetDimensionsForVariable } from "./types.js"
+} from "./shared.js";
+import { getMultiDimRedirectTargets } from "../../../db/model/MultiDimRedirects.js";
+import { getMaxViews7d, PageviewsByUrl } from "./pageviews.js";
+import { DatasetDimensionsForVariable } from "./types.js";
 
 // Published multi-dim must have a slug.
-type PublishedMultiDimWithSlug = DbEnrichedMultiDimDataPage & { slug: string }
-type RedirectSourcesByTarget = Map<string, string[]>
-type RedirectSourcesBySlug = Map<string, string[]>
+type PublishedMultiDimWithSlug = DbEnrichedMultiDimDataPage & { slug: string };
+type RedirectSourcesByTarget = Map<string, string[]>;
+type RedirectSourcesBySlug = Map<string, string[]>;
 
 function getRedirectKey(slug: string, queryStr?: string): string {
-    return queryStr ? `${slug}?${queryStr}` : slug
+    return queryStr ? `${slug}?${queryStr}` : slug;
 }
 
 function dimensionsToSortedQueryStr(
-    dimensions: Record<string, string>
+    dimensions: Record<string, string>,
 ): string {
     const sortedDimensions = Object.entries(dimensions).sort(([keyA], [keyB]) =>
-        keyA.localeCompare(keyB)
-    )
-    const params = new URLSearchParams()
+        keyA.localeCompare(keyB),
+    );
+    const params = new URLSearchParams();
     for (const [dimension, choice] of sortedDimensions) {
-        params.set(dimension, choice)
+        params.set(dimension, choice);
     }
-    return params.toString()
+    return params.toString();
 }
 
 async function getChartConfigsByIds(
     knex: db.KnexReadonlyTransaction,
-    ids: string[]
+    ids: string[],
 ) {
     const rows = await knex<DbRawChartConfig>(ChartConfigsTableName)
         .select("id", "full")
-        .whereIn("id", ids)
-    return new Map(rows.map((row) => [row.id, parseChartConfig(row.full)]))
+        .whereIn("id", ids);
+    return new Map(rows.map((row) => [row.id, parseChartConfig(row.full)]));
 }
 
 async function getMultiDimXChartConfigIdMap(trx: db.KnexReadonlyTransaction) {
     const rows = await trx<DbPlainMultiDimXChartConfig>(
-        MultiDimXChartConfigsTableName
-    ).select("id", "multiDimId", "viewId")
+        MultiDimXChartConfigsTableName,
+    ).select("id", "multiDimId", "viewId");
     return new Map(
-        rows.map((row) => [`${row.multiDimId}-${row.viewId}`, row.id])
-    )
+        rows.map((row) => [`${row.multiDimId}-${row.viewId}`, row.id]),
+    );
 }
 
 async function getDatasetDimensionsByVariableIds(
     trx: db.KnexReadonlyTransaction,
-    variableIds: number[]
+    variableIds: number[],
 ): Promise<Map<number, DatasetDimensionsForVariable>> {
-    if (variableIds.length === 0) return new Map()
+    if (variableIds.length === 0) return new Map();
 
     const rows = await trx("dataset_dimensions_by_variable as ddv")
         .select(
@@ -87,9 +87,9 @@ async function getDatasetDimensionsByVariableIds(
             "ddv.datasetNamespace",
             "ddv.datasetVersion",
             "ddv.datasetProduct",
-            "ddv.datasetProducers"
+            "ddv.datasetProducers",
         )
-        .whereIn("ddv.variableId", variableIds)
+        .whereIn("ddv.variableId", variableIds);
 
     return new Map(
         rows.map((row) => [
@@ -100,8 +100,8 @@ async function getDatasetDimensionsByVariableIds(
                 datasetProduct: row.datasetProduct,
                 datasetProducers: parseJsonStringArray(row.datasetProducers),
             },
-        ])
-    )
+        ]),
+    );
 }
 
 async function getRecords(
@@ -110,88 +110,88 @@ async function getRecords(
     tags: string[],
     pageviews: PageviewsByUrl,
     redirectSourcesByTarget: RedirectSourcesByTarget,
-    redirectSourcesBySlug: RedirectSourcesBySlug
+    redirectSourcesBySlug: RedirectSourcesBySlug,
 ) {
-    const { slug } = multiDim
+    const { slug } = multiDim;
     console.log(
-        `Creating ${multiDim.config.views.length} records for mdim ${slug}`
-    )
-    const multiDimXChartConfigIdMap = await getMultiDimXChartConfigIdMap(trx)
+        `Creating ${multiDim.config.views.length} records for mdim ${slug}`,
+    );
+    const multiDimXChartConfigIdMap = await getMultiDimXChartConfigIdMap(trx);
     const chartConfigs = await getChartConfigsByIds(
         trx,
-        multiDim.config.views.map((view) => view.fullConfigId)
-    )
-    const relevantVariableIds = getRelevantVariableIds(multiDim.config)
+        multiDim.config.views.map((view) => view.fullConfigId),
+    );
+    const relevantVariableIds = getRelevantVariableIds(multiDim.config);
     const relevantVariableMetadata =
-        await getRelevantVariableMetadata(relevantVariableIds)
+        await getRelevantVariableMetadata(relevantVariableIds);
     const datasetDimensionsByVariableId =
-        await getDatasetDimensionsByVariableIds(trx, [...relevantVariableIds])
-    return multiDim.config.views.map((view) => {
-        const viewId = dimensionsToViewId(view.dimensions)
-        const id = multiDimXChartConfigIdMap.get(`${multiDim.id}-${viewId}`)
+        await getDatasetDimensionsByVariableIds(trx, [...relevantVariableIds]);
+    return multiDim.config.views.flatMap((view) => {
+        const viewId = dimensionsToViewId(view.dimensions);
+        const id = multiDimXChartConfigIdMap.get(`${multiDim.id}-${viewId}`);
         if (!id) {
             console.warn(
-                `Skipping mdim view: MultiDimXChartConfig not found multiDimId=${multiDim.id} viewId=${viewId}`
-            )
-            return []
+                `Skipping mdim view: MultiDimXChartConfig not found multiDimId=${multiDim.id} viewId=${viewId}`,
+            );
+            return [];
         }
-        const chartConfig = chartConfigs.get(view.fullConfigId)
+        const chartConfig = chartConfigs.get(view.fullConfigId);
         if (!chartConfig) {
             console.warn(
                 `Skipping mdim view: chart config not found id=${multiDim.id} ` +
-                    `viewId=${viewId} chartConfigId=${view.fullConfigId}`
-            )
-            return []
+                    `viewId=${viewId} chartConfigId=${view.fullConfigId}`,
+            );
+            return [];
         }
-        const grapherState = new GrapherState(chartConfig)
-        const queryStr = dimensionsToSortedQueryStr(view.dimensions)
-        const variableId = view.indicators.y[0].id
+        const grapherState = new GrapherState(chartConfig);
+        const queryStr = dimensionsToSortedQueryStr(view.dimensions);
+        const variableId = view.indicators.y[0].id;
         const metadata = merge(
             relevantVariableMetadata[variableId],
             multiDim.config.metadata ?? {},
-            view.metadata ?? {}
-        )
+            view.metadata ?? {},
+        );
         const title = maybeAddChangeInPrefix(
             metadata.presentation?.titlePublic ||
                 chartConfig.title ||
                 metadata.display?.name ||
                 metadata.name ||
                 "",
-            grapherState.shouldAddChangeInPrefixToTitle
-        )
-        const containerTitle = multiDim.config.title.title
+            grapherState.shouldAddChangeInPrefixToTitle,
+        );
+        const containerTitle = multiDim.config.title.title;
         const subtitle = toPlaintext(
-            metadata.descriptionShort || chartConfig.subtitle || ""
-        )
+            metadata.descriptionShort || chartConfig.subtitle || "",
+        );
         const availableEntities = metadata.dimensions.entities.values
             .map((entity) => entity.name)
-            .filter(Boolean)
+            .filter(Boolean);
         const redirectSources = [
             ...(redirectSourcesBySlug.get(slug) ?? []),
             ...(redirectSourcesByTarget.get(getRedirectKey(slug, queryStr)) ??
                 []),
-        ]
+        ];
         const views_7d = getMaxViews7d(pageviews, [
             `/grapher/${slug}`,
             ...redirectSources,
-        ])
-        const score = views_7d * 10 - title.length
+        ]);
+        const score = views_7d * 10 - title.length;
 
         const datasetDimensions = view.indicators.y
             .map((ind) => datasetDimensionsByVariableId.get(ind.id))
-            .filter(Boolean)
+            .filter(Boolean);
         const datasetNamespaces = uniqNonEmptyStrings(
-            datasetDimensions.map((dataset) => dataset?.datasetNamespace)
-        )
+            datasetDimensions.map((dataset) => dataset?.datasetNamespace),
+        );
         const datasetVersions = uniqNonEmptyStrings(
-            datasetDimensions.map((dataset) => dataset?.datasetVersion)
-        )
+            datasetDimensions.map((dataset) => dataset?.datasetVersion),
+        );
         const datasetProducts = uniqNonEmptyStrings(
-            datasetDimensions.map((dataset) => dataset?.datasetProduct)
-        )
+            datasetDimensions.map((dataset) => dataset?.datasetProduct),
+        );
         const datasetProducers = uniqNonEmptyStrings(
-            datasetDimensions.map((dataset) => dataset?.datasetProducers)
-        )
+            datasetDimensions.map((dataset) => dataset?.datasetProducers),
+        );
 
         return {
             type: ChartRecordType.MultiDimView,
@@ -224,103 +224,103 @@ async function getRecords(
             datasetVersions,
             datasetProducts,
             datasetProducers,
-        } as ChartRecord
-    })
+        } as ChartRecord;
+    });
 }
 
 async function getMultiDimDataPagesWithInheritedTags(
     trx: db.KnexReadonlyTransaction,
-    topicHierarchies: IndexingContext["topicHierarchies"]
+    topicHierarchies: IndexingContext["topicHierarchies"],
 ) {
-    const multiDims = await getAllPublishedMultiDimDataPages(trx)
+    const multiDims = await getAllPublishedMultiDimDataPages(trx);
 
-    const result = []
+    const result = [];
     for (const multiDim of multiDims) {
         if (!multiDim.slug) {
             await logErrorAndMaybeCaptureInSentry(
-                new Error(`MultiDim with id ${multiDim.id} is missing a slug.`)
-            )
-            continue
+                new Error(`MultiDim with id ${multiDim.id} is missing a slug.`),
+            );
+            continue;
         }
-        const multiDimWithSlug = multiDim as PublishedMultiDimWithSlug
-        const tags = multiDim.config.topicTags ?? []
+        const multiDimWithSlug = multiDim as PublishedMultiDimWithSlug;
+        const tags = multiDim.config.topicTags ?? [];
         if (tags.length === 0) {
             await logErrorAndMaybeCaptureInSentry(
-                new Error(`MultiDim "${multiDim.slug}" has no tags.`)
-            )
+                new Error(`MultiDim "${multiDim.slug}" has no tags.`),
+            );
         }
 
         const topicTags = getUniqueNamesFromTagHierarchies(
             tags,
-            topicHierarchies
-        )
+            topicHierarchies,
+        );
 
-        result.push({ multiDim: multiDimWithSlug, tags: topicTags })
+        result.push({ multiDim: multiDimWithSlug, tags: topicTags });
     }
 
-    return result
+    return result;
 }
 
 export async function getMdimViewRecords(
     trx: db.KnexReadonlyTransaction,
     options?: {
-        id?: number
-        baseContext?: IndexingContext
-    }
+        id?: number;
+        baseContext?: IndexingContext;
+    },
 ) {
-    const { id, baseContext } = options ?? {}
+    const { id, baseContext } = options ?? {};
 
-    console.log("Getting mdim view records")
+    console.log("Getting mdim view records");
 
-    const context = await createMdimIndexingContext(trx, baseContext)
+    const context = await createMdimIndexingContext(trx, baseContext);
 
     const multiDimsWithTags = (
         await getMultiDimDataPagesWithInheritedTags(
             trx,
-            context.topicHierarchies
+            context.topicHierarchies,
         )
-    ).filter((m) => id === undefined || m.multiDim.id === id)
+    ).filter((m) => id === undefined || m.multiDim.id === id);
 
     const [grapherRedirects, explorerRedirects] = await Promise.all([
         getMultiDimRedirectTargets(trx, undefined, "/grapher/"),
         getMultiDimRedirectTargets(trx, undefined, "/explorers/"),
-    ])
-    const redirectSourcesByTarget = new Map<string, string[]>()
-    const redirectSourcesBySlug = new Map<string, string[]>()
+    ]);
+    const redirectSourcesByTarget = new Map<string, string[]>();
+    const redirectSourcesBySlug = new Map<string, string[]>();
     for (const [sourceSlug, target] of grapherRedirects) {
-        const sourcePath = `/grapher/${sourceSlug}`
+        const sourcePath = `/grapher/${sourceSlug}`;
         if (target.queryStr) {
             const sources = redirectSourcesByTarget.get(
-                getRedirectKey(target.targetSlug, target.queryStr)
-            )
-            if (sources) sources.push(sourcePath)
+                getRedirectKey(target.targetSlug, target.queryStr),
+            );
+            if (sources) sources.push(sourcePath);
             else
                 redirectSourcesByTarget.set(
                     getRedirectKey(target.targetSlug, target.queryStr),
-                    [sourcePath]
-                )
+                    [sourcePath],
+                );
         } else {
-            const sources = redirectSourcesBySlug.get(target.targetSlug)
-            if (sources) sources.push(sourcePath)
-            else redirectSourcesBySlug.set(target.targetSlug, [sourcePath])
+            const sources = redirectSourcesBySlug.get(target.targetSlug);
+            if (sources) sources.push(sourcePath);
+            else redirectSourcesBySlug.set(target.targetSlug, [sourcePath]);
         }
     }
     for (const [sourceSlug, target] of explorerRedirects) {
-        const sourcePath = `/explorers/${sourceSlug}`
+        const sourcePath = `/explorers/${sourceSlug}`;
         if (target.queryStr) {
             const sources = redirectSourcesByTarget.get(
-                getRedirectKey(target.targetSlug, target.queryStr)
-            )
-            if (sources) sources.push(sourcePath)
+                getRedirectKey(target.targetSlug, target.queryStr),
+            );
+            if (sources) sources.push(sourcePath);
             else
                 redirectSourcesByTarget.set(
                     getRedirectKey(target.targetSlug, target.queryStr),
-                    [sourcePath]
-                )
+                    [sourcePath],
+                );
         } else {
-            const sources = redirectSourcesBySlug.get(target.targetSlug)
-            if (sources) sources.push(sourcePath)
-            else redirectSourcesBySlug.set(target.targetSlug, [sourcePath])
+            const sources = redirectSourcesBySlug.get(target.targetSlug);
+            if (sources) sources.push(sourcePath);
+            else redirectSourcesBySlug.set(target.targetSlug, [sourcePath]);
         }
     }
     const records = await Promise.all(
@@ -331,9 +331,9 @@ export async function getMdimViewRecords(
                 tags,
                 context.pageviews,
                 redirectSourcesByTarget,
-                redirectSourcesBySlug
-            )
-        )
-    )
-    return records.flat()
+                redirectSourcesBySlug,
+            ),
+        ),
+    );
+    return records.flat();
 }

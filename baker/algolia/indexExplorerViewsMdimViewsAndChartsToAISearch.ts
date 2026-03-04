@@ -1,30 +1,30 @@
 // This should be imported as early as possible so the global error handler is
 // set up before any errors are thrown.
-import "../../serverUtils/instrument.js"
+import "../../serverUtils/instrument.js";
 
-import * as Sentry from "@sentry/node"
-import * as db from "../../db/db.js"
-import { ChartRecord, ChartRecordType } from "@ourworldindata/types"
-import { getFeaturedMetricsByParentTagName } from "../../db/db.js"
-import { S3Client } from "@aws-sdk/client-s3"
+import * as Sentry from "@sentry/node";
+import * as db from "../../db/db.js";
+import { ChartRecord, ChartRecordType } from "@ourworldindata/types";
+import { getFeaturedMetricsByParentTagName } from "../../db/db.js";
+import { S3Client } from "@aws-sdk/client-s3";
 import {
     AI_SEARCH_R2_BUCKET,
     R2_ACCESS_KEY_ID,
     R2_ENDPOINT,
     R2_REGION,
     R2_SECRET_ACCESS_KEY,
-} from "../../settings/serverSettings.js"
-import { uploadToR2 } from "./utils/aiSearch.js"
-import { getChartsRecords } from "./utils/charts.js"
-import { getExplorerViewRecords } from "./utils/explorerViews.js"
-import { getMdimViewRecords } from "./utils/mdimViews.js"
-import parseArgs from "minimist"
+} from "../../settings/serverSettings.js";
+import { uploadToR2 } from "./utils/aiSearch.js";
+import { getChartsRecords } from "./utils/charts.js";
+import { getExplorerViewRecords } from "./utils/explorerViews.js";
+import { getMdimViewRecords } from "./utils/mdimViews.js";
+import parseArgs from "minimist";
 
 interface CliArgs {
-    slug?: string // Filter by slug (works for explorers, mdims, and charts)
-    type?: "charts" | "explorers" | "mdim" | "all" // Filter by record type
-    invalidate?: boolean // Add timestamp to invalidate AI Search cache
-    help?: boolean
+    slug?: string; // Filter by slug (works for explorers, mdims, and charts)
+    type?: "charts" | "explorers" | "mdim" | "all"; // Filter by record type
+    invalidate?: boolean; // Add timestamp to invalidate AI Search cache
+    help?: boolean;
 }
 
 function printUsage(): void {
@@ -49,7 +49,7 @@ Examples:
 
   # Force re-indexing by invalidating cache
   yarn tsx baker/algolia/indexExplorerViewsMdimViewsAndChartsToAISearch.ts --invalidate
-`)
+`);
 }
 
 /**
@@ -57,23 +57,23 @@ Examples:
  * Works for charts, explorer views, and mdim views.
  */
 function chartRecordToMarkdown(record: ChartRecord): string {
-    const lines: string[] = []
+    const lines: string[] = [];
 
-    lines.push(`# ${record.title}`)
-    lines.push("")
+    lines.push(`# ${record.title}`);
+    lines.push("");
 
     if (record.subtitle) {
-        lines.push(record.subtitle)
-        lines.push("")
+        lines.push(record.subtitle);
+        lines.push("");
     }
 
     if (record.tags.length > 0) {
-        lines.push("## Topics")
-        lines.push(record.tags.join(", "))
-        lines.push("")
+        lines.push("## Topics");
+        lines.push(record.tags.join(", "));
+        lines.push("");
     }
 
-    return lines.join("\n")
+    return lines.join("\n");
 }
 
 /**
@@ -84,28 +84,28 @@ function chartRecordToMarkdown(record: ChartRecord): string {
  * Other income groups (low, lower-middle, upper-middle) are for country-specific views.
  */
 async function getFmRankByPath(
-    trx: db.KnexReadonlyTransaction
+    trx: db.KnexReadonlyTransaction,
 ): Promise<Map<string, number>> {
-    const fmsByTag = await getFeaturedMetricsByParentTagName(trx)
-    const fmRankByPath = new Map<string, number>()
+    const fmsByTag = await getFeaturedMetricsByParentTagName(trx);
+    const fmRankByPath = new Map<string, number>();
 
     for (const fms of Object.values(fmsByTag)) {
         for (const fm of fms) {
             // Only consider default income group (primary ranking)
-            if (fm.incomeGroup !== "default") continue
+            if (fm.incomeGroup !== "default") continue;
 
             // Extract path from URL (e.g., "/grapher/population" from full URL)
-            const url = new URL(fm.url, "https://ourworldindata.org")
-            const path = url.pathname + url.search
+            const url = new URL(fm.url, "https://ourworldindata.org");
+            const path = url.pathname + url.search;
 
-            const existingRank = fmRankByPath.get(path)
+            const existingRank = fmRankByPath.get(path);
             if (!existingRank || fm.ranking < existingRank) {
-                fmRankByPath.set(path, fm.ranking)
+                fmRankByPath.set(path, fm.ranking);
             }
         }
     }
 
-    return fmRankByPath
+    return fmRankByPath;
 }
 
 /**
@@ -114,12 +114,12 @@ async function getFmRankByPath(
 function getRecordPath(record: ChartRecord): string {
     switch (record.type) {
         case ChartRecordType.ExplorerView:
-            return `/explorers/${record.slug}${record.queryParams || ""}`
+            return `/explorers/${record.slug}${record.queryParams || ""}`;
         case ChartRecordType.MultiDimView:
-            return `/grapher/${record.slug}?${record.queryParams || ""}`
+            return `/grapher/${record.slug}?${record.queryParams || ""}`;
         case ChartRecordType.Chart:
         default:
-            return `/grapher/${record.slug}`
+            return `/grapher/${record.slug}`;
     }
 }
 
@@ -129,12 +129,12 @@ function getRecordPath(record: ChartRecord): string {
 function getRecordKeyPrefix(record: ChartRecord): string {
     switch (record.type) {
         case ChartRecordType.ExplorerView:
-            return "explorers"
+            return "explorers";
         case ChartRecordType.MultiDimView:
-            return "mdim"
+            return "mdim";
         case ChartRecordType.Chart:
         default:
-            return "charts"
+            return "charts";
     }
 }
 
@@ -143,34 +143,34 @@ function getRecordKeyPrefix(record: ChartRecord): string {
  * For records with query params, we use the objectID to ensure uniqueness.
  */
 function getRecordFilename(record: ChartRecord): string {
-    const prefix = getRecordKeyPrefix(record)
+    const prefix = getRecordKeyPrefix(record);
     // Use objectID for explorer views and mdim views since they have query params
     // that would create duplicate slugs
     if (
         record.type === ChartRecordType.ExplorerView ||
         record.type === ChartRecordType.MultiDimView
     ) {
-        return `${prefix}/${record.objectID}.md`
+        return `${prefix}/${record.objectID}.md`;
     }
-    return `${prefix}/${record.slug}.md`
+    return `${prefix}/${record.slug}.md`;
 }
 
 interface RecordMetadata {
-    type: ChartRecordType
-    slug: string
-    variantName: string
-    availableTabs: string[]
-    queryParams: string
-    publishedAt: string
-    updatedAt: string
-    views_7d: number
-    views_14d: number
-    views_365d: number
-    fmRank: number | undefined
-    tag1: string
-    tag2: string
-    tag3: string
-    tag4: string
+    type: ChartRecordType;
+    slug: string;
+    variantName: string;
+    availableTabs: string[];
+    queryParams: string;
+    publishedAt: string;
+    updatedAt: string;
+    views_7d: number;
+    views_14d: number;
+    views_365d: number;
+    fmRank: number | undefined;
+    tag1: string;
+    tag2: string;
+    tag3: string;
+    tag4: string;
 }
 
 const indexExplorerViewsMdimViewsAndChartsToAISearch = async () => {
@@ -179,35 +179,35 @@ const indexExplorerViewsMdimViewsAndChartsToAISearch = async () => {
         string: ["slug", "type"],
         boolean: ["help", "invalidate"],
         default: { type: "all" },
-    }) as CliArgs
+    }) as CliArgs;
 
     if (args.help) {
-        printUsage()
-        return
+        printUsage();
+        return;
     }
 
-    const slugFilter = args.slug
-    const typeFilter = args.type || "all"
-    const addTimestamp = args.invalidate || false
+    const slugFilter = args.slug;
+    const typeFilter = args.type || "all";
+    const addTimestamp = args.invalidate || false;
 
     if (!R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY) {
         console.error(
-            "R2 credentials are not set. Skipping AI Search indexing."
-        )
-        return
+            "R2 credentials are not set. Skipping AI Search indexing.",
+        );
+        return;
     }
 
     console.log(
-        `Indexing explorer views, mdim views, and charts to AI Search R2 bucket: ${AI_SEARCH_R2_BUCKET}`
-    )
+        `Indexing explorer views, mdim views, and charts to AI Search R2 bucket: ${AI_SEARCH_R2_BUCKET}`,
+    );
     if (slugFilter) {
-        console.log(`  Filtering by slug: ${slugFilter}`)
+        console.log(`  Filtering by slug: ${slugFilter}`);
     }
     if (typeFilter !== "all") {
-        console.log(`  Filtering by type: ${typeFilter}`)
+        console.log(`  Filtering by type: ${typeFilter}`);
     }
     if (addTimestamp) {
-        console.log(`  Adding timestamp to invalidate cache`)
+        console.log(`  Adding timestamp to invalidate cache`);
     }
 
     const s3Client = new S3Client({
@@ -217,85 +217,85 @@ const indexExplorerViewsMdimViewsAndChartsToAISearch = async () => {
             accessKeyId: R2_ACCESS_KEY_ID,
             secretAccessKey: R2_SECRET_ACCESS_KEY,
         },
-    })
+    });
 
     const { records, fmRankByPath } = await db.knexReadonlyTransaction(
         async (trx) => {
             // Fetch record types based on filter
             const shouldFetchExplorers =
-                typeFilter === "all" || typeFilter === "explorers"
+                typeFilter === "all" || typeFilter === "explorers";
             const shouldFetchMdim =
-                typeFilter === "all" || typeFilter === "mdim"
+                typeFilter === "all" || typeFilter === "mdim";
             const shouldFetchCharts =
-                typeFilter === "all" || typeFilter === "charts"
-
-            // Pass slug filter to each fetcher to avoid loading unnecessary data
-            const explorerSlugFilter =
-                shouldFetchExplorers && slugFilter ? slugFilter : undefined
-            const mdimSlugFilter =
-                shouldFetchMdim && slugFilter ? slugFilter : undefined
-            const chartSlugFilter =
-                shouldFetchCharts && slugFilter ? slugFilter : undefined
+                typeFilter === "all" || typeFilter === "charts";
 
             const explorerViews = shouldFetchExplorers
-                ? await getExplorerViewRecords(trx, true, explorerSlugFilter)
-                : []
+                ? await getExplorerViewRecords(trx, {
+                      slug: slugFilter,
+                      skipGrapherViews: true,
+                  })
+                : [];
             const mdimViews = shouldFetchMdim
-                ? await getMdimViewRecords(trx, mdimSlugFilter)
-                : []
+                ? await getMdimViewRecords(trx)
+                : [];
             const grapherViews = shouldFetchCharts
-                ? await getChartsRecords(trx, chartSlugFilter)
-                : []
+                ? await getChartsRecords(trx)
+                : [];
 
-            const records = [...grapherViews, ...explorerViews, ...mdimViews]
+            // Apply slug filter (explorer fetcher supports it natively; for charts/mdim we filter after)
+            const records = [
+                ...grapherViews,
+                ...explorerViews,
+                ...mdimViews,
+            ].filter((r) => !slugFilter || r.slug === slugFilter);
 
             // Get FM rankings
-            const fmRankByPath = await getFmRankByPath(trx)
+            const fmRankByPath = await getFmRankByPath(trx);
 
-            return { records, fmRankByPath }
+            return { records, fmRankByPath };
         },
-        db.TransactionCloseMode.Close
-    )
+        db.TransactionCloseMode.Close,
+    );
 
     if (records.length === 0) {
         console.error(
-            `No records found${slugFilter ? ` with slug: ${slugFilter}` : ""}`
-        )
-        return
+            `No records found${slugFilter ? ` with slug: ${slugFilter}` : ""}`,
+        );
+        return;
     }
 
-    console.log(`Found ${records.length} records to upload`)
-    console.log(`Found ${fmRankByPath.size} featured metrics`)
+    console.log(`Found ${records.length} records to upload`);
+    console.log(`Found ${fmRankByPath.size} featured metrics`);
 
     // Count by type
     const countByType = records.reduce(
         (acc, r) => {
-            acc[r.type] = (acc[r.type] || 0) + 1
-            return acc
+            acc[r.type] = (acc[r.type] || 0) + 1;
+            return acc;
         },
-        {} as Record<string, number>
-    )
-    console.log(`  Charts: ${countByType[ChartRecordType.Chart] || 0}`)
+        {} as Record<string, number>,
+    );
+    console.log(`  Charts: ${countByType[ChartRecordType.Chart] || 0}`);
     console.log(
-        `  Explorer views: ${countByType[ChartRecordType.ExplorerView] || 0}`
-    )
+        `  Explorer views: ${countByType[ChartRecordType.ExplorerView] || 0}`,
+    );
     console.log(
-        `  Mdim views: ${countByType[ChartRecordType.MultiDimView] || 0}`
-    )
+        `  Mdim views: ${countByType[ChartRecordType.MultiDimView] || 0}`,
+    );
 
     // Upload each record to R2
-    let uploaded = 0
-    let fmCount = 0
+    let uploaded = 0;
+    let fmCount = 0;
     for (const record of records) {
         // Look up FM rank by record path
-        const recordPath = getRecordPath(record)
-        const fmRank = fmRankByPath.get(recordPath)
+        const recordPath = getRecordPath(record);
+        const fmRank = fmRankByPath.get(recordPath);
         if (fmRank) {
-            fmCount++
+            fmCount++;
         }
 
-        const markdown = chartRecordToMarkdown(record)
-        const key = getRecordFilename(record)
+        const markdown = chartRecordToMarkdown(record);
+        const key = getRecordFilename(record);
 
         const metadata: RecordMetadata = {
             type: record.type,
@@ -313,7 +313,7 @@ const indexExplorerViewsMdimViewsAndChartsToAISearch = async () => {
             tag2: record.tags[1] || "",
             tag3: record.tags[2] || "",
             tag4: record.tags[3] || "",
-        }
+        };
 
         await uploadToR2(
             s3Client,
@@ -322,18 +322,21 @@ const indexExplorerViewsMdimViewsAndChartsToAISearch = async () => {
             markdown,
             "chartdata",
             metadata,
-            { addTimestamp }
-        )
-        uploaded++
+            { addTimestamp },
+        );
+        uploaded++;
     }
 
-    console.log(`Found ${fmCount} featured metrics among all records`)
-    console.log(`Successfully uploaded ${uploaded} records to R2`)
-}
+    console.log(`Found ${fmCount} featured metrics among all records`);
+    console.log(`Successfully uploaded ${uploaded} records to R2`);
+};
 
 indexExplorerViewsMdimViewsAndChartsToAISearch().catch(async (e) => {
-    console.error("Error in indexExplorerViewsMdimViewsAndChartsToAISearch:", e)
-    Sentry.captureException(e)
-    await Sentry.close()
-    process.exit(1)
-})
+    console.error(
+        "Error in indexExplorerViewsMdimViewsAndChartsToAISearch:",
+        e,
+    );
+    Sentry.captureException(e);
+    await Sentry.close();
+    process.exit(1);
+});
