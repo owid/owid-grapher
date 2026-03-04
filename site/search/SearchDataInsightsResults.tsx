@@ -17,7 +17,6 @@ import { useSearchContext } from "./SearchContext.js"
 export function SearchDataInsightsResults() {
     const { analytics } = useSearchContext()
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
-
     const query = useInfiniteSearch<SearchDataInsightResponse, DataInsightHit>({
         queryKey: (state) => searchQueryKeys.dataInsights(state),
         queryFn: queryDataInsights,

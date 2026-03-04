@@ -124,7 +124,7 @@ export function useInfiniteSearchOffset<T extends SearchResponse<U>, U>({
 }) {
     const { state, liteSearchClient } = useSearchContext()
     const query = useInfiniteQuery<T, Error>({
-        queryKey: ["algolia", ...queryKey(state)],
+        queryKey: queryKey(state),
         queryFn: ({ pageParam }) => {
             if (typeof pageParam !== "number")
                 throw new Error("Invalid pageParam")
@@ -181,7 +181,8 @@ export function useInfiniteSearch<T extends SearchResponse<U>, U>({
     const { state, liteSearchClient } = useSearchContext()
 
     const query = useInfiniteQuery<T, Error>({
-        queryKey: ["algolia", ...queryKey(state)],
+        // All paginated subqueries share the same query key
+        queryKey: queryKey(state),
         queryFn: ({ pageParam }) => {
             if (typeof pageParam !== "number")
                 throw new Error("Invalid pageParam")

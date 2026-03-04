@@ -18,19 +18,12 @@
     }
 }
 
-.search-bar-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-}
-
 .search-bar {
     display: flex;
     align-items: flex-start;
     border: 1px solid $blue-20;
     background-color: #fff;
     position: relative;
-    flex: 1;
 
     &:focus-within {
         box-shadow: $box-shadow-xl;
