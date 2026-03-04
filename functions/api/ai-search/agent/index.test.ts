@@ -5,10 +5,6 @@ import { generateText } from "ai"
 import { searchChartsMulti } from "../../search/searchApi.js"
 
 // Mock AI SDK modules
-vi.mock("@ai-sdk/openai", () => ({
-    createOpenAI: vi.fn(() => vi.fn(() => "mock-openai-model")),
-}))
-
 vi.mock("@ai-sdk/google", () => ({
     createGoogleGenerativeAI: vi.fn(() => vi.fn(() => "mock-gemini-model")),
 }))
@@ -32,7 +28,6 @@ vi.mock("../../search/searchApi.js", () => ({
 
 describe("AI Search Agent API endpoint", () => {
     const mockEnv: Env = {
-        OPENAI_API_KEY: "test-openai-key",
         GOOGLE_API_KEY: "test-google-key",
         ALGOLIA_ID: "test-algolia-id",
         ALGOLIA_SEARCH_KEY: "test-algolia-key",
@@ -102,25 +97,6 @@ describe("AI Search Agent API endpoint", () => {
     })
 
     describe("API key validation", () => {
-        it("returns 500 when OpenAI key is missing for OpenAI model", async () => {
-            const envWithoutOpenAI = {
-                ...mockEnv,
-                OPENAI_API_KEY: undefined,
-            } as unknown as Env
-
-            const request = new Request(
-                "http://localhost/api/ai-search/agent?q=test&model=openai"
-            )
-            const response = await onRequestGet({
-                request,
-                env: envWithoutOpenAI,
-            } as any)
-
-            expect(response.status).toBe(500)
-            const body = (await response.json()) as { error: string }
-            expect(body.error).toBe("Configuration error")
-        })
-
         it("returns 500 when Google key is missing for Gemini model", async () => {
             const envWithoutGoogle = {
                 ...mockEnv,
@@ -177,20 +153,6 @@ describe("AI Search Agent API endpoint", () => {
             expect(response.status).toBe(200)
             const body = (await response.json()) as { model: string }
             expect(body.model).toBe("gemini-2.5-flash-lite")
-        })
-
-        it("uses OpenAI when model=openai", async () => {
-            const request = new Request(
-                "http://localhost/api/ai-search/agent?q=test&model=openai"
-            )
-            const response = await onRequestGet({
-                request,
-                env: mockEnv,
-            } as any)
-
-            expect(response.status).toBe(200)
-            const body = (await response.json()) as { model: string }
-            expect(body.model).toBe("gpt-5-mini")
         })
 
         it("resolves gemini aliases correctly", async () => {
@@ -359,9 +321,9 @@ describe("AI Search Agent API endpoint", () => {
             expect(body.debug.finalText).toBeDefined()
         })
 
-        it("respects max_results parameter", async () => {
+        it("respects hitsPerPage parameter", async () => {
             const request = new Request(
-                "http://localhost/api/ai-search/agent?q=population&max_results=1"
+                "http://localhost/api/ai-search/agent?q=population&hitsPerPage=1"
             )
             const response = await onRequestGet({
                 request,

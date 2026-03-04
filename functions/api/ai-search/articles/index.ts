@@ -11,8 +11,8 @@ import {
 // Name of the AI Search instance in Cloudflare dashboard
 const AI_SEARCH_INSTANCE_NAME = "search-articles"
 
-const DEFAULT_LENGTH = 10
-const MAX_LENGTH = 100
+const DEFAULT_HITS_PER_PAGE = 10
+const MAX_HITS_PER_PAGE = 100
 
 interface PageData {
     type: OwidGdocType
@@ -106,8 +106,9 @@ interface ArticlesApiResponse {
     query: string
     hits: ArticleHit[]
     nbHits: number
-    offset: number
-    length: number
+    page: number
+    nbPages: number
+    hitsPerPage: number
 }
 
 /**
@@ -286,8 +287,8 @@ function buildFolderFilters(folders: string[]): {
 function transformToArticlesApiFormat(
     query: string,
     results: AISearchResponse,
-    offset: number,
-    length: number,
+    page: number,
+    hitsPerPage: number,
     baseUrl: string
 ): ArticlesApiResponse {
     const hits: ArticleHit[] = results.data.map((result, index) => {
@@ -340,8 +341,9 @@ function transformToArticlesApiFormat(
     // Sort by combined score (descending)
     hits.sort((a, b) => b.score - a.score)
 
-    // Apply offset/length pagination
-    const paginatedHits = hits.slice(offset, offset + length)
+    // Apply page/hitsPerPage pagination
+    const offset = page * hitsPerPage
+    const paginatedHits = hits.slice(offset, offset + hitsPerPage)
 
     // Re-assign positions after sorting/pagination
     paginatedHits.forEach((hit, index) => {
@@ -352,8 +354,9 @@ function transformToArticlesApiFormat(
         query,
         hits: paginatedHits,
         nbHits: hits.length,
-        offset,
-        length,
+        page,
+        nbPages: Math.ceil(hits.length / hitsPerPage),
+        hitsPerPage,
     }
 }
 
@@ -363,14 +366,15 @@ function transformToArticlesApiFormat(
 function transformToTopicPagesApiFormat(
     query: string,
     results: AISearchResponse,
-    offset: number,
-    length: number
+    page: number,
+    hitsPerPage: number
 ): {
     query: string
     hits: TopicPageHit[]
     nbHits: number
-    offset: number
-    length: number
+    page: number
+    nbPages: number
+    hitsPerPage: number
 } {
     const hits: TopicPageHit[] = results.data.map((result, index) => {
         const pageData = parsePageData(result)
@@ -411,8 +415,9 @@ function transformToTopicPagesApiFormat(
     // Sort by combined score (descending)
     hits.sort((a, b) => b.score - a.score)
 
-    // Apply offset/length pagination
-    const paginatedHits = hits.slice(offset, offset + length)
+    // Apply page/hitsPerPage pagination
+    const offset = page * hitsPerPage
+    const paginatedHits = hits.slice(offset, offset + hitsPerPage)
 
     // Re-assign positions after sorting/pagination
     paginatedHits.forEach((hit, index) => {
@@ -423,8 +428,9 @@ function transformToTopicPagesApiFormat(
         query,
         hits: paginatedHits,
         nbHits: hits.length,
-        offset,
-        length,
+        page,
+        nbPages: Math.ceil(hits.length / hitsPerPage),
+        hitsPerPage,
     }
 }
 
@@ -490,17 +496,27 @@ function transformToDataInsightsApiFormat(
     }
 }
 
-// Default folders to include when not specified
-const DEFAULT_FOLDERS = ["articles", "about-pages"]
+// Map type parameter values to folder prefixes used in R2
+const TYPE_TO_FOLDER: Record<string, string> = {
+    article: "articles",
+    about: "about-pages",
+    topic: "topic-pages",
+    "data-insight": "data-insights",
+}
+
+const VALID_TYPES = Object.keys(TYPE_TO_FOLDER)
+
+// Default types to include when not specified
+const DEFAULT_TYPES = ["article", "about"]
 
 // Valid query parameter names for this endpoint
+// NOTE: page/hitsPerPage naming chosen for consistency with /api/search (Algolia).
+// We might decide to change this to offset/limit in the future.
 const VALID_PARAMS = new Set([
     COMMON_SEARCH_PARAMS.QUERY, // "q"
-    "folders",
+    "type",
     "page",
     "hitsPerPage",
-    "offset",
-    "length",
 ])
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
@@ -516,31 +532,19 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         // Parse query parameter
         const query = url.searchParams.get(COMMON_SEARCH_PARAMS.QUERY) || ""
 
-        // Parse folders filter (comma-separated list)
-        const foldersParam = url.searchParams.get("folders")
-        const folders = foldersParam
-            ? foldersParam.split(",").map((f) => f.trim())
-            : DEFAULT_FOLDERS
+        // Parse type filter (comma-separated list)
+        const typeParam = url.searchParams.get("type")
+        const types = typeParam
+            ? typeParam.split(",").map((t) => t.trim())
+            : DEFAULT_TYPES
 
-        // Determine request type based on folders
-        const isTopicPagesRequest = folders.includes("topic-pages")
-        const isDataInsightsRequest = folders.includes("data-insights")
-
-        // Data insights use page/hitsPerPage pagination (Algolia-style)
-        // Articles and topic pages use offset/length pagination
-        const page = parseInt(url.searchParams.get("page") || "0")
-        const hitsPerPage = parseInt(url.searchParams.get("hitsPerPage") || "4")
-        const offset = parseInt(url.searchParams.get("offset") || "0")
-        const length = parseInt(
-            url.searchParams.get("length") || DEFAULT_LENGTH.toString()
-        )
-
-        // Validate pagination parameters
-        if (offset < 0 || page < 0) {
+        // Validate type values
+        const invalidTypes = types.filter((t) => !VALID_TYPES.includes(t))
+        if (invalidTypes.length > 0) {
             return new Response(
                 JSON.stringify({
-                    error: "Invalid pagination parameter",
-                    details: "offset and page must be >= 0",
+                    error: "Invalid type parameter",
+                    details: `Invalid type(s): ${invalidTypes.join(", ")}. Valid values: ${VALID_TYPES.join(", ")}`,
                 }),
                 {
                     status: 400,
@@ -552,11 +556,39 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             )
         }
 
-        if (length < 1 || length > MAX_LENGTH) {
+        // Determine request type for response format
+        const isTopicPagesRequest = types.includes("topic")
+        const isDataInsightsRequest = types.includes("data-insight")
+
+        // Parse pagination parameters
+        const page = parseInt(url.searchParams.get("page") || "0")
+        const hitsPerPage = parseInt(
+            url.searchParams.get("hitsPerPage") ||
+                DEFAULT_HITS_PER_PAGE.toString()
+        )
+
+        // Validate pagination parameters
+        if (page < 0) {
             return new Response(
                 JSON.stringify({
-                    error: "Invalid length parameter",
-                    details: `Length must be between 1 and ${MAX_LENGTH}`,
+                    error: "Invalid page parameter",
+                    details: "page must be >= 0",
+                }),
+                {
+                    status: 400,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Access-Control-Allow-Origin": "*",
+                    },
+                }
+            )
+        }
+
+        if (hitsPerPage < 1 || hitsPerPage > MAX_HITS_PER_PAGE) {
+            return new Response(
+                JSON.stringify({
+                    error: "Invalid hitsPerPage parameter",
+                    details: `hitsPerPage must be between 1 and ${MAX_HITS_PER_PAGE}`,
                 }),
                 {
                     status: 400,
@@ -569,11 +601,10 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         }
 
         // Calculate fetch size based on pagination
-        const fetchSize = isDataInsightsRequest
-            ? Math.min((page + 1) * hitsPerPage + 20, 50)
-            : Math.min(offset + length + 20, 50)
+        const fetchSize = Math.min((page + 1) * hitsPerPage + 20, 50)
 
-        // Build folder filters for AI Search
+        // Map type values to folder names for AI Search filtering
+        const folders = types.map((t) => TYPE_TO_FOLDER[t])
         const folderFilters = buildFolderFilters(folders)
 
         // Call AI Search with folder filtering
@@ -599,15 +630,15 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             response = transformToTopicPagesApiFormat(
                 query,
                 results,
-                offset,
-                length
+                page,
+                hitsPerPage
             )
         } else {
             response = transformToArticlesApiFormat(
                 query,
                 results,
-                offset,
-                length,
+                page,
+                hitsPerPage,
                 baseUrl
             )
         }

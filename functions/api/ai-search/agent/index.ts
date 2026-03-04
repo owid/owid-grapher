@@ -8,7 +8,6 @@ import {
     searchChartsSemantic,
 } from "../utils.js"
 import { ChartRecordType } from "@ourworldindata/types"
-import { createOpenAI } from "@ai-sdk/openai"
 import { createGoogleGenerativeAI } from "@ai-sdk/google"
 // NOTE: AI SDK's Output.array() would be ideal for forcing JSON output, but Gemini
 // doesn't support structured output combined with tool calling ("Function calling
@@ -23,14 +22,16 @@ import { searchChartsMulti } from "../../search/searchApi.js"
 // Constants
 // =============================================================================
 
+// NOTE: page/hitsPerPage naming chosen for consistency with /api/search (Algolia).
+// We might decide to change this to offset/limit in the future.
 const VALID_PARAMS = new Set([
     COMMON_SEARCH_PARAMS.QUERY,
-    "max_results",
+    "hitsPerPage",
     "debug",
     "model",
     "search", // "keyword" (default) or "semantic"
     "verbose", // include all fields in response (default: false)
-    "type", // "chart", "explorer", "multiDim", or "all" (default)
+    "type", // "chart", "explorer", "mdim", or "all" (default)
 ])
 
 // Valid type filter values and their mapping to ChartRecordType
@@ -38,7 +39,7 @@ const TYPE_FILTER_MAP: Record<string, ChartRecordType | null> = {
     all: null, // No filtering
     chart: ChartRecordType.Chart,
     explorer: ChartRecordType.ExplorerView,
-    multiDim: ChartRecordType.MultiDimView,
+    mdim: ChartRecordType.MultiDimView,
 }
 const VALID_TYPES = Object.keys(TYPE_FILTER_MAP)
 
@@ -272,20 +273,13 @@ type LanguageModel = Parameters<typeof generateText>[0]["model"]
 /**
  * Create a language model instance for the given provider.
  */
-function createModel(
-    provider: "openai" | "gemini",
-    apiKey: string,
-    modelId: string
-): LanguageModel {
-    if (provider === "openai") {
-        return createOpenAI({ apiKey })(modelId)
-    }
+function createModel(apiKey: string, modelId: string): LanguageModel {
     return createGoogleGenerativeAI({ apiKey })(modelId)
 }
 
 /**
  * Run recommendation using AI SDK with tool calling.
- * Works with both OpenAI and Gemini models.
+ * Works with Gemini models via AI SDK tool calling.
  */
 async function runRecommendation(
     model: LanguageModel,
@@ -401,7 +395,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         const query = url.searchParams.get(COMMON_SEARCH_PARAMS.QUERY) || ""
         const maxResults = Math.min(
             parseInt(
-                url.searchParams.get("max_results") ||
+                url.searchParams.get("hitsPerPage") ||
                     String(DEFAULT_MAX_RESULTS)
             ),
             MAX_RESULTS_LIMIT
@@ -436,43 +430,12 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             )
         }
 
-        // Detect provider from model param
-        const isOpenAI = modelParam === "openai" || modelParam.startsWith("gpt")
-        const isGemini =
-            modelParam === "gemini" || modelParam.startsWith("gemini")
+        // Resolve model alias
+        const resolvedModel =
+            GEMINI_MODEL_ALIASES[modelParam] || modelParam
 
-        if (!isOpenAI && !isGemini) {
-            return new Response(
-                JSON.stringify({
-                    error: "Invalid model",
-                    details: `Unknown model: ${modelParam}. Supported: openai, gpt-*, gemini, gemini-*`,
-                }),
-                { status: 400, headers }
-            )
-        }
-
-        // Resolve model alias based on provider
-        let resolvedModel: string
-        if (isOpenAI) {
-            // Default to gpt-5-mini: faster than gpt-5-nano despite the name (10s vs 20s+ in testing)
-            resolvedModel = modelParam === "openai" ? "gpt-5-mini" : modelParam
-        } else {
-            resolvedModel =
-                GEMINI_MODEL_ALIASES[modelParam] ||
-                modelParam.replace("gemini-", "gemini-")
-        }
-
-        // Validate API keys
-        if (isOpenAI && !env.OPENAI_API_KEY) {
-            return new Response(
-                JSON.stringify({
-                    error: "Configuration error",
-                    details: "OPENAI_API_KEY not configured",
-                }),
-                { status: 500, headers }
-            )
-        }
-        if (isGemini && !env.GOOGLE_API_KEY) {
+        // Validate API key
+        if (!env.GOOGLE_API_KEY) {
             return new Response(
                 JSON.stringify({
                     error: "Configuration error",
@@ -486,11 +449,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         const agentStartTime = Date.now()
 
         // Create model and run recommendation
-        const model = createModel(
-            isOpenAI ? "openai" : "gemini",
-            isOpenAI ? env.OPENAI_API_KEY! : env.GOOGLE_API_KEY!,
-            resolvedModel
-        )
+        const model = createModel(env.GOOGLE_API_KEY, resolvedModel)
         const result = await runRecommendation(
             model,
             query,

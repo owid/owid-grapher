@@ -277,6 +277,8 @@ function stripVerboseFields(results: SearchApiResponse): SearchApiResponse {
 }
 
 // Valid query parameter names for this endpoint
+// NOTE: page/hitsPerPage naming chosen for consistency with /api/search (Algolia).
+// We might decide to change this to offset/limit in the future.
 const VALID_PARAMS = new Set([
     COMMON_SEARCH_PARAMS.QUERY, // "q"
     COMMON_SEARCH_PARAMS.COUNTRY, // "countries"

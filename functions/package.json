@@ -3,7 +3,6 @@
     "type": "module",
     "dependencies": {
         "@ai-sdk/google": "^3.0.20",
-        "@ai-sdk/openai": "^3.0.0",
         "@ourworldindata/components": "workspace:^",
         "@ourworldindata/core-table": "workspace:^",
         "@ourworldindata/explorer": "workspace:^",
