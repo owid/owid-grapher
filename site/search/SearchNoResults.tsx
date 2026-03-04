@@ -9,10 +9,11 @@ export const SearchNoResults = () => {
                 icon={faSearch}
             />
             <h2 className="body-1-regular">
-                There are no results for this query.
+                No results found for this query.
             </h2>
             <p className="body-3-medium">
-                Try searching for something else or removing some filters.
+                Try exploring a suggested topic above, or search for
+                something else.
             </p>
         </div>
     )
