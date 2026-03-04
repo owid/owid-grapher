@@ -352,8 +352,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         )
 
         // llm_filter (default true): use LLM to filter semantic candidates
-        const llmFilter =
-            url.searchParams.get("llm_filter") !== "false"
+        const llmFilter = url.searchParams.get("llm_filter") !== "false"
 
         let response: TopicsApiResponse
 
@@ -375,9 +374,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             }
         } else {
             // Semantic search via Vectorize
-            const candidateLimit = llmFilter
-                ? SEMANTIC_CANDIDATES
-                : limit
+            const candidateLimit = llmFilter ? SEMANTIC_CANDIDATES : limit
             const candidates = await searchTopicsWithVectorize(
                 env,
                 query,

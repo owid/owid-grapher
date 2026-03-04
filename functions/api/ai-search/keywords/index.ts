@@ -249,8 +249,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             | "llm"
 
         // llm_filter (default true): use LLM to pick best keywords from candidates
-        const llmFilter =
-            url.searchParams.get("llm_filter") !== "false"
+        const llmFilter = url.searchParams.get("llm_filter") !== "false"
 
         let keywords: string[]
         let searchMs: number | undefined

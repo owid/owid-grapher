@@ -15,8 +15,7 @@
 
 import { Env } from "../_common/env.js"
 
-const VOCABULARY_URL =
-    "https://owid-public.owid.io/topic_vocabulary.json"
+const VOCABULARY_URL = "https://owid-public.owid.io/topic_vocabulary.json"
 
 interface TopicVocabulary {
     topic_slug: string
