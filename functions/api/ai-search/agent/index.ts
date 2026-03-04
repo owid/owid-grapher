@@ -431,8 +431,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         }
 
         // Resolve model alias
-        const resolvedModel =
-            GEMINI_MODEL_ALIASES[modelParam] || modelParam
+        const resolvedModel = GEMINI_MODEL_ALIASES[modelParam] || modelParam
 
         // Validate API key
         if (!env.GOOGLE_API_KEY) {

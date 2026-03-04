@@ -40,9 +40,7 @@ describe("AI Search Agent API endpoint", () => {
 
     describe("parameter validation", () => {
         it("returns 400 when query is missing", async () => {
-            const request = new Request(
-                "http://localhost/api/ai-search/agent"
-            )
+            const request = new Request("http://localhost/api/ai-search/agent")
             const response = await onRequestGet({
                 request,
                 env: mockEnv,

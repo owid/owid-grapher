@@ -300,9 +300,7 @@ async function generateGdocRecords(
                 type: gdoc.content.type,
                 slug: gdoc.slug,
                 title: gdoc.content.title || "",
-                content: skipChunking
-                    ? chunk
-                    : flattenToSingleLine(chunk),
+                content: skipChunking ? chunk : flattenToSingleLine(chunk),
                 views_7d: pageviewData?.views_7d ?? 0,
                 views_14d: pageviewData?.views_14d ?? 0,
                 views_365d: pageviewData?.views_365d ?? 0,

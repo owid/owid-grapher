@@ -281,7 +281,6 @@ export async function getMdimViewRecords(
         )
     ).filter((m) => id === undefined || m.multiDim.id === id)
 
-
     const [grapherRedirects, explorerRedirects] = await Promise.all([
         getMultiDimRedirectTargets(trx, undefined, "/grapher/"),
         getMultiDimRedirectTargets(trx, undefined, "/explorers/"),

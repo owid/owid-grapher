@@ -17,7 +17,7 @@
     // Workers AI binding for search
     "ai": {
         "binding": "AI",
-        "remote": true
+        "remote": true,
     },
 
     // Vectorize bindings for semantic search
@@ -25,13 +25,13 @@
         {
             "binding": "VECTORIZE_TOPICS",
             "index_name": "topics",
-            "remote": true
+            "remote": true,
         },
         {
             "binding": "VECTORIZE_VOCABULARY",
             "index_name": "vocabulary",
-            "remote": true
-        }
+            "remote": true,
+        },
     ],
 
     "r2_buckets": [
