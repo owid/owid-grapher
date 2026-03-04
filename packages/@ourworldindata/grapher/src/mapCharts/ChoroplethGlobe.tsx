@@ -15,7 +15,7 @@ import { zoom } from "d3-zoom"
 // @ts-expect-error no types available
 import versor from "versor"
 import {
-    makeIdForHumanConsumption,
+    makeFigmaId,
     Bounds,
     isTouchDevice,
     getRelativeMouse,
@@ -675,14 +675,14 @@ export class ChoroplethGlobe extends React.Component<{
         return (
             <>
                 <circle
-                    id={makeIdForHumanConsumption("globe-sphere")}
+                    id={makeFigmaId("globe-sphere")}
                     cx={this.globeCenter[0]}
                     cy={this.globeCenter[1]}
                     r={this.globeRadius}
                     fill="#fafafa"
                 />
                 <path
-                    id={makeIdForHumanConsumption("globe-graticule")}
+                    id={makeFigmaId("globe-graticule")}
                     d={this.graticulePath}
                     stroke="#e7e7e7"
                     strokeWidth={1}
@@ -690,7 +690,7 @@ export class ChoroplethGlobe extends React.Component<{
                     style={{ pointerEvents: "none" }}
                 />
                 <path
-                    id={makeIdForHumanConsumption("globe-equator")}
+                    id={makeFigmaId("globe-equator")}
                     d={this.equatorPath}
                     stroke="#dadada"
                     strokeWidth={1}
@@ -705,7 +705,7 @@ export class ChoroplethGlobe extends React.Component<{
         if (this.backgroundFeatures.length === 0) return
 
         return (
-            <g id={makeIdForHumanConsumption("countries-background")}>
+            <g id={makeFigmaId("countries-background")}>
                 {this.backgroundFeatures.map((feature) => (
                     <BackgroundCountry
                         key={feature.id}
@@ -724,7 +724,7 @@ export class ChoroplethGlobe extends React.Component<{
 
         return (
             <g
-                id={makeIdForHumanConsumption("countries-without-data")}
+                id={makeFigmaId("countries-without-data")}
                 className="noDataFeatures"
             >
                 <defs>
@@ -758,7 +758,7 @@ export class ChoroplethGlobe extends React.Component<{
         if (this.sortedFeaturesWithData.length === 0) return
 
         return (
-            <g id={makeIdForHumanConsumption("countries-with-data")}>
+            <g id={makeFigmaId("countries-with-data")}>
                 {this.manager.hasProjectedData && (
                     <defs>
                         {/* Pattern used by the map legend for the projected data bin */}
@@ -819,7 +819,7 @@ export class ChoroplethGlobe extends React.Component<{
         if (this.internalAnnotations.length === 0) return
 
         return (
-            <g id={makeIdForHumanConsumption("annotations-internal")}>
+            <g id={makeFigmaId("annotations-internal")}>
                 {this.internalAnnotations.map((annotation) => (
                     <InternalValueAnnotation
                         key={annotation.id}
@@ -838,7 +838,7 @@ export class ChoroplethGlobe extends React.Component<{
 
         return (
             <g
-                id={makeIdForHumanConsumption("annotations-external")}
+                id={makeFigmaId("annotations-external")}
                 className="ExternalAnnotations"
             >
                 {this.externalAnnotations.map((annotation) => (
@@ -863,7 +863,7 @@ export class ChoroplethGlobe extends React.Component<{
         return (
             <>
                 {this.renderGlobeOutline()}
-                <g id={makeIdForHumanConsumption("globe")}>
+                <g id={makeFigmaId("globe")}>
                     {this.renderFeaturesInBackground()}
                     {this.renderFeaturesWithNoData()}
                     {this.renderFeaturesWithData()}

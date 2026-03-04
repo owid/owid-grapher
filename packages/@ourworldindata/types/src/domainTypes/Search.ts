@@ -26,6 +26,7 @@ export const PagesIndexRecordSchema = z.object({
     modifiedDate: z.optional(z.string()),
     tags: z.optional(z.array(z.string())),
     thumbnailUrl: z.string(),
+    availableEntities: z.optional(z.array(z.string())),
 })
 
 export type PageRecord = z.infer<typeof PagesIndexRecordSchema>
@@ -62,12 +63,21 @@ export interface ChartRecord {
     slug: string
     queryParams?: string
     title: string
+    containerTitle?: string
     subtitle: string | undefined
     variantName: string
     availableTabs: GrapherTabName[]
     keyChartForTags: string[]
     tags: string[]
     availableEntities: string[]
+    /** ETL namespace/provider of the variables used in this chart (e.g., "who", "faostat") */
+    datasetNamespaces: string[]
+    /** ETL version dates of the variables used in this chart (e.g., "2024-08-06") */
+    datasetVersions: string[]
+    /** ETL dataset product names of the variables used in this chart (e.g., "ghe", "faostat_tcl") */
+    datasetProducts: string[]
+    /** Data producers of the variables used in this chart (e.g., "World Bank") */
+    datasetProducers: string[]
     /**
      * Only present for income group-specific FMs: availableEntities before it gets filtered down.
      * Without this, searching for charts with data for "Uganda" OR "United States" would return
@@ -79,6 +89,7 @@ export interface ChartRecord {
      * Also only set for FMs: used so that we can filter out income group-specific FMs on a plain data catalog view.
      */
     isIncomeGroupSpecificFM: boolean
+    isFM: boolean
     publishedAt: string
     updatedAt: string
     numDimensions: number
@@ -100,16 +111,9 @@ export enum SearchIndexName {
     ExplorerViewsMdimViewsAndCharts = "explorer-views-and-charts",
 }
 
-export type SearchCategoryFilter = SearchIndexName | "all"
-
-export const searchCategoryFilters: [string, SearchCategoryFilter][] = [
-    ["All", "all"],
-    ["Research & Writing", SearchIndexName.Pages],
-    ["Charts", SearchIndexName.ExplorerViewsMdimViewsAndCharts],
-]
-
 interface BaseSearchChartHit {
     title: string
+    containerTitle?: string
     slug: string
     availableEntities: string[]
     originalAvailableEntities?: string[]
@@ -223,6 +227,19 @@ export type TopicPageHit = {
 
 export type SearchTopicPageResponse = SearchResponse<TopicPageHit>
 
+export type ProfileHit = {
+    title: string
+    thumbnailUrl: string
+    slug: string
+    excerpt: string
+    type: OwidGdocType.Profile
+    availableEntities: string[]
+    objectID: string
+    __position: number
+}
+
+export type SearchProfileResponse = SearchResponse<ProfileHit>
+
 export type SearchWritingTopicsResponse = {
     title: string
     articles: SearchStackedArticleResponse
@@ -234,6 +251,10 @@ export enum FilterType {
     COUNTRY = "country",
     TOPIC = "topic",
     QUERY = "query",
+    DATASET_PRODUCT = "datasetProduct",
+    DATASET_NAMESPACE = "datasetNamespace",
+    DATASET_VERSION = "datasetVersion",
+    DATASET_PRODUCER = "datasetProducer",
 }
 
 export enum SearchResultType {
@@ -253,6 +274,10 @@ export enum SearchUrlParam {
     QUERY = "q",
     REQUIRE_ALL_COUNTRIES = "requireAllCountries",
     RESULT_TYPE = "resultType",
+    DATASET_PRODUCT = "datasetProducts",
+    DATASET_NAMESPACE = "datasetNamespaces",
+    DATASET_VERSION = "datasetVersions",
+    DATASET_PRODUCER = "datasetProducers",
 }
 
 export type SearchState = Readonly<{
@@ -288,6 +313,7 @@ export interface TemplateConfig {
     topicType: SearchTopicType | null
     hasCountry: boolean
     hasQuery: boolean
+    hasDatasetFilters: boolean
 }
 
 export type SearchFacetFilters = (string | string[])[]
@@ -300,3 +326,24 @@ export interface WordPositioned {
 }
 
 export type Ngram = WordPositioned[]
+
+/**
+ * Context object containing shared enrichment data needed for Algolia indexing of chart, explorer and multi-dim views.
+ */
+export interface IndexingContext {
+    /** Pageview data by URL (e.g., "/grapher/life-expectancy" -> { views_7d: 1234 }) */
+    pageviews: Record<string, { views_7d: number }>
+
+    /**
+     * Topic tag hierarchies for computing parent topic tags.
+     * Maps tag name -> array of parent tag paths (each path is an array of tags with id, name, slug).
+     */
+    topicHierarchies: Record<
+        string,
+        Array<Array<{ id: number; name: string; slug: string | null }>>
+    >
+}
+
+export type ChartsIndexingContext = IndexingContext & {
+    redirectsByChartId: Map<number, string[]>
+}

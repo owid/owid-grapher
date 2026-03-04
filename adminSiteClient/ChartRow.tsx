@@ -141,7 +141,7 @@ export class ChartRow extends React.Component<ChartRowProps> {
                         by={highlight(chart.lastEditedBy)}
                     />
                 </td>
-                <td>{chart.pageviewsPerDay?.toLocaleString() ?? "0"}</td>
+                <td>{chart.grapherViewsPerDay?.toLocaleString() ?? "0"}</td>
                 <td>{chart.narrativeChartsCount?.toLocaleString() ?? "0"}</td>
                 <td>{chart.referencesCount?.toLocaleString() ?? "0"}</td>
                 <td>
@@ -182,8 +182,6 @@ export class ChartRow extends React.Component<ChartRowProps> {
     }
 }
 
-// The rule doesn't support class components in the same file.
-// eslint-disable-next-line react-refresh/only-export-components
 function InheritanceStatus({ chart }: { chart: ChartListItem }) {
     // if no information is available, return an empty cell
     if (

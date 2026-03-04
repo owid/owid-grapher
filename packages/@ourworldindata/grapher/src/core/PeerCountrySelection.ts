@@ -74,6 +74,7 @@ type SelectPeerCountriesParams =
       >
     | WithStrategy<SelectByDataRangeParams, PeerCountryStrategy.DataRange>
     | WithStrategy<SelectNeighborsAsPeersParams, PeerCountryStrategy.Neighbors>
+    | { peerCountryStrategy: PeerCountryStrategy.None }
 
 /** Check if the given string is a valid PeerCountryStrategy */
 function isValidPeerCountryStrategy(
@@ -92,8 +93,9 @@ export function isValidPeerCountryStrategyQueryParam(
 /**
  * Selects peer countries for a grapher based on the configured strategy.
  *
- * The target country is the one currently selected in the grapher. This only
- * takes effect when exactly one entity is selected.
+ * If targetCountry is provided in options, it will be used directly.
+ * Otherwise, the target country is inferred from the grapher's selection,
+ * which requires exactly one entity to be selected.
  */
 export async function selectPeerCountriesForGrapher(
     grapherState: GrapherState,
@@ -102,7 +104,12 @@ export async function selectPeerCountriesForGrapher(
         targetCountry?: EntityName
     }
 ): Promise<EntityName[]> {
-    if (grapherState.selection.numSelectedEntities !== 1) return []
+    // If targetCountry is not explicitly provided, require exactly one entity selected
+    if (!options?.targetCountry) {
+        if (grapherState.selection.numSelectedEntities !== 1) {
+            return []
+        }
+    }
 
     const targetCountry =
         options?.targetCountry ?? grapherState.selection.selectedEntityNames[0]
@@ -139,6 +146,7 @@ export async function selectPeerCountries(
     params: SelectPeerCountriesParams
 ): Promise<EntityName[]> {
     return match(params)
+        .with({ peerCountryStrategy: PeerCountryStrategy.None }, () => [])
         .with(
             { peerCountryStrategy: PeerCountryStrategy.DefaultSelection },
             ({ defaultSelection }) => defaultSelection

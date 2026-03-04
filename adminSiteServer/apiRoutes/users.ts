@@ -5,10 +5,10 @@ import { getUserById, updateUser, insertUser } from "../../db/model/User.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
-import e from "express"
+import { HandlerResponse } from "../FunctionalRouter.js"
 export async function getUsers(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     return {
@@ -31,7 +31,7 @@ export async function getUsers(
 
 export async function getUserByIdHandler(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const id = parseIntOrUndefined(req.params.userId)
@@ -42,7 +42,7 @@ export async function getUserByIdHandler(
 
 export async function deleteUser(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     if (!res.locals.user.isSuperuser)
@@ -56,7 +56,7 @@ export async function deleteUser(
 
 export async function updateUserHandler(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     if (!res.locals.user.isSuperuser)
@@ -76,7 +76,7 @@ export async function updateUserHandler(
 
 export async function addUser(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     if (!res.locals.user.isSuperuser)
@@ -94,7 +94,7 @@ export async function addUser(
 
 export async function addImageToUser(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const userId = expectInt(req.params.userId)
@@ -105,7 +105,7 @@ export async function addImageToUser(
 
 export async function removeUserImage(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const userId = expectInt(req.params.userId)

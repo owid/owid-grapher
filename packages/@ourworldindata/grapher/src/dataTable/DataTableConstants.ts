@@ -7,10 +7,7 @@ import {
     SortOrder,
     Time,
 } from "@ourworldindata/types"
-import {
-    EntityNamesByRegionType,
-    EntityRegionType,
-} from "../core/EntitiesByRegionType"
+import { EntitiesByRegionGroup, RegionGroupKey } from "../core/RegionGroups"
 import { SelectionArray } from "../selection/SelectionArray"
 import { TimelineDragTarget } from "../timeline/TimelineController"
 
@@ -33,7 +30,7 @@ export interface DataTableManager {
     isNarrow?: boolean
     dataTableConfig: DataTableConfig
     dataTableSelection?: SelectionArray | EntityName[]
-    entityNamesByRegionType?: EntityNamesByRegionType
+    entitiesByRegionGroup?: EntitiesByRegionGroup
     timelineDragTarget?: TimelineDragTarget
     closestTimelineMinTime?: Time
     closestTimelineMaxTime?: Time
@@ -61,8 +58,10 @@ export interface DataTableDimension {
  * DataTableDimension, it doesn't contain the actual data values but only the
  * metadata needed for display purposes.
  */
-export interface DisplayDataTableDimension
-    extends Omit<DataTableDimension, "valuesByEntityName"> {
+export interface DisplayDataTableDimension extends Omit<
+    DataTableDimension,
+    "valuesByEntityName"
+> {
     sortable: boolean
     display: { columnName: IndicatorTitleWithFragments; unit?: string }
 }
@@ -160,7 +159,7 @@ export interface MinimalOwidRow {
 export const COMMON_DATA_TABLE_FILTERS = ["all", "selection"] as const
 export type CommonDataTableFilter = (typeof COMMON_DATA_TABLE_FILTERS)[number]
 
-export type DataTableFilter = CommonDataTableFilter | EntityRegionType
+export type DataTableFilter = CommonDataTableFilter | RegionGroupKey
 
 export interface DataTableConfig {
     filter: DataTableFilter

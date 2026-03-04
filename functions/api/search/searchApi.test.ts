@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest"
 import {
     formatCountryFacetFilters,
+    formatFeaturedMetricFacetFilter,
     formatTopicFacetFilters,
 } from "./searchApi.js"
 
@@ -58,6 +59,23 @@ describe("formatCountryFacetFilters", () => {
             ["availableEntities:India"],
             ["isIncomeGroupSpecificFM:false"],
         ])
+    })
+})
+
+describe("formatFeaturedMetricFacetFilter", () => {
+    it("returns filter to exclude FMs when query is non-empty", () => {
+        const result = formatFeaturedMetricFacetFilter("population")
+        expect(result).toEqual(["isFM:false"])
+    })
+
+    it("returns empty array when query is empty", () => {
+        const result = formatFeaturedMetricFacetFilter("")
+        expect(result).toEqual([])
+    })
+
+    it("returns empty array when query is only whitespace", () => {
+        const result = formatFeaturedMetricFacetFilter("   ")
+        expect(result).toEqual([])
     })
 })
 

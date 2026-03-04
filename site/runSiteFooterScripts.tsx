@@ -5,6 +5,7 @@ import {
     DATA_INSIGHTS_INDEX_PAGE_SIZE,
     DataPageV2ContentFields,
     deserializeOwidGdocPageData,
+    isInIFrame,
     MultiDimDataPageConfig,
     OwidGdocType,
     parseIntOrUndefined,
@@ -26,6 +27,12 @@ import {
     _OWID_DATA_INSIGHTS_INDEX_PAGE_DATA,
     DataInsightsIndexPageContent,
 } from "./DataInsightsIndexPageContent.js"
+import {
+    _OWID_LATEST_PAGE_DATA,
+    LatestPageContent,
+    LatestPageContentProps,
+    LATEST_PAGE_CONTAINER_ID,
+} from "./LatestPageContent.js"
 import { runAllGraphersLoadedListener } from "./runAllGraphersLoadedListener.js"
 import {
     __OWID_EXPLORER_INDEX_PAGE_PROPS,
@@ -48,6 +55,7 @@ import { DataInsightsIndexPageProps } from "./DataInsightsIndexPage.js"
 import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import { SUBSCRIBE_PAGE_FORM_CONTAINER_ID } from "@ourworldindata/types"
+import UserSurvey from "./gdocs/components/UserSurvey.js"
 
 function runSearchPage() {
     const root = document.getElementById("search-page-root")
@@ -125,6 +133,17 @@ async function hydrateDataInsightsIndexPage() {
     }
 }
 
+function hydrateLatestPage() {
+    const props: LatestPageContentProps = (window as any)[
+        _OWID_LATEST_PAGE_DATA
+    ]
+    const container = document.querySelector(`#${LATEST_PAGE_CONTAINER_ID}`)
+
+    if (container && props) {
+        hydrateRoot(container, <LatestPageContent {...props} />)
+    }
+}
+
 function hydrateDataPageV2Content({
     isPreviewing,
 }: { isPreviewing?: boolean } = {}) {
@@ -165,6 +184,19 @@ function runCookiePreferencesManager() {
 
     const root = createRoot(div)
     root.render(<CookiePreferencesManager initialState={getInitialState()} />)
+}
+
+const USER_SURVEY_ROOT_ID = "user-survey-root"
+
+function runUserSurveyWidget() {
+    if (isInIFrame()) return
+    if (window._OWID_ARCHIVE_CONTEXT?.type === "archive-page") return
+    if (document.getElementById(USER_SURVEY_ROOT_ID)) return
+
+    const div = document.createElement("div")
+    div.id = USER_SURVEY_ROOT_ID
+    document.body.appendChild(div)
+    createRoot(div).render(<UserSurvey />)
 }
 
 interface FootnoteContent {
@@ -348,6 +380,7 @@ export const runSiteFooterScripts = async (
             runSiteNavigation(hideDonationFlag)
             runSiteTools()
             runCookiePreferencesManager()
+            runUserSurveyWidget()
             void runDetailsOnDemand()
             break
         case SiteFooterContext.multiDimDataPage:
@@ -356,6 +389,7 @@ export const runSiteFooterScripts = async (
             runSiteNavigation(hideDonationFlag)
             runSiteTools()
             runCookiePreferencesManager()
+            runUserSurveyWidget()
             void runDetailsOnDemand()
             break
         case SiteFooterContext.grapherPage:
@@ -364,6 +398,7 @@ export const runSiteFooterScripts = async (
             runAllGraphersLoadedListener()
             runSiteTools()
             runCookiePreferencesManager()
+            runUserSurveyWidget()
             void runDetailsOnDemand()
             break
         case SiteFooterContext.explorerIndexPage:
@@ -380,6 +415,14 @@ export const runSiteFooterScripts = async (
             void runDetailsOnDemand()
             runSiteTools()
             runCookiePreferencesManager()
+            runUserSurveyWidget()
+            break
+        case SiteFooterContext.latestPage:
+            hydrateLatestPage()
+            runSiteNavigation(hideDonationFlag)
+            runSiteTools()
+            runCookiePreferencesManager()
+            void runDetailsOnDemand()
             break
         case SiteFooterContext.dynamicCollectionPage:
             // Don't break, run default case too

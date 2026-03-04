@@ -23,6 +23,7 @@ import {
     formatDate,
     excludeUndefined,
     Url,
+    getRegionByNameOrVariantName,
 } from "@ourworldindata/utils"
 import { docs as googleDocs, type docs_v1 } from "@googleapis/docs"
 import { gdocToArchie } from "./gdocToArchie.js"
@@ -79,7 +80,11 @@ import {
     getAllNarrativeChartNames,
     getNarrativeChartsInfo,
 } from "../NarrativeChart.js"
-import { loadAndClearLinkedCallouts } from "./dataCallouts.js"
+import {
+    loadAndClearLinkedCallouts,
+    computeAvailableEntityCodes,
+} from "./dataCallouts.js"
+import pMap from "p-map"
 
 import { indexBy } from "remeda"
 import {
@@ -187,6 +192,7 @@ export async function loadLinkedChartsForSlugs(
                     chart.config,
                     originalSlug,
                     {
+                        forceDatapage: chart.forceDatapage,
                         archivedPageVersion:
                             archivedChartVersions[chartId] || undefined,
                     }
@@ -811,6 +817,14 @@ export class GdocBase implements OwidGdocBaseInterface {
                 }
                 return links
             })
+            .with({ type: "country-profile-selector" }, (block) => [
+                createLinkFromUrl({
+                    url: block.url,
+                    sourceId: this.id,
+                    componentType: block.type,
+                    text: block.title ?? "Country profile selector",
+                }),
+            ])
             .with(
                 {
                     // no urls directly on any of these blocks
@@ -1111,8 +1125,9 @@ export class GdocBase implements OwidGdocBaseInterface {
             await match(link)
                 .with({ linkType: ContentGraphLinkType.Gdoc }, () => {
                     const id = getUrlTarget(link.target)
-                    const doesGdocExist = Boolean(this.linkedDocuments[id])
-                    const isGdocPublished = this.linkedDocuments[id]?.published
+                    const linkedDoc = this.linkedDocuments[id]
+                    const doesGdocExist = Boolean(linkedDoc)
+                    const isGdocPublished = linkedDoc?.published
                     if (!doesGdocExist || !isGdocPublished) {
                         linkErrors.push({
                             property: "linkedDocuments",
@@ -1123,6 +1138,48 @@ export class GdocBase implements OwidGdocBaseInterface {
                             } gdoc with ID "${link.target}"`,
                             type: OwidGdocErrorMessageType.Warning,
                         })
+                    }
+
+                    // Validate profile links: must have ?entity=X with a valid, available entity
+                    // (skip for country-profile-selector, which links to the profile itself)
+                    if (
+                        linkedDoc?.type === OwidGdocType.Profile &&
+                        doesGdocExist &&
+                        isGdocPublished &&
+                        link.componentType !== "country-profile-selector"
+                    ) {
+                        const queryParams = Url.fromURL(
+                            link.queryString
+                        ).queryParams
+                        const entityParam = queryParams.entity
+                        if (!entityParam) {
+                            linkErrors.push({
+                                property: "linkedDocuments",
+                                message: `Link with text "${link.text}" to profile "${linkedDoc.slug}" must include a ?entity= parameter (e.g. ?entity=France).`,
+                                type: OwidGdocErrorMessageType.Error,
+                            })
+                        } else {
+                            const region =
+                                getRegionByNameOrVariantName(entityParam)
+                            if (!region) {
+                                linkErrors.push({
+                                    property: "linkedDocuments",
+                                    message: `Link with text "${link.text}" to profile "${linkedDoc.slug}" has unknown entity "${entityParam}".`,
+                                    type: OwidGdocErrorMessageType.Error,
+                                })
+                            } else if (
+                                linkedDoc.availableEntityCodes &&
+                                !linkedDoc.availableEntityCodes.includes(
+                                    region.code
+                                )
+                            ) {
+                                linkErrors.push({
+                                    property: "linkedDocuments",
+                                    message: `Link with text "${link.text}" to profile "${linkedDoc.slug}": entity "${entityParam}" is not available for this profile.`,
+                                    type: OwidGdocErrorMessageType.Error,
+                                })
+                            }
+                        }
                     }
                 })
                 .with({ linkType: ContentGraphLinkType.Grapher }, async () => {
@@ -1290,6 +1347,10 @@ export class GdocBase implements OwidGdocBaseInterface {
         ]
     }
 
+    // NOTE: The Algolia bulk indexer (getPagesRecords in baker/algolia/utils/pages.ts)
+    // only calls loadAndClearLinkedCallouts — the sole step that mutates
+    // this.content.body.  If you add a step here that also mutates body content,
+    // update the Algolia indexer to call it too.
     async loadState(knex: db.KnexReadonlyTransaction): Promise<void> {
         await this.loadLinkedAuthors(knex)
         await this.loadLinkedDocuments(knex)
@@ -1362,7 +1423,26 @@ export async function getMinimalGdocPostsByIds(
             WHERE id in (:ids)`,
         { ids }
     )
-    return rows.map(rawGdocToMinimalPost)
+    const posts = rows.map(rawGdocToMinimalPost)
+
+    // Enrich profile-type docs with data-availability-filtered entity codes
+    await pMap(
+        rows,
+        async (row, i) => {
+            if (posts[i].type !== OwidGdocType.Profile) return
+
+            const content = JSON.parse(row.content)
+            if (!content.scope) return
+
+            posts[i].availableEntityCodes = await computeAvailableEntityCodes(
+                knex,
+                content
+            )
+        },
+        { concurrency: 4 }
+    )
+
+    return posts
 }
 
 export async function getMinimalAuthorsByNames(
@@ -1391,14 +1471,22 @@ export async function makeGrapherLinkedChart(
     knex: db.KnexReadonlyTransaction,
     config: GrapherInterface,
     originalSlug: string,
-    { archivedPageVersion }: { archivedPageVersion?: ArchivedPageVersion } = {}
+    {
+        forceDatapage,
+        archivedPageVersion,
+    }: {
+        forceDatapage?: boolean
+        archivedPageVersion?: ArchivedPageVersion
+    } = {}
 ): Promise<LinkedChart> {
     const resolvedSlug = config.slug ?? ""
     const resolvedTitle = config.title ?? ""
     const subtitle = toPlaintext(config.subtitle ?? "")
     const resolvedUrl = `${BASE_URL}/grapher/${resolvedSlug}`
     const tab = config.tab ?? GRAPHER_TAB_CONFIG_OPTIONS.chart
-    const indicatorId = await getDatapageIndicatorId(knex, config)
+    const indicatorId = await getDatapageIndicatorId(knex, config, {
+        forceDatapage,
+    })
 
     return {
         configType: ChartConfigType.Grapher,

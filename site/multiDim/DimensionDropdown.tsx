@@ -55,14 +55,16 @@ export default function DimensionDropdown({
     dimension,
     value,
     onChange,
+    disabled,
 }: {
     className?: string
     dimension: DimensionEnriched
     value: string
     onChange: (value: string) => void
+    disabled?: boolean
 }) {
     const [isOpen, setIsOpen] = useState(false)
-    const isDisabled = dimension.choices.length === 1
+    const isDisabled = disabled || dimension.choices.length === 1
     return (
         <Select
             className={cx("md-settings__dropdown", className)}

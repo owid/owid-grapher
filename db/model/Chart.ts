@@ -66,18 +66,30 @@ export async function mapSlugsToIds(
 // ]
 export async function mapSlugsToConfigs(
     knex: db.KnexReadonlyTransaction
-): Promise<{ slug: string; id: number; config: GrapherInterface }[]> {
+): Promise<
+    {
+        slug: string
+        id: number
+        forceDatapage: boolean
+        config: GrapherInterface
+    }[]
+> {
     return db
-        .knexRaw<{ slug: string; config: string; id: number }>(
+        .knexRaw<{
+            slug: string
+            config: string
+            id: number
+            forceDatapage: number
+        }>(
             knex,
             `-- sql
-                SELECT csr.slug AS slug, cc.full AS config, c.id AS id
+                SELECT csr.slug AS slug, cc.full AS config, c.id AS id, c.forceDatapage AS forceDatapage
                 FROM chart_slug_redirects csr
                 JOIN charts c ON csr.chart_id = c.id
                 JOIN chart_configs cc ON cc.id = c.configId
                 WHERE cc.full ->> "$.isPublished" = "true"
                 UNION
-                SELECT cc.slug, cc.full AS config, c.id AS id
+                SELECT cc.slug, cc.full AS config, c.id AS id, c.forceDatapage AS forceDatapage
                 FROM charts c
                 JOIN chart_configs cc ON cc.id = c.configId
                 WHERE cc.full ->> "$.isPublished" = "true"
@@ -86,6 +98,7 @@ export async function mapSlugsToConfigs(
         .then((results) =>
             results.map((result) => ({
                 ...result,
+                forceDatapage: Boolean(result.forceDatapage),
                 config: JSON.parse(result.config),
             }))
         )
@@ -233,15 +246,19 @@ export const getChartConfigById = async (
     knex: db.KnexReadonlyTransaction,
     grapherId: number
 ): Promise<
-    | (Pick<DbPlainChart, "id"> & { config: DbEnrichedChartConfig["full"] })
+    | (Pick<DbPlainChart, "id" | "forceDatapage"> & {
+          config: DbEnrichedChartConfig["full"]
+      })
     | undefined
 > => {
     const grapher = await db.knexRawFirst<
-        Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["full"] }
+        Pick<DbPlainChart, "id" | "forceDatapage"> & {
+            config: DbRawChartConfig["full"]
+        }
     >(
         knex,
         `-- sql
-            SELECT c.id, cc.full as config
+            SELECT c.id, c.forceDatapage, cc.full as config
             FROM charts c
             JOIN chart_configs cc ON c.configId = cc.id
             WHERE c.id=?
@@ -253,6 +270,7 @@ export const getChartConfigById = async (
 
     return {
         id: grapher.id,
+        forceDatapage: Boolean(grapher.forceDatapage),
         config: parseChartConfig(grapher.config),
     }
 }
@@ -261,14 +279,18 @@ export async function getChartConfigBySlug(
     knex: db.KnexReadonlyTransaction,
     slug: string
 ): Promise<
-    Pick<DbPlainChart, "id"> & { config: DbEnrichedChartConfig["full"] }
+    Pick<DbPlainChart, "id" | "forceDatapage"> & {
+        config: DbEnrichedChartConfig["full"]
+    }
 > {
     const row = await db.knexRawFirst<
-        Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["full"] }
+        Pick<DbPlainChart, "id" | "forceDatapage"> & {
+            config: DbRawChartConfig["full"]
+        }
     >(
         knex,
         `-- sql
-            SELECT c.id, cc.full as config
+            SELECT c.id, c.forceDatapage, cc.full as config
             FROM charts c
             JOIN chart_configs cc ON c.configId = cc.id
             WHERE cc.slug = ?`,
@@ -277,7 +299,27 @@ export async function getChartConfigBySlug(
 
     if (!row) throw new JsonError(`No chart found for slug ${slug}`, 404)
 
-    return { id: row.id, config: parseChartConfig(row.config) }
+    return {
+        id: row.id,
+        forceDatapage: Boolean(row.forceDatapage),
+        config: parseChartConfig(row.config),
+    }
+}
+
+export async function getForceDatapageByChartId(
+    knex: db.KnexReadonlyTransaction,
+    chartId: number
+): Promise<boolean> {
+    const row = await db.knexRawFirst<Pick<DbPlainChart, "forceDatapage">>(
+        knex,
+        `-- sql
+            SELECT forceDatapage
+            FROM charts
+            WHERE id = ?
+        `,
+        [chartId]
+    )
+    return !!row?.forceDatapage
 }
 
 export async function isInheritanceEnabledForChart(
@@ -515,6 +557,9 @@ export interface OldChartFieldList {
     publishedAt: Date
     publishedByUserId: number
     publishedBy: string
+    grapherViewsPerDay: number
+    narrativeChartsCount: number
+    referencesCount: number
     isExplorable: boolean
 }
 
@@ -534,7 +579,10 @@ export const oldChartFieldList = `
         lastEditedByUser.fullName AS lastEditedBy,
         charts.publishedAt,
         charts.publishedByUserId,
-        publishedByUser.fullName AS publishedBy
+        publishedByUser.fullName AS publishedBy,
+        round(agv.views_365d / 365, 1) as grapherViewsPerDay,
+        crv.narrativeChartsCount,
+        crv.referencesCount
     `
 // TODO: replace this with getBySlug and pick
 

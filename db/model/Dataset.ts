@@ -122,16 +122,16 @@ export async function checkDatasetVariablesInUse(
 
     const chartsCount = await db.knexRaw<{ count: number }>(
         trx,
-        `SELECT COUNT(DISTINCT cd.chartId) as count 
-         FROM ${ChartDimensionsTableName} cd 
+        `SELECT COUNT(DISTINCT cd.chartId) as count
+         FROM ${ChartDimensionsTableName} cd
          WHERE cd.variableId IN (${varIds.map(() => "?").join(",")})`,
         varIds
     )
 
     const explorersCount = await db.knexRaw<{ count: number }>(
         trx,
-        `SELECT COUNT(DISTINCT ev.explorerSlug) as count 
-         FROM ${ExplorerVariablesTableName} ev 
+        `SELECT COUNT(DISTINCT ev.explorerSlug) as count
+         FROM ${ExplorerVariablesTableName} ev
          WHERE ev.variableId IN (${varIds.map(() => "?").join(",")})`,
         varIds
     )
@@ -139,7 +139,7 @@ export async function checkDatasetVariablesInUse(
     // Multi-dim pages reference variables in their JSON config, so we need to search the config text
     const multiDimCount = await db.knexRaw<{ count: number }>(
         trx,
-        `SELECT COUNT(*) as count 
+        `SELECT COUNT(*) as count
          FROM ${MultiDimDataPagesTableName} mdp
          WHERE ${varIds.map((id) => `mdp.config LIKE '%"id":${id}%'`).join(" OR ")}`,
         []

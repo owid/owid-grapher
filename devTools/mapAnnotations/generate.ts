@@ -1,6 +1,7 @@
 import { writeFile } from "fs/promises"
 import { Position } from "geojson"
-import prettier from "prettier"
+import { format, FormatOptions } from "oxfmt"
+import oxfmtConfig from "../../.oxfmtrc.json"
 import * as R from "remeda"
 import {
     GeoFeatures,
@@ -33,8 +34,13 @@ interface PoleOfInaccessibility {
     distance: number // distance of the pole to the closest polygon point
 }
 
-function prettifiedJson(obj: any): Promise<string> {
-    return prettier.format(JSON.stringify(obj), { parser: "json", tabWidth: 4 })
+async function prettifiedJson(obj: any): Promise<string> {
+    const result = await format(
+        "input.json",
+        JSON.stringify(obj),
+        oxfmtConfig as FormatOptions
+    )
+    return result.code
 }
 
 // we could use any projection here since annotation placements

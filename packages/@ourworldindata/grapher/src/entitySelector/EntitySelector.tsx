@@ -24,7 +24,7 @@ import {
     getUserNavigatorLanguagesNonEnglish,
     getRegionAlternativeNames,
     convertDaysSinceEpochToDate,
-    checkIsOwidIncomeGroupName,
+    checkIsOwidIncomeGroupCode,
     checkHasMembers,
     Region,
     getRegionByName,
@@ -73,12 +73,13 @@ import * as R from "remeda"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { match } from "ts-pattern"
 import {
-    entityRegionTypeLabels,
-    EntityNamesByRegionType,
-    EntityRegionType,
-    EntityRegionTypeGroup,
-    isAggregateSource,
-} from "../core/EntitiesByRegionType"
+    regionGroupLabels,
+    EntitiesByRegionGroup,
+    RegionGroupKey,
+    RegionGroup,
+    isAnyRegionDataProviderKey,
+    parseLabel,
+} from "../core/RegionGroups"
 import { SearchField } from "../controls/SearchField"
 import { MAP_REGION_LABELS } from "../mapCharts/MapChartConstants.js"
 import {
@@ -88,7 +89,7 @@ import {
 
 export type CoreColumnBySlug = Record<ColumnSlug, CoreColumn>
 
-type EntityFilter = EntityRegionType | "all"
+type EntityFilter = RegionGroupKey | "all"
 
 type ValueBySlugAndTimeAndEntityName<T> = Map<
     ColumnSlug,
@@ -126,8 +127,8 @@ export interface EntitySelectorManager {
     onSelectEntity?: (entityName: EntityName) => void
     onDeselectEntity?: (entityName: EntityName) => void
     onClearEntities?: () => void
-    entityRegionTypeGroups?: EntityRegionTypeGroup[]
-    entityNamesByRegionType?: EntityNamesByRegionType
+    regionGroups?: RegionGroup[]
+    entitiesByRegionGroup?: EntitiesByRegionGroup
     isReady?: boolean
     logEntitySelectorEvent: (
         action: EntitySelectorEvent,
@@ -352,7 +353,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
 
             const countryRegionsWithoutIncomeGroups = localCountryInfo.regions
                 ? localCountryInfo.regions.filter(
-                      (region) => !checkIsOwidIncomeGroupName(region)
+                      (region) => !checkIsOwidIncomeGroupCode(region)
                   )
                 : []
 
@@ -581,7 +582,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
     }
 
     @computed private get searchPlaceholderEntityType(): string {
-        if (isAggregateSource(this.entityFilter)) return "region"
+        if (isAnyRegionDataProviderKey(this.entityFilter)) return "region"
 
         return match(this.entityFilter)
             .with("all", () => this.entityType.singular)
@@ -1036,7 +1037,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
             })
 
         const entityNameSet = new Set(
-            this.manager.entityNamesByRegionType?.get(entityFilter) ?? []
+            this.manager.entitiesByRegionGroup?.get(entityFilter) ?? []
         )
         const filteredAvailableEntities = availableEntities.filter((entity) =>
             entityNameSet.has(entity.name)
@@ -1296,12 +1297,12 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
     }
 
     @computed get filterOptions(): FilterDropdownOption[] {
-        const { entityRegionTypeGroups = [] } = this.manager
+        const { regionGroups = [] } = this.manager
 
-        const options: FilterDropdownOption[] = entityRegionTypeGroups
-            .map(({ regionType, entityNames }) => ({
-                value: regionType,
-                label: entityRegionTypeLabels[regionType],
+        const options: FilterDropdownOption[] = regionGroups
+            .map(({ regionGroupKey, entityNames }) => ({
+                value: regionGroupKey,
+                label: regionGroupLabels[regionGroupKey],
                 count: entityNames.filter((entityName) =>
                     this.availableEntityNameSet.has(entityName)
                 ).length,
@@ -1680,23 +1681,28 @@ function SelectableEntity({
         radio: RadioButton,
     }[type]
 
-    const nameWords = name.split(" ")
-    const label = isLocal ? (
-        <span className="label-with-location-icon">
-            {nameWords.slice(0, -1).join(" ")}{" "}
-            <span className="label-with-location-icon label-with-location-icon--no-line-break">
-                {nameWords[nameWords.length - 1]}
-                <Tippy
-                    content="Your current location"
-                    theme="grapher-explanation--short"
-                    placement="top"
-                >
-                    <FontAwesomeIcon icon={faLocationArrow} />
-                </Tippy>
-            </span>
+    const { name: displayName, suffix } = parseLabel(name)
+
+    const locationIcon = (
+        <span className="location-icon">
+            {/* Non-breaking space prevents the icon from wrapping to a new line alone */}
+            {"\u00A0"}
+            <Tippy
+                content="Your current location"
+                theme="grapher-explanation--short"
+                placement="top"
+            >
+                <FontAwesomeIcon icon={faLocationArrow} />
+            </Tippy>
         </span>
-    ) : (
-        name
+    )
+
+    const label = (
+        <span>
+            {displayName}
+            {suffix && <span className="suffix"> ({suffix})</span>}
+            {isLocal && locationIcon}
+        </span>
     )
 
     return (

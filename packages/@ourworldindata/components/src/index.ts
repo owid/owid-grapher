@@ -4,6 +4,7 @@ export {
     MarkdownTextWrap,
     sumTextWrapHeights,
     toPlaintext,
+    canAppendTextToLastLine,
 } from "./MarkdownTextWrap/MarkdownTextWrap.js"
 
 export {

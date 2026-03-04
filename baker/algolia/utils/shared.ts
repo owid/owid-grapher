@@ -2,7 +2,7 @@ import * as _ from "lodash-es"
 import {
     countries,
     countriesByName,
-    incomeGroupsByName,
+    incomeGroupsByCode,
     DbPlainFeaturedMetricWithParentTagName,
     FeaturedMetricIncomeGroup,
     removeTrailingParenthetical,
@@ -10,7 +10,6 @@ import {
     Url,
     lowerCaseFirstLetterUnlessAbbreviation,
 } from "@ourworldindata/utils"
-import * as Sentry from "@sentry/node"
 import {
     getFeaturedMetricsByParentTagName,
     KnexReadonlyTransaction,
@@ -23,7 +22,11 @@ import {
 import urljoin from "url-join"
 import * as R from "remeda"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
-import { incomeGroupMap, REAL_FM_INCOME_GROUPS } from "./types.js"
+import {
+    incomeGroupMap,
+    DatasetChartRecordDimensions,
+    REAL_FM_INCOME_GROUPS,
+} from "./types.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { GRAPHER_ROUTE_FOLDER } from "@ourworldindata/grapher"
 
@@ -59,6 +62,21 @@ export const processAvailableEntities = (
         ],
         ["desc", "desc", "asc"]
     )
+}
+
+export const parseJsonStringArray = (
+    raw: string | null | undefined
+): string[] => {
+    if (!raw) return []
+    const parsed = JSON.parse(raw) as Array<string | null>
+    return parsed.filter((item): item is string => !!item)
+}
+
+export const uniqNonEmptyStrings = (
+    values: Array<string | string[] | null | undefined>
+): string[] => {
+    const flattened = values.flatMap((value) => value ?? [])
+    return _.uniq(flattened.filter((value): value is string => !!value))
 }
 
 /**
@@ -138,7 +156,7 @@ function getCorrespondingIncomeGroup(
     >
 ) {
     const owidIncomeGroupName = incomeGroupMap[incomeGroupName]
-    const countriesByIncomeGroup = incomeGroupsByName()
+    const countriesByIncomeGroup = incomeGroupsByCode()
     return countriesByIncomeGroup[owidIncomeGroupName]
 }
 
@@ -226,10 +244,19 @@ function expandDefaultFeaturedMetrics(
     )
 }
 
+export interface FeaturedMetricFailure {
+    url: string
+}
+
+export interface FeaturedMetricRecordsResult {
+    records: ChartRecord[]
+    failures: FeaturedMetricFailure[]
+}
+
 export async function createFeaturedMetricRecords(
     trx: KnexReadonlyTransaction,
     records: ChartRecord[]
-): Promise<ChartRecord[]> {
+): Promise<FeaturedMetricRecordsResult> {
     const featuredMetricsWithParentTagName =
         await getFeaturedMetricsByParentTagName(trx).then((fms) =>
             Object.values(fms).flat()
@@ -240,6 +267,7 @@ export async function createFeaturedMetricRecords(
     )
 
     const featuredMetricRecords: ChartRecord[] = []
+    const failures: FeaturedMetricFailure[] = []
 
     for (const featuredMetric of expandedFeaturedMetrics) {
         const correspondingRecord = findMatchingRecordByPathnameAndQueryParams(
@@ -247,9 +275,12 @@ export async function createFeaturedMetricRecords(
             featuredMetric
         )
         if (!correspondingRecord) {
-            const error = `Featured metric "${featuredMetric.url}" not found in records`
-            console.error(error)
-            Sentry.captureException(error)
+            console.error(
+                `Featured metric "${featuredMetric.url}" not found in records`
+            )
+            failures.push({
+                url: featuredMetric.url,
+            })
             continue
         }
 
@@ -265,6 +296,7 @@ export async function createFeaturedMetricRecords(
         featuredMetricRecords.push({
             ...correspondingRecord,
             isIncomeGroupSpecificFM: featuredMetric.isIncomeGroupSpecificFM,
+            isFM: true,
             tags: [featuredMetric.parentTagName],
             objectID,
             availableEntities,
@@ -273,7 +305,7 @@ export async function createFeaturedMetricRecords(
         })
     }
 
-    return featuredMetricRecords
+    return { records: featuredMetricRecords, failures }
 }
 
 export function maybeAddChangeInPrefix(
@@ -285,3 +317,11 @@ export function maybeAddChangeInPrefix(
         ? "Change in " + lowerCaseFirstLetterUnlessAbbreviation(title)
         : title
 }
+
+export const EMPTY_DATASET_CHART_RECORD_DIMENSIONS: DatasetChartRecordDimensions =
+    {
+        datasetNamespaces: [],
+        datasetVersions: [],
+        datasetProducts: [],
+        datasetProducers: [],
+    }

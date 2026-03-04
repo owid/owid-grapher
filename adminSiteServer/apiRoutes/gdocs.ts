@@ -37,6 +37,9 @@ import {
     indexIndividualGdocPost,
     removeIndividualGdocPostFromIndex,
     getIndividualGdocRecords,
+    getPreprocessedIndexableText,
+    indexIndividualProfile,
+    removeIndividualProfileFromIndex,
 } from "../../baker/algolia/utils/pages.js"
 import { GdocAbout } from "../../db/model/Gdoc/GdocAbout.js"
 import { GdocAuthor } from "../../db/model/Gdoc/GdocAuthor.js"
@@ -68,13 +71,13 @@ import { enqueueLightningChange } from "./routeUtils.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
-import e from "express"
+import { HandlerResponse } from "../FunctionalRouter.js"
 import { GdocAnnouncement } from "../../db/model/Gdoc/GdocAnnouncement.js"
 import { GdocProfile } from "../../db/model/Gdoc/GdocProfile.js"
 
 export async function getAllGdocIndexItems(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     return getAllGdocIndexItemsOrderedByUpdatedAt(trx)
@@ -82,7 +85,7 @@ export async function getAllGdocIndexItems(
 
 export async function getIndividualGdoc(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const id = req.params.id
@@ -105,18 +108,19 @@ export async function getIndividualGdoc(
         }
 
         res.set("Cache-Control", "no-store")
-        res.send(gdoc)
+        return gdoc
     } catch (error) {
         console.error("Error fetching gdoc", error)
-        res.status(500).json({
+        res.status(500)
+        return {
             error: { message: String(error), status: 500 },
-        })
+        }
     }
 }
 
 export async function getGdocCalloutCoverage(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const id = req.params.id
@@ -241,11 +245,11 @@ export async function getGdocCalloutCoverage(
         coverageByEntity[entity.code] = rowCoverage
     }
 
-    res.send({
+    return {
         rows,
         entities,
         coverageByEntity,
-    })
+    }
 }
 
 /**
@@ -255,7 +259,7 @@ export async function getGdocCalloutCoverage(
  */
 export async function getCalloutFunctionStrings(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const chartUrl = req.query.url as string | undefined
@@ -290,10 +294,14 @@ export async function getCalloutFunctionStrings(
         }
     }
 
-    res.send({
+    return {
         url: chartUrl,
         functionStringsByName,
-    })
+    }
+}
+
+function checkIsProfile(gdoc: { content: { type?: OwidGdocType } }): boolean {
+    return gdoc.content.type === OwidGdocType.Profile
 }
 
 /**
@@ -328,6 +336,7 @@ async function indexAndBakeGdocIfNeccesary(
     const hasChanges = checkHasChanges(prevGdoc, nextGdoc)
     const action = getPublishingAction(prevJson, nextJson)
     const isGdocPost = checkIsGdocPostExcludingFragments(nextJson)
+    const isProfile = checkIsProfile(nextJson)
 
     await match(action)
         .with(GdocPublishingAction.SavingDraft, _.noop)
@@ -341,11 +350,17 @@ async function indexAndBakeGdocIfNeccesary(
                     prevGdoc.slug || nextJson.slug
                 )
             }
+            if (isProfile) {
+                await indexIndividualProfile(nextGdoc as GdocProfile, trx)
+            }
             await triggerStaticBuild(user, `${action} ${nextJson.slug}`)
         })
         .with(GdocPublishingAction.Updating, async () => {
             if (isGdocPost) {
                 await indexIndividualGdocPost(nextJson, trx, prevGdoc.slug)
+            }
+            if (isProfile) {
+                await indexIndividualProfile(nextGdoc as GdocProfile, trx)
             }
             if (checkIsLightningUpdate(prevJson, nextJson, hasChanges)) {
                 await enqueueLightningChange(
@@ -360,6 +375,9 @@ async function indexAndBakeGdocIfNeccesary(
         .with(GdocPublishingAction.Unpublishing, async () => {
             if (isGdocPost) {
                 await removeIndividualGdocPostFromIndex(nextJson)
+            }
+            if (isProfile) {
+                await removeIndividualProfileFromIndex(nextGdoc as GdocProfile)
             }
             await triggerStaticBuild(user, `${action} ${nextJson.slug}`)
         })
@@ -444,7 +462,7 @@ async function createRedirectForSlugChangeIfNeeded(
  */
 export async function createOrUpdateGdoc(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const { id } = req.params
@@ -501,7 +519,7 @@ async function validateTombstoneRelatedLinkUrl(
 
 export async function deleteGdoc(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const { id } = req.params
@@ -545,6 +563,9 @@ export async function deleteGdoc(
     if (gdoc.published && checkIsGdocPostExcludingFragments(gdoc)) {
         await removeIndividualGdocPostFromIndex(gdoc)
     }
+    if (gdoc.published && checkIsProfile(gdoc)) {
+        await removeIndividualProfileFromIndex(gdoc as unknown as GdocProfile)
+    }
     if (gdoc.published) {
         if (!tombstone && gdocSlug && gdocSlug !== "/") {
             // Assets have TTL of one week in Cloudflare. Add a redirect to make sure
@@ -565,7 +586,7 @@ export async function deleteGdoc(
 
 export async function setGdocTags(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const { gdocId } = req.params
@@ -582,22 +603,36 @@ export async function setGdocTags(
 /**
  * Generate a preview of Algolia index records for a gdoc.
  * Returns the records that would be created when indexing this gdoc.
+ *
+ * When `?raw=true` is passed, returns the preprocessed indexable text
+ * (same pre-index cleanup as Algolia records, before chunk serialization).
  */
 export async function getPreviewGdocIndexRecords(
-    _req: Request,
-    res: e.Response<PagesIndexRecordsResponse, Record<string, any>>,
+    req: Request,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
-): Promise<PagesIndexRecordsResponse> {
-    const { id } = _req.params
-    const contentSource = _req.query.contentSource as
+): Promise<PagesIndexRecordsResponse | { plaintext: string | undefined }> {
+    const { id } = req.params
+    const contentSource = req.query.contentSource as
         | GdocsContentSource
         | undefined
+    const raw = req.query.raw === "true"
 
     try {
         const gdoc = await getAndLoadGdocById(trx, id, contentSource, false)
 
         if (!gdoc) {
             throw new JsonError(`No Google Doc with id ${id} found`)
+        }
+
+        res.set("Cache-Control", "no-store")
+
+        if (raw) {
+            const plaintext = getPreprocessedIndexableText(
+                gdoc.content.body,
+                gdoc.linkedCallouts
+            )
+            return { plaintext }
         }
 
         const gdocJson = gdoc.toJSON()
@@ -608,7 +643,15 @@ export async function getPreviewGdocIndexRecords(
         gdocJson.publishedAt = fallbackDate
         gdocJson.updatedAt ??= fallbackDate
 
-        res.set("Cache-Control", "no-store")
+        if (checkIsProfile(gdocJson)) {
+            const payload: PagesIndexRecordsResponse = {
+                records: [],
+                count: 0,
+                message:
+                    "Profile preview is not supported — profiles are indexed at publish time for all entities",
+            }
+            return payload
+        }
 
         // Only generate records for posts (excluding fragments)
         if (
@@ -647,7 +690,7 @@ export async function getPreviewGdocIndexRecords(
     } catch (error) {
         console.error("Error generating gdoc index records", error)
         if (error instanceof Error) throw error
-        throw new Error(String(error))
+        throw new Error(String(error), { cause: error })
     }
 }
 
@@ -657,7 +700,7 @@ export async function getPreviewGdocIndexRecords(
  */
 export async function getPublishedGdocTopicSlugs(
     _req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ): Promise<{ slugs: string[] }> {
     const rows = await db.knexRaw<{ slug: string }>(

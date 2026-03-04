@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 import {
     Bounds,
     getRelativeMouse,
-    makeIdForHumanConsumption,
+    makeFigmaId,
     Url,
 } from "@ourworldindata/utils"
 import {
@@ -770,19 +770,19 @@ export class StaticFooter extends AbstractFooter<StaticFooterProps> {
 
         return (
             <g
-                id={makeIdForHumanConsumption(GRAPHER_FOOTER_CLASS)}
+                id={makeFigmaId(GRAPHER_FOOTER_CLASS)}
                 className="SourcesFooter"
                 style={{ fill: this.textColor }}
             >
                 {sources.renderSVG(targetX, targetY, {
-                    id: makeIdForHumanConsumption("sources"),
+                    id: makeFigmaId("sources"),
                 })}
                 {this.showNote &&
                     note.renderSVG(
                         targetX,
                         targetY + sources.height + this.verticalPadding,
                         {
-                            id: makeIdForHumanConsumption("note"),
+                            id: makeFigmaId("note"),
                             detailsMarker: this.manager.detailsMarkerInSvg,
                         }
                     )}
@@ -790,7 +790,7 @@ export class StaticFooter extends AbstractFooter<StaticFooterProps> {
                     ? licenseAndOriginUrl.renderSVG(
                           targetX + maxWidth - licenseAndOriginUrl.width,
                           targetY,
-                          { id: makeIdForHumanConsumption("origin-url") }
+                          { id: makeFigmaId("origin-url") }
                       )
                     : licenseAndOriginUrl.renderSVG(
                           targetX,
@@ -800,7 +800,7 @@ export class StaticFooter extends AbstractFooter<StaticFooterProps> {
                                   ? note.height + this.verticalPadding
                                   : 0) +
                               this.verticalPadding,
-                          { id: makeIdForHumanConsumption("origin-url") }
+                          { id: makeFigmaId("origin-url") }
                       )}
             </g>
         )

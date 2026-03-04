@@ -8,6 +8,7 @@ import {
     createTopicFilter,
     extractFiltersFromQuery,
     createCountryFilter,
+    formatFeaturedMetricFacetFilter,
 } from "./searchUtils"
 
 import { FilterType, SynonymMap } from "@ourworldindata/types"
@@ -737,6 +738,23 @@ describe("Fuzzy search in search autocomplete", () => {
             expect(result.suggestions[0].type).toBe(FilterType.QUERY)
             expect(result.unmatchedQuery).toBe("nonexistenttopic")
         })
+    })
+})
+
+describe("formatFeaturedMetricFacetFilter", () => {
+    it("returns filter to exclude FMs when query is non-empty", () => {
+        const result = formatFeaturedMetricFacetFilter("population")
+        expect(result).toEqual(["isFM:false"])
+    })
+
+    it("returns empty array when query is empty", () => {
+        const result = formatFeaturedMetricFacetFilter("")
+        expect(result).toEqual([])
+    })
+
+    it("returns empty array when query is only whitespace", () => {
+        const result = formatFeaturedMetricFacetFilter("   ")
+        expect(result).toEqual([])
     })
 })
 

@@ -9,11 +9,11 @@ import * as db from "../../db/db.js"
 import * as lodash from "lodash-es"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import { Request } from "../authentication.js"
-import e from "express"
+import { HandlerResponse } from "../FunctionalRouter.js"
 // using the alternate template, which highlights topics rather than articles.
 export async function fetchAllWork(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     type GdocRecord = Pick<DbRawPostGdoc, "id" | "publishedAt">
@@ -42,7 +42,7 @@ export async function fetchAllWork(
 
 export async function fetchNamespaces(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const rows = await db.knexRaw<{
@@ -71,7 +71,7 @@ export async function fetchNamespaces(
 
 export async function fetchSourceById(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const sourceId = expectInt(req.params.sourceId)

@@ -1,0 +1,213 @@
+import * as _ from "lodash-es"
+import { EntityName } from "@ourworldindata/types"
+import {
+    RegionDataProvider,
+    getRegionDataProviders,
+    Country,
+    excludeUndefined,
+    getRegionByName,
+} from "@ourworldindata/utils"
+import {
+    ADDITIONAL_REGION_DATA_PROVIDERS,
+    AdditionalRegionDataProvider,
+    isWorldEntityName,
+} from "./GrapherConstants"
+import * as R from "remeda"
+
+/** Region data providers defined in the regions.data.ts file */
+const regionDataProviders = getRegionDataProviders()
+/** Additional region data providers not specified by the ETL */
+const additionalRegionDataProviders = ADDITIONAL_REGION_DATA_PROVIDERS.filter(
+    (provider) => !regionDataProviders.includes(provider as RegionDataProvider)
+)
+
+const allRegionDataProviders = [
+    ...regionDataProviders,
+    ...additionalRegionDataProviders,
+]
+const allRegionDataProviderSet = new Set(allRegionDataProviders)
+
+const regionGroupKeys = [
+    "countries",
+    "continents", // OWID continents
+    "incomeGroups",
+    "historicalCountries", // e.g. USSR, Austria-Hungary
+    ...regionDataProviders,
+    ...additionalRegionDataProviders,
+] as const
+export type RegionGroupKey = (typeof regionGroupKeys)[number]
+
+export interface RegionGroup {
+    regionGroupKey: RegionGroupKey
+    entityNames: EntityName[]
+}
+
+export type EntitiesByRegionGroup = Map<RegionGroupKey, EntityName[]>
+
+export type AnyRegionDataProvider =
+    | RegionDataProvider
+    | AdditionalRegionDataProvider
+
+export const regionGroupLabels: Record<RegionGroupKey, string> = {
+    countries: "Countries",
+    continents: "Continents", // OWID-defined continents
+    incomeGroups: "Income groups",
+    historicalCountries: "Historical countries and regions", // e.g. USSR, Austria-Hungary
+
+    // Regions defined by an institution, and where we have region definition about what constitutes these regions in regions.ts
+    who: "World Health Organization regions",
+    wb: "World Bank regions",
+    pew: "Pew Research Center regions",
+    un: "United Nations regions",
+    un_m49_1: "United Nations regions",
+    un_m49_2: "United Nations regions",
+    un_m49_3: "United Nations regions",
+
+    // Regions defined by an institution, but we don't have region definitions in regions.ts for these (we recognize them by their suffix)
+    maddison: "Maddison Project Database regions",
+    unsdg: "UN Sustainable Development Goals regions",
+    unm49: "United Nations M49 regions",
+    unsd: "UN Statistics Division regions",
+    fao: "FAO regions", // UN's Food and Agriculture Organization
+    ei: "Education International regions",
+    pip: "PIP regions", // World Bank’s Poverty and Inequality Platform
+    ember: "Ember regions",
+    gcp: "Global Carbon Project regions",
+    niaid: "NIAID regions", // National Institute of Allergy and Infectious Diseases
+    unicef: "UNICEF regions",
+    unaids: "UNAIDS regions", // Joint United Nations Programme on HIV and AIDS
+    undp: "UN Development Programme regions",
+    wid: "World Inequality Database regions",
+    oecd: "OECD regions", // Organisation for Economic Co-operation and Development
+    ilo: "International Labour Organization regions",
+}
+
+function toProviderKey(
+    providerSuffix: string
+): AnyRegionDataProvider | undefined {
+    const candidate = providerSuffix.toLowerCase().replaceAll(" ", "")
+    return isAnyRegionDataProviderKey(candidate) ? candidate : undefined
+}
+
+export function groupEntitiesByRegionType(
+    entityNames: EntityName[]
+): RegionGroup[] {
+    // The 'World' entity shouldn't show up in any of the groups
+    const availableEntityNames = entityNames.filter(
+        (entityName) => !isWorldEntityName(entityName)
+    )
+
+    // Map entities to their regions
+    const availableRegions = excludeUndefined(
+        availableEntityNames.map((entityName) => getRegionByName(entityName))
+    )
+
+    // Group regions by type
+    const regionsGroupedByType = _.groupBy(
+        availableRegions,
+        (r) => r.regionType
+    )
+
+    const entitiesByRegionGroup: RegionGroup[] = []
+
+    // Split countries into historical and non-historical
+    const [historicalCountries, nonHistoricalCountries] = R.partition(
+        regionsGroupedByType.country ?? [],
+        (country) => !!(country as Country).isHistorical
+    )
+
+    // Add the 'countries' group
+    if (nonHistoricalCountries.length > 0) {
+        entitiesByRegionGroup.push({
+            regionGroupKey: "countries",
+            entityNames: nonHistoricalCountries.map((region) => region.name),
+        })
+    }
+
+    // Add the 'continents' group
+    if (regionsGroupedByType.continent) {
+        entitiesByRegionGroup.push({
+            regionGroupKey: "continents",
+            entityNames: regionsGroupedByType.continent.map(
+                (region) => region.name
+            ),
+        })
+    }
+
+    // Add the 'incomeGroups' group
+    if (regionsGroupedByType.income_group) {
+        // match by name instead of relying on the regions file because
+        // some charts have income groups that aren't listed in the regions
+        // file, e.g. 'Lower-middle-income countries'
+        const incomeGroups = availableEntityNames.filter(
+            (entityName) =>
+                entityName.includes("income countries") ||
+                // matches 'No income group available', for example
+                entityName.includes("income group")
+        )
+
+        entitiesByRegionGroup.push({
+            regionGroupKey: "incomeGroups",
+            entityNames: incomeGroups,
+        })
+    }
+
+    const entitiesByProvider = new Map<AnyRegionDataProvider, EntityName[]>()
+    for (const entityName of availableEntityNames) {
+        const parsedEntityName = parseLabel(entityName)
+        if (parsedEntityName.providerKey) {
+            const providerKey = parsedEntityName.providerKey
+            if (!entitiesByProvider.get(providerKey))
+                entitiesByProvider.set(providerKey, [])
+            entitiesByProvider.get(providerKey)!.push(entityName)
+        }
+    }
+
+    for (const [provider, entityNames] of entitiesByProvider) {
+        entitiesByRegionGroup.push({ regionGroupKey: provider, entityNames })
+    }
+
+    // Add a group for historical countries
+    if (historicalCountries.length > 0) {
+        entitiesByRegionGroup.push({
+            regionGroupKey: "historicalCountries",
+            entityNames: historicalCountries.map((region) => region.name),
+        })
+    }
+
+    return entitiesByRegionGroup
+}
+
+export interface ParsedLabel {
+    raw: string // e.g. "Africa (UN)"
+    name: string // e.g. "Africa"
+    suffix?: string // e.g. "UN"
+    providerKey?: AnyRegionDataProvider // e.g. "un"
+}
+
+export function parseLabel(raw: string): ParsedLabel {
+    const match = raw.match(/^(.+)\s+\(([^)]+)\)$/)
+    if (!match) return { raw, name: raw }
+
+    const [, name, suffix] = match
+
+    if (!suffix) return { raw, name: raw }
+
+    const providerKey = toProviderKey(suffix)
+    if (!providerKey || !isAnyRegionDataProviderKey(providerKey))
+        return { raw, name, suffix }
+
+    return { raw, name, suffix, providerKey }
+}
+
+export function isAnyRegionDataProviderKey(
+    candidate: string
+): candidate is AnyRegionDataProvider {
+    return allRegionDataProviderSet.has(candidate as any)
+}
+
+export function isEntityRegionGroupKey(
+    candidate: string
+): candidate is RegionGroupKey {
+    return regionGroupKeys.includes(candidate as any)
+}

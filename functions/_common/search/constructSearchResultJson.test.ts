@@ -167,6 +167,7 @@ describe(pickDisplayEntities, () => {
 
             const displayEntities = await pickDisplayEntities(grapherState, {
                 pickedEntities,
+                catalogUrl: "",
             })
 
             expect(displayEntities).toEqual(defaultEntities)
@@ -185,7 +186,7 @@ describe(pickDisplayEntities, () => {
 
                 const displayEntities = await pickDisplayEntities(
                     grapherState,
-                    { pickedEntities }
+                    { pickedEntities, catalogUrl: "" }
                 )
 
                 pickedEntities.forEach((pickedEntity) =>
@@ -204,6 +205,7 @@ describe(pickDisplayEntities, () => {
 
             const displayEntities = await pickDisplayEntities(grapherState, {
                 pickedEntities,
+                catalogUrl: "",
             })
 
             expect(displayEntities).toEqual([pickedEntities[0]])
@@ -217,6 +219,7 @@ describe(pickDisplayEntities, () => {
 
             const displayEntities = await pickDisplayEntities(grapherState, {
                 pickedEntities: [],
+                catalogUrl: "",
             })
 
             expect(displayEntities).toEqual([defaultEntities[0]])
@@ -233,6 +236,7 @@ describe(pickDisplayEntities, () => {
 
             const displayEntities = await pickDisplayEntities(grapherState, {
                 pickedEntities,
+                catalogUrl: "",
             })
 
             expect(displayEntities).toEqual(pickedEntities)
@@ -247,6 +251,7 @@ describe(pickDisplayEntities, () => {
 
             const displayEntities = await pickDisplayEntities(grapherState, {
                 pickedEntities: [],
+                catalogUrl: "",
             })
 
             expect(displayEntities).toEqual([defaultEntities[0]])
@@ -265,6 +270,7 @@ describe(pickDisplayEntities, () => {
 
             const displayEntities = await pickDisplayEntities(grapherState, {
                 pickedEntities,
+                catalogUrl: "",
             })
 
             expect(displayEntities).toEqual(pickedEntities)
@@ -278,6 +284,7 @@ describe(pickDisplayEntities, () => {
 
             const displayEntities = await pickDisplayEntities(grapherState, {
                 pickedEntities,
+                catalogUrl: "",
             })
 
             expect(displayEntities).toEqual([
@@ -294,6 +301,7 @@ describe(pickDisplayEntities, () => {
 
             const displayEntities = await pickDisplayEntities(grapherState, {
                 pickedEntities,
+                catalogUrl: "",
             })
 
             expect(displayEntities).toEqual([

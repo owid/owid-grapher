@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class MakeMultiDimCatalogPathNotNull1767869041541
-    implements MigrationInterface
-{
+export class MakeMultiDimCatalogPathNotNull1767869041541 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(
             `-- sql

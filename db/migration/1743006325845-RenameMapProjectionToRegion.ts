@@ -24,9 +24,7 @@ async function updateGrapherSchemaField(
     }
 }
 
-export class RenameMapProjectionToRegion1743006325845
-    implements MigrationInterface
-{
+export class RenameMapProjectionToRegion1743006325845 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         for (const { table, column } of tables) {
             await queryRunner.query(

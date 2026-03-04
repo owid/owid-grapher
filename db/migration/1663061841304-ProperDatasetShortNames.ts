@@ -47,9 +47,7 @@ const RENAME_MAP = {
     wdi__2022_05_26: "wdi",
 }
 
-export class ProperDatasetShortNames1663061841304
-    implements MigrationInterface
-{
+export class ProperDatasetShortNames1663061841304 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         for (const [oldName, newName] of Object.entries(RENAME_MAP)) {
             await queryRunner.query(

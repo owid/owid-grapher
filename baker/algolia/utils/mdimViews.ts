@@ -13,17 +13,26 @@ import {
 import { toPlaintext } from "@ourworldindata/components"
 import * as db from "../../../db/db.js"
 import { getAllPublishedMultiDimDataPages } from "../../../db/model/MultiDimDataPage.js"
-import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
-import { ChartRecord, ChartRecordType } from "@ourworldindata/types"
+import {
+    ChartRecord,
+    ChartRecordType,
+    IndexingContext,
+} from "@ourworldindata/types"
+import { createMdimIndexingContext } from "./context.js"
 import {
     getRelevantVariableIds,
     getRelevantVariableMetadata,
 } from "../../MultiDimBaker.js"
 import { GrapherState } from "@ourworldindata/grapher"
-import { maybeAddChangeInPrefix } from "./shared.js"
+import {
+    maybeAddChangeInPrefix,
+    parseJsonStringArray,
+    uniqNonEmptyStrings,
+} from "./shared.js"
 import { getMultiDimRedirectTargets } from "../../../db/model/MultiDimRedirects.js"
 import { getMaxViews7d, PageviewsByUrl } from "./pageviews.js"
+import { DatasetDimensionsForVariable } from "./types.js"
 
 // Published multi-dim must have a slug.
 type PublishedMultiDimWithSlug = DbEnrichedMultiDimDataPage & { slug: string }
@@ -66,6 +75,35 @@ async function getMultiDimXChartConfigIdMap(trx: db.KnexReadonlyTransaction) {
     )
 }
 
+async function getDatasetDimensionsByVariableIds(
+    trx: db.KnexReadonlyTransaction,
+    variableIds: number[]
+): Promise<Map<number, DatasetDimensionsForVariable>> {
+    if (variableIds.length === 0) return new Map()
+
+    const rows = await trx("dataset_dimensions_by_variable as ddv")
+        .select(
+            "ddv.variableId",
+            "ddv.datasetNamespace",
+            "ddv.datasetVersion",
+            "ddv.datasetProduct",
+            "ddv.datasetProducers"
+        )
+        .whereIn("ddv.variableId", variableIds)
+
+    return new Map(
+        rows.map((row) => [
+            row.variableId as number,
+            {
+                datasetNamespace: row.datasetNamespace,
+                datasetVersion: row.datasetVersion,
+                datasetProduct: row.datasetProduct,
+                datasetProducers: parseJsonStringArray(row.datasetProducers),
+            },
+        ])
+    )
+}
+
 async function getRecords(
     trx: db.KnexReadonlyTransaction,
     multiDim: PublishedMultiDimWithSlug,
@@ -86,7 +124,9 @@ async function getRecords(
     const relevantVariableIds = getRelevantVariableIds(multiDim.config)
     const relevantVariableMetadata =
         await getRelevantVariableMetadata(relevantVariableIds)
-    return multiDim.config.views.flatMap((view) => {
+    const datasetDimensionsByVariableId =
+        await getDatasetDimensionsByVariableIds(trx, [...relevantVariableIds])
+    return multiDim.config.views.map((view) => {
         const viewId = dimensionsToViewId(view.dimensions)
         const id = multiDimXChartConfigIdMap.get(`${multiDim.id}-${viewId}`)
         if (!id) {
@@ -119,6 +159,7 @@ async function getRecords(
                 "",
             grapherState.shouldAddChangeInPrefixToTitle
         )
+        const containerTitle = multiDim.config.title.title
         const subtitle = toPlaintext(
             metadata.descriptionShort || chartConfig.subtitle || ""
         )
@@ -135,43 +176,63 @@ async function getRecords(
             ...redirectSources,
         ])
         const score = views_7d * 10 - title.length
-        return [
-            {
-                type: ChartRecordType.MultiDimView,
-                objectID: `mdim-view-${id}`,
-                id: `mdim/${slug}${queryStr}`,
-                chartId: -1,
-                chartConfigId: view.fullConfigId,
-                slug,
-                queryParams: queryStr,
-                title,
-                subtitle,
-                variantName: chartConfig.variantName,
-                availableTabs: grapherState.availableTabs,
-                keyChartForTags: [],
-                tags,
-                availableEntities,
-                publishedAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                numDimensions: chartConfig.dimensions?.length ?? 0,
-                titleLength: title.length,
-                numRelatedArticles: 0,
-                views_7d,
-                views_14d: 0,
-                views_365d: 0,
-                score,
-                isIncomeGroupSpecificFM: false,
-            } as ChartRecord,
-        ]
+
+        const datasetDimensions = view.indicators.y
+            .map((ind) => datasetDimensionsByVariableId.get(ind.id))
+            .filter(Boolean)
+        const datasetNamespaces = uniqNonEmptyStrings(
+            datasetDimensions.map((dataset) => dataset?.datasetNamespace)
+        )
+        const datasetVersions = uniqNonEmptyStrings(
+            datasetDimensions.map((dataset) => dataset?.datasetVersion)
+        )
+        const datasetProducts = uniqNonEmptyStrings(
+            datasetDimensions.map((dataset) => dataset?.datasetProduct)
+        )
+        const datasetProducers = uniqNonEmptyStrings(
+            datasetDimensions.map((dataset) => dataset?.datasetProducers)
+        )
+
+        return {
+            type: ChartRecordType.MultiDimView,
+            objectID: `mdim-view-${id}`,
+            id: `mdim/${slug}${queryStr ? `?${queryStr}` : ""}`,
+            chartId: -1,
+            chartConfigId: view.fullConfigId,
+            slug,
+            queryParams: queryStr ? `?${queryStr}` : "",
+            title,
+            containerTitle,
+            subtitle,
+            variantName: chartConfig.variantName,
+            availableTabs: grapherState.availableTabs,
+            keyChartForTags: [],
+            tags,
+            availableEntities,
+            publishedAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            numDimensions: chartConfig.dimensions?.length ?? 0,
+            titleLength: title.length,
+            numRelatedArticles: 0,
+            views_7d,
+            views_14d: 0,
+            views_365d: 0,
+            score,
+            isIncomeGroupSpecificFM: false,
+            isFM: false,
+            datasetNamespaces,
+            datasetVersions,
+            datasetProducts,
+            datasetProducers,
+        } as ChartRecord
     })
 }
 
 async function getMultiDimDataPagesWithInheritedTags(
-    trx: db.KnexReadonlyTransaction
+    trx: db.KnexReadonlyTransaction,
+    topicHierarchies: IndexingContext["topicHierarchies"]
 ) {
     const multiDims = await getAllPublishedMultiDimDataPages(trx)
-    const topicHierarchiesByChildName =
-        await db.getTopicHierarchiesByChildName(trx)
 
     const result = []
     for (const multiDim of multiDims) {
@@ -191,7 +252,7 @@ async function getMultiDimDataPagesWithInheritedTags(
 
         const topicTags = getUniqueNamesFromTagHierarchies(
             tags,
-            topicHierarchiesByChildName
+            topicHierarchies
         )
 
         result.push({ multiDim: multiDimWithSlug, tags: topicTags })
@@ -202,25 +263,25 @@ async function getMultiDimDataPagesWithInheritedTags(
 
 export async function getMdimViewRecords(
     trx: db.KnexReadonlyTransaction,
-    slugFilter?: string
+    options?: {
+        id?: number
+        baseContext?: IndexingContext
+    }
 ) {
-    console.log("Getting mdim view records")
-    if (slugFilter) {
-        console.log(`(Filtering by slug: ${slugFilter})`)
-    }
-    let multiDimsWithTags = await getMultiDimDataPagesWithInheritedTags(trx)
+    const { id, baseContext } = options ?? {}
 
-    // Apply slug filter early to avoid processing all mdims
-    if (slugFilter) {
-        multiDimsWithTags = multiDimsWithTags.filter(
-            ({ multiDim }) => multiDim.slug === slugFilter
+    console.log("Getting mdim view records")
+
+    const context = await createMdimIndexingContext(trx, baseContext)
+
+    const multiDimsWithTags = (
+        await getMultiDimDataPagesWithInheritedTags(
+            trx,
+            context.topicHierarchies
         )
-        if (multiDimsWithTags.length === 0) {
-            console.log(`No mdim found with slug: ${slugFilter}`)
-            return []
-        }
-    }
-    const pageviews = await getAnalyticsPageviewsByUrlObj(trx)
+    ).filter((m) => id === undefined || m.multiDim.id === id)
+
+
     const [grapherRedirects, explorerRedirects] = await Promise.all([
         getMultiDimRedirectTargets(trx, undefined, "/grapher/"),
         getMultiDimRedirectTargets(trx, undefined, "/explorers/"),
@@ -269,7 +330,7 @@ export async function getMdimViewRecords(
                 trx,
                 multiDim,
                 tags,
-                pageviews,
+                context.pageviews,
                 redirectSourcesByTarget,
                 redirectSourcesBySlug
             )

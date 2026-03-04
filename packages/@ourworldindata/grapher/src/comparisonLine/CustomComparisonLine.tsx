@@ -2,11 +2,7 @@ import * as React from "react"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { line as d3_line, curveLinear } from "d3-shape"
-import {
-    guid,
-    PointVector,
-    makeIdForHumanConsumption,
-} from "@ourworldindata/utils"
+import { guid, PointVector, makeFigmaId } from "@ourworldindata/utils"
 import { CustomComparisonLineConfig } from "@ourworldindata/types"
 import { generateComparisonLinePoints } from "./ComparisonLineGenerator"
 import { Halo } from "@ourworldindata/components"
@@ -140,7 +136,7 @@ export class CustomComparisonLine extends React.Component<
 
         return (
             <g
-                id={makeIdForHumanConsumption(
+                id={makeFigmaId(
                     "comparison-line",
                     this.props.comparisonLine.label
                 )}

@@ -171,6 +171,7 @@ export interface OwidGdocMinimalPostInterface {
     "featured-image"?: string // used in prominent links and research & writing block
     kicker?: string // used in homepage announcements
     cta?: { text: string; url: string } // used in homepage announcements
+    availableEntityCodes?: string[] // used for profile-type docs to resolve ?country=X links
 }
 
 export type OwidGdocIndexItem = Pick<
@@ -402,11 +403,10 @@ export interface OwidGdocErrorMessage {
 }
 
 // see also: getOwidGdocFromJSON()
-export interface OwidGdocJSON
-    extends Omit<
-        OwidGdocPostInterface,
-        "createdAt" | "publishedAt" | "updatedAt"
-    > {
+export interface OwidGdocJSON extends Omit<
+    OwidGdocPostInterface,
+    "createdAt" | "publishedAt" | "updatedAt"
+> {
     createdAt: string
     publishedAt: string | null
     updatedAt: string | null

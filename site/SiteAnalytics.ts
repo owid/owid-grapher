@@ -5,10 +5,13 @@ import {
     type SearchChartHit,
     type SearchState,
     type FlatArticleHit,
+    type ProfileHit,
     type TopicPageHit,
     type DataInsightHit,
     type StackedArticleHit,
     FilterType,
+    type UserSurveyExperimentArm,
+    type UserSurveyRoleAnswer,
 } from "@ourworldindata/types"
 import { getFilterNamesOfType } from "./search/searchUtils.js"
 import { findDOMParent } from "@ourworldindata/utils"
@@ -78,6 +81,7 @@ export class SiteAnalytics extends GrapherAnalytics {
         hit:
             | SearchChartHit
             | FlatArticleHit
+            | ProfileHit
             | TopicPageHit
             | DataInsightHit
             | StackedArticleHit,
@@ -176,6 +180,129 @@ export class SiteAnalytics extends GrapherAnalytics {
             eventAction: action,
             eventTarget: staticVizName,
             eventContext: context,
+        })
+    }
+
+    logUserSurveyRoleSubmit(
+        params: UserSurveyRoleAnswer & {
+            surveyName: string
+            responseId: string
+        }
+    ): void {
+        if (params.experimentArm === "free-form") {
+            this.logToGA({
+                event: EventCategory.SiteUserSurvey,
+                eventAction: "user_role_submit",
+                surveyName: params.surveyName,
+                responseId: params.responseId,
+                experimentArm: "free-form",
+                freeFormInput: params.freeFormInput,
+            })
+            return
+        }
+
+        this.logToGA({
+            event: EventCategory.SiteUserSurvey,
+            eventAction: "user_role_submit",
+            surveyName: params.surveyName,
+            responseId: params.responseId,
+            experimentArm: params.experimentArm,
+            optionId: params.optionId,
+            optionLabel: params.optionLabel,
+            optionIndex: params.optionIndex,
+            ...(params.freeFormInput !== undefined
+                ? { freeFormInput: params.freeFormInput }
+                : {}),
+        })
+    }
+
+    logUserSurveyRoleShow({
+        surveyName,
+        responseId,
+        experimentArm,
+    }: {
+        surveyName: string
+        responseId: string
+        experimentArm: UserSurveyExperimentArm
+    }): void {
+        this.logToGA({
+            event: EventCategory.SiteUserSurvey,
+            eventAction: "user_role_show",
+            surveyName,
+            responseId,
+            experimentArm,
+        })
+    }
+
+    logUserSurveyThankYouShow({
+        surveyName,
+        responseId,
+        experimentArm,
+    }: {
+        surveyName: string
+        responseId: string
+        experimentArm: UserSurveyExperimentArm
+    }): void {
+        this.logToGA({
+            event: EventCategory.SiteUserSurvey,
+            eventAction: "thank_you_show",
+            surveyName,
+            responseId,
+            experimentArm,
+        })
+    }
+
+    logUserSurveyFeedbackSubmit({
+        surveyName,
+        responseId,
+        experimentArm,
+    }: {
+        surveyName: string
+        responseId: string
+        experimentArm: UserSurveyExperimentArm
+    }): void {
+        this.logToGA({
+            event: EventCategory.SiteUserSurvey,
+            eventAction: "feedback_submit",
+            surveyName,
+            responseId,
+            experimentArm,
+        })
+    }
+
+    logUserSurveyRoleDismiss({
+        surveyName,
+        responseId,
+        experimentArm,
+    }: {
+        surveyName: string
+        responseId: string
+        experimentArm: UserSurveyExperimentArm
+    }): void {
+        this.logToGA({
+            event: EventCategory.SiteUserSurvey,
+            eventAction: "user_role_dismiss",
+            surveyName,
+            responseId,
+            experimentArm,
+        })
+    }
+
+    logUserSurveyThankYouDismiss({
+        surveyName,
+        responseId,
+        experimentArm,
+    }: {
+        surveyName: string
+        responseId: string
+        experimentArm: UserSurveyExperimentArm
+    }): void {
+        this.logToGA({
+            event: EventCategory.SiteUserSurvey,
+            eventAction: "thank_you_dismiss",
+            surveyName,
+            responseId,
+            experimentArm,
         })
     }
 

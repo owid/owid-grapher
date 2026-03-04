@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class RemoveAvailableEntitiesFromChartConfigs1711580214803
-    implements MigrationInterface
-{
+export class RemoveAvailableEntitiesFromChartConfigs1711580214803 implements MigrationInterface {
     // Removes `$.data.availableEntities` from chart configs
     // In doing that, we can also remove the whole `$.data` object, because it is not used anymore
     public async up(queryRunner: QueryRunner): Promise<void> {

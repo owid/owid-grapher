@@ -1,11 +1,12 @@
-import { Request, Response } from "express"
+import { Request } from "express"
+import { HandlerResponse } from "../FunctionalRouter.js"
 import { JsonError } from "@ourworldindata/utils"
 import * as db from "../../db/db.js"
 import { getChartConfigById } from "../../db/model/ChartConfigs.js"
 
 export async function getChartConfig(
     req: Request,
-    res: Response,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const { chartConfigId } = req.params

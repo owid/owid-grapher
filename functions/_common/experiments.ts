@@ -14,9 +14,13 @@ export interface ServerCookie {
     options?: SerializeOptions
 }
 
-export const experimentsMiddleware = (
+export const experimentsMiddleware = async (
     context: EventContext<Env, string, Record<string, unknown>>
 ) => {
+    if (context.request.method !== "GET") {
+        return context.next()
+    }
+
     if (shouldSkipExperiments(context.request.url)) {
         return context.next()
     }
@@ -60,7 +64,25 @@ export const experimentsMiddleware = (
         }
     }
 
-    return context.next()
+    if (!cookiesToSet.length) {
+        return context.next()
+    }
+
+    const response = await context.next()
+    const headers = new Headers(response.headers)
+    for (const serverCookie of cookiesToSet) {
+        const cookieString = cookie.serialize(
+            serverCookie.name,
+            serverCookie.value,
+            serverCookie.options
+        )
+        headers.append("Set-Cookie", cookieString)
+    }
+    return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+    })
 }
 
 /**
@@ -101,7 +123,7 @@ function assignToArm(experiment: Experiment): ExperimentArm {
 function shouldSkipExperiments(url: string): boolean {
     const pathname = new URL(url).pathname
     if (
-        /\.(js|css|svg|png|jpg|jpeg|gif|woff2?|ttf|eot|otf|json|csv|ico|map)$/.test(
+        /\.(js|css|svg|png|jpg|jpeg|gif|webp|woff2?|ttf|eot|otf|json|csv|ico|map)$/.test(
             pathname
         )
     ) {

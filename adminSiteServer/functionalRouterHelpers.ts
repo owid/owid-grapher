@@ -1,5 +1,5 @@
-import { FunctionalRouter } from "./FunctionalRouter.js"
-import { Request, Response } from "express"
+import { FunctionalRouter, HandlerResponse } from "./FunctionalRouter.js"
+import { Request } from "express"
 import * as db from "../db/db.js"
 
 export function getRouteWithROTransaction<T>(
@@ -7,11 +7,11 @@ export function getRouteWithROTransaction<T>(
     targetPath: string,
     handler: (
         req: Request,
-        res: Response,
+        res: HandlerResponse,
         trx: db.KnexReadonlyTransaction
     ) => Promise<T>
 ) {
-    return router.get(targetPath, (req: Request, res: Response) => {
+    return router.get(targetPath, (req, res) => {
         return db.knexReadonlyTransaction((transaction) =>
             handler(req, res, transaction)
         )
@@ -27,11 +27,11 @@ export function getRouteNonIdempotentWithRWTransaction<T>(
     targetPath: string,
     handler: (
         req: Request,
-        res: Response,
+        res: HandlerResponse,
         trx: db.KnexReadWriteTransaction
     ) => Promise<T>
 ) {
-    return router.get(targetPath, (req: Request, res: Response) => {
+    return router.get(targetPath, (req, res) => {
         return db.knexReadWriteTransaction((transaction) =>
             handler(req, res, transaction)
         )
@@ -43,11 +43,11 @@ export function postRouteWithRWTransaction<T>(
     targetPath: string,
     handler: (
         req: Request,
-        res: Response,
+        res: HandlerResponse,
         trx: db.KnexReadWriteTransaction
     ) => Promise<T>
 ) {
-    return router.post(targetPath, (req: Request, res: Response) => {
+    return router.post(targetPath, (req, res) => {
         return db.knexReadWriteTransaction((transaction) =>
             handler(req, res, transaction)
         )
@@ -59,18 +59,15 @@ export function postFileUploadWithRWTransaction<T>(
     targetPath: string,
     handler: (
         req: Request,
-        res: Response,
+        res: HandlerResponse,
         trx: db.KnexReadWriteTransaction
     ) => Promise<T>
 ) {
-    return router.postWithFileUpload(
-        targetPath,
-        async (req: Request, res: Response) => {
-            return db.knexReadWriteTransaction((transaction) =>
-                handler(req, res, transaction)
-            )
-        }
-    )
+    return router.postWithFileUpload(targetPath, async (req, res) => {
+        return db.knexReadWriteTransaction((transaction) =>
+            handler(req, res, transaction)
+        )
+    })
 }
 
 export function putRouteWithRWTransaction<T>(
@@ -78,11 +75,11 @@ export function putRouteWithRWTransaction<T>(
     targetPath: string,
     handler: (
         req: Request,
-        res: Response,
+        res: HandlerResponse,
         trx: db.KnexReadWriteTransaction
     ) => Promise<T>
 ) {
-    return router.put(targetPath, (req: Request, res: Response) => {
+    return router.put(targetPath, (req, res) => {
         return db.knexReadWriteTransaction((transaction) =>
             handler(req, res, transaction)
         )
@@ -94,11 +91,11 @@ export function patchRouteWithRWTransaction<T>(
     targetPath: string,
     handler: (
         req: Request,
-        res: Response,
+        res: HandlerResponse,
         trx: db.KnexReadWriteTransaction
     ) => Promise<T>
 ) {
-    return router.patch(targetPath, (req: Request, res: Response) => {
+    return router.patch(targetPath, (req, res) => {
         return db.knexReadWriteTransaction((transaction) =>
             handler(req, res, transaction)
         )
@@ -110,11 +107,11 @@ export function deleteRouteWithRWTransaction<T>(
     targetPath: string,
     handler: (
         req: Request,
-        res: Response,
+        res: HandlerResponse,
         trx: db.KnexReadWriteTransaction
     ) => Promise<T>
 ) {
-    return router.delete(targetPath, (req: Request, res: Response) => {
+    return router.delete(targetPath, (req, res) => {
         return db.knexReadWriteTransaction((transaction) =>
             handler(req, res, transaction)
         )

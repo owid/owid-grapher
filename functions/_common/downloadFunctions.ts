@@ -347,11 +347,12 @@ export async function fetchSearchResultDataForGrapher(
     })
     if (inputTable) grapher.grapherState.inputTable = inputTable
 
+    const catalogUrl = env.CATALOG_URL
     const searchResult = await assembleSearchResultData(grapher.grapherState, {
         variant,
         pickedEntities,
         numDataTableRowsPerColumn,
-        dataApiUrl,
+        catalogUrl,
     })
 
     if (searchResult === undefined)
@@ -375,7 +376,7 @@ export async function assembleSearchResultData(
         variant: RichDataVariant
         pickedEntities: EntityName[]
         numDataTableRowsPerColumn: number
-        dataApiUrl: string
+        catalogUrl: string
     }
 ): Promise<GrapherSearchResultJson | undefined> {
     // Find Grapher tabs to display and bring them in the right order

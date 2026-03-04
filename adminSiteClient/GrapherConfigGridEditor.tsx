@@ -104,8 +104,6 @@ import { SortableList } from "./SortableList.js"
 
 type Disposer = () => void
 
-// The rule doesn't support class components in the same file.
-// eslint-disable-next-line react-refresh/only-export-components
 function HotColorScaleRenderer() {
     return <div style={{ color: "gray" }}>Color scale</div>
 }
@@ -1113,7 +1111,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
     async getFieldDefinitions() {
         const json = await fetch(
-            "https://files.ourworldindata.org/schemas/grapher-schema.009.json"
+            "https://files.ourworldindata.org/schemas/grapher-schema.010.json"
         ).then((response) => response.json())
         const fieldDescriptions = extractFieldDescriptionsFromSchema(json)
         runInAction(() => {

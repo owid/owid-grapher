@@ -13,7 +13,6 @@ import { LiteClient, liteClient } from "algoliasearch/lite"
 import { createLocalStorageRecentSearchesPlugin } from "@algolia/autocomplete-plugin-recent-searches"
 import {
     ChartRecordType,
-    SearchIndexName,
     Filter,
     FilterType,
     SynonymMap,
@@ -26,27 +25,27 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../../settings/clientSettings.js"
+import { DEFAULT_SEARCH_PLACEHOLDER } from "./searchClient.js"
 import {
-    DEFAULT_SEARCH_PLACEHOLDER,
-    getIndexName,
-    parseIndexName,
-} from "./searchClient.js"
-import {
-    listedRegionsNames,
-    OwidGdocType,
-    queryParamsToStr,
-} from "@ourworldindata/utils"
-import { SiteAnalytics } from "../SiteAnalytics.js"
-import Mousetrap from "mousetrap"
-import { match } from "ts-pattern"
-import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
-import {
+    PAGES_INDEX,
+    CHARTS_INDEX,
     suggestFiltersFromQuerySuffix,
     getFilterIcon,
     getItemUrlForFilter,
     getPageTypeNameAndIcon,
     SEARCH_BASE_PATH,
 } from "./searchUtils.js"
+import {
+    getUserCountryInformation,
+    listedRegionsNames,
+    OwidGdocType,
+    queryParamsToStr,
+} from "@ourworldindata/utils"
+import { SiteAnalytics } from "../SiteAnalytics.js"
+import Mousetrap from "mousetrap"
+import * as Sentry from "@sentry/react"
+import { match } from "ts-pattern"
+import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { buildSynonymMap } from "./synonymUtils.js"
 import { SearchFilterPill } from "./SearchFilterPill.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -93,9 +92,9 @@ const getItemUrl: AutocompleteSource<BaseItem>["getItemUrl"] = ({ item }) =>
 // The slugs we index to Algolia don't include grapher/, explorers/, or data-insights/ subdirectories
 // Prepend them with this function when we need them
 const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
-    const indexName = parseIndexName(item.__autocomplete_indexName as string)
+    const indexName = item.__autocomplete_indexName as string
     return match(indexName)
-        .with(SearchIndexName.Pages, () => {
+        .with(PAGES_INDEX, () => {
             return getCanonicalUrl(BAKED_BASE_URL, {
                 slug: item.slug as string,
                 content: {
@@ -103,7 +102,7 @@ const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
                 },
             })
         })
-        .with(SearchIndexName.ExplorerViewsMdimViewsAndCharts, () => {
+        .with(CHARTS_INDEX, () => {
             return match(item.type as ChartRecordType)
                 .with(ChartRecordType.ExplorerView, () => {
                     const url = new URL(
@@ -138,7 +137,12 @@ const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
                 })
                 .exhaustive()
         })
-        .exhaustive()
+        .otherwise(() => {
+            Sentry.captureMessage(`Unknown Algolia index name: ${indexName}`, {
+                level: "error",
+            })
+            return urljoin(BAKED_BASE_URL, item.slug as string)
+        })
 }
 
 const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
@@ -170,21 +174,81 @@ const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
     },
 }
 
-const AlgoliaSource: AutocompleteSource<BaseItem> = {
+const algoliaItemTemplate: AutocompleteSource<BaseItem>["templates"] = {
+    item: ({ item, components }) => {
+        const indexName = item.__autocomplete_indexName as string
+
+        const { label: indexLabel, icon: indexIcon } = match(indexName)
+            .with(CHARTS_INDEX, () => ({
+                label:
+                    item.type === ChartRecordType.ExplorerView
+                        ? "Explorer"
+                        : "Chart",
+                icon: faLineChart,
+            }))
+            .with(PAGES_INDEX, () => {
+                const { name, icon } = getPageTypeNameAndIcon(
+                    item.type as OwidGdocType
+                )
+                return { label: name, icon }
+            })
+            .otherwise(() => {
+                Sentry.captureMessage(
+                    `Unknown Algolia index name: ${indexName}`,
+                    { level: "error" }
+                )
+                return { label: "Result", icon: faSearch }
+            })
+
+        return (
+            <span
+                className="autocomplete-item-contents"
+                key={item.title as string}
+                translate="no"
+            >
+                <span>
+                    <FontAwesomeIcon
+                        icon={indexIcon}
+                        className="autocomplete-item-contents__type-icon"
+                    />
+                </span>
+                <span>
+                    <components.Highlight
+                        hit={item}
+                        attribute={"title"}
+                        tagName="strong"
+                    />
+                    <span className="autocomplete-item-contents__contentType">
+                        {indexLabel}
+                    </span>
+                </span>
+            </span>
+        )
+    },
+}
+
+const algoliaOnSelect: AutocompleteSource<BaseItem>["onSelect"] = ({
+    navigator,
+    item,
+    state,
+}) => {
+    const itemUrl = prependSubdirectoryToAlgoliaItemUrl(item)
+    siteAnalytics.logInstantSearchClick({
+        query: state.query,
+        url: itemUrl,
+        position: String(state.activeItemId),
+    })
+    navigator.navigate({ itemUrl, item, state })
+}
+
+const algoliaGetItemUrl: AutocompleteSource<BaseItem>["getItemUrl"] = ({
+    item,
+}) => prependSubdirectoryToAlgoliaItemUrl(item)
+
+const AlgoliaPagesSource: AutocompleteSource<BaseItem> = {
     sourceId: "autocomplete",
-    onSelect({ navigator, item, state }) {
-        const itemUrl = prependSubdirectoryToAlgoliaItemUrl(item)
-        siteAnalytics.logInstantSearchClick({
-            query: state.query,
-            url: itemUrl,
-            position: String(state.activeItemId),
-        })
-        navigator.navigate({ itemUrl, item, state })
-    },
-    getItemUrl({ item }) {
-        const itemUrl = prependSubdirectoryToAlgoliaItemUrl(item)
-        return itemUrl
-    },
+    onSelect: algoliaOnSelect,
+    getItemUrl: algoliaGetItemUrl,
     getItems({ query }) {
         if (!liteSearchClient) return []
 
@@ -192,17 +256,32 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
             searchClient: liteSearchClient,
             queries: [
                 {
-                    indexName: getIndexName(SearchIndexName.Pages),
+                    indexName: PAGES_INDEX,
                     params: {
                         query,
                         hitsPerPage: 2,
                         distinct: true,
+                        filters: `NOT type:${OwidGdocType.Profile}`,
                     },
                 },
+            ],
+        })
+    },
+    templates: algoliaItemTemplate,
+}
+
+const AlgoliaChartsSource: AutocompleteSource<BaseItem> = {
+    sourceId: "autocomplete-charts",
+    onSelect: algoliaOnSelect,
+    getItemUrl: algoliaGetItemUrl,
+    getItems({ query }) {
+        if (!liteSearchClient) return []
+
+        return getAlgoliaResults({
+            searchClient: liteSearchClient,
+            queries: [
                 {
-                    indexName: getIndexName(
-                        SearchIndexName.ExplorerViewsMdimViewsAndCharts
-                    ),
+                    indexName: CHARTS_INDEX,
                     params: {
                         query,
                         hitsPerPage: 3,
@@ -212,51 +291,7 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
             ],
         })
     },
-
-    templates: {
-        item: ({ item, components }) => {
-            const index = parseIndexName(
-                item.__autocomplete_indexName as string
-            )
-
-            const indexLabel =
-                index === SearchIndexName.ExplorerViewsMdimViewsAndCharts
-                    ? item.type === ChartRecordType.ExplorerView
-                        ? "Explorer"
-                        : "Chart"
-                    : getPageTypeNameAndIcon(item.type as OwidGdocType).name
-
-            const indexIcon =
-                index === SearchIndexName.ExplorerViewsMdimViewsAndCharts
-                    ? faLineChart
-                    : getPageTypeNameAndIcon(item.type as OwidGdocType).icon
-
-            return (
-                <span
-                    className="autocomplete-item-contents"
-                    key={item.title as string}
-                    translate="no"
-                >
-                    <span>
-                        <FontAwesomeIcon
-                            icon={indexIcon}
-                            className="autocomplete-item-contents__type-icon"
-                        />
-                    </span>
-                    <span>
-                        <components.Highlight
-                            hit={item}
-                            attribute={"title"}
-                            tagName="strong"
-                        />
-                        <span className="autocomplete-item-contents__contentType">
-                            {indexLabel}
-                        </span>
-                    </span>
-                </span>
-            )
-        },
-    },
+    templates: algoliaItemTemplate,
 }
 
 const createFiltersSource = (
@@ -330,12 +365,62 @@ const createFiltersSource = (
                             />
                         </span>
                     ))
+                    // dataset filters are not suggested in autocomplete
+                    .with(
+                        FilterType.DATASET_PRODUCT,
+                        FilterType.DATASET_NAMESPACE,
+                        FilterType.DATASET_VERSION,
+                        FilterType.DATASET_PRODUCER,
+                        () => <></>
+                    )
                     // query filters are filtered out in getItems
                     .with(FilterType.QUERY, () => <></>)
                     .exhaustive()
             )
         },
     },
+})
+
+/**
+ * Creates a profile source that boosts the user's geolocated country
+ * using Algolia's `optionalFilters`. This avoids running expensive
+ * client-side country detection on every keystroke while still ensuring:
+ * - "energy" → "Energy in Canada" (boosted by geolocation)
+ * - "canada" → Canada profiles (matched by Algolia on title)
+ * - "energy france" → "Energy in France" (matched naturally)
+ *
+ * Requires the `filters` ranking criterion in the index settings
+ * (see configureAlgolia.ts).
+ */
+const createProfileSource = (
+    countryName: string | undefined
+): AutocompleteSource<BaseItem> => ({
+    sourceId: "profiles",
+    onSelect: algoliaOnSelect,
+    getItemUrl: algoliaGetItemUrl,
+    getItems({ query }) {
+        if (!liteSearchClient) return []
+
+        return getAlgoliaResults({
+            searchClient: liteSearchClient,
+            queries: [
+                {
+                    indexName: PAGES_INDEX,
+                    params: {
+                        query,
+                        filters: `type:${OwidGdocType.Profile}`,
+                        ...(countryName && {
+                            optionalFilters: [
+                                `availableEntities:${countryName}`,
+                            ],
+                        }),
+                        hitsPerPage: 1,
+                    },
+                },
+            ],
+        })
+    },
+    templates: algoliaItemTemplate,
 })
 
 export const AUTOCOMPLETE_CONTAINER_ID = "#autocomplete"
@@ -366,11 +451,22 @@ export function Autocomplete({
 
     const [search, setSearch] = useState<AutocompleteApi<BaseItem> | null>(null)
 
+    const userCountryNameRef = useRef<string | undefined>(undefined)
+    useEffect(() => {
+        void getUserCountryInformation().then((info) => {
+            userCountryNameRef.current = info?.name
+        })
+    }, [])
+
     useEffect(() => {
         if (!containerRef.current) return
 
         const search = autocomplete({
             placeholder,
+            // Setting the `enterKeyHint` fixes a bug on Samsung phones where
+            // characters may be deleted when typing.
+            // https://support.algolia.com/hc/en-us/articles/35765245191057-Why-are-characters-being-deleted-from-Autocomplete-when-typing-on-a-Samsung-device
+            enterKeyHint: "search",
             detachedMediaQuery,
             container: containerRef.current,
             classNames: {
@@ -420,7 +516,9 @@ export function Autocomplete({
                 if (query) {
                     sources.push(
                         createFiltersSource(allTopics, synonymMap),
-                        AlgoliaSource
+                        createProfileSource(userCountryNameRef.current),
+                        AlgoliaPagesSource,
+                        AlgoliaChartsSource
                     )
                 } else {
                     sources.push(FeaturedSearchesSource)
@@ -435,6 +533,7 @@ export function Autocomplete({
         const input =
             containerRef.current.querySelector<HTMLInputElement>("input")
         if (input) {
+            input.dataset.testid = "autocomplete-input"
             const inputId = input.id
             const button = containerRef.current.querySelector(
                 `label[for='${inputId}'] button`
@@ -463,6 +562,7 @@ export function Autocomplete({
         containerRef,
         allTopics,
         synonymMap,
+        userCountryNameRef,
     ])
 
     // Register a global shortcut to open the search box on typing "/"

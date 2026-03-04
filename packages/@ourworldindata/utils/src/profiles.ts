@@ -9,7 +9,7 @@ import {
     getRegionByNameOrVariantName,
     regions,
     type Region,
-} from "./regions.js"
+} from "./regions/index.js"
 import {
     CalloutFunction,
     EnrichedBlockConditionalSection,
@@ -23,7 +23,7 @@ import {
     type OwidGdocProfileContent,
 } from "@ourworldindata/types"
 
-import { generateToc, traverseEnrichedBlock } from "./Util.js"
+import { traverseEnrichedBlock } from "./Util.js"
 import { Url } from "./urls/Url.js"
 
 export type ProfileEntity = Pick<Region, "name" | "code">
@@ -134,10 +134,6 @@ export const instantiateProfile = (
             ...region,
             isCountry: checkIsCountry(region),
         }
-    }
-
-    if (clonedContent["sidebar-toc"]) {
-        clonedContent.toc = generateToc(clonedContent.body, true)
     }
 
     return clonedContent

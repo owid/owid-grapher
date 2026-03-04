@@ -8,6 +8,7 @@ import {
     autorun,
     reaction,
     makeObservable,
+    comparer,
 } from "mobx"
 import {
     bind,
@@ -709,13 +710,25 @@ export class Grapher extends React.Component<GrapherProps> {
         )
     }
 
-    private clearFocusOnFacetStrategyChange(): void {
-        this.grapherState.disposers.push(
-            reaction(
-                () => this.grapherState.facetStrategy,
-                () => this.grapherState.focusArray.clear()
+    private clearFocusMode(): void {
+        // Make it easy to exit focus mode by clearing it when the selection
+        // or view changes. This is disabled in the admin to avoid clearing
+        // focus when authors are editing the chart
+        if (!this.grapherState.isAdmin) {
+            this.grapherState.disposers.push(
+                reaction(
+                    () => [
+                        this.grapherState.facetStrategy,
+                        this.grapherState.selection.selectedEntityNames,
+                        this.grapherState.activeTab,
+                    ],
+                    () => this.grapherState.focusArray.clear(),
+                    // Use structural comparison to detect changes in array
+                    // contents, not just reference
+                    { equals: comparer.structural }
+                )
             )
-        )
+        }
     }
 
     override componentDidMount(): void {
@@ -729,7 +742,7 @@ export class Grapher extends React.Component<GrapherProps> {
         this.bindToWindow()
         this.bindKeyboardShortcuts()
 
-        this.clearFocusOnFacetStrategyChange()
+        this.clearFocusMode()
     }
 
     private _shortcutsBound = false

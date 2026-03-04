@@ -7,7 +7,7 @@
 
 import * as _ from "lodash-es"
 import {
-    type RawPageview,
+    type DbPlainAnalyticsGrapherView,
     ChartRedirect,
     Json,
     GrapherInterface,
@@ -67,9 +67,10 @@ export interface ChartEditorManager extends AbstractChartEditorManager {
     logs: Log[]
     references: References | undefined
     redirects: ChartRedirect[]
-    pageviews?: RawPageview
+    views?: DbPlainAnalyticsGrapherView
     tags?: DbChartTagJoin[]
     availableTags?: DbChartTagJoin[]
+    forceDatapage?: boolean
 }
 
 export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
@@ -97,8 +98,8 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         return this.manager.redirects
     }
 
-    @computed get pageviews() {
-        return this.manager.pageviews
+    @computed get views() {
+        return this.manager.views
     }
 
     @computed get tags() {
@@ -107,6 +108,10 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
 
     @computed get availableTags() {
         return this.manager.availableTags
+    }
+
+    @computed get forceDatapage() {
+        return this.manager.forceDatapage ?? false
     }
 
     /** parent variable id, derived from the config */
@@ -183,6 +188,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
 
         const query = new URLSearchParams({
             inheritance: shouldEnableInheritance ? "enable" : "disable",
+            forceDatapage: String(this.forceDatapage),
         })
         const targetUrl = isNewGrapher
             ? `/api/charts?${query}`
@@ -228,6 +234,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
 
         const query = new URLSearchParams({
             inheritance: shouldEnableInheritance ? "enable" : "disable",
+            forceDatapage: String(this.forceDatapage),
         })
         const targetUrl = `/api/charts?${query}`
 

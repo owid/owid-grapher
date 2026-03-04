@@ -1,8 +1,4 @@
-import {
-    dyFromAlign,
-    makeIdForHumanConsumption,
-    VerticalAlign,
-} from "@ourworldindata/utils"
+import { dyFromAlign, makeFigmaId, VerticalAlign } from "@ourworldindata/utils"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 
 export function MarkX({
@@ -23,7 +19,7 @@ export function MarkX({
     return (
         <>
             <line
-                id={makeIdForHumanConsumption(label)}
+                id={makeFigmaId(label)}
                 x1={x}
                 y1={top}
                 x2={x}

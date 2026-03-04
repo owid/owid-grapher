@@ -5,29 +5,35 @@ import {
     parseChartConfig,
     ChartRecord,
     ChartRecordType,
+    ChartsIndexingContext,
+    IndexingContext,
     ChartSlugRedirectsTableName,
 } from "@ourworldindata/types"
 import * as db from "../../../db/db.js"
-import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import { getRelatedArticles } from "../../../db/model/Post.js"
 import { getPublishedLinksTo } from "../../../db/model/Link.js"
-import { isPathRedirectedToExplorer } from "../../../explorerAdminServer/ExplorerRedirects.js"
 import { ParsedChartRecordRow, RawChartRecordRow } from "./types.js"
 import {
     excludeNullish,
     getUniqueNamesFromTagHierarchies,
 } from "@ourworldindata/utils"
-import { maybeAddChangeInPrefix, processAvailableEntities } from "./shared.js"
+import {
+    maybeAddChangeInPrefix,
+    processAvailableEntities,
+    parseJsonStringArray,
+} from "./shared.js"
 import { GrapherState } from "@ourworldindata/grapher"
 import { toPlaintext } from "@ourworldindata/components"
-import { getMaxViewsAllWindows, PageviewsByUrl } from "./pageviews.js"
+import { getMaxViewsAllWindows } from "./pageviews.js"
+import { createChartsIndexingContext } from "./context.js"
+import pMap from "p-map"
 
-const computeChartScore = (record: Omit<ChartRecord, "score">): number => {
-    const { numRelatedArticles, views_7d } = record
-    return numRelatedArticles * 500 + views_7d
-}
+const computeChartScore = (
+    numRelatedArticles: number,
+    views_7d: number
+): number => numRelatedArticles * 500 + views_7d
 
-const parseAndProcessChartRecords = (
+const parseRawChartRecord = (
     rawRecord: RawChartRecordRow
 ): ParsedChartRecordRow => {
     let parsedEntities: string[] = []
@@ -35,8 +41,8 @@ const parseAndProcessChartRecords = (
         // This is a very rough way to check for the Algolia record size limit, but it's better than the update failing
         // because we exceed the 20KB record size limit
         if (rawRecord.entityNames.length < 12000)
-            parsedEntities = excludeNullish(
-                JSON.parse(rawRecord.entityNames as string) as (string | null)[]
+            parsedEntities = JSON.parse(
+                rawRecord.entityNames as string
             ) as string[]
         else {
             console.info(
@@ -46,12 +52,15 @@ const parseAndProcessChartRecords = (
     }
     const entityNames = processAvailableEntities(parsedEntities)
 
-    const tags = JSON.parse(rawRecord.tags)
-    const keyChartForTags = JSON.parse(
-        rawRecord.keyChartForTags as string
-    ).filter((t: string | null) => t)
+    const tags = JSON.parse(rawRecord.tags) as string[]
+    const keyChartForTags = JSON.parse(rawRecord.keyChartForTags) as string[]
 
     const config = parseChartConfig(rawRecord.config)
+
+    const datasetNamespaces = parseJsonStringArray(rawRecord.datasetNamespaces)
+    const datasetVersions = parseJsonStringArray(rawRecord.datasetVersions)
+    const datasetProducts = parseJsonStringArray(rawRecord.datasetProducts)
+    const datasetProducers = parseJsonStringArray(rawRecord.datasetProducers)
 
     return {
         ...rawRecord,
@@ -59,22 +68,29 @@ const parseAndProcessChartRecords = (
         entityNames,
         tags,
         keyChartForTags,
+        datasetNamespaces,
+        datasetVersions,
+        datasetProducts,
+        datasetProducers,
     }
 }
 
-async function getChartRedirectSlugsByChartId(
+export async function getChartRedirectSlugsByChartId(
     knex: db.KnexReadonlyTransaction,
-    chartIds: number[]
+    chartIds?: number[]
 ): Promise<Map<number, string[]>> {
     const redirectMap = new Map<number, string[]>()
-    if (chartIds.length === 0) return redirectMap
 
-    const redirects = await knex<{
+    let query = knex<{
         chart_id: number
         slug: string
-    }>(ChartSlugRedirectsTableName)
-        .select("chart_id", "slug")
-        .whereIn("chart_id", chartIds)
+    }>(ChartSlugRedirectsTableName).select("chart_id", "slug")
+
+    if (chartIds?.length) {
+        query = query.whereIn("chart_id", chartIds)
+    }
+
+    const redirects = await query
 
     for (const redirect of redirects) {
         const existing = redirectMap.get(redirect.chart_id)
@@ -86,42 +102,43 @@ async function getChartRedirectSlugsByChartId(
 }
 
 function getChartViewsAllWindows(
-    pageviews: PageviewsByUrl,
+    context: ChartsIndexingContext,
     slug: string,
-    redirectSlugs: string[]
+    chartId: number
 ): { views_7d: number; views_14d: number; views_365d: number } {
+    const redirectSlugs = context.redirectsByChartId.get(chartId) ?? []
     const urls = [
         `/grapher/${slug}`,
         ...redirectSlugs.map((redirectSlug) => `/grapher/${redirectSlug}`),
     ]
-    return getMaxViewsAllWindows(pageviews, urls)
+    return getMaxViewsAllWindows(context.pageviews, urls)
 }
 
-export const getChartsRecords = async (
+/**
+ * Fetches raw chart data from the database.
+ * Can be scoped to specific chart IDs for preview.
+ */
+async function getRawChartsRecords(
     knex: db.KnexReadonlyTransaction,
-    slugFilter?: string
-): Promise<ChartRecord[]> => {
-    console.log("Fetching charts to index")
-    if (slugFilter) {
-        console.log(`(Filtering by slug: ${slugFilter})`)
-    }
-    const chartsToIndex = await db.knexRaw<RawChartRecordRow>(
+    chartIds?: number[]
+): Promise<RawChartRecordRow[]> {
+    const chartIdFilter = chartIds?.length
+        ? `AND c.id IN (${chartIds.join(",")})`
+        : ""
+
+    return db.knexRaw<RawChartRecordRow>(
         knex,
         `-- sql
-        WITH indexable_charts_with_entity_names AS (
+        WITH indexable_charts AS (
             SELECT c.id,
                    cc.slug,
                    cc.full                                 AS config,
                    JSON_LENGTH(cc.full ->> "$.dimensions") AS numDimensions,
                    c.publishedAt,
-                   c.updatedAt,
-                   JSON_ARRAYAGG(e.name)                  AS entityNames
+                   c.updatedAt
             FROM charts c
                      LEFT JOIN chart_configs cc ON c.configId = cc.id
-                     LEFT JOIN charts_x_entities ce ON c.id = ce.chartId
-                     LEFT JOIN entities e ON ce.entityId = e.id
             WHERE cc.full ->> "$.isPublished" = 'true'
-            ${slugFilter ? `AND cc.slug = ?` : ""}
             -- NOT tagged "Unlisted"
             AND NOT EXISTS (
                 SELECT 1 FROM chart_tags ct_unlisted
@@ -142,7 +159,53 @@ export const getChartsRecords = async (
                     )
                 )
             )
-            GROUP BY c.id
+            ${chartIdFilter}
+        ),
+        -- Scope aggregations to indexable_charts for performance and chartId filtering.
+        entity_names AS (
+            SELECT s.chartId,
+                   COALESCE(JSON_ARRAYAGG(s.name), JSON_ARRAY()) AS entityNames
+            FROM (
+                     SELECT DISTINCT ce.chartId, e.name
+                     FROM charts_x_entities ce
+                              INNER JOIN indexable_charts ic ON ic.id = ce.chartId
+                              LEFT JOIN entities e ON ce.entityId = e.id
+                     WHERE e.name IS NOT NULL
+                 ) s
+            GROUP BY s.chartId
+        ),
+        chart_tags_names AS (
+            SELECT s.chartId,
+                   COALESCE(JSON_ARRAYAGG(s.name), JSON_ARRAY()) AS tags
+            FROM (
+                     SELECT ct.chartId, t.name
+                     FROM chart_tags ct
+                              INNER JOIN indexable_charts ic ON ic.id = ct.chartId
+                              LEFT JOIN tags t on ct.tagId = t.id
+                     WHERE t.name IS NOT NULL
+                 ) s
+            GROUP BY s.chartId
+        ),
+        key_chart_tags AS (
+            SELECT s.chartId,
+                   COALESCE(JSON_ARRAYAGG(s.name), JSON_ARRAY()) AS keyChartForTags
+            FROM (
+                     SELECT ct.chartId, t.name
+                     FROM chart_tags ct
+                              INNER JOIN indexable_charts ic ON ic.id = ct.chartId
+                              LEFT JOIN tags t on ct.tagId = t.id
+                     WHERE ct.keyChartLevel = ${KeyChartLevel.Top}
+                         AND t.name IS NOT NULL
+                 ) s
+            GROUP BY s.chartId
+        ),
+        chart_tag_counts AS (
+            SELECT ct.chartId,
+                   COUNT(t.id) AS tagCount
+            FROM chart_tags ct
+                     INNER JOIN indexable_charts ic ON ic.id = ct.chartId
+                     LEFT JOIN tags t on ct.tagId = t.id
+            GROUP BY ct.chartId
         )
         SELECT c.id,
                c.slug,
@@ -150,86 +213,116 @@ export const getChartsRecords = async (
                c.numDimensions,
                c.publishedAt,
                c.updatedAt,
-               c.entityNames, -- this array may contain null values, will have to filter these out
-               JSON_ARRAYAGG(t.name) AS tags,
-               JSON_ARRAYAGG(IF(ct.keyChartLevel = ${KeyChartLevel.Top}, t.name, NULL)) AS keyChartForTags -- this results in an array that contains null entries, will have to filter them out
-        FROM indexable_charts_with_entity_names c
-                 LEFT JOIN chart_tags ct ON c.id = ct.chartId
-                 LEFT JOIN tags t on ct.tagId = t.id
-        GROUP BY c.id
-        HAVING COUNT(t.id) >= 1
-    `,
-        slugFilter ? [slugFilter] : []
+               COALESCE(en.entityNames, '[]') AS entityNames,
+               COALESCE(ddc.datasetNamespaces, '[]') AS datasetNamespaces,
+               COALESCE(ddc.datasetVersions, '[]') AS datasetVersions,
+               COALESCE(ddc.datasetProducts, '[]') AS datasetProducts,
+               COALESCE(ddc.datasetProducers, '[]') AS datasetProducers,
+               ctn.tags,
+               COALESCE(kct.keyChartForTags, '[]') AS keyChartForTags
+        FROM indexable_charts c
+                 LEFT JOIN entity_names en ON c.id = en.chartId
+                 LEFT JOIN dataset_dimensions_by_chart ddc ON c.id = ddc.chartId
+                 INNER JOIN chart_tag_counts tc ON c.id = tc.chartId
+                 LEFT JOIN chart_tags_names ctn ON c.id = ctn.chartId
+                 LEFT JOIN key_chart_tags kct ON c.id = kct.chartId
+        WHERE tc.tagCount >= 1
+    `
     )
+}
 
-    const parsedRows = chartsToIndex.map(parseAndProcessChartRecords)
+/**
+ * Builds a ChartRecord from parsed chart data and context.
+ * This is a mostly-pure transform (still needs knex for related articles lookup).
+ */
+async function buildChartRecord(
+    knex: db.KnexReadonlyTransaction,
+    chart: ParsedChartRecordRow,
+    context: ChartsIndexingContext
+): Promise<ChartRecord | null> {
+    const grapherState = new GrapherState(chart.config)
 
-    const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
-    const chartRedirectSlugsByChartId = await getChartRedirectSlugsByChartId(
+    const relatedArticles = (await getRelatedArticles(knex, chart.id)) ?? []
+    const linksFromGdocs = await getPublishedLinksTo(
         knex,
-        parsedRows.map((row) => row.id)
+        [chart.slug],
+        ContentGraphLinkType.Grapher
     )
 
-    const topicHierarchiesByChildName =
-        await db.getTopicHierarchiesByChildName(knex)
+    const title = maybeAddChangeInPrefix(
+        chart.config.title,
+        grapherState.shouldAddChangeInPrefixToTitle
+    )
+    const plaintextSubtitle = _.isNil(chart.config.subtitle)
+        ? undefined
+        : toPlaintext(chart.config.subtitle)
 
-    const records: ChartRecord[] = []
-    for (const c of parsedRows) {
-        const grapherState = new GrapherState(c.config)
+    const topicTags = getUniqueNamesFromTagHierarchies(
+        chart.tags,
+        context.topicHierarchies
+    )
+    // Number of references to this chart in all our posts
+    const numRelatedArticles = relatedArticles.length + linksFromGdocs.length
+    const { views_7d, views_14d, views_365d } = getChartViewsAllWindows(
+        context,
+        chart.slug,
+        chart.id
+    )
 
-        // Our search currently cannot render explorers, so don't index them because
-        // otherwise they will fail when rendered in the search results
-        if (isPathRedirectedToExplorer(`/grapher/${c.slug}`)) continue
+    return {
+        objectID: chart.id.toString(),
+        id: `grapher/${chart.slug}`,
+        type: ChartRecordType.Chart,
+        chartId: chart.id,
+        slug: chart.slug,
+        title,
+        variantName: chart.config.variantName ?? "",
+        subtitle: plaintextSubtitle,
+        availableEntities: chart.entityNames,
+        numDimensions: parseInt(chart.numDimensions),
+        availableTabs: grapherState.availableTabs,
+        publishedAt: chart.publishedAt,
+        updatedAt: chart.updatedAt,
+        tags: topicTags,
+        keyChartForTags: chart.keyChartForTags as string[],
+        titleLength: chart.config.title?.length ?? 0,
+        numRelatedArticles,
 
-        const relatedArticles = (await getRelatedArticles(knex, c.id)) ?? []
-        const linksFromGdocs = await getPublishedLinksTo(
-            knex,
-            [c.slug],
-            ContentGraphLinkType.Grapher
-        )
-
-        const title = maybeAddChangeInPrefix(
-            c.config.title,
-            grapherState.shouldAddChangeInPrefixToTitle
-        )
-        const plaintextSubtitle = _.isNil(c.config.subtitle)
-            ? undefined
-            : toPlaintext(c.config.subtitle)
-
-        const topicTags = getUniqueNamesFromTagHierarchies(
-            c.tags,
-            topicHierarchiesByChildName
-        )
-
-        const record = {
-            objectID: c.id.toString(),
-            id: `grapher/${c.slug}`,
-            type: ChartRecordType.Chart,
-            chartId: c.id,
-            slug: c.slug,
-            title,
-            variantName: c.config.variantName,
-            subtitle: plaintextSubtitle,
-            availableEntities: c.entityNames,
-            numDimensions: parseInt(c.numDimensions),
-            availableTabs: grapherState.availableTabs,
-            publishedAt: c.publishedAt,
-            updatedAt: c.updatedAt,
-            tags: topicTags,
-            keyChartForTags: c.keyChartForTags as string[],
-            titleLength: c.config.title?.length ?? 0,
-            // Number of references to this chart in all our posts and pages
-            numRelatedArticles: relatedArticles.length + linksFromGdocs.length,
-            ...getChartViewsAllWindows(
-                pageviews,
-                c.slug,
-                chartRedirectSlugsByChartId.get(c.id) ?? []
-            ),
-            isIncomeGroupSpecificFM: false,
-        } as ChartRecord
-        const score = computeChartScore(record)
-        records.push({ ...record, score })
+        views_7d,
+        views_14d,
+        views_365d,
+        isIncomeGroupSpecificFM: false,
+        isFM: false,
+        datasetNamespaces: chart.datasetNamespaces,
+        datasetVersions: chart.datasetVersions,
+        datasetProducts: chart.datasetProducts,
+        datasetProducers: chart.datasetProducers,
+        score: computeChartScore(numRelatedArticles, views_7d),
     }
+}
 
-    return records
+/**
+ * Gets chart records for Algolia indexing.
+ */
+export const getChartsRecords = async (
+    knex: db.KnexReadonlyTransaction,
+    options?: { chartIds?: number[]; baseContext?: IndexingContext }
+): Promise<ChartRecord[]> => {
+    const { chartIds, baseContext } = options ?? {}
+
+    const context = await createChartsIndexingContext(
+        knex,
+        chartIds,
+        baseContext
+    )
+
+    const rawChartsRecords = await getRawChartsRecords(knex, chartIds)
+    const parsedCharts = rawChartsRecords.map(parseRawChartRecord)
+    const recordsOrNull = await pMap(
+        parsedCharts,
+        (chart) => buildChartRecord(knex, chart, context),
+        { concurrency: 10 }
+    )
+
+    return excludeNullish(recordsOrNull)
 }

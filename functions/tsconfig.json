@@ -5,7 +5,7 @@
 
         "target": "es2023",
         "module": "es2022",
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
         "lib": ["esnext"],
         "types": ["@cloudflare/workers-types"],
         "esModuleInterop": true,

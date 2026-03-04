@@ -1324,8 +1324,8 @@ describe("tableForSelection", () => {
         const table = SynthesizeGDPTable({
             entityNames: [
                 "France",
-                "Europe", // OWID continent, with member countries defined in regions.json
-                "Africa (WHO)", // continent defined by the WHO, with member countries defined in regions.json
+                "Europe", // OWID continent, with member countries defined in regions.ts
+                "Africa (WHO)", // continent defined by the WHO, with member countries defined in regions.ts
                 "Americas", // no information about member countries available
                 "Bananas",
             ],
@@ -1337,7 +1337,7 @@ describe("tableForSelection", () => {
         // contained since it's a mappable country
         expect(availableEntityNames).toContain("France")
 
-        // contained since they're included in regions.json and we know their member countries
+        // contained since they're included in regions.ts and we know their member countries
         expect(availableEntityNames).toContain("Europe")
         expect(availableEntityNames).toContain("Africa (WHO)")
 

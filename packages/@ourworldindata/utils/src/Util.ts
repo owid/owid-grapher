@@ -192,9 +192,7 @@ function makeSafeForFigma(name: string): string {
  *
  * Note that these IDs are not meant to be used in CSS!
  */
-export function makeIdForHumanConsumption(
-    ...unsafeKeys: (string | undefined)[]
-): string {
+export function makeFigmaId(...unsafeKeys: (string | undefined)[]): string {
     return makeSafeForFigma(unsafeKeys.filter((key) => key).join("__"))
 }
 
@@ -1823,7 +1821,8 @@ export function traverseEnrichedBlock(
                     "featured-data-insights",
                     "latest-data-insights",
                     "socials",
-                    "static-viz"
+                    "static-viz",
+                    "country-profile-selector"
                 ),
             },
             callback

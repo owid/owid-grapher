@@ -44,6 +44,7 @@ import {
     TagsTableName,
     TagGraphTableName,
     ExplorersTableName,
+    MultiDimDataPagesTableName,
     OwidGdocMinimalPostInterface,
     DbRawPostGdoc,
 } from "@ourworldindata/types"
@@ -1150,7 +1151,7 @@ export const getFeaturedMetricsByParentTagName = async (
 }
 
 /**
- * Takes a URL and checks if it points to a valid grapher, explorer, or MDIM view.
+ * Takes a URL and checks if it points to a valid grapher, explorer, or multi-dim view.
  * Doesn't validate query params as this would be quite complicated / overkill for our needs
  */
 export async function validateChartSlug(
@@ -1191,11 +1192,17 @@ export async function validateChartSlug(
             [slug]
         ).then((rows) => rows[0])
 
-        if (!grapher)
-            return {
-                isValid: false,
-                reason: "Grapher not found or not published",
-            }
+        if (!grapher) {
+            const multiDim = await trx(MultiDimDataPagesTableName)
+                .where({ slug, published: true })
+                .first()
+
+            if (!multiDim)
+                return {
+                    isValid: false,
+                    reason: "Grapher not found or not published",
+                }
+        }
 
         return { isValid: true, reason: "" }
     }

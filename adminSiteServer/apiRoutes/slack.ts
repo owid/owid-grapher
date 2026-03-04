@@ -1,12 +1,12 @@
-import e from "express"
 import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
+import { HandlerResponse } from "../FunctionalRouter.js"
 import { SLACK_BOT_OAUTH_TOKEN } from "../../settings/serverSettings"
 import { JsonError } from "@ourworldindata/types"
 
 export async function sendMessageToSlack(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     _trx: db.KnexReadWriteTransaction
 ) {
     const url = "https://slack.com/api/chat.postMessage"

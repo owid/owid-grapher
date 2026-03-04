@@ -12,7 +12,13 @@ import { SearchResetButton } from "./SearchResetButton.js"
 import { useSearchContext } from "./SearchContext.js"
 import { useSelectedRegionNames } from "./searchHooks.js"
 
-export const Searchbar = ({ allTopics }: { allTopics: string[] }) => {
+export const Searchbar = ({
+    allTopics,
+    autoFocus,
+}: {
+    allTopics: string[]
+    autoFocus: boolean
+}) => {
     const {
         state,
         actions: {
@@ -22,6 +28,7 @@ export const Searchbar = ({ allTopics }: { allTopics: string[] }) => {
             removeTopic,
             toggleRequireAllCountries,
             reset,
+            removeFilter,
         },
     } = useSearchContext()
 
@@ -44,8 +51,10 @@ export const Searchbar = ({ allTopics }: { allTopics: string[] }) => {
             removeCountry(lastFilter.name)
         } else if (lastFilter.type === FilterType.TOPIC) {
             removeTopic(lastFilter.name)
+        } else {
+            removeFilter(lastFilter)
         }
-    }, [filters, removeCountry, removeTopic])
+    }, [filters, removeCountry, removeFilter, removeTopic])
 
     // Allow clicks on the search bar to focus the input. This is useful on
     // mobile when the search bar stretches vertically and reveals white space
@@ -70,6 +79,7 @@ export const Searchbar = ({ allTopics }: { allTopics: string[] }) => {
                         setLocalQuery={setLocalQuery}
                         setGlobalQuery={setQuery}
                         onBackspaceEmpty={removeLastFilter}
+                        autoFocus={autoFocus}
                         resetButton={
                             <SearchResetButton
                                 disabled={!(localQuery || filters.length)}

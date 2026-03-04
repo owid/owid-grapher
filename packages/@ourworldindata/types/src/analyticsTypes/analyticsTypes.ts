@@ -47,6 +47,7 @@ export enum EventCategory {
     SiteGuidedChartLinkClick = "owid.site_guided_chart_link_click",
     SiteChartPreviewMouseover = "owid.site_chart_preview_mouseover",
     SiteStaticVizDownload = "owid.site_static_viz_download",
+    SiteUserSurvey = "owid.site_user_survey",
     TranslatePage = "owid.translate_page",
 }
 
@@ -71,6 +72,7 @@ export type EventParamsMap = {
     [EventCategory.SiteGuidedChartLinkClick]: SiteGuidedChartLinkClickParams
     [EventCategory.SiteChartPreviewMouseover]: SiteChartPreviewMouseoverParams
     [EventCategory.SiteStaticVizDownload]: SiteStaticVizDownloadParams
+    [EventCategory.SiteUserSurvey]: SiteUserSurveyParams
     [EventCategory.SiteClick]: SiteClickParams
     [EventCategory.SiteFormSubmit]: SiteFormSubmitParams
     [EventCategory.SiteInstantSearchClick]: SiteInstantSearchClickParams
@@ -194,6 +196,103 @@ export interface SiteStaticVizDownloadParams {
     /** Additional context (e.g., 'desktop' or 'mobile' for images, URL for data/source) */
     eventContext?: string
 }
+
+export type UserSurveyExperimentArm = "long-list" | "short-list" | "free-form"
+
+export type UserSurveyRoleAnswer =
+    | {
+          experimentArm: "free-form"
+          freeFormInput: string
+      }
+    | {
+          experimentArm: "long-list" | "short-list"
+          optionId: string
+          optionLabel: string
+          optionIndex: number
+          freeFormInput?: string
+      }
+
+export type SiteUserSurveyParams =
+    | {
+          /** Always 'user_role_show' for this event */
+          eventAction: "user_role_show"
+          /** Survey name identifier */
+          surveyName: string
+          /** Survey instance identifier generated with uuidv7 */
+          responseId: string
+          /** First-screen arm for this survey */
+          experimentArm: UserSurveyExperimentArm
+      }
+    | {
+          /** Always 'thank_you_show' for this event */
+          eventAction: "thank_you_show"
+          /** Survey name identifier */
+          surveyName: string
+          /** Survey instance identifier generated with uuidv7 */
+          responseId: string
+          /** First-screen arm for this survey */
+          experimentArm: UserSurveyExperimentArm
+      }
+    | {
+          /** Always 'user_role_submit' for this event */
+          eventAction: "user_role_submit"
+          /** Survey name identifier */
+          surveyName: string
+          /** Survey instance identifier generated with uuidv7 */
+          responseId: string
+          /** Free-form arm name */
+          experimentArm: "free-form"
+          /** Text field input from the first screen */
+          freeFormInput: string
+      }
+    | {
+          /** Always 'user_role_submit' for this event */
+          eventAction: "user_role_submit"
+          /** Survey name identifier */
+          surveyName: string
+          /** Survey instance identifier generated with uuidv7 */
+          responseId: string
+          /** Choice-based arm names */
+          experimentArm: "long-list" | "short-list"
+          /** Option id from predefined options */
+          optionId: string
+          /** Option label from predefined options */
+          optionLabel: string
+          /** 0-based index of selected option in randomized list */
+          optionIndex: number
+          /** Optional text field input from the "other" option */
+          freeFormInput?: string
+      }
+    | {
+          /** Always 'feedback_submit' for this event */
+          eventAction: "feedback_submit"
+          /** Survey name identifier */
+          surveyName: string
+          /** Survey instance identifier generated with uuidv7 */
+          responseId: string
+          /** First-screen arm for this survey */
+          experimentArm: UserSurveyExperimentArm
+      }
+    | {
+          /** Always 'user_role_dismiss' for this event */
+          eventAction: "user_role_dismiss"
+          /** Survey name identifier */
+          surveyName: string
+          /** Survey instance identifier generated with uuidv7 */
+          responseId: string
+          /** First-screen arm for this survey */
+          experimentArm: UserSurveyExperimentArm
+      }
+    | {
+          /** Always 'thank_you_dismiss' for this event */
+          eventAction: "thank_you_dismiss"
+          /** Survey name identifier */
+          surveyName: string
+          /** Survey instance identifier generated with uuidv7 */
+          responseId: string
+          /** First-screen arm for this survey */
+          experimentArm: UserSurveyExperimentArm
+      }
 
 // Grapher Events
 

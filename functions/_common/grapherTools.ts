@@ -22,11 +22,15 @@ import { ImageOptions } from "./imageOptions.js"
 
 export const grapherBaseUrl = "https://ourworldindata.org/grapher"
 
-const WORKER_CACHE_TIME_IN_SECONDS = 60
-
 interface FetchGrapherConfigResult {
     grapherConfig: GrapherInterface | null
     multiDimAvailableDimensions?: string[]
+    status: number
+    etag: string | undefined
+}
+
+interface FetchMultiDimGrapherConfigResult {
+    grapherConfig: GrapherInterface | null
     status: number
     etag: string | undefined
 }
@@ -69,14 +73,16 @@ export async function fetchFromR2(
     url: URL,
     etag: string | undefined,
     fallbackUrl?: URL,
-    shouldCache: boolean = true
+    _shouldCache: boolean = true
 ) {
     const headers = new Headers()
     if (etag) headers.set("If-None-Match", etag)
     const init = {
-        cf: shouldCache
-            ? { cacheEverything: true, cacheTtl: WORKER_CACHE_TIME_IN_SECONDS }
-            : { cacheEverything: false },
+        // HOTFIX 2026-02-20 - disabling caching always because we had fetch errors with R2 and internal caching. Revisit this soon to see if we can re-enable caching.
+        // cf: shouldCache
+        //     ? { cacheEverything: true, cacheTtl: WORKER_CACHE_TIME_IN_SECONDS }
+        //     : { cacheEverything: false },
+        cf: { cacheEverything: false },
         headers,
     }
     const primaryResponse = await fetch(url.toString(), init)
@@ -138,7 +144,7 @@ async function fetchMultiDimGrapherConfig(
     multiDimConfig: MultiDimDataPageConfigEnriched,
     searchParams: URLSearchParams,
     env: Env
-) {
+): Promise<FetchMultiDimGrapherConfigResult> {
     const view = searchParamsToMultiDimView(multiDimConfig, searchParams)
     const shouldCache = !searchParams.has("nocache")
     const response = await fetchUnparsedGrapherConfig(
@@ -147,7 +153,18 @@ async function fetchMultiDimGrapherConfig(
         undefined,
         shouldCache
     )
-    return (await response.json()) as GrapherInterface
+    if (response.status !== 200) {
+        return {
+            grapherConfig: null,
+            status: response.status,
+            etag: response.headers.get("etag") ?? undefined,
+        }
+    }
+    return {
+        grapherConfig: (await response.json()) as GrapherInterface,
+        status: response.status,
+        etag: response.headers.get("etag") ?? undefined,
+    }
 }
 
 export async function fetchGrapherConfig({
@@ -191,13 +208,30 @@ export async function fetchGrapherConfig({
     const config: unknown = await fetchResponse.json()
     let grapherConfig: GrapherInterface
     let multiDimAvailableDimensions: string[] | undefined
+    let responseEtag = fetchResponse.headers.get("etag") ?? undefined
     if (identifier.type === "multi-dim-slug") {
         const multiDimConfig = config as MultiDimDataPageConfigEnriched
-        grapherConfig = await fetchMultiDimGrapherConfig(
+        const multiDimGrapherConfigResult = await fetchMultiDimGrapherConfig(
             multiDimConfig,
             searchParams ?? new URLSearchParams(),
             env
         )
+        if (multiDimGrapherConfigResult.status !== 200) {
+            return {
+                grapherConfig: null,
+                status: multiDimGrapherConfigResult.status,
+                etag: multiDimGrapherConfigResult.etag ?? responseEtag,
+            }
+        }
+        if (!multiDimGrapherConfigResult.grapherConfig) {
+            return {
+                grapherConfig: null,
+                status: 500,
+                etag: multiDimGrapherConfigResult.etag ?? responseEtag,
+            }
+        }
+        grapherConfig = multiDimGrapherConfigResult.grapherConfig
+        responseEtag = multiDimGrapherConfigResult.etag ?? responseEtag
         multiDimAvailableDimensions = multiDimConfig.dimensions.map(
             (dim) => dim.slug
         )
@@ -208,7 +242,7 @@ export async function fetchGrapherConfig({
     const result: FetchGrapherConfigResult = {
         grapherConfig,
         status: 200,
-        etag: fetchResponse.headers.get("etag") ?? undefined,
+        etag: responseEtag,
     }
     if (identifier.type === "multi-dim-slug") {
         result.multiDimAvailableDimensions = multiDimAvailableDimensions

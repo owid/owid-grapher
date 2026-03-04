@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class CleanupLegacyChartConfigs1642793082560
-    implements MigrationInterface
-{
+export class CleanupLegacyChartConfigs1642793082560 implements MigrationInterface {
     async migrateChartsInTable(
         queryRunner: QueryRunner,
         table: string,

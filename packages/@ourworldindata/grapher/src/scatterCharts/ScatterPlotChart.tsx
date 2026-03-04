@@ -14,7 +14,7 @@ import {
     PointVector,
     Bounds,
     isTouchDevice,
-    makeIdForHumanConsumption,
+    makeFigmaId,
     guid,
 } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
@@ -643,7 +643,7 @@ export class ScatterPlotChart
         const separatorLine = (y: number): React.ReactElement | null =>
             y > bounds.top ? (
                 <line
-                    id={makeIdForHumanConsumption("separator")}
+                    id={makeFigmaId("separator")}
                     x1={this.legendX}
                     y1={y - 0.5 * legendPadding}
                     x2={bounds.right}

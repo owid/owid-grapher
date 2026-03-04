@@ -2,7 +2,14 @@ import cx from "classnames"
 import { useLinkedStaticViz } from "../utils.js"
 import Image, { ImageParentContainer } from "./Image.js"
 import { useDocumentContext } from "../DocumentContext.js"
-import { useCallback, useMemo, useState, useId, type MouseEvent } from "react"
+import {
+    useCallback,
+    useEffect,
+    useMemo,
+    useState,
+    useId,
+    type MouseEvent,
+} from "react"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { MarkdownTextWrap, OverlayHeader } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -11,7 +18,6 @@ import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.js"
 import { triggerDownloadFromBlob } from "@ourworldindata/utils"
 import { ImageMetadata, LinkedStaticViz, Span } from "@ourworldindata/types"
 import { useTriggerOnEscape } from "../../hooks.js"
-import { FloatingDownloadButton } from "./FloatingDownloadButton.js"
 import SpanElements from "./SpanElements.js"
 import { SiteAnalytics } from "../../SiteAnalytics.js"
 
@@ -60,26 +66,28 @@ export default function StaticViz(props: StaticVizProps) {
                     imageData={staticViz.desktop}
                     smallImageData={staticViz.mobile}
                     containerType={containerType}
-                    DownloadButton={
-                        <FloatingDownloadButton
-                            label="Open download options"
-                            onClick={() => setIsDownloadModalOpen(true)}
-                            containerClassName="static-viz__download-button-container"
-                        />
-                    }
+                    shouldHideDownloadButton
                 />
-                {isDownloadModalOpen && (
-                    <StaticVizDownloadModal
-                        staticViz={staticViz}
-                        onClose={() => setIsDownloadModalOpen(false)}
-                    />
-                )}
             </div>
+            <button
+                type="button"
+                className="static-viz__download-button"
+                onClick={() => setIsDownloadModalOpen(true)}
+            >
+                <FontAwesomeIcon icon={faDownload} />
+                Download image or data
+            </button>
             {caption ? (
                 <figcaption className="static-viz__caption">
                     <SpanElements spans={caption} />
                 </figcaption>
             ) : null}
+            {isDownloadModalOpen && (
+                <StaticVizDownloadModal
+                    staticViz={staticViz}
+                    onClose={() => setIsDownloadModalOpen(false)}
+                />
+            )}
         </figure>
     )
 }
@@ -103,6 +111,13 @@ const StaticVizDownloadModal = ({
 }) => {
     const dialogTitleId = useId()
     useTriggerOnEscape(onClose)
+
+    useEffect(() => {
+        document.documentElement.classList.add("no-scroll")
+        return () => {
+            document.documentElement.classList.remove("no-scroll")
+        }
+    }, [])
 
     const downloadImage = useCallback(
         async (

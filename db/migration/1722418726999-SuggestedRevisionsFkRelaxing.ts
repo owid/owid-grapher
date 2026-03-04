@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class SuggestedRevisionsFkRelaxing1722418726999
-    implements MigrationInterface
-{
+export class SuggestedRevisionsFkRelaxing1722418726999 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Change: ON DELETE RESTRICT -> ON DELETE CASCADE
         //

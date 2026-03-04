@@ -2,9 +2,7 @@ import { defaultGrapherConfig } from "@ourworldindata/grapher"
 import { mergeGrapherConfigs } from "@ourworldindata/utils"
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class RemoveDefaultConfigLayer1730455806132
-    implements MigrationInterface
-{
+export class RemoveDefaultConfigLayer1730455806132 implements MigrationInterface {
     private async recomputeFullChartConfigs(
         queryRunner: QueryRunner,
         { useDefaultLayer }: { useDefaultLayer: boolean }

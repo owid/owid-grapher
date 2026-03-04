@@ -85,6 +85,20 @@ async function handleConfigRequest(
         return new Response(null, { status: 304 })
     }
 
+    if (grapherPageResp.status !== 200) {
+        console.log(
+            "Returning non-200 config response for uuid",
+            uuid,
+            grapherPageResp.status
+        )
+        return new Response(null, {
+            status: grapherPageResp.status,
+            headers: {
+                "Cache-Control": "no-cache",
+            },
+        })
+    }
+
     console.log("Grapher page response", grapherPageResp.grapherConfig?.title)
 
     const cacheControl = shouldCache
@@ -97,5 +111,8 @@ async function handleConfigRequest(
     }
     if (grapherPageResp.etag) headers.ETag = grapherPageResp.etag
 
-    return Response.json(grapherPageResp.grapherConfig, { headers })
+    return Response.json(grapherPageResp.grapherConfig, {
+        status: grapherPageResp.status,
+        headers,
+    })
 }

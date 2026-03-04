@@ -424,8 +424,9 @@ function EmbedTestPage(props: EmbedTestPageProps) {
                                     loading="lazy"
                                 />
                             )}
-                            <figure
-                                data-grapher-src={`${BAKED_GRAPHER_URL}/${chart.slug}`}
+                            <iframe
+                                src={`${BAKED_GRAPHER_URL}/${chart.slug}`}
+                                loading="lazy"
                             />
                         </div>
                     </div>
@@ -441,7 +442,6 @@ function EmbedTestPage(props: EmbedTestPageProps) {
                         <a href={props.nextPageUrl}>Next &gt;&gt;</a>
                     )}
                 </nav>
-                <script src={`${BAKED_BASE_URL}/assets/embedCharts.js`} />
             </body>
         </html>
     )
@@ -624,10 +624,12 @@ function EmbedVariantsTestPage(
                             {props.hasComparisonView && (
                                 <iframe
                                     src={`${BAKED_GRAPHER_URL}/${chart.slug}`}
+                                    loading="lazy"
                                 />
                             )}
-                            <figure
-                                data-grapher-src={`${BAKED_GRAPHER_URL}/${chart.slug}`}
+                            <iframe
+                                src={`${BAKED_GRAPHER_URL}/${chart.slug}`}
+                                loading="lazy"
                             />
                         </div>
                     </div>
@@ -643,7 +645,6 @@ function EmbedVariantsTestPage(
                         <a href={props.nextPageUrl}>Next &gt;&gt;</a>
                     )}
                 </nav>
-                <script src={`${BAKED_BASE_URL}/assets/embedCharts.js`} />
             </body>
         </html>
     )
@@ -809,13 +810,13 @@ function ExplorerTestPage(props: ExplorerTestPageProps) {
                                     loading="lazy"
                                 />
                             )}
-                            <figure
-                                data-explorer-src={`${BAKED_BASE_URL}/explorers/${slug}`}
+                            <iframe
+                                src={`${BAKED_BASE_URL}/explorers/${slug}`}
+                                loading="lazy"
                             />
                         </div>
                     </div>
                 ))}
-                <script src={`${BAKED_BASE_URL}/assets/embedCharts.js`} />
             </body>
         </html>
     )

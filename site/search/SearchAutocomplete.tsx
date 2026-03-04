@@ -6,6 +6,7 @@ import {
     getSearchAutocompleteId,
     getSearchAutocompleteItemId,
     getFilterAriaLabel,
+    buildFilterTestId,
     splitIntoWords,
     isNotStopWord,
 } from "./searchUtils.js"
@@ -121,6 +122,15 @@ export const SearchAutocomplete = ({
                     logSearchAutocompleteClick()
                     setQueries(localQuery || filter.name) // only use filter.name for default searches, as it may be lagging
                 })
+                .with(
+                    FilterType.DATASET_PRODUCT,
+                    FilterType.DATASET_NAMESPACE,
+                    FilterType.DATASET_VERSION,
+                    FilterType.DATASET_PRODUCER,
+                    () => {
+                        // no-op: dataset filters are not suggested in autocomplete
+                    }
+                )
                 .exhaustive()
             setShowSuggestions(false)
         },
@@ -146,10 +156,14 @@ export const SearchAutocomplete = ({
 
     return (
         <div className="search-autocomplete-container">
-            <ul id={getSearchAutocompleteId()} role="listbox">
+            <ul
+                id={getSearchAutocompleteId()}
+                data-testid="search-autocomplete-listbox"
+                role="listbox"
+            >
                 {suggestions.map((filter, index) => (
                     <li
-                        key={filter.name}
+                        key={`${filter.type}:${filter.name}`}
                         className={cx("search-autocomplete-item", {
                             "search-autocomplete-item--active":
                                 index === activeIndex,
@@ -179,9 +193,11 @@ export const SearchAutocomplete = ({
                             }
                             onMouseEnter={() => setActiveIndex(index)}
                             aria-label={getFilterAriaLabel(filter, "add")}
-                            data-testid={`search-autocomplete-button-${
-                                filter.type
-                            }-${encodeURIComponent(filter.name)}`}
+                            data-testid={buildFilterTestId(
+                                "search-autocomplete-button",
+                                filter.type,
+                                filter.name
+                            )}
                         >
                             <SearchAutocompleteItemContents
                                 filter={filter}

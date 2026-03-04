@@ -48,7 +48,7 @@ export default tseslint.config(
                 node: true,
             },
             react: {
-                version: "detect",
+                version: "19.2", // we need to hardcode this until eslint-plugin-react properly supports eslint 10, see https://github.com/jsx-eslint/eslint-plugin-react/issues/3977
             },
         },
         rules: {
@@ -147,7 +147,7 @@ export default tseslint.config(
             // we would want to have this rule enabled, but it doesn't allow for our mix of `makeObservable` arguments and decorators
             "mobx/missing-make-observable": "off",
 
-            "mobx/exhaustive-make-observable": "off"
+            "mobx/exhaustive-make-observable": "off",
         },
     },
     {

@@ -43,11 +43,11 @@ import { expectInt } from "../../serverUtils/serverUtil.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import { updateGrapherConfigsInR2 } from "./charts.js"
 import { Request } from "../authentication.js"
-import e from "express"
+import { HandlerResponse } from "../FunctionalRouter.js"
 
 export async function getEditorVariablesJson(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const datasets = []
@@ -116,7 +116,7 @@ export async function getEditorVariablesJson(
 
 export async function getVariableDataJson(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     _trx: db.KnexReadonlyTransaction
 ) {
     const variableStr = req.params.variableStr as string
@@ -134,7 +134,7 @@ export async function getVariableDataJson(
 
 export async function getVariableMetadataJson(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     _trx: db.KnexReadonlyTransaction
 ) {
     const variableStr = req.params.variableStr as string
@@ -152,7 +152,7 @@ export async function getVariableMetadataJson(
 
 export async function getVariablesJson(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const limit = parseIntOrUndefined(req.query.limit as string) ?? 50
@@ -162,7 +162,7 @@ export async function getVariablesJson(
 
 export async function getVariablesUsagesJson(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const query = `-- sql
@@ -183,7 +183,7 @@ export async function getVariablesUsagesJson(
 
 export async function getVariablesGrapherConfigETLPatchConfigJson(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const variableId = expectInt(req.params.variableId)
@@ -196,7 +196,7 @@ export async function getVariablesGrapherConfigETLPatchConfigJson(
 
 export async function getVariablesGrapherConfigAdminPatchConfigJson(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const variableId = expectInt(req.params.variableId)
@@ -209,7 +209,7 @@ export async function getVariablesGrapherConfigAdminPatchConfigJson(
 
 export async function getVariablesMergedGrapherConfigJson(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const variableId = expectInt(req.params.variableId)
@@ -219,7 +219,7 @@ export async function getVariablesMergedGrapherConfigJson(
 
 export async function getVariablesVariableIdJson(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const variableId = expectInt(req.params.variableId)
@@ -239,25 +239,20 @@ export async function getVariablesVariableIdJson(
         OldChartFieldList & {
             isInheritanceEnabled: DbPlainChart["isInheritanceEnabled"]
             config: DbRawChartConfig["full"]
-            narrativeChartsCount: number
-            referencesCount: number
         }
     >(
         trx,
         `-- sql
-                SELECT ${oldChartFieldList}, charts.isInheritanceEnabled, chart_configs.full AS config,
-                    round(views_365d / 365, 1) as pageviewsPerDay,
-                    crv.narrativeChartsCount,
-                    crv.referencesCount
+                SELECT ${oldChartFieldList}, charts.isInheritanceEnabled, chart_configs.full AS config
                 FROM charts
                 JOIN chart_configs ON chart_configs.id = charts.configId
                 JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
                 LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-                LEFT JOIN analytics_pageviews on (analytics_pageviews.url = CONCAT("https://ourworldindata.org/grapher/", chart_configs.slug) AND chart_configs.full ->> '$.isPublished' = "true" )
+                LEFT JOIN analytics_grapher_views agv ON (agv.grapher_slug = chart_configs.slug AND chart_configs.full ->> '$.isPublished' = "true")
                 LEFT JOIN chart_references_view crv ON crv.chartId = charts.id
                 JOIN chart_dimensions cd ON cd.chartId = charts.id
                 WHERE cd.variableId = ?
-                GROUP BY charts.id, views_365d, crv.narrativeChartsCount, crv.referencesCount
+                GROUP BY charts.id, agv.views_365d, crv.narrativeChartsCount, crv.referencesCount
             `,
         [variableId]
     )
@@ -316,7 +311,7 @@ export async function getVariablesVariableIdJson(
 
 export async function putVariablesVariableIdGrapherConfigETL(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const variableId = expectInt(req.params.variableId)
@@ -363,7 +358,7 @@ export async function putVariablesVariableIdGrapherConfigETL(
 
 export async function deleteVariablesVariableIdGrapherConfigETL(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const variableId = expectInt(req.params.variableId)
@@ -445,7 +440,7 @@ export async function deleteVariablesVariableIdGrapherConfigETL(
 
 export async function putVariablesVariableIdGrapherConfigAdmin(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const variableId = expectInt(req.params.variableId)
@@ -492,7 +487,7 @@ export async function putVariablesVariableIdGrapherConfigAdmin(
 
 export async function deleteVariablesVariableIdGrapherConfigAdmin(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const variableId = expectInt(req.params.variableId)
@@ -565,7 +560,7 @@ export async function deleteVariablesVariableIdGrapherConfigAdmin(
 
 export async function getVariablesVariableIdChartsJson(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const variableId = expectInt(req.params.variableId)

@@ -17,7 +17,7 @@ ifneq (,$(wildcard ./.env))
 	include .env
 endif
 
-.PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest svgtest.reset bdd bdd.ui
+.PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest svgtest.reset bdd bdd.ui check-not-prod
 
 help:
 	@echo 'Available commands:'
@@ -26,8 +26,8 @@ help:
 	@echo '  make up                     start dev environment via docker-compose and tmux'
 	@echo '  make down                   stop any services still running'
 	@echo '  make refresh                (while up) download a new grapher snapshot and update MySQL'
-	@echo '  make refresh.pageviews      (while up) download and load pageviews from the private datasette instance'
-	@echo '  make refresh.full           (while up) run refresh and refresh.pageviews'
+	@echo '  make refresh.analytics      (while up) download and load analytics from the private datasette instance'
+	@echo '  make refresh.full           (while up) run refresh and refresh.analytics'
 	@echo '  make migrate                (while up) run any outstanding db migrations'
 	@echo '  make test                   run full suite (except db tests) of CI checks including unit tests'
 	@echo '  make dbtest                 run db test suite that needs a running mysql db'
@@ -138,10 +138,7 @@ migrate: node_modules
 	yarn runDbMigrations
 
 refresh:
-	@if grep -q "ENV=production" .env; then \
-		echo "ERROR: Cannot run refresh in production environment."; \
-		exit 1; \
-	fi
+	@make check-not-prod
 
 	@echo '==> Downloading chart data'
 	./devTools/docker/download-grapher-metadata-mysql.sh
@@ -153,10 +150,7 @@ refresh:
 	'--fast-list --transfers 32 --checkers 32  --verbose`'
 
 refresh.atomic:
-	@if grep -q "ENV=production" .env; then \
-		echo "ERROR: Cannot run refresh in production environment."; \
-		exit 1; \
-	fi
+	@make check-not-prod
 
 	@echo '==> Downloading chart data'
 	./devTools/docker/download-grapher-metadata-mysql.sh
@@ -167,9 +161,9 @@ refresh.atomic:
 	@echo '!!! If you use ETL, wipe indicators from your R2 staging with `rclone delete r2:owid-api-staging/[yourname]/ ' \
 	'--fast-list --transfers 32 --checkers 32  --verbose`'
 
-refresh.pageviews: node_modules
-	@echo '==> Refreshing pageviews'
-	yarn refreshPageviews
+refresh.analytics: node_modules
+	@echo '==> Refreshing analytics'
+	yarn refreshAnalytics
 
 sync-images:
 	@echo 'Task has been deprecated.'
@@ -182,7 +176,7 @@ sync-cloudflare-images: node_modules
 	@echo '==> Syncing images table with Cloudflare Images'
 	@yarn syncCloudflareImages
 
-refresh.full: refresh refresh.pageviews
+refresh.full: refresh refresh.analytics
 	@echo '==> Full refresh completed'
 
 down: export COMPOSE_PROJECT_NAME ?= owid-grapher
@@ -241,6 +235,16 @@ check-port-3306:
 		\nWe recommend using a different port (like 3307)";\
 	fi
 
+check-not-prod:
+	@if grep -q "ENV=production" .env; then \
+		echo "ERROR: Cannot run this command in production environment."; \
+		exit 1; \
+	fi
+	@if [ "${GRAPHER_DB_HOST}" = "prod-db.owid.io" ]; then \
+		echo "ERROR: GRAPHER_DB_HOST is set to prod-db.owid.io. Refusing to run against the production database."; \
+		exit 1; \
+	fi
+
 tmp-downloads/owid_metadata.sql.gz:
 	@echo '==> Downloading metadata'
 	./devTools/docker/download-grapher-metadata-mysql.sh
@@ -250,7 +254,7 @@ test: node_modules
 	yarn run eslint
 
 	@echo '==> Checking formatting'
-	yarn testPrettierAll
+	yarn testFormatAll
 
 	@echo '==> Checking Raycast snippets'
 	yarn checkRaycastSnippets
@@ -316,11 +320,11 @@ lint: node_modules
 
 check-formatting: node_modules
 	@echo '==> Checking formatting'
-	yarn testPrettierAll
+	yarn testFormatAll
 
 format: node_modules
 	@echo '==> Fixing formatting'
-	yarn fixPrettierAll
+	yarn fixFormatAll
 
 unittest: node_modules
 	@echo '==> Running tests'
@@ -338,33 +342,37 @@ svgtest: svgtest.reset node_modules
 
 	@# generate a full new set of svgs and create an HTML report if there are differences
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts \
-		|| yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts
+		|| (yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts && open ../owid-grapher-svgs/graphers/differences.html)
 
 svgtest.full: svgtest.reset node_modules
 	@echo '==> Generating full SVG test report'
 
 	@# run test suite for stand-alone graphers
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts \
-		&& yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts
+		|| yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts
 
 	@# run test suite for grapher views
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts grapher-views \
-		&& yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts grapher-views
+		|| yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts grapher-views
 
 	@# run test suite for mdims
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts mdims \
-		&& yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts mdims
+		|| yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts mdims
 
 	@# run test suite for explorers
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts explorers --manifest top.manifest.json \
-		&& yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts explorers
+		|| yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts explorers
+
+	@# run test suite for thumbnails
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts thumbnails \
+		|| yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts thumbnails
 
 svgtest.explorers: svgtest.reset node_modules
 	@echo '==> Generating SVG test report for explorers'
 
-	@# run test suite for explorers
+	@# run test suite for explorers and create an HTML report if there are differences
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts explorers \
-		&& yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts explorers
+		|| (yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts explorers && open ../owid-grapher-svgs/explorers/differences.html)
 
 node_modules: package.json yarn.lock yarn.config.cjs
 	@echo '==> Installing packages'

@@ -49,8 +49,8 @@ export default function GrapherImage(props: {
 }) {
     if (!GRAPHER_DYNAMIC_THUMBNAIL_URL) return null
 
-    let slug: string = ""
-    let queryString: string = ""
+    let slug: string
+    let queryString: string
     if (props.url) {
         const url = Url.fromURL(props.url)
         slug = url.slug!

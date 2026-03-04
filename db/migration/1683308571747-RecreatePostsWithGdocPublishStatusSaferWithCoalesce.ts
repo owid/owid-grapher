@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class RecreatePostsWithGdocPublishStatusSaferWithCoalesce1683308571747
-    implements MigrationInterface
-{
+export class RecreatePostsWithGdocPublishStatusSaferWithCoalesce1683308571747 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
         drop view if exists posts_with_gdoc_publish_status;

@@ -257,7 +257,7 @@ export async function pickDisplayEntities(
     {
         pickedEntities,
         catalogUrl,
-    }: { pickedEntities: EntityName[]; catalogUrl?: string }
+    }: { pickedEntities: EntityName[]; catalogUrl: string }
 ): Promise<EntityName[]> {
     const { ScatterPlot, Marimekko } = GRAPHER_CHART_TYPES
     const {
@@ -400,7 +400,7 @@ async function pickDisplayEntitiesForScatterPlot({
 }: {
     grapherState: GrapherState
     chartState: ScatterPlotChartState
-    catalogUrl?: string
+    catalogUrl: string
     entity?: EntityName
 }): Promise<EntityName[]> {
     const { series, colorColumnSlug, sizeColumnSlug } = chartState
@@ -477,7 +477,7 @@ async function pickDisplayEntitiesForMarimekko({
 }: {
     grapherState: GrapherState
     chartState: MarimekkoChartState
-    catalogUrl?: string
+    catalogUrl: string
     entity?: EntityName
 }): Promise<EntityName[]> {
     const { items, colorColumnSlug, xColumnSlug } = chartState
@@ -517,7 +517,7 @@ async function pickDisplayEntitiesForMarimekko({
 
     // When only the color dimension is available, select the entity with the
     // largest population from each color group
-    if (colorColumnSlug && catalogUrl) {
+    if (colorColumnSlug) {
         const populationByEntityName = await fetchLatestPopulationData({
             catalogUrl,
         })

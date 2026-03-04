@@ -3,6 +3,7 @@ import { getAdminTestEnv } from "./testEnv.js"
 import {
     ChartConfigsTableName,
     ExplorersTableName,
+    MultiDimDataPagesTableName,
 } from "@ourworldindata/types"
 import {
     knexReadonlyTransaction,
@@ -56,6 +57,32 @@ describe("validateChartSlug", { timeout: 10000 }, () => {
 
         await env.testKnex!(ExplorersTableName)
             .where({ slug: "migration" })
+            .delete()
+    })
+
+    it("returns true for a valid multi-dim URL", async () => {
+        await env.testKnex!(MultiDimDataPagesTableName).insert({
+            slug: "vaccination-coverage-who-unicef",
+            catalogPath:
+                "grapher/vaccination_coverage/latest/vaccination_coverage",
+            config: JSON.stringify({}),
+            published: true,
+        })
+
+        await knexReadonlyTransaction(
+            async (trx) => {
+                const { isValid } = await validateChartSlug(
+                    trx,
+                    "https://ourworldindata.org/grapher/vaccination-coverage-who-unicef?metric=coverage&antigen=comparison"
+                )
+                expect(isValid).toBe(true)
+            },
+            TransactionCloseMode.KeepOpen,
+            env.testKnex
+        )
+
+        await env.testKnex!(MultiDimDataPagesTableName)
+            .where({ slug: "vaccination-coverage-who-unicef" })
             .delete()
     })
 })

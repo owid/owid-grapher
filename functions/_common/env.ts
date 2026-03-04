@@ -35,6 +35,7 @@ export interface Env {
     OPENAI_API_KEY?: string
     GOOGLE_API_KEY?: string
     CATALOG_URL: string
+    USER_SURVEYS_R2?: R2Bucket
 }
 // We collect the possible extensions here so we can easily take them into account
 // when handling redirects

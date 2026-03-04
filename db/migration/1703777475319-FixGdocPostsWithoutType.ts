@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class FixGdocPostsWithoutType1703777475319
-    implements MigrationInterface
-{
+export class FixGdocPostsWithoutType1703777475319 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // This migration makes sure that all posts_gdocs have the type field
         // set in the content JSON blob. 'article' is not necessarily correct

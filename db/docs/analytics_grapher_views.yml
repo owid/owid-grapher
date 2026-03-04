@@ -1,0 +1,25 @@
+metadata:
+    description: |
+        Grapher view event counts imported from external analytics system.
+        Counts how many times each chart was viewed (scrolled into viewport),
+        regardless of which page it appeared on.
+
+        Unlike analytics_pageviews (which counts page loads), this table counts
+        actual chart visibility events including embedded charts in articles,
+        topic pages, and iframes.
+
+        Availability:
+        - Production and staging: populated via analytics pipeline
+        - Local development: empty by default
+
+fields:
+    day:
+        description: Date of the view data (latest aggregation date)
+    grapher_slug:
+        description: Chart slug (e.g., 'life-expectancy')
+    views_7d:
+        description: Number of grapher view events in the last 7 days
+    views_14d:
+        description: Number of grapher view events in the last 14 days
+    views_365d:
+        description: Number of grapher view events in the last 365 days

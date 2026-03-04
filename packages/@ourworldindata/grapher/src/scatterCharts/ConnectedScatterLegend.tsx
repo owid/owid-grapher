@@ -3,7 +3,7 @@ import { computed, makeObservable } from "mobx"
 import { Triangle } from "./Triangle"
 import { TextWrap } from "@ourworldindata/components"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
-import { makeIdForHumanConsumption } from "@ourworldindata/utils"
+import { makeFigmaId } from "@ourworldindata/utils"
 import * as _ from "lodash-es"
 import { GRAPHER_DARK_TEXT, GRAY_70 } from "../color/ColorConstants.js"
 
@@ -96,7 +96,7 @@ export class ConnectedScatterLegend {
 
         return (
             <g
-                id={makeIdForHumanConsumption("arrow-legend")}
+                id={makeFigmaId("arrow-legend")}
                 className="ConnectedScatterLegend"
                 {...renderOptions}
             >

@@ -17,7 +17,7 @@ export const SearchTemplatesWriting = () => {
             // Writing + Topic + Country + Query
             .with([SearchTopicType.Topic, true, true], () => (
                 <>
-                    <SearchWritingResults />
+                    <SearchWritingResults showProfiles={true} />
                     <SearchDataInsightsResults />
                 </>
             ))
@@ -25,7 +25,7 @@ export const SearchTemplatesWriting = () => {
             .with([SearchTopicType.Topic, true, false], () => (
                 <>
                     <SearchDataInsightsResults />
-                    <SearchWritingResults />
+                    <SearchWritingResults showProfiles={true} />
                 </>
             ))
             // Writing + Topic + No Country + Query
@@ -73,7 +73,7 @@ export const SearchTemplatesWriting = () => {
             // Writing + No Topic + Country + Query
             .with([null, true, true], () => (
                 <>
-                    <SearchWritingResults />
+                    <SearchWritingResults showProfiles={true} />
                     <SearchDataInsightsResults />
                 </>
             ))
@@ -81,7 +81,10 @@ export const SearchTemplatesWriting = () => {
             .with([null, true, false], () => (
                 <>
                     <SearchDataInsightsResults />
-                    <SearchWritingResults hasTopicPages={false} />
+                    <SearchWritingResults
+                        hasTopicPages={false}
+                        showProfiles={true}
+                    />
                 </>
             ))
             // Writing + No Topic + No Country + Query

@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class PopulateDatapathAndMetadatapath1678983851216
-    implements MigrationInterface
-{
+export class PopulateDatapathAndMetadatapath1678983851216 implements MigrationInterface {
     // production DB does not have NULL fields, but staging servers still might
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql

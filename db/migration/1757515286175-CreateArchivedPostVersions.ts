@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class CreateArchivedPostVersions1757515286175
-    implements MigrationInterface
-{
+export class CreateArchivedPostVersions1757515286175 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             CREATE TABLE archived_post_versions (

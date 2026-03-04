@@ -20,6 +20,7 @@ export interface MarimekkoChartManager extends ChartManager {
     tableAfterAuthorTimelineAndActiveChartTransform?: OwidTable
     sortConfig?: SortConfig
     hideNoDataArea?: boolean
+    hasScatter?: boolean // x-axis is ignored if a secondary scatter plot is present
 }
 
 export interface EntityColorData {

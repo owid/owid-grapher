@@ -2,7 +2,7 @@ import * as _ from "lodash-es"
 import * as React from "react"
 import {
     LogoOption,
-    makeIdForHumanConsumption,
+    makeFigmaId,
     Bounds,
     FontFamily,
 } from "@ourworldindata/utils"
@@ -326,16 +326,13 @@ export class StaticHeader extends AbstractHeader<StaticHeaderProps> {
         const { targetX: x, targetY: y } = this.props
         const { title, logo, subtitle, manager, maxWidth } = this
         return (
-            <g
-                id={makeIdForHumanConsumption(GRAPHER_HEADER_CLASS)}
-                className="HeaderView"
-            >
+            <g id={makeFigmaId(GRAPHER_HEADER_CLASS)} className="HeaderView">
                 {logo &&
                     logo.height > 0 &&
                     logo.renderSVG(x + maxWidth - logo.width, y)}
                 {this.showTitle && (
                     <a
-                        id={makeIdForHumanConsumption("title")}
+                        id={makeFigmaId("title")}
                         href={manager.canonicalUrl}
                         style={{
                             fontFamily:
@@ -359,7 +356,7 @@ export class StaticHeader extends AbstractHeader<StaticHeaderProps> {
                                 ? title.height + this.subtitleMarginTop
                                 : 0),
                         {
-                            id: makeIdForHumanConsumption("subtitle"),
+                            id: makeFigmaId("subtitle"),
                             textProps: { fill: GRAPHER_DARK_TEXT },
                             detailsMarker: this.manager.detailsMarkerInSvg,
                         }

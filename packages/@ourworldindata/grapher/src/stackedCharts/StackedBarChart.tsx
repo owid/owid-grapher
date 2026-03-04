@@ -7,7 +7,7 @@ import {
     Time,
     getRelativeMouse,
     excludeUndefined,
-    makeIdForHumanConsumption,
+    makeFigmaId,
     guid,
     exposeInstanceOnWindow,
 } from "@ourworldindata/utils"
@@ -509,9 +509,7 @@ export class StackedBarChart
         return (
             <>
                 {this.renderAxis()}
-                <g id={makeIdForHumanConsumption("bars")}>
-                    {this.renderBars()}
-                </g>
+                <g id={makeFigmaId("bars")}>{this.renderBars()}</g>
                 {this.renderLegend()}
             </>
         )

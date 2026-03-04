@@ -61,6 +61,29 @@ describe(Explorer, () => {
         })
     })
 
+    it("resolves query params when URL requests unavailable choice combination", () => {
+        // "Consumption-based" accounting is only available for CO₂,
+        // so requesting it for Methane should fall back to "Production-based"
+        const explorer = SampleExplorerOfGraphers({
+            queryStr: "?Gas=Methane&Accounting=Consumption-based",
+        })
+
+        expect(explorer.queryParams).toMatchObject({
+            Gas: "Methane",
+            Accounting: "Production-based",
+        })
+    })
+
+    it("resolves query params to first available option when URL contains invalid choice value", () => {
+        const explorer = SampleExplorerOfGraphers({
+            queryStr: "?Gas=InvalidGas",
+        })
+
+        // "InvalidGas" doesn't exist, so it should fall back to the
+        // first available option "CO₂"
+        expect(explorer.queryParams.Gas).toEqual("CO₂")
+    })
+
     it("includes country param in archived embed URL after switching views", async () => {
         const explorer = SampleExplorerOfGraphers({
             queryStr: "?country=~GBR",

@@ -158,6 +158,9 @@ export const OPENAI_API_KEY: string = serverSettings.OPENAI_API_KEY ?? ""
 export const SLACK_BOT_OAUTH_TOKEN: string =
     serverSettings.SLACK_BOT_OAUTH_TOKEN ?? ""
 
+export const SLACK_ALGOLIA_INDEXING_CHANNEL_ID: string =
+    serverSettings.SLACK_ALGOLIA_INDEXING_CHANNEL_ID ?? ""
+
 export const LEGACY_WORDPRESS_IMAGE_URL: string =
     serverSettings.LEGACY_WORDPRESS_IMAGE_URL ??
     "https://assets.ourworldindata.org/uploads"

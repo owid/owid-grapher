@@ -71,8 +71,22 @@ async function main(args: ReturnType<typeof parseArguments>) {
             liveChartUrl,
         })
     )
-    const summary = `<p class="summary">Number of differences: ${sections.length}</p>`
-    const content = summary + sections.join("\n")
+
+    // Count chart types for filtering
+    const chartTypeCounts = _.countBy(
+        svgRecords,
+        (record) => record.chartType ?? "Unknown"
+    )
+    const sortedChartTypes = Object.entries(chartTypeCounts).sort(
+        ([, a], [, b]) => b - a
+    )
+
+    const filterDropdown = createChartTypeFilter(
+        sortedChartTypes,
+        sections.length
+    )
+    const summary = `<p class="summary">Showing <span id="visible-count">${sections.length}</span> of ${sections.length} differences</p>`
+    const content = filterDropdown + summary + sections.join("\n")
     await fs.writeFile(outFile, createHtml(content))
 }
 
@@ -119,11 +133,33 @@ function escapeQuestionMark(str: string) {
     return str.replace(/\?/g, "%3F")
 }
 
-function createTabControls() {
+function createChartTypeFilter(
+    chartTypeCounts: [string, number][],
+    totalCount: number
+) {
+    const options = chartTypeCounts
+        .map(
+            ([chartType, count]) =>
+                `<option value="${chartType}">${chartType} (${count})</option>`
+        )
+        .join("\n")
+
+    return `<div class="filter-container">
+        <label for="chart-type-filter">Chart Type:</label>
+        <select id="chart-type-filter">
+            <option value="all" selected>All (${totalCount})</option>
+            ${options}
+        </select>
+    </div>`
+}
+
+function createTabControls(changedLines?: number) {
+    const codeDiffLabel =
+        changedLines !== undefined ? `Code Diff (${changedLines})` : "Code Diff"
     return `<div class="tabs">
         <button class="tab-btn active" data-tab="side-by-side">Side by Side</button>
         <button class="tab-btn" data-tab="slider">Swipe</button>
-        <button class="tab-btn" data-tab="code-diff">Code Diff</button>
+        <button class="tab-btn" data-tab="code-diff">${codeDiffLabel}</button>
     </div>`
 }
 
@@ -134,19 +170,22 @@ function createSideBySideView(
     compareChartUrl: string,
     liveChartUrl: string
 ) {
-    const { viewId } = svgRecord
+    const { viewId, queryStr, resolvedQueryStr } = svgRecord
+    // Use resolved query string if available (shows actual entity names instead of placeholders)
+    const urlQueryStr = resolvedQueryStr || queryStr
+    const fullUrl = urlQueryStr ? `${viewId}?${urlQueryStr}` : viewId
 
     return `<div class="tab-pane active" data-pane="side-by-side">
         <div class="side-by-side">
             <div class="comparison-item deleted">
                 <div class="comparison-header">Deleted</div>
-                <a href="${liveChartUrl}/${viewId}" target="_blank" class="comparison-image-wrapper">
+                <a href="${liveChartUrl}/${fullUrl}" target="_blank" class="comparison-image-wrapper">
                     <img src="${escapeQuestionMark(referenceFilename)}" loading="lazy" alt="Reference (live)">
                 </a>
             </div>
             <div class="comparison-item added">
                 <div class="comparison-header">Added</div>
-                <a href="${compareChartUrl}/${viewId}" target="_blank" class="comparison-image-wrapper">
+                <a href="${compareChartUrl}/${fullUrl}" target="_blank" class="comparison-image-wrapper">
                     <img src="${escapeQuestionMark(differencesFilename)}" loading="lazy" alt="Current (local)">
                 </a>
             </div>
@@ -172,10 +211,30 @@ function createCodeDiffView(
     referenceFilename: string,
     differencesFilename: string,
     svgFilename: string
-) {
+): { html: string; changedLines: number } {
     // Read both SVG files
     const referenceContent = fs.readFileSync(referenceFilename, "utf-8")
     const differencesContent = fs.readFileSync(differencesFilename, "utf-8")
+
+    // Skip diff computation for very large files because the diff algorithm is too slow
+    const MAX_LINES_FOR_DIFF = 20_000
+    const refLineCount = referenceContent.split("\n").length
+    const diffLineCount = differencesContent.split("\n").length
+    if (
+        refLineCount > MAX_LINES_FOR_DIFF ||
+        diffLineCount > MAX_LINES_FOR_DIFF
+    ) {
+        return {
+            html: `<div class="tab-pane" data-pane="code-diff">
+        <div class="code-diff-container" data-diff="" data-truncated="true" data-skipped="true">
+            <div style="padding: 24px; text-align: center; color: #57606a;">
+                Code diff skipped: files are too large (${Math.max(refLineCount, diffLineCount).toLocaleString()} lines).
+            </div>
+        </div>
+    </div>`,
+            changedLines: 0,
+        }
+    }
 
     // Generate unified diff with just the filename as the title
     const unifiedDiff = Diff.createTwoFilesPatch(
@@ -187,9 +246,18 @@ function createCodeDiffView(
         ""
     )
 
+    // Count changed lines (lines starting with + or - but not +++ or ---)
+    const diffLines = unifiedDiff.split("\n")
+    const addedLines = diffLines.filter(
+        (line) => line.startsWith("+") && !line.startsWith("+++")
+    ).length
+    const deletedLines = diffLines.filter(
+        (line) => line.startsWith("-") && !line.startsWith("---")
+    ).length
+    const changedLines = Math.max(addedLines, deletedLines)
+
     // Truncate large diffs to avoid bloating HTML file
     const MAX_DIFF_LINES = 300
-    const diffLines = unifiedDiff.split("\n")
     const isTruncated = diffLines.length > MAX_DIFF_LINES
     const truncatedDiff = isTruncated
         ? diffLines.slice(0, MAX_DIFF_LINES).join("\n") +
@@ -202,9 +270,12 @@ function createCodeDiffView(
         .replace(/`/g, "\\`")
         .replace(/\$/g, "\\$")
 
-    return `<div class="tab-pane" data-pane="code-diff">
+    return {
+        html: `<div class="tab-pane" data-pane="code-diff">
         <div class="code-diff-container" data-diff="${escapedDiff.replace(/"/g, "&quot;")}" data-truncated="${isTruncated}"></div>
-    </div>`
+    </div>`,
+        changedLines,
+    }
 }
 
 function createComparisonView(args: {
@@ -216,7 +287,8 @@ function createComparisonView(args: {
     liveChartUrl: string
 }) {
     const { svgRecord, compareChartUrl, liveChartUrl } = args
-    const { svgFilename, viewId } = args.svgRecord
+    const { svgFilename, viewId, queryStr, chartType, resolvedQueryStr } =
+        args.svgRecord
 
     const referenceFilenameUrl = path.join(args.referencesDirName, svgFilename)
     const differenceFilenameUrl = path.join(
@@ -235,10 +307,28 @@ function createComparisonView(args: {
         svgFilename
     )
 
-    return `<section data-slug="${viewId}">
+    const codeDiff = createCodeDiffView(
+        referencesPath,
+        differencesPath,
+        svgFilename
+    )
+
+    // Display title with resolved query string if available (shows actual values instead of placeholders)
+    // Use resolved query string if available, otherwise fall back to unresolved
+    const displayQueryStr = resolvedQueryStr || queryStr
+    const displayTitle = displayQueryStr
+        ? `${viewId}?${displayQueryStr}`
+        : viewId
+    const copyableText = displayQueryStr
+        ? `${viewId}?${displayQueryStr}`
+        : viewId
+
+    const chartTypeAttr = chartType ?? "Unknown"
+
+    return `<section data-slug="${viewId}" data-chart-type="${chartTypeAttr}">
         <div class="header-with-actions">
-            <h2>${viewId}</h2>
-            <button class="copy-slug-btn" data-slug="${viewId}" title="Copy to clipboard">
+            <h2>${displayTitle}</h2>
+            <button class="copy-slug-btn" data-slug="${copyableText}" title="Copy to clipboard">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <path d="M10.5 2h-8A1.5 1.5 0 001 3.5v8A1.5 1.5 0 002.5 13h8a1.5 1.5 0 001.5-1.5v-8A1.5 1.5 0 0010.5 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                     <path d="M5 2V1.5A1.5 1.5 0 016.5 0h8A1.5 1.5 0 0116 1.5v8A1.5 1.5 0 0114.5 11H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -246,11 +336,11 @@ function createComparisonView(args: {
                 <span class="copy-text">Copy</span>
             </button>
         </div>
-        ${createTabControls()}
+        ${createTabControls(codeDiff.changedLines)}
         <div class="tab-content">
             ${createSideBySideView(svgRecord, referenceFilenameUrl, differenceFilenameUrl, compareChartUrl, liveChartUrl)}
             ${createSliderView(referenceFilenameUrl, differenceFilenameUrl)}
-            ${createCodeDiffView(referencesPath, differencesPath, svgFilename)}
+            ${codeDiff.html}
         </div>
     </section>`
 }
@@ -282,6 +372,49 @@ function createHtml(content: string) {
             border: 1px solid #d0d7de;
             border-radius: 6px;
             color: #24292e;
+        }
+
+        /* Filter dropdown */
+        .filter-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: white;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+        }
+
+        .filter-container label {
+            font-weight: 500;
+            color: #24292e;
+        }
+
+        .filter-container select {
+            padding: 8px 12px;
+            border: 1px solid #d1d5da;
+            border-radius: 6px;
+            background: #fafbfc;
+            font-size: 0.9rem;
+            color: #24292e;
+            cursor: pointer;
+            min-width: 200px;
+        }
+
+        .filter-container select:hover {
+            border-color: #a0a8b0;
+        }
+
+        .filter-container select:focus {
+            outline: none;
+            border-color: #0969da;
+            box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.15);
+        }
+
+        section.hidden {
+            display: none;
         }
 
         section {
@@ -378,11 +511,6 @@ function createHtml(content: string) {
             z-index: 1;
         }
 
-        /* Tab content */
-        .tab-content {
-            min-height: 400px;
-        }
-
         .tab-pane {
             display: none;
         }
@@ -399,10 +527,10 @@ function createHtml(content: string) {
         }
 
         .comparison-item {
-            flex: 1;
+            flex: 0 1 auto;
             display: flex;
             flex-direction: column;
-            max-width: 600px;
+            max-width: 850px;
         }
 
         .comparison-header {
@@ -443,8 +571,9 @@ function createHtml(content: string) {
 
         .comparison-image-wrapper img {
             display: block;
-            width: 100%;
+            width: auto;
             max-width: 100%;
+            height: auto;
         }
 
         /* Slider view */
@@ -454,7 +583,7 @@ function createHtml(content: string) {
         }
 
         .comparison-slider {
-            width: 800px;
+            width: auto;
             max-width: 100%;
             margin: 0 auto;
             display: inline-block;
@@ -466,10 +595,11 @@ function createHtml(content: string) {
         }
 
         img-comparison-slider img {
-            max-width: 100%;
+            max-width: 850px;
             width: 100%;
             display: block;
             border-radius: 4px;
+            height: auto;
         }
 
         /* Red outline for old/reference version (first image) */
@@ -558,6 +688,34 @@ function createHtml(content: string) {
         // Track which diffs have been rendered
         const renderedDiffs = new Set();
 
+        // Chart type filtering
+        const chartTypeFilter = document.getElementById('chart-type-filter');
+        const visibleCountSpan = document.getElementById('visible-count');
+
+        function filterByChartType(chartType) {
+            const sections = document.querySelectorAll('section[data-chart-type]');
+            let visibleCount = 0;
+
+            sections.forEach(section => {
+                if (chartType === 'all' || section.dataset.chartType === chartType) {
+                    section.classList.remove('hidden');
+                    visibleCount++;
+                } else {
+                    section.classList.add('hidden');
+                }
+            });
+
+            if (visibleCountSpan) {
+                visibleCountSpan.textContent = visibleCount;
+            }
+        }
+
+        if (chartTypeFilter) {
+            chartTypeFilter.addEventListener('change', (e) => {
+                filterByChartType(e.target.value);
+            });
+        }
+
         // Tab switching functionality
         document.addEventListener('click', (e) => {
             const tabBtn = e.target.closest('.tab-btn');
@@ -581,8 +739,8 @@ function createHtml(content: string) {
                     const slug = section.dataset.slug;
                     const diffId = slug;
 
-                    // Only render once per section
-                    if (diffContainer && !renderedDiffs.has(diffId)) {
+                    // Only render once per section, and skip if diff was too large
+                    if (diffContainer && !renderedDiffs.has(diffId) && !diffContainer.dataset.skipped) {
                         const diffString = diffContainer.dataset.diff;
                         const isTruncated = diffContainer.dataset.truncated === 'true';
 

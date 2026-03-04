@@ -804,6 +804,7 @@ class PeerCountrySection<
             "Countries that represent the data range",
         [PeerCountryStrategy.DefaultSelection]: "Default selection",
         [PeerCountryStrategy.Neighbors]: "Neighboring countries",
+        [PeerCountryStrategy.None]: "No peer countries (useful in search)",
     }
 
     @computed get grapherState() {
@@ -819,7 +820,7 @@ class PeerCountrySection<
             label: this.peerCountryStrategyLabels[strategy],
         }))
 
-        return [{ value: undefined, label: "None" }, ...options]
+        return [{ value: undefined, label: "Unset" }, ...options]
     }
 
     @action.bound onSelectPeerCountryStrategy(value: string | undefined) {

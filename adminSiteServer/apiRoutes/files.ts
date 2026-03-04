@@ -7,14 +7,14 @@ import {
 import fs from "fs/promises"
 import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
-import e from "express"
+import { HandlerResponse } from "../FunctionalRouter.js"
 import { saveFileToAssetsR2 } from "../../serverUtils/r2/assetsR2Helpers.js"
 import path from "path"
 import { MULTER_UPLOADS_DIRECTORY } from "../../adminShared/validation.js"
 
 export async function getFiles(
     _req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ): Promise<{ files: DbPlainFile[] }> {
     const files = await trx(FilesTableName).select("*")
@@ -23,7 +23,7 @@ export async function getFiles(
 
 export async function uploadFileToR2(
     req: Request & { file?: Express.Multer.File },
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ): Promise<{ success: boolean; path: string }> {
     if (!req.file) {

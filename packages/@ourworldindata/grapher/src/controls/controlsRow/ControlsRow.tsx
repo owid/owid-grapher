@@ -31,7 +31,8 @@ import {
 import { MapZoomDropdown, MapZoomDropdownManager } from "../MapZoomDropdown"
 
 export interface ControlsRowManager
-    extends ContentSwitchersManager,
+    extends
+        ContentSwitchersManager,
         EntitySelectionManager,
         SettingsMenuManager,
         MapRegionDropdownManager,

@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class PostsGdocsLinksLongerTargetField1696940352033
-    implements MigrationInterface
-{
+export class PostsGdocsLinksLongerTargetField1696940352033 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(
             `ALTER TABLE posts_gdocs_links

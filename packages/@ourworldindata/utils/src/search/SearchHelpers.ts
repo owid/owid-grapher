@@ -10,7 +10,7 @@ import {
     SearchChartHitDataDisplayProps,
 } from "@ourworldindata/types"
 import { match } from "ts-pattern"
-import { getRegionByName } from "../regions"
+import { getRegionByName } from "../regions/index.js"
 import { calculateTrendDirection, getDisplayUnit } from "../Util.js"
 
 export function buildChartHitDataDisplayProps({

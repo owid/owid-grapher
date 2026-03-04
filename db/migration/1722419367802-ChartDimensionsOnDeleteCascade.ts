@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class ChartDimensionsOnDeleteCascade1722419367802
-    implements MigrationInterface
-{
+export class ChartDimensionsOnDeleteCascade1722419367802 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             ALTER TABLE chart_dimensions

@@ -6,19 +6,21 @@ import * as Sentry from "@sentry/node"
 import * as db from "../../db/db.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
-import { SearchIndexName } from "@ourworldindata/types"
-import { getIndexName } from "../../site/search/searchClient.js"
+import { PAGES_INDEX } from "../../site/search/searchUtils.js"
 import { getPagesRecords } from "./utils/pages.js"
 
 const indexPagesToAlgolia = async () => {
-    if (!ALGOLIA_INDEXING) return
+    if (!ALGOLIA_INDEXING) {
+        console.log("Algolia indexing is disabled. Exiting.")
+        process.exit(0)
+    }
 
     const client = getAlgoliaClient()
     if (!client) {
         console.error(`Failed indexing pages (Algolia client not initialized)`)
         return
     }
-    const indexName = getIndexName(SearchIndexName.Pages)
+    const indexName = PAGES_INDEX
 
     const records = await db.knexReadonlyTransaction(
         getPagesRecords,

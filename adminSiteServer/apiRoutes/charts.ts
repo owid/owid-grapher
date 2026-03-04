@@ -30,6 +30,7 @@ import { NarrativeChartMinimalInformation } from "../../adminSiteClient/ChartEdi
 import { denormalizeLatestCountryData } from "../../baker/countryIndexes.js"
 import {
     getChartConfigById,
+    getForceDatapageByChartId,
     getPatchConfigByChartId,
     getParentByChartConfig,
     isInheritanceEnabledForChart,
@@ -64,9 +65,10 @@ import {
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
 import { getLogsByChartId } from "../getLogsByChartId.js"
+import { getChartsRecords } from "../../baker/algolia/utils/charts.js"
 
 import { Request } from "../authentication.js"
-import e from "express"
+import { HandlerResponse } from "../FunctionalRouter.js"
 import { DataInsightMinimalInformation } from "../../adminShared/AdminTypes.js"
 import {
     validateNewGrapherSlug,
@@ -239,9 +241,15 @@ const saveNewChart = async (
     {
         config,
         user,
+        forceDatapage = false,
         // new charts inherit by default
         shouldInherit = true,
-    }: { config: GrapherInterface; user: DbPlainUser; shouldInherit?: boolean }
+    }: {
+        config: GrapherInterface
+        user: DbPlainUser
+        forceDatapage?: boolean
+        shouldInherit?: boolean
+    }
 ): Promise<{
     chartConfigId: Base64String
     patchConfig: GrapherInterface
@@ -277,10 +285,10 @@ const saveNewChart = async (
     const result = await db.knexRawInsert(
         knex,
         `-- sql
-            INSERT INTO charts (configId, isInheritanceEnabled, lastEditedAt, lastEditedByUserId)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO charts (configId, isInheritanceEnabled, forceDatapage, lastEditedAt, lastEditedByUserId)
+            VALUES (?, ?, ?, ?, ?)
         `,
-        [chartConfigId, shouldInherit, new Date(), user.id]
+        [chartConfigId, shouldInherit, forceDatapage, new Date(), user.id]
     )
 
     // The chart config itself has an id field that should store the id of the chart - update the chart now so this is true
@@ -311,6 +319,7 @@ const updateExistingChart = async (
         config: GrapherInterface
         user: DbPlainUser
         chartId: number
+        forceDatapage?: boolean
         // if undefined, keep inheritance as is.
         // if true or false, enable or disable inheritance
         shouldInherit?: boolean
@@ -353,15 +362,18 @@ const updateExistingChart = async (
         fullConfig
     )
 
+    const forceDatapage =
+        params.forceDatapage ?? (await getForceDatapageByChartId(knex, chartId))
+
     // update charts row
     await db.knexRaw(
         knex,
         `-- sql
             UPDATE charts
-            SET isInheritanceEnabled=?, updatedAt=?, lastEditedAt=?, lastEditedByUserId=?
+            SET isInheritanceEnabled=?, forceDatapage=?, updatedAt=?, lastEditedAt=?, lastEditedByUserId=?
             WHERE id = ?
         `,
-        [shouldInherit, now, now, user.id, chartId]
+        [shouldInherit, forceDatapage, now, now, user.id, chartId]
     )
 
     return { chartConfigId, patchConfig, fullConfig }
@@ -373,12 +385,14 @@ export const saveGrapher = async (
         user,
         newConfig,
         existingConfig,
+        forceDatapage,
         shouldInherit,
         referencedVariablesMightChange = true,
     }: {
         user: DbPlainUser
         newConfig: GrapherInterface
         existingConfig?: GrapherInterface
+        forceDatapage?: boolean
         // if undefined, keep inheritance as is.
         // if true or false, enable or disable inheritance
         shouldInherit?: boolean
@@ -448,6 +462,7 @@ export const saveGrapher = async (
             config: newConfig,
             user,
             chartId,
+            forceDatapage,
             shouldInherit,
         })
         chartConfigId = configs.chartConfigId
@@ -457,6 +472,7 @@ export const saveGrapher = async (
         const configs = await saveNewChart(knex, {
             config: newConfig,
             user,
+            forceDatapage,
             shouldInherit,
         })
         chartConfigId = configs.chartConfigId
@@ -574,21 +590,18 @@ export async function updateGrapherConfigsInR2(
 
 export async function getChartsJson(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const limit = parseIntOrUndefined(req.query.limit as string) ?? 10000
     const charts = await db.knexRaw<OldChartFieldList>(
         trx,
         `-- sql
-            SELECT ${oldChartFieldList},
-                round(views_365d / 365, 1) as pageviewsPerDay,
-                crv.narrativeChartsCount,
-                crv.referencesCount
+            SELECT ${oldChartFieldList}
             FROM charts
             JOIN chart_configs ON chart_configs.id = charts.configId
             JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
-            LEFT JOIN analytics_pageviews on (analytics_pageviews.url = CONCAT("https://ourworldindata.org/grapher/", chart_configs.slug) AND chart_configs.full ->> '$.isPublished' = "true" )
+            LEFT JOIN analytics_grapher_views agv ON (agv.grapher_slug = chart_configs.slug AND chart_configs.full ->> '$.isPublished' = "true")
             LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
             LEFT JOIN chart_references_view crv ON crv.chartId = charts.id
             ORDER BY charts.lastEditedAt DESC LIMIT ?
@@ -603,7 +616,7 @@ export async function getChartsJson(
 
 export async function getChartsCsv(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const limit = parseIntOrUndefined(req.query.limit as string) ?? 10000
@@ -663,7 +676,7 @@ export async function getChartsCsv(
 
 export async function getChartConfigJson(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     return expectChartById(trx, req.params.chartId)
@@ -671,7 +684,7 @@ export async function getChartConfigJson(
 
 export async function getChartParentJson(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const chartId = expectInt(req.params.chartId)
@@ -687,9 +700,19 @@ export async function getChartParentJson(
     })
 }
 
+export async function getChartSettingsJson(
+    req: Request,
+    res: HandlerResponse,
+    trx: db.KnexReadonlyTransaction
+) {
+    const chartId = expectInt(req.params.chartId)
+    const forceDatapage = await getForceDatapageByChartId(trx, chartId)
+    return { forceDatapage }
+}
+
 export async function getChartPatchConfigJson(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const chartId = expectInt(req.params.chartId)
@@ -699,7 +722,7 @@ export async function getChartPatchConfigJson(
 
 export async function getChartLogsJson(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     return {
@@ -712,7 +735,7 @@ export async function getChartLogsJson(
 
 export async function getChartReferencesJson(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const references = {
@@ -726,7 +749,7 @@ export async function getChartReferencesJson(
 
 export async function getChartRedirectsJson(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     return {
@@ -737,9 +760,9 @@ export async function getChartRedirectsJson(
     }
 }
 
-export async function getChartPageviewsJson(
+export async function getChartViewsJson(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const slug = await getChartSlugById(
@@ -748,25 +771,25 @@ export async function getChartPageviewsJson(
     )
     if (!slug) return {}
 
-    const pageviewsByUrl = await db.knexRawFirst(
+    const viewsBySlug = await db.knexRawFirst(
         trx,
         `-- sql
         SELECT *
         FROM
-            analytics_pageviews
+            analytics_grapher_views
         WHERE
-            url = ?`,
-        [`https://ourworldindata.org/grapher/${slug}`]
+            grapher_slug = ?`,
+        [slug]
     )
 
     return {
-        pageviews: pageviewsByUrl ?? undefined,
+        views: viewsBySlug ?? undefined,
     }
 }
 
 export async function getChartTagsJson(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const chartId = expectInt(req.params.chartId)
@@ -786,18 +809,23 @@ export async function getChartTagsJson(
 
 export async function createChart(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     let shouldInherit: boolean | undefined
     if (req.query.inheritance) {
         shouldInherit = req.query.inheritance === "enable"
     }
+    let forceDatapage: boolean | undefined
+    if (req.query.forceDatapage) {
+        forceDatapage = req.query.forceDatapage === "true"
+    }
 
     try {
         const { chartId } = await saveGrapher(trx, {
             user: res.locals.user,
             newConfig: req.body,
+            forceDatapage,
             shouldInherit,
         })
 
@@ -809,7 +837,7 @@ export async function createChart(
 
 export async function setChartTagsHandler(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const chartId = expectInt(req.params.chartId)
@@ -821,12 +849,16 @@ export async function setChartTagsHandler(
 
 export async function updateChart(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     let shouldInherit: boolean | undefined
     if (req.query.inheritance) {
         shouldInherit = req.query.inheritance === "enable"
+    }
+    let forceDatapage: boolean | undefined
+    if (req.query.forceDatapage) {
+        forceDatapage = req.query.forceDatapage === "true"
     }
 
     const existingConfig = await expectChartById(trx, req.params.chartId)
@@ -836,6 +868,7 @@ export async function updateChart(
             user: res.locals.user,
             newConfig: req.body,
             existingConfig,
+            forceDatapage,
             shouldInherit,
         })
 
@@ -856,7 +889,7 @@ export async function updateChart(
 
 export async function deleteChart(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const chart = await expectChartById(trx, req.params.chartId)
@@ -907,4 +940,18 @@ export async function deleteChart(
         )
 
     return { success: true }
+}
+
+/**
+ * Generate a preview of Algolia index records for a chart.
+ * Returns the records that would be created when indexing this chart.
+ */
+export async function getChartRecordsJson(
+    req: Request,
+    _res: HandlerResponse,
+    trx: db.KnexReadonlyTransaction
+) {
+    const chartId = expectInt(req.params.chartId)
+    const records = await getChartsRecords(trx, { chartIds: [chartId] })
+    return { records }
 }

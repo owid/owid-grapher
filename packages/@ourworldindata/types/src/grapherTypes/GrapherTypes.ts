@@ -225,6 +225,8 @@ export enum PeerCountryStrategy {
     DefaultSelection = "defaultSelection",
     /** Use geographically neighboring countries as peers */
     Neighbors = "neighbors",
+    /** Don't automatically add any peer countries (useful in search) */
+    None = "none",
 }
 
 export type PeerCountryStrategyQueryParam = PeerCountryStrategy | "auto"
@@ -470,6 +472,7 @@ export enum ColorSchemeName {
     OwidCategoricalC = "OwidCategoricalC",
     OwidCategoricalD = "OwidCategoricalD",
     OwidCategoricalE = "OwidCategoricalE",
+    OwidCategoricalMap = "OwidCategoricalMap",
     OwidEnergy = "OwidEnergy",
     OwidEnergyLines = "OwidEnergyLines",
     OwidDistinctLines = "OwidDistinctLines",
@@ -543,7 +546,7 @@ export interface GrapherInterface extends SortConfig {
     stackMode?: StackMode
 
     showNoDataArea?: boolean
-    hideLegend?: boolean
+    hideSeriesLabels?: boolean
     logo?: LogoOption
     hideLogo?: boolean
     hideRelativeToggle?: boolean
@@ -678,7 +681,7 @@ export const grapherKeysToSerialize = [
     "addCountryMode",
     "stackMode",
     "showNoDataArea",
-    "hideLegend",
+    "hideSeriesLabels",
     "logo",
     "hideLogo",
     "hideRelativeToggle",

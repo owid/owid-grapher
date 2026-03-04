@@ -21,7 +21,8 @@ router.get("*", async (request, env, params) => {
     const grapherPageResp = await fetchUnparsedGrapherConfig(
         { type: "multi-dim-slug", id: slug },
         env,
-        etag ?? undefined
+        etag ?? undefined,
+        shouldCache
     )
 
     if (grapherPageResp.status === 304) {
@@ -33,12 +34,29 @@ router.get("*", async (request, env, params) => {
         return new Response("Not found", { status: 404 })
     }
 
+    if (grapherPageResp.status !== 200) {
+        console.log(
+            "Returning non-200 config response for multi-dim slug",
+            slug,
+            grapherPageResp.status
+        )
+        return new Response(grapherPageResp.body, {
+            status: grapherPageResp.status,
+            headers: {
+                "Cache-Control": "no-cache",
+                "Content-Type":
+                    grapherPageResp.headers.get("Content-Type") ??
+                    "application/json",
+            },
+        })
+    }
+
     const cacheControl = shouldCache
         ? "s-maxage=300, max-age=0, must-revalidate"
         : "no-cache"
 
     return new Response(grapherPageResp.body, {
-        status: 200,
+        status: grapherPageResp.status,
         headers: {
             "Content-Type": "application/json",
             "Cache-Control": cacheControl,

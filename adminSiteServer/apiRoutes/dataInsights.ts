@@ -1,5 +1,5 @@
-import e from "express"
 import { Request } from "../authentication.js"
+import { HandlerResponse } from "../FunctionalRouter.js"
 import {
     DbPlainNarrativeChart,
     DbRawChartConfig,
@@ -45,7 +45,7 @@ type DataInsightRow = Pick<
 
 export async function getAllDataInsightIndexItems(
     _req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     return getAllDataInsightIndexItemsOrderedByUpdatedAt(trx)
@@ -53,7 +53,7 @@ export async function getAllDataInsightIndexItems(
 
 export async function createDataInsightGDoc(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     // Find the user's data insight folder

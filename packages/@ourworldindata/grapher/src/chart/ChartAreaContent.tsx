@@ -5,7 +5,7 @@ import {
     Bounds,
     GRAPHER_MAP_TYPE,
     GrapherChartOrMapType,
-    makeIdForHumanConsumption,
+    makeFigmaId,
 } from "@ourworldindata/utils"
 import { DataTable } from "../dataTable/DataTable"
 import { CaptionedChartManager } from "../captionedChart/CaptionedChart"
@@ -150,7 +150,7 @@ export class ChartAreaContent extends React.Component<ChartAreaContentProps> {
 
         return (
             <g
-                id={makeIdForHumanConsumption(GRAPHER_CHART_AREA_CLASS)}
+                id={makeFigmaId(GRAPHER_CHART_AREA_CLASS)}
                 style={{ pointerEvents: "none" }}
             >
                 {this.renderReadyChartOrMap()}

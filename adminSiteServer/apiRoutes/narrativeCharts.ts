@@ -43,7 +43,7 @@ import {
 import * as db from "../../db/db.js"
 import { expectChartById } from "./charts.js"
 import { Request } from "../authentication.js"
-import e from "express"
+import { HandlerResponse } from "../FunctionalRouter.js"
 import { getPublishedLinksTo } from "../../db/model/Link.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import { getChartConfigById as _getChartConfigById } from "../../db/model/ChartConfigs.js"
@@ -172,7 +172,7 @@ async function getViewDimensions(
 
 export async function getNarrativeCharts(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     type NarrativeChartRow = Pick<
@@ -250,7 +250,7 @@ export async function getNarrativeCharts(
 
 export async function getNarrativeChartById(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const id = expectInt(req.params.id)
@@ -425,7 +425,7 @@ const createNarrativeChartSchema = z.discriminatedUnion("type", [
 
 export async function createNarrativeChart(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const parseResult = createNarrativeChartSchema.safeParse(req.body)
@@ -468,7 +468,7 @@ export async function createNarrativeChart(
 
 export async function updateNarrativeChart(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const id = expectInt(req.params.id)
@@ -562,7 +562,7 @@ export async function updateNarrativeChart(
 
 export async function deleteNarrativeChart(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const id = expectInt(req.params.id)
@@ -607,7 +607,7 @@ export async function deleteNarrativeChart(
 
 export async function getNarrativeChartReferences(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const id = expectInt(req.params.id)

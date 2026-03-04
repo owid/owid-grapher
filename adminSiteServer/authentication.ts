@@ -21,7 +21,6 @@ const ACT_AS_USER_HEADER = "x-act-as-user"
 const CLOUDFLARE_COOKIE_NAME = "CF_Authorization"
 const CLOUDFLARE_TEAM_DOMAIN = "https://owid.cloudflareaccess.com"
 const DEV_ADMIN_EMAIL = "admin@example.com"
-const DEV_ADMIN_FULL_NAME = "Admin User"
 
 // Hoist to module scope so it's created once and reused across requests.
 const jwks = jose.createRemoteJWKSet(
@@ -210,7 +209,14 @@ export async function devAuthMiddleware(
 ) {
     if (res.locals.user) return next()
 
-    const user = await getOrCreateDevAdminUser()
+    const user = await getDevAdminUser()
+    if (!user) {
+        console.error(
+            `Dev admin user ${DEV_ADMIN_EMAIL} not found. Run \`make refresh\` to seed it or create it manually.`
+        )
+        return next()
+    }
+
     await db.knexReadWriteTransaction(async (trx) => {
         await setAuthenticatedUser(res, user, trx)
     })
@@ -243,32 +249,11 @@ export async function logOut(_req: express.Request, res: express.Response) {
     return res.redirect("/admin")
 }
 
-async function getOrCreateDevAdminUser(): Promise<DbPlainUser> {
+async function getDevAdminUser(): Promise<DbPlainUser | undefined> {
     return db.knexReadWriteTransaction(async (trx) => {
-        const existing = await trx<DbPlainUser>(UsersTableName)
+        return await trx<DbPlainUser>(UsersTableName)
             .where({ email: DEV_ADMIN_EMAIL })
             .first()
-        if (existing) return existing
-
-        const now = new Date()
-        const [id] = await trx<DbPlainUser>(UsersTableName).insert({
-            email: DEV_ADMIN_EMAIL,
-            fullName: DEV_ADMIN_FULL_NAME,
-            isActive: 1,
-            isSuperuser: 1,
-            createdAt: now,
-            updatedAt: now,
-        })
-
-        const created = await trx<DbPlainUser>(UsersTableName)
-            .where({ id: id as number })
-            .first()
-
-        if (!created) {
-            throw new Error("Failed to create dev admin user")
-        }
-
-        return created
     })
 }
 

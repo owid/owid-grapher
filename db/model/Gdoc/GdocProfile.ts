@@ -8,6 +8,7 @@ import {
     OwidGdocProfileScope,
 } from "@ourworldindata/types"
 import {
+    generateToc,
     getRegionByNameOrVariantName,
     removeTrailingParenthetical,
     instantiateProfile,
@@ -158,6 +159,10 @@ export async function instantiateProfileForEntity(
         instantiatedContent,
         options
     )
+
+    if (content["sidebar-toc"]) {
+        content.toc = generateToc(content.body, true)
+    }
 
     return {
         ...profileTemplate,

@@ -1,13 +1,17 @@
 import { match } from "ts-pattern"
 import { FilterType } from "@ourworldindata/types"
 import { SearchFilterPill } from "./SearchFilterPill.js"
-import { getFilterAriaLabel, getFilterIcon } from "./searchUtils.js"
+import {
+    buildFilterTestId,
+    getFilterAriaLabel,
+    getFilterIcon,
+} from "./searchUtils.js"
 import { useSearchContext } from "./SearchContext.js"
 
 export const SearchActiveFilters = () => {
     const {
         state: { filters },
-        actions: { removeCountry, removeTopic },
+        actions: { removeCountry, removeTopic, removeFilter },
     } = useSearchContext()
     return (
         <>
@@ -32,12 +36,14 @@ export const SearchActiveFilters = () => {
                         <button
                             key={`topic-${filter.name}`}
                             type="button"
-                            aria-label={`Remove ${filter.name}`}
+                            aria-label={getFilterAriaLabel(filter, "remove")}
                             onClick={() => removeTopic(filter.name)}
                             className="search-active-filter-button"
-                            data-testid={`search-active-filter-button-${
-                                filter.type
-                            }-${encodeURIComponent(filter.name)}`}
+                            data-testid={buildFilterTestId(
+                                "search-active-filter-button",
+                                filter.type,
+                                filter.name
+                            )}
                         >
                             <SearchFilterPill
                                 name={filter.name}
@@ -46,6 +52,30 @@ export const SearchActiveFilters = () => {
                             />
                         </button>
                     ))
+                    .with(
+                        { type: FilterType.DATASET_PRODUCT },
+                        { type: FilterType.DATASET_NAMESPACE },
+                        { type: FilterType.DATASET_VERSION },
+                        { type: FilterType.DATASET_PRODUCER },
+                        (filter) => (
+                            <button
+                                key={`${filter.type}-${filter.name}`}
+                                type="button"
+                                aria-label={getFilterAriaLabel(
+                                    filter,
+                                    "remove"
+                                )}
+                                onClick={() => removeFilter(filter)}
+                                className="search-active-filter-button"
+                            >
+                                <SearchFilterPill
+                                    name={filter.name}
+                                    icon={getFilterIcon(filter)}
+                                    selected
+                                />
+                            </button>
+                        )
+                    )
                     .with({ type: FilterType.QUERY }, (_filter) => null)
                     .exhaustive()
             )}

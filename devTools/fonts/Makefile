@@ -2,7 +2,7 @@ VENV := .env
 PYTHON := $(VENV)/bin/python3
 PIP := $(VENV)/bin/pip3
 SUBSET := $(VENV)/bin/pyftsubset
-PRETTIER := node ../../node_modules/.bin/prettier
+OXFMT := node ../../node_modules/.bin/oxfmt
 .PHONY: all install report test clean
 
 default: all
@@ -57,10 +57,10 @@ $(VENV):
 	mkdir -p $@/build
 
 $(FACES): $(VENV) $(FONTS)
-	@$(PYTHON) make-faces.py $(FONTS) | $(PRETTIER) --parser css > $@
+	@$(PYTHON) make-faces.py $(FONTS) | $(OXFMT) --stdin-filepath=fonts.css > $@
 
 $(EMBEDS): $(VENV) $(FONTS)
-	@$(PYTHON) make-faces.py --embed $(FONTS) | $(PRETTIER) --parser css > $@
+	@$(PYTHON) make-faces.py --embed $(FONTS) | $(OXFMT) --stdin-filepath=fonts.css > $@
 
 all: $(VENV) $(LATO) $(PLAYFAIR)
 	rm -f $(FACES) $(EMBEDS)

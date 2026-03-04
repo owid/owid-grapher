@@ -7,7 +7,7 @@ import {
     Time,
     HorizontalAlign,
     EntityName,
-    makeIdForHumanConsumption,
+    makeFigmaId,
     dyFromAlign,
     exposeInstanceOnWindow,
     bind,
@@ -53,6 +53,7 @@ import { HashMap, NodeGroup } from "react-move"
 import { easeQuadOut } from "d3-ease"
 import { StackedDiscreteBarChartState } from "./StackedDiscreteBarChartState"
 import { enrichSeriesWithLabels } from "../barCharts/DiscreteBarChartHelpers.js"
+import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
 
 const BAR_SPACING_FACTOR = 0.35
 
@@ -248,6 +249,7 @@ export class StackedDiscreteBars
             minLabelWidth: 0.3 * this.bounds.width,
             maxLabelWidth: 0.66 * this.bounds.width,
             fontSettings: this.labelStyle,
+            showRegionTooltip: !this.manager.isStatic,
         })
     }
 
@@ -294,6 +296,10 @@ export class StackedDiscreteBars
         })
     }
 
+    @action.bound private clearTooltip(): void {
+        this.tooltipState.target = null
+    }
+
     @action.bound private onEntityMouseEnter(
         entityName: string,
         seriesName?: string
@@ -302,7 +308,7 @@ export class StackedDiscreteBars
     }
 
     @action.bound private onEntityMouseLeave(): void {
-        this.tooltipState.target = null
+        this.clearTooltip()
     }
 
     override render(): React.ReactElement {
@@ -356,7 +362,7 @@ export class StackedDiscreteBars
         return (
             <g
                 key={entityName}
-                id={makeIdForHumanConsumption(entityName)}
+                id={makeFigmaId(entityName)}
                 className="bar"
                 transform={`translate(0, ${state.translateY ?? 0})`}
                 opacity={opacity}
@@ -372,19 +378,16 @@ export class StackedDiscreteBars
                         onMouseLeave={this.onEntityMouseLeave}
                     />
                 ))}
-                {label.renderSVG(
-                    yAxis.place(this.x0) - labelToBarPadding,
-                    -label.height / 2,
-                    {
-                        textProps: {
-                            textAnchor: "end",
-                            fill: "#555",
-                            onMouseEnter: (): void =>
-                                this.onEntityMouseEnter(label.text),
-                            onMouseLeave: this.onEntityMouseLeave,
-                        },
+                <SeriesLabel
+                    state={label}
+                    x={yAxis.place(this.x0) - labelToBarPadding}
+                    y={-label.height / 2}
+                    onMouseEnter={(): void =>
+                        this.onEntityMouseEnter(label.text)
                     }
-                )}
+                    onMouseLeave={this.onEntityMouseLeave}
+                    onInfoTooltipShow={this.clearTooltip}
+                />
                 {this.showTotalValueLabel && (
                     <text
                         transform={`translate(${
@@ -434,7 +437,7 @@ export class StackedDiscreteBars
         return (
             <>
                 {this.renderAxis()}
-                <g id={makeIdForHumanConsumption("bars")}>
+                <g id={makeFigmaId("bars")}>
                     {this.placedItems.map((item) =>
                         this.renderRow({
                             data: item,
@@ -519,14 +522,14 @@ export class StackedDiscreteBars
 
         return (
             <g
-                id={makeIdForHumanConsumption(bar.seriesName)}
+                id={makeFigmaId(bar.seriesName)}
                 onMouseEnter={(): void =>
                     props?.onMouseEnter(entity, bar.seriesName)
                 }
                 onMouseLeave={props?.onMouseLeave}
             >
                 <rect
-                    id={makeIdForHumanConsumption("bar")}
+                    id={makeFigmaId("bar")}
                     x={0}
                     y={0}
                     transform={`translate(${barX}, ${-barHeight / 2})`}

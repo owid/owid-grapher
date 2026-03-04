@@ -169,7 +169,7 @@
 }
 
 .aa-Panel {
-    z-index: $zindex-lightbox + 1;
+    z-index: $zindex-autocomplete;
     margin: 0;
     border-radius: 0;
     border: none;
@@ -244,7 +244,9 @@ section[data-autocomplete-source-id="filters"] {
     }
 }
 
-section[data-autocomplete-source-id="autocomplete"] {
+section[data-autocomplete-source-id="autocomplete"],
+section[data-autocomplete-source-id="autocomplete-charts"],
+section[data-autocomplete-source-id="profiles"] {
     .autocomplete-item-contents__contentType {
         margin-left: 8px;
         color: $blue-50;

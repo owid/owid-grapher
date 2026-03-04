@@ -157,7 +157,10 @@ function handleComponent<T extends OwidEnrichedGdocBlock>(
                 components.push(...childComponents)
             }
         } catch (e) {
-            throw new Error(`Error iterating ${String(prop)} for ${path}: ${e}`)
+            throw new Error(
+                `Error iterating ${String(prop)} for ${path}: ${e}`,
+                { cause: e }
+            )
         }
     }
 
@@ -390,7 +393,8 @@ export function enumerateGdocComponentsWithoutChildren(
                         "subscribe-banner",
                         "narrative-chart",
                         "static-viz",
-                        "data-callout"
+                        "data-callout",
+                        "country-profile-selector"
                     ),
                 },
                 (c) => handleComponent(c, [], parentPath, path)

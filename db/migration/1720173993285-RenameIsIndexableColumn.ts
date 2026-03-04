@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class RenameIsIndexableColumn1720173993285
-    implements MigrationInterface
-{
+export class RenameIsIndexableColumn1720173993285 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             ALTER TABLE charts

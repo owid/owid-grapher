@@ -1,5 +1,5 @@
 import React from "react"
-import { makeIdForHumanConsumption } from "@ourworldindata/utils"
+import { makeFigmaId } from "@ourworldindata/utils"
 import {
     BLUR_FILL_OPACITY,
     BLUR_STROKE_OPACITY,
@@ -33,7 +33,7 @@ export function BackgroundCountry<Feature extends RenderFeature>({
 }): React.ReactElement {
     return (
         <path
-            id={makeIdForHumanConsumption(feature.id)}
+            id={makeFigmaId(feature.id)}
             d={isMapRenderFeature(feature) ? feature.path : path}
             strokeWidth={strokeWidth}
             stroke="#aaa"
@@ -78,7 +78,7 @@ export function CountryWithData<Feature extends RenderFeature>({
 
     return (
         <path
-            id={makeIdForHumanConsumption(feature.id)}
+            id={makeFigmaId(feature.id)}
             data-feature-id={feature.id}
             d={isMapRenderFeature(feature) ? feature.path : path}
             strokeWidth={strokeWidth}
@@ -125,7 +125,7 @@ export function CountryWithNoData<Feature extends RenderFeature>({
 
     return (
         <path
-            id={makeIdForHumanConsumption(feature.id)}
+            id={makeFigmaId(feature.id)}
             data-feature-id={feature.id}
             d={isMapRenderFeature(feature) ? feature.path : path}
             strokeWidth={strokeWidth}
@@ -244,7 +244,7 @@ export function InternalValueAnnotation({
     return (
         <Halo id={id} outlineWidth={3} show={showHalo}>
             <text
-                id={makeIdForHumanConsumption(id)}
+                id={makeFigmaId(id)}
                 x={placedBounds.topLeft.x}
                 y={placedBounds.topLeft.y + placedBounds.height - 1}
                 fontSize={fontSize}
@@ -279,7 +279,7 @@ export function ExternalValueAnnotation({
     })
 
     return (
-        <g id={makeIdForHumanConsumption(id)}>
+        <g id={makeFigmaId(id)}>
             <line
                 x1={markerStart[0]}
                 y1={markerStart[1]}

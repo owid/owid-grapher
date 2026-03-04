@@ -120,7 +120,7 @@ export const TableOfContents = ({
                 }
             )
 
-            let contentHeadings = null
+            let contentHeadings: NodeListOf<Element>
             // In Gdocs articles, these sections are ID'd via unique elements
             const appendixDivs =
                 ", h3#article-endnotes, section#article-citation, section#article-licence"

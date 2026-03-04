@@ -1,6 +1,6 @@
 # Country and Region Data Importer
 
-This script retrieves the ETL's [country & region data](https://github.com/owid/etl/tree/master/etl/steps/data/garden/regions) and regenerates the [JSON file](../../packages/@ourworldindata/utils/src/regions.json) used by grapher for dealing with country, continent, and aggregate entities.
+This script retrieves the ETL's [country & region data](https://github.com/owid/etl/tree/master/etl/steps/data/garden/regions) and regenerates [`regions.data.ts`](../../packages/@ourworldindata/utils/src/regions/regions.data.ts) used by grapher for dealing with country, continent, and aggregate entities.
 
 The data file is used primarily for:
 
@@ -18,6 +18,6 @@ In addition, the script regenerates [TopoJSON file](../../packages/@ourworldinda
 
 ## Updating Region Data & Geography
 
-The `regions.json` and `MapTopography.ts` files can be updated manually by running `yarn runRegionsUpdater` which triggers the `update.ts` script in `devTools/regionsImporter` and prints out a diff if anything has changed. If, after looking over the changes, everything looks good-to-go you can commit the updated files and merge back into `master`.
+The `regions.data.ts` and `MapTopology.ts` files can be updated manually by running `yarn runRegionsUpdater` which triggers the `update.ts` script in `devTools/regionsUpdater` and prints out a diff if anything has changed. If, after looking over the changes, everything looks good-to-go you can commit the updated files and merge back into `master`.
 
 > Note: pay particular attention to changes in `slug` values for countries since this determines the URL of their country page. If a slug changes, be sure to add a redirect from the old value to the new one in WordPress.

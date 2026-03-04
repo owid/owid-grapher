@@ -6,6 +6,16 @@ import { Experiment } from "./Experiment.js"
  */
 export const experiments: Experiment[] = [
     new Experiment({
+        id: "user-survey-role-v1",
+        expires: "2026-03-20T00:00:00.000Z",
+        arms: [
+            { id: "long-list", fraction: 1 / 3 },
+            { id: "short-list", fraction: 1 / 3 },
+            { id: "free-form", fraction: 1 / 3 },
+        ],
+        paths: ["/"],
+    }),
+    new Experiment({
         /*
          * Experiment: data-page-insight-btns-2
          *
