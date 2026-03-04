@@ -5,6 +5,21 @@ import {
     AnalyticsPageviewsTableName,
 } from "@ourworldindata/types"
 
+export async function assertAnalyticsPageviewsPopulated(
+    knex: db.KnexReadonlyTransaction
+): Promise<void> {
+    const result = await db.knexRaw<{ count: number }>(
+        knex,
+        "SELECT COUNT(*) as count FROM ?? LIMIT 1",
+        [AnalyticsPageviewsTableName]
+    )
+    if (result[0].count === 0) {
+        throw new Error(
+            `The ${AnalyticsPageviewsTableName} table is empty. Please populate it running make refresh.analytics`
+        )
+    }
+}
+
 export async function getAnalyticsPageviewsByUrlObj(
     knex: db.KnexReadonlyTransaction
 ): Promise<{
