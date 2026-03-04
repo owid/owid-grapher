@@ -12,6 +12,7 @@ import {
 import { countries, excludeUndefined } from "@ourworldindata/utils"
 import { getIndexName } from "../../site/search/searchClient.js"
 import { PAGES_INDEX, CHARTS_INDEX } from "../../site/search/searchUtils.js"
+import { SearchIndexName } from "@ourworldindata/types"
 import { synonyms } from "../../site/search/synonymUtils.js"
 
 export const CONTENT_GRAPH_ALGOLIA_INDEX = getIndexName("graph")
@@ -96,6 +97,20 @@ export const configureAlgolia = async () => {
             disableExactOnAttributes: ["tags", "content"],
             disableTypoToleranceOnAttributes: ["content"],
             disablePrefixOnAttributes: ["content"],
+        },
+    })
+
+    // Lightweight chronological index — one record per page, no chunked
+    // content. Sorted by date (newest first) for the dynamic Atom feed.
+    const pagesChronologicalIndexName = getIndexName(
+        SearchIndexName.PagesChronological
+    )
+    await client.setSettings({
+        indexName: pagesChronologicalIndexName,
+        indexSettings: {
+            ranking: ["custom"],
+            customRanking: ["desc(date)"],
+            attributesForFaceting: ["type", "searchable(tags)"],
         },
     })
 

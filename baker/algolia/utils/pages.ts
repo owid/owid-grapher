@@ -52,7 +52,7 @@ const computePageScore = (record: Omit<PageRecord, "score">): number => {
     return importance * 1000 + views_7d
 }
 
-const getThumbnailUrl = (
+export const getThumbnailUrl = (
     gdoc:
         | OwidGdocPostInterface
         | OwidGdocDataInsightInterface
@@ -100,7 +100,7 @@ const getThumbnailUrl = (
     return `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/w=512`
 }
 
-function getExcerptFromGdoc(
+export function getExcerptFromGdoc(
     gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface
 ): string {
     if (gdoc.content.type === OwidGdocType.DataInsight) {

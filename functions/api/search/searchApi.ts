@@ -328,12 +328,18 @@ export async function searchPages(
     offset: number = 0,
     length: number = 10,
     pageTypes: string[] = ["article", "about-page"],
-    baseUrl: string = "https://ourworldindata.org"
+    baseUrl: string = "https://ourworldindata.org",
+    facetFilters?: (string | string[])[]
 ): Promise<SearchPagesApiResponse> {
     const indexName = getIndexName(SearchIndexName.Pages, config.indexPrefix)
 
     // Build filters string for page types
     const filters = pageTypes.map((type) => `type:${type}`).join(" OR ")
+
+    const mergedFacetFilters: (string | string[])[] = [
+        [],
+        ...(facetFilters ?? []),
+    ]
 
     const searchParams = {
         requests: [
@@ -341,7 +347,7 @@ export async function searchPages(
                 indexName,
                 query,
                 filters,
-                facetFilters: [[]],
+                facetFilters: mergedFacetFilters,
                 attributesToRetrieve: PAGE_ATTRIBUTES,
                 highlightPreTag: "<mark>",
                 highlightPostTag: "</mark>",
