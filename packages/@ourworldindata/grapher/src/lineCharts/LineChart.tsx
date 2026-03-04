@@ -603,7 +603,7 @@ export class LineChart
     }
 
     @computed private get verticalLabelsWidth(): number {
-        if (!this.manager.showLegend) return 0
+        if (!this.manager.showSeriesLabels) return 0
         return this.verticalLabelsState.stableWidth
     }
 
@@ -632,7 +632,7 @@ export class LineChart
         const { manager } = this
         return (
             <>
-                {manager.showLegend && (
+                {manager.showSeriesLabels && (
                     <VerticalLabels
                         state={this.verticalLabelsState}
                         x={this.verticalLabelsX}
@@ -852,8 +852,7 @@ export class LineChart
             return {
                 color,
                 seriesName,
-                // E.g. https://ourworldindata.org/grapher/size-poverty-gap-world
-                label: !this.manager.showLegend ? "" : displayName,
+                label: !this.manager.showSeriesLabels ? "" : displayName,
                 annotation: getAnnotationsForSeries(
                     this.annotationsMap,
                     seriesName
@@ -894,7 +893,7 @@ export class LineChart
         return (
             this.boundsWithoutColorLegend
                 .padRight(
-                    this.manager.showLegend ? this.verticalLabelsWidth : 1
+                    this.manager.showSeriesLabels ? this.verticalLabelsWidth : 1
                 )
                 // The top padding leaves room for tick labels.
                 // No padding is needed when plotted on a log axis because the
@@ -923,7 +922,7 @@ export class LineChart
     }
 
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
-        if (!this.manager.showLegend) {
+        if (!this.manager.showSeriesLabels) {
             const numericLegendData = this.hasColorScale
                 ? this.numericLegendData
                 : []

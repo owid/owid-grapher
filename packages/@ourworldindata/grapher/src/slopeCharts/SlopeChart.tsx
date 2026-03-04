@@ -326,7 +326,7 @@ export class SlopeChart
     }
 
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
-        if (!this.manager.showLegend) {
+        if (!this.manager.showSeriesLabels) {
             const categoricalLegendData = this.series.map(
                 (series, index) =>
                     new CategoricalBin({
@@ -396,7 +396,7 @@ export class SlopeChart
     }
 
     @computed private get leftLabelsMaxLevel(): number {
-        if (!this.manager.showLegend) return 0
+        if (!this.manager.showSeriesLabels) return 0
 
         // can't use `leftLabelsState` due to a circular dependency
         const series = this.series.map((series) =>
@@ -594,7 +594,7 @@ export class SlopeChart
                 series,
                 (series) => series.end.value,
                 {
-                    showSeriesName: this.manager.showLegend,
+                    showSeriesName: this.manager.showSeriesLabels,
                     showAnnotation: !this.useCompactLayout,
                 }
             )
@@ -633,7 +633,7 @@ export class SlopeChart
     }
 
     @computed private get shouldShowSeriesNamesInLeftLabels(): boolean {
-        return this.leftLabelsMaxLevel >= 4 && !!this.manager.showLegend
+        return this.leftLabelsMaxLevel >= 4 && !!this.manager.showSeriesLabels
     }
 
     private updateTooltipPosition(event: SVGMouseOrTouchEvent): void {

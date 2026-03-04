@@ -354,7 +354,7 @@ paths:
             description: |-
                 Returns the raw configuration for the grapher chart.
 
-                The config follows the [Grapher JSON schema](https://files.ourworldindata.org/schemas/grapher-schema.009.json).
+                The config follows the [Grapher JSON schema](https://files.ourworldindata.org/schemas/grapher-schema.010.json).
             operationId: getChartConfig
             tags:
                 - Metadata
@@ -369,7 +369,7 @@ paths:
                             schema:
                                 type: object
                                 description: |-
-                                    Grapher chart configuration object. See the [Grapher JSON schema](https://files.ourworldindata.org/schemas/grapher-schema.009.json) for the full specification.
+                                    Grapher chart configuration object. See the [Grapher JSON schema](https://files.ourworldindata.org/schemas/grapher-schema.010.json) for the full specification.
                             examples:
                                 life-expectancy:
                                     summary: Life expectancy config
@@ -379,7 +379,7 @@ paths:
                                         id: 64
                                         slug: life-expectancy
                                         title: Life expectancy
-                                        $schema: https://files.ourworldindata.org/schemas/grapher-schema.009.json
+                                        $schema: https://files.ourworldindata.org/schemas/grapher-schema.010.json
                                         version: 62
                                         hasMapTab: true
                                         originUrl: /life-expectancy

@@ -40,6 +40,7 @@ export interface ChartManager {
     isRelativeMode?: boolean
     comparisonLines?: ComparisonLineConfig[]
     showLegend?: boolean
+    showSeriesLabels?: boolean
     tooltip?: TooltipManager["tooltip"]
     baseColorScheme?: ColorSchemeName
     invertColorScheme?: boolean
