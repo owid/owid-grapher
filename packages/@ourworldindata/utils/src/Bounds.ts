@@ -116,6 +116,10 @@ export class Bounds {
         return bounds
     }
 
+    static forDot(x: number, y: number, radius: number): Bounds {
+        return new Bounds(x - radius, y - radius, radius * 2, radius * 2)
+    }
+
     readonly x: number
     readonly y: number
     readonly width: number
