@@ -271,9 +271,12 @@ function KeyIndicatorHeader({
                         {linkedIndicator.title}
                     </span>
                     {source && (
-                        <span className="key-indicator-header__source">
-                            {source}
-                        </span>
+                        <>
+                            {" "}
+                            <span className="key-indicator-header__source">
+                                {source}
+                            </span>
+                        </>
                     )}
                 </div>
             </div>

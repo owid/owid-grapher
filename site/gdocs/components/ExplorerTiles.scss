@@ -23,6 +23,9 @@
     }
     .explorer-tiles-grid {
         row-gap: var(--grid-gap);
+        list-style: none;
+        margin: 0;
+        padding: 0;
         @include md-down {
             grid-template-rows: repeat(2, 1fr);
             column-gap: var(--grid-gap);
@@ -33,6 +36,8 @@
         background-image: url("https://ourworldindata.org/explorer-thumbnail.webp");
         background-size: cover;
         background-position: center;
+        width: 100%;
+        height: 100%;
         padding: 16px;
         display: flex;
         flex-wrap: wrap;

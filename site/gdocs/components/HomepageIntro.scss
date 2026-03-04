@@ -39,12 +39,14 @@
 }
 
 .homepage-intro__featured-tile {
+    display: block;
     border: 1px solid $blue-10;
     padding: 16px;
     color: $blue-90;
     align-self: start;
     margin-bottom: 24px;
     transition: border-color 0.125s;
+
     &:hover {
         border-color: $blue-30;
     }
@@ -76,7 +78,7 @@
     color: $vermillion;
     padding: 2px 4px;
     border-radius: 2px;
-    margin-right: 8px;
+    margin-right: 5px;
 }
 
 .homepage-intro__featured-work-kicker {
@@ -253,7 +255,7 @@
 
     .newsletter-subscription-form__label-frequency {
         display: inline;
-        margin-left: 6px;
+        margin-left: 2px;
     }
 
     .newsletter-subscription-form__email-submit {

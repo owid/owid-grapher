@@ -3,6 +3,7 @@ import * as React from "react"
 import { OwidGdocType, ArchiveContext } from "@ourworldindata/types"
 import { OwidGdocPageProps } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
+import { useIsClient } from "usehooks-ts"
 import { GdocPost } from "./pages/GdocPost.js"
 import { DataInsightPage } from "./pages/DataInsight.js"
 import { Fragment } from "./pages/Fragment.js"
@@ -13,24 +14,47 @@ import { AttachmentsContext } from "./AttachmentsContext.js"
 import { DocumentContext } from "./DocumentContext.js"
 import { AnnouncementPage } from "./pages/Announcement.js"
 import { Profile } from "./pages/Profile.js"
-
-function AdminLinks() {
-    return (
-        <div id="gdoc-admin-bar">
-            <a href="#" id="gdoc-link">
-                Gdoc
-            </a>
-            <span>/</span>
-            <a href="#" id="admin-link">
-                Admin
-            </a>
-        </div>
-    )
-}
+import { ADMIN_BASE_URL } from "../../settings/clientSettings.js"
+import { CookieKey } from "@ourworldindata/grapher"
 
 type OwidGdocProps = OwidGdocPageProps & {
     isPreviewing?: boolean
     archiveContext?: ArchiveContext
+}
+
+function hasAdminCookie(): boolean {
+    try {
+        return document.cookie.includes(CookieKey.isAdmin)
+    } catch {
+        return false
+    }
+}
+
+function AdminLinks({ id }: Pick<OwidGdocPageProps, "id">) {
+    const isClient = useIsClient()
+    if (!isClient || !id || !hasAdminCookie()) return null
+
+    return (
+        <div className="gdoc-admin-bar">
+            <a
+                href={`https://docs.google.com/document/d/${id}/edit`}
+                id="gdoc-link"
+                target="_blank"
+                rel="noopener"
+            >
+                Gdoc
+            </a>
+            <span>/</span>
+            <a
+                href={`${ADMIN_BASE_URL}/admin/gdocs/${id}/preview`}
+                id="admin-link"
+                target="_blank"
+                rel="noopener"
+            >
+                Admin
+            </a>
+        </div>
+    )
 }
 
 export function OwidGdoc({
@@ -112,7 +136,7 @@ export function OwidGdoc({
             }}
         >
             <DocumentContext.Provider value={{ isPreviewing, archiveContext }}>
-                <AdminLinks />
+                <AdminLinks id={props.id} />
                 {content}
             </DocumentContext.Provider>
         </AttachmentsContext.Provider>

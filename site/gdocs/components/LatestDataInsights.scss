@@ -25,9 +25,13 @@ html:not(.js-enabled) .latest-data-insights__viewport {
     display: flex;
     gap: var(--grid-gap);
     scrollbar-width: thin;
+    list-style: none;
+    margin: 0;
+    padding: 0;
 }
 
 .latest-data-insights__card {
+    flex: 0 0 845px;
     height: 322px;
     transition:
         opacity 0.2s ease-in-out,
@@ -48,8 +52,8 @@ html:not(.js-enabled) .latest-data-insights__card,
 
 .latest-data-insights__card__data-insight {
     display: flex;
+    height: 100%;
     gap: 16px 24px;
-    flex: 0 0 845px;
     color: $blue-90;
     background: $blue-20;
     padding: 16px;
@@ -79,7 +83,8 @@ html:not(.js-enabled) .latest-data-insights__card,
     }
 }
 
-.latest-data-insights__card__data-insight.is-snapped {
+.latest-data-insights__card.is-snapped
+    .latest-data-insights__card__data-insight {
     box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.08);
 }
 

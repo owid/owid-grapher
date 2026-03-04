@@ -84,7 +84,11 @@ function FeaturedWorkTile({
             {kicker && (
                 <span className="h6-black-caps homepage-intro__featured-work-kicker">
                     {isNew && (
-                        <span className="homepage-intro__new-tag">New</span>
+                        <>
+                            <span className="homepage-intro__new-tag">
+                                New
+                            </span>{" "}
+                        </>
                     )}
                     {kicker}
                 </span>
