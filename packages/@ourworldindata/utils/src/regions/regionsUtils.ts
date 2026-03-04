@@ -75,16 +75,16 @@ export const listedRegionsNames = lazy(() =>
         .map((entity) => entity.name)
 )
 
-export const getRegionDataProviders = lazy(() => [
-    ...new Set(
+export const getRegionDataProviders = lazy(() =>
+    _.uniq(
         regions
             .filter(
                 (r): r is AggregateWithDefinedBy =>
                     r.regionType === "aggregate" && "definedBy" in r
             )
             .map((r) => r.definedBy)
-    ),
-])
+    )
+)
 
 export const getAggregatesByProvider = (
     provider: RegionDataProvider
