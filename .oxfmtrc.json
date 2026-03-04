@@ -1,8 +1,9 @@
 {
     "$schema": "./node_modules/oxfmt/configuration_schema.json",
-    "trailingComma": "es5",
-    "semi": false,
     "printWidth": 80,
+    "semi": false,
+    "tabWidth": 4,
+    "trailingComma": "es5",
     "ignorePatterns": [
         ".tscache",
         "/bakedSite",
