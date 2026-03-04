@@ -7,7 +7,8 @@ import {
     type Polygon,
     type MultiPolygon,
 } from "geojson"
-import { format } from "oxfmt"
+import { format, FormatOptions } from "oxfmt"
+import oxfmtConfig from "../../.oxfmtrc.json"
 import * as _ from "lodash-es"
 
 const ETL_REGIONS_URL =
@@ -122,7 +123,11 @@ const GENERATED_FILE_HEADER = [
 ].join("\n")
 
 async function prettifiedTs(content: string): Promise<string> {
-    const result = await format("input.ts", content, { semi: false })
+    const result = await format(
+        "input.ts",
+        content,
+        oxfmtConfig as FormatOptions
+    )
     return result.code
 }
 

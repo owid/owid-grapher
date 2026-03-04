@@ -1,6 +1,7 @@
 import { writeFile } from "fs/promises"
 import { Position } from "geojson"
-import { format } from "oxfmt"
+import { format, FormatOptions } from "oxfmt"
+import oxfmtConfig from "../../.oxfmtrc.json"
 import * as R from "remeda"
 import {
     GeoFeatures,
@@ -34,7 +35,11 @@ interface PoleOfInaccessibility {
 }
 
 async function prettifiedJson(obj: any): Promise<string> {
-    const result = await format("input.json", JSON.stringify(obj))
+    const result = await format(
+        "input.json",
+        JSON.stringify(obj),
+        oxfmtConfig as FormatOptions
+    )
     return result.code
 }
 

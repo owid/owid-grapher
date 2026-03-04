@@ -47,7 +47,8 @@ import {
     GRAPHER_THUMBNAIL_HEIGHT,
     mapGrapherTabNameToQueryParam,
 } from "@ourworldindata/grapher"
-import { format } from "oxfmt"
+import { format, FormatOptions } from "oxfmt"
+import oxfmtConfig from "../../.oxfmtrc.json"
 import { hashMd5 } from "../../serverUtils/hash.js"
 import * as R from "remeda"
 import ReactDOMServer from "react-dom/server"
@@ -557,7 +558,7 @@ async function prepareSvgForComparison(svg: string): Promise<string> {
 }
 
 async function formatSvg(svg: string): Promise<string> {
-    const result = await format("input.html", svg)
+    const result = await format("input.html", svg, oxfmtConfig as FormatOptions)
     return result.code
 }
 
