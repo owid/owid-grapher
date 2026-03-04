@@ -8,12 +8,10 @@ export const SearchNoResults = () => {
                 className="search-no-results__icon"
                 icon={faSearch}
             />
-            <h2 className="body-1-regular">
-                No results found for this query.
-            </h2>
+            <h2 className="body-1-regular">No results found for this query.</h2>
             <p className="body-3-medium">
-                Try exploring a suggested topic above, or search for
-                something else.
+                Try exploring a suggested topic above, or search for something
+                else.
             </p>
         </div>
     )
