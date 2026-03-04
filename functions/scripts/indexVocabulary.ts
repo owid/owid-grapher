@@ -2,7 +2,7 @@
  * Cloudflare Worker script to index vocabulary keywords into Vectorize.
  *
  * This script:
- * 1. Loads vocabulary data from topic_vocabulary.json
+ * 1. Fetches vocabulary data from https://owid-public.owid.io/topic_vocabulary.json
  * 2. Generates embeddings using Workers AI
  * 3. Upserts vectors with metadata to Vectorize
  *
@@ -14,7 +14,9 @@
  */
 
 import { Env } from "../_common/env.js"
-import vocabularyData from "./topic_vocabulary.json"
+
+const VOCABULARY_URL =
+    "https://owid-public.owid.io/topic_vocabulary.json"
 
 interface TopicVocabulary {
     topic_slug: string
@@ -43,8 +45,18 @@ interface KeywordMetadata {
 const EMBEDDING_MODEL = "@cf/baai/bge-base-en-v1.5"
 const EMBEDDING_BATCH_SIZE = 100
 
-// Load real vocabulary data from JSON file
-const VOCABULARY_DATA = vocabularyData as VocabularyData
+/**
+ * Fetch vocabulary data from the public URL
+ */
+async function fetchVocabularyData(): Promise<VocabularyData> {
+    const response = await fetch(VOCABULARY_URL)
+    if (!response.ok) {
+        throw new Error(
+            `Failed to fetch vocabulary data: ${response.status} ${response.statusText}`
+        )
+    }
+    return (await response.json()) as VocabularyData
+}
 
 /**
  * Normalize a keyword for consistent matching
@@ -135,14 +147,17 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     try {
         const startTime = Date.now()
 
+        // Fetch vocabulary data from public URL
+        const vocabularyData = await fetchVocabularyData()
+
         // Filter vocabulary by topic if specified
         const filteredVocabulary = topicFilter
             ? Object.fromEntries(
-                  Object.entries(VOCABULARY_DATA).filter(
+                  Object.entries(vocabularyData).filter(
                       ([slug]) => slug === topicFilter
                   )
               )
-            : VOCABULARY_DATA
+            : vocabularyData
 
         // Flatten vocabulary into keyword-topic pairs
         const keywordPairs: Array<{

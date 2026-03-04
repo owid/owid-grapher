@@ -4,20 +4,75 @@ import {
     validateQueryParams,
     COMMON_SEARCH_PARAMS,
 } from "../utils.js"
-import topicsData from "./topics.json"
-
-// Pre-build topics list for LLM (cacheable in system message)
-const TOPICS_LIST = topicsData.map((t) => `- ${t.name}`).join("\n")
 
 const DEFAULT_LIMIT = 10
 const MAX_LIMIT = 50
+const SEMANTIC_CANDIDATES = 10
 const EMBEDDING_MODEL = "@cf/baai/bge-base-en-v1.5"
+const LLM_MODEL = "@cf/meta/llama-3.1-8b-instruct-fast"
+const DATASETTE_URL = "https://datasette-public.owid.io/owid.json"
 
 interface TopicData {
     id: number
     name: string
     slug: string
     excerpt: string
+}
+
+interface DatasetteResponse {
+    ok: boolean
+    rows: Array<[number, string, string, string | null]>
+    error?: string | null
+}
+
+// NOTE: Fetching topics from Datasette on cold start adds ~200-500ms latency.
+// If this becomes a performance issue, consider switching back to a static
+// topics.json file (generate with: npx tsx functions/scripts/generateTopicsJson.ts).
+let topicsCache: TopicData[] | null = null
+let topicsListCache: string | null = null
+
+async function getTopics(): Promise<TopicData[]> {
+    if (topicsCache) return topicsCache
+
+    const sql = `
+        SELECT t.id, t.name, t.slug, p.content->>'$.excerpt' AS excerpt
+        FROM tags t
+        JOIN posts_gdocs p ON t.slug = p.slug
+        WHERE t.slug IS NOT NULL
+            AND p.published = 1
+            AND p.type IN ('topic-page', 'linear-topic-page')
+        ORDER BY t.name ASC
+    `
+    const url = `${DATASETTE_URL}?sql=${encodeURIComponent(sql)}`
+    const response = await fetch(url)
+
+    if (!response.ok) {
+        throw new Error(
+            `Datasette request failed: ${response.status} ${response.statusText}`
+        )
+    }
+
+    const data = (await response.json()) as DatasetteResponse
+    if (!data.ok || data.error) {
+        throw new Error(
+            `Datasette query error: ${data.error || "Unknown error"}`
+        )
+    }
+
+    topicsCache = data.rows.map(([id, name, slug, excerpt]) => ({
+        id,
+        name,
+        slug,
+        excerpt: excerpt || "",
+    }))
+    return topicsCache
+}
+
+async function getTopicsList(): Promise<string> {
+    if (topicsListCache) return topicsListCache
+    const topics = await getTopics()
+    topicsListCache = topics.map((t) => `- ${t.name}`).join("\n")
+    return topicsListCache
 }
 
 /**
@@ -40,7 +95,7 @@ interface TopicsApiResponse {
     query: string
     hits: TopicHit[]
     nbHits: number
-    mode: "semantic" | "llm"
+    source: "semantic" | "llm"
     timing_ms: number
 }
 
@@ -104,6 +159,59 @@ async function searchTopicsWithVectorize(
 }
 
 /**
+ * Use LLM to filter semantic topic candidates to only strongly relevant ones.
+ */
+async function filterTopicsWithLLM(
+    env: Env,
+    query: string,
+    candidates: TopicHit[],
+    limit: number
+): Promise<TopicHit[]> {
+    const candidateList = candidates.map((c) => `- ${c.name}`).join("\n")
+
+    const userMessage = `Given this search query: "${query}"
+
+These topic candidates were found via semantic search:
+${candidateList}
+
+Select ONLY topics that are DIRECTLY and STRONGLY related to the query.
+- Exclude topics that are only tangentially or loosely related
+- Better to return fewer highly relevant topics than many weak ones
+- If none are strongly relevant, return an empty array []
+- Maximum ${limit} topics
+- Return ONLY a JSON array of topic names`
+
+    const response = (await (
+        env.AI.run as (
+            model: string,
+            options: object
+        ) => Promise<{ response?: string } | string>
+    )(LLM_MODEL, {
+        messages: [{ role: "user", content: userMessage }],
+        temperature: 0,
+        max_tokens: 300,
+    })) as { response?: string } | string
+
+    const text =
+        typeof response === "string" ? response : response.response || ""
+    if (!text) return candidates.slice(0, limit)
+
+    console.log("Topics LLM filter response:", text)
+
+    const jsonMatch = text.match(/\[[\s\S]*?\]/)
+    if (!jsonMatch) return candidates.slice(0, limit)
+
+    try {
+        const selectedNames = JSON.parse(jsonMatch[0]) as string[]
+        const nameSet = new Set(selectedNames)
+        const filtered = candidates.filter((c) => nameSet.has(c.name))
+        return filtered.slice(0, limit)
+    } catch {
+        return candidates.slice(0, limit)
+    }
+}
+
+/**
  * Recommend topics using LLM
  */
 async function recommendTopicsWithLLM(
@@ -112,7 +220,8 @@ async function recommendTopicsWithLLM(
     limit: number,
     baseUrl: string
 ): Promise<TopicHit[]> {
-    const systemMessage = `Here are all available topics:\n${TOPICS_LIST}`
+    const topicsList = await getTopicsList()
+    const systemMessage = `Here are all available topics:\n${topicsList}`
     const userMessage = `Given this query: "${query}"
 
 Recommend ONLY topics that are DIRECTLY and STRONGLY related to this query.
@@ -163,9 +272,10 @@ Recommend ONLY topics that are DIRECTLY and STRONGLY related to this query.
         console.log("Recommended names:", recommendedNames)
 
         // Map names back to topic objects
+        const topics = await getTopics()
         const hits = recommendedNames
             .map((name, index) => {
-                const topic = topicsData.find((t) => t.name === name)
+                const topic = topics.find((t) => t.name === name)
                 if (!topic) return null
                 return {
                     id: topic.id,
@@ -190,7 +300,8 @@ Recommend ONLY topics that are DIRECTLY and STRONGLY related to this query.
 const VALID_PARAMS = new Set([
     COMMON_SEARCH_PARAMS.QUERY, // "q"
     "limit",
-    "mode",
+    "source",
+    "llm_filter",
 ])
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
@@ -208,15 +319,16 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         // Parse query parameter
         const query = url.searchParams.get(COMMON_SEARCH_PARAMS.QUERY) || ""
 
-        // Parse mode parameter
-        const mode = (url.searchParams.get("mode") || "semantic") as
+        // source=semantic (default): use Vectorize embeddings
+        // source=llm: use LLM to recommend topics
+        const source = (url.searchParams.get("source") || "semantic") as
             | "semantic"
             | "llm"
-        if (mode !== "semantic" && mode !== "llm") {
+        if (source !== "semantic" && source !== "llm") {
             return new Response(
                 JSON.stringify({
-                    error: "Invalid mode parameter",
-                    details: "Mode must be 'semantic' or 'llm'",
+                    error: "Invalid source parameter",
+                    details: "source must be 'semantic' or 'llm'",
                 }),
                 {
                     status: 400,
@@ -239,9 +351,13 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             MAX_LIMIT
         )
 
+        // llm_filter (default true): use LLM to filter semantic candidates
+        const llmFilter =
+            url.searchParams.get("llm_filter") !== "false"
+
         let response: TopicsApiResponse
 
-        if (mode === "llm") {
+        if (source === "llm") {
             // LLM-based recommendations
             const hits = await recommendTopicsWithLLM(
                 env,
@@ -254,24 +370,31 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 query,
                 hits,
                 nbHits: hits.length,
-                mode: "llm",
+                source: "llm",
                 timing_ms,
             }
         } else {
             // Semantic search via Vectorize
-            const hits = await searchTopicsWithVectorize(
+            const candidateLimit = llmFilter
+                ? SEMANTIC_CANDIDATES
+                : limit
+            const candidates = await searchTopicsWithVectorize(
                 env,
                 query,
-                limit,
+                candidateLimit,
                 baseUrl
             )
+
+            const hits = llmFilter
+                ? await filterTopicsWithLLM(env, query, candidates, limit)
+                : candidates
 
             const timing_ms = Math.round(performance.now() - startTime)
             response = {
                 query,
                 hits,
                 nbHits: hits.length,
-                mode: "semantic",
+                source: "semantic",
                 timing_ms,
             }
         }

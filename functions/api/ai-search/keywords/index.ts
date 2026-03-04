@@ -1,23 +1,19 @@
 import { Env } from "../../../_common/env.js"
 import { validateQueryParams, COMMON_SEARCH_PARAMS } from "../utils.js"
 
-// LLM model for query rewriting
 const LLM_MODEL = "@cf/meta/llama-3.1-8b-instruct-fast"
 const EMBEDDING_MODEL = "@cf/baai/bge-base-en-v1.5"
 
-// Valid query parameter names for this endpoint
 const VALID_PARAMS = new Set([
     COMMON_SEARCH_PARAMS.QUERY,
     "limit",
-    "use_vocabulary",
-    "vocabulary_limit",
-    "vocabulary_filter",
+    "source",
+    "llm_filter",
 ])
 
 const DEFAULT_LIMIT = 3
 const MAX_LIMIT = 10
-const DEFAULT_VOCABULARY_LIMIT = 20
-const MAX_VOCABULARY_LIMIT = 50
+const VOCABULARY_CANDIDATES = 20
 
 interface VocabularyCandidate {
     keyword: string
@@ -26,16 +22,15 @@ interface VocabularyCandidate {
     score: number
 }
 
-interface RewriteResponse {
+interface KeywordsResponse {
     query: string
     keywords: string[]
     timing: {
         total_ms: number
-        vocabulary_search_ms?: number
+        search_ms?: number
         llm_ms?: number
     }
     vocabulary?: {
-        mode: "semantic" | "llm" | "both"
         candidates?: VocabularyCandidate[]
         matched: number
     }
@@ -67,16 +62,13 @@ async function searchVocabulary(
     query: string,
     limit: number
 ): Promise<VocabularyCandidate[]> {
-    // Generate embedding for the query
     const queryEmbedding = await generateQueryEmbedding(env.AI, query)
 
-    // Query Vectorize with the embedding
     const results = await env.VECTORIZE_VOCABULARY.query(queryEmbedding, {
         topK: limit,
         returnMetadata: "all",
     })
 
-    // Transform results to VocabularyCandidate format
     return results.matches.map((match) => {
         const metadata = match.metadata as unknown as {
             keyword: string
@@ -94,9 +86,9 @@ async function searchVocabulary(
 }
 
 /**
- * Filter keywords using LLM with vocabulary constraints
+ * Use LLM to pick the most relevant keywords from vocabulary candidates.
  */
-async function filterWithLLM(
+async function selectKeywordsWithLLM(
     env: Env,
     query: string,
     vocabularyCandidates: VocabularyCandidate[],
@@ -134,23 +126,22 @@ Query: "${query}"`
     const text =
         typeof response === "string" ? response : response.response || ""
     if (!text) {
-        throw new Error("LLM filtering: empty response from model")
+        throw new Error("Keywords LLM selection: empty response from model")
     }
 
-    console.log("LLM filtering response:", text)
+    console.log("Keywords LLM selection response:", text)
 
-    // Extract JSON array from response
     const jsonMatch = text.match(/\[[\s\S]*?\]/)
     if (!jsonMatch) {
         throw new Error(
-            `LLM filtering: no JSON array found in response: ${text}`
+            `Keywords LLM selection: no JSON array found in response: ${text}`
         )
     }
 
     const keywords = JSON.parse(jsonMatch[0]) as string[]
     if (!Array.isArray(keywords)) {
         throw new Error(
-            `LLM filtering: invalid array in response: ${jsonMatch[0]}`
+            `Keywords LLM selection: invalid array in response: ${jsonMatch[0]}`
         )
     }
 
@@ -158,9 +149,12 @@ Query: "${query}"`
 }
 
 /**
- * Use LLM to convert a natural language query into keywords for Algolia search.
+ * Use LLM to generate keywords directly (no vocabulary constraints).
  */
-async function rewriteQuery(env: Env, query: string): Promise<string[]> {
+async function generateKeywordsWithLLM(
+    env: Env,
+    query: string
+): Promise<string[]> {
     const userMessage = `Rewrite this query into 1-5 keywords for searching Our World in Data charts.
 
 Rules:
@@ -189,23 +183,22 @@ Query: "${query}"
     const text =
         typeof response === "string" ? response : response.response || ""
     if (!text) {
-        throw new Error("Query rewrite: empty response from model")
+        throw new Error("Keywords LLM generation: empty response from model")
     }
 
-    console.log("Query rewrite response:", text)
+    console.log("Keywords LLM generation response:", text)
 
-    // Extract JSON array from response
     const jsonMatch = text.match(/\[[\s\S]*?\]/)
     if (!jsonMatch) {
         throw new Error(
-            `Query rewrite: no JSON array found in response: ${text}`
+            `Keywords LLM generation: no JSON array found in response: ${text}`
         )
     }
 
     const keywords = JSON.parse(jsonMatch[0]) as string[]
     if (!Array.isArray(keywords)) {
         throw new Error(
-            `Query rewrite: invalid array in response: ${jsonMatch[0]}`
+            `Keywords LLM generation: invalid array in response: ${jsonMatch[0]}`
         )
     }
 
@@ -218,11 +211,9 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     const startTime = Date.now()
 
     try {
-        // Validate query parameters
         const validationError = validateQueryParams(url, VALID_PARAMS)
         if (validationError) return validationError
 
-        // Parse query parameter
         const query = url.searchParams.get(COMMON_SEARCH_PARAMS.QUERY) || ""
 
         if (!query) {
@@ -241,7 +232,6 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             )
         }
 
-        // Parse result limit (how many keywords to return)
         const limit = Math.min(
             Math.max(
                 1,
@@ -252,79 +242,35 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             MAX_LIMIT
         )
 
-        // Parse vocabulary parameters
-        // Default to using vocabulary search with LLM filtering
-        const useVocabulary = url.searchParams.get("use_vocabulary") !== "false"
-        const vocabularyLimit = Math.min(
-            Math.max(
-                1,
-                parseInt(
-                    url.searchParams.get("vocabulary_limit") ||
-                        DEFAULT_VOCABULARY_LIMIT.toString()
-                )
-            ),
-            MAX_VOCABULARY_LIMIT
-        )
-        const vocabularyFilter = (url.searchParams.get("vocabulary_filter") ||
-            "both") as "semantic" | "llm" | "both"
+        // source=semantic (default): use pre-indexed vocabulary via Vectorize
+        // source=llm: use LLM directly without vocabulary constraints
+        const source = (url.searchParams.get("source") || "semantic") as
+            | "semantic"
+            | "llm"
 
-        // Validate vocabulary_filter parameter
-        if (
-            useVocabulary &&
-            vocabularyFilter !== "semantic" &&
-            vocabularyFilter !== "llm" &&
-            vocabularyFilter !== "both"
-        ) {
-            return new Response(
-                JSON.stringify({
-                    error: "Invalid vocabulary_filter parameter",
-                    details:
-                        "vocabulary_filter must be 'semantic', 'llm', or 'both'",
-                }),
-                {
-                    status: 400,
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Access-Control-Allow-Origin": "*",
-                    },
-                }
-            )
-        }
+        // llm_filter (default true): use LLM to pick best keywords from candidates
+        const llmFilter =
+            url.searchParams.get("llm_filter") !== "false"
 
         let keywords: string[]
-        let vocabularySearchMs: number | undefined
+        let searchMs: number | undefined
         let llmMs: number | undefined
         let vocabularyCandidates: VocabularyCandidate[] | undefined
 
-        if (useVocabulary) {
-            // Vocabulary-based search
-            if (vocabularyFilter === "semantic") {
-                // Mode 1: Semantic search only
-                const vocabStart = Date.now()
-                vocabularyCandidates = await searchVocabulary(
-                    env,
-                    query,
-                    vocabularyLimit
-                )
-                vocabularySearchMs = Date.now() - vocabStart
+        if (source === "semantic") {
+            // Step 1: Semantic search to find vocabulary candidates
+            const searchStart = Date.now()
+            vocabularyCandidates = await searchVocabulary(
+                env,
+                query,
+                VOCABULARY_CANDIDATES
+            )
+            searchMs = Date.now() - searchStart
 
-                keywords = vocabularyCandidates
-                    .map((c) => c.keyword)
-                    .slice(0, limit)
-            } else if (vocabularyFilter === "llm") {
-                // Mode 2: LLM with all vocabulary
-                // For simplicity, we'll still use semantic search to get candidates
-                // In a real scenario, you might want to fetch all vocabulary
-                const vocabStart = Date.now()
-                vocabularyCandidates = await searchVocabulary(
-                    env,
-                    query,
-                    vocabularyLimit
-                )
-                vocabularySearchMs = Date.now() - vocabStart
-
+            if (llmFilter) {
+                // Step 2: LLM picks the best keywords from candidates
                 const llmStart = Date.now()
-                keywords = await filterWithLLM(
+                keywords = await selectKeywordsWithLLM(
                     env,
                     query,
                     vocabularyCandidates,
@@ -332,32 +278,19 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 )
                 llmMs = Date.now() - llmStart
             } else {
-                // Mode 3: Both (semantic + LLM filtering)
-                const vocabStart = Date.now()
-                vocabularyCandidates = await searchVocabulary(
-                    env,
-                    query,
-                    vocabularyLimit
-                )
-                vocabularySearchMs = Date.now() - vocabStart
-
-                const llmStart = Date.now()
-                keywords = await filterWithLLM(
-                    env,
-                    query,
-                    vocabularyCandidates,
-                    limit
-                )
-                llmMs = Date.now() - llmStart
+                // No LLM — return top semantic matches directly
+                keywords = vocabularyCandidates
+                    .map((c) => c.keyword)
+                    .slice(0, limit)
             }
         } else {
-            // Original LLM-only behavior
+            // source=llm — generate keywords directly without vocabulary
             const llmStart = Date.now()
-            keywords = await rewriteQuery(env, query)
+            keywords = await generateKeywordsWithLLM(env, query)
             llmMs = Date.now() - llmStart
         }
 
-        // Filter out keywords that are the same as the query
+        // Filter out keywords identical to the query
         const queryLower = query.toLowerCase().trim()
         keywords = keywords.filter(
             (kw) => kw.toLowerCase().trim() !== queryLower
@@ -366,22 +299,21 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         const endTime = Date.now()
 
         console.log(
-            `[AI Search rewrite] query="${query}" | total=${endTime - startTime}ms | keywords=${keywords.join(", ")}`
+            `[AI Search keywords] query="${query}" | total=${endTime - startTime}ms | keywords=${keywords.join(", ")}`
         )
 
-        const response: RewriteResponse = {
+        const response: KeywordsResponse = {
             query,
             keywords,
             timing: {
                 total_ms: endTime - startTime,
-                vocabulary_search_ms: vocabularySearchMs,
+                search_ms: searchMs,
                 llm_ms: llmMs,
             },
         }
 
-        if (useVocabulary && vocabularyCandidates) {
+        if (source === "vocabulary" && vocabularyCandidates) {
             response.vocabulary = {
-                mode: vocabularyFilter,
                 candidates: vocabularyCandidates,
                 matched: vocabularyCandidates.length,
             }
@@ -390,16 +322,16 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         return new Response(JSON.stringify(response, null, 2), {
             headers: {
                 "Content-Type": "application/json",
-                "Cache-Control": "public, max-age=3600", // Cache for 1 hour
+                "Cache-Control": "public, max-age=3600",
                 "Access-Control-Allow-Origin": "*",
             },
         })
     } catch (error) {
-        console.error("Query rewrite error:", error)
+        console.error("Keywords endpoint error:", error)
 
         return new Response(
             JSON.stringify({
-                error: "Query rewrite failed",
+                error: "Keyword suggestion failed",
                 message:
                     error instanceof Error ? error.message : "Unknown error",
             }),

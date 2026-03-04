@@ -10,7 +10,7 @@ interface RewriteResponse {
 
 async function fetchSuggestedKeywords(query: string): Promise<RewriteResponse> {
     const params = new URLSearchParams({ q: query })
-    const response = await fetch(`/api/ai-search/rewrite?${params}`)
+    const response = await fetch(`/api/ai-search/keywords?${params}`)
     return response.json()
 }
 
@@ -48,7 +48,7 @@ export const SearchSuggestedKeywords = () => {
                                 <FontAwesomeIcon icon={faSearch} />
                             </span>
                         }
-                        name={keyword}
+                        name={keyword.toLowerCase()}
                         interactive={true}
                     />
                 </button>
