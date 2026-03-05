@@ -26,6 +26,12 @@ export const experimentsMiddleware = async (
         return context.next()
     }
 
+    const response = await context.next()
+    const contentType = response.headers.get("content-type")
+    if (!contentType?.includes("text/html")) {
+        return response
+    }
+
     const cookies = cookie.parse(context.request.headers.get("cookie") || "")
     const cookiesToSet: ServerCookie[] = []
     const requestPath = new URL(context.request.url).pathname
@@ -77,18 +83,11 @@ export const experimentsMiddleware = async (
     )
 
     if (!cookiesToSet.length && !experimentClassNames.length) {
-        return context.next()
+        return response
     }
 
-    const response = await context.next()
     let responseWithBodyClasses = response
-    const contentType = response.headers.get("content-type")
-    const isHtmlResponse = contentType?.includes("text/html") ?? false
-    if (
-        isHtmlResponse &&
-        experimentClassNames.length &&
-        response.status === 200
-    ) {
+    if (experimentClassNames.length && response.status === 200) {
         responseWithBodyClasses = addClassNamesToBody(
             response,
             experimentClassNames
