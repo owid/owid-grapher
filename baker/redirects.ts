@@ -78,9 +78,13 @@ export const getCloudflarePagesRedirects = async (
 
     // Get redirects from the database (exported from the Wordpress DB)
     // Redirects are assumed to be trailing-slash-free (see syncRedirectsToGrapher.ts)
-    const siteRedirects = (await getSiteRedirects(knex)).map(
+    // Split into static and dynamic: Cloudflare requires all dynamic (wildcard)
+    // redirects to be at the very end of the _redirects file.
+    const allSiteRedirects = (await getSiteRedirects(knex)).map(
         (row) => `${row.source} ${row.target} ${row.code}`
     )
+    const siteRedirects = allSiteRedirects.filter((r) => !r.includes("*"))
+    const dynamicSiteRedirects = allSiteRedirects.filter((r) => r.includes("*"))
 
     // Prevent Cloudflare from serving outdated non-site pages (grapher,
     // explorers, multi-dims), which can remain in the cache for up to a week.
@@ -105,7 +109,9 @@ export const getCloudflarePagesRedirects = async (
         "",
         ...siteRedirects,
         "",
-        ...dynamicRedirects, // Cloudflare requires all dynamic redirects to be at the very end of the _redirects file
+        // Cloudflare requires all dynamic redirects to be at the very end of the _redirects file
+        ...dynamicSiteRedirects,
+        ...dynamicRedirects,
     ]
 }
 
