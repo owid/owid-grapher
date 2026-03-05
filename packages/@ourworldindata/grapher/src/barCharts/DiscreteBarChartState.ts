@@ -190,8 +190,7 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
     }
 
     @computed get colorColumnSlug(): string | undefined {
-        // Discrete bar charts only support numeric variables as color dimension
-        return this.manager.numericColorColumnSlug
+        return this.manager.colorColumnSlug
     }
 
     @computed get colorColumn(): CoreColumn {

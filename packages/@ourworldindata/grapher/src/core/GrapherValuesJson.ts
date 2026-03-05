@@ -10,8 +10,8 @@ import {
     OwidColumnDef,
     PrimitiveType,
     Time,
-    DimensionProperty,
     GrapherInterface,
+    TimeBoundValue,
 } from "@ourworldindata/types"
 import {
     excludeUndefined,
@@ -19,16 +19,16 @@ import {
     getTimeDomainFromQueryString,
     isNegativeInfinity,
     isPositiveInfinity,
-    minTimeBoundFromJSONOrNegativeInfinity,
-    maxTimeBoundFromJSONOrPositiveInfinity,
     omitUndefinedValues,
 } from "@ourworldindata/utils"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { GrapherState } from "./GrapherState"
 import { makeChartState } from "../chart/ChartTypeMap"
 import { MapChartState } from "../mapCharts/MapChartState"
-import { ChartDimension } from "../chart/ChartDimension"
-import { buildSourcesLineFromColumns } from "./sourcesLine"
+import {
+    buildSourcesLineFromColumns,
+    pickColumnsForSourcesLine,
+} from "./sourcesLine"
 
 export function constructGrapherValuesJson(
     grapherState: GrapherState,
@@ -257,38 +257,41 @@ export function prepareCalloutTable(
     inputTable: OwidTable,
     config: GrapherInterface
 ): PreparedCalloutTable {
-    const chartDimensions = (config.dimensions ?? []).map(
-        (d) => new ChartDimension(d, { table: inputTable })
-    )
+    const grapherState = new GrapherState(config)
 
-    // Extract column slugs from dimensions
-    const yColumnSlugs = chartDimensions
-        .filter((d) => d.property === DimensionProperty.y)
-        .map((d) => d.slug)
-
-    const xColumnSlug = chartDimensions.find(
-        (d) => d.property === DimensionProperty.x
-    )?.slug
+    const {
+        yColumnSlugs,
+        xColumnSlug,
+        colorColumnSlug,
+        sizeColumnSlug,
+        activeTab,
+        minTime = TimeBoundValue.negativeInfinity,
+        maxTime = TimeBoundValue.positiveInfinity,
+    } = grapherState
 
     // Get all relevant columns and build column info
-    const allSlugs = excludeUndefined([...yColumnSlugs, xColumnSlug])
+    const xySlugs = excludeUndefined([...yColumnSlugs, xColumnSlug])
     const columns = buildColumnInfoMap(
-        allSlugs.map((slug) => inputTable.get(slug))
+        xySlugs.map((slug) => inputTable.get(slug))
     )
 
     // Build sources line from columns
+    const columnSlugsForSourcesLine = pickColumnsForSourcesLine({
+        table: inputTable,
+        yColumnSlugs,
+        xColumnSlug,
+        sizeColumnSlug,
+        colorColumnSlug,
+        activeTab,
+    })
     const sourcesLine =
         config.sourceDesc ??
-        buildSourcesLineFromColumns(inputTable.getColumns(_.uniq(yColumnSlugs)))
+        buildSourcesLineFromColumns(
+            inputTable.getColumns(columnSlugsForSourcesLine)
+        )
 
     // Get sorted unique times from the table
     const times = inputTable.getTimesUniqSortedAscForColumns(yColumnSlugs)
-
-    // Parse configured time bounds using standard utilities.
-    // These return TimeBound values (-Infinity/+Infinity/number) which get
-    // resolved against actual times via findClosestTime downstream.
-    const minTime = minTimeBoundFromJSONOrNegativeInfinity(config.minTime)
-    const maxTime = maxTimeBoundFromJSONOrPositiveInfinity(config.maxTime)
 
     return {
         inputTable,

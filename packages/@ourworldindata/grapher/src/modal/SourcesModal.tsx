@@ -53,7 +53,7 @@ const TAB_TITLE_SPACING = 6
 export interface SourcesModalManager {
     isReady?: boolean
     adminBaseUrl?: string
-    columnsWithSourcesExtensive: CoreColumn[]
+    inputColumnsWithSources: CoreColumn[]
     showAdminControls?: boolean
     activeModal?: GrapherModal
     frameBounds?: Bounds
@@ -117,7 +117,7 @@ export class SourcesModal extends React.Component<SourcesModalProps> {
     }
 
     @computed private get columns(): CoreColumn[] {
-        return this.manager.columnsWithSourcesExtensive
+        return this.manager.inputColumnsWithSources
     }
 
     private makeTabLabelString(title: string, attribution?: string): string {
