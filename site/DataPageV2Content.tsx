@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useState } from "react"
+import { useMemo } from "react"
 import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import {
     REUSE_THIS_WORK_SECTION_ID,
@@ -13,9 +13,6 @@ import {
     joinTitleFragments,
     ImageMetadata,
     excludeNull,
-    defaultExperimentState,
-    getExperimentState,
-    ExperimentState,
 } from "@ourworldindata/utils"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import { FeaturedMetrics } from "./FeaturedMetrics.js"
@@ -33,6 +30,7 @@ import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import { DocumentContext } from "./gdocs/DocumentContext.js"
 import { BlockQueryClientProvider } from "./gdocs/components/BlockQueryClientProvider.js"
+import { experimentState } from "./experiments.js"
 
 declare global {
     interface Window {
@@ -101,15 +99,6 @@ export const DataPageV2Content = ({
 
     // note: experimentState should NOT be used to conditionally render content b/c
     // it will cause a flash of content before js loads.
-    const [experimentState, setExperimentState] = useState<ExperimentState>(
-        defaultExperimentState
-    )
-    useEffect(() => {
-        if (typeof window !== "undefined") {
-            const s = getExperimentState()
-            setExperimentState(s)
-        }
-    }, [])
     const { isPageInExperiment, assignedExperiments } = experimentState
 
     return (
