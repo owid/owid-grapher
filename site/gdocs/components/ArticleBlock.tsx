@@ -152,6 +152,13 @@ function ArticleBlockInternal({
 
             return (
                 <>
+                    {/*
+                     * The id is swapped between AllCharts and FeaturedMetrics based
+                     * on experiment arm so that the #all-charts sticky nav link always
+                     * scrolls to the visible element. Browsers won't scroll to a
+                     * display:none element, so a static id on AllCharts would break
+                     * navigation in the featured-metrics arm.
+                     */}
                     <AllCharts
                         {...block}
                         id={

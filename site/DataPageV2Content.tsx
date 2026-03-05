@@ -187,6 +187,14 @@ export const DataPageV2Content = ({
                                 relatedResearch={relatedResearch}
                             />
                         )}
+                        {/*
+                         * The id is swapped between the all-charts section and the
+                         * featured-metrics section based on experiment arm so that the
+                         * #all-charts sticky nav link always scrolls to the visible
+                         * element. Browsers won't scroll to a display:none element, so
+                         * a static id on the all-charts section would break navigation
+                         * in the featured-metrics arm.
+                         */}
                         {datapageData.allCharts &&
                         datapageData.allCharts.length > 0 ? (
                             <div
