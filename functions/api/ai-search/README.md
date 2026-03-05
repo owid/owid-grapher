@@ -48,7 +48,7 @@ Agentic chart recommendation using Gemini with AI SDK tool calling. The LLM sear
 | Param         | Type   | Default      | Description                                                      |
 | ------------- | ------ | ------------ | ---------------------------------------------------------------- |
 | `q`           | string | _(required)_ | Search query                                                     |
-| `hitsPerPage` | int    | `5`          | Max recommendations (max 10)                                     |
+| `hitsPerPage` | int    | `5`          | Max hits (max 10)                                                |
 | `model`       | string | `gemini`     | Gemini model alias (see below)                                   |
 | `search`      | string | `keyword`    | Search backend: `keyword` (Algolia) or `semantic` (CF AI Search) |
 | `type`        | string | `all`        | Filter: `chart`, `explorer`, `mdim`, `all`                       |

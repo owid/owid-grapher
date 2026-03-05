@@ -107,7 +107,7 @@ type RecommendedChart = ChartInfo
 interface RecommendResponse {
     query: string
     model: string
-    recommendations: RecommendedChart[] | MinimalChartInfo[]
+    hits: RecommendedChart[] | MinimalChartInfo[]
     searchQueries: string[]
     timing: {
         total_ms: number
@@ -163,7 +163,7 @@ type MinimalChartInfo = Pick<
 >
 
 /**
- * Strip verbose fields from recommendations to reduce response size.
+ * Strip verbose fields from hits to reduce response size.
  * Keeps only essential fields: title, subtitle, slug, url, variantName.
  */
 function stripVerboseFields(charts: RecommendedChart[]): MinimalChartInfo[] {
@@ -483,14 +483,14 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             )
         }
 
-        // Build recommendations from selected indexes
-        const recommendations: RecommendedChart[] = []
+        // Build hits from selected indexes
+        const hits: RecommendedChart[] = []
         const invalidIndexes: number[] = []
         for (const index of selectedIndexes) {
-            if (recommendations.length >= maxResults) break
+            if (hits.length >= maxResults) break
             const chart = allCharts[index]
             if (chart) {
-                recommendations.push(chart)
+                hits.push(chart)
             } else {
                 invalidIndexes.push(index)
             }
@@ -511,27 +511,25 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 `Model returned ${selectedIndexes.length} indexes, truncated to ${maxResults}`
             )
         }
-        if (recommendations.length === 0 && allCharts.length > 0) {
+        if (hits.length === 0 && allCharts.length > 0) {
             warnings.push(
-                "No valid recommendations: model returned empty or all-invalid indexes"
+                "No valid hits: model returned empty or all-invalid indexes"
             )
         }
 
         const endTime = Date.now()
 
         console.log(
-            `[AI Search agent] query="${query}" | model=${resolvedModel} | search=${searchMode} | total=${endTime - startTime}ms | agent=${agentEndTime - agentStartTime}ms | searches=${searchQueriesUsed.length} | results=${recommendations.length}`
+            `[AI Search agent] query="${query}" | model=${resolvedModel} | search=${searchMode} | total=${endTime - startTime}ms | agent=${agentEndTime - agentStartTime}ms | searches=${searchQueriesUsed.length} | results=${hits.length}`
         )
 
         // Strip verbose fields by default to reduce response size
-        const finalRecommendations = verbose
-            ? recommendations
-            : stripVerboseFields(recommendations)
+        const finalHits = verbose ? hits : stripVerboseFields(hits)
 
         const response: RecommendResponse = {
             query,
             model: resolvedModel,
-            recommendations: finalRecommendations,
+            hits: finalHits,
             searchQueries: searchQueriesUsed,
             timing: {
                 total_ms: endTime - startTime,

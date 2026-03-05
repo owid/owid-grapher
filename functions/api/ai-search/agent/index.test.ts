@@ -221,7 +221,7 @@ describe("AI Search Agent API endpoint", () => {
             ] as any)
         })
 
-        it("returns recommendations in correct format", async () => {
+        it("returns hits in correct format", async () => {
             const request = new Request(
                 "http://localhost/api/ai-search/agent?q=population"
             )
@@ -241,7 +241,7 @@ describe("AI Search Agent API endpoint", () => {
             const body = (await response.json()) as {
                 query: string
                 model: string
-                recommendations: Array<{
+                hits: Array<{
                     title: string
                     slug: string
                     url: string
@@ -251,9 +251,9 @@ describe("AI Search Agent API endpoint", () => {
             }
 
             expect(body.query).toBe("population")
-            expect(body.recommendations).toHaveLength(2)
-            expect(body.recommendations[0].title).toBe("Population Growth")
-            expect(body.recommendations[0].slug).toBe("population-growth")
+            expect(body.hits).toHaveLength(2)
+            expect(body.hits[0].title).toBe("Population Growth")
+            expect(body.hits[0].slug).toBe("population-growth")
             expect(body.timing).toHaveProperty("total_ms")
             expect(body.timing).toHaveProperty("agent_ms")
         })
@@ -268,19 +268,17 @@ describe("AI Search Agent API endpoint", () => {
             } as any)
 
             const body = (await response.json()) as {
-                recommendations: Array<Record<string, unknown>>
+                hits: Array<Record<string, unknown>>
             }
 
             // Should not include availableEntities, availableTabs, type
-            expect(body.recommendations[0]).not.toHaveProperty(
-                "availableEntities"
-            )
-            expect(body.recommendations[0]).not.toHaveProperty("availableTabs")
-            expect(body.recommendations[0]).not.toHaveProperty("type")
+            expect(body.hits[0]).not.toHaveProperty("availableEntities")
+            expect(body.hits[0]).not.toHaveProperty("availableTabs")
+            expect(body.hits[0]).not.toHaveProperty("type")
             // Should include essential fields
-            expect(body.recommendations[0]).toHaveProperty("title")
-            expect(body.recommendations[0]).toHaveProperty("slug")
-            expect(body.recommendations[0]).toHaveProperty("url")
+            expect(body.hits[0]).toHaveProperty("title")
+            expect(body.hits[0]).toHaveProperty("slug")
+            expect(body.hits[0]).toHaveProperty("url")
         })
 
         it("includes all fields when verbose=true", async () => {
@@ -293,12 +291,12 @@ describe("AI Search Agent API endpoint", () => {
             } as any)
 
             const body = (await response.json()) as {
-                recommendations: Array<Record<string, unknown>>
+                hits: Array<Record<string, unknown>>
             }
 
-            expect(body.recommendations[0]).toHaveProperty("availableEntities")
-            expect(body.recommendations[0]).toHaveProperty("availableTabs")
-            expect(body.recommendations[0]).toHaveProperty("type")
+            expect(body.hits[0]).toHaveProperty("availableEntities")
+            expect(body.hits[0]).toHaveProperty("availableTabs")
+            expect(body.hits[0]).toHaveProperty("type")
         })
 
         it("includes debug info when debug=true", async () => {
@@ -329,10 +327,10 @@ describe("AI Search Agent API endpoint", () => {
             } as any)
 
             const body = (await response.json()) as {
-                recommendations: unknown[]
+                hits: unknown[]
             }
 
-            expect(body.recommendations).toHaveLength(1)
+            expect(body.hits).toHaveLength(1)
         })
     })
 
