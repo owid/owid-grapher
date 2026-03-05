@@ -47,6 +47,7 @@ import {
     EXPLORE_DATA_SECTION_DEFAULT_TITLE,
     EXPLORE_DATA_SECTION_ID,
     OwidGdocAnnouncementInterface,
+    CHRONOLOGICAL_INDEX_TYPES,
 } from "@ourworldindata/types"
 import { Point, PointVector } from "./PointVector.js"
 import * as React from "react"
@@ -2047,15 +2048,6 @@ export function checkIsHomepage(
 ): gdoc is OwidGdocHomepageInterface {
     return gdoc.content.type === OwidGdocType.Homepage
 }
-
-const CHRONOLOGICAL_INDEX_TYPES = new Set<string>([
-    OwidGdocType.Article,
-    OwidGdocType.LinearTopicPage,
-    OwidGdocType.TopicPage,
-    OwidGdocType.AboutPage,
-    OwidGdocType.DataInsight,
-    OwidGdocType.Announcement,
-])
 
 /**
  * Posts that should show up in the chronological algolia index

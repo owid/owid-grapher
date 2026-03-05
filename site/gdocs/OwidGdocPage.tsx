@@ -32,7 +32,10 @@ import {
     OwidGdocAuthorInterface,
     OwidGdocProfileInterface,
 } from "@ourworldindata/types"
-import { DATA_INSIGHT_ATOM_FEED_PROPS } from "../SiteConstants.js"
+import {
+    DATA_INSIGHT_ATOM_FEED_PROPS,
+    DEFAULT_ATOM_FEED_PROPS,
+} from "../SiteConstants.js"
 import { Html } from "../Html.js"
 import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"
 import { addPreferSmallFilenameToDataInsightImages } from "../gdocs/utils.js"
@@ -238,6 +241,29 @@ function isArticleLikePredicate(
     return isPostPredicate(gdoc) || isProfilePredicate(gdoc)
 }
 
+function getAtomFeedProps(gdoc: OwidGdocUnionType): {
+    title: string
+    href: string
+} {
+    if (gdoc.content.type === OwidGdocType.DataInsight)
+        return DATA_INSIGHT_ATOM_FEED_PROPS
+
+    if (
+        [OwidGdocType.TopicPage, OwidGdocType.LinearTopicPage].includes(
+            gdoc.content.type!
+        ) &&
+        gdoc.tags?.[0]
+    ) {
+        const topicName = gdoc.tags[0].name
+        return {
+            title: `Atom feed for ${topicName}`,
+            href: `/atom.xml?topics=${encodeURIComponent(topicName)}`,
+        }
+    }
+
+    return DEFAULT_ATOM_FEED_PROPS
+}
+
 export default function OwidGdocPage({
     baseUrl,
     gdoc,
@@ -296,7 +322,7 @@ export default function OwidGdocPage({
                 pageDesc={pageDesc}
                 canonicalUrl={canonicalUrl}
                 imageUrl={imageUrl} // uriEncoding is taken care of inside the Head component
-                atom={isDataInsight ? DATA_INSIGHT_ATOM_FEED_PROPS : undefined}
+                atom={getAtomFeedProps(gdoc)}
                 baseUrl={baseUrl}
                 staticAssetMap={assetMaps?.static}
                 archiveContext={archiveContext}
