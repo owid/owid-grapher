@@ -432,27 +432,39 @@ async function createRedirectForSlugChangeIfNeeded(
 
     if (oldPath === newPath) return
 
+    // For profiles, create a splat redirect so all entity pages are covered
+    // e.g. /profile/old-slug/* -> /profile/new-slug/:splat
+    const isProfile = prevGdoc.content.type === OwidGdocType.Profile
+    const oldSource = isProfile ? `${oldPath}/*` : oldPath
+    const newTarget = isProfile ? `${newPath}/:splat` : newPath
+    // For chain-collapsing: the target stored in the DB uses :splat, not *
+    const oldTarget = isProfile ? `${oldPath}/:splat` : oldPath
+
     // Update any existing redirects that point to the old path to point to the new path instead
     // This prevents redirect chains (A -> B -> C becomes A -> C)
     await trx(RedirectsTableName)
-        .where("target", oldPath)
-        .update({ target: newPath })
+        .where("target", oldTarget)
+        .update({ target: newTarget })
 
     // Delete any self-referential redirects that may have been created by the above update
     // (e.g., when reverting a slug change: a→b updated to a→a)
-    await trx(RedirectsTableName).whereRaw("source = target").delete()
+    // For splat redirects, source uses /* and target uses /:splat (Cloudflare
+    // convention), so we normalise before comparing.
+    await trx(RedirectsTableName)
+        .whereRaw("REPLACE(source, '/*', '') = REPLACE(target, '/:splat', '')")
+        .delete()
 
     // Delete any existing redirect from the old path (in case we're reverting a previous change)
-    await trx(RedirectsTableName).where("source", oldPath).delete()
+    await trx(RedirectsTableName).where("source", oldSource).delete()
 
     // Create the new redirect from old path to new path
     await trx(RedirectsTableName).insert({
-        source: oldPath,
-        target: newPath,
+        source: oldSource,
+        target: newTarget,
         code: 301, // Permanent redirect
     })
 
-    console.log(`Created redirect: ${oldPath} -> ${newPath}`)
+    console.log(`Created redirect: ${oldSource} -> ${newTarget}`)
 }
 
 /**
@@ -571,12 +583,13 @@ export async function deleteGdoc(
             // Assets have TTL of one week in Cloudflare. Add a redirect to make sure
             // the page is no longer accessible.
             // https://developers.cloudflare.com/pages/configuration/serving-pages/#asset-retention
-            console.log(`Creating redirect for "${gdocSlug}" to "/"`)
+            const source = checkIsProfile(gdoc) ? `${gdocSlug}/*` : gdocSlug
+            console.log(`Creating redirect for "${source}" to "/"`)
             await db.knexRawInsert(
                 trx,
                 `INSERT INTO redirects (source, target, ttl)
                 VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 8 DAY))`,
-                [gdocSlug, "/"]
+                [source, "/"]
             )
         }
         await triggerStaticBuild(res.locals.user, `Deleting ${gdocSlug}`)
