@@ -7,8 +7,9 @@ import {
     LICENSE_ID,
     formatAuthorsForBibtex,
 } from "@ourworldindata/utils"
-import { CodeSnippet } from "@ourworldindata/components"
+import { CodeSnippet, getCanonicalUrl } from "@ourworldindata/components"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
+import { OwidGdocType } from "@ourworldindata/types"
 import { getShortPageCitation } from "../utils.js"
 import { Byline } from "../components/Byline.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -32,14 +33,18 @@ export function Profile({ content, publishedAt, slug }: ProfileProps) {
         content.title ?? "",
         publishedAt
     )
-    const citationText = `${shortPageCitation} Published online at OurWorldinData.org. Retrieved from: '${`${BAKED_BASE_URL}/${slug}`}' [Online Resource]`
+    const profileUrl = getCanonicalUrl(BAKED_BASE_URL, {
+        slug,
+        content: { type: OwidGdocType.Profile },
+    })
+    const citationText = `${shortPageCitation} Published online at OurWorldinData.org. Retrieved from: '${profileUrl}' [Online Resource]`
 
     const bibtex = `@article{owid-${slug.replace(/\//g, "-")},
     author = {${formatAuthorsForBibtex(content.authors)}},
     title = {${content.title}},
     journal = {Our World in Data},
     year = {${publishedAt?.getFullYear()}},
-    note = {${BAKED_BASE_URL}/${slug}}
+    note = {${profileUrl}}
 }`
 
     return (
