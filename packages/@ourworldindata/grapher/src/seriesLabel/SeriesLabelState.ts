@@ -9,6 +9,7 @@ import {
     getRegionByShortName,
     EntityName,
     checkIsIncomeGroup,
+    checkIsOwidContinent,
 } from "@ourworldindata/utils"
 import { canAppendTextToLastLine, TextWrap } from "@ourworldindata/components"
 import { ParsedLabel, parseLabel } from "../core/RegionGroups.js"
@@ -27,11 +28,7 @@ export interface SeriesLabelStateOptions {
     showRegionTooltip?: boolean
 }
 
-export type TextRole =
-    | "name"
-    | "value"
-    | "regionProviderSuffix"
-    | "incomeGroupIcon"
+export type TextRole = "name" | "value" | "regionProviderSuffix" | "regionIcon"
 
 export interface TextSpan {
     role: TextRole
@@ -192,6 +189,10 @@ export class SeriesLabelState {
         if (checkIsIncomeGroup(region))
             return { tooltipKey: "incomeGroups", regionName: region.name }
 
+        // Check if the region is an OWID continent
+        if (checkIsOwidContinent(region))
+            return { tooltipKey: "continents", regionName: region.name }
+
         // Check if it's a region provider with tooltip data
         if (this.parsedText.providerKey && hasTooltipData(region)) {
             return {
@@ -216,10 +217,7 @@ export class SeriesLabelState {
 
         const fontSettings = { ...this.fontSettings, fontWeight: 400 }
 
-        if (
-            this.regionIconInfo &&
-            this.regionIconInfo.tooltipKey !== "incomeGroups"
-        ) {
+        if (this.regionIconInfo && !this.regionIconFragments) {
             const textBeforeIcon = `(${this.parsedText.suffix}`
             const textAfterIcon = `)`
 
@@ -289,13 +287,8 @@ export class SeriesLabelState {
         ]
     }
 
-    @computed private get incomeGroupFragments():
-        | ContentFragment[]
-        | undefined {
-        if (
-            !this.regionIconInfo ||
-            this.regionIconInfo.tooltipKey !== "incomeGroups"
-        )
+    @computed private get regionIconFragments(): ContentFragment[] | undefined {
+        if (!this.regionIconInfo || this.parsedText.providerKey)
             return undefined
 
         return [
@@ -318,8 +311,9 @@ export class SeriesLabelState {
     @computed private get roleOnNameLine():
         | Exclude<TextRole, "name">
         | undefined {
-        // If there's an income group icon, it must be placed on the same line as the name
-        if (this.incomeGroupFragments) return "incomeGroupIcon"
+        // If there's a region icon (income group or continent),
+        // it must be placed on the same line as the name
+        if (this.regionIconFragments) return "regionIcon"
 
         // Suffix has priority
         if (this.suffixFragments) {
@@ -358,10 +352,10 @@ export class SeriesLabelState {
                       fragments: this.suffixFragments,
                   }
                 : undefined,
-            this.incomeGroupFragments
+            this.regionIconFragments
                 ? {
-                      role: "incomeGroupIcon",
-                      fragments: this.incomeGroupFragments,
+                      role: "regionIcon",
+                      fragments: this.regionIconFragments,
                   }
                 : undefined,
             this.valueFragments
