@@ -129,6 +129,10 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
         return !!this.props.hideScatterLabels
     }
 
+    @computed private get hideEntityLabels(): boolean {
+        return !!this.props.hideEntityLabels
+    }
+
     private getPointRadius(value: number | undefined): number {
         const radius =
             value !== undefined
@@ -257,10 +261,14 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
             (l) => labelPriority(l),
             SortOrder.desc
         )
-        if (this.focusedSeriesNames.length > 0)
+        if (this.focusedSeriesNames.length > 0) {
             this.hideUnselectedLabels(labelsByPriority)
+        }
         if (this.hideScatterLabels) {
             this.hideLabels(labelsByPriority, this.hoveredSeriesNames.length)
+        }
+        if (this.hideEntityLabels) {
+            this.hideEndLabels(labelsByPriority)
         }
 
         this.hideCollidingLabelsByPriority(labelsByPriority)
@@ -274,6 +282,12 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
     ): void {
         labelsByPriority
             .filter((label) => !(label.series.isHover && nHoveredLabels === 1))
+            .forEach((label) => (label.isHidden = true))
+    }
+
+    private hideEndLabels(labelsByPriority: ScatterLabel[]): void {
+        labelsByPriority
+            .filter((label) => label.isEnd)
             .forEach((label) => (label.isHidden = true))
     }
 
