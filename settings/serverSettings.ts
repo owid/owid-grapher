@@ -28,6 +28,9 @@ export const BAKED_BASE_URL: string = clientSettings.BAKED_BASE_URL
 
 export const ARCHIVE_BASE_URL: string | null = clientSettings.ARCHIVE_BASE_URL
 
+export const WIKIPEDIA_ARCHIVE_BASE_URL: string | null =
+    serverSettings.WIKIPEDIA_ARCHIVE_BASE_URL || null
+
 export const CLOUDFLARE_IMAGES_URL = clientSettings.CLOUDFLARE_IMAGES_URL
 
 export const VITE_PREVIEW: boolean = serverSettings.VITE_PREVIEW === "true"

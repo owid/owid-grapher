@@ -46,6 +46,7 @@ dist/
 cfstorage/
 vite.*.mjs
 archive/*
+wikipedia-archive/*
 
 # Playwright
 test-results/

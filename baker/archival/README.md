@@ -186,3 +186,26 @@ After that, it sends the changed archive files to R2 (bucket `owid-archive`) usi
 ### Append-only nature of the archive
 
 Overall, the archive is essentially append-only. We don't delete any archived pages, any archived versions of a page, or any assets or variables that were ever created as part of an archive. This is important for the integrity of the archive, for the integrity of past citations, and to ensure that the JS code of past archived pages keeps working.
+
+## Wikipedia archive
+
+The Wikipedia archive is a copy of the main archive with Google Tag Manager (GTM) analytics scripts stripped out and archive URLs rewritten. This is needed because Wikipedia requires that embedded content does not include third-party tracking.
+
+The script `createWikipediaArchive.ts` post-processes the main archive:
+
+1. **HTML files**: Strips all `<script>` tags containing `googletagmanager` or `Google Tag Manager` (using regex), and rewrites `ARCHIVE_BASE_URL` → `WIKIPEDIA_ARCHIVE_BASE_URL`.
+2. **Non-HTML files**: Hard-linked from the main archive (no processing needed — archive URLs only appear in HTML).
+
+### Env variables
+
+- `WIKIPEDIA_ARCHIVE_BASE_URL`: The base URL for the Wikipedia-specific archive (e.g. `https://wikipedia-archive.ourworldindata.org`). Set in `.env.archive`.
+
+### Local usage
+
+```bash
+make wikipedia-archive   # runs after `make archive`
+```
+
+### Deployment
+
+The Wikipedia archive is deployed to R2 (bucket `owid-wikipedia-archive`) as part of every content deploy, after the main archive is built. See the `deploy-wikipedia-archive.sh` script in the ops repo.
