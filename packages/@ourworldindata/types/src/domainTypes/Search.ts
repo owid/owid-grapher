@@ -358,3 +358,11 @@ export interface IndexingContext {
 export type ChartsIndexingContext = IndexingContext & {
     redirectsByChartId: Map<number, string[]>
 }
+
+export const CHRONOLOGICAL_INDEX_TYPES = new Set<string>([
+    OwidGdocType.Article,
+    OwidGdocType.LinearTopicPage,
+    OwidGdocType.TopicPage,
+    OwidGdocType.DataInsight,
+    OwidGdocType.Announcement,
+])

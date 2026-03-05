@@ -1,5 +1,9 @@
 import * as Sentry from "@sentry/cloudflare"
-import { OwidGdocType, SearchIndexName } from "@ourworldindata/types"
+import {
+    OwidGdocType,
+    SearchIndexName,
+    CHRONOLOGICAL_INDEX_TYPES,
+} from "@ourworldindata/types"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import { Env } from "./_common/env.js"
 import {
@@ -8,15 +12,6 @@ import {
     getIndexName,
 } from "./api/search/algoliaClient.js"
 import { formatTopicFacetFilters } from "./api/search/searchApi.js"
-
-const ALLOWED_FEED_PAGE_TYPES = new Set<string>([
-    OwidGdocType.Article,
-    OwidGdocType.TopicPage,
-    OwidGdocType.LinearTopicPage,
-    OwidGdocType.DataInsight,
-    OwidGdocType.AboutPage,
-    OwidGdocType.Announcement,
-])
 
 const HITS_PER_FEED = 50
 
@@ -88,9 +83,9 @@ async function queryChronologicalPages(
         throw new Error(`Algolia search failed: ${response.statusText}`)
     }
 
-    const data = (await response.json()) as {
+    const data: {
         results: [{ hits: FeedHit[] }]
-    }
+    } = await response.json()
 
     return data.results[0].hits
 }
@@ -185,7 +180,7 @@ function parsePageTypes(param: string | null): string[] | undefined {
     return param
         .split(",")
         .map((t) => t.trim())
-        .filter((t) => ALLOWED_FEED_PAGE_TYPES.has(t))
+        .filter((t) => CHRONOLOGICAL_INDEX_TYPES.has(t))
 }
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
@@ -206,7 +201,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
         if (typeParam && pageTypes?.length === 0) {
             return new Response(
-                `Invalid type parameter. Allowed types: ${[...ALLOWED_FEED_PAGE_TYPES].join(", ")}`,
+                `Invalid type parameter. Allowed types: ${[...CHRONOLOGICAL_INDEX_TYPES].join(", ")}`,
                 { status: 400, headers: { "Content-Type": "text/plain" } }
             )
         }

@@ -1,3 +1,4 @@
+import { DEFAULT_ATOM_FEED_PROPS } from "./SiteConstants.js"
 import { viteAssetsForSite } from "./viteUtils.js"
 import { GOOGLE_TAG_MANAGER_ID } from "../settings/clientSettings.js"
 import { NoJSDetector } from "./NoJSDetector.js"
@@ -59,10 +60,7 @@ export const Head = (props: {
         "Research and data to make progress against the world’s largest problems"
     const imageUrl =
         props.imageUrl || `${baseUrl}/${DEFAULT_THUMBNAIL_FILENAME}`
-    const atom = props.atom ?? {
-        title: "Atom feed for Our World in Data",
-        href: "/atom.xml",
-    }
+    const atom = props.atom ?? DEFAULT_ATOM_FEED_PROPS
 
     const stylesheets = viteAssetsForSite({
         staticAssetMap: props.staticAssetMap,
