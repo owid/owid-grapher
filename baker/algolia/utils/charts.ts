@@ -24,7 +24,7 @@ import {
 } from "./shared.js"
 import { GrapherState } from "@ourworldindata/grapher"
 import { toPlaintext } from "@ourworldindata/components"
-import { getMaxViews7d } from "./pageviews.js"
+import { getMaxViewsAllWindows } from "./pageviews.js"
 import { createChartsIndexingContext } from "./context.js"
 import pMap from "p-map"
 
@@ -101,17 +101,17 @@ export async function getChartRedirectSlugsByChartId(
     return redirectMap
 }
 
-function getChartViews7d(
+function getChartViewsAllWindows(
     context: ChartsIndexingContext,
     slug: string,
     chartId: number
-): number {
+): { views_7d: number; views_14d: number; views_365d: number } {
     const redirectSlugs = context.redirectsByChartId.get(chartId) ?? []
     const urls = [
         `/grapher/${slug}`,
         ...redirectSlugs.map((redirectSlug) => `/grapher/${redirectSlug}`),
     ]
-    return getMaxViews7d(context.pageviews, urls)
+    return getMaxViewsAllWindows(context.pageviews, urls)
 }
 
 /**
@@ -263,7 +263,11 @@ async function buildChartRecord(
     )
     // Number of references to this chart in all our posts
     const numRelatedArticles = relatedArticles.length + linksFromGdocs.length
-    const views_7d = getChartViews7d(context, chart.slug, chart.id)
+    const { views_7d, views_14d, views_365d } = getChartViewsAllWindows(
+        context,
+        chart.slug,
+        chart.id
+    )
 
     return {
         objectID: chart.id.toString(),
@@ -285,6 +289,8 @@ async function buildChartRecord(
         numRelatedArticles,
 
         views_7d,
+        views_14d,
+        views_365d,
         isIncomeGroupSpecificFM: false,
         isFM: false,
         datasetNamespaces: chart.datasetNamespaces,

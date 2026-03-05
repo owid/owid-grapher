@@ -13,7 +13,7 @@ import { getIndexName, AlgoliaConfig } from "./algoliaClient.js"
  */
 export type EnrichedSearchChartHit = Omit<
     SearchChartHit,
-    "objectID" | "_highlightResult" | "_snippetResult"
+    "objectID" | "_snippetResult"
 > & {
     url: string
 }
@@ -51,7 +51,7 @@ export interface SearchState {
 
 export interface SearchApiResponse {
     query: string
-    results: EnrichedSearchChartHit[]
+    hits: EnrichedSearchChartHit[]
     nbHits: number
     page: number
     nbPages: number
@@ -76,6 +76,7 @@ interface AlgoliaSearchResponse {
 
 // Minimal set of attributes needed by the MCP server and other API consumers
 const DATA_CATALOG_ATTRIBUTES = [
+    "objectID",
     "title",
     "containerTitle",
     "slug",
@@ -279,6 +280,11 @@ export async function searchCharts(
             }
         }
 
+        // Preserve highlight results for frontend rendering
+        if ((hit as any)._highlightResult) {
+            cleanHit._highlightResult = (hit as any)._highlightResult
+        }
+
         // Construct URL based on type
         let url: string
         if (cleanHit.type === ChartRecordType.ExplorerView) {
@@ -294,6 +300,9 @@ export async function searchCharts(
             url = `${baseUrl}/grapher/${cleanHit.slug}`
         }
 
+        // Remove internal Algolia fields that shouldn't be exposed in API
+        delete cleanHit.objectID
+
         return {
             ...(cleanHit as SearchChartHit),
             url,
@@ -302,12 +311,118 @@ export async function searchCharts(
 
     return {
         query: state.query,
-        results: cleanedHits,
+        hits: cleanedHits,
         nbHits: result.nbHits,
         page: result.page,
         nbPages: result.nbPages,
         hitsPerPage: result.hitsPerPage,
     }
+}
+
+/**
+ * Result from a single query in a multi-query search
+ */
+export interface SearchChartsMultiResult {
+    query: string
+    hits: EnrichedSearchChartHit[]
+}
+
+/**
+ * Search for charts with multiple queries in a single Algolia API call.
+ * This is more efficient than calling searchCharts multiple times.
+ */
+export async function searchChartsMulti(
+    config: AlgoliaConfig,
+    queries: string[],
+    hitsPerPage: number = 10,
+    baseUrl: string = "https://ourworldindata.org"
+): Promise<SearchChartsMultiResult[]> {
+    if (queries.length === 0) return []
+
+    const indexName = getIndexName(
+        SearchIndexName.ExplorerViewsMdimViewsAndCharts,
+        config.indexPrefix
+    )
+
+    // Build a single request with multiple queries
+    const searchParams = {
+        requests: queries.map((query) => ({
+            indexName,
+            params: new URLSearchParams({
+                query,
+                attributesToRetrieve: DATA_CATALOG_ATTRIBUTES.join(","),
+                hitsPerPage: hitsPerPage.toString(),
+                facetFilters: JSON.stringify([
+                    ["isIncomeGroupSpecificFM:false"],
+                ]),
+            }).toString(),
+        })),
+    }
+
+    const url = `https://${config.appId}-dsn.algolia.net/1/indexes/*/queries`
+
+    const response = await fetch(url, {
+        method: "POST",
+        headers: {
+            "X-Algolia-Application-Id": config.appId,
+            "X-Algolia-API-Key": config.apiKey,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(searchParams),
+    })
+
+    if (!response.ok) {
+        throw new Error(`Algolia search failed: ${response.statusText}`)
+    }
+
+    const data = (await response.json()) as {
+        results: AlgoliaSearchResponse[]
+    }
+
+    // Track seen slugs to deduplicate across queries
+    const seenSlugs = new Set<string>()
+
+    // Map results back to queries with cleaned hits, deduplicating across queries
+    return data.results.map((result, i) => ({
+        query: queries[i],
+        hits: result.hits
+            .filter((hit) => {
+                const slug = (hit as unknown as Record<string, unknown>)
+                    .slug as string
+                if (seenSlugs.has(slug)) return false
+                seenSlugs.add(slug)
+                return true
+            })
+            .map((hit): EnrichedSearchChartHit => {
+                const cleanHit: Record<string, unknown> = {}
+                for (const attr of DATA_CATALOG_ATTRIBUTES) {
+                    if (attr in hit) {
+                        cleanHit[attr] = (
+                            hit as unknown as Record<string, unknown>
+                        )[attr]
+                    }
+                }
+
+                // Construct URL based on type
+                let hitUrl: string
+                if (cleanHit.type === ChartRecordType.ExplorerView) {
+                    const queryParams = (cleanHit.queryParams as string) || ""
+                    hitUrl = `${baseUrl}/explorers/${cleanHit.slug}${queryParams}`
+                } else if (cleanHit.type === ChartRecordType.MultiDimView) {
+                    const queryParams = (cleanHit.queryParams as string) || ""
+                    hitUrl = `${baseUrl}/grapher/${cleanHit.slug}${queryParams}`
+                } else {
+                    hitUrl = `${baseUrl}/grapher/${cleanHit.slug}`
+                }
+
+                delete cleanHit.objectID
+
+                return {
+                    ...(cleanHit as unknown as SearchChartHit),
+                    url: hitUrl,
+                }
+            }),
+    }))
 }
 
 // Minimal set of attributes needed for page search

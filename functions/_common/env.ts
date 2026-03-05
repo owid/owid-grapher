@@ -1,5 +1,8 @@
 export interface Env {
     ASSETS: Fetcher
+    AI: Ai
+    VECTORIZE_TOPICS: Vectorize
+    VECTORIZE_VOCABULARY: Vectorize
     url: URL
     GRAPHER_CONFIG_R2_BUCKET_URL: string
     GRAPHER_CONFIG_R2_BUCKET_FALLBACK_URL: string
@@ -29,6 +32,7 @@ export interface Env {
     ALGOLIA_ID: string
     ALGOLIA_SEARCH_KEY: string
     ALGOLIA_INDEX_PREFIX?: string
+    GOOGLE_API_KEY?: string
     CATALOG_URL: string
     USER_SURVEYS_R2?: R2Bucket
 }

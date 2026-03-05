@@ -25,7 +25,7 @@ describe("Search API endpoint", () => {
                 .spyOn(searchApi, "searchCharts")
                 .mockResolvedValue({
                     query: "test",
-                    results: [],
+                    hits: [],
                     nbHits: 0,
                     page: 0,
                     nbPages: 0,
@@ -43,7 +43,7 @@ describe("Search API endpoint", () => {
                 .spyOn(searchApi, "searchCharts")
                 .mockResolvedValue({
                     query: "test",
-                    results: [],
+                    hits: [],
                     nbHits: 0,
                     page: 0,
                     nbPages: 0,
@@ -248,7 +248,7 @@ describe("Search API endpoint", () => {
         it("returns successful response with correct headers", async () => {
             vi.spyOn(searchApi, "searchCharts").mockResolvedValue({
                 query: "test",
-                results: [],
+                hits: [],
                 nbHits: 0,
                 page: 0,
                 nbPages: 0,

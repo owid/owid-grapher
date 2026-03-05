@@ -14,12 +14,33 @@
 
     "pages_build_output_dir": "./localBake",
 
+    // Workers AI binding for search
+    "ai": {
+        "binding": "AI",
+        "remote": true,
+    },
+
+    // Vectorize bindings for semantic search
+    "vectorize": [
+        {
+            "binding": "VECTORIZE_TOPICS",
+            "index_name": "topics",
+            "remote": true,
+        },
+        {
+            "binding": "VECTORIZE_VOCABULARY",
+            "index_name": "vocabulary",
+            "remote": true,
+        },
+    ],
+
     "r2_buckets": [
         {
             "bucket_name": "owid-user-surveys-staging",
             "binding": "USER_SURVEYS_R2",
         },
     ],
+
     "vars": {
         // Vars that should be available in all envs, including local dev
         "ENV": "development",
@@ -29,8 +50,12 @@
         "DATA_API_URL_COMPLETE": "https://api.ourworldindata.org/v1/indicators/",
         "CATALOG_URL": "https://catalog.ourworldindata.org",
     },
+
     "env": {
         "preview": {
+            "ai": {
+                "binding": "AI",
+            },
             "r2_buckets": [
                 {
                     "bucket_name": "owid-user-surveys-staging",
@@ -53,6 +78,9 @@
         },
         "production": {
             // Overrides for CF production deployment
+            "ai": {
+                "binding": "AI",
+            },
             "compatibility_date": "2025-05-05",
             "r2_buckets": [
                 {

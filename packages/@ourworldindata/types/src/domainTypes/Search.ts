@@ -16,6 +16,8 @@ export const PagesIndexRecordSchema = z.object({
     title: z.string(),
     content: z.string(),
     views_7d: z.number(),
+    views_14d: z.number(),
+    views_365d: z.number(),
     score: z.number(),
     excerpt: z.optional(z.string()),
     excerptLong: z.optional(z.array(z.string())),
@@ -94,6 +96,8 @@ export interface ChartRecord {
     titleLength: number
     numRelatedArticles: number
     views_7d: number
+    views_14d: number
+    views_365d: number
     score: number
     // we set attributeForDistinct on this, so we can use it to deduplicate
     // when we have multiple records for the same chart (e.g. with featured metrics)
@@ -327,8 +331,11 @@ export type Ngram = WordPositioned[]
  * Context object containing shared enrichment data needed for Algolia indexing of chart, explorer and multi-dim views.
  */
 export interface IndexingContext {
-    /** Pageview data by URL (e.g., "/grapher/life-expectancy" -> { views_7d: 1234 }) */
-    pageviews: Record<string, { views_7d: number }>
+    /** Pageview data by URL (e.g., "/grapher/life-expectancy" -> { views_7d: 1234, views_14d: 5678, views_365d: 12345 }) */
+    pageviews: Record<
+        string,
+        { views_7d: number; views_14d: number; views_365d: number }
+    >
 
     /**
      * Topic tag hierarchies for computing parent topic tags.

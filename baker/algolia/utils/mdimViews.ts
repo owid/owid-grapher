@@ -126,20 +126,22 @@ async function getRecords(
         await getRelevantVariableMetadata(relevantVariableIds)
     const datasetDimensionsByVariableId =
         await getDatasetDimensionsByVariableIds(trx, [...relevantVariableIds])
-    return multiDim.config.views.map((view) => {
+    return multiDim.config.views.flatMap((view) => {
         const viewId = dimensionsToViewId(view.dimensions)
         const id = multiDimXChartConfigIdMap.get(`${multiDim.id}-${viewId}`)
         if (!id) {
-            throw new Error(
-                `MultiDimXChartConfig not found multiDimId=${multiDim.id} viewId=${viewId}`
+            console.warn(
+                `Skipping mdim view: MultiDimXChartConfig not found multiDimId=${multiDim.id} viewId=${viewId}`
             )
+            return []
         }
         const chartConfig = chartConfigs.get(view.fullConfigId)
         if (!chartConfig) {
-            throw new Error(
-                `MultiDim view chart config not found id=${multiDim.id} ` +
+            console.warn(
+                `Skipping mdim view: chart config not found id=${multiDim.id} ` +
                     `viewId=${viewId} chartConfigId=${view.fullConfigId}`
             )
+            return []
         }
         const grapherState = new GrapherState(chartConfig)
         const queryStr = dimensionsToSortedQueryStr(view.dimensions)
@@ -213,6 +215,8 @@ async function getRecords(
             titleLength: title.length,
             numRelatedArticles: 0,
             views_7d,
+            views_14d: 0,
+            views_365d: 0,
             score,
             isIncomeGroupSpecificFM: false,
             isFM: false,
