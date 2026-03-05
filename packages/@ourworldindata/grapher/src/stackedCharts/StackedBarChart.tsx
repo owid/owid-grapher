@@ -230,8 +230,11 @@ export class StackedBarChart
         const hoveredColors = this.stackedSeries
             .filter((g) => hoveredSeriesNames.indexOf(g.seriesName) !== -1)
             .map((g) => g.color)
+        const focusedColors = this.stackedSeries
+            .filter((g) => g.focus?.active)
+            .map((g) => g.color)
         const activeColors = _.uniq(
-            excludeUndefined([...hoveredColors, hoverColor])
+            excludeUndefined([...focusedColors, ...hoveredColors, hoverColor])
         )
 
         return activeColors
@@ -433,6 +436,7 @@ export class StackedBarChart
     }
 
     @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
+        this.chartState.focusArray.clear()
         this.hoverColor = bin.color
     }
 
@@ -441,6 +445,7 @@ export class StackedBarChart
     }
 
     @action.bound onLabelMouseOver(tick: TickmarkPlacement): void {
+        this.chartState.focusArray.clear()
         this.hoveredTick = tick
     }
 
@@ -452,6 +457,7 @@ export class StackedBarChart
         bar: StackedPoint<Time>,
         series: StackedSeries<Time>
     ): void {
+        this.chartState.focusArray.clear()
         this.tooltipState.target = { bar, series }
     }
 

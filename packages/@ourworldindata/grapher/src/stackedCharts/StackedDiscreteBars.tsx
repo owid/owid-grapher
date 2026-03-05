@@ -304,6 +304,7 @@ export class StackedDiscreteBars
         entityName: string,
         seriesName?: string
     ): void {
+        this.chartState.focusArray.clear()
         this.tooltipState.target = { entityName, seriesName }
     }
 

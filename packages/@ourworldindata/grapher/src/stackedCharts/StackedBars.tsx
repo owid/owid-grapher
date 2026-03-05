@@ -68,7 +68,9 @@ export class StackedBars extends React.Component<StackedBarsProps> {
                                     horizontalAxis.place(bar.position) -
                                     barWidth / 2
                                 const barOpacity =
-                                    bar === hoveredBar || series.focus?.active
+                                    bar === hoveredBar ||
+                                    series.focus?.active ||
+                                    isLegendHovered
                                         ? BAR_OPACITY.FOCUS
                                         : opacity
 
