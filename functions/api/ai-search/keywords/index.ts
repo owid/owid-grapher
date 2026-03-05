@@ -311,7 +311,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             },
         }
 
-        if (source === "vocabulary" && vocabularyCandidates) {
+        if (source === "semantic" && vocabularyCandidates) {
             response.vocabulary = {
                 candidates: vocabularyCandidates,
                 matched: vocabularyCandidates.length,

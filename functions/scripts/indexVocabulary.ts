@@ -34,13 +34,6 @@ interface VocabularyData {
     [topicSlug: string]: TopicVocabulary
 }
 
-interface KeywordMetadata {
-    keyword: string
-    topic_slug: string
-    topic_name: string
-    normalized: string
-}
-
 const EMBEDDING_MODEL = "@cf/baai/bge-base-en-v1.5"
 const EMBEDDING_BATCH_SIZE = 100
 
