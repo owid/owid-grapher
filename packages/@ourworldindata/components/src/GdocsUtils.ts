@@ -90,14 +90,17 @@ export function getPrefixedGdocPath(
                         OwidGdocType.TopicPage,
                         OwidGdocType.LinearTopicPage,
                         OwidGdocType.AboutPage,
-                        OwidGdocType.Announcement,
-                        // Profile slugs already contain the full path
-                        // (e.g. profile/energy/usa)
-                        OwidGdocType.Profile
+                        OwidGdocType.Announcement
                     ),
                 },
             },
             () => `${prefix}/${gdoc.slug}`
+        )
+        .with(
+            {
+                content: { type: OwidGdocType.Profile },
+            },
+            () => `${prefix}/profile/${gdoc.slug}`
         )
         .with(
             {

@@ -266,10 +266,7 @@ export class SiteBaker {
                 renderedCodes.push(entity.code)
 
                 const html = renderGdoc(instantiatedProfile)
-                const outPath = path.join(
-                    this.bakedSiteDir,
-                    `${instantiatedProfile.slug}.html`
-                )
+                const outPath = `${getBakePath(this.bakedSiteDir, instantiatedProfile)}.html`
                 await this.stageWrite(outPath, html)
             }
 

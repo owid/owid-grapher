@@ -376,7 +376,13 @@ async function generateProfileRecords(
                     ? `${instantiatedProfile.content.title} in ${articulateEntity(entity.name)}`
                     : "",
                 content: chunks[i],
-                views_7d: pageviews[`/${slug}`]?.views_7d ?? 0,
+                views_7d:
+                    pageviews[
+                        getPrefixedGdocPath("", {
+                            slug,
+                            content: { type: OwidGdocType.Profile },
+                        })
+                    ]?.views_7d ?? 0,
                 excerpt: instantiatedProfile.content.excerpt ?? "",
                 date: profileTemplate.publishedAt!.toISOString(),
                 modifiedDate: (
