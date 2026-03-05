@@ -101,22 +101,25 @@ export const getLinkedDocumentUrl = (
         baseUrl = PROD_URL
     }
 
-    // Handle ?entity=X for profile-type docs
     const parsedUrl = Url.fromURL(originalUrl)
-    const entityParam = parsedUrl.queryParams.entity
-    if (linkedDocument.type === OwidGdocType.Profile && entityParam) {
-        const region = getRegionByNameOrVariantName(entityParam)
-        if (region) {
-            return `${baseUrl}/profile/${linkedDocument.slug}/${region.slug}${parsedUrl.hash}`
+
+    let slug = linkedDocument.slug
+    if (linkedDocument.type === OwidGdocType.Profile) {
+        const entityParam = parsedUrl.queryParams.entity
+        if (entityParam) {
+            const region = getRegionByNameOrVariantName(entityParam)
+            if (region) {
+                slug = `${slug}/${region.slug}`
+            }
         }
     }
 
     const canonicalUrl = getCanonicalUrl(baseUrl, {
-        slug: linkedDocument.slug,
+        slug,
         content: { type: linkedDocument.type },
     })
-    const hash = parsedUrl.hash
-    return `${canonicalUrl}${hash}`
+
+    return `${canonicalUrl}${parsedUrl.hash}`
 }
 
 export const useLinkedDocument = (

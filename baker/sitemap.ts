@@ -21,10 +21,9 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 
 import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 import { getMinimalAuthors } from "../db/model/Gdoc/GdocAuthor.js"
-import {
-    GdocProfile,
-    getSlugForProfileEntity,
-} from "../db/model/Gdoc/GdocProfile.js"
+import { GdocProfile } from "../db/model/Gdoc/GdocProfile.js"
+import { getCanonicalUrl } from "@ourworldindata/components"
+import { getSlugForProfileEntity } from "../db/model/Gdoc/GdocProfile.js"
 import { gdocFromJSON } from "../db/model/Gdoc/GdocFactory.js"
 import { SEARCH_BASE_PATH } from "../site/search/searchUtils.js"
 
@@ -141,10 +140,10 @@ export const makeSitemap = async (
             profileTemplate.content.scope,
             profileTemplate.content.exclude
         ).map((entity) => ({
-            loc: urljoin(
-                BAKED_BASE_URL,
-                getSlugForProfileEntity(profileTemplate, entity)
-            ),
+            loc: getCanonicalUrl(BAKED_BASE_URL, {
+                slug: getSlugForProfileEntity(profileTemplate, entity),
+                content: { type: OwidGdocType.Profile },
+            }),
             lastmod,
         }))
     })
