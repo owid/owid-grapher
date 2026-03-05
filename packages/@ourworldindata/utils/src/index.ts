@@ -112,6 +112,7 @@ export {
     checkIsGdocPostExcludingFragments,
     checkIsDataInsight,
     checkIsAuthor,
+    checkIsChronologicalFeedPost,
     cartesian,
     removeTrailingParenthetical,
     commafyNumber,

@@ -412,6 +412,8 @@ reindex: node_modules
 	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/configureAlgolia.js
 	@echo '--- Running indexPagesToAlgolia...'
 	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/indexPagesToAlgolia.js
+	@echo '--- Running indexPagesChronologicalToAlgolia...'
+	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/indexPagesChronologicalToAlgolia.js
 	@echo '--- Running indexExplorerViewsMdimViewsAndChartsToAlgolia...'
 	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/indexExplorerViewsMdimViewsAndChartsToAlgolia.js
 

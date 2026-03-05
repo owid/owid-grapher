@@ -46,6 +46,7 @@ import {
     FEATURED_DATA_INSIGHTS_ID,
     EXPLORE_DATA_SECTION_DEFAULT_TITLE,
     EXPLORE_DATA_SECTION_ID,
+    OwidGdocAnnouncementInterface,
 } from "@ourworldindata/types"
 import { Point, PointVector } from "./PointVector.js"
 import * as React from "react"
@@ -2045,6 +2046,28 @@ export function checkIsHomepage(
     gdoc: OwidGdoc
 ): gdoc is OwidGdocHomepageInterface {
     return gdoc.content.type === OwidGdocType.Homepage
+}
+
+const CHRONOLOGICAL_INDEX_TYPES = new Set<string>([
+    OwidGdocType.Article,
+    OwidGdocType.LinearTopicPage,
+    OwidGdocType.TopicPage,
+    OwidGdocType.AboutPage,
+    OwidGdocType.DataInsight,
+    OwidGdocType.Announcement,
+])
+
+/**
+ * Posts that should show up in the chronological algolia index
+ * for dynamic RSS feeds & /latest page
+ */
+export function checkIsChronologicalFeedPost(gdoc: {
+    content: { type?: OwidGdocType }
+}): gdoc is
+    | OwidGdocPostInterface
+    | OwidGdocDataInsightInterface
+    | OwidGdocAnnouncementInterface {
+    return CHRONOLOGICAL_INDEX_TYPES.has(gdoc.content.type as string)
 }
 
 /**
