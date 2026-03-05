@@ -31,6 +31,11 @@ export const TOUCH_DEVICE_MEDIA_QUERY =
 
 export const DATA_INSIGHTS_ATOM_FEED_NAME = "atom-data-insights.xml"
 
+export const DEFAULT_ATOM_FEED_PROPS = {
+    title: "Atom feed for Our World in Data",
+    href: "/atom.xml",
+}
+
 export const DATA_INSIGHT_ATOM_FEED_PROPS = {
     title: "Atom feed for Data Insights",
     href: `https://ourworldindata.org/${DATA_INSIGHTS_ATOM_FEED_NAME}`,
