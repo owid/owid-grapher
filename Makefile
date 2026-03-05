@@ -17,7 +17,7 @@ ifneq (,$(wildcard ./.env))
 	include .env
 endif
 
-.PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest svgtest.reset bdd bdd.ui check-not-prod
+.PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest svgtest.reset svgtest.graphers svgtest.grapher-views svgtest.mdims svgtest.explorers svgtest.thumbnails bdd bdd.ui check-not-prod
 
 help:
 	@echo 'Available commands:'
@@ -35,7 +35,6 @@ help:
 	@echo '  make bdd                    (while up) start BDD test environment'
 	@echo '  make bdd.ui                 (while up) start BDD test environment with UI'
 	@echo '  make svgtest                generate an SVG test report for graphers'
-	@echo '  make svgtest.reset          reset the owid-grapher-svgs repo to a clean state'
 	@echo '  make svgtest.full           generate a full SVG test report'
 	@echo '  make svgtest.explorers      generate an SVG test report for explorers only'
 	@echo '  make local-bake             do a full local site bake'
@@ -367,12 +366,33 @@ svgtest.full: svgtest.reset node_modules
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts thumbnails \
 		|| yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts thumbnails
 
+svgtest.grapher-views: svgtest.reset node_modules
+	@echo '==> Generating SVG test report for grapher-views'
+
+	@# run test suite for grapher-views and create an HTML report if there are differences
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts grapher-views \
+		|| (yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts grapher-views && open ../owid-grapher-svgs/grapher-views/differences.html)
+
+svgtest.mdims: svgtest.reset node_modules
+	@echo '==> Generating SVG test report for mdims'
+
+	@# run test suite for mdims and create an HTML report if there are differences
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts mdims \
+		|| (yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts mdims && open ../owid-grapher-svgs/mdims/differences.html)
+
 svgtest.explorers: svgtest.reset node_modules
 	@echo '==> Generating SVG test report for explorers'
 
 	@# run test suite for explorers and create an HTML report if there are differences
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts explorers \
 		|| (yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts explorers && open ../owid-grapher-svgs/explorers/differences.html)
+
+svgtest.thumbnails: svgtest.reset node_modules
+	@echo '==> Generating SVG test report for thumbnails'
+
+	@# run test suite for thumbnails and create an HTML report if there are differences
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts thumbnails \
+		|| (yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts thumbnails && open ../owid-grapher-svgs/thumbnails/differences.html)
 
 node_modules: package.json yarn.lock yarn.config.cjs
 	@echo '==> Installing packages'
