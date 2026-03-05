@@ -463,25 +463,11 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         const agentEndTime = Date.now()
         const { text, searchQueriesUsed, allCharts, steps, usage } = result
 
-        // Parse the LLM's JSON response to get selected indexes
-        const selectedIndexes = extractJsonArray<number>(text)
-        if (selectedIndexes === null) {
-            return new Response(
-                JSON.stringify({
-                    error: "Failed to parse LLM response",
-                    details:
-                        "The model did not return valid JSON. Try again or use a different model.",
-                    ...(debug && {
-                        rawResponse: text,
-                        debug: {
-                            steps,
-                            searchResults: allCharts.map((c) => c.title),
-                        },
-                    }),
-                }),
-                { status: 500, headers }
-            )
-        }
+        // Parse the LLM's JSON response to get selected indexes.
+        // If the model returns empty text, treat as empty selection.
+        const selectedIndexes = text.trim()
+            ? (extractJsonArray<number>(text) ?? [])
+            : []
 
         // Build hits from selected indexes
         const hits: RecommendedChart[] = []
