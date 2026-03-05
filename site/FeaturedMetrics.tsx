@@ -56,7 +56,7 @@ export const FeaturedMetrics = ({
     )
     // for all-charts-vs-featured-v1 experiment, exclude a hit that
     // links to the page we are already on.
-    if (isDataPage) {
+    if (isDataPage && typeof window !== "undefined") {
         hits = hits.filter(
             (hit) =>
                 hit.type !== "chart" ||
