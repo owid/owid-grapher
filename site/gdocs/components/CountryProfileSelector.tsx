@@ -138,10 +138,9 @@ export function CountryProfileSelector({
         "profile",
         linkedDocument.slug
     )
-    const title = block.title ?? "Country profiles"
+    const title = block.title ?? "Country Profiles"
     const description =
-        block.description ??
-        "Explore key metrics on energy consumption and sources of energy in your country, and more than 200 other countries."
+        block.description ?? "Browse country-level data and insights."
 
     return (
         <div className={className}>
