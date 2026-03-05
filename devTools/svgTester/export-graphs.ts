@@ -30,6 +30,7 @@ async function exportGraphers(args: ReturnType<typeof parseArguments>) {
             await utils.loadManifestViewIds(testSuite, {
                 targetViewIds,
                 manifestName: args.manifest,
+                verbose: args.verbose,
             })
 
         // Chart configurations to test
