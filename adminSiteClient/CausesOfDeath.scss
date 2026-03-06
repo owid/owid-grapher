@@ -149,8 +149,8 @@ $black-text: $gray-100;
     }
 
     .causes-of-death-header__value--loading {
-        color: $gray-50;
         font-style: italic;
+        opacity: 0.3;
     }
 }
 
