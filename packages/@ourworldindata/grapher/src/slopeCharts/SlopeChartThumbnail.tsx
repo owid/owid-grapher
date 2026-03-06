@@ -246,15 +246,16 @@ export class SlopeChartThumbnail
         | undefined {
         if (!this.manager.showSeriesLabels) return undefined
 
-        const showEntityNames =
-            !this.manager.isDisplayedAlongsideComplementaryTable
+        const showValueLabelsOnly = this.manager.useMinimalLabeling
 
         const series = this.labelCandidateSeries.map((series) => {
             const { seriesName, color } = series
             const firstPoint = series.start
             const value = firstPoint?.value ?? 0
             const yPosition = this.outerBoundsVerticalAxis.place(value)
-            const label = showEntityNames ? seriesName : this.formatLabel(value)
+            const label = showValueLabelsOnly
+                ? this.formatLabel(value)
+                : seriesName
             return {
                 seriesName,
                 value,
@@ -268,8 +269,10 @@ export class SlopeChartThumbnail
         return new SimpleVerticalLabelsState(series, {
             fontSize: this.labelFontSize,
             fontWeight: 500,
-            maxWidth: showEntityNames ? 0.25 * this.bounds.width : undefined,
-            minSpacing: showEntityNames ? 5 : 2,
+            maxWidth: showValueLabelsOnly
+                ? undefined
+                : 0.25 * this.bounds.width,
+            minSpacing: showValueLabelsOnly ? 2 : 5,
             yRange: this.labelsRange,
             resolveCollision: (
                 s1: InitialSimpleLabelSeries,
