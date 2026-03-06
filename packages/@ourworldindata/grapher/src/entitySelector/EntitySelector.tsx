@@ -4,6 +4,7 @@ import { observer } from "mobx-react"
 import {
     computed,
     action,
+    comparer,
     reaction,
     when,
     IReactionDisposer,
@@ -247,8 +248,12 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         // we need to change the sort config accordingly
         this.disposers.push(
             reaction(
-                () => this.sortOptions,
-                () => this.updateSortConfigIfOptionHasBecomeUnavailable()
+                () => ({
+                    slugs: this.sortOptions.map((option) => option.slug),
+                    isReady: this.manager.isReady,
+                }),
+                () => this.updateSortConfigIfOptionHasBecomeUnavailable(),
+                { equals: comparer.structural }
             )
         )
     }
