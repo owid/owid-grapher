@@ -309,7 +309,8 @@ async function extractAndStoreImageText(
 ): Promise<void> {
     try {
         const imageUrl = `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/public`
-        const extractedText = await fetchGptGeneratedTextFromImage(imageUrl)
+        const { text: extractedText } =
+            await fetchGptGeneratedTextFromImage(imageUrl)
         if (extractedText !== null) {
             await db.knexReadWriteTransaction(async (trx) => {
                 await trx("images")
@@ -318,9 +319,6 @@ async function extractAndStoreImageText(
             })
         }
     } catch (error) {
-        console.error(
-            `Failed to extract text for image ${imageId}:`,
-            error
-        )
+        console.error(`Failed to extract text for image ${imageId}:`, error)
     }
 }
