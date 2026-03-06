@@ -39,7 +39,13 @@ import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { OWID_NO_DATA_GRAY } from "../color/ColorConstants"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
-import { getColorKey, getDisplayName, getSeriesName } from "./LineChartHelpers"
+import {
+    AnnotationsMap,
+    getAnnotationsMap,
+    getColorKey,
+    getDisplayName,
+    getSeriesName,
+} from "./LineChartHelpers"
 import { FocusArray } from "../focus/FocusArray"
 import { AxisConfig } from "../axis/AxisConfig"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
@@ -206,6 +212,10 @@ export class LineChartState implements ChartState, ColorScaleManager {
 
     getColorScaleColor(value: CoreValueType | undefined): Color {
         return this.colorScale.getColor(value) ?? DEFAULT_LINE_COLOR
+    }
+
+    @computed get annotationsMap(): AnnotationsMap | undefined {
+        return getAnnotationsMap(this.inputTable, this.yColumnSlugs[0])
     }
 
     @computed get hasNoDataBin(): boolean {
