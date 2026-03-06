@@ -36,6 +36,7 @@ server_side_copy_assets() {
     rclone copy r2:owid-archive r2:owid-wikipedia-archive \
         --exclude '*.html' \
         --checkers=64 --transfers=64 \
+        --retries=5 --retries-sleep=10s \
         --stats 30s
 }
 
@@ -46,6 +47,7 @@ download_html() {
     rclone copy r2:owid-archive "$TEMP_INPUT_DIR" \
         --include '*.html' \
         --checkers=64 --transfers=64 \
+        --retries=5 --retries-sleep=10s \
         --stats 30s
 }
 
@@ -64,6 +66,7 @@ upload_processed_html() {
     echo "--- Step 4: Uploading processed HTML to owid-wikipedia-archive..."
     rclone copy "$TEMP_OUTPUT_DIR" r2:owid-wikipedia-archive \
         --checkers=64 --transfers=64 \
+        --retries=5 --retries-sleep=10s \
         --stats 30s
 }
 
