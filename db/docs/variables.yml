@@ -4,8 +4,6 @@ metadata:
     incoming_foreign_keys:
         - table: chart_dimensions
           column: variableId
-        - table: country_latest_data
-          column: variable_id
         - table: explorer_variables
           column: variableId
         - table: multi_dim_x_chart_configs
