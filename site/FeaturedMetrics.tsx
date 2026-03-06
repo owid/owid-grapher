@@ -21,11 +21,15 @@ const MAX_SMALL_RESULTS = 5
 export type FeaturedMetricsProps = {
     topicName: string
     className?: string
+    isDataPage?: boolean
+    id?: string
 }
 
 export const FeaturedMetrics = ({
     topicName,
     className,
+    isDataPage = false,
+    id = FEATURED_METRICS_ID,
 }: FeaturedMetricsProps) => {
     const liteSearchClient = getLiteSearchClient()
 
@@ -46,10 +50,19 @@ export const FeaturedMetrics = ({
 
     if (isError || !topicName) return null
 
-    const hits: SearchChartHit[] = (data?.hits ?? []).slice(
+    let hits: SearchChartHit[] = (data?.hits ?? []).slice(
         0,
         MAX_MEDIUM_RESULTS + MAX_SMALL_RESULTS
     )
+    // for all-charts-vs-featured-v1 experiment, exclude a hit that
+    // links to the page we are already on.
+    if (isDataPage) {
+        hits = hits.filter(
+            (hit) =>
+                hit.type !== "chart" ||
+                `/grapher/${hit.slug}` !== window.location.pathname
+        )
+    }
 
     if (!isLoading && hits.length === 0) return null
 
@@ -57,18 +70,21 @@ export const FeaturedMetrics = ({
     const searchHref = `${SEARCH_BASE_PATH}?${params.toString()}`
 
     return (
-        <section
-            className={cx(className, "needs-dividers")}
-            id={FEATURED_METRICS_ID}
-        >
-            <h1 className="h1-semibold">
-                <span>Featured Data on {topicName}</span>
-                <a
-                    className="deep-link"
-                    aria-labelledby={FEATURED_METRICS_ID}
-                    href={`#${FEATURED_METRICS_ID}`}
-                />
-            </h1>
+        <section className={cx(className, "needs-dividers")} id={id}>
+            {isDataPage ? (
+                <h2 className="featured-metrics__title">
+                    <span>More Data on {topicName}</span>
+                </h2>
+            ) : (
+                <h1 className="h1-semibold">
+                    <span>Featured Data on {topicName}</span>
+                    <a
+                        className="deep-link"
+                        aria-labelledby={id}
+                        href={`#${id}`}
+                    />
+                </h1>
+            )}
             {isLoading ? (
                 <SearchDataResultsSkeleton />
             ) : (

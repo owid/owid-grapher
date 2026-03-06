@@ -143,6 +143,7 @@ export {
     getDisplayUnit,
     stripOuterParentheses,
     dimensionsToViewId,
+    shuffleArray,
 } from "./Util.js"
 
 export {

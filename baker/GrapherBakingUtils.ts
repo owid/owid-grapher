@@ -3,12 +3,7 @@ import fs from "fs-extra"
 import { glob } from "glob"
 
 import * as db from "../db/db.js"
-import {
-    DbPlainTag,
-    DbPlainUser,
-    PostsGdocsTableName,
-    OwidGdocType,
-} from "@ourworldindata/utils"
+import { DbPlainTag, DbPlainUser } from "@ourworldindata/utils"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
 import { hashMd5 } from "../serverUtils/hash.js"
 import { BAKE_ON_CHANGE } from "../settings/serverSettings.js"
@@ -53,34 +48,6 @@ export async function getTagToSlugMap(
     }
 
     return tagsByIdAndName
-}
-
-/**
- * Returns a set of tags that have at least one published data insight.
- * e.g.
- *   "Women's Rights" -> true
- *   123 -> true
- */
-export async function getTagsWithDataInsights(
-    knex: db.KnexReadonlyTransaction
-): Promise<Set<string>> {
-    // Query for tags that have any published data insights
-    const rows = await db.knexRaw<{ name: string }>(
-        knex,
-        `
-        SELECT DISTINCT t.name
-        FROM tags t
-        JOIN ${PostsGdocsTableName}_x_tags pgt ON t.id = pgt.tagId
-        JOIN ${PostsGdocsTableName} pg ON pgt.gdocId = pg.id
-        WHERE
-            t.slug IS NOT NULL
-            AND pg.type = "${OwidGdocType.DataInsight}"
-            AND pg.published = 1
-            AND pg.publishedAt <= NOW()
-        `
-    )
-
-    return new Set(rows.map((row) => row.name))
 }
 
 /**
