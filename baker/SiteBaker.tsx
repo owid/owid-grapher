@@ -32,7 +32,6 @@ import {
     renderSubscribePage,
 } from "../baker/siteRenderers.js"
 import { makeSitemap } from "../baker/sitemap.js"
-import { bakeCountryIndexes } from "./countryIndexes.js"
 import {
     FullPost,
     LinkedAuthor,
@@ -140,7 +139,6 @@ const wordpressSteps = ["assets", "blogIndex", "redirects", "rss"] as const
 
 const nonWordpressSteps = [
     "specialPages",
-    "countryIndexes",
     "countryProfiles",
     "explorers",
     "charts",
@@ -1239,9 +1237,6 @@ export class SiteBaker {
     }
 
     private async _bakeNonWordpressPages(knex: db.KnexReadonlyTransaction) {
-        if (this.bakeSteps.has("countryIndexes")) {
-            await bakeCountryIndexes(this, knex)
-        }
         await this.bakeSpecialPages(knex)
         await this.bakeCountryProfiles(knex)
         await this.bakeExplorers(knex)

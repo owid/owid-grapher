@@ -30,10 +30,6 @@ import {
 } from "../settings/serverSettings.js"
 
 import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil.js"
-import {
-    countriesIndexPage,
-    countryIndexPage,
-} from "../baker/countryIndexes.js"
 import { makeSitemap } from "../baker/sitemap.js"
 import { getChartConfigBySlug } from "../db/model/Chart.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
@@ -522,19 +518,6 @@ mockSiteRouter.use(
 )
 
 mockSiteRouter.use("/", express.static(path.join(BASE_DIR, "public")))
-
-mockSiteRouter.get("/countries", async (req, res) =>
-    res.send(await countriesIndexPage(BAKED_BASE_URL))
-)
-
-getPlainRouteWithROTransaction(
-    mockSiteRouter,
-    "/country/:countrySlug",
-    async (req, res, trx) =>
-        res.send(
-            await countryIndexPage(trx, req.params.countrySlug, BAKED_BASE_URL)
-        )
-)
 
 mockSiteRouter.get("/feedback", async (req, res) =>
     res.send(await feedbackPage())
