@@ -120,15 +120,16 @@ export async function fetchGptGeneratedAltText(url: string) {
         messages: [
             {
                 role: "user",
-                content: `Generate alt text for this image, describing it for a vision impaired person using a screen reader.
-Do not say "alt text:".
-Do not say "The image...".
-Do not mention colors unless they are important.
-Do not use markdown in the text.
-If the image has a title, mention it first.
-When describing a number range, write "X to Y" not "X-Y".
-If the image is a data visualization, be brief in your description. Communicate the type of chart, but focus on delivering the key insight (which is often in the title or annotations)
-If the image is a data visualization and there are data sources in the footer, describe them exhaustively.`,
+                content: `Generate alt text for this image, describing it for a vision-impaired person using a screen reader.
+- If it's a chart, use the Amy Cesal formula: "[Chart type] of [type of data] where [reason for including chart]"
+- Keep it brief. Three sentences maximum.
+- If there is too much data to describe, just give an overview of what the chart is showing, not specific data points.
+- DO NOT mention colors unless the data doesn't make sense without them
+- When describing a number range, write "X to Y" not "X-Y".
+- If the image is a generic thumbnail or decorative, describe it in one short sentence.
+- DO NOT describe data sources, licenses, or footer metadata.
+Example 1: "Line chart of cumulative burnt area in Europe where the 2022 area is more than double the 2006 to 2021 average, and well above the range for the same period"
+Example 2: "Changes in forest area by world region since 1990 is a set of bar charts overlaid on a world map to compare forest cover between 1990 and 2025 across different continents. The visualization highlights that while forest area has expanded in regions like Europe and North and Central America, it has significantly declined in South America and parts of Asia. Oceania is shown to have had no change in its total forest area over this period."`,
             },
             {
                 role: "user",
