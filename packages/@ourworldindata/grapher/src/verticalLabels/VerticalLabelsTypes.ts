@@ -1,6 +1,6 @@
 import { TextWrap } from "@ourworldindata/components"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState.js"
-import { Bounds } from "@ourworldindata/utils"
+import { Bounds, Point } from "@ourworldindata/utils"
 import { ChartSeries } from "../chart/ChartInterface.js"
 import { InteractionState } from "../interaction/InteractionState.js"
 
@@ -33,7 +33,7 @@ export interface PlacedLabelSeries extends SizedLabelSeries {
 }
 
 export interface RenderLabelSeries extends PlacedLabelSeries {
-    labelCoords: { x: number; y: number }
+    labelCoords: Point
     connectorLineCoords: { startX: number; endX: number }
     opacity: number
 }

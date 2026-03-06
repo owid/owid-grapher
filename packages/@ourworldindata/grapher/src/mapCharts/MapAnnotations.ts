@@ -4,7 +4,7 @@ import { forceSimulation, forceX, forceY, SimulationNodeDatum } from "d3-force"
 // @ts-expect-error no types available
 import bboxCollide from "./d3-bboxCollide"
 import { booleanIntersects } from "@turf/boolean-intersects"
-import { Bounds, excludeUndefined } from "@ourworldindata/utils"
+import { Bounds, excludeUndefined, Point } from "@ourworldindata/utils"
 import {
     Direction,
     Ellipse,
@@ -291,10 +291,7 @@ function placeExternalLabel({
     return textBounds.set({ x: labelPosition[0], y: labelPosition[1] })
 }
 
-function checkPointIsInEllipse(
-    point: { x: number; y: number },
-    ellipse: Ellipse
-): boolean {
+function checkPointIsInEllipse(point: Point, ellipse: Ellipse): boolean {
     const dx = point.x - ellipse.cx
     const dy = point.y - ellipse.cy
     return (
@@ -416,7 +413,7 @@ function makePlacedBoundsForText({
     text: string
     fontSize: number
     fontWeight: number
-    position: { x: number; y: number }
+    position: Point
     center?: boolean
 }): Bounds {
     // make bounds for text
@@ -478,10 +475,10 @@ function moveIntoDirectionByStep({
     direction,
     step,
 }: {
-    position: { x: number; y: number }
+    position: Point
     direction: Direction
     step: number
-}): { x: number; y: number } {
+}): Point {
     switch (direction) {
         case "right":
             return { x: x + step, y }

@@ -165,7 +165,7 @@ export function getHoverStateForSeries(
     series: ChartSeries,
     props: {
         hoveredSeriesNames: SeriesName[]
-        // usually the hover mode is active when there is
+        // Usually the hover mode is active when there is
         // at least one hovered element. But sometimes the hover
         // mode might be active although there are no hovered elements.
         // For example, when the facet legend is hovered but a particular

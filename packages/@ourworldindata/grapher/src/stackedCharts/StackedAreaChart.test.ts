@@ -169,7 +169,7 @@ it("should drop missing values at start or end", () => {
     expect(chartState.series[1].points.length).toEqual(3)
 })
 
-it("should mark interpolated values as fake", () => {
+it("should mark interpolated and missing values", () => {
     const csv = `gdp,year,entityName
     10,2000,france
     0,2001,france
@@ -198,27 +198,27 @@ it("should mark interpolated values as fake", () => {
 
     // year 2000
     expect(pointsFrance[0].interpolated).toBeFalsy()
-    expect(pointsFrance[0].fake).toBeFalsy()
+    expect(pointsFrance[0].missing).toBeFalsy()
     expect(pointsUK[0].interpolated).toBeFalsy()
-    expect(pointsUK[0].fake).toBeFalsy()
+    expect(pointsUK[0].missing).toBeFalsy()
 
     // year = 2001
     expect(pointsFrance[1].interpolated).toBeFalsy()
-    expect(pointsFrance[1].fake).toBeFalsy()
+    expect(pointsFrance[1].missing).toBeFalsy()
     expect(pointsUK[1].interpolated).toBeTruthy()
-    expect(pointsUK[1].fake).toBeTruthy()
+    expect(pointsUK[1].missing).toBeFalsy()
 
     // year = 2004
     expect(pointsFrance[2].interpolated).toBeTruthy()
-    expect(pointsFrance[2].fake).toBeTruthy()
+    expect(pointsFrance[2].missing).toBeFalsy()
     expect(pointsUK[2].interpolated).toBeFalsy()
-    expect(pointsUK[2].fake).toBeFalsy()
+    expect(pointsUK[2].missing).toBeFalsy()
 
     // year = 2005
     expect(pointsFrance[3].interpolated).toBeFalsy()
-    expect(pointsFrance[3].fake).toBeFalsy()
+    expect(pointsFrance[3].missing).toBeFalsy()
     expect(pointsUK[3].interpolated).toBeFalsy()
-    expect(pointsUK[3].fake).toBeTruthy() // true since it's zero-filled
+    expect(pointsUK[3].missing).toBeTruthy()
 })
 
 describe("externalLegendBins", () => {

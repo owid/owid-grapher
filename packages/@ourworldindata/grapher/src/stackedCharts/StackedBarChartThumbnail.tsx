@@ -14,9 +14,12 @@ import {
 import { Bounds, excludeUndefined } from "@ourworldindata/utils"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
+import { Time } from "@ourworldindata/types"
+import { PlacedStackedBarSeries } from "./StackedConstants"
 import {
     getXAxisConfigDefaultsForStackedBar,
     resolveCollision,
+    toPlacedStackedBarSeries,
 } from "./StackedUtils"
 import {
     HorizontalAxisComponent,
@@ -179,6 +182,11 @@ export class StackedBarChartThumbnail
         return this.labelsWidth ? this.labelsWidth + LEGEND_PADDING : 0
     }
 
+    @computed
+    private get placedSeries(): readonly PlacedStackedBarSeries<Time>[] {
+        return toPlacedStackedBarSeries(this.chartState.series, this.dualAxis)
+    }
+
     override render(): React.ReactElement {
         if (this.chartState.errorInfo.reason)
             return (
@@ -200,11 +208,7 @@ export class StackedBarChartThumbnail
                     bounds={this.dualAxis.bounds}
                     showEndpointsOnly
                 />
-                <StackedBars
-                    dualAxis={this.dualAxis}
-                    series={this.chartState.series}
-                    formatColumn={this.chartState.formatColumn}
-                />
+                <StackedBars series={this.placedSeries} />
                 {this.verticalLabelsState && (
                     <SimpleVerticalLabels
                         state={this.verticalLabelsState}

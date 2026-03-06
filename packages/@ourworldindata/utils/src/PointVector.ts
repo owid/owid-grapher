@@ -8,6 +8,11 @@
  * @created 2017-03-15
  */
 
+export interface Point {
+    x: number
+    y: number
+}
+
 export class PointVector {
     x: number
     y: number
