@@ -20,6 +20,9 @@ export const getCloudflarePagesRedirects = async (
         // Entries and blog (we should keep these for a while)
         "/entries / 302",
         "/blog /latest 301",
+
+        // Deprecated country index pages
+        "/countries /search 301",
     ]
 
     // Dynamic redirects are all redirects that contain an asterisk
