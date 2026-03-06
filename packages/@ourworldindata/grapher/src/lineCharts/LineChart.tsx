@@ -33,7 +33,7 @@ import { SeriesName, VerticalAlign, Time } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
-    GRAPHER_OPACITY_MUTE,
+    GRAPHER_OPACITY_MUTED,
 } from "../core/GrapherConstants"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
@@ -85,7 +85,8 @@ import { LineChartState } from "./LineChartState.js"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { InteractionState } from "../interaction/InteractionState"
-import { LegendStyleConfig } from "../legend/LegendInteractionState"
+import { resolveEmphasis, Emphasis } from "../interaction/Emphasis"
+import { LegendStyleConfig } from "../legend/LegendStyleConfig"
 
 export type LineChartProps = ChartComponentProps<LineChartState>
 
@@ -268,11 +269,10 @@ export class LineChart
                                       )
                                   )
                                 : series.color
-                            const isBackground =
-                                series.focus.background && !series.hover.active
-                            const opacity = isBackground
-                                ? GRAPHER_OPACITY_MUTE
-                                : 1
+                            const opacity =
+                                series.emphasis === Emphasis.Muted
+                                    ? GRAPHER_OPACITY_MUTED
+                                    : 1
 
                             return (
                                 <circle
@@ -409,9 +409,12 @@ export class LineChart
                             (point) => point.x === target.time
                         )
 
+                        const seriesEmphasis = resolveEmphasis({
+                            hover: this.hoverStateForSeries(series),
+                            focus: series.focus,
+                        })
                         const blurred =
-                            this.hoverStateForSeries(series).background ||
-                            series.focus.background ||
+                            seriesEmphasis === Emphasis.Muted ||
                             point === undefined
 
                         const color = this.hasColorScale
@@ -421,7 +424,7 @@ export class LineChart
                                   )
                               )
                             : series.color
-                        const opacity = blurred ? GRAPHER_OPACITY_MUTE : 1
+                        const opacity = blurred ? GRAPHER_OPACITY_MUTED : 1
                         const swatch = { color, opacity }
 
                         const values = excludeUndefined([
@@ -848,8 +851,9 @@ export class LineChart
         }
 
         return deduplicatedSeries.map((series) => {
-            const { seriesName, displayName, color } = series
+            const { seriesName, displayName, color, focus } = series
             const lastValue = R.last(series.points)!.y
+            const hover = this.hoverStateForSeries(series)
             return {
                 color,
                 seriesName,
@@ -859,8 +863,7 @@ export class LineChart
                     seriesName
                 ),
                 yValue: lastValue,
-                focus: series.focus,
-                hover: this.hoverStateForSeries(series),
+                emphasis: resolveEmphasis({ focus, hover }),
             } satisfies LabelSeries
         })
     }

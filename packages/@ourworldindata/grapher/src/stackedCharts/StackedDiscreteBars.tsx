@@ -19,7 +19,7 @@ import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
     GRAPHER_FONT_SCALE_12,
-    GRAPHER_OPACITY_MUTE,
+    GRAPHER_OPACITY_MUTED,
 } from "../core/GrapherConstants"
 import {
     HorizontalAxisComponent,
@@ -41,9 +41,9 @@ import {
 } from "../tooltip/Tooltip"
 import {
     Bar,
-    BAR_OPACITY,
     PlacedItem,
     SizedItem,
+    STACKED_BAR_STYLE,
     StackedPoint,
     StackedSeries,
 } from "./StackedConstants"
@@ -54,6 +54,7 @@ import { easeQuadOut } from "d3-ease"
 import { StackedDiscreteBarChartState } from "./StackedDiscreteBarChartState"
 import { enrichSeriesWithLabels } from "../barCharts/DiscreteBarChartHelpers.js"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
+import { Emphasis } from "../interaction/Emphasis.js"
 
 const BAR_SPACING_FACTOR = 0.35
 
@@ -351,7 +352,7 @@ export class StackedDiscreteBars
         const totalLabel = this.formatValueForLabel(totalValue)
         const showLabelInsideBar = bars.length > 1
 
-        const opacity = data.focus.background ? GRAPHER_OPACITY_MUTE : 1
+        const opacity = data.focus.background ? GRAPHER_OPACITY_MUTED : 1
 
         // We can't just take the last bar here because if the last bar has a negative value,
         // its position on the chart (valueOffset + value) might actually be leftmost rather than rightmost.
@@ -516,10 +517,10 @@ export class StackedDiscreteBars
         const labelColor = isDarkColor(bar.color) ? "#fff" : "#000"
 
         const opacity = isHover
-            ? BAR_OPACITY.FOCUS
+            ? STACKED_BAR_STYLE[Emphasis.Highlighted].opacity
             : isFaint
-              ? BAR_OPACITY.MUTE
-              : BAR_OPACITY.DEFAULT
+              ? STACKED_BAR_STYLE[Emphasis.Muted].opacity
+              : STACKED_BAR_STYLE[Emphasis.Default].opacity
 
         return (
             <g

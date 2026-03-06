@@ -60,10 +60,8 @@ import {
 } from "./ScatterPlotChartConstants"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
 import { ColorScaleBin } from "../color/ColorScaleBin"
-import {
-    LegendInteractionState,
-    LegendStyleConfig,
-} from "../legend/LegendInteractionState"
+import { LegendStyleConfig } from "../legend/LegendStyleConfig"
+import { Emphasis } from "../interaction/Emphasis"
 import {
     ScatterSizeLegend,
     ScatterSizeLegendManager,
@@ -110,7 +108,7 @@ export class ScatterPlotChart
             default: { opacity: SCATTER_POINT_OPACITY },
             muted: { fill: INACTIVE_SCATTER_POINT_COLOR },
         },
-        text: { muted: { color: GRAY_60 }, focused: { color: GRAY_100 } },
+        text: { muted: { color: GRAY_60 }, highlighted: { color: GRAY_100 } },
     }
 
     @computed get chartState(): ScatterPlotChartState {
@@ -418,11 +416,9 @@ export class ScatterPlotChart
         return Array.from(activeColorsSet)
     }
 
-    getLegendBinState(bin: ColorScaleBin): LegendInteractionState {
+    resolveLegendBinEmphasis(bin: ColorScaleBin): Emphasis {
         const isActive = this.activeColors.includes(bin.color)
-        return isActive
-            ? LegendInteractionState.Focused
-            : LegendInteractionState.Muted
+        return isActive ? Emphasis.Highlighted : Emphasis.Muted
     }
 
     @computed private get hideConnectedScatterLines(): boolean {

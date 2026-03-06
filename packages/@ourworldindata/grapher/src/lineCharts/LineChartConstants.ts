@@ -1,11 +1,11 @@
-import { DualAxis } from "../axis/Axis"
 import { ChartManager } from "../chart/ChartManager"
 import { CoreValueType, EntityName, Time } from "@ourworldindata/types"
 import { ChartSeries } from "../chart/ChartInterface"
 import { Color } from "@ourworldindata/utils"
 import { InteractionState } from "../interaction/InteractionState"
-import { LegendStyleConfig } from "../legend/LegendInteractionState"
-import { GRAPHER_OPACITY_MUTE } from "../core/GrapherConstants"
+import { Emphasis } from "../interaction/Emphasis"
+import { LegendStyleConfig } from "../legend/LegendStyleConfig"
+import { GRAPHER_OPACITY_MUTED } from "../core/GrapherConstants"
 
 export const LINE_CHART_CLASS_NAME = "LineChart"
 
@@ -26,6 +26,28 @@ export const STATIC_SMALL_MARKER_RADIUS = 3
 export const DEFAULT_LINE_OUTLINE_WIDTH = 0.5
 export const VARIABLE_COLOR_LINE_OUTLINE_WIDTH = 1.0
 
+export interface LineStyleConfig {
+    strokeWidthFactor: number // multiplied by the base stroke width
+    opacity: number
+    showOutline: boolean
+}
+
+const DEFAULT_LINE_STYLE: LineStyleConfig = {
+    strokeWidthFactor: 1,
+    opacity: 1,
+    showOutline: true,
+}
+
+export const LINE_STYLE: Record<Emphasis, LineStyleConfig> = {
+    [Emphasis.Default]: DEFAULT_LINE_STYLE,
+    [Emphasis.Highlighted]: DEFAULT_LINE_STYLE,
+    [Emphasis.Muted]: {
+        strokeWidthFactor: 0.66,
+        opacity: GRAPHER_OPACITY_MUTED,
+        showOutline: false,
+    },
+}
+
 // Legend
 export const LEGEND_PADDING = 25
 export const NUMERIC_LEGEND_STYLE: LegendStyleConfig = {
@@ -34,9 +56,9 @@ export const NUMERIC_LEGEND_STYLE: LegendStyleConfig = {
 export const CATEGORICAL_LEGEND_STYLE: LegendStyleConfig = {
     marker: {
         default: { opacity: 1 },
-        muted: { opacity: GRAPHER_OPACITY_MUTE },
+        muted: { opacity: GRAPHER_OPACITY_MUTED },
     },
-    text: { muted: { opacity: GRAPHER_OPACITY_MUTE } },
+    text: { muted: { opacity: GRAPHER_OPACITY_MUTED } },
 }
 
 export interface LinePoint {
@@ -68,18 +90,7 @@ export interface PlacedLineChartSeries extends LineChartSeries {
 
 export interface RenderLineChartSeries extends PlacedLineChartSeries {
     hover: InteractionState
-}
-
-export interface LinesProps {
-    dualAxis: DualAxis
-    series: RenderLineChartSeries[]
-    hidePoints?: boolean
-    lineStrokeWidth?: number
-    lineOutlineWidth?: number
-    markerRadius?: number
-    isStatic?: boolean
-    multiColor?: boolean
-    backgroundColor?: string
+    emphasis: Emphasis
 }
 
 export interface LineChartManager extends ChartManager {

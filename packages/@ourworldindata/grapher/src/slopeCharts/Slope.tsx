@@ -1,6 +1,6 @@
 import { makeFigmaId, PointVector } from "@ourworldindata/utils"
-import { GRAPHER_OPACITY_MUTE } from "../core/GrapherConstants"
 import { RenderSlopeChartSeries } from "./SlopeChartConstants"
+import { LINE_STYLE } from "../lineCharts/LineChartConstants.js"
 
 interface SlopeProps {
     series: RenderSlopeChartSeries
@@ -8,7 +8,6 @@ interface SlopeProps {
     strokeWidth?: number
     outlineWidth?: number
     outlineStroke?: string
-    unfocusedStyle?: "muted" | "faded"
 }
 
 export function Slope({
@@ -20,19 +19,12 @@ export function Slope({
 }: SlopeProps) {
     const { displayName, startPoint, endPoint } = series
 
-    const isInForeground =
-        series.hover.active ||
-        series.focus.active ||
-        (series.focus.idle && series.hover.idle)
-
-    const showOutline = isInForeground
-
-    const opacity = isInForeground ? 1 : GRAPHER_OPACITY_MUTE
-    const lineWidth = isInForeground ? strokeWidth : 0.66 * strokeWidth
+    const style = LINE_STYLE[series.emphasis]
+    const lineWidth = style.strokeWidthFactor * strokeWidth
 
     return (
         <>
-            {showOutline && (
+            {style.showOutline && (
                 <LineWithDots
                     id={makeFigmaId("outline", displayName)}
                     startPoint={startPoint}
@@ -49,7 +41,7 @@ export function Slope({
                 radius={dotRadius}
                 color={series.color}
                 lineWidth={lineWidth}
-                opacity={opacity}
+                opacity={style.opacity}
             />
         </>
     )

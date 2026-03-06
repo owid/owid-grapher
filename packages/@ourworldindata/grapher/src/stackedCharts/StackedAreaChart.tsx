@@ -31,9 +31,10 @@ import {
 } from "../tooltip/Tooltip"
 import { StackedAreaChartState } from "./StackedAreaChartState.js"
 import {
-    AREA_OPACITY,
+    LEGEND_STYLE_FOR_STACKED_CHARTS,
     PlacedStackedAreaSeries,
     RenderStackedAreaSeries,
+    STACKED_AREA_STYLE,
     StackedSeries,
 } from "./StackedConstants"
 import {
@@ -43,6 +44,7 @@ import {
 } from "../chart/ChartUtils"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig.js"
 import { LabelSeries } from "../verticalLabels/VerticalLabelsTypes"
+import { Emphasis, resolveEmphasis } from "../interaction/Emphasis"
 import { easeLinear } from "d3-ease"
 import { select, type BaseType, type Selection } from "d3-selection"
 import { ChartInterface } from "../chart/ChartInterface"
@@ -181,8 +183,10 @@ export class StackedAreaChart
                         : series.seriesName,
                 yValue: this.chartState.midpoints[index],
                 isAllZeros: series.isAllZeros,
-                hover: this.hoverStateForSeries(series),
-                focus: series.focus,
+                emphasis: resolveEmphasis({
+                    hover: this.hoverStateForSeries(series),
+                    focus: series.focus,
+                }),
             }))
             .filter((series) => !series.isAllZeros)
             .toReversed()
@@ -251,14 +255,7 @@ export class StackedAreaChart
 
             return {
                 categoricalLegendData,
-                legendStyleConfig: {
-                    marker: {
-                        default: { opacity: AREA_OPACITY.DEFAULT },
-                        focused: { opacity: AREA_OPACITY.FOCUS },
-                        muted: { opacity: AREA_OPACITY.MUTE },
-                    },
-                    text: { muted: { opacity: AREA_OPACITY.MUTE } },
-                },
+                legendStyleConfig: LEGEND_STYLE_FOR_STACKED_CHARTS,
             }
         }
         return undefined
@@ -514,9 +511,12 @@ export class StackedAreaChart
                                 ? undefined
                                 : point?.value,
                         ]
-                        const opacity = focused
-                            ? AREA_OPACITY.FOCUS
-                            : AREA_OPACITY.DEFAULT
+
+                        const emphasis = focused
+                            ? Emphasis.Highlighted
+                            : Emphasis.Default
+                        const opacity = STACKED_AREA_STYLE[emphasis].fillOpacity
+
                         const swatch = { color, opacity }
 
                         return {
@@ -695,9 +695,10 @@ export class StackedAreaChart
     }
 
     @computed private get renderSeries(): RenderStackedAreaSeries<Time>[] {
-        return this.placedSeries.map((series) => ({
-            ...series,
-            hover: this.hoverStateForSeries(series),
-        }))
+        return this.placedSeries.map((series) => {
+            const hover = this.hoverStateForSeries(series)
+            const emphasis = resolveEmphasis({ hover, focus: series.focus })
+            return { ...series, hover, emphasis }
+        })
     }
 }
