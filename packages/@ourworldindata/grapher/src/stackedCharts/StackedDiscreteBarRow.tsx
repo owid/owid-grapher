@@ -53,7 +53,6 @@ export function StackedDiscreteBarRow({
     return (
         <g
             id={makeFigmaId(entityName)}
-            className="bar"
             transform={`translate(0, ${translateY})`}
             opacity={1}
         >
@@ -77,10 +76,7 @@ export function StackedDiscreteBarRow({
                 onMouseEnter={(): void => onEntityMouseEnter(label.text)}
                 onMouseLeave={onEntityMouseLeave}
                 onInfoTooltipShow={onClearTooltip}
-                // TODO: drop check
-                opacity={
-                    labelStyle.opacity === 1 ? undefined : labelStyle.opacity
-                }
+                opacity={labelStyle.opacity}
             />
             {showTotalValueLabel && (
                 <text
@@ -88,12 +84,7 @@ export function StackedDiscreteBarRow({
                         yAxis.place(lastValue) + labelToBarPadding
                     }, 0)`}
                     dy={dyFromAlign(VerticalAlign.middle)}
-                    // TODO: drop check
-                    opacity={
-                        labelStyle.opacity === 1
-                            ? undefined
-                            : labelStyle.opacity
-                    }
+                    opacity={labelStyle.opacity}
                     fill="#555"
                     fontSize={labelFontSize}
                 >
@@ -157,8 +148,6 @@ function StackedDiscreteBar({
                     width={segment.barWidth}
                     height={barHeight}
                     fill={labelColor}
-                    // TODO: drop
-                    opacity={1}
                     fontSize={labelFontSize}
                     textAnchor="middle"
                     dy={dyFromAlign(VerticalAlign.middle)}

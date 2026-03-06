@@ -533,7 +533,6 @@ export class StackedBarChart
 
         return (
             <g
-                className="StackedBarChart"
                 width={bounds.width}
                 height={bounds.height}
                 onMouseMove={this.onMouseMove}
@@ -560,11 +559,7 @@ export class StackedBarChart
 
         if (this.chartState.errorInfo.reason)
             return (
-                <g
-                    className="StackedBarChart"
-                    width={bounds.width}
-                    height={bounds.height}
-                >
+                <g width={bounds.width} height={bounds.height}>
                     {this.renderAxis()}
                     <NoDataModal
                         manager={this.manager}

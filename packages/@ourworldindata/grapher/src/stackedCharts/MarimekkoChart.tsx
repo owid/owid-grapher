@@ -525,7 +525,6 @@ export class MarimekkoChart
             <g
                 ref={this.base}
                 id={makeFigmaId("marimekko-chart")}
-                className="MarimekkoChart"
                 onMouseMove={(ev): void => this.onMouseMove(ev)}
                 onMouseLeave={(): void => this.dismissTooltip()}
             >
@@ -1026,7 +1025,6 @@ export class MarimekkoChart
             labelLines.push(
                 <g
                     id={makeFigmaId("label-line", item.labelKey)}
-                    className="indicator"
                     key={`labelline-${item.labelKey}`}
                 >
                     <path
@@ -1052,7 +1050,6 @@ export class MarimekkoChart
             <g
                 key={`label-${item.labelKey}`}
                 id={makeFigmaId("label", item.labelKey)}
-                className="bar-label"
                 transform={`translate(${item.correctedPlacement}, ${labelOffset})`}
             >
                 {item.label}

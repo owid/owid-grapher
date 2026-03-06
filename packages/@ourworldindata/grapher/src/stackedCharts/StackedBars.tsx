@@ -29,8 +29,7 @@ export function StackedBars({
                     className={makeSafeForCSS(series.seriesName) + "-segments"}
                 >
                     {series.placedPoints.map((bar, index) => {
-                        // TODO: don't render zero height bars
-                        // if (bar.missing) return null
+                        if (bar.missing) return null
 
                         const isHovered = bar.time === series.hoverTime
                         const emphasis = isHovered
@@ -41,12 +40,7 @@ export function StackedBars({
                         return (
                             <rect
                                 key={index}
-                                // TODO: drop undefined check
-                                id={
-                                    bar.formattedTime !== undefined
-                                        ? makeFigmaId(bar.formattedTime)
-                                        : "0"
-                                }
+                                id={makeFigmaId(bar.formattedTime)}
                                 x={bar.x}
                                 y={bar.y}
                                 width={bar.barWidth}
