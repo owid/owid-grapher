@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 import { ChartInterface } from "../chart/ChartInterface"
 import { StackedDiscreteBarChartState } from "./StackedDiscreteBarChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
-import { StackedDiscreteBars } from "./StackedDiscreteBars"
+import { StackedDiscreteBarChart } from "./StackedDiscreteBarChart"
 
 @observer
 export class StackedDiscreteBarChartThumbnail
@@ -13,7 +13,6 @@ export class StackedDiscreteBarChartThumbnail
 {
     constructor(props: ChartComponentProps<StackedDiscreteBarChartState>) {
         super(props)
-        // Ensure that the component is observable
         makeObservable(this)
     }
 
@@ -22,6 +21,6 @@ export class StackedDiscreteBarChartThumbnail
     }
 
     override render(): React.ReactElement {
-        return <StackedDiscreteBars {...this.props} />
+        return <StackedDiscreteBarChart {...this.props} hideLegend />
     }
 }

@@ -25,6 +25,10 @@ export class FocusArray {
         return !this.isEmpty
     }
 
+    @computed get length(): number {
+        return this.store.size
+    }
+
     /**
      * Whether a series is currently focused
      */

@@ -258,13 +258,13 @@ export abstract class AbstractChartEditor<
     @computed get invalidFocusedSeriesNames(): SeriesName[] {
         const { grapherState } = this
 
-        // if focusing is not supported, then all focused series are invalid
+        // If focusing is not supported, then all focused series are invalid
         if (!this.features.canHighlightSeries) {
             return grapherState.focusArray.seriesNames
         }
 
-        // find invalid focused series
-        const availableSeriesNames = grapherState.chartSeriesNames
+        // Find invalid focused series
+        const availableSeriesNames = grapherState.focusableSeriesNames
         const focusedSeriesNames = grapherState.focusArray.seriesNames
         return _.difference(focusedSeriesNames, availableSeriesNames)
     }
@@ -272,7 +272,7 @@ export abstract class AbstractChartEditor<
     @computed get invalidSelectedEntityNames(): SeriesName[] {
         const { grapherState } = this
 
-        // find invalid selected entities
+        // Find invalid selected entities
         const { availableEntityNames } = grapherState
         const selectedEntityNames = grapherState.selection.selectedEntityNames
         return _.difference(selectedEntityNames, availableEntityNames)
