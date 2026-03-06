@@ -43,6 +43,7 @@
         "testFormatAll": "yarn oxfmt --check",
         "testFormatChanged": "bash -c 'files=$((git diff --name-only --diff-filter=ACMRTUXB && git diff --name-only --cached --diff-filter=ACMRTUXB) | sort -u | grep -E \"\\.(tsx?|jsx?|ts|js|json|md|html|css|scss|yml)$\" | tr \"\\n\" \" \"); if [ -n \"$files\" ]; then yarn oxfmt --check $files; else echo \"No uncommitted files to check formatting\"; fi'",
         "test": "vitest",
+        "test:functions:e2e-r2": "vitest functions/test/grapher-config-r2.e2e.test.ts",
         "testBdd": "yarn bddgen && yarn playwright test",
         "checkRaycastSnippets": "tsx --tsconfig tsconfig.tsx.json devTools/gdocs/raycastSnippets/generateRaycastSnippets.ts --check",
         "typecheck": "yarn tsgo -b",
