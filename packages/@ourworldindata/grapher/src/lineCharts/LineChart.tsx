@@ -3,7 +3,6 @@ import React from "react"
 import * as R from "remeda"
 import {
     guid,
-    excludeNullish,
     getRelativeMouse,
     exposeInstanceOnWindow,
     excludeUndefined,
@@ -19,16 +18,9 @@ import { DualAxisComponent } from "../axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { VerticalLabels } from "../verticalLabels/VerticalLabels"
 import { VerticalLabelsState } from "../verticalLabels/VerticalLabelsState"
-import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
-import {
-    Tooltip,
-    TooltipState,
-    TooltipTable,
-    makeTooltipRoundingNotice,
-    toTooltipTableColumns,
-} from "../tooltip/Tooltip"
+import { TooltipState } from "../tooltip/Tooltip"
+import { LineChartTooltip } from "./LineChartTooltip"
 import { NoDataModal } from "../noDataModal/NoDataModal"
-import { extent } from "d3-array"
 import { SeriesName, VerticalAlign, Time } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
@@ -72,9 +64,7 @@ import {
     HorizontalNumericColorLegend,
 } from "../legend/HorizontalColorLegends"
 import {
-    AnnotationsMap,
     getAnnotationsForSeries,
-    getAnnotationsMap,
     getYAxisConfigDefaults,
     toPlacedLineChartSeries,
     toRenderLineChartSeries,
@@ -123,13 +113,6 @@ export class LineChart
 
     @computed get detailsOrderedByReference(): string[] {
         return this.manager.detailsOrderedByReference ?? []
-    }
-
-    @computed get annotationsMap(): AnnotationsMap | undefined {
-        return getAnnotationsMap(
-            this.chartState.inputTable,
-            this.yColumnSlugs[0]
-        )
     }
 
     @action.bound private dismissTooltip(): void {
@@ -304,145 +287,16 @@ export class LineChart
         return this.manager.tooltip?.get()?.id === this.tooltipId
     }
 
-    @computed private get tooltip(): React.ReactElement | undefined {
-        const { formatColumn, colorColumn, hasColorScale } = this
-        const { target, position, fading } = this.tooltipState
-
-        if (!target) return undefined
-
-        // Duplicate seriesNames will be present if there is a projected-values line
-        const seriesSegments = _.mapValues(
-            _.groupBy(this.series, "seriesName"),
-            (segments) =>
-                segments.find((series) =>
-                    // Ideally pick series with a defined value at the target time
-                    series.points.find((point) => point.x === target.time)
-                ) ??
-                segments.find((series): boolean | void => {
-                    // Otherwise pick the series whose start & end contains the target time
-                    // and display a "No data" notice.
-                    const [startX, endX] = extent(series.points, ({ x }) => x)
-                    return (
-                        _.isNumber(startX) &&
-                        _.isNumber(endX) &&
-                        startX < target.time &&
-                        target.time < endX
-                    )
-                }) ??
-                null // If neither series matches, exclude the entity from the tooltip altogether
-        )
-
-        const sortedData = _.sortBy(
-            excludeNullish(R.values(seriesSegments)),
-            (series) => {
-                const value = series.points.find(
-                    (point) => point.x === target.time
-                )
-                return value !== undefined ? -value.y : Infinity
-            }
-        )
-
-        const formattedTime = formatColumn.formatTime(target.time),
-            { displayUnit: unitLabel } = formatColumn,
-            { isRelativeMode, startTime } = this.manager
-
-        const title = formattedTime
-        const titleAnnotation = this.xAxis.label ? `(${this.xAxis.label})` : ""
-
-        const columns = [formatColumn]
-        if (hasColorScale && colorColumn.slug !== formatColumn.slug)
-            columns.push(colorColumn)
-
-        const subtitle =
-            isRelativeMode && startTime
-                ? `% change since ${formatColumn.formatTime(startTime)}`
-                : unitLabel
-        const subtitleFormat = subtitle === unitLabel ? "unit" : undefined
-
-        const projectionNotice = sortedData.some(
-            (series) => series.isProjection
-        )
-            ? { icon: TooltipFooterIcon.Stripes, text: "Projected data" }
-            : undefined
-        const roundingNotice = formatColumn.roundsToSignificantFigures
-            ? {
-                  icon: TooltipFooterIcon.None,
-                  text: makeTooltipRoundingNotice([
-                      formatColumn.numSignificantFigures,
-                  ]),
-              }
-            : undefined
-        const footer = excludeUndefined([projectionNotice, roundingNotice])
-
+    @computed private get tooltip(): React.ReactElement | null {
         return (
-            <Tooltip
+            <LineChartTooltip
                 id={this.tooltipId}
-                tooltipManager={this.manager}
-                x={position.x}
-                y={position.y}
-                style={{ maxWidth: "400px" }}
-                offsetXDirection="left"
-                offsetX={20}
-                offsetY={-16}
-                title={title}
-                titleAnnotation={titleAnnotation}
-                subtitle={subtitle}
-                subtitleFormat={subtitleFormat}
-                footer={footer}
-                dissolve={fading}
-                dismiss={this.dismissTooltip}
-            >
-                <TooltipTable
-                    columns={toTooltipTableColumns(columns)}
-                    rows={sortedData.map((series) => {
-                        const {
-                            seriesName,
-                            displayName,
-                            isProjection: striped,
-                        } = series
-                        const annotation = getAnnotationsForSeries(
-                            this.annotationsMap,
-                            seriesName
-                        )
-
-                        const point = series.points.find(
-                            (point) => point.x === target.time
-                        )
-
-                        const seriesEmphasis = resolveEmphasis({
-                            hover: this.hoverStateForSeries(series),
-                            focus: series.focus,
-                        })
-                        const blurred =
-                            seriesEmphasis === Emphasis.Muted ||
-                            point === undefined
-
-                        const color = this.hasColorScale
-                            ? darkenColorForLine(
-                                  this.chartState.getColorScaleColor(
-                                      point?.colorValue
-                                  )
-                              )
-                            : series.color
-                        const opacity = blurred ? GRAPHER_OPACITY_MUTED : 1
-                        const swatch = { color, opacity }
-
-                        const values = excludeUndefined([
-                            point?.y,
-                            point?.colorValue as undefined | number,
-                        ])
-
-                        return {
-                            name: displayName,
-                            annotation,
-                            swatch,
-                            blurred,
-                            striped,
-                            values,
-                        }
-                    })}
-                />
-            </Tooltip>
+                chartState={this.chartState}
+                tooltipState={this.tooltipState}
+                series={this.renderSeries}
+                xAxisLabel={this.xAxis.label}
+                dismissTooltip={this.dismissTooltip}
+            />
         )
     }
 
@@ -859,7 +713,7 @@ export class LineChart
                 seriesName,
                 label: !this.manager.showSeriesLabels ? "" : displayName,
                 annotation: getAnnotationsForSeries(
-                    this.annotationsMap,
+                    this.chartState.annotationsMap,
                     seriesName
                 ),
                 yValue: lastValue,
