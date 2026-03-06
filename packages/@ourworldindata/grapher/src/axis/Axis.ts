@@ -384,16 +384,16 @@ abstract class AbstractAxis {
 
             if (ticks.length > maxLabelledTicks) {
                 if (ticks.length <= maxTicks) {
-                    // Convert all "in-between" lines to faint grid lines without labels
-                    ticks = ticks.map((tick) => {
-                        if (tick.priority === 3)
-                            tick = {
-                                ...tick,
-                                faint: true,
-                                gridLineOnly: true,
-                            }
-                        return tick
-                    })
+                    // Convert all "in-between" lines to faint grid lines without labels,
+                    // but only do so if there are at least 2 labelled ticks
+                    const priorityTicks = ticks.filter((t) => t.priority < 3)
+                    if (priorityTicks.length >= 2) {
+                        ticks = ticks.map((tick) =>
+                            tick.priority === 3
+                                ? { ...tick, faint: true, gridLineOnly: true }
+                                : tick
+                        )
+                    }
                 } else {
                     // Remove some tickmarks again because the chart would get too overwhelming
                     // otherwise
