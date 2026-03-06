@@ -532,7 +532,7 @@ export async function fetchWithTimeout(
 const _getUserCountryInformation = async (): Promise<
     UserCountryInformation | undefined
 > =>
-    await fetchWithRetry("https://detect-country.owid.io")
+    await fetchWithRetry("https://ourworldindata.org/api/detect-country")
         .then((res) => res.json())
         .then((res) => res.country)
         .catch(() => undefined)
