@@ -16,6 +16,18 @@ export default defineConfig({
     use: {
         baseURL: `${BAKED_BASE_URL}${ENV !== "development" ? ".tail6e23.ts.net" : ""}`,
     },
+    webServer: [
+        {
+            command: "http-server archive -p 8764 -c-1 --silent",
+            port: 8764,
+            reuseExistingServer: true,
+        },
+        {
+            command: "http-server wikipedia-archive -p 8765 -c-1 --silent",
+            port: 8765,
+            reuseExistingServer: true,
+        },
+    ],
     projects: [
         {
             name: "chromium",
