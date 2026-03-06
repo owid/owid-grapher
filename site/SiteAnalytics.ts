@@ -25,14 +25,6 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
-    logCountryPageSearchQuery(query: string) {
-        this.logToGA({
-            event: EventCategory.Filter,
-            eventAction: "country_page_search",
-            eventContext: query,
-        })
-    }
-
     logInstantSearchClick({
         query,
         url,

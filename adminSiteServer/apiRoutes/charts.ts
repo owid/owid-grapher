@@ -27,7 +27,6 @@ import {
     StaticVizReference,
 } from "../../adminSiteClient/AbstractChartEditor.js"
 import { NarrativeChartMinimalInformation } from "../../adminSiteClient/ChartEditor.js"
-import { denormalizeLatestCountryData } from "../../baker/countryIndexes.js"
 import {
     getChartConfigById,
     getForceDatapageByChartId,
@@ -515,14 +514,6 @@ export const saveGrapher = async (
             [chartId, dim.variableId, dim.property, i]
         )
     }
-
-    // So we can generate country profiles including this chart data
-    if (fullConfig.isPublished && referencedVariablesMightChange)
-        // TODO: remove this ad hoc knex transaction context when we switch the function to knex
-        await denormalizeLatestCountryData(
-            knex,
-            newDimensions.map((d) => d.variableId)
-        )
 
     if (fullConfig.isPublished) {
         await retrieveChartConfigFromDbAndSaveToR2(knex, chartConfigId, {
