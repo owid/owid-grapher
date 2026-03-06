@@ -435,11 +435,6 @@ export {
     type DbPlainChartXEntity,
 } from "./dbTypes/ChartsXEntities.js"
 export {
-    type DbPlainCountryLatestData,
-    type DbInsertCountryLatestData,
-    CountryLatestDataTableName,
-} from "./dbTypes/CountryLatestData.js"
-export {
     type DbPlainDataset,
     type DbInsertDataset,
     DatasetsTableName,
