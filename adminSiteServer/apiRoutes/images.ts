@@ -15,6 +15,7 @@ import * as lodash from "lodash-es"
 
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
+import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
 
 export async function getImagesHandler(
     _: Request,
@@ -309,7 +310,8 @@ async function extractAndStoreImageText(
 ): Promise<void> {
     try {
         const imageUrl = `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/public`
-        const extractedText = await fetchGptGeneratedTextFromImage(imageUrl)
+        const { text: extractedText } =
+            await fetchGptGeneratedTextFromImage(imageUrl)
         if (extractedText !== null) {
             await db.knexReadWriteTransaction(async (trx) => {
                 await trx("images")
@@ -318,9 +320,8 @@ async function extractAndStoreImageText(
             })
         }
     } catch (error) {
-        console.error(
-            `Failed to extract text for image ${imageId}:`,
-            error
+        await logErrorAndMaybeCaptureInSentry(
+            `Failed to extract text for image ${imageId}: ${error}`
         )
     }
 }
