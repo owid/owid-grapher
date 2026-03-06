@@ -5,7 +5,9 @@ import {
     processImageContent,
     uploadToCloudflare,
     deleteFromCloudflare,
+    fetchGptGeneratedTextFromImage,
 } from "../imagesHelpers.js"
+import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"
 import { extractSqlError } from "./routeUtils.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
@@ -100,6 +102,9 @@ export async function postImageHandler(
 
     const image = await db.getCloudflareImage(trx, filename)
 
+    // Extract text from the image asynchronously so it doesn't block the response
+    void extractAndStoreImageText(image!.id, image!.cloudflareId)
+
     return {
         success: true,
         image,
@@ -188,6 +193,9 @@ export async function putImageHandler(
     })
 
     const updated = await db.getCloudflareImage(trx, originalFilename)
+
+    // Extract text from the new image version asynchronously
+    void extractAndStoreImageText(newImageId, newCloudflareId)
 
     await triggerStaticBuild(
         res.locals.user,
@@ -292,5 +300,27 @@ export async function getImageUsageHandler(
     return {
         success: true,
         usage,
+    }
+}
+
+async function extractAndStoreImageText(
+    imageId: number,
+    cloudflareId: string
+): Promise<void> {
+    try {
+        const imageUrl = `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/public`
+        const extractedText = await fetchGptGeneratedTextFromImage(imageUrl)
+        if (extractedText !== null) {
+            await db.knexReadWriteTransaction(async (trx) => {
+                await trx("images")
+                    .where({ id: imageId })
+                    .update({ extractedText })
+            })
+        }
+    } catch (error) {
+        console.error(
+            `Failed to extract text for image ${imageId}:`,
+            error
+        )
     }
 }
