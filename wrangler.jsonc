@@ -16,6 +16,16 @@
 
     "r2_buckets": [
         {
+            "bucket_name": "owid-grapher-configs-staging",
+            "binding": "GRAPHER_CONFIG_R2_BUCKET",
+            "remote": true,
+        },
+        {
+            "bucket_name": "owid-grapher-configs",
+            "binding": "GRAPHER_CONFIG_R2_BUCKET_FALLBACK",
+            "remote": true,
+        },
+        {
             "bucket_name": "owid-user-surveys-staging",
             "binding": "USER_SURVEYS_R2",
         },
@@ -23,8 +33,6 @@
     "vars": {
         // Vars that should be available in all envs, including local dev
         "ENV": "development",
-        "GRAPHER_CONFIG_R2_BUCKET_URL": "https://grapher-configs-staging.owid.io",
-        "GRAPHER_CONFIG_R2_BUCKET_FALLBACK_URL": "https://grapher-configs.owid.io",
         "GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH": "v1",
         "DATA_API_URL_COMPLETE": "https://api.ourworldindata.org/v1/indicators/",
         "CATALOG_URL": "https://catalog.ourworldindata.org",
@@ -32,6 +40,16 @@
     "env": {
         "preview": {
             "r2_buckets": [
+                {
+                    "bucket_name": "owid-grapher-configs-staging",
+                    "binding": "GRAPHER_CONFIG_R2_BUCKET",
+                    "remote": true,
+                },
+                {
+                    "bucket_name": "owid-grapher-configs",
+                    "binding": "GRAPHER_CONFIG_R2_BUCKET_FALLBACK",
+                    "remote": true,
+                },
                 {
                     "bucket_name": "owid-user-surveys-staging",
                     "binding": "USER_SURVEYS_R2",
@@ -42,8 +60,6 @@
                 "MAILGUN_DOMAIN": "mg.ourworldindata.org",
                 "SLACK_ERROR_CHANNEL_ID": "C016H0BNNB1",
                 "ENV": "staging",
-                "GRAPHER_CONFIG_R2_BUCKET_URL": "https://grapher-configs-staging.owid.io",
-                "GRAPHER_CONFIG_R2_BUCKET_FALLBACK_URL": "https://grapher-configs.owid.io",
                 "GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH": "v1",
                 "DATA_API_URL_PARTIAL_PREFIX": "https://api-staging.owid.io/staging-site-",
                 "DATA_API_URL_PARTIAL_POSTFIX": "/v1/indicators/",
@@ -56,6 +72,11 @@
             "compatibility_date": "2025-05-05",
             "r2_buckets": [
                 {
+                    "bucket_name": "owid-grapher-configs",
+                    "binding": "GRAPHER_CONFIG_R2_BUCKET",
+                    "remote": true,
+                },
+                {
                     "bucket_name": "owid-user-surveys",
                     "binding": "USER_SURVEYS_R2",
                 },
@@ -64,8 +85,6 @@
                 "ENV": "production",
                 "MAILGUN_DOMAIN": "mg.ourworldindata.org",
                 "SLACK_ERROR_CHANNEL_ID": "C5JJW19PS",
-                "GRAPHER_CONFIG_R2_BUCKET_URL": "https://grapher-configs.owid.io",
-                "GRAPHER_CONFIG_R2_BUCKET_FALLBACK_URL": "",
                 "GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH": "",
                 "GRAPHER_CONFIG_R2_BUCKET_PATH": "v1",
                 "DATA_API_URL_COMPLETE": "https://api.ourworldindata.org/v1/indicators/",
