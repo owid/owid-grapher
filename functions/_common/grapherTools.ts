@@ -86,8 +86,7 @@ function buildResponseFromR2Object(
 export async function fetchFromR2(
     bucket: R2Bucket,
     key: string,
-    etag: string | undefined,
-    _shouldCache: boolean = true
+    etag: string | undefined
 ) {
     const object = etag
         ? await bucket.get(key, {
@@ -105,8 +104,7 @@ export async function fetchFromR2(
 export async function fetchUnparsedGrapherConfig(
     identifier: GrapherIdentifier,
     env: Env,
-    etag?: string,
-    shouldCache: boolean = true
+    etag?: string
 ) {
     if (!env.GRAPHER_CONFIG_R2_BUCKET) {
         throw new Error("Missing GRAPHER_CONFIG_R2_BUCKET binding")
@@ -131,8 +129,7 @@ export async function fetchUnparsedGrapherConfig(
     const primaryResponse = await fetchFromR2(
         env.GRAPHER_CONFIG_R2_BUCKET,
         key,
-        etag,
-        shouldCache
+        etag
     )
     if (primaryResponse.status !== 404) {
         return primaryResponse
@@ -156,12 +153,7 @@ export async function fetchUnparsedGrapherConfig(
     ]).join("/")
     console.log("fetching grapher config from fallback key", fallbackKey)
 
-    return fetchFromR2(
-        env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK,
-        fallbackKey,
-        etag,
-        shouldCache
-    )
+    return fetchFromR2(env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK, fallbackKey, etag)
 }
 
 async function fetchMultiDimGrapherConfig(
@@ -170,12 +162,10 @@ async function fetchMultiDimGrapherConfig(
     env: Env
 ): Promise<FetchMultiDimGrapherConfigResult> {
     const view = searchParamsToMultiDimView(multiDimConfig, searchParams)
-    const shouldCache = !searchParams.has("nocache")
     const response = await fetchUnparsedGrapherConfig(
         { type: "uuid", id: view.fullConfigId },
         env,
-        undefined,
-        shouldCache
+        undefined
     )
     if (response.status !== 200) {
         return {
@@ -202,12 +192,10 @@ export async function fetchGrapherConfig({
     etag?: string
     searchParams?: URLSearchParams
 }): Promise<FetchGrapherConfigResult> {
-    const shouldCache = !searchParams?.has("nocache")
     const fetchResponse = await fetchUnparsedGrapherConfig(
         identifier,
         env,
-        etag,
-        shouldCache
+        etag
     )
 
     if (fetchResponse.status === 404) {

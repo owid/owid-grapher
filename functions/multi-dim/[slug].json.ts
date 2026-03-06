@@ -21,8 +21,7 @@ router.get("*", async (request, env, params) => {
     const grapherPageResp = await fetchUnparsedGrapherConfig(
         { type: "multi-dim-slug", id: slug },
         env,
-        etag ?? undefined,
-        shouldCache
+        etag ?? undefined
     )
 
     if (grapherPageResp.status === 304) {
