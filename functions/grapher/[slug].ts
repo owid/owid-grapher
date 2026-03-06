@@ -227,8 +227,7 @@ async function handleConfigRequest(
     const grapherPageResp = await fetchUnparsedGrapherConfig(
         { type: "slug", id: slug },
         env,
-        etag,
-        shouldCache
+        etag
     )
 
     if (grapherPageResp.status === 304) {
