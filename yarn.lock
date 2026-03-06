@@ -14502,6 +14502,7 @@ __metadata:
     ts-pattern: "npm:^5.8.0"
     uuidv7: "npm:^1.0.1"
     vitest: "npm:^4.0.15"
+    wrangler: "npm:^4.65.0"
     zod: "npm:^4.1.11"
   languageName: unknown
   linkType: soft

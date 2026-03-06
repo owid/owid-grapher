@@ -1,0 +1,22 @@
+{
+    "$schema": "../../node_modules/wrangler/config-schema.json",
+    "name": "owid-functions-e2e-tests",
+    "main": "./grapher-config.e2e.worker.ts",
+    "compatibility_date": "2025-05-05",
+    // Intentionally no `remote: true` flags: tests use local Miniflare R2 only.
+    "r2_buckets": [
+        {
+            "binding": "GRAPHER_CONFIG_R2_BUCKET",
+            "bucket_name": "test-grapher-configs",
+        },
+        {
+            "binding": "GRAPHER_CONFIG_R2_BUCKET_FALLBACK",
+            "bucket_name": "test-grapher-configs-fallback",
+        },
+    ],
+    "vars": {
+        "CF_PAGES_BRANCH": "test-branch",
+        "GRAPHER_CONFIG_R2_BUCKET_PATH": "v1",
+        "GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH": "v1",
+    },
+}
