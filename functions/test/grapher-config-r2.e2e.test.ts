@@ -45,6 +45,20 @@ async function seedR2(params: {
     expect(response.status).toBe(200)
 }
 
+async function r2HasKey(params: {
+    bucket: "primary" | "fallback"
+    key: string
+}) {
+    const response = await workerFetch(
+        `/__test__/r2-has-key?bucket=${params.bucket}&key=${encodeURIComponent(
+            params.key
+        )}`
+    )
+    expect(response.status).toBe(200)
+    const body = (await response.json()) as { exists: boolean }
+    return body.exists
+}
+
 describe("grapher config endpoint with local R2 bindings", () => {
     beforeAll(async () => {
         worker = await unstable_startWorker({
@@ -113,6 +127,9 @@ describe("grapher config endpoint with local R2 bindings", () => {
             key,
             value: lifeExpectancyFixture,
         })
+
+        expect(await r2HasKey({ bucket: "primary", key })).toBe(false)
+        expect(await r2HasKey({ bucket: "fallback", key })).toBe(true)
 
         const response = await workerFetch(
             "/grapher/life-expectancy.config.json"

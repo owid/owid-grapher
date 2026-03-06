@@ -1,5 +1,4 @@
 import { onRequest as grapherOnRequest } from "../grapher/[slug].js"
-import { onRequestGet as multiDimOnRequestGet } from "../multi-dim/[slug].json.js"
 import type { Env } from "../_common/env.js"
 
 interface SeedR2Body {
@@ -35,19 +34,15 @@ async function deleteAllObjects(bucket: R2Bucket): Promise<void> {
 }
 
 function makeGrapherContext(request: Request, env: Env) {
-    const envWithAssets = env.ASSETS
-        ? env
-        : ({
-              ...env,
-              ASSETS: {
-                  fetch: async () => new Response("Not found", { status: 404 }),
-                  connect: () => {
-                      throw new Error(
-                          "ASSETS.connect is not implemented in tests"
-                      )
-                  },
-              },
-          } as unknown as Env)
+    const envWithAssets = {
+        ...env,
+        ASSETS: {
+            fetch: async () => new Response("Not found", { status: 404 }),
+            connect: () => {
+                throw new Error("ASSETS.connect is not implemented in tests")
+            },
+        },
+    } as unknown as Env
 
     const context = {
         request,
@@ -65,16 +60,6 @@ function makeGrapherContext(request: Request, env: Env) {
     }
 
     return context as unknown as Parameters<typeof grapherOnRequest>[0]
-}
-
-function makeMultiDimContext(request: Request, env: Env, slug: string) {
-    const context = {
-        request,
-        env,
-        params: { slug },
-    }
-
-    return context as unknown as Parameters<typeof multiDimOnRequestGet>[0]
 }
 
 export default {
@@ -105,12 +90,23 @@ export default {
                 return Response.json({ ok: true })
             }
 
-            if (request.method === "GET" && url.pathname === "/__test__/env") {
-                return Response.json({
-                    branch: env.CF_PAGES_BRANCH,
-                    bucketPath: env.GRAPHER_CONFIG_R2_BUCKET_PATH,
-                    fallbackPath: env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH,
-                })
+            if (
+                request.method === "GET" &&
+                url.pathname === "/__test__/r2-has-key"
+            ) {
+                const bucket = url.searchParams.get("bucket") as
+                    | "primary"
+                    | "fallback"
+                    | null
+                const key = url.searchParams.get("key")
+                if (!bucket || !key) {
+                    return new Response("Missing bucket or key", {
+                        status: 400,
+                    })
+                }
+
+                const object = await getBucket(env, bucket).head(key)
+                return Response.json({ exists: !!object })
             }
 
             if (
@@ -119,15 +115,6 @@ export default {
             ) {
                 const context = makeGrapherContext(request, env)
                 return grapherOnRequest(context)
-            }
-
-            const multiDimMatch = url.pathname.match(
-                /^\/multi-dim\/([^/]+)\.json$/
-            )
-            if (multiDimMatch) {
-                const slug = decodeURIComponent(multiDimMatch[1])
-                const context = makeMultiDimContext(request, env, slug)
-                return multiDimOnRequestGet(context)
             }
 
             return new Response("Not found", { status: 404 })
