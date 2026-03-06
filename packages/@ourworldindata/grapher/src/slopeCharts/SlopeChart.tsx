@@ -7,11 +7,9 @@ import {
     PointVector,
     makeFigmaId,
     guid,
-    excludeUndefined,
     getRelativeMouse,
     dyFromAlign,
     domainExtent,
-    calculateTrendDirection,
 } from "@ourworldindata/utils"
 import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -52,15 +50,8 @@ import {
     VerticalLabelsState,
     VerticalLabelsStateOptions,
 } from "../verticalLabels/VerticalLabelsState"
-import {
-    formatTooltipRangeValues,
-    makeTooltipRoundingNotice,
-    makeTooltipToleranceNotice,
-    Tooltip,
-    TooltipState,
-    TooltipValueRange,
-} from "../tooltip/Tooltip"
-import { TooltipFooterIcon } from "../tooltip/TooltipProps"
+import { TooltipState } from "../tooltip/Tooltip"
+import { SlopeChartTooltip } from "./SlopeChartTooltip"
 
 import { Halo } from "@ourworldindata/components"
 import { HorizontalColorLegendManager } from "../legend/HorizontalColorLegends"
@@ -726,95 +717,12 @@ export class SlopeChart
         return guid()
     }
 
-    @computed private get tooltip(): React.ReactElement | undefined {
-        const {
-            manager: { isRelativeMode },
-            tooltipState: { target, position, fading },
-            formatColumn,
-            startTime,
-            endTime,
-        } = this
-
-        const { series } = target || {}
-        if (!series) return
-
-        const formatTime = (time: Time) => formatColumn.formatTime(time)
-
-        const title = series.displayName
-        const titleAnnotation = series.annotation
-
-        const actualStartTime = series.start.originalTime
-        const actualEndTime = series.end.originalTime
-        const timeRange = `${formatTime(actualStartTime)} to ${formatTime(actualEndTime)}`
-        const timeLabel = isRelativeMode
-            ? `% change between ${formatColumn.formatTime(actualStartTime)} and ${formatColumn.formatTime(actualEndTime)}`
-            : timeRange
-
-        const constructTargetYearForToleranceNotice = () => {
-            const isStartValueOriginal = series.start.originalTime === startTime
-            const isEndValueOriginal = series.end.originalTime === endTime
-
-            if (!isStartValueOriginal && !isEndValueOriginal) {
-                return `${formatTime(startTime)} and ${formatTime(endTime)}`
-            } else if (!isStartValueOriginal) {
-                return formatTime(startTime)
-            } else if (!isEndValueOriginal) {
-                return formatTime(endTime)
-            } else {
-                return undefined
-            }
-        }
-
-        const targetYear = constructTargetYearForToleranceNotice()
-        const toleranceNotice = targetYear
-            ? {
-                  icon: TooltipFooterIcon.Notice,
-                  text: makeTooltipToleranceNotice(targetYear),
-              }
-            : undefined
-        const roundingNotice = series.column.roundsToSignificantFigures
-            ? {
-                  icon: TooltipFooterIcon.None,
-                  text: makeTooltipRoundingNotice(
-                      [series.column.numSignificantFigures],
-                      { plural: !isRelativeMode }
-                  ),
-              }
-            : undefined
-        const footer = excludeUndefined([toleranceNotice, roundingNotice])
-
-        const values = isRelativeMode
-            ? [series.end.value]
-            : [series.start.value, series.end.value]
-
+    @computed private get tooltip(): React.ReactElement | null {
         return (
-            <Tooltip
-                id={this.renderUid}
-                tooltipManager={this.props.chartState.manager}
-                x={position.x}
-                y={position.y}
-                offsetX={20}
-                offsetY={-16}
-                style={{ maxWidth: "250px" }}
-                title={title}
-                titleAnnotation={titleAnnotation}
-                subtitle={timeLabel}
-                subtitleFormat={targetYear ? "notice" : undefined}
-                dissolve={fading}
-                footer={footer}
-                dismiss={() => (this.tooltipState.target = null)}
-            >
-                <TooltipValueRange
-                    label={series.column.displayName}
-                    unit={series.column.displayUnit}
-                    values={formatTooltipRangeValues(values, series.column)}
-                    trend={calculateTrendDirection(...values)}
-                    isRoundedToSignificantFigures={
-                        series.column.roundsToSignificantFigures
-                    }
-                    labelVariant="unit-only"
-                />
-            </Tooltip>
+            <SlopeChartTooltip
+                chartState={this.chartState}
+                tooltipState={this.tooltipState}
+            />
         )
     }
 

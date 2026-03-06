@@ -3,7 +3,6 @@ import React from "react"
 import * as R from "remeda"
 import {
     Bounds,
-    excludeUndefined,
     HorizontalAlign,
     Position,
     SortConfig,
@@ -30,24 +29,14 @@ import {
     VerticalAlign,
     ColorScaleConfigInterface,
 } from "@ourworldindata/types"
-import {
-    OwidTable,
-    CoreColumn,
-    ColumnTypeMap,
-} from "@ourworldindata/core-table"
+import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import { getShortNameForEntity } from "../chart/ChartUtils"
 import {
     LEGEND_STYLE_FOR_STACKED_CHARTS,
     StackedSeries,
 } from "./StackedConstants"
-import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
-import {
-    Tooltip,
-    TooltipValue,
-    TooltipState,
-    makeTooltipRoundingNotice,
-    makeTooltipToleranceNotice,
-} from "../tooltip/Tooltip"
+import { TooltipState } from "../tooltip/Tooltip"
+import { MarimekkoChartTooltip } from "./MarimekkoChartTooltip"
 import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
@@ -66,7 +55,6 @@ import {
     LabelCandidate,
     LabelWithPlacement,
     LabelCandidateWithElement,
-    Bar,
 } from "./MarimekkoChartConstants"
 import { MarimekkoChartState } from "./MarimekkoChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
@@ -411,6 +399,10 @@ export class MarimekkoChart
             addCountryMode !== EntitySelectionMode.Disabled) as boolean
     }
 
+    override componentDidMount(): void {
+        exposeInstanceOnWindow(this)
+    }
+
     @computed private get tooltipItem(): Item | undefined {
         const { target } = this.tooltipState
         return (
@@ -419,10 +411,6 @@ export class MarimekkoChart
                 ({ entityName }) => entityName === target.entityName
             )
         )
-    }
-
-    override componentDidMount(): void {
-        exposeInstanceOnWindow(this)
     }
 
     override render(): React.ReactElement {
@@ -435,91 +423,7 @@ export class MarimekkoChart
                 />
             )
 
-        const {
-            manager,
-            bounds,
-            dualAxis,
-            tooltipItem,
-            xColumn,
-            yColumns,
-            colorColumn,
-            colorScale,
-            manager: { endTime, xOverrideTime },
-            inputTable: { timeColumn },
-            tooltipState: { target, position, fading },
-        } = this
-
-        const { entityName, xPoint, bars } = tooltipItem ?? {}
-
-        const yValues =
-            bars?.map((bar: Bar) => {
-                const column = this.chartState.transformedTable.get(
-                    bar.columnSlug
-                )
-
-                const shouldShowYTimeNotice =
-                    bar.yPoint.value !== undefined &&
-                    bar.yPoint.time !== endTime
-
-                return {
-                    name: bar.seriesName,
-                    value: bar.yPoint.value,
-                    column,
-                    originalTime: shouldShowYTimeNotice
-                        ? column.formatTime(bar.yPoint.time)
-                        : undefined,
-                }
-            }) ?? []
-
-        // TODO: when we have proper time support to work across date/year variables then
-        // this should be set properly and the x axis time be passed in on it's own.
-        // For now we disable x axis notices when the xOverrideTime is set which is
-        // usually the case when matching day and year variables
-        const shouldShowXTimeNotice =
-            xPoint && xPoint.time !== endTime && xOverrideTime === undefined
-        const xOriginalTime = shouldShowXTimeNotice ? xPoint?.time : undefined
-        const xOriginalTimeFormatted = xOriginalTime
-            ? xColumn?.formatTime(xOriginalTime)
-            : undefined
-        const targetNotice =
-            xOriginalTime || yValues.some(({ originalTime }) => !!originalTime)
-                ? timeColumn.formatValue(endTime)
-                : undefined
-        const toleranceNotice = targetNotice
-            ? {
-                  icon: TooltipFooterIcon.Notice,
-                  text: makeTooltipToleranceNotice(targetNotice),
-              }
-            : undefined
-
-        const columns = excludeUndefined([xColumn, ...yColumns])
-        const allRoundedToSigFigs = columns.every(
-            (column) => column.roundsToSignificantFigures
-        )
-        const anyRoundedToSigFigs = columns.some(
-            (column) => column.roundsToSignificantFigures
-        )
-        const sigFigs = excludeUndefined(
-            columns.map((column) =>
-                column.roundsToSignificantFigures
-                    ? column.numSignificantFigures
-                    : undefined
-            )
-        )
-        const roundingNotice = anyRoundedToSigFigs
-            ? {
-                  icon: allRoundedToSigFigs
-                      ? TooltipFooterIcon.None
-                      : TooltipFooterIcon.Significance,
-                  text: makeTooltipRoundingNotice(sigFigs, {
-                      plural: sigFigs.length > 1,
-                  }),
-              }
-            : undefined
-        const superscript =
-            !!roundingNotice && roundingNotice.icon !== TooltipFooterIcon.None
-
-        const footer = excludeUndefined([toleranceNotice, roundingNotice])
+        const { manager, bounds, dualAxis } = this
 
         return (
             <g
@@ -548,70 +452,10 @@ export class MarimekkoChart
                 {this.renderBars()}
                 {this.labelLines}
                 {this.placedLabels}
-                {target && (
-                    <Tooltip
-                        id="marimekkoTooltip"
-                        tooltipManager={this.manager}
-                        x={position.x}
-                        y={position.y}
-                        style={{ maxWidth: "250px" }}
-                        offsetX={20}
-                        offsetY={-16}
-                        title={entityName}
-                        subtitle={timeColumn.formatValue(endTime)}
-                        footer={footer}
-                        dissolve={fading}
-                        dismiss={() => (this.tooltipState.target = null)}
-                    >
-                        {yValues.map(
-                            ({ name, value, column, originalTime }) => (
-                                <TooltipValue
-                                    key={name}
-                                    label={column.displayName}
-                                    unit={column.displayUnit}
-                                    value={column.formatValueShort(value)}
-                                    originalTime={originalTime}
-                                    isRoundedToSignificantFigures={
-                                        column.roundsToSignificantFigures
-                                    }
-                                    showSignificanceSuperscript={superscript}
-                                />
-                            )
-                        )}
-                        {xColumn && !xColumn.isMissing && (
-                            <TooltipValue
-                                label={xColumn.displayName}
-                                unit={xColumn.displayUnit}
-                                value={xColumn.formatValueShort(xPoint?.value)}
-                                originalTime={xOriginalTimeFormatted}
-                                isRoundedToSignificantFigures={
-                                    xColumn.roundsToSignificantFigures
-                                }
-                                showSignificanceSuperscript={superscript}
-                            />
-                        )}
-                        {colorColumn &&
-                            !colorColumn.isMissing &&
-                            tooltipItem?.entityColor &&
-                            !(
-                                colorColumn instanceof ColumnTypeMap.Continent
-                            ) && (
-                                <TooltipValue
-                                    label={
-                                        colorScale.legendDescription ??
-                                        colorColumn.displayName
-                                    }
-                                    value={
-                                        colorScale.getBinForValue(
-                                            tooltipItem.entityColor
-                                                .colorDomainValue
-                                        )?.label ??
-                                        tooltipItem.entityColor.colorDomainValue
-                                    }
-                                />
-                            )}
-                    </Tooltip>
-                )}
+                <MarimekkoChartTooltip
+                    chartState={this.chartState}
+                    tooltipState={this.tooltipState}
+                />
             </g>
         )
     }

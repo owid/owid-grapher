@@ -17,14 +17,8 @@ import {
     VerticalColorLegend,
     VerticalColorLegendManager,
 } from "../legend/VerticalColorLegend"
-import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
-import {
-    Tooltip,
-    TooltipState,
-    TooltipTable,
-    makeTooltipRoundingNotice,
-    toTooltipTableColumns,
-} from "../tooltip/Tooltip"
+import { TooltipState } from "../tooltip/Tooltip"
+import { StackedBarChartTooltip } from "./StackedBarChartTooltip"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
@@ -36,7 +30,6 @@ import {
     StackedSeries,
     PlacedStackedBarSeries,
     RenderStackedBarSeries,
-    STACKED_BAR_STYLE,
 } from "./StackedConstants"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { Color, HorizontalAlign, SeriesName } from "@ourworldindata/types"
@@ -353,99 +346,13 @@ export class StackedBarChart
         return undefined
     }
 
-    @computed private get tooltip(): React.ReactElement | undefined {
-        const {
-            tooltipState: { target, position, fading },
-            series,
-        } = this
-        const { formatColumn } = this.chartState
-
-        const { bar: hoverBar, series: hoverSeries } = target ?? {}
-        let hoverTime: number
-        if (hoverBar !== undefined) {
-            hoverTime = hoverBar.position
-        } else return
-
-        const title = formatColumn.formatTime(hoverTime)
-        const titleAnnotation = this.xAxis.label ? `(${this.xAxis.label})` : ""
-
-        const { displayUnit } = formatColumn
-
-        const totalValue = _.sum(
-            series.map(
-                ({ points }) =>
-                    points.find((bar) => bar.position === hoverTime)?.value ?? 0
-            )
-        )
-
-        const roundingNotice = formatColumn.roundsToSignificantFigures
-            ? {
-                  icon: TooltipFooterIcon.None,
-                  text: makeTooltipRoundingNotice([
-                      formatColumn.numSignificantFigures,
-                  ]),
-              }
-            : undefined
-        const footer = excludeUndefined([roundingNotice])
-
-        const hoverPoints = series.map((series) => {
-            const point = series.points.find(
-                (bar) => bar.position === hoverTime
-            )
-            return {
-                seriesName: series.seriesName,
-                seriesColor: series.color,
-                point,
-            }
-        })
-        const [positivePoints, negativePoints] = _.partition(
-            hoverPoints,
-            ({ point }) => (point?.value ?? 0) >= 0
-        )
-        const sortedHoverPoints = [
-            ...positivePoints.toReversed(),
-            ...negativePoints,
-        ]
-
+    @computed private get tooltip(): React.ReactElement | null {
         return (
-            <Tooltip
-                id={this.renderUid}
-                tooltipManager={this.manager}
-                x={position.x}
-                y={position.y}
-                style={{ maxWidth: "500px" }}
-                offsetX={20}
-                offsetY={-16}
-                title={title}
-                titleAnnotation={titleAnnotation}
-                subtitle={displayUnit}
-                subtitleFormat="unit"
-                footer={footer}
-                dissolve={fading}
-                dismiss={() => (this.tooltipState.target = null)}
-            >
-                <TooltipTable
-                    columns={toTooltipTableColumns(formatColumn)}
-                    totals={[totalValue]}
-                    rows={sortedHoverPoints.map(
-                        ({ point, seriesName: name, seriesColor }) => {
-                            const focused = hoverSeries?.seriesName === name
-                            const fake = point?.missing || point?.interpolated
-                            const blurred = fake ?? true
-                            const values = [fake ? undefined : point?.value]
-
-                            const color = point?.color ?? seriesColor
-                            const emphasis = focused
-                                ? Emphasis.Highlighted
-                                : Emphasis.Default
-                            const opacity = STACKED_BAR_STYLE[emphasis].opacity
-                            const swatch = { color, opacity }
-
-                            return { name, swatch, blurred, focused, values }
-                        }
-                    )}
-                />
-            </Tooltip>
+            <StackedBarChartTooltip
+                chartState={this.chartState}
+                tooltipState={this.tooltipState}
+                xAxisLabel={this.xAxis.label}
+            />
         )
     }
 

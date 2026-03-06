@@ -6,7 +6,6 @@ import {
     Time,
     HorizontalAlign,
     EntityName,
-    excludeUndefined,
     numberMagnitude,
     getRelativeMouse,
     exposeInstanceOnWindow,
@@ -32,15 +31,8 @@ import { NoDataModal } from "../noDataModal/NoDataModal"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
-import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
-import {
-    Tooltip,
-    TooltipState,
-    TooltipTable,
-    makeTooltipRoundingNotice,
-    makeTooltipToleranceNotice,
-    toTooltipTableColumns,
-} from "../tooltip/Tooltip"
+import { TooltipState } from "../tooltip/Tooltip"
+import { StackedDiscreteBarChartTooltip } from "./StackedDiscreteBarChartTooltip"
 import {
     LEGEND_STYLE_FOR_STACKED_CHARTS,
     StackedPoint,
@@ -513,87 +505,12 @@ export class StackedDiscreteBarChart
         this.clearTooltip()
     }
 
-    @computed private get tooltip(): React.ReactElement | undefined {
-        const {
-                tooltipState: { target, position, fading },
-                formatColumn: { displayUnit },
-                manager: { endTime: targetTime },
-                inputTable: { timeColumn },
-            } = this,
-            item = this.placedRows.find(
-                ({ entityName }) => entityName === target?.entityName
-            ),
-            hasNotice = item?.bars.some(
-                ({ point }) =>
-                    !point.missing &&
-                    !point.interpolated &&
-                    point.time !== targetTime
-            ),
-            targetNotice = hasNotice
-                ? timeColumn.formatValue(targetTime)
-                : undefined
-
-        const toleranceNotice = targetNotice
-            ? {
-                  icon: TooltipFooterIcon.Notice,
-                  text: makeTooltipToleranceNotice(targetNotice),
-              }
-            : undefined
-        const roundingNotice = this.formatColumn.roundsToSignificantFigures
-            ? {
-                  icon: TooltipFooterIcon.None,
-                  text: makeTooltipRoundingNotice([
-                      this.formatColumn.numSignificantFigures,
-                  ]),
-              }
-            : undefined
-        const footer = excludeUndefined([toleranceNotice, roundingNotice])
-
+    @computed private get tooltip(): React.ReactElement | null {
         return (
-            target &&
-            item && (
-                <Tooltip
-                    id="stackedDiscreteBarTooltip"
-                    tooltipManager={this.manager}
-                    x={position.x}
-                    y={position.y}
-                    style={{ maxWidth: "400px" }}
-                    offsetX={20}
-                    offsetY={-16}
-                    title={target.entityName}
-                    subtitle={displayUnit}
-                    subtitleFormat="unit"
-                    footer={footer}
-                    dissolve={fading}
-                    dismiss={() => (this.tooltipState.target = null)}
-                >
-                    <TooltipTable
-                        columns={toTooltipTableColumns(this.formatColumn)}
-                        totals={[item.totalValue]}
-                        rows={item.bars.map((bar) => {
-                            const {
-                                seriesName: name,
-                                color,
-                                point: { value, time, missing, interpolated },
-                            } = bar
-
-                            const blurred = missing || interpolated
-
-                            return {
-                                name,
-                                swatch: { color },
-                                blurred,
-                                focused: name === target.seriesName,
-                                values: [!blurred ? value : undefined],
-                                originalTime:
-                                    !blurred && time !== targetTime
-                                        ? timeColumn.formatValue(time)
-                                        : undefined,
-                            }
-                        })}
-                    ></TooltipTable>
-                </Tooltip>
-            )
+            <StackedDiscreteBarChartTooltip
+                chartState={this.chartState}
+                tooltipState={this.tooltipState}
+            />
         )
     }
 

@@ -1,6 +1,5 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import * as R from "remeda"
 import {
     getRelativeMouse,
     excludeUndefined,
@@ -21,20 +20,16 @@ import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { VerticalLabels } from "../verticalLabels/VerticalLabels"
 import { VerticalLabelsState } from "../verticalLabels/VerticalLabelsState"
 import { NoDataModal } from "../noDataModal/NoDataModal"
-import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
+import { TooltipState } from "../tooltip/Tooltip"
 import {
-    Tooltip,
-    TooltipState,
-    TooltipTable,
-    makeTooltipRoundingNotice,
-    toTooltipTableColumns,
-} from "../tooltip/Tooltip"
+    StackedAreaChartTooltip,
+    STACKED_AREA_TOOLTIP_ID,
+} from "./StackedAreaChartTooltip"
 import { StackedAreaChartState } from "./StackedAreaChartState.js"
 import {
     LEGEND_STYLE_FOR_STACKED_CHARTS,
     PlacedStackedAreaSeries,
     RenderStackedAreaSeries,
-    STACKED_AREA_STYLE,
     StackedSeries,
 } from "./StackedConstants"
 import {
@@ -44,7 +39,6 @@ import {
 } from "../chart/ChartUtils"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig.js"
 import { LabelSeries } from "../verticalLabels/VerticalLabelsTypes"
-import { Emphasis, resolveEmphasis } from "../interaction/Emphasis"
 import { easeLinear } from "d3-ease"
 import { select, type BaseType, type Selection } from "d3-selection"
 import { ChartInterface } from "../chart/ChartInterface"
@@ -54,6 +48,7 @@ import { HorizontalColorLegendManager } from "../legend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { InteractionState } from "../interaction/InteractionState"
+import { resolveEmphasis } from "../interaction/Emphasis"
 import { resolveCollision, toPlacedStackedAreaSeries } from "./StackedUtils"
 
 const STACKED_AREA_CHART_CLASS_NAME = "StackedArea"
@@ -442,92 +437,19 @@ export class StackedAreaChart
         )
     }
 
-    @computed private get tooltipId(): number {
-        return this.renderUid
-    }
-
     @computed private get isTooltipActive(): boolean {
-        return this.manager.tooltip?.get()?.id === this.tooltipId
+        return this.manager.tooltip?.get()?.id === STACKED_AREA_TOOLTIP_ID
     }
 
-    @computed private get tooltip(): React.ReactElement | undefined {
-        const { target, position, fading } = this.tooltipState
-        if (!target) return undefined
-
-        // Grab the first value to get the year from
-        const { series } = this
-        const hoveredPointIndex = target.index
-        const bottomSeriesPoint = series[0].points[hoveredPointIndex]
-        if (!bottomSeriesPoint) return undefined
-
-        const formatColumn = this.chartState.formatColumn,
-            formattedTime = formatColumn.formatTime(bottomSeriesPoint.position),
-            { displayUnit } = formatColumn
-
-        const title = formattedTime
-        const titleAnnotation = this.xAxis.label ? `(${this.xAxis.label})` : ""
-
-        const lastStackedPoint = R.last(series)!.points[hoveredPointIndex]
-        if (!lastStackedPoint) return undefined
-        const totalValue = lastStackedPoint.value + lastStackedPoint.valueOffset
-
-        const roundingNotice = formatColumn.roundsToSignificantFigures
-            ? {
-                  icon: TooltipFooterIcon.None,
-                  text: makeTooltipRoundingNotice([
-                      formatColumn.numSignificantFigures,
-                  ]),
-              }
-            : undefined
-        const footer = excludeUndefined([roundingNotice])
-
+    @computed private get tooltip(): React.ReactElement | null {
         return (
-            <Tooltip
-                id={this.tooltipId}
-                tooltipManager={this.manager}
-                x={position.x}
-                y={position.y}
-                offsetY={-16}
-                offsetX={20}
-                offsetXDirection="left"
-                style={{ maxWidth: "50%" }}
-                title={title}
-                titleAnnotation={titleAnnotation}
-                subtitle={displayUnit}
-                subtitleFormat="unit"
-                footer={footer}
-                dissolve={fading}
-                dismiss={this.dismissTooltip}
-            >
-                <TooltipTable
-                    columns={toTooltipTableColumns(formatColumn)}
-                    totals={[totalValue]}
-                    rows={series.toReversed().map((series) => {
-                        const { seriesName: name, color, points } = series
-                        const point = points[hoveredPointIndex]
-                        const focused = name === target.series
-                        const values = [
-                            point?.missing || point?.interpolated
-                                ? undefined
-                                : point?.value,
-                        ]
-
-                        const emphasis = focused
-                            ? Emphasis.Highlighted
-                            : Emphasis.Default
-                        const opacity = STACKED_AREA_STYLE[emphasis].fillOpacity
-
-                        const swatch = { color, opacity }
-
-                        return {
-                            name,
-                            swatch,
-                            focused,
-                            values,
-                        }
-                    })}
-                />
-            </Tooltip>
+            <StackedAreaChartTooltip
+                chartState={this.chartState}
+                tooltipState={this.tooltipState}
+                series={this.series}
+                xAxisLabel={this.xAxis.label}
+                dismissTooltip={this.dismissTooltip}
+            />
         )
     }
 
