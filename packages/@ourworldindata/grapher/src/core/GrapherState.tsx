@@ -2401,12 +2401,22 @@ export class GrapherState
             !this.forceHideAnnotationFieldsInTitle?.time &&
             this.isReady &&
             (showTimeAnnotation ||
+                this.isOnScatterWithTimeOverride ||
                 (this.hasTimeline &&
                     // Chart types that refer to the current time only in the timeline
                     (this.isOnDiscreteBarTab ||
                         this.isOnStackedDiscreteBarTab ||
                         this.isOnMarimekkoTab ||
                         this.isOnMapTab)))
+        )
+    }
+
+    @computed
+    private get isOnScatterWithTimeOverride(): boolean {
+        return !!(
+            this.isOnScatterTab &&
+            this.xColumnSlug !== undefined &&
+            this.xOverrideTime
         )
     }
 
@@ -2621,9 +2631,19 @@ export class GrapherState
     }
 
     @computed private get timeTitleSuffix(): string | undefined {
+        const { startTime, endTime, xOverrideTime } = this
+
         const timeColumn = this.table.timeColumn
         if (timeColumn.isMissing) return undefined // Do not show year until data is loaded
-        const { startTime, endTime } = this
+
+        // Add 'Time vs. Time' suffix for scatter plots with time override
+        if (this.isOnScatterWithTimeOverride) {
+            const times = _.sortBy([endTime, xOverrideTime])
+            return times
+                .map((time) => timeColumn.formatValue(time))
+                .join(" vs. ")
+        }
+
         if (startTime === undefined || endTime === undefined) return undefined
 
         const time =
