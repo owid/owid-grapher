@@ -19,11 +19,6 @@ export interface PrimaryTopic {
     citation: string
 }
 
-export interface DataInsightLink {
-    title: string
-    slug: string
-}
-
 export interface DataPageDataV2 {
     status: "published" | "draft"
     title: IndicatorTitleWithFragments
@@ -48,8 +43,6 @@ export interface DataPageDataV2 {
     chartConfig: Record<string, unknown>
     unit?: string
     unitConversionFactor?: number
-    hasDataInsights?: boolean
-    dataInsights?: DataInsightLink[]
 }
 
 export interface DataPageRelatedResearch {

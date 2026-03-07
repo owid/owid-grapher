@@ -264,9 +264,15 @@ export function updateSentryTags() {
  * Updates the Sentry experiment tags from the current experiment state.
  */
 export function updateSentryExperimentTags() {
-    const { assignedExperiments } = getExperimentState()
-    if (isSentryInitialized() && Object.keys(assignedExperiments).length > 0) {
-        Sentry.setTags(assignedExperiments)
+    const experimentState = getExperimentState()
+    if (isSentryInitialized() && Object.keys(experimentState).length > 0) {
+        const tags = Object.fromEntries(
+            Object.entries(experimentState).map(([key, value]) => [
+                key,
+                value.arm,
+            ])
+        )
+        Sentry.setTags(tags)
     }
 }
 

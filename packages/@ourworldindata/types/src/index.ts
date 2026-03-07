@@ -233,7 +233,6 @@ export {
     type DataPageDataV2,
     type DataPageRelatedResearch,
     type PrimaryTopic,
-    type DataInsightLink,
     type FaqLink,
     type FaqEntryData,
     type DisplaySource,

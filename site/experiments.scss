@@ -1,0 +1,72 @@
+/*
+CSS for A/B experiments
+
+CSS patterns for hiding/showing elements based on visitor's assignment to an experiment.
+When a visitor is assigned to an experimental arm, the html body is given a class corresponding
+to the experiment+arm assignment: "{experimentId}--{armId}" (e.g. "exp-data-page-insight-links--treat1").
+
+Then, we conditionally show/hide blocks of content when this class is present on the body.
+Blocks with matching "{experimentId}--{armId}--show" are shown, while blocks with matching
+"{experimentId}--{armId}--hide" are hidden.
+
+By default when a user is NOT assigned to {armId}, blocks with "{experimentId}--{armId}--show"
+are hidden, while blocks with "{experimentId}--{armId}--hide" are shown.
+*/
+
+@use "sass:map";
+
+$experiments: (
+    exp-all-charts-vs-featured-v1: (
+        all-charts,
+        featured-metrics,
+    ),
+);
+
+@each $exp, $arms in $experiments {
+    .#{$exp} {
+        @each $a in $arms {
+            // default state: all --show are hidden
+            &--#{$a}--show {
+                display: none;
+            }
+
+            // when arm is active, show the matching --show
+            &--#{$a} &--#{$a}--show {
+                display: block;
+
+                &.grid {
+                    display: grid;
+                }
+                margin-bottom: 24px;
+
+                @include sm-up {
+                    margin-bottom: 40px;
+                }
+            }
+
+            // when arm is active, hide the matching --hide
+            &--#{$a} &--#{$a}--hide {
+                display: none;
+            }
+        }
+    }
+}
+
+// styles specific to experiment exp-all-charts-vs-featured-v1
+.exp-all-charts-vs-featured-v1 {
+    $arms: map.get($experiments, exp-all-charts-vs-featured-v1);
+    @each $a in $arms {
+        &--#{$a} .DataPageContent {
+            .section-wrapper__related-charts {
+                border-bottom: none !important;
+            }
+            .featured-metrics__title {
+                @include datapage-section-title;
+            }
+        }
+
+        &--#{$a} .article-block__featured-metrics > h1 {
+            text-align: left;
+        }
+    }
+}
