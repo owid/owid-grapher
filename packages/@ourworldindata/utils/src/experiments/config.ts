@@ -18,13 +18,17 @@ export const experiments: Experiment[] = [
      */
     new Experiment({
         id: "all-charts-vs-featured-v1",
-        expires: "2026-12-31T00:00:00.000Z",
+        expires: "2026-03-24T00:00:00.000Z",
         arms: [
-            { id: "all-charts", fraction: 0.7 },
+            { 
+                id: "all-charts",
+                fraction: 0.7,
+                replaysSessionSampleRate: 0.2,
+            },
             {
                 id: "featured-metrics",
                 fraction: 0.3,
-                replaysSessionSampleRate: 0.25,
+                replaysSessionSampleRate: 0.33,
             },
         ],
         paths: [
