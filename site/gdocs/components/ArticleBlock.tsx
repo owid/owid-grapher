@@ -1,5 +1,5 @@
 import cx from "classnames"
-import { useContext } from "react"
+import { useContext, useState, useEffect } from "react"
 
 import Callout from "./Callout.js"
 import ChartStory from "./ChartStory.js"
@@ -19,6 +19,9 @@ import {
     spansToUnformattedPlainText,
     TocHeadingWithTitleSupertitle,
     Url,
+    defaultExperimentState,
+    getExperimentState,
+    ExperimentState,
 } from "@ourworldindata/utils"
 import { CodeSnippet, convertHeadingTextToId } from "@ourworldindata/components"
 import SDGGrid from "./SDGGrid.js"
@@ -58,7 +61,6 @@ import { ResourcePanel } from "./ResourcePanel.js"
 import { Cta } from "./Cta.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { FeaturedMetrics } from "../../FeaturedMetrics.js"
-import { experimentState } from "../../experiments.js"
 import { FeaturedDataInsights } from "../../FeaturedDataInsights.js"
 import { BlockQueryClientProvider } from "./BlockQueryClientProvider.js"
 import { ExploreDataSection } from "./ExploreDataSection.js"
@@ -103,6 +105,15 @@ function ArticleBlockInternal({
 
     // note: experimentState should NOT be used to conditionally render content b/c
     // it will cause a flash of content before js loads.
+    const [experimentState, setExperimentState] = useState<ExperimentState>(
+        defaultExperimentState
+    )
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const s = getExperimentState()
+            setExperimentState(s)
+        }
+    }, [])
     const { isPageInExperiment, assignedExperiments } = experimentState
 
     if (block.parseErrors.filter(({ isWarning }) => !isWarning).length > 0) {
