@@ -20,7 +20,7 @@ export const experiments: Experiment[] = [
         id: "all-charts-vs-featured-v1",
         expires: "2026-03-24T00:00:00.000Z",
         arms: [
-            { 
+            {
                 id: "all-charts",
                 fraction: 0.7,
                 replaysSessionSampleRate: 0.2,

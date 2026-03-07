@@ -110,7 +110,6 @@ export const DataPageV2Content = ({
             setExperimentState(s)
         }
     }, [])
-    const { isPageInExperiment, assignedExperiments } = experimentState
 
     return (
         <AttachmentsContext.Provider
@@ -214,14 +213,13 @@ export const DataPageV2Content = ({
                                 <h2
                                     className="related-charts__title"
                                     id={
-                                        isPageInExperiment &&
-                                        assignedExperiments &&
-                                        assignedExperiments[
+                                        experimentState &&
+                                        experimentState[
                                             `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                                        ] &&
-                                        assignedExperiments[
+                                        ]?.isPageInExperiment &&
+                                        experimentState[
                                             `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                                        ] !== "all-charts"
+                                        ]?.arm !== "all-charts"
                                             ? ""
                                             : "all-charts"
                                     }
@@ -239,14 +237,13 @@ export const DataPageV2Content = ({
                             <div
                                 className={`section-wrapper ${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}featured-metrics--show`}
                                 id={
-                                    isPageInExperiment &&
-                                    assignedExperiments &&
-                                    assignedExperiments[
+                                    experimentState &&
+                                    experimentState[
                                         `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                                    ] &&
-                                    assignedExperiments[
+                                    ]?.isPageInExperiment &&
+                                    experimentState[
                                         `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                                    ] === "featured-metrics"
+                                    ]?.arm === "featured-metrics"
                                         ? "all-charts"
                                         : ""
                                 }

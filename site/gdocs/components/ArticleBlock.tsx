@@ -114,7 +114,6 @@ function ArticleBlockInternal({
             setExperimentState(s)
         }
     }, [])
-    const { isPageInExperiment, assignedExperiments } = experimentState
 
     if (block.parseErrors.filter(({ isWarning }) => !isWarning).length > 0) {
         return (
@@ -173,14 +172,13 @@ function ArticleBlockInternal({
                     <AllCharts
                         {...block}
                         id={
-                            isPageInExperiment &&
-                            assignedExperiments &&
-                            assignedExperiments[
+                            experimentState &&
+                            experimentState[
                                 `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                            ] &&
-                            assignedExperiments[
+                            ]?.isPageInExperiment &&
+                            experimentState[
                                 `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                            ] !== "all-charts"
+                            ]?.arm !== "all-charts"
                                 ? ""
                                 : "all-charts"
                         }
@@ -193,14 +191,13 @@ function ArticleBlockInternal({
                         <BlockQueryClientProvider>
                             <FeaturedMetrics
                                 id={
-                                    isPageInExperiment &&
-                                    assignedExperiments &&
-                                    assignedExperiments[
+                                    experimentState &&
+                                    experimentState[
                                         `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                                    ] &&
-                                    assignedExperiments[
+                                    ]?.isPageInExperiment &&
+                                    experimentState[
                                         `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                                    ] === "featured-metrics"
+                                    ]?.arm === "featured-metrics"
                                         ? "all-charts"
                                         : ""
                                 }
