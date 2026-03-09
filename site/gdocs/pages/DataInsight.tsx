@@ -146,7 +146,10 @@ export const DataInsightBody = (
                     ))}
                 </div>
                 <div className="data-insight-blocks">
-                    <ArticleBlocks blocks={props.content.body} />
+                    <ArticleBlocks
+                        blocks={props.content.body}
+                        containerType="data-insight"
+                    />
                 </div>
                 <div className="data-insight-footer">
                     <RelatedTopicsList tags={props.tags ?? undefined} />

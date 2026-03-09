@@ -188,6 +188,7 @@ const DataInsightCard = memo(function DataInsightCard({
                 <div className="latest-data-insights__card-body">
                     <ArticleBlocks
                         blocks={otherBlocks}
+                        containerType="data-insight"
                         shouldRenderLinks={false}
                     />
                 </div>
