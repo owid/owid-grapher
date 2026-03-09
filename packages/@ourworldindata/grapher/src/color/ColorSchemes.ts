@@ -17,86 +17,90 @@ function getPreferredSchemesByType(
     // This function could also be a Map<GrapherChartOrMapType, ColorName[]> but
     // by doing it as a function usign ts-pattern.match we get compile
     // time safety that all enum cases in GrapherChartOrMapType are always handled here
-    return match(type)
-        .with(GRAPHER_CHART_TYPES.DiscreteBar, () => [
-            ColorSchemeName.SingleColorDenim,
-            ColorSchemeName.SingleColorDustyCoral,
-            ColorSchemeName.SingleColorPurple,
-            ColorSchemeName.SingleColorTeal,
-            ColorSchemeName.SingleColorDarkCopper,
-        ])
-        .with(GRAPHER_CHART_TYPES.LineChart, () => [
-            ColorSchemeName.OwidDistinctLines,
-        ])
-        .with(GRAPHER_CHART_TYPES.Marimekko, () => [
-            ColorSchemeName.continents,
-            ColorSchemeName.SingleColorDenim,
-            ColorSchemeName.SingleColorDustyCoral,
-            ColorSchemeName.SingleColorPurple,
-            ColorSchemeName.SingleColorTeal,
-            ColorSchemeName.SingleColorDarkCopper,
-            ColorSchemeName.OwidCategoricalA,
-            ColorSchemeName.OwidCategoricalB,
-            ColorSchemeName.OwidCategoricalC,
-            ColorSchemeName.OwidCategoricalD,
-            ColorSchemeName.OwidCategoricalE,
-        ])
-        .with(GRAPHER_CHART_TYPES.ScatterPlot, () => [
-            ColorSchemeName.continents,
-            ColorSchemeName.OwidDistinctLines,
-        ])
-        .with(GRAPHER_CHART_TYPES.SlopeChart, () => [
-            ColorSchemeName.continents,
-            ColorSchemeName.OwidDistinctLines,
-        ])
-        .with(GRAPHER_CHART_TYPES.StackedArea, () => [
-            ColorSchemeName["owid-distinct"],
-            ColorSchemeName.OwidCategoricalA,
-            ColorSchemeName.OwidCategoricalB,
-            ColorSchemeName.OwidCategoricalC,
-            ColorSchemeName.OwidCategoricalD,
-            ColorSchemeName.OwidCategoricalE,
-            ColorSchemeName.SingleColorGradientDenim,
-            ColorSchemeName.SingleColorGradientTeal,
-            ColorSchemeName.SingleColorGradientPurple,
-            ColorSchemeName.SingleColorGradientDustyCoral,
-            ColorSchemeName.SingleColorGradientDarkCopper,
-        ])
-        .with(GRAPHER_CHART_TYPES.StackedBar, () => [
-            ColorSchemeName["owid-distinct"],
-            ColorSchemeName.OwidCategoricalA,
-            ColorSchemeName.OwidCategoricalB,
-            ColorSchemeName.OwidCategoricalC,
-            ColorSchemeName.OwidCategoricalD,
-            ColorSchemeName.OwidCategoricalE,
-            ColorSchemeName.SingleColorGradientDenim,
-            ColorSchemeName.SingleColorGradientTeal,
-            ColorSchemeName.SingleColorGradientPurple,
-            ColorSchemeName.SingleColorGradientDustyCoral,
-            ColorSchemeName.SingleColorGradientDarkCopper,
-        ])
-        .with(GRAPHER_CHART_TYPES.StackedDiscreteBar, () => [
-            ColorSchemeName["owid-distinct"],
-            ColorSchemeName.OwidCategoricalA,
-            ColorSchemeName.OwidCategoricalB,
-            ColorSchemeName.OwidCategoricalC,
-            ColorSchemeName.OwidCategoricalD,
-            ColorSchemeName.OwidCategoricalE,
-            ColorSchemeName.SingleColorGradientDenim,
-            ColorSchemeName.SingleColorGradientTeal,
-            ColorSchemeName.SingleColorGradientPurple,
-            ColorSchemeName.SingleColorGradientDustyCoral,
-            ColorSchemeName.SingleColorGradientDarkCopper,
-        ])
-        .with(GRAPHER_MAP_TYPE, () => [
-            ColorSchemeName.BinaryMapPaletteA,
-            ColorSchemeName.BinaryMapPaletteB,
-            ColorSchemeName.BinaryMapPaletteC,
-            ColorSchemeName.BinaryMapPaletteD,
-            ColorSchemeName.BinaryMapPaletteE,
-            ColorSchemeName.OwidCategoricalMap,
-        ])
-        .exhaustive()
+    return (
+        match(type)
+            .with(GRAPHER_CHART_TYPES.DiscreteBar, () => [
+                ColorSchemeName.SingleColorDenim,
+                ColorSchemeName.SingleColorDustyCoral,
+                ColorSchemeName.SingleColorPurple,
+                ColorSchemeName.SingleColorTeal,
+                ColorSchemeName.SingleColorDarkCopper,
+            ])
+            .with(GRAPHER_CHART_TYPES.LineChart, () => [
+                ColorSchemeName.OwidDistinctLines,
+            ])
+            .with(GRAPHER_CHART_TYPES.Marimekko, () => [
+                ColorSchemeName.continents,
+                ColorSchemeName.SingleColorDenim,
+                ColorSchemeName.SingleColorDustyCoral,
+                ColorSchemeName.SingleColorPurple,
+                ColorSchemeName.SingleColorTeal,
+                ColorSchemeName.SingleColorDarkCopper,
+                ColorSchemeName.OwidCategoricalA,
+                ColorSchemeName.OwidCategoricalB,
+                ColorSchemeName.OwidCategoricalC,
+                ColorSchemeName.OwidCategoricalD,
+                ColorSchemeName.OwidCategoricalE,
+            ])
+            .with(GRAPHER_CHART_TYPES.ScatterPlot, () => [
+                ColorSchemeName.continents,
+                ColorSchemeName.OwidDistinctLines,
+            ])
+            .with(GRAPHER_CHART_TYPES.SlopeChart, () => [
+                ColorSchemeName.continents,
+                ColorSchemeName.OwidDistinctLines,
+            ])
+            .with(GRAPHER_CHART_TYPES.StackedArea, () => [
+                ColorSchemeName["owid-distinct"],
+                ColorSchemeName.OwidCategoricalA,
+                ColorSchemeName.OwidCategoricalB,
+                ColorSchemeName.OwidCategoricalC,
+                ColorSchemeName.OwidCategoricalD,
+                ColorSchemeName.OwidCategoricalE,
+                ColorSchemeName.SingleColorGradientDenim,
+                ColorSchemeName.SingleColorGradientTeal,
+                ColorSchemeName.SingleColorGradientPurple,
+                ColorSchemeName.SingleColorGradientDustyCoral,
+                ColorSchemeName.SingleColorGradientDarkCopper,
+            ])
+            .with(GRAPHER_CHART_TYPES.StackedBar, () => [
+                ColorSchemeName["owid-distinct"],
+                ColorSchemeName.OwidCategoricalA,
+                ColorSchemeName.OwidCategoricalB,
+                ColorSchemeName.OwidCategoricalC,
+                ColorSchemeName.OwidCategoricalD,
+                ColorSchemeName.OwidCategoricalE,
+                ColorSchemeName.SingleColorGradientDenim,
+                ColorSchemeName.SingleColorGradientTeal,
+                ColorSchemeName.SingleColorGradientPurple,
+                ColorSchemeName.SingleColorGradientDustyCoral,
+                ColorSchemeName.SingleColorGradientDarkCopper,
+            ])
+            .with(GRAPHER_CHART_TYPES.StackedDiscreteBar, () => [
+                ColorSchemeName["owid-distinct"],
+                ColorSchemeName.OwidCategoricalA,
+                ColorSchemeName.OwidCategoricalB,
+                ColorSchemeName.OwidCategoricalC,
+                ColorSchemeName.OwidCategoricalD,
+                ColorSchemeName.OwidCategoricalE,
+                ColorSchemeName.SingleColorGradientDenim,
+                ColorSchemeName.SingleColorGradientTeal,
+                ColorSchemeName.SingleColorGradientPurple,
+                ColorSchemeName.SingleColorGradientDustyCoral,
+                ColorSchemeName.SingleColorGradientDarkCopper,
+            ])
+            .with(GRAPHER_MAP_TYPE, () => [
+                ColorSchemeName.BinaryMapPaletteA,
+                ColorSchemeName.BinaryMapPaletteB,
+                ColorSchemeName.BinaryMapPaletteC,
+                ColorSchemeName.BinaryMapPaletteD,
+                ColorSchemeName.BinaryMapPaletteE,
+                ColorSchemeName.OwidCategoricalMap,
+            ])
+            // Dumbbell charts don't support color schemes
+            .with(GRAPHER_CHART_TYPES.Dumbbell, () => [])
+            .exhaustive()
+    )
 }
 
 const initColorScheme = (scheme: ColorSchemeInterface): ColorScheme =>

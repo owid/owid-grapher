@@ -252,6 +252,7 @@ export {
 } from "./profiles.js"
 
 export {
+    type PadObject,
     type GridBounds,
     type SplitBoundsPadding,
     FontFamily,

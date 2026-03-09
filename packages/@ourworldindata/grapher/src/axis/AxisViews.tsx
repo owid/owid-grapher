@@ -19,9 +19,11 @@ import { ScaleType, DetailsMarker } from "@ourworldindata/types"
 import { MarkdownTextWrapSvg } from "@ourworldindata/components"
 import { ComparisonLine } from "../comparisonLine/ComparisonLine"
 
-const TICK_COLOR = "#ddd"
+export const TICK_COLOR = "#ddd"
 const FAINT_TICK_COLOR = "#eee"
 const SOLID_TICK_COLOR = "#999"
+
+export const GRID_LINE_DASH_PATTERN = "4,4"
 
 interface VerticalAxisGridLinesProps {
     axis: VerticalAxis
@@ -49,7 +51,8 @@ export class VerticalAxisGridLines extends React.Component<VerticalAxisGridLines
                         : t.solid
                           ? SOLID_TICK_COLOR
                           : TICK_COLOR
-                    const dasharray = this.props.dashPattern ?? "4,4"
+                    const dasharray =
+                        this.props.dashPattern ?? GRID_LINE_DASH_PATTERN
 
                     const className = t.value === 0 ? "zero-line" : undefined
 
@@ -99,7 +102,8 @@ export class HorizontalAxisGridLines extends React.Component<HorizontalAxisGridL
                         : t.solid
                           ? SOLID_TICK_COLOR
                           : TICK_COLOR
-                    const dasharray = this.props.dashPattern ?? "4,4"
+                    const dasharray =
+                        this.props.dashPattern ?? GRID_LINE_DASH_PATTERN
 
                     return (
                         <line
