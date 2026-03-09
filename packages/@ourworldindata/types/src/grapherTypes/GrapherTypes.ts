@@ -348,6 +348,18 @@ export interface AxisConfigInterface {
      * for the outermost values.
      */
     domainValues?: number[]
+
+    /**
+     * Whether to offset the leftmost tick label so it doesn't overflow the axis start.
+     * Defaults to true.
+     */
+    shouldOffsetTickLabelAtStart?: boolean
+
+    /**
+     * Whether to offset the rightmost tick label so it doesn't overflow the axis end.
+     * Defaults to true.
+     */
+    shouldOffsetTickLabelAtEnd?: boolean
 }
 
 export interface VerticalComparisonLineConfig {
