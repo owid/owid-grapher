@@ -66,6 +66,7 @@ export function BespokeComponent({
                 )
                 // Dynamically import the JS module
                 const jsPromise = import(
+                    /* @vite-ignore */
                     definition.scriptUrl
                 ) as Promise<BespokeComponentModule>
 
