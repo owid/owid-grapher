@@ -541,7 +541,12 @@ properties:
             - metric
     sortBy:
         type: string
-        description: Sort criterion (used by stacked bar charts and marimekko)
+        description: |
+            Sort criterion (used by discrete bar, stacked discrete bar, and marimekko charts).
+            - column: sort by the value of a specific column, identified by sortColumnSlug
+            - total: sort by the total across all columns
+            - entityName: sort alphabetically by entity name
+            - custom: preserve the specified entity order
         default: total
         enum:
             - column
