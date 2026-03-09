@@ -1040,7 +1040,6 @@ function* rawBlockBespokeComponentToArchieMLString(
     yield* propertyToArchieMLString("variant", block.value)
     yield* propertyToArchieMLString("size", block.value)
     if (block.value.config) {
-        // TODO this doesn't support deep nesting, which in theory the type Record<string, unknown> allows for
         yield `{.config}`
         for (const [key, value] of Object.entries(block.value.config)) {
             yield* propertyToArchieMLString(key, { [key]: value })

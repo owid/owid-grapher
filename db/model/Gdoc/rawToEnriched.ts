@@ -482,7 +482,7 @@ const parseBespokeComponent = (
         error: ParseError,
         bundle: string = "",
         size: BlockSize = BlockSize.Wide,
-        config: Record<string, unknown> = {}
+        config: Record<string, string> = {}
     ): EnrichedBlockBespokeComponent => ({
         type: "bespoke-component",
         bundle,
@@ -501,7 +501,18 @@ const parseBespokeComponent = (
         ? raw.value.size
         : BlockSize.Wide
 
-    const config = raw.value.config ?? {}
+    const rawConfig = raw.value.config ?? {}
+    const config: Record<string, string> = {}
+    const parseErrors: ParseError[] = []
+    for (const [key, value] of Object.entries(rawConfig)) {
+        if (typeof value !== "string") {
+            parseErrors.push({
+                message: `Config value for "${key}" must be a string, got ${typeof value}. Nested config values are not supported.`,
+            })
+        } else {
+            config[key] = value
+        }
+    }
 
     return {
         type: "bespoke-component",
@@ -509,7 +520,7 @@ const parseBespokeComponent = (
         variant: raw.value.variant,
         size,
         config,
-        parseErrors: [],
+        parseErrors,
     }
 }
 

@@ -6,7 +6,7 @@ export type RawBlockBespokeComponent = {
         bundle?: string
         variant?: string
         size?: BlockSize
-        config?: Record<string, unknown>
+        config?: Record<string, string>
     }
 }
 
@@ -15,5 +15,5 @@ export type EnrichedBlockBespokeComponent = {
     bundle: string
     variant?: string
     size: BlockSize
-    config: Record<string, unknown>
+    config: Record<string, string>
 } & EnrichedBlockWithParseErrors
