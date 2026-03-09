@@ -129,7 +129,6 @@ export async function updateBulkChartConfigs(
             user: res.locals.user,
             newConfig,
             existingConfig: oldValuesConfigMap.get(id),
-            referencedVariablesMightChange: false,
         })
     }
 

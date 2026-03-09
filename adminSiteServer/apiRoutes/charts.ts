@@ -386,7 +386,6 @@ export const saveGrapher = async (
         existingConfig,
         forceDatapage,
         shouldInherit,
-        referencedVariablesMightChange = true,
     }: {
         user: DbPlainUser
         newConfig: GrapherInterface
@@ -395,9 +394,6 @@ export const saveGrapher = async (
         // if undefined, keep inheritance as is.
         // if true or false, enable or disable inheritance
         shouldInherit?: boolean
-        // if the variables a chart uses can change then we need
-        // to update the latest country data which takes quite a long time (hundreds of ms)
-        referencedVariablesMightChange?: boolean
     }
 ) => {
     // Try to migrate the new config to the latest version
