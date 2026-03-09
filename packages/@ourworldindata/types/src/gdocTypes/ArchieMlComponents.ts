@@ -235,23 +235,10 @@ import type {
     RawBlockVideo,
 } from "./archieMLComponents/Video.js"
 
-export type RawBlockBespokeComponent = {
-    type: "bespoke-component"
-    value: {
-        bundle?: string
-        variant?: string
-        size?: BlockSize
-        config?: Record<string, unknown>
-    }
-}
-
-export type EnrichedBlockBespokeComponent = {
-    type: "bespoke-component"
-    bundle: string
-    variant?: string
-    size: BlockSize
-    config: Record<string, unknown>
-} & EnrichedBlockWithParseErrors
+import type {
+    RawBlockBespokeComponent,
+    EnrichedBlockBespokeComponent,
+} from "./archieMLComponents/BespokeComponent.js"
 
 export type OwidRawGdocBlock =
     | RawBlockAllCharts
@@ -408,6 +395,7 @@ export type * from "./archieMLComponents/AdditionalCharts.js"
 export type * from "./archieMLComponents/Align.js"
 export type * from "./archieMLComponents/AllCharts.js"
 export type * from "./archieMLComponents/Aside.js"
+export type * from "./archieMLComponents/BespokeComponent.js"
 export type * from "./archieMLComponents/Blockquote.js"
 export type * from "./archieMLComponents/Callout.js"
 export type * from "./archieMLComponents/Chart.js"
