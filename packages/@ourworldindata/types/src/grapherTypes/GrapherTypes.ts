@@ -32,16 +32,19 @@ export interface Box {
     height: number
 }
 
-// TODO: remove duplicate definition, also available in CoreTable
 export enum SortOrder {
     asc = "asc",
     desc = "desc",
 }
 
 export enum SortBy {
+    /** Preserve the specified entity order */
     custom = "custom",
+    /** Sort alphabetically by entity name */
     entityName = "entityName",
+    /** Sort by the value of a specific column, identified by sortColumnSlug */
     column = "column",
+    /** Sort by the total across all columns */
     total = "total",
 }
 

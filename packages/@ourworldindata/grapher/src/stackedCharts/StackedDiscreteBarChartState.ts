@@ -9,11 +9,10 @@ import {
     EntityName,
     FacetStrategy,
     MissingDataStrategy,
-    SortBy,
     SortConfig,
-    SortOrder,
 } from "@ourworldindata/types"
 import {
+    sortByConfig,
     autoDetectYColumnSlugs,
     getDefaultFailMessage,
     getShortNameForEntity,
@@ -150,9 +149,10 @@ export class StackedDiscreteBarChartState implements ChartState {
     }
 
     @computed get sortColumn(): CoreColumn | undefined {
-        return this.sortColumnSlug
-            ? this.transformedTable.getColumns([this.sortColumnSlug])[0]
-            : undefined
+        if (!this.sortColumnSlug) return undefined
+        const sortColumn = this.transformedTable.get(this.sortColumnSlug)
+        if (sortColumn && !sortColumn.isMissing) return sortColumn
+        return undefined
     }
 
     @computed get sortConfig(): SortConfig {
@@ -242,31 +242,14 @@ export class StackedDiscreteBarChartState implements ChartState {
     }
 
     @computed get sortedRows(): readonly DiscreteBarRow[] {
-        let sortByFunc: (row: DiscreteBarRow) => number | string | undefined
-        switch (this.sortConfig.sortBy) {
-            case SortBy.custom:
-                sortByFunc = (): undefined => undefined
-                break
-            case SortBy.entityName:
-                sortByFunc = (row: DiscreteBarRow): string => row.entityName
-                break
-            case SortBy.column: {
-                const owidRowsByEntityName =
-                    this.sortColumn?.owidRowsByEntityName
-                sortByFunc = (row: DiscreteBarRow): number => {
-                    const rows = owidRowsByEntityName?.get(row.entityName)
-                    return rows?.[0]?.value ?? 0
-                }
-                break
-            }
-            default:
-            case SortBy.total:
-                sortByFunc = (row: DiscreteBarRow): number => row.totalValue
-        }
-        const sortedRows = _.sortBy(this.rows, sortByFunc)
-        const sortOrder = this.sortConfig.sortOrder ?? SortOrder.desc
-        if (sortOrder === SortOrder.desc) return sortedRows.toReversed()
-        else return sortedRows
+        return sortByConfig(this.rows, this.sortConfig, {
+            custom: () => undefined,
+            entityName: (row): string => row.entityName,
+            column: (row): number =>
+                this.sortColumn?.owidRowsByEntityName?.get(row.entityName)?.[0]
+                    ?.value ?? 0,
+            total: (row): number => row.totalValue,
+        })
     }
 
     @computed get availableFacetStrategies(): FacetStrategy[] {
