@@ -497,9 +497,12 @@ const parseBespokeComponent = (
         })
     }
 
-    const size = checkIsBlockSize(raw.value.size)
-        ? raw.value.size
-        : BlockSize.Wide
+    const size = raw.value.size ?? BlockSize.Wide
+    if (!checkIsBlockSize(size)) {
+        return createError({
+            message: `Invalid size property: ${size}`,
+        })
+    }
 
     const rawConfig = raw.value.config ?? {}
     const config: Record<string, string> = {}
