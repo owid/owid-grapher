@@ -49,6 +49,10 @@ function getPreferredSchemesByType(
             ColorSchemeName.continents,
             ColorSchemeName.OwidDistinctLines,
         ])
+        .with(GRAPHER_CHART_TYPES.Dumbbell, () => [
+            // TODO: pick preferred color schemes for dumbbell plots
+            ColorSchemeName.OwidDistinctLines,
+        ])
         .with(GRAPHER_CHART_TYPES.StackedArea, () => [
             ColorSchemeName["owid-distinct"],
             ColorSchemeName.OwidCategoricalA,

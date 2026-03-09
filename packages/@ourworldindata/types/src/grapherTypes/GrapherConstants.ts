@@ -15,6 +15,7 @@ export const GRAPHER_CHART_TYPES = {
     SlopeChart: "SlopeChart",
     StackedBar: "StackedBar",
     Marimekko: "Marimekko",
+    Dumbbell: "Dumbbell",
 } as const
 
 export const ALL_GRAPHER_CHART_TYPES = Object.values(GRAPHER_CHART_TYPES)
@@ -39,6 +40,7 @@ export const GRAPHER_TAB_CONFIG_OPTIONS = {
     slope: "slope",
     "stacked-bar": "stacked-bar",
     marimekko: "marimekko",
+    dumbbell: "dumbbell",
 } as const
 
 /** Internal tab names used in Grapher */
