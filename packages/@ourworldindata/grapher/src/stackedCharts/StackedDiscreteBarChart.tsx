@@ -62,9 +62,8 @@ import { HorizontalAxis } from "../axis/Axis"
 import { StackedDiscreteBarChartState } from "./StackedDiscreteBarChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { StackedDiscreteBarRow } from "./StackedDiscreteBarRow"
-import { HashMap, NodeGroup } from "react-move"
-import { easeQuadOut } from "d3-ease"
 import { enrichSeriesWithLabels } from "../barCharts/DiscreteBarChartHelpers.js"
+import { AnimatedRows } from "../animation/AnimatedRows.js"
 import { InteractionState } from "../interaction/InteractionState.js"
 
 export interface StackedDiscreteBarChartManager extends ChartManager {
@@ -653,6 +652,7 @@ export class StackedDiscreteBarChart
                         <StackedDiscreteBarRow
                             key={row.entityName}
                             row={row}
+                            y={row.yPosition}
                             yAxis={this.yAxis}
                             barHeight={this.barHeight}
                             labelFontSize={this.labelFontSize}
@@ -671,11 +671,6 @@ export class StackedDiscreteBarChart
     private renderInteractive(): React.ReactElement {
         const { bounds } = this
 
-        const handlePositionUpdate = (d: RenderDiscreteBarRow): HashMap => ({
-            translateY: [d.yPosition],
-            timing: { duration: 350, ease: easeQuadOut },
-        })
-
         return (
             <g ref={this.base} onMouseMove={this.onMouseMove}>
                 <rect
@@ -688,38 +683,25 @@ export class StackedDiscreteBarChart
                 />
                 {this.renderLegend()}
                 {this.renderAxis()}
-                <NodeGroup
-                    data={this.renderRows}
-                    keyAccessor={(d: RenderDiscreteBarRow): string =>
-                        d.entityName
-                    }
-                    start={handlePositionUpdate}
-                    update={handlePositionUpdate}
-                >
-                    {(nodes): React.ReactElement => (
-                        <g>
-                            {nodes.map((node) => (
-                                <StackedDiscreteBarRow
-                                    key={node.data.entityName}
-                                    row={node.data}
-                                    translateY={node.state.translateY ?? 0}
-                                    barHeight={this.barHeight}
-                                    labelFontSize={this.labelFontSize}
-                                    yAxis={this.yAxis}
-                                    showTotalValueLabel={
-                                        this.showTotalValueLabel
-                                    }
-                                    formatValueForLabel={
-                                        this.formatValueForLabel
-                                    }
-                                    onEntityMouseEnter={this.onEntityMouseEnter}
-                                    onEntityMouseLeave={this.onEntityMouseLeave}
-                                    onClearTooltip={this.clearTooltip}
-                                />
-                            ))}
-                        </g>
+                <AnimatedRows
+                    items={this.renderRows}
+                    keyAccessor={(d) => d.entityName}
+                    getY={(d) => d.yPosition}
+                    renderRow={(row) => (
+                        <StackedDiscreteBarRow
+                            key={row.entityName}
+                            row={row}
+                            barHeight={this.barHeight}
+                            labelFontSize={this.labelFontSize}
+                            yAxis={this.yAxis}
+                            showTotalValueLabel={this.showTotalValueLabel}
+                            formatValueForLabel={this.formatValueForLabel}
+                            onEntityMouseEnter={this.onEntityMouseEnter}
+                            onEntityMouseLeave={this.onEntityMouseLeave}
+                            onClearTooltip={this.clearTooltip}
+                        />
                     )}
-                </NodeGroup>
+                />
                 {this.tooltip}
             </g>
         )
