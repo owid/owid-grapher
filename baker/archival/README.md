@@ -206,6 +206,15 @@ The script `createWikipediaArchive.ts` post-processes the main archive:
 make wikipedia-archive   # runs after `make archive`
 ```
 
+### Backpopulating the Wikipedia archive
+
+When the Wikipedia archive was first set up, a one-off script was used to populate the R2 bucket from the existing main archive: `devTools/backpopulateWikipediaArchive.sh`. It copies non-HTML files directly via `rclone`, downloads HTML files locally for GTM stripping and URL rewriting, then uploads the processed files. This script only needs to be run once per environment, but it is idempotent and can safely be run multiple times.
+
+### Testing
+
+- **Unit tests**: `yarn test run baker/archival/createWikipediaArchive.test.ts` — 13 tests covering `stripGtmScripts` and `rewriteArchiveUrls`.
+- **BDD tests**: `features/wikipedia-archive.feature` verifies that the production archive makes GTM requests while the Wikipedia archive does not. Run with `make bdd` (requires `make playwright-browsers` first). Playwright serves the main archive on port 8764 and the Wikipedia archive on port 8765.
+
 ### Deployment
 
 The Wikipedia archive is deployed to R2 (bucket `owid-wikipedia-archive`) as part of every content deploy, after the main archive is built. See the `deploy-wikipedia-archive.sh` script in the ops repo.
