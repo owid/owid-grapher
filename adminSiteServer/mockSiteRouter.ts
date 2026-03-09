@@ -24,7 +24,6 @@ import {
     renderGdoc,
 } from "../baker/siteRenderers.js"
 import {
-    BAKED_BASE_URL,
     BASE_DIR,
     LEGACY_WORDPRESS_IMAGE_URL,
 } from "../settings/serverSettings.js"
