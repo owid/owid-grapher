@@ -1,6 +1,7 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import {
+    Bounds,
     Box,
     excludeUndefined,
     getRegionByName,
@@ -34,6 +35,7 @@ import {
     Patterns,
     GRAPHER_IMAGE_WIDTH_1X,
     GRAPHER_IMAGE_WIDTH_2X,
+    FontSettings,
 } from "../core/GrapherConstants"
 import { ChartSeries } from "./ChartInterface"
 import {
@@ -354,4 +356,8 @@ export function sortByConfig<T>(
     const sortedRows = _.sortBy(items, sortByFunc)
 
     return sortOrder === SortOrder.desc ? sortedRows.toReversed() : sortedRows
+}
+
+export function textWidth(text: string, fontSettings: FontSettings): number {
+    return Bounds.forText(text, fontSettings).width
 }

@@ -56,7 +56,7 @@ $active-icon: $blue-50;
         svg {
             color: $gray-60;
 
-            &.custom-icon {
+            &.custom-chart-icon {
                 --size: $icon-width;
 
                 display: inline-block;
@@ -66,7 +66,8 @@ $active-icon: $blue-50;
 
                 &.scatter,
                 &.marimekko,
-                &.slope {
+                &.slope,
+                &.dumbbell {
                     --size: 14px;
                 }
             }

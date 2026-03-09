@@ -122,6 +122,14 @@ abstract class AbstractAxis {
         return this.config.nice ?? false
     }
 
+    @computed get shouldOffsetTickLabelAtStart(): boolean {
+        return this.config.shouldOffsetTickLabelAtStart ?? true
+    }
+
+    @computed get shouldOffsetTickLabelAtEnd(): boolean {
+        return this.config.shouldOffsetTickLabelAtEnd ?? true
+    }
+
     @computed get fontSize(): number {
         return this.config.fontSize
     }
@@ -156,6 +164,11 @@ abstract class AbstractAxis {
 
     set label(value: string) {
         this._label = value
+    }
+
+    contains(value: number): boolean {
+        const [min, max] = this.domain
+        return value >= min && value <= max
     }
 
     // This will expand the domain but never shrink.
@@ -698,11 +711,14 @@ export class HorizontalAxis extends AbstractAxis {
         const left = x - width / 2
         const right = x + width / 2
         const offset = this.bandWidth ? this.bandWidth / 2 + OUTER_PADDING : 0
-        if (left < this.rangeMin - offset) {
+        if (
+            this.shouldOffsetTickLabelAtStart &&
+            left < this.rangeMin - offset
+        ) {
             x = this.rangeMin
             xAlign = HorizontalAlign.left
         }
-        if (right > this.rangeMax + offset) {
+        if (this.shouldOffsetTickLabelAtEnd && right > this.rangeMax + offset) {
             x = this.rangeMax
             xAlign = HorizontalAlign.right
         }

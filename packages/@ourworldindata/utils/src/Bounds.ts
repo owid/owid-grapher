@@ -13,7 +13,7 @@ import {
 // can't rely on the DOM to do these calculations for us, and instead must
 // calculate using geometry and first principles
 
-type PadObject = PositionMap<number>
+export type PadObject = PositionMap<number>
 
 export interface GridBounds {
     col: number

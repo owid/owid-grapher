@@ -938,6 +938,19 @@ it("canChangeEntity reflects all available entities before transforms", () => {
     expect(grapher.canChangeEntity).toBe(true)
 })
 
+it("dumbbell charts force multi-entity selection when mode is single-entity", () => {
+    const table = SynthesizeGDPTable()
+    const grapher = new GrapherState({
+        chartTypes: [GRAPHER_CHART_TYPES.Dumbbell],
+        addCountryMode: EntitySelectionMode.SingleEntity,
+        table,
+        selectedEntityNames: table.sampleEntityName(1),
+    })
+
+    expect(grapher.canSelectMultipleEntities).toBe(true)
+    expect(grapher.canChangeEntity).toBe(false)
+})
+
 describe("year parameter (applies to map only)", () => {
     describe("with years", () => {
         const tests: {
