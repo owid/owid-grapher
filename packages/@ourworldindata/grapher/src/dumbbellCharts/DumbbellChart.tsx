@@ -3,13 +3,12 @@ import React from "react"
 import {
     Bounds,
     makeFigmaId,
-    dyFromAlign,
     exposeInstanceOnWindow,
     AxisAlign,
 } from "@ourworldindata/utils"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import { ScaleType, VerticalAlign } from "@ourworldindata/types"
+import { ScaleType } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
@@ -28,17 +27,14 @@ import {
     SizedDumbbellChartSeries,
     PlacedDumbbellChartSeries,
     RenderDumbbellChartSeries,
-    RenderDumbbellDataSeries,
-    DUMBBELL_STYLE,
     BAR_SPACING_FACTOR,
 } from "./DumbbellChartConstants"
 import { DumbbellChartState } from "./DumbbellChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap"
 import { enrichSeriesWithLabels } from "../barCharts/DiscreteBarChartHelpers"
-import { SeriesLabel } from "../seriesLabel/SeriesLabel"
 import { resolveEmphasis } from "../interaction/Emphasis"
-import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
-import { Dumbbell } from "./Dumbbell"
+import { DumbbellChartRow } from "./DumbbellChartRow"
+import { AnimatedRows } from "../animation/AnimatedRows"
 
 const ANNOTATION_PADDING = 2
 
@@ -286,6 +282,10 @@ export class DumbbellChart
         return { text, width }
     }
 
+    private formatValueForLabel = (value: number): string => {
+        return this.chartState.formatColumn.formatValueShort(value)
+    }
+
     // Lifecycle
 
     override componentDidMount(): void {
@@ -294,136 +294,22 @@ export class DumbbellChart
 
     // Rendering
 
-    private renderEntityLabel(
+    private rowProps(series: RenderDumbbellChartSeries): {
         series: RenderDumbbellChartSeries
-    ): React.ReactElement | null {
-        if (!series.label) return null
-
-        return (
-            <SeriesLabel
-                key={`label-${series.seriesName}`}
-                state={series.label}
-                x={series.entityLabelX}
-                y={series.entityLabelY}
-                opacity={DUMBBELL_STYLE[series.emphasis].labelOpacity}
-            />
-        )
-    }
-
-    private renderEntityAnnotation(
-        series: RenderDumbbellChartSeries
-    ): React.ReactElement | null {
-        if (!series.annotationTextWrap || series.annotationY === undefined)
-            return null
-
-        return (
-            <g key={`annotation-${series.seriesName}`}>
-                {series.annotationTextWrap.renderSVG(
-                    series.entityLabelX,
-                    series.annotationY,
-                    {
-                        textProps: {
-                            fill: "#333",
-                            textAnchor: "end",
-                            opacity:
-                                DUMBBELL_STYLE[series.emphasis].labelOpacity,
-                        },
-                    }
-                )}
-            </g>
-        )
-    }
-
-    private renderStartValueLabel(
-        series: RenderDumbbellDataSeries
-    ): React.ReactElement {
-        const { text } = this.formatValue(series.start.value)
-        const minX = Math.min(series.startX, series.endX)
-        return (
-            <text
-                key={`start-value-${series.seriesName}`}
-                x={minX - GAP__ENTITY_LABEL__DUMBBELL}
-                y={series.barY}
-                fill={GRAPHER_DARK_TEXT}
-                dy={dyFromAlign(VerticalAlign.middle)}
-                textAnchor="end"
-                opacity={DUMBBELL_STYLE[series.emphasis].labelOpacity}
-                fontSize={this.valueLabelStyle.fontSize}
-                fontWeight={this.valueLabelStyle.fontWeight}
-            >
-                {text}
-            </text>
-        )
-    }
-
-    private renderEndValueLabel(
-        series: RenderDumbbellDataSeries
-    ): React.ReactElement {
-        const { text } = this.formatValue(series.end.value)
-        const maxX = Math.max(series.startX, series.endX)
-        return (
-            <text
-                key={`end-value-${series.seriesName}`}
-                x={maxX + GAP__ENTITY_LABEL__DUMBBELL}
-                y={series.barY}
-                fill={GRAPHER_DARK_TEXT}
-                dy={dyFromAlign(VerticalAlign.middle)}
-                textAnchor="start"
-                opacity={DUMBBELL_STYLE[series.emphasis].labelOpacity}
-                fontSize={this.valueLabelStyle.fontSize}
-                fontWeight={this.valueLabelStyle.fontWeight}
-            >
-                {text}
-            </text>
-        )
-    }
-
-    private renderDataSeries(
-        series: RenderDumbbellDataSeries
-    ): React.ReactElement {
-        return (
-            <React.Fragment key={`data-${series.seriesName}`}>
-                <Dumbbell
-                    series={series}
-                    chartAreaLeft={this.innerBounds.left}
-                    chartAreaRight={this.innerBounds.right}
-                    dotRadius={this.dotRadius}
-                />
-                {this.renderStartValueLabel(series)}
-                {this.renderEndValueLabel(series)}
-            </React.Fragment>
-        )
-    }
-
-    private renderNoDataSeries(
-        series: RenderDumbbellChartSeries
-    ): React.ReactElement {
-        return (
-            <g key={`no-data-${series.seriesName}`}>
-                {/* Gray background line */}
-                <line
-                    x1={this.innerBounds.left}
-                    y1={series.barY}
-                    x2={this.innerBounds.right}
-                    y2={series.barY}
-                    stroke="#eee"
-                    strokeWidth={1}
-                />
-                {/* "No data" label */}
-                <text
-                    x={(this.innerBounds.left + this.innerBounds.right) / 2}
-                    y={series.barY}
-                    dy={dyFromAlign(VerticalAlign.middle)}
-                    textAnchor="middle"
-                    fontSize={this.valueLabelStyle.fontSize}
-                    fontWeight={this.valueLabelStyle.fontWeight}
-                    fill="#999"
-                    fontStyle="italic"
-                >
-                    No data
-                </text>
-            </g>
-        )
+        chartAreaLeft: number
+        chartAreaRight: number
+        dotRadius: number
+        valueLabelStyle: FontSettings
+        formatValue: (value: number) => string
+    } {
+        return {
+            series,
+            chartAreaLeft: this.innerBounds.left,
+            chartAreaRight: this.innerBounds.right,
+            dotRadius: this.dotRadius,
+            valueLabelStyle: this.valueLabelStyle,
+            formatValue: this.formatValueForLabel,
+        }
     }
 
     private renderAxis(): React.ReactElement {
@@ -433,6 +319,45 @@ export class DumbbellChart
                 axis={this.yAxis}
                 preferredAxisPosition={this.innerBounds.bottom}
             />
+        )
+    }
+
+    private renderStatic(): React.ReactElement {
+        return (
+            <>
+                {this.renderAxis()}
+                <g id={makeFigmaId("series")}>
+                    {this.renderSeries.map((series) => (
+                        <DumbbellChartRow
+                            key={series.seriesName}
+                            {...this.rowProps(series)}
+                            translateY={series.barY}
+                        />
+                    ))}
+                </g>
+            </>
+        )
+    }
+
+    private renderInteractive(): React.ReactElement {
+        return (
+            <g id={makeFigmaId("dumbbell-chart")}>
+                {this.renderAxis()}
+                <AnimatedRows
+                    items={this.renderSeries}
+                    keyAccessor={(d: RenderDumbbellChartSeries): string =>
+                        d.seriesName
+                    }
+                    getY={(d: RenderDumbbellChartSeries): number => d.barY}
+                    renderRow={(series): React.ReactElement => (
+                        <DumbbellChartRow
+                            key={series.seriesName}
+                            {...this.rowProps(series)}
+                            translateY={0}
+                        />
+                    )}
+                />
+            </g>
         )
     }
 
@@ -446,33 +371,8 @@ export class DumbbellChart
                 />
             )
 
-        const allSeries = this.renderSeries
-        const hasAnnotations = allSeries.some(
-            (series) =>
-                series.annotationTextWrap && series.annotationY !== undefined
-        )
-
-        return (
-            <g id={makeFigmaId("dumbbell-chart")}>
-                {this.renderAxis()}
-                <g id={makeFigmaId("series")}>
-                    {allSeries.map((series) =>
-                        series.type === "data"
-                            ? this.renderDataSeries(series)
-                            : this.renderNoDataSeries(series)
-                    )}
-                </g>
-                <g id={makeFigmaId("entity-labels")}>
-                    {allSeries.map((series) => this.renderEntityLabel(series))}
-                </g>
-                {hasAnnotations && (
-                    <g id={makeFigmaId("entity-annotations")}>
-                        {allSeries.map((series) =>
-                            this.renderEntityAnnotation(series)
-                        )}
-                    </g>
-                )}
-            </g>
-        )
+        return this.manager.isStatic
+            ? this.renderStatic()
+            : this.renderInteractive()
     }
 }

@@ -7,6 +7,8 @@ import {
 
 interface DumbbellProps {
     series: RenderDumbbellDataSeries
+    /** Y position for the dumbbell (0 when inside an animated group) */
+    barY: number
     /** Full width of the chart area for the gray background line */
     chartAreaLeft: number
     chartAreaRight: number
@@ -18,6 +20,7 @@ interface DumbbellProps {
 
 export function Dumbbell({
     series,
+    barY,
     chartAreaLeft,
     chartAreaRight,
     dotRadius = 4,
@@ -25,15 +28,8 @@ export function Dumbbell({
     outlineWidth = 0.5,
     outlineStroke = "#fff",
 }: DumbbellProps): React.ReactElement {
-    const {
-        startX,
-        endX,
-        barY,
-        displayName,
-        startColor,
-        endColor,
-        connectorColor,
-    } = series
+    const { startX, endX, displayName, startColor, endColor, connectorColor } =
+        series
     const style = DUMBBELL_STYLE[series.emphasis]
 
     const minX = Math.min(startX, endX)
