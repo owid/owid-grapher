@@ -21,6 +21,7 @@ import {
     SortConfig,
 } from "@ourworldindata/types"
 import {
+    autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
     getDefaultFailMessage,
     getShortNameForEntity,
@@ -136,12 +137,8 @@ export class DumbbellChartState implements ChartState {
      * - "two-column": two or more Y columns, each entity gets start=col[0], end=col[1] at a single time
      * - "time-range": one Y column, each entity gets start=value at startTime, end=value at endTime
      */
-    @computed get mode(): DumbbellMode {
-        return this.yColumnSlugs.length >= 2 ? "two-column" : "time-range"
-    }
-
     @computed get seriesStrategy(): SeriesStrategy {
-        return SeriesStrategy.entity
+        return autoDetectSeriesStrategy(this.manager, true)
     }
 
     @computed get availableFacetStrategies(): FacetStrategy[] {
@@ -280,7 +277,7 @@ export class DumbbellChartState implements ChartState {
     }
 
     @computed private get unsortedAllSeries(): DumbbellChartSeries[] {
-        return this.mode === "time-range"
+        return this.seriesStrategy === SeriesStrategy.entity
             ? this.constructSeriesForTimeRange()
             : this.constructSeriesForTwoColumns()
     }
