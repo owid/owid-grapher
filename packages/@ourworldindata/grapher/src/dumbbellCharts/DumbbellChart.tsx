@@ -222,8 +222,8 @@ export class DumbbellChart
             this.innerBounds.top + this.barHeight / 2 + this.barSpacing / 2
 
         return this.sizedSeries.map((series, index) => {
-            const barY = yOffset + index * (this.barHeight + this.barSpacing)
-            const entityLabelX =
+            const y = yOffset + index * (this.barHeight + this.barSpacing)
+            const labelX =
                 this.innerBounds.x -
                 GAP__ENTITY_LABEL__DUMBBELL -
                 this.leftValueLabelsWidth -
@@ -233,17 +233,20 @@ export class DumbbellChart
                 ? ANNOTATION_PADDING + series.annotationTextWrap.height
                 : 0
             const totalLabelHeight = series.label.height + annotationHeight
-            const entityLabelY = barY - totalLabelHeight / 2
-            const annotationY = series.annotationTextWrap
-                ? entityLabelY + series.label.height + ANNOTATION_PADDING
+            const labelY = y - totalLabelHeight / 2
+
+            const annotationPosition = series.annotationTextWrap
+                ? {
+                      x: labelX,
+                      y: labelY + series.label.height + ANNOTATION_PADDING,
+                  }
                 : undefined
 
             return {
                 ...series,
-                barY,
-                entityLabelX,
-                entityLabelY,
-                annotationY,
+                y,
+                labelPosition: { x: labelX, y: labelY },
+                annotationPosition,
                 startX: series.start
                     ? this.yAxis.place(series.start.value)
                     : undefined,
@@ -320,7 +323,7 @@ export class DumbbellChart
                         <DumbbellChartRow
                             key={series.seriesName}
                             {...this.rowProps(series)}
-                            translateY={series.barY}
+                            translateY={series.y}
                         />
                     ))}
                 </g>
@@ -337,7 +340,7 @@ export class DumbbellChart
                     keyAccessor={(d: RenderDumbbellSeries): string =>
                         d.seriesName
                     }
-                    getY={(d: RenderDumbbellSeries): number => d.barY}
+                    getY={(d: RenderDumbbellSeries): number => d.y}
                     renderRow={(series): React.ReactElement => (
                         <DumbbellChartRow
                             key={series.seriesName}

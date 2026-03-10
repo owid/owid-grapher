@@ -29,11 +29,11 @@ export function DumbbellChartRow({
 }): React.ReactElement {
     const style = DUMBBELL_STYLE[series.emphasis]
 
-    // Rebase y-coordinates relative to barY (since the group is translated)
-    const labelY = series.entityLabelY - series.barY
+    // Rebase y-coordinates relative to series.y (since the group is translated)
+    const labelY = series.labelPosition.y - series.y
     const annotationY =
-        series.annotationY !== undefined
-            ? series.annotationY - series.barY
+        series.annotationPosition !== undefined
+            ? series.annotationPosition.y - series.y
             : undefined
 
     return (
@@ -45,7 +45,7 @@ export function DumbbellChartRow({
             {series.label && (
                 <SeriesLabel
                     state={series.label}
-                    x={series.entityLabelX}
+                    x={series.labelPosition.x}
                     y={labelY}
                     opacity={style.labelOpacity}
                 />
@@ -55,7 +55,7 @@ export function DumbbellChartRow({
             {series.annotationTextWrap && annotationY !== undefined && (
                 <g>
                     {series.annotationTextWrap.renderSVG(
-                        series.entityLabelX,
+                        series.annotationPosition!.x,
                         annotationY,
                         {
                             textProps: {

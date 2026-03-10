@@ -3,6 +3,7 @@ import { ChartSeries } from "../chart/ChartInterface"
 import { InteractionState } from "../interaction/InteractionState"
 import { Emphasis } from "../interaction/Emphasis"
 import { ColumnSlug, EntityName } from "@ourworldindata/types"
+import { Point } from "@ourworldindata/utils"
 import { TextWrap } from "@ourworldindata/components"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState"
 import {
@@ -13,7 +14,7 @@ import {
 
 export type DumbbellChartManager = ChartManager
 
-export interface DumbbellEndpoint {
+export interface DumbbellHead {
     value: number
     time: number
     columnSlug: ColumnSlug
@@ -28,8 +29,8 @@ export interface DumbbellSeries extends ChartSeries {
     annotation?: string
     missing: boolean
     // Present when missing === false
-    start?: DumbbellEndpoint
-    end?: DumbbellEndpoint
+    start?: DumbbellHead
+    end?: DumbbellHead
     startColor?: string
     endColor?: string
     connectorColor?: string
@@ -38,18 +39,17 @@ export interface DumbbellSeries extends ChartSeries {
 
 // --- Sized (after label measurement) ---
 
-export type SizedDumbbellSeries = DumbbellSeries & {
+export interface SizedDumbbellSeries extends DumbbellSeries {
     label: SeriesLabelState
     annotationTextWrap?: TextWrap
 }
 
 // --- Placed (with pixel coordinates) ---
 
-export type PlacedDumbbellSeries = SizedDumbbellSeries & {
-    barY: number
-    entityLabelX: number
-    entityLabelY: number
-    annotationY?: number
+export interface PlacedDumbbellSeries extends SizedDumbbellSeries {
+    y: number
+    labelPosition: Point
+    annotationPosition?: Point
     // Present when missing === false
     startX?: number
     endX?: number
@@ -57,7 +57,7 @@ export type PlacedDumbbellSeries = SizedDumbbellSeries & {
 
 // --- Render (with emphasis) ---
 
-export type RenderDumbbellSeries = PlacedDumbbellSeries & {
+export interface RenderDumbbellSeries extends PlacedDumbbellSeries {
     emphasis: Emphasis
 }
 
@@ -82,5 +82,7 @@ export const DUMBBELL_STYLE: Record<Emphasis, DumbbellStyle> = {
         labelOpacity: 0.3,
     },
 }
+
+export type DumbbellMode = "two-column" | "time-range"
 
 export const BAR_SPACING_FACTOR = 0.35
