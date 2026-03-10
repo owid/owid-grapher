@@ -17,7 +17,6 @@ import {
     FacetStrategy,
     ColorSchemeName,
     ChartErrorInfo,
-    MissingDataStrategy,
     SortBy,
     SortConfig,
 } from "@ourworldindata/types"
@@ -77,27 +76,6 @@ export class DumbbellChartState implements ChartState {
         return table
     }
 
-    transformTableForSelection(table: OwidTable): OwidTable {
-        table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
-
-        this.yColumnSlugs.forEach((slug) => {
-            table = table.interpolateColumnWithTolerance(slug)
-        })
-
-        // In two-column mode, hide entities from the entity selector
-        // that are missing data for one of the two columns
-        if (
-            this.mode === "two-column" &&
-            this.missingDataStrategy === MissingDataStrategy.hide
-        ) {
-            table = table.dropEntitiesThatHaveNoDataInSomeColumn(
-                this.yColumnSlugs
-            )
-        }
-
-        return table
-    }
-
     @computed get selectionArray(): SelectionArray {
         return makeSelectionArray(this.manager.selection)
     }
@@ -116,10 +94,6 @@ export class DumbbellChartState implements ChartState {
 
     @computed get formatColumn(): CoreColumn {
         return this.yColumns[0]
-    }
-
-    @computed get missingDataStrategy(): MissingDataStrategy {
-        return this.manager.missingDataStrategy || MissingDataStrategy.auto
     }
 
     @computed get isLogScale(): boolean {
