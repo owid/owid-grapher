@@ -1,4 +1,4 @@
-import * as _ from "lodash-es"
+import * as R from "remeda"
 import cx from "classnames"
 
 export type Container =
@@ -165,11 +165,9 @@ export function getLayout(
     blockType: string = "default",
     containerType: Container = "default"
 ): string {
-    const layout = _.get(
-        layouts,
-        [containerType, blockType],
+    const layout =
+        R.prop(layouts, containerType, blockType) ??
         // fallback to the default for the container
-        _.get(layouts, [containerType, "default"])
-    )
+        R.prop(layouts, containerType, "default")
     return cx(`article-block__${blockType}`, layout)
 }
