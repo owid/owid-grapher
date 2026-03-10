@@ -31,6 +31,8 @@ Run:
 yarn typeorm migration:create db/migration/MigrationName
 ```
 
+Make sure that the `MigrationName` doesn't include a file extension and is in PascalCase. TypeORM will take care of creating a new migration file in the `db/migration` folder with a timestamp prefix.
+
 And then populate the file with the SQL statements to alter the tables, using [past migration files](./migration) for reference if needed. Then run migrations with `yarn runDbMigrations`.
 
 Make sure you write a **down** migration in case there is any chance things can go wrong we'd need to revert it.
