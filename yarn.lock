@@ -11845,7 +11845,7 @@ __metadata:
     sass: "npm:^1.89.2"
     schema-dts: "npm:^1.1.5"
     sharp: "npm:^0.34.5"
-    simple-git: "npm:^3.16.1"
+    simple-git: "npm:^3.32.3"
     simple-statistics: "npm:^7.8.8"
     striptags: "npm:^3.2.0"
     timezone-mock: "npm:^1.0.18"
@@ -16951,14 +16951,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"simple-git@npm:^3.16.1":
-  version: 3.16.1
-  resolution: "simple-git@npm:3.16.1"
+"simple-git@npm:^3.32.3":
+  version: 3.32.3
+  resolution: "simple-git@npm:3.32.3"
   dependencies:
     "@kwsites/file-exists": "npm:^1.1.1"
     "@kwsites/promise-deferred": "npm:^1.1.1"
-    debug: "npm:^4.3.4"
-  checksum: 10/0274b31baf161769e97e94b5de8ab0e1b0085328700f8f0a17ebcb449c7bffa3ac1f8d792896a9d968bc7d17bca026a35dc2348ff14982cef0f5d27aef180d00
+    debug: "npm:^4.4.0"
+  checksum: 10/9ec8d0cb7a1f813fe56be71cfaf85f44960befa03528560b0d8234eab957cf2a11e62e7b90e0c88066b6db314c8559698f9c13c64602aec56e0834c7508e4c83
   languageName: node
   linkType: hard
 
