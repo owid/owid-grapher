@@ -23,26 +23,20 @@ function sortRelatedCharts(
     relatedCharts: RelatedChart[],
     sortedSlugs: string[]
 ): RelatedChart[] {
-    const sortedRelatedCharts: RelatedChart[] = []
+    const chartBySlug = new Map(
+        relatedCharts.map((chart) => [chart.slug, chart])
+    )
 
-    // (We don't know if these slugs actually exist in relatedCharts)
-    // Try to find them in order and put them at the front of the list
-    sortedSlugs.forEach((slug) => {
-        const index = relatedCharts.findIndex((chart) => chart.slug === slug)
-        if (index !== -1) {
-            const relatedChart = relatedCharts.splice(index, 1)[0]
-            if (relatedChart) {
-                // a teeny hack to stop the RelatedCharts component from
-                // sorting these charts below the other key charts
-                relatedChart.keyChartLevel = KeyChartLevel.Top
-                sortedRelatedCharts.push(relatedChart)
-            }
+    const topCharts: RelatedChart[] = []
+    for (const slug of new Set(sortedSlugs)) {
+        const chart = chartBySlug.get(slug)
+        if (chart) {
+            topCharts.push({ ...chart, keyChartLevel: KeyChartLevel.Top })
+            chartBySlug.delete(slug)
         }
-    })
+    }
 
-    sortedRelatedCharts.push(...relatedCharts)
-
-    return sortedRelatedCharts
+    return [...topCharts, ...chartBySlug.values()]
 }
 
 export function AllCharts(props: AllChartsProps) {
