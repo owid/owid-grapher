@@ -303,7 +303,8 @@ function buildDataTableContentForDumbbellChart({
     const formatColumn = chartState.formatColumn
 
     let rows = chartState.series.map((series) => {
-        const { start, end } = series
+        const start = series.start!
+        const end = series.end!
 
         const formattedStartValue = formatColumn.formatValueShort(start.value)
         const formattedEndValue = formatColumn.formatValueShort(end.value)
@@ -328,7 +329,7 @@ function buildDataTableContentForDumbbellChart({
             trend,
             time,
             timePreposition: "",
-            muted: series.focus.background,
+            muted: series.focus!.background,
         }
     })
 

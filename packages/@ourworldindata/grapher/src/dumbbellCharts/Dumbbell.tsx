@@ -1,12 +1,9 @@
 import * as React from "react"
 import { makeFigmaId } from "@ourworldindata/utils"
-import {
-    RenderDumbbellDataSeries,
-    DUMBBELL_STYLE,
-} from "./DumbbellChartConstants"
+import { RenderDumbbellSeries, DUMBBELL_STYLE } from "./DumbbellChartConstants"
 
 interface DumbbellProps {
-    series: RenderDumbbellDataSeries
+    series: RenderDumbbellSeries
     /** Y position for the dumbbell (0 when inside an animated group) */
     barY: number
     /** Full width of the chart area for the gray background line */
@@ -28,8 +25,16 @@ export function Dumbbell({
     outlineWidth = 0.5,
     outlineStroke = "#fff",
 }: DumbbellProps): React.ReactElement {
-    const { startX, endX, displayName, startColor, endColor, connectorColor } =
-        series
+    const {
+        startX: startXOpt,
+        endX: endXOpt,
+        displayName,
+        startColor,
+        endColor,
+        connectorColor,
+    } = series
+    const startX = startXOpt!
+    const endX = endXOpt!
     const style = DUMBBELL_STYLE[series.emphasis]
 
     const minX = Math.min(startX, endX)

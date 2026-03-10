@@ -2,9 +2,7 @@ import { computed, makeObservable } from "mobx"
 import { ChartState } from "../chart/ChartInterface"
 import {
     DumbbellChartManager,
-    DumbbellChartSeries,
-    DumbbellDataSeries,
-    DumbbellNoDataSeries,
+    DumbbellSeries,
     DumbbellMode,
 } from "./DumbbellChartConstants"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
@@ -137,6 +135,10 @@ export class DumbbellChartState implements ChartState {
      * - "two-column": two or more Y columns, each entity gets start=col[0], end=col[1] at a single time
      * - "time-range": one Y column, each entity gets start=value at startTime, end=value at endTime
      */
+    @computed get mode(): DumbbellMode {
+        return this.yColumnSlugs.length >= 2 ? "two-column" : "time-range"
+    }
+
     @computed get seriesStrategy(): SeriesStrategy {
         return autoDetectSeriesStrategy(this.manager, true)
     }
@@ -153,13 +155,13 @@ export class DumbbellChartState implements ChartState {
         return this.manager.sortConfig ?? {}
     }
 
-    private constructSeriesForTimeRange(): DumbbellChartSeries[] {
+    private constructSeriesForTimeRange(): DumbbellSeries[] {
         const { startTime, endTime, focusArray, annotationsMap } = this
         const column = this.yColumns[0]
         const columnSlug = this.yColumnSlugs[0]
         const owidRowByTime = column.owidRowByEntityNameAndTime
 
-        const allSeries: DumbbellChartSeries[] = []
+        const allSeries: DumbbellSeries[] = []
 
         for (const entityName of this.selectionArray.selectedEntityNames) {
             const rowsByTime = owidRowByTime.get(entityName)
@@ -170,7 +172,7 @@ export class DumbbellChartState implements ChartState {
             if (startRow?.value === undefined || endRow?.value === undefined) {
                 if (rowsByTime) {
                     allSeries.push({
-                        type: "no-data",
+                        missing: true,
                         seriesName: entityName,
                         entityName,
                         displayName: shortName ?? entityName,
@@ -189,7 +191,7 @@ export class DumbbellChartState implements ChartState {
                     : DumbbellChartState.NEGATIVE_CHANGE_COLOR
 
             allSeries.push({
-                type: "data",
+                missing: false,
                 seriesName: entityName,
                 entityName,
                 displayName: shortName ?? entityName,
@@ -216,7 +218,7 @@ export class DumbbellChartState implements ChartState {
         return allSeries
     }
 
-    private constructSeriesForTwoColumns(): DumbbellChartSeries[] {
+    private constructSeriesForTwoColumns(): DumbbellSeries[] {
         const { endTime, focusArray, annotationsMap, columnColors } = this
         const [colA, colB] = this.yColumns
         const [slugA, slugB] = this.yColumnSlugs
@@ -224,7 +226,7 @@ export class DumbbellChartState implements ChartState {
         const owidRowByTimeB = colB.owidRowByEntityNameAndTime
         const [startColor, endColor] = columnColors
 
-        const allSeries: DumbbellChartSeries[] = []
+        const allSeries: DumbbellSeries[] = []
 
         for (const entityName of this.selectionArray.selectedEntityNames) {
             const rowsByTimeA = owidRowByTimeA.get(entityName)
@@ -237,7 +239,7 @@ export class DumbbellChartState implements ChartState {
             if (rowA?.value === undefined || rowB?.value === undefined) {
                 if (rowsByTimeA || rowsByTimeB) {
                     allSeries.push({
-                        type: "no-data",
+                        missing: true,
                         seriesName: entityName,
                         entityName,
                         displayName: shortName ?? entityName,
@@ -249,7 +251,7 @@ export class DumbbellChartState implements ChartState {
             }
 
             allSeries.push({
-                type: "data",
+                missing: false,
                 seriesName: entityName,
                 entityName,
                 displayName: shortName ?? entityName,
@@ -276,21 +278,17 @@ export class DumbbellChartState implements ChartState {
         return allSeries
     }
 
-    @computed private get unsortedAllSeries(): DumbbellChartSeries[] {
-        return this.seriesStrategy === SeriesStrategy.entity
+    @computed private get unsortedAllSeries(): DumbbellSeries[] {
+        return this.mode === "time-range"
             ? this.constructSeriesForTimeRange()
             : this.constructSeriesForTwoColumns()
     }
 
-    /** Unified list of all series (data + no-data), with data series sorted
-     *  according to sortConfig and no-data series appended at the end. */
-    @computed get allSeries(): DumbbellChartSeries[] {
-        const dataSeries = this.unsortedAllSeries.filter(
-            (s): s is DumbbellDataSeries => s.type === "data"
-        )
-        const noDataSeries = this.unsortedAllSeries.filter(
-            (s): s is DumbbellNoDataSeries => s.type === "no-data"
-        )
+    /** Unified list of all series (data + missing), with data series sorted
+     *  according to sortConfig and missing series appended at the end. */
+    @computed get allSeries(): DumbbellSeries[] {
+        const dataSeries = this.unsortedAllSeries.filter((s) => !s.missing)
+        const missingSeries = this.unsortedAllSeries.filter((s) => s.missing)
 
         const sortedDataSeries = sortByConfig(dataSeries, this.sortConfig, {
             [SortBy.custom]: (item): number =>
@@ -298,24 +296,22 @@ export class DumbbellChartState implements ChartState {
                     item.entityName
                 ),
             [SortBy.entityName]: (item): string => item.seriesName,
-            [SortBy.total]: (item): number => item.end.value,
-            [SortBy.column]: (item): number => item.end.value,
+            [SortBy.total]: (item): number => item.end!.value,
+            [SortBy.column]: (item): number => item.end!.value,
         })
 
-        return [...sortedDataSeries, ...noDataSeries]
+        return [...sortedDataSeries, ...missingSeries]
     }
 
-    /** ChartState.series — only the data series (used by legend, tooltips, etc.) */
-    @computed get series(): DumbbellDataSeries[] {
-        return this.allSeries.filter(
-            (s): s is DumbbellDataSeries => s.type === "data"
-        )
+    /** ChartState.series — only the non-missing series */
+    @computed get series(): DumbbellSeries[] {
+        return this.allSeries.filter((s) => !s.missing)
     }
 
     @computed get allYValues(): number[] {
         return this.series.flatMap((series) => [
-            series.start.value,
-            series.end.value,
+            series.start!.value,
+            series.end!.value,
         ])
     }
 

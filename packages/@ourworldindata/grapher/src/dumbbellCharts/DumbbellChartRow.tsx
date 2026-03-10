@@ -5,11 +5,7 @@ import { FontSettings } from "../core/GrapherConstants"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import { Dumbbell } from "./Dumbbell"
-import {
-    RenderDumbbellChartSeries,
-    RenderDumbbellDataSeries,
-    DUMBBELL_STYLE,
-} from "./DumbbellChartConstants"
+import { RenderDumbbellSeries, DUMBBELL_STYLE } from "./DumbbellChartConstants"
 
 /** The gap between the entity label and the dumbbell */
 const GAP__ENTITY_LABEL__DUMBBELL = 5
@@ -23,7 +19,7 @@ export function DumbbellChartRow({
     valueLabelStyle,
     formatValue,
 }: {
-    series: RenderDumbbellChartSeries
+    series: RenderDumbbellSeries
     translateY: number
     chartAreaLeft: number
     chartAreaRight: number
@@ -73,7 +69,7 @@ export function DumbbellChartRow({
             )}
 
             {/* Data row: dumbbell + value labels */}
-            {series.type === "data" && (
+            {!series.missing && (
                 <DataRowContent
                     series={series}
                     chartAreaLeft={chartAreaLeft}
@@ -85,7 +81,7 @@ export function DumbbellChartRow({
             )}
 
             {/* No-data row: gray line + "No data" text */}
-            {series.type === "no-data" && (
+            {series.missing && (
                 <>
                     <line
                         x1={chartAreaLeft}
@@ -121,7 +117,7 @@ function DataRowContent({
     valueLabelStyle,
     formatValue,
 }: {
-    series: RenderDumbbellDataSeries
+    series: RenderDumbbellSeries
     chartAreaLeft: number
     chartAreaRight: number
     dotRadius: number
@@ -129,8 +125,8 @@ function DataRowContent({
     formatValue: (value: number) => string
 }): React.ReactElement {
     const style = DUMBBELL_STYLE[series.emphasis]
-    const minX = Math.min(series.startX, series.endX)
-    const maxX = Math.max(series.startX, series.endX)
+    const minX = Math.min(series.startX!, series.endX!)
+    const maxX = Math.max(series.startX!, series.endX!)
 
     return (
         <>
@@ -152,7 +148,7 @@ function DataRowContent({
                 fontSize={valueLabelStyle.fontSize}
                 fontWeight={valueLabelStyle.fontWeight}
             >
-                {formatValue(series.start.value)}
+                {formatValue(series.start!.value)}
             </text>
             {/* End value label (right side) */}
             <text
@@ -165,7 +161,7 @@ function DataRowContent({
                 fontSize={valueLabelStyle.fontSize}
                 fontWeight={valueLabelStyle.fontWeight}
             >
-                {formatValue(series.end.value)}
+                {formatValue(series.end!.value)}
             </text>
         </>
     )

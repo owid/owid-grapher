@@ -22,11 +22,10 @@ import { HorizontalAxis } from "../axis/Axis"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
     DumbbellChartManager,
-    DumbbellChartSeries,
-    DumbbellDataSeries,
-    SizedDumbbellChartSeries,
-    PlacedDumbbellChartSeries,
-    RenderDumbbellChartSeries,
+    DumbbellSeries,
+    SizedDumbbellSeries,
+    PlacedDumbbellSeries,
+    RenderDumbbellSeries,
     BAR_SPACING_FACTOR,
 } from "./DumbbellChartConstants"
 import { DumbbellChartState } from "./DumbbellChartState"
@@ -69,11 +68,11 @@ export class DumbbellChart
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
-    @computed private get dataSeries(): DumbbellDataSeries[] {
+    @computed private get dataSeries(): DumbbellSeries[] {
         return this.chartState.series
     }
 
-    @computed private get allSeries(): DumbbellChartSeries[] {
+    @computed private get allSeries(): DumbbellSeries[] {
         return this.chartState.allSeries
     }
 
@@ -113,7 +112,7 @@ export class DumbbellChart
 
     // Sized series (entity labels measured)
 
-    @computed get sizedSeries(): SizedDumbbellChartSeries[] {
+    @computed get sizedSeries(): SizedDumbbellSeries[] {
         return enrichSeriesWithLabels({
             series: this.allSeries,
             availableHeightPerSeries: this.bounds.height / this.seriesCount,
@@ -169,14 +168,14 @@ export class DumbbellChart
 
     @computed private get leftValueLabelsWidth(): number {
         const widths = this.dataSeries.map(
-            (series) => this.formatValue(series.start.value).width
+            (series) => this.formatValue(series.start!.value).width
         )
         return _.max(widths) ?? 0
     }
 
     @computed private get rightValueLabelsWidth(): number {
         const widths = this.dataSeries.map(
-            (series) => this.formatValue(series.end.value).width
+            (series) => this.formatValue(series.end!.value).width
         )
         return _.max(widths) ?? 0
     }
@@ -218,59 +217,49 @@ export class DumbbellChart
 
     // Data chain: placed and render series
 
-    @computed private get placedSeries(): PlacedDumbbellChartSeries[] {
+    @computed private get placedSeries(): PlacedDumbbellSeries[] {
         const yOffset =
             this.innerBounds.top + this.barHeight / 2 + this.barSpacing / 2
 
-        return this.sizedSeries.map(
-            (series, index): PlacedDumbbellChartSeries => {
-                const barY =
-                    yOffset + index * (this.barHeight + this.barSpacing)
-                const entityLabelX =
-                    this.innerBounds.x -
-                    GAP__ENTITY_LABEL__DUMBBELL -
-                    this.leftValueLabelsWidth -
-                    GAP__ENTITY_LABEL__DUMBBELL
+        return this.sizedSeries.map((series, index) => {
+            const barY = yOffset + index * (this.barHeight + this.barSpacing)
+            const entityLabelX =
+                this.innerBounds.x -
+                GAP__ENTITY_LABEL__DUMBBELL -
+                this.leftValueLabelsWidth -
+                GAP__ENTITY_LABEL__DUMBBELL
 
-                const annotationHeight = series.annotationTextWrap
-                    ? ANNOTATION_PADDING + series.annotationTextWrap.height
-                    : 0
-                const totalLabelHeight = series.label.height + annotationHeight
-                const entityLabelY = barY - totalLabelHeight / 2
-                const annotationY = series.annotationTextWrap
-                    ? entityLabelY + series.label.height + ANNOTATION_PADDING
-                    : undefined
+            const annotationHeight = series.annotationTextWrap
+                ? ANNOTATION_PADDING + series.annotationTextWrap.height
+                : 0
+            const totalLabelHeight = series.label.height + annotationHeight
+            const entityLabelY = barY - totalLabelHeight / 2
+            const annotationY = series.annotationTextWrap
+                ? entityLabelY + series.label.height + ANNOTATION_PADDING
+                : undefined
 
-                const placement = {
-                    barY,
-                    entityLabelX,
-                    entityLabelY,
-                    annotationY,
-                    label: series.label,
-                    annotationTextWrap: series.annotationTextWrap,
-                }
-
-                if (series.type === "data") {
-                    return {
-                        ...series,
-                        ...placement,
-                        startX: this.yAxis.place(series.start.value),
-                        endX: this.yAxis.place(series.end.value),
-                    }
-                }
-
-                return { ...series, ...placement }
+            return {
+                ...series,
+                barY,
+                entityLabelX,
+                entityLabelY,
+                annotationY,
+                startX: series.start
+                    ? this.yAxis.place(series.start.value)
+                    : undefined,
+                endX: series.end
+                    ? this.yAxis.place(series.end.value)
+                    : undefined,
             }
-        )
+        })
     }
 
-    @computed private get renderSeries(): RenderDumbbellChartSeries[] {
+    @computed private get renderSeries(): RenderDumbbellSeries[] {
         return this.placedSeries.map((series) => {
-            if (series.type === "data") {
-                const emphasis = resolveEmphasis({ focus: series.focus })
-                return { ...series, emphasis }
-            }
-            return { ...series, emphasis: resolveEmphasis({}) }
+            const emphasis = series.focus
+                ? resolveEmphasis({ focus: series.focus })
+                : resolveEmphasis({})
+            return { ...series, emphasis }
         })
     }
 
@@ -294,8 +283,8 @@ export class DumbbellChart
 
     // Rendering
 
-    private rowProps(series: RenderDumbbellChartSeries): {
-        series: RenderDumbbellChartSeries
+    private rowProps(series: RenderDumbbellSeries): {
+        series: RenderDumbbellSeries
         chartAreaLeft: number
         chartAreaRight: number
         dotRadius: number
@@ -345,10 +334,10 @@ export class DumbbellChart
                 {this.renderAxis()}
                 <AnimatedRows
                     items={this.renderSeries}
-                    keyAccessor={(d: RenderDumbbellChartSeries): string =>
+                    keyAccessor={(d: RenderDumbbellSeries): string =>
                         d.seriesName
                     }
-                    getY={(d: RenderDumbbellChartSeries): number => d.barY}
+                    getY={(d: RenderDumbbellSeries): number => d.barY}
                     renderRow={(series): React.ReactElement => (
                         <DumbbellChartRow
                             key={series.seriesName}

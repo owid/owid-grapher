@@ -19,81 +19,47 @@ export interface DumbbellEndpoint {
     columnSlug: ColumnSlug
 }
 
-// --- Discriminated union: data series vs no-data series ---
+// --- Series types ---
 
-interface DumbbellSeriesBase extends ChartSeries {
+export interface DumbbellSeries extends ChartSeries {
     entityName: EntityName
     displayName: string
     shortEntityName?: string
     annotation?: string
+    missing: boolean
+    // Present when missing === false
+    start?: DumbbellEndpoint
+    end?: DumbbellEndpoint
+    startColor?: string
+    endColor?: string
+    connectorColor?: string
+    focus?: InteractionState
 }
-
-export interface DumbbellDataSeries extends DumbbellSeriesBase {
-    type: "data"
-    start: DumbbellEndpoint
-    end: DumbbellEndpoint
-    startColor: string
-    endColor: string
-    connectorColor: string
-    focus: InteractionState
-}
-
-export interface DumbbellNoDataSeries extends DumbbellSeriesBase {
-    type: "no-data"
-}
-
-export type DumbbellChartSeries = DumbbellDataSeries | DumbbellNoDataSeries
 
 // --- Sized (after label measurement) ---
 
-export type SizedDumbbellChartSeries = (
-    | DumbbellDataSeries
-    | DumbbellNoDataSeries
-) & {
+export type SizedDumbbellSeries = DumbbellSeries & {
     label: SeriesLabelState
     annotationTextWrap?: TextWrap
 }
 
 // --- Placed (with pixel coordinates) ---
 
-interface PlacedSeriesBase {
+export type PlacedDumbbellSeries = SizedDumbbellSeries & {
     barY: number
     entityLabelX: number
     entityLabelY: number
     annotationY?: number
+    // Present when missing === false
+    startX?: number
+    endX?: number
 }
-
-export type PlacedDumbbellDataSeries = DumbbellDataSeries &
-    PlacedSeriesBase & {
-        label: SeriesLabelState
-        annotationTextWrap?: TextWrap
-        startX: number
-        endX: number
-    }
-
-export type PlacedDumbbellNoDataSeries = DumbbellNoDataSeries &
-    PlacedSeriesBase & {
-        label: SeriesLabelState
-        annotationTextWrap?: TextWrap
-    }
-
-export type PlacedDumbbellChartSeries =
-    | PlacedDumbbellDataSeries
-    | PlacedDumbbellNoDataSeries
 
 // --- Render (with emphasis) ---
 
-export type RenderDumbbellDataSeries = PlacedDumbbellDataSeries & {
+export type RenderDumbbellSeries = PlacedDumbbellSeries & {
     emphasis: Emphasis
 }
-
-export type RenderDumbbellNoDataSeries = PlacedDumbbellNoDataSeries & {
-    emphasis: Emphasis
-}
-
-export type RenderDumbbellChartSeries =
-    | RenderDumbbellDataSeries
-    | RenderDumbbellNoDataSeries
 
 // --- Styles ---
 
@@ -116,7 +82,5 @@ export const DUMBBELL_STYLE: Record<Emphasis, DumbbellStyle> = {
         labelOpacity: 0.3,
     },
 }
-
-export type DumbbellMode = "two-column" | "time-range"
 
 export const BAR_SPACING_FACTOR = 0.35

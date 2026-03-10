@@ -23,9 +23,9 @@ describe("time-range mode", () => {
         expect(state.mode).toEqual("time-range")
         expect(state.series.length).toEqual(2)
         for (const series of state.series) {
-            expect(series.start.value).toBeTypeOf("number")
-            expect(series.end.value).toBeTypeOf("number")
-            expect(series.start.time).toBeLessThan(series.end.time)
+            expect(series.start!.value).toBeTypeOf("number")
+            expect(series.end!.value).toBeTypeOf("number")
+            expect(series.start!.time).toBeLessThan(series.end!.time)
         }
     })
 })
@@ -48,8 +48,8 @@ describe("two-column mode", () => {
         expect(state.mode).toEqual("two-column")
         expect(state.series.length).toEqual(2)
         for (const series of state.series) {
-            expect(series.start.columnSlug).toEqual("gdp")
-            expect(series.end.columnSlug).toEqual("pop")
+            expect(series.start!.columnSlug).toEqual("gdp")
+            expect(series.end!.columnSlug).toEqual("pop")
         }
     })
 })
@@ -67,8 +67,8 @@ it("filters non-numeric values", () => {
     }
     const state = new DumbbellChartState({ manager })
     for (const series of state.series) {
-        expect(series.start.value).toBeTypeOf("number")
-        expect(series.end.value).toBeTypeOf("number")
+        expect(series.start!.value).toBeTypeOf("number")
+        expect(series.end!.value).toBeTypeOf("number")
     }
 })
 
@@ -113,7 +113,7 @@ describe("sorting", () => {
 
     it("sorts by end value descending by default", () => {
         const state = new DumbbellChartState({ manager: baseManager })
-        const endValues = state.series.map((s) => s.end.value)
+        const endValues = state.series.map((s) => s.end!.value)
         expect(endValues).toEqual([35, 25, 15])
     })
 
@@ -127,7 +127,7 @@ describe("sorting", () => {
                 },
             },
         })
-        const endValues = state.series.map((s) => s.end.value)
+        const endValues = state.series.map((s) => s.end!.value)
         expect(endValues).toEqual([15, 25, 35])
     })
 })
