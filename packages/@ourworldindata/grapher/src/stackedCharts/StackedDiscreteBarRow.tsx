@@ -16,7 +16,7 @@ const labelToBarPadding = 5
 
 export function StackedDiscreteBarRow({
     row,
-    translateY = row.yPosition,
+    y = 0,
     barHeight,
     labelFontSize,
     yAxis,
@@ -27,7 +27,7 @@ export function StackedDiscreteBarRow({
     onClearTooltip,
 }: {
     row: RenderDiscreteBarRow
-    translateY?: number
+    y?: number
     barHeight: number
     labelFontSize: number
     yAxis: HorizontalAxis
@@ -53,7 +53,7 @@ export function StackedDiscreteBarRow({
     return (
         <g
             id={makeFigmaId(entityName)}
-            transform={`translate(0, ${translateY})`}
+            transform={`translate(0, ${y})`}
             opacity={1}
         >
             {segments.map((segment) => (
