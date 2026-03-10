@@ -27,18 +27,20 @@ function ExplorerTile({ url }: { url: string }) {
     ) : null
 
     return (
-        <a
-            className="explorer-tile span-cols-3 span-md-cols-6"
-            href={linkedChart.resolvedUrl}
-        >
-            {icon}
-            <div className="explorer-tile__text-container">
-                <p className="h3-bold explorer-tile__title">
-                    {linkedChart.title}
-                </p>
-                <p className="h3-bold explorer-tile__suffix"> Data Explorer</p>
-            </div>
-        </a>
+        <li className="span-cols-3 span-md-cols-6">
+            <a className="explorer-tile" href={linkedChart.resolvedUrl}>
+                {icon}
+                <div className="explorer-tile__text-container">
+                    <p className="h3-bold explorer-tile__title">
+                        {linkedChart.title}
+                    </p>
+                    <p className="h3-bold explorer-tile__suffix">
+                        {" "}
+                        Data Explorer
+                    </p>
+                </div>
+            </a>
+        </li>
     )
 }
 
@@ -67,11 +69,11 @@ export function ExplorerTiles({
             <p className="body-2-regular explorer-tiles__subtitle span-cols-8 span-md-cols-7 span-sm-cols-12">
                 {subtitle}
             </p>
-            <div className="span-cols-12 grid explorer-tiles-grid">
+            <ul className="span-cols-12 grid explorer-tiles-grid">
                 {explorers.map((explorer) => (
                     <ExplorerTile key={explorer.url} {...explorer} />
                 ))}
-            </div>
+            </ul>
         </div>
     )
 }

@@ -77,7 +77,7 @@ export default function LatestDataInsights({
     return (
         <div className={cx("latest-data-insights", className)}>
             <div className="latest-data-insights__viewport" ref={emblaRef}>
-                <div className="latest-data-insights__card-container">
+                <ul className="latest-data-insights__card-container">
                     {dataInsights.map((dataInsight, index) => (
                         <DataInsightCard
                             key={dataInsight.id}
@@ -94,14 +94,16 @@ export default function LatestDataInsights({
                     {isSmallScreen && (
                         // Normal way to hide the last slide would be a CSS media
                         // query with `display: none`, but that breaks Embla.
-                        <Button
-                            className="latest-data-insights__card latest-data-insights__card__see-all body-3-medium"
-                            href="/data-insights"
-                            text="See all our Data Insights"
-                            theme="outline-vermillion"
-                        />
+                        <li className="latest-data-insights__card">
+                            <Button
+                                className="latest-data-insights__card__see-all body-3-medium"
+                                href="/data-insights"
+                                text="See all our Data Insights"
+                                theme="outline-vermillion"
+                            />
+                        </li>
                     )}
-                </div>
+                </ul>
             </div>
             {canScrollPrev && (
                 <Button
@@ -158,51 +160,56 @@ const DataInsightCard = memo(function DataInsightCard({
         | undefined
     const otherBlocks = body.filter((_, index) => index !== firstImageIndex)
     return (
-        <a
-            className="latest-data-insights__card latest-data-insights__card__data-insight"
-            href={href}
-            aria-labelledby={titleId}
-        >
-            {firstImageBlock && (
-                <Image
-                    className="latest-data-insights__card-left"
-                    filename={
-                        firstImageBlock.smallFilename ||
-                        firstImageBlock.filename
-                    }
-                    containerType="span-5"
-                    shouldLightbox={false}
-                />
-            )}
-            <div className="latest-data-insights__card-right">
-                {publishedAt && (
-                    <DataInsightDateline
-                        className="latest-data-insights__card-dateline"
-                        publishedAt={publishedAt}
-                        highlightToday={true}
+        <li className="latest-data-insights__card">
+            <a
+                className="latest-data-insights__card__data-insight"
+                href={href}
+                aria-labelledby={titleId}
+            >
+                {firstImageBlock && (
+                    <Image
+                        className="latest-data-insights__card-left"
+                        filename={
+                            firstImageBlock.smallFilename ||
+                            firstImageBlock.filename
+                        }
+                        containerType="span-5"
+                        shouldLightbox={false}
                     />
                 )}
-                <h3 id={titleId} className="latest-data-insights__card-title">
-                    {title}
-                </h3>
-                <div className="latest-data-insights__card-body">
-                    <ArticleBlocks
-                        blocks={otherBlocks}
-                        containerType="data-insight"
-                        shouldRenderLinks={false}
-                    />
+                <div className="latest-data-insights__card-right">
+                    {publishedAt && (
+                        <DataInsightDateline
+                            className="latest-data-insights__card-dateline"
+                            publishedAt={publishedAt}
+                            highlightToday={true}
+                        />
+                    )}
+                    <h3
+                        id={titleId}
+                        className="latest-data-insights__card-title"
+                    >
+                        {title}
+                    </h3>
+                    <div className="latest-data-insights__card-body">
+                        <ArticleBlocks
+                            blocks={otherBlocks}
+                            containerType="data-insight"
+                            shouldRenderLinks={false}
+                        />
+                    </div>
+                    <div className="latest-data-insights__card-continue">
+                        <span className="body-3-medium-underlined">
+                            Continue reading
+                        </span>{" "}
+                        <FontAwesomeIcon
+                            icon={faArrowRight}
+                            style={{ fontSize: "10px" }}
+                        />
+                    </div>
                 </div>
-                <div className="latest-data-insights__card-continue">
-                    <span className="body-3-medium-underlined">
-                        Continue reading
-                    </span>{" "}
-                    <FontAwesomeIcon
-                        icon={faArrowRight}
-                        style={{ fontSize: "10px" }}
-                    />
-                </div>
-            </div>
-        </a>
+            </a>
+        </li>
     )
 })
 

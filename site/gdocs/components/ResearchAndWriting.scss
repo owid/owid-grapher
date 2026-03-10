@@ -92,6 +92,7 @@ $rw-margin-bottom-grid-cell: 4px;
 }
 
 .research-and-writing-link {
+    display: block;
     color: $blue-90;
 
     &:hover .research-and-writing-link__title {
