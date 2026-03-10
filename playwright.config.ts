@@ -10,8 +10,6 @@ const testDir = defineBddConfig({
     },
 })
 
-const archiveDir =
-    ENV === "development" ? "archive" : "/home/owid/live-data/archive"
 const wikipediaArchiveDir =
     ENV === "development"
         ? "wikipedia-archive"
@@ -24,11 +22,6 @@ export default defineConfig({
         baseURL: `${BAKED_BASE_URL}${ENV !== "development" ? ".tail6e23.ts.net" : ""}`,
     },
     webServer: [
-        {
-            command: `http-server ${archiveDir} -p 8764 -c-1 --silent`,
-            port: 8764,
-            reuseExistingServer: true,
-        },
         {
             command: `http-server ${wikipediaArchiveDir} -p 8765 -c-1 --silent`,
             port: 8765,

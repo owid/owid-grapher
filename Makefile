@@ -39,7 +39,7 @@ help:
 	@echo '  make svgtest.explorers      generate an SVG test report for explorers only'
 	@echo '  make local-bake             do a full local site bake'
 	@echo '  make archive                create an archived version of our charts'
-	@echo '  make wikipedia-archive      create a Wikipedia archive (strips GTM, rewrites URLs)'
+	@echo '  make wikipedia-archive      create a Wikipedia archive (strips GTM, rewrites archive URLs)'
 	@echo
 	@echo '  GRAPHER + CLOUDFLARE (staff-only)'
 	@echo '  make up.full                start dev environment via docker-compose and tmux'
@@ -432,7 +432,7 @@ archive: node_modules
 	PRIMARY_ENV_FILE=.env.archive yarn tsx --tsconfig tsconfig.tsx.json ./baker/archival/archiveChangedPages.ts --latestDir
 
 wikipedia-archive: archive
-	@echo '==> Creating Wikipedia archive (stripping analytics)'
+	@echo '==> Creating Wikipedia archive (stripping analytics, rewriting archive URLs)'
 	PRIMARY_ENV_FILE=.env.archive yarn tsx --tsconfig tsconfig.tsx.json ./baker/archival/createWikipediaArchive.ts
 
 clean:
