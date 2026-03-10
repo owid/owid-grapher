@@ -70,17 +70,15 @@ export function BespokeComponent({
                     definition.scriptUrl
                 ) as Promise<BespokeComponentModule>
 
-                if (abortController.signal.aborted) return
-
                 // Create a container div inside the shadow root for the component to render into
                 const mountContainer = document.createElement("div")
                 mountContainer.className = "bespoke-container"
                 shadowRoot!.appendChild(mountContainer)
 
-                if (abortController.signal.aborted) return
-
                 await cssPromise
                 const module = await jsPromise
+
+                if (abortController.signal.aborted) return
 
                 if (typeof module.mount !== "function") {
                     setError(
