@@ -10,6 +10,13 @@ const testDir = defineBddConfig({
     },
 })
 
+const archiveDir =
+    ENV === "development" ? "archive" : "/home/owid/live-data/archive"
+const wikipediaArchiveDir =
+    ENV === "development"
+        ? "wikipedia-archive"
+        : "/home/owid/live-data/wikipedia-archive"
+
 export default defineConfig({
     testDir,
     reporter: ENV === "development" ? [["line"]] : [["dot"]],
@@ -18,12 +25,12 @@ export default defineConfig({
     },
     webServer: [
         {
-            command: "http-server archive -p 8764 -c-1 --silent",
+            command: `http-server ${archiveDir} -p 8764 -c-1 --silent`,
             port: 8764,
             reuseExistingServer: true,
         },
         {
-            command: "http-server wikipedia-archive -p 8765 -c-1 --silent",
+            command: `http-server ${wikipediaArchiveDir} -p 8765 -c-1 --silent`,
             port: 8765,
             reuseExistingServer: true,
         },
