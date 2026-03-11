@@ -18,10 +18,13 @@ export interface PageDocument {
     modifiedDate?: number
     tags?: string[]
     thumbnailUrl: string
+    availableEntities?: string[]
+    embedding?: number[]
 }
 
 export interface ChartDocument {
     id: string
+    deduplicationId: string
     type: string
     chartId?: number
     chartConfigId?: string
@@ -43,6 +46,7 @@ export interface ChartDocument {
     queryParams?: string
     availableTabs?: string[]
     explorerType?: string
+    embedding?: number[]
 }
 
 // Collection schema for pages
@@ -74,6 +78,22 @@ export const pagesCollectionSchema: CollectionCreateSchema = {
             facet: true,
         },
         { name: "thumbnailUrl", type: "string" },
+        {
+            name: "availableEntities",
+            type: "string[]",
+            optional: true,
+        },
+        {
+            name: "embedding",
+            type: "float[]",
+            embed: {
+                from: ["title", "content"],
+                model_config: {
+                    model_name: "ts/all-MiniLM-L12-v2",
+                },
+            },
+            optional: true,
+        },
     ],
     default_sorting_field: "score",
 }
@@ -83,6 +103,11 @@ export const chartsCollectionSchema: CollectionCreateSchema = {
     name: CHARTS_INDEX,
     fields: [
         { name: "id", type: "string" },
+        {
+            name: "deduplicationId",
+            type: "string",
+            facet: true,
+        },
         { name: "type", type: "string", facet: true },
         { name: "chartId", type: "int32", optional: true },
         { name: "chartConfigId", type: "string", optional: true },
@@ -121,6 +146,17 @@ export const chartsCollectionSchema: CollectionCreateSchema = {
         { name: "queryParams", type: "string", optional: true },
         { name: "availableTabs", type: "string[]", optional: true },
         { name: "explorerType", type: "string", optional: true },
+        {
+            name: "embedding",
+            type: "float[]",
+            embed: {
+                from: ["title", "subtitle", "tags"],
+                model_config: {
+                    model_name: "ts/all-MiniLM-L12-v2",
+                },
+            },
+            optional: true,
+        },
     ],
     default_sorting_field: "score",
 }

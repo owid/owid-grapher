@@ -75,9 +75,14 @@ const indexExplorerViewsMdimViewsAndChartsToTypeSense = async () => {
     await recreateCollection(client, chartsCollectionSchema, collectionName)
 
     // Transform records: objectID -> id (TypeSense uses 'id' instead of 'objectID')
-    // and convert date strings to Unix timestamps
+    // and convert date strings to Unix timestamps.
+    // Preserve the original Algolia `id` field (e.g. "grapher/slug" or
+    // "explorer/slug?params") as `deduplicationId` so we can use it with
+    // Typesense's `group_by` for deduplication (equivalent to Algolia's
+    // `distinct` on `attributeForDistinct: "id"`).
     const typeSenseRecords = records.map((record) => ({
         ...record,
+        deduplicationId: record.id,
         id: record.objectID,
         objectID: undefined, // Remove the objectID field
         publishedAt: convertDateToUnixTimestamp(record.publishedAt),

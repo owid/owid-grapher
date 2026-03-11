@@ -401,6 +401,10 @@ export const PAGES_INDEX = getIndexName(SearchIndexName.Pages)
 export const CHARTS_INDEX = getIndexName(
     SearchIndexName.ExplorerViewsMdimViewsAndCharts
 )
+
+// Alpha controls the balance between keyword and semantic search in hybrid mode.
+// 0.0 = pure keyword, 1.0 = pure vector. 0.3 is conservative keyword-heavy.
+export const HYBRID_SEARCH_ALPHA = 0.3
 export const DATA_CATALOG_ATTRIBUTES = [
     "title",
     "containerTitle",
@@ -554,7 +558,6 @@ export function getCountryData(selectedCountries: Set<string>): Region[] {
     }
     return regionData
 }
-
 
 export function serializeSet(set: Set<string>) {
     return set.size ? [...set].join("~") : undefined
