@@ -12,6 +12,7 @@ export default defineConfig({
             formats: ["es"],
             fileName: "grapher",
         },
+        minify: false,
         sourcemap: true,
         target: ["chrome91", "firefox91", "safari14.1"],
         rollupOptions: {
