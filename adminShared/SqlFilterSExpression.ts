@@ -314,7 +314,7 @@ export const allEqualityOperators = [
     EqualityOperator.unequal,
 ]
 
-export class EqualityComparision extends BooleanOperation {
+export class EqualityComparison extends BooleanOperation {
     constructor(
         public operator: EqualityOperator,
         public operands: Operation[]
@@ -491,7 +491,7 @@ const equalityOperatorInfos = allEqualityOperators.map(
                 arity: Arity.binary,
                 operandsType: ExpressionType.any,
                 ctor: (args: Operation[]): Operation =>
-                    new EqualityComparision(op, args),
+                    new EqualityComparison(op, args),
             },
         ] as const
 )

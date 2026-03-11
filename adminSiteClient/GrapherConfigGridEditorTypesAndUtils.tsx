@@ -12,7 +12,7 @@ import {
     BooleanAtom,
     BooleanOperation,
     ComparisonOperator,
-    EqualityComparision,
+    EqualityComparison,
     EqualityOperator,
     JsonPointerSymbol,
     JSONPreciselyTyped,
@@ -440,7 +440,7 @@ export function filterTreeToSExpression(
                         const operator = getEqualityOperator(op as string)
                         const val = getValueAtom(filterTree.properties.value[0])
                         if (val === undefined) return undefined
-                        return new EqualityComparision(operator!, [field, val])
+                        return new EqualityComparison(operator!, [field, val])
                     }
                 )
                 .when(
@@ -469,19 +469,19 @@ export function filterTreeToSExpression(
                         .with("is_empty", () => EqualityOperator.equal)
                         .with("is_not_empty", () => EqualityOperator.unequal)
                         .exhaustive()
-                    return new EqualityComparision(op, [
+                    return new EqualityComparison(op, [
                         field,
                         new StringAtom(""),
                     ])
                 })
                 .with("is_latest", (_) => {
-                    return new EqualityComparision(EqualityOperator.equal, [
+                    return new EqualityComparison(EqualityOperator.equal, [
                         field,
                         new StringAtom("latest"),
                     ])
                 })
                 .with("is_earliest", (_) => {
-                    return new EqualityComparision(EqualityOperator.equal, [
+                    return new EqualityComparison(EqualityOperator.equal, [
                         field,
                         new StringAtom("earliest"),
                     ])

@@ -15,7 +15,7 @@ import {
     allBinaryLogicOperators,
     allComparisonOperators,
     BinaryLogicOperators,
-    EqualityComparision,
+    EqualityComparison,
     EqualityOperator,
     StringContainsOperation,
     OperationContext,
@@ -122,7 +122,7 @@ describe("parse simple filters expressions", () => {
         const compCreator = (op: BinaryLogicOperators): BinaryLogicOperation =>
             new BinaryLogicOperation(op, [
                 new BooleanAtom(true),
-                new EqualityComparision(EqualityOperator.unequal, [
+                new EqualityComparison(EqualityOperator.unequal, [
                     new NumberAtom(5),
                     new NumberAtom(42),
                 ]),
