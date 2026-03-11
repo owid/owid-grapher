@@ -1,0 +1,23 @@
+metadata:
+    description: |
+        Slideshows created in the admin for presentations. Each slideshow has an ordered set of slides
+        stored as a JSON config, along with metadata like title, slug, and publish status.
+fields:
+    id:
+        description: Unique identifier for the slideshow
+    slug:
+        description: URL-friendly unique identifier
+    title:
+        description: Display title of the slideshow
+    config:
+        description: JSON blob containing the full ordered array of slides and presentation settings. This is the source of truth for slide content.
+    userId:
+        description: Foreign key to users table, the creator of the slideshow
+    createdAt:
+        description: Timestamp when the slideshow was created
+    updatedAt:
+        description: Timestamp when the slideshow was last modified
+    isPublished:
+        description: Whether the slideshow is published (0 = draft, 1 = published)
+    publishedAt:
+        description: Timestamp when the slideshow was first published, null if never published
