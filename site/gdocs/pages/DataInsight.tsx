@@ -100,6 +100,9 @@ export const DataInsightBody = (
         anchor?: string
         publishedAt: Date | string | null
         shouldLinkTitle?: boolean
+        // Hide the year on /data-insights index pages when published in the current year.
+        // Show it on individual data insight pages.
+        shouldHideYearInDateline?: boolean
     }
 ) => {
     const shouldLinkTitle = props.shouldLinkTitle
@@ -115,11 +118,15 @@ export const DataInsightBody = (
                 <DataInsightDateline
                     className="data-insight__dateline"
                     publishedAt={publishedAt}
-                    formatOptions={{
-                        year: "numeric",
-                        month: "long",
-                        day: "2-digit",
-                    }}
+                    formatOptions={
+                        props.shouldHideYearInDateline
+                            ? { month: "long", day: "numeric" }
+                            : {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "2-digit",
+                              }
+                    }
                 />
                 {shouldLinkTitle ? (
                     <a

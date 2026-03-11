@@ -59,6 +59,7 @@ export const DataInsightsIndexPageContent = (
                 key={dataInsight.id}
                 anchor={id}
                 shouldLinkTitle
+                shouldHideYearInDateline
                 {...dataInsight}
             />
         )
