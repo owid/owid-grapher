@@ -43,6 +43,6 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
 export interface BespokeComponentModule {
     mount: (
         container: HTMLDivElement,
-        opts: { variant?: string; config: Record<string, unknown> }
+        opts: { variant?: string; config?: Record<string, unknown> }
     ) => void | Promise<void> | Promise<() => void>
 }
