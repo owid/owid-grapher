@@ -9,7 +9,7 @@ export default function DataInsightDateline({
     publishedAt,
     formatOptions = {
         month: "long",
-        day: "2-digit",
+        day: "numeric",
     },
     highlightToday,
 }: {
@@ -30,9 +30,11 @@ export default function DataInsightDateline({
         } else if (date.isYesterday()) {
             formattedDate = "Yesterday"
         } else {
-            formattedDate = date
-                .toDate()
-                .toLocaleDateString("en-US", formatOptions)
+            const options =
+                date.year() !== dayjs().year()
+                    ? { ...formatOptions, year: "numeric" as const }
+                    : formatOptions
+            formattedDate = date.toDate().toLocaleDateString("en-US", options)
         }
     } else {
         formattedDate = "Unpublished"
