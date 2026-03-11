@@ -591,6 +591,37 @@ export {
     PostsGdocsXImagesTableName,
 } from "./dbTypes/PostsGdocsXImages.js"
 export {
+    type DbPlainSlideshow,
+    type DbInsertSlideshow,
+    SlideshowsTableName,
+} from "./dbTypes/Slideshows.js"
+export {
+    SlideTemplate,
+    type MarkdownText,
+    type SlideMedia,
+    type SlideImageChartOnly,
+    type SlideSection,
+    type SlideImageChartWithText,
+    type SlideTitleSlide,
+    type SlideBlank,
+    type SlideTwoColumnText,
+    type SlideQuote,
+    type SlideBigNumber,
+    type SlideFullSlideImage,
+    type Slide,
+    type SlideshowConfig,
+} from "./domainTypes/Slideshow.js"
+export {
+    type DbPlainSlideshowLink,
+    type DbInsertSlideshowLink,
+    SlideshowLinksTableName,
+} from "./dbTypes/SlideshowLinks.js"
+export {
+    type DbPlainSlideshowXImage,
+    type DbInsertSlideshowXImage,
+    SlideshowXImagesTableName,
+} from "./dbTypes/SlideshowXImages.js"
+export {
     type DbPlainPostGdocXTag,
     type DbInsertPostGdocXTag,
     PostsGdocsXTagsTableName,

@@ -1,0 +1,17 @@
+metadata:
+    description: |
+        Link tracking for slideshows. Tracks outgoing references to graphers, explorers, and other assets.
+        Mirrors the posts_gdocs_links pattern. Rebuilt on every save from the slideshow config JSON.
+fields:
+    id:
+        description: Unique identifier for the link
+    slideshowId:
+        description: Foreign key to slideshows table
+    target:
+        description: Target slug or URL of the linked asset
+    linkType:
+        description: Type of link ('gdoc', 'url', 'grapher', 'explorer', 'narrative-chart', 'static-viz', 'dod', 'guided-chart')
+    queryString:
+        description: Query string parameters in the link (e.g. grapher tab/entity params)
+    hash:
+        description: Hash fragment in the link
