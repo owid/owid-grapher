@@ -612,6 +612,10 @@ export {
     type SlideFullSlideImage,
     type Slide,
     type SlideshowConfig,
+    SlideSchema,
+    SlideshowConfigSchema,
+    SlideshowCreateSchema,
+    SlideshowUpdateSchema,
 } from "./domainTypes/Slideshow.js"
 export {
     type DbPlainSlideshowLink,
