@@ -5,6 +5,23 @@
     "type": "module",
     "main": "src/index.ts",
     "types": "src/index.ts",
+    "publishConfig": {
+        "main": "dist/grapher.js",
+        "types": "dist/grapher.d.ts",
+        "exports": {
+            ".": {
+                "types": "./dist/grapher.d.ts",
+                "import": "./dist/grapher.js"
+            },
+            "./dist/grapher.css": "./dist/grapher.css"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "vite build"
+    },
     "directories": {
         "lib": "src"
     },
