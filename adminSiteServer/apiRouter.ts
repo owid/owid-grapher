@@ -1,6 +1,13 @@
 /* eslint @typescript-eslint/no-unused-vars: [ "warn", { argsIgnorePattern: "^(res|req)$" } ] */
 
 import { TaggableType } from "@ourworldindata/types"
+import {
+    getSlideshows,
+    getSlideshowById,
+    createSlideshow,
+    updateSlideshow,
+    deleteSlideshow,
+} from "./apiRoutes/slideshows.js"
 import { DeployQueueServer } from "../baker/DeployQueueServer.js"
 import {
     updateVariableAnnotations,
@@ -288,6 +295,13 @@ getRouteWithROTransaction(
     "/narrative-charts/:id.references.json",
     getNarrativeChartReferences
 )
+
+// Slideshow routes
+getRouteWithROTransaction(apiRouter, "/slideshows.json", getSlideshows)
+getRouteWithROTransaction(apiRouter, "/slideshows/:id.json", getSlideshowById)
+postRouteWithRWTransaction(apiRouter, "/slideshows", createSlideshow)
+putRouteWithRWTransaction(apiRouter, "/slideshows/:id", updateSlideshow)
+deleteRouteWithRWTransaction(apiRouter, "/slideshows/:id", deleteSlideshow)
 
 // Dataset routes
 getRouteWithROTransaction(apiRouter, "/datasets.json", getDatasets)
