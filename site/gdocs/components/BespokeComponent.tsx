@@ -54,10 +54,16 @@ export function BespokeComponent({
             shadowRoot = container.attachShadow({ mode: "open" })
         }
 
+        // Clear any previous content from the shadow root (e.g. from a
+        // previous run of this effect with different dependencies)
+        shadowRoot.replaceChildren()
+
         const abortController = new AbortController()
 
+        setError(null)
+        setIsLoading(true)
+
         async function hydrate() {
-            setIsLoading(true)
             try {
                 // Load CSS into shadow root
                 const cssPromise = loadCssIntoShadow(
@@ -70,11 +76,6 @@ export function BespokeComponent({
                     definition.scriptUrl
                 ) as Promise<BespokeComponentModule>
 
-                // Create a container div inside the shadow root for the component to render into
-                const mountContainer = document.createElement("div")
-                mountContainer.className = "bespoke-container"
-                shadowRoot!.appendChild(mountContainer)
-
                 await cssPromise
                 const module = await jsPromise
 
@@ -86,6 +87,11 @@ export function BespokeComponent({
                     )
                     return
                 }
+
+                // Create a container div inside the shadow root for the component to render into
+                const mountContainer = document.createElement("div")
+                mountContainer.className = "bespoke-container"
+                shadowRoot!.appendChild(mountContainer)
 
                 // Mount the component
                 const dispose = await module.mount(mountContainer, {
@@ -118,6 +124,8 @@ export function BespokeComponent({
                 disposeRef.current()
                 disposeRef.current = null
             }
+            // Clear shadow root contents on cleanup
+            container.shadowRoot?.replaceChildren()
         }
     }, [block.bundle, block.variant, block.config])
 
