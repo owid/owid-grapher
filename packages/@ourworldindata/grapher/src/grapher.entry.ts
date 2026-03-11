@@ -9,3 +9,4 @@ import { FetchingGrapher } from "./core/FetchingGrapher.js"
 import { GrapherInterface } from "@ourworldindata/types"
 
 export { Grapher, FetchingGrapher, type GrapherInterface }
+export * from "./grapherApi.js"
