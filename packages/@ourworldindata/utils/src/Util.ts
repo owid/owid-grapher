@@ -1822,7 +1822,8 @@ export function traverseEnrichedBlock(
                     "latest-data-insights",
                     "socials",
                     "static-viz",
-                    "country-profile-selector"
+                    "country-profile-selector",
+                    "bespoke-component"
                 ),
             },
             callback

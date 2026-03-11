@@ -289,7 +289,8 @@ export function extractFilenamesFromBlock(
                     "text",
                     "topic-page-intro",
                     "data-callout",
-                    "country-profile-selector"
+                    "country-profile-selector",
+                    "bespoke-component"
                 ),
             },
             _.noop

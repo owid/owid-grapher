@@ -169,6 +169,8 @@ import {
     RawBlockScript,
     blockVisibilitys,
     VALID_PEER_COUNTRY_STRATEGY_QUERY_PARAMS,
+    RawBlockBespokeComponent,
+    EnrichedBlockBespokeComponent,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -203,6 +205,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "all-charts" }, parseAllCharts)
         .with({ type: "additional-charts" }, parseAdditionalCharts)
         .with({ type: "aside" }, parseAside)
+        .with({ type: "bespoke-component" }, parseBespokeComponent)
         .with({ type: "blockquote" }, parseBlockquote)
         .with({ type: "callout" }, parseCallout)
         .with({ type: "data-callout" }, parseDataCallout)
@@ -469,6 +472,58 @@ const parseBlockquote = (raw: RawBlockBlockquote): EnrichedBlockBlockquote => {
         text: parsedText,
         citation,
         parseErrors: parsedTextErrors,
+    }
+}
+
+const parseBespokeComponent = (
+    raw: RawBlockBespokeComponent
+): EnrichedBlockBespokeComponent => {
+    const createError = (
+        error: ParseError,
+        bundle: string = "",
+        size: BlockSize = BlockSize.Wide,
+        config: Record<string, string> = {}
+    ): EnrichedBlockBespokeComponent => ({
+        type: "bespoke-component",
+        bundle,
+        size,
+        config,
+        parseErrors: [error],
+    })
+
+    if (!raw.value.bundle) {
+        return createError({
+            message: "Bundle property is required for bespoke-component",
+        })
+    }
+
+    const size = raw.value.size ?? BlockSize.Wide
+    if (!checkIsBlockSize(size)) {
+        return createError({
+            message: `Invalid size property: ${size}`,
+        })
+    }
+
+    const rawConfig = raw.value.config ?? {}
+    const config: Record<string, string> = {}
+    const parseErrors: ParseError[] = []
+    for (const [key, value] of Object.entries(rawConfig)) {
+        if (typeof value !== "string") {
+            parseErrors.push({
+                message: `Config value for "${key}" must be a string, got ${typeof value}. Nested config values are not supported.`,
+            })
+        } else {
+            config[key] = value
+        }
+    }
+
+    return {
+        type: "bespoke-component",
+        bundle: raw.value.bundle,
+        variant: raw.value.variant,
+        size,
+        config,
+        parseErrors,
     }
 }
 

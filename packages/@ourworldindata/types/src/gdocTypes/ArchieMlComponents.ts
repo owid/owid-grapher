@@ -235,6 +235,11 @@ import type {
     RawBlockVideo,
 } from "./archieMLComponents/Video.js"
 
+import type {
+    RawBlockBespokeComponent,
+    EnrichedBlockBespokeComponent,
+} from "./archieMLComponents/BespokeComponent.js"
+
 export type OwidRawGdocBlock =
     | RawBlockAllCharts
     | RawBlockAside
@@ -297,6 +302,7 @@ export type OwidRawGdocBlock =
     | RawBlockSocials
     | RawBlockStaticViz
     | RawBlockCountryProfileSelector
+    | RawBlockBespokeComponent
 
 export type OwidEnrichedGdocBlock =
     | EnrichedBlockAllCharts
@@ -362,6 +368,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockSocials
     | EnrichedBlockStaticViz
     | EnrichedBlockCountryProfileSelector
+    | EnrichedBlockBespokeComponent
 
 /**
  * A map of all possible block types, with the type as the key and the block type as the value
@@ -388,6 +395,7 @@ export type * from "./archieMLComponents/AdditionalCharts.js"
 export type * from "./archieMLComponents/Align.js"
 export type * from "./archieMLComponents/AllCharts.js"
 export type * from "./archieMLComponents/Aside.js"
+export type * from "./archieMLComponents/BespokeComponent.js"
 export type * from "./archieMLComponents/Blockquote.js"
 export type * from "./archieMLComponents/Callout.js"
 export type * from "./archieMLComponents/Chart.js"

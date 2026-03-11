@@ -62,6 +62,7 @@ import {
     RawBlockConditionalSection,
     RawBlockDataCallout,
     RawBlockCountryProfileSelector,
+    RawBlockBespokeComponent,
 } from "@ourworldindata/types"
 import { match } from "ts-pattern"
 
@@ -1031,6 +1032,23 @@ function* rawBlockCountryProfileSelectorToArchieMLString(
     yield "{}"
 }
 
+function* rawBlockBespokeComponentToArchieMLString(
+    block: RawBlockBespokeComponent
+): Generator<string, void, undefined> {
+    yield "{.bespoke-component}"
+    yield* propertyToArchieMLString("bundle", block.value)
+    yield* propertyToArchieMLString("variant", block.value)
+    yield* propertyToArchieMLString("size", block.value)
+    if (block.value.config) {
+        yield `{.config}`
+        for (const [key, value] of Object.entries(block.value.config)) {
+            yield* propertyToArchieMLString(key, { [key]: value })
+        }
+        yield "{}"
+    }
+    yield "{}"
+}
+
 export function* OwidRawGdocBlockToArchieMLStringGenerator(
     block: OwidRawGdocBlock | RawBlockTableRow
 ): Generator<string, void, undefined> {
@@ -1151,6 +1169,10 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with(
             { type: "country-profile-selector" },
             rawBlockCountryProfileSelectorToArchieMLString
+        )
+        .with(
+            { type: "bespoke-component" },
+            rawBlockBespokeComponentToArchieMLString
         )
         .exhaustive()
     yield* content

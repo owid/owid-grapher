@@ -962,4 +962,12 @@ export const enrichedBlockExamples: Record<
         ],
         parseErrors: [],
     },
+    "bespoke-component": {
+        type: "bespoke-component",
+        bundle: "example-widget",
+        variant: "income-chart",
+        size: BlockSize.Wide,
+        config: { foo: "bar" },
+        parseErrors: [],
+    },
 }
