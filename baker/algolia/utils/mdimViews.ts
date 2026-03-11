@@ -17,6 +17,7 @@ import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.j
 import {
     ChartRecord,
     ChartRecordType,
+    ContentGraphLinkType,
     IndexingContext,
 } from "@ourworldindata/types"
 import { createMdimIndexingContext } from "./context.js"
@@ -26,11 +27,13 @@ import {
 } from "../../MultiDimBaker.js"
 import { GrapherState } from "@ourworldindata/grapher"
 import {
+    computeRecordScore,
     maybeAddChangeInPrefix,
     parseJsonStringArray,
     uniqNonEmptyStrings,
 } from "./shared.js"
 import { getMultiDimRedirectTargets } from "../../../db/model/MultiDimRedirects.js"
+import { getPublishedLinksTo } from "../../../db/model/Link.js"
 import { getMaxViews7d, PageviewsByUrl } from "./pageviews.js"
 import { DatasetDimensionsForVariable } from "./types.js"
 
@@ -110,7 +113,8 @@ async function getRecords(
     tags: string[],
     pageviews: PageviewsByUrl,
     redirectSourcesByTarget: RedirectSourcesByTarget,
-    redirectSourcesBySlug: RedirectSourcesBySlug
+    redirectSourcesBySlug: RedirectSourcesBySlug,
+    fmSlugs: Set<string>
 ) {
     const { slug } = multiDim
     console.log(
@@ -126,6 +130,13 @@ async function getRecords(
         await getRelevantVariableMetadata(relevantVariableIds)
     const datasetDimensionsByVariableId =
         await getDatasetDimensionsByVariableIds(trx, [...relevantVariableIds])
+    const linksFromGdocs = await getPublishedLinksTo(
+        trx,
+        [slug],
+        ContentGraphLinkType.Grapher
+    )
+    const numRelatedArticles = linksFromGdocs.length
+    const isFMSource = fmSlugs.has(slug)
     return multiDim.config.views.map((view) => {
         const viewId = dimensionsToViewId(view.dimensions)
         const id = multiDimXChartConfigIdMap.get(`${multiDim.id}-${viewId}`)
@@ -173,7 +184,12 @@ async function getRecords(
             `/grapher/${slug}`,
             ...redirectSources,
         ])
-        const score = views_7d * 10 - title.length
+        const score = computeRecordScore(
+            numRelatedArticles,
+            views_7d,
+            isFMSource,
+            title.length
+        )
 
         const datasetDimensions = view.indicators.y
             .map((ind) => datasetDimensionsByVariableId.get(ind.id))
@@ -211,7 +227,7 @@ async function getRecords(
             updatedAt: new Date().toISOString(),
             numDimensions: chartConfig.dimensions?.length ?? 0,
             titleLength: title.length,
-            numRelatedArticles: 0,
+            numRelatedArticles,
             views_7d,
             score,
             isIncomeGroupSpecificFM: false,
@@ -262,9 +278,10 @@ export async function getMdimViewRecords(
     options?: {
         id?: number
         baseContext?: IndexingContext
+        fmSlugs?: Set<string>
     }
 ) {
-    const { id, baseContext } = options ?? {}
+    const { id, baseContext, fmSlugs = new Set<string>() } = options ?? {}
 
     console.log("Getting mdim view records")
 
@@ -327,7 +344,8 @@ export async function getMdimViewRecords(
                 tags,
                 context.pageviews,
                 redirectSourcesByTarget,
-                redirectSourcesBySlug
+                redirectSourcesBySlug,
+                fmSlugs
             )
         )
     )
