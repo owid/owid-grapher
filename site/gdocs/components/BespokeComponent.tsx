@@ -1,5 +1,6 @@
 import { EnrichedBlockBespokeComponent } from "@ourworldindata/types"
 import { LoadingIndicator } from "@ourworldindata/components"
+import cx from "classnames"
 import { useEffect, useRef, useState } from "react"
 import {
     BESPOKE_COMPONENT_REGISTRY,
@@ -169,18 +170,7 @@ function BespokeError({
     message: string
 }) {
     return (
-        <div
-            className={className}
-            style={{
-                padding: 16,
-                backgroundColor: "#fee2e2",
-                border: "1px solid #ef4444",
-                borderRadius: 4,
-                color: "#991b1b",
-                fontFamily: "system-ui, sans-serif",
-                fontSize: 14,
-            }}
-        >
+        <div className={cx(className, "bespoke-component__error")}>
             {message}
         </div>
     )
