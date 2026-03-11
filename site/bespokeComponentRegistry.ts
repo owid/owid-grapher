@@ -23,16 +23,6 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     //     scriptUrl: "/assets/bespoke/my-widget.mjs",
     //     cssUrl: "/assets/bespoke/my-widget.css",
     // },
-    test: {
-        scriptUrl:
-            "https://owid-public.owid.io/marcel-bespoke-data-viz-02-2026/poverty-plots/income-plots.mjs",
-        cssUrl: "https://owid-public.owid.io/marcel-bespoke-data-viz-02-2026/poverty-plots/income-plots.css",
-    },
-    "how-rich-am-i": {
-        scriptUrl:
-            "https://owid-public.owid.io/marcel-bespoke-data-viz-02-2026/how-rich-am-i/how-rich-am-i.mjs?nocache",
-        cssUrl: "https://owid-public.owid.io/marcel-bespoke-data-viz-02-2026/how-rich-am-i/how-rich-am-i.css?nocache",
-    },
 }
 
 /**
