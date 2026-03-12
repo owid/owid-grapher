@@ -19,4 +19,21 @@ describe("encode and decode json", () => {
             )
         ).toEqual(undefined)
     })
+
+    it("should escape inline-script breaking content", () => {
+        const payload = {
+            title: "</script><script>alert(1)</script>",
+            text: "line separator:  and paragraph separator: ",
+        }
+
+        const serialized = serializeJSONForHTML(payload)
+
+        expect(serialized).not.toContain("</script>")
+        expect(serialized).toContain("\\u003c/script>")
+        expect(serialized).toContain("\\u2028")
+        expect(serialized).toContain("\\u2029")
+        expect(deserializeJSONFromHTML(`<html>${serialized}</html>`)).toEqual(
+            payload
+        )
+    })
 })
