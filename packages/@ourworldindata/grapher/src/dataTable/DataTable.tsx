@@ -279,7 +279,7 @@ export class DataTable extends React.Component<DataTableProps> {
         // display values
         const values = excludeUndefined(
             this.displayRows.map(
-                (row) => (row?.values[0] as PointValuesForEntity).single
+                (row) => (row.values[0] as PointValuesForEntity).single
             )
         )
 

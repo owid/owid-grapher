@@ -4,7 +4,7 @@ import * as _ from "lodash-es"
 // Any classes that the user can edit, save, and then rehydrate should implement this interface
 export interface Persistable {
     toObject(): any // This should dehydrate any runtime instances to a plain object ready to be JSON stringified
-    updateFromObject(obj: any): any // This should parse an incoming object, extend the current instance, and create new instances for any non native class types
+    updateFromObject(obj: unknown): any // This should parse an incoming object, extend the current instance, and create new instances for any non native class types
 }
 
 // Todo: see if there's a better way to do this with Mobx

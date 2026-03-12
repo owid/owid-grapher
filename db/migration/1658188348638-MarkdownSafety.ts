@@ -6,7 +6,7 @@ interface MappableType<T> {
 }
 
 const Mappable = <T>(value: T): MappableType<T> => ({
-    map: (f: (x: T) => T) => Mappable(f(value)),
+    map: (f: (x: T) => T): MappableType<T> => Mappable(f(value)),
     fold: (): T => value,
 })
 
