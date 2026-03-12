@@ -20,7 +20,6 @@ import {
     SearchProfileResponse,
     ProfileHit,
 } from "@ourworldindata/types"
-import { type LiteClient } from "algoliasearch/lite"
 import {
     getFilterNamesOfType,
     getSelectableTopics,
@@ -34,7 +33,7 @@ import {
 } from "./searchUtils.js"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
 import { ChartDocument, PageDocument } from "./typesenseCollections.js"
-import { getTypesenseClient } from "./typesense/typesenseClient.js"
+import { Client } from "typesense"
 import {
     SearchResponse as TypesenseSearchResponse,
     SearchResponseHit,
@@ -152,7 +151,7 @@ const PAGES_QUERY_BY = "embedding,title,excerpt,tags,authors,content"
 const PAGES_QUERY_BY_RESTRICTED = "embedding,title,excerpt,tags,authors"
 
 export async function queryDataTopics(
-    _liteSearchClient: LiteClient,
+    client: Client,
     state: SearchState,
     tagGraph: TagGraphRoot,
     selectedTopic: string | undefined
@@ -168,7 +167,6 @@ export async function queryDataTopics(
         state.requireAllCountries
     )
 
-    const client = getTypesenseClient()
     const query = state.query || "*"
 
     const fmFilter = formatFeaturedMetricFilterTypesense(state.query)
@@ -227,7 +225,7 @@ export async function queryDataTopics(
 }
 
 export async function queryCharts(
-    _liteSearchClient: LiteClient,
+    client: Client,
     state: SearchState,
     page: number = 0
 ): Promise<SearchChartsResponse> {
@@ -237,7 +235,6 @@ export async function queryCharts(
     )
     const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
 
-    const client = getTypesenseClient()
     const query = state.query || "*"
     const fmFilter = formatFeaturedMetricFilterTypesense(state.query)
     const incomeGroupFMFilter =
@@ -304,7 +301,7 @@ export async function queryCharts(
 }
 
 export async function queryDataInsights(
-    _liteSearchClient: LiteClient,
+    client: Client,
     state: SearchState,
     page: number = 0,
     _hitsPerPage: number = 4
@@ -327,7 +324,6 @@ export async function queryDataInsights(
             .filter(Boolean)
             .join(" ") || "*"
 
-    const client = getTypesenseClient()
     const perPage = 4
 
     const response = await client
@@ -367,7 +363,7 @@ export async function queryDataInsights(
 }
 
 export async function queryArticles(
-    _liteSearchClient: LiteClient,
+    client: Client,
     state: SearchState,
     offset: number = 0,
     length: number
@@ -388,8 +384,6 @@ export async function queryArticles(
         ]
             .filter(Boolean)
             .join(" ") || "*"
-
-    const client = getTypesenseClient()
 
     const response = await client
         .collections<PageDocument>(PAGES_INDEX)
@@ -430,15 +424,13 @@ export async function queryArticles(
 }
 
 export async function queryTopicPages(
-    _liteSearchClient: LiteClient,
+    client: Client,
     state: SearchState,
     offset: number = 0,
     length: number
 ): Promise<SearchTopicPageResponse> {
     const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
     const query = state.query || "*"
-
-    const client = getTypesenseClient()
 
     const response = await client
         .collections<PageDocument>(PAGES_INDEX)
@@ -477,7 +469,7 @@ export async function queryTopicPages(
 }
 
 export async function queryProfiles(
-    _liteSearchClient: LiteClient,
+    client: Client,
     state: SearchState,
     offset: number = 0,
     length: number
@@ -488,8 +480,6 @@ export async function queryProfiles(
     )
     const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
     const query = state.query || "*"
-
-    const client = getTypesenseClient()
 
     const response = await client
         .collections<PageDocument>(PAGES_INDEX)
@@ -530,13 +520,11 @@ export async function queryProfiles(
 }
 
 export async function queryWritingTopics(
-    _liteSearchClient: LiteClient,
+    client: Client,
     tagGraph: TagGraphRoot,
     selectedTopic: string | undefined
 ): Promise<SearchWritingTopicsResponse[]> {
     const writingTopics = [...getSelectableTopics(tagGraph, selectedTopic)]
-
-    const client = getTypesenseClient()
 
     // Create search parameters for both articles and topic pages for each topic
     const searches = writingTopics.flatMap((topic) => {

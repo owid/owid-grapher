@@ -1,19 +1,24 @@
 import { Client } from "typesense"
+import {
+    TYPESENSE_HOST,
+    TYPESENSE_PORT,
+    TYPESENSE_SEARCH_KEY,
+} from "../../../settings/clientSettings.js"
 
-let typesenseClient: Client | undefined
-
-export const initTypesenseClient = (key: string) => {
-    typesenseClient = new Client({
-        apiKey: key,
-        nodes: [{ url: "http://localhost:8108" }],
-    })
-}
+let typesenseClient: Client | null = null
 
 export const getTypesenseClient = (): Client => {
     if (!typesenseClient) {
-        throw new Error(
-            "Typesense client not initialized. Call initTypesenseClient() first."
-        )
+        typesenseClient = new Client({
+            apiKey: TYPESENSE_SEARCH_KEY,
+            nodes: [
+                {
+                    host: TYPESENSE_HOST,
+                    port: TYPESENSE_PORT,
+                    protocol: "http",
+                },
+            ],
+        })
     }
     return typesenseClient
 }
