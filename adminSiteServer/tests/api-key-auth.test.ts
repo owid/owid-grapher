@@ -156,4 +156,60 @@ describe("Admin API key auth", { timeout: 10000 }, () => {
         expect(updatedPrimaryUser?.lastSeen).toBeNull()
         expect(updatedActAsUser?.lastSeen).toBeNull()
     })
+
+    it("rejects x-act-as-user for inactive superusers", async () => {
+        const [inactiveSuperuserId] = await env
+            .testKnex(UsersTableName)
+            .insert({
+                email: "inactive-superuser@example.com",
+                fullName: "Inactive Superuser",
+                isActive: 0,
+                isSuperuser: 1,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                lastSeen: null,
+            })
+
+        const [actAsUserId] = await env.testKnex(UsersTableName).insert({
+            email: "active-target@example.com",
+            fullName: "Active Target",
+            isActive: 1,
+            isSuperuser: 0,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            lastSeen: null,
+        })
+
+        const { apiKey, id } = await seedApiKeyForUser(
+            inactiveSuperuserId as number
+        )
+
+        const response = await fetch(`${env.baseUrl}/users.json`, {
+            headers: {
+                Authorization: `Bearer ${apiKey}`,
+                "x-act-as-user": String(actAsUserId),
+            },
+        })
+
+        expect(response.status).toBe(401)
+
+        const apiKeyRow = await env
+            .testKnex(AdminApiKeysTableName)
+            .where({ id })
+            .first()
+
+        const updatedInactiveSuperuser = await env
+            .testKnex(UsersTableName)
+            .where({ id: inactiveSuperuserId as number })
+            .first<DbPlainUser>()
+
+        const updatedActAsUser = await env
+            .testKnex(UsersTableName)
+            .where({ id: actAsUserId as number })
+            .first<DbPlainUser>()
+
+        expect(apiKeyRow?.lastUsedAt).toBeNull()
+        expect(updatedInactiveSuperuser?.lastSeen).toBeNull()
+        expect(updatedActAsUser?.lastSeen).toBeNull()
+    })
 })
