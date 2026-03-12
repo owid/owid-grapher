@@ -1,7 +1,7 @@
 # Bash commands
 
 - yarn typecheck: runs the typescript typechecker across all files
-- yarn testLintChanged: run eslint on changed files
+- yarn testLintChanged: run oxlint on changed files
 - yarn testFormatChanged: check formatting on changed files
 - yarn fixFormatChanged: fix formatting on changed files
 - yarn test run --reporter dot: run unit tests. Uses vitest, can take one or more test filenames to only run a subset.

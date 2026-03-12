@@ -173,7 +173,7 @@
     "bakedSite/**/*",
     "coverage/**/*",
     "devtools/**/*",
-"itsJustJavascript/**/*",
+    "itsJustJavascript/**/*",
     "localBake/**/*",
     "packages/@ourworldindata/*/dist/",
     "vite.*.mjs"
