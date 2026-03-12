@@ -135,6 +135,17 @@ export async function apiKeyAuthMiddleware(
         }
 
         if (user.isSuperuser && actAsUserId !== undefined) {
+            if (!user.isActive) {
+                console.error(
+                    "Inactive superuser attempted to use x-act-as-user.",
+                    {
+                        userId: user.id,
+                        actAsUserId,
+                    }
+                )
+                return
+            }
+
             const actAsUser = await trx<DbPlainUser>(UsersTableName)
                 .where({ id: actAsUserId })
                 .first()
