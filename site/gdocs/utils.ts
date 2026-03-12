@@ -88,9 +88,7 @@ export const useLinkedAuthor = (
     const { linkedAuthors } = useContext(AttachmentsContext)
     // Strip role like "(writing)" before matching against DB author names
     const { name: strippedName } = parseAuthorRole(name)
-    const author = linkedAuthors?.find(
-        (author) => author.name === strippedName
-    )
+    const author = linkedAuthors?.find((author) => author.name === strippedName)
     if (!author) return { name: strippedName, slug: null, featuredImage: null }
     return author
 }
