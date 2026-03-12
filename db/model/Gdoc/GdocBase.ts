@@ -24,6 +24,7 @@ import {
     excludeUndefined,
     Url,
     getRegionByNameOrVariantName,
+    parseAuthorRole,
 } from "@ourworldindata/utils"
 import { docs as googleDocs, type docs_v1 } from "@googleapis/docs"
 import { gdocToArchie } from "./gdocToArchie.js"
@@ -1451,6 +1452,8 @@ export async function getMinimalAuthorsByNames(
     names: string[]
 ): Promise<LinkedAuthor[]> {
     if (names.length === 0) return []
+    // Strip roles like "(writing)" from author names before querying
+    const strippedNames = names.map((n) => parseAuthorRole(n).name)
     return await db.knexRaw<LinkedAuthor>(
         knex,
         `-- sql
@@ -1462,9 +1465,9 @@ export async function getMinimalAuthorsByNames(
                COALESCE(NULLIF(updatedAt, '1970-01-01'), createdAt) updatedAt
            FROM posts_gdocs
            WHERE type = 'author'
-           AND content->>'$.title' in (:names)
+           AND content->>'$.title' in (:strippedNames)
            AND published = 1`,
-        { names }
+        { strippedNames }
     )
 }
 

@@ -25,6 +25,7 @@ import {
     getCalloutValue,
     getRegionByNameOrVariantName,
     makeLinkedCalloutKey,
+    parseAuthorRole,
     traverseEnrichedBlock,
     Url,
 } from "@ourworldindata/utils"
@@ -85,8 +86,12 @@ export const useLinkedAuthor = (
     name: string
 ): { name: string; slug: string | null; featuredImage: string | null } => {
     const { linkedAuthors } = useContext(AttachmentsContext)
-    const author = linkedAuthors?.find((author) => author.name === name)
-    if (!author) return { name, slug: null, featuredImage: null }
+    // Strip role like "(writing)" before matching against DB author names
+    const { name: strippedName } = parseAuthorRole(name)
+    const author = linkedAuthors?.find(
+        (author) => author.name === strippedName
+    )
+    if (!author) return { name: strippedName, slug: null, featuredImage: null }
     return author
 }
 

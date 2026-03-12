@@ -161,6 +161,7 @@ export {
     getCitationLong,
     getCitationShort,
     getPhraseForArchivalDate,
+    parseAuthorRole,
 } from "./metadataHelpers.js"
 
 export { getAllVariableIds } from "./multiDim.js"
