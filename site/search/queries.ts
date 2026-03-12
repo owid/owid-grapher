@@ -28,6 +28,8 @@ import {
     PAGES_INDEX,
     formatTopicFacetFiltersTypesense,
     formatCountryFacetFiltersTypesense,
+    formatFeaturedMetricFilterTypesense,
+    formatIncomeGroupFMFilterTypesense,
     HYBRID_SEARCH_ALPHA,
 } from "./searchUtils.js"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
@@ -169,6 +171,10 @@ export async function queryDataTopics(
     const client = getTypesenseClient()
     const query = state.query || "*"
 
+    const fmFilter = formatFeaturedMetricFilterTypesense(state.query)
+    const incomeGroupFMFilter =
+        formatIncomeGroupFMFilterTypesense(selectedCountryNames)
+
     const searches = dataTopics.map((topic) => {
         const topicFilter = formatTopicFacetFiltersTypesense(new Set([topic]))
         return {
@@ -180,7 +186,12 @@ export async function queryDataTopics(
                     ? `embedding:([], k:100, alpha:${HYBRID_SEARCH_ALPHA})`
                     : undefined,
             prefix: false,
-            filter_by: [countryFilter, topicFilter]
+            filter_by: [
+                countryFilter,
+                topicFilter,
+                fmFilter,
+                incomeGroupFMFilter,
+            ]
                 .filter(Boolean)
                 .join(" && "),
             include_fields:
@@ -228,6 +239,9 @@ export async function queryCharts(
 
     const client = getTypesenseClient()
     const query = state.query || "*"
+    const fmFilter = formatFeaturedMetricFilterTypesense(state.query)
+    const incomeGroupFMFilter =
+        formatIncomeGroupFMFilterTypesense(selectedCountryNames)
     const response = await client
         .collections<ChartDocument>(CHARTS_INDEX)
         .documents()
@@ -245,6 +259,8 @@ export async function queryCharts(
                     state.requireAllCountries
                 ),
                 formatTopicFacetFiltersTypesense(selectedTopics),
+                fmFilter,
+                incomeGroupFMFilter,
             ]
                 .filter(Boolean)
                 .join(" && "),

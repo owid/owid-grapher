@@ -98,6 +98,13 @@ export const chartsCollectionSchema: CollectionCreateSchema = {
         },
         { name: "queryParams", type: "string", optional: true },
         { name: "availableTabs", type: "string[]", optional: true },
+        { name: "isFM", type: "bool", facet: true, optional: true },
+        {
+            name: "isIncomeGroupSpecificFM",
+            type: "bool",
+            facet: true,
+            optional: true,
+        },
         { name: "explorerType", type: "string", optional: true },
         {
             name: "embedding",

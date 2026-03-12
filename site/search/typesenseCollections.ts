@@ -42,6 +42,8 @@ export interface ChartDocument {
     viewTitleIndexWithinExplorer?: number
     queryParams?: string
     availableTabs?: string[]
+    isFM?: boolean
+    isIncomeGroupSpecificFM?: boolean
     explorerType?: string
     embedding?: number[]
 }

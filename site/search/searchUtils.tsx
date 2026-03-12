@@ -550,6 +550,29 @@ export const formatCountryFacetFiltersTypesense = (
     }
 }
 
+/**
+ * Returns a Typesense filter expression that excludes Featured Metric records
+ * when a free-text query is present. When there is no query (e.g. browsing by
+ * topic), FMs are kept so they can surface at the top of topic pages.
+ */
+export function formatFeaturedMetricFilterTypesense(
+    query: string
+): string | undefined {
+    return query.trim() ? "isFM:!=true" : undefined
+}
+
+/**
+ * Returns a Typesense filter expression that excludes income-group-specific
+ * Featured Metric records when no countries are selected. When countries are
+ * selected, income-group-specific FMs are allowed through since they are
+ * relevant to the selected countries.
+ */
+export function formatIncomeGroupFMFilterTypesense(
+    countries: Set<string>
+): string | undefined {
+    return countries.size === 0 ? "isIncomeGroupSpecificFM:!=true" : undefined
+}
+
 export function getCountryData(selectedCountries: Set<string>): Region[] {
     const regionData: Region[] = []
     const countries = countriesByName()
