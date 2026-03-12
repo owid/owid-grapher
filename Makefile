@@ -253,7 +253,7 @@ tmp-downloads/owid_metadata.sql.gz:
 
 test: node_modules
 	@echo '==> Linting'
-	yarn run eslint
+	yarn testLint
 
 	@echo '==> Checking formatting'
 	yarn testFormatAll
@@ -318,7 +318,7 @@ bdd.ui: node_modules playwright-browsers
 
 lint: node_modules
 	@echo '==> Linting'
-	yarn run eslint
+	yarn testLint
 
 check-formatting: node_modules
 	@echo '==> Checking formatting'

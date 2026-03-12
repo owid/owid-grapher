@@ -119,7 +119,7 @@
     "react/no-is-mounted": "error",
     "react/no-render-return-value": "warn",
     "react/no-string-refs": "error",
-    "react/no-unescaped-entities": "warn",
+    "react/no-unescaped-entities": "off",
     "react/no-unknown-property": "error",
     "react/require-render-return": "error",
     "react-hooks/rules-of-hooks": "error",
@@ -155,32 +155,6 @@
     "no-empty-function": "warn"
   },
   "settings": {
-    "import-x/extensions": [
-      ".ts",
-      ".tsx",
-      ".cts",
-      ".mts",
-      ".js",
-      ".jsx",
-      ".cjs",
-      ".mjs"
-    ],
-    "import-x/external-module-folders": [
-      "node_modules",
-      "node_modules/@types"
-    ],
-    "import-x/parsers": {
-      "@typescript-eslint/parser": [
-        ".ts",
-        ".tsx",
-        ".cts",
-        ".mts"
-      ]
-    },
-    "import-x/resolver": {
-      "typescript": true,
-      "node": true
-    },
     "react": {
       "version": "19.2"
     }
@@ -199,8 +173,7 @@
     "bakedSite/**/*",
     "coverage/**/*",
     "devtools/**/*",
-    "eslint.config.mjs",
-    "itsJustJavascript/**/*",
+"itsJustJavascript/**/*",
     "localBake/**/*",
     "packages/@ourworldindata/*/dist/",
     "vite.*.mjs"
