@@ -2401,22 +2401,12 @@ export class GrapherState
             !this.forceHideAnnotationFieldsInTitle?.time &&
             this.isReady &&
             (showTimeAnnotation ||
-                this.isOnScatterWithTimeOverride ||
                 (this.hasTimeline &&
                     // Chart types that refer to the current time only in the timeline
                     (this.isOnDiscreteBarTab ||
                         this.isOnStackedDiscreteBarTab ||
                         this.isOnMarimekkoTab ||
                         this.isOnMapTab)))
-        )
-    }
-
-    @computed
-    private get isOnScatterWithTimeOverride(): boolean {
-        return !!(
-            this.isOnScatterTab &&
-            this.xColumnSlug !== undefined &&
-            this.xOverrideTime
         )
     }
 
@@ -2628,6 +2618,19 @@ export class GrapherState
 
     @computed private get yScaleType(): ScaleType | undefined {
         return this.yAxis.scaleType
+    }
+
+    @computed
+    private get isOnScatterWithTimeOverride(): boolean {
+        const xColumn = this.inputTable.get(this.xColumnSlug)
+        const yColumn = this.inputTable.get(this.yColumnSlug)
+
+        return !!(
+            this.isOnScatterTab &&
+            xColumn.def.owidVariableId !== undefined &&
+            xColumn.def.owidVariableId === yColumn.def.owidVariableId &&
+            this.xOverrideTime
+        )
     }
 
     @computed private get timeTitleSuffix(): string | undefined {
