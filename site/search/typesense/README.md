@@ -138,4 +138,4 @@ When `group_by` is active, the response structure changes from `hits` to `groupe
 
 ## Embedding Model
 
-Currently using Typesense's built-in `ts/all-MiniLM-L12-v2` (384-dim, 256-token limit). This is a lightweight sentence transformer — adequate for basic semantic matching but not as strong as newer LLM-based embedding models (e.g. OpenAI `text-embedding-3-small`, Cohere `embed-v4`).
+Using OpenAI `text-embedding-3-small` (1536-dim, 8192-token limit) via Typesense's auto-embedding feature. The `OPENAI_API_KEY` server setting is injected into the collection schema at indexing time.
