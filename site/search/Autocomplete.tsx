@@ -51,6 +51,13 @@ import { SearchFilterPill } from "./SearchFilterPill.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLineChart, faSearch } from "@fortawesome/free-solid-svg-icons"
 
+export const AUTOCOMPLETE_CONTAINER_ID = "#autocomplete"
+// A magic number slightly higher than our $md breakpoint to ensure there's
+// enough room for everything in the site nav between 960-1045px. Related to
+// vars in Autocomplete.scss.
+export const DETACHED_MODE_MAX_WIDTH = 1045
+const DETACHED_MEDIA_QUERY = `(max-width: ${DETACHED_MODE_MAX_WIDTH}px)`
+
 const siteAnalytics = new SiteAnalytics()
 type BaseItem = Record<string, unknown>
 
@@ -423,23 +430,17 @@ const createProfileSource = (
     templates: algoliaItemTemplate,
 })
 
-export const AUTOCOMPLETE_CONTAINER_ID = "#autocomplete"
-
 export function Autocomplete({
     onActivate,
     onClose,
     className,
     placeholder = DEFAULT_SEARCH_PLACEHOLDER,
-    // A magic number slightly higher than our $md breakpoint to ensure there's enough room
-    // for everything in the site nav between 960-1045px. Mirrored in Autocomplete.scss
-    detachedMediaQuery = "(max-width: 1045px)",
     panelClassName,
 }: {
     onActivate?: () => void
     onClose?: () => void
     className?: string
     placeholder?: string
-    detachedMediaQuery?: string
     panelClassName?: string
 }) {
     const containerRef = useRef<HTMLDivElement>(null)
@@ -467,7 +468,7 @@ export function Autocomplete({
             // characters may be deleted when typing.
             // https://support.algolia.com/hc/en-us/articles/35765245191057-Why-are-characters-being-deleted-from-Autocomplete-when-typing-on-a-Samsung-device
             enterKeyHint: "search",
-            detachedMediaQuery,
+            detachedMediaQuery: DETACHED_MEDIA_QUERY,
             container: containerRef.current,
             classNames: {
                 panel: panelClassName,
@@ -557,7 +558,6 @@ export function Autocomplete({
         onActivate,
         onClose,
         placeholder,
-        detachedMediaQuery,
         panelClassName,
         containerRef,
         allTopics,

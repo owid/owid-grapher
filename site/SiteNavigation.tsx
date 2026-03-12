@@ -21,7 +21,10 @@ import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
 import classnames from "classnames"
 import { useTriggerOnEscape } from "./hooks.js"
 import { useTopicTagGraph } from "./search/searchHooks.js"
-import { AUTOCOMPLETE_CONTAINER_ID } from "./search/Autocomplete.js"
+import {
+    AUTOCOMPLETE_CONTAINER_ID,
+    DETACHED_MODE_MAX_WIDTH,
+} from "./search/Autocomplete.js"
 import { Menu } from "./SiteConstants.js"
 import { SEARCH_BASE_PATH } from "./search/searchUtils.js"
 
@@ -59,7 +62,7 @@ export const SiteNavigation = ({
         // Fortunately we only have to do this when it mounts - it takes care of resizes
         setTimeout(() => {
             // Only run when screen size is large, .aa-DetachedContainer gets positioned correctly
-            if (window.innerWidth < 768) return
+            if (window.innerWidth <= DETACHED_MODE_MAX_WIDTH) return
             const [panel, autocompleteContainer] = [
                 ".aa-Panel",
                 AUTOCOMPLETE_CONTAINER_ID,
