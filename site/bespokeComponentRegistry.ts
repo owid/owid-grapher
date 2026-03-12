@@ -24,8 +24,8 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     // },
     "income-plots": {
         scriptUrl:
-            "https://owid-public.owid.io/marcel-bespoke-data-viz-02-2026/poverty-plots/income-plots.mjs",
-        cssUrl: "https://owid-public.owid.io/marcel-bespoke-data-viz-02-2026/poverty-plots/income-plots.css",
+            "https://owid-public.owid.io/marcel-bespoke-data-viz-02-2026/poverty-plots/income-plots.mjs?nocache",
+        cssUrl: "https://owid-public.owid.io/marcel-bespoke-data-viz-02-2026/poverty-plots/income-plots.css?nocache",
     },
     "how-rich-are-you": {
         scriptUrl:
