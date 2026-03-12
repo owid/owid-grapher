@@ -119,6 +119,62 @@ export default defineConfig({
 })
 ```
 
+## Sharing state between variants
+
+When multiple `{.bespoke-component}` blocks in an article use the same `bundle`, they share the same JS module — which means they can share state. The `variant` property tells each instance which view to render, while a shared store keeps them in sync.
+
+For example, an article might embed a map and a line chart from the same bundle. When the user selects a country on the map, the line chart updates to show that country's data. This is possible because both instances read from the same store.
+
+### Jotai for shared state
+
+[Jotai](https://jotai.org/) is a lightweight atomic state library for React. It works well here because:
+
+- **Module-level atoms** — You define atoms (small units of state) at the module scope. Since all variants share the same module, they automatically share the same atoms. It's like `useState`, but with the reactive state defined outside of the component, and thereby shareable across all instances.
+- **Fine-grained reactivity** — Components only re-render when the specific atoms they subscribe to change, keeping things fast.
+- **Minimal boilerplate** — No providers, reducers, or context setup needed.
+
+A basic example:
+
+```ts
+// shared state — defined once at module scope, shared across all variants
+import { atom } from "jotai"
+export const selectedCountryAtom = atom<string>("USA")
+```
+
+```tsx
+// variant: "map" — writes to the shared atom
+import { useAtom } from "jotai"
+import { selectedCountryAtom } from "./atoms"
+
+function Map() {
+    const [, setCountry] = useAtom(selectedCountryAtom)
+    return <WorldMap onSelect={setCountry} />
+}
+```
+
+```tsx
+// variant: "line-chart" — reads from the shared atom
+import { useAtomValue } from "jotai"
+import { selectedCountryAtom } from "./atoms"
+
+function LineChart() {
+    const country = useAtomValue(selectedCountryAtom)
+    return <Chart country={country} />
+}
+```
+
+Your `mount` function then renders the right component based on `opts.variant`:
+
+```ts
+export function mount(container, { variant }) {
+    const root = createRoot(container)
+    if (variant === "map") root.render(<Map />)
+    else if (variant === "line-chart") root.render(<LineChart />)
+}
+```
+
+You don't have to use jotai — any module-scoped state (a plain variable, an event emitter, MobX, etc.) will work since all variants share the same module. Jotai is just a good and easy choice for React projects.
+
 ## Creating a new bespoke component
 
 1. Create a new directory under `bespoke/projects/`
