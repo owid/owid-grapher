@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import { GrapherAnalytics, splitPathForGA4 } from "@ourworldindata/grapher"
-import { EventCategory } from "@ourworldindata/types"
 import {
+    EventCategory,
     type SearchChartHit,
     type SearchState,
     type FlatArticleHit,
