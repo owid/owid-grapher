@@ -1,0 +1,21 @@
+{
+    "name": "@owid/bespoke-example",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "vite build --watch",
+        "build": "vite build"
+    },
+    "dependencies": {
+        "jotai": "^2.18.1",
+        "react": "^19.2.4",
+        "react-dom": "^19.2.4"
+    },
+    "devDependencies": {
+        "@types/react": "^19.2.14",
+        "@types/react-dom": "^19.2.3",
+        "@vitejs/plugin-react": "^6.0.0",
+        "typescript": "~5.9.3",
+        "vite": "^8.0.0"
+    }
+}
