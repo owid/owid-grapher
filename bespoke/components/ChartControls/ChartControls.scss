@@ -1,0 +1,19 @@
+.chart-controls {
+    $frame: 1px solid $frame-color;
+    $frame-padding: 16px;
+    $frame-radius: 2px;
+
+    border: $frame;
+    padding: $frame-padding;
+    border-radius: $frame-radius;
+    margin-bottom: 16px;
+
+    .chart-controls__title {
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.15em;
+        color: $light-text;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+    }
+}

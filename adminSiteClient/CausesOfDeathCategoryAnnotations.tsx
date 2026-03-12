@@ -1,5 +1,6 @@
 import { PlacedCategory } from "./CausesOfDeathCategoryAnnotationsHelpers.js"
-import { BezierArrow } from "./Arrow"
+
+import { BezierArrow } from "../bespoke/components/BezierArrow/BezierArrow.js"
 
 export function CategoryAnnotations({
     placedAnnotations,

@@ -11,6 +11,9 @@ import { formatCountryName, formatCount } from "./CausesOfDeathHelpers.js"
 import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
 import { CausesOfDeathSpinner } from "./CausesOfDeathSpinner.js"
 
+import { ChartHeader } from "../bespoke/components/ChartHeader/ChartHeader.js"
+import { ChartFooter } from "../bespoke/components/ChartFooter/ChartFooter.js"
+
 export function CausesOfDeathCaptionedChart({
     data,
     metadata,
@@ -94,11 +97,11 @@ function CausesOfDeathHeader({
             : `What did ${ageGroupName} in ${formatCountryName(entityName)} die from in ${year}?`
 
     return (
-        <div className="causes-of-death-header">
-            <OwidLogo />
-            <header className="causes-of-death-header__content">
-                <h1>{title}</h1>
-                <p className="causes-of-death-header__subtitle">
+        <ChartHeader
+            className="causes-of-death-header"
+            title={title}
+            subtitle={
+                <>
                     The size of the entire visualization represents the total
                     number of deaths {location} in {year}:{" "}
                     <span
@@ -110,9 +113,9 @@ function CausesOfDeathHeader({
                     </span>
                     . Each rectangle within is proportional to the share of
                     deaths due to a particular cause.
-                </p>
-            </header>
-        </div>
+                </>
+            }
+        />
     )
 }
 
@@ -122,40 +125,9 @@ function CausesOfDeathFooter({
     metadata: CausesOfDeathMetadata
 }) {
     return (
-        <footer className="causes-of-death-footer">
-            <div>
-                <b>Data source:</b> {metadata.source}
-            </div>
-            <TooltipTrigger>
-                <Link
-                    className="causes-of-death-footer__cc"
-                    href="https://creativecommons.org/licenses/by/4.0/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    CC BY
-                </Link>
-                <Tooltip className="causes-of-death-footer__tooltip">
-                    Our World in Data charts are licensed under Creative
-                    Commons; you are free to use, share, and adapt this
-                    material. Click through to the CC BY page for more
-                    information. Please bear in mind that the underlying source
-                    data for all our charts might be subject to different
-                    license terms from third-party authors.
-                </Tooltip>
-            </TooltipTrigger>
-        </footer>
-    )
-}
-
-function OwidLogo() {
-    return (
-        <img
-            src="/owid-logo.svg"
-            alt="Our World in Data logo"
-            className="owid-logo"
-            width={52}
-            height={29}
+        <ChartFooter
+            className="causes-of-death-footer"
+            source={metadata.source}
         />
     )
 }
