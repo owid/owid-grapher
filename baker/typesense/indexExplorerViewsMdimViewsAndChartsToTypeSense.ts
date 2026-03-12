@@ -26,7 +26,7 @@ import {
 import { getChartsRecords } from "../algolia/utils/charts.js"
 import { getMdimViewRecords } from "../algolia/utils/mdimViews.js"
 import { convertDateToUnixTimestamp } from "./indexPagesToTypeSense.js"
-import { chartsCollectionSchema } from "../../site/search/typesenseCollections.js"
+import { chartsCollectionSchema } from "./typesenseCollectionSchemas.js"
 import { CHARTS_INDEX } from "../../site/search/searchUtils.js"
 import { ChartRecord } from "@ourworldindata/types"
 
@@ -102,32 +102,27 @@ const indexExplorerViewsMdimViewsAndChartsToTypeSense = async () => {
     )
 
     try {
-        // Import documents to TypeSense with progress tracking
-        // Since TypeSense doesn't provide streaming progress, we'll simulate it
-        // by chunking the data and updating progress for each chunk
-        const chunkSize = 100 // Process 100 documents at a time
-        const chunks = []
-        for (let i = 0; i < typeSenseRecords.length; i += chunkSize) {
-            chunks.push(typeSenseRecords.slice(i, i + chunkSize))
+        // Import documents in batches to avoid timeouts and track progress
+        const batchSize = 100
+        const batches = []
+        for (let i = 0; i < typeSenseRecords.length; i += batchSize) {
+            batches.push(typeSenseRecords.slice(i, i + batchSize))
         }
 
-        let totalProcessed = 0
         const importResults = []
 
-        for (const [index, chunk] of chunks.entries()) {
-            progressBar.tick(chunk.length, {
-                name: `Processing chunk ${index + 1}/${chunks.length}`,
-            })
-
-            const chunkResult = await client
+        for (const [index, batch] of batches.entries()) {
+            const batchResult = await client
                 .collections(collectionName)
                 .documents()
-                .import(chunk, {
+                .import(batch, {
                     action: "create",
                 })
 
-            importResults.push(chunkResult)
-            totalProcessed += chunk.length
+            importResults.push(batchResult)
+            progressBar.tick(batch.length, {
+                name: `Batch ${index + 1}/${batches.length}`,
+            })
         }
 
         console.log(`\nTypeSense explorer/charts indexing complete`)
