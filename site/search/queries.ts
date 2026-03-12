@@ -179,6 +179,7 @@ export async function queryDataTopics(
                 query !== "*"
                     ? `embedding:([], k:100, alpha:${HYBRID_SEARCH_ALPHA})`
                     : undefined,
+            prefix: false,
             filter_by: [countryFilter, topicFilter]
                 .filter(Boolean)
                 .join(" && "),
@@ -237,6 +238,7 @@ export async function queryCharts(
                 query !== "*"
                     ? `embedding:([], k:100, alpha:${HYBRID_SEARCH_ALPHA})`
                     : undefined,
+            prefix: false,
             filter_by: [
                 formatCountryFacetFiltersTypesense(
                     selectedCountryNames,
@@ -326,6 +328,7 @@ export async function queryDataInsights(
                 query !== "*"
                     ? `embedding:([], k:100, alpha:${HYBRID_SEARCH_ALPHA})`
                     : undefined,
+            prefix: false,
             filter_by: buildFilterBy(
                 formatTypeFilter(OwidGdocType.DataInsight),
                 formatTopicFacetFiltersTypesense(selectedTopics)
@@ -386,6 +389,7 @@ export async function queryArticles(
                 query !== "*"
                     ? `embedding:([], k:100, alpha:${HYBRID_SEARCH_ALPHA})`
                     : undefined,
+            prefix: false,
             filter_by: buildFilterBy(
                 formatTypeFilter(OwidGdocType.Article, OwidGdocType.AboutPage),
                 formatTopicFacetFiltersTypesense(selectedTopics)
@@ -430,6 +434,7 @@ export async function queryTopicPages(
                 query !== "*"
                     ? `embedding:([], k:100, alpha:${HYBRID_SEARCH_ALPHA})`
                     : undefined,
+            prefix: false,
             filter_by: buildFilterBy(
                 formatTypeFilter(
                     OwidGdocType.TopicPage,
@@ -480,6 +485,7 @@ export async function queryProfiles(
                 query !== "*"
                     ? `embedding:([], k:100, alpha:${HYBRID_SEARCH_ALPHA})`
                     : undefined,
+            prefix: false,
             filter_by: buildFilterBy(
                 formatTypeFilter(OwidGdocType.Profile),
                 formatCountryFacetFiltersTypesense(

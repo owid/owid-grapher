@@ -10,6 +10,8 @@ Our Typesense setup uses **hybrid search**: a combination of keyword (BM25) and 
 
 The embedding field must be listed in `query_by` for hybrid search to work.
 
+**Important:** When using remote embedders (like OpenAI), you must set `prefix=false` on all search requests that include a `vector_query`. Typesense does not support prefix search with remote embedders.
+
 ## Collections
 
 | Collection | Index name                  | `query_by` fields                                                                            | Embedding source            |
@@ -47,6 +49,7 @@ curl "http://localhost:8108/collections/pages/documents/search" \
   --data-urlencode 'q=what causes people to die young' \
   --data-urlencode 'query_by=embedding,title,excerpt,tags,authors,content' \
   --data-urlencode 'vector_query=embedding:([], k:100, alpha:1.0)' \
+  --data-urlencode 'prefix=false' \
   --data-urlencode 'include_fields=title,slug,type,score' \
   --data-urlencode 'per_page=10' \
   --data-urlencode 'page=1' \
@@ -65,6 +68,7 @@ curl "http://localhost:8108/collections/explorer-views-and-charts/documents/sear
   --data-urlencode 'q=CO2 emissions per capita' \
   --data-urlencode 'query_by=embedding,title,slug,variantName,subtitle,tags,availableEntities,originalAvailableEntities' \
   --data-urlencode 'vector_query=embedding:([], k:100, alpha:0.3)' \
+  --data-urlencode 'prefix=false' \
   --data-urlencode 'include_fields=title,slug,type,score' \
   --data-urlencode 'filter_by=type:=[chart, explorer-view]' \
   --data-urlencode 'group_by=deduplicationId' \
@@ -84,6 +88,7 @@ curl "http://localhost:8108/collections/explorer-views-and-charts/documents/sear
   --data-urlencode 'q=poverty' \
   --data-urlencode 'query_by=embedding,title,slug,variantName,subtitle,tags,availableEntities,originalAvailableEntities' \
   --data-urlencode 'vector_query=embedding:([], k:100, alpha:0.3)' \
+  --data-urlencode 'prefix=false' \
   --data-urlencode 'include_fields=title,slug,type,score' \
   --data-urlencode 'filter_by=tags:=Economic Growth && availableEntities:=India' \
   --data-urlencode 'group_by=deduplicationId' \
@@ -118,6 +123,7 @@ curl "http://localhost:8108/collections/pages/documents/search" \
 | `q`                                         | Search query. Use `*` for wildcard (no text matching).                                                          |
 | `query_by`                                  | Comma-separated fields to search. Must include `embedding` for hybrid/semantic search.                          |
 | `vector_query`                              | `embedding:([], k:N, alpha:A)` — `k` is the number of nearest neighbors, `alpha` is the keyword/vector balance. |
+| `prefix`                                    | Must be `false` when using `vector_query` with remote embedders (e.g. OpenAI). Defaults to `true`.              |
 | `filter_by`                                 | Typesense filter expression. Supports `&&`, `\|\|`, `:=` (exact), `:!=` (exclude).                              |
 | `group_by`                                  | Field to group/deduplicate on. Charts use `deduplicationId`, pages use `slug`. Must be a facet field.           |
 | `group_limit`                               | Max hits per group (typically `1` for deduplication).                                                           |
