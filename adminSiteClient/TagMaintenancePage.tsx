@@ -1,10 +1,20 @@
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useContext, useEffect, useMemo, useState } from "react"
-import { Flex, Input, Table, TableColumnsType, Tag, Typography } from "antd"
+import {
+    Badge,
+    Drawer,
+    Flex,
+    Input,
+    Spin,
+    Table,
+    TableColumnsType,
+    Tag,
+    Typography,
+} from "antd"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
-import { Link } from "./Link.js"
 import { Admin } from "./Admin.js"
+import { TagEditor, TagPageData, DrawerTab } from "./TagEditPage.js"
 
 type TagUsageRow = {
     id: number
@@ -24,6 +34,12 @@ type TagUsageRow = {
     publishedExplorerCount: number
     unpublishedExplorerCount: number
 }
+
+type DrawerState = {
+    tagId: number
+    tagName: string
+    tab?: DrawerTab
+} | null
 
 type PresetKey =
     | "all"
@@ -157,7 +173,39 @@ function renderCountWithSecondary(
     )
 }
 
-function createColumns(): TableColumnsType<TagUsageRow> {
+function clickableCount(
+    record: TagUsageRow,
+    primary: number,
+    secondary: number,
+    secondaryLabel: string,
+    onClick: (record: TagUsageRow, tab?: DrawerTab) => void,
+    tab?: DrawerTab
+): React.ReactNode {
+    const total = primary + secondary
+    return (
+        <a
+            href="#"
+            onClick={(e) => {
+                e.preventDefault()
+                onClick(record, tab)
+            }}
+            style={{
+                display: "block",
+                padding: "8px 4px",
+                margin: "-8px -4px",
+                color: total === 0 ? "#ccc" : undefined,
+            }}
+        >
+            {total === 0
+                ? "0"
+                : renderCountWithSecondary(primary, secondary, secondaryLabel)}
+        </a>
+    )
+}
+
+function createColumns(
+    onTagClick: (record: TagUsageRow, tab?: DrawerTab) => void
+): TableColumnsType<TagUsageRow> {
     return [
         {
             title: "Tag name",
@@ -166,7 +214,15 @@ function createColumns(): TableColumnsType<TagUsageRow> {
             sorter: (a, b) => a.name.localeCompare(b.name),
             defaultSortOrder: "ascend",
             render: (name: string, record) => (
-                <Link to={`/tags/${record.id}`}>{name}</Link>
+                <a
+                    href="#"
+                    onClick={(e) => {
+                        e.preventDefault()
+                        onTagClick(record)
+                    }}
+                >
+                    {name}
+                </a>
             ),
         },
         {
@@ -244,10 +300,13 @@ function createColumns(): TableColumnsType<TagUsageRow> {
                 a.unpublishedGdocCount -
                 (b.publishedGdocCount + b.unpublishedGdocCount),
             render: (_, record) =>
-                renderCountWithSecondary(
+                clickableCount(
+                    record,
                     record.publishedGdocCount,
                     record.unpublishedGdocCount,
-                    "unpub"
+                    "unpub",
+                    onTagClick,
+                    "gdocs"
                 ),
         },
         {
@@ -258,10 +317,13 @@ function createColumns(): TableColumnsType<TagUsageRow> {
                 a.unpublishedChartCount -
                 (b.publishedChartCount + b.unpublishedChartCount),
             render: (_, record) =>
-                renderCountWithSecondary(
+                clickableCount(
+                    record,
                     record.publishedChartCount,
                     record.unpublishedChartCount,
-                    "unpub"
+                    "unpub",
+                    onTagClick,
+                    "charts"
                 ),
         },
         {
@@ -272,10 +334,13 @@ function createColumns(): TableColumnsType<TagUsageRow> {
                 a.archivedDatasetCount -
                 (b.activeDatasetCount + b.archivedDatasetCount),
             render: (_, record) =>
-                renderCountWithSecondary(
+                clickableCount(
+                    record,
                     record.activeDatasetCount,
                     record.archivedDatasetCount,
-                    "archived"
+                    "archived",
+                    onTagClick,
+                    "datasets"
                 ),
         },
         {
@@ -286,10 +351,13 @@ function createColumns(): TableColumnsType<TagUsageRow> {
                 a.unpublishedExplorerCount -
                 (b.publishedExplorerCount + b.unpublishedExplorerCount),
             render: (_, record) =>
-                renderCountWithSecondary(
+                clickableCount(
+                    record,
                     record.publishedExplorerCount,
                     record.unpublishedExplorerCount,
-                    "unpub"
+                    "unpub",
+                    onTagClick,
+                    "explorers"
                 ),
         },
     ]
@@ -297,6 +365,7 @@ function createColumns(): TableColumnsType<TagUsageRow> {
 
 export function TagMaintenancePage() {
     const { admin } = useContext(AdminAppContext)
+    const queryClient = useQueryClient()
 
     useEffect(() => {
         admin.loadingIndicatorSetting = "off"
@@ -312,6 +381,7 @@ export function TagMaintenancePage() {
 
     const [search, setSearch] = useState("")
     const [activePreset, setActivePreset] = useState<PresetKey>("all")
+    const [drawerState, setDrawerState] = useState<DrawerState>(null)
 
     const activePresetConfig = PRESETS.find((p) => p.key === activePreset)!
 
@@ -327,26 +397,76 @@ export function TagMaintenancePage() {
             )
     }, [tags, search, activePresetConfig])
 
-    const columns = useMemo(() => createColumns(), [])
+    const presetCounts = useMemo(() => {
+        if (!tags) return {} as Record<PresetKey, number>
+        return Object.fromEntries(
+            PRESETS.map((preset) => [
+                preset.key,
+                tags.filter(preset.filter).length,
+            ])
+        ) as Record<PresetKey, number>
+    }, [tags])
+
+    const handleTagClick = (record: TagUsageRow, tab?: DrawerTab) => {
+        setDrawerState({ tagId: record.id, tagName: record.name, tab })
+    }
+
+    const handleDrawerClose = () => {
+        setDrawerState(null)
+        void queryClient.invalidateQueries({ queryKey: ["tagUsageSummary"] })
+    }
+
+    const columns = useMemo(() => createColumns(handleTagClick), [])
+
+    const tagDetailQuery = useQuery({
+        queryKey: ["tagDetail", drawerState?.tagId],
+        queryFn: async () => {
+            const [tagJson, slugsJson] = await Promise.all([
+                admin.getJSON<{ tag: TagPageData }>(
+                    `/api/tags/${drawerState!.tagId}.json`
+                ),
+                admin.getJSON<{ slugs: string[] }>(
+                    "/api/gdocs/publishedTopicSlugs"
+                ),
+            ])
+            return {
+                tag: tagJson.tag,
+                publishedGdocTopicSlugs: slugsJson.slugs,
+            }
+        },
+        enabled: !!drawerState,
+    })
 
     return (
         <AdminLayout title="Tag Maintenance">
             <main>
-                <Flex gap={8} wrap="wrap" style={{ marginBottom: 16 }}>
-                    {PRESETS.map((preset) => (
-                        <Tag.CheckableTag
-                            key={preset.key}
-                            checked={activePreset === preset.key}
-                            onChange={() => setActivePreset(preset.key)}
-                            style={{
-                                padding: "4px 12px",
-                                fontSize: 13,
-                                border: "1px solid #d9d9d9",
-                            }}
-                        >
-                            {preset.label}
-                        </Tag.CheckableTag>
-                    ))}
+                <Flex gap={12} wrap="wrap" style={{ marginBottom: 16 }}>
+                    {PRESETS.map((preset) => {
+                        const tag = (
+                            <Tag.CheckableTag
+                                checked={activePreset === preset.key}
+                                onChange={() => setActivePreset(preset.key)}
+                                style={{
+                                    padding: "4px 12px",
+                                    fontSize: 13,
+                                    border: "1px solid #d9d9d9",
+                                }}
+                            >
+                                {preset.label}
+                            </Tag.CheckableTag>
+                        )
+                        if (preset.key === "all") {
+                            return <span key={preset.key}>{tag}</span>
+                        }
+                        return (
+                            <Badge
+                                key={preset.key}
+                                count={presetCounts[preset.key] ?? 0}
+                            >
+                                {tag}
+                            </Badge>
+                        )
+                    })}
                 </Flex>
                 {activePreset !== "all" && (
                     <Typography.Text
@@ -385,6 +505,35 @@ export function TagMaintenancePage() {
                         pageSizeOptions: ["20", "50", "100", "200"],
                     }}
                 />
+                <Drawer
+                    title={drawerState?.tagName}
+                    open={!!drawerState}
+                    onClose={handleDrawerClose}
+                    width="60%"
+                    styles={{ body: { padding: 16 } }}
+                    destroyOnClose
+                >
+                    {drawerState &&
+                        (tagDetailQuery.isLoading ? (
+                            <Flex
+                                justify="center"
+                                align="center"
+                                style={{ padding: 48 }}
+                            >
+                                <Spin size="large" />
+                            </Flex>
+                        ) : tagDetailQuery.data ? (
+                            <TagEditor
+                                key={drawerState.tagId}
+                                tag={tagDetailQuery.data.tag}
+                                publishedGdocTopicSlugs={
+                                    tagDetailQuery.data.publishedGdocTopicSlugs
+                                }
+                                activeTab={drawerState.tab}
+                                embedded
+                            />
+                        ) : null)}
+                </Drawer>
             </main>
         </AdminLayout>
     )

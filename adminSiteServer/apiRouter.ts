@@ -94,6 +94,7 @@ import {
     getAllTags,
     deleteTag,
     getTagUsageSummary,
+    getTagDetail,
 } from "./apiRoutes/tags.js"
 import {
     getUsers,
@@ -542,6 +543,7 @@ getRouteWithROTransaction(
     "/tags/usage-summary.json",
     getTagUsageSummary
 )
+getRouteWithROTransaction(apiRouter, "/tags/:tagId/detail.json", getTagDetail)
 getRouteWithROTransaction(apiRouter, "/tags/:tagId.json", getTagById)
 putRouteWithRWTransaction(apiRouter, "/tags/:tagId", updateTag)
 postRouteWithRWTransaction(apiRouter, "/tags/new", createTag)

@@ -63,6 +63,7 @@ export async function getTagById(
             | "dataEditedAt"
             | "isPrivate"
             | "nonRedistributable"
+            | "isArchived"
         > & { dataEditedByUserName: string }
     >(
         trx,
@@ -77,8 +78,9 @@ export async function getTagById(
             d.dataEditedAt,
             du.fullName AS dataEditedByUserName,
             d.isPrivate,
-            d.nonRedistributable
-        FROM active_datasets d
+            d.nonRedistributable,
+            d.isArchived
+        FROM datasets d
         JOIN users du ON du.id=d.dataEditedByUserId
         LEFT JOIN dataset_tags dt ON dt.datasetId = d.id
         WHERE dt.tagId ${uncategorized ? "IS NULL" : "= ?"}
@@ -139,6 +141,48 @@ export async function getTagById(
     tag.charts = charts
 
     await assignTagsForCharts(trx, charts)
+
+    // Gdocs tagged with this tag
+    const gdocs = uncategorized
+        ? []
+        : await db.knexRaw<{
+              id: string
+              title: string
+              slug: string
+              type: string
+              published: number
+          }>(
+              trx,
+              `-- sql
+            SELECT pg.id, pg.content->>'$.title' as title, pg.slug, pg.type, pg.published
+            FROM posts_gdocs_x_tags pgt
+            JOIN posts_gdocs pg ON pg.id = pgt.gdocId
+            WHERE pgt.tagId = ?
+            ORDER BY pg.published DESC, pg.slug
+        `,
+              [tagId]
+          )
+    tag.gdocs = gdocs
+
+    // Explorers tagged with this tag
+    const explorers = uncategorized
+        ? []
+        : await db.knexRaw<{
+              slug: string
+              title: string
+              isPublished: number
+          }>(
+              trx,
+              `-- sql
+            SELECT e.slug, COALESCE(e.config->>'$.explorerTitle', e.slug) as title, e.isPublished
+            FROM explorer_tags et
+            JOIN explorers e ON e.slug = et.explorerSlug
+            WHERE et.tagId = ?
+            ORDER BY e.isPublished DESC, e.slug
+        `,
+              [tagId]
+          )
+    tag.explorers = explorers
 
     // Subcategories (children in tag_graph)
     const children = await db.knexRaw<{ id: number; name: string }>(
@@ -326,6 +370,82 @@ export async function getTagUsageSummary(
     `
     )
     return { tags: rows }
+}
+
+export async function getTagDetail(
+    req: Request,
+    _res: HandlerResponse,
+    trx: db.KnexReadonlyTransaction
+) {
+    const tagId = expectInt(req.params.tagId)
+
+    const gdocs = await db.knexRaw<{
+        id: string
+        title: string
+        slug: string
+        type: string
+        published: number
+    }>(
+        trx,
+        `SELECT pg.id, pg.content->>'$.title' as title, pg.slug, pg.type, pg.published
+        FROM posts_gdocs_x_tags pgt
+        JOIN posts_gdocs pg ON pg.id = pgt.gdocId
+        WHERE pgt.tagId = ?
+        ORDER BY pg.published DESC, pg.slug`,
+        [tagId]
+    )
+
+    const charts = await db.knexRaw<{
+        id: number
+        title: string
+        slug: string
+        publishedAt: string | null
+        lastEditedAt: string
+    }>(
+        trx,
+        `SELECT c.id,
+            chart_configs.full->>'$.title' as title,
+            chart_configs.slug,
+            c.publishedAt,
+            c.lastEditedAt
+        FROM chart_tags ct
+        JOIN charts c ON c.id = ct.chartId
+        JOIN chart_configs ON chart_configs.id = c.configId
+        WHERE ct.tagId = ?
+        ORDER BY c.publishedAt IS NULL, chart_configs.slug`,
+        [tagId]
+    )
+
+    const datasets = await db.knexRaw<{
+        id: number
+        name: string
+        isArchived: number
+        dataEditedAt: string
+    }>(
+        trx,
+        `SELECT d.id, d.name, d.isArchived, d.dataEditedAt
+        FROM dataset_tags dt
+        JOIN datasets d ON d.id = dt.datasetId
+        WHERE dt.tagId = ?
+        ORDER BY d.isArchived, d.name`,
+        [tagId]
+    )
+
+    const explorers = await db.knexRaw<{
+        slug: string
+        title: string
+        isPublished: number
+    }>(
+        trx,
+        `SELECT e.slug, COALESCE(e.config->>'$.explorerTitle', e.slug) as title, e.isPublished
+        FROM explorer_tags et
+        JOIN explorers e ON e.slug = et.explorerSlug
+        WHERE et.tagId = ?
+        ORDER BY e.isPublished DESC, e.slug`,
+        [tagId]
+    )
+
+    return { gdocs, charts, datasets, explorers }
 }
 
 export async function deleteTag(
