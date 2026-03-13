@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Demo — {{PROJECT}}</title>
+        <title>Demo — {{PROJECT}} (no Shadow DOM)</title>
         <script type="module">
             // We just assume that this project needs the React Refresh runtime, which is true for all our current projects. If we ever have a project that doesn't use React, we'll need to make this more flexible.
             import { injectIntoGlobalHook } from "/{{PROJECT}}/@react-refresh"
@@ -41,13 +41,13 @@
                 margin-bottom: 8px;
             }
         </style>
+        <link href="/{{PROJECT}}/{{ENTRYPOINT_CSS}}" rel="stylesheet" />
     </head>
     <body>
-        <h1>{{PROJECT}}</h1>
+        <h1>{{PROJECT}} (no Shadow DOM)</h1>
         <div id="demo-root"></div>
         <script type="module">
-            import { mountBespokeComponentInShadow } from "/{{PROJECT}}/@fs{{SHARED_DIR}}/bespokeComponentShadowDom.ts"
-            import { VARIANTS } from "/{{PROJECT}}/{{ENTRYPOINT_JS}}"
+            import { VARIANTS, mount } from "/{{PROJECT}}/{{ENTRYPOINT_JS}}"
 
             const root = document.getElementById("demo-root")
             for (const variant of VARIANTS) {
@@ -64,12 +64,9 @@
                 section.appendChild(container)
                 root.appendChild(section)
 
-                mountBespokeComponentInShadow({
-                    container,
-                    scriptUrl: "/{{PROJECT}}/{{ENTRYPOINT_JS}}",
-                    cssUrl: "/{{PROJECT}}/{{ENTRYPOINT_CSS}}",
+                mount(container, {
                     variant: variant.name,
-                    config: variant.demoConfig,
+                    config: variant.defaultConfig,
                 })
             }
         </script>

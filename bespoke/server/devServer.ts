@@ -205,11 +205,23 @@ const demoTemplate = fs.readFileSync(
     path.join(dirname, "component-demo.html"),
     "utf-8"
 )
+const demoTemplateNoShadowDom = fs.readFileSync(
+    path.join(dirname, "component-demo-no-shadowdom.html"),
+    "utf-8"
+)
 
-function serveDemoPage(projectName: string, res: http.ServerResponse): void {
-    const html = demoTemplate
+function serveDemoPage(
+    projectName: string,
+    res: http.ServerResponse,
+    useShadowDom: boolean,
+    entrypoints: Record<string, string> | null
+): void {
+    const template = useShadowDom ? demoTemplate : demoTemplateNoShadowDom
+    const html = template
         .replaceAll("{{PROJECT}}", projectName)
         .replaceAll("{{SHARED_DIR}}", SHARED_DIR)
+        .replaceAll("{{ENTRYPOINT_JS}}", entrypoints?.js ?? "src/index.ts")
+        .replaceAll("{{ENTRYPOINT_CSS}}", entrypoints?.css ?? "src/index.css")
     res.writeHead(200, { "Content-Type": "text/html" })
     res.end(html)
 }
@@ -270,7 +282,10 @@ function listProjectsPage(): string {
         .readdirSync(PROJECTS_DIR)
         .filter((d: string) => isProject(d))
     const links = dirs
-        .map((p: string) => `<li><a href="/${p}/demo">${p}</a></li>`)
+        .map(
+            (p: string) =>
+                `<li><a href="/${p}/demo">${p}</a> (<a href="/${p}/demo?shadowDom=false">without shadow DOM</a>)</li>`
+        )
         .join("\n")
     return `<!doctype html>
 <html>
@@ -333,7 +348,10 @@ const server = http.createServer(
             pathname === `/${projectName}/demo` ||
             pathname === `/${projectName}/demo/`
         ) {
-            serveDemoPage(projectName, res)
+            const query = new URL(req.url || "/", "http://localhost")
+                .searchParams
+            const useShadowDom = query.get("shadowDom") !== "false"
+            serveDemoPage(projectName, res, useShadowDom, project.entrypoints)
             return
         }
 
