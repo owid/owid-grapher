@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Bespoke Example</title>
+    </head>
+    <body>
+        <div id="picker"></div>
+        <div id="display" style="margin-top: 20px"></div>
+        <script type="module">
+            import { mount } from "./src/index.ts"
+            mount(document.getElementById("picker"), { variant: "picker" })
+            mount(document.getElementById("display"), { variant: "display" })
+        </script>
+    </body>
+</html>
