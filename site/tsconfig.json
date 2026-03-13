@@ -13,7 +13,7 @@
         { "path": "../packages/@ourworldindata/utils" },
 
         { "path": "../settings" },
-        { "path": "../bespoke/shared"}
+        { "path": "../bespoke/shared" }
     ],
     "include": ["./**/*", "../bespoke/shared/**/*"]
 }
