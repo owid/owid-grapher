@@ -57,11 +57,17 @@
         position: relative;
         display: flex;
         align-items: center;
-        margin-left: $handle-diameter;
-        margin-right: $handle-diameter;
         padding: 12px 0;
         box-sizing: content-box !important;
         background-clip: content-box !important;
+    }
+
+    .date + .slider {
+        margin-left: $handle-diameter;
+    }
+
+    .slider:has(+ .date) {
+        margin-right: $handle-diameter;
     }
 
     .handle {

@@ -10,7 +10,7 @@ import {
 } from "./CausesOfDeathDataFetching.js"
 import { CausesOfDeathCaptionedChart } from "./CausesOfDeathCaptionedChart.js"
 import { CausesOfDeathControls } from "./CausesOfDeathControls.js"
-import { CausesOfDeathSpinner } from "./CausesOfDeathSpinner.js"
+import { LoadingSpinner } from "./LoadingSpinner.js"
 
 const DEFAULT_AGE_GROUP = "All ages"
 const DEFAULT_SEX = "Both sexes"
@@ -118,7 +118,7 @@ function CausesOfDeathChartError() {
 function CausesOfDeathSkeleton() {
     return (
         <div className="causes-of-death-skeleton">
-            <CausesOfDeathSpinner />
+            <LoadingSpinner />
         </div>
     )
 }
