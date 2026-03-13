@@ -24,13 +24,6 @@ export function formatShare(value: number): string {
     })
 }
 
-export function formatCountryName(countryName: string): string {
-    if (regionsWithArticle.has(countryName)) {
-        return `the ${countryName}`
-    }
-    return countryName
-}
-
 export const minBy = <T>(array: T[], selector: (item: T) => number): number => {
     return Math.min(...array.map(selector))
 }

@@ -49,7 +49,7 @@ export function BezierArrow({
     endHandle,
     headAnchor = "end",
     headLength,
-    headAngle = 55,
+    headAngle = 45,
     className,
     width = 1,
     color = "black",

@@ -9,11 +9,13 @@ export function TimeSlider({
     selectedTime,
     onChange,
     className,
+    showEdgeLabels = true,
 }: {
     times: Time[]
     selectedTime: Time
     onChange: (time: Time) => void
     className?: string
+    showEdgeLabels?: boolean
 }) {
     const [isDragging, setIsDragging] = useState(false)
     const [isHovering, setIsHovering] = useState(false)
@@ -128,13 +130,15 @@ export function TimeSlider({
                 }
             }}
         >
-            <button
-                className="date"
-                type="button"
-                onClick={() => handleEdgeClick(minTime)}
-            >
-                {minTime}
-            </button>
+            {showEdgeLabels && (
+                <button
+                    className="date"
+                    type="button"
+                    onClick={() => handleEdgeClick(minTime)}
+                >
+                    {minTime}
+                </button>
+            )}
 
             <div
                 ref={sliderRef}
@@ -156,13 +160,15 @@ export function TimeSlider({
                 </div>
             </div>
 
-            <button
-                className="date"
-                type="button"
-                onClick={() => handleEdgeClick(maxTime)}
-            >
-                {maxTime}
-            </button>
+            {showEdgeLabels && (
+                <button
+                    className="date"
+                    type="button"
+                    onClick={() => handleEdgeClick(maxTime)}
+                >
+                    {maxTime}
+                </button>
+            )}
         </div>
     )
 }
