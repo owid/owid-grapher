@@ -26,6 +26,7 @@ interface ProjectServer {
     port: number
     process: ChildProcess
     ready: Promise<void>
+    entrypoints: Record<string, string> | null
 }
 
 // Map of project name -> running Vite server info
@@ -59,6 +60,13 @@ async function getOrStartProject(name: string): Promise<ProjectServer | null> {
         return existing
     }
     if (!isProject(name)) return null
+
+    const entrypoints = getProjectEntrypoints(name)
+    if (!entrypoints) {
+        console.warn(
+            `[${name}] Warning: missing "entrypoints" field in package.json. `
+        )
+    }
 
     const port = await findFreePort()
     const dir = path.join(PROJECTS_DIR, name)
@@ -99,7 +107,7 @@ async function getOrStartProject(name: string): Promise<ProjectServer | null> {
     })
 
     // Store entry before awaiting so concurrent requests share the same Promise
-    const entry: ProjectServer = { port, process: proc, ready }
+    const entry: ProjectServer = { port, process: proc, ready, entrypoints }
     servers.set(name, entry)
 
     await ready
@@ -204,6 +212,48 @@ function serveDemoPage(
     res.end(html)
 }
 
+// Read the "entrypoints" field from a project's package.json,
+// mapping e.g. { js: "src/index.ts", css: "src/index.css" }
+function getProjectEntrypoints(
+    projectName: string
+): Record<string, string> | null {
+    const pkgPath = path.join(PROJECTS_DIR, projectName, "package.json")
+    try {
+        const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"))
+        return pkg.entrypoints ?? null
+    } catch {
+        return null
+    }
+}
+
+// Map well-known filenames to the entrypoints key they correspond to
+const ENTRYPOINT_ALIASES: Record<string, string> = {
+    "index.js": "js",
+    "index.css": "css",
+}
+
+// If the request is for /<project>/index.js or /<project>/index.css,
+// redirect to the actual source entrypoint so Vite can serve it
+function tryEntrypointRedirect(
+    projectName: string,
+    pathname: string,
+    res: http.ServerResponse,
+    entrypoints: Record<string, string> | null
+): boolean {
+    const prefix = `/${projectName}/`
+    if (!pathname.startsWith(prefix)) return false
+
+    const tail = pathname.slice(prefix.length)
+    const entrypointKey = ENTRYPOINT_ALIASES[tail]
+    if (!entrypointKey) return false
+
+    if (!entrypoints?.[entrypointKey]) return false
+
+    res.writeHead(302, { Location: `/${projectName}/${entrypoints[entrypointKey]}` })
+    res.end()
+    return true
+}
+
 // Extract the project name (first path segment) from a URL
 function getProjectName(url: string): string | null {
     const parts = url.split("/").filter(Boolean)
@@ -261,8 +311,12 @@ const server = http.createServer(
             return
         }
 
-        // Serve the shared demo page for /<project>/demo
         const pathname = (req.url || "/").split("?")[0]
+
+        // Redirect /<project>/index.js and /<project>/index.css to actual entrypoints
+        if (tryEntrypointRedirect(projectName, pathname, res, project.entrypoints)) return
+
+        // Serve the shared demo page for /<project>/demo
         if (pathname === `/${projectName}/demo` || pathname === `/${projectName}/demo/`) {
             serveDemoPage(projectName, res)
             return

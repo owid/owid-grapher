@@ -41,13 +41,13 @@
                 margin-bottom: 8px;
             }
         </style>
-        <link href="/{{PROJECT}}/src/index.css" rel="stylesheet" />
+        <link href="/{{PROJECT}}/index.css" rel="stylesheet" />
     </head>
     <body>
         <h1>{{PROJECT}}</h1>
         <div id="demo-root"></div>
         <script type="module">
-            import { VARIANTS, mount } from "/{{PROJECT}}/src/index.ts"
+            import { VARIANTS, mount } from "/{{PROJECT}}/index.js"
 
             const root = document.getElementById("demo-root")
             for (const variant of VARIANTS) {
