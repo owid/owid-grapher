@@ -169,10 +169,24 @@ export const getAllLinksFromResearchAndWritingBlock = (
     return allLinks
 }
 
-export function parseAuthors(authors?: string): string[] {
-    return (authors || "Our World in Data team")
+export function parseAuthors(authors?: string): {
+    authors: string[]
+    authorRoles: Record<string, string>
+} {
+    const authorRoles: Record<string, string> = {}
+    const parsed = (authors || "Our World in Data team")
         .split(",")
-        .map((author: string) => author.trim())
+        .map((author: string) => {
+            const trimmed = author.trim()
+            const match = trimmed.match(/^(.+?)\s*\(([^)]+)\)\s*$/)
+            if (match) {
+                const name = match[1].trim()
+                authorRoles[name] = match[2].trim()
+                return name
+            }
+            return trimmed
+        })
+    return { authors: parsed, authorRoles }
 }
 
 /**

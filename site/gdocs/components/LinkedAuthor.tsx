@@ -34,9 +34,12 @@ export default function LinkedAuthor({
         content: { type: OwidGdocType.Author },
     })
     return (
-        <a className={className} href={path}>
-            {image}
-            {author.name}
-        </a>
+        <span>
+            <a className={className} href={path}>
+                {image}
+                {author.name}
+            </a>
+            {author.role && ` (${author.role})`}
+        </span>
     )
 }

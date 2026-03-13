@@ -2418,7 +2418,7 @@ function parseResearchAndWritingBlock(
             const enriched: EnrichedBlockResearchAndWritingLink = {
                 value: { url: enrichedUrl },
             }
-            if (authors) enriched.value.authors = parseAuthors(authors)
+            if (authors) enriched.value.authors = parseAuthors(authors).authors
             if (title) enriched.value.title = title
             if (filename) enriched.value.filename = filename
             if (subtitle) enriched.value.subtitle = subtitle
@@ -2992,7 +2992,9 @@ function parseHomepageIntro(
         const url = extractUrl(post.url)
         const linkType = getLinkType(url)
         // If authors aren't specified, assume it's a linked gdoc
-        const authors = post.authors ? parseAuthors(post.authors) : undefined
+        const authors = post.authors
+            ? parseAuthors(post.authors).authors
+            : undefined
 
         const enrichedPost: EnrichedBlockHomepageIntroPost = {
             url,

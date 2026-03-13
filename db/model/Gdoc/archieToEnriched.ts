@@ -237,7 +237,11 @@ export const archieToEnriched = (
     // this property was originally named byline even though it was a comma-separated list of authors
     // once this has been deployed for a while and we've migrated the property name in all gdocs,
     // we can remove this parsed.byline vestige
-    parsed.authors = parseAuthors(parsed.byline || parsed.authors)
+    const { authors, authorRoles } = parseAuthors(
+        parsed.byline || parsed.authors
+    )
+    parsed.authors = authors
+    parsed.authorRoles = authorRoles
 
     additionalEnrichmentFunction(parsed)
 

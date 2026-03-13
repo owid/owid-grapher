@@ -94,6 +94,7 @@ export const checkIsLightningUpdate = (
         "featured-image": false, // requires updating references to this article
         "deprecation-notice": false, // requires updating references to this article
         authors: false, // requires updating references to this article
+        authorRoles: false, // derived from authors
         excerpt: false, // requires updating references to this article
         faqs: false, // requires updating datapages
         parsedFaqs: false, // requires updating datapages
@@ -111,6 +112,7 @@ export const checkIsLightningUpdate = (
         ["figma-url"]: true,
         title: false, // requires rebaking the feed
         authors: false, // requires rebaking the feed
+        authorRoles: false, // derived from authors
         body: false, // requires rebaking the feed
         type: false, // shouldn't be changed, but would require rebaking the feed if it was
     }
@@ -121,6 +123,7 @@ export const checkIsLightningUpdate = (
         body: true,
         title: false, // shouldn't be changed, but won't be used in the baked page anyway
         authors: false, // shouldn't be set, but defaults to "Our World in Data" because it's assumed to exist in the DB
+        authorRoles: false, // derived from authors
         type: false, // should never be changed
     }
     const announcementLightningPropContentConfigMap: Record<
@@ -129,6 +132,7 @@ export const checkIsLightningUpdate = (
     > = {
         kicker: false,
         authors: false,
+        authorRoles: false,
         title: false,
         type: false,
         body: false,
@@ -146,6 +150,7 @@ export const checkIsLightningUpdate = (
         bio: false, // assumed to be used in "author cards" throughout the site
         "featured-image": false, // assumed to be used in "author cards" throughout the site
         authors: true, // not used
+        authorRoles: true, // not used
         socials: false, // assumed to be used in "author cards" throughout the site
         body: true, // probably not used outside of the author page, if at all
     }
@@ -156,6 +161,7 @@ export const checkIsLightningUpdate = (
         type: false,
         title: false,
         authors: false,
+        authorRoles: false,
         scope: false,
         exclude: false,
         subtitle: false,
