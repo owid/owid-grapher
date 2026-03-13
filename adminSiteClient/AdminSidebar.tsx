@@ -143,6 +143,11 @@ export const AdminSidebar = (): React.ReactElement => (
                 </Link>
             </li>
             <li>
+                <Link to="/tag-maintenance">
+                    <FontAwesomeIcon icon={faTag} fixedWidth /> Tag Maintenance
+                </Link>
+            </li>
+            <li>
                 <Link to="/bulk-downloads">
                     <FontAwesomeIcon icon={faDownload} fixedWidth /> Bulk
                     downloads

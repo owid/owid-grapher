@@ -56,6 +56,7 @@ import { FeaturedMetricsPage } from "./FeaturedMetricsPage.js"
 import { DodsIndexPage } from "./DodsIndexPage.js"
 import { StaticVizIndexPage } from "./StaticVizIndexPage.js"
 import { StaticVizEditPage } from "./StaticVizEditPage.js"
+import { TagMaintenancePage } from "./TagMaintenancePage.js"
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -367,6 +368,11 @@ export class AdminApp extends React.Component<{
                                     exact
                                     path="/tag-graph"
                                     component={TagGraphPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/tag-maintenance"
+                                    component={TagMaintenancePage}
                                 />
                                 <Route
                                     exact
