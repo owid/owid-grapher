@@ -271,10 +271,20 @@ function tryEntrypointRedirect(
 }
 
 // Extract the project name (first path segment) from a URL
-function getProjectName(url: string): string | null {
-    const parts = url.split("/").filter(Boolean)
-    const name = parts[0]?.split("?")[0]
-    return name || null
+function getProjectName(rawUrl: string): string | null {
+    try {
+        // Use a dummy base to reliably parse relative URLs
+        const parsed = new URL(rawUrl, "http://localhost")
+        const pathname = parsed.pathname || "/"
+        const segments = pathname.split("/").filter(Boolean)
+        const name = segments[0]
+        if (!name) return null
+        // Allow only safe characters in project names
+        if (!/^[a-zA-Z0-9_-]+$/.test(name)) return null
+        return name
+    } catch {
+        return null
+    }
 }
 
 function listProjectsPage(): string {
