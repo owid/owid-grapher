@@ -3,12 +3,8 @@
  * Each component is identified by a unique name and specifies URLs for
  * its ESM script and CSS stylesheet.
  */
-export interface BespokeComponentDefinition {
-    /** URL to the ES module that exports the component's mount function */
-    scriptUrl: string
-    /** URL to the component's CSS stylesheet (loaded into shadow DOM) */
-    cssUrl: string
-}
+
+import type { BespokeComponentDefinition } from "../bespoke/shared/bespokeComponentTypes.js"
 
 /**
  * Map of component names to their definitions.
@@ -23,16 +19,8 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     //     scriptUrl: "/assets/bespoke/my-widget.mjs",
     //     cssUrl: "/assets/bespoke/my-widget.css",
     // },
-}
-
-/**
- * The expected interface for a bespoke component's ESM module.
- * The module must export a `mount` function that receives a container div
- * and configuration object. The container is isolated via Shadow DOM.
- */
-export interface BespokeComponentModule {
-    mount: (
-        container: HTMLDivElement,
-        opts: { variant?: string; config?: Record<string, string> }
-    ) => void | Promise<void> | Promise<() => void>
+    example: {
+        scriptUrl: "http://localhost:8089/example/src/index.ts",
+        cssUrl: "http://localhost:8089/example/src/index.css",
+    },
 }
