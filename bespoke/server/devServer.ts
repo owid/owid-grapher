@@ -222,6 +222,7 @@ function serveDemoPage(
         .replaceAll("{{SHARED_DIR}}", SHARED_DIR)
         .replaceAll("{{ENTRYPOINT_JS}}", entrypoints?.js ?? "src/index.ts")
         .replaceAll("{{ENTRYPOINT_CSS}}", entrypoints?.css ?? "src/index.css")
+        .replaceAll("{{DEMO_CSS}}", path.join(dirname, "component-demo.css"))
     res.writeHead(200, { "Content-Type": "text/html" })
     res.end(html)
 }

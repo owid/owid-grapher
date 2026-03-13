@@ -1,0 +1,37 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: system-ui, sans-serif;
+    margin: 0;
+    padding: 24px;
+    color: #1d1d1d;
+}
+
+h1 {
+    font-size: 1.25rem;
+    margin: 0 0 24px;
+}
+
+.mode-note {
+    font-size: 0.85rem;
+    color: #888;
+    margin: -16px 0 16px;
+}
+
+.variant {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.variant-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #888;
+    margin-bottom: 8px;
+}

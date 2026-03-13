@@ -12,38 +12,15 @@
             window.$RefreshSig$ = () => (type) => type
         </script>
         <script type="module" src="/{{PROJECT}}/@vite/client"></script>
-        <style>
-            * {
-                box-sizing: border-box;
-            }
-            body {
-                font-family: system-ui, sans-serif;
-                margin: 0;
-                padding: 24px;
-                color: #1d1d1d;
-            }
-            h1 {
-                font-size: 1.25rem;
-                margin: 0 0 24px;
-            }
-            .variant {
-                border: 1px solid #e0e0e0;
-                border-radius: 8px;
-                padding: 16px;
-                margin-bottom: 16px;
-            }
-            .variant-label {
-                font-size: 0.75rem;
-                font-weight: 600;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-                color: #888;
-                margin-bottom: 8px;
-            }
-        </style>
+        <link rel="stylesheet" href="/{{PROJECT}}/@fs{{DEMO_CSS}}" />
     </head>
     <body>
         <h1>{{PROJECT}}</h1>
+        <p class="mode-note">
+            Shadow DOM mode — CSS HMR does not work here.
+            <a href="?shadowDom=false">Switch to no-shadow-DOM mode</a> for CSS
+            hot reload.
+        </p>
         <div id="demo-root"></div>
         <script type="module">
             import { mountBespokeComponentInShadow } from "/{{PROJECT}}/@fs{{SHARED_DIR}}/bespokeComponentShadowDom.ts"
