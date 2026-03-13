@@ -13,6 +13,7 @@ import {
     SlideshowCreateSchema,
     SlideshowUpdateSchema,
 } from "@ourworldindata/types"
+import { ApiSlideshowOverview } from "../../adminShared/AdminTypes.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
@@ -86,14 +87,7 @@ export async function getSlideshows(
     _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
-    type SlideshowRow = Pick<
-        DbPlainSlideshow,
-        "id" | "slug" | "title" | "isPublished" | "updatedAt"
-    > & {
-        authorName: string
-    }
-
-    const rows = await db.knexRaw<SlideshowRow>(
+    const rows = await db.knexRaw<ApiSlideshowOverview>(
         trx,
         `-- sql
         SELECT
