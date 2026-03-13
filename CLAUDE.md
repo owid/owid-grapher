@@ -37,6 +37,7 @@ Some key directories, going roughly along the dependency chain from the most sta
 - ./baker - code that "bakes" our website by rendering React to static HTML
 - ./adminSiteServer - internal API for our admin
 - ./adminSiteClient - client UI of the admin
+- ./bespoke - self-contained custom data viz components embedded in articles via Shadow DOM. Each project under bespoke/projects/ has its own build. See bespoke/readme.md for details.
 - ./devTools - various utilities
 - ./functions - CloudFlare Functions. Most of our website is static but all our charts under https://ourworldindata.org/grapher/* are behind CF functions. These handle dynamic thumbnail generation, data downloads for end users etc.
 

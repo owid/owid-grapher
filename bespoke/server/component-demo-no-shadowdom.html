@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Demo — {{PROJECT}} (no Shadow DOM)</title>
+        <script type="module">
+            // We just assume that this project needs the React Refresh runtime, which is true for all our current projects. If we ever have a project that doesn't use React, we'll need to make this more flexible.
+            import { injectIntoGlobalHook } from "/{{PROJECT}}/@react-refresh"
+            injectIntoGlobalHook(window)
+            window.$RefreshReg$ = () => {}
+            window.$RefreshSig$ = () => (type) => type
+        </script>
+        <script type="module" src="/{{PROJECT}}/@vite/client"></script>
+        <link rel="stylesheet" href="/{{PROJECT}}/@fs{{DEMO_CSS}}" />
+        <link href="/{{PROJECT}}/{{ENTRYPOINT_CSS}}" rel="stylesheet" />
+    </head>
+    <body>
+        <h1>{{PROJECT}} (no Shadow DOM)</h1>
+        <p class="mode-note">
+            No Shadow DOM — CSS HMR works, but styles are not isolated the way
+            they are in production.
+            <a href="?">Switch to Shadow DOM mode</a> for a more realistic
+            preview.
+        </p>
+        <div id="demo-root"></div>
+        <script type="module">
+            import { VARIANTS, mount } from "/{{PROJECT}}/{{ENTRYPOINT_JS}}"
+
+            const root = document.getElementById("demo-root")
+            for (const variant of VARIANTS) {
+                const section = document.createElement("div")
+                section.className = "variant"
+                section.id = `variant--${variant.name}`
+
+                const label = document.createElement("div")
+                label.className = "variant-label"
+                label.textContent = variant.name
+                section.appendChild(label)
+
+                const container = document.createElement("div")
+                section.appendChild(container)
+                root.appendChild(section)
+
+                mount(container, {
+                    variant: variant.name,
+                    config: variant.defaultConfig,
+                })
+            }
+        </script>
+    </body>
+</html>

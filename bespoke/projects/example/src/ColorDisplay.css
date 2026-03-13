@@ -1,0 +1,14 @@
+.color-display {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: sans-serif;
+    font-size: 14px;
+}
+
+.color-display__preview {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}

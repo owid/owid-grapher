@@ -126,6 +126,8 @@ up.full: require create-if-missing.env.full tmp-downloads/owid_metadata.sql.gz n
 			set remain-on-exit on \; \
 		new-window -n functions 'yarn startLocalCloudflareFunctions' \; \
 			set remain-on-exit on \; \
+		new-window -n bespoke 'yarn startBespokeDevServer' \; \
+			set remain-on-exit on \; \
 		new-window -n welcome 'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) VITE_PORT=$(VITE_PORT) WRANGLER_PORT=$(WRANGLER_PORT) devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
 		bind X kill-pane \; \
