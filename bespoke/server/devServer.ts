@@ -47,8 +47,15 @@ function findFreePort(): Promise<number> {
     })
 }
 
+function isValidProjectName(name: string): boolean {
+    return /^[a-zA-Z0-9_-]+$/.test(name)
+}
+
 function isProject(name: string): boolean {
-    return fs.existsSync(path.join(PROJECTS_DIR, name, "vite.config.ts"))
+    return (
+        isValidProjectName(name) &&
+        fs.existsSync(path.join(PROJECTS_DIR, name, "vite.config.ts"))
+    )
 }
 
 /**
@@ -280,8 +287,7 @@ function getProjectName(rawUrl: string): string | null {
         const segments = pathname.split("/").filter(Boolean)
         const name = segments[0]
         if (!name) return null
-        // Allow only safe characters in project names
-        if (!/^[a-zA-Z0-9_-]+$/.test(name)) return null
+        if (!isValidProjectName(name)) return null
         return name
     } catch {
         return null
