@@ -12,7 +12,8 @@
         { "path": "../packages/@ourworldindata/types" },
         { "path": "../packages/@ourworldindata/utils" },
 
-        { "path": "../settings" }
+        { "path": "../settings" },
+        { "path": "../bespoke/shared"}
     ],
     "include": ["./**/*", "../bespoke/shared/**/*"]
 }

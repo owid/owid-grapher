@@ -18,6 +18,7 @@
         { "path": "./adminShared" },
         { "path": "./adminSiteClient" },
         { "path": "./adminSiteServer" },
+        { "path": "./bespoke/shared" },
         { "path": "./devTools/markdownTest" },
         { "path": "./devTools/regionsUpdater" },
         { "path": "./devTools/schema" },
