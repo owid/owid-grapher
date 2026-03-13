@@ -1,6 +1,5 @@
 import { useAtom } from "jotai"
 import { selectedColorAtom } from "./atoms"
-import "./ColorPicker.css"
 
 const COLORS = ["#3182bd", "#e6550d", "#31a354", "#756bb1", "#636363"]
 

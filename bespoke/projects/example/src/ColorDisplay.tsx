@@ -1,6 +1,5 @@
 import { useAtomValue } from "jotai"
 import { selectedColorAtom } from "./atoms"
-import "./ColorDisplay.css"
 
 export function ColorDisplay() {
     const color = useAtomValue(selectedColorAtom)
