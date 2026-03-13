@@ -41,18 +41,19 @@
                 margin-bottom: 8px;
             }
         </style>
-        <link href="/{{PROJECT}}/index.css" rel="stylesheet" />
     </head>
     <body>
         <h1>{{PROJECT}}</h1>
         <div id="demo-root"></div>
         <script type="module">
-            import { VARIANTS, mount } from "/{{PROJECT}}/index.js"
+            import { mountBespokeComponentInShadow } from "/{{PROJECT}}/@fs{{SHARED_DIR}}/bespokeComponentShadowDom.ts"
+            import { VARIANTS } from "/{{PROJECT}}/index.js"
 
             const root = document.getElementById("demo-root")
             for (const variant of VARIANTS) {
                 const section = document.createElement("div")
                 section.className = "variant"
+                section.id = `variant--${variant.name}`
 
                 const label = document.createElement("div")
                 label.className = "variant-label"
@@ -63,7 +64,10 @@
                 section.appendChild(container)
                 root.appendChild(section)
 
-                mount(container, {
+                mountBespokeComponentInShadow({
+                    container,
+                    scriptUrl: "/{{PROJECT}}/index.js",
+                    cssUrl: "/{{PROJECT}}/index.css",
                     variant: variant.name,
                     config: variant.defaultConfig,
                 })

@@ -21,6 +21,7 @@ import fs from "node:fs"
 const dirname = import.meta.dirname
 const PORT = parseInt(process.env.PORT ?? "8089", 10)
 const PROJECTS_DIR = path.resolve(dirname, "..", "projects")
+const SHARED_DIR = path.resolve(dirname, "..", "shared")
 
 interface ProjectServer {
     port: number
@@ -207,7 +208,9 @@ function serveDemoPage(
     projectName: string,
     res: http.ServerResponse
 ): void {
-    const html = demoTemplate.replaceAll("{{PROJECT}}", projectName)
+    const html = demoTemplate
+        .replaceAll("{{PROJECT}}", projectName)
+        .replaceAll("{{SHARED_DIR}}", SHARED_DIR)
     res.writeHead(200, { "Content-Type": "text/html" })
     res.end(html)
 }
