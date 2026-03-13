@@ -2620,10 +2620,33 @@ export class GrapherState
         return this.yAxis.scaleType
     }
 
+    @computed
+    private get isOnScatterWithTimeOverride(): boolean {
+        const xColumn = this.inputTable.get(this.xColumnSlug)
+        const yColumn = this.inputTable.get(this.yColumnSlug)
+
+        return !!(
+            this.isOnScatterTab &&
+            xColumn.def.owidVariableId !== undefined &&
+            xColumn.def.owidVariableId === yColumn.def.owidVariableId &&
+            this.xOverrideTime
+        )
+    }
+
     @computed private get timeTitleSuffix(): string | undefined {
+        const { startTime, endTime, xOverrideTime } = this
+
         const timeColumn = this.table.timeColumn
         if (timeColumn.isMissing) return undefined // Do not show year until data is loaded
-        const { startTime, endTime } = this
+
+        // Add 'Time vs. Time' suffix for scatter plots with time override
+        if (this.isOnScatterWithTimeOverride) {
+            const times = _.sortBy([endTime, xOverrideTime])
+            return times
+                .map((time) => timeColumn.formatValue(time))
+                .join(" vs. ")
+        }
+
         if (startTime === undefined || endTime === undefined) return undefined
 
         const time =
