@@ -41,6 +41,10 @@ import {
     indexIndividualProfile,
     removeIndividualProfileFromIndex,
 } from "../../baker/algolia/utils/pages.js"
+import {
+    indexIndividualGdocInChronological,
+    removeIndividualGdocFromChronological,
+} from "../../baker/algolia/utils/pagesChronological.js"
 import { GdocAbout } from "../../db/model/Gdoc/GdocAbout.js"
 import { GdocAuthor } from "../../db/model/Gdoc/GdocAuthor.js"
 import { getMinimalGdocPostsByIds } from "../../db/model/Gdoc/GdocBase.js"
@@ -349,6 +353,7 @@ async function indexAndBakeGdocIfNeccesary(
                     // In that case, we pass nextJson.slug to see if it has any page views (i.e. from WP)
                     prevGdoc.slug || nextJson.slug
                 )
+                await indexIndividualGdocInChronological(nextJson, trx)
             }
             if (isProfile) {
                 await indexIndividualProfile(nextGdoc as GdocProfile, trx)
@@ -358,6 +363,7 @@ async function indexAndBakeGdocIfNeccesary(
         .with(GdocPublishingAction.Updating, async () => {
             if (isGdocPost) {
                 await indexIndividualGdocPost(nextJson, trx, prevGdoc.slug)
+                await indexIndividualGdocInChronological(nextJson, trx)
             }
             if (isProfile) {
                 await indexIndividualProfile(nextGdoc as GdocProfile, trx)
@@ -375,6 +381,7 @@ async function indexAndBakeGdocIfNeccesary(
         .with(GdocPublishingAction.Unpublishing, async () => {
             if (isGdocPost) {
                 await removeIndividualGdocPostFromIndex(nextJson)
+                await removeIndividualGdocFromChronological(nextJson.id)
             }
             if (isProfile) {
                 await removeIndividualProfileFromIndex(nextGdoc as GdocProfile)
@@ -574,6 +581,7 @@ export async function deleteGdoc(
         .delete()
     if (gdoc.published && checkIsGdocPostExcludingFragments(gdoc)) {
         await removeIndividualGdocPostFromIndex(gdoc)
+        await removeIndividualGdocFromChronological(gdoc.id)
     }
     if (gdoc.published && checkIsProfile(gdoc)) {
         await removeIndividualProfileFromIndex(gdoc as unknown as GdocProfile)
