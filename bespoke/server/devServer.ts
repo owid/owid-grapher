@@ -10,6 +10,8 @@
  *
  * Usage:  npx tsx devServer.ts
  * Port:   defaults to 8089, override with PORT env var
+ *
+ * NOTE that this file has been fully written by Claude Code, and is therefore not very understandable.
  */
 
 import http from "node:http"
@@ -204,10 +206,7 @@ const demoTemplate = fs.readFileSync(
     "utf-8"
 )
 
-function serveDemoPage(
-    projectName: string,
-    res: http.ServerResponse
-): void {
+function serveDemoPage(projectName: string, res: http.ServerResponse): void {
     const html = demoTemplate
         .replaceAll("{{PROJECT}}", projectName)
         .replaceAll("{{SHARED_DIR}}", SHARED_DIR)
@@ -252,7 +251,9 @@ function tryEntrypointRedirect(
 
     if (!entrypoints?.[entrypointKey]) return false
 
-    res.writeHead(302, { Location: `/${projectName}/${entrypoints[entrypointKey]}` })
+    res.writeHead(302, {
+        Location: `/${projectName}/${entrypoints[entrypointKey]}`,
+    })
     res.end()
     return true
 }
@@ -317,10 +318,21 @@ const server = http.createServer(
         const pathname = (req.url || "/").split("?")[0]
 
         // Redirect /<project>/index.js and /<project>/index.css to actual entrypoints
-        if (tryEntrypointRedirect(projectName, pathname, res, project.entrypoints)) return
+        if (
+            tryEntrypointRedirect(
+                projectName,
+                pathname,
+                res,
+                project.entrypoints
+            )
+        )
+            return
 
         // Serve the shared demo page for /<project>/demo
-        if (pathname === `/${projectName}/demo` || pathname === `/${projectName}/demo/`) {
+        if (
+            pathname === `/${projectName}/demo` ||
+            pathname === `/${projectName}/demo/`
+        ) {
             serveDemoPage(projectName, res)
             return
         }

@@ -17,7 +17,7 @@ export interface BespokeComponentModule {
 
 export interface BespokeComponentVariantsEntry extends Record<string, unknown> {
     name: string
-    defaultConfig?: Record<string, string>
+    demoConfig?: Record<string, string>
 }
 
 export type BespokeComponentVariantsList = BespokeComponentVariantsEntry[]
