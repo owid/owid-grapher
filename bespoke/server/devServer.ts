@@ -1,13 +1,26 @@
+/* eslint-disable no-console */
+
+/**
+ * Bespoke dev server — a reverse proxy that lazily starts a Vite dev server
+ * for each project under bespoke/projects/ on first request.
+ *
+ * Requests to /<project>/* are routed to the corresponding Vite instance.
+ * WebSocket upgrades (for Vite HMR) are proxied at the TCP level.
+ * Visiting / lists all available projects.
+ *
+ * Usage:  npx tsx devServer.ts
+ * Port:   defaults to 8089, override with PORT env var
+ */
+
 import http from "node:http"
 import net from "node:net"
 import { spawn, type ChildProcess } from "node:child_process"
 import path from "node:path"
 import fs from "node:fs"
-import { fileURLToPath } from "node:url"
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const dirname = import.meta.dirname
 const PORT = parseInt(process.env.PORT ?? "8089", 10)
-const PROJECTS_DIR = path.resolve(__dirname, "..", "projects")
+const PROJECTS_DIR = path.resolve(dirname, "..", "projects")
 
 interface ProjectServer {
     port: number
@@ -15,8 +28,10 @@ interface ProjectServer {
     ready: Promise<void>
 }
 
+// Map of project name -> running Vite server info
 const servers = new Map<string, ProjectServer>()
 
+// Bind to an ephemeral port and return it, so each Vite instance gets a unique port
 function findFreePort(): Promise<number> {
     return new Promise((resolve, reject) => {
         const srv = net.createServer()
@@ -32,9 +47,12 @@ function isProject(name: string): boolean {
     return fs.existsSync(path.join(PROJECTS_DIR, name, "vite.config.ts"))
 }
 
-async function getOrStartProject(
-    name: string
-): Promise<ProjectServer | null> {
+/**
+ * Returns the running server for a project, starting one if needed.
+ * Concurrent callers for the same project will share the same Promise,
+ * so only one Vite process is ever spawned per project.
+ */
+async function getOrStartProject(name: string): Promise<ProjectServer | null> {
     if (servers.has(name)) {
         const existing = servers.get(name)!
         await existing.ready
@@ -50,9 +68,7 @@ async function getOrStartProject(
         resolveReady = r
     })
 
-    console.log(
-        `Starting Vite for "${name}" (${dir}) on port ${port}...`
-    )
+    console.log(`Starting Vite for "${name}" (${dir}) on port ${port}...`)
 
     const proc = spawn(
         "npx",
@@ -77,11 +93,12 @@ async function getOrStartProject(
         if (text) console.error(`[${name}] ${text}`)
     })
 
-    proc.on("exit", (code) => {
+    proc.on("exit", (code: number | null) => {
         console.log(`[${name}] Vite exited with code ${code}`)
         servers.delete(name)
     })
 
+    // Store entry before awaiting so concurrent requests share the same Promise
     const entry: ProjectServer = { port, process: proc, ready }
     servers.set(name, entry)
 
@@ -90,6 +107,7 @@ async function getOrStartProject(
     return entry
 }
 
+// Buffer the full request body so it can be re-sent on retries
 function collectBody(req: http.IncomingMessage): Promise<Buffer> {
     return new Promise((resolve) => {
         const chunks: Buffer[] = []
@@ -98,6 +116,7 @@ function collectBody(req: http.IncomingMessage): Promise<Buffer> {
     })
 }
 
+// Forward an HTTP request to the target Vite port, retrying on ECONNREFUSED
 function sendProxy(
     req: http.IncomingMessage,
     res: http.ServerResponse,
@@ -113,14 +132,14 @@ function sendProxy(
             method: req.method,
             headers: { ...req.headers, "content-length": String(body.length) },
         },
-        (proxyRes) => {
+        (proxyRes: http.IncomingMessage) => {
             res.writeHead(proxyRes.statusCode!, proxyRes.headers)
             proxyRes.pipe(res)
         }
     )
 
-    proxyReq.on("error", (err) => {
-        if (retries > 0 && err.message.includes("ECONNREFUSED")) {
+    proxyReq.on("error", (err: NodeJS.ErrnoException) => {
+        if (retries > 0 && err.code === "ECONNREFUSED") {
             setTimeout(
                 () => sendProxy(req, res, targetPort, body, retries - 1),
                 200
@@ -143,6 +162,7 @@ async function proxyRequest(
     sendProxy(req, res, targetPort, body, 5)
 }
 
+// Proxy a WebSocket upgrade at the TCP level by replaying the raw HTTP headers
 function proxyWebSocket(
     req: http.IncomingMessage,
     socket: net.Socket,
@@ -152,7 +172,6 @@ function proxyWebSocket(
     const target = net.createConnection(
         { port: targetPort, host: "localhost" },
         () => {
-            // Reconstruct the raw HTTP upgrade request
             let raw = `${req.method} ${req.url} HTTP/${req.httpVersion}\r\n`
             for (let i = 0; i < req.rawHeaders.length; i += 2) {
                 raw += `${req.rawHeaders[i]}: ${req.rawHeaders[i + 1]}\r\n`
@@ -169,17 +188,19 @@ function proxyWebSocket(
     socket.on("error", () => target.destroy())
 }
 
+// Extract the project name (first path segment) from a URL
 function getProjectName(url: string): string | null {
     const parts = url.split("/").filter(Boolean)
-    // Strip query string from first segment
     const name = parts[0]?.split("?")[0]
     return name || null
 }
 
 function listProjectsPage(): string {
-    const dirs = fs.readdirSync(PROJECTS_DIR).filter((d) => isProject(d))
+    const dirs = fs
+        .readdirSync(PROJECTS_DIR)
+        .filter((d: string) => isProject(d))
     const links = dirs
-        .map((p) => `<li><a href="/${p}/">${p}</a></li>`)
+        .map((p: string) => `<li><a href="/${p}/">${p}</a></li>`)
         .join("\n")
     return `<!doctype html>
 <html>
@@ -197,55 +218,58 @@ const CORS_HEADERS: Record<string, string> = {
     "Access-Control-Allow-Headers": "*",
 }
 
-const server = http.createServer(async (req, res) => {
-    // Set CORS headers on every response
-    for (const [key, value] of Object.entries(CORS_HEADERS)) {
-        res.setHeader(key, value)
+const server = http.createServer(
+    async (req: http.IncomingMessage, res: http.ServerResponse) => {
+        for (const [key, value] of Object.entries(CORS_HEADERS)) {
+            res.setHeader(key, value)
+        }
+
+        if (req.method === "OPTIONS") {
+            res.writeHead(204)
+            res.end()
+            return
+        }
+
+        const projectName = getProjectName(req.url || "/")
+
+        if (!projectName) {
+            res.writeHead(200, { "Content-Type": "text/html" })
+            res.end(listProjectsPage())
+            return
+        }
+
+        const project = await getOrStartProject(projectName)
+        if (!project) {
+            res.writeHead(404, { "Content-Type": "text/plain" })
+            res.end(`Project "${projectName}" not found`)
+            return
+        }
+
+        proxyRequest(req, res, project.port)
     }
+)
 
-    // Handle preflight requests
-    if (req.method === "OPTIONS") {
-        res.writeHead(204)
-        res.end()
-        return
+// Forward WebSocket upgrades to the right Vite instance (needed for HMR)
+server.on(
+    "upgrade",
+    async (req: http.IncomingMessage, socket: net.Socket, head: Buffer) => {
+        const projectName = getProjectName(req.url || "/")
+        if (!projectName) {
+            socket.destroy()
+            return
+        }
+
+        const project = await getOrStartProject(projectName)
+        if (!project) {
+            socket.destroy()
+            return
+        }
+
+        proxyWebSocket(req, socket, head, project.port)
     }
+)
 
-    const projectName = getProjectName(req.url || "/")
-
-    if (!projectName) {
-        res.writeHead(200, { "Content-Type": "text/html" })
-        res.end(listProjectsPage())
-        return
-    }
-
-    const project = await getOrStartProject(projectName)
-    if (!project) {
-        res.writeHead(404, { "Content-Type": "text/plain" })
-        res.end(`Project "${projectName}" not found`)
-        return
-    }
-
-    proxyRequest(req, res, project.port)
-})
-
-// Handle WebSocket upgrades (needed for Vite HMR)
-server.on("upgrade", async (req, socket, head) => {
-    const projectName = getProjectName(req.url || "/")
-    if (!projectName) {
-        socket.destroy()
-        return
-    }
-
-    const project = await getOrStartProject(projectName)
-    if (!project) {
-        socket.destroy()
-        return
-    }
-
-    proxyWebSocket(req, socket, head, project.port)
-})
-
-// Graceful shutdown: kill all Vite processes
+// Graceful shutdown: kill all spawned Vite processes
 function shutdown(): void {
     console.log("\nShutting down...")
     for (const [name, { process: proc }] of servers) {
