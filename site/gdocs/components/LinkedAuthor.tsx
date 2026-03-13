@@ -1,6 +1,5 @@
 import { getCanonicalUrl } from "@ourworldindata/components"
 import { OwidGdocType } from "@ourworldindata/types"
-import { parseAuthorRole } from "@ourworldindata/utils"
 import { useLinkedAuthor } from "../utils.js"
 import Image from "./Image.js"
 import { IS_ARCHIVE } from "../../../settings/clientSettings.js"
@@ -17,7 +16,6 @@ export default function LinkedAuthor({
     name: string
     includeImage?: boolean
 }) {
-    const { role } = parseAuthorRole(name)
     const author = useLinkedAuthor(name)
     const image =
         includeImage && author.featuredImage ? (
@@ -36,12 +34,12 @@ export default function LinkedAuthor({
         content: { type: OwidGdocType.Author },
     })
     return (
-        <>
+        <span>
             <a className={className} href={path}>
                 {image}
                 {author.name}
             </a>
-            {role && ` (${role})`}
-        </>
+            {author.role && ` (${author.role})`}
+        </span>
     )
 }

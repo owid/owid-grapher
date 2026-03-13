@@ -71,19 +71,6 @@ export const getETLPathComponents = (path: string): ETLPathComponents => {
     return { channel, producer, version, dataset, table, indicator }
 }
 
-/**
- * Parses an author string that may include a role in parentheses,
- * e.g. "Hannah Ritchie (writing)" → { name: "Hannah Ritchie", role: "writing" }
- */
-export function parseAuthorRole(author: string): {
-    name: string
-    role?: string
-} {
-    const match = author.match(/^(.+?)\s*\(([^)]+)\)\s*$/)
-    if (match) return { name: match[1].trim(), role: match[2].trim() }
-    return { name: author }
-}
-
 export function formatAuthors(authors: string[]): string {
     if (authors.length === 0) return ""
     if (authors.length === 1) return authors[0]

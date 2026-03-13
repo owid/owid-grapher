@@ -24,7 +24,6 @@ import {
     excludeUndefined,
     Url,
     getRegionByNameOrVariantName,
-    parseAuthorRole,
 } from "@ourworldindata/utils"
 import { docs as googleDocs, type docs_v1 } from "@googleapis/docs"
 import { gdocToArchie } from "./gdocToArchie.js"
@@ -391,10 +390,18 @@ export class GdocBase implements OwidGdocBaseInterface {
     }
 
     async loadLinkedAuthors(knex: db.KnexReadonlyTransaction): Promise<void> {
-        this.linkedAuthors = await getMinimalAuthorsByNames(
+        const authors = await getMinimalAuthorsByNames(
             knex,
             this.content.authors
         )
+        const authorRoles = this.content.authorRoles
+        if (authorRoles) {
+            for (const author of authors) {
+                const role = authorRoles[author.name]
+                if (role) author.role = role
+            }
+        }
+        this.linkedAuthors = authors
     }
 
     get links(): DbInsertPostGdocLink[] {
@@ -1452,8 +1459,6 @@ export async function getMinimalAuthorsByNames(
     names: string[]
 ): Promise<LinkedAuthor[]> {
     if (names.length === 0) return []
-    // Strip roles like "(writing)" from author names before querying
-    const strippedNames = names.map((n) => parseAuthorRole(n).name)
     return await db.knexRaw<LinkedAuthor>(
         knex,
         `-- sql
@@ -1465,9 +1470,9 @@ export async function getMinimalAuthorsByNames(
                COALESCE(NULLIF(updatedAt, '1970-01-01'), createdAt) updatedAt
            FROM posts_gdocs
            WHERE type = 'author'
-           AND content->>'$.title' in (:strippedNames)
+           AND content->>'$.title' in (:names)
            AND published = 1`,
-        { strippedNames }
+        { names }
     )
 }
 
