@@ -19,8 +19,4 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     //     scriptUrl: "/assets/bespoke/my-widget.mjs",
     //     cssUrl: "/assets/bespoke/my-widget.css",
     // },
-    example: {
-        scriptUrl: "http://localhost:8089/example/index.js",
-        cssUrl: "http://localhost:8089/example/index.css",
-    },
 }
