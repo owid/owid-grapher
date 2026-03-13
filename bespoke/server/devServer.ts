@@ -355,7 +355,7 @@ const server = http.createServer(
             return
         }
 
-        proxyRequest(req, res, project.port)
+        await proxyRequest(req, res, project.port)
     }
 )
 
