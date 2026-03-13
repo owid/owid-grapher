@@ -2,9 +2,14 @@
     "name": "@owid/bespoke-example",
     "private": true,
     "type": "module",
+    "entrypoints": {
+        "js": "src/index.ts",
+        "css": "src/index.css"
+    },
     "scripts": {
-        "dev": "vite build --watch",
-        "build": "vite build"
+        "dev": "vite dev",
+        "build": "vite build",
+        "typecheck": "tsgo"
     },
     "dependencies": {
         "jotai": "^2.18.1",
@@ -14,12 +19,8 @@
     "devDependencies": {
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
+        "@typescript/native-preview": "^7.0.0-dev.20260313.1",
         "@vitejs/plugin-react": "^6.0.0",
-        "typescript": "~5.9.3",
         "vite": "^8.0.0"
-    },
-    "entrypoints": {
-        "js": "src/index.ts",
-        "css": "src/index.css"
     }
 }
