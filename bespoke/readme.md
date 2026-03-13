@@ -195,7 +195,9 @@ A dev server at [bespoke/server/](server/) provides a local environment for work
 yarn startBespokeDevServer
 ```
 
-Visit `http://localhost:8089/<project>/demo` to see a demo page that mounts all of a project's variants inside Shadow DOM — matching the production embedding behavior. See [bespoke/server/readme.md](server/readme.md) for more.
+Visit `http://localhost:8089/<project>/demo` to see a demo page that mounts all of a project's variants inside Shadow DOM — matching the production embedding behavior.
+
+Append `?shadowDom=false` to disable Shadow DOM isolation. This gives you proper CSS HMR. See [bespoke/server/readme.md](server/readme.md) for more.
 
 ## Creating a new bespoke component
 
