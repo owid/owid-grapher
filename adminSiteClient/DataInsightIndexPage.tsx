@@ -82,6 +82,7 @@ type PublicationFilter = "published" | "scheduled" | "draft"
 type Layout = "list" | "gallery"
 
 const DEFAULT_LAYOUT: Layout = "list"
+const PAGE_SIZE = 10
 
 const editIcon = <FontAwesomeIcon icon={faPen} size="sm" />
 const linkIcon = <FontAwesomeIcon icon={faUpRightFromSquare} size="sm" />
@@ -307,11 +308,15 @@ export function DataInsightIndexPage() {
         PublicationFilter | undefined
     >()
     const [layout, setLayout] = useState<Layout>(DEFAULT_LAYOUT)
+    const [currentPage, setCurrentPage] = useState(1)
 
     const [dataInsightForImageUpload, setDataInsightForImageUpload] =
         useState<DataInsightIndexItemThatCanBeUploaded>()
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+
+    // True while new content is being refreshed from Google Docs
+    const [isRefreshing, setIsRefreshing] = useState(false)
 
     const [notificationApi, notificationContextHolder] =
         notification.useNotification()
@@ -382,6 +387,56 @@ export function DataInsightIndexPage() {
         publicationFilter,
         searchWords,
     ])
+
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [searchValue, topicTagFilter, chartTypeFilter, publicationFilter])
+
+    const visibleDataInsights = useMemo(
+        () =>
+            filteredDataInsights.slice(
+                (currentPage - 1) * PAGE_SIZE,
+                currentPage * PAGE_SIZE
+            ),
+        [filteredDataInsights, currentPage]
+    )
+
+    const refreshDataFromGdocs = useCallback(async () => {
+        const gdocIds = visibleDataInsights.map((di) => di.id)
+        if (gdocIds.length === 0) return
+
+        setIsRefreshing(true)
+        try {
+            const result = await admin.requestJSON(
+                "/api/dataInsights/refresh",
+                { gdocIds },
+                "POST"
+            )
+
+            // Fetch the latest data if any items were updated
+            if (result.updated > 0) await refreshDataInsights()
+
+            // Show a notification if any items failed to sync
+            if (result.errored > 0) {
+                notificationApi.error({
+                    message: "Failed to refresh some data insights",
+                    description: `${result.errored} of ${gdocIds.length} data insights could not be refreshed from Google Docs.`,
+                    placement: "bottomRight",
+                })
+            }
+        } catch (error) {
+            // Show a notification if the entire sync operation failed
+            notificationApi.error({
+                message: "Failed to refresh data insights",
+                description:
+                    error instanceof Error ? error.message : "Unknown error",
+                placement: "bottomRight",
+            })
+        } finally {
+            setIsRefreshing(false)
+        }
+    }, [admin, notificationApi, refreshDataInsights, visibleDataInsights])
 
     const updateTags = useCallback(
         async (gdocId: string, tags: MinimalTag[]) => {
@@ -555,6 +610,17 @@ export function DataInsightIndexPage() {
                             </Button>
                         </Flex>
                         <Flex gap="small">
+                            {layout === "list" && (
+                                <Tooltip title="Fetch latest content from Google Docs">
+                                    <Button
+                                        icon={rotateIcon}
+                                        onClick={refreshDataFromGdocs}
+                                        loading={isRefreshing}
+                                    >
+                                        Refresh
+                                    </Button>
+                                </Tooltip>
+                            )}
                             <Radio.Group
                                 defaultValue="list"
                                 onChange={(e) => setLayout(e.target.value)}
@@ -579,6 +645,14 @@ export function DataInsightIndexPage() {
                             columns={columns}
                             dataSource={filteredDataInsights}
                             rowKey={(dataInsight) => dataInsight.id}
+                            pagination={{
+                                current: currentPage,
+                                pageSize: PAGE_SIZE,
+                                showSizeChanger: false,
+                            }}
+                            onChange={(pagination) => {
+                                setCurrentPage(pagination.current ?? 1)
+                            }}
                         />
                     )}
                     {layout === "gallery" && (
