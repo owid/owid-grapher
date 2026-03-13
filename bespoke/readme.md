@@ -9,7 +9,9 @@ Unlike Grapher charts, bespoke components are fully custom — they have their o
 ```
 bespoke/
 ├── components/    # Shared component library (React components, hooks, utilities)
-├── projects/      # Individual bespoke viz projects
+├── projects/      # Individual bespoke viz projects (each fully self-contained)
+├── server/        # Dev server (reverse proxy that lazily starts Vite per project)
+├── shared/        # Shared code between the site code and bespoke projects (e.g. shared types, Shadow DOM utilities)
 └── readme.md
 ```
 
@@ -174,6 +176,26 @@ export function mount(container, { variant }) {
 ```
 
 You don't have to use jotai — any module-scoped state (a plain variable, an event emitter, MobX, etc.) will work since all variants share the same module. Jotai is just a good and easy choice for React projects.
+
+## Shared types
+
+The types for the module interface (`BespokeComponentModule`, `BespokeComponentMountFn`, `BespokeComponentVariantsList`) live in [bespoke/shared/bespokeComponentTypes.ts](shared/bespokeComponentTypes.ts). Projects import them via a TS path alias:
+
+```ts
+import type { BespokeComponentMountFn } from "owid-bespoke-types"
+```
+
+This requires a `paths` entry in the project's `tsconfig.json` — see [bespoke/shared/readme.md](shared/readme.md) for details.
+
+## Dev server
+
+A dev server at [bespoke/server/](server/) provides a local environment for working on bespoke projects. It lazily spawns a Vite dev server per project and proxies requests, so you get HMR out of the box.
+
+```bash
+yarn startBespokeDevServer
+```
+
+Visit `http://localhost:8089/<project>/demo` to see a demo page that mounts all of a project's variants inside Shadow DOM — matching the production embedding behavior. See [bespoke/server/readme.md](server/readme.md) for more.
 
 ## Creating a new bespoke component
 
