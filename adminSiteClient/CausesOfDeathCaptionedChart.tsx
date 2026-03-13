@@ -1,15 +1,15 @@
 import { useMemo } from "react"
 import * as R from "remeda"
 import cx from "classnames"
-import { Link, Tooltip, TooltipTrigger } from "react-aria-components"
 
 import { EntityName, Time } from "@ourworldindata/types"
+import { articulateEntity } from "@ourworldindata/utils"
 
 import { DataRow } from "./CausesOfDeathConstants"
 import { ResponsiveCausesOfDeathTreemap } from "./CausesOfDeathTreemap"
-import { formatCountryName, formatCount } from "./CausesOfDeathHelpers.js"
+import { formatCount } from "./CausesOfDeathHelpers.js"
 import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
-import { CausesOfDeathSpinner } from "./CausesOfDeathSpinner.js"
+import { LoadingSpinner } from "./LoadingSpinner.js"
 
 import { ChartHeader } from "../bespoke/components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../bespoke/components/ChartFooter/ChartFooter.js"
@@ -53,7 +53,7 @@ export function CausesOfDeathCaptionedChart({
             />
 
             <div className="causes-of-death-captioned-chart__chart-area">
-                {isLoading && <CausesOfDeathSpinner />}
+                {isLoading && <LoadingSpinner />}
 
                 <ResponsiveCausesOfDeathTreemap
                     data={entityData}
@@ -89,12 +89,12 @@ function CausesOfDeathHeader({
     const location =
         entityName === "World"
             ? "globally"
-            : `in ${formatCountryName(entityName)}`
+            : `in ${articulateEntity(entityName)}`
 
     const title =
         entityName === "World"
             ? `What did ${ageGroupName} die from in ${year}?`
-            : `What did ${ageGroupName} in ${formatCountryName(entityName)} die from in ${year}?`
+            : `What did ${ageGroupName} in ${articulateEntity(entityName)} die from in ${year}?`
 
     return (
         <ChartHeader
