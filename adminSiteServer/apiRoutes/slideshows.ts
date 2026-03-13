@@ -13,6 +13,7 @@ import {
     SlideshowCreateSchema,
     SlideshowUpdateSchema,
 } from "@ourworldindata/types"
+import { ApiSlideshowOverview } from "../../adminShared/AdminTypes.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
@@ -86,14 +87,7 @@ export async function getSlideshows(
     _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
-    type SlideshowRow = Pick<
-        DbPlainSlideshow,
-        "id" | "slug" | "title" | "isPublished" | "updatedAt"
-    > & {
-        authorName: string
-    }
-
-    const rows = await db.knexRaw<SlideshowRow>(
+    const rows = await db.knexRaw<ApiSlideshowOverview>(
         trx,
         `-- sql
         SELECT
@@ -127,7 +121,12 @@ export async function getSlideshowById(
         throw new JsonError(`No slideshow found for id ${id}`, 404)
     }
 
-    return { slideshow: row }
+    return {
+        slideshow: {
+            ...row,
+            config: JSON.parse(row.config as unknown as string),
+        },
+    }
 }
 
 export async function createSlideshow(
@@ -151,7 +150,7 @@ export async function createSlideshow(
     const [id] = await trx<DbInsertSlideshow>(SlideshowsTableName).insert({
         slug,
         title,
-        config,
+        config: JSON.stringify(config) as any,
         userId: res.locals.user.id,
     })
 
@@ -181,7 +180,7 @@ export async function updateSlideshow(
     const updates: Partial<DbInsertSlideshow> = {}
     if (slug !== undefined) updates.slug = slug
     if (title !== undefined) updates.title = title
-    if (config !== undefined) updates.config = config
+    if (config !== undefined) updates.config = JSON.stringify(config) as any
     if (isPublished !== undefined) {
         updates.isPublished = isPublished
         if (isPublished && !existing.publishedAt) {

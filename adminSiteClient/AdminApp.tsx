@@ -56,6 +56,8 @@ import { FeaturedMetricsPage } from "./FeaturedMetricsPage.js"
 import { DodsIndexPage } from "./DodsIndexPage.js"
 import { StaticVizIndexPage } from "./StaticVizIndexPage.js"
 import { StaticVizEditPage } from "./StaticVizEditPage.js"
+import { SlideshowsIndexPage } from "./SlideshowsIndexPage.js"
+import { SlideshowEditorPage } from "./SlideshowEditorPage.js"
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -240,6 +242,27 @@ export class AdminApp extends React.Component<{
                                     exact
                                     path="/static-viz/:staticVizId"
                                     component={StaticVizEditPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/slideshows"
+                                    component={SlideshowsIndexPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/slideshows/create"
+                                    component={SlideshowEditorPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/slideshows/:slideshowId/edit"
+                                    render={({ match }) => (
+                                        <SlideshowEditorPage
+                                            slideshowId={parseInt(
+                                                match.params.slideshowId
+                                            )}
+                                        />
+                                    )}
                                 />
                                 <Route
                                     exact
