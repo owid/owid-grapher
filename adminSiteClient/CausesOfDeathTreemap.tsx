@@ -8,7 +8,10 @@ import {
 } from "./CausesOfDeathConstants"
 import { useMemo, useState, useCallback, useRef } from "react"
 import * as d3 from "d3"
-import { useChartDimensions, useScreenDimensions } from "./useDimensions"
+import {
+    useChartDimensions,
+    useScreenDimensions,
+} from "../bespoke/hooks/useDimensions"
 import { Bounds, getRelativeMouse } from "@ourworldindata/utils"
 
 import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"

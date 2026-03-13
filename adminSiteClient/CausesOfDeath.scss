@@ -14,11 +14,15 @@
 @import "../packages/@ourworldindata/grapher/src/controls/Dropdown.scss";
 @import "../packages/@ourworldindata//grapher/src/tooltip/Tooltip.scss";
 
+@import "../bespoke/components/ChartHeader/ChartHeader.scss";
+@import "../bespoke/components/ChartFooter/ChartFooter.scss";
+@import "../bespoke/components/ChartControls/ChartControls.scss";
+@import "../bespoke/components/TimeSlider/TimeSlider.scss";
+
 $frame: 1px solid $frame-color;
 $frame-padding: 16px;
 $frame-radius: 2px;
 $frame-max-width: 900px;
-$black-text: $gray-100;
 
 .causes-of-death-page {
     margin: 24px;
@@ -31,20 +35,6 @@ $black-text: $gray-100;
 }
 
 .causes-of-death-controls {
-    border: $frame;
-    padding: $frame-padding;
-    border-radius: $frame-radius;
-    margin-bottom: 16px;
-
-    .causes-of-death-controls__title {
-        font-size: 10px;
-        font-weight: 900;
-        letter-spacing: 0.15em;
-        color: $light-text;
-        text-transform: uppercase;
-        margin-bottom: 12px;
-    }
-
     .causes-of-death-controls__content {
         display: flex;
         flex-direction: column;
@@ -108,46 +98,6 @@ $black-text: $gray-100;
 }
 
 .causes-of-death-header {
-    .owid-logo {
-        float: right;
-        height: 45px;
-        width: auto;
-        margin: 0 0 15px 15px;
-
-        @include sm-only {
-            height: 38px;
-            margin: 0 0 10px 10px;
-        }
-    }
-
-    .causes-of-death-header__content h1 {
-        color: $black-text;
-        font-size: 1.5rem;
-        font-weight: 600;
-        font-family: $serif-font-stack;
-        margin: 0;
-        margin-bottom: 8px;
-
-        span {
-            color: $light-text;
-        }
-
-        @include sm-only {
-            font-size: 1.25rem;
-        }
-    }
-
-    .causes-of-death-header__subtitle {
-        font-size: 1rem;
-        line-height: 1.2;
-        margin: 0;
-        margin-bottom: 16px;
-
-        @include sm-only {
-            font-size: 0.875rem;
-        }
-    }
-
     .causes-of-death-header__value--loading {
         font-style: italic;
         opacity: 0.3;
@@ -157,37 +107,9 @@ $black-text: $gray-100;
 /* Causes of Death source line styling */
 .causes-of-death-footer {
     font-size: 0.875rem;
-    margin-top: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-
-    column-gap: 16px;
-    row-gap: 2px;
 
     @include sm-only {
         font-size: 0.75rem;
-    }
-
-    .causes-of-death-footer__cc {
-        background: none;
-        border: none;
-        cursor: pointer;
-        text-decoration: none;
-        color: inherit;
-    }
-
-    @at-root .causes-of-death-footer__tooltip {
-        background: white;
-        color: $black-text;
-        border-radius: 4px;
-        box-shadow: 0px 4px 40px rgba(0, 0, 0, 0.2);
-        padding: 8px 12px;
-        font-size: 0.875rem;
-        max-width: 300px;
-        line-height: 1.5;
-        font-family: $sans-serif-font-stack;
     }
 }
 
@@ -203,7 +125,7 @@ $black-text: $gray-100;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: $black-text;
+    color: $gray-100;
 }
 
 .causes-of-death-skeleton {
@@ -237,139 +159,6 @@ $black-text: $gray-100;
     stroke-linejoin: round;
     stroke-linecap: round;
     fill: none;
-}
-
-.causes-of-death-time-slider {
-    $timelineHeight: 32px;
-
-    $handle-diameter: 16px;
-    $default-knob: $gray-60;
-    $active-knob: $blue-50;
-    $light-timeline: $gray-20;
-    $active-timeline: $blue-30;
-    $hover-timeline: $default-knob;
-    $light-fill: $gray-10;
-    $hover-fill: $gray-20;
-    $active-fill: $blue-20;
-
-    width: 100%;
-    height: $timelineHeight;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1em;
-
-    &--loading {
-        opacity: 0.6;
-        pointer-events: none;
-    }
-
-    > div {
-        margin-right: 0.5em;
-        &:last-child {
-            margin-right: 0;
-        }
-    }
-
-    .date {
-        height: 100%;
-        font-size: 13px;
-        font-weight: 400;
-        color: $gray-90;
-        padding: 0 8px;
-        border-radius: 4px;
-        display: grid;
-        place-content: center;
-        margin-right: 0;
-        background-color: $light-fill;
-        user-select: none;
-        border: none;
-        cursor: pointer;
-
-        &:hover {
-            background: $hover-fill;
-        }
-
-        &:active {
-            background: $active-fill;
-            color: $blue-90;
-        }
-    }
-
-    .slider {
-        height: 2px;
-        flex-grow: 1;
-        background: $light-timeline;
-        position: relative;
-        display: flex;
-        align-items: center;
-        margin-left: $handle-diameter;
-        margin-right: $handle-diameter;
-        padding: 12px 0;
-        box-sizing: content-box !important;
-        background-clip: content-box !important;
-    }
-
-    .handle {
-        $handleSidePadding: 6px;
-
-        position: absolute;
-        z-index: 1;
-        margin-left: (-$handle-diameter * 0.5) - $handleSidePadding;
-        cursor: col-resize;
-        padding: 10px $handleSidePadding;
-        box-sizing: content-box !important;
-        background-clip: content-box !important;
-
-        > .icon {
-            height: $handle-diameter;
-            width: $handle-diameter;
-            border-radius: 100%;
-            background: $default-knob;
-            border: 2px solid #fff;
-            z-index: 1;
-            pointer-events: none;
-            transform: scale(1);
-            transition: transform 0.1s ease-out;
-        }
-    }
-
-    &.hover {
-        .handle > .icon {
-            transform: scale(1.3);
-            background: $active-knob;
-        }
-    }
-}
-
-.causes-of-death-time-slider__tooltip {
-    position: absolute;
-    top: -28px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: $gray-90;
-    color: white;
-    padding: 6px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    line-height: 16px;
-    white-space: nowrap;
-    z-index: 100;
-    pointer-events: none;
-
-    // Tooltip arrow
-    &::after {
-        content: "";
-        position: absolute;
-        top: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 0;
-        height: 0;
-        border-left: 4px solid transparent;
-        border-right: 4px solid transparent;
-        border-top: 4px solid $gray-90;
-    }
 }
 
 .causes-of-death-legend {

@@ -1,7 +1,4 @@
-// adapted from https://wattenberger.com/blog/react-and-d3#sizing-responsivity
-
 import { useState, useRef, useEffect } from "react"
-// import { ResizeObserver } from "@juggle/resize-observer" // polyfill
 
 interface Margins {
     top: number
@@ -22,6 +19,7 @@ interface Dimensions {
     height: number
 }
 
+// Adapted from https://wattenberger.com/blog/react-and-d3#sizing-responsivity
 export const useChartDimensions = <E extends HTMLElement>(options?: {
     margins?: Partial<Margins>
     config?: DimensionsConfig
