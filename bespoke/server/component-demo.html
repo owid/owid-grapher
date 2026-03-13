@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Demo — {{PROJECT}}</title>
+        <script type="module">
+            // We just assume that this project needs the React Refresh runtime, which is true for all our current projects. If we ever have a project that doesn't use React, we'll need to make this more flexible.
+            import { injectIntoGlobalHook } from "/{{PROJECT}}/@react-refresh"
+            injectIntoGlobalHook(window)
+            window.$RefreshReg$ = () => {}
+            window.$RefreshSig$ = () => (type) => type
+        </script>
+        <script type="module" src="/{{PROJECT}}/@vite/client"></script>
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+            body {
+                font-family: system-ui, sans-serif;
+                margin: 0;
+                padding: 24px;
+                color: #1d1d1d;
+            }
+            h1 {
+                font-size: 1.25rem;
+                margin: 0 0 24px;
+            }
+            .variant {
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                padding: 16px;
+                margin-bottom: 16px;
+            }
+            .variant-label {
+                font-size: 0.75rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: #888;
+                margin-bottom: 8px;
+            }
+        </style>
+        <link href="/{{PROJECT}}/src/index.css" rel="stylesheet" />
+    </head>
+    <body>
+        <h1>{{PROJECT}}</h1>
+        <div id="demo-root"></div>
+        <script type="module">
+            import { VARIANTS, mount } from "/{{PROJECT}}/src/index.ts"
+
+            const root = document.getElementById("demo-root")
+            for (const variant of VARIANTS) {
+                const section = document.createElement("div")
+                section.className = "variant"
+
+                const label = document.createElement("div")
+                label.className = "variant-label"
+                label.textContent = variant.name
+                section.appendChild(label)
+
+                const container = document.createElement("div")
+                section.appendChild(container)
+                root.appendChild(section)
+
+                mount(container, {
+                    variant: variant.name,
+                    config: variant.defaultConfig,
+                })
+            }
+        </script>
+    </body>
+</html>

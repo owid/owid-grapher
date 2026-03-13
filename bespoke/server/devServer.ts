@@ -188,6 +188,22 @@ function proxyWebSocket(
     socket.on("error", () => target.destroy())
 }
 
+// Serve the shared component demo page for /<project>/demo,
+// with the project name substituted into the template
+const demoTemplate = fs.readFileSync(
+    path.join(dirname, "component-demo.html"),
+    "utf-8"
+)
+
+function serveDemoPage(
+    projectName: string,
+    res: http.ServerResponse
+): void {
+    const html = demoTemplate.replaceAll("{{PROJECT}}", projectName)
+    res.writeHead(200, { "Content-Type": "text/html" })
+    res.end(html)
+}
+
 // Extract the project name (first path segment) from a URL
 function getProjectName(url: string): string | null {
     const parts = url.split("/").filter(Boolean)
@@ -200,7 +216,7 @@ function listProjectsPage(): string {
         .readdirSync(PROJECTS_DIR)
         .filter((d: string) => isProject(d))
     const links = dirs
-        .map((p: string) => `<li><a href="/${p}/">${p}</a></li>`)
+        .map((p: string) => `<li><a href="/${p}/demo">${p}</a></li>`)
         .join("\n")
     return `<!doctype html>
 <html>
@@ -242,6 +258,13 @@ const server = http.createServer(
         if (!project) {
             res.writeHead(404, { "Content-Type": "text/plain" })
             res.end(`Project "${projectName}" not found`)
+            return
+        }
+
+        // Serve the shared demo page for /<project>/demo
+        const pathname = (req.url || "/").split("?")[0]
+        if (pathname === `/${projectName}/demo` || pathname === `/${projectName}/demo/`) {
+            serveDemoPage(projectName, res)
             return
         }
 
