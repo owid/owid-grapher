@@ -4,6 +4,7 @@ export const ImagesTableName = "images"
 export interface DbInsertImage {
     googleId: string | null
     defaultAlt: string
+    extractedText?: string | null
     filename: string
     id?: number
     originalWidth: number
