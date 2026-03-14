@@ -1,3 +1,4 @@
+/* oxlint-disable */
 // @ts-check
 
 /** @type {import('@yarnpkg/types')} */

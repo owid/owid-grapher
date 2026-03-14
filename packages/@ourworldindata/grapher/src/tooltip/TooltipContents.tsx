@@ -341,7 +341,7 @@ export function toTooltipTableColumns(
 
     return columnsArray.map((column) => ({
         label: column.displayName,
-        formatValue: (value) =>
+        formatValue: (value: unknown): string =>
             column.formatValueShort(value, { trailingZeroes: true }),
     }))
 }
