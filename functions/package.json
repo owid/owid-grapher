@@ -11,7 +11,7 @@
         "@resvg/resvg-wasm": "^2.6.2",
         "@sentry/cloudflare": "^10.40.0",
         "cookie": "^1.0.2",
-        "itty-router": "^5.0.17",
+        "itty-router": "^5.0.23",
         "littlezipper": "^0.1.4",
         "react": "^19.2.0",
         "react-dom": "^19.2.0",
