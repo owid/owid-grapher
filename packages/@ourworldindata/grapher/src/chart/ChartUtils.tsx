@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import {
     Box,
@@ -17,6 +18,9 @@ import {
     PrimitiveType,
     ColumnTypeNames,
     Time,
+    SortBy,
+    SortConfig,
+    SortOrder,
 } from "@ourworldindata/types"
 import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -361,4 +365,22 @@ export function getChartSvgProps({
             backgroundColor: backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT,
         },
     }
+}
+
+type SortKeyFn<T> = (item: T) => number | string | undefined
+
+export type SortKeyFunctions<T> = Record<SortBy, SortKeyFn<T>>
+
+export function sortByConfig<T>(
+    items: readonly T[],
+    sortConfig: SortConfig,
+    keyFns: SortKeyFunctions<T>
+): T[] {
+    const sortByKey = sortConfig.sortBy ?? SortBy.total
+    const sortByFunc = keyFns[sortByKey]
+    const sortOrder = sortConfig.sortOrder ?? SortOrder.desc
+
+    const sortedRows = _.sortBy(items, sortByFunc)
+
+    return sortOrder === SortOrder.desc ? sortedRows.toReversed() : sortedRows
 }
