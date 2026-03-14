@@ -1,5 +1,8 @@
 export interface Env {
     ASSETS: Fetcher
+    AI: Ai
+    VECTORIZE_TOPICS: Vectorize
+    VECTORIZE_VOCABULARY: Vectorize
     url: URL
     GRAPHER_CONFIG_R2_BUCKET?: R2Bucket
     GRAPHER_CONFIG_R2_BUCKET_FALLBACK?: R2Bucket
