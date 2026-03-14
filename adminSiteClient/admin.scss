@@ -19,6 +19,14 @@
 
 @import "@react-awesome-query-builder/antd/css/styles.css";
 
+// Import required variables for tooltip styles
+@import "../packages/@ourworldindata/components/src/styles/colors.scss";
+@import "../packages/@ourworldindata/components/src/styles/variables.scss";
+@import "../packages/@ourworldindata/components/src/styles/typography.scss";
+
+// Import tooltip styles for the new MobX-free tooltip system
+@import "../packages/@ourworldindata/grapher/src/tooltip/Tooltip.scss";
+
 @import "./GdocsIndexPage.scss";
 @import "./FeaturedMetricsPage.scss";
 @import "./FilesIndexPage.scss";
@@ -1849,13 +1857,4 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
 
 .ImageReplaceConfirmModal__strong-text {
     font-weight: bold;
-}
-
-.table-preview-col {
-    min-width: 140px;
-    width: 12.5%;
-}
-
-.table-preview-col--centered {
-    text-align: center;
 }
