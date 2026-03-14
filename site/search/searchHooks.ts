@@ -1,3 +1,4 @@
+import { Client } from "typesense"
 import { FilterType, SearchState } from "@ourworldindata/types"
 import {
     getFilterNamesOfType,
@@ -9,7 +10,6 @@ import { DEFAULT_SEARCH_STATE } from "./searchState.js"
 import { useSearchContext } from "./SearchContext.js"
 import { flattenNonTopicNodes } from "@ourworldindata/utils"
 import { useInfiniteQuery } from "@tanstack/react-query"
-import { LiteClient } from "algoliasearch/lite"
 import type { SearchResponse } from "instantsearch.js"
 import { useState, useEffect, useMemo, useRef } from "react"
 import type { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
@@ -113,7 +113,7 @@ export function useInfiniteSearchOffset<T extends SearchResponse<U>, U>({
 }: {
     queryKey: (state: SearchState) => readonly (string | QueryKeyState)[]
     queryFn: (
-        liteSearchClient: LiteClient,
+        client: Client,
         state: SearchState,
         offset: number,
         length: number
@@ -122,7 +122,7 @@ export function useInfiniteSearchOffset<T extends SearchResponse<U>, U>({
     laterPageSize: number
     enabled?: boolean
 }) {
-    const { state, liteSearchClient } = useSearchContext()
+    const { state, typesenseClient } = useSearchContext()
     const query = useInfiniteQuery<T, Error>({
         queryKey: queryKey(state),
         queryFn: ({ pageParam }) => {
@@ -135,7 +135,7 @@ export function useInfiniteSearchOffset<T extends SearchResponse<U>, U>({
                 laterPageSize
             )
 
-            return queryFn(liteSearchClient, state, offset, length)
+            return queryFn(typesenseClient, state, offset, length)
         },
         getNextPageParam: (lastPage, allPages) => {
             const currentPageIndex = allPages.length - 1
@@ -171,14 +171,10 @@ export function useInfiniteSearch<T extends SearchResponse<U>, U>({
     enabled = true,
 }: {
     queryKey: (state: SearchState) => readonly (string | QueryKeyState)[]
-    queryFn: (
-        liteSearchClient: LiteClient,
-        state: SearchState,
-        page: number
-    ) => Promise<T>
+    queryFn: (client: Client, state: SearchState, page: number) => Promise<T>
     enabled?: boolean
 }) {
-    const { state, liteSearchClient } = useSearchContext()
+    const { state, typesenseClient } = useSearchContext()
 
     const query = useInfiniteQuery<T, Error>({
         // All paginated subqueries share the same query key
@@ -187,7 +183,7 @@ export function useInfiniteSearch<T extends SearchResponse<U>, U>({
             if (typeof pageParam !== "number")
                 throw new Error("Invalid pageParam")
 
-            return queryFn(liteSearchClient, state, pageParam)
+            return queryFn(typesenseClient, state, pageParam)
         },
         getNextPageParam: (lastPage) => {
             let { page, nbPages } = lastPage

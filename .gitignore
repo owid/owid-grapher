@@ -58,3 +58,6 @@ playwright-report/
 
 # Claude
 .claude/settings.local.json
+
+# Typesense data directory
+typesense-data/
