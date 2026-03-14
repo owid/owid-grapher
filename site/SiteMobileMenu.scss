@@ -11,7 +11,8 @@
     }
 
     > ul {
-        > li {
+        // Don't add a border to the last two items (Donate and Send Feedback)
+        > li:not(:nth-last-child(2)) {
             border-bottom: rgba(152, 169, 189, 0.3) 1px solid;
         }
     }
@@ -28,6 +29,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
+        cursor: pointer;
 
         &.active {
             color: $blue-90;
@@ -69,5 +71,69 @@
         padding: 8px;
         color: $white;
         background-color: $vermillion;
+    }
+
+    .donate {
+        padding: 9.5px 24px;
+    }
+    .send-feedback-button {
+        background-color: transparent;
+        width: calc(100% - 32px);
+        margin: 16px;
+    }
+}
+
+.SiteMobileFeedbackModal {
+    position: fixed;
+    inset: 0;
+    z-index: $zindex-site-header + 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.SiteMobileFeedbackModal__overlay {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.SiteMobileFeedbackModal__box {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    @include popover-box-styles;
+    width: 100vw;
+    border-radius: 0;
+
+    @include sm-up {
+        width: calc(100vw - 32px);
+        max-width: 500px;
+        height: auto;
+        border-radius: 3px;
+    }
+
+    .FeedbackForm {
+        height: 100%;
+        max-height: none;
+
+        @include sm-up {
+            max-height: 700px;
+        }
+
+        > div.formBody textarea {
+            font-size: 16px;
+        }
+    }
+
+    .SiteMobileFeedbackModal__close {
+        position: absolute;
+        top: 0;
+        right: 0;
+        padding: 0.5rem 1rem !important;
+        cursor: pointer;
+        z-index: 1;
+        svg {
+            margin-right: 0;
+        }
     }
 }
