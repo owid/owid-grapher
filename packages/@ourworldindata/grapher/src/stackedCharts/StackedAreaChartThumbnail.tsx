@@ -1,4 +1,3 @@
-import * as _ from "lodash-es"
 import React from "react"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -9,6 +8,7 @@ import { Bounds, excludeUndefined } from "@ourworldindata/utils"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
+    FontSettings,
     GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
@@ -60,7 +60,7 @@ export class StackedAreaChartThumbnail
     }
 
     @computed private get innerBounds(): Bounds {
-        return this.bounds.padRight(this.paddedLabelsWidth)
+        return this.bounds.padRight(this.estimatedLabelWidth)
     }
 
     @computed private get xAxisConfig(): AxisConfig {
@@ -100,15 +100,12 @@ export class StackedAreaChartThumbnail
         return this.dualAxis.verticalAxis
     }
 
-    @computed private get labelFontSize(): number {
-        return Math.floor(GRAPHER_FONT_SCALE_12 * this.fontSize)
-    }
-
-    // Same as dualAxis.verticalAxis, but doesn't depend on innerBounds
-    @computed get outerBoundsVerticalAxis(): VerticalAxis {
-        const yAxis = this.verticalAxisPart.clone()
-        yAxis.range = this.bounds.yRange()
-        return yAxis
+    @computed private get labelFontSettings(): FontSettings {
+        return {
+            fontSize: Math.floor(GRAPHER_FONT_SCALE_12 * this.fontSize),
+            fontWeight: 500,
+            lineHeight: 1,
+        }
     }
 
     @computed private get labelsRange(): [number, number] {
@@ -125,13 +122,18 @@ export class StackedAreaChartThumbnail
             .yRange()
     }
 
-    @computed private get verticalLabelsState():
-        | SimpleVerticalLabelsState
-        | undefined {
-        if (!this.manager.showSeriesLabels || this.manager.useMinimalLabeling)
-            return undefined
+    @computed private get labelsMaxWidth(): number {
+        return 0.25 * this.bounds.width
+    }
 
-        const series = excludeUndefined(
+    @computed private get labelsSeries(): Omit<
+        InitialSimpleLabelSeries,
+        "position"
+    >[] {
+        if (!this.manager.showSeriesLabels || this.manager.useMinimalLabeling)
+            return []
+
+        return excludeUndefined(
             this.chartState.series.map((series, seriesIndex) => {
                 const { seriesName, color, focus } = series
 
@@ -139,18 +141,33 @@ export class StackedAreaChartThumbnail
                 if (focus?.background) return undefined
 
                 const value = this.chartState.midpoints[seriesIndex]
-
-                const yPosition = this.outerBoundsVerticalAxis.place(value)
                 const label = seriesName
 
-                return { series, seriesName, value, label, yPosition, color }
+                return { seriesName, value, label, color }
             })
         )
+    }
+
+    private makeVerticalLabelsState({
+        dualAxis,
+    }: {
+        dualAxis: DualAxis
+    }): SimpleVerticalLabelsState | undefined {
+        if (this.labelsSeries.length === 0) return undefined
+
+        const series = this.labelsSeries.map((series) => {
+            const position = {
+                x: dualAxis.bounds.right,
+                y: dualAxis.verticalAxis.place(series.value),
+            }
+
+            return { ...series, position }
+        })
 
         return new SimpleVerticalLabelsState(series, {
-            fontSize: this.labelFontSize,
-            fontWeight: 500,
-            maxWidth: 0.25 * this.bounds.width,
+            ...this.labelFontSettings,
+            maxWidth: this.labelsMaxWidth,
+            labelOffset: LEGEND_PADDING,
             yRange: this.labelsRange,
             resolveCollision: (
                 s1: InitialSimpleLabelSeries,
@@ -170,12 +187,36 @@ export class StackedAreaChartThumbnail
         })
     }
 
-    @computed private get labelsWidth(): number {
-        return this.verticalLabelsState?.width ?? 0
+    @computed private get verticalLabelsState():
+        | SimpleVerticalLabelsState
+        | undefined {
+        return this.makeVerticalLabelsState({ dualAxis: this.dualAxis })
     }
 
-    @computed private get paddedLabelsWidth(): number {
-        return this.labelsWidth ? this.labelsWidth + LEGEND_PADDING : 0
+    /**
+     * Estimated width of the labels, used by innerBounds to reserve space
+     * on the right side of the chart area.
+     *
+     * Ideally, we'd derive this from the final label state, which knows
+     * exactly which labels are visible after collision detection. But that
+     * would introduce a cyclic dependency: the label state needs the axis
+     * for pixel positions, the axis needs innerBounds, and innerBounds needs
+     * this width. To break the cycle, we run a preliminary layout pass
+     * using the full bounds (without label padding).
+     */
+    @computed private get estimatedLabelWidth(): number {
+        const approximateDualAxis = new DualAxis({
+            bounds: this.bounds,
+            horizontalAxis: this.horizontalAxisPart,
+            verticalAxis: this.verticalAxisPart,
+        })
+
+        const labelsState = this.makeVerticalLabelsState({
+            dualAxis: approximateDualAxis,
+        })
+
+        const width = labelsState?.width ?? 0
+        return width > 0 ? width + LEGEND_PADDING : 0
     }
 
     @computed private get placedSeries(): PlacedStackedAreaSeries<Time>[] {
@@ -212,11 +253,7 @@ export class StackedAreaChartThumbnail
                 />
                 <StackedAreas series={this.renderSeries} />
                 {this.verticalLabelsState && (
-                    <SimpleVerticalLabels
-                        state={this.verticalLabelsState}
-                        yAxis={this.dualAxis.verticalAxis}
-                        x={this.innerBounds.right + LEGEND_PADDING}
-                    />
+                    <SimpleVerticalLabels state={this.verticalLabelsState} />
                 )}
             </>
         )

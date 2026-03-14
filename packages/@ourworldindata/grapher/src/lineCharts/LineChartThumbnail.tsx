@@ -9,6 +9,7 @@ import { LineChartProps } from "./LineChart.js"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import {
     LineChartManager,
+    LinePoint,
     PlacedLineChartSeries,
     PlacedPoint,
     RenderLineChartSeries,
@@ -16,6 +17,7 @@ import {
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
+    FontSettings,
     GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
@@ -37,8 +39,8 @@ import { NoDataModal } from "../noDataModal/NoDataModal"
 
 const DOT_RADIUS = 4
 const SPACE_BETWEEN_DOT_AND_LABEL = 4
-
 const LABEL_PADDING = DOT_RADIUS + SPACE_BETWEEN_DOT_AND_LABEL
+const ZERO_LINE_STROKE_WIDTH = 1
 
 @observer
 export class LineChartThumbnail
@@ -64,8 +66,8 @@ export class LineChartThumbnail
 
     @computed private get innerBounds(): Bounds {
         return this.bounds
-            .padRight(this.paddedEndLabelsWidth)
-            .padLeft(this.paddedStartLabelsWidth)
+            .padRight(this.estimatedLabelWidth.right)
+            .padLeft(this.estimatedLabelWidth.left)
     }
 
     @computed get fontSize(): number {
@@ -153,15 +155,12 @@ export class LineChartThumbnail
             .filter((point) => point !== undefined)
     }
 
-    // Same as dualAxis.verticalAxis, but doesn't depend on innerBounds
-    @computed get outerBoundsVerticalAxis(): VerticalAxis {
-        const yAxis = this.verticalAxisPart.clone()
-        yAxis.range = this.bounds.yRange()
-        return yAxis
-    }
-
-    @computed private get labelFontSize(): number {
-        return Math.floor(GRAPHER_FONT_SCALE_12 * this.fontSize)
+    @computed private get labelFontSettings(): FontSettings {
+        return {
+            fontSize: Math.floor(GRAPHER_FONT_SCALE_12 * this.fontSize),
+            fontWeight: 500,
+            lineHeight: 1,
+        }
     }
 
     private formatLabel(value: number): string {
@@ -188,10 +187,24 @@ export class LineChartThumbnail
             .yRange()
     }
 
-    @computed private get endLabelsState():
-        | SimpleVerticalLabelsState
-        | undefined {
-        if (!this.manager.showSeriesLabels) return undefined
+    private makeZeroLineBounds({ dualAxis }: { dualAxis: DualAxis }): Bounds {
+        const { innerBounds, verticalAxis } = dualAxis
+        const zeroLineY = verticalAxis.place(0)
+        const strokeWidth = ZERO_LINE_STROKE_WIDTH
+        return new Bounds(
+            innerBounds.left,
+            zeroLineY - strokeWidth / 2,
+            innerBounds.width,
+            strokeWidth
+        )
+    }
+
+    @computed private get zeroLineBounds(): Bounds {
+        return this.makeZeroLineBounds({ dualAxis: this.dualAxis })
+    }
+
+    @computed private get endLabelCandidateSeriesNames(): SeriesName[] {
+        if (!this.manager.showSeriesLabels) return []
 
         let labelCandidateSeries = this.chartState.series
 
@@ -207,44 +220,92 @@ export class LineChartThumbnail
                 (series) => series.focus.active
             )
 
-        const endPointBySeriesName = new Map(
-            labelCandidateSeries.map((series) => [
-                series.seriesName,
-                _.maxBy(series.points, (point) => point.x),
-            ])
+        return labelCandidateSeries.map((series) => series.seriesName)
+    }
+
+    @computed private get endPointBySeriesName(): Map<
+        SeriesName,
+        LinePoint | undefined
+    > {
+        return new Map(
+            this.chartState.series
+                // Scoped to end label candidates so that when historical and
+                // projected segments share a series name, we pick the correct point
+                .filter((series) =>
+                    this.endLabelCandidateSeriesNames.includes(
+                        series.seriesName
+                    )
+                )
+                .map((series) => [
+                    series.seriesName,
+                    _.maxBy(series.points, (point) => point.x),
+                ])
         )
+    }
 
-        const series = labelCandidateSeries.map((series) => {
-            const { seriesName } = series
+    @computed private get endLabelsSeries(): Omit<
+        InitialSimpleLabelSeries,
+        "position"
+    >[] {
+        return this.endLabelCandidateSeriesNames
+            .map((seriesName) => {
+                const series = this.chartState.seriesByName.get(seriesName)
+                if (!series) return undefined
 
-            const endPoint = endPointBySeriesName.get(series.seriesName)
-            const value = endPoint?.y ?? 0
+                const endPoint = this.endPointBySeriesName.get(
+                    series.seriesName
+                )
+                if (!endPoint) return undefined
 
-            const yPosition = this.outerBoundsVerticalAxis.place(value)
-            const label = this.formatLabel(value)
+                const value = endPoint.y
+                const label = this.formatLabel(value)
 
-            const color = this.chartState.hasColorScale
-                ? darkenColorForLine(
-                      this.chartState.getColorScaleColor(endPoint?.colorValue)
-                  )
-                : series.color
+                const color = this.chartState.hasColorScale
+                    ? darkenColorForLine(
+                          this.chartState.getColorScaleColor(
+                              endPoint.colorValue
+                          )
+                      )
+                    : series.color
 
-            const labelSeries = { seriesName, value, label, yPosition, color }
+                return { seriesName, value, label, color }
+            })
+            .filter((series) => series !== undefined)
+    }
 
-            return { ...labelSeries, point: endPoint }
+    private makeEndLabelsState({
+        dualAxis,
+        avoidBounds,
+    }: {
+        dualAxis: DualAxis
+        avoidBounds: Bounds[]
+    }): SimpleVerticalLabelsState | undefined {
+        if (!this.manager.showSeriesLabels) return undefined
+
+        const series = this.endLabelsSeries.map((series) => {
+            const endPoint = this.endPointBySeriesName.get(series.seriesName)
+
+            const position = {
+                x: dualAxis.horizontalAxis.place(endPoint?.x ?? 0),
+                y: dualAxis.verticalAxis.place(endPoint?.y ?? 0),
+            }
+
+            return { ...series, position }
         })
 
         return new SimpleVerticalLabelsState(series, {
-            fontSize: this.labelFontSize,
-            fontWeight: 500,
+            ...this.labelFontSettings,
+            textAnchor: "start",
             yRange: this.labelsRange,
-            minSpacing: 2,
+            labelOffset: SPACE_BETWEEN_DOT_AND_LABEL,
+            markerRadius: DOT_RADIUS,
+            avoidBounds,
             resolveCollision: (
                 s1: InitialSimpleLabelSeries,
                 s2: InitialSimpleLabelSeries
             ): InitialSimpleLabelSeries => {
-                const endPoint1 = endPointBySeriesName.get(s1.seriesName)
-                const endPoint2 = endPointBySeriesName.get(s2.seriesName)
+                const endPoint1 = this.endPointBySeriesName.get(s1.seriesName)
+                const endPoint2 = this.endPointBySeriesName.get(s2.seriesName)
 
                 const x1 = endPoint1?.x ?? 0
                 const x2 = endPoint2?.x ?? 0
@@ -258,12 +319,17 @@ export class LineChartThumbnail
         })
     }
 
-    @computed private get startLabelsState():
+    @computed private get endLabelsState():
         | SimpleVerticalLabelsState
         | undefined {
-        if (!this.manager.showSeriesLabels) return undefined
+        return this.makeEndLabelsState({
+            dualAxis: this.dualAxis,
+            avoidBounds: [this.zeroLineBounds],
+        })
+    }
 
-        const showValueLabelsOnly = this.manager.useMinimalLabeling
+    @computed private get startLabelCandidateSeriesNames(): SeriesName[] {
+        if (!this.manager.showSeriesLabels) return []
 
         let labelCandidateSeries = this.chartState.series
 
@@ -279,65 +345,122 @@ export class LineChartThumbnail
                 (series) => series.focus.active
             )
 
-        const startPointBySeriesName = new Map(
-            labelCandidateSeries.map((series) => [
-                series.seriesName,
-                _.minBy(series.points, (point) => point.x),
-            ])
-        )
+        return labelCandidateSeries.map((series) => series.seriesName)
+    }
 
-        const series = labelCandidateSeries
-            .map((series) => {
-                const { seriesName } = series
+    @computed private get startPointBySeriesName(): Map<
+        SeriesName,
+        LinePoint | undefined
+    > {
+        return new Map(
+            this.chartState.series
+                // Scoped to start label candidates so that when historical and
+                // projected segments share a series name, we pick the correct point
+                .filter((series) =>
+                    this.startLabelCandidateSeriesNames.includes(
+                        series.seriesName
+                    )
+                )
+                .map((series) => [
+                    series.seriesName,
+                    _.minBy(series.points, (point) => point.x),
+                ])
+        )
+    }
+
+    @computed private get shouldShowValueLabelsOnly(): boolean {
+        return !!this.manager.useMinimalLabeling
+    }
+
+    @computed private get startLabelsMaxWidth(): number | undefined {
+        return this.shouldShowValueLabelsOnly
+            ? undefined
+            : 0.25 * this.bounds.width
+    }
+
+    @computed private get startLabelsSeries(): Omit<
+        InitialSimpleLabelSeries,
+        "position"
+    >[] {
+        return this.startLabelCandidateSeriesNames
+            .map((seriesName) => {
+                const series = this.chartState.seriesByName.get(seriesName)
+                if (!series) return undefined
 
                 // Don't show start label if there is only a single point
                 if (series.points.length < 2) return undefined
 
-                const startPoint = startPointBySeriesName.get(series.seriesName)
-                const value = startPoint?.y ?? 0
+                const startPoint = this.startPointBySeriesName.get(
+                    series.seriesName
+                )
+                if (!startPoint) return undefined
 
-                const yPosition = this.outerBoundsVerticalAxis.place(value)
-                const label = showValueLabelsOnly
+                const value = startPoint.y
+                const label = this.shouldShowValueLabelsOnly
                     ? this.formatLabel(value)
                     : seriesName
 
                 const color = this.chartState.hasColorScale
                     ? darkenColorForLine(
                           this.chartState.getColorScaleColor(
-                              startPoint?.colorValue
+                              startPoint.colorValue
                           )
                       )
                     : series.color
 
-                const labelSeries = {
-                    seriesName,
-                    value,
-                    label,
-                    yPosition,
-                    color,
-                }
-                return { ...labelSeries, point: startPoint }
+                return { seriesName, value, label, color }
             })
             .filter((series) => series !== undefined)
+    }
+
+    private makeStartLabelsState({
+        dualAxis,
+        avoidBounds,
+        visibleEndLabels,
+    }: {
+        dualAxis: DualAxis
+        avoidBounds: Bounds[]
+        visibleEndLabels: Set<SeriesName>
+    }): SimpleVerticalLabelsState | undefined {
+        if (!this.manager.showSeriesLabels) return undefined
+
+        const series = this.startLabelsSeries.map((series) => {
+            const startPoint = this.startPointBySeriesName.get(
+                series.seriesName
+            )
+
+            const position = {
+                x: startPoint
+                    ? dualAxis.horizontalAxis.place(startPoint.x)
+                    : dualAxis.bounds.left,
+                y: dualAxis.verticalAxis.place(series.value),
+            }
+
+            return { ...series, position }
+        })
 
         return new SimpleVerticalLabelsState(series, {
-            fontSize: this.labelFontSize,
-            fontWeight: 500,
-            maxWidth: showValueLabelsOnly
-                ? undefined
-                : 0.25 * this.bounds.width,
-            minSpacing: showValueLabelsOnly ? 2 : 5,
+            ...this.labelFontSettings,
+            maxWidth: this.startLabelsMaxWidth,
+            textAnchor: "end",
+            labelOffset: SPACE_BETWEEN_DOT_AND_LABEL,
+            markerRadius: DOT_RADIUS,
             yRange: this.labelsRange,
+            avoidBounds,
             resolveCollision: (
                 s1: InitialSimpleLabelSeries,
                 s2: InitialSimpleLabelSeries
             ): InitialSimpleLabelSeries => {
                 // Prefer to label series that have an end label
-                if (this.visibleEndLabels.has(s1.seriesName)) return s1
-                if (this.visibleEndLabels.has(s2.seriesName)) return s2
+                if (visibleEndLabels.has(s1.seriesName)) return s1
+                if (visibleEndLabels.has(s2.seriesName)) return s2
 
-                const startPoint1 = startPointBySeriesName.get(s1.seriesName)
-                const startPoint2 = startPointBySeriesName.get(s2.seriesName)
+                const startPoint1 = this.startPointBySeriesName.get(
+                    s1.seriesName
+                )
+                const startPoint2 = this.startPointBySeriesName.get(
+                    s2.seriesName
+                )
 
                 const x1 = startPoint1?.x ?? 0
                 const x2 = startPoint2?.x ?? 0
@@ -346,27 +469,68 @@ export class LineChartThumbnail
                 if (x1 > x2) return s1
                 if (x2 > x1) return s2
 
-                return s1 // no preference
+                return s1 // No preference
             },
         })
     }
 
-    @computed private get endLabelsWidth(): number {
-        return this.endLabelsState?.width ?? 0
+    @computed private get startLabelsState():
+        | SimpleVerticalLabelsState
+        | undefined {
+        return this.makeStartLabelsState({
+            dualAxis: this.dualAxis,
+            avoidBounds: [this.zeroLineBounds],
+            visibleEndLabels: this.visibleEndLabels,
+        })
     }
 
-    @computed private get startLabelsWidth(): number {
-        return this.startLabelsState?.width ?? 0
-    }
+    /**
+     * Estimated width of the start and end labels, used by innerBounds
+     * to reserve space on the left and right of the chart area.
+     *
+     * Ideally, we'd derive this from the final label states, which know
+     * exactly which labels are visible after collision detection. But that
+     * would introduce a cyclic dependency: the label states need the axis
+     * for pixel positions, the axis needs innerBounds, and innerBounds needs
+     * these widths. To break the cycle, we run a preliminary layout pass
+     * using the full bounds (without label padding).
+     */
+    @computed private get estimatedLabelWidth(): {
+        right: number
+        left: number
+    } {
+        const approximateDualAxis = new DualAxis({
+            bounds: this.bounds,
+            verticalAxis: this.verticalAxisPart,
+            horizontalAxis: this.horizontalAxisPart,
+        })
 
-    @computed private get paddedEndLabelsWidth(): number {
-        return this.endLabelsWidth > 0 ? this.endLabelsWidth + LABEL_PADDING : 0
-    }
+        const zeroLineBounds = this.makeZeroLineBounds({
+            dualAxis: approximateDualAxis,
+        })
 
-    @computed private get paddedStartLabelsWidth(): number {
-        return this.startLabelsWidth > 0
-            ? this.startLabelsWidth + LABEL_PADDING
-            : 0
+        const endLabelsState = this.makeEndLabelsState({
+            dualAxis: approximateDualAxis,
+            avoidBounds: [zeroLineBounds],
+        })
+
+        const visibleEndLabels = new Set(
+            endLabelsState?.series.map((series) => series.seriesName)
+        )
+
+        const startLabelsState = this.makeStartLabelsState({
+            dualAxis: approximateDualAxis,
+            avoidBounds: [zeroLineBounds],
+            visibleEndLabels,
+        })
+
+        const rightWidth = endLabelsState?.width ?? 0
+        const leftWidth = startLabelsState?.width ?? 0
+
+        return {
+            right: rightWidth > 0 ? rightWidth + LABEL_PADDING : 0,
+            left: leftWidth > 0 ? leftWidth + LABEL_PADDING : 0,
+        }
     }
 
     @computed private get visibleStartLabels(): Set<SeriesName> {
@@ -396,6 +560,7 @@ export class LineChartThumbnail
                 <VerticalAxisZeroLine
                     verticalAxis={this.dualAxis.verticalAxis}
                     bounds={this.dualAxis.innerBounds}
+                    strokeWidth={ZERO_LINE_STROKE_WIDTH}
                 />
                 <HorizontalAxisComponent
                     axis={this.dualAxis.horizontalAxis}
@@ -418,19 +583,10 @@ export class LineChartThumbnail
                     <Dot key={index} point={point} />
                 ))}
                 {this.startLabelsState && (
-                    <SimpleVerticalLabels
-                        state={this.startLabelsState}
-                        yAxis={this.dualAxis.verticalAxis}
-                        x={this.innerBounds.left - LABEL_PADDING}
-                        xAnchor="end"
-                    />
+                    <SimpleVerticalLabels state={this.startLabelsState} />
                 )}
                 {this.endLabelsState && (
-                    <SimpleVerticalLabels
-                        state={this.endLabelsState}
-                        yAxis={this.dualAxis.verticalAxis}
-                        x={this.innerBounds.right + LABEL_PADDING}
-                    />
+                    <SimpleVerticalLabels state={this.endLabelsState} />
                 )}
             </>
         )

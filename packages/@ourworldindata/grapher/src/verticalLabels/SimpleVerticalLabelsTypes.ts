@@ -1,16 +1,17 @@
 import { TextWrap } from "@ourworldindata/components"
 import { Color, SeriesName } from "@ourworldindata/types"
-import { Bounds } from "@ourworldindata/utils"
+import { Bounds, Point } from "@ourworldindata/utils"
 
 export interface InitialSimpleLabelSeries {
     seriesName: SeriesName
     value: number
     label: string
-    yPosition: number
+    position: Point
     color: Color
 }
 
 export interface SizedSimpleLabelSeries extends InitialSimpleLabelSeries {
+    textPosition: Point
     textWrap: TextWrap
     bounds: Bounds
 }
