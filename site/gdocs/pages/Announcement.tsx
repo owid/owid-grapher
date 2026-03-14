@@ -18,14 +18,7 @@ export const AnnouncementPageContent = (props: AnnouncementProps) => {
         <div className="announcement-page-content span-cols-6 col-start-5 span-md-cols-8 col-md-start-4 span-sm-cols-14 col-sm-start-1">
             <header className="span-cols-6 col-start-5 span-md-cols-8 col-md-start-4 span-sm-cols-14 col-sm-start-1">
                 <div className="announcement-page-header-meta">
-                    <DataInsightDateline
-                        publishedAt={publishedAt}
-                        formatOptions={{
-                            year: "numeric",
-                            month: "long",
-                            day: "2-digit",
-                        }}
-                    />
+                    <DataInsightDateline publishedAt={publishedAt} />
                     <span className="announcement-page-kicker h6-black-caps">
                         {props.content.kicker}
                     </span>
