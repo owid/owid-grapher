@@ -52,9 +52,7 @@ export async function typesenseSearch(
 
     if (!response.ok) {
         const body = await response.text()
-        throw new Error(
-            `Typesense search failed (${response.status}): ${body}`
-        )
+        throw new Error(`Typesense search failed (${response.status}): ${body}`)
     }
 
     return (await response.json()) as TypesenseSearchResponse

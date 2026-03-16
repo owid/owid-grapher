@@ -52,7 +52,7 @@ const indexExplorerViewsMdimViewsAndChartsToTypeSense = async () => {
         try {
             records = await loadRecordsFromCache<ChartRecord>(cacheTableName)
             console.log(`Using cached records from ${cacheTableName}`)
-        } catch (error) {
+        } catch {
             console.log(
                 `Failed to load cached records, generating fresh data...`
             )

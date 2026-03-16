@@ -121,7 +121,7 @@ export const recreateCollection = async (
         try {
             await client.collections(collectionName).delete()
             console.log(`Deleted existing collection: ${collectionName}`)
-        } catch (error) {
+        } catch {
             // Ignore if collection doesn't exist
         }
 
