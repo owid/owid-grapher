@@ -166,18 +166,20 @@
                 "destructuring": "all"
             }
         ],
-        "typescript/no-floating-promises": "error",
         "no-empty-function": "warn",
         "no-self-compare": "warn",
         "no-template-curly-in-string": "warn",
+        "no-void": ["warn", { "allowAsStatement": true }],
+        "typescript/no-floating-promises": "error",
+        "typescript/no-unnecessary-type-assertion": "warn",
         "unicorn/no-for-loop": "warn",
         "unicorn/no-instanceof-array": "warn",
         "unicorn/no-unnecessary-await": "warn",
         "unicorn/no-useless-spread": "warn",
         "unicorn/prefer-array-flat-map": "warn",
         "unicorn/prefer-includes": "warn",
-        "unicorn/prefer-string-starts-ends-with": "warn",
-        "typescript/no-unnecessary-type-assertion": "warn"
+        "unicorn/prefer-optional-catch-binding": "warn",
+        "unicorn/prefer-string-starts-ends-with": "warn"
     },
     "settings": {
         "react": {
