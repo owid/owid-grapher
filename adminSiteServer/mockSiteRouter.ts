@@ -224,7 +224,7 @@ getPlainRouteWithROTransaction(
 )
 
 mockSiteRouter.get("/collection/custom", async (_, res) => {
-    return res.send(await renderDynamicCollectionPage())
+    return res.send(renderDynamicCollectionPage())
 })
 
 getPlainRouteWithROTransaction(
@@ -518,9 +518,7 @@ mockSiteRouter.use(
 
 mockSiteRouter.use("/", express.static(path.join(BASE_DIR, "public")))
 
-mockSiteRouter.get("/feedback", async (req, res) =>
-    res.send(await feedbackPage())
-)
+mockSiteRouter.get("/feedback", async (req, res) => res.send(feedbackPage()))
 
 mockSiteRouter.get("/multiEmbedderTest", async (req, res) =>
     res.send(renderToHtmlPage(MultiEmbedderTestPage()))

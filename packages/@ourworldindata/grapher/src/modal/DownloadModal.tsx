@@ -1126,7 +1126,7 @@ function DownloadButton(props: DownloadButtonProps): React.ReactElement {
         const loadingTimeout = setTimeout(() => setShowLoadingUI(true), 300)
 
         try {
-            await onClick()
+            onClick()
         } finally {
             clearTimeout(loadingTimeout)
             setIsDownloading(false)

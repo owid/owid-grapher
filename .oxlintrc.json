@@ -76,6 +76,7 @@
         "valid-typeof": "error",
         "typescript/ban-ts-comment": "error",
         "no-array-constructor": "error",
+        "typescript/await-thenable": "warn",
         "typescript/no-duplicate-enum-values": "error",
         "typescript/no-empty-object-type": "error",
         "typescript/no-extra-non-null-assertion": "error",

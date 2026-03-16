@@ -813,7 +813,7 @@ export class SiteBaker {
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/feedback.html`,
-            await feedbackPage()
+            feedbackPage()
         )
         await this.stageWrite(
             `${this.bakedSiteDir}${SEARCH_BASE_PATH}.html`,
@@ -829,7 +829,7 @@ export class SiteBaker {
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/collection/custom.html`,
-            await renderDynamicCollectionPage()
+            renderDynamicCollectionPage()
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/collection/top-charts.html`,
@@ -837,7 +837,7 @@ export class SiteBaker {
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/404.html`,
-            await renderNotFoundPage()
+            renderNotFoundPage()
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/sitemap.xml`,

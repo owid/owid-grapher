@@ -502,7 +502,7 @@ getPlainRouteWithROTransaction(
                 ...chartRaw,
                 config: parseChartConfig(chartRaw.config),
             }
-            const viewProps = await getViewPropsFromQueryParams(req.query)
+            const viewProps = getViewPropsFromQueryParams(req.query)
             const charts = [
                 {
                     id: chartEnriched.id,
