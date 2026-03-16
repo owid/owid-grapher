@@ -1016,7 +1016,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     ): Promise<void> {
         const docsClient = googleDocs({
             version: "v1",
-            auth: OwidGoogleAuth.getGoogleReadonlyAuth(),
+            auth: OwidGoogleAuth.getGoogleReadonlyAuth() as never,
         })
 
         // Retrieve raw data from Google

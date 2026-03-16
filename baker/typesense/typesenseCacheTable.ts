@@ -1,6 +1,6 @@
 import { Client } from "typesense"
 import * as db from "../../db/db.js"
-import { CollectionCreateSchema } from "typesense/lib/Typesense/Collections.js"
+import type { CollectionCreateSchema } from "typesense/lib/Typesense/Collections.js"
 import { eng as ENGLISH_STOPWORDS } from "stopword"
 
 export const checkTableExistsAndNotEmpty = async (
@@ -111,11 +111,11 @@ export const ensureStopwordsSet = async (client: Client): Promise<void> => {
     }
 }
 
-export const recreateCollection = async (
+export async function recreateCollection(
     client: Client,
     schema: CollectionCreateSchema,
     collectionName: string
-) => {
+): Promise<void> {
     try {
         // Try to delete existing collection
         try {

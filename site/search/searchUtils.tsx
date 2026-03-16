@@ -388,7 +388,7 @@ export function getTimeBoundsForChartUrl(
     // charts don't customize their start time.
     if (startTime && startTime !== endTime) return undefined
 
-    const columnSlug = chartInfo.endTimeValues?.y[0].columnSlug ?? ""
+    const columnSlug = chartInfo.endValues?.y[0].columnSlug ?? ""
     const columnInfo = chartInfo.columns?.[columnSlug]
 
     return {
