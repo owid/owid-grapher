@@ -570,7 +570,7 @@ export class Grapher extends React.Component<GrapherProps> {
                     <BodyPortal>
                         <TooltipContainer
                             tooltipManager={this.grapherState}
-                            anchor={GrapherTooltipAnchor.bottom}
+                            anchor={GrapherTooltipAnchor.Bottom}
                         />
                     </BodyPortal>
                 ) : (
