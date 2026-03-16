@@ -167,6 +167,7 @@
         "sharp": "^0.34.5",
         "simple-git": "^3.32.3",
         "simple-statistics": "^7.8.8",
+        "stopword": "^3.1.5",
         "striptags": "^3.2.0",
         "timezone-mock": "^1.0.18",
         "tinyexec": "^1.0.1",

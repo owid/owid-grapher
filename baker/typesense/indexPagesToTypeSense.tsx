@@ -13,6 +13,7 @@ import {
     saveRecordsToCache,
     loadRecordsFromCache,
     recreateCollection,
+    ensureStopwordsSet,
 } from "./typesenseCacheTable.js"
 import { getPagesRecords } from "../algolia/utils/pages.js"
 import { PAGES_INDEX } from "../../site/search/searchUtils.js"
@@ -59,6 +60,9 @@ const indexPagesToTypeSense = async () => {
     }
 
     console.log(`Indexing pages to TypeSense collection: ${collectionName}`)
+
+    // Ensure stopwords set exists (needed for keyword search quality)
+    await ensureStopwordsSet(client)
 
     // Create or update the TypeSense collection
     await recreateCollection(client, pagesCollectionSchema, collectionName)

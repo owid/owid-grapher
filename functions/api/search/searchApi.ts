@@ -216,6 +216,7 @@ export async function searchCharts(
             : CHART_INCLUDE_FIELDS + ",deduplicationId",
         highlight_start_tag: "<mark>",
         highlight_end_tag: "</mark>",
+        stopwords: "english",
         filter_by: filterBy || undefined,
     }
 
@@ -323,6 +324,7 @@ export async function searchPages(
         include_fields: PAGE_INCLUDE_FIELDS,
         highlight_start_tag: "<mark>",
         highlight_end_tag: "</mark>",
+        stopwords: "english",
         filter_by: typeFilter,
     }
 

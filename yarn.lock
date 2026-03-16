@@ -12289,6 +12289,7 @@ __metadata:
     sharp: "npm:^0.34.5"
     simple-git: "npm:^3.32.3"
     simple-statistics: "npm:^7.8.8"
+    stopword: "npm:^3.1.5"
     striptags: "npm:^3.2.0"
     timezone-mock: "npm:^1.0.18"
     tinyexec: "npm:^1.0.1"
@@ -17659,6 +17660,13 @@ __metadata:
   version: 3.10.0
   resolution: "std-env@npm:3.10.0"
   checksum: 10/19c9cda4f370b1ffae2b8b08c72167d8c3e5cfa972aaf5c6873f85d0ed2faa729407f5abb194dc33380708c00315002febb6f1e1b484736bfcf9361ad366013a
+  languageName: node
+  linkType: hard
+
+"stopword@npm:^3.1.5":
+  version: 3.1.5
+  resolution: "stopword@npm:3.1.5"
+  checksum: 10/4710a3e011de1d6d8af9fb0c39b35180fdb1fad3afd859b8d22b962ac67c11ffc703b8226e6a6cf2ef652a0c88f393186ce7e396c1653abb7e50cf87312d7507
   languageName: node
   linkType: hard
 

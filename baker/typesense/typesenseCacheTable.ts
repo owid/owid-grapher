@@ -1,6 +1,7 @@
 import { Client } from "typesense"
 import * as db from "../../db/db.js"
 import { CollectionCreateSchema } from "typesense/lib/Typesense/Collections.js"
+import { eng as ENGLISH_STOPWORDS } from "stopword"
 
 export const checkTableExistsAndNotEmpty = async (
     tableName: string
@@ -93,6 +94,23 @@ export const loadRecordsFromCache = async <T>(
 }
 
 // Collection management functions
+/**
+ * Ensures the "english" stopwords set exists in Typesense.
+ * This is idempotent — calling it multiple times is safe (upsert).
+ * The stopwords set is referenced by search queries via `stopwords: "english"`.
+ */
+export const ensureStopwordsSet = async (client: Client): Promise<void> => {
+    try {
+        await client.stopwords().upsert("english", {
+            stopwords: ENGLISH_STOPWORDS,
+        })
+        console.log("Ensured 'english' stopwords set exists")
+    } catch (error) {
+        console.error("Failed to create stopwords set:", error)
+        throw error
+    }
+}
+
 export const recreateCollection = async (
     client: Client,
     schema: CollectionCreateSchema,
