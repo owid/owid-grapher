@@ -184,6 +184,7 @@ export async function queryDataTopics(
                     ? `embedding:([], k:100, alpha:${HYBRID_SEARCH_ALPHA})`
                     : undefined,
             prefix: false,
+            stopwords: "english",
             filter_by: [
                 countryFilter,
                 topicFilter,
@@ -250,6 +251,7 @@ export async function queryCharts(
                     ? `embedding:([], k:100, alpha:${HYBRID_SEARCH_ALPHA})`
                     : undefined,
             prefix: false,
+            stopwords: "english",
             filter_by: [
                 formatCountryFacetFiltersTypesense(
                     selectedCountryNames,
@@ -341,6 +343,7 @@ export async function queryDataInsights(
                     ? `embedding:([], k:100, alpha:${HYBRID_SEARCH_ALPHA})`
                     : undefined,
             prefix: false,
+            stopwords: "english",
             filter_by: buildFilterBy(
                 formatTypeFilter(OwidGdocType.DataInsight),
                 formatTopicFacetFiltersTypesense(selectedTopics)
@@ -400,6 +403,7 @@ export async function queryArticles(
                     ? `embedding:([], k:100, alpha:${HYBRID_SEARCH_ALPHA})`
                     : undefined,
             prefix: false,
+            stopwords: "english",
             filter_by: buildFilterBy(
                 formatTypeFilter(OwidGdocType.Article, OwidGdocType.AboutPage),
                 formatTopicFacetFiltersTypesense(selectedTopics)
@@ -443,6 +447,7 @@ export async function queryTopicPages(
                     ? `embedding:([], k:100, alpha:${HYBRID_SEARCH_ALPHA})`
                     : undefined,
             prefix: false,
+            stopwords: "english",
             filter_by: buildFilterBy(
                 formatTypeFilter(
                     OwidGdocType.TopicPage,
@@ -492,6 +497,7 @@ export async function queryProfiles(
                     ? `embedding:([], k:100, alpha:${HYBRID_SEARCH_ALPHA})`
                     : undefined,
             prefix: false,
+            stopwords: "english",
             filter_by: buildFilterBy(
                 formatTypeFilter(OwidGdocType.Profile),
                 formatCountryFacetFiltersTypesense(
