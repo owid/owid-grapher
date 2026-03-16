@@ -1,5 +1,4 @@
 import { getCanonicalPath } from "@ourworldindata/components"
-import { Snippet } from "react-instantsearch"
 import { StackedArticleHit } from "@ourworldindata/types"
 
 export function SearchStackedArticleHit({
@@ -27,14 +26,11 @@ export function SearchStackedArticleHit({
                 <h3 className="search-stacked-article-hit__title">
                     {hit.title}
                 </h3>
-                <Snippet
-                    classNames={{
-                        root: "search-stacked-article-hit__excerpt",
-                    }}
-                    attribute="content"
-                    highlightedTagName="strong"
-                    hit={hit}
-                />
+                {hit.content && (
+                    <p className="search-stacked-article-hit__excerpt">
+                        {hit.content.split(/\s+/).slice(0, 20).join(" ")}…
+                    </p>
+                )}
             </article>
         </a>
     )

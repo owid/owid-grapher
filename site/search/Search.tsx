@@ -4,7 +4,7 @@ import {
     TemplateConfig,
     SearchResultType,
 } from "@ourworldindata/types"
-import { LiteClient } from "algoliasearch/lite"
+import { Client } from "typesense"
 import { useEffect, useMemo, useState } from "react"
 import { match } from "ts-pattern"
 import { useIsFetching } from "@tanstack/react-query"
@@ -37,10 +37,10 @@ import { listedRegionsNames } from "@ourworldindata/utils"
 
 export const Search = ({
     topicTagGraph,
-    liteSearchClient,
+    typesenseClient,
 }: {
     topicTagGraph: TagGraphRoot
-    liteSearchClient: LiteClient
+    typesenseClient: Client
 }) => {
     // Extract topic and area data from the graph
     const { allAreas: eligibleAreas, allTopics: eligibleTopics } =
@@ -97,7 +97,7 @@ export const Search = ({
             value={{
                 state,
                 actions,
-                liteSearchClient,
+                typesenseClient,
                 templateConfig,
                 topicTagGraph,
                 synonymMap,

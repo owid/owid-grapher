@@ -29,6 +29,7 @@ Try these URLs to see if your environment is working:
     http://localhost:${ADMIN_SERVER_PORT:-3030}/admin/test  <-- a list of all charts in the db
     http://localhost:${VITE_PORT:-8090}/  <-- the vite dev server
     http://localhost:${WRANGLER_PORT:-8788}/  <-- the cloudflare functions dev server
+    http://localhost:8108/  <-- the typesense dev server
 
 Happy hacking!
 EOF

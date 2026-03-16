@@ -24,9 +24,11 @@ import {
     Ngram,
     WordPositioned,
     ScoredFilterPositioned,
+    GrapherValuesJson,
 } from "@ourworldindata/types"
 import {
     Url,
+    Region,
     countriesByName,
     FuzzySearch,
     FuzzySearchResult,
@@ -62,6 +64,7 @@ import {
     EXPLORER_DYNAMIC_THUMBNAIL_URL,
     GRAPHER_DYNAMIC_CONFIG_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
+    MULTI_DIM_DYNAMIC_CONFIG_URL,
 } from "../../settings/clientSettings.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import {
@@ -355,10 +358,53 @@ export const constructConfigUrl = ({
         .exhaustive()
 }
 
+export const constructMdimConfigUrl = ({
+    hit,
+}: {
+    hit: SearchChartHit
+}): string | undefined => {
+    const isMultiDimView = hit.type === ChartRecordType.MultiDimView
+    if (!isMultiDimView) return undefined
+    return `${MULTI_DIM_DYNAMIC_CONFIG_URL}/${hit.slug}.json`
+}
+
+// Generates time bounds to force line charts to display properly in previews.
+// When start and end times are the same (single time point), line charts
+// automatically switch to discrete bar charts. To prevent that, we set the start
+// time to -Infinity, which refers to the earliest available data.
+export function getTimeBoundsForChartUrl(
+    chartInfo?: GrapherValuesJson | null
+): { timeBounds: TimeBounds; timeMode: "year" | "day" } | undefined {
+    if (!chartInfo) return undefined
+
+    const { startTime, endTime } = chartInfo
+
+    // When a chart has different start and end times, we don't need to adjust
+    // the time parameter because the chart will naturally display as a line chart.
+    // Note: `chartInfo` is fetched for the _default_ view. If startTime equals
+    // endTime here, it doesn't necessarily mean that the line chart is actually
+    // single-time, since we're looking at the default tab rather than the specific
+    // line chart tab. However, false positives are generally harmless because most
+    // charts don't customize their start time.
+    if (startTime && startTime !== endTime) return undefined
+
+    const columnSlug = chartInfo.endTimeValues?.y[0].columnSlug ?? ""
+    const columnInfo = chartInfo.columns?.[columnSlug]
+
+    return {
+        timeBounds: [-Infinity, endTime ?? Infinity],
+        timeMode: columnInfo?.yearIsDay ? "day" : "year",
+    }
+}
+
+export const PAGES_INDEX = getIndexName(SearchIndexName.Pages)
 export const CHARTS_INDEX = getIndexName(
     SearchIndexName.ExplorerViewsMdimViewsAndCharts
 )
-export const PAGES_INDEX = getIndexName(SearchIndexName.Pages)
+
+// Alpha controls the balance between keyword and semantic search in hybrid mode.
+// 0.0 = pure keyword, 1.0 = pure vector. 0.3 is conservative keyword-heavy.
+export const HYBRID_SEARCH_ALPHA = 0.3
 export const DATA_CATALOG_ATTRIBUTES = [
     "title",
     "containerTitle",
@@ -455,6 +501,85 @@ export const formatTopicFacetFilters = (
     topics: Set<string>
 ): SearchFacetFilters => {
     return formatDisjunctiveFacetFilters(topics, "tags")
+}
+
+/* Returns a Typesense filter expression for topics in disjunction mode (Topic A
+ * OR Topic B)
+ *
+ * Example: "tags:=[`Topic A`, `Topic B`]"
+ */
+export const formatTopicFacetFiltersTypesense = (
+    topics: Set<string>
+): string | undefined => {
+    if (!topics || topics.size === 0) return
+
+    const escapedTopics = Array.from(topics)
+        // using backticks to escape special characters in topics
+        .map((topic) => "`" + topic + "`")
+        .join(", ")
+
+    // use the ":=" exact operator
+    return `tags:=[${escapedTopics}]`
+}
+
+/* Returns a Typesense filter expression for countries/entities
+ *
+ * Example: "availableEntities:=[`United States`, `China`]" (disjunction mode)
+ * Example: "availableEntities:=`United States` && availableEntities:=`China`" (conjunction mode)
+ */
+export const formatCountryFacetFiltersTypesense = (
+    countries: Set<string>,
+    requireAllCountries: boolean
+): string | undefined => {
+    if (!countries || countries.size === 0) return
+
+    const countriesArray = Array.from(countries)
+    // using backticks to escape special characters in country names
+    const escapedCountries = countriesArray.map(
+        (country) => "`" + country + "`"
+    )
+
+    if (requireAllCountries) {
+        // conjunction mode (A AND B): each country as separate filter joined with &&
+        return escapedCountries
+            .map((country) => `availableEntities:=${country}`)
+            .join(" && ")
+    } else {
+        // disjunction mode (A OR B): use array syntax
+        return `availableEntities:=[${escapedCountries.join(", ")}]`
+    }
+}
+
+/**
+ * Returns a Typesense filter expression that excludes Featured Metric records
+ * when a free-text query is present. When there is no query (e.g. browsing by
+ * topic), FMs are kept so they can surface at the top of topic pages.
+ */
+export function formatFeaturedMetricFilterTypesense(
+    query: string
+): string | undefined {
+    return query.trim() ? "isFM:!=true" : undefined
+}
+
+/**
+ * Returns a Typesense filter expression that excludes income-group-specific
+ * Featured Metric records when no countries are selected. When countries are
+ * selected, income-group-specific FMs are allowed through since they are
+ * relevant to the selected countries.
+ */
+export function formatIncomeGroupFMFilterTypesense(
+    countries: Set<string>
+): string | undefined {
+    return countries.size === 0 ? "isIncomeGroupSpecificFM:!=true" : undefined
+}
+
+export function getCountryData(selectedCountries: Set<string>): Region[] {
+    const regionData: Region[] = []
+    const countries = countriesByName()
+    for (const selectedCountry of selectedCountries) {
+        regionData.push(countries[selectedCountry])
+    }
+    return regionData
 }
 
 export function serializeSet(set: Set<string>) {
