@@ -4,10 +4,14 @@ import * as searchApi from "./searchApi.js"
 import type { Env } from "../../_common/env.js"
 
 // Mock the searchApi module
-vi.mock("./searchApi.js", () => ({
-    searchCharts: vi.fn(),
-    searchPages: vi.fn(),
-}))
+vi.mock("./searchApi.js", async (importOriginal) => {
+    const actual = await importOriginal<typeof import("./searchApi.js")>()
+    return {
+        ...actual,
+        searchCharts: vi.fn(),
+        searchPages: vi.fn(),
+    }
+})
 
 describe("Search API endpoint", () => {
     const mockEnv: Env = {

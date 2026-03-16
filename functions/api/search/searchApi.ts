@@ -8,6 +8,19 @@ import {
 import { getIndexName, AlgoliaConfig } from "./algoliaClient.js"
 
 /**
+ * Error thrown when the client provides invalid search parameters (e.g. a
+ * non-existent topic name).  The API handler uses this to distinguish
+ * user-facing validation errors (→ 400, no Sentry) from unexpected failures
+ * (→ 500, report to Sentry).
+ */
+export class SearchValidationError extends Error {
+    constructor(message: string) {
+        super(message)
+        this.name = "SearchValidationError"
+    }
+}
+
+/**
  * Enriched search result with URL added
  * This is what we return from the API after processing Algolia results
  */
@@ -263,7 +276,7 @@ export async function searchCharts(
             (topic) => !availableTopics.includes(topic)
         )
         if (invalidTopics.length > 0) {
-            throw new Error(
+            throw new SearchValidationError(
                 `No results found. The topic "${invalidTopics.join('", "')}" does not exist. Available topics: ${availableTopics.join(", ")}`
             )
         }
