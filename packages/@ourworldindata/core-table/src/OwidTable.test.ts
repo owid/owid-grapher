@@ -118,7 +118,7 @@ describe("timeColumn", () => {
     usa,usa,1,322,2000,2`
 
         const table = new OwidTable(csv)
-        expect(table.timeColumn!.slug).toBe("day")
+        expect(table.timeColumn.slug).toBe("day")
     })
 })
 
@@ -673,9 +673,7 @@ it("handles tsv column definitions", () => {
     const defTsv = `slug	annotationsColumnSlug
 gdp	annotation`
     const table = new OwidTable(dataCsv, defTsv)
-    expect(
-        (table.get("gdp").def as OwidColumnDef).annotationsColumnSlug
-    ).toEqual("annotation")
+    expect(table.get("gdp").def.annotationsColumnSlug).toEqual("annotation")
 })
 
 describe("printing", () => {

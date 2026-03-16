@@ -8,7 +8,6 @@ import {
     constructGrapherValuesJson,
 } from "@ourworldindata/grapher"
 import {
-    OwidColumnDef,
     GRAPHER_TAB_QUERY_PARAMS,
     EntityName,
     GrapherSearchResultJson,
@@ -167,7 +166,7 @@ export async function fetchCsvForGrapher(
 export function ensureDownloadOfDataAllowed(grapherState: GrapherState) {
     if (
         grapherState.inputTable.columnsAsArray.some(
-            (col) => (col.def as OwidColumnDef).nonRedistributable
+            (col) => col.def.nonRedistributable
         )
     ) {
         throw new StatusError(

@@ -119,7 +119,7 @@ export async function getVariableDataJson(
     _res: HandlerResponse,
     _trx: db.KnexReadonlyTransaction
 ) {
-    const variableStr = req.params.variableStr as string
+    const variableStr = req.params.variableStr
     if (!variableStr) throw new JsonError("No variable id given")
     if (variableStr.includes("+"))
         throw new JsonError(
@@ -137,7 +137,7 @@ export async function getVariableMetadataJson(
     _res: HandlerResponse,
     _trx: db.KnexReadonlyTransaction
 ) {
-    const variableStr = req.params.variableStr as string
+    const variableStr = req.params.variableStr
     if (!variableStr) throw new JsonError("No variable id given")
     if (variableStr.includes("+"))
         throw new JsonError(

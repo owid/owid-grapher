@@ -470,7 +470,7 @@ export function checkShouldDataCalloutRender(
     for (const contentBlock of block.content) {
         traverseEnrichedBlock(contentBlock, _.noop, (span) => {
             if (span.spanType === "span-callout") {
-                calloutSpans.push(span as SpanCallout)
+                calloutSpans.push(span)
             }
         })
     }

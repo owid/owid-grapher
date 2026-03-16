@@ -1,5 +1,4 @@
 import {
-    Base64String,
     ChartConfigsTableName,
     DbInsertChartConfig,
     DbRawChartConfig,
@@ -49,14 +48,14 @@ export const retrieveChartConfigFromDbAndSaveToR2 = async (
         await saveGrapherConfigToR2ByUUID(
             chartConfigId,
             fullConfigMd5.full,
-            fullConfigMd5.fullMd5 as Base64String
+            fullConfigMd5.fullMd5
         )
     } else {
         await saveGrapherConfigToR2(
             fullConfigMd5.full,
             r2Path.directory,
             r2Path.filename,
-            fullConfigMd5.fullMd5 as Base64String
+            fullConfigMd5.fullMd5
         )
     }
 

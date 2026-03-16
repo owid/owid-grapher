@@ -87,9 +87,9 @@ export const GdocsRecordsPreview = ({
         queryKey: ["gdocPlaintext", gdocId],
         enabled: open && mode === "plaintext",
         queryFn: async (): Promise<{ plaintext: string | undefined }> => {
-            return admin.getJSON(
+            return admin.getJSON<{ plaintext: string | undefined }>(
                 `/api/gdocs/${gdocId}/records?raw=true`
-            ) as Promise<{ plaintext: string | undefined }>
+            )
         },
         staleTime: 60 * 1000,
     })

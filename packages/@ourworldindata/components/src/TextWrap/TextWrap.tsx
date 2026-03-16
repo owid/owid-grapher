@@ -44,7 +44,7 @@ interface SVGRenderProps {
 const HTML_OPENING_CLOSING_TAG_REGEX = /<(\/?)([A-Za-z]+)( [^<>]*)?>/g
 
 function startsWithNewline(text: string): boolean {
-    return text.startsWith('\n')
+    return text.startsWith("\n")
 }
 
 /**

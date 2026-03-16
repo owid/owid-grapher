@@ -10,7 +10,6 @@ import {
     OwidGdocType,
     parseIntOrUndefined,
     SiteFooterContext,
-    TagGraphRoot,
 } from "@ourworldindata/utils"
 import {
     DataPageV2Content,
@@ -59,7 +58,7 @@ import UserSurvey from "./gdocs/components/UserSurvey.js"
 
 function runSearchPage() {
     const root = document.getElementById("search-page-root")
-    const topicTagGraph = window._OWID_TOPIC_TAG_GRAPH as TagGraphRoot
+    const topicTagGraph = window._OWID_TOPIC_TAG_GRAPH
     if (root) {
         createRoot(root).render(
             <BrowserRouter>

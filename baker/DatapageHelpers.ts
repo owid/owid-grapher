@@ -127,7 +127,7 @@ export const resolveFaqsForVariable = (
     const [resolvedFaqs, errors] = _.partition(
         resolvedFaqResults,
         (result) => result.type === "success"
-    ) as [EnrichedFaqLookupSuccess[], EnrichedFaqLookupError[]]
+    )
 
     return { resolvedFaqs, errors }
 }

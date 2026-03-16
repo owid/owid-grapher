@@ -766,11 +766,11 @@ export function displayVerifyResultsAndGetExitCode(
 
     const errorResults = validationResults.filter(
         (result) => result.kind === "error"
-    ) as VerifyResultError[]
+    )
 
     const differenceResults = validationResults.filter(
         (result) => result.kind === "difference"
-    ) as VerifyResultDifference[]
+    )
 
     if (errorResults.length === 0 && differenceResults.length === 0) {
         logIfVerbose(

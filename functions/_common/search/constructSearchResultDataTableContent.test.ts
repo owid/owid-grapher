@@ -116,7 +116,7 @@ describe("constructSearchResultDataTableContent for LineChart", () => {
 
         // Check that the colors are unique
         const colors = dataTable!.rows.map((row) => row.color)
-        expect(new Set(colors)).toHaveLength(colors!.length)
+        expect(new Set(colors)).toHaveLength(colors.length)
     })
 
     it("lists columns when columns are plotted", () => {
@@ -134,7 +134,7 @@ describe("constructSearchResultDataTableContent for LineChart", () => {
 
         // Check that the colors are unique
         const colors = dataTable!.rows.map((row) => row.color)
-        expect(new Set(colors)).toHaveLength(colors!.length)
+        expect(new Set(colors)).toHaveLength(colors.length)
     })
 
     it("highlights focused entities", () => {
@@ -190,7 +190,7 @@ describe("constructSearchResultDataTableContent for LineChart", () => {
 
         // Check that the colors are unique
         const colors = dataTable!.rows.map((row) => row.color)
-        expect(new Set(colors)).toHaveLength(colors!.length)
+        expect(new Set(colors)).toHaveLength(colors.length)
     })
 })
 
@@ -231,7 +231,7 @@ describe("constructSearchResultDataTableContent for SlopeChart", () => {
 
         // Check that the colors are unique
         const colors = dataTable!.rows.map((row) => row.color)
-        expect(new Set(colors)).toHaveLength(colors!.length)
+        expect(new Set(colors)).toHaveLength(colors.length)
     })
 
     it("lists columns when columns are plotted", () => {
@@ -263,7 +263,7 @@ describe("constructSearchResultDataTableContent for SlopeChart", () => {
 
         // Check that the colors are unique
         const colors = dataTable!.rows.map((row) => row.color)
-        expect(new Set(colors)).toHaveLength(colors!.length)
+        expect(new Set(colors)).toHaveLength(colors.length)
     })
 
     it("highlights focused entities", () => {
@@ -362,7 +362,7 @@ describe("constructSearchResultDataTableContent for SlopeChart", () => {
 
         // Check that the colors are unique
         const colors = dataTable!.rows.map((row) => row.color)
-        expect(new Set(colors)).toHaveLength(colors!.length)
+        expect(new Set(colors)).toHaveLength(colors.length)
     })
 })
 
@@ -385,7 +385,7 @@ describe("constructSearchResultDataTableContent for StackedAreaChart", () => {
 
         // Check that the colors are unique
         const colors = dataTable!.rows.map((row) => row.color)
-        expect(new Set(colors)).toHaveLength(colors!.length)
+        expect(new Set(colors)).toHaveLength(colors.length)
     })
 
     it("lists columns when columns are plotted", () => {
@@ -405,7 +405,7 @@ describe("constructSearchResultDataTableContent for StackedAreaChart", () => {
 
         // Check that the colors are unique
         const colors = dataTable!.rows.map((row) => row.color)
-        expect(new Set(colors)).toHaveLength(colors!.length)
+        expect(new Set(colors)).toHaveLength(colors.length)
     })
 
     it("highlights focused entities", () => {
@@ -464,7 +464,7 @@ describe("constructSearchResultDataTableContent for StackedAreaChart", () => {
 
         // Check that the colors are unique
         const colors = dataTable!.rows.map((row) => row.color)
-        expect(new Set(colors)).toHaveLength(colors!.length)
+        expect(new Set(colors)).toHaveLength(colors.length)
     })
 })
 

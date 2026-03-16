@@ -189,15 +189,15 @@ export class ExplorerTagsPage extends Component {
 
     async getData() {
         const [{ tags }, explorersWithTags, explorers] = await Promise.all([
-            this.context.admin.getJSON("/api/tags.json") as Promise<{
-                tags: DbChartTagJoin[]
-            }>,
-            this.context.admin.getJSON(GetAllExplorersTagsRoute) as Promise<{
-                explorers: ExplorerWithTags[]
-            }>,
-            this.context.admin.getJSON(GetAllExplorersRoute) as Promise<{
-                explorers: ExplorerProgram[]
-            }>,
+            this.context.admin.getJSON<{ tags: DbChartTagJoin[] }>(
+                "/api/tags.json"
+            ),
+            this.context.admin.getJSON<{ explorers: ExplorerWithTags[] }>(
+                GetAllExplorersTagsRoute
+            ),
+            this.context.admin.getJSON<{ explorers: ExplorerProgram[] }>(
+                GetAllExplorersRoute
+            ),
         ])
         runInAction(() => {
             this.tags = tags

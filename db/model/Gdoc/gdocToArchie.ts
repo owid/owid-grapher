@@ -237,7 +237,7 @@ function tableToString(
             if (context.isInList) {
                 rawCell.value!.push({ type: "text", value: "[]" })
             }
-            rawRow.value!.cells!.push(rawCell)
+            rawRow.value.cells!.push(rawCell)
         }
         rows.push(rawRow)
     }
@@ -298,7 +298,7 @@ function parseParagraph(
         if (textRun.textStyle.link?.url)
             span = {
                 spanType: "span-link",
-                url: textRun.textStyle.link!.url!,
+                url: textRun.textStyle.link.url,
                 children: [span],
             }
 

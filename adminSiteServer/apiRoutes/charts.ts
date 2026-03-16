@@ -478,7 +478,7 @@ export const saveGrapher = async (
 
     // Record this change in version history
     const chartRevisionLog = {
-        chartId: chartId as number,
+        chartId: chartId,
         userId: user.id,
         config: serializeChartConfig(patchConfig),
         createdAt: new Date(),
@@ -713,10 +713,7 @@ export async function getChartLogsJson(
     trx: db.KnexReadonlyTransaction
 ) {
     return {
-        logs: await getLogsByChartId(
-            trx,
-            parseInt(req.params.chartId as string)
-        ),
+        logs: await getLogsByChartId(trx, parseInt(req.params.chartId)),
     }
 }
 
@@ -727,7 +724,7 @@ export async function getChartReferencesJson(
 ) {
     const references = {
         references: await getReferencesByChartId(
-            parseInt(req.params.chartId as string),
+            parseInt(req.params.chartId),
             trx
         ),
     }
@@ -742,7 +739,7 @@ export async function getChartRedirectsJson(
     return {
         redirects: await getRedirectsByChartId(
             trx,
-            parseInt(req.params.chartId as string)
+            parseInt(req.params.chartId)
         ),
     }
 }
@@ -752,10 +749,7 @@ export async function getChartViewsJson(
     res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
-    const slug = await getChartSlugById(
-        trx,
-        parseInt(req.params.chartId as string)
-    )
+    const slug = await getChartSlugById(trx, parseInt(req.params.chartId))
     if (!slug) return {}
 
     const viewsBySlug = await db.knexRawFirst(

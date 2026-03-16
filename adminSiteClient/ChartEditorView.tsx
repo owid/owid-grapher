@@ -179,12 +179,12 @@ export class ChartEditorView<
             })
         }
 
-        const usageData = (await admin.getJSON(
-            `/api/variables.usages.json`
-        )) as {
-            variableId: number
-            usageCount: number
-        }[]
+        const usageData = await admin.getJSON<
+            {
+                variableId: number
+                usageCount: number
+            }[]
+        >(`/api/variables.usages.json`)
         this.database.variableUsageCounts = new Map(
             usageData.map(({ variableId, usageCount }) => [
                 variableId,

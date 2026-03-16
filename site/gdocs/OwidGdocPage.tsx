@@ -28,7 +28,6 @@ import { match, P } from "ts-pattern"
 import {
     ARCHIVED_THUMBNAIL_FILENAME,
     ArchiveContext,
-    EnrichedBlockText,
     OwidGdocPostInterface,
     OwidGdocAuthorInterface,
     OwidGdocProfileInterface,
@@ -67,7 +66,7 @@ function getPageDesc(gdoc: OwidGdocUnionType): string | undefined {
         .with({ content: { type: OwidGdocType.DataInsight } }, (match) => {
             const firstParagraph = match.content.body.find(
                 (block) => block.type === "text"
-            ) as EnrichedBlockText | undefined
+            )
             // different platforms truncate at different lengths, let's leave it up to them
             return firstParagraph
                 ? spansToUnformattedPlainText(firstParagraph.value)

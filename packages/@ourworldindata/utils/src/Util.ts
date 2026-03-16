@@ -1498,7 +1498,7 @@ export function bind<This, Args extends any[], Return>(
     context.addInitializer(function (this: This) {
         const boundMethod = target.bind(this)
         // Store the bound method on the instance
-        Object.defineProperty(this, name as string | symbol, {
+        Object.defineProperty(this, name, {
             value: boundMethod,
             writable: false,
             enumerable: false,

@@ -68,7 +68,7 @@ export async function suggestGptAltText(
     if (!imageUrl) throw new JsonError(`No image URL provided`, 400)
     if (typeof imageUrl !== "string")
         throw new JsonError(`Invalid image URL provided`, 400)
-    const response = await generateAltTextFromUrl(imageUrl as string)
+    const response = await generateAltTextFromUrl(imageUrl)
     return response
 }
 
@@ -105,7 +105,7 @@ export async function extractTextFromImage(
     if (!imageUrl) throw new JsonError(`No image URL provided`, 400)
     if (typeof imageUrl !== "string")
         throw new JsonError(`Invalid image URL provided`, 400)
-    const text = await fetchGptGeneratedTextFromImage(imageUrl as string)
+    const text = await fetchGptGeneratedTextFromImage(imageUrl)
     // If a user picks an image that has no text, we return an empty string
     // instead of throwing an error, so the user can still save the image (though this seems very unlikely as a use case)
     if (!text && text !== "") {

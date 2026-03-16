@@ -1360,7 +1360,7 @@ const parseSubscribeBanner = (
     const rawAlign = raw.value?.align
     if (rawAlign) {
         if (validateRawEnum(blockAlignments, rawAlign)) {
-            align = rawAlign as BlockAlignment
+            align = rawAlign
         } else {
             parseErrors.push({
                 message: `If specified, subscribe-banner align must be one of ${blockAlignments.join(", ")}`,
@@ -1656,8 +1656,8 @@ const parseSdgGrid = (raw: RawBlockSDGGrid): EnrichedBlockSDGGrid => {
                     },
                 ]
             // TODO: make the type not just a string and then parse spans here
-            const goal = item.goal!
-            const link = item.link!
+            const goal = item.goal
+            const link = item.link
 
             //const errors = goal.parseErrors.concat(link.parseErrors)
 

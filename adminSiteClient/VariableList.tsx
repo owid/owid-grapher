@@ -58,8 +58,8 @@ class VariableRow extends React.Component<VariableRowProps> {
                     <td>
                         {
                             // Some table are very long, truncate them
-                            variable.table && variable.table!.length > 20
-                                ? variable.table!.substring(0, 20) + "..."
+                            variable.table && variable.table.length > 20
+                                ? variable.table.substring(0, 20) + "..."
                                 : variable.table
                         }
                     </td>
@@ -68,9 +68,8 @@ class VariableRow extends React.Component<VariableRowProps> {
                     <td>
                         {
                             // Some "short names" are very long, so truncate them
-                            variable.shortName &&
-                            variable.shortName!.length > 20
-                                ? variable.shortName!.substring(0, 20) + "..."
+                            variable.shortName && variable.shortName.length > 20
+                                ? variable.shortName.substring(0, 20) + "..."
                                 : variable.shortName
                         }
                     </td>

@@ -41,9 +41,7 @@ const parseRawChartRecord = (
         // This is a very rough way to check for the Algolia record size limit, but it's better than the update failing
         // because we exceed the 20KB record size limit
         if (rawRecord.entityNames.length < 12000)
-            parsedEntities = JSON.parse(
-                rawRecord.entityNames as string
-            ) as string[]
+            parsedEntities = JSON.parse(rawRecord.entityNames) as string[]
         else {
             console.info(
                 `Chart ${rawRecord.id} has too many entities, skipping its entities`
@@ -280,7 +278,7 @@ async function buildChartRecord(
         publishedAt: chart.publishedAt,
         updatedAt: chart.updatedAt,
         tags: topicTags,
-        keyChartForTags: chart.keyChartForTags as string[],
+        keyChartForTags: chart.keyChartForTags,
         titleLength: chart.config.title?.length ?? 0,
         numRelatedArticles,
 

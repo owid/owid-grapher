@@ -519,7 +519,7 @@ export const autodetectColumnDefs = (
     definedSlugs: Map<ColumnSlug, any>
 ): CoreColumnDef[] => {
     if (!Array.isArray(rowsOrColumnStore)) {
-        const columnStore = rowsOrColumnStore as CoreColumnStore
+        const columnStore = rowsOrColumnStore
         return Object.keys(columnStore)
             .filter((slug) => !definedSlugs.has(slug))
             .map((slug) => {

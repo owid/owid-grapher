@@ -28,7 +28,8 @@ graphers
     async function getExplorerViewsCount(
         explorerSlug: string
     ): Promise<number> {
-        const count = await env.testKnex!(ExplorerViewsTableName)
+        const count = await env
+            .testKnex(ExplorerViewsTableName)
             .where({ explorerSlug })
             .count("* as count")
             .first()
@@ -36,14 +37,16 @@ graphers
     }
 
     async function getExplorerViewsWithConfigs(explorerSlug: string) {
-        return await env.testKnex!(ExplorerViewsTableName)
+        return await env
+            .testKnex(ExplorerViewsTableName)
             .select("dimensions", "chartConfigId", "error")
             .where({ explorerSlug })
             .orderBy("id")
     }
 
     async function getChartConfigsCount(): Promise<number> {
-        const count = await env.testKnex!(ChartConfigsTableName)
+        const count = await env
+            .testKnex(ChartConfigsTableName)
             .count("* as count")
             .first()
         return Number(count?.count || 0)
@@ -52,7 +55,8 @@ graphers
     async function verifyChartConfigExists(
         chartConfigId: string
     ): Promise<boolean> {
-        const config = await env.testKnex!(ChartConfigsTableName)
+        const config = await env
+            .testKnex(ChartConfigsTableName)
             .where({ id: chartConfigId })
             .first()
         return !!config
@@ -108,7 +112,8 @@ graphers
         expect(explorerCount).toBe(1)
 
         // Verify the explorer exists - new explorers are initially unpublished
-        const explorer = await env.testKnex!(ExplorersTableName)
+        const explorer = await env
+            .testKnex(ExplorersTableName)
             .where({ slug: testExplorerSlug })
             .first()
         expect(explorer).toBeTruthy()
@@ -134,7 +139,8 @@ graphers
         })
 
         // Verify the explorer is now published and views are created
-        const publishedExplorer = await env.testKnex!(ExplorersTableName)
+        const publishedExplorer = await env
+            .testKnex(ExplorersTableName)
             .where({ slug: testExplorerSlug })
             .first()
         expect(publishedExplorer.isPublished).toBe(1) // 1 = true for published
@@ -356,7 +362,8 @@ graphers
         })
 
         // Verify explorer is deleted
-        const explorerExists = await env.testKnex!(ExplorersTableName)
+        const explorerExists = await env
+            .testKnex(ExplorersTableName)
             .where({ slug: testExplorerSlug })
             .first()
         expect(explorerExists).toBeFalsy()
@@ -455,7 +462,8 @@ graphers
         })
 
         // Verify explorer exists but is not published
-        const explorer = await env.testKnex!(ExplorersTableName)
+        const explorer = await env
+            .testKnex(ExplorersTableName)
             .where({ slug: "test-unpublished" })
             .first()
         expect(explorer).toBeTruthy()

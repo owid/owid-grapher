@@ -311,7 +311,7 @@ async function propsFromQueryParams(
     }
 
     const countRes = (await countQuery) as { count: number }[]
-    const count = countRes[0]?.count as number
+    const count = countRes[0]?.count
     const numPages = Math.ceil(count / perPage)
 
     const originalUrl = Url.fromURL(params.originalUrl)

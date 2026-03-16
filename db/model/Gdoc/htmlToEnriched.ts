@@ -112,7 +112,7 @@ export function htmlToSimpleTextBlock(html: string): EnrichedBlockSimpleText {
     )
     const simpleText: SpanSimpleText = {
         spanType: "span-simple-text",
-        text: simpleTextSpans.map((s) => (s as SpanSimpleText).text).join(" "),
+        text: simpleTextSpans.map((s) => s.text).join(" "),
     }
     const parseErrors =
         otherSpans.length > 0

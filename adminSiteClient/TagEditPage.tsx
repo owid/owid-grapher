@@ -228,7 +228,7 @@ class TagEditor extends Component<{
                     <section>
                         <h3>Subcategories</h3>
                         {tag.children.map((c) => (
-                            <TagBadge tag={c as DbChartTagJoin} key={c.id} />
+                            <TagBadge tag={c} key={c.id} />
                         ))}
                     </section>
                 )}

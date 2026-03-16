@@ -65,11 +65,11 @@ function DEPRECATED_parseDetails(details: unknown): {
             id: detail.id,
             text: enrichedText,
             parseErrors: enrichedText.flatMap((text) =>
-                    text.parseErrors.map((parseError) => ({
-                        ...parseError,
-                        message: `Text parse error in detail with id "${detail.id}": ${parseError.message}`,
-                    }))
-                ),
+                text.parseErrors.map((parseError) => ({
+                    ...parseError,
+                    message: `Text parse error in detail with id "${detail.id}": ${parseError.message}`,
+                }))
+            ),
         }
     }
 

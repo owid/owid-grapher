@@ -440,7 +440,7 @@ export function checkShouldProfileRender(content: {
     content.body.forEach((node) => {
         traverseEnrichedBlock(node, (block) => {
             if (block.type === "data-callout") {
-                dataCallouts.push(block as EnrichedBlockDataCallout)
+                dataCallouts.push(block)
             }
         })
     })
@@ -463,7 +463,7 @@ export function clearIncompleteDataCallouts(
     content.body?.forEach((node) => {
         traverseEnrichedBlock(node, (block) => {
             if (block.type === "data-callout") {
-                const dataCalloutBlock = block as EnrichedBlockDataCallout
+                const dataCalloutBlock = block
                 const shouldRender = checkShouldDataCalloutRender(
                     dataCalloutBlock,
                     linkedCallouts

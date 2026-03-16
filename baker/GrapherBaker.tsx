@@ -200,10 +200,7 @@ export async function renderDataPageV2(
     // If we are rendering this in the context of an indicator page preview or similar,
     // then the chart config might be entirely empty. Make sure that dimensions is
     // set to the variableId as a Y variable in theses cases.
-    if (
-        !grapher.dimensions ||
-        (grapher.dimensions as OwidChartDimensionInterface[]).length === 0
-    ) {
+    if (!grapher.dimensions || grapher.dimensions.length === 0) {
         const dimensions: OwidChartDimensionInterface[] = [
             {
                 variableId: variableId,

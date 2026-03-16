@@ -176,7 +176,8 @@
         "unicorn/no-useless-spread": "warn",
         "unicorn/prefer-array-flat-map": "warn",
         "unicorn/prefer-includes": "warn",
-        "unicorn/prefer-string-starts-ends-with": "warn"
+        "unicorn/prefer-string-starts-ends-with": "warn",
+        "typescript/no-unnecessary-type-assertion": "warn"
     },
     "settings": {
         "react": {

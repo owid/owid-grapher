@@ -778,7 +778,7 @@ export class FacetChart
                 ...(legend.numericLegendData ?? []),
                 ...(legend.categoricalLegendData ?? []),
             ])
-            .filter((bin) => bin instanceof CategoricalBin) as CategoricalBin[]
+            .filter((bin) => bin instanceof CategoricalBin)
 
         const uniqBins = this.getUniqBins(allBins).map(
             // Remap index to ensure it's unique (the above procedure can lead to duplicates)

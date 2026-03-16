@@ -149,7 +149,7 @@ export async function getGdocCalloutCoverage(
     for (const node of gdoc.content.body ?? []) {
         traverseEnrichedBlock(node, (b) => {
             if (b.type === "data-callout") {
-                dataCalloutBlocks.push(b as EnrichedBlockDataCallout)
+                dataCalloutBlocks.push(b)
             }
         })
     }
