@@ -6,6 +6,7 @@ import {
     searchPages,
     SearchState,
     DEFAULT_ALPHA,
+    DedupStrategy,
 } from "./searchApi.js"
 import { FilterType, Filter, SearchUrlParam } from "@ourworldindata/types"
 
@@ -82,6 +83,26 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 )
             }
         }
+
+        // Parse dedup strategy parameter
+        const dedupParam = url.searchParams.get("dedup") || "api"
+        if (dedupParam !== "api" && dedupParam !== "typesense") {
+            return new Response(
+                JSON.stringify({
+                    error: "Invalid dedup parameter",
+                    details:
+                        'dedup must be either "api" (application-side deduplication) or "typesense" (server-side group_by)',
+                }),
+                {
+                    status: 400,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Access-Control-Allow-Origin": "*",
+                    },
+                }
+            )
+        }
+        const dedup: DedupStrategy = dedupParam
 
         // Parse pagination parameters
         const page = parseInt(url.searchParams.get("page") || "0")
@@ -175,7 +196,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                       hitsPerPage,
                       undefined, // Use default page types
                       baseUrl,
-                      alpha
+                      alpha,
+                      dedup
                   )
                 : await searchCharts(
                       typesenseConfig,
@@ -183,7 +205,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                       page,
                       hitsPerPage,
                       baseUrl,
-                      alpha
+                      alpha,
+                      dedup
                   )
 
         return new Response(JSON.stringify(results, null, 2), {

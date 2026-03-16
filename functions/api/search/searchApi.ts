@@ -15,6 +15,9 @@ import {
 /** Default hybrid search alpha: 70% keyword, 30% vector. */
 export const DEFAULT_ALPHA = 0.3
 
+/** Deduplication strategy. */
+export type DedupStrategy = "typesense" | "api"
+
 /**
  * Enriched search result with URL added.
  * This is what we return from the API after processing Typesense results.
@@ -164,13 +167,17 @@ function extractHits<T>(
 
 // ── Chart search ────────────────────────────────────────────────────────
 
+/** Over-fetch multiplier when doing API-side deduplication. */
+const DEDUP_OVERFETCH_MULTIPLIER = 3
+
 export async function searchCharts(
     config: TypesenseConfig,
     state: SearchState,
     page: number = 0,
     hitsPerPage: number = 20,
     baseUrl: string = "https://ourworldindata.org",
-    alpha: number = DEFAULT_ALPHA
+    alpha: number = DEFAULT_ALPHA,
+    dedup: DedupStrategy = "api"
 ): Promise<SearchApiResponse> {
     const selectedCountries = getFilterNamesOfType(
         state.filters,
@@ -188,6 +195,15 @@ export async function searchCharts(
         formatIncomeGroupFMFilter(selectedCountries)
     )
 
+    const useTypesenseDedup = dedup === "typesense"
+
+    // When deduplicating API-side, over-fetch to account for duplicates
+    // that will be removed, and use offset-based pagination so we can
+    // skip the right number of *unique* results.
+    const fetchSize = useTypesenseDedup
+        ? hitsPerPage
+        : hitsPerPage * DEDUP_OVERFETCH_MULTIPLIER
+
     const params: Record<string, string | undefined> = {
         q: query,
         query_by: CHARTS_QUERY_BY,
@@ -195,20 +211,46 @@ export async function searchCharts(
             ? `embedding:([], k:100, alpha:${alpha})`
             : undefined,
         prefix: "false",
-        include_fields: CHART_INCLUDE_FIELDS,
+        include_fields: useTypesenseDedup
+            ? CHART_INCLUDE_FIELDS
+            : CHART_INCLUDE_FIELDS + ",deduplicationId",
         highlight_start_tag: "<mark>",
         highlight_end_tag: "</mark>",
-        group_by: "deduplicationId",
-        group_limit: "1",
-        per_page: hitsPerPage.toString(),
-        page: (page + 1).toString(), // Typesense pages are 1-indexed
         filter_by: filterBy || undefined,
+    }
+
+    if (useTypesenseDedup) {
+        params.group_by = "deduplicationId"
+        params.group_limit = "1"
+        params.per_page = fetchSize.toString()
+        params.page = (page + 1).toString() // Typesense pages are 1-indexed
+    } else {
+        // For API-side dedup we use offset/limit so we can paginate
+        // through unique results properly. We over-fetch and then trim.
+        params.per_page = "250" // max allowed by Typesense
+        params.page = (Math.floor((page * fetchSize) / 250) + 1).toString()
     }
 
     const collection = SearchIndexName.ExplorerViewsMdimViewsAndCharts
     const response = await typesenseSearch(config, collection, params)
 
-    const rawHits = extractHits(response)
+    let rawHits = extractHits(response)
+
+    // API-side deduplication: keep only the first hit per deduplicationId
+    if (!useTypesenseDedup) {
+        const seen = new Set<string>()
+        const deduped: typeof rawHits = []
+        for (const hit of rawHits) {
+            const doc = hit.document as Record<string, unknown>
+            const dedupId = doc.deduplicationId as string
+            if (!seen.has(dedupId)) {
+                seen.add(dedupId)
+                deduped.push(hit)
+            }
+        }
+        rawHits = deduped.slice(0, hitsPerPage)
+    }
+
     const cleanedHits = rawHits.map((hit, index): EnrichedSearchChartHit => {
         const doc = hit.document as Record<string, unknown>
 
@@ -223,19 +265,24 @@ export async function searchCharts(
             url = `${baseUrl}/grapher/${doc.slug}`
         }
 
+        // Remove deduplicationId from output — it's internal
+        const { deduplicationId: _, ...rest } = doc as Record<string, unknown>
+
         return {
-            ...(doc as unknown as SearchChartHit),
+            ...(rest as unknown as SearchChartHit),
             url,
             __position: page * hitsPerPage + index,
         }
     })
 
-    const nbPages = Math.ceil(response.found / hitsPerPage)
+    // For API-side dedup, found count is approximate (includes dupes)
+    const nbHits = useTypesenseDedup ? response.found : response.found
+    const nbPages = Math.ceil(nbHits / hitsPerPage)
 
     return {
         query: state.query,
         results: cleanedHits,
-        nbHits: response.found,
+        nbHits,
         page,
         nbPages,
         hitsPerPage,
@@ -251,7 +298,8 @@ export async function searchPages(
     length: number = 10,
     pageTypes: string[] = ["article", "about-page"],
     baseUrl: string = "https://ourworldindata.org",
-    alpha: number = DEFAULT_ALPHA
+    alpha: number = DEFAULT_ALPHA,
+    dedup: DedupStrategy = "api"
 ): Promise<SearchPagesApiResponse> {
     const collection = SearchIndexName.Pages
     const q = query || "*"
@@ -263,6 +311,8 @@ export async function searchPages(
             ? `type:=${pageTypes[0]}`
             : `type:=[${pageTypes.join(", ")}]`
 
+    const useTypesenseDedup = dedup === "typesense"
+
     const params: Record<string, string | undefined> = {
         q,
         query_by: PAGES_QUERY_BY,
@@ -273,16 +323,40 @@ export async function searchPages(
         include_fields: PAGE_INCLUDE_FIELDS,
         highlight_start_tag: "<mark>",
         highlight_end_tag: "</mark>",
-        group_by: "slug",
-        group_limit: "1",
         filter_by: typeFilter,
-        offset: offset.toString(),
-        limit: length.toString(),
+    }
+
+    if (useTypesenseDedup) {
+        params.group_by = "slug"
+        params.group_limit = "1"
+        params.offset = offset.toString()
+        params.limit = length.toString()
+    } else {
+        // Over-fetch to account for duplicates we'll remove
+        const overfetch = length * DEDUP_OVERFETCH_MULTIPLIER
+        params.offset = offset.toString()
+        params.limit = Math.min(overfetch, 250).toString()
     }
 
     const response = await typesenseSearch(config, collection, params)
 
-    const rawHits = extractHits(response)
+    let rawHits = extractHits(response)
+
+    // API-side deduplication: keep only the first hit per slug
+    if (!useTypesenseDedup) {
+        const seen = new Set<string>()
+        const deduped: typeof rawHits = []
+        for (const hit of rawHits) {
+            const doc = hit.document as Record<string, unknown>
+            const slug = doc.slug as string
+            if (!seen.has(slug)) {
+                seen.add(slug)
+                deduped.push(hit)
+            }
+        }
+        rawHits = deduped.slice(0, length)
+    }
+
     const cleanedHits = rawHits.map((hit): EnrichedSearchPageHit => {
         const doc = hit.document as Record<string, unknown>
         return {

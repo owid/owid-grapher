@@ -119,7 +119,8 @@ describe("Search API endpoint", () => {
                 0,
                 20,
                 "http://localhost",
-                searchApi.DEFAULT_ALPHA
+                searchApi.DEFAULT_ALPHA,
+                "api"
             )
         })
 
@@ -146,7 +147,8 @@ describe("Search API endpoint", () => {
                 0,
                 20,
                 "http://localhost",
-                0.8
+                0.8,
+                "api"
             )
         })
 
@@ -173,7 +175,8 @@ describe("Search API endpoint", () => {
                 20,
                 undefined,
                 "http://localhost",
-                1.0
+                1.0,
+                "api"
             )
         })
 
@@ -247,7 +250,8 @@ describe("Search API endpoint", () => {
                 10,
                 undefined,
                 "http://localhost",
-                searchApi.DEFAULT_ALPHA
+                searchApi.DEFAULT_ALPHA,
+                "api"
             )
         })
 
@@ -274,7 +278,8 @@ describe("Search API endpoint", () => {
                 20, // default hitsPerPage 20
                 undefined,
                 "http://localhost",
-                searchApi.DEFAULT_ALPHA
+                searchApi.DEFAULT_ALPHA,
+                "api"
             )
         })
     })
