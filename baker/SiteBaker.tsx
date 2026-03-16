@@ -212,15 +212,19 @@ export class SiteBaker {
         if (profileTemplates.length === 0) return
 
         for (const profileTemplate of profileTemplates) {
-            const attachments = await this.getPrefetchedGdocAttachments(knex, [
-                profileTemplate.content.authors,
-                profileTemplate.linkedDocumentIds,
-                profileTemplate.linkedImageFilenames,
-                profileTemplate.linkedChartSlugs.grapher,
-                profileTemplate.linkedChartSlugs.explorer,
-                profileTemplate.linkedNarrativeChartNames,
-                profileTemplate.linkedStaticVizNames,
-            ])
+            const attachments = await this.getPrefetchedGdocAttachments(
+                knex,
+                [
+                    profileTemplate.content.authors,
+                    profileTemplate.linkedDocumentIds,
+                    profileTemplate.linkedImageFilenames,
+                    profileTemplate.linkedChartSlugs.grapher,
+                    profileTemplate.linkedChartSlugs.explorer,
+                    profileTemplate.linkedNarrativeChartNames,
+                    profileTemplate.linkedStaticVizNames,
+                ],
+                profileTemplate.content.authorRoles
+            )
 
             profileTemplate.donors = attachments.donors
             profileTemplate.linkedAuthors = attachments.linkedAuthors
@@ -371,7 +375,11 @@ export class SiteBaker {
             string[],
             string[],
             string[],
-        ]
+        ],
+        // Author roles are per-gdoc (e.g. "writing", "data work"), not global,
+        // so they can't be part of the shared prefetch cache. They need to be
+        // applied when filtering authors for a specific gdoc.
+        authorRoles?: Record<string, string>
     ): Promise<PrefetchedAttachments> {
         if (!this._prefetchedAttachmentsCache) {
             console.log("Prefetching donors")
@@ -605,10 +613,13 @@ export class SiteBaker {
                     this._prefetchedAttachmentsCache.linkedIndicators,
                     linkedIndicatorIds
                 ),
-                linkedAuthors:
-                    this._prefetchedAttachmentsCache.linkedAuthors.filter(
-                        (author) => authorNames.includes(author.name)
-                    ),
+                linkedAuthors: this._prefetchedAttachmentsCache.linkedAuthors
+                    .filter((author) => authorNames.includes(author.name))
+                    .map((author) => {
+                        const role = authorRoles?.[author.name]
+                        if (role) return { ...author, role }
+                        return author
+                    }),
                 linkedNarrativeCharts: _.pick(
                     this._prefetchedAttachmentsCache.linkedNarrativeCharts,
                     linkedNarrativeChartNames
@@ -676,15 +687,19 @@ export class SiteBaker {
         }
 
         for (const publishedGdoc of gdocsToBake) {
-            const attachments = await this.getPrefetchedGdocAttachments(knex, [
-                publishedGdoc.content.authors,
-                publishedGdoc.linkedDocumentIds,
-                publishedGdoc.linkedImageFilenames,
-                publishedGdoc.linkedChartSlugs.grapher,
-                publishedGdoc.linkedChartSlugs.explorer,
-                publishedGdoc.linkedNarrativeChartNames,
-                publishedGdoc.linkedStaticVizNames,
-            ])
+            const attachments = await this.getPrefetchedGdocAttachments(
+                knex,
+                [
+                    publishedGdoc.content.authors,
+                    publishedGdoc.linkedDocumentIds,
+                    publishedGdoc.linkedImageFilenames,
+                    publishedGdoc.linkedChartSlugs.grapher,
+                    publishedGdoc.linkedChartSlugs.explorer,
+                    publishedGdoc.linkedNarrativeChartNames,
+                    publishedGdoc.linkedStaticVizNames,
+                ],
+                publishedGdoc.content.authorRoles
+            )
             publishedGdoc.donors = attachments.donors
             publishedGdoc.linkedAuthors = attachments.linkedAuthors
             publishedGdoc.linkedDocuments = attachments.linkedDocuments
@@ -926,15 +941,19 @@ export class SiteBaker {
             await GdocDataInsight.getPublishedDataInsights(knex)
 
         for (const dataInsight of publishedDataInsights) {
-            const attachments = await this.getPrefetchedGdocAttachments(knex, [
-                dataInsight.content.authors,
-                dataInsight.linkedDocumentIds,
-                dataInsight.linkedImageFilenames,
-                dataInsight.linkedChartSlugs.grapher,
-                dataInsight.linkedChartSlugs.explorer,
-                dataInsight.linkedNarrativeChartNames,
-                dataInsight.linkedStaticVizNames,
-            ])
+            const attachments = await this.getPrefetchedGdocAttachments(
+                knex,
+                [
+                    dataInsight.content.authors,
+                    dataInsight.linkedDocumentIds,
+                    dataInsight.linkedImageFilenames,
+                    dataInsight.linkedChartSlugs.grapher,
+                    dataInsight.linkedChartSlugs.explorer,
+                    dataInsight.linkedNarrativeChartNames,
+                    dataInsight.linkedStaticVizNames,
+                ],
+                dataInsight.content.authorRoles
+            )
             dataInsight.linkedDocuments = attachments.linkedDocuments
             dataInsight.imageMetadata = {
                 ...attachments.imageMetadata,
@@ -1013,15 +1032,19 @@ export class SiteBaker {
         const publishedAuthors = await GdocAuthor.getPublishedAuthors(knex)
 
         for (const publishedAuthor of publishedAuthors) {
-            const attachments = await this.getPrefetchedGdocAttachments(knex, [
-                publishedAuthor.content.authors,
-                publishedAuthor.linkedDocumentIds,
-                publishedAuthor.linkedImageFilenames,
-                publishedAuthor.linkedChartSlugs.grapher,
-                publishedAuthor.linkedChartSlugs.explorer,
-                publishedAuthor.linkedNarrativeChartNames,
-                publishedAuthor.linkedStaticVizNames,
-            ])
+            const attachments = await this.getPrefetchedGdocAttachments(
+                knex,
+                [
+                    publishedAuthor.content.authors,
+                    publishedAuthor.linkedDocumentIds,
+                    publishedAuthor.linkedImageFilenames,
+                    publishedAuthor.linkedChartSlugs.grapher,
+                    publishedAuthor.linkedChartSlugs.explorer,
+                    publishedAuthor.linkedNarrativeChartNames,
+                    publishedAuthor.linkedStaticVizNames,
+                ],
+                publishedAuthor.content.authorRoles
+            )
 
             // We don't need these to be attached to the gdoc in the current
             // state of author pages. We'll keep them here as documentation
