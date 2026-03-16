@@ -1,16 +1,26 @@
 import { createRoot } from "react-dom/client"
 import { createElement } from "react"
-import { ColorPicker } from "./ColorPicker"
-import { ColorDisplay } from "./ColorDisplay"
+import { enableShadowDOM } from "@react-stately/flags"
+import { Picker } from "./components/Picker"
+import { Display } from "./components/Display"
 
 import type {
     BespokeComponentMountFn,
     BespokeComponentVariantsList,
 } from "owid-bespoke-types"
 
+// Styles for portaled react-aria overlays (e.g. dropdown menus) that render
+// outside the Shadow DOM. On the real site these are available globally;
+// importing them here ensures they're present on the demo page too.
+import "./demo.scss"
+
+// Enable react-aria's internal Shadow DOM handling paths.
+// Must be called before any react-aria components render.
+enableShadowDOM()
+
 export const VARIANTS = [
-    { name: "picker", component: ColorPicker, defaultConfig: {} },
-    { name: "display", component: ColorDisplay, defaultConfig: {} },
+    { name: "picker", component: Picker, defaultConfig: {} },
+    { name: "display", component: Display, defaultConfig: {} },
 ] satisfies BespokeComponentVariantsList
 
 export const mount: BespokeComponentMountFn = (

@@ -1,0 +1,16 @@
+.icon-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 80px;
+    height: 80px;
+
+    border: 3px solid;
+    border-radius: 6px;
+
+    svg {
+        width: 40px;
+        height: 40px;
+    }
+}

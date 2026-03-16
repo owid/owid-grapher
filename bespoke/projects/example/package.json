@@ -12,8 +12,20 @@
         "typecheck": "tsgo"
     },
     "dependencies": {
+        "@fortawesome/fontawesome-svg-core": "^6.7.2",
+        "@fortawesome/free-solid-svg-icons": "^6.7.2",
+        "@fortawesome/react-fontawesome": "^0.2.2",
+        "@ourworldindata/components": "link:../../../packages/@ourworldindata/components",
+        "@ourworldindata/core-table": "link:../../../packages/@ourworldindata/core-table",
+        "@ourworldindata/grapher": "link:../../../packages/@ourworldindata/grapher",
+        "@ourworldindata/types": "link:../../../packages/@ourworldindata/types",
+        "@ourworldindata/utils": "link:../../../packages/@ourworldindata/utils",
+        "@react-stately/flags": "^3.1.2",
+        "classnames": "^2.5.1",
         "jotai": "^2.18.1",
+        "normalize.css": "^8.0.1",
         "react": "^19.2.4",
+        "react-aria-components": "^1.8.0",
         "react-dom": "^19.2.4"
     },
     "devDependencies": {
@@ -21,6 +33,7 @@
         "@types/react-dom": "^19.2.3",
         "@typescript/native-preview": "^7.0.0-dev.20260313.1",
         "@vitejs/plugin-react": "^6.0.0",
+        "sass": "^1.87.0",
         "vite": "^8.0.0"
     }
 }

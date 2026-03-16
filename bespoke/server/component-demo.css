@@ -9,7 +9,7 @@ body {
     color: #1d1d1d;
 }
 
-h1 {
+.project-title {
     font-size: 1.25rem;
     margin: 0 0 24px;
 }
