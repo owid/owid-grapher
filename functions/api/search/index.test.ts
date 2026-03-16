@@ -4,15 +4,19 @@ import * as searchApi from "./searchApi.js"
 import type { Env } from "../../_common/env.js"
 
 // Mock the searchApi module
-vi.mock("./searchApi.js", () => ({
-    searchCharts: vi.fn(),
-    searchPages: vi.fn(),
-}))
+vi.mock("./searchApi.js", async (importOriginal) => {
+    const actual = await importOriginal<typeof searchApi>()
+    return {
+        ...actual,
+        searchCharts: vi.fn(),
+        searchPages: vi.fn(),
+    }
+})
 
 describe("Search API endpoint", () => {
     const mockEnv: Env = {
-        ALGOLIA_ID: "test-app-id",
-        ALGOLIA_SEARCH_KEY: "test-api-key",
+        TYPESENSE_HOST: "localhost",
+        TYPESENSE_SEARCH_KEY: "test-api-key",
     } as Env
 
     beforeEach(() => {
@@ -93,6 +97,132 @@ describe("Search API endpoint", () => {
         })
     })
 
+    describe("alpha parameter", () => {
+        it("passes default alpha when not specified", async () => {
+            const mockSearchCharts = vi
+                .spyOn(searchApi, "searchCharts")
+                .mockResolvedValue({
+                    query: "test",
+                    results: [],
+                    nbHits: 0,
+                    page: 0,
+                    nbPages: 0,
+                    hitsPerPage: 20,
+                })
+
+            const request = new Request("http://localhost/api/search?q=test")
+            await onRequestGet({ request, env: mockEnv } as any)
+
+            expect(mockSearchCharts).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.anything(),
+                0,
+                20,
+                "http://localhost",
+                searchApi.DEFAULT_ALPHA
+            )
+        })
+
+        it("passes custom alpha for charts", async () => {
+            const mockSearchCharts = vi
+                .spyOn(searchApi, "searchCharts")
+                .mockResolvedValue({
+                    query: "test",
+                    results: [],
+                    nbHits: 0,
+                    page: 0,
+                    nbPages: 0,
+                    hitsPerPage: 20,
+                })
+
+            const request = new Request(
+                "http://localhost/api/search?q=test&alpha=0.8"
+            )
+            await onRequestGet({ request, env: mockEnv } as any)
+
+            expect(mockSearchCharts).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.anything(),
+                0,
+                20,
+                "http://localhost",
+                0.8
+            )
+        })
+
+        it("passes custom alpha for pages", async () => {
+            const mockSearchPages = vi
+                .spyOn(searchApi, "searchPages")
+                .mockResolvedValue({
+                    query: "test",
+                    results: [],
+                    nbHits: 0,
+                    offset: 0,
+                    length: 20,
+                })
+
+            const request = new Request(
+                "http://localhost/api/search?q=test&type=pages&alpha=1.0"
+            )
+            await onRequestGet({ request, env: mockEnv } as any)
+
+            expect(mockSearchPages).toHaveBeenCalledWith(
+                expect.anything(),
+                "test",
+                0,
+                20,
+                undefined,
+                "http://localhost",
+                1.0
+            )
+        })
+
+        it("rejects alpha < 0", async () => {
+            const request = new Request(
+                "http://localhost/api/search?q=test&alpha=-0.1"
+            )
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
+
+            expect(response.status).toBe(400)
+            const body = await response.json()
+            assert(typeof body === "object" && body !== null && "error" in body)
+            expect(body.error).toBe("Invalid alpha parameter")
+        })
+
+        it("rejects alpha > 1", async () => {
+            const request = new Request(
+                "http://localhost/api/search?q=test&alpha=1.5"
+            )
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
+
+            expect(response.status).toBe(400)
+            const body = await response.json()
+            assert(typeof body === "object" && body !== null && "error" in body)
+            expect(body.error).toBe("Invalid alpha parameter")
+        })
+
+        it("rejects non-numeric alpha", async () => {
+            const request = new Request(
+                "http://localhost/api/search?q=test&alpha=abc"
+            )
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
+
+            expect(response.status).toBe(400)
+            const body = await response.json()
+            assert(typeof body === "object" && body !== null && "error" in body)
+            expect(body.error).toBe("Invalid alpha parameter")
+        })
+    })
+
     describe("pages search", () => {
         it("converts page/hitsPerPage to offset/length for pages", async () => {
             const mockSearchPages = vi
@@ -116,7 +246,8 @@ describe("Search API endpoint", () => {
                 20, // page 2 * hitsPerPage 10 = offset 20
                 10,
                 undefined,
-                "http://localhost"
+                "http://localhost",
+                searchApi.DEFAULT_ALPHA
             )
         })
 
@@ -142,7 +273,8 @@ describe("Search API endpoint", () => {
                 0, // default page 0
                 20, // default hitsPerPage 20
                 undefined,
-                "http://localhost"
+                "http://localhost",
+                searchApi.DEFAULT_ALPHA
             )
         })
     })
@@ -210,15 +342,15 @@ describe("Search API endpoint", () => {
     })
 
     describe("environment variables", () => {
-        it("returns error when ALGOLIA_ID is missing", async () => {
-            const envWithoutId = {
+        it("returns error when TYPESENSE_HOST is missing", async () => {
+            const envWithoutHost = {
                 ...mockEnv,
-                ALGOLIA_ID: undefined,
+                TYPESENSE_HOST: undefined,
             } as unknown as Env
             const request = new Request("http://localhost/api/search?q=test")
             const response = await onRequestGet({
                 request,
-                env: envWithoutId,
+                env: envWithoutHost,
             } as any)
 
             expect(response.status).toBe(500)
@@ -229,10 +361,10 @@ describe("Search API endpoint", () => {
             )
         })
 
-        it("returns error when ALGOLIA_SEARCH_KEY is missing", async () => {
+        it("returns error when TYPESENSE_SEARCH_KEY is missing", async () => {
             const envWithoutKey = {
                 ...mockEnv,
-                ALGOLIA_SEARCH_KEY: undefined,
+                TYPESENSE_SEARCH_KEY: undefined,
             } as unknown as Env
             const request = new Request("http://localhost/api/search?q=test")
             const response = await onRequestGet({

@@ -1,7 +1,12 @@
 import * as Sentry from "@sentry/cloudflare"
 import { Env } from "../../_common/env.js"
-import { getAlgoliaConfig } from "./algoliaClient.js"
-import { searchCharts, searchPages, SearchState } from "./searchApi.js"
+import { getTypesenseConfig } from "./typesenseClient.js"
+import {
+    searchCharts,
+    searchPages,
+    SearchState,
+    DEFAULT_ALPHA,
+} from "./searchApi.js"
 import { FilterType, Filter, SearchUrlParam } from "@ourworldindata/types"
 
 const DEFAULT_HITS_PER_PAGE = 20
@@ -11,7 +16,7 @@ const MAX_PAGE = 1000
 type SearchType = "charts" | "pages"
 
 const hasSearchEnvVars = (env: Env): boolean => {
-    return !!env.ALGOLIA_ID && !!env.ALGOLIA_SEARCH_KEY
+    return !!env.TYPESENSE_HOST && !!env.TYPESENSE_SEARCH_KEY
 }
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
@@ -21,7 +26,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     try {
         if (!hasSearchEnvVars(env)) {
             throw new Error(
-                "Missing environment variables. Please check that both ALGOLIA_ID and ALGOLIA_SEARCH_KEY are set."
+                "Missing environment variables. Please check that both TYPESENSE_HOST and TYPESENSE_SEARCH_KEY are set."
             )
         }
 
@@ -54,6 +59,29 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         const requireAllCountries =
             url.searchParams.get(SearchUrlParam.REQUIRE_ALL_COUNTRIES) ===
             "true"
+
+        // Parse alpha parameter for hybrid search
+        const alphaParam = url.searchParams.get("alpha")
+        let alpha = DEFAULT_ALPHA
+        if (alphaParam !== null) {
+            alpha = parseFloat(alphaParam)
+            if (isNaN(alpha) || alpha < 0 || alpha > 1) {
+                return new Response(
+                    JSON.stringify({
+                        error: "Invalid alpha parameter",
+                        details:
+                            "alpha must be a number between 0.0 (pure keyword) and 1.0 (pure semantic)",
+                    }),
+                    {
+                        status: 400,
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Access-Control-Allow-Origin": "*",
+                        },
+                    }
+                )
+            }
+        }
 
         // Parse pagination parameters
         const page = parseInt(url.searchParams.get("page") || "0")
@@ -131,8 +159,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             requireAllCountries,
         }
 
-        // Get Algolia config
-        const algoliaConfig = getAlgoliaConfig(env)
+        // Get Typesense config
+        const typesenseConfig = getTypesenseConfig(env)
 
         // Extract base URL from request (for staging/preview deployments)
         const baseUrl = `${url.protocol}//${url.host}`
@@ -141,19 +169,21 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         const results =
             searchType === "pages"
                 ? await searchPages(
-                      algoliaConfig,
+                      typesenseConfig,
                       query,
                       page * hitsPerPage, // Convert page to offset
                       hitsPerPage,
                       undefined, // Use default page types
-                      baseUrl
+                      baseUrl,
+                      alpha
                   )
                 : await searchCharts(
-                      algoliaConfig,
+                      typesenseConfig,
                       searchState,
                       page,
                       hitsPerPage,
-                      baseUrl
+                      baseUrl,
+                      alpha
                   )
 
         return new Response(JSON.stringify(results, null, 2), {

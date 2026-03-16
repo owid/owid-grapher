@@ -5,11 +5,19 @@ import {
     ChartRecordType,
     SearchChartHit,
 } from "@ourworldindata/types"
-import { getIndexName, AlgoliaConfig } from "./algoliaClient.js"
+import {
+    TypesenseConfig,
+    TypesenseHit,
+    TypesenseSearchResponse,
+    typesenseSearch,
+} from "./typesenseClient.js"
+
+/** Default hybrid search alpha: 70% keyword, 30% vector. */
+export const DEFAULT_ALPHA = 0.3
 
 /**
- * Enriched search result with URL added
- * This is what we return from the API after processing Algolia results
+ * Enriched search result with URL added.
+ * This is what we return from the API after processing Typesense results.
  */
 export type EnrichedSearchChartHit = Omit<
     SearchChartHit,
@@ -19,9 +27,9 @@ export type EnrichedSearchChartHit = Omit<
 }
 
 /**
- * Page search hit from Algolia
+ * Enriched page search result with URL added.
  */
-export interface SearchPageHit {
+export interface EnrichedSearchPageHit {
     title: string
     slug: string
     type: string
@@ -29,17 +37,6 @@ export interface SearchPageHit {
     date?: string
     content?: string
     authors?: string[]
-    objectID: string
-    __position: number
-}
-
-/**
- * Enriched page search result with URL added
- */
-export type EnrichedSearchPageHit = Omit<
-    SearchPageHit,
-    "objectID" | "_highlightResult" | "_snippetResult"
-> & {
     url: string
 }
 
@@ -66,16 +63,8 @@ export interface SearchPagesApiResponse {
     length: number
 }
 
-interface AlgoliaSearchResponse {
-    hits: SearchChartHit[]
-    nbHits: number
-    page: number
-    nbPages: number
-    hitsPerPage: number
-}
-
-// Minimal set of attributes needed by the MCP server and other API consumers
-const DATA_CATALOG_ATTRIBUTES = [
+// Minimal set of attributes needed by the API consumers
+const CHART_INCLUDE_FIELDS = [
     "title",
     "containerTitle",
     "slug",
@@ -88,230 +77,12 @@ const DATA_CATALOG_ATTRIBUTES = [
     "availableTabs",
     "publishedAt",
     "updatedAt",
-]
+].join(",")
 
-function getFilterNamesOfType(
-    filters: Filter[],
-    type: FilterType
-): Set<string> {
-    return new Set(filters.filter((f) => f.type === type).map((f) => f.name))
-}
+const CHARTS_QUERY_BY =
+    "embedding,title,slug,subtitle,variantName,tags,availableEntities,originalAvailableEntities"
 
-export function formatCountryFacetFilters(
-    countries: Set<string>,
-    requireAll: boolean
-): (string | string[])[] {
-    // Always filter out income-group-specific featured metrics
-    // These are designed for specific use cases and shouldn't appear in general searches
-    const excludeIncomeGroupFM = ["isIncomeGroupSpecificFM:false"]
-
-    if (countries.size === 0) return [excludeIncomeGroupFM]
-
-    const filters = Array.from(countries).map(
-        (country) => `availableEntities:${country}`
-    )
-    // If requireAll is true, charts must have ALL countries (AND logic)
-    // Otherwise, any country can match (OR logic)
-    return requireAll
-        ? [...filters.map((f) => [f]), excludeIncomeGroupFM]
-        : [filters, excludeIncomeGroupFM]
-}
-
-/**
- * Returns a facet filter that excludes Featured Metric records when a
- * free-text query is present. When there is no query (e.g. browsing by
- * topic), FMs are kept so they can surface at the top of topic pages.
- */
-export function formatFeaturedMetricFacetFilter(
-    query: string
-): (string | string[])[] {
-    return query.trim() ? ["isFM:false"] : []
-}
-
-export function formatTopicFacetFilters(
-    topics: Set<string>
-): (string | string[])[] {
-    if (topics.size === 0) return []
-
-    const filters = Array.from(topics).map((topic) => `tags:${topic}`)
-    // Topics use OR logic (any topic can match)
-    return [filters]
-}
-
-/**
- * Fetches available topics from Algolia
- */
-async function getAvailableTopics(config: AlgoliaConfig): Promise<string[]> {
-    const indexName = getIndexName(
-        SearchIndexName.ExplorerViewsMdimViewsAndCharts,
-        config.indexPrefix
-    )
-
-    const searchParams = {
-        requests: [
-            {
-                indexName,
-                params: new URLSearchParams({
-                    query: "",
-                    hitsPerPage: "0",
-                    facets: JSON.stringify(["tags"]),
-                }).toString(),
-            },
-        ],
-    }
-
-    const url = `https://${config.appId}-dsn.algolia.net/1/indexes/*/queries`
-
-    const response = await fetch(url, {
-        method: "POST",
-        headers: {
-            "X-Algolia-Application-Id": config.appId,
-            "X-Algolia-API-Key": config.apiKey,
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(searchParams),
-    })
-
-    if (!response.ok) {
-        throw new Error(`Algolia search failed: ${response.statusText}`)
-    }
-
-    const data = (await response.json()) as {
-        results: [{ facets?: { tags?: Record<string, number> } }]
-    }
-
-    return Object.keys(data.results[0].facets?.tags || {}).sort()
-}
-
-export async function searchCharts(
-    config: AlgoliaConfig,
-    state: SearchState,
-    page: number = 0,
-    hitsPerPage: number = 20,
-    baseUrl: string = "https://ourworldindata.org"
-): Promise<SearchApiResponse> {
-    const countryFacetFilters = formatCountryFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.COUNTRY),
-        state.requireAllCountries
-    )
-    const topicFacetFilters = formatTopicFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.TOPIC)
-    )
-    const fmFacetFilter = formatFeaturedMetricFacetFilter(state.query)
-    const facetFilters = [
-        ...countryFacetFilters,
-        ...topicFacetFilters,
-        ...fmFacetFilter,
-    ]
-
-    const indexName = getIndexName(
-        SearchIndexName.ExplorerViewsMdimViewsAndCharts,
-        config.indexPrefix
-    )
-
-    const searchParams = {
-        requests: [
-            {
-                indexName,
-                params: new URLSearchParams({
-                    query: state.query,
-                    attributesToRetrieve: DATA_CATALOG_ATTRIBUTES.join(","),
-                    highlightPreTag: "<mark>",
-                    highlightPostTag: "</mark>",
-                    hitsPerPage: hitsPerPage.toString(),
-                    page: page.toString(),
-                    ...(facetFilters.length > 0 && {
-                        facetFilters: JSON.stringify(facetFilters),
-                    }),
-                }).toString(),
-            },
-        ],
-    }
-
-    // Use Algolia's REST API directly with fetch()
-    // Note: We can't use the algoliasearch npm package because it requires
-    // XMLHttpRequest which is not available in CloudFlare Workers
-    const url = `https://${config.appId}-dsn.algolia.net/1/indexes/*/queries`
-
-    const response = await fetch(url, {
-        method: "POST",
-        headers: {
-            "X-Algolia-Application-Id": config.appId,
-            "X-Algolia-API-Key": config.apiKey,
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(searchParams),
-    })
-
-    if (!response.ok) {
-        throw new Error(`Algolia search failed: ${response.statusText}`)
-    }
-
-    const data = (await response.json()) as {
-        results: AlgoliaSearchResponse[]
-    }
-    const result = data.results[0]
-
-    // If we got zero results and user is filtering by topic, check if the topic exists
-    const requestedTopics = getFilterNamesOfType(
-        state.filters,
-        FilterType.TOPIC
-    )
-    if (result.nbHits === 0 && requestedTopics.size > 0) {
-        const availableTopics = await getAvailableTopics(config)
-        const invalidTopics = Array.from(requestedTopics).filter(
-            (topic) => !availableTopics.includes(topic)
-        )
-        if (invalidTopics.length > 0) {
-            throw new Error(
-                `No results found. The topic "${invalidTopics.join('", "')}" does not exist. Available topics: ${availableTopics.join(", ")}`
-            )
-        }
-    }
-
-    // Clean up the hits and add URL
-    const cleanedHits = result.hits.map((hit): EnrichedSearchChartHit => {
-        // Pick only the attributes we want to return to avoid spurious properties
-        const cleanHit: any = {}
-        for (const attr of DATA_CATALOG_ATTRIBUTES) {
-            if (attr in hit) {
-                cleanHit[attr] = (hit as any)[attr]
-            }
-        }
-
-        // Construct URL based on type
-        let url: string
-        if (cleanHit.type === ChartRecordType.ExplorerView) {
-            // Explorer views: /explorers/{slug}{queryParams}
-            const queryParams = cleanHit.queryParams || ""
-            url = `${baseUrl}/explorers/${cleanHit.slug}${queryParams}`
-        } else if (cleanHit.type === ChartRecordType.MultiDimView) {
-            // Multi-dimensional views: /grapher/{slug}{queryParams}
-            const queryParams = cleanHit.queryParams || ""
-            url = `${baseUrl}/grapher/${cleanHit.slug}${queryParams}`
-        } else {
-            // Regular charts: /grapher/{slug}
-            url = `${baseUrl}/grapher/${cleanHit.slug}`
-        }
-
-        return {
-            ...(cleanHit as SearchChartHit),
-            url,
-        }
-    })
-
-    return {
-        query: state.query,
-        results: cleanedHits,
-        nbHits: result.nbHits,
-        page: result.page,
-        nbPages: result.nbPages,
-        hitsPerPage: result.hitsPerPage,
-    }
-}
-
-// Minimal set of attributes needed for page search
-const PAGE_ATTRIBUTES = [
+const PAGE_INCLUDE_FIELDS = [
     "title",
     "thumbnailUrl",
     "date",
@@ -320,80 +91,216 @@ const PAGE_ATTRIBUTES = [
     "content",
     "authors",
     "modifiedDate",
-]
+].join(",")
+
+const PAGES_QUERY_BY = "embedding,title,excerpt,tags,authors,content"
+
+// ── Filter helpers ──────────────────────────────────────────────────────
+
+function getFilterNamesOfType(
+    filters: Filter[],
+    type: FilterType
+): Set<string> {
+    return new Set(filters.filter((f) => f.type === type).map((f) => f.name))
+}
+
+/** Typesense filter expression for countries. */
+export function formatCountryFilter(
+    countries: Set<string>,
+    requireAll: boolean
+): string | undefined {
+    if (countries.size === 0) return undefined
+
+    const escaped = Array.from(countries).map((c) => "`" + c + "`")
+
+    if (requireAll) {
+        // Conjunction: each country as separate filter joined with &&
+        return escaped
+            .map((country) => `availableEntities:=${country}`)
+            .join(" && ")
+    }
+    // Disjunction: array syntax
+    return `availableEntities:=[${escaped.join(", ")}]`
+}
+
+/** Typesense filter expression for topics (OR logic). */
+export function formatTopicFilter(topics: Set<string>): string | undefined {
+    if (topics.size === 0) return undefined
+    const escaped = Array.from(topics).map((t) => "`" + t + "`")
+    return `tags:=[${escaped.join(", ")}]`
+}
+
+/**
+ * Exclude Featured Metric records when a free-text query is present.
+ * When browsing by topic (no query), FMs are kept.
+ */
+export function formatFeaturedMetricFilter(query: string): string | undefined {
+    return query.trim() ? "isFM:!=true" : undefined
+}
+
+/** Exclude income-group-specific FMs when no countries are selected. */
+export function formatIncomeGroupFMFilter(
+    countries: Set<string>
+): string | undefined {
+    return countries.size === 0 ? "isIncomeGroupSpecificFM:!=true" : undefined
+}
+
+/** Join non-undefined filter parts with " && ". */
+function buildFilterBy(...parts: (string | undefined)[]): string {
+    return parts.filter(Boolean).join(" && ")
+}
+
+// ── Helpers to extract hits from grouped or ungrouped responses ─────────
+
+function extractHits<T>(
+    response: TypesenseSearchResponse<T>
+): TypesenseHit<T>[] {
+    return (
+        response.hits ??
+        response.grouped_hits?.flatMap((group) => group.hits ?? []) ??
+        []
+    )
+}
+
+// ── Chart search ────────────────────────────────────────────────────────
+
+export async function searchCharts(
+    config: TypesenseConfig,
+    state: SearchState,
+    page: number = 0,
+    hitsPerPage: number = 20,
+    baseUrl: string = "https://ourworldindata.org",
+    alpha: number = DEFAULT_ALPHA
+): Promise<SearchApiResponse> {
+    const selectedCountries = getFilterNamesOfType(
+        state.filters,
+        FilterType.COUNTRY
+    )
+    const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
+
+    const query = state.query || "*"
+    const isWildcard = query === "*"
+
+    const filterBy = buildFilterBy(
+        formatCountryFilter(selectedCountries, state.requireAllCountries),
+        formatTopicFilter(selectedTopics),
+        formatFeaturedMetricFilter(state.query),
+        formatIncomeGroupFMFilter(selectedCountries)
+    )
+
+    const params: Record<string, string | undefined> = {
+        q: query,
+        query_by: CHARTS_QUERY_BY,
+        vector_query: !isWildcard
+            ? `embedding:([], k:100, alpha:${alpha})`
+            : undefined,
+        prefix: "false",
+        include_fields: CHART_INCLUDE_FIELDS,
+        highlight_start_tag: "<mark>",
+        highlight_end_tag: "</mark>",
+        group_by: "deduplicationId",
+        group_limit: "1",
+        per_page: hitsPerPage.toString(),
+        page: (page + 1).toString(), // Typesense pages are 1-indexed
+        filter_by: filterBy || undefined,
+    }
+
+    const collection = SearchIndexName.ExplorerViewsMdimViewsAndCharts
+    const response = await typesenseSearch(config, collection, params)
+
+    const rawHits = extractHits(response)
+    const cleanedHits = rawHits.map((hit, index): EnrichedSearchChartHit => {
+        const doc = hit.document as Record<string, unknown>
+
+        let url: string
+        if (doc.type === ChartRecordType.ExplorerView) {
+            const queryParams = (doc.queryParams as string) || ""
+            url = `${baseUrl}/explorers/${doc.slug}${queryParams}`
+        } else if (doc.type === ChartRecordType.MultiDimView) {
+            const queryParams = (doc.queryParams as string) || ""
+            url = `${baseUrl}/grapher/${doc.slug}${queryParams}`
+        } else {
+            url = `${baseUrl}/grapher/${doc.slug}`
+        }
+
+        return {
+            ...(doc as unknown as SearchChartHit),
+            url,
+            __position: page * hitsPerPage + index,
+        }
+    })
+
+    const nbPages = Math.ceil(response.found / hitsPerPage)
+
+    return {
+        query: state.query,
+        results: cleanedHits,
+        nbHits: response.found,
+        page,
+        nbPages,
+        hitsPerPage,
+    }
+}
+
+// ── Page search ─────────────────────────────────────────────────────────
 
 export async function searchPages(
-    config: AlgoliaConfig,
+    config: TypesenseConfig,
     query: string,
     offset: number = 0,
     length: number = 10,
     pageTypes: string[] = ["article", "about-page"],
-    baseUrl: string = "https://ourworldindata.org"
+    baseUrl: string = "https://ourworldindata.org",
+    alpha: number = DEFAULT_ALPHA
 ): Promise<SearchPagesApiResponse> {
-    const indexName = getIndexName(SearchIndexName.Pages, config.indexPrefix)
+    const collection = SearchIndexName.Pages
+    const q = query || "*"
+    const isWildcard = q === "*"
 
-    // Build filters string for page types
-    const filters = pageTypes.map((type) => `type:${type}`).join(" OR ")
+    // Build type filter: type:=[article, about-page]
+    const typeFilter =
+        pageTypes.length === 1
+            ? `type:=${pageTypes[0]}`
+            : `type:=[${pageTypes.join(", ")}]`
 
-    const searchParams = {
-        requests: [
-            {
-                indexName,
-                query,
-                filters,
-                facetFilters: [[]],
-                attributesToRetrieve: PAGE_ATTRIBUTES,
-                highlightPreTag: "<mark>",
-                highlightPostTag: "</mark>",
-                offset,
-                length,
-            },
-        ],
+    const params: Record<string, string | undefined> = {
+        q,
+        query_by: PAGES_QUERY_BY,
+        vector_query: !isWildcard
+            ? `embedding:([], k:100, alpha:${alpha})`
+            : undefined,
+        prefix: "false",
+        include_fields: PAGE_INCLUDE_FIELDS,
+        highlight_start_tag: "<mark>",
+        highlight_end_tag: "</mark>",
+        group_by: "slug",
+        group_limit: "1",
+        filter_by: typeFilter,
+        offset: offset.toString(),
+        limit: length.toString(),
     }
 
-    const url = `https://${config.appId}-dsn.algolia.net/1/indexes/*/queries`
+    const response = await typesenseSearch(config, collection, params)
 
-    const response = await fetch(url, {
-        method: "POST",
-        headers: {
-            "X-Algolia-Application-Id": config.appId,
-            "X-Algolia-API-Key": config.apiKey,
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(searchParams),
-    })
-
-    if (!response.ok) {
-        throw new Error(`Algolia search failed: ${response.statusText}`)
-    }
-
-    const data = (await response.json()) as {
-        results: [{ hits: SearchPageHit[]; nbHits: number }]
-    }
-    const result = data.results[0]
-
-    // Clean up the hits and add URL
-    const cleanedHits = result.hits.map((hit): EnrichedSearchPageHit => {
-        const {
-            _highlightResult,
-            _snippetResult,
-            objectID: _objectID,
-            ...cleanHit
-        } = hit as any
-
-        // Construct URL based on slug
-        const url = `${baseUrl}/${cleanHit.slug}`
-
+    const rawHits = extractHits(response)
+    const cleanedHits = rawHits.map((hit): EnrichedSearchPageHit => {
+        const doc = hit.document as Record<string, unknown>
         return {
-            ...cleanHit,
-            url,
+            title: doc.title as string,
+            slug: doc.slug as string,
+            type: doc.type as string,
+            thumbnailUrl: doc.thumbnailUrl as string | undefined,
+            date: doc.date as string | undefined,
+            content: doc.content as string | undefined,
+            authors: doc.authors as string[] | undefined,
+            url: `${baseUrl}/${doc.slug}`,
         }
     })
 
     return {
         query,
         results: cleanedHits,
-        nbHits: result.nbHits,
+        nbHits: response.found,
         offset,
         length,
     }
