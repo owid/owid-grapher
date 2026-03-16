@@ -792,7 +792,7 @@ export const anyToString = (value: unknown): string => {
 // Borrowed from: https://github.com/JedWatson/react-select/blob/32ad5c040b/packages/react-select/src/utils.js
 
 function isDocumentElement(el: HTMLElement): boolean {
-    return [document.documentElement, document.body].indexOf(el) > -1
+    return [document.documentElement, document.body].includes(el)
 }
 
 function scrollTo(el: HTMLElement, top: number): void {

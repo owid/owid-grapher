@@ -41,16 +41,14 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                 },
             },
         },
-        define: {
+        define: Object.fromEntries(
             // Replace all clientSettings with their respective values, i.e. assign e.g. EXAMPLE_ENV_VAR to process.env.EXAMPLE_ENV_VAR
             // it's important to note that we only expose values that are present in the clientSettings file - not any other things that are stored in .env
-            ...Object.fromEntries(
-                Object.entries(clientSettings).map(([key, value]) => [
-                    `process.env.${key}`,
-                    JSON.stringify(value?.toString()), // We need to stringify e.g. `true` to `"true"`, so that it's correctly parsed _again_
-                ])
-            ),
-        },
+            Object.entries(clientSettings).map(([key, value]) => [
+                `process.env.${key}`,
+                JSON.stringify(value?.toString()), // We need to stringify e.g. `true` to `"true"`, so that it's correctly parsed _again_
+            ])
+        ),
         esbuild: {
             target: "es2024", // needed so decorators are compiled by esbuild
         },

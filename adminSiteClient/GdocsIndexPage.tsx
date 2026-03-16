@@ -248,16 +248,14 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
 
                     if (checkIsGdocPost(gdoc)) {
                         properties.push(
-                            ...[
-                                gdoc.content.subtitle,
+                            gdoc.content.subtitle,
                                 gdoc.content.summary
                                     ? spansToUnformattedPlainText(
                                           gdoc.content.summary.flatMap(
                                               (block) => block.value
                                           )
                                       )
-                                    : undefined,
-                            ]
+                                    : undefined
                         )
                     }
                     return properties

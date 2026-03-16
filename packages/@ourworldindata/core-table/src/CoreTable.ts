@@ -986,7 +986,7 @@ export class CoreTable<
         return this.transform(
             renameColumnStore(this.columnStore, columnRenameMap),
             this.defs.map((def) =>
-                oldSlugs.indexOf(def.slug) > -1
+                oldSlugs.includes(def.slug)
                     ? {
                           ...def,
                           slug: newSlugs[oldSlugs.indexOf(def.slug)],

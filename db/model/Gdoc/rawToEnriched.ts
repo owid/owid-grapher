@@ -2327,14 +2327,14 @@ export function parseFaqs(
         return {
             id: faq.id,
             content: enrichedText,
-            parseErrors: _.compact([
-                ...enrichedText.flatMap((block) =>
+            parseErrors: _.compact(
+                enrichedText.flatMap((block) =>
                     block?.parseErrors.map((parseError) => ({
                         ...parseError,
                         message: `Block parse error in faq with id "${faq.id}": ${parseError.message}`,
                     }))
-                ),
-            ]),
+                )
+            ),
         }
     }
 
@@ -3082,7 +3082,7 @@ export const parseSocialLink = (raw: RawSocialLink): EnrichedSocialLink => {
             message: "Link is missing text",
         })
     }
-    if (raw.type && Object.values(SocialLinkType).indexOf(raw.type) === -1) {
+    if (raw.type && !Object.values(SocialLinkType).includes(raw.type)) {
         return createError({
             message: `Link type must be one of ${Object.values(
                 SocialLinkType

@@ -15,6 +15,7 @@ import "@testing-library/jest-dom/vitest"
 
 import ArticleBlock from "./ArticleBlock.js"
 import { KEY_INSIGHTS_INSIGHT_PARAM } from "./KeyInsights.js"
+import * as _ from "lodash-es"
 
 const KEY_INSIGHTS_SLUG = "key-insights"
 
@@ -38,7 +39,7 @@ const generateKeyInsights = (count: number): EnrichedBlockKeyInsights => {
         type: "key-insights",
         heading: "Key insights",
         parseErrors: [],
-        insights: [...new Array(count)].map((_, idx) => ({
+        insights: _.range(count).map((_, idx) => ({
             title: `Key insight ${idx}`,
             type: "key-insight-slide",
             url: "https://ourworldindata.org/grapher/life-expectancy",
