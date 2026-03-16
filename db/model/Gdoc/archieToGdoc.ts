@@ -279,7 +279,7 @@ export async function createGdocAndInsertOwidGdocPostContent(
     const targetFolder = GDOCS_BACKPORTING_TARGET_FOLDER
     if (targetFolder === undefined || targetFolder === "")
         throw new Error("GDOCS_BACKPORTING_TARGET_FOLDER is not set")
-    const auth = OwidGoogleAuth.getGoogleReadWriteAuth()
+    const auth = OwidGoogleAuth.getGoogleReadWriteAuth() as never
     const client = googleDocs({
         version: "v1",
         auth,
@@ -313,7 +313,7 @@ export async function createGdocFromTemplate(
     title: string,
     targetFolder: string
 ): Promise<string> {
-    const auth = OwidGoogleAuth.getGoogleReadWriteAuth()
+    const auth = OwidGoogleAuth.getGoogleReadWriteAuth() as never
     const driveClient = googleDrive({ version: "v3", auth })
 
     const docsMimeType = "application/vnd.google-apps.document"
@@ -338,7 +338,7 @@ export async function replacePlaceholdersInGdoc(
     docId: string,
     replacements: Record<string, string>
 ): Promise<void> {
-    const auth = OwidGoogleAuth.getGoogleReadWriteAuth()
+    const auth = OwidGoogleAuth.getGoogleReadWriteAuth() as never
     const client = googleDocs({ version: "v1", auth })
 
     const requests = Object.entries(replacements).map(

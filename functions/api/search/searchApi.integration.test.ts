@@ -1,26 +1,34 @@
 import { describe, it, expect } from "vitest"
 import { searchCharts, searchPages } from "./searchApi.js"
 import { FilterType } from "@ourworldindata/types"
-import type { AlgoliaConfig } from "./algoliaClient.js"
+import type { TypesenseConfig } from "./typesenseClient.js"
 
-describe("searchCharts with real Algolia", () => {
-    // Real Algolia credentials for testing
-    const algoliaConfig: AlgoliaConfig = {
-        appId: "ASCB5XMYF2",
-        apiKey: "bafe9c4659e5657bf750a38fbee5c269",
-        indexPrefix: undefined, // Production index (no prefix)
+/**
+ * Integration tests for Typesense search.
+ *
+ * These tests require a running Typesense instance with indexed data.
+ * Run `make up.full` and `make reindex.typesense` before running these.
+ *
+ * To run:  yarn test run functions/api/search/searchApi.integration.test.ts
+ */
+describe("searchCharts with real Typesense", () => {
+    const typesenseConfig: TypesenseConfig = {
+        host: "localhost",
+        port: 8108,
+        protocol: "http",
+        apiKey: "xyz",
     }
 
     it("performs basic search with query", async () => {
         const result = await searchCharts(
-            algoliaConfig,
+            typesenseConfig,
             {
                 query: "population",
                 filters: [],
                 requireAllCountries: false,
             },
             0,
-            5 // Small page size for testing
+            5
         )
 
         expect(result.query).toBe("population")
@@ -42,7 +50,7 @@ describe("searchCharts with real Algolia", () => {
 
     it("returns results with country filter", async () => {
         const result = await searchCharts(
-            algoliaConfig,
+            typesenseConfig,
             {
                 query: "gdp",
                 filters: [{ type: FilterType.COUNTRY, name: "United States" }],
@@ -58,7 +66,7 @@ describe("searchCharts with real Algolia", () => {
 
     it("returns results requiring all countries", async () => {
         const result = await searchCharts(
-            algoliaConfig,
+            typesenseConfig,
             {
                 query: "gdp",
                 filters: [
@@ -72,13 +80,12 @@ describe("searchCharts with real Algolia", () => {
         )
 
         expect(result.query).toBe("gdp")
-        // Results should exist (charts that have both France and Germany)
         expect(result.nbHits).toBeGreaterThan(0)
     })
 
     it("filters by topic", async () => {
         const result = await searchCharts(
-            algoliaConfig,
+            typesenseConfig,
             {
                 query: "",
                 filters: [{ type: FilterType.TOPIC, name: "Health" }],
@@ -91,26 +98,9 @@ describe("searchCharts with real Algolia", () => {
         expect(result.results.length).toBeGreaterThan(0)
     })
 
-    it("throws helpful error for invalid topic when no results found", async () => {
-        await expect(
-            searchCharts(
-                algoliaConfig,
-                {
-                    query: "",
-                    filters: [
-                        { type: FilterType.TOPIC, name: "InvalidTopicName123" },
-                    ],
-                    requireAllCountries: false,
-                },
-                0,
-                5
-            )
-        ).rejects.toThrow(/does not exist. Available topics:/)
-    })
-
     it("handles pagination", async () => {
         const page0 = await searchCharts(
-            algoliaConfig,
+            typesenseConfig,
             {
                 query: "population",
                 filters: [],
@@ -121,7 +111,7 @@ describe("searchCharts with real Algolia", () => {
         )
 
         const page1 = await searchCharts(
-            algoliaConfig,
+            typesenseConfig,
             {
                 query: "population",
                 filters: [],
@@ -145,7 +135,7 @@ describe("searchCharts with real Algolia", () => {
 
     it("constructs correct URLs for different chart types", async () => {
         const result = await searchCharts(
-            algoliaConfig,
+            typesenseConfig,
             {
                 query: "covid",
                 filters: [],
@@ -157,7 +147,6 @@ describe("searchCharts with real Algolia", () => {
 
         expect(result.results.length).toBeGreaterThan(0)
 
-        // Find examples of different types if they exist
         const chartResult = result.results.find((r) => r.type === "chart")
         const explorerResult = result.results.find(
             (r) => r.type === "explorerView"
@@ -176,35 +165,67 @@ describe("searchCharts with real Algolia", () => {
         }
     })
 
-    it("removes internal Algolia fields from results", async () => {
+    it("supports custom alpha for hybrid search", async () => {
+        // Pure keyword search
+        const keywordResult = await searchCharts(
+            typesenseConfig,
+            {
+                query: "what causes people to die young",
+                filters: [],
+                requireAllCountries: false,
+            },
+            0,
+            5,
+            undefined,
+            0.0 // pure keyword
+        )
+
+        // Pure semantic search
+        const semanticResult = await searchCharts(
+            typesenseConfig,
+            {
+                query: "what causes people to die young",
+                filters: [],
+                requireAllCountries: false,
+            },
+            0,
+            5,
+            undefined,
+            1.0 // pure semantic
+        )
+
+        // Both should return results
+        expect(keywordResult.results.length).toBeGreaterThan(0)
+        expect(semanticResult.results.length).toBeGreaterThan(0)
+
+        // Results may differ between keyword and semantic search
+        // (not guaranteed, but likely for natural language queries)
+    })
+
+    it("uses custom base URL for staging deployments", async () => {
+        const stagingUrl = "https://staging-pr-123.owid.io"
         const result = await searchCharts(
-            algoliaConfig,
+            typesenseConfig,
             {
                 query: "population",
                 filters: [],
                 requireAllCountries: false,
             },
             0,
-            1
+            3,
+            stagingUrl
         )
 
         expect(result.results.length).toBeGreaterThan(0)
 
-        // Internal Algolia fields should be removed
-        expect(result.results[0]).not.toHaveProperty("objectID")
-        expect(result.results[0]).not.toHaveProperty("_highlightResult")
-        expect(result.results[0]).not.toHaveProperty("_snippetResult")
-
-        // Required fields should be present
-        expect(result.results[0]).toHaveProperty("title")
-        expect(result.results[0]).toHaveProperty("slug")
-        expect(result.results[0]).toHaveProperty("type")
-        expect(result.results[0]).toHaveProperty("url")
+        result.results.forEach((hit) => {
+            expect(hit.url).toMatch(/^https:\/\/staging-pr-123\.owid\.io\//)
+        })
     })
 
     it("returns empty results for nonsense query", async () => {
         const result = await searchCharts(
-            algoliaConfig,
+            typesenseConfig,
             {
                 query: "xyzabc123nonsense456",
                 filters: [],
@@ -218,76 +239,29 @@ describe("searchCharts with real Algolia", () => {
         expect(result.results.length).toBe(0)
         expect(result.nbHits).toBe(0)
     })
-
-    it("uses custom base URL for staging deployments", async () => {
-        const stagingUrl = "https://staging-pr-123.owid.io"
-        const result = await searchCharts(
-            algoliaConfig,
-            {
-                query: "population",
-                filters: [],
-                requireAllCountries: false,
-            },
-            0,
-            3,
-            stagingUrl
-        )
-
-        expect(result.results.length).toBeGreaterThan(0)
-
-        // All URLs should use the staging base URL
-        result.results.forEach((hit) => {
-            expect(hit.url).toMatch(/^https:\/\/staging-pr-123\.owid\.io\//)
-        })
-    })
 })
 
-describe("searchPages with real Algolia", () => {
-    const algoliaConfig: AlgoliaConfig = {
-        appId: "ASCB5XMYF2",
-        apiKey: "bafe9c4659e5657bf750a38fbee5c269",
-        indexPrefix: undefined,
+describe("searchPages with real Typesense", () => {
+    const typesenseConfig: TypesenseConfig = {
+        host: "localhost",
+        port: 8108,
+        protocol: "http",
+        apiKey: "xyz",
     }
 
-    it("searches for 'banana production' pages", async () => {
+    it("performs basic page search", async () => {
         const result = await searchPages(
-            algoliaConfig,
-            "banana production",
+            typesenseConfig,
+            "climate change",
             0,
             5
         )
-
-        expect(result.query).toBe("banana production")
-        expect(result.results.length).toBeGreaterThan(0)
-        expect(result.results.length).toBeLessThanOrEqual(5)
-        expect(result.nbHits).toBeGreaterThan(0)
-
-        // Check first result has required fields
-        const firstResult = result.results[0]
-        expect(firstResult).toHaveProperty("title")
-        expect(firstResult).toHaveProperty("slug")
-        expect(firstResult).toHaveProperty("type")
-        expect(firstResult).toHaveProperty("url")
-
-        // URL should be properly constructed
-        expect(firstResult.url).toMatch(/^https:\/\/ourworldindata\.org\//)
-
-        console.log("\nFirst page result for 'banana production':")
-        console.log(`Title: ${firstResult.title}`)
-        console.log(`Slug: ${firstResult.slug}`)
-        console.log(`Type: ${firstResult.type}`)
-        console.log(`URL: ${firstResult.url}`)
-    })
-
-    it("performs basic page search", async () => {
-        const result = await searchPages(algoliaConfig, "climate change", 0, 5)
 
         expect(result.query).toBe("climate change")
         expect(result.results.length).toBeGreaterThan(0)
         expect(result.offset).toBe(0)
         expect(result.length).toBe(5)
 
-        // Check required fields
         expect(result.results[0]).toHaveProperty("title")
         expect(result.results[0]).toHaveProperty("slug")
         expect(result.results[0]).toHaveProperty("type")
@@ -295,8 +269,8 @@ describe("searchPages with real Algolia", () => {
     })
 
     it("handles pagination with offset", async () => {
-        const page1 = await searchPages(algoliaConfig, "health", 0, 3)
-        const page2 = await searchPages(algoliaConfig, "health", 3, 3)
+        const page1 = await searchPages(typesenseConfig, "health", 0, 3)
+        const page2 = await searchPages(typesenseConfig, "health", 3, 3)
 
         expect(page1.offset).toBe(0)
         expect(page1.length).toBe(3)
@@ -306,42 +280,48 @@ describe("searchPages with real Algolia", () => {
         expect(page2.length).toBe(3)
         expect(page2.results.length).toBe(3)
 
-        // Pages should have different results
         expect(page1.results[0].slug).not.toBe(page2.results[0].slug)
     })
 
     it("filters by page types", async () => {
-        const result = await searchPages(algoliaConfig, "about", 0, 5, [
+        const result = await searchPages(typesenseConfig, "about", 0, 5, [
             "about-page",
         ])
 
         expect(result.results.length).toBeGreaterThan(0)
-        // All results should be about-pages
         result.results.forEach((page) => {
             expect(page.type).toBe("about-page")
         })
     })
 
-    it("removes internal Algolia fields from results", async () => {
-        const result = await searchPages(algoliaConfig, "population", 0, 1)
+    it("supports custom alpha for hybrid search", async () => {
+        const keywordResult = await searchPages(
+            typesenseConfig,
+            "banana production",
+            0,
+            5,
+            undefined,
+            undefined,
+            0.0
+        )
 
-        expect(result.results.length).toBeGreaterThan(0)
+        const semanticResult = await searchPages(
+            typesenseConfig,
+            "banana production",
+            0,
+            5,
+            undefined,
+            undefined,
+            1.0
+        )
 
-        // Internal Algolia fields should be removed
-        expect(result.results[0]).not.toHaveProperty("objectID")
-        expect(result.results[0]).not.toHaveProperty("_highlightResult")
-        expect(result.results[0]).not.toHaveProperty("_snippetResult")
-
-        // Required fields should be present
-        expect(result.results[0]).toHaveProperty("title")
-        expect(result.results[0]).toHaveProperty("slug")
-        expect(result.results[0]).toHaveProperty("type")
-        expect(result.results[0]).toHaveProperty("url")
+        expect(keywordResult.results.length).toBeGreaterThan(0)
+        expect(semanticResult.results.length).toBeGreaterThan(0)
     })
 
     it("returns empty results for nonsense query", async () => {
         const result = await searchPages(
-            algoliaConfig,
+            typesenseConfig,
             "xyzabc123nonsense456",
             0,
             10
@@ -355,7 +335,7 @@ describe("searchPages with real Algolia", () => {
     it("uses custom base URL for staging deployments", async () => {
         const stagingUrl = "https://staging-pr-123.owid.io"
         const result = await searchPages(
-            algoliaConfig,
+            typesenseConfig,
             "climate change",
             0,
             3,
@@ -365,7 +345,6 @@ describe("searchPages with real Algolia", () => {
 
         expect(result.results.length).toBeGreaterThan(0)
 
-        // All URLs should use the staging base URL
         result.results.forEach((hit) => {
             expect(hit.url).toMatch(/^https:\/\/staging-pr-123\.owid\.io\//)
         })

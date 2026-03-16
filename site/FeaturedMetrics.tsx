@@ -9,7 +9,7 @@ import { SearchChartHitComponent } from "./search/SearchChartHitComponent.js"
 import { createTopicFilter, SEARCH_BASE_PATH } from "./search/searchUtils.js"
 import { stateToSearchParams } from "./search/searchState.js"
 import { queryCharts, searchQueryKeys } from "./search/queries.js"
-import { getLiteSearchClient } from "./search/searchClients.js"
+import { getTypesenseClient } from "./search/typesense/typesenseClient.js"
 import { SearchDataResultsSkeleton } from "./search/SearchDataResultsSkeleton.js"
 import { Button } from "@ourworldindata/components"
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
@@ -31,7 +31,7 @@ export const FeaturedMetrics = ({
     isDataPage = false,
     id = FEATURED_METRICS_ID,
 }: FeaturedMetricsProps) => {
-    const liteSearchClient = getLiteSearchClient()
+    const typesenseClient = getTypesenseClient()
 
     const searchState = {
         query: "",
@@ -44,7 +44,7 @@ export const FeaturedMetrics = ({
         // reusing the same query key function as search for simplicity but
         // would technically collide if using the same query client instance
         queryKey: searchQueryKeys.charts(searchState),
-        queryFn: () => queryCharts(liteSearchClient, searchState, 0),
+        queryFn: () => queryCharts(typesenseClient, searchState, 0),
         enabled: Boolean(topicName),
     })
 

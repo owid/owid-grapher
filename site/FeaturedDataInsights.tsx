@@ -9,7 +9,7 @@ import {
 } from "@ourworldindata/types"
 import { createTopicFilter } from "./search/searchUtils.js"
 import { queryDataInsights, searchQueryKeys } from "./search/queries.js"
-import { getLiteSearchClient } from "./search/searchClients.js"
+import { getTypesenseClient } from "./search/typesense/typesenseClient.js"
 import { SearchDataInsightsResultsSkeleton } from "./search/SearchDataInsightsResultsSkeleton.js"
 import { SearchDataInsightHit } from "./search/SearchDataInsightHit.js"
 import { Button } from "@ourworldindata/components"
@@ -26,7 +26,7 @@ export const FeaturedDataInsights = ({
     topicName,
     className,
 }: FeaturedDataInsightsProps) => {
-    const liteSearchClient = getLiteSearchClient()
+    const typesenseClient = getTypesenseClient()
 
     const searchState = useMemo<SearchState>(
         () => ({
@@ -47,7 +47,7 @@ export const FeaturedDataInsights = ({
         queryKey: searchQueryKeys.dataInsights(searchState),
         queryFn: () =>
             queryDataInsights(
-                liteSearchClient,
+                typesenseClient,
                 searchState,
                 0,
                 MAX_DATA_INSIGHTS_RESULTS
