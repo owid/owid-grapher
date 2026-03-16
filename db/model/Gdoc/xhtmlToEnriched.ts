@@ -63,9 +63,14 @@ import {
     RawBlockPerson,
     RawBlockPeopleRows,
     RawBlockResourcePanel,
+    RawBlockDataCallout,
+    RawBlockCountryProfileSelector,
+    RawBlockBespokeComponent,
     RawSocialLink,
     BlockSize,
     ResearchAndWritingVariant,
+    CALLOUT_FUNCTIONS,
+    CalloutFunction,
     excludeNullish,
 } from "@ourworldindata/utils"
 import { parseRawBlocksToEnrichedBlocks } from "./rawToEnriched.js"
@@ -143,6 +148,18 @@ function nodeToSpan(node: AnyNode): Span | undefined {
         .with("br", () => ({
             spanType: "span-newline" as const,
         }))
+        .with("callout-span", () => ({
+            spanType: "span-callout" as const,
+            functionName: (CALLOUT_FUNCTIONS.includes(
+                element.attribs.function as CalloutFunction
+            )
+                ? element.attribs.function
+                : CALLOUT_FUNCTIONS[0]) as CalloutFunction,
+            parameters: element.attribs.parameters
+                ? element.attribs.parameters.split(",")
+                : [],
+            children: nodesToSpans(children),
+        }))
         .otherwise(() => {
             // Unknown span element - treat as fallback
             return {
@@ -188,9 +205,11 @@ function getSpanContent(element: Element): string {
             .map((child, index, arr) => {
                 if (child.type === "text") {
                     let text = (child as unknown as { data: string }).data
-                    // Skip whitespace-only text nodes that contain newlines between elements.
-                    // These are artifacts of pretty-printing indentation.
-                    // Preserve single spaces between elements as they may be actual content.
+                    // Collapse pretty-printing indentation without losing real
+                    // whitespace-only text nodes between inline elements.
+                    // For example, pretty-printing "<b>A</b> <i>B</i>" yields a
+                    // text token like " \n  ", where the leading space is real
+                    // content and the newline+indentation are formatting only.
                     if (isWhitespaceOnly(text) && text.includes("\n")) {
                         const prevIsTag =
                             index > 0 && arr[index - 1].type === "tag"
@@ -198,7 +217,7 @@ function getSpanContent(element: Element): string {
                             index < arr.length - 1 &&
                             arr[index + 1].type === "tag"
                         if (prevIsTag || nextIsTag) {
-                            return ""
+                            return text.split("\n", 1)[0]
                         }
                     }
                     // Trim trailing newline+indentation when followed by a tag or at end of parent.
@@ -267,6 +286,11 @@ function getSpanContent(element: Element): string {
             )
             .with("q", () => `<q>${childContent}</q>`)
             .with("br", () => "<br>")
+            .with(
+                "callout-span",
+                () =>
+                    `$${el.attribs.function ?? ""}(${el.attribs.parameters ?? ""})`
+            )
             .otherwise(() => childContent)
     }
 
@@ -458,6 +482,9 @@ function elementToRawBlock(element: Element): OwidRawGdocBlock {
                     name: attribs.name,
                     size: attribs.size as BlockSize | undefined,
                     hasOutline: attribs.hasOutline,
+                    caption: getChildElement(element, "caption")
+                        ? getSpanContent(getChildElement(element, "caption")!)
+                        : undefined,
                 },
             })
         )
@@ -1118,6 +1145,45 @@ function elementToRawBlock(element: Element): OwidRawGdocBlock {
                         title: link.attribs.title,
                         subtitle: link.attribs.subtitle,
                     })),
+                },
+            })
+        )
+        .with(
+            "data-callout",
+            (): RawBlockDataCallout => ({
+                type: "data-callout",
+                value: {
+                    url: attribs.url,
+                    content:
+                        getAllChildElements(element).map(elementToRawBlock),
+                },
+            })
+        )
+        .with(
+            "country-profile-selector",
+            (): RawBlockCountryProfileSelector => ({
+                type: "country-profile-selector",
+                value: {
+                    url: attribs.url,
+                    title: attribs.title,
+                    description: attribs.description,
+                    defaultCountries: attribs["default-countries"] || undefined,
+                },
+            })
+        )
+        .with(
+            "bespoke-component",
+            (): RawBlockBespokeComponent => ({
+                type: "bespoke-component",
+                value: {
+                    bundle: attribs.bundle,
+                    variant: attribs.variant,
+                    size: attribs.size as BlockSize | undefined,
+                    config: Object.fromEntries(
+                        Object.entries(attribs)
+                            .filter(([k]) => k.startsWith("config-"))
+                            .map(([k, v]) => [k.slice(7), v])
+                    ),
                 },
             })
         )

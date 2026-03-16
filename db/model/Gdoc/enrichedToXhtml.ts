@@ -66,6 +66,7 @@ function xmlElement(
  * - span-guided-chart-link -> <glink url="...">
  * - span-quote -> <q>
  * - span-newline -> <br/>
+ * - span-callout -> <callout-span function="..." parameters="...">
  * - span-fallback -> children only (wrapper stripped)
  */
 export function spanToXhtml(span: Span): string {
@@ -103,6 +104,16 @@ export function spanToXhtml(span: Span): string {
             xmlElement("q", {}, spansToXhtml(s.children))
         )
         .with({ spanType: "span-fallback" }, (s) => spansToXhtml(s.children))
+        .with({ spanType: "span-callout" }, (s) =>
+            xmlElement(
+                "callout-span",
+                {
+                    function: s.functionName,
+                    parameters: s.parameters.join(","),
+                },
+                spansToXhtml(s.children)
+            )
+        )
         .exhaustive()
 }
 
@@ -224,8 +235,9 @@ export function enrichedBlockToXhtml(block: OwidEnrichedGdocBlock): string {
                 !caption
             )
         })
-        .with({ type: "static-viz" }, (b) =>
-            xmlElement(
+        .with({ type: "static-viz" }, (b) => {
+            const caption = optionalSpansToXhtml(b.caption)
+            return xmlElement(
                 "static-viz",
                 {
                     name: b.name,
@@ -233,10 +245,10 @@ export function enrichedBlockToXhtml(block: OwidEnrichedGdocBlock): string {
                     // Always serialize hasOutline - the raw→enriched validation requires it
                     hasOutline: b.hasOutline,
                 },
-                "",
-                true
+                caption ? xmlElement("caption", {}, caption) : undefined,
+                !caption
             )
-        )
+        })
         .with({ type: "list" }, (b) =>
             xmlElement(
                 "list",
@@ -818,6 +830,46 @@ export function enrichedBlockToXhtml(block: OwidEnrichedGdocBlock): string {
                     .join("")
             )
         )
+        .with({ type: "data-callout" }, (b) =>
+            xmlElement(
+                "data-callout",
+                { url: b.url },
+                b.content.map(enrichedBlockToXhtml).join("")
+            )
+        )
+        .with({ type: "country-profile-selector" }, (b) =>
+            xmlElement(
+                "country-profile-selector",
+                {
+                    url: b.url,
+                    title: b.title,
+                    description: b.description,
+                    "default-countries": b.defaultCountries.length
+                        ? b.defaultCountries.join(", ")
+                        : undefined,
+                },
+                "",
+                true
+            )
+        )
+        .with({ type: "bespoke-component" }, (b) =>
+            xmlElement(
+                "bespoke-component",
+                {
+                    bundle: b.bundle,
+                    variant: b.variant,
+                    size: b.size,
+                    ...Object.fromEntries(
+                        Object.entries(b.config).map(([k, v]) => [
+                            `config-${k}`,
+                            v,
+                        ])
+                    ),
+                },
+                "",
+                true
+            )
+        )
         .exhaustive()
 }
 
@@ -900,9 +952,17 @@ export function prettyPrintXhtml(xhtml: string, indentSize = 2): string {
 
     for (const token of tokens) {
         if (!token.startsWith("<")) {
-            // Text content - always append to last line (inline with opening tag)
-            const trimmed = token.trim()
-            if (trimmed && lines.length > 0) {
+            // Preserve meaningful whitespace-only text nodes such as the single
+            // space between inline elements in "<b>A</b> <i>B</i>".
+            // Only drop whitespace tokens that contain newlines, which are
+            // formatting artifacts rather than serialized content.
+            const isFormattingWhitespace =
+                /^\s+$/.test(token) && token.includes("\n")
+            if (isFormattingWhitespace) continue
+
+            if (lines.length === 0) {
+                lines.push(token)
+            } else {
                 lines[lines.length - 1] += token
             }
             continue

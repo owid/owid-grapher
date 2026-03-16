@@ -4,6 +4,7 @@ import {
     spansToXhtml,
     enrichedBlockToXhtml,
     enrichedBlocksToXhtmlDocument,
+    prettyPrintXhtml,
 } from "./enrichedToXhtml.js"
 import { xhtmlToSpans, xhtmlToRawBlocks } from "./xhtmlToEnriched.js"
 import {
@@ -105,6 +106,18 @@ describe("spanToXhtml", () => {
         it("converts newline", () => {
             const span: Span = { spanType: "span-newline" }
             expect(spanToXhtml(span)).toBe("<br/>")
+        })
+
+        it("converts callout spans", () => {
+            const span: Span = {
+                spanType: "span-callout",
+                functionName: "latestValue",
+                parameters: ["life_expectancy_0"],
+                children: [],
+            }
+            expect(spanToXhtml(span)).toBe(
+                '<callout-span function="latestValue" parameters="life_expectancy_0"></callout-span>'
+            )
         })
     })
 
@@ -338,6 +351,24 @@ describe("enrichedBlockToXhtml", () => {
         })
     })
 
+    describe("round-trip-only block regressions", () => {
+        it("preserves static-viz captions", () => {
+            expect(
+                enrichedBlockToXhtml(enrichedBlockExamples["static-viz"])
+            ).toContain("<caption>")
+        })
+
+        it.each([
+            "data-callout",
+            "country-profile-selector",
+            "bespoke-component",
+        ] as const)("serializes %s blocks", (type) => {
+            expect(() =>
+                enrichedBlockToXhtml(enrichedBlockExamples[type])
+            ).not.toThrow()
+        })
+    })
+
     describe("list block", () => {
         it("converts unordered list", () => {
             const block: EnrichedBlockList = {
@@ -524,6 +555,34 @@ describe("enrichedBlocksToXhtmlDocument", () => {
     })
 })
 
+describe("prettyPrintXhtml", () => {
+    it("preserves space-only text nodes between inline elements", () => {
+        const raw = "<text><b>A</b> <i>B</i></text>"
+        const pretty = prettyPrintXhtml(raw)
+
+        expect(pretty).toContain("<b>A</b> ")
+
+        const rawBlocks = xhtmlToRawBlocks(
+            `<gdoc xmlns="urn:owid:gdoc:v1">${pretty}</gdoc>`
+        )
+        const result = parseRawBlocksToEnrichedBlocks(
+            rawBlocks[0]
+        ) as EnrichedBlockText | null
+
+        expect(result?.value).toEqual([
+            {
+                spanType: "span-bold",
+                children: [{ spanType: "span-simple-text", text: "A" }],
+            },
+            { spanType: "span-simple-text", text: " " },
+            {
+                spanType: "span-italic",
+                children: [{ spanType: "span-simple-text", text: "B" }],
+            },
+        ])
+    })
+})
+
 describe("round-trip: span serialization and deserialization", () => {
     const roundTripSpan = (span: Span): Span[] => {
         const xhtml = spanToXhtml(span)
@@ -599,6 +658,18 @@ describe("round-trip: span serialization and deserialization", () => {
 
     it("round-trips newline", () => {
         const span: Span = { spanType: "span-newline" }
+        const result = roundTripSpan(span)
+        expect(result).toHaveLength(1)
+        expect(result[0]).toEqual(span)
+    })
+
+    it("round-trips callout spans", () => {
+        const span: Span = {
+            spanType: "span-callout",
+            functionName: "latestValue",
+            parameters: ["life_expectancy_0"],
+            children: [],
+        }
         const result = roundTripSpan(span)
         expect(result).toHaveLength(1)
         expect(result[0]).toEqual(span)
