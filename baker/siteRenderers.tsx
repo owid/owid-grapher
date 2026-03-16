@@ -693,7 +693,7 @@ export const renderExplorerPage = async (
 
         // check if all required variable IDs exist in the database
         const missingIds = requiredVariableIds.filter(
-            (id) => !partialGrapherConfigRows.find((row) => row.id === id)
+            (id) => !partialGrapherConfigRows.some((row) => row.id === id)
         )
         if (missingIds.length > 0) {
             void logErrorAndMaybeCaptureInSentry(

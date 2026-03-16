@@ -47,7 +47,7 @@ export class ExplorerTagsPage extends Component {
     // Don't show explorers that already have tags
     @computed get filteredExplorers() {
         return this.explorers.filter((explorer) => {
-            return !this.explorersWithTags.find((e) => e.slug === explorer.slug)
+            return !this.explorersWithTags.some((e) => e.slug === explorer.slug)
         })
     }
 

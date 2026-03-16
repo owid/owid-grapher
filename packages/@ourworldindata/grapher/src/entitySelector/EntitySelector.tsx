@@ -315,7 +315,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         // Check whether the current sort option is still available in the newly-updated
         // sortOptions
         if (
-            !this.sortOptions.find(
+            !this.sortOptions.some(
                 (option) => option.slug === this.sortConfig.slug
             )
         ) {

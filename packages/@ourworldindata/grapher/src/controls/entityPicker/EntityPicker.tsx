@@ -165,7 +165,7 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
         value: string | undefined
     }[] {
         const entityNameColumn = this.grapherTable?.entityNameColumn
-        const entityNameColumnInPickerColumnDefs = !!this.pickerColumnDefs.find(
+        const entityNameColumnInPickerColumnDefs = this.pickerColumnDefs.some(
             (col) => col.slug === entityNameColumn?.slug
         )
         return _.compact([

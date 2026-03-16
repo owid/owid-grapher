@@ -116,7 +116,7 @@ function ArticleBlockInternal({
         }
     }, [])
 
-    if (block.parseErrors.filter(({ isWarning }) => !isWarning).length > 0) {
+    if (block.parseErrors.some(({ isWarning }) => !isWarning)) {
         return (
             <BlockErrorFallback
                 className={getLayout("default", containerType)}

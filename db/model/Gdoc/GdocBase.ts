@@ -1068,7 +1068,7 @@ export class GdocBase implements OwidGdocBaseInterface {
 
         const authorErrors = this.content.authors.reduce(
             (errors: OwidGdocErrorMessage[], name): OwidGdocErrorMessage[] => {
-                if (!this.linkedAuthors.find((a) => a.name === name)) {
+                if (!this.linkedAuthors.some((a) => a.name === name)) {
                     errors.push({
                         property: "linkedAuthors",
                         message: `Author "${name}" does not exist or is not published`,
@@ -1265,7 +1265,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                     },
                     () => {
                         if (
-                            !staticViz.find((viz) => viz.name === link.target)
+                            !staticViz.some((viz) => viz.name === link.target)
                         ) {
                             linkErrors.push({
                                 property: "content",

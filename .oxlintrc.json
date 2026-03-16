@@ -177,6 +177,7 @@
         "unicorn/no-unnecessary-await": "warn",
         "unicorn/no-useless-spread": "warn",
         "unicorn/prefer-array-flat-map": "warn",
+        "unicorn/prefer-array-some": "warn",
         "unicorn/prefer-includes": "warn",
         "unicorn/prefer-optional-catch-binding": "warn",
         "unicorn/prefer-string-starts-ends-with": "warn"

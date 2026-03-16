@@ -679,7 +679,7 @@ export class SiteBaker {
         // Ensure we have a published gdoc for each slug given
         if (slugs !== undefined && slugs.length !== gdocsToBake.length) {
             const slugsNotFound = slugs.filter(
-                (slug) => !gdocsToBake.find((gdoc) => gdoc.slug === slug)
+                (slug) => !gdocsToBake.some((gdoc) => gdoc.slug === slug)
             )
             throw new Error(
                 `Some of the gdoc slugs were not found or are not published: ${slugsNotFound}`
