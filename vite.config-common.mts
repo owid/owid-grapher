@@ -1,5 +1,6 @@
-import { defineConfig } from "vite"
+import { defineConfig, withFilter } from "vite"
 import pluginReact from "@vitejs/plugin-react"
+import pluginSwc from "@rollup/plugin-swc"
 import optimizeReactAriaLocales from "@react-aria/optimize-locales-plugin"
 import { sentryVitePlugin } from "@sentry/vite-plugin"
 import * as clientSettings from "./settings/clientSettings.js"
@@ -49,8 +50,8 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                 JSON.stringify(value?.toString()), // We need to stringify e.g. `true` to `"true"`, so that it's correctly parsed _again_
             ])
         ),
-        esbuild: {
-            target: "es2024", // needed so decorators are compiled by esbuild
+        oxc: {
+            target: "es2021", // needed so classes are down-compiled, and we thereby avoid an issue with "useDefineForClassFields"
         },
         build: {
             manifest: true, // creates a manifest.json file, which we use to determine which files to load in prod
@@ -72,13 +73,26 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
             },
         },
         plugins: [
-            pluginReact({
-                babel: {
-                    parserOpts: {
-                        plugins: ["decorators"], // needed so mobx decorators work correctly
+            withFilter(
+                pluginSwc({
+                    swc: {
+                        jsc: {
+                            parser: {
+                                syntax: "typescript",
+                                decorators: true,
+                            },
+                            // NOTE: SWC doesn't support the '2023-11' version yet.
+                            transform: {
+                                decoratorVersion: "2022-03",
+                                useDefineForClassFields: true,
+                            },
+                        },
                     },
-                },
-            }),
+                }),
+                // Only run this transform if the file contains a decorator.
+                { transform: { code: /[^"]@/, id: /.*\.(ts|tsx)$/ } }
+            ),
+            pluginReact({}),
             {
                 ...optimizeReactAriaLocales.vite({
                     locales: ["en-US"],

@@ -190,6 +190,8 @@
     "devDependencies": {
         "@react-aria/optimize-locales-plugin": "^1.1.5",
         "@rmp135/sql-ts": "^2.1.0",
+        "@rollup/plugin-swc": "^0.4.0",
+        "@swc/core": "^1.15.18",
         "@testing-library/dom": "^10.4.1",
         "@testing-library/jest-dom": "^6.9.1",
         "@testing-library/react": "^16.3.2",
