@@ -6,7 +6,7 @@ import {
     TooltipManager,
     TooltipContainerProps,
 } from "./TooltipProps"
-import { TooltipCard } from "./Tooltip.js"
+import { TooltipCard } from "./TooltipCard.js"
 
 interface ManagedTooltipContainerProps extends TooltipContainerProps {
     tooltipManager: TooltipManager
