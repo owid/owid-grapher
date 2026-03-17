@@ -6,14 +6,14 @@ import {
     FontFamily,
     VerticalAlign,
     imemo,
+    type RequiredBy,
 } from "@ourworldindata/utils"
 import { Fragment, joinFragments, splitIntoFragments } from "./TextWrapUtils"
 import { match } from "ts-pattern"
 
 declare type FontSize = number
 
-interface TextWrapProps {
-    text: string
+interface TextWrapOptions {
     maxWidth: number
     lineHeight?: number
     fontSize: FontSize
@@ -23,6 +23,8 @@ interface TextWrapProps {
     rawHtml?: boolean
     verticalAlign?: VerticalAlign
 }
+
+type TextWrapProps = { text: string } & TextWrapOptions
 
 interface WrapLine {
     text: string
@@ -90,19 +92,33 @@ export const shortenWithEllipsis = (
 }
 
 export class TextWrap {
-    props: TextWrapProps
+    private static defaultOptions = {
+        maxWidth: Infinity,
+        lineHeight: 1.1,
+        separators: [" "],
+        verticalAlign: VerticalAlign.bottom,
+    } as const satisfies Partial<TextWrapProps>
+
+    private initialProps: TextWrapProps
     constructor(props: TextWrapProps) {
-        this.props = props
+        this.initialProps = props
+    }
+
+    @imemo get props(): RequiredBy<
+        TextWrapProps,
+        keyof typeof TextWrap.defaultOptions
+    > {
+        return { ...TextWrap.defaultOptions, ...this.initialProps }
     }
 
     @imemo get maxWidth(): number {
-        return this.props.maxWidth ?? Infinity
+        return this.props.maxWidth
     }
     @imemo get lineHeight(): number {
-        return this.props.lineHeight ?? 1.1
+        return this.props.lineHeight
     }
     @imemo get fontSize(): FontSize {
-        return this.props.fontSize ?? 1
+        return this.props.fontSize
     }
     @imemo get fontWeight(): number | undefined {
         return this.props.fontWeight
@@ -111,13 +127,13 @@ export class TextWrap {
         return this.props.fontFamily
     }
     @imemo get verticalAlign(): VerticalAlign {
-        return this.props.verticalAlign ?? VerticalAlign.bottom
+        return this.props.verticalAlign
     }
     @imemo get text(): string {
         return this.props.text
     }
     @imemo get separators(): string[] {
-        return this.props.separators ?? [" "]
+        return this.props.separators
     }
 
     // We need to take care that HTML tags are not split across lines.
