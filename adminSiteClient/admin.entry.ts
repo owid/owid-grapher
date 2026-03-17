@@ -2,10 +2,10 @@
 // set up before any errors are thrown.
 import "./instrument.js"
 
-import "./admin.scss"
-import "@ourworldindata/grapher/src/core/grapher.scss"
-import "./ExplorerCreatePage.scss"
-import "handsontable/dist/handsontable.full.css"
+// import "./admin.scss"
+// import "@ourworldindata/grapher/src/core/grapher.scss"
+// import "./ExplorerCreatePage.scss"
+// import "handsontable/dist/handsontable.full.css"
 import "@ant-design/v5-patch-for-react-19"
 import updateLocale from "dayjs/plugin/updateLocale"
 import { dayjs } from "@ourworldindata/utils"

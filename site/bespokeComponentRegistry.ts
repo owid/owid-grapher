@@ -14,12 +14,8 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     string,
     BespokeComponentDefinition
 > = {
-    example: {
-        scriptUrl: "/example/index.js",
+    "causes-of-death": {
+        scriptUrl: "/assets/bespoke/causes-of-death.mjs",
+        cssUrl: "/assets/bespoke/causes-of-death.css",
     },
-    // Example:
-    // "my-widget": {
-    //     scriptUrl: "/assets/bespoke/my-widget.mjs",
-    //     cssUrl: "/assets/bespoke/my-widget.css",
-    // },
 }
