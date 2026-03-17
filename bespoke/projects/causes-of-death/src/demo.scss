@@ -1,0 +1,12 @@
+// Styles needed outside the Shadow DOM for portaled react-aria overlays
+// (dropdown menus, popovers). These are imported on the demo page for
+// testing purposes. On the real site, these styles are already available
+// globally.
+
+@import "../../../../packages/@ourworldindata/components/src/styles/colors.scss";
+@import "../../../../packages/@ourworldindata/components/src/styles/variables.scss";
+@import "../../../../packages/@ourworldindata/components/src/styles/typography-constants";
+@import "../../../../packages/@ourworldindata/components/src/styles/typography.scss";
+@import "../../../../packages/@ourworldindata/grapher/src/core/variables.scss";
+@import "../../../../packages/@ourworldindata/grapher/src/core/typography.scss";
+@import "../../../../packages/@ourworldindata/grapher/src/controls/Dropdown.scss";

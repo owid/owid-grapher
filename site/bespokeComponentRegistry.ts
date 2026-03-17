@@ -17,9 +17,7 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     example: {
         scriptUrl: "/example/index.js",
     },
-    // Example:
-    // "my-widget": {
-    //     scriptUrl: "/assets/bespoke/my-widget.mjs",
-    //     cssUrl: "/assets/bespoke/my-widget.css",
-    // },
+    "causes-of-death": {
+        scriptUrl: "/causes-of-death/index.js",
+    },
 }
