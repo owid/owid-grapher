@@ -175,7 +175,7 @@ async function fetchMultiDimGrapherConfig(
         }
     }
     return {
-        grapherConfig: (await response.json()) as GrapherInterface,
+        grapherConfig: await response.json(),
         status: response.status,
         etag: response.headers.get("etag") ?? undefined,
     }

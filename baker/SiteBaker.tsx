@@ -679,7 +679,7 @@ export class SiteBaker {
         // Ensure we have a published gdoc for each slug given
         if (slugs !== undefined && slugs.length !== gdocsToBake.length) {
             const slugsNotFound = slugs.filter(
-                (slug) => !gdocsToBake.find((gdoc) => gdoc.slug === slug)
+                (slug) => !gdocsToBake.some((gdoc) => gdoc.slug === slug)
             )
             throw new Error(
                 `Some of the gdoc slugs were not found or are not published: ${slugsNotFound}`
@@ -813,7 +813,7 @@ export class SiteBaker {
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/feedback.html`,
-            await feedbackPage()
+            feedbackPage()
         )
         await this.stageWrite(
             `${this.bakedSiteDir}${SEARCH_BASE_PATH}.html`,
@@ -829,7 +829,7 @@ export class SiteBaker {
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/collection/custom.html`,
-            await renderDynamicCollectionPage()
+            renderDynamicCollectionPage()
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/collection/top-charts.html`,
@@ -837,7 +837,7 @@ export class SiteBaker {
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/404.html`,
-            await renderNotFoundPage()
+            renderNotFoundPage()
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/sitemap.xml`,

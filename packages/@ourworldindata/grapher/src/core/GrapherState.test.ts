@@ -154,11 +154,11 @@ const owidDataset = new Map([
 it("can apply legacy chart dimension settings", () => {
     const grapher = new GrapherState(legacyConfig)
     grapher.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
-        owidDataset!,
+        owidDataset,
         legacyConfig.dimensions!,
         legacyConfig.selectedEntityColors
     )
-    const col = grapher.yColumnsFromDimensions[0]!
+    const col = grapher.yColumnsFromDimensions[0]
     expect(col.unit).toEqual(unit)
     expect(col.displayName).toEqual(name)
 })

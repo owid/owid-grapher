@@ -87,7 +87,7 @@ export async function resetDbButKeepBaselines(): Promise<void> {
             }
         },
         TransactionCloseMode.KeepOpen,
-        testKnex!
+        testKnex
     )
 }
 

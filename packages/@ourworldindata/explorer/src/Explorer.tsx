@@ -398,7 +398,7 @@ export class Explorer
 
     disposers: (() => void)[] = []
     override async componentDidMount() {
-        this.setGrapher(this.grapherRef!.current!)
+        this.setGrapher(this.grapherRef.current!)
 
         let url = Url.fromQueryParams({
             ...this.initialQueryParams,

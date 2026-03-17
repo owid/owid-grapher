@@ -74,21 +74,22 @@ export class GdocsStore {
 
     @action
     async fetchGdocs() {
-        const gdocs = (await this.admin.getJSON(
-            "/api/gdocs"
-        )) as OwidGdocIndexItem[]
+        const gdocs =
+            await this.admin.getJSON<OwidGdocIndexItem[]>("/api/gdocs")
         this.gdocs = gdocs
     }
 
     @action
     async fetchTags() {
-        const json = (await this.admin.getJSON("/api/tags.json")) as any
+        const json = await this.admin.getJSON<{ tags: DbChartTagJoin[] }>(
+            "/api/tags.json"
+        )
         this.availableTags = json.tags
     }
 
     @action
     async updateTags(gdoc: OwidGdocIndexItem, tags: DbPlainTag[]) {
-        const json = await this.admin.requestJSON(
+        const json = await this.admin.requestJSON<{ success: boolean }>(
             `/api/gdocs/${gdoc.id}/setTags`,
             { tagIds: tags.map((t) => t.id) },
             "POST"

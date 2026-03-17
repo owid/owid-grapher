@@ -633,7 +633,7 @@ export const getNonRedistributableInfo = (
     if (!table) return { cols: undefined, sourceLinks: undefined }
 
     const nonRedistributableCols = table.columnsAsArray.filter(
-        (col) => (col.def as OwidColumnDef).nonRedistributable
+        (col) => col.def.nonRedistributable
     )
 
     if (!nonRedistributableCols.length)
@@ -641,7 +641,7 @@ export const getNonRedistributableInfo = (
 
     const sourceLinks = nonRedistributableCols
         .map((col) => {
-            const def = col.def as OwidColumnDef
+            const def = col.def
             return def.sourceLink ?? def.origins?.[0]?.urlMain
         })
         .filter((link): link is string => !!link)
@@ -732,7 +732,7 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
 
     // Find the highest processing level of all columns
     const owidProcessingLevel = table?.columnsAsArray
-        .map((col) => (col.def as OwidColumnDef).owidProcessingLevel)
+        .map((col) => col.def.owidProcessingLevel)
         .reduce((prev, curr) => {
             if (prev === "major" || curr === "major") return "major" as const
             if (prev === "minor" || curr === "minor") return "minor" as const
@@ -1126,7 +1126,7 @@ function DownloadButton(props: DownloadButtonProps): React.ReactElement {
         const loadingTimeout = setTimeout(() => setShowLoadingUI(true), 300)
 
         try {
-            await onClick()
+            onClick()
         } finally {
             clearTimeout(loadingTimeout)
             setIsDownloading(false)

@@ -76,6 +76,7 @@
         "valid-typeof": "error",
         "typescript/ban-ts-comment": "error",
         "no-array-constructor": "error",
+        "typescript/await-thenable": "warn",
         "typescript/no-duplicate-enum-values": "error",
         "typescript/no-empty-object-type": "error",
         "typescript/no-extra-non-null-assertion": "error",
@@ -166,8 +167,21 @@
                 "destructuring": "all"
             }
         ],
+        "no-empty-function": "warn",
+        "no-self-compare": "warn",
+        "no-template-curly-in-string": "warn",
+        "no-void": ["warn", { "allowAsStatement": true }],
         "typescript/no-floating-promises": "error",
-        "no-empty-function": "warn"
+        "typescript/no-unnecessary-type-assertion": "warn",
+        "unicorn/no-for-loop": "warn",
+        "unicorn/no-instanceof-array": "warn",
+        "unicorn/no-unnecessary-await": "warn",
+        "unicorn/no-useless-spread": "warn",
+        "unicorn/prefer-array-flat-map": "warn",
+        "unicorn/prefer-array-some": "warn",
+        "unicorn/prefer-includes": "warn",
+        "unicorn/prefer-optional-catch-binding": "warn",
+        "unicorn/prefer-string-starts-ends-with": "warn"
     },
     "settings": {
         "react": {

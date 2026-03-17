@@ -15,7 +15,7 @@ async function seedApiKeyForUser(userId: number) {
     const [id] = await env
         .testKnex(AdminApiKeysTableName)
         .insert({ userId, keyHash })
-    return { apiKey, id: id as number }
+    return { apiKey, id: id }
 }
 
 describe("Admin API key auth", { timeout: 10000 }, () => {
@@ -23,7 +23,7 @@ describe("Admin API key auth", { timeout: 10000 }, () => {
         const user = await env.testKnex(UsersTableName).first<DbPlainUser>()
         expect(user).toBeTruthy()
 
-        const { apiKey, id } = await seedApiKeyForUser(user!.id)
+        const { apiKey, id } = await seedApiKeyForUser(user.id)
 
         const response = await fetch(`${env.baseUrl}/users.json`, {
             headers: {
@@ -45,7 +45,7 @@ describe("Admin API key auth", { timeout: 10000 }, () => {
         const user = await env.testKnex(UsersTableName).first<DbPlainUser>()
         expect(user).toBeTruthy()
 
-        const { id } = await seedApiKeyForUser(user!.id)
+        const { id } = await seedApiKeyForUser(user.id)
 
         const response = await fetch(`${env.baseUrl}/users.json`)
         expect(response.status).toBe(401)
@@ -77,10 +77,10 @@ describe("Admin API key auth", { timeout: 10000 }, () => {
 
         await env
             .testKnex(UsersTableName)
-            .where({ id: superuser!.id })
+            .where({ id: superuser.id })
             .update({ lastSeen: null })
 
-        const { apiKey } = await seedApiKeyForUser(superuser!.id)
+        const { apiKey } = await seedApiKeyForUser(superuser.id)
 
         const response = await fetch(`${env.baseUrl}/users.json`, {
             headers: {
@@ -93,12 +93,12 @@ describe("Admin API key auth", { timeout: 10000 }, () => {
 
         const updatedActAsUser = await env
             .testKnex(UsersTableName)
-            .where({ id: actAsUserId as number })
+            .where({ id: actAsUserId })
             .first<DbPlainUser>()
 
         const updatedSuperuser = await env
             .testKnex(UsersTableName)
-            .where({ id: superuser!.id })
+            .where({ id: superuser.id })
             .first<DbPlainUser>()
 
         expect(updatedActAsUser?.lastSeen).toBeTruthy()
@@ -126,7 +126,7 @@ describe("Admin API key auth", { timeout: 10000 }, () => {
             lastSeen: null,
         })
 
-        const { apiKey, id } = await seedApiKeyForUser(primaryUserId as number)
+        const { apiKey, id } = await seedApiKeyForUser(primaryUserId)
 
         const response = await fetch(`${env.baseUrl}/users.json`, {
             headers: {
@@ -144,12 +144,12 @@ describe("Admin API key auth", { timeout: 10000 }, () => {
 
         const updatedPrimaryUser = await env
             .testKnex(UsersTableName)
-            .where({ id: primaryUserId as number })
+            .where({ id: primaryUserId })
             .first<DbPlainUser>()
 
         const updatedActAsUser = await env
             .testKnex(UsersTableName)
-            .where({ id: actAsUserId as number })
+            .where({ id: actAsUserId })
             .first<DbPlainUser>()
 
         expect(apiKeyRow?.lastUsedAt).toBeNull()
@@ -180,9 +180,7 @@ describe("Admin API key auth", { timeout: 10000 }, () => {
             lastSeen: null,
         })
 
-        const { apiKey, id } = await seedApiKeyForUser(
-            inactiveSuperuserId as number
-        )
+        const { apiKey, id } = await seedApiKeyForUser(inactiveSuperuserId)
 
         const response = await fetch(`${env.baseUrl}/users.json`, {
             headers: {
@@ -200,12 +198,12 @@ describe("Admin API key auth", { timeout: 10000 }, () => {
 
         const updatedInactiveSuperuser = await env
             .testKnex(UsersTableName)
-            .where({ id: inactiveSuperuserId as number })
+            .where({ id: inactiveSuperuserId })
             .first<DbPlainUser>()
 
         const updatedActAsUser = await env
             .testKnex(UsersTableName)
-            .where({ id: actAsUserId as number })
+            .where({ id: actAsUserId })
             .first<DbPlainUser>()
 
         expect(apiKeyRow?.lastUsedAt).toBeNull()

@@ -414,7 +414,7 @@ export class CoreTable<
 
     getTimesAtIndices(indices: number[]): number[] {
         if (!indices.length) return []
-        return this.getValuesAtIndices(this.timeColumn!.slug, indices) as Time[]
+        return this.getValuesAtIndices(this.timeColumn.slug, indices) as Time[]
     }
 
     getValuesAtIndices(
@@ -650,7 +650,7 @@ export class CoreTable<
     }
 
     @imemo get defs(): COL_DEF_TYPE[] {
-        return this.columnsAsArray.map((col) => col.def) as COL_DEF_TYPE[]
+        return this.columnsAsArray.map((col) => col.def)
     }
 
     @imemo get columnNames(): string[] {
@@ -896,7 +896,7 @@ export class CoreTable<
         // Build defs in the order specified by slugs
         const defs = slugs
             .filter((slug) => this.has(slug))
-            .map((slug) => this.get(slug).def) as COL_DEF_TYPE[]
+            .map((slug) => this.get(slug).def)
 
         // Build column store with the same columns
         slugs.forEach((slug) => {
@@ -920,7 +920,7 @@ export class CoreTable<
         }
         const defs = this.columnsAsArray
             .filter((col) => !columnsToDrop.has(col.slug))
-            .map((col) => col.def) as COL_DEF_TYPE[]
+            .map((col) => col.def)
         slugs.forEach((slug) => {
             delete newStore[slug]
         })
@@ -986,7 +986,7 @@ export class CoreTable<
         return this.transform(
             renameColumnStore(this.columnStore, columnRenameMap),
             this.defs.map((def) =>
-                oldSlugs.indexOf(def.slug) > -1
+                oldSlugs.includes(def.slug)
                     ? {
                           ...def,
                           slug: newSlugs[oldSlugs.indexOf(def.slug)],

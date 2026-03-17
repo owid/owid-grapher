@@ -127,7 +127,7 @@ export const DataPageV2Content = ({
                     <GrapherWithFallback
                         config={mergedGrapherConfig}
                         useProvidedConfigOnly
-                        slug={grapherConfig.slug!}
+                        slug={grapherConfig.slug}
                         queryStr={
                             typeof window !== "undefined"
                                 ? window?.location?.search

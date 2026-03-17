@@ -493,7 +493,7 @@ const fullJoinTables = (
         const fallbackMergeIndices =
             mergeFallbackLookupColumns && indexHits
                 ? mergeFallbackLookupColumns.map((columnSet) =>
-                      makeKeyFn(tables[0].columnStore, columnSet)(indexHits![0])
+                      makeKeyFn(tables[0].columnStore, columnSet)(indexHits[0])
                   )
                 : undefined
         // now add all the nonindex value columns. We now loop over all tables and for each non-shared column
@@ -532,7 +532,7 @@ const fullJoinTables = (
                         fallbackMergeIndices &&
                         mergeFallbackLookupValuesPerTable &&
                         indexHits === undefined &&
-                        fallbackIndex < fallbackMergeIndices!.length;
+                        fallbackIndex < fallbackMergeIndices.length;
                         fallbackIndex++
                     ) {
                         indexHits = mergeFallbackLookupValuesPerTable[
@@ -717,7 +717,7 @@ const timeColumnValuesFromOwidVariable = (
         display.zeroDay !== EPOCH_DATE
     const yearsRaw = years || []
     return yearsNeedTransform
-        ? convertLegacyYears(yearsRaw, display!.zeroDay!)
+        ? convertLegacyYears(yearsRaw, display.zeroDay!)
         : yearsRaw
 }
 

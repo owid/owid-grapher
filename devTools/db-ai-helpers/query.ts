@@ -75,7 +75,7 @@ async function main() {
         .parseSync()
 
     const sql = argv.sql as string
-    const useStaging = argv.staging as boolean | undefined
+    const useStaging = argv.staging
     const stagingHost = useStaging
         ? getContainerName(getCurrentBranch())
         : undefined

@@ -48,7 +48,7 @@ export function GrapherWithFallback(
         >
             {props.configUrl ? (
                 <GrapherImage
-                    url={props.configUrl!}
+                    url={props.configUrl}
                     enablePopulatingUrlParams={props.enablePopulatingUrlParams}
                 />
             ) : (

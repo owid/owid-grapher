@@ -151,7 +151,7 @@ export async function renderSvgToPng(
     const pngLogger = new TimeLogger("png")
     const resvgJS = new Resvg(svg, opts)
 
-    const pngData = await resvgJS.render().asPng()
+    const pngData = resvgJS.render().asPng()
     pngLogger.log("svg2png")
     return pngData
 }

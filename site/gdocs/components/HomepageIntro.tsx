@@ -160,7 +160,7 @@ function HomepageAnnouncement(props: {
           announcement.cta?.url ||
           latestPageLink
 
-    const publishedAtDayJs = dayjs(announcement.publishedAt!)
+    const publishedAtDayJs = dayjs(announcement.publishedAt)
     const publishedAtFormatted = publishedAtDayJs.isToday()
         ? "Today"
         : publishedAtDayJs.isYesterday()

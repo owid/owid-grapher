@@ -24,7 +24,8 @@ const env = getAdminTestEnv()
 
 async function processUntilNoQueued(slug: string, max = 5): Promise<void> {
     for (let i = 0; i < max; i++) {
-        const queued = await env.testKnex!(JobsTableName)
+        const queued = await env
+            .testKnex(JobsTableName)
             .where({ type: "refresh_explorer_views", state: "queued" })
             .andWhereRaw(`JSON_EXTRACT(payload, '$.slug') = ?`, [slug])
         if (queued.length === 0) return
@@ -74,7 +75,8 @@ async function ensureQueued(slug: string, chart1: number, chart2: number) {
     const r = await putExplorerTsv(slug, chart1, chart2)
     expect(r.success).toBe(true)
     // Accept either status but ensure a queued job exists afterwards
-    const queued = await env.testKnex!(JobsTableName)
+    const queued = await env
+        .testKnex(JobsTableName)
         .where({ type: "refresh_explorer_views", state: "queued" })
         .andWhereRaw(`JSON_EXTRACT(payload, '$.slug') = ?`, [slug])
     expect(queued.length).toBeGreaterThan(0)
@@ -143,13 +145,15 @@ graphers
         expect(response.success).toBe(true)
         expect(response.status).toBe("queued")
 
-        const explorer = await env.testKnex!(ExplorersTableName)
+        const explorer = await env
+            .testKnex(ExplorersTableName)
             .where({ slug: testExplorerSlug })
             .first()
         expect(explorer).toBeTruthy()
         expect(explorer.viewsRefreshStatus).toBe("queued")
 
-        const job = await env.testKnex!(JobsTableName)
+        const job = await env
+            .testKnex(JobsTableName)
             .where({ type: "refresh_explorer_views", state: "queued" })
             .andWhereRaw(`JSON_EXTRACT(payload, '$.slug') = ?`, [
                 testExplorerSlug,
@@ -164,13 +168,15 @@ graphers
         await processUntilNoQueued(testExplorerSlug)
 
         // Query the last job for this slug and ensure it is done
-        const completedJob = await env.testKnex!(JobsTableName)
+        const completedJob = await env
+            .testKnex(JobsTableName)
             .whereRaw(`JSON_EXTRACT(payload, '$.slug') = ?`, [testExplorerSlug])
             .orderBy("id", "desc")
             .first()
         expect(completedJob.state).toBe("done")
 
-        const updatedExplorer = await env.testKnex!(ExplorersTableName)
+        const updatedExplorer = await env
+            .testKnex(ExplorersTableName)
             .where({ slug: testExplorerSlug })
             .first()
         expect(updatedExplorer.viewsRefreshStatus).toBe("clean")
@@ -198,12 +204,14 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
         await putExplorerTsv(slug, id1, id2)
 
         // There should be only one queued job; any earlier queued job should be marked done
-        const queued = await env.testKnex!(JobsTableName)
+        const queued = await env
+            .testKnex(JobsTableName)
             .where({ type: "refresh_explorer_views", state: "queued" })
             .andWhereRaw(`JSON_EXTRACT(payload, '$.slug') = ?`, [slug])
         expect(queued.length).toBe(1)
 
-        const done = await env.testKnex!(JobsTableName)
+        const done = await env
+            .testKnex(JobsTableName)
             .where({ type: "refresh_explorer_views", state: "done" })
             .andWhereRaw(`JSON_EXTRACT(payload, '$.slug') = ?`, [slug])
         // At least one earlier queued job should have been superseded
@@ -230,7 +238,7 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
         const { processExplorerViewsJob } = await getJobProcessor()
 
         // Process by claiming and running without backoff sleep
-        const job = await env.testKnex!.transaction(async (trx) => {
+        const job = await env.testKnex.transaction(async (trx) => {
             return await JobsModel.claimNextQueuedJob(
                 trx as any,
                 "refresh_explorer_views"
@@ -245,7 +253,8 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
             maxAttempts: 1,
         })
 
-        const finalJob = await env.testKnex!(JobsTableName)
+        const finalJob = await env
+            .testKnex(JobsTableName)
             .where({ id: job.id })
             .first()
         expect(["failed", "done"].includes(finalJob.state)).toBe(true)
@@ -255,7 +264,8 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
             expect([null, ""].includes(finalJob.lastError)).toBe(true)
         }
 
-        const explorer = await env.testKnex!(ExplorersTableName)
+        const explorer = await env
+            .testKnex(ExplorersTableName)
             .where({ slug })
             .first()
         // Implementation may reset to clean after failure; accept derived states
@@ -277,7 +287,7 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
         await ensureQueued(slug, id1, id2)
 
         // Claim a single job and induce staleness after Phase 1 with a hook
-        const job = await env.testKnex!.transaction(async (trx) => {
+        const job = await env.testKnex.transaction(async (trx) => {
             return await JobsModel.claimNextQueuedJob(
                 trx as any,
                 "refresh_explorer_views"
@@ -288,7 +298,8 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
         const { processExplorerViewsJob } = await getJobProcessor()
         await processExplorerViewsJob(job, {
             onAfterPhase1: async (j) => {
-                await env.testKnex!(ExplorersTableName)
+                await env
+                    .testKnex(ExplorersTableName)
                     .where({ slug: j.payload.slug })
                     .update({
                         updatedAt: new Date(
@@ -298,7 +309,8 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
             },
         })
 
-        const processed = await env.testKnex!(JobsTableName)
+        const processed = await env
+            .testKnex(JobsTableName)
             .where({ id: job.id })
             .first()
         expect(processed.state).toBe("done")
@@ -310,7 +322,8 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
                 le.includes("explorer missing")
         ).toBe(true)
 
-        const explorer = await env.testKnex!(ExplorersTableName)
+        const explorer = await env
+            .testKnex(ExplorersTableName)
             .where({ slug })
             .first()
         expect(
@@ -348,7 +361,7 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
 
         await processUntilNoQueued(slug)
 
-        const views = await env.testKnex!(ExplorerViewsTableName).where({
+        const views = await env.testKnex(ExplorerViewsTableName).where({
             explorerSlug: slug,
         })
         expect(views.length).toBeGreaterThan(0)
@@ -371,7 +384,7 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
         await ensureQueued(slug, id1, id2) // Enqueue job A
 
         // Claim job A (it will be in running state now)
-        const jobA = await env.testKnex!.transaction(async (trx) => {
+        const jobA = await env.testKnex.transaction(async (trx) => {
             return await JobsModel.claimNextQueuedJob(
                 trx as any,
                 "refresh_explorer_views"
@@ -392,7 +405,8 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
         const { processExplorerViewsJob } = await getJobProcessor()
         await processExplorerViewsJob(jobA)
 
-        const jobAAfter = await env.testKnex!(JobsTableName)
+        const jobAAfter = await env
+            .testKnex(JobsTableName)
             .where({ id: jobA.id })
             .first()
         expect(jobAAfter.state).toBe("done")
@@ -402,7 +416,7 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
 
         // If A was superseded, no views should be present; if A proceeded,
         // views may already exist. Accept either outcome here.
-        const beforeBViews = await env.testKnex!(ExplorerViewsTableName).where({
+        const beforeBViews = await env.testKnex(ExplorerViewsTableName).where({
             explorerSlug: slug,
         })
         expect(beforeBViews.length >= 0).toBe(true)
@@ -411,12 +425,13 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
         await processUntilNoQueued(slug)
 
         // Explorer should be marked clean and views created
-        const explorerAfter = await env.testKnex!(ExplorersTableName)
+        const explorerAfter = await env
+            .testKnex(ExplorersTableName)
             .where({ slug })
             .first()
         expect(explorerAfter.viewsRefreshStatus).toBe("clean")
 
-        const viewsAfter = await env.testKnex!(ExplorerViewsTableName).where({
+        const viewsAfter = await env.testKnex(ExplorerViewsTableName).where({
             explorerSlug: slug,
         })
         expect(viewsAfter.length).toBeGreaterThanOrEqual(2)
@@ -429,7 +444,8 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
         await ensureQueued(slug, id1, id2)
         await processUntilNoQueued(slug)
 
-        const queuedBefore = await env.testKnex!(JobsTableName)
+        const queuedBefore = await env
+            .testKnex(JobsTableName)
             .where({ type: "refresh_explorer_views", state: "queued" })
             .andWhereRaw(`JSON_EXTRACT(payload, '$.slug') = ?`, [slug])
         expect(queuedBefore.length).toBe(0)
@@ -443,12 +459,14 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
         })
         expect(updateResponse.success).toBe(true)
 
-        const queuedAfter = await env.testKnex!(JobsTableName)
+        const queuedAfter = await env
+            .testKnex(JobsTableName)
             .where({ type: "refresh_explorer_views", state: "queued" })
             .andWhereRaw(`JSON_EXTRACT(payload, '$.slug') = ?`, [slug])
         expect(queuedAfter.length).toBe(1)
 
-        const explorer = await env.testKnex!(ExplorersTableName)
+        const explorer = await env
+            .testKnex(ExplorersTableName)
             .where({ slug })
             .first()
         expect(explorer.viewsRefreshStatus).toBe("queued")
@@ -459,7 +477,7 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
         const datasetId = 101
         const variableId = 202
 
-        await env.testKnex!(DatasetsTableName).insert({
+        await env.testKnex(DatasetsTableName).insert({
             id: datasetId,
             name: "Dataset for variable explorer",
             description: "",
@@ -470,7 +488,7 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
             dataEditedAt: new Date(),
             dataEditedByUserId: 1,
         })
-        await env.testKnex!(VariablesTableName).insert({
+        await env.testKnex(VariablesTableName).insert({
             id: variableId,
             name: "Test variable",
             unit: "units",
@@ -498,7 +516,8 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
 
         await processUntilNoQueued(slug)
 
-        const queuedBefore = await env.testKnex!(JobsTableName)
+        const queuedBefore = await env
+            .testKnex(JobsTableName)
             .where({ type: "refresh_explorer_views", state: "queued" })
             .andWhereRaw(`JSON_EXTRACT(payload, '$.slug') = ?`, [slug])
         expect(queuedBefore.length).toBe(0)
@@ -516,12 +535,14 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
         })
         expect(updateResponse.success).toBe(true)
 
-        const queuedAfter = await env.testKnex!(JobsTableName)
+        const queuedAfter = await env
+            .testKnex(JobsTableName)
             .where({ type: "refresh_explorer_views", state: "queued" })
             .andWhereRaw(`JSON_EXTRACT(payload, '$.slug') = ?`, [slug])
         expect(queuedAfter.length).toBe(1)
 
-        const explorer = await env.testKnex!(ExplorersTableName)
+        const explorer = await env
+            .testKnex(ExplorersTableName)
             .where({ slug })
             .first()
         expect(explorer.viewsRefreshStatus).toBe("queued")

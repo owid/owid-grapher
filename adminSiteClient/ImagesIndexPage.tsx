@@ -79,12 +79,12 @@ type UsageInfo = {
 }
 
 type ImageEditorApi = {
-    getUsage: () => void
+    getUsage: () => Promise<void>
     getAltText: (id: number) => Promise<{ altText: string; success: boolean }>
     patchImage: (
         image: DbEnrichedImageWithPageviews,
         patch: Partial<DbEnrichedImageWithPageviews>
-    ) => void
+    ) => Promise<void>
     putImage: (
         id: number,
         payload: {
@@ -92,23 +92,23 @@ type ImageEditorApi = {
             content?: string
             type: string
         }
-    ) => void
+    ) => Promise<void>
     postImage: (payload: {
         filename: string
         content?: string
         type: string
-    }) => void
-    deleteImage: (image: DbEnrichedImageWithPageviews) => void
-    getImages: () => void
-    getUsers: () => void
+    }) => Promise<void>
+    deleteImage: (image: DbEnrichedImageWithPageviews) => Promise<void>
+    getImages: () => Promise<void>
+    getUsers: () => Promise<void>
     postUserImage: (
         user: DbPlainUser,
         image: DbEnrichedImageWithPageviews
-    ) => void
+    ) => Promise<void>
     deleteUserImage: (
         user: DbPlainUser,
         image: DbEnrichedImageWithPageviews
-    ) => void
+    ) => Promise<void>
 }
 
 function AltTextEditor({
@@ -132,7 +132,7 @@ function AltTextEditor({
 
     const saveAltText = useCallback(
         (newValue: string) => {
-            patchImage(image, { defaultAlt: newValue })
+            void patchImage(image, { defaultAlt: newValue })
             setValue(newValue)
             setSavedValue(newValue)
         },
@@ -206,7 +206,7 @@ function UserSelect({
 
         if (selectedUser) {
             setValue(selectedUser.fullName)
-            await onUserSelect(selectedUser)
+            onUserSelect(selectedUser)
         }
     }
 
@@ -504,7 +504,7 @@ function PostImageButton({
     async function uploadImage({ file }: { file: File }) {
         const result = await fileToBase64(file)
         if (result) {
-            postImage(result)
+            await postImage(result)
         }
     }
     return (

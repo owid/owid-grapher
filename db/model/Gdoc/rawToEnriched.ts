@@ -1360,7 +1360,7 @@ const parseSubscribeBanner = (
     const rawAlign = raw.value?.align
     if (rawAlign) {
         if (validateRawEnum(blockAlignments, rawAlign)) {
-            align = rawAlign as BlockAlignment
+            align = rawAlign
         } else {
             parseErrors.push({
                 message: `If specified, subscribe-banner align must be one of ${blockAlignments.join(", ")}`,
@@ -1656,8 +1656,8 @@ const parseSdgGrid = (raw: RawBlockSDGGrid): EnrichedBlockSDGGrid => {
                     },
                 ]
             // TODO: make the type not just a string and then parse spans here
-            const goal = item.goal!
-            const link = item.link!
+            const goal = item.goal
+            const link = item.link
 
             //const errors = goal.parseErrors.concat(link.parseErrors)
 
@@ -2327,14 +2327,14 @@ export function parseFaqs(
         return {
             id: faq.id,
             content: enrichedText,
-            parseErrors: _.compact([
-                ...enrichedText.flatMap((block) =>
+            parseErrors: _.compact(
+                enrichedText.flatMap((block) =>
                     block?.parseErrors.map((parseError) => ({
                         ...parseError,
                         message: `Block parse error in faq with id "${faq.id}": ${parseError.message}`,
                     }))
-                ),
-            ]),
+                )
+            ),
         }
     }
 
@@ -3082,7 +3082,7 @@ export const parseSocialLink = (raw: RawSocialLink): EnrichedSocialLink => {
             message: "Link is missing text",
         })
     }
-    if (raw.type && Object.values(SocialLinkType).indexOf(raw.type) === -1) {
+    if (raw.type && !Object.values(SocialLinkType).includes(raw.type)) {
         return createError({
             message: `Link type must be one of ${Object.values(
                 SocialLinkType

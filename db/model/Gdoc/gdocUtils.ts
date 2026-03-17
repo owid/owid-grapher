@@ -339,7 +339,7 @@ function transformCalloutTokensInSpan(span: Span): Span[] {
     plaintextCalloutRegex.lastIndex = 0
 
     for (const match of text.matchAll(plaintextCalloutRegex)) {
-        const matchIndex = match.index!
+        const matchIndex = match.index
         // Add text before match
         if (matchIndex > lastIndex) {
             result.push({

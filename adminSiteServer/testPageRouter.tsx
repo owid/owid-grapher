@@ -311,7 +311,7 @@ async function propsFromQueryParams(
     }
 
     const countRes = (await countQuery) as { count: number }[]
-    const count = countRes[0]?.count as number
+    const count = countRes[0]?.count
     const numPages = Math.ceil(count / perPage)
 
     const originalUrl = Url.fromURL(params.originalUrl)
@@ -502,7 +502,7 @@ getPlainRouteWithROTransaction(
                 ...chartRaw,
                 config: parseChartConfig(chartRaw.config),
             }
-            const viewProps = await getViewPropsFromQueryParams(req.query)
+            const viewProps = getViewPropsFromQueryParams(req.query)
             const charts = [
                 {
                     id: chartEnriched.id,

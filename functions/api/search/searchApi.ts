@@ -189,9 +189,9 @@ async function getAvailableTopics(config: AlgoliaConfig): Promise<string[]> {
         throw new Error(`Algolia search failed: ${response.statusText}`)
     }
 
-    const data = (await response.json()) as {
+    const data: {
         results: [{ facets?: { tags?: Record<string, number> } }]
-    }
+    } = await response.json()
 
     return Object.keys(data.results[0].facets?.tags || {}).sort()
 }
@@ -260,9 +260,9 @@ export async function searchCharts(
         throw new Error(`Algolia search failed: ${response.statusText}`)
     }
 
-    const data = (await response.json()) as {
+    const data: {
         results: AlgoliaSearchResponse[]
-    }
+    } = await response.json()
     const result = data.results[0]
 
     // If we got zero results and user is filtering by topic, check if the topic exists
@@ -380,9 +380,9 @@ export async function searchPages(
         throw new Error(`Algolia search failed: ${response.statusText}`)
     }
 
-    const data = (await response.json()) as {
+    const data: {
         results: [{ hits: SearchPageHit[]; nbHits: number }]
-    }
+    } = await response.json()
     const result = data.results[0]
 
     // Clean up the hits and add URL

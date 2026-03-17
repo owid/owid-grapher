@@ -98,7 +98,7 @@ async function getOrStartProject(name: string): Promise<ProjectServer | null> {
         }
     )
 
-    proc.stdout!.on("data", (data: Buffer) => {
+    proc.stdout.on("data", (data: Buffer) => {
         const text = data.toString().trim()
         if (text) console.log(`[${name}] ${text}`)
         if (text.includes("Local:") || text.includes("ready in")) {
@@ -106,7 +106,7 @@ async function getOrStartProject(name: string): Promise<ProjectServer | null> {
         }
     })
 
-    proc.stderr!.on("data", (data: Buffer) => {
+    proc.stderr.on("data", (data: Buffer) => {
         const text = data.toString().trim()
         if (text) console.error(`[${name}] ${text}`)
     })
