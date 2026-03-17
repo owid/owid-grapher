@@ -17,21 +17,28 @@ body {
 .mode-note {
     font-size: 0.85rem;
     color: #888;
-    margin: -16px 0 16px;
+    margin: -16px 0 48px;
 }
 
 .variant {
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 16px;
+    margin-bottom: 48px;
 }
 
 .variant-label {
     font-size: 0.75rem;
-    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #888;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
+}
+
+.variant-label-prefix {
+    font-weight: 400;
+    text-decoration: underline;
+    margin-right: 0.4em;
+    text-underline-offset: 3px;
+}
+
+.variant-label-name {
+    font-weight: 600;
+    color: #555;
 }

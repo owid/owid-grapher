@@ -1,17 +1,16 @@
-import { useMemo } from "react"
-
 import { useParentSize } from "@visx/responsive"
 import { Group } from "@visx/group"
 
 import { Bounds } from "@ourworldindata/utils"
-import { TextWrap, TextWrapSvg } from "@ourworldindata/components"
 import { OwidDistinctColors } from "@ourworldindata/grapher/src/color/CustomSchemes.js"
+import {
+    GRAY_100,
+    GRAY_90,
+} from "@ourworldindata/grapher/src/color/ColorConstants.js"
 
 import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
-
-import { ArrowExamples } from "./ArrowExamples.js"
 
 export function Chart() {
     const { parentRef, width, height } = useParentSize()
@@ -39,16 +38,12 @@ function ChartArea({ width, height }: { width: number; height: number }) {
     // Bounds of the plotting area (typically without axes, legends, etc.)
     const innerBounds = bounds.pad(32)
 
-    // Bounds for the arrow box
-    const arrowBounds = innerBounds.pad(32).set({
-        width: innerBounds.width / 3,
-    })
-
     return (
         <svg width={width} height={height} viewBox={bounds.toViewBox()}>
             <LabeledBox
                 bounds={bounds}
                 label="Bounds"
+                description="Full SVG area"
                 color={OwidDistinctColors.Denim}
             />
 
@@ -56,18 +51,9 @@ function ChartArea({ width, height }: { width: number; height: number }) {
                 <LabeledBox
                     bounds={innerBounds}
                     label="Inner Bounds"
+                    description="Plotting area, after reserving space for axes, legends, etc."
                     color={OwidDistinctColors.Maroon}
                 />
-            </Group>
-
-            <Group left={arrowBounds.left} top={arrowBounds.top}>
-                <LabeledBox
-                    bounds={arrowBounds}
-                    label="Arrow examples"
-                    color={OwidDistinctColors.OliveGreen}
-                />
-
-                <ArrowExamples bounds={arrowBounds} />
             </Group>
         </svg>
     )
@@ -76,36 +62,18 @@ function ChartArea({ width, height }: { width: number; height: number }) {
 function LabeledBox({
     bounds,
     label,
+    description,
     color,
-    strokeWidth = 2,
 }: {
     bounds: Bounds
     label: string
+    description: string
     color: string
-    strokeWidth?: number
 }) {
-    const textWrap = useMemo(
-        () =>
-            new TextWrap({
-                text: label.toUpperCase(),
-                maxWidth: bounds.width,
-                fontSize: 11,
-                fontWeight: 700,
-            }),
-        [label, bounds.width]
-    )
-
     const labelX = 0
     const labelY = 0
-    const labelPadding = 2
-
-    const labelBackgroundBounds = new Bounds(
-        labelX,
-        labelY,
-        textWrap.width + labelPadding * 2,
-        textWrap.height + labelPadding * 2
-    )
-
+    const labelPadding = 8
+    const strokeWidth = 3
     const halfStroke = strokeWidth / 2
 
     return (
@@ -127,13 +95,24 @@ function LabeledBox({
                 stroke={color}
                 strokeWidth={strokeWidth}
             />
-            <rect {...labelBackgroundBounds.toProps()} fill={color} />
-            <TextWrapSvg
-                textWrap={textWrap}
+            <text
                 x={labelX + labelPadding}
                 y={labelY + labelPadding}
-                fill="white"
-            />
+                fill={GRAY_100}
+                dominantBaseline="hanging"
+                fontSize={13}
+                fontWeight={700}
+            >
+                {label}
+                <tspan
+                    dx="0.5em"
+                    fontWeight={400}
+                    fill={GRAY_90}
+                    fontStyle="italic"
+                >
+                    {description}
+                </tspan>
+            </text>
         </>
     )
 }

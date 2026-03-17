@@ -24,7 +24,6 @@
         "@visx/drag": "^3.12.0",
         "@visx/group": "^3.12.0",
         "@visx/responsive": "^3.12.0",
-        "@visx/scale": "^3.12.0",
         "classnames": "^2.5.1",
         "jotai": "^2.18.1",
         "normalize.css": "^8.0.1",
