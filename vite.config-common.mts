@@ -50,6 +50,12 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                 JSON.stringify(value?.toString()), // We need to stringify e.g. `true` to `"true"`, so that it's correctly parsed _again_
             ])
         ),
+        resolve: {
+            alias: {
+                // We don't want to load dotenv in the browser build, and don't need to fill in node imports like fs or path.
+                "./loadDotenv.js": "./loadDotenv.browser.js",
+            },
+        },
         build: {
             manifest: true, // creates a manifest.json file, which we use to determine which files to load in prod
             emptyOutDir: true,
