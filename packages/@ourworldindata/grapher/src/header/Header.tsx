@@ -8,6 +8,8 @@ import {
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
+    MarkdownTextWrapHtml,
+    MarkdownTextWrapSvg,
     TextWrap,
     TextWrapSvg,
     TextWrapHtml,
@@ -279,7 +281,11 @@ abstract class AbstractHeader<
             // make sure there are no scrollbars on subtitle
             overflowY: "hidden",
         }
-        return <p style={style}>{this.subtitle.renderHTML()}</p>
+        return (
+            <p style={style}>
+                <MarkdownTextWrapHtml textWrap={this.subtitle} />
+            </p>
+        )
     }
 
     override render(): React.ReactElement {
@@ -358,19 +364,21 @@ export class StaticHeader extends AbstractHeader<StaticHeaderProps> {
                         />
                     </a>
                 )}
-                {this.showSubtitle &&
-                    subtitle.renderSVG(
-                        x,
-                        y +
+                {this.showSubtitle && (
+                    <MarkdownTextWrapSvg
+                        textWrap={subtitle}
+                        x={x}
+                        y={
+                            y +
                             (this.showTitle
                                 ? title.height + this.subtitleMarginTop
-                                : 0),
-                        {
-                            id: makeFigmaId("subtitle"),
-                            textProps: { fill: GRAPHER_DARK_TEXT },
-                            detailsMarker: this.manager.detailsMarkerInSvg,
+                                : 0)
                         }
-                    )}
+                        id={makeFigmaId("subtitle")}
+                        fill={GRAPHER_DARK_TEXT}
+                        detailsMarker={this.manager.detailsMarkerInSvg}
+                    />
+                )}
             </g>
         )
     }
