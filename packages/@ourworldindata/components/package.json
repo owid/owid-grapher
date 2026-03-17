@@ -18,6 +18,7 @@
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
         "classnames": "^2.5.1",
+        "lodash-es": "4.17.23",
         "mdast-util-find-and-replace": "^3.0.2",
         "mdast-util-from-markdown": "^2.0.2",
         "mobx": "^6.13.7",
