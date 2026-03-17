@@ -1,20 +1,30 @@
-.color-picker {
+.picker {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    max-width: 240px;
 
-    .color-picker__label {
+    .picker__description {
+        margin: 0;
+        font-size: 12px;
+        color: $light-text;
+        font-style: italic;
+    }
+
+    .picker__label {
         margin: 0;
         font-size: 14px;
     }
 
-    .color-picker__swatches {
+    .picker__dropdown {
+        max-width: 240px;
+    }
+
+    .picker__swatches {
         display: flex;
         gap: 8px;
     }
 
-    .color-picker__swatch {
+    .picker__swatch {
         width: 40px;
         height: 40px;
         border-radius: 6px;
@@ -22,7 +32,7 @@
         cursor: pointer;
     }
 
-    .color-picker__swatch--selected {
+    .picker__swatch--selected {
         border-color: #222;
     }
 }
