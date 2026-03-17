@@ -7,6 +7,7 @@ import {
     imemo,
     Bounds,
     FontFamily,
+    type RequiredBy,
 } from "@ourworldindata/utils"
 import { TextWrap } from "../TextWrap/TextWrap.js"
 import { fromMarkdown } from "mdast-util-from-markdown"
@@ -513,9 +514,22 @@ type MarkdownTextWrapProps = { text: string } & MarkdownTextWrapOptions
 type TextFragment = { text: string; bold?: boolean }
 
 export class MarkdownTextWrap {
-    props: MarkdownTextWrapProps
+    private static defaultOptions = {
+        maxWidth: Infinity,
+        lineHeight: 1.1,
+        detailsOrderedByReference: [] as string[],
+    } as const satisfies Partial<MarkdownTextWrapProps>
+
+    private initialProps: MarkdownTextWrapProps
     constructor(props: MarkdownTextWrapProps) {
-        this.props = props
+        this.initialProps = props
+    }
+
+    @imemo get props(): RequiredBy<
+        MarkdownTextWrapProps,
+        keyof typeof MarkdownTextWrap.defaultOptions
+    > {
+        return { ...MarkdownTextWrap.defaultOptions, ...this.initialProps }
     }
 
     static fromFragments({
@@ -578,10 +592,10 @@ export class MarkdownTextWrap {
     }
 
     @imemo get maxWidth(): number {
-        return this.props.maxWidth ?? Infinity
+        return this.props.maxWidth
     }
     @imemo get lineHeight(): number {
-        return this.props.lineHeight ?? 1.1
+        return this.props.lineHeight
     }
     @imemo get fontSize(): number {
         return this.props.fontSize
@@ -616,7 +630,7 @@ export class MarkdownTextWrap {
         return text
     }
     @imemo get detailsOrderedByReference(): string[] {
-        return this.props.detailsOrderedByReference || []
+        return this.props.detailsOrderedByReference
     }
 
     @imemo get plaintext(): string {
