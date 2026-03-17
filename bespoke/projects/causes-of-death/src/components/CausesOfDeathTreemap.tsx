@@ -5,7 +5,7 @@ import {
     EnrichedDataItem,
     TooltipState,
     TreeNode,
-} from "./CausesOfDeathConstants"
+} from "../helpers/CausesOfDeathConstants"
 import { useMemo, useState, useCallback, useRef } from "react"
 import * as d3 from "d3"
 import {
@@ -14,20 +14,20 @@ import {
 } from "../../../../hooks/useDimensions"
 import { Bounds, getRelativeMouse } from "@ourworldindata/utils"
 
-import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
+import { CausesOfDeathMetadata } from "../helpers/CausesOfDeathMetadata.js"
 import { CausesOfDeathTreemapTile } from "./CausesOfDeathTreemapTile.js"
 import { CausesOfDeathTreemapTooltip } from "./CausesOfDeathTreemapTooltip.js"
-import { CategoryAnnotations } from "./CausesOfDeathCategoryAnnotations.js"
+import { CausesOfDeathCategoryAnnotations } from "./CausesOfDeathCategoryAnnotations.js"
 import {
     stackedSliceDiceTiling,
     TilingFunction,
-} from "../utils/stackedSliceDiceTiling.js"
+} from "../helpers/stackedSliceDiceTiling.js"
 import {
     CausesOfDeathChartContext,
     useCausesOfDeathChartContext,
-} from "./CausesOfDeathContext"
-import { placeExternalCategoryAnnotations } from "./CausesOfDeathCategoryAnnotationsHelpers.js"
-import { CausesOfDeathLegend } from "./CauseOfDeathLegend.js"
+} from "../helpers/CausesOfDeathContext"
+import { placeExternalCategoryAnnotations } from "../helpers/CausesOfDeathCategoryAnnotationsHelpers.js"
+import { CausesOfDeathLegend } from "./CausesOfDeathLegend.js"
 
 const SMALL_BREAKPOINT = 550
 
@@ -254,7 +254,9 @@ function CausesOfDeathTreemap({
                     />
                 ))}
 
-                <CategoryAnnotations placedAnnotations={placedAnnotations} />
+                <CausesOfDeathCategoryAnnotations
+                    placedAnnotations={placedAnnotations}
+                />
             </svg>
 
             {tooltipState.target && (
