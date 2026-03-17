@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 import * as _ from "lodash-es"
 import { CSSProperties } from "react"
 import * as React from "react"
