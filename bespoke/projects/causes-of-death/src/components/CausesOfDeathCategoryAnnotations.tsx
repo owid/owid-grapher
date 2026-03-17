@@ -1,8 +1,8 @@
-import { PlacedCategory } from "./CausesOfDeathCategoryAnnotationsHelpers.js"
+import { PlacedCategory } from "../helpers/CausesOfDeathCategoryAnnotationsHelpers.js"
 
 import { BezierArrow } from "../../../../components/BezierArrow/BezierArrow.js"
 
-export function CategoryAnnotations({
+export function CausesOfDeathCategoryAnnotations({
     placedAnnotations,
 }: {
     placedAnnotations: PlacedCategory[]
@@ -12,7 +12,7 @@ export function CategoryAnnotations({
     return (
         <g className="category-annotations">
             {placedAnnotations.map((placedAnnotation) => (
-                <CategoryAnnotation
+                <CausesOfDeathCategoryAnnotation
                     key={placedAnnotation.name}
                     placedAnnotation={placedAnnotation}
                 />
@@ -21,7 +21,7 @@ export function CategoryAnnotations({
     )
 }
 
-function CategoryAnnotation({
+function CausesOfDeathCategoryAnnotation({
     placedAnnotation: {
         textAnchor: anchor,
         placement: position,

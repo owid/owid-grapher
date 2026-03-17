@@ -3,13 +3,13 @@ import * as d3 from "d3"
 import * as R from "remeda"
 import { fetchJson } from "@ourworldindata/utils"
 import { stackedSliceDiceTiling } from "./stackedSliceDiceTiling.js"
-import { CausesOfDeathMetadata } from "../components/CausesOfDeathMetadata.js"
+import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
 import {
     DataJson,
     DataRow,
     EnrichedDataItem,
     MetadataJson,
-} from "../components/CausesOfDeathConstants.js"
+} from "./CausesOfDeathConstants.js"
 
 const BASE_URL =
     "https://owid-public.owid.io/sophia-bespoke-data-viz-demo-11-2025"

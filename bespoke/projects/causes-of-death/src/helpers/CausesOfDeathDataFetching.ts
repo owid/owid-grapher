@@ -20,7 +20,7 @@ export const useCausesOfDeathMetadata = (): {
 } => {
     const result = useQuery({
         queryKey: queryKeys.metadata(),
-        queryFn: () => fetchJson<MetadataJson>(METADATA_PATH + "?nocache"),
+        queryFn: () => fetchJson<MetadataJson>(METADATA_PATH),
     })
 
     const data = result.data
@@ -45,9 +45,7 @@ export const useCausesOfDeathEntityData = (
     const result = useQuery({
         queryKey: queryKeys.data(entityId!),
         queryFn: async (): Promise<DataJson> => {
-            const path =
-                DATA_PATH.replace("{entityId}", entityId!.toString()) +
-                "?nocache"
+            const path = DATA_PATH.replace("{entityId}", entityId!.toString())
             return fetchJson<DataJson>(path)
         },
         enabled: entityId !== undefined,

@@ -1,6 +1,5 @@
-import { formatValue } from "@ourworldindata/utils"
+import { articulateEntity, formatValue } from "@ourworldindata/utils"
 import { OwidVariableRoundingMode } from "@ourworldindata/types"
-import { regionsWithArticle } from "./CausesOfDeathConstants.js"
 
 export function formatCount(
     value: number,
@@ -25,10 +24,7 @@ export function formatShare(value: number): string {
 }
 
 export function formatCountryName(countryName: string): string {
-    if (regionsWithArticle.has(countryName)) {
-        return `the ${countryName}`
-    }
-    return countryName
+    return articulateEntity(countryName)
 }
 
 export const minBy = <T>(array: T[], selector: (item: T) => number): number => {
