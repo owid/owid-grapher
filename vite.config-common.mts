@@ -71,6 +71,7 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
         },
         plugins: [
             withFilter(
+                // Use swc to transform decorators
                 pluginSwc({
                     swc: {
                         jsc: {
@@ -79,7 +80,7 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                                 decorators: true,
                             },
                             transform: {
-                                // NOTE: SWC doesn't support the '2023-11' version yet.
+                                // NOTE: SWC doesn't support the latest '2023-11' version yet.
                                 decoratorVersion: "2022-03",
                                 useDefineForClassFields: true,
                             },
@@ -94,12 +95,16 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                 { transform: { code: /[^"]@/, id: /.*\.(ts|tsx)$/ } }
             ),
             pluginReact(),
-            {
-                ...optimizeReactAriaLocales.vite({
+            withFilter(
+                optimizeReactAriaLocales.vite({
                     locales: ["en-US"],
                 }),
-                enforce: "pre",
-            },
+                {
+                    transform: {
+                        id: /[/\\](@react-stately|@react-aria|@react-spectrum|react-aria-components)[/\\]/,
+                    },
+                }
+            ),
             // Put the Sentry vite plugin after all other plugins.
             clientSettings.LOAD_SENTRY &&
                 sentryVitePlugin({
