@@ -12,6 +12,7 @@ import {
     DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
     MarkdownTextWrap,
     TextWrap,
+    TextWrapSvg,
 } from "@ourworldindata/components"
 import { Tooltip } from "../tooltip/Tooltip"
 import { FooterManager } from "./FooterManager"
@@ -787,22 +788,28 @@ export class StaticFooter extends AbstractFooter<StaticFooterProps> {
                             detailsMarker: this.manager.detailsMarkerInSvg,
                         }
                     )}
-                {showLicenseNextToSources
-                    ? licenseAndOriginUrl.renderSVG(
-                          targetX + maxWidth - licenseAndOriginUrl.width,
-                          targetY,
-                          { id: makeFigmaId("origin-url") }
-                      )
-                    : licenseAndOriginUrl.renderSVG(
-                          targetX,
-                          targetY +
-                              sources.height +
-                              (this.showNote
-                                  ? note.height + this.verticalPadding
-                                  : 0) +
-                              this.verticalPadding,
-                          { id: makeFigmaId("origin-url") }
-                      )}
+                {showLicenseNextToSources ? (
+                    <TextWrapSvg
+                        textWrap={licenseAndOriginUrl}
+                        x={targetX + maxWidth - licenseAndOriginUrl.width}
+                        y={targetY}
+                        id={makeFigmaId("origin-url")}
+                    />
+                ) : (
+                    <TextWrapSvg
+                        textWrap={licenseAndOriginUrl}
+                        x={targetX}
+                        y={
+                            targetY +
+                            sources.height +
+                            (this.showNote
+                                ? note.height + this.verticalPadding
+                                : 0) +
+                            this.verticalPadding
+                        }
+                        id={makeFigmaId("origin-url")}
+                    />
+                )}
             </g>
         )
     }

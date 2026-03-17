@@ -1,4 +1,5 @@
 import * as React from "react"
+import { TextWrapSvg } from "@ourworldindata/components"
 import { makeFigmaId } from "@ourworldindata/utils"
 import { SeriesName } from "@ourworldindata/types"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
@@ -102,20 +103,19 @@ function Annotations({
                 const emphasis = series.emphasis ?? Emphasis.Default
                 return (
                     <React.Fragment key={getSeriesKey(series, index)}>
-                        {series.annotationTextWrap.renderSVG(
-                            series.labelCoords.x,
-                            series.labelCoords.y +
+                        <TextWrapSvg
+                            textWrap={series.annotationTextWrap}
+                            x={series.labelCoords.x}
+                            y={
+                                series.labelCoords.y +
                                 series.seriesLabel.height +
-                                ANNOTATION_PADDING,
-                            {
-                                textProps: {
-                                    fill: "#333",
-                                    opacity: LABEL_STYLE[emphasis].opacity,
-                                    textAnchor: anchor,
-                                    style: { fontWeight: 300 },
-                                },
+                                ANNOTATION_PADDING
                             }
-                        )}
+                            fill="#333"
+                            opacity={LABEL_STYLE[emphasis].opacity}
+                            textAnchor={anchor}
+                            style={{ fontWeight: 300 }}
+                        />
                     </React.Fragment>
                 )
             })}

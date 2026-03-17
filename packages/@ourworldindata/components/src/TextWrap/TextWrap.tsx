@@ -7,7 +7,6 @@ import {
     VerticalAlign,
     imemo,
 } from "@ourworldindata/utils"
-import * as React from "react"
 import { Fragment, joinFragments, splitIntoFragments } from "./TextWrapUtils"
 import { match } from "ts-pattern"
 
@@ -34,11 +33,6 @@ interface WrapLine {
 interface OpenHtmlTag {
     tag: string // e.g. "a" for an <a> tag, or "span" for a <span> tag
     fullTag: string // e.g. "<a href='https://ourworldindata.org'>"
-}
-
-interface SVGRenderProps {
-    textProps?: React.SVGProps<SVGTextElement>
-    id?: string
 }
 
 const HTML_OPENING_CLOSING_TAG_REGEX = /<(\/?)([A-Za-z]+)( [^<>]*)?>/g
@@ -295,73 +289,5 @@ export class TextWrap {
             .exhaustive()
 
         return [x, renderY]
-    }
-
-    renderHTML(): React.ReactElement | null {
-        const { props, lines } = this
-
-        if (lines.length === 0) return null
-
-        return (
-            <span>
-                {lines.map((line, index) => {
-                    const content = props.rawHtml ? (
-                        <span
-                            dangerouslySetInnerHTML={{
-                                __html: line.text,
-                            }}
-                        />
-                    ) : (
-                        <span>{line.text}</span>
-                    )
-                    return (
-                        <React.Fragment key={index}>
-                            {content}
-                            <br />
-                        </React.Fragment>
-                    )
-                })}
-            </span>
-        )
-    }
-
-    renderSVG(x: number, y: number, options: SVGRenderProps = {}) {
-        const { props, lines, fontSize, fontWeight } = this
-
-        if (lines.length === 0) return <></>
-
-        const [renderX, renderY] = this.getPositionForSvgRendering(x, y)
-
-        return (
-            <text
-                id={options.id}
-                fontSize={fontSize.toFixed(2)}
-                fontWeight={fontWeight}
-                x={renderX.toFixed(1)}
-                y={renderY.toFixed(1)}
-                {...options.textProps}
-            >
-                {lines.map((line, i) => {
-                    const x = renderX
-                    const y = renderY + this.singleLineHeight * i
-
-                    if (props.rawHtml)
-                        return (
-                            <tspan
-                                key={i}
-                                x={x}
-                                y={y}
-                                dangerouslySetInnerHTML={{ __html: line.text }}
-                            />
-                        )
-                    else
-                        return (
-                            <tspan key={i} x={x} y={y}>
-                                {line.text}
-                            </tspan>
-                        )
-                })}
-            </text>
-        )
     }
 }

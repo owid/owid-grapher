@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import { makeFigmaId } from "@ourworldindata/utils"
-import { TextWrap } from "@ourworldindata/components"
+import { TextWrap, TextWrapSvg } from "@ourworldindata/components"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
@@ -189,9 +189,13 @@ export class VerticalColorLegend extends React.Component<{
 
                     return (
                         <React.Fragment key={series.textWrap.text}>
-                            {series.textWrap.renderSVG(textX, textY, {
-                                textProps: { fill: style.color, ...style },
-                            })}
+                            <TextWrapSvg
+                                textWrap={series.textWrap}
+                                x={textX}
+                                y={textY}
+                                fill={style.color}
+                                {...style}
+                            />
                         </React.Fragment>
                     )
                 })}
@@ -279,12 +283,14 @@ export class VerticalColorLegend extends React.Component<{
                 id={makeFigmaId("vertical-color-legend")}
                 className="ScatterColorLegend clickable"
             >
-                {this.title &&
-                    this.title.renderSVG(this.legendX, this.legendY, {
-                        textProps: {
-                            fontWeight: 700,
-                        },
-                    })}
+                {this.title && (
+                    <TextWrapSvg
+                        textWrap={this.title}
+                        x={this.legendX}
+                        y={this.legendY}
+                        fontWeight={700}
+                    />
+                )}
                 {this.renderLabels()}
                 {this.renderSwatches()}
                 {!this.manager.isStatic && this.renderInteractiveElements()}

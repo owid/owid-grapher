@@ -6,7 +6,12 @@ import {
     Bounds,
     FontFamily,
 } from "@ourworldindata/utils"
-import { MarkdownTextWrap, TextWrap } from "@ourworldindata/components"
+import {
+    MarkdownTextWrap,
+    TextWrap,
+    TextWrapSvg,
+    TextWrapHtml,
+} from "@ourworldindata/components"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Logo } from "../captionedChart/Logos"
@@ -225,7 +230,9 @@ abstract class AbstractHeader<
         // avoid linking to a grapher/data page when we're already on it
         if (manager.isOnCanonicalUrl && !this.manager.isInIFrame) {
             return (
-                <h1 style={this.title.htmlStyle}>{this.title.renderHTML()}</h1>
+                <h1 style={this.title.htmlStyle}>
+                    <TextWrapHtml textWrap={this.title} />
+                </h1>
             )
         }
 
@@ -241,7 +248,7 @@ abstract class AbstractHeader<
                     })}
                 >
                     <h1 style={this.title.htmlStyle}>
-                        {this.title.renderHTML()}
+                        <TextWrapHtml textWrap={this.title} />
                     </h1>
                 </a>
             )
@@ -258,7 +265,7 @@ abstract class AbstractHeader<
                         rel: "noopener",
                     })}
                 >
-                    {this.title.renderHTML()}
+                    <TextWrapHtml textWrap={this.title} />
                 </a>
             </h1>
         )
@@ -343,9 +350,12 @@ export class StaticHeader extends AbstractHeader<StaticHeaderProps> {
                             rel: "noopener",
                         })}
                     >
-                        {title.renderSVG(x, y, {
-                            textProps: { fill: GRAY_100 },
-                        })}
+                        <TextWrapSvg
+                            textWrap={title}
+                            x={x}
+                            y={y}
+                            fill={GRAY_100}
+                        />
                     </a>
                 )}
                 {this.showSubtitle &&
