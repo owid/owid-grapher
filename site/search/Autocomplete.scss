@@ -1,6 +1,6 @@
 // Base theme to override
 // Without this CSS, the Autocomplete component doesn't initialise correctly
-@import "@algolia/autocomplete-theme-classic";
+@import "@algolia/autocomplete-theme-classic/dist/theme.css";
 
 :root {
     // Autocomplete JS reads this from CSS and passes it to matchMedia().
