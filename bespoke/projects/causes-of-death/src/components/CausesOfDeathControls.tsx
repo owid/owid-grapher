@@ -9,14 +9,12 @@ import {
     Dropdown as GrapherDropdown,
 } from "@ourworldindata/grapher/src/controls/Dropdown.js"
 
-import { EntityMetadata } from "./CausesOfDeathConstants.js"
-import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
-import { CausesOfDeathTimeSlider } from "./CausesOfDeathTimeSlider.js"
-import { useUserCountryInformation } from "./CausesOfDeathDataFetching.js"
-
 import { Frame } from "../../../../components/Frame/Frame.js"
 
-// import { ChartControls } from "../../../../components/ChartControls/ChartControls"
+import { EntityMetadata } from "../helpers/CausesOfDeathConstants.js"
+import { CausesOfDeathMetadata } from "../helpers/CausesOfDeathMetadata.js"
+import { CausesOfDeathTimeSlider } from "./CausesOfDeathTimeSlider.js"
+import { useUserCountryInformation } from "../helpers/CausesOfDeathDataFetching.js"
 
 export function CausesOfDeathControls({
     metadata,

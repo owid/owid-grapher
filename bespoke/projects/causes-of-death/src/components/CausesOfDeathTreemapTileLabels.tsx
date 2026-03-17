@@ -1,9 +1,9 @@
 import * as d3 from "d3"
 import { isDarkColor } from "@ourworldindata/grapher/src/color/ColorUtils"
 import { Bounds } from "@ourworldindata/utils"
-import { formatCount, formatShare } from "./CausesOfDeathHelpers.js"
-import { useCausesOfDeathChartContext } from "./CausesOfDeathContext"
-import { TreeNode } from "./CausesOfDeathConstants.js"
+import { formatCount, formatShare } from "../helpers/CausesOfDeathHelpers.js"
+import { useCausesOfDeathChartContext } from "../helpers/CausesOfDeathContext.js"
+import { TreeNode } from "../helpers/CausesOfDeathConstants.js"
 import { MarkdownTextWrap } from "@ourworldindata/components/src/MarkdownTextWrap/MarkdownTextWrap.js"
 import { MarkdownTextWrapSvg } from "@ourworldindata/components/src/MarkdownTextWrap/MarkdownTextWrapComponents.js"
 

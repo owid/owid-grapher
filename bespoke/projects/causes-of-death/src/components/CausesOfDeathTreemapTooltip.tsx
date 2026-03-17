@@ -1,5 +1,4 @@
 import { useMemo } from "react"
-import { createPortal } from "react-dom"
 import * as R from "remeda"
 import * as d3 from "d3"
 
@@ -12,13 +11,13 @@ import {
     TooltipState,
     DataRow,
     getCategoryColor,
-} from "./CausesOfDeathConstants.js"
+} from "../helpers/CausesOfDeathConstants.js"
 import {
     formatCount,
     formatShare,
     maxBy,
     minBy,
-} from "./CausesOfDeathHelpers.js"
+} from "../helpers/CausesOfDeathHelpers.js"
 
 export function CausesOfDeathTreemapTooltip({
     state,

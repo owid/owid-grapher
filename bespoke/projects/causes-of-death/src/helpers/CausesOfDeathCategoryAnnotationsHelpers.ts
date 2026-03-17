@@ -1,13 +1,15 @@
 import * as R from "remeda"
+import { match } from "ts-pattern"
+
 import { Bounds } from "@ourworldindata/utils"
+import { MarkdownTextWrap } from "@ourworldindata/components/src/MarkdownTextWrap/MarkdownTextWrap.js"
+
 import {
     DataRow,
     getCategoryColor,
     TreeNode,
 } from "./CausesOfDeathConstants.js"
 import { formatShare, maxBy, minBy } from "./CausesOfDeathHelpers.js"
-import { match } from "ts-pattern"
-import { MarkdownTextWrap } from "@ourworldindata/components/src/MarkdownTextWrap/MarkdownTextWrap.js"
 
 export interface Category {
     name: string

@@ -4,10 +4,13 @@ import cx from "classnames"
 
 import { EntityName, Time } from "@ourworldindata/types"
 
-import { DataRow } from "./CausesOfDeathConstants"
+import { DataRow } from "../helpers/CausesOfDeathConstants"
 import { ResponsiveCausesOfDeathTreemap } from "./CausesOfDeathTreemap"
-import { formatCountryName, formatCount } from "./CausesOfDeathHelpers.js"
-import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
+import {
+    formatCountryName,
+    formatCount,
+} from "../helpers/CausesOfDeathHelpers.js"
+import { CausesOfDeathMetadata } from "../helpers/CausesOfDeathMetadata.js"
 import { CausesOfDeathSpinner } from "./CausesOfDeathSpinner.js"
 
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"

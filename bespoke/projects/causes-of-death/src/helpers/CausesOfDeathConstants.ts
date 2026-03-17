@@ -72,66 +72,8 @@ export interface EnrichedDataRows extends DataRow {
 }
 
 export interface EnrichedDataRow extends DataRow {
-    category: string // CauseOfDeathCategory
+    category: string
 }
-
-// Regions that require the definite article "the" before their name
-// Maintained here instead of in the ETL because it's such a specific piece of metadata.
-export const regionsWithArticle = new Set([
-    "Aland Islands",
-    "Netherlands Antilles",
-    "United Arab Emirates",
-    "French Southern Territories",
-    "Bahrain",
-    "Bahamas",
-    "Central African Republic",
-    "Cocos Islands",
-    "Democratic Republic of Congo",
-    "Congo",
-    "Cook Islands",
-    "Comoros",
-    "Cayman Islands",
-    "Dominican Republic",
-    "Western Sahara",
-    "Falkland Islands",
-    "Faroe Islands",
-    "United Kingdom",
-    "Gambia",
-    "Heard Island and McDonald Islands",
-    "Isle of Man",
-    "British Indian Ocean Territory",
-    "Maldives",
-    "Marshall Islands",
-    "Northern Mariana Islands",
-    "Netherlands",
-    "Grand Duchy of Baden",
-    "Kingdom of Bavaria",
-    "Democratic Republic of Vietnam",
-    "Kingdom of the Two Sicilies",
-    "Duchy of Modena and Reggio",
-    "Orange Free State",
-    "Duchy of Parma and Piacenza",
-    "Federal Republic of Central America",
-    "Republic of Vietnam",
-    "Kingdom of Sardinia",
-    "Kingdom of Saxony",
-    "Sudan (former)",
-    "Grand Duchy of Tuscany",
-    "USSR",
-    "Kingdom of Wurttemberg",
-    "Yemen Arab Republic",
-    "Yemen People's Republic",
-    "Philippines",
-    "Gaza Strip",
-    "South Georgia and the South Sandwich Islands",
-    "Solomon Islands",
-    "Seychelles",
-    "Turks and Caicos Islands",
-    "United States",
-    "Vatican",
-    "British Virgin Islands",
-    "United States Virgin Islands",
-])
 
 export interface EnrichedDataItem {
     entityName: EntityName

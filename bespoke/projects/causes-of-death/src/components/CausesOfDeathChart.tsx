@@ -11,7 +11,7 @@ import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher/src/core/GrapherConst
 import {
     useCausesOfDeathEntityData,
     useCausesOfDeathMetadata,
-} from "./CausesOfDeathDataFetching.js"
+} from "../helpers/CausesOfDeathDataFetching.js"
 import { CausesOfDeathCaptionedChart } from "./CausesOfDeathCaptionedChart.js"
 import { CausesOfDeathControls } from "./CausesOfDeathControls.js"
 import { CausesOfDeathSpinner } from "./CausesOfDeathSpinner.js"
