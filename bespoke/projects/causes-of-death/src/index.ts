@@ -8,6 +8,7 @@ import type {
 } from "owid-bespoke-types"
 
 import { CausesOfDeathChartWithProviders } from "./components/CausesOfDeathChart.js"
+import { CausesOfDeathConfig } from "./helpers/CausesOfDeathConstants.js"
 
 // Styles for portaled react-aria overlays that render outside the Shadow
 // DOM (e.g. dropdown menus). On the real site these are available globally;
@@ -36,7 +37,16 @@ export const mount: BespokeComponentMountFn = (
         return
     }
 
+    const rawConfig = opts.config ?? {}
+    const config: CausesOfDeathConfig = {
+        region: rawConfig.region,
+        sex: rawConfig.sex,
+        ageGroup: rawConfig.ageGroup,
+        year: rawConfig.year ? parseInt(rawConfig.year, 10) : undefined,
+        hideControls: rawConfig.hideControls === "true",
+    }
+
     const root = createRoot(container)
-    root.render(createElement(variant.component, { container }))
+    root.render(createElement(variant.component, { container, config }))
     return () => root.unmount()
 }
