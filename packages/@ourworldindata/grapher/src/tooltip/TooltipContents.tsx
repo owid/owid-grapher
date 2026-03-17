@@ -12,7 +12,7 @@ import {
     TooltipTableProps,
     TooltipVariableProps,
 } from "./TooltipProps"
-import { makeAxisLabel } from "../chart/ChartUtils.js"
+import { makeAxisLabel } from "../axis/AxisUtils.js"
 import * as R from "remeda"
 import { CoreColumn } from "@ourworldindata/core-table"
 

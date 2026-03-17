@@ -25,7 +25,7 @@ import {
     GRAPHER_FONT_SCALE_11,
     GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants.js"
-import { makeAxisLabel } from "../chart/ChartUtils"
+import { makeAxisLabel } from "./AxisUtils.js"
 import * as R from "remeda"
 import { isValidVerticalComparisonLineConfig } from "../comparisonLine/ComparisonLineHelpers"
 
