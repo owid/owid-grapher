@@ -15,7 +15,7 @@
         "@ourworldindata/utils": "workspace:^",
         "d3": "^7.9.0",
         "dayjs": "^1.11.19",
-        "lodash-es": "4.17.23",
+        "lodash-es": "^4.17.23",
         "papaparse": "^5.5.3",
         "remeda": "^2.32.0"
     },
