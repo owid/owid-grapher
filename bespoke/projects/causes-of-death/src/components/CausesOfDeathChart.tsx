@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useState } from "react"
-import { QueryStatus } from "@tanstack/react-query"
+import {
+    QueryClient,
+    QueryClientProvider,
+    QueryStatus,
+} from "@tanstack/react-query"
 
 import { Time } from "@ourworldindata/types"
 import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher/src/core/GrapherConstants.js"
@@ -16,7 +20,17 @@ const DEFAULT_AGE_GROUP = "All ages"
 const DEFAULT_SEX = "Both sexes"
 const DEFAULT_ENTITY_NAME = WORLD_ENTITY_NAME
 
-export function CausesOfDeathChart(): React.ReactElement {
+const queryClient = new QueryClient()
+
+export function CausesOfDeathChartWithProviders(): React.ReactElement {
+    return (
+        <QueryClientProvider client={queryClient}>
+            <CausesOfDeathChart />
+        </QueryClientProvider>
+    )
+}
+
+function CausesOfDeathChart(): React.ReactElement {
     // State
     const [ageGroup, setAgeGroup] = useState(DEFAULT_AGE_GROUP)
     const [sex, setSex] = useState(DEFAULT_SEX)
