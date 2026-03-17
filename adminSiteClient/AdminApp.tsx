@@ -430,7 +430,6 @@ export class AdminApp extends React.Component<{
                                     path="/bulk-downloads"
                                     component={BulkDownloadPage}
                                 />
-                                <Route exact path="/test.csv" />
                                 <Route
                                     exact
                                     path="/"
