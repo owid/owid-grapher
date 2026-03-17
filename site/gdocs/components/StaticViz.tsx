@@ -258,11 +258,11 @@ const StaticVizDownloadModal = ({
                                 <h3>How this visualization was made</h3>
                             </div>
                             <div className="static-viz-download-modal__description">
-                                <MarkdownTextWrap
-                                    text={staticViz.description}
-                                    fontSize={14}
-                                    lineHeight={1.2}
-                                />
+                                {new MarkdownTextWrap({
+                                    text: staticViz.description,
+                                    fontSize: 14,
+                                    lineHeight: 1.2,
+                                }).renderHTML()}
                             </div>
                         </section>
                     )}

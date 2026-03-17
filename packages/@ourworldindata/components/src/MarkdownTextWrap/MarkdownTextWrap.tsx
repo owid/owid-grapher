@@ -2,7 +2,6 @@
 import * as _ from "lodash-es"
 import { CSSProperties } from "react"
 import * as React from "react"
-import { computed, makeObservable } from "mobx"
 import {
     excludeUndefined,
     imemo,
@@ -514,10 +513,10 @@ type MarkdownTextWrapProps = { text: string } & MarkdownTextWrapOptions
 
 type TextFragment = { text: string; bold?: boolean }
 
-export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
+export class MarkdownTextWrap {
+    props: MarkdownTextWrapProps
     constructor(props: MarkdownTextWrapProps) {
-        super(props)
-        makeObservable(this)
+        this.props = props
     }
 
     static fromFragments({
@@ -579,23 +578,23 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         }
     }
 
-    @computed get maxWidth(): number {
+    @imemo get maxWidth(): number {
         return this.props.maxWidth ?? Infinity
     }
-    @computed get lineHeight(): number {
+    @imemo get lineHeight(): number {
         return this.props.lineHeight ?? 1.1
     }
-    @computed get fontSize(): number {
+    @imemo get fontSize(): number {
         return this.props.fontSize
     }
-    @computed get fontParams(): IRFontParams {
+    @imemo get fontParams(): IRFontParams {
         return {
             fontFamily: this.props.fontFamily,
             fontSize: this.props.fontSize,
             fontWeight: this.props.fontWeight,
         }
     }
-    @computed get text(): string {
+    @imemo get text(): string {
         // NOTE: ❗Here we deviate from the normal markdown spec. We replace \n with <SPACE><SPACE>\n to make sure that single \n are treated as
         // actual line breaks but only if none of the other markdown line break rules apply.
         // This is a bit different to how markdown usually works but we have a substantial
@@ -617,20 +616,20 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         text = text.replaceAll("@@LINEBREAK@@", "  \n")
         return text
     }
-    @computed get detailsOrderedByReference(): string[] {
+    @imemo get detailsOrderedByReference(): string[] {
         return this.props.detailsOrderedByReference || []
     }
 
-    @computed get plaintext(): string {
+    @imemo get plaintext(): string {
         return this.htmlLines.map(lineToPlaintext).join("\n")
     }
 
-    @computed get tokensFromMarkdown(): IRToken[] {
+    @imemo get tokensFromMarkdown(): IRToken[] {
         const tokens = convertMarkdownToIRTokens(this.text, this.fontParams)
         return tokens
     }
 
-    @computed get htmlLines(): IRToken[][] {
+    @imemo get htmlLines(): IRToken[][] {
         const tokens = this.tokensFromMarkdown
         const lines = splitIntoLines(tokens, this.maxWidth)
         return lines.map((line) =>
@@ -638,13 +637,13 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         )
     }
 
-    @computed get svgLines(): IRToken[][] {
+    @imemo get svgLines(): IRToken[][] {
         const tokens = this.tokensFromMarkdown
         const lines = splitIntoLines(tokens, this.maxWidth)
         return lines
     }
 
-    @computed get svgLinesWithDodReferenceNumbers(): IRToken[][] {
+    @imemo get svgLinesWithDodReferenceNumbers(): IRToken[][] {
         const references = this.detailsOrderedByReference
         const tokens = this.tokensFromMarkdown
         const tokensWithReferenceNumbers = appendReferenceNumbers(
@@ -654,7 +653,7 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         return splitIntoLines(tokensWithReferenceNumbers, this.maxWidth)
     }
 
-    @computed get width(): number {
+    @imemo get width(): number {
         const { htmlLines } = this
         const lineLengths = htmlLines.map((tokens) =>
             _.sumBy(tokens, (token) => token.width)
@@ -662,21 +661,21 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         return _.max(lineLengths) ?? 0
     }
 
-    @computed get singleLineHeight(): number {
+    @imemo get singleLineHeight(): number {
         return this.fontSize * this.lineHeight
     }
 
-    @computed get lastLineWidth(): number {
+    @imemo get lastLineWidth(): number {
         return _.sumBy(R.last(this.htmlLines), (token) => token.width) ?? 0
     }
 
-    @computed get height(): number {
+    @imemo get height(): number {
         const { htmlLines } = this
         if (htmlLines.length === 0) return 0
         return htmlLines.length * this.singleLineHeight
     }
 
-    @computed get style(): any {
+    @imemo get style(): any {
         return {
             ...this.fontParams,
             ...this.props.style,
@@ -785,13 +784,6 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
                     })}
             </g>
         )
-    }
-
-    // An alias method that allows MarkdownTextWrap to be
-    // instantiated via JSX for HTML rendering
-    // <MarkdownTextWrap ... />
-    override render(): React.ReactElement | null {
-        return this.renderHTML()
     }
 }
 
