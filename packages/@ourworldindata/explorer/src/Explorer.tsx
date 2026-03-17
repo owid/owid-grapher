@@ -970,10 +970,10 @@ export class Explorer
                     {this.explorerProgram.explorerTitle} Data Explorer
                 </div>
                 <div className="ExplorerSubtitle">
-                    <MarkdownTextWrap
-                        fontSize={12}
-                        text={this.explorerProgram.explorerSubtitle || ""}
-                    />
+                    {new MarkdownTextWrap({
+                        fontSize: 12,
+                        text: this.explorerProgram.explorerSubtitle || "",
+                    }).renderHTML()}
                 </div>
                 {this.explorerProgram.downloadDataLink && (
                     <a

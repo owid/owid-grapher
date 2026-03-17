@@ -286,10 +286,13 @@ function createColumns({
 }
 
 function showDodPreviewTooltip(text: string, element: Element): void {
+    const markdownTextWrap = new MarkdownTextWrap({
+        text,
+        fontSize: 16,
+        lineHeight: 1.55,
+    })
     const content = renderToStaticMarkup(
-        <div className="dod-container">
-            <MarkdownTextWrap text={text} fontSize={16} lineHeight={1.55} />
-        </div>
+        <div className="dod-container">{markdownTextWrap.renderHTML()}</div>
     )
     tippy(element, {
         content,
