@@ -19,7 +19,6 @@ import {
     maxBy,
     minBy,
 } from "./CausesOfDeathHelpers.js"
-import { usePortalContainer } from "./CausesOfDeathPortalContext.js"
 
 export function CausesOfDeathTreemapTooltip({
     state,
@@ -35,8 +34,6 @@ export function CausesOfDeathTreemapTooltip({
     timeSeriesData: DataRow[]
     year: number
 }) {
-    const portalContainer = usePortalContainer()
-
     const tooltipCard = (
         <CausesOfDeathTreemapTooltipCard
             state={state}
@@ -53,13 +50,7 @@ export function CausesOfDeathTreemapTooltip({
         />
     )
 
-    // On mobile, portal the tooltip to the Shadow DOM container so it
-    // can be position:fixed to the viewport bottom while still having
-    // access to scoped styles (BodyPortal would render outside the
-    // Shadow DOM where styles aren't available).
-    return shouldPinTooltipToBottom && portalContainer
-        ? createPortal(tooltipCard, portalContainer)
-        : tooltipCard
+    return tooltipCard
 }
 
 function CausesOfDeathTreemapTooltipCard({
