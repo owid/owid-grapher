@@ -2,4 +2,8 @@
     border: 1px solid $frame-color;
     padding: 16px;
     border-radius: 2px;
+
+    + .frame {
+        margin-top: 16px;
+    }
 }

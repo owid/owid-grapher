@@ -34,7 +34,7 @@ export const useChartDimensions = <E extends HTMLElement>(options?: {
         maxHeight = 400,
     } = options?.config || {}
 
-    // set default margins
+    // Set default margins
     const margins = {
         top: passedMargins.top || 0,
         right: passedMargins.right || 0,
@@ -63,7 +63,7 @@ export const useChartDimensions = <E extends HTMLElement>(options?: {
         return () => resizeObserver.unobserve(element)
     }, [])
 
-    // maintain given ratio between width and height (within bounds)
+    // Maintain given ratio between width and height (within bounds)
     const height = Math.min(Math.max((1 / ratio) * width, minHeight), maxHeight)
 
     const dimensions = {

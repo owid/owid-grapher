@@ -23,21 +23,16 @@ export interface BezierArrowProps {
     /** End bezier handle coordinates; if given, endHandleOffset is ignored */
     endHandle?: Coords
 
-    /** Position of the arrow head */
     headAnchor?: HeadAnchor
-    /** Length of the arrow head */
     headLength?: number
-    /** Angle of the arrow head */
     headAngle?: number
 
-    /** Renders bezier handle points for debugging */
-    debug?: boolean
-
-    // Class name and styling
     className?: string
     width?: number
     color?: string
     opacity?: number
+
+    debug?: boolean
 }
 
 export function BezierArrow({

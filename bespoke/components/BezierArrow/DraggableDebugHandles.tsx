@@ -1,5 +1,6 @@
 import { useCallback, useRef } from "react"
 import { useDrag } from "@visx/drag"
+
 import type { Coords } from "./BezierArrow"
 
 interface DraggableDebugHandlesProps {
@@ -11,6 +12,8 @@ interface DraggableDebugHandlesProps {
     endHandle?: Coords
     onOffsetsChange?: (offsets: { start: Coords; end: Coords }) => void
 }
+
+const DEBUG_COLOR = "#af488f"
 
 export function DraggableDebugHandles({
     start,
@@ -30,9 +33,6 @@ export function DraggableDebugHandles({
         end[1] + endHandleOffset[1],
     ]
 
-    // Capture offsets at drag start so deltas are always relative to
-    // a stable reference, avoiding double-counting when onOffsetsChange
-    // updates the props mid-drag.
     const startOffsetAtDragStart = useRef(startHandleOffset)
     const endOffsetAtDragStart = useRef(endHandleOffset)
 
@@ -90,7 +90,6 @@ export function DraggableDebugHandles({
 
     const isDragging = startDrag.isDragging || endDrag.isDragging
 
-    // Forward move/end events to whichever handle is active
     const handleMove = useCallback(
         (e: React.MouseEvent | React.TouchEvent | React.PointerEvent) => {
             if (startDrag.isDragging) startDrag.dragMove(e)
@@ -131,7 +130,7 @@ export function DraggableDebugHandles({
                 y1={start[1]}
                 x2={startControlPoint[0]}
                 y2={startControlPoint[1]}
-                stroke="orange"
+                stroke={DEBUG_COLOR}
                 strokeWidth={1}
                 style={{ pointerEvents: "none" }}
             />
@@ -140,7 +139,7 @@ export function DraggableDebugHandles({
                 y1={end[1]}
                 x2={endControlPoint[0]}
                 y2={endControlPoint[1]}
-                stroke="orange"
+                stroke={DEBUG_COLOR}
                 strokeWidth={1}
                 style={{ pointerEvents: "none" }}
             />
@@ -150,11 +149,7 @@ export function DraggableDebugHandles({
                 cx={startControlPoint[0]}
                 cy={startControlPoint[1]}
                 r={6}
-                fill={
-                    startDrag.isDragging ? "orange" : "rgba(255, 165, 0, 0.3)"
-                }
-                stroke="orange"
-                strokeWidth={2}
+                fill={DEBUG_COLOR}
                 style={{
                     cursor: startDrag.isDragging ? "grabbing" : "grab",
                 }}
@@ -165,9 +160,7 @@ export function DraggableDebugHandles({
                 cx={endControlPoint[0]}
                 cy={endControlPoint[1]}
                 r={6}
-                fill={endDrag.isDragging ? "orange" : "rgba(255, 165, 0, 0.3)"}
-                stroke="orange"
-                strokeWidth={2}
+                fill={DEBUG_COLOR}
                 style={{
                     cursor: endDrag.isDragging ? "grabbing" : "grab",
                 }}

@@ -1,165 +1,83 @@
-import React, { useState, useRef, useEffect, useCallback } from "react"
+import { useState } from "react"
 import cx from "classnames"
+import {
+    Slider,
+    SliderTrack,
+    SliderThumb,
+    SliderOutput,
+} from "react-aria-components"
 
 import { Time } from "@ourworldindata/types"
-import { getRelativeMouse } from "@ourworldindata/utils"
 
 export function TimeSlider({
     times,
     selectedTime,
     onChange,
+    formatTime = (time: Time) => time.toString(),
     className,
 }: {
     times: Time[]
     selectedTime: Time
     onChange: (time: Time) => void
+    formatTime?: (time: Time) => string
     className?: string
 }) {
-    const [isDragging, setIsDragging] = useState(false)
     const [isHovering, setIsHovering] = useState(false)
-    const [showTooltip, setShowTooltip] = useState(false)
-    const sliderRef = useRef<HTMLDivElement>(null)
-
-    const minTime = times.length > 0 ? Math.min(...times) : 0
-    const maxTime = times.length > 0 ? Math.max(...times) : 0
-
-    // Calculate progress (0-1) for the selected time
-    const selectedProgress = (selectedTime - minTime) / (maxTime - minTime)
-
-    // Get input time from mouse position
-    const getInputTimeFromMouse = useCallback(
-        (event: MouseEvent | TouchEvent): number | undefined => {
-            if (!sliderRef.current) return
-            const mouseX = getRelativeMouse(sliderRef.current, event).x
-            const rect = sliderRef.current.getBoundingClientRect()
-            const fracWidth = mouseX / rect.width
-            return minTime + fracWidth * (maxTime - minTime)
-        },
-        [minTime, maxTime]
-    )
-
-    // Handle mouse/touch events
-    const handleMouseDown = useCallback(
-        (event: React.MouseEvent | React.TouchEvent) => {
-            event.preventDefault()
-            setIsDragging(true)
-            setShowTooltip(true)
-
-            const inputTime = getInputTimeFromMouse(event.nativeEvent)
-            if (inputTime) {
-                const closestTime = times.reduce((prev, curr) =>
-                    Math.abs(curr - inputTime) < Math.abs(prev - inputTime)
-                        ? curr
-                        : prev
-                )
-                onChange(closestTime)
-            }
-        },
-        [getInputTimeFromMouse, times, onChange]
-    )
-
-    const handleMouseMove = useCallback(
-        (event: MouseEvent | TouchEvent) => {
-            if (!isDragging) return
-
-            const inputTime = getInputTimeFromMouse(event)
-            if (inputTime) {
-                const closestTime = times.reduce((prev, curr) =>
-                    Math.abs(curr - inputTime) < Math.abs(prev - inputTime)
-                        ? curr
-                        : prev
-                )
-                onChange(closestTime)
-            }
-        },
-        [isDragging, getInputTimeFromMouse, times, onChange]
-    )
-
-    const handleMouseUp = useCallback(() => {
-        setIsDragging(false)
-        // Keep tooltip visible only if still hovering
-        if (!isHovering) {
-            setShowTooltip(false)
-        }
-    }, [isHovering])
-
-    // Handle edge marker clicks
-    const handleEdgeClick = useCallback(
-        (year: Time) => {
-            onChange(year)
-        },
-        [onChange]
-    )
-
-    // Add global mouse events for dragging
-    useEffect(() => {
-        if (isDragging) {
-            document.addEventListener("mousemove", handleMouseMove)
-            document.addEventListener("mouseup", handleMouseUp)
-            document.addEventListener("touchmove", handleMouseMove)
-            document.addEventListener("touchend", handleMouseUp)
-
-            return () => {
-                document.removeEventListener("mousemove", handleMouseMove)
-                document.removeEventListener("mouseup", handleMouseUp)
-                document.removeEventListener("touchmove", handleMouseMove)
-                document.removeEventListener("touchend", handleMouseUp)
-            }
-        }
-        return undefined
-    }, [isDragging, handleMouseMove, handleMouseUp])
 
     if (!times.length) return null
 
+    const minTime = times[0]
+    const maxTime = times[times.length - 1]
+
+    const selectedIndex = times.indexOf(selectedTime)
+    const value = selectedIndex === -1 ? 0 : selectedIndex
+
     return (
         <div
-            className={cx("time-slider", className, { hover: isHovering })}
-            onMouseEnter={() => {
-                setIsHovering(true)
-                setShowTooltip(true)
-            }}
-            onMouseLeave={() => {
-                setIsHovering(false)
-                // Hide tooltip only if not dragging
-                if (!isDragging) {
-                    setShowTooltip(false)
-                }
-            }}
+            className={cx("time-slider", className)}
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
         >
             <button
-                className="date"
+                className="time-slider__edge-button"
                 type="button"
-                onClick={() => handleEdgeClick(minTime)}
+                onClick={() => onChange(minTime)}
             >
-                {minTime}
+                {formatTime(minTime)}
             </button>
 
-            <div
-                ref={sliderRef}
-                className="slider"
-                onMouseDown={handleMouseDown}
-                onTouchStart={handleMouseDown}
+            <Slider
+                className="time-slider__control"
+                minValue={0}
+                maxValue={times.length - 1}
+                step={1}
+                value={value}
+                onChange={(i: number) => onChange(times[i])}
+                aria-label="Time"
             >
-                <div
-                    className="handle"
-                    style={{ left: `${selectedProgress * 100}%` }}
-                >
-                    <div className="icon" />
-                    <div
-                        className="time-slider__tooltip"
-                        style={{ display: showTooltip ? "block" : "none" }}
+                <SliderTrack className="time-slider__track">
+                    <SliderThumb
+                        className="time-slider__thumb"
+                        data-active={isHovering || undefined}
                     >
-                        {selectedTime}
-                    </div>
-                </div>
-            </div>
+                        <div className="time-slider__knob" />
+                        {isHovering && (
+                            <SliderOutput className="time-slider__tooltip">
+                                {({ state }) =>
+                                    formatTime(times[state.values[0]])
+                                }
+                            </SliderOutput>
+                        )}
+                    </SliderThumb>
+                </SliderTrack>
+            </Slider>
 
             <button
-                className="date"
+                className="time-slider__edge-button"
                 type="button"
-                onClick={() => handleEdgeClick(maxTime)}
+                onClick={() => onChange(maxTime)}
             >
-                {maxTime}
+                {formatTime(maxTime)}
             </button>
         </div>
     )

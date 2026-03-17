@@ -6,12 +6,14 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core"
 
+import { OwidDistinctColors } from "@ourworldindata/grapher/src/color/CustomSchemes.js"
+
 export const COLOR_KEYS = [
-    "#3182bd",
-    "#e6550d",
-    "#31a354",
-    "#756bb1",
-    "#636363",
+    OwidDistinctColors.Denim,
+    OwidDistinctColors.Maroon,
+    OwidDistinctColors.OliveGreen,
+    OwidDistinctColors.RustyOrange,
+    OwidDistinctColors.Copper,
 ] as const
 
 export const FOOD_KEYS = ["Apple", "Lemon", "Carrot", "Pepper"] as const
