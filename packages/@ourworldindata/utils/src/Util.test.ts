@@ -3,6 +3,7 @@ import { expect, it, describe, vi } from "vitest"
 import timezoneMock from "timezone-mock"
 import {
     findClosestTime,
+    formatDate,
     formatDay,
     retryPromise,
     rollingMap,
@@ -183,6 +184,20 @@ describe(formatDay, () => {
         it("handles decrements", () => {
             expect(formatDay(-21)).toEqual("Dec 31, 2019")
         })
+    })
+})
+
+describe(formatDate, () => {
+    it("formats publication dates consistently across timezones", () => {
+        const publishedAt = new Date("2026-03-16T00:00:00.000Z")
+
+        timezoneMock.register("US/Pacific")
+        expect(formatDate(publishedAt)).toEqual("March 16, 2026")
+        timezoneMock.unregister()
+
+        timezoneMock.register("Australia/Adelaide")
+        expect(formatDate(publishedAt)).toEqual("March 16, 2026")
+        timezoneMock.unregister()
     })
 })
 

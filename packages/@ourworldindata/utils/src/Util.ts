@@ -1229,13 +1229,17 @@ export const getIndexableKeys = Object.keys as <T extends object>(
     obj: T
 ) => Array<keyof T>
 
-/** Formats a date like this: "October 6, 2024"
+/** Formats a date like this: "October 6, 2024".
+ *
+ * We pin the formatter to UTC so publication dates render as the same calendar
+ * day during SSR, baking, and client hydration.
  */
 export const formatDate = (date: Date): string => {
     return date.toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",
+        timeZone: "UTC",
     })
 }
 

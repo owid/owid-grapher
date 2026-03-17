@@ -18,23 +18,26 @@ export default function DataInsightDateline({
     formatOptions?: Intl.DateTimeFormatOptions
     highlightToday?: boolean
 }) {
-    const date = dayjs(publishedAt)
+    const date = dayjs.utc(publishedAt)
     let highlightClassName
     let formattedDate
     if (publishedAt) {
-        if (date.isToday()) {
+        if (date.isSame(dayjs.utc(), "day")) {
             formattedDate = "Today"
             if (highlightToday) {
                 highlightClassName = "data-insight-dateline--is-today"
             }
-        } else if (date.isYesterday()) {
+        } else if (date.isSame(dayjs.utc().subtract(1, "day"), "day")) {
             formattedDate = "Yesterday"
         } else {
             const options =
-                date.year() !== dayjs().year()
+                date.year() !== dayjs.utc().year()
                     ? { ...formatOptions, year: "numeric" as const }
                     : formatOptions
-            formattedDate = date.toDate().toLocaleDateString("en-US", options)
+            formattedDate = date.toDate().toLocaleDateString("en-US", {
+                ...options,
+                timeZone: "UTC",
+            })
         }
     } else {
         formattedDate = "Unpublished"
