@@ -79,6 +79,15 @@ export function useUserCountryInformation(): { data?: UserCountryInformation } {
     return result
 }
 
+// Descriptions for "Children under 5" that override the metadata.
+// Temporary hot-fix until the metadata is updated.
+const UNDER_5_DESCRIPTIONS: Record<string, string> = {
+    "Other infectious diseases": "Typhoid, hepatitis, encephalitis and others",
+    "Other non-communicable diseases":
+        "Cardiovascular diseases, digestive diseases, genetic blood disorders, and others",
+    "Other injuries": "Animal contact, forces of nature and others",
+}
+
 const parseEntityData = ({
     entityData,
     entityName,
@@ -120,11 +129,16 @@ const parseEntityData = ({
                 return null
             }
 
+            const description =
+                (ageGroupMetadata.name === "Children under 5"
+                    ? UNDER_5_DESCRIPTIONS[variableMetadata.name]
+                    : undefined) ?? variableMetadata.description
+
             return {
                 entityName,
                 year,
                 variable: variableMetadata.name,
-                description: variableMetadata.description,
+                description,
                 ageGroup: ageGroupMetadata.name,
                 sex: sexMetadata.name,
                 category: categoryMetadata.name,
