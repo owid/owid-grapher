@@ -50,9 +50,6 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                 JSON.stringify(value?.toString()), // We need to stringify e.g. `true` to `"true"`, so that it's correctly parsed _again_
             ])
         ),
-        oxc: {
-            target: "es2021", // needed so classes are down-compiled, and we thereby avoid an issue with "useDefineForClassFields"
-        },
         build: {
             manifest: true, // creates a manifest.json file, which we use to determine which files to load in prod
             emptyOutDir: true,
@@ -62,7 +59,7 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
             commonjsOptions: {
                 strictRequires: "auto",
             },
-            rollupOptions: {
+            rolldownOptions: {
                 input: {
                     [entrypointInfo.outName]: entrypointInfo.entryPointFile,
                 },
@@ -81,18 +78,22 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                                 syntax: "typescript",
                                 decorators: true,
                             },
-                            // NOTE: SWC doesn't support the '2023-11' version yet.
                             transform: {
+                                // NOTE: SWC doesn't support the '2023-11' version yet.
                                 decoratorVersion: "2022-03",
                                 useDefineForClassFields: true,
                             },
+
+                            // This setting we need to override from @rollup/plugin-swc's default, otherwise it will not put optional properties on classes (e.g. `class A { optionalProp?: string }`), thereby breaking mobx decorators
+                            loose: false,
+                            target: "esnext",
                         },
                     },
                 }),
                 // Only run this transform if the file contains a decorator.
                 { transform: { code: /[^"]@/, id: /.*\.(ts|tsx)$/ } }
             ),
-            pluginReact({}),
+            pluginReact(),
             {
                 ...optimizeReactAriaLocales.vite({
                     locales: ["en-US"],
