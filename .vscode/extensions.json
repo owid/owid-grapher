@@ -1,6 +1,5 @@
 {
     "recommendations": [
-        "dbaeumer.vscode-eslint",
         "editorconfig.editorconfig",
         "oxc.oxc-vscode",
         "mrmlnc.vscode-scss",
