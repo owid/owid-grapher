@@ -14,7 +14,9 @@ import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
 import { CausesOfDeathTimeSlider } from "./CausesOfDeathTimeSlider.js"
 import { useUserCountryInformation } from "./CausesOfDeathDataFetching.js"
 
-import { ChartControls } from "../../../../components/ChartControls/ChartControls"
+import { Frame } from "../../../../components/Frame/Frame.js"
+
+// import { ChartControls } from "../../../../components/ChartControls/ChartControls"
 
 export function CausesOfDeathControls({
     metadata,
@@ -38,7 +40,10 @@ export function CausesOfDeathControls({
     setYear: (year: number) => void
 }): React.ReactElement {
     return (
-        <ChartControls className="causes-of-death-controls">
+        <Frame className="causes-of-death-controls">
+            <h3 className="causes-of-death-controls__title">
+                Configure the data
+            </h3>
             <div className="causes-of-death-controls__content">
                 <div className="causes-of-death-controls__row">
                     <AgeGroupDropdown
@@ -66,7 +71,7 @@ export function CausesOfDeathControls({
                     />
                 </div>
             </div>
-        </ChartControls>
+        </Frame>
     )
 }
 
