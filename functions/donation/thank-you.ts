@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/cloudflare"
-import Stripe from "stripe"
+import { Stripe } from "stripe"
 import { Env } from "../_common/env.js"
 import {
     DEFAULT_HEADERS,

@@ -1,4 +1,4 @@
-import Stripe from "stripe"
+import { Stripe } from "stripe"
 import {
     DEFAULT_THUMBNAIL_FILENAME,
     DonationRequest,

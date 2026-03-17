@@ -13,6 +13,7 @@
         "cookie": "^1.0.2",
         "itty-router": "^5.0.17",
         "littlezipper": "^0.1.4",
+        "lodash-es": "^4.17.23",
         "react": "^19.2.0",
         "react-dom": "^19.2.0",
         "remeda": "^2.32.0",
