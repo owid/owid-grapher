@@ -108,10 +108,15 @@ export class CausesOfDeathMetadata {
             return this._categoryNameByVariableName
 
         this._categoryNameByVariableName = new Map(
-            this.dimensions.variables.map((variable) => [
-                variable.name,
-                this.categoryById.get(variable.category)!.name, // TODO: !
-            ])
+            this.dimensions.variables.map((variable) => {
+                const category = this.categoryById.get(variable.category)
+                if (!category) {
+                    throw new Error(
+                        `Variable "${variable.name}" references unknown category ID: ${variable.category}`
+                    )
+                }
+                return [variable.name, category.name]
+            })
         )
 
         return this._categoryNameByVariableName
