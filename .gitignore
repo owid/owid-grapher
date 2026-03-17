@@ -58,8 +58,3 @@ playwright-report/
 
 # Claude
 .claude/settings.local.json
-
-
-public/*.metadata.json
-public/*.data.json
-
