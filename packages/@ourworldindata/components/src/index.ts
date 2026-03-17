@@ -7,6 +7,10 @@ export {
     toPlaintext,
     canAppendTextToLastLine,
 } from "./MarkdownTextWrap/MarkdownTextWrap.js"
+export {
+    MarkdownTextWrapSvg,
+    MarkdownTextWrapHtml,
+} from "./MarkdownTextWrap/MarkdownTextWrapComponents.js"
 
 export {
     SimpleMarkdownText,

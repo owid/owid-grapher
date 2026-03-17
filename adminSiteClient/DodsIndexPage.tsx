@@ -23,7 +23,10 @@ import { Admin } from "./Admin.js"
 import { fromMarkdown } from "mdast-util-from-markdown"
 import { Content, PhrasingContent } from "mdast"
 import { renderToStaticMarkup } from "react-dom/server"
-import { MarkdownTextWrap } from "@ourworldindata/components"
+import {
+    MarkdownTextWrap,
+    MarkdownTextWrapHtml,
+} from "@ourworldindata/components"
 import TextArea from "antd/es/input/TextArea.js"
 import { match } from "ts-pattern"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
@@ -292,7 +295,9 @@ function showDodPreviewTooltip(text: string, element: Element): void {
         lineHeight: 1.55,
     })
     const content = renderToStaticMarkup(
-        <div className="dod-container">{markdownTextWrap.renderHTML()}</div>
+        <div className="dod-container">
+            <MarkdownTextWrapHtml textWrap={markdownTextWrap} />
+        </div>
     )
     tippy(element, {
         content,

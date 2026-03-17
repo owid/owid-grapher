@@ -8,7 +8,6 @@ import {
     Bounds,
     FontFamily,
 } from "@ourworldindata/utils"
-import { DetailsMarker } from "@ourworldindata/types"
 import { TextWrap } from "../TextWrap/TextWrap.js"
 import { fromMarkdown } from "mdast-util-from-markdown"
 import type { Content, Root } from "mdast"
@@ -683,45 +682,8 @@ export class MarkdownTextWrap {
         }
     }
 
-    renderHTML() {
-        const { htmlLines } = this
-        if (htmlLines.length === 0) return null
-        return (
-            <span style={this.style} className="markdown-text-wrap">
-                {htmlLines.map((line, i) => {
-                    const plaintextLine = line
-                        .map((token) => token.toPlaintext())
-                        .join("")
-                    return (
-                        <MarkdownTextWrapLine
-                            key={`${plaintextLine}-${i}`}
-                            line={line}
-                        />
-                    )
-                })}
-            </span>
-        )
-    }
-
-    renderSVG(
-        x: number,
-        y: number,
-        {
-            textProps,
-            detailsMarker = "superscript",
-            id,
-        }: {
-            textProps?: React.SVGProps<SVGTextElement>
-            detailsMarker?: DetailsMarker
-            id?: string
-        } = {}
-    ) {
+    getPositionForSvgRendering(x: number, y: number): [number, number] {
         const { fontSize, lineHeight } = this
-        const lines =
-            detailsMarker === "superscript"
-                ? this.svgLinesWithDodReferenceNumbers
-                : this.svgLines
-        if (lines.length === 0) return <></>
 
         // Magic number set through experimentation.
         // The HTML and SVG renderers need to position lines identically.
@@ -734,69 +696,8 @@ export class MarkdownTextWrap {
         const yOffset =
             y + (containerHeight - (containerHeight - textHeight) / 2)
 
-        const getLineY = (lineIndex: number) =>
-            yOffset + lineHeight * fontSize * lineIndex
-
-        return (
-            <g id={id} className="markdown-text-wrap">
-                <text
-                    x={x.toFixed(1)}
-                    y={yOffset.toFixed(1)}
-                    style={this.style}
-                    {...textProps}
-                >
-                    {lines.map((line, lineIndex) => (
-                        <tspan
-                            key={lineIndex}
-                            x={x}
-                            y={getLineY(lineIndex).toFixed(1)}
-                        >
-                            {line.map((token, tokenIndex) =>
-                                token.toSVG(tokenIndex)
-                            )}
-                        </tspan>
-                    ))}
-                </text>
-                {/* SVG doesn't support dotted underlines, so we draw them manually */}
-                {detailsMarker === "underline" &&
-                    lines.map((line, lineIndex) => {
-                        const y = (getLineY(lineIndex) + 2).toFixed(1)
-                        let currWidth = 0
-                        return line.map((token) => {
-                            const underline =
-                                token instanceof IRDetailOnDemand ? (
-                                    <line
-                                        className="dod-underline"
-                                        x1={x + currWidth}
-                                        y1={y}
-                                        x2={x + currWidth + token.width}
-                                        y2={y}
-                                        stroke="currentColor"
-                                        strokeWidth={1}
-                                        strokeDasharray={1}
-                                        // important for rotated text
-                                        transform={textProps?.transform}
-                                    />
-                                ) : null
-                            currWidth += token.width
-                            return underline
-                        })
-                    })}
-            </g>
-        )
+        return [x, yOffset]
     }
-}
-
-function MarkdownTextWrapLine({
-    line,
-}: {
-    line: IRToken[]
-}): React.ReactElement {
-    return (
-        <span className="markdown-text-wrap__line">
-            {line.length ? line.map((token, i) => token.toHTML(i)) : <br />}
-        </span>
-    )
 }
 
 export function convertMarkdownToIRTokens(

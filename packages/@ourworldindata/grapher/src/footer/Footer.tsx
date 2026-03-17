@@ -11,6 +11,8 @@ import {
 import {
     DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
     MarkdownTextWrap,
+    MarkdownTextWrapHtml,
+    MarkdownTextWrapSvg,
     TextWrap,
     TextWrapSvg,
 } from "@ourworldindata/components"
@@ -446,7 +448,7 @@ abstract class AbstractFooter<
 
         return (
             <p className="sources" style={sources.style}>
-                {sources.renderHTML()}
+                <MarkdownTextWrapHtml textWrap={sources} />
                 {" – "}
                 <a
                     className="learn-more-about-data"
@@ -493,7 +495,7 @@ abstract class AbstractFooter<
     private renderNote(): React.ReactElement {
         return (
             <p className="note" style={this.note.style}>
-                {this.note.renderHTML()}
+                <MarkdownTextWrapHtml textWrap={this.note} />
             </p>
         )
     }
@@ -776,18 +778,21 @@ export class StaticFooter extends AbstractFooter<StaticFooterProps> {
                 className="SourcesFooter"
                 style={{ fill: this.textColor }}
             >
-                {sources.renderSVG(targetX, targetY, {
-                    id: makeFigmaId("sources"),
-                })}
-                {this.showNote &&
-                    note.renderSVG(
-                        targetX,
-                        targetY + sources.height + this.verticalPadding,
-                        {
-                            id: makeFigmaId("note"),
-                            detailsMarker: this.manager.detailsMarkerInSvg,
-                        }
-                    )}
+                <MarkdownTextWrapSvg
+                    textWrap={sources}
+                    x={targetX}
+                    y={targetY}
+                    id={makeFigmaId("sources")}
+                />
+                {this.showNote && (
+                    <MarkdownTextWrapSvg
+                        textWrap={note}
+                        x={targetX}
+                        y={targetY + sources.height + this.verticalPadding}
+                        id={makeFigmaId("note")}
+                        detailsMarker={this.manager.detailsMarkerInSvg}
+                    />
+                )}
                 {showLicenseNextToSources ? (
                     <TextWrapSvg
                         textWrap={licenseAndOriginUrl}

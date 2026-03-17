@@ -10,6 +10,7 @@ import {
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import {
     MarkdownTextWrap,
+    MarkdownTextWrapHtml,
     reactRenderToStringClientOnly,
 } from "@ourworldindata/components"
 import urljoin from "url-join"
@@ -84,7 +85,7 @@ export async function runDetailsOnDemand(
             })
             const content = reactRenderToStringClientOnly(
                 <div className="dod-container">
-                    {markdownTextWrap.renderHTML()}
+                    <MarkdownTextWrapHtml textWrap={markdownTextWrap} />
                 </div>
             )
 
