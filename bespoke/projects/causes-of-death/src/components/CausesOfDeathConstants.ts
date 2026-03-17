@@ -38,7 +38,6 @@ export interface DataJson {
     sexes: number[]
 }
 
-// TODO: maybe better placed in the metadata file?
 const CAUSE_OF_DEATH_CATEGORY_COLORS: Record<string, string> = {
     "Non-communicable diseases": "#074964",
     "Infectious diseases": "#A5184D",

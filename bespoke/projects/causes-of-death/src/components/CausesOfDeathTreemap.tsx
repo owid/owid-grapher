@@ -202,7 +202,7 @@ function CausesOfDeathTreemap({
         .tile(tilingMethod)
         .size([width, height])
         .padding(1)
-        .round(true) // TODO: keep?
+        .round(true)
 
     const root = treemapLayout(hierarchy)
     const leaves = useMemo(() => root.leaves() as TreeNode[], [root])
