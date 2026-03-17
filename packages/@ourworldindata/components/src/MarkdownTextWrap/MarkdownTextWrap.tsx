@@ -9,7 +9,7 @@ import {
     FontFamily,
     type RequiredBy,
 } from "@ourworldindata/utils"
-import { TextWrap } from "../TextWrap/TextWrap.js"
+import { type ITextWrap } from "../TextWrap/TextWrap.js"
 import { fromMarkdown } from "mdast-util-from-markdown"
 import type { Content, Root } from "mdast"
 import { match } from "ts-pattern"
@@ -493,7 +493,7 @@ export function splitIntoLines(
 }
 
 export const sumTextWrapHeights = (
-    elements: MarkdownTextWrap[] | TextWrap[],
+    elements: ITextWrap[],
     spacer: number = 0
 ): number =>
     _.sum(elements.map((element) => element.height)) +
@@ -513,7 +513,7 @@ type MarkdownTextWrapProps = { text: string } & MarkdownTextWrapOptions
 
 type TextFragment = { text: string; bold?: boolean }
 
-export class MarkdownTextWrap {
+export class MarkdownTextWrap implements ITextWrap {
     private static defaultOptions = {
         maxWidth: Infinity,
         lineHeight: 1.1,
@@ -599,6 +599,12 @@ export class MarkdownTextWrap {
     }
     @imemo get fontSize(): number {
         return this.props.fontSize
+    }
+    @imemo get fontWeight(): number | undefined {
+        return this.props.fontWeight
+    }
+    @imemo get fontFamily(): FontFamily | undefined {
+        return this.props.fontFamily
     }
     @imemo get fontParams(): IRFontParams {
         return {
@@ -1059,12 +1065,13 @@ export function canAppendTextToLastLine({
     textToAppend,
     reservedWidth = 0,
 }: {
-    existingTextWrap: TextWrap | MarkdownTextWrap
+    existingTextWrap: ITextWrap
     textToAppend: string
     /** Width to reserve for non-text elements (e.g. icons) */
     reservedWidth?: number
 }): boolean {
-    const { maxWidth, lastLineWidth, fontSize, props } = existingTextWrap
+    const { maxWidth, lastLineWidth, fontSize, fontWeight, fontFamily } =
+        existingTextWrap
 
     const spaceWidth = Bounds.forText(" ", { fontSize }).width
     const availableWidthInLastLine =
@@ -1073,9 +1080,11 @@ export function canAppendTextToLastLine({
     if (availableWidthInLastLine <= 0) return false
 
     const secondaryTextWrap = new MarkdownTextWrap({
-        ...props,
         text: textToAppend,
         maxWidth: availableWidthInLastLine,
+        fontSize,
+        fontWeight,
+        fontFamily,
     })
 
     return secondaryTextWrap.svgLines.length === 1

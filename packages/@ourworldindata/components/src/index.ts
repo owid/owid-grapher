@@ -1,4 +1,8 @@
-export { TextWrap, shortenWithEllipsis } from "./TextWrap/TextWrap.js"
+export {
+    type ITextWrap,
+    TextWrap,
+    shortenWithEllipsis,
+} from "./TextWrap/TextWrap.js"
 export { TextWrapSvg, TextWrapHtml } from "./TextWrap/TextWrapComponents.js"
 
 export {
