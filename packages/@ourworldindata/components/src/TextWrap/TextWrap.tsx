@@ -91,7 +91,21 @@ export const shortenWithEllipsis = (
     return `${truncatedText}${ellipsis}`
 }
 
-export class TextWrap {
+export interface ITextWrap {
+    readonly width: number
+    readonly height: number
+    readonly lastLineWidth: number
+    readonly singleLineHeight: number
+    readonly maxWidth: number
+    readonly fontSize: number
+    readonly fontWeight: number | undefined
+    readonly fontFamily: FontFamily | undefined
+    readonly lineHeight: number
+    readonly text: string
+    getPositionForSvgRendering(x: number, y: number): [number, number]
+}
+
+export class TextWrap implements ITextWrap {
     private static defaultOptions = {
         maxWidth: Infinity,
         lineHeight: 1.1,
