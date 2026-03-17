@@ -5,8 +5,8 @@ import {
     Bounds,
     FontFamily,
     VerticalAlign,
+    imemo,
 } from "@ourworldindata/utils"
-import { computed, makeObservable } from "mobx"
 import * as React from "react"
 import { Fragment, joinFragments, splitIntoFragments } from "./TextWrapUtils"
 import { match } from "ts-pattern"
@@ -98,32 +98,31 @@ export const shortenWithEllipsis = (
 export class TextWrap {
     props: TextWrapProps
     constructor(props: TextWrapProps) {
-        makeObservable(this)
         this.props = props
     }
 
-    @computed get maxWidth(): number {
+    @imemo get maxWidth(): number {
         return this.props.maxWidth ?? Infinity
     }
-    @computed get lineHeight(): number {
+    @imemo get lineHeight(): number {
         return this.props.lineHeight ?? 1.1
     }
-    @computed get fontSize(): FontSize {
+    @imemo get fontSize(): FontSize {
         return this.props.fontSize ?? 1
     }
-    @computed get fontWeight(): number | undefined {
+    @imemo get fontWeight(): number | undefined {
         return this.props.fontWeight
     }
-    @computed get fontFamily(): FontFamily | undefined {
+    @imemo get fontFamily(): FontFamily | undefined {
         return this.props.fontFamily
     }
-    @computed get verticalAlign(): VerticalAlign {
+    @imemo get verticalAlign(): VerticalAlign {
         return this.props.verticalAlign ?? VerticalAlign.bottom
     }
-    @computed get text(): string {
+    @imemo get text(): string {
         return this.props.text
     }
-    @computed get separators(): string[] {
+    @imemo get separators(): string[] {
         return this.props.separators ?? [" "]
     }
 
@@ -171,7 +170,7 @@ export class TextWrap {
         return lines
     }
 
-    @computed get lines(): WrapLine[] {
+    @imemo get lines(): WrapLine[] {
         const { text, separators, maxWidth, fontSize, fontWeight, fontFamily } =
             this
 
@@ -243,28 +242,28 @@ export class TextWrap {
         else return lines
     }
 
-    @computed get lineCount(): number {
+    @imemo get lineCount(): number {
         return this.lines.length
     }
 
-    @computed get singleLineHeight(): number {
+    @imemo get singleLineHeight(): number {
         return this.fontSize * this.lineHeight
     }
 
-    @computed get height(): number {
+    @imemo get height(): number {
         if (this.lineCount === 0) return 0
         return this.lineCount * this.singleLineHeight
     }
 
-    @computed get width(): number {
+    @imemo get width(): number {
         return _.max(this.lines.map((l) => l.width)) ?? 0
     }
 
-    @computed get lastLineWidth(): number {
+    @imemo get lastLineWidth(): number {
         return R.last(this.lines)?.width ?? 0
     }
 
-    @computed get htmlStyle(): any {
+    @imemo get htmlStyle(): any {
         const { fontSize, fontWeight, lineHeight } = this
         return {
             fontSize: fontSize.toFixed(2) + "px",
