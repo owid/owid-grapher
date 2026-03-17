@@ -101,3 +101,11 @@ export interface TooltipState {
     target: { node: TreeNode } | null
     position: { x: number; y: number }
 }
+
+export interface CausesOfDeathConfig {
+    region?: string
+    sex?: string
+    ageGroup?: string
+    year?: number
+    hideControls?: boolean
+}

@@ -8,6 +8,7 @@ import {
 import { Time } from "@ourworldindata/types"
 import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher/src/core/GrapherConstants.js"
 
+import { CausesOfDeathConfig } from "../helpers/CausesOfDeathConstants.js"
 import {
     useCausesOfDeathEntityData,
     useCausesOfDeathMetadata,
@@ -22,20 +23,31 @@ const DEFAULT_ENTITY_NAME = WORLD_ENTITY_NAME
 
 const queryClient = new QueryClient()
 
-export function CausesOfDeathChartWithProviders(): React.ReactElement {
+export function CausesOfDeathChartWithProviders(props: {
+    container?: HTMLDivElement
+    config?: CausesOfDeathConfig
+}): React.ReactElement {
     return (
         <QueryClientProvider client={queryClient}>
-            <CausesOfDeathChart />
+            <CausesOfDeathChart config={props.config} />
         </QueryClientProvider>
     )
 }
 
-function CausesOfDeathChart(): React.ReactElement {
+function CausesOfDeathChart(props: {
+    config?: CausesOfDeathConfig
+}): React.ReactElement {
+    const { config } = props
+
     // State
-    const [ageGroup, setAgeGroup] = useState(DEFAULT_AGE_GROUP)
-    const [sex, setSex] = useState(DEFAULT_SEX)
-    const [entityName, setEntityName] = useState(DEFAULT_ENTITY_NAME)
-    const [year, setYear] = useState<Time>()
+    const [ageGroup, setAgeGroup] = useState(
+        config?.ageGroup ?? DEFAULT_AGE_GROUP
+    )
+    const [sex, setSex] = useState(config?.sex ?? DEFAULT_SEX)
+    const [entityName, setEntityName] = useState(
+        config?.region ?? DEFAULT_ENTITY_NAME
+    )
+    const [year, setYear] = useState<Time | undefined>(config?.year)
 
     // Fetch the metadata and the data for the selected entity
     const metadataResponse = useCausesOfDeathMetadata()
@@ -101,17 +113,19 @@ function CausesOfDeathChart(): React.ReactElement {
 
     return (
         <div className="causes-of-death-chart">
-            <CausesOfDeathControls
-                metadata={metadata}
-                ageGroup={ageGroup}
-                sex={sex}
-                entityName={entityName}
-                year={activeYear}
-                setAgeGroup={setAgeGroup}
-                setSex={setSex}
-                setEntityName={setEntityName}
-                setYear={setYear}
-            />
+            {!config?.hideControls && (
+                <CausesOfDeathControls
+                    metadata={metadata}
+                    ageGroup={ageGroup}
+                    sex={sex}
+                    entityName={entityName}
+                    year={activeYear}
+                    setAgeGroup={setAgeGroup}
+                    setSex={setSex}
+                    setEntityName={setEntityName}
+                    setYear={setYear}
+                />
+            )}
             <CausesOfDeathCaptionedChart
                 data={activeData}
                 metadata={metadata}
