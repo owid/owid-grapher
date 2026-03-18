@@ -56,6 +56,7 @@ import { FeaturedMetricsPage } from "./FeaturedMetricsPage.js"
 import { DodsIndexPage } from "./DodsIndexPage.js"
 import { StaticVizIndexPage } from "./StaticVizIndexPage.js"
 import { StaticVizEditPage } from "./StaticVizEditPage.js"
+import { DemographyPage } from "./DemographyPage.js"
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -429,6 +430,16 @@ export class AdminApp extends React.Component<{
                                     exact
                                     path="/bulk-downloads"
                                     component={BulkDownloadPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/causes-of-death"
+                                    component={CausesOfDeathPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/demography"
+                                    component={DemographyPage}
                                 />
                                 <Route
                                     exact
