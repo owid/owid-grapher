@@ -28,6 +28,6 @@
         "@types/react": "^19.2.2",
         "@types/react-dom": "^19.2.2",
         "vitest": "^4.1.0",
-        "wrangler": "^4.65.0"
+        "wrangler": "^4.75.0"
     }
 }
