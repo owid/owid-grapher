@@ -11519,7 +11519,7 @@ __metadata:
     versor: "npm:^0.2.0"
     vite: "npm:^7.3.0"
     vitest: "npm:^4.1.0"
-    workerpool: "npm:^9.2.0"
+    workerpool: "npm:^10.0.1"
     wrangler: "npm:^4.75.0"
     yaml: "npm:^2.8.0"
     yargs: "npm:^17.7.2"
@@ -17756,10 +17756,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"workerpool@npm:^9.2.0":
-  version: 9.2.0
-  resolution: "workerpool@npm:9.2.0"
-  checksum: 10/53b7a08001493a2bc24899f562ff6cc0824c942f656c05a68436c3db2c228cb1eea3090d8e726ecba4b02c08b35ace46e1a5435eee50444e683334329a7510da
+"workerpool@npm:^10.0.1":
+  version: 10.0.1
+  resolution: "workerpool@npm:10.0.1"
+  checksum: 10/63ff097cf0cd3514b62fe99affa881b4b18e234ad3d10f888f5b646d812e57b145a4a90d766442f0d9f40f7249721a3a1cf687d7677f6816ef9c24e407486f4a
   languageName: node
   linkType: hard
 

@@ -182,7 +182,7 @@
         "usehooks-ts": "^3.1.1",
         "uuidv7": "^1.0.1",
         "versor": "^0.2.0",
-        "workerpool": "^9.2.0",
+        "workerpool": "^10.0.1",
         "yaml": "^2.8.0",
         "yargs": "^17.7.2",
         "zod": "^4.1.11"
