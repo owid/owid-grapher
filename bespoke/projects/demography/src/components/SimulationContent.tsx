@@ -94,23 +94,31 @@ function Container({
     )
 }
 
-function InputChartPanel({
+export function InputChartPanel({
     simulation,
     variant,
+    className,
+    interactive = true,
+    showProjectionLabel,
+    valueLabelFontSize,
 }: {
     simulation: Simulation
     variant: ParameterKey
+    className?: string
+    interactive?: boolean
+    showProjectionLabel?: boolean
+    valueLabelFontSize?: number
 }) {
     const { title, subtitle, tooltipContent, paramKey } =
         parameterConfigByKey[variant]
 
-    const isModified = Object.keys(
-        simulation.unwppScenarioParams[paramKey]
-    ).some(
-        (k) =>
-            simulation.scenarioParams[paramKey][Number(k)] !==
-            simulation.unwppScenarioParams[paramKey][Number(k)]
-    )
+    const hasResetButton =
+        interactive &&
+        Object.keys(simulation.unwppScenarioParams[paramKey]).some(
+            (k) =>
+                simulation.scenarioParams[paramKey][Number(k)] !==
+                simulation.unwppScenarioParams[paramKey][Number(k)]
+        )
 
     const handleReset = useCallback(() => {
         simulation.setScenarioParams({
@@ -121,20 +129,24 @@ function InputChartPanel({
 
     return (
         <ChartPanel
+            className={className}
             title={title}
             subtitle={subtitle}
             tooltipContent={tooltipContent}
-            onReset={isModified ? handleReset : undefined}
+            onReset={hasResetButton ? handleReset : undefined}
         >
             <ResponsiveDemographyParameterEditor
                 simulation={simulation}
                 variant={variant}
+                interactive={interactive}
+                showProjectionLabel={showProjectionLabel}
+                valueLabelFontSize={valueLabelFontSize}
             />
         </ChartPanel>
     )
 }
 
-function ChartPanel({
+export function ChartPanel({
     title,
     subtitle,
     tooltipContent,

@@ -13,6 +13,10 @@ $panel-radius: 4px;
     &--population {
         max-width: 850px;
     }
+
+    &--parameters {
+        max-width: 500px;
+    }
 }
 
 .demography-captioned-chart {
@@ -26,6 +30,27 @@ $panel-radius: 4px;
         position: relative;
         width: 100%;
         aspect-ratio: 2 / 1;
+    }
+}
+
+.demography-parameters {
+    .demography-parameters__chart-area {
+        position: relative;
+    }
+
+    .demography-parameters__panels {
+        display: flex;
+        flex-direction: column;
+        gap: $panel-gap;
+    }
+
+    .parameters-panel {
+        border: 1px solid $gray-10;
+    }
+
+    .parameters-panel .chart-panel__content {
+        flex: none;
+        height: 80px;
     }
 }
 
