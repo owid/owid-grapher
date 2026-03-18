@@ -13,7 +13,7 @@ import {
     GrapherSearchResultJson,
 } from "@ourworldindata/types"
 import { error, StatusError } from "itty-router"
-import { createZip, File } from "littlezipper"
+import { createZip, UncompressedFile } from "littlezipper"
 import { assembleMetadata, getColumnsForMetadata } from "./metadataTools.js"
 import { Env } from "./env.js"
 import {
@@ -99,7 +99,7 @@ export async function fetchZipForGrapher(
         filename = slugify(grapher.grapherState.displayTitle)
     }
 
-    const zipContent: File[] = [
+    const zipContent: UncompressedFile[] = [
         {
             path: `${filename}.metadata.json`,
             data: JSON.stringify(metadata, undefined, 2),
