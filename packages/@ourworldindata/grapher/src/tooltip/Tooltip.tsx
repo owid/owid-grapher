@@ -6,7 +6,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import classnames from "classnames"
 import { match } from "ts-pattern"
 import {
-    Bounds,
     GrapherTooltipAnchor,
     stripOuterParentheses,
 } from "@ourworldindata/utils"
@@ -21,21 +20,25 @@ import { SignificanceIcon } from "./TooltipContents.js"
 
 export * from "./TooltipContents.js"
 export { TooltipState } from "./TooltipState.js"
+import * as R from "remeda"
 
 export class TooltipCard extends React.Component<
     TooltipProps & TooltipContainerProps
 > {
     private base = React.createRef<HTMLDivElement>()
-    private bounds: Bounds | undefined = undefined
+    private tooltipWidth: number = 0
+    private tooltipHeight: number = 0
 
-    private updateBounds(): void {
+    private updateDimensions(): void {
         if (this.base.current) {
-            this.bounds = Bounds.fromElement(this.base.current)
+            const el = this.base.current
+            this.tooltipWidth = el.scrollWidth + 2 * el.clientLeft // account for left/right border
+            this.tooltipHeight = el.scrollHeight + 2 * el.clientTop // account for top/bottom border
         }
     }
 
     private get tooltipStyle(): React.CSSProperties {
-        const { bounds } = this
+        const { tooltipWidth, tooltipHeight } = this
         const {
             containerBounds,
             anchor,
@@ -46,47 +49,56 @@ export class TooltipCard extends React.Component<
         } = this.props
         const isPinnedToBottom = anchor === GrapherTooltipAnchor.bottom
 
+        const containerWidth = containerBounds?.width
+        const containerHeight = containerBounds?.height
+
         const style = { ...this.props.style }
 
         // if container dimensions are given, we make sure the tooltip
         // is positioned within the container bounds
-        if (
-            containerBounds?.width &&
-            containerBounds.height &&
-            !isPinnedToBottom
-        ) {
+        if (containerWidth && containerHeight && !isPinnedToBottom) {
             let adjustedOffsetY = offsetY
             let adjustedOffsetX = offsetX
 
             if (this.props.offsetYDirection === "upward") {
-                adjustedOffsetY = -offsetY - (bounds?.height ?? 0)
+                adjustedOffsetY = -offsetY - tooltipHeight
             }
 
-            if (
-                this.props.offsetXDirection === "left" &&
-                x > (bounds?.width ?? 0)
-            ) {
-                adjustedOffsetX = -offsetX - (bounds?.width ?? 0)
+            if (this.props.offsetXDirection === "left" && x > tooltipWidth) {
+                adjustedOffsetX = -offsetX - tooltipWidth
             }
 
             // Ensure tooltip remains inside chart
             let left = x + adjustedOffsetX
             let top = y + adjustedOffsetY
-            if (bounds) {
-                if (left + bounds.width > containerBounds?.width)
-                    left -= bounds.width + 2 * adjustedOffsetX // flip left
-                if (top + bounds.height * 0.75 > containerBounds.height)
-                    top -= bounds.height + 2 * adjustedOffsetY // flip upwards eventually...
-                if (top + bounds.height > containerBounds.height)
-                    top = containerBounds.height - bounds.height // ...but first pin at bottom
+            if (tooltipHeight && tooltipWidth) {
+                if (left + tooltipWidth > containerWidth)
+                    left -= tooltipWidth + 2 * adjustedOffsetX // flip left
+                if (top + tooltipHeight * 0.75 > containerHeight)
+                    top -= tooltipHeight + 2 * adjustedOffsetY // flip upwards eventually...
 
-                if (left < 0) left = 0 // pin on left
-                if (top < 0) top = 0 // pin at top
+                // Clamp to prevent any overflow
+                left = R.clamp(left, {
+                    min: 0,
+                    max: containerWidth - tooltipWidth,
+                })
+                top = R.clamp(top, {
+                    min: 0,
+                    max: containerHeight - tooltipHeight,
+                })
             }
 
             style.position = "absolute"
             style.left = left
             style.top = top
+
+            // Set a max-height to prevent the case where the tooltip contents grow, causing the tooltip to overflow the
+            // container briefly until it is rerendered with the updated bounds. The quickly-appearing scrollbar is
+            // jarring and causes unneeded, brief content reflows and resize events.
+            // The max-height together with overflow: clip prevents the tooltip from overflowing, instead briefly
+            // cutting off content until the bounds are updated in the next render.
+            style.maxHeight = containerHeight - top
+            style.overflow = "clip"
         }
 
         // ignore the given width and max-width if the tooltip position is fixed
@@ -99,11 +111,11 @@ export class TooltipCard extends React.Component<
     }
 
     override componentDidMount(): void {
-        this.updateBounds()
+        this.updateDimensions()
     }
 
     override componentDidUpdate(): void {
-        this.updateBounds()
+        this.updateDimensions()
     }
 
     override render(): React.ReactElement {
