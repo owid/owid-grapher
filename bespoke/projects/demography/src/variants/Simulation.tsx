@@ -8,7 +8,7 @@ import {
     useDemographyMetadata,
 } from "../helpers/fetch.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
-import type { SimulationConfig } from "../config.js"
+import type { SimulationVariantConfig } from "../config.js"
 import { DEFAULT_ENTITY_NAME } from "../helpers/constants.js"
 import { combineStatuses } from "../helpers/utils.js"
 import {
@@ -25,7 +25,7 @@ import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 
 export function SimulationVariantWithProviders(props: {
     container: HTMLDivElement
-    config: SimulationConfig
+    config: SimulationVariantConfig
 }): React.ReactElement {
     return (
         <QueryClientProvider client={queryClient}>
@@ -37,7 +37,7 @@ export function SimulationVariantWithProviders(props: {
 function SimulationVariant({
     config,
 }: {
-    config: SimulationConfig
+    config: SimulationVariantConfig
 }): React.ReactElement {
     const [entityName, setEntityName] = useState(DEFAULT_ENTITY_NAME)
 
