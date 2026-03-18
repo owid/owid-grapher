@@ -1,30 +1,38 @@
-export interface SimulationConfig {
+const VARIANT_NAMES = ["simulation", "population"] as const
+
+export type VariantName = (typeof VARIANT_NAMES)[number]
+
+export interface SimulationVariantConfig {
     hideControls: boolean
 }
 
-export interface PopulationConfig {
+export interface PopulationVariantConfig {
     hideControls: boolean
     title?: string
     subtitle?: string
 }
 
-export type DemographyConfig = SimulationConfig | PopulationConfig
+export type DemographyVariantConfig =
+    | SimulationVariantConfig
+    | PopulationVariantConfig
 
 export function parseConfig(
-    variantName: string,
+    variantName: VariantName,
     raw: Record<string, string>
-): DemographyConfig {
+): DemographyVariantConfig {
     switch (variantName) {
+        case "simulation":
+            return {
+                hideControls: raw.hideControls === "true",
+            }
         case "population":
             return {
                 hideControls: raw.hideControls === "true",
                 title: raw.title,
                 subtitle: raw.subtitle,
             }
-        case "simulation":
+
         default:
-            return {
-                hideControls: raw.hideControls === "true",
-            }
+            throw new Error(`Unknown variant: ${variantName}`)
     }
 }
