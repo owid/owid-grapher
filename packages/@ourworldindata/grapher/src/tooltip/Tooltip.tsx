@@ -6,7 +6,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import classnames from "classnames"
 import { match } from "ts-pattern"
 import {
-    Bounds,
     GrapherTooltipAnchor,
     stripOuterParentheses,
 } from "@ourworldindata/utils"
@@ -27,22 +26,19 @@ export class TooltipCard extends React.Component<
     TooltipProps & TooltipContainerProps
 > {
     private base = React.createRef<HTMLDivElement>()
-    private bounds: Bounds | undefined = undefined
+    private tooltipWidth: number = 0
+    private tooltipHeight: number = 0
 
-    private updateBounds(): void {
+    private updateDimensions(): void {
         if (this.base.current) {
             const el = this.base.current
-            this.bounds = Bounds.fromProps({
-                x: 0,
-                y: 0,
-                width: el.scrollWidth + 2 * el.clientLeft, // account for left/right border
-                height: el.scrollHeight + 2 * el.clientTop, // account for top/bottom border
-            })
+            this.tooltipWidth = el.scrollWidth + 2 * el.clientLeft // account for left/right border
+            this.tooltipHeight = el.scrollHeight + 2 * el.clientTop // account for top/bottom border
         }
     }
 
     private get tooltipStyle(): React.CSSProperties {
-        const { bounds } = this
+        const { tooltipWidth, tooltipHeight } = this
         const {
             containerBounds,
             anchor,
@@ -56,9 +52,6 @@ export class TooltipCard extends React.Component<
         const containerWidth = containerBounds?.width
         const containerHeight = containerBounds?.height
 
-        const tooltipWidth = bounds?.width
-        const tooltipHeight = bounds?.height
-
         const style = { ...this.props.style }
 
         // if container dimensions are given, we make sure the tooltip
@@ -68,14 +61,11 @@ export class TooltipCard extends React.Component<
             let adjustedOffsetX = offsetX
 
             if (this.props.offsetYDirection === "upward") {
-                adjustedOffsetY = -offsetY - (tooltipHeight ?? 0)
+                adjustedOffsetY = -offsetY - tooltipHeight
             }
 
-            if (
-                this.props.offsetXDirection === "left" &&
-                x > (tooltipWidth ?? 0)
-            ) {
-                adjustedOffsetX = -offsetX - (tooltipWidth ?? 0)
+            if (this.props.offsetXDirection === "left" && x > tooltipWidth) {
+                adjustedOffsetX = -offsetX - tooltipWidth
             }
 
             // Ensure tooltip remains inside chart
@@ -121,11 +111,11 @@ export class TooltipCard extends React.Component<
     }
 
     override componentDidMount(): void {
-        this.updateBounds()
+        this.updateDimensions()
     }
 
     override componentDidUpdate(): void {
-        this.updateBounds()
+        this.updateDimensions()
     }
 
     override render(): React.ReactElement {
