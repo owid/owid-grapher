@@ -1,15 +1,15 @@
 import { memo, useMemo, useCallback } from "react"
 import { formatValue } from "@ourworldindata/utils"
 import * as R from "remeda"
-import type { Simulation } from "./demography/useSimulation"
-import type { ScenarioParams } from "./demography/scenarios"
+import type { Simulation } from "../helpers/useSimulation"
+import type { ScenarioParams } from "../helpers/scenarios"
 import { ResponsiveTrajectoryEditor } from "./DemographyTrajectoryEditor.js"
-import { getDeathsForYear, getMigrationRateForYear } from "./demography/data"
+import { getDeathsForYear, getMigrationRateForYear } from "../helpers/data"
 import {
     calculateTFRFromRaw,
     estimateLifeExpectancy,
-} from "./demography/scenarios"
-import { HISTORICAL_TIME_RANGE } from "./demography/constants"
+} from "../helpers/scenarios"
+import { HISTORICAL_TIME_RANGE } from "../helpers/constants"
 
 export type InputChartVariant =
     | "fertility-rate"

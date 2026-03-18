@@ -7,7 +7,7 @@ import { LoadingSpinner } from "./LoadingSpinner.js"
 import {
     useDemographyEntityData,
     useDemographyMetadata,
-} from "./DemographyDataFetching.js"
+} from "../helpers/DemographyDataFetching.js"
 
 const DEFAULT_ENTITY_NAME = "United Kingdom"
 

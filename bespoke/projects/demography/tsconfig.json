@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "target": "ES2020",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "jsx": "react-jsx",
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "noEmit": true,
+        "paths": {
+            "owid-bespoke-types": ["../../shared/bespokeComponentTypes.ts"]
+        }
+    },
+    "include": ["src"]
+}
