@@ -36,10 +36,12 @@ interface DataPoint {
 
 interface PopulationChartProps {
     simulation: Simulation
+    showCustomProjection?: boolean
 }
 
 function PopulationChart({
     simulation,
+    showCustomProjection = true,
     width,
     height,
 }: PopulationChartProps & { width: number; height: number }) {
@@ -88,10 +90,15 @@ function PopulationChart({
     const allDataPoints = useMemo(
         () => [
             ...historicalDataPoints,
-            ...projectionDataPoints,
+            ...(showCustomProjection ? projectionDataPoints : []),
             ...benchmarkDataPoints,
         ],
-        [historicalDataPoints, projectionDataPoints, benchmarkDataPoints]
+        [
+            historicalDataPoints,
+            projectionDataPoints,
+            benchmarkDataPoints,
+            showCustomProjection,
+        ]
     )
     const yMax = useMemo(
         () => Math.max(...allDataPoints.map((d) => d.value), 0),
@@ -123,7 +130,8 @@ function PopulationChart({
         return null
     }
 
-    const hasUserChanges = simulation.activePreset !== "unwpp"
+    const hasUserChanges =
+        showCustomProjection && simulation.activePreset !== "unwpp"
     const dotDistance = Math.abs(
         yScale(lastProjectionDataPoint) - yScale(lastBenchmarkDataPoint)
     )
@@ -165,7 +173,7 @@ function PopulationChart({
                         </text>
                     </Halo>
 
-                    {/* Historical and projection lines */}
+                    {/* Historical line */}
                     <LinePath
                         data={historicalDataPoints}
                         x={(d) => xScale(d.year)}
@@ -173,30 +181,44 @@ function PopulationChart({
                         stroke={DENIM_BLUE}
                         strokeWidth={3}
                     />
+
+                    {/* UN benchmark line */}
                     <LinePath
                         data={benchmarkDataPoints}
                         x={(d) => xScale(d.year)}
                         y={(d) => yScale(d.value)}
-                        stroke={BENCHMARK_LINE_COLOR}
-                        strokeWidth={3}
-                        strokeDasharray={PROJECTION_DASHARRAY}
-                        strokeLinecap="butt"
-                    />
-                    <LinePath
-                        data={projectionDataPoints}
-                        x={(d) => xScale(d.year)}
-                        y={(d) => yScale(d.value)}
-                        stroke={DENIM_BLUE}
+                        stroke={
+                            showCustomProjection
+                                ? BENCHMARK_LINE_COLOR
+                                : DENIM_BLUE
+                        }
                         strokeWidth={3}
                         strokeDasharray={PROJECTION_DASHARRAY}
                         strokeLinecap="butt"
                     />
 
+                    {/* Custom projection line */}
+                    {showCustomProjection && (
+                        <LinePath
+                            data={projectionDataPoints}
+                            x={(d) => xScale(d.year)}
+                            y={(d) => yScale(d.value)}
+                            stroke={DENIM_BLUE}
+                            strokeWidth={3}
+                            strokeDasharray={PROJECTION_DASHARRAY}
+                            strokeLinecap="butt"
+                        />
+                    )}
+
                     {/* Endpoint labels with dots */}
                     <EndpointLabels
                         xScale={xScale}
                         yScale={yScale}
-                        forecastDataPoints={projectionDataPoints}
+                        forecastDataPoints={
+                            showCustomProjection
+                                ? projectionDataPoints
+                                : benchmarkDataPoints
+                        }
                         benchmarkDataPoints={benchmarkDataPoints}
                         showBenchmark={hasUserChanges}
                     />
@@ -217,13 +239,17 @@ function PopulationChart({
 }
 
 export const ResponsivePopulationChart = memo(
-    function ResponsivePopulationChart({ simulation }: PopulationChartProps) {
+    function ResponsivePopulationChart({
+        simulation,
+        showCustomProjection,
+    }: PopulationChartProps) {
         const { parentRef, width, height } = useParentSize()
         return (
             <div ref={parentRef} style={{ width: "100%", height: "100%" }}>
                 {width > 0 && height > 0 ? (
                     <PopulationChart
                         simulation={simulation}
+                        showCustomProjection={showCustomProjection}
                         width={width}
                         height={height}
                     />
