@@ -31,7 +31,13 @@ export class TooltipCard extends React.Component<
 
     private updateBounds(): void {
         if (this.base.current) {
-            this.bounds = Bounds.fromElement(this.base.current)
+            const el = this.base.current
+            this.bounds = Bounds.fromProps({
+                x: 0,
+                y: 0,
+                width: el.scrollWidth + 2 * el.clientLeft, // account for left/right border
+                height: el.scrollHeight + 2 * el.clientTop, // account for top/bottom border
+            })
         }
     }
 
@@ -95,6 +101,14 @@ export class TooltipCard extends React.Component<
             style.position = "absolute"
             style.left = left
             style.top = top
+
+            // Set a max-height to prevent the case where the tooltip contents grow, causing the tooltip to overflow the
+            // container briefly until it is rerendered with the updated bounds. The quickly-appearing scrollbar is
+            // jarring and causes unneeded, brief content reflows and resize events.
+            // The max-height together with overflow: clip prevents the tooltip from overflowing, instead briefly
+            // cutting off content until the bounds are updated in the next render.
+            style.maxHeight = containerHeight - top
+            style.overflow = "clip"
         }
 
         // ignore the given width and max-width if the tooltip position is fixed
