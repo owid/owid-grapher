@@ -40,14 +40,14 @@
     },
     "devDependencies": {
         "@testing-library/react": "^16.3.0",
-        "@types/colorbrewer": "^1.0.29",
+        "@types/colorbrewer": "^1.0.32",
         "@types/d3": "^7.4.3",
         "@types/js-cookie": "^3.0.6",
         "@types/lodash-es": "^4.17.12",
-        "@types/mousetrap": "^1.6.9",
+        "@types/mousetrap": "^1.6.15",
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
-        "@types/topojson-client": "^3.1.1",
+        "@types/topojson-client": "^3.1.5",
         "vitest": "^4.1.0"
     },
     "license": "MIT"
