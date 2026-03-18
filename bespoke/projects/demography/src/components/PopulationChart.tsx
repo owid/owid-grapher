@@ -15,6 +15,8 @@ import {
     DENIM_BLUE,
     BENCHMARK_LINE_COLOR,
     PROJECTION_DASHARRAY,
+    GRID_LINE_COLOR,
+    LABEL_COLOR,
 } from "../helpers/constants"
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { formatValue } from "@ourworldindata/utils"
@@ -365,7 +367,7 @@ function AxisY({
                             y1={yScale(tick)}
                             x2={innerWidth}
                             y2={yScale(tick)}
-                            stroke="#ddd"
+                            stroke={GRID_LINE_COLOR}
                             strokeWidth={1}
                         />
                         {tick > 0 && (
@@ -373,7 +375,7 @@ function AxisY({
                                 x={4}
                                 y={yScale(tick) - 4}
                                 fontSize={11}
-                                fill="#a1a1a1"
+                                fill={LABEL_COLOR}
                             >
                                 {formatPopulationValueLong(tick) +
                                     (isTop ? " people" : "")}
