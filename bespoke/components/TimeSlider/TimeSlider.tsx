@@ -15,12 +15,14 @@ export function TimeSlider({
     onChange,
     formatTime = (time: Time) => time.toString(),
     className,
+    showEdgeLabels = true,
 }: {
     times: Time[]
     selectedTime: Time
     onChange: (time: Time) => void
     formatTime?: (time: Time) => string
     className?: string
+    showEdgeLabels?: boolean
 }) {
     const [isHovering, setIsHovering] = useState(false)
 
@@ -38,13 +40,15 @@ export function TimeSlider({
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}
         >
-            <button
-                className="time-slider__edge-button"
-                type="button"
-                onClick={() => onChange(minTime)}
-            >
-                {formatTime(minTime)}
-            </button>
+            {showEdgeLabels && (
+                <button
+                    className="time-slider__edge-button"
+                    type="button"
+                    onClick={() => onChange(minTime)}
+                >
+                    {formatTime(minTime)}
+                </button>
+            )}
 
             <Slider
                 className="time-slider__control"
@@ -72,13 +76,15 @@ export function TimeSlider({
                 </SliderTrack>
             </Slider>
 
-            <button
-                className="time-slider__edge-button"
-                type="button"
-                onClick={() => onChange(maxTime)}
-            >
-                {formatTime(maxTime)}
-            </button>
+            {showEdgeLabels && (
+                <button
+                    className="time-slider__edge-button"
+                    type="button"
+                    onClick={() => onChange(maxTime)}
+                >
+                    {formatTime(maxTime)}
+                </button>
+            )}
         </div>
     )
 }
