@@ -1,5 +1,5 @@
 import { memo, useMemo } from "react"
-import { ParentSize } from "@visx/responsive"
+import { useParentSize } from "@visx/responsive"
 import { scaleLinear } from "@visx/scale"
 import { LinePath } from "@visx/shape"
 import { Group } from "@visx/group"
@@ -18,11 +18,12 @@ import {
 } from "../helpers/constants"
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { formatValue } from "@ourworldindata/utils"
-import { OwidVariableRoundingMode } from "@ourworldindata/types"
 import * as R from "remeda"
 import { BezierArrow } from "../../../../components/BezierArrow/BezierArrow.js"
 import { Halo } from "@ourworldindata/components"
+import { formatPopulationValueLong } from "../helpers/chartUtils"
 import { DemographyAxisX } from "../helpers/DemographyAxisX.js"
+import { last } from "lodash-es"
 
 const margin = { top: 18, bottom: 18, left: 0, right: 0 }
 
@@ -82,11 +83,14 @@ function PopulationChart({
         [simulation]
     )
 
-    const allDataPoints = [
-        ...historicalDataPoints,
-        ...projectionDataPoints,
-        ...benchmarkDataPoints,
-    ]
+    const allDataPoints = useMemo(
+        () => [
+            ...historicalDataPoints,
+            ...projectionDataPoints,
+            ...benchmarkDataPoints,
+        ],
+        [historicalDataPoints, projectionDataPoints, benchmarkDataPoints]
+    )
     const yMax = useMemo(
         () => Math.max(...allDataPoints.map((d) => d.value), 0),
         [allDataPoints]
@@ -106,8 +110,16 @@ function PopulationChart({
         nice: true,
     })
 
-    const lastProjectionDataPoint = projectionDataPoints.at(-1)?.value!
-    const lastBenchmarkDataPoint = benchmarkDataPoints.at(-1)?.value!
+    const lastProjectionDataPoint = last(projectionDataPoints)?.value
+    const lastBenchmarkDataPoint = last(benchmarkDataPoints)?.value
+
+    // Shouldn't happen
+    if (
+        lastProjectionDataPoint === undefined ||
+        lastBenchmarkDataPoint === undefined
+    ) {
+        return null
+    }
 
     const hasUserChanges = simulation.activePreset !== "unwpp"
     const dotDistance = Math.abs(
@@ -204,18 +216,17 @@ function PopulationChart({
 
 export const ResponsivePopulationChart = memo(
     function ResponsivePopulationChart({ simulation }: PopulationChartProps) {
+        const { parentRef, width, height } = useParentSize()
         return (
-            <ParentSize>
-                {({ width, height }) =>
-                    width > 0 && height > 0 ? (
-                        <PopulationChart
-                            simulation={simulation}
-                            width={width}
-                            height={height}
-                        />
-                    ) : null
-                }
-            </ParentSize>
+            <div ref={parentRef} style={{ width: "100%", height: "100%" }}>
+                {width > 0 && height > 0 ? (
+                    <PopulationChart
+                        simulation={simulation}
+                        width={width}
+                        height={height}
+                    />
+                ) : null}
+            </div>
         )
     }
 )
@@ -373,12 +384,4 @@ function AxisY({
             })}
         </>
     )
-}
-
-function formatPopulationValueLong(value: number): string {
-    return formatValue(value, {
-        roundingMode: OwidVariableRoundingMode.significantFigures,
-        numSignificantFigures: 2,
-        numberAbbreviation: "long",
-    })
 }
