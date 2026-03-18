@@ -238,6 +238,61 @@ $panel-radius: 4px;
     color: $gray-100;
 }
 
+@media (max-width: 768px) {
+    .chart-content {
+        display: block;
+        height: auto;
+    }
+
+    .container {
+        &.container-left,
+        &.container-right {
+            display: block;
+            width: 100%;
+        }
+    }
+
+    .container-arrow {
+        display: block;
+        width: 40px;
+        margin: 16px auto;
+        transform: rotate(90deg);
+    }
+
+    .input-panels {
+        display: block;
+
+        > * + * {
+            margin-top: $panel-gap;
+        }
+    }
+
+    .output-panels {
+        display: block;
+
+        > * + * {
+            margin-top: $panel-gap;
+        }
+    }
+
+    .chart-panel {
+        display: block;
+    }
+
+    .chart-panel__content {
+        height: 300px;
+    }
+
+    .population-panel .chart-panel__content {
+        height: 160px;
+    }
+
+    .input-panels .chart-panel__content {
+        height: 60px;
+        touch-action: none;
+    }
+}
+
 .demography-skeleton {
     position: relative;
     width: min(100%, 1200px);

@@ -76,14 +76,14 @@ function DemographyChartContent({
                     <ChartPanel
                         className="population-panel"
                         title="Population"
-                        subtitle="Past estimates and future projections based on fertility rate, life expectancy, and net migration assumptions"
+                        subtitle="Past estimates and future projections"
                         header={<DemographyPopulationChartLegend />}
                     >
                         <ResponsivePopulationChart simulation={simulation} />
                     </ChartPanel>
                     <ChartPanel
                         title={`Age Structure in ${year}`}
-                        subtitle={`Population distribution by age and sex. The median age in ${year} is ${simulation.getStatsForYear(year)?.medianAge ?? "–"}.`}
+                        subtitle={`Population distribution by age and sex`}
                         footer={
                             <YearSlider
                                 selectedYear={year}
