@@ -9,11 +9,23 @@ $panel-radius: 4px;
 .demography-chart {
     max-width: 1200px;
     color: $dark-text;
+
+    &--population {
+        max-width: 850px;
+    }
 }
 
 .demography-captioned-chart {
     .demography-captioned-chart__chart-area {
         position: relative;
+    }
+}
+
+.demography-population-only {
+    .demography-population-only__chart-area {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 2 / 1;
     }
 }
 
