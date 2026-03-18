@@ -9,7 +9,7 @@ import type {
 
 import { SimulationVariantWithProviders } from "./variants/Simulation.js"
 import { PopulationVariantWithProviders } from "./variants/Population.js"
-import { parseConfig } from "./config.js"
+import { parseConfig, VariantName } from "./config.js"
 
 // Styles for portaled react-aria overlays that render outside the Shadow
 // DOM (e.g. dropdown menus). On the real site these are available globally;
@@ -31,7 +31,7 @@ export const VARIANTS = [
         component: PopulationVariantWithProviders,
         defaultConfig: {},
     },
-] satisfies BespokeComponentVariantsList
+] satisfies BespokeComponentVariantsList<VariantName>
 
 export const mount: BespokeComponentMountFn = (
     container: HTMLDivElement,

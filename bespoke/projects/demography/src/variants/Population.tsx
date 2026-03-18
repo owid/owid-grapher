@@ -13,7 +13,7 @@ import {
     useDemographyMetadata,
 } from "../helpers/fetch.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
-import type { PopulationConfig } from "../config.js"
+import type { PopulationVariantConfig } from "../config.js"
 import { combineStatuses } from "../helpers/utils.js"
 
 import { articulateEntity } from "@ourworldindata/utils"
@@ -29,7 +29,7 @@ import { DEFAULT_ENTITY_NAME } from "../helpers/constants.js"
 
 export function PopulationVariantWithProviders(props: {
     container: HTMLDivElement
-    config: PopulationConfig
+    config: PopulationVariantConfig
 }): React.ReactElement {
     return (
         <QueryClientProvider client={queryClient}>
@@ -41,7 +41,7 @@ export function PopulationVariantWithProviders(props: {
 function PopulationVariant({
     config,
 }: {
-    config: PopulationConfig
+    config: PopulationVariantConfig
 }): React.ReactElement {
     const showControls = !config.hideControls
     const [entityName, setEntityName] = useState(DEFAULT_ENTITY_NAME)
