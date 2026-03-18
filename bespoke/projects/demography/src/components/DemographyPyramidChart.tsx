@@ -6,7 +6,13 @@ import { AxisBottom } from "@visx/axis"
 import { Group } from "@visx/group"
 import type { ScaleLinear } from "d3-scale"
 import type { Simulation } from "../helpers/useSimulation"
-import { PYRAMID_AGE_GROUPS } from "../helpers/constants"
+import {
+    DENIM_BLUE,
+    GRID_LINE_COLOR,
+    LABEL_COLOR,
+    PYRAMID_AGE_GROUPS,
+} from "../helpers/constants"
+import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { computeMaxAgeGroupPopulation } from "../helpers/projectionRunner"
 import {
     groupByAgeRange,
@@ -154,7 +160,7 @@ function PyramidHalf({
                         y1={0}
                         x2={xScale(tick)}
                         y2={height}
-                        stroke="#ddd"
+                        stroke={GRID_LINE_COLOR}
                         strokeWidth={1}
                         strokeDasharray="4,4"
                     />
@@ -167,11 +173,11 @@ function PyramidHalf({
                 numTicks={3}
                 tickFormat={(v) => formatPopulationValueShort(v as number)}
                 stroke="transparent"
-                tickStroke="#767676"
+                tickStroke={GRAPHER_LIGHT_TEXT}
                 tickLength={4}
                 tickLabelProps={{
                     fontSize: 9,
-                    fill: "#767676",
+                    fill: GRAPHER_LIGHT_TEXT,
                     textAnchor: "middle",
                 }}
             />
@@ -186,7 +192,7 @@ function PyramidHalf({
                         y={yScale(g) ?? 0}
                         width={Math.abs(scaledVal - zeroX)}
                         height={yScale.bandwidth()}
-                        fill="#4c6a9c"
+                        fill={DENIM_BLUE}
                     />
                 )
             })}
@@ -231,7 +237,7 @@ function PyramidAxisX({
                             textAnchor="middle"
                             dominantBaseline="central"
                             fontSize={8}
-                            fill={isMedian ? "#777" : "#999"}
+                            fill={isMedian ? GRAPHER_LIGHT_TEXT : LABEL_COLOR}
                         >
                             {ageGroupLabel}
                         </text>
@@ -253,7 +259,7 @@ function PyramidAxisX({
                 textAnchor="end"
                 fontSize={10}
                 fontWeight={600}
-                fill="#767676"
+                fill={GRAPHER_LIGHT_TEXT}
                 letterSpacing="0.05em"
             >
                 MEN
@@ -263,7 +269,7 @@ function PyramidAxisX({
                 y={-4}
                 textAnchor="middle"
                 fontSize={8}
-                fill="#999"
+                fill={LABEL_COLOR}
                 letterSpacing="0.05em"
             >
                 AGE
@@ -274,7 +280,7 @@ function PyramidAxisX({
                 textAnchor="start"
                 fontSize={10}
                 fontWeight={600}
-                fill="#767676"
+                fill={GRAPHER_LIGHT_TEXT}
                 letterSpacing="0.05em"
             >
                 WOMEN
@@ -296,7 +302,7 @@ function Triangle({
     return (
         <polygon
             points={`${x + sign * 4},${y - 3} ${x + sign * 4},${y + 3} ${x},${y}`}
-            fill="#777"
+            fill={GRAPHER_LIGHT_TEXT}
         />
     )
 }

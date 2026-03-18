@@ -33,6 +33,8 @@ export const PYRAMID_AGE_GROUPS: string[] = (() => {
 })()
 
 export const DENIM_BLUE = "#4c6a9c"
+export const GRID_LINE_COLOR = "#ddd"
+export const LABEL_COLOR = "#a1a1a1"
 
 export const PROJECTION_BACKGROUND = "rgba(0, 0, 0, 0.02)"
 export const PROJECTION_DASHARRAY = "1.5,3"
