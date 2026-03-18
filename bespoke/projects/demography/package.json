@@ -22,6 +22,7 @@
         "@ourworldindata/utils": "link:../../../packages/@ourworldindata/utils",
         "@react-stately/flags": "^3.1.2",
         "@tanstack/react-query": "^5.90.6",
+        "@tippyjs/react": "^4.2.6",
         "@visx/axis": "^3.12.0",
         "@visx/event": "^3.3.0",
         "@visx/group": "^3.12.0",
@@ -37,8 +38,7 @@
         "react-aria-components": "^1.8.0",
         "react-dom": "^19.2.4",
         "remeda": "^2.21.0",
-        "tippy.js": "^6.3.7",
-        "@tippyjs/react": "^4.2.6"
+        "tippy.js": "^6.3.7"
     },
     "devDependencies": {
         "@types/lodash-es": "^4.17.12",
