@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { QueryStatus } from "@tanstack/react-query"
 
-import { DemographyCaptionedChart } from "./DemographyCaptionedChart.js"
+import { DemographyPopulationOnly } from "./DemographyPopulationOnly.js"
 import { DemographyControls } from "./DemographyControls.js"
 import { LoadingSpinner } from "./LoadingSpinner.js"
 import {
@@ -12,7 +12,7 @@ import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 
 const DEFAULT_ENTITY_NAME = "United Kingdom"
 
-export function DemographyChart({
+export function DemographyPopulationChart({
     config,
 }: {
     config?: Record<string, string>
@@ -20,14 +20,12 @@ export function DemographyChart({
     const showControls = config?.hideControls !== "true"
     const [entityName, setEntityName] = useState(DEFAULT_ENTITY_NAME)
 
-    // Fetch the metadata and the data for the selected entity
     const metadataResponse = useDemographyMetadata()
     const entityDataResponse = useDemographyEntityData(
         entityName,
         metadataResponse.data
     )
 
-    // Only show loading overlays after 300ms delay to prevent flashing
     const isLoadingEntityData = useDelayedLoading(
         entityDataResponse.isPlaceholderData,
         300
@@ -42,18 +40,23 @@ export function DemographyChart({
     )
 
     if (loadingStatus === "error") {
-        return <DemographyChartError />
+        return <div>Population chart can't be loaded</div>
     }
 
     if (loadingStatus === "pending") {
-        return <DemographySkeleton />
+        return (
+            <div className="demography-skeleton">
+                <LoadingSpinner />
+            </div>
+        )
     }
 
-    // Sanity check
-    if (!metadata || !entityData) return <DemographyChartError />
+    if (!metadata || !entityData) {
+        return <div>Population chart can't be loaded</div>
+    }
 
     return (
-        <div className="demography-chart">
+        <div className="demography-chart demography-chart--population">
             {showControls && (
                 <DemographyControls
                     metadata={metadata}
@@ -61,23 +64,13 @@ export function DemographyChart({
                     setEntityName={setEntityName}
                 />
             )}
-            <DemographyCaptionedChart
+            <DemographyPopulationOnly
                 data={entityData}
                 metadata={metadata}
                 isLoading={isLoadingEntityData}
+                title={config?.title}
+                subtitle={config?.subtitle}
             />
-        </div>
-    )
-}
-
-function DemographyChartError() {
-    return <div>Demography visualization can't be loaded</div>
-}
-
-function DemographySkeleton() {
-    return (
-        <div className="demography-skeleton">
-            <LoadingSpinner />
         </div>
     )
 }
