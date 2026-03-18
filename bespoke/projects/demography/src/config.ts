@@ -1,4 +1,4 @@
-const VARIANT_NAMES = ["simulation", "population"] as const
+const VARIANT_NAMES = ["simulation", "population", "parameters"] as const
 
 export type VariantName = (typeof VARIANT_NAMES)[number]
 
@@ -12,9 +12,16 @@ export interface PopulationVariantConfig {
     subtitle?: string
 }
 
+export interface ParametersVariantConfig {
+    hideControls: boolean
+    title?: string
+    subtitle?: string
+}
+
 export type DemographyVariantConfig =
     | SimulationVariantConfig
     | PopulationVariantConfig
+    | ParametersVariantConfig
 
 export function parseConfig(
     variantName: VariantName,
@@ -26,6 +33,12 @@ export function parseConfig(
                 hideControls: raw.hideControls === "true",
             }
         case "population":
+            return {
+                hideControls: raw.hideControls === "true",
+                title: raw.title,
+                subtitle: raw.subtitle,
+            }
+        case "parameters":
             return {
                 hideControls: raw.hideControls === "true",
                 title: raw.title,
