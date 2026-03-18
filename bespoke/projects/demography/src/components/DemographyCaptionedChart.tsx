@@ -6,16 +6,12 @@ import { Link, Tooltip, TooltipTrigger } from "react-aria-components"
 import { EntityName, Time } from "@ourworldindata/types"
 import { articulateEntity } from "@ourworldindata/utils"
 
-import { DataRow } from "./CausesOfDeathConstants"
-import { ResponsiveCausesOfDeathTreemap } from "./CausesOfDeathTreemap"
-import { formatCount } from "./CausesOfDeathHelpers.js"
-import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
 import { LoadingSpinner } from "./LoadingSpinner.js"
-import { CountryData, DemographyMetadata } from "./DemographyTypes"
+import { CountryData, DemographyMetadata } from "../helpers/DemographyTypes"
 import { ResponsiveDemographyChartContent } from "./DemographyChartContent"
 
-import { ChartHeader } from "../bespoke/components/ChartHeader/ChartHeader"
-import { ChartFooter } from "../bespoke/components/ChartFooter/ChartFooter"
+import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader"
+import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter"
 
 export function DemographyCaptionedChart({
     data,
