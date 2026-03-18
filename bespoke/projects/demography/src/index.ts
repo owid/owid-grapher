@@ -9,6 +9,7 @@ import type {
 } from "owid-bespoke-types"
 
 import { DemographyChart } from "./components/DemographyChart.js"
+import { DemographyPopulationChart } from "./components/DemographyPopulationChart.js"
 
 // Styles for portaled react-aria overlays that render outside the Shadow
 // DOM (e.g. dropdown menus). On the real site these are available globally;
@@ -29,7 +30,7 @@ const queryClient = new QueryClient({
 
 function DemographyChartWithProviders({
     container: _container,
-    config: _config,
+    config,
 }: {
     container: HTMLDivElement
     config?: Record<string, string>
@@ -37,7 +38,21 @@ function DemographyChartWithProviders({
     return createElement(
         QueryClientProvider,
         { client: queryClient },
-        createElement(DemographyChart)
+        createElement(DemographyChart, { config })
+    )
+}
+
+function DemographyPopulationChartWithProviders({
+    container: _container,
+    config,
+}: {
+    container: HTMLDivElement
+    config?: Record<string, string>
+}) {
+    return createElement(
+        QueryClientProvider,
+        { client: queryClient },
+        createElement(DemographyPopulationChart, { config })
     )
 }
 
@@ -45,6 +60,11 @@ export const VARIANTS = [
     {
         name: "simulator",
         component: DemographyChartWithProviders,
+        defaultConfig: {},
+    },
+    {
+        name: "population",
+        component: DemographyPopulationChartWithProviders,
         defaultConfig: {},
     },
 ] satisfies BespokeComponentVariantsList
