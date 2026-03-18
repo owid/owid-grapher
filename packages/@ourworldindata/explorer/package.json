@@ -39,7 +39,7 @@
         "ts-pattern": "^5.8.0"
     },
     "devDependencies": {
-        "@testing-library/react": "^16.3.0",
+        "@testing-library/react": "^16.3.2",
         "@types/colorbrewer": "^1.0.32",
         "@types/d3": "^7.4.3",
         "@types/js-cookie": "^3.0.6",
