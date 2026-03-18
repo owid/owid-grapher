@@ -4,7 +4,7 @@ import { scaleLinear } from "@visx/scale"
 import { LinePath } from "@visx/shape"
 import { Group } from "@visx/group"
 import type { Simulation } from "../helpers/useSimulation.js"
-import { getPopulationForYear, getTotalPopulation } from "../helpers/data"
+import { getPopulationForYear, getTotalPopulation } from "../helpers/utils"
 import {
     START_YEAR,
     HISTORICAL_END_YEAR,
@@ -23,8 +23,8 @@ import { formatValue } from "@ourworldindata/utils"
 import * as R from "remeda"
 import { BezierArrow } from "../../../../components/BezierArrow/BezierArrow.js"
 import { Halo } from "@ourworldindata/components"
-import { formatPopulationValueLong } from "../helpers/chartUtils"
-import { DemographyAxisX } from "../helpers/DemographyAxisX.js"
+import { formatPopulationValueLong } from "../helpers/utils.js"
+import { TimeAxisX } from "./TimeAxisX.js"
 import { last } from "lodash-es"
 
 const margin = { top: 18, bottom: 18, left: 0, right: 0 }
@@ -150,7 +150,7 @@ function PopulationChart({
                         fill={PROJECTION_BACKGROUND}
                     />
 
-                    <DemographyAxisX
+                    <TimeAxisX
                         xScale={xScale}
                         innerWidth={innerWidth}
                         innerHeight={innerHeight}
