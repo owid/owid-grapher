@@ -1,22 +1,16 @@
-import { memo, useMemo, useCallback } from "react"
-import { formatValue } from "@ourworldindata/utils"
 import * as R from "remeda"
-import type { Simulation } from "../helpers/useSimulation"
-import type { ScenarioParams } from "../helpers/scenarios"
-import { ResponsiveTrajectoryEditor } from "./DemographyTrajectoryEditor.js"
-import { getDeathsForYear, getMigrationRateForYear } from "../helpers/data"
+import { formatValue } from "@ourworldindata/utils"
+import { HISTORICAL_TIME_RANGE } from "./constants.js"
 import {
     calculateTFRFromRaw,
     estimateLifeExpectancy,
-} from "../helpers/scenarios"
-import { HISTORICAL_TIME_RANGE } from "../helpers/constants"
+    ScenarioParams,
+} from "../model/scenarios.js"
+import { Simulation } from "./useSimulation.js"
+import { getDeathsForYear, getMigrationRateForYear } from "./utils.js"
+import { ParameterKey } from "./types.js"
 
-export type InputChartVariant =
-    | "fertility-rate"
-    | "life-expectancy"
-    | "net-migration"
-
-interface VariantConfig {
+interface ParameterConfig {
     title: string
     subtitle: string
     tooltipContent: string
@@ -29,7 +23,7 @@ interface VariantConfig {
     }
 }
 
-export const VARIANT_CONFIG: Record<InputChartVariant, VariantConfig> = {
+export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
     "fertility-rate": {
         title: "Fertility Rate",
         subtitle: "Average number of children born per woman",
@@ -95,7 +89,7 @@ export const VARIANT_CONFIG: Record<InputChartVariant, VariantConfig> = {
             return { points, min: Math.floor(min / 10) * 10, max: 130 }
         },
     },
-    "net-migration": {
+    "net-migration-rate": {
         title: "Net Migration Rate",
         subtitle: "Difference between immigration and emigration",
         tooltipContent:
@@ -130,47 +124,3 @@ export const VARIANT_CONFIG: Record<InputChartVariant, VariantConfig> = {
         },
     },
 }
-
-interface InputChartProps {
-    simulation: Simulation
-    variant: InputChartVariant
-}
-
-export const DemographyInputChart = memo(function InputChart({
-    simulation,
-    variant,
-}: InputChartProps) {
-    const config = VARIANT_CONFIG[variant]
-    const { paramKey } = config
-
-    const { points, min, max } = useMemo(
-        () => config.computeHistorical(simulation),
-        [simulation.data, simulation.benchmarkResults, config]
-    )
-
-    const handleChange = useCallback(
-        (newPoints: Record<number, number>) => {
-            simulation.setScenarioParams({
-                ...simulation.scenarioParams,
-                [paramKey]: newPoints,
-            })
-        },
-        [simulation, paramKey]
-    )
-
-    console.log(simulation.scenarioParams[paramKey])
-    console.log(simulation.unwppScenarioParams[paramKey])
-
-    return (
-        <ResponsiveTrajectoryEditor
-            historicalDataPoints={points}
-            controlPoints={simulation.scenarioParams[paramKey]}
-            referencePoints={simulation.unwppScenarioParams[paramKey]}
-            minValue={min}
-            maxValue={max}
-            formatValue={config.formatValue}
-            color="#4c6a9c"
-            onChange={handleChange}
-        />
-    )
-})

@@ -2,28 +2,18 @@
  * Scenario generation helpers.
  */
 
+import { FERTILITY_AGE_GROUPS } from "../helpers/constants"
+import type { CountryData } from "../helpers/types"
+import { getDeathsForYear, getMigrationRateForYear } from "../helpers/utils"
 import {
-    FERTILITY_AGE_GROUPS,
     calculateMortalityRates,
-    getDeathsForYear,
-    getFertilityForYear,
-    getMigrationRateForYear,
-    getPopulationForYear,
     getProjectionDeathsForYear,
     getProjectionFertilityForYear,
     getProjectionMigrationRateForYear,
     getProjectionPopulationForYear,
-    type CountryData,
-} from "./data"
-import { calculateTFR, type BaselineParams, type YearResult } from "./model"
-import type {
-    CONTROL_YEARS,
-    HISTORICAL_END_YEAR,
-    TREND_EARLY_START,
-    TREND_EARLY_END,
-    TREND_LATE_START,
-    TREND_LATE_END,
-} from "./constants"
+    calculateTFR,
+    type YearResult,
+} from "./model"
 
 /** The subset of constants this module needs */
 export interface ScenarioConstants {

@@ -8,8 +8,8 @@ import {
     Dropdown as GrapherDropdown,
 } from "@ourworldindata/grapher/src/controls/Dropdown.js"
 
-import { DemographyMetadata } from "../helpers/DemographyTypes.js"
-import { useUserCountryInformation } from "../helpers/DemographyDataFetching.js"
+import { DemographyMetadata } from "../helpers/types.js"
+import { useUserCountryInformation } from "../helpers/fetch.js"
 
 import { Frame } from "../../../../components/Frame/Frame.js"
 
