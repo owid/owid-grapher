@@ -238,6 +238,20 @@ $panel-radius: 4px;
     color: $gray-100;
 }
 
+// @media (max-width: 1000px) {
+//     .output-panels {
+//         flex-direction: column;
+
+//         .population-panel {
+//             flex: 1;
+//         }
+
+//         > *:not(.population-panel) {
+//             max-width: 120px;
+//         }
+//     }
+// }
+
 @media (max-width: 768px) {
     .chart-content {
         display: block;
