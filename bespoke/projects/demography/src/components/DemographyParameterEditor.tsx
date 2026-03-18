@@ -33,6 +33,9 @@ const margin = {
 interface DemographyParameterEditorProps {
     simulation: Simulation
     variant: ParameterKey
+    interactive?: boolean
+    showProjectionLabel?: boolean
+    valueLabelFontSize?: number
 }
 
 interface DataPoint {
@@ -43,6 +46,9 @@ interface DataPoint {
 function DemographyParameterEditor({
     simulation,
     variant,
+    interactive = true,
+    showProjectionLabel = false,
+    valueLabelFontSize = 9,
     width,
     height,
 }: DemographyParameterEditorProps & { width: number; height: number }) {
@@ -54,8 +60,8 @@ function DemographyParameterEditor({
         min: minValue,
         max: maxValue,
     } = useMemo(
-        () => config.computeHistorical(simulation),
-        [simulation, config]
+        () => config.computeHistorical(simulation, interactive),
+        [simulation, config, interactive]
     )
 
     const controlPoints = simulation.scenarioParams[paramKey]
@@ -117,6 +123,24 @@ function DemographyParameterEditor({
                     fill={PROJECTION_BACKGROUND}
                 />
 
+                {/* Projection label */}
+                {showProjectionLabel && (
+                    <Halo
+                        id="projection-label"
+                        outlineWidth={2}
+                        outlineColor={PROJECTION_BACKGROUND}
+                    >
+                        <text
+                            x={projX + 6}
+                            y={12}
+                            fontSize={10}
+                            fill={GRAPHER_LIGHT_TEXT}
+                        >
+                            Projections →
+                        </text>
+                    </Halo>
+                )}
+
                 {/* Zero line */}
                 {minValue <= 0 && maxValue >= 0 && (
                     <line
@@ -176,34 +200,62 @@ function DemographyParameterEditor({
                     y={yScale(firstHistoricalDataPoint.value)}
                     label={formatValue(firstHistoricalDataPoint.value)}
                     color={DENIM_BLUE}
+                    fontSize={valueLabelFontSize}
                 />
 
-                {/* UN WPP reference dots at control years */}
-                {CONTROL_YEARS.map((year) => (
+                {/* Dot and label for last historical point (non-interactive) */}
+                {!interactive && (
                     <PointLabel
-                        key={year}
-                        x={xScale(year)}
-                        y={yScale(referencePoints[year])}
-                        color={BENCHMARK_LINE_COLOR}
+                        x={xScale(lastHistoricalDataPoint.year)}
+                        y={yScale(lastHistoricalDataPoint.value)}
+                        label={formatValue(lastHistoricalDataPoint.value)}
+                        color={DENIM_BLUE}
+                        fontSize={valueLabelFontSize}
                     />
-                ))}
+                )}
+
+                {/* Dot and label for last projection point (non-interactive) */}
+                {!interactive && projectionPoints.length > 0 && (
+                    <PointLabel
+                        x={xScale(projectionPoints.at(-1)!.year)}
+                        y={yScale(projectionPoints.at(-1)!.value)}
+                        label={formatValue(projectionPoints.at(-1)!.value)}
+                        color={DENIM_BLUE}
+                        fontSize={valueLabelFontSize}
+                    />
+                )}
+
+                {/* UN WPP reference dots at control years */}
+                {interactive &&
+                    CONTROL_YEARS.map((year) => (
+                        <PointLabel
+                            key={year}
+                            x={xScale(year)}
+                            y={yScale(referencePoints[year])}
+                            color={BENCHMARK_LINE_COLOR}
+                        />
+                    ))}
 
                 {/* Draggable control points */}
-                {CONTROL_YEARS.map((year) => (
-                    <DraggableControlPoint
-                        key={year}
-                        cx={xScale(year)}
-                        cy={yScale(controlPoints[year])}
-                        value={controlPoints[year]}
-                        color={DENIM_BLUE}
-                        formatValue={formatValue}
-                        yScale={yScale}
-                        marginTop={margin.top}
-                        onValueChange={(value) =>
-                            handleChange({ ...controlPoints, [year]: value })
-                        }
-                    />
-                ))}
+                {interactive &&
+                    CONTROL_YEARS.map((year) => (
+                        <DraggableControlPoint
+                            key={year}
+                            cx={xScale(year)}
+                            cy={yScale(controlPoints[year])}
+                            value={controlPoints[year]}
+                            color={DENIM_BLUE}
+                            formatValue={formatValue}
+                            yScale={yScale}
+                            marginTop={margin.top}
+                            onValueChange={(value) =>
+                                handleChange({
+                                    ...controlPoints,
+                                    [year]: value,
+                                })
+                            }
+                        />
+                    ))}
             </Group>
         </svg>
     )
@@ -213,6 +265,9 @@ export const ResponsiveDemographyParameterEditor = memo(
     function ResponsiveDemographyParameterEditor({
         simulation,
         variant,
+        interactive,
+        showProjectionLabel,
+        valueLabelFontSize,
     }: DemographyParameterEditorProps) {
         const { parentRef, width, height } = useParentSize()
         return (
@@ -221,6 +276,9 @@ export const ResponsiveDemographyParameterEditor = memo(
                     <DemographyParameterEditor
                         simulation={simulation}
                         variant={variant}
+                        interactive={interactive}
+                        showProjectionLabel={showProjectionLabel}
+                        valueLabelFontSize={valueLabelFontSize}
                         width={width}
                         height={height}
                     />

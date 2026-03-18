@@ -16,7 +16,7 @@ interface ParameterConfig {
     tooltipContent: string
     paramKey: keyof ScenarioParams
     formatValue: (value: number) => string
-    computeHistorical: (simulation: Simulation) => {
+    computeHistorical: (simulation: Simulation, interactive?: boolean) => {
         points: { year: number; value: number }[]
         min: number
         max: number
@@ -36,7 +36,7 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
                 numberAbbreviation: false,
                 trailingZeroes: true,
             }),
-        computeHistorical: (simulation) => {
+        computeHistorical: (simulation, interactive = true) => {
             const points = R.pipe(
                 HISTORICAL_TIME_RANGE,
                 R.map((year) => {
@@ -49,9 +49,14 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
                 R.filter(R.isDefined)
             )
 
-            // The y-points are draggable from 0-5 or 0-(max+1)
-            const max = Math.max(4, ...points.map((d) => d.value))
-            return { points, min: 0, max: Math.ceil(max + 1) }
+            if (interactive) {
+                // The y-points are draggable from 0-5 or 0-(max+1)
+                const max = Math.max(4, ...points.map((d) => d.value))
+                return { points, min: 0, max: Math.ceil(max + 1) }
+            } else {
+                const max = Math.max(3, ...points.map((d) => d.value))
+                return { points, min: 0, max: Math.ceil(max) + 0.5 }
+            }
         },
     },
     "life-expectancy": {
@@ -65,7 +70,7 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
                 numDecimalPlaces: 0,
                 numberAbbreviation: false,
             }),
-        computeHistorical: (simulation) => {
+        computeHistorical: (simulation, interactive = true) => {
             const points = R.pipe(
                 HISTORICAL_TIME_RANGE,
                 R.map((year) => {
@@ -84,9 +89,20 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
                 R.filter(R.isDefined)
             )
 
-            // The y-points are draggable from the nearest decade (e.g. 47 -> 40) to 130
-            const min = Math.min(100, ...points.map((d) => d.value))
-            return { points, min: Math.floor(min / 10) * 10, max: 130 }
+            const values = points.map((d) => d.value)
+            if (interactive) {
+                // The y-points are draggable from the nearest decade (e.g. 47 -> 40) to 130
+                const min = Math.min(100, ...values)
+                return { points, min: Math.floor(min / 10) * 10, max: 130 }
+            } else {
+                const min = Math.min(...values)
+                const max = Math.max(...values)
+                return {
+                    points,
+                    min: Math.floor(min / 5) * 5,
+                    max: Math.ceil(max / 5) * 5 + 5,
+                }
+            }
         },
     },
     "net-migration-rate": {
@@ -102,7 +118,7 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
                 showPlus: true,
                 trailingZeroes: true,
             }),
-        computeHistorical: (simulation) => {
+        computeHistorical: (simulation, interactive = true) => {
             const points = R.pipe(
                 HISTORICAL_TIME_RANGE,
                 R.map((year) => ({
@@ -115,11 +131,11 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
             const min = Math.min(0, ...values)
             const max = Math.max(0, ...values)
 
-            // Round y-axis bounds to the nearest 5, with extra padding
+            const extra = interactive ? 5 : 0
             return {
                 points,
-                min: Math.floor(min / 5) * 5 - 5,
-                max: Math.ceil(max / 5) * 5 + 5,
+                min: Math.floor(min / 5) * 5 - extra,
+                max: Math.ceil(max / 5) * 5 + extra,
             }
         },
     },
