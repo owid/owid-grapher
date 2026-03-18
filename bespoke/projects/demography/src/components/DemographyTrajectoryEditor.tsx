@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { ParentSize } from "@visx/responsive"
+import { useParentSize } from "@visx/responsive"
 import { scaleLinear } from "@visx/scale"
 import { LinePath } from "@visx/shape"
 import { Group } from "@visx/group"
@@ -44,18 +44,13 @@ interface TrajectoryEditorProps {
 }
 
 export function ResponsiveTrajectoryEditor(props: TrajectoryEditorProps) {
+    const { parentRef, width, height } = useParentSize()
     return (
-        <ParentSize>
-            {({ width, height }) =>
-                width > 0 && height > 0 ? (
-                    <TrajectoryEditor
-                        {...props}
-                        width={width}
-                        height={height}
-                    />
-                ) : null
-            }
-        </ParentSize>
+        <div ref={parentRef} style={{ width: "100%", height: "100%" }}>
+            {width > 0 && height > 0 ? (
+                <TrajectoryEditor {...props} width={width} height={height} />
+            ) : null}
+        </div>
     )
 }
 

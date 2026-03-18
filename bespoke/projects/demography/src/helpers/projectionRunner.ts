@@ -17,7 +17,13 @@ import {
     type PopulationBySex,
 } from "./data"
 import type { ScenarioParams } from "./scenarios"
-import { PYRAMID_AGE_GROUPS } from "./constants"
+import {
+    START_YEAR,
+    HISTORICAL_END_YEAR,
+    END_YEAR,
+    PYRAMID_AGE_GROUPS,
+} from "./constants"
+import { groupByAgeRange } from "./chartUtils"
 
 function getInterpolatedValue(
     points: Record<number, number>,
@@ -244,42 +250,30 @@ export function runProjectionTrajectory({
     return trajectory
 }
 
-export function computePyramidMaxExtent({
-    data,
-    forecastResults,
-    startYear,
-    historicalEndYear,
-    endYear,
-    pyramidAgeGroups,
-    aggregateToPyramidAgeGroups,
-}: {
+export function computeMaxAgeGroupPopulation(simulation: {
     data: CountryData
     forecastResults: Record<number, YearResult> | null
-    startYear: number
-    historicalEndYear: number
-    endYear: number
-    pyramidAgeGroups: string[]
-    aggregateToPyramidAgeGroups: (arr: number[]) => Record<string, number>
 }): number {
+    const { data, forecastResults } = simulation
     let maxVal = 0
 
-    for (let year = startYear; year <= historicalEndYear; year++) {
+    for (let year = START_YEAR; year <= HISTORICAL_END_YEAR; year++) {
         const pop = getPopulationForYear(data, year)
         if (!pop) continue
-        const maleGroups = aggregateToPyramidAgeGroups(pop.male)
-        const femaleGroups = aggregateToPyramidAgeGroups(pop.female)
-        for (const g of pyramidAgeGroups) {
+        const maleGroups = groupByAgeRange(pop.male)
+        const femaleGroups = groupByAgeRange(pop.female)
+        for (const g of PYRAMID_AGE_GROUPS) {
             maxVal = Math.max(maxVal, maleGroups[g] || 0, femaleGroups[g] || 0)
         }
     }
 
     if (forecastResults) {
-        for (let year = historicalEndYear + 1; year <= endYear; year++) {
+        for (let year = HISTORICAL_END_YEAR + 1; year <= END_YEAR; year++) {
             const pop = forecastResults[year]?.population
             if (!pop) continue
-            const maleGroups = aggregateToPyramidAgeGroups(pop.male)
-            const femaleGroups = aggregateToPyramidAgeGroups(pop.female)
-            for (const g of pyramidAgeGroups) {
+            const maleGroups = groupByAgeRange(pop.male)
+            const femaleGroups = groupByAgeRange(pop.female)
+            for (const g of PYRAMID_AGE_GROUPS) {
                 maxVal = Math.max(
                     maxVal,
                     maleGroups[g] || 0,
