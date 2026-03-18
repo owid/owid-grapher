@@ -186,11 +186,18 @@ function ChartPanel({
             <p className="chart-panel__subtitle">
                 {subtitle}
                 {tooltipContent && (
-                    <Tippy content={tooltipContent} placement="top">
-                        <span className="chart-panel__info-icon">
-                            <FontAwesomeIcon icon={faCircleInfo} size="sm" />
-                        </span>
-                    </Tippy>
+                    <>
+                        {/* Non-breaking space to prevent the icon from wrapping to a new line alone */}
+                        {"\u00a0"}
+                        <Tippy content={tooltipContent} placement="top">
+                            <span className="chart-panel__info-icon">
+                                <FontAwesomeIcon
+                                    icon={faCircleInfo}
+                                    size="sm"
+                                />
+                            </span>
+                        </Tippy>
+                    </>
                 )}
             </p>
             {header && <div className="chart-panel__header">{header}</div>}

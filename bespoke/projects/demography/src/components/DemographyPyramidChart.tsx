@@ -21,7 +21,7 @@ import {
     formatPopulationValueShort,
 } from "../helpers/chartUtils"
 
-const margin = { top: 12, right: 4, bottom: 18, left: 4 }
+const margin = { top: 18, right: 4, bottom: 18, left: 4 }
 const CENTER_GAP = 40 // width reserved for age labels in the center
 
 // Labels reversed so 0-4 at bottom, oldest at top
