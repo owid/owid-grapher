@@ -1,46 +1,21 @@
 import cx from "classnames"
 import { useCallback, useState } from "react"
-import { Bounds, Tippy } from "@ourworldindata/utils"
+import { Tippy } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
-import { useChartDimensions } from "../../../../hooks/useDimensions"
 import { BezierArrow } from "../../../../components/BezierArrow/BezierArrow"
-import { CountryData, DemographyMetadata } from "../helpers/DemographyTypes"
+import { CountryData, ParameterKey } from "../helpers/types"
 import { useSimulation, type Simulation } from "../helpers/useSimulation"
 import { ResponsivePopulationChart } from "./PopulationChart.js"
-import {
-    DemographyInputChart,
-    VARIANT_CONFIG,
-    type InputChartVariant,
-} from "./DemographyInputChart.js"
-import { ResponsiveDemographyPyramidChart } from "./DemographyPyramidChart.js"
+import { ResponsiveDemographyParameterEditor } from "./DemographyParameterEditor.js"
+import { ResponsivePopulationPyramid } from "./PopulationPyramid.js"
 import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
-import { START_YEAR, END_YEAR } from "../helpers/constants.js"
-import { DemographyPopulationChartLegend } from "./DemographyPopulationChartLegend.js"
+import { START_YEAR, END_YEAR, FULL_TIME_RANGE } from "../helpers/constants.js"
+import { PopulationChartLegend } from "./PopulationChartLegend.js"
+import { parameterConfigByKey } from "../helpers/parameterConfigs.js"
 
-const YEAR_TIMES = Array.from(
-    { length: END_YEAR - START_YEAR + 1 },
-    (_, i) => START_YEAR + i
-)
-
-export function ResponsiveDemographyChartContent({
-    data,
-    metadata,
-}: {
-    data: CountryData
-    metadata: DemographyMetadata
-}) {
-    return <DemographyChartContent data={data} metadata={metadata} />
-}
-
-function DemographyChartContent({
-    data,
-    metadata,
-}: {
-    data: CountryData
-    metadata: DemographyMetadata
-}) {
-    const [year, setYear] = useState(2100)
+export function SimulationContent({ data }: { data: CountryData }) {
+    const [year, setYear] = useState(END_YEAR)
 
     const simulation = useSimulation(data)
 
@@ -63,7 +38,7 @@ function DemographyChartContent({
                     />
                     <InputChartPanel
                         simulation={simulation}
-                        variant="net-migration"
+                        variant="net-migration-rate"
                     />
                 </div>
             </Container>
@@ -77,7 +52,7 @@ function DemographyChartContent({
                         className="population-panel"
                         title="Population"
                         subtitle="Past estimates and future projections"
-                        header={<DemographyPopulationChartLegend />}
+                        header={<PopulationChartLegend />}
                     >
                         <ResponsivePopulationChart simulation={simulation} />
                     </ChartPanel>
@@ -85,13 +60,13 @@ function DemographyChartContent({
                         title={`Age Structure in ${year}`}
                         subtitle={`Population distribution by age and sex`}
                         footer={
-                            <YearSlider
+                            <SimpleYearSlider
                                 selectedYear={year}
                                 onChange={setYear}
                             />
                         }
                     >
-                        <ResponsiveDemographyPyramidChart
+                        <ResponsivePopulationPyramid
                             simulation={simulation}
                             year={year}
                         />
@@ -124,10 +99,10 @@ function InputChartPanel({
     variant,
 }: {
     simulation: Simulation
-    variant: InputChartVariant
+    variant: ParameterKey
 }) {
     const { title, subtitle, tooltipContent, paramKey } =
-        VARIANT_CONFIG[variant]
+        parameterConfigByKey[variant]
 
     const isModified = Object.keys(
         simulation.unwppScenarioParams[paramKey]
@@ -151,7 +126,10 @@ function InputChartPanel({
             tooltipContent={tooltipContent}
             onReset={isModified ? handleReset : undefined}
         >
-            <DemographyInputChart simulation={simulation} variant={variant} />
+            <ResponsiveDemographyParameterEditor
+                simulation={simulation}
+                variant={variant}
+            />
         </ChartPanel>
     )
 }
@@ -222,7 +200,7 @@ function ArrowFromInputToOutputPanels() {
     )
 }
 
-function YearSlider({
+function SimpleYearSlider({
     selectedYear,
     onChange,
 }: {
@@ -233,7 +211,7 @@ function YearSlider({
         <div className="demography-year-slider">
             <span className="demography-year-slider__label">{START_YEAR}</span>
             <TimeSlider
-                times={YEAR_TIMES}
+                times={FULL_TIME_RANGE}
                 selectedTime={selectedYear}
                 onChange={onChange}
                 showEdgeLabels={false}

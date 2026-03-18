@@ -1,10 +1,12 @@
-import { QueryStatus, useQuery } from "@tanstack/react-query"
+import { QueryClient, QueryStatus, useQuery } from "@tanstack/react-query"
 import { fetchJson, UserCountryInformation } from "@ourworldindata/utils"
-import { CountryData, DemographyMetadata } from "./DemographyTypes"
+import { CountryData, DemographyMetadata } from "./types"
 
 const BASE_URL = "https://owid-public.owid.io/population-simulation-2026-03"
 const METADATA_PATH = BASE_URL + "/population-simulation.metadata.json"
 const DATA_PATH = BASE_URL + "/population-simulation.{countrySlug}.data.json"
+
+export const queryClient = new QueryClient()
 
 const queryKeys = {
     metadata: () => ["demography", "metadata"],

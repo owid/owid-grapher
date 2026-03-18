@@ -1,6 +1,6 @@
 import { PROJECTION_DASHARRAY } from "../helpers/constants.js"
 
-export function DemographyPopulationChartLegend() {
+export function PopulationChartLegend() {
     return (
         <div className="population-chart-legend">
             <span className="population-chart-legend__item">

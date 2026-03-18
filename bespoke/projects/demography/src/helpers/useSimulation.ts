@@ -4,44 +4,14 @@
  */
 
 import { useMemo, useState, useCallback } from "react"
-import type { CountryData, PopulationBySex } from "./data"
+import type { CountryData, PopulationBySex } from "./types"
 import {
     getPopulationForYear,
     getDeathsForYear,
     getMigrationRateForYear,
-    getTotalPopulation,
+} from "./utils"
+import {
     MAX_AGE,
-} from "./data"
-import {
-    runHistoricalProjection,
-    calculateBaselineRates,
-    runFutureProjection,
-    runUNWPPScenarioProjection,
-    optimizeMigrationOptions,
-    setMigrationOptions,
-    DEFAULT_MIGRATION_OPTIONS,
-    calculateTFR,
-    calculateLifeExpectancy,
-    scaleFertilityToTFR,
-    scaleMortalityToLE,
-    getTotalPopulationFromArrays,
-    clonePopulation,
-    simulateYear,
-    type BaselineParams,
-    type YearResult,
-    type MigrationOptions,
-} from "./model"
-import {
-    calculateUNWPPScenario,
-    calculateDefaultScenario,
-    calculateFullTrendScenario,
-    calculateTFRFromRaw,
-    estimateLifeExpectancy,
-    type ScenarioParams,
-    type ScenarioConstants,
-} from "./scenarios"
-import { runProjectionResults } from "./projectionRunner"
-import {
     START_YEAR,
     HISTORICAL_END_YEAR,
     END_YEAR,
@@ -52,6 +22,27 @@ import {
     TREND_LATE_START,
     TREND_LATE_END,
 } from "./constants"
+import {
+    runHistoricalProjection,
+    calculateBaselineRates,
+    runUNWPPScenarioProjection,
+    optimizeMigrationOptions,
+    setMigrationOptions,
+    DEFAULT_MIGRATION_OPTIONS,
+    getTotalPopulationFromArrays,
+    type BaselineParams,
+    type YearResult,
+} from "../model/model"
+import {
+    calculateUNWPPScenario,
+    calculateDefaultScenario,
+    calculateFullTrendScenario,
+    calculateTFRFromRaw,
+    estimateLifeExpectancy,
+    type ScenarioParams,
+    type ScenarioConstants,
+} from "../model/scenarios"
+import { runProjectionResults } from "../model/projectionRunner"
 
 const SCENARIO_CONSTANTS: ScenarioConstants = {
     HISTORICAL_END_YEAR,
