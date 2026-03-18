@@ -19,4 +19,8 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     //     scriptUrl: "/assets/bespoke/my-widget.mjs",
     //     cssUrl: "/assets/bespoke/my-widget.css",
     // },
+    demography: {
+        scriptUrl: "/assets/bespoke/demography.mjs",
+        cssUrl: "/assets/bespoke/demography.css",
+    },
 }

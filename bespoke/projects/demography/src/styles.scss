@@ -1,26 +1,3 @@
-@import "normalize.css";
-@import "tippy.js/dist/tippy.css";
-@import "tippy.js/themes/light.css";
-
-@import "../public/fonts.css";
-
-@import "../packages/@ourworldindata/components/src/styles/colors.scss";
-@import "../packages/@ourworldindata/components/src/styles/variables.scss";
-@import "../packages/@ourworldindata/components/src/styles/typography.scss";
-@import "../packages/@ourworldindata/components/src/styles/util.scss";
-@import "../packages/@ourworldindata/components/src/styles/mixins.scss";
-
-@import "../packages/@ourworldindata/grapher/src/core/typography.scss";
-@import "../packages/@ourworldindata/grapher/src/core/variables.scss";
-
-@import "../packages/@ourworldindata/grapher/src/controls/Dropdown.scss";
-@import "../packages/@ourworldindata//grapher/src/tooltip/Tooltip.scss";
-
-@import "../bespoke/components/ChartHeader/ChartHeader.scss";
-@import "../bespoke/components/ChartFooter/ChartFooter.scss";
-// @import "../bespoke/components/ChartControls/ChartControls.scss";
-@import "../bespoke/components/TimeSlider/TimeSlider.scss";
-
 $frame: 1px solid $frame-color;
 $frame-padding: 16px;
 $frame-radius: 2px;
@@ -240,4 +217,30 @@ $panel-radius: 4px;
 
 .demography-country-selector {
     max-width: 320px;
+}
+
+.demography-spinner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $gray-100;
+}
+
+.demography-skeleton {
+    position: relative;
+    width: min(100%, 1200px);
+    height: 600px;
+    border: 1px solid $frame-color;
+
+    .demography-spinner {
+        color: $gray-60;
+    }
 }

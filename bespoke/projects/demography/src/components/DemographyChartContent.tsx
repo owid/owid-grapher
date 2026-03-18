@@ -3,10 +3,10 @@ import { useCallback, useState } from "react"
 import { Bounds, Tippy } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
-import { useChartDimensions } from "../bespoke/hooks/useDimensions"
-import { BezierArrow } from "../bespoke/components/BezierArrow/BezierArrow"
-import { CountryData, DemographyMetadata } from "./DemographyTypes"
-import { useSimulation, type Simulation } from "./demography/useSimulation"
+import { useChartDimensions } from "../../../../hooks/useDimensions"
+import { BezierArrow } from "../../../../components/BezierArrow/BezierArrow"
+import { CountryData, DemographyMetadata } from "../helpers/DemographyTypes"
+import { useSimulation, type Simulation } from "../helpers/useSimulation"
 import { ResponsivePopulationChart } from "./PopulationChart.js"
 import {
     DemographyInputChart,
@@ -14,8 +14,8 @@ import {
     type InputChartVariant,
 } from "./DemographyInputChart.js"
 import { DemographyPyramidChart } from "./DemographyPyramidChart.js"
-import { TimeSlider } from "../bespoke/components/TimeSlider/TimeSlider.js"
-import { START_YEAR, END_YEAR } from "./demography/constants.js"
+import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
+import { START_YEAR, END_YEAR } from "../helpers/constants.js"
 import { DemographyPopulationChartLegend } from "./DemographyPopulationChartLegend.js"
 
 const YEAR_TIMES = Array.from(
@@ -83,7 +83,7 @@ function DemographyChartContent({
                     </ChartPanel>
                     <ChartPanel
                         title={`Age Structure in ${year}`}
-                        subtitle={`Population distribution by age and sex. The median age is ${simulation.getStatsForYear(year)?.medianAge ?? "–"}.`}
+                        subtitle={`Population distribution by age and sex. The median age in ${year} is ${simulation.getStatsForYear(year)?.medianAge ?? "–"}.`}
                         footer={
                             <YearSlider
                                 selectedYear={year}
