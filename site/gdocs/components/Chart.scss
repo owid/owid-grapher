@@ -11,7 +11,7 @@ div.margin-0 figure {
 }
 
 @include sm-only {
-    .full-width-on-mobile {
+    html:not(.IsInIframe) .full-width-on-mobile {
         width: auto;
         margin-left: calc(-1 * var(--grid-gap) / 2);
         margin-right: calc(-1 * var(--grid-gap) / 2);
