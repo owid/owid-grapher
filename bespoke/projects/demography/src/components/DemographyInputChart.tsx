@@ -97,8 +97,7 @@ export const VARIANT_CONFIG: Record<InputChartVariant, VariantConfig> = {
     },
     "net-migration": {
         title: "Net Migration Rate",
-        subtitle:
-            "Difference between immigration and emigration (per 1,000 people)",
+        subtitle: "Difference between immigration and emigration",
         tooltipContent:
             "Difference between immigration and emigration per 1,000 people. Positive values mean more people entering than leaving. Net migration is split into implied immigration and emigration flows and distributed by the migration assumptions in the details section below.",
         paramKey: "migration",
