@@ -13,7 +13,7 @@ import {
     VARIANT_CONFIG,
     type InputChartVariant,
 } from "./DemographyInputChart.js"
-import { DemographyPyramidChart } from "./DemographyPyramidChart.js"
+import { ResponsiveDemographyPyramidChart } from "./DemographyPyramidChart.js"
 import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
 import { START_YEAR, END_YEAR } from "../helpers/constants.js"
 import { DemographyPopulationChartLegend } from "./DemographyPopulationChartLegend.js"
@@ -91,7 +91,7 @@ function DemographyChartContent({
                             />
                         }
                     >
-                        <DemographyPyramidChart
+                        <ResponsiveDemographyPyramidChart
                             simulation={simulation}
                             year={year}
                         />
