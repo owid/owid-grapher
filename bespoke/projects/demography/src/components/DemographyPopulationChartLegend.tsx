@@ -1,4 +1,4 @@
-import { PROJECTION_DASHARRAY } from "./demography/constants.js"
+import { PROJECTION_DASHARRAY } from "../helpers/constants.js"
 
 export function DemographyPopulationChartLegend() {
     return (
