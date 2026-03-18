@@ -26,6 +26,15 @@ $panel-radius: 4px;
     }
 }
 
+.demography-controls {
+    .demography-controls__title {
+        @include grapher_h5-black-caps;
+        color: $light-text;
+        margin: 0;
+        margin-bottom: 12px;
+    }
+}
+
 .demography-footer {
     margin-top: 16px;
 }
