@@ -13,13 +13,13 @@ import {
     PYRAMID_AGE_GROUPS,
 } from "../helpers/constants"
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
-import { computeMaxAgeGroupPopulation } from "../helpers/projectionRunner"
+import { computeMaxAgeGroupPopulation } from "../model/projectionRunner"
 import {
     groupByAgeRange,
     calculateMedianAge,
     findAgeGroup,
     formatPopulationValueShort,
-} from "../helpers/chartUtils"
+} from "../helpers/utils"
 
 const margin = { top: 18, right: 4, bottom: 18, left: 4 }
 const CENTER_GAP = 40 // width reserved for age labels in the center
@@ -27,17 +27,17 @@ const CENTER_GAP = 40 // width reserved for age labels in the center
 // Labels reversed so 0-4 at bottom, oldest at top
 const ageGroupLabels = [...PYRAMID_AGE_GROUPS].reverse()
 
-interface PyramidChartProps {
+interface PopulationPyramidProps {
     simulation: Simulation
     year: number
 }
 
-function DemographyPyramidChart({
+function PopulationPyramid({
     simulation,
     year,
     width,
     height,
-}: PyramidChartProps & { width: number; height: number }) {
+}: PopulationPyramidProps & { width: number; height: number }) {
     const innerWidth = width - margin.left - margin.right
     const innerHeight = height - margin.top - margin.bottom
 
@@ -86,7 +86,7 @@ function DemographyPyramidChart({
         <div style={{ position: "relative" }}>
             <svg width={width} height={height} overflow="visible">
                 <Group top={margin.top}>
-                    <PyramidHalf
+                    <PopulationPyramidHalf
                         left={margin.left}
                         xScale={xScale.male}
                         yScale={yScale}
@@ -94,7 +94,7 @@ function DemographyPyramidChart({
                         height={innerHeight}
                     />
 
-                    <PyramidHalf
+                    <PopulationPyramidHalf
                         left={centerX + CENTER_GAP}
                         xScale={xScale.female}
                         yScale={yScale}
@@ -102,7 +102,7 @@ function DemographyPyramidChart({
                         height={innerHeight}
                     />
 
-                    <PyramidAxisX
+                    <PopulationPyramidAxisX
                         centerX={centerX + CENTER_GAP / 2}
                         gapWidth={CENTER_GAP}
                         yScale={yScale}
@@ -114,15 +114,15 @@ function DemographyPyramidChart({
     )
 }
 
-export function ResponsiveDemographyPyramidChart({
+export function ResponsivePopulationPyramid({
     simulation,
     year,
-}: PyramidChartProps) {
+}: PopulationPyramidProps) {
     const { parentRef, width, height } = useParentSize()
     return (
         <div ref={parentRef} style={{ width: "100%", height: "100%" }}>
             {width > 0 && height > 0 ? (
-                <DemographyPyramidChart
+                <PopulationPyramid
                     simulation={simulation}
                     year={year}
                     width={width}
@@ -133,7 +133,7 @@ export function ResponsiveDemographyPyramidChart({
     )
 }
 
-function PyramidHalf({
+function PopulationPyramidHalf({
     left,
     xScale,
     yScale,
@@ -200,7 +200,7 @@ function PyramidHalf({
     )
 }
 
-function PyramidAxisX({
+function PopulationPyramidAxisX({
     centerX,
     gapWidth,
     yScale,

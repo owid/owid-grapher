@@ -7,23 +7,232 @@ import {
     MAX_AGE,
     OWID_AGE_GROUPS,
     FERTILITY_AGE_GROUPS,
-    applyOldAgeClosure,
-    calculateMortalityRates,
+} from "../helpers/constants"
+import type {
+    CountryData,
+    PopulationBySex,
+    DeathsByAgeGroup,
+    MortalityRates,
+} from "../helpers/types"
+import {
+    getAgeGroupStart,
+    expandToSingleYearAges,
     getPopulationForYear,
-    getFertilityForYear,
     getDeathsForYear,
     getMigrationRateForYear,
     getTotalPopulation,
-    aggregateToAgeGroups,
-    getRawPopulationForYear,
-    getProjectionFertilityForYear,
-    getProjectionDeathsForYear,
-    getProjectionMigrationRateForYear,
-    getProjectionPopulationForYear,
-    type CountryData,
-    type PopulationBySex,
-    type DeathsByAgeGroup,
-} from "./data"
+} from "../helpers/utils"
+
+// -- Model-only data accessors --
+
+function getAgeGroup(age: number): string {
+    if (age >= 100) return "100+"
+    const lower = Math.floor(age / 5) * 5
+    return `${lower}-${lower + 4}`
+}
+
+function aggregateToAgeGroups(
+    singleYearArray: number[]
+): Record<string, number> {
+    const result: Record<string, number> = {}
+
+    for (const ageGroup of OWID_AGE_GROUPS) {
+        if (ageGroup === "100+") {
+            let sum = 0
+            for (let age = 100; age <= MAX_AGE; age++) {
+                sum += singleYearArray[age] || 0
+            }
+            result[ageGroup] = sum
+        } else {
+            const startAge = getAgeGroupStart(ageGroup)
+            let sum = 0
+            for (let age = startAge; age < startAge + 5; age++) {
+                sum += singleYearArray[age] || 0
+            }
+            result[ageGroup] = sum
+        }
+    }
+
+    return result
+}
+
+function getRawPopulationForYear(
+    data: CountryData,
+    year: number
+): { female: Record<string, number>; male: Record<string, number> } {
+    return {
+        female: data.femalePopulation[year],
+        male: data.malePopulation[year],
+    }
+}
+
+function getFertilityForYear(data: CountryData, year: number): number[] | null {
+    const row = data.fertility[year]
+    if (!row) return null
+
+    const result = new Array(MAX_AGE + 1).fill(0)
+    for (const ageGroup of FERTILITY_AGE_GROUPS) {
+        const rate = row[ageGroup] || 0
+        const startAge = getAgeGroupStart(ageGroup)
+        for (let age = startAge; age < startAge + 5 && age <= MAX_AGE; age++) {
+            result[age] = rate
+        }
+    }
+    return result
+}
+
+// -- Mortality helpers --
+
+function clampProbability(value: number, min = 1e-6, max = 0.999): number {
+    if (!Number.isFinite(value)) return min
+    return Math.min(max, Math.max(min, value))
+}
+
+function logit(p: number): number {
+    const q = clampProbability(p)
+    return Math.log(q / (1 - q))
+}
+
+function invLogit(z: number): number {
+    return 1 / (1 + Math.exp(-z))
+}
+
+/**
+ * Apply a Kannisto-like old-age closure so mortality rises smoothly and monotonically.
+ */
+export function applyOldAgeClosure(rates: number[], sex: string): number[] {
+    const closed = [...rates]
+    const startAge = 85
+    const anchorAge = 100
+
+    const qStartObserved = closed[startAge] ?? closed[80] ?? 0.05
+    const qAnchorObserved =
+        closed[anchorAge] ?? closed[95] ?? (sex === "female" ? 0.55 : 0.6)
+
+    const qStart = clampProbability(qStartObserved, 1e-5, 0.98)
+    const qAnchor = clampProbability(
+        Math.max(qAnchorObserved, qStart + 0.01),
+        qStart + 1e-5,
+        0.995
+    )
+
+    let slope = (logit(qAnchor) - logit(qStart)) / (anchorAge - startAge)
+    if (!Number.isFinite(slope) || slope < 0.005) {
+        slope = 0.005
+    }
+
+    const intercept = logit(qStart)
+    let prev = qStart
+
+    for (let age = startAge; age <= MAX_AGE; age++) {
+        let qx = invLogit(intercept + slope * (age - startAge))
+        qx = clampProbability(Math.max(qx, prev), 1e-6, 0.999)
+        closed[age] = qx
+        prev = qx
+    }
+
+    return closed
+}
+
+export function calculateMortalityRates(
+    deaths: DeathsByAgeGroup,
+    femalePop: number[],
+    malePop: number[]
+): MortalityRates {
+    const result: MortalityRates = {
+        female: new Array(MAX_AGE + 1).fill(0),
+        male: new Array(MAX_AGE + 1).fill(0),
+    }
+
+    for (const sex of ["female", "male"] as const) {
+        const pop = sex === "female" ? femalePop : malePop
+        const sexDeaths = deaths[sex] || {}
+        const groupRates: Record<string, number> = {}
+
+        for (const ageGroup of OWID_AGE_GROUPS) {
+            const startAge = getAgeGroupStart(ageGroup)
+            const endAge =
+                ageGroup === "100+" ? Math.min(104, MAX_AGE) : startAge + 4
+
+            let totalPop = 0
+            for (let age = startAge; age <= endAge; age++) {
+                totalPop += pop[age] || 0
+            }
+
+            const deathCount = sexDeaths[ageGroup] || 0
+            groupRates[ageGroup] =
+                totalPop > 0 ? Math.min(deathCount / totalPop, 1.0) : 0
+        }
+
+        for (let age = 0; age <= MAX_AGE; age++) {
+            const ageGroup = getAgeGroup(age)
+            result[sex][age] = groupRates[ageGroup] || 0
+        }
+
+        result[sex] = applyOldAgeClosure(result[sex], sex)
+    }
+
+    return result
+}
+
+// -- UN WPP projection scenario data accessors --
+
+export function getProjectionFertilityForYear(
+    data: CountryData,
+    year: number
+): number[] | null {
+    const row = data.projectionScenario?.fertility?.[year]
+    if (!row) return null
+
+    const result = new Array(MAX_AGE + 1).fill(0)
+    for (const ageGroup of FERTILITY_AGE_GROUPS) {
+        const rate = row[ageGroup] || 0
+        const startAge = getAgeGroupStart(ageGroup)
+        for (let age = startAge; age < startAge + 5 && age <= MAX_AGE; age++) {
+            result[age] = rate
+        }
+    }
+    return result
+}
+
+export function getProjectionDeathsForYear(
+    data: CountryData,
+    year: number
+): DeathsByAgeGroup | null {
+    const femaleRow = data.projectionScenario?.deaths?.female?.[year]
+    const maleRow = data.projectionScenario?.deaths?.male?.[year]
+    if (!femaleRow && !maleRow) return null
+
+    const result: DeathsByAgeGroup = { female: {}, male: {} }
+    for (const ageGroup of OWID_AGE_GROUPS) {
+        result.female[ageGroup] = femaleRow?.[ageGroup] || 0
+        result.male[ageGroup] = maleRow?.[ageGroup] || 0
+    }
+    return result
+}
+
+export function getProjectionMigrationRateForYear(
+    data: CountryData,
+    year: number
+): number {
+    const row = data.projectionScenario?.migration?.[year]
+    return row ? row.net_migration_rate : 0
+}
+
+export function getProjectionPopulationForYear(
+    data: CountryData,
+    year: number
+): PopulationBySex | null {
+    const femaleRow = data.projection?.female?.[year]
+    const maleRow = data.projection?.male?.[year]
+
+    if (!femaleRow || !maleRow) return null
+
+    return {
+        female: expandToSingleYearAges(femaleRow),
+        male: expandToSingleYearAges(maleRow),
+    }
+}
 
 // -- Migration schedules --
 
@@ -1203,14 +1412,12 @@ function evaluateMigrationOptionsCumulative(
         if (
             !isFiniteNumber(actualTotal) ||
             !isFiniteNumber(modeledTotal) ||
-            (actualTotal as number) <= 0
+            actualTotal <= 0
         )
             continue
 
         const absPct = Math.abs(
-            ((modeledTotal - (actualTotal as number)) /
-                (actualTotal as number)) *
-                100
+            ((modeledTotal - actualTotal) / actualTotal) * 100
         )
         absPctSum += absPct
         count += 1
@@ -1262,14 +1469,12 @@ function evaluateMigrationOptionsUNProjection(
         if (
             !isFiniteNumber(projectedTotal) ||
             !isFiniteNumber(modeledTotal) ||
-            (projectedTotal as number) <= 0
+            projectedTotal <= 0
         )
             continue
 
         const absPct = Math.abs(
-            ((modeledTotal - (projectedTotal as number)) /
-                (projectedTotal as number)) *
-                100
+            ((modeledTotal - projectedTotal) / projectedTotal) * 100
         )
         absPctSum += absPct
         count += 1
