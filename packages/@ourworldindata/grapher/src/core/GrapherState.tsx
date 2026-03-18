@@ -3163,7 +3163,14 @@ export class GrapherState
     /** Bounds of the CaptionedChart that renders the header, chart area and footer */
     @computed get captionedChartBounds(): Bounds {
         // If there's no panel, the chart takes up the whole frame
-        if (!this.isEntitySelectorPanelActive) return this.frameBounds
+        if (!this.isEntitySelectorPanelActive) {
+            return new Bounds(
+                0,
+                0,
+                this.frameBounds.width - 2, // 2px accounts for the left/right border
+                this.frameBounds.height - 2 // 2px accounts for the top/bottom border
+            )
+        }
 
         return new Bounds(
             0,
