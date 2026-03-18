@@ -21,6 +21,7 @@ import { SignificanceIcon } from "./TooltipContents.js"
 
 export * from "./TooltipContents.js"
 export { TooltipState } from "./TooltipState.js"
+import * as R from "remeda"
 
 export class TooltipCard extends React.Component<
     TooltipProps & TooltipContainerProps
@@ -46,42 +47,49 @@ export class TooltipCard extends React.Component<
         } = this.props
         const isPinnedToBottom = anchor === GrapherTooltipAnchor.bottom
 
+        const containerWidth = containerBounds?.width
+        const containerHeight = containerBounds?.height
+
+        const tooltipWidth = bounds?.width
+        const tooltipHeight = bounds?.height
+
         const style = { ...this.props.style }
 
         // if container dimensions are given, we make sure the tooltip
         // is positioned within the container bounds
-        if (
-            containerBounds?.width &&
-            containerBounds.height &&
-            !isPinnedToBottom
-        ) {
+        if (containerWidth && containerHeight && !isPinnedToBottom) {
             let adjustedOffsetY = offsetY
             let adjustedOffsetX = offsetX
 
             if (this.props.offsetYDirection === "upward") {
-                adjustedOffsetY = -offsetY - (bounds?.height ?? 0)
+                adjustedOffsetY = -offsetY - (tooltipHeight ?? 0)
             }
 
             if (
                 this.props.offsetXDirection === "left" &&
-                x > (bounds?.width ?? 0)
+                x > (tooltipWidth ?? 0)
             ) {
-                adjustedOffsetX = -offsetX - (bounds?.width ?? 0)
+                adjustedOffsetX = -offsetX - (tooltipWidth ?? 0)
             }
 
             // Ensure tooltip remains inside chart
             let left = x + adjustedOffsetX
             let top = y + adjustedOffsetY
-            if (bounds) {
-                if (left + bounds.width > containerBounds?.width)
-                    left -= bounds.width + 2 * adjustedOffsetX // flip left
-                if (top + bounds.height * 0.75 > containerBounds.height)
-                    top -= bounds.height + 2 * adjustedOffsetY // flip upwards eventually...
-                if (top + bounds.height > containerBounds.height)
-                    top = containerBounds.height - bounds.height // ...but first pin at bottom
+            if (tooltipHeight && tooltipWidth) {
+                if (left + tooltipWidth > containerWidth)
+                    left -= tooltipWidth + 2 * adjustedOffsetX // flip left
+                if (top + tooltipHeight * 0.75 > containerHeight)
+                    top -= tooltipHeight + 2 * adjustedOffsetY // flip upwards eventually...
 
-                if (left < 0) left = 0 // pin on left
-                if (top < 0) top = 0 // pin at top
+                // Clamp to prevent any overflow
+                left = R.clamp(left, {
+                    min: 0,
+                    max: containerWidth - tooltipWidth,
+                })
+                top = R.clamp(top, {
+                    min: 0,
+                    max: containerHeight - tooltipHeight,
+                })
             }
 
             style.position = "absolute"
