@@ -28,3 +28,26 @@ export interface CountryData {
         migration: MigrationByYear
     }
 }
+
+/** Single-year population by sex */
+export interface PopulationBySex {
+    female: number[]
+    male: number[]
+}
+
+/** Deaths by sex and age group */
+export interface DeathsByAgeGroup {
+    female: Record<string, number>
+    male: Record<string, number>
+}
+
+/** Mortality rates by sex (single-year ages) */
+export interface MortalityRates {
+    female: number[]
+    male: number[]
+}
+
+export type ParameterKey =
+    | "fertility-rate"
+    | "life-expectancy"
+    | "net-migration-rate"

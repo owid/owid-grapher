@@ -8,3 +8,15 @@ export function LoadingSpinner() {
         </div>
     )
 }
+
+export function DemographyChartError() {
+    return <div>Demography visualization can't be loaded</div>
+}
+
+export function DemographySkeleton() {
+    return (
+        <div className="demography-skeleton">
+            <LoadingSpinner />
+        </div>
+    )
+}
