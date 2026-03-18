@@ -9,6 +9,7 @@ import type {
 
 import { SimulationVariantWithProviders } from "./variants/Simulation.js"
 import { PopulationVariantWithProviders } from "./variants/Population.js"
+import { ParametersVariantWithProviders } from "./variants/Parameters.js"
 import { parseConfig, VariantName } from "./config.js"
 
 // Styles for portaled react-aria overlays that render outside the Shadow
@@ -29,6 +30,11 @@ export const VARIANTS = [
     {
         name: "population",
         component: PopulationVariantWithProviders,
+        defaultConfig: {},
+    },
+    {
+        name: "parameters",
+        component: ParametersVariantWithProviders,
         defaultConfig: {},
     },
 ] satisfies BespokeComponentVariantsList<VariantName>
