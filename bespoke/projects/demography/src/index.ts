@@ -1,15 +1,15 @@
 import { createRoot } from "react-dom/client"
 import { createElement } from "react"
 import { enableShadowDOM } from "@react-stately/flags"
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 
 import type {
     BespokeComponentMountFn,
     BespokeComponentVariantsList,
 } from "owid-bespoke-types"
 
-import { DemographyChart } from "./components/DemographyChart.js"
-import { DemographyPopulationChart } from "./components/DemographyPopulationChart.js"
+import { SimulationVariantWithProviders } from "./variants/Simulation.js"
+import { PopulationVariantWithProviders } from "./variants/Population.js"
+import { parseConfig } from "./config.js"
 
 // Styles for portaled react-aria overlays that render outside the Shadow
 // DOM (e.g. dropdown menus). On the real site these are available globally;
@@ -20,51 +20,15 @@ import "./demo.scss"
 // Must be called before any react-aria components render.
 enableShadowDOM()
 
-const queryClient = new QueryClient({
-    defaultOptions: {
-        queries: {
-            refetchOnWindowFocus: false,
-        },
-    },
-})
-
-function DemographyChartWithProviders({
-    container: _container,
-    config,
-}: {
-    container: HTMLDivElement
-    config?: Record<string, string>
-}) {
-    return createElement(
-        QueryClientProvider,
-        { client: queryClient },
-        createElement(DemographyChart, { config })
-    )
-}
-
-function DemographyPopulationChartWithProviders({
-    container: _container,
-    config,
-}: {
-    container: HTMLDivElement
-    config?: Record<string, string>
-}) {
-    return createElement(
-        QueryClientProvider,
-        { client: queryClient },
-        createElement(DemographyPopulationChart, { config })
-    )
-}
-
 export const VARIANTS = [
     {
-        name: "simulator",
-        component: DemographyChartWithProviders,
+        name: "simulation",
+        component: SimulationVariantWithProviders,
         defaultConfig: {},
     },
     {
         name: "population",
-        component: DemographyPopulationChartWithProviders,
+        component: PopulationVariantWithProviders,
         defaultConfig: {},
     },
 ] satisfies BespokeComponentVariantsList
@@ -79,12 +43,9 @@ export const mount: BespokeComponentMountFn = (
         return
     }
 
+    const config = parseConfig(variant.name, opts.config ?? {})
+
     const root = createRoot(container)
-    root.render(
-        createElement(variant.component, {
-            container,
-            config: opts.config,
-        })
-    )
+    root.render(createElement(variant.component, { container, config }))
     return () => root.unmount()
 }

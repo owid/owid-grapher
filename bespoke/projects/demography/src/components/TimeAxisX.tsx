@@ -1,4 +1,4 @@
-import { HISTORICAL_END_YEAR } from "./constants.js"
+import { HISTORICAL_END_YEAR } from "../helpers/constants.js"
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 
 const YEAR_LABELS: readonly [number, "start" | "middle" | "end"][] = [
@@ -7,7 +7,7 @@ const YEAR_LABELS: readonly [number, "start" | "middle" | "end"][] = [
     [2100, "end"],
 ]
 
-export function DemographyAxisX({
+export function TimeAxisX({
     xScale,
     innerWidth,
     innerHeight,

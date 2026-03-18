@@ -1,9 +1,10 @@
-import { useState } from "react"
+import { memo, useState, useMemo, useCallback } from "react"
 import { useParentSize } from "@visx/responsive"
 import { scaleLinear } from "@visx/scale"
 import { LinePath } from "@visx/shape"
 import { Group } from "@visx/group"
 import { localPoint } from "@visx/event"
+import type { Simulation } from "../helpers/useSimulation"
 import {
     CONTROL_YEARS,
     HISTORICAL_END_YEAR,
@@ -12,10 +13,12 @@ import {
     END_YEAR,
     DENIM_BLUE,
     BENCHMARK_LINE_COLOR,
-} from "../helpers/constants.js"
+} from "../helpers/constants"
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { Halo } from "@ourworldindata/components"
-import { DemographyAxisX } from "../helpers/DemographyAxisX.js"
+import { parameterConfigByKey } from "../helpers/parameterConfigs.js"
+import { TimeAxisX } from "./TimeAxisX.js"
+import { ParameterKey } from "../helpers/types.js"
 
 const SMALL_DOT_RADIUS = 3
 const CONTROL_POINT_RADIUS = 5
@@ -27,44 +30,48 @@ const margin = {
     left: 0.5 * SMALL_DOT_RADIUS,
 }
 
+interface DemographyParameterEditorProps {
+    simulation: Simulation
+    variant: ParameterKey
+}
+
 interface DataPoint {
     year: number
     value: number
 }
 
-interface TrajectoryEditorProps {
-    historicalDataPoints: DataPoint[]
-    controlPoints: Record<number, number>
-    referencePoints: Record<number, number>
-    minValue: number
-    maxValue: number
-    formatValue: (v: number) => string
-    color: string
-    onChange: (points: Record<number, number>) => void
-}
-
-export function ResponsiveTrajectoryEditor(props: TrajectoryEditorProps) {
-    const { parentRef, width, height } = useParentSize()
-    return (
-        <div ref={parentRef} style={{ width: "100%", height: "100%" }}>
-            {width > 0 && height > 0 ? (
-                <TrajectoryEditor {...props} width={width} height={height} />
-            ) : null}
-        </div>
-    )
-}
-
-function TrajectoryEditor({
-    historicalDataPoints,
-    controlPoints,
-    referencePoints,
-    minValue,
-    maxValue,
-    formatValue,
-    onChange,
+function DemographyParameterEditor({
+    simulation,
+    variant,
     width,
     height,
-}: TrajectoryEditorProps & { width: number; height: number }) {
+}: DemographyParameterEditorProps & { width: number; height: number }) {
+    const config = parameterConfigByKey[variant]
+    const { paramKey } = config
+
+    const {
+        points: historicalDataPoints,
+        min: minValue,
+        max: maxValue,
+    } = useMemo(
+        () => config.computeHistorical(simulation),
+        [simulation, config]
+    )
+
+    const controlPoints = simulation.scenarioParams[paramKey]
+    const referencePoints = simulation.unwppScenarioParams[paramKey]
+    const formatValue = config.formatValue
+
+    const handleChange = useCallback(
+        (newPoints: Record<number, number>) => {
+            simulation.setScenarioParams({
+                ...simulation.scenarioParams,
+                [paramKey]: newPoints,
+            })
+        },
+        [simulation, paramKey]
+    )
+
     const innerWidth = width - margin.left - margin.right
     const innerHeight = height - margin.top - margin.bottom
 
@@ -82,7 +89,6 @@ function TrajectoryEditor({
     const firstHistoricalDataPoint = historicalDataPoints[0]
     const lastHistoricalDataPoint = historicalDataPoints.at(-1)!
 
-    // Build data points for the user's assumptions and the UN reference
     const projectionPoints: DataPoint[] = CONTROL_YEARS.map((y) => ({
         year: y,
         value: controlPoints[y],
@@ -92,7 +98,6 @@ function TrajectoryEditor({
         value: referencePoints[y],
     }))
 
-    // Projection background rect
     const projX = xScale(HISTORICAL_END_YEAR)
 
     return (
@@ -125,7 +130,7 @@ function TrajectoryEditor({
                 )}
 
                 {/* X-axis */}
-                <DemographyAxisX
+                <TimeAxisX
                     xScale={xScale}
                     innerWidth={innerWidth}
                     innerHeight={innerHeight}
@@ -133,16 +138,6 @@ function TrajectoryEditor({
                     fontSize={9}
                     labelOffset={14}
                 />
-
-                {/* Projections label */}
-                {/* <text
-                    x={projX + 6}
-                    y={12}
-                    fontSize={9.5}
-                    fill={GRAPHER_LIGHT_TEXT}
-                >
-                    Projections →
-                </text> */}
 
                 {/* Historical line */}
                 <LinePath
@@ -205,7 +200,7 @@ function TrajectoryEditor({
                         yScale={yScale}
                         marginTop={margin.top}
                         onValueChange={(value) =>
-                            onChange({ ...controlPoints, [year]: value })
+                            handleChange({ ...controlPoints, [year]: value })
                         }
                     />
                 ))}
@@ -213,6 +208,27 @@ function TrajectoryEditor({
         </svg>
     )
 }
+
+export const ResponsiveDemographyParameterEditor = memo(
+    function ResponsiveDemographyParameterEditor({
+        simulation,
+        variant,
+    }: DemographyParameterEditorProps) {
+        const { parentRef, width, height } = useParentSize()
+        return (
+            <div ref={parentRef} style={{ width: "100%", height: "100%" }}>
+                {width > 0 && height > 0 ? (
+                    <DemographyParameterEditor
+                        simulation={simulation}
+                        variant={variant}
+                        width={width}
+                        height={height}
+                    />
+                ) : null}
+            </div>
+        )
+    }
+)
 
 function DraggableControlPoint({
     cx,
