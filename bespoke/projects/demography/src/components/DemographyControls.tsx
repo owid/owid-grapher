@@ -8,10 +8,10 @@ import {
     Dropdown as GrapherDropdown,
 } from "@ourworldindata/grapher/src/controls/Dropdown.js"
 
-import { DemographyMetadata } from "./DemographyTypes.js"
-import { useUserCountryInformation } from "./DemographyDataFetching.js"
+import { DemographyMetadata } from "../helpers/DemographyTypes.js"
+import { useUserCountryInformation } from "../helpers/DemographyDataFetching.js"
 
-// import { ChartControls } from "../bespoke/components/ChartControls/ChartControls"
+// import { ChartControls } from "../../../../components/ChartControls/ChartControls"
 
 export function DemographyControls({
     metadata,

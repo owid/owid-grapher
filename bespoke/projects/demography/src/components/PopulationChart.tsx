@@ -3,8 +3,8 @@ import { ParentSize } from "@visx/responsive"
 import { scaleLinear } from "@visx/scale"
 import { LinePath } from "@visx/shape"
 import { Group } from "@visx/group"
-import type { Simulation } from "./demography/useSimulation.js"
-import { getPopulationForYear, getTotalPopulation } from "./demography/data"
+import type { Simulation } from "../helpers/useSimulation.js"
+import { getPopulationForYear, getTotalPopulation } from "../helpers/data"
 import {
     START_YEAR,
     HISTORICAL_END_YEAR,
@@ -15,14 +15,14 @@ import {
     DENIM_BLUE,
     BENCHMARK_LINE_COLOR,
     PROJECTION_DASHARRAY,
-} from "./demography/constants"
+} from "../helpers/constants"
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { formatValue } from "@ourworldindata/utils"
 import { OwidVariableRoundingMode } from "@ourworldindata/types"
 import * as R from "remeda"
-import { BezierArrow } from "../bespoke/components/BezierArrow/BezierArrow.js"
+import { BezierArrow } from "../../../../components/BezierArrow/BezierArrow.js"
 import { Halo } from "@ourworldindata/components"
-import { DemographyAxisX } from "./demography/DemographyAxisX.js"
+import { DemographyAxisX } from "../helpers/DemographyAxisX.js"
 
 const margin = { top: 18, bottom: 18, left: 0, right: 0 }
 
