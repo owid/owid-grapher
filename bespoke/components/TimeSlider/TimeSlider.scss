@@ -58,6 +58,14 @@
         background-clip: content-box !important;
     }
 
+    .date + .slider {
+        margin-left: $handle-diameter;
+    }
+
+    .slider:has(+ .date) {
+        margin-right: $handle-diameter;
+    }
+
     &__thumb {
         position: absolute;
         z-index: 1;

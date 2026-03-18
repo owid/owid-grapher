@@ -1,0 +1,243 @@
+@import "normalize.css";
+@import "tippy.js/dist/tippy.css";
+@import "tippy.js/themes/light.css";
+
+@import "../public/fonts.css";
+
+@import "../packages/@ourworldindata/components/src/styles/colors.scss";
+@import "../packages/@ourworldindata/components/src/styles/variables.scss";
+@import "../packages/@ourworldindata/components/src/styles/typography.scss";
+@import "../packages/@ourworldindata/components/src/styles/util.scss";
+@import "../packages/@ourworldindata/components/src/styles/mixins.scss";
+
+@import "../packages/@ourworldindata/grapher/src/core/typography.scss";
+@import "../packages/@ourworldindata/grapher/src/core/variables.scss";
+
+@import "../packages/@ourworldindata/grapher/src/controls/Dropdown.scss";
+@import "../packages/@ourworldindata//grapher/src/tooltip/Tooltip.scss";
+
+@import "../bespoke/components/ChartHeader/ChartHeader.scss";
+@import "../bespoke/components/ChartFooter/ChartFooter.scss";
+// @import "../bespoke/components/ChartControls/ChartControls.scss";
+@import "../bespoke/components/TimeSlider/TimeSlider.scss";
+
+$frame: 1px solid $frame-color;
+$frame-padding: 16px;
+$frame-radius: 2px;
+$frame-max-width: 1200px;
+
+$panel-gap: 12px;
+$panel-radius: 4px;
+
+.demography-page {
+    margin: 24px;
+    font-family: $sans-serif-font-stack;
+}
+
+.demography-chart {
+    max-width: $frame-max-width;
+    color: $dark-text;
+}
+
+.demography-captioned-chart {
+    border: $frame;
+    padding: $frame-padding;
+    border-radius: $frame-radius;
+
+    .demography-captioned-chart__chart-area {
+        position: relative;
+    }
+}
+
+.demography-footer {
+    margin-top: 16px;
+}
+
+.chart-content {
+    display: flex;
+    gap: 0;
+    width: 100%;
+    height: 500px;
+}
+
+.container {
+    background: $gray-5;
+    border-radius: $frame-radius;
+    padding: $frame-padding;
+
+    .container__title {
+        margin: 0;
+        margin-bottom: $panel-gap !important;
+
+        @include grapher_h5-black-caps;
+    }
+
+    &.container-left {
+        width: 35%;
+        flex-shrink: 0;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    &.container-right {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+.container-arrow {
+    width: 40px;
+    flex-shrink: 0;
+}
+
+.input-panels {
+    display: flex;
+    flex-direction: column;
+    gap: $panel-gap;
+    flex: 1;
+    min-height: 0;
+
+    > * {
+        flex: 1;
+        min-height: 0;
+    }
+}
+
+.output-panels {
+    display: flex;
+    gap: $panel-gap;
+    flex: 1;
+    min-height: 0;
+
+    > * {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .population-panel {
+        flex: 2;
+    }
+}
+
+.chart-panel {
+    position: relative;
+    background: white;
+    padding: $panel-gap;
+    border-radius: $panel-radius;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    .chart-panel__reset-btn {
+        position: absolute;
+        top: $panel-gap;
+        right: $panel-gap;
+        padding: 0;
+        border: none;
+        background: none;
+        font-size: 11px;
+        color: $light-text;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        cursor: pointer;
+
+        &:hover {
+            color: #333;
+            text-decoration: none;
+        }
+    }
+
+    .chart-panel__content {
+        flex: 1;
+        min-height: 0;
+    }
+
+    .chart-panel__title {
+        font-size: 0.8125rem;
+        margin: 0;
+        margin-bottom: 4px;
+    }
+
+    .chart-panel__subtitle {
+        font-size: 13px;
+        margin: 0;
+        color: $light-text;
+        line-height: 1.3;
+        margin-bottom: 8px; // todo
+    }
+
+    .chart-panel__info-icon {
+        margin-left: 4px;
+        cursor: help;
+        opacity: 0.8;
+
+        &:hover {
+            opacity: 1;
+        }
+    }
+
+    .chart-panel__footer {
+        margin-top: 14px;
+    }
+}
+
+.tippy-box[data-theme~="light"] {
+    font-family: $sans-serif-font-stack;
+    font-size: 0.8125rem;
+    padding: 6px;
+}
+
+.population-chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 4px;
+    column-gap: 16px;
+    margin-top: 8px;
+    margin-bottom: 6px;
+
+    .population-chart-legend__item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.75rem;
+        line-height: 1;
+    }
+
+    .population-chart-legend__label {
+        color: $light-text;
+    }
+}
+
+.demography-year-slider {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    .demography-year-slider__label {
+        font-size: 11px;
+        color: $light-text;
+        flex-shrink: 0;
+    }
+
+    .time-slider {
+        height: 12px;
+    }
+}
+
+.input-panels {
+    .chart-panel__title,
+    .chart-panel__subtitle {
+        font-size: 0.75rem;
+    }
+
+    .chart-panel__title {
+        margin-bottom: 2px;
+    }
+}
+
+.demography-country-selector {
+    max-width: 320px;
+}

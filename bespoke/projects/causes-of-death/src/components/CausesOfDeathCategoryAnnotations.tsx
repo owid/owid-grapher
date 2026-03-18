@@ -96,7 +96,6 @@ function CausesOfDeathCategoryAnnotation({
                 width={1}
                 opacity={0.7}
                 headLength={6}
-                headAngle={45}
             />
         </g>
     )

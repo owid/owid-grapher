@@ -55,6 +55,7 @@ import { FeaturedMetricsPage } from "./FeaturedMetricsPage.js"
 import { DodsIndexPage } from "./DodsIndexPage.js"
 import { StaticVizIndexPage } from "./StaticVizIndexPage.js"
 import { StaticVizEditPage } from "./StaticVizEditPage.js"
+import { DemographyPage } from "./DemographyPage.js"
 
 const queryClient = new QueryClient({
     defaultOptions: {
