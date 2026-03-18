@@ -12,6 +12,7 @@ import { ResponsiveDemographyChartContent } from "./DemographyChartContent"
 
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter"
+import { Frame } from "../../../../components/Frame/Frame.js"
 
 export function DemographyCaptionedChart({
     data,
@@ -27,7 +28,7 @@ export function DemographyCaptionedChart({
     const title = `How many people will live in ${articulateEntity(countryName)} by 2100?`
 
     return (
-        <div className="demography-captioned-chart">
+        <Frame className="demography-captioned-chart">
             <ChartHeader
                 title={title}
                 subtitle="The UN projects how every country's population will change. But what if fertility falls faster? Or migration rises? Adjust the assumptions and compare."
@@ -44,6 +45,6 @@ export function DemographyCaptionedChart({
                 source="List of data sources"
                 note="Optional note; probably link to the technical documentation here?"
             />
-        </div>
+        </Frame>
     )
 }

@@ -11,7 +11,7 @@ import {
 import { DemographyMetadata } from "../helpers/DemographyTypes.js"
 import { useUserCountryInformation } from "../helpers/DemographyDataFetching.js"
 
-// import { ChartControls } from "../../../../components/ChartControls/ChartControls"
+import { Frame } from "../../../../components/Frame/Frame.js"
 
 export function DemographyControls({
     metadata,
@@ -23,25 +23,17 @@ export function DemographyControls({
     setEntityName: (entityName: string) => void
 }): React.ReactElement {
     return (
-        <EntityDropdown
-            availableCountries={metadata.countries}
-            selectedEntityName={entityName}
-            onChange={setEntityName}
-        />
+        <Frame className="demography-controls">
+            <h3 className="demography-controls__title">
+                Select a country or region
+            </h3>
+            <EntityDropdown
+                availableCountries={metadata.countries}
+                selectedEntityName={entityName}
+                onChange={setEntityName}
+            />
+        </Frame>
     )
-
-    // return (
-    //     <ChartControls
-    //         className="demography-controls"
-    //         title="Select a country or region"
-    //     >
-    //         <EntityDropdown
-    //             availableCountries={metadata.countries}
-    //             selectedEntityName={entityName}
-    //             onChange={setEntityName}
-    //         />
-    //     </ChartControls>
-    // )
 }
 
 function Dropdown({
