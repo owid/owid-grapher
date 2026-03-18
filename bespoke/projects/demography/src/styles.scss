@@ -1,8 +1,3 @@
-$frame: 1px solid $frame-color;
-$frame-padding: 16px;
-$frame-radius: 2px;
-$frame-max-width: 1200px;
-
 $panel-gap: 12px;
 $panel-radius: 4px;
 
@@ -12,15 +7,11 @@ $panel-radius: 4px;
 }
 
 .demography-chart {
-    max-width: $frame-max-width;
+    max-width: 1200px;
     color: $dark-text;
 }
 
 .demography-captioned-chart {
-    border: $frame;
-    padding: $frame-padding;
-    border-radius: $frame-radius;
-
     .demography-captioned-chart__chart-area {
         position: relative;
     }
@@ -48,8 +39,8 @@ $panel-radius: 4px;
 
 .container {
     background: $gray-5;
-    border-radius: $frame-radius;
-    padding: $frame-padding;
+    border-radius: 2px;
+    padding: 16px;
 
     .container__title {
         margin: 0;
@@ -200,7 +191,6 @@ $panel-radius: 4px;
 .demography-year-slider {
     display: flex;
     align-items: center;
-    gap: 14px;
 
     .demography-year-slider__label {
         font-size: 11px;
@@ -210,6 +200,11 @@ $panel-radius: 4px;
 
     .time-slider {
         height: 12px;
+    }
+
+    .time-slider__control {
+        margin-left: 12px;
+        margin-right: 12px;
     }
 }
 
