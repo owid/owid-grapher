@@ -77,7 +77,7 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
         },
         plugins: [
             withFilter(
-                // Use swc to transform decorators
+                // Use swc to transform decorators, since rolldown/oxc doesn't support modern decorators yet. We could remove this once they do - see https://github.com/oxc-project/oxc/issues/9170.
                 pluginSwc({
                     swc: {
                         jsc: {
@@ -107,6 +107,8 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                 }),
                 {
                     transform: {
+                        // This filter is taken directly from the plugin itself: https://github.com/adobe/react-spectrum/blob/b5cbf5bcf32edc6350b8051e390c003013223d93/packages/dev/optimize-locales-plugin/LocalesPlugin.js#L20
+                        // But adding this filter on the rolldown level is way more efficient, which is why we duplicate it here.
                         id: /[/\\](@react-stately|@react-aria|@react-spectrum|react-aria-components)[/\\]/,
                     },
                 }
