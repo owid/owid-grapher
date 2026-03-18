@@ -12,10 +12,10 @@ import {
     END_YEAR,
     DENIM_BLUE,
     BENCHMARK_LINE_COLOR,
-} from "./demography/constants.js"
+} from "../helpers/constants.js"
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { Halo } from "@ourworldindata/components"
-import { DemographyAxisX } from "./demography/DemographyAxisX.js"
+import { DemographyAxisX } from "../helpers/DemographyAxisX.js"
 
 const SMALL_DOT_RADIUS = 3
 const CONTROL_POINT_RADIUS = 5

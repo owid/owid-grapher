@@ -6,14 +6,14 @@ import { AxisBottom, AxisLeft } from "@visx/axis"
 import { Group } from "@visx/group"
 import { useTooltip, TooltipWithBounds } from "@visx/tooltip"
 import { localPoint } from "@visx/event"
-import type { Simulation } from "./demography/useSimulation"
-import { PYRAMID_AGE_GROUPS } from "./demography/constants"
+import type { Simulation } from "../helpers/useSimulation"
+import { PYRAMID_AGE_GROUPS } from "../helpers/constants"
 import {
     START_YEAR,
     HISTORICAL_END_YEAR,
     END_YEAR,
-} from "./demography/constants"
-import { computePyramidMaxExtent } from "./demography/projectionRunner"
+} from "../helpers/constants"
+import { computePyramidMaxExtent } from "../helpers/projectionRunner"
 import {
     TOOLTIP_STYLE,
     formatPopulation,
@@ -21,7 +21,7 @@ import {
     aggregateToPyramidAgeGroups,
     computeMedianAgeForSex,
     findAgeGroupForAge,
-} from "./demography/chartUtils"
+} from "../helpers/chartUtils"
 
 const margin = { top: 12, right: 4, bottom: 18, left: 4 }
 const CENTER_GAP = 40 // width reserved for age labels in the center
@@ -226,7 +226,7 @@ function PyramidChartInner({
                     {/* {shadingRects.map((r, i) => (
             <rect
               key={i}
-              x={margin.left}
+              x={margin.left}†
               y={r.y}
               width={innerWidth}
               height={r.height}
