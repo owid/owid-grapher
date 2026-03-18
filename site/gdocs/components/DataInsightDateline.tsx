@@ -46,6 +46,7 @@ export default function DataInsightDateline({
                 className,
                 highlightClassName
             )}
+            suppressHydrationWarning={true}
         >
             <FontAwesomeIcon
                 className="data-insight-dateline__icon"
