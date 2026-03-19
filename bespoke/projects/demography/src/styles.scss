@@ -42,12 +42,25 @@ $panel-gap: 12px;
     .demography-population-pyramid__chart-area {
         position: relative;
         width: 100%;
-        aspect-ratio: 1 / 1;
     }
 
-    .demography-population-pyramid__slider {
-        margin-top: 16px;
+    .demography-population-pyramid__controls {
+        margin-bottom: 12px;
     }
+}
+
+.detailed-population-pyramid {
+    width: 100%;
+
+    .detailed-population-pyramid__chart {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+    }
+}
+
+.detailed-population-pyramid__bar {
+    width: 100%;
+    margin-bottom: 16px;
 }
 
 .demography-parameters {
