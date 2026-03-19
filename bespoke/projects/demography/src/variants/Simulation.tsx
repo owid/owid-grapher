@@ -39,7 +39,9 @@ function SimulationVariant({
 }: {
     config: SimulationVariantConfig
 }): React.ReactElement {
-    const [entityName, setEntityName] = useState(DEFAULT_ENTITY_NAME)
+    const [entityName, setEntityName] = useState(
+        config.region ?? DEFAULT_ENTITY_NAME
+    )
 
     // Fetch the metadata and the data for the selected entity
     const metadataResponse = useDemographyMetadata()
