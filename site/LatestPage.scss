@@ -38,18 +38,18 @@
 
 .latest-page__item-dateline {
     color: $blue-60;
-    margin-bottom: 16px;
+    margin-bottom: 8px;
 }
 
 .latest-page__item-type {
     text-align: right;
     color: $blue-60;
     margin: 0;
-    margin-bottom: 16px;
+    margin-bottom: 8px;
 }
 
 .latest-page__newsletter-signup {
-    grid-row: 2 / span 3;
+    grid-row: 2 / span 5;
 
     @include md-down {
         grid-row: unset;
@@ -214,11 +214,62 @@
 
 /* Announcement */
 .latest-page__announcement {
-    .announcement-page-content {
-        margin: 0;
-        @include sm-only {
-            padding-left: 16px;
-            padding-right: 16px;
-        }
+    @include sm-only {
+        margin-left: 16px;
+        margin-right: 16px;
+    }
+}
+
+.latest-page__announcement-kicker {
+    text-align: right;
+    color: $blue-60;
+    margin: 0;
+    margin-bottom: 16px;
+}
+
+.latest-page__announcement-card {
+    background-color: #fff;
+    padding: 24px;
+
+    @include sm-only {
+        padding: 16px;
+    }
+}
+
+.latest-page__announcement-thumbnail {
+    width: 100%;
+    height: auto;
+    align-self: start;
+
+    @include sm-only {
+        width: 80px;
+        height: 80px;
+    }
+}
+
+.latest-page__announcement-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.latest-page__announcement-title {
+    margin: 0 0 8px;
+}
+
+.latest-page__announcement-authors {
+    margin-bottom: 12px;
+}
+
+.latest-page__announcement-body {
+    @include text-block-override {
+        @include body-3-medium;
+    }
+
+    [class*="article-block__"]:last-child {
+        margin-bottom: 0;
+    }
+
+    .expandable-paragraph__content {
+        margin-bottom: 0;
     }
 }
