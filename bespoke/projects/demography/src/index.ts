@@ -9,6 +9,7 @@ import type {
 
 import { SimulationVariantWithProviders } from "./variants/Simulation.js"
 import { PopulationVariantWithProviders } from "./variants/Population.js"
+import { PopulationPyramidVariantWithProviders } from "./variants/PopulationPyramid.js"
 import { ParametersVariantWithProviders } from "./variants/Parameters.js"
 import { parseConfig, VariantName } from "./config.js"
 
@@ -30,6 +31,11 @@ export const VARIANTS = [
     {
         name: "population",
         component: PopulationVariantWithProviders,
+        defaultConfig: {},
+    },
+    {
+        name: "populationPyramid",
+        component: PopulationPyramidVariantWithProviders,
         defaultConfig: {},
     },
     {
