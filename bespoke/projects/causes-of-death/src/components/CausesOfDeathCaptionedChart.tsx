@@ -8,10 +8,9 @@ import { DataRow } from "../helpers/CausesOfDeathConstants"
 import { ResponsiveCausesOfDeathTreemap } from "./CausesOfDeathTreemap"
 import {
     formatEntityNameForSentence,
-    formatCount,
-} from "../helpers/CausesOfDeathHelpers.js"
+    formatCount } from "../helpers/CausesOfDeathHelpers.js"
 import { CausesOfDeathMetadata } from "../helpers/CausesOfDeathMetadata.js"
-import { LoadingSpinner } from "./LoadingSpinner.js"
+import { CausesOfDeathSpinner } from "./CausesOfDeathSpinner.js"
 
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
@@ -56,7 +55,7 @@ export function CausesOfDeathCaptionedChart({
             />
 
             <div className="causes-of-death-captioned-chart__chart-area">
-                {isLoading && <LoadingSpinner />}
+                {isLoading && <CausesOfDeathSpinner />}
 
                 <ResponsiveCausesOfDeathTreemap
                     data={entityData}
