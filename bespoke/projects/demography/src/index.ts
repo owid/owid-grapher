@@ -36,7 +36,9 @@ export const VARIANTS = [
     {
         name: "populationPyramid",
         component: PopulationPyramidVariantWithProviders,
-        defaultConfig: {},
+        defaultConfig: {
+            region: "South Korea",
+        },
     },
     {
         name: "parameters",

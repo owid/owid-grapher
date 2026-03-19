@@ -12,7 +12,12 @@ import {
     LABEL_COLOR,
     PYRAMID_AGE_GROUPS,
 } from "../helpers/constants"
-import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
+import {
+    GRAPHER_DARK_TEXT,
+    GRAPHER_LIGHT_TEXT,
+} from "@ourworldindata/grapher/src/color/ColorConstants.js"
+import { TextWrap } from "@ourworldindata/components"
+import { BezierArrow } from "../../../../components/BezierArrow/BezierArrow.js"
 import { computeMaxAgeGroupPopulation } from "../model/projectionRunner"
 import {
     groupByAgeRange,
@@ -58,19 +63,46 @@ function scaledSizes(width: number) {
 // Labels reversed so 0-4 at bottom, oldest at top
 const ageGroupLabels = [...PYRAMID_AGE_GROUPS].reverse()
 
-interface PopulationPyramidProps {
+const ZONE_LABEL_PADDING = 24 // gap + arrow + spacing
+const ZONE_LABELS = ["Retired (65+)", "Children (<15)"]
+
+export interface PopulationPyramidProps {
     simulation: Simulation
     year: number
+    colorByAgeGroup?: (ageGroup: string) => string
+    showAgeGroupBackground?: boolean
+    showAgeZoneLabels?: boolean
 }
 
 function PopulationPyramid({
     simulation,
     year,
+    colorByAgeGroup,
+    showAgeGroupBackground = false,
+    showAgeZoneLabels = false,
     width,
     height,
 }: PopulationPyramidProps & { width: number; height: number }) {
     const sizes = useMemo(() => scaledSizes(width), [width])
-    const { margin, centerGap, font, triangle } = sizes
+    const { margin: baseMargin, centerGap, font, triangle } = sizes
+
+    const zoneLabelFontSize = font.ageLabel + 1
+    const zoneLabelRightMargin = useMemo(() => {
+        if (!showAgeZoneLabels) return baseMargin.right
+        const maxLabelWidth = Math.max(
+            ...ZONE_LABELS.map(
+                (label) =>
+                    new TextWrap({
+                        text: label,
+                        maxWidth: Infinity,
+                        fontSize: zoneLabelFontSize,
+                    }).width
+            )
+        )
+        return maxLabelWidth + ZONE_LABEL_PADDING
+    }, [showAgeZoneLabels, zoneLabelFontSize, baseMargin.right])
+
+    const margin = { ...baseMargin, right: zoneLabelRightMargin }
 
     const innerWidth = width - margin.left - margin.right
     const innerHeight = height - margin.top - margin.bottom
@@ -120,6 +152,69 @@ function PopulationPyramid({
         <div style={{ position: "relative" }}>
             <svg width={width} height={height}>
                 <Group top={margin.top}>
+                    {/* Age zone background bands */}
+                    {showAgeGroupBackground &&
+                        colorByAgeGroup &&
+                        (() => {
+                            // Group consecutive age groups by color into zones
+                            const zones: {
+                                color: string
+                                startIdx: number
+                                endIdx: number
+                            }[] = []
+                            let currentColor = colorByAgeGroup(
+                                ageGroupLabels[0]
+                            )
+                            let startIdx = 0
+                            for (let i = 1; i < ageGroupLabels.length; i++) {
+                                const c = colorByAgeGroup(ageGroupLabels[i])
+                                if (c !== currentColor) {
+                                    zones.push({
+                                        color: currentColor,
+                                        startIdx,
+                                        endIdx: i - 1,
+                                    })
+                                    currentColor = c
+                                    startIdx = i
+                                }
+                            }
+                            zones.push({
+                                color: currentColor,
+                                startIdx,
+                                endIdx: ageGroupLabels.length - 1,
+                            })
+
+                            const bandwidth = yScale.bandwidth()
+                            const step = yScale.step()
+                            const halfGap = (step - bandwidth) / 2
+
+                            return zones.map((zone, i) => {
+                                const firstBarY =
+                                    yScale(ageGroupLabels[zone.startIdx]) ?? 0
+                                const lastBarY =
+                                    yScale(ageGroupLabels[zone.endIdx]) ?? 0
+
+                                // Extend to midpoint of gap, or to edge for first/last zone
+                                const y = i === 0 ? 0 : firstBarY - halfGap
+                                const yEnd =
+                                    i === zones.length - 1
+                                        ? innerHeight
+                                        : lastBarY + bandwidth + halfGap
+
+                                return (
+                                    <rect
+                                        key={`bg-${zone.startIdx}`}
+                                        x={-margin.left}
+                                        y={y}
+                                        width={width}
+                                        height={yEnd - y}
+                                        fill={zone.color}
+                                        opacity={0.06}
+                                    />
+                                )
+                            })
+                        })()}
+
                     <PopulationPyramidHalf
                         left={margin.left}
                         xScale={xScale.male}
@@ -127,6 +222,7 @@ function PopulationPyramid({
                         ageBuckets={ageBucketsBySex.male}
                         height={innerHeight}
                         tickFontSize={font.tick}
+                        colorByAgeGroup={colorByAgeGroup}
                     />
 
                     <PopulationPyramidHalf
@@ -136,6 +232,7 @@ function PopulationPyramid({
                         ageBuckets={ageBucketsBySex.female}
                         height={innerHeight}
                         tickFontSize={font.tick}
+                        colorByAgeGroup={colorByAgeGroup}
                     />
 
                     <PopulationPyramidAxisX
@@ -146,6 +243,18 @@ function PopulationPyramid({
                         font={font}
                         triangle={triangle}
                     />
+
+                    {/* Age zone boundary labels on the right */}
+                    {showAgeZoneLabels && (
+                        <AgeZoneBoundaryLabels
+                            yScale={yScale}
+                            innerWidth={innerWidth}
+                            marginLeft={margin.left}
+                            marginRight={margin.right}
+                            fontSize={font.ageLabel}
+                            colorByAgeGroup={colorByAgeGroup}
+                        />
+                    )}
                 </Group>
             </svg>
         </div>
@@ -155,6 +264,9 @@ function PopulationPyramid({
 export function ResponsivePopulationPyramid({
     simulation,
     year,
+    colorByAgeGroup,
+    showAgeGroupBackground,
+    showAgeZoneLabels,
 }: PopulationPyramidProps) {
     const { parentRef, width, height } = useParentSize()
     return (
@@ -163,6 +275,9 @@ export function ResponsivePopulationPyramid({
                 <PopulationPyramid
                     simulation={simulation}
                     year={year}
+                    colorByAgeGroup={colorByAgeGroup}
+                    showAgeGroupBackground={showAgeGroupBackground}
+                    showAgeZoneLabels={showAgeZoneLabels}
                     width={width}
                     height={height}
                 />
@@ -178,6 +293,7 @@ function PopulationPyramidHalf({
     ageBuckets,
     height,
     tickFontSize,
+    colorByAgeGroup,
 }: {
     left: number
     xScale: ScaleLinear<number, number>
@@ -185,6 +301,7 @@ function PopulationPyramidHalf({
     ageBuckets: Record<string, number>
     height: number
     tickFontSize: number
+    colorByAgeGroup?: (ageGroup: string) => string
 }) {
     const zeroX = xScale(0)
     return (
@@ -232,7 +349,7 @@ function PopulationPyramidHalf({
                         y={yScale(g) ?? 0}
                         width={Math.abs(scaledVal - zeroX)}
                         height={yScale.bandwidth()}
-                        fill={DENIM_BLUE}
+                        fill={colorByAgeGroup ? colorByAgeGroup(g) : DENIM_BLUE}
                     />
                 )
             })}
@@ -331,6 +448,111 @@ function PopulationPyramidAxisX({
             >
                 WOMEN
             </text>
+        </>
+    )
+}
+
+function AgeZoneBoundaryLabels({
+    yScale,
+    innerWidth,
+    marginLeft,
+    marginRight,
+    fontSize,
+    colorByAgeGroup,
+}: {
+    yScale: ReturnType<typeof scaleBand<string>>
+    innerWidth: number
+    marginLeft: number
+    marginRight: number
+    fontSize: number
+    colorByAgeGroup?: (ageGroup: string) => string
+}) {
+    const bandwidth = yScale.bandwidth()
+    const step = yScale.step()
+    const halfGap = (step - bandwidth) / 2
+
+    // Boundary at age 65: between "65-69" (above) and "60-64" (below)
+    const y65 = yScale("65-69") ?? 0
+    const retirementY = y65 + bandwidth + halfGap
+
+    // Boundary at age 15: between "15-19" (above) and "10-14" (below)
+    const y15 = yScale("15-19") ?? 0
+    const childrenY = y15 + bandwidth + halfGap
+
+    const lineX1 = 0
+    const lineX2 = marginLeft + innerWidth + marginRight - 4
+    const labelX = marginLeft + innerWidth + 4
+    const labelFontSize = fontSize + 1
+
+    const arrowLength = 8
+    const arrowX = lineX2 - 8
+    const lineGap = 8 // gap between the horizontal line and the label+arrow
+    const labelArrowGap = 9 // gap between the label text and the arrow
+
+    const elderlyColor = colorByAgeGroup?.("65-69") ?? GRAPHER_LIGHT_TEXT
+    const childrenColor = colorByAgeGroup?.("0-4") ?? GRAPHER_LIGHT_TEXT
+
+    return (
+        <>
+            {/* Retired line at 65 */}
+            <line
+                x1={lineX1}
+                y1={retirementY}
+                x2={lineX2}
+                y2={retirementY}
+                stroke={elderlyColor}
+                strokeWidth={0.5}
+                opacity={0.4}
+            />
+            <text
+                x={arrowX - labelArrowGap}
+                y={retirementY - lineGap}
+                textAnchor="end"
+                dominantBaseline="auto"
+                fontSize={labelFontSize}
+                fill={GRAPHER_DARK_TEXT}
+            >
+                Retired (65+)
+            </text>
+            {/* Arrow pointing up */}
+            <BezierArrow
+                start={[arrowX, retirementY - lineGap]}
+                end={[arrowX, retirementY - lineGap - arrowLength]}
+                color={GRAPHER_DARK_TEXT}
+                width={1}
+                headAnchor="end"
+                headLength={3}
+            />
+
+            {/* Children line at 15 */}
+            <line
+                x1={lineX1}
+                y1={childrenY}
+                x2={lineX2}
+                y2={childrenY}
+                stroke={childrenColor}
+                strokeWidth={0.5}
+                opacity={0.4}
+            />
+            <text
+                x={arrowX - labelArrowGap}
+                y={childrenY + lineGap}
+                textAnchor="end"
+                dominantBaseline="hanging"
+                fontSize={labelFontSize}
+                fill={GRAPHER_DARK_TEXT}
+            >
+                {"Children (<15)"}
+            </text>
+            {/* Arrow pointing down */}
+            <BezierArrow
+                start={[arrowX, childrenY + lineGap]}
+                end={[arrowX, childrenY + lineGap + arrowLength]}
+                color={GRAPHER_DARK_TEXT}
+                width={1}
+                headAnchor="end"
+                headLength={3}
+            />
         </>
     )
 }
