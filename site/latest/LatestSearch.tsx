@@ -1,0 +1,191 @@
+import { useCallback, useMemo } from "react"
+import { useSearchParams } from "react-router-dom-v5-compat"
+import { TagGraphRoot } from "@ourworldindata/types"
+import { LiteClient } from "algoliasearch/lite"
+import { useTagGraphTopics } from "../search/searchHooks.js"
+import { useInfiniteLatestPages } from "./latestHooks.js"
+import { LatestTopicFacets } from "./LatestTopicFacets.js"
+import {
+    ALL_FILTER_OPTIONS,
+    LatestFilter,
+    filtersAreEqual,
+    decodeFilter,
+    encodeFilter,
+} from "./latestFilters.js"
+import { LatestResultCard } from "./LatestResultCard.js"
+import { NewsletterSignupBlock } from "../NewsletterSignupBlock.js"
+import { NewsletterSubscriptionContext } from "../newsletter.js"
+
+export const LatestSearch = ({
+    topicTagGraph,
+    liteSearchClient,
+}: {
+    topicTagGraph: TagGraphRoot
+    liteSearchClient: LiteClient
+}) => {
+    const [searchParams, setSearchParams] = useSearchParams()
+
+    const { allAreas } = useTagGraphTopics(topicTagGraph)
+
+    const topicParams = searchParams.getAll("topic")
+    const topics = useMemo(
+        () => topicParams.filter((t) => allAreas.includes(t)),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [topicParams.join(","), allAreas]
+    )
+
+    const filter: LatestFilter | null = decodeFilter(searchParams.get("type"))
+
+    const onTopicsChange = useCallback(
+        (newTopics: string[]) => {
+            setSearchParams(
+                (prev) => {
+                    const next = new URLSearchParams(prev)
+                    next.delete("topic")
+                    for (const t of newTopics) {
+                        next.append("topic", t)
+                    }
+                    return next
+                },
+                { replace: true }
+            )
+        },
+        [setSearchParams]
+    )
+
+    const onFilterChange = useCallback(
+        (newFilter: LatestFilter | null) => {
+            setSearchParams(
+                (prev) => {
+                    const next = new URLSearchParams(prev)
+                    if (newFilter) {
+                        next.set("type", encodeFilter(newFilter))
+                    } else {
+                        next.delete("type")
+                    }
+                    return next
+                },
+                { replace: true }
+            )
+        },
+        [setSearchParams]
+    )
+
+    // Derive contentType and kicker from the active filter
+    const contentType = filter?.kind === "type" ? filter.value : null
+    const kicker = filter?.kind === "kicker" ? filter.value : null
+
+    const {
+        hits,
+        totalResults,
+        tagFacetCounts,
+        typeFacetCounts,
+        kickerFacetCounts,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+        isLoading,
+    } = useInfiniteLatestPages({
+        topics,
+        contentType,
+        kicker,
+        liteSearchClient,
+    })
+
+    // Disable pills that would yield 0 results given the current topic
+    // selection. Never disable the currently active filter.
+    const disabledFilters = useMemo(() => {
+        const disabled = new Set<string>()
+        for (const option of ALL_FILTER_OPTIONS) {
+            if (filtersAreEqual(filter, option.filter)) continue
+            const count =
+                option.filter.kind === "type"
+                    ? (typeFacetCounts[option.filter.value] ?? 0)
+                    : (kickerFacetCounts[option.filter.value] ?? 0)
+            if (count === 0) disabled.add(encodeFilter(option.filter))
+        }
+        return disabled
+    }, [filter, typeFacetCounts, kickerFacetCounts])
+
+    // Disable topics that would yield 0 results given the current pill.
+    // Tag facet counts from query 1 are narrowed by selected topics (Algolia
+    // doesn't give disjunctive counts in the raw API). To avoid incorrectly
+    // disabling topics when others are selected, only apply disabling when no
+    // topics are selected — once a topic is selected, the dropdown shows only
+    // topics that co-occur with the selected ones.
+    const disabledTopics = useMemo(() => {
+        if (topics.length > 0) return new Set<string>()
+        const disabled = new Set<string>()
+        for (const area of allAreas) {
+            if ((tagFacetCounts[area] ?? 0) === 0) disabled.add(area)
+        }
+        return disabled
+    }, [allAreas, tagFacetCounts, topics])
+
+    const allTopicsDisabled = useMemo(
+        () =>
+            topics.length === 0 &&
+            allAreas.every((area) => (tagFacetCounts[area] ?? 0) === 0),
+        [allAreas, tagFacetCounts, topics]
+    )
+
+    return (
+        <>
+            <header className="latest-page-header span-cols-14 grid grid-cols-12-full-width">
+                <h1 className="display-2-semibold span-cols-8 col-start-2 col-md-start-2 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
+                    Latest
+                </h1>
+                <p className="latest-page__header-subtitle body-1-regular span-cols-8 col-start-2 col-md-start-2 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
+                    Our latest articles, data updates, and announcements
+                </p>
+            </header>
+            <div className="latest-search__facets-container span-cols-8 col-start-2 span-md-cols-10 col-md-start-2 span-sm-cols-14 col-sm-start-1">
+                <LatestTopicFacets
+                    topics={allAreas}
+                    selectedTopics={topics}
+                    onTopicsChange={onTopicsChange}
+                    selectedFilter={filter}
+                    onFilterChange={onFilterChange}
+                    disabledFilters={disabledFilters}
+                    disabledTopics={disabledTopics}
+                    allTopicsDisabled={allTopicsDisabled}
+                />
+            </div>
+            {isLoading ? (
+                <p className="latest-search__loading span-cols-8 col-start-2 span-md-cols-10 col-md-start-2 span-sm-cols-14 col-sm-start-1">
+                    Loading…
+                </p>
+            ) : hits.length === 0 ? (
+                <p className="latest-search__no-results span-cols-8 col-start-2 span-md-cols-10 col-md-start-2 span-sm-cols-14 col-sm-start-1">
+                    No results found.
+                </p>
+            ) : (
+                <>
+                    {hits.slice(0, 2).map((hit) => (
+                        <LatestResultCard key={hit.objectID} hit={hit} />
+                    ))}
+                    <NewsletterSignupBlock
+                        className="latest-page__newsletter-signup col-start-10 span-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-14"
+                        context={NewsletterSubscriptionContext.Latest}
+                    />
+                    {hits.slice(2).map((hit) => (
+                        <LatestResultCard key={hit.objectID} hit={hit} />
+                    ))}
+                    {hasNextPage && (
+                        <div className="latest-search__load-more span-cols-8 col-start-2 span-md-cols-10 col-md-start-2 span-sm-cols-14 col-sm-start-1">
+                            <button
+                                className="latest-search__load-more-button"
+                                onClick={() => fetchNextPage()}
+                                disabled={isFetchingNextPage}
+                            >
+                                {isFetchingNextPage
+                                    ? "Loading…"
+                                    : `Load more (${totalResults - hits.length} remaining)`}
+                            </button>
+                        </div>
+                    )}
+                </>
+            )}
+        </>
+    )
+}
