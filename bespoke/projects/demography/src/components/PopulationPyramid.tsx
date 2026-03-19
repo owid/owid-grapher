@@ -21,8 +21,39 @@ import {
     formatPopulationValueShort,
 } from "../helpers/utils"
 
-const margin = { top: 18, right: 4, bottom: 18, left: 4 }
-const CENTER_GAP = 40 // width reserved for age labels in the center
+const BASE_WIDTH = 200
+const BASE_MARGIN = { top: 12, right: 4, bottom: 18, left: 4 }
+const BASE_CENTER_GAP = 40
+const BASE_FONT = { tick: 9, ageLabel: 8, header: 10, ageHeader: 8 }
+const BASE_TRIANGLE_SIZE = { w: 4, h: 3 }
+
+/** Round to nearest 0.5px */
+function round(v: number): number {
+    return Math.round(v * 2) / 2
+}
+
+function scaledSizes(width: number) {
+    const s = Math.min(Math.sqrt(width / BASE_WIDTH), 1.2)
+    return {
+        margin: {
+            top: round(BASE_MARGIN.top * s),
+            right: round(BASE_MARGIN.right * s),
+            bottom: round(BASE_MARGIN.bottom * s),
+            left: round(BASE_MARGIN.left * s),
+        },
+        centerGap: round(BASE_CENTER_GAP * s),
+        font: {
+            tick: round(BASE_FONT.tick * s),
+            ageLabel: round(BASE_FONT.ageLabel * s),
+            header: round(BASE_FONT.header * s),
+            ageHeader: round(BASE_FONT.ageHeader * s),
+        },
+        triangle: {
+            w: round(BASE_TRIANGLE_SIZE.w * s),
+            h: round(BASE_TRIANGLE_SIZE.h * s),
+        },
+    }
+}
 
 // Labels reversed so 0-4 at bottom, oldest at top
 const ageGroupLabels = [...PYRAMID_AGE_GROUPS].reverse()
@@ -38,10 +69,13 @@ function PopulationPyramid({
     width,
     height,
 }: PopulationPyramidProps & { width: number; height: number }) {
+    const sizes = useMemo(() => scaledSizes(width), [width])
+    const { margin, centerGap, font, triangle } = sizes
+
     const innerWidth = width - margin.left - margin.right
     const innerHeight = height - margin.top - margin.bottom
 
-    const halfWidth = (innerWidth - CENTER_GAP) / 2
+    const halfWidth = (innerWidth - centerGap) / 2
     const centerX = margin.left + halfWidth
 
     const populationBySex = simulation.getPopulationForYear(year)
@@ -84,7 +118,7 @@ function PopulationPyramid({
 
     return (
         <div style={{ position: "relative" }}>
-            <svg width={width} height={height} overflow="visible">
+            <svg width={width} height={height}>
                 <Group top={margin.top}>
                     <PopulationPyramidHalf
                         left={margin.left}
@@ -92,21 +126,25 @@ function PopulationPyramid({
                         yScale={yScale}
                         ageBuckets={ageBucketsBySex.male}
                         height={innerHeight}
+                        tickFontSize={font.tick}
                     />
 
                     <PopulationPyramidHalf
-                        left={centerX + CENTER_GAP}
+                        left={centerX + centerGap}
                         xScale={xScale.female}
                         yScale={yScale}
                         ageBuckets={ageBucketsBySex.female}
                         height={innerHeight}
+                        tickFontSize={font.tick}
                     />
 
                     <PopulationPyramidAxisX
-                        centerX={centerX + CENTER_GAP / 2}
-                        gapWidth={CENTER_GAP}
+                        centerX={centerX + centerGap / 2}
+                        gapWidth={centerGap}
                         yScale={yScale}
                         medianAgeBucket={medianAgeBucketBySex}
+                        font={font}
+                        triangle={triangle}
                     />
                 </Group>
             </svg>
@@ -139,12 +177,14 @@ function PopulationPyramidHalf({
     yScale,
     ageBuckets,
     height,
+    tickFontSize,
 }: {
     left: number
     xScale: ScaleLinear<number, number>
     yScale: ReturnType<typeof scaleBand<string>>
     ageBuckets: Record<string, number>
     height: number
+    tickFontSize: number
 }) {
     const zeroX = xScale(0)
     return (
@@ -176,7 +216,7 @@ function PopulationPyramidHalf({
                 tickStroke={GRAPHER_LIGHT_TEXT}
                 tickLength={4}
                 tickLabelProps={{
-                    fontSize: 9,
+                    fontSize: tickFontSize,
                     fill: GRAPHER_LIGHT_TEXT,
                     textAnchor: "middle",
                 }}
@@ -205,11 +245,15 @@ function PopulationPyramidAxisX({
     gapWidth,
     yScale,
     medianAgeBucket,
+    font,
+    triangle,
 }: {
     centerX: number
     gapWidth: number
     yScale: ReturnType<typeof scaleBand<string>>
     medianAgeBucket: { male?: string; female?: string }
+    font: { ageLabel: number; header: number; ageHeader: number }
+    triangle: { w: number; h: number }
 }) {
     return (
         <>
@@ -226,9 +270,10 @@ function PopulationPyramidAxisX({
                     <g key={ageGroupLabel}>
                         {isMaleMedian && (
                             <Triangle
-                                x={centerX - 13}
+                                x={centerX - font.ageLabel - triangle.w}
                                 y={bandY}
                                 direction="right"
+                                size={triangle}
                             />
                         )}
                         <text
@@ -236,16 +281,17 @@ function PopulationPyramidAxisX({
                             y={bandY}
                             textAnchor="middle"
                             dominantBaseline="central"
-                            fontSize={8}
+                            fontSize={font.ageLabel}
                             fill={isMedian ? GRAPHER_LIGHT_TEXT : LABEL_COLOR}
                         >
                             {ageGroupLabel}
                         </text>
                         {isFemaleMedian && (
                             <Triangle
-                                x={centerX + 13}
+                                x={centerX + font.ageLabel + triangle.w}
                                 y={bandY}
                                 direction="left"
+                                size={triangle}
                             />
                         )}
                     </g>
@@ -257,7 +303,7 @@ function PopulationPyramidAxisX({
                 x={centerX - gapWidth / 2 - 4}
                 y={-4}
                 textAnchor="end"
-                fontSize={10}
+                fontSize={font.header}
                 fontWeight={600}
                 fill={GRAPHER_LIGHT_TEXT}
                 letterSpacing="0.05em"
@@ -268,7 +314,7 @@ function PopulationPyramidAxisX({
                 x={centerX}
                 y={-4}
                 textAnchor="middle"
-                fontSize={8}
+                fontSize={font.ageHeader}
                 fill={LABEL_COLOR}
                 letterSpacing="0.05em"
             >
@@ -278,7 +324,7 @@ function PopulationPyramidAxisX({
                 x={centerX + gapWidth / 2 + 4}
                 y={-4}
                 textAnchor="start"
-                fontSize={10}
+                fontSize={font.header}
                 fontWeight={600}
                 fill={GRAPHER_LIGHT_TEXT}
                 letterSpacing="0.05em"
@@ -293,15 +339,17 @@ function Triangle({
     x,
     y,
     direction,
+    size,
 }: {
     x: number
     y: number
     direction: "left" | "right"
+    size: { w: number; h: number }
 }) {
     const sign = direction === "right" ? -1 : 1
     return (
         <polygon
-            points={`${x + sign * 4},${y - 3} ${x + sign * 4},${y + 3} ${x},${y}`}
+            points={`${x + sign * size.w},${y - size.h} ${x + sign * size.w},${y + size.h} ${x},${y}`}
             fill={GRAPHER_LIGHT_TEXT}
         />
     )
