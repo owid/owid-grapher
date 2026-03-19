@@ -1,3 +1,6 @@
 import { atom } from "jotai"
 
-export const selectedColorAtom = atom<string>("#3182bd")
+import { ColorKey, FoodKey } from "./constants.js"
+
+export const selectedColorAtom = atom<ColorKey>("#3182bd")
+export const selectedFoodAtom = atom<FoodKey>("Apple")
