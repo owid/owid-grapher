@@ -1,7 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import classnames from "classnames"
-import { NO_DATA_LABEL } from "../color/ColorScale.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle, faS } from "@fortawesome/free-solid-svg-icons"
 import { formatInlineList, GrapherTooltipAnchor } from "@ourworldindata/utils"
@@ -13,13 +12,14 @@ import {
     TooltipTableProps,
     TooltipVariableProps,
 } from "./TooltipProps"
-import { makeAxisLabel } from "../chart/ChartUtils.js"
+import { makeAxisLabel } from "../axis/AxisUtils.js"
 import * as R from "remeda"
 import { CoreColumn } from "@ourworldindata/core-table"
 
 type TooltipValue = number | string | undefined
 
-export const NO_DATA_COLOR = "#999"
+const NO_DATA_LABEL = "No data"
+const NO_DATA_COLOR = "#999"
 
 export function TooltipValue({
     label,
@@ -172,7 +172,7 @@ export function TooltipTable({
 
     // if the tooltip is pinned to the bottom, show the total at the top,
     // so that it's always visible even if the tooltip is scrollable
-    const showTotalsAtTop = context?.anchor === GrapherTooltipAnchor.bottom
+    const showTotalsAtTop = context?.anchor === GrapherTooltipAnchor.Bottom
 
     const totalsCells = R.zip(columns, totals).map(([column, total]) => (
         <td key={column?.label} className="series-value">
