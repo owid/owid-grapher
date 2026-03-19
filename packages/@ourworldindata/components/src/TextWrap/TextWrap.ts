@@ -5,7 +5,6 @@ import {
     Bounds,
     FontFamily,
     VerticalAlign,
-    imemo,
     type RequiredBy,
 } from "@ourworldindata/utils"
 import { Fragment, joinFragments, splitIntoFragments } from "./TextWrapUtils"
@@ -118,35 +117,35 @@ export class TextWrap implements ITextWrap {
         this.initialProps = props
     }
 
-    @imemo get props(): RequiredBy<
+    get props(): RequiredBy<
         TextWrapProps,
         keyof typeof TextWrap.defaultOptions
     > {
         return { ...TextWrap.defaultOptions, ...this.initialProps }
     }
 
-    @imemo get maxWidth(): number {
+    get maxWidth(): number {
         return this.props.maxWidth
     }
-    @imemo get lineHeight(): number {
+    get lineHeight(): number {
         return this.props.lineHeight
     }
-    @imemo get fontSize(): FontSize {
+    get fontSize(): FontSize {
         return this.props.fontSize
     }
-    @imemo get fontWeight(): number | undefined {
+    get fontWeight(): number | undefined {
         return this.props.fontWeight
     }
-    @imemo get fontFamily(): FontFamily | undefined {
+    get fontFamily(): FontFamily | undefined {
         return this.props.fontFamily
     }
-    @imemo get verticalAlign(): VerticalAlign {
+    get verticalAlign(): VerticalAlign {
         return this.props.verticalAlign
     }
-    @imemo get text(): string {
+    get text(): string {
         return this.props.text
     }
-    @imemo get separators(): string[] {
+    get separators(): string[] {
         return this.props.separators
     }
 
@@ -194,7 +193,7 @@ export class TextWrap implements ITextWrap {
         return lines
     }
 
-    @imemo get lines(): WrapLine[] {
+    get lines(): WrapLine[] {
         const { text, separators, maxWidth, fontSize, fontWeight, fontFamily } =
             this
 
@@ -266,28 +265,28 @@ export class TextWrap implements ITextWrap {
         else return lines
     }
 
-    @imemo get lineCount(): number {
+    get lineCount(): number {
         return this.lines.length
     }
 
-    @imemo get singleLineHeight(): number {
+    get singleLineHeight(): number {
         return this.fontSize * this.lineHeight
     }
 
-    @imemo get height(): number {
+    get height(): number {
         if (this.lineCount === 0) return 0
         return this.lineCount * this.singleLineHeight
     }
 
-    @imemo get width(): number {
+    get width(): number {
         return _.max(this.lines.map((l) => l.width)) ?? 0
     }
 
-    @imemo get lastLineWidth(): number {
+    get lastLineWidth(): number {
         return R.last(this.lines)?.width ?? 0
     }
 
-    @imemo get htmlStyle(): any {
+    get htmlStyle(): any {
         const { fontSize, fontWeight, lineHeight } = this
         return {
             fontSize: fontSize.toFixed(2) + "px",
