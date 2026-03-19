@@ -1,6 +1,11 @@
 import { isValidParameterKey, type ParameterKey } from "./helpers/types.js"
 
-const VARIANT_NAMES = ["simulation", "population", "parameters"] as const
+const VARIANT_NAMES = [
+    "simulation",
+    "population",
+    "populationPyramid",
+    "parameters",
+] as const
 
 export type VariantName = (typeof VARIANT_NAMES)[number]
 
@@ -21,6 +26,13 @@ export interface PopulationVariantConfig {
     subtitle?: string
 }
 
+export interface PopulationPyramidVariantConfig {
+    hideControls: boolean
+    region?: string
+    title?: string
+    subtitle?: string
+}
+
 export interface ParametersVariantConfig {
     hideControls: boolean
     region?: string
@@ -31,6 +43,7 @@ export interface ParametersVariantConfig {
 export type DemographyVariantConfig =
     | SimulationVariantConfig
     | PopulationVariantConfig
+    | PopulationPyramidVariantConfig
     | ParametersVariantConfig
 
 export function parseConfig(
@@ -51,6 +64,13 @@ export function parseConfig(
                 hidePopulationPyramid: parseBoolean(raw.hidePopulationPyramid),
             }
         case "population":
+            return {
+                hideControls: parseBoolean(raw.hideControls),
+                region: raw.region,
+                title: raw.title,
+                subtitle: raw.subtitle,
+            }
+        case "populationPyramid":
             return {
                 hideControls: parseBoolean(raw.hideControls),
                 region: raw.region,

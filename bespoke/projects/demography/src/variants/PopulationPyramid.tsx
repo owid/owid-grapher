@@ -2,37 +2,44 @@ import { useState } from "react"
 import { QueryClientProvider } from "@tanstack/react-query"
 
 import { DemographyControls } from "../components/DemographyControls.js"
-import { queryClient, useDemographyData } from "../helpers/fetch.js"
-import type { SimulationVariantConfig } from "../config.js"
-import { DEFAULT_ENTITY_NAME } from "../helpers/constants.js"
 import {
     DemographyChartError,
     DemographySkeleton,
     LoadingSpinner,
 } from "../components/DemographyLoadAndError.js"
-import { CountryData, ParameterKey } from "../helpers/types.js"
+import { queryClient, useDemographyData } from "../helpers/fetch.js"
+import type { PopulationPyramidVariantConfig } from "../config.js"
 import { articulateEntity } from "@ourworldindata/utils"
-import { Frame } from "../../../../components/Frame/Frame.js"
+import { CountryData } from "../helpers/types.js"
+import { useSimulation } from "../helpers/useSimulation.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
-import { SimulationContent } from "../components/SimulationContent.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
+import { Frame } from "../../../../components/Frame/Frame.js"
+import { ResponsivePopulationPyramid } from "../components/PopulationPyramid.js"
+import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
+import {
+    DEFAULT_ENTITY_NAME,
+    END_YEAR,
+    FULL_TIME_RANGE,
+} from "../helpers/constants.js"
 
-export function SimulationVariantWithProviders(props: {
+export function PopulationPyramidVariantWithProviders(props: {
     container: HTMLDivElement
-    config: SimulationVariantConfig
+    config: PopulationPyramidVariantConfig
 }): React.ReactElement {
     return (
         <QueryClientProvider client={queryClient}>
-            <SimulationVariant config={props.config} />
+            <PopulationPyramidVariant config={props.config} />
         </QueryClientProvider>
     )
 }
 
-function SimulationVariant({
+function PopulationPyramidVariant({
     config,
 }: {
-    config: SimulationVariantConfig
+    config: PopulationPyramidVariantConfig
 }): React.ReactElement {
+    const showControls = !config.hideControls
     const [entityName, setEntityName] = useState(
         config.region ?? DEFAULT_ENTITY_NAME
     )
@@ -43,10 +50,8 @@ function SimulationVariant({
     if (status === "pending") return <DemographySkeleton />
     if (!metadata || !entityData) return <DemographyChartError />
 
-    const showControls = !config.hideControls
-
     return (
-        <div className="demography-chart">
+        <div className="demography-chart demography-chart--population-pyramid">
             {showControls && (
                 <DemographyControls
                     metadata={metadata}
@@ -54,61 +59,59 @@ function SimulationVariant({
                     setEntityName={setEntityName}
                 />
             )}
-            <SimulationCaptionedChart
+            <PopulationPyramidCaptionedChart
                 data={entityData}
                 isLoading={isLoadingEntityData}
                 title={config.title}
                 subtitle={config.subtitle}
-                focusParameter={config.focusParameter}
-                stabilizingParameter={config.stabilizingParameter}
-                hidePopulationPyramid={config.hidePopulationPyramid}
             />
         </div>
     )
 }
 
-function SimulationCaptionedChart({
+function PopulationPyramidCaptionedChart({
     data,
     isLoading = false,
     title: titleOverride,
     subtitle: subtitleOverride,
-    focusParameter,
-    stabilizingParameter,
-    hidePopulationPyramid,
 }: {
     data: CountryData
     isLoading?: boolean
     title?: string
     subtitle?: string
-    focusParameter?: ParameterKey
-    stabilizingParameter?: ParameterKey
-    hidePopulationPyramid?: boolean
 }) {
+    const simulation = useSimulation(data)
     const countryName = data.country
+    const [year, setYear] = useState(END_YEAR)
 
     const title =
         titleOverride ??
-        `How many people will live in ${articulateEntity(countryName)} by 2100?`
+        `Age structure of ${articulateEntity(countryName)} in ${year}`
     const subtitle =
-        subtitleOverride ??
-        "The UN projects how every country's population will change. But what if fertility falls faster? Or migration rises? Adjust the assumptions and compare."
+        subtitleOverride ?? "Population distribution by age and sex"
 
     return (
-        <Frame className="demography-captioned-chart">
+        <Frame className="demography-population-pyramid">
             <ChartHeader title={title} subtitle={subtitle} />
-            <div className="demography-captioned-chart__chart-area">
+            <div className="demography-population-pyramid__chart-area">
                 {isLoading && <LoadingSpinner />}
-                <SimulationContent
-                    data={data}
-                    focusParameter={focusParameter}
-                    stabilizingParameter={stabilizingParameter}
-                    hidePopulationPyramid={hidePopulationPyramid}
+                {simulation && (
+                    <ResponsivePopulationPyramid
+                        simulation={simulation}
+                        year={year}
+                    />
+                )}
+            </div>
+            <div className="demography-population-pyramid__slider">
+                <TimeSlider
+                    times={FULL_TIME_RANGE}
+                    selectedTime={year}
+                    onChange={setYear}
                 />
             </div>
             <ChartFooter
                 className="demography-footer"
                 source="List of data sources"
-                note="Optional note; probably link to the technical documentation here?"
             />
         </Frame>
     )
