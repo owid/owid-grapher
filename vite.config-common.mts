@@ -1,5 +1,6 @@
-import { defineConfig } from "vite"
+import { defineConfig, withFilter } from "vite"
 import pluginReact from "@vitejs/plugin-react"
+import pluginSwc from "@rollup/plugin-swc"
 import optimizeReactAriaLocales from "@react-aria/optimize-locales-plugin"
 import { sentryVitePlugin } from "@sentry/vite-plugin"
 import * as clientSettings from "./settings/clientSettings.js"
@@ -49,8 +50,11 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                 JSON.stringify(value?.toString()), // We need to stringify e.g. `true` to `"true"`, so that it's correctly parsed _again_
             ])
         ),
-        esbuild: {
-            target: "es2024", // needed so decorators are compiled by esbuild
+        resolve: {
+            alias: {
+                // We don't want to load dotenv in the browser build, and don't need to fill in node imports like fs or path.
+                "./loadDotenv.js": "./loadDotenv.browser.js",
+            },
         },
         build: {
             manifest: true, // creates a manifest.json file, which we use to determine which files to load in prod
@@ -61,7 +65,7 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
             commonjsOptions: {
                 strictRequires: "auto",
             },
-            rollupOptions: {
+            rolldownOptions: {
                 input: {
                     [entrypointInfo.outName]: entrypointInfo.entryPointFile,
                 },
@@ -72,19 +76,43 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
             },
         },
         plugins: [
-            pluginReact({
-                babel: {
-                    parserOpts: {
-                        plugins: ["decorators"], // needed so mobx decorators work correctly
+            withFilter(
+                // Use swc to transform decorators, since rolldown/oxc doesn't support modern decorators yet. We could remove this once they do - see https://github.com/oxc-project/oxc/issues/9170.
+                pluginSwc({
+                    swc: {
+                        jsc: {
+                            parser: {
+                                syntax: "typescript",
+                                decorators: true,
+                            },
+                            transform: {
+                                // NOTE: SWC doesn't support the latest '2023-11' version yet.
+                                decoratorVersion: "2022-03",
+                                useDefineForClassFields: true,
+                            },
+
+                            // This setting we need to override from @rollup/plugin-swc's default, otherwise it will not put optional properties on classes (e.g. `class A { optionalProp?: string }`), thereby breaking mobx decorators
+                            loose: false,
+                            target: "esnext",
+                        },
                     },
-                },
-            }),
-            {
-                ...optimizeReactAriaLocales.vite({
+                }),
+                // Only run this transform if the file contains a decorator.
+                { transform: { code: /[^"]@/, id: /.*\.(ts|tsx)$/ } }
+            ),
+            pluginReact(),
+            withFilter(
+                optimizeReactAriaLocales.vite({
                     locales: ["en-US"],
                 }),
-                enforce: "pre",
-            },
+                {
+                    transform: {
+                        // This filter is taken directly from the plugin itself: https://github.com/adobe/react-spectrum/blob/b5cbf5bcf32edc6350b8051e390c003013223d93/packages/dev/optimize-locales-plugin/LocalesPlugin.js#L20
+                        // But adding this filter on the rolldown level is way more efficient, which is why we duplicate it here.
+                        id: /[/\\](@react-stately|@react-aria|@react-spectrum|react-aria-components)[/\\]/,
+                    },
+                }
+            ),
             // Put the Sentry vite plugin after all other plugins.
             clientSettings.LOAD_SENTRY &&
                 sentryVitePlugin({
