@@ -8,6 +8,8 @@ import type { IconDefinition } from "@fortawesome/fontawesome-svg-core"
 
 import { OwidDistinctColors } from "@ourworldindata/grapher/src/color/CustomSchemes.js"
 
+export type VariantName = "picker" | "display" | "chart"
+
 export const COLOR_KEYS = [
     OwidDistinctColors.Denim,
     OwidDistinctColors.Maroon,
