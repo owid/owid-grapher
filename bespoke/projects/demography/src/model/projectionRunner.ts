@@ -72,7 +72,7 @@ function getYearlyParameters({
     controlYears: readonly number[]
 }) {
     const targetTFR = getInterpolatedValue(
-        scenarioParams.tfr,
+        scenarioParams.fertilityRate,
         nextYear,
         historicalEndYear,
         controlYears
@@ -84,7 +84,7 @@ function getYearlyParameters({
         controlYears
     )
     const migrationRate = getInterpolatedValue(
-        scenarioParams.migration,
+        scenarioParams.netMigrationRate,
         nextYear,
         historicalEndYear,
         controlYears

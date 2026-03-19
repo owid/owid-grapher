@@ -1,23 +1,77 @@
 import cx from "classnames"
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Tippy } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
 import { BezierArrow } from "../../../../components/BezierArrow/BezierArrow"
-import { CountryData, ParameterKey } from "../helpers/types"
+import { CountryData, PARAMETER_KEYS, ParameterKey } from "../helpers/types"
 import { useSimulation, type Simulation } from "../helpers/useSimulation"
 import { ResponsivePopulationChart } from "./PopulationChart.js"
 import { ResponsiveDemographyParameterEditor } from "./DemographyParameterEditor.js"
 import { ResponsivePopulationPyramid } from "./PopulationPyramid.js"
 import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
-import { START_YEAR, END_YEAR, FULL_TIME_RANGE } from "../helpers/constants.js"
+import {
+    START_YEAR,
+    END_YEAR,
+    FULL_TIME_RANGE,
+    HISTORICAL_END_YEAR,
+    BENCHMARK_LINE_COLOR,
+} from "../helpers/constants.js"
 import { PopulationChartLegend } from "./PopulationChartLegend.js"
 import { parameterConfigByKey } from "../helpers/parameterConfigs.js"
+import { getPopulationForYear } from "../helpers/utils.js"
+import { stabilizeParameter } from "../model/stabilize.js"
+import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 
-export function SimulationContent({ data }: { data: CountryData }) {
+export function SimulationContent({
+    data,
+    focusParameter,
+    stabilizingParameter,
+    hidePopulationPyramid,
+}: {
+    data: CountryData
+    focusParameter?: ParameterKey
+    stabilizingParameter?: ParameterKey
+    hidePopulationPyramid?: boolean
+}) {
     const [year, setYear] = useState(END_YEAR)
 
     const simulation = useSimulation(data)
+
+    // Keep a ref to setScenarioParams so the effect doesn't re-run
+    // when the simulation object changes identity
+    const setScenarioParamsRef = useRef(simulation?.setScenarioParams)
+    setScenarioParamsRef.current = simulation?.setScenarioParams
+
+    // Extract stable references for the stabilization computation.
+    // These only change when the country changes (new data loaded).
+    const unwppScenarioParams = simulation?.unwppScenarioParams
+    const baselineParams = simulation?.baselineParams
+
+    // Compute stabilized params from the UN WPP baseline (not current scenario)
+    // so that user drags don't trigger re-stabilization
+    const stabilizedParams = useMemo(() => {
+        if (!stabilizingParameter || !unwppScenarioParams || !baselineParams)
+            return null
+
+        const startPopulation = getPopulationForYear(data, HISTORICAL_END_YEAR)
+        if (!startPopulation) return null
+
+        const result = stabilizeParameter(
+            stabilizingParameter,
+            unwppScenarioParams,
+            baselineParams,
+            startPopulation
+        )
+        return result.params
+    }, [stabilizingParameter, unwppScenarioParams, baselineParams, data])
+
+    // Apply stabilized params once on mount and when country changes
+    useEffect(() => {
+        if (stabilizedParams) {
+            setScenarioParamsRef.current?.(stabilizedParams)
+        }
+    }, [stabilizedParams])
 
     if (!simulation) return null
 
@@ -25,27 +79,48 @@ export function SimulationContent({ data }: { data: CountryData }) {
         <div className="chart-content">
             <Container
                 className="container-left"
-                title="Change these assumptions"
+                title={
+                    focusParameter
+                        ? `Change ${parameterConfigByKey[focusParameter].title.toLowerCase()} assumptions`
+                        : "Change these assumptions"
+                }
             >
                 <div className="input-panels">
-                    <InputChartPanel
-                        simulation={simulation}
-                        variant="fertility-rate"
-                    />
-                    <InputChartPanel
-                        simulation={simulation}
-                        variant="life-expectancy"
-                    />
-                    <InputChartPanel
-                        simulation={simulation}
-                        variant="net-migration-rate"
-                    />
+                    {PARAMETER_KEYS.map((key) => {
+                        const isFocus = focusParameter && focusParameter === key
+                        const isMuted = focusParameter && focusParameter !== key
+                        return (
+                            <InputChartPanel
+                                key={key}
+                                simulation={simulation}
+                                variant={key}
+                                interactive={
+                                    !focusParameter || focusParameter === key
+                                }
+                                lineColor={
+                                    isMuted ? BENCHMARK_LINE_COLOR : undefined
+                                }
+                                labelColor={
+                                    isMuted ? GRAPHER_LIGHT_TEXT : undefined
+                                }
+                                hideReset={!!stabilizingParameter}
+                                className={cx({
+                                    "chart-panel--focus": isFocus,
+                                    "chart-panel--muted": isMuted,
+                                })}
+                            />
+                        )
+                    })}
                 </div>
             </Container>
             <ArrowFromInputToOutputPanels />
             <Container
                 className="container-right"
-                title="See how they affect population projections"
+                title={
+                    focusParameter
+                        ? "See how this affects population projections"
+                        : "See how they affect population projections"
+                }
             >
                 <div className="output-panels">
                     <ChartPanel
@@ -54,23 +129,28 @@ export function SimulationContent({ data }: { data: CountryData }) {
                         subtitle="Past estimates and future projections"
                         header={<PopulationChartLegend />}
                     >
-                        <ResponsivePopulationChart simulation={simulation} />
-                    </ChartPanel>
-                    <ChartPanel
-                        title={`Age Structure in ${year}`}
-                        subtitle={`Population distribution by age and sex`}
-                        footer={
-                            <SimpleYearSlider
-                                selectedYear={year}
-                                onChange={setYear}
-                            />
-                        }
-                    >
-                        <ResponsivePopulationPyramid
+                        <ResponsivePopulationChart
                             simulation={simulation}
-                            year={year}
+                            hideChangeAnnotation={!!stabilizingParameter}
                         />
                     </ChartPanel>
+                    {!hidePopulationPyramid && (
+                        <ChartPanel
+                            title={`Age Structure in ${year}`}
+                            subtitle={`Population distribution by age and sex`}
+                            footer={
+                                <SimpleYearSlider
+                                    selectedYear={year}
+                                    onChange={setYear}
+                                />
+                            }
+                        >
+                            <ResponsivePopulationPyramid
+                                simulation={simulation}
+                                year={year}
+                            />
+                        </ChartPanel>
+                    )}
                 </div>
             </Container>
         </div>
@@ -99,6 +179,9 @@ export function InputChartPanel({
     variant,
     className,
     interactive = true,
+    lineColor,
+    labelColor,
+    hideReset = false,
     showProjectionLabel,
     valueLabelFontSize,
 }: {
@@ -106,26 +189,29 @@ export function InputChartPanel({
     variant: ParameterKey
     className?: string
     interactive?: boolean
+    lineColor?: string
+    labelColor?: string
+    hideReset?: boolean
     showProjectionLabel?: boolean
     valueLabelFontSize?: number
 }) {
-    const { title, subtitle, tooltipContent, paramKey } =
-        parameterConfigByKey[variant]
+    const { title, subtitle, tooltipContent } = parameterConfigByKey[variant]
 
     const hasResetButton =
+        !hideReset &&
         interactive &&
-        Object.keys(simulation.unwppScenarioParams[paramKey]).some(
+        Object.keys(simulation.unwppScenarioParams[variant]).some(
             (k) =>
-                simulation.scenarioParams[paramKey][Number(k)] !==
-                simulation.unwppScenarioParams[paramKey][Number(k)]
+                simulation.scenarioParams[variant][Number(k)] !==
+                simulation.unwppScenarioParams[variant][Number(k)]
         )
 
     const handleReset = useCallback(() => {
         simulation.setScenarioParams({
             ...simulation.scenarioParams,
-            [paramKey]: { ...simulation.unwppScenarioParams[paramKey] },
+            [variant]: { ...simulation.unwppScenarioParams[variant] },
         })
-    }, [simulation, paramKey])
+    }, [simulation, variant])
 
     return (
         <ChartPanel
@@ -139,6 +225,8 @@ export function InputChartPanel({
                 simulation={simulation}
                 variant={variant}
                 interactive={interactive}
+                lineColor={lineColor}
+                labelColor={labelColor}
                 showProjectionLabel={showProjectionLabel}
                 valueLabelFontSize={valueLabelFontSize}
             />
