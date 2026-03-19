@@ -29,7 +29,7 @@
         color: inherit;
     }
 
-    @at-root .chart-footer__tooltip {
+    .chart-footer__tooltip {
         background: white;
         color: $gray-100;
         border-radius: 4px;
@@ -38,6 +38,5 @@
         font-size: 0.8125rem;
         max-width: 300px;
         line-height: 1.5;
-        font-family: $sans-serif-font-stack;
     }
 }
