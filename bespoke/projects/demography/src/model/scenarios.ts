@@ -3,7 +3,7 @@
  */
 
 import { FERTILITY_AGE_GROUPS } from "../helpers/constants"
-import type { CountryData } from "../helpers/types"
+import type { CountryData, ParameterKey } from "../helpers/types"
 import { getDeathsForYear, getMigrationRateForYear } from "../helpers/utils"
 import {
     calculateMortalityRates,
@@ -25,11 +25,7 @@ export interface ScenarioConstants {
     TREND_LATE_END: number
 }
 
-export interface ScenarioParams {
-    tfr: Record<number, number>
-    lifeExpectancy: Record<number, number>
-    migration: Record<number, number>
-}
+export type ScenarioParams = Record<ParameterKey, Record<number, number>>
 
 export function calculateTFRFromRaw(
     fertilityRow: Record<string, number> | undefined
@@ -69,9 +65,9 @@ export function estimateLifeExpectancy(
 }
 
 interface PeriodAverages {
-    tfr: number | null
+    fertilityRate: number | null
     lifeExpectancy: number | null
-    migration: number | null
+    netMigrationRate: number | null
     midYear: number
 }
 
@@ -112,9 +108,9 @@ export function calculatePeriodAverages(
     }
 
     return {
-        tfr: tfrCount > 0 ? tfrSum / tfrCount : null,
+        fertilityRate: tfrCount > 0 ? tfrSum / tfrCount : null,
         lifeExpectancy: leCount > 0 ? leSum / leCount : null,
-        migration: migCount > 0 ? migSum / migCount : null,
+        netMigrationRate: migCount > 0 ? migSum / migCount : null,
         midYear: (startYear + endYear) / 2,
     }
 }
@@ -151,19 +147,19 @@ export function calculateTrendProjections(
             : 0
 
     const projections: ScenarioParams = {
-        tfr: {},
+        fertilityRate: {},
         lifeExpectancy: {},
-        migration: {},
+        netMigrationRate: {},
     }
 
     for (const year of constants.CONTROL_YEARS) {
         const yearsFromLate = year - late.midYear
-        projections.tfr[year] = lastDecade.tfr || 0
+        projections.fertilityRate[year] = lastDecade.fertilityRate || 0
         projections.lifeExpectancy[year] = Math.max(
             30,
             Math.min(95, (late.lifeExpectancy || 0) + leSlope * yearsFromLate)
         )
-        projections.migration[year] = lastDecade.migration || 0
+        projections.netMigrationRate[year] = lastDecade.netMigrationRate || 0
     }
 
     return projections
@@ -183,15 +179,15 @@ export function calculateUNWPPScenario(
     constants: ScenarioConstants
 ): ScenarioParams {
     const projections: ScenarioParams = {
-        tfr: {},
+        fertilityRate: {},
         lifeExpectancy: {},
-        migration: {},
+        netMigrationRate: {},
     }
 
     for (const year of constants.CONTROL_YEARS) {
         const fertility = getProjectionFertilityForYear(data, year)
         if (fertility) {
-            projections.tfr[year] = calculateTFR(fertility)
+            projections.fertilityRate[year] = calculateTFR(fertility)
         } else {
             const lastDecade = calculatePeriodAverages(
                 data,
@@ -199,7 +195,7 @@ export function calculateUNWPPScenario(
                 constants.HISTORICAL_END_YEAR - 9,
                 constants.HISTORICAL_END_YEAR
             )
-            projections.tfr[year] = lastDecade.tfr || 0
+            projections.fertilityRate[year] = lastDecade.fertilityRate || 0
         }
 
         const deaths = getProjectionDeathsForYear(data, year)
@@ -243,7 +239,8 @@ export function calculateUNWPPScenario(
                 migCount += 1
             }
         }
-        projections.migration[year] = migCount > 0 ? migSum / migCount : 0
+        projections.netMigrationRate[year] =
+            migCount > 0 ? migSum / migCount : 0
     }
 
     return projections
@@ -269,7 +266,10 @@ export function calculateFullTrendScenario(
 
     const yearSpan = late.midYear - early.midYear
     const tfrSlope =
-        yearSpan !== 0 ? ((late.tfr || 0) - (early.tfr || 0)) / yearSpan : 0
+        yearSpan !== 0
+            ? ((late.fertilityRate || 0) - (early.fertilityRate || 0)) /
+              yearSpan
+            : 0
     const leSlope =
         yearSpan !== 0
             ? ((late.lifeExpectancy || 0) - (early.lifeExpectancy || 0)) /
@@ -277,28 +277,32 @@ export function calculateFullTrendScenario(
             : 0
     const migSlope =
         yearSpan !== 0
-            ? ((late.migration || 0) - (early.migration || 0)) / yearSpan
+            ? ((late.netMigrationRate || 0) - (early.netMigrationRate || 0)) /
+              yearSpan
             : 0
 
     const projections: ScenarioParams = {
-        tfr: {},
+        fertilityRate: {},
         lifeExpectancy: {},
-        migration: {},
+        netMigrationRate: {},
     }
 
     for (const year of constants.CONTROL_YEARS) {
         const yearsFromLate = year - late.midYear
-        projections.tfr[year] = Math.max(
+        projections.fertilityRate[year] = Math.max(
             0.5,
-            Math.min(5.0, (late.tfr || 0) + tfrSlope * yearsFromLate)
+            Math.min(5.0, (late.fertilityRate || 0) + tfrSlope * yearsFromLate)
         )
         projections.lifeExpectancy[year] = Math.max(
             30,
             Math.min(95, (late.lifeExpectancy || 0) + leSlope * yearsFromLate)
         )
-        projections.migration[year] = Math.max(
+        projections.netMigrationRate[year] = Math.max(
             -20,
-            Math.min(20, (late.migration || 0) + migSlope * yearsFromLate)
+            Math.min(
+                20,
+                (late.netMigrationRate || 0) + migSlope * yearsFromLate
+            )
         )
     }
 

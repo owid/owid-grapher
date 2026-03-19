@@ -1,5 +1,6 @@
+$denim-blue: #4c6a9c;
+
 $panel-gap: 12px;
-$panel-radius: 4px;
 
 .demography-page {
     margin: 24px;
@@ -140,10 +141,18 @@ $panel-radius: 4px;
     position: relative;
     background: white;
     padding: $panel-gap;
-    border-radius: $panel-radius;
+    border-radius: 2px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+
+    &.chart-panel--focus {
+        border: 2px solid $denim-blue;
+    }
+
+    &.chart-panel--muted {
+        pointer-events: none;
+    }
 
     .chart-panel__reset-btn {
         position: absolute;

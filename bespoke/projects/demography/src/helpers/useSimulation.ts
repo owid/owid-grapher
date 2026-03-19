@@ -185,9 +185,9 @@ export function useSimulation(data: CountryData): Simulation | null {
             unwppBenchmarkResults,
             defaultScenario,
             historicalAnchors: {
-                tfr: anchorTFR,
+                fertilityRate: anchorTFR,
                 lifeExpectancy: anchorLE,
-                migration: anchorMig,
+                netMigrationRate: anchorMig,
             },
         }
     }, [data, country])
@@ -209,17 +209,17 @@ export function useSimulation(data: CountryData): Simulation | null {
         // between HISTORICAL_END_YEAR and first control year
         const { historicalAnchors } = core
         const augmentedParams: ScenarioParams = {
-            tfr: {
-                [HISTORICAL_END_YEAR]: historicalAnchors.tfr,
-                ...effectiveScenarioParams.tfr,
+            fertilityRate: {
+                [HISTORICAL_END_YEAR]: historicalAnchors.fertilityRate,
+                ...effectiveScenarioParams.fertilityRate,
             },
             lifeExpectancy: {
                 [HISTORICAL_END_YEAR]: historicalAnchors.lifeExpectancy,
                 ...effectiveScenarioParams.lifeExpectancy,
             },
-            migration: {
-                [HISTORICAL_END_YEAR]: historicalAnchors.migration,
-                ...effectiveScenarioParams.migration,
+            netMigrationRate: {
+                [HISTORICAL_END_YEAR]: historicalAnchors.netMigrationRate,
+                ...effectiveScenarioParams.netMigrationRate,
             },
         }
         const augmentedControlYears = [
@@ -279,11 +279,15 @@ export function useSimulation(data: CountryData): Simulation | null {
                 const un = core.defaultScenario
                 const matches = CONTROL_YEARS.every(
                     (y) =>
-                        Math.abs(params.tfr[y] - un.tfr[y]) < 0.01 &&
+                        Math.abs(
+                            params.fertilityRate[y] - un.fertilityRate[y]
+                        ) < 0.01 &&
                         Math.abs(
                             params.lifeExpectancy[y] - un.lifeExpectancy[y]
                         ) < 0.01 &&
-                        Math.abs(params.migration[y] - un.migration[y]) < 0.01
+                        Math.abs(
+                            params.netMigrationRate[y] - un.netMigrationRate[y]
+                        ) < 0.01
                 )
                 setActivePreset(matches ? "unwpp" : null)
             } else {
