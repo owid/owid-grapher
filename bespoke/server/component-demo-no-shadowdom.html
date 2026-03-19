@@ -30,18 +30,25 @@
 
             const root = document.getElementById("demo-root")
             for (const variant of VARIANTS) {
-                const section = document.createElement("div")
-                section.className = "variant"
-                section.id = `variant--${variant.name}`
+                const wrapper = document.createElement("div")
+                wrapper.className = "variant"
+                wrapper.id = `variant--${variant.name}`
 
                 const label = document.createElement("div")
                 label.className = "variant-label"
-                label.textContent = variant.name
-                section.appendChild(label)
+                const prefix = document.createElement("span")
+                prefix.className = "variant-label-prefix"
+                prefix.textContent = "Variant:"
+                const name = document.createElement("span")
+                name.className = "variant-label-name"
+                name.textContent = variant.name
+                label.appendChild(prefix)
+                label.appendChild(name)
+                wrapper.appendChild(label)
 
                 const container = document.createElement("div")
-                section.appendChild(container)
-                root.appendChild(section)
+                wrapper.appendChild(container)
+                root.appendChild(wrapper)
 
                 mount(container, {
                     variant: variant.name,

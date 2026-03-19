@@ -15,12 +15,15 @@ export interface BespokeComponentModule {
     VARIANTS?: BespokeComponentVariantsList
 }
 
-export interface BespokeComponentVariantsEntry extends Record<string, unknown> {
-    name: string
+export interface BespokeComponentVariantsEntry<
+    VariantName extends string = string,
+> extends Record<string, unknown> {
+    name: VariantName
     demoConfig?: Record<string, string>
 }
 
-export type BespokeComponentVariantsList = BespokeComponentVariantsEntry[]
+export type BespokeComponentVariantsList<VariantName extends string = string> =
+    BespokeComponentVariantsEntry<VariantName>[]
 
 export interface BespokeComponentDefinition {
     /** URL to the ES module that exports the component's mount function */

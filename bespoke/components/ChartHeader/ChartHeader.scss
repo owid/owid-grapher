@@ -1,0 +1,41 @@
+.chart-header {
+    .chart-header__logo {
+        float: right;
+        height: 45px;
+        width: auto;
+        margin: 0 0 15px 15px;
+
+        @include sm-only {
+            height: 38px;
+            margin: 0 0 10px 10px;
+        }
+    }
+
+    .chart-header__title {
+        color: $gray-100;
+        font-size: 1.5rem;
+        font-weight: 600;
+        font-family: $serif-font-stack;
+        margin: 0;
+        margin-bottom: 8px;
+
+        span {
+            color: $light-text;
+        }
+
+        @include sm-only {
+            font-size: 1.25rem;
+        }
+    }
+
+    .chart-header__subtitle {
+        font-size: 1rem;
+        line-height: 1.2;
+        margin: 0;
+        margin-bottom: 16px;
+
+        @include sm-only {
+            font-size: 0.875rem;
+        }
+    }
+}

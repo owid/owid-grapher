@@ -1,6 +1,9 @@
 import { createRoot } from "react-dom/client"
 import { createElement } from "react"
 import { enableShadowDOM } from "@react-stately/flags"
+
+import { VariantName } from "./constants.js"
+import { Chart } from "./components/Chart"
 import { Picker } from "./components/Picker"
 import { Display } from "./components/Display"
 
@@ -21,7 +24,8 @@ enableShadowDOM()
 export const VARIANTS = [
     { name: "picker", component: Picker, defaultConfig: {} },
     { name: "display", component: Display, defaultConfig: {} },
-] satisfies BespokeComponentVariantsList
+    { name: "chart", component: Chart, defaultConfig: {} },
+] satisfies BespokeComponentVariantsList<VariantName>
 
 export const mount: BespokeComponentMountFn = (
     container: HTMLDivElement,

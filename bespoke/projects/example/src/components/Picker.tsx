@@ -31,9 +31,14 @@ export function Picker() {
     )
 
     return (
-        <div className="color-picker">
-            <p className="color-picker__label">Select a food:</p>
+        <div className="picker">
+            <p className="picker__description">
+                This variant shares state with the Display variant via Jotai
+                atoms.
+            </p>
+            <p className="picker__label">Select a food:</p>
             <Dropdown
+                className="picker__dropdown"
                 options={foodOptions}
                 value={selectedOption}
                 onChange={handleFoodChange}
@@ -41,15 +46,14 @@ export function Picker() {
                 placeholder="Select a food..."
                 aria-label="Select a food"
             />
-            <p className="color-picker__label">Pick a color:</p>
-            <div className="color-picker__swatches">
+            <p className="picker__label">Pick a color:</p>
+            <div className="picker__swatches">
                 {COLOR_KEYS.map((hex) => (
                     <button
                         key={hex}
                         onClick={() => setSelectedColor(hex)}
-                        className={cx("color-picker__swatch", {
-                            "color-picker__swatch--selected":
-                                hex === selectedColor,
+                        className={cx("picker__swatch", {
+                            "picker__swatch--selected": hex === selectedColor,
                         })}
                         style={{ backgroundColor: hex }}
                         title={hex}

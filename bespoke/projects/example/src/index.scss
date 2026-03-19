@@ -1,8 +1,15 @@
 @import "normalize.css";
 
 @import "./grapher.scss";
-
 @import "./base.scss";
 
+// Shared components
+@import "../../../components/Frame/Frame.scss";
+@import "../../../components/ChartHeader/ChartHeader.scss";
+@import "../../../components/ChartFooter/ChartFooter.scss";
+@import "../../../components/BezierArrow/BezierArrow.scss";
+
+// Custom components
+@import "./components/Chart.scss";
 @import "./components/Display.scss";
 @import "./components/Picker.scss";
