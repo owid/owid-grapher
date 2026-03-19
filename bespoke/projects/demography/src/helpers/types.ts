@@ -47,7 +47,17 @@ export interface MortalityRates {
     male: number[]
 }
 
-export type ParameterKey =
-    | "fertility-rate"
-    | "life-expectancy"
-    | "net-migration-rate"
+export const PARAMETER_KEYS = [
+    "fertilityRate",
+    "lifeExpectancy",
+    "netMigrationRate",
+] as const
+
+export type ParameterKey = (typeof PARAMETER_KEYS)[number]
+
+export function isValidParameterKey(value: unknown): value is ParameterKey {
+    return (
+        typeof value === "string" &&
+        PARAMETER_KEYS.includes(value as ParameterKey)
+    )
+}

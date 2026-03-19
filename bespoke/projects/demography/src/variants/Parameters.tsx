@@ -128,7 +128,7 @@ function ParametersCaptionedChart({
                     <div className="demography-parameters__panels">
                         <InputChartPanel
                             simulation={simulation}
-                            variant="fertility-rate"
+                            variant="fertilityRate"
                             className="parameters-panel"
                             interactive={false}
                             showProjectionLabel
@@ -136,14 +136,14 @@ function ParametersCaptionedChart({
                         />
                         <InputChartPanel
                             simulation={simulation}
-                            variant="life-expectancy"
+                            variant="lifeExpectancy"
                             className="parameters-panel"
                             interactive={false}
                             valueLabelFontSize={10}
                         />
                         <InputChartPanel
                             simulation={simulation}
-                            variant="net-migration-rate"
+                            variant="netMigrationRate"
                             className="parameters-panel"
                             interactive={false}
                             valueLabelFontSize={10}

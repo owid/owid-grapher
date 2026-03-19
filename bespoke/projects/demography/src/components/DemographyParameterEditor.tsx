@@ -34,6 +34,8 @@ interface DemographyParameterEditorProps {
     simulation: Simulation
     variant: ParameterKey
     interactive?: boolean
+    lineColor?: string
+    labelColor?: string
     showProjectionLabel?: boolean
     valueLabelFontSize?: number
 }
@@ -47,13 +49,14 @@ function DemographyParameterEditor({
     simulation,
     variant,
     interactive = true,
+    lineColor = DENIM_BLUE,
+    labelColor = DENIM_BLUE,
     showProjectionLabel = false,
     valueLabelFontSize = 9,
     width,
     height,
 }: DemographyParameterEditorProps & { width: number; height: number }) {
     const config = parameterConfigByKey[variant]
-    const { paramKey } = config
 
     const {
         points: historicalDataPoints,
@@ -64,18 +67,18 @@ function DemographyParameterEditor({
         [simulation, config, interactive]
     )
 
-    const controlPoints = simulation.scenarioParams[paramKey]
-    const referencePoints = simulation.unwppScenarioParams[paramKey]
+    const controlPoints = simulation.scenarioParams[variant]
+    const referencePoints = simulation.unwppScenarioParams[variant]
     const formatValue = config.formatValue
 
     const handleChange = useCallback(
         (newPoints: Record<number, number>) => {
             simulation.setScenarioParams({
                 ...simulation.scenarioParams,
-                [paramKey]: newPoints,
+                [variant]: newPoints,
             })
         },
-        [simulation, paramKey]
+        [simulation, variant]
     )
 
     const innerWidth = width - margin.left - margin.right
@@ -168,7 +171,7 @@ function DemographyParameterEditor({
                     data={historicalDataPoints}
                     x={(d) => xScale(d.year)}
                     y={(d) => yScale(d.value)}
-                    stroke={DENIM_BLUE}
+                    stroke={lineColor}
                     strokeWidth={2}
                 />
 
@@ -188,7 +191,7 @@ function DemographyParameterEditor({
                     data={[lastHistoricalDataPoint, ...projectionPoints]}
                     x={(d) => xScale(d.year)}
                     y={(d) => yScale(d.value)}
-                    stroke={DENIM_BLUE}
+                    stroke={lineColor}
                     strokeWidth={2}
                     strokeDasharray="1,2"
                     strokeLinecap="butt"
@@ -199,7 +202,8 @@ function DemographyParameterEditor({
                     x={xScale(firstHistoricalDataPoint.year)}
                     y={yScale(firstHistoricalDataPoint.value)}
                     label={formatValue(firstHistoricalDataPoint.value)}
-                    color={DENIM_BLUE}
+                    color={lineColor}
+                    labelColor={labelColor}
                     fontSize={valueLabelFontSize}
                 />
 
@@ -209,7 +213,8 @@ function DemographyParameterEditor({
                         x={xScale(lastHistoricalDataPoint.year)}
                         y={yScale(lastHistoricalDataPoint.value)}
                         label={formatValue(lastHistoricalDataPoint.value)}
-                        color={DENIM_BLUE}
+                        color={lineColor}
+                        labelColor={labelColor}
                         fontSize={valueLabelFontSize}
                     />
                 )}
@@ -220,7 +225,8 @@ function DemographyParameterEditor({
                         x={xScale(projectionPoints.at(-1)!.year)}
                         y={yScale(projectionPoints.at(-1)!.value)}
                         label={formatValue(projectionPoints.at(-1)!.value)}
-                        color={DENIM_BLUE}
+                        color={lineColor}
+                        labelColor={labelColor}
                         fontSize={valueLabelFontSize}
                     />
                 )}
@@ -266,6 +272,8 @@ export const ResponsiveDemographyParameterEditor = memo(
         simulation,
         variant,
         interactive,
+        lineColor,
+        labelColor,
         showProjectionLabel,
         valueLabelFontSize,
     }: DemographyParameterEditorProps) {
@@ -277,6 +285,8 @@ export const ResponsiveDemographyParameterEditor = memo(
                         simulation={simulation}
                         variant={variant}
                         interactive={interactive}
+                        lineColor={lineColor}
+                        labelColor={labelColor}
                         showProjectionLabel={showProjectionLabel}
                         valueLabelFontSize={valueLabelFontSize}
                         width={width}
@@ -395,12 +405,14 @@ function PointLabel({
     y,
     label,
     color,
+    labelColor,
     fontSize = 9,
 }: {
     x: number
     y: number
     label?: string
     color: string
+    labelColor?: string
     fontSize?: number
 }) {
     return (
@@ -412,7 +424,7 @@ function PointLabel({
                         x={x}
                         y={y - fontSize / 2 - 2}
                         fontSize={fontSize}
-                        fill={color}
+                        fill={labelColor ?? color}
                         textAnchor="middle"
                     >
                         {label}

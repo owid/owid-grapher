@@ -1,3 +1,5 @@
+import { isValidParameterKey, type ParameterKey } from "./helpers/types.js"
+
 const VARIANT_NAMES = ["simulation", "population", "parameters"] as const
 
 export type VariantName = (typeof VARIANT_NAMES)[number]
@@ -7,6 +9,9 @@ export interface SimulationVariantConfig {
     region?: string
     title?: string
     subtitle?: string
+    focusParameter?: ParameterKey
+    stabilizingParameter?: ParameterKey
+    hidePopulationPyramid?: boolean
 }
 
 export interface PopulationVariantConfig {
@@ -35,21 +40,26 @@ export function parseConfig(
     switch (variantName) {
         case "simulation":
             return {
-                hideControls: raw.hideControls === "true",
+                hideControls: parseBoolean(raw.hideControls),
                 region: raw.region,
                 title: raw.title,
                 subtitle: raw.subtitle,
+                focusParameter: parseParameterKey(raw.focusParameter),
+                stabilizingParameter: parseParameterKey(
+                    raw.stabilizingParameter
+                ),
+                hidePopulationPyramid: parseBoolean(raw.hidePopulationPyramid),
             }
         case "population":
             return {
-                hideControls: raw.hideControls === "true",
+                hideControls: parseBoolean(raw.hideControls),
                 region: raw.region,
                 title: raw.title,
                 subtitle: raw.subtitle,
             }
         case "parameters":
             return {
-                hideControls: raw.hideControls === "true",
+                hideControls: parseBoolean(raw.hideControls),
                 region: raw.region,
                 title: raw.title,
                 subtitle: raw.subtitle,
@@ -58,4 +68,12 @@ export function parseConfig(
         default:
             throw new Error(`Unknown variant: ${variantName}`)
     }
+}
+
+function parseParameterKey(value: unknown): ParameterKey | undefined {
+    return isValidParameterKey(value) ? value : undefined
+}
+
+function parseBoolean(value: unknown): boolean {
+    return value === true || value === "true"
 }
