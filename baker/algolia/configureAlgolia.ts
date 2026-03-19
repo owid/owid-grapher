@@ -110,7 +110,7 @@ export const configureAlgolia = async () => {
         indexSettings: {
             ranking: ["custom"],
             customRanking: ["desc(date)"],
-            attributesForFaceting: ["type", "searchable(tags)"],
+            attributesForFaceting: ["type", "searchable(tags)", "kicker"],
         },
     })
 
