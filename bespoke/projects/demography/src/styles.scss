@@ -15,6 +15,10 @@ $panel-gap: 12px;
         max-width: 850px;
     }
 
+    &--population-pyramid {
+        max-width: 500px;
+    }
+
     &--parameters {
         max-width: 500px;
     }
@@ -31,6 +35,18 @@ $panel-gap: 12px;
         position: relative;
         width: 100%;
         aspect-ratio: 2 / 1;
+    }
+}
+
+.demography-population-pyramid {
+    .demography-population-pyramid__chart-area {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+    }
+
+    .demography-population-pyramid__slider {
+        margin-top: 16px;
     }
 }
 
