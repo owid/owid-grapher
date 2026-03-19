@@ -1,6 +1,13 @@
 .expandable-paragraph__content {
     overflow: hidden;
-    margin-bottom: 24px;
+
+    > *:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.expandable-paragraph__expand-button {
+    margin-top: 24px;
 }
 
 .expandable-paragraph__expand-button--slim {
