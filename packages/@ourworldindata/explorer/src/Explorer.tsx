@@ -55,7 +55,10 @@ import {
     Tippy,
     Url,
 } from "@ourworldindata/utils"
-import { MarkdownTextWrap } from "@ourworldindata/components"
+import {
+    MarkdownTextWrap,
+    MarkdownTextWrapHtml,
+} from "@ourworldindata/components"
 import classNames from "classnames"
 import { action, computed, makeObservable, observable, reaction } from "mobx"
 import { observer } from "mobx-react"
@@ -970,9 +973,14 @@ export class Explorer
                     {this.explorerProgram.explorerTitle} Data Explorer
                 </div>
                 <div className="ExplorerSubtitle">
-                    <MarkdownTextWrap
-                        fontSize={12}
-                        text={this.explorerProgram.explorerSubtitle || ""}
+                    <MarkdownTextWrapHtml
+                        textWrap={
+                            new MarkdownTextWrap({
+                                fontSize: 12,
+                                text:
+                                    this.explorerProgram.explorerSubtitle || "",
+                            })
+                        }
                     />
                 </div>
                 {this.explorerProgram.downloadDataLink && (

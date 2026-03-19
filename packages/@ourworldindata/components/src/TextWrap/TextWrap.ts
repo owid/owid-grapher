@@ -5,16 +5,15 @@ import {
     Bounds,
     FontFamily,
     VerticalAlign,
+    imemo,
+    type RequiredBy,
 } from "@ourworldindata/utils"
-import { computed, makeObservable } from "mobx"
-import * as React from "react"
 import { Fragment, joinFragments, splitIntoFragments } from "./TextWrapUtils"
 import { match } from "ts-pattern"
 
 declare type FontSize = number
 
-interface TextWrapProps {
-    text: string
+interface TextWrapOptions {
     maxWidth: number
     lineHeight?: number
     fontSize: FontSize
@@ -25,6 +24,8 @@ interface TextWrapProps {
     verticalAlign?: VerticalAlign
 }
 
+type TextWrapProps = { text: string } & TextWrapOptions
+
 interface WrapLine {
     text: string
     width: number
@@ -34,11 +35,6 @@ interface WrapLine {
 interface OpenHtmlTag {
     tag: string // e.g. "a" for an <a> tag, or "span" for a <span> tag
     fullTag: string // e.g. "<a href='https://ourworldindata.org'>"
-}
-
-interface SVGRenderProps {
-    textProps?: React.SVGProps<SVGTextElement>
-    id?: string
 }
 
 const HTML_OPENING_CLOSING_TAG_REGEX = /<(\/?)([A-Za-z]+)( [^<>]*)?>/g
@@ -95,36 +91,63 @@ export const shortenWithEllipsis = (
     return `${truncatedText}${ellipsis}`
 }
 
-export class TextWrap {
-    props: TextWrapProps
+export interface ITextWrap {
+    readonly width: number
+    readonly height: number
+    readonly lastLineWidth: number
+    readonly singleLineHeight: number
+    readonly maxWidth: number
+    readonly fontSize: number
+    readonly fontWeight: number | undefined
+    readonly fontFamily: FontFamily | undefined
+    readonly lineHeight: number
+    readonly text: string
+    getPositionForSvgRendering(x: number, y: number): [number, number]
+}
+
+export class TextWrap implements ITextWrap {
+    private static defaultOptions = {
+        maxWidth: Infinity,
+        lineHeight: 1.1,
+        separators: [" "],
+        verticalAlign: VerticalAlign.bottom,
+    } as const satisfies Partial<TextWrapProps>
+
+    private initialProps: TextWrapProps
     constructor(props: TextWrapProps) {
-        makeObservable(this)
-        this.props = props
+        this.initialProps = props
     }
 
-    @computed get maxWidth(): number {
-        return this.props.maxWidth ?? Infinity
+    @imemo get props(): RequiredBy<
+        TextWrapProps,
+        keyof typeof TextWrap.defaultOptions
+    > {
+        return { ...TextWrap.defaultOptions, ...this.initialProps }
     }
-    @computed get lineHeight(): number {
-        return this.props.lineHeight ?? 1.1
+
+    @imemo get maxWidth(): number {
+        return this.props.maxWidth
     }
-    @computed get fontSize(): FontSize {
-        return this.props.fontSize ?? 1
+    @imemo get lineHeight(): number {
+        return this.props.lineHeight
     }
-    @computed get fontWeight(): number | undefined {
+    @imemo get fontSize(): FontSize {
+        return this.props.fontSize
+    }
+    @imemo get fontWeight(): number | undefined {
         return this.props.fontWeight
     }
-    @computed get fontFamily(): FontFamily | undefined {
+    @imemo get fontFamily(): FontFamily | undefined {
         return this.props.fontFamily
     }
-    @computed get verticalAlign(): VerticalAlign {
-        return this.props.verticalAlign ?? VerticalAlign.bottom
+    @imemo get verticalAlign(): VerticalAlign {
+        return this.props.verticalAlign
     }
-    @computed get text(): string {
+    @imemo get text(): string {
         return this.props.text
     }
-    @computed get separators(): string[] {
-        return this.props.separators ?? [" "]
+    @imemo get separators(): string[] {
+        return this.props.separators
     }
 
     // We need to take care that HTML tags are not split across lines.
@@ -171,7 +194,7 @@ export class TextWrap {
         return lines
     }
 
-    @computed get lines(): WrapLine[] {
+    @imemo get lines(): WrapLine[] {
         const { text, separators, maxWidth, fontSize, fontWeight, fontFamily } =
             this
 
@@ -243,28 +266,28 @@ export class TextWrap {
         else return lines
     }
 
-    @computed get lineCount(): number {
+    @imemo get lineCount(): number {
         return this.lines.length
     }
 
-    @computed get singleLineHeight(): number {
+    @imemo get singleLineHeight(): number {
         return this.fontSize * this.lineHeight
     }
 
-    @computed get height(): number {
+    @imemo get height(): number {
         if (this.lineCount === 0) return 0
         return this.lineCount * this.singleLineHeight
     }
 
-    @computed get width(): number {
+    @imemo get width(): number {
         return _.max(this.lines.map((l) => l.width)) ?? 0
     }
 
-    @computed get lastLineWidth(): number {
+    @imemo get lastLineWidth(): number {
         return R.last(this.lines)?.width ?? 0
     }
 
-    @computed get htmlStyle(): any {
+    @imemo get htmlStyle(): any {
         const { fontSize, fontWeight, lineHeight } = this
         return {
             fontSize: fontSize.toFixed(2) + "px",
@@ -296,73 +319,5 @@ export class TextWrap {
             .exhaustive()
 
         return [x, renderY]
-    }
-
-    renderHTML(): React.ReactElement | null {
-        const { props, lines } = this
-
-        if (lines.length === 0) return null
-
-        return (
-            <span>
-                {lines.map((line, index) => {
-                    const content = props.rawHtml ? (
-                        <span
-                            dangerouslySetInnerHTML={{
-                                __html: line.text,
-                            }}
-                        />
-                    ) : (
-                        <span>{line.text}</span>
-                    )
-                    return (
-                        <React.Fragment key={index}>
-                            {content}
-                            <br />
-                        </React.Fragment>
-                    )
-                })}
-            </span>
-        )
-    }
-
-    renderSVG(x: number, y: number, options: SVGRenderProps = {}) {
-        const { props, lines, fontSize, fontWeight } = this
-
-        if (lines.length === 0) return <></>
-
-        const [renderX, renderY] = this.getPositionForSvgRendering(x, y)
-
-        return (
-            <text
-                id={options.id}
-                fontSize={fontSize.toFixed(2)}
-                fontWeight={fontWeight}
-                x={renderX.toFixed(1)}
-                y={renderY.toFixed(1)}
-                {...options.textProps}
-            >
-                {lines.map((line, i) => {
-                    const x = renderX
-                    const y = renderY + this.singleLineHeight * i
-
-                    if (props.rawHtml)
-                        return (
-                            <tspan
-                                key={i}
-                                x={x}
-                                y={y}
-                                dangerouslySetInnerHTML={{ __html: line.text }}
-                            />
-                        )
-                    else
-                        return (
-                            <tspan key={i} x={x} y={y}>
-                                {line.text}
-                            </tspan>
-                        )
-                })}
-            </text>
-        )
     }
 }

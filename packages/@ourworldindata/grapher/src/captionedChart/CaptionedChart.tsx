@@ -7,7 +7,11 @@ import {
     exposeInstanceOnWindow,
     makeFigmaId,
 } from "@ourworldindata/utils"
-import { MarkdownTextWrap, LoadingIndicator } from "@ourworldindata/components"
+import {
+    MarkdownTextWrap,
+    MarkdownTextWrapSvg,
+    LoadingIndicator,
+} from "@ourworldindata/components"
 import { Header, StaticHeader } from "../header/Header"
 import { Footer, StaticFooter } from "../footer/Footer"
 import {
@@ -467,7 +471,11 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
                         yOffset += detail.height + STATIC_EXPORT_DETAIL_SPACING
                         return (
                             <React.Fragment key={i}>
-                                {detail.renderSVG(0, previousOffset)}
+                                <MarkdownTextWrapSvg
+                                    textWrap={detail}
+                                    x={0}
+                                    y={previousOffset}
+                                />
                             </React.Fragment>
                         )
                     })}

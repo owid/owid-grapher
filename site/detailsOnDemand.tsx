@@ -10,6 +10,7 @@ import {
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import {
     MarkdownTextWrap,
+    MarkdownTextWrapHtml,
     reactRenderToStringClientOnly,
 } from "@ourworldindata/components"
 import urljoin from "url-join"
@@ -77,13 +78,14 @@ export async function runDetailsOnDemand(
         if (element._tippy) {
             element._tippy.show()
         } else {
+            const markdownTextWrap = new MarkdownTextWrap({
+                text: dod.text,
+                fontSize: 12,
+                lineHeight: 1.55,
+            })
             const content = reactRenderToStringClientOnly(
                 <div className="dod-container">
-                    <MarkdownTextWrap
-                        text={dod.text}
-                        fontSize={12}
-                        lineHeight={1.55}
-                    />
+                    <MarkdownTextWrapHtml textWrap={markdownTextWrap} />
                 </div>
             )
 

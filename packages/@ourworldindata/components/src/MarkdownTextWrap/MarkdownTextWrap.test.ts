@@ -52,9 +52,7 @@ describe("MarkdownTextWrap", () => {
             fontWeight: 800,
         })
 
-        const output = element.renderHTML()
-
-        expect(output?.props.style).toMatchObject({
+        expect(element.style).toMatchObject({
             fontFamily: FontFamily.Lato,
             fontWeight: 800,
             fontSize: 14,

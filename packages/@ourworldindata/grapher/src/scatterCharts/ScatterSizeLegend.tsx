@@ -2,7 +2,7 @@ import * as React from "react"
 import * as R from "remeda"
 import { computed, makeObservable } from "mobx"
 import { scaleLinear, ScaleLinear } from "d3-scale"
-import { TextWrap, Halo } from "@ourworldindata/components"
+import { TextWrap, TextWrapSvg, Halo } from "@ourworldindata/components"
 import {
     Color,
     makeFigmaId,
@@ -236,30 +236,26 @@ export class ScatterSizeLegend {
         return (
             <g id={makeFigmaId("size-legend")} {...renderOptions}>
                 {this.renderLegend(targetX, targetY)}
-                {this.label.renderSVG(
-                    centerX,
-                    targetY + this.legendSize + LEGEND_PADDING,
-                    {
-                        textProps: {
-                            fill: LABEL_COLOR,
-                            textAnchor: "middle",
-                        },
-                    }
-                )}
-                {this.title.renderSVG(
-                    centerX,
-                    targetY +
+                <TextWrapSvg
+                    textWrap={this.label}
+                    x={centerX}
+                    y={targetY + this.legendSize + LEGEND_PADDING}
+                    fill={LABEL_COLOR}
+                    textAnchor="middle"
+                />
+                <TextWrapSvg
+                    textWrap={this.title}
+                    x={centerX}
+                    y={
+                        targetY +
                         this.legendSize +
                         LEGEND_PADDING +
                         this.label.height +
-                        LABEL_PADDING,
-                    {
-                        textProps: {
-                            fill: TITLE_COLOR,
-                            textAnchor: "middle",
-                        },
+                        LABEL_PADDING
                     }
-                )}
+                    fill={TITLE_COLOR}
+                    textAnchor="middle"
+                />
             </g>
         )
     }

@@ -16,6 +16,7 @@ import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import { ScaleType, DetailsMarker } from "@ourworldindata/types"
+import { MarkdownTextWrapSvg } from "@ourworldindata/components"
 import { ComparisonLine } from "../comparisonLine/ComparisonLine"
 import { DEFAULT_GRAPHER_BOUNDS } from "../core/GrapherConstants"
 
@@ -347,28 +348,30 @@ export class VerticalAxisComponent extends React.Component<VerticalAxisComponent
             <g id={makeFigmaId("vertical-axis")} className="VerticalAxis">
                 {shouldShowLogNotice && logNoticeTextWrap && (
                     <React.Fragment key={logNoticeTextWrap.text}>
-                        {logNoticeTextWrap.renderSVG(tickX, bounds.top, {
-                            id: makeFigmaId("vertical-axis-log-notice"),
-                            textProps: {
-                                fill: tickColor || GRAPHER_DARK_TEXT,
-                                textAnchor: textAnchorFromAlign(
-                                    HorizontalAlign.right
-                                ),
-                                fontStyle: "italic",
-                            },
-                            detailsMarker,
-                        })}
+                        <MarkdownTextWrapSvg
+                            textWrap={logNoticeTextWrap}
+                            x={tickX}
+                            y={bounds.top}
+                            id={makeFigmaId("vertical-axis-log-notice")}
+                            fill={tickColor || GRAPHER_DARK_TEXT}
+                            textAnchor={textAnchorFromAlign(
+                                HorizontalAlign.right
+                            )}
+                            fontStyle="italic"
+                            detailsMarker={detailsMarker}
+                        />
                     </React.Fragment>
                 )}
                 {labelTextWrap && (
                     <React.Fragment key={labelTextWrap.text}>
-                        {labelTextWrap.renderSVG(bounds.left, bounds.top, {
-                            id: makeFigmaId("vertical-axis-label"),
-                            textProps: {
-                                fill: labelColor || GRAPHER_DARK_TEXT,
-                            },
-                            detailsMarker,
-                        })}
+                        <MarkdownTextWrapSvg
+                            textWrap={labelTextWrap}
+                            x={bounds.left}
+                            y={bounds.top}
+                            id={makeFigmaId("vertical-axis-label")}
+                            fill={labelColor || GRAPHER_DARK_TEXT}
+                            detailsMarker={detailsMarker}
+                        />
                     </React.Fragment>
                 )}
                 {showTickMarks && (
@@ -500,14 +503,15 @@ export class HorizontalAxisComponent extends React.Component<{
             <g id={makeFigmaId("horizontal-axis")} className="HorizontalAxis">
                 {label && (
                     <React.Fragment key={label.text}>
-                        {label.renderSVG(axis.rangeCenter, labelYPosition, {
-                            id: makeFigmaId("horizontal-axis-label"),
-                            textProps: {
-                                fill: labelColor || GRAPHER_DARK_TEXT,
-                                textAnchor: "middle",
-                            },
-                            detailsMarker,
-                        })}
+                        <MarkdownTextWrapSvg
+                            textWrap={label}
+                            x={axis.rangeCenter}
+                            y={labelYPosition}
+                            id={makeFigmaId("horizontal-axis-label")}
+                            fill={labelColor || GRAPHER_DARK_TEXT}
+                            textAnchor="middle"
+                            detailsMarker={detailsMarker}
+                        />
                     </React.Fragment>
                 )}
                 {showTickMarks && (

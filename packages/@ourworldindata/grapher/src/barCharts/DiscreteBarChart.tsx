@@ -11,6 +11,7 @@ import {
 } from "@ourworldindata/utils"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
+import { TextWrapSvg } from "@ourworldindata/components"
 import { ScaleType, VerticalAlign } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
@@ -391,19 +392,14 @@ export class DiscreteBarChart
 
         return (
             <g key={`annotation-${series.seriesName}`}>
-                {series.annotationTextWrap.renderSVG(
-                    series.entityLabelX,
-                    y + series.annotationY - series.barY,
-                    {
-                        textProps: {
-                            fill: "#333",
-                            textAnchor: "end",
-                            opacity:
-                                DISCRETE_BAR_STYLE[series.emphasis]
-                                    .labelOpacity,
-                        },
-                    }
-                )}
+                <TextWrapSvg
+                    textWrap={series.annotationTextWrap}
+                    x={series.entityLabelX}
+                    y={y + series.annotationY - series.barY}
+                    fill="#333"
+                    textAnchor="end"
+                    opacity={DISCRETE_BAR_STYLE[series.emphasis].labelOpacity}
+                />
             </g>
         )
     }

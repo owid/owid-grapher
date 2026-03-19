@@ -1,4 +1,9 @@
-export { TextWrap, shortenWithEllipsis } from "./TextWrap/TextWrap.js"
+export {
+    type ITextWrap,
+    TextWrap,
+    shortenWithEllipsis,
+} from "./TextWrap/TextWrap.js"
+export { TextWrapSvg, TextWrapHtml } from "./TextWrap/TextWrapComponents.js"
 
 export {
     MarkdownTextWrap,
@@ -6,6 +11,10 @@ export {
     toPlaintext,
     canAppendTextToLastLine,
 } from "./MarkdownTextWrap/MarkdownTextWrap.js"
+export {
+    MarkdownTextWrapSvg,
+    MarkdownTextWrapHtml,
+} from "./MarkdownTextWrap/MarkdownTextWrapComponents.js"
 
 export {
     SimpleMarkdownText,

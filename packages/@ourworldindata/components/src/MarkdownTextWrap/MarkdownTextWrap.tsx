@@ -1,16 +1,14 @@
-/* eslint-disable react-refresh/only-export-components */
 import * as _ from "lodash-es"
 import { CSSProperties } from "react"
 import * as React from "react"
-import { computed, makeObservable } from "mobx"
 import {
     excludeUndefined,
     imemo,
     Bounds,
     FontFamily,
+    type RequiredBy,
 } from "@ourworldindata/utils"
-import { DetailsMarker } from "@ourworldindata/types"
-import { TextWrap } from "../TextWrap/TextWrap.js"
+import { type ITextWrap } from "../TextWrap/TextWrap.js"
 import { fromMarkdown } from "mdast-util-from-markdown"
 import type { Content, Root } from "mdast"
 import { match } from "ts-pattern"
@@ -494,7 +492,7 @@ export function splitIntoLines(
 }
 
 export const sumTextWrapHeights = (
-    elements: MarkdownTextWrap[] | TextWrap[],
+    elements: ITextWrap[],
     spacer: number = 0
 ): number =>
     _.sum(elements.map((element) => element.height)) +
@@ -514,10 +512,23 @@ type MarkdownTextWrapProps = { text: string } & MarkdownTextWrapOptions
 
 type TextFragment = { text: string; bold?: boolean }
 
-export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
+export class MarkdownTextWrap implements ITextWrap {
+    private static defaultOptions = {
+        maxWidth: Infinity,
+        lineHeight: 1.1,
+        detailsOrderedByReference: [] as string[],
+    } as const satisfies Partial<MarkdownTextWrapProps>
+
+    private initialProps: MarkdownTextWrapProps
     constructor(props: MarkdownTextWrapProps) {
-        super(props)
-        makeObservable(this)
+        this.initialProps = props
+    }
+
+    @imemo get props(): RequiredBy<
+        MarkdownTextWrapProps,
+        keyof typeof MarkdownTextWrap.defaultOptions
+    > {
+        return { ...MarkdownTextWrap.defaultOptions, ...this.initialProps }
     }
 
     static fromFragments({
@@ -579,23 +590,29 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         }
     }
 
-    @computed get maxWidth(): number {
-        return this.props.maxWidth ?? Infinity
+    @imemo get maxWidth(): number {
+        return this.props.maxWidth
     }
-    @computed get lineHeight(): number {
-        return this.props.lineHeight ?? 1.1
+    @imemo get lineHeight(): number {
+        return this.props.lineHeight
     }
-    @computed get fontSize(): number {
+    @imemo get fontSize(): number {
         return this.props.fontSize
     }
-    @computed get fontParams(): IRFontParams {
+    @imemo get fontWeight(): number | undefined {
+        return this.props.fontWeight
+    }
+    @imemo get fontFamily(): FontFamily | undefined {
+        return this.props.fontFamily
+    }
+    @imemo get fontParams(): IRFontParams {
         return {
             fontFamily: this.props.fontFamily,
             fontSize: this.props.fontSize,
             fontWeight: this.props.fontWeight,
         }
     }
-    @computed get text(): string {
+    @imemo get text(): string {
         // NOTE: ❗Here we deviate from the normal markdown spec. We replace \n with <SPACE><SPACE>\n to make sure that single \n are treated as
         // actual line breaks but only if none of the other markdown line break rules apply.
         // This is a bit different to how markdown usually works but we have a substantial
@@ -617,20 +634,20 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         text = text.replaceAll("@@LINEBREAK@@", "  \n")
         return text
     }
-    @computed get detailsOrderedByReference(): string[] {
-        return this.props.detailsOrderedByReference || []
+    @imemo get detailsOrderedByReference(): string[] {
+        return this.props.detailsOrderedByReference
     }
 
-    @computed get plaintext(): string {
+    @imemo get plaintext(): string {
         return this.htmlLines.map(lineToPlaintext).join("\n")
     }
 
-    @computed get tokensFromMarkdown(): IRToken[] {
+    @imemo get tokensFromMarkdown(): IRToken[] {
         const tokens = convertMarkdownToIRTokens(this.text, this.fontParams)
         return tokens
     }
 
-    @computed get htmlLines(): IRToken[][] {
+    @imemo get htmlLines(): IRToken[][] {
         const tokens = this.tokensFromMarkdown
         const lines = splitIntoLines(tokens, this.maxWidth)
         return lines.map((line) =>
@@ -638,13 +655,13 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         )
     }
 
-    @computed get svgLines(): IRToken[][] {
+    @imemo get svgLines(): IRToken[][] {
         const tokens = this.tokensFromMarkdown
         const lines = splitIntoLines(tokens, this.maxWidth)
         return lines
     }
 
-    @computed get svgLinesWithDodReferenceNumbers(): IRToken[][] {
+    @imemo get svgLinesWithDodReferenceNumbers(): IRToken[][] {
         const references = this.detailsOrderedByReference
         const tokens = this.tokensFromMarkdown
         const tokensWithReferenceNumbers = appendReferenceNumbers(
@@ -654,7 +671,7 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         return splitIntoLines(tokensWithReferenceNumbers, this.maxWidth)
     }
 
-    @computed get width(): number {
+    @imemo get width(): number {
         const { htmlLines } = this
         const lineLengths = htmlLines.map((tokens) =>
             _.sumBy(tokens, (token) => token.width)
@@ -662,21 +679,21 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         return _.max(lineLengths) ?? 0
     }
 
-    @computed get singleLineHeight(): number {
+    @imemo get singleLineHeight(): number {
         return this.fontSize * this.lineHeight
     }
 
-    @computed get lastLineWidth(): number {
+    @imemo get lastLineWidth(): number {
         return _.sumBy(R.last(this.htmlLines), (token) => token.width) ?? 0
     }
 
-    @computed get height(): number {
+    @imemo get height(): number {
         const { htmlLines } = this
         if (htmlLines.length === 0) return 0
         return htmlLines.length * this.singleLineHeight
     }
 
-    @computed get style(): any {
+    @imemo get style(): any {
         return {
             ...this.fontParams,
             ...this.props.style,
@@ -684,45 +701,8 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         }
     }
 
-    renderHTML() {
-        const { htmlLines } = this
-        if (htmlLines.length === 0) return null
-        return (
-            <span style={this.style} className="markdown-text-wrap">
-                {htmlLines.map((line, i) => {
-                    const plaintextLine = line
-                        .map((token) => token.toPlaintext())
-                        .join("")
-                    return (
-                        <MarkdownTextWrapLine
-                            key={`${plaintextLine}-${i}`}
-                            line={line}
-                        />
-                    )
-                })}
-            </span>
-        )
-    }
-
-    renderSVG(
-        x: number,
-        y: number,
-        {
-            textProps,
-            detailsMarker = "superscript",
-            id,
-        }: {
-            textProps?: React.SVGProps<SVGTextElement>
-            detailsMarker?: DetailsMarker
-            id?: string
-        } = {}
-    ) {
+    getPositionForSvgRendering(x: number, y: number): [number, number] {
         const { fontSize, lineHeight } = this
-        const lines =
-            detailsMarker === "superscript"
-                ? this.svgLinesWithDodReferenceNumbers
-                : this.svgLines
-        if (lines.length === 0) return <></>
 
         // Magic number set through experimentation.
         // The HTML and SVG renderers need to position lines identically.
@@ -735,76 +715,8 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         const yOffset =
             y + (containerHeight - (containerHeight - textHeight) / 2)
 
-        const getLineY = (lineIndex: number) =>
-            yOffset + lineHeight * fontSize * lineIndex
-
-        return (
-            <g id={id} className="markdown-text-wrap">
-                <text
-                    x={x.toFixed(1)}
-                    y={yOffset.toFixed(1)}
-                    style={this.style}
-                    {...textProps}
-                >
-                    {lines.map((line, lineIndex) => (
-                        <tspan
-                            key={lineIndex}
-                            x={x}
-                            y={getLineY(lineIndex).toFixed(1)}
-                        >
-                            {line.map((token, tokenIndex) =>
-                                token.toSVG(tokenIndex)
-                            )}
-                        </tspan>
-                    ))}
-                </text>
-                {/* SVG doesn't support dotted underlines, so we draw them manually */}
-                {detailsMarker === "underline" &&
-                    lines.map((line, lineIndex) => {
-                        const y = (getLineY(lineIndex) + 2).toFixed(1)
-                        let currWidth = 0
-                        return line.map((token) => {
-                            const underline =
-                                token instanceof IRDetailOnDemand ? (
-                                    <line
-                                        className="dod-underline"
-                                        x1={x + currWidth}
-                                        y1={y}
-                                        x2={x + currWidth + token.width}
-                                        y2={y}
-                                        stroke="currentColor"
-                                        strokeWidth={1}
-                                        strokeDasharray={1}
-                                        // important for rotated text
-                                        transform={textProps?.transform}
-                                    />
-                                ) : null
-                            currWidth += token.width
-                            return underline
-                        })
-                    })}
-            </g>
-        )
+        return [x, yOffset]
     }
-
-    // An alias method that allows MarkdownTextWrap to be
-    // instantiated via JSX for HTML rendering
-    // <MarkdownTextWrap ... />
-    override render(): React.ReactElement | null {
-        return this.renderHTML()
-    }
-}
-
-function MarkdownTextWrapLine({
-    line,
-}: {
-    line: IRToken[]
-}): React.ReactElement {
-    return (
-        <span className="markdown-text-wrap__line">
-            {line.length ? line.map((token, i) => token.toHTML(i)) : <br />}
-        </span>
-    )
 }
 
 export function convertMarkdownToIRTokens(
@@ -1152,12 +1064,13 @@ export function canAppendTextToLastLine({
     textToAppend,
     reservedWidth = 0,
 }: {
-    existingTextWrap: TextWrap | MarkdownTextWrap
+    existingTextWrap: ITextWrap
     textToAppend: string
     /** Width to reserve for non-text elements (e.g. icons) */
     reservedWidth?: number
 }): boolean {
-    const { maxWidth, lastLineWidth, fontSize, props } = existingTextWrap
+    const { maxWidth, lastLineWidth, fontSize, fontWeight, fontFamily } =
+        existingTextWrap
 
     const spaceWidth = Bounds.forText(" ", { fontSize }).width
     const availableWidthInLastLine =
@@ -1166,9 +1079,11 @@ export function canAppendTextToLastLine({
     if (availableWidthInLastLine <= 0) return false
 
     const secondaryTextWrap = new MarkdownTextWrap({
-        ...props,
         text: textToAppend,
         maxWidth: availableWidthInLastLine,
+        fontSize,
+        fontWeight,
+        fontFamily,
     })
 
     return secondaryTextWrap.svgLines.length === 1
