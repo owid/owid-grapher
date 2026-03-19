@@ -44,7 +44,9 @@ function PopulationVariant({
     config: PopulationVariantConfig
 }): React.ReactElement {
     const showControls = !config.hideControls
-    const [entityName, setEntityName] = useState(DEFAULT_ENTITY_NAME)
+    const [entityName, setEntityName] = useState(
+        config.region ?? DEFAULT_ENTITY_NAME
+    )
 
     const metadataResponse = useDemographyMetadata()
     const entityDataResponse = useDemographyEntityData(
