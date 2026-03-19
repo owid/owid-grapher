@@ -1,6 +1,8 @@
 import { QueryClient, QueryStatus, useQuery } from "@tanstack/react-query"
 import { fetchJson, UserCountryInformation } from "@ourworldindata/utils"
 import { CountryData, DemographyMetadata } from "./types"
+import { combineStatuses } from "./utils.js"
+import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 
 const BASE_URL = "https://owid-public.owid.io/population-simulation-2026-03"
 const METADATA_PATH = BASE_URL + "/population-simulation.metadata.json"
@@ -58,6 +60,34 @@ export const useDemographyEntityData = (
         status: result.status,
         isPlaceholderData: result.isPlaceholderData,
         isFetching: result.isFetching,
+    }
+}
+
+/** Combined hook for loading demography metadata + entity data */
+export function useDemographyData(entityName: string): {
+    metadata?: DemographyMetadata
+    entityData?: CountryData
+    isLoadingEntityData: boolean
+    status: QueryStatus
+} {
+    const metadataResponse = useDemographyMetadata()
+    const entityDataResponse = useDemographyEntityData(
+        entityName,
+        metadataResponse.data
+    )
+    const isLoadingEntityData = useDelayedLoading(
+        entityDataResponse.isPlaceholderData,
+        300
+    )
+    const status = combineStatuses(
+        metadataResponse.status,
+        entityDataResponse.status
+    )
+    return {
+        metadata: metadataResponse.data,
+        entityData: entityDataResponse.data,
+        isLoadingEntityData,
+        status,
     }
 }
 
