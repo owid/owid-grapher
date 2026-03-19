@@ -15,7 +15,7 @@ import { useSimulation } from "../helpers/useSimulation.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
-import { ResponsivePopulationPyramid } from "../components/PopulationPyramid.js"
+import { DetailedPopulationPyramid } from "../components/DetailedPopulationPyramid.js"
 import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
 import {
     DEFAULT_ENTITY_NAME,
@@ -44,6 +44,8 @@ function PopulationPyramidVariant({
         config.region ?? DEFAULT_ENTITY_NAME
     )
 
+    const [year, setYear] = useState(END_YEAR)
+
     const { metadata, entityData, isLoadingEntityData, status } =
         useDemographyData(entityName)
 
@@ -53,17 +55,25 @@ function PopulationPyramidVariant({
     return (
         <div className="demography-chart demography-chart--population-pyramid">
             {showControls && (
-                <DemographyControls
-                    metadata={metadata}
-                    entityName={entityName}
-                    setEntityName={setEntityName}
-                />
+                <div className="demography-population-pyramid__controls">
+                    <DemographyControls
+                        metadata={metadata}
+                        entityName={entityName}
+                        setEntityName={setEntityName}
+                    />
+                    <TimeSlider
+                        times={FULL_TIME_RANGE}
+                        selectedTime={year}
+                        onChange={setYear}
+                    />
+                </div>
             )}
             <PopulationPyramidCaptionedChart
                 data={entityData}
                 isLoading={isLoadingEntityData}
                 title={config.title}
                 subtitle={config.subtitle}
+                year={year}
             />
         </div>
     )
@@ -74,15 +84,16 @@ function PopulationPyramidCaptionedChart({
     isLoading = false,
     title: titleOverride,
     subtitle: subtitleOverride,
+    year,
 }: {
     data: CountryData
     isLoading?: boolean
     title?: string
     subtitle?: string
+    year: number
 }) {
     const simulation = useSimulation(data)
     const countryName = data.country
-    const [year, setYear] = useState(END_YEAR)
 
     const title =
         titleOverride ??
@@ -96,18 +107,11 @@ function PopulationPyramidCaptionedChart({
             <div className="demography-population-pyramid__chart-area">
                 {isLoading && <LoadingSpinner />}
                 {simulation && (
-                    <ResponsivePopulationPyramid
+                    <DetailedPopulationPyramid
                         simulation={simulation}
                         year={year}
                     />
                 )}
-            </div>
-            <div className="demography-population-pyramid__slider">
-                <TimeSlider
-                    times={FULL_TIME_RANGE}
-                    selectedTime={year}
-                    onChange={setYear}
-                />
             </div>
             <ChartFooter
                 className="demography-footer"
