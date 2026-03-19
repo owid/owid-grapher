@@ -89,6 +89,8 @@ function SimulationVariant({
             <SimulationCaptionedChart
                 data={entityData}
                 isLoading={isLoadingEntityData}
+                title={config.title}
+                subtitle={config.subtitle}
             />
         </div>
     )
@@ -97,18 +99,26 @@ function SimulationVariant({
 function SimulationCaptionedChart({
     data,
     isLoading = false,
+    title: titleOverride,
+    subtitle: subtitleOverride,
 }: {
     data: CountryData
     isLoading?: boolean
+    title?: string
+    subtitle?: string
 }) {
     const countryName = data.country
 
+    const title =
+        titleOverride ??
+        `How many people will live in ${articulateEntity(countryName)} by 2100?`
+    const subtitle =
+        subtitleOverride ??
+        "The UN projects how every country's population will change. But what if fertility falls faster? Or migration rises? Adjust the assumptions and compare."
+
     return (
         <Frame className="demography-captioned-chart">
-            <ChartHeader
-                title={`How many people will live in ${articulateEntity(countryName)} by 2100?`}
-                subtitle="The UN projects how every country's population will change. But what if fertility falls faster? Or migration rises? Adjust the assumptions and compare."
-            />
+            <ChartHeader title={title} subtitle={subtitle} />
             <div className="demography-captioned-chart__chart-area">
                 {isLoading && <LoadingSpinner />}
                 <SimulationContent data={data} />
