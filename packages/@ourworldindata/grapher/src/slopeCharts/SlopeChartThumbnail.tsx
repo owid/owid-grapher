@@ -1,5 +1,4 @@
 import React from "react"
-import * as _ from "remeda"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { scaleLinear, ScaleLinear } from "d3-scale"
@@ -22,6 +21,7 @@ import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
     GRAPHER_FONT_SCALE_12,
+    FontSettings,
 } from "../core/GrapherConstants"
 import { Bounds, SeriesName } from "@ourworldindata/utils"
 import { VerticalAxis } from "../axis/Axis"
@@ -93,11 +93,11 @@ export class SlopeChartThumbnail
 
     @computed get innerBounds(): Bounds {
         const rightPadding = Math.max(
-            this.paddedEndLabelsWidth, // width of end labels plus padding
+            this.estimatedLabelWidth.right, // width of end labels plus padding
             0.5 * this.xEndMarkWidth // half the width of the end time label (since it's centered)
         )
         const leftPadding = Math.max(
-            this.paddedStartLabelsWidth, // width of start labels plus padding
+            this.estimatedLabelWidth.left, // width of start labels plus padding
             0.5 * this.xStartMarkWidth // half the width of the start time label (since it's centered)
         )
 
@@ -178,8 +178,12 @@ export class SlopeChartThumbnail
         })
     }
 
-    @computed private get labelFontSize(): number {
-        return Math.floor(GRAPHER_FONT_SCALE_12 * this.fontSize)
+    @computed private get labelFontSettings(): FontSettings {
+        return {
+            fontSize: Math.floor(GRAPHER_FONT_SCALE_12 * this.fontSize),
+            fontWeight: 500,
+            lineHeight: 1,
+        }
     }
 
     private formatLabel(value: number): string {
@@ -209,81 +213,131 @@ export class SlopeChartThumbnail
             .yRange()
     }
 
-    @computed private get endLabelsState():
-        | SimpleVerticalLabelsState
-        | undefined {
-        if (!this.manager.showSeriesLabels) return undefined
+    @computed private get endLabelsSeries(): Omit<
+        InitialSimpleLabelSeries,
+        "position"
+    >[] {
+        if (!this.manager.showSeriesLabels) return []
 
-        const series = this.labelCandidateSeries.map((series) => {
+        return this.labelCandidateSeries.map((series) => {
             const { seriesName, color } = series
 
             const lastPoint = series.end
             const value = lastPoint?.value ?? 0
 
-            const yPosition = this.outerBoundsVerticalAxis.place(value)
             const label = this.formatLabel(value)
 
-            return {
-                seriesName,
-                value,
-                label,
-                yPosition,
-                color,
-                point: lastPoint,
+            return { seriesName, value, label, color }
+        })
+    }
+
+    private makeEndLabelsState({
+        yAxis,
+        endX,
+    }: {
+        yAxis: VerticalAxis
+        endX: number
+    }): SimpleVerticalLabelsState | undefined {
+        if (!this.manager.showSeriesLabels) return undefined
+
+        const series = this.endLabelsSeries.map((series) => {
+            const position = {
+                x: endX,
+                y: yAxis.place(series.value),
             }
+
+            return { ...series, position }
         })
 
         return new SimpleVerticalLabelsState(series, {
-            fontSize: this.labelFontSize,
-            fontWeight: 500,
-            minSpacing: 2,
+            ...this.labelFontSettings,
+            markerRadius: DOT_RADIUS,
+            labelOffset: SPACE_BETWEEN_DOT_AND_LABEL,
             yRange: this.labelsRange,
         })
     }
 
-    @computed private get startLabelsState():
+    @computed private get endLabelsState():
         | SimpleVerticalLabelsState
         | undefined {
-        if (!this.manager.showSeriesLabels) return undefined
+        return this.makeEndLabelsState({ yAxis: this.yAxis, endX: this.endX })
+    }
 
-        const showValueLabelsOnly = this.manager.useMinimalLabeling
+    @computed private get shouldShowValueLabelsOnly(): boolean {
+        return !!this.manager.useMinimalLabeling
+    }
 
-        const series = this.labelCandidateSeries.map((series) => {
+    @computed private get startLabelsMaxWidth(): number | undefined {
+        return this.shouldShowValueLabelsOnly
+            ? undefined
+            : 0.25 * this.bounds.width
+    }
+
+    @computed private get startLabelsSeries(): Omit<
+        InitialSimpleLabelSeries,
+        "position"
+    >[] {
+        if (!this.manager.showSeriesLabels) return []
+
+        return this.labelCandidateSeries.map((series) => {
             const { seriesName, color } = series
             const firstPoint = series.start
             const value = firstPoint?.value ?? 0
-            const yPosition = this.outerBoundsVerticalAxis.place(value)
-            const label = showValueLabelsOnly
+            const label = this.shouldShowValueLabelsOnly
                 ? this.formatLabel(value)
                 : seriesName
-            return {
-                seriesName,
-                value,
-                label,
-                yPosition,
-                color,
-                point: firstPoint,
+
+            return { seriesName, value, label, color }
+        })
+    }
+
+    private makeStartLabelsState({
+        yAxis,
+        startX,
+        visibleEndLabels,
+    }: {
+        yAxis: VerticalAxis
+        startX: number
+        visibleEndLabels: Set<SeriesName>
+    }): SimpleVerticalLabelsState | undefined {
+        if (!this.manager.showSeriesLabels) return undefined
+
+        const series = this.startLabelsSeries.map((series) => {
+            const position = {
+                x: startX,
+                y: yAxis.place(series.value),
             }
+
+            return { ...series, position }
         })
 
         return new SimpleVerticalLabelsState(series, {
-            fontSize: this.labelFontSize,
-            fontWeight: 500,
-            maxWidth: showValueLabelsOnly
-                ? undefined
-                : 0.25 * this.bounds.width,
-            minSpacing: showValueLabelsOnly ? 2 : 5,
+            ...this.labelFontSettings,
+            textAnchor: "end",
+            maxWidth: this.startLabelsMaxWidth,
+            markerRadius: DOT_RADIUS,
+            labelOffset: SPACE_BETWEEN_DOT_AND_LABEL,
             yRange: this.labelsRange,
             resolveCollision: (
                 s1: InitialSimpleLabelSeries,
                 s2: InitialSimpleLabelSeries
             ): InitialSimpleLabelSeries => {
                 // Prefer to label series that have an end label
-                if (this.visibleEndLabels.has(s1.seriesName)) return s1
-                if (this.visibleEndLabels.has(s2.seriesName)) return s2
+                if (visibleEndLabels.has(s1.seriesName)) return s1
+                if (visibleEndLabels.has(s2.seriesName)) return s2
 
-                return s1 // no preference
+                return s1 // No preference
             },
+        })
+    }
+
+    @computed private get startLabelsState():
+        | SimpleVerticalLabelsState
+        | undefined {
+        return this.makeStartLabelsState({
+            yAxis: this.yAxis,
+            startX: this.startX,
+            visibleEndLabels: this.visibleEndLabels,
         })
     }
 
@@ -293,22 +347,64 @@ export class SlopeChartThumbnail
         )
     }
 
-    @computed private get endLabelsWidth(): number {
-        return this.endLabelsState?.width ?? 0
-    }
+    /**
+     * Estimated width of the start and end labels, used by innerBounds
+     * to reserve space on the left and right of the chart area.
+     *
+     * Ideally, we'd derive this from the final label states, which know
+     * exactly which labels are visible after collision detection. But that
+     * would introduce a cyclic dependency: the label states need the axis
+     * for pixel positions, the axis needs innerBounds, and innerBounds needs
+     * these widths. To break the cycle, we run a preliminary layout pass
+     * using the full bounds (without label padding).
+     */
+    @computed private get estimatedLabelWidth(): {
+        right: number
+        left: number
+    } {
+        // Preliminary bounds: account for the minimum padding from x-axis
+        // time marks, but not for labels (which is what we're estimating)
+        const preliminaryBounds = this.bounds
+            .padBottom(this.xMarksHeight)
+            .padRight(0.5 * this.xEndMarkWidth)
+            .padLeft(0.5 * this.xStartMarkWidth)
 
-    @computed private get startLabelsWidth(): number {
-        return this.startLabelsState?.width ?? 0
-    }
+        const preliminaryYAxis = this.chartState.toVerticalAxis(
+            this.yAxisConfig,
+            {
+                yDomain: this.yDomain,
+                yRange: preliminaryBounds.padHeight(6).yRange(),
+            }
+        )
 
-    @computed private get paddedEndLabelsWidth(): number {
-        return this.endLabelsWidth > 0 ? this.endLabelsWidth + LABEL_PADDING : 0
-    }
+        const preliminaryXScale = scaleLinear()
+            .domain(this.chartState.xDomain)
+            .range(preliminaryBounds.xRange())
+        const preliminaryStartX = preliminaryXScale(this.chartState.startTime)
+        const preliminaryEndX = preliminaryXScale(this.chartState.endTime)
 
-    @computed private get paddedStartLabelsWidth(): number {
-        return this.startLabelsWidth > 0
-            ? this.startLabelsWidth + LABEL_PADDING
-            : 0
+        const endLabelsState = this.makeEndLabelsState({
+            yAxis: preliminaryYAxis,
+            endX: preliminaryEndX,
+        })
+
+        const visibleEndLabels = new Set(
+            endLabelsState?.series.map((series) => series.seriesName)
+        )
+
+        const startLabelsState = this.makeStartLabelsState({
+            yAxis: preliminaryYAxis,
+            startX: preliminaryStartX,
+            visibleEndLabels,
+        })
+
+        const endWidth = endLabelsState?.width ?? 0
+        const startWidth = startLabelsState?.width ?? 0
+
+        return {
+            right: endWidth > 0 ? endWidth + LABEL_PADDING : 0,
+            left: startWidth > 0 ? startWidth + LABEL_PADDING : 0,
+        }
     }
 
     override render(): React.ReactElement {
@@ -352,19 +448,10 @@ export class SlopeChartThumbnail
                     ))}
                 </g>
                 {this.startLabelsState && (
-                    <SimpleVerticalLabels
-                        state={this.startLabelsState}
-                        yAxis={this.yAxis}
-                        x={this.innerBounds.left - LABEL_PADDING}
-                        xAnchor="end"
-                    />
+                    <SimpleVerticalLabels state={this.startLabelsState} />
                 )}
                 {this.endLabelsState && (
-                    <SimpleVerticalLabels
-                        state={this.endLabelsState}
-                        yAxis={this.yAxis}
-                        x={this.innerBounds.right + LABEL_PADDING}
-                    />
+                    <SimpleVerticalLabels state={this.endLabelsState} />
                 )}
             </>
         )

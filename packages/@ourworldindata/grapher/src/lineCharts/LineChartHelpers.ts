@@ -172,10 +172,10 @@ export function toRenderLineChartSeries(
         return { ...series, hover, emphasis }
     })
 
-    // draw lines on top of markers-only series
+    // Draw lines on top of markers-only series
     series = _.sortBy(series, (series) => !series.plotMarkersOnly)
 
-    // sort by interaction state so that foreground series
+    // Sort by interaction state so that foreground series
     // are drawn on top of background series
     if (isFocusModeActive || isHoverModeActive) {
         series = _.sortBy(series, byHoverThenFocusState)
