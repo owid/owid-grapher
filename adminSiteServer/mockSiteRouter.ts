@@ -81,10 +81,6 @@ import { getLatestArchivedPostPageVersionsIfEnabled } from "../db/model/Archived
 import { TopicTag } from "../site/DataInsightsIndexPage.js"
 import { getSlugForTopicTag } from "../baker/GrapherBakingUtils.js"
 import { SEARCH_BASE_PATH } from "../site/search/searchUtils.js"
-import {
-    enrichLatestPageItems,
-    getLatestPageItems,
-} from "../db/model/Gdoc/GdocPost.js"
 import { getAndLoadGdocBySlug } from "../db/model/Gdoc/GdocFactory.js"
 import {
     instantiateProfileForEntity,
@@ -443,49 +439,11 @@ getPlainRouteWithROTransaction(
     async (_, res, trx) => res.send(await renderSearchPage(trx))
 )
 
-const handleLatestPageRequest = async (
-    trx: KnexReadonlyTransaction,
-    pageNum: number
-) => {
-    const pageData = await getLatestPageItems(trx, pageNum, [
-        OwidGdocType.Article,
-        OwidGdocType.DataInsight,
-        OwidGdocType.Announcement,
-    ])
-
-    const { linkedAuthors, imageMetadata, linkedDocuments, linkedCharts } =
-        await enrichLatestPageItems(trx, pageData.items)
-
-    return renderLatestPage(
-        pageData.items,
-        imageMetadata,
-        linkedAuthors,
-        linkedCharts,
-        linkedDocuments,
-        pageData.pagination.pageNum,
-        pageData.pagination.totalPages
-    )
-}
-
 getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/latest",
     async (_, res, trx) => {
-        const latest = await handleLatestPageRequest(trx, 1)
-        res.send(latest)
-    }
-)
-
-getPlainRouteWithROTransaction(
-    mockSiteRouter,
-    "/latest/page/:pageno",
-    async (req, res, trx) => {
-        const pagenum = parseInt(req.params.pageno, 10)
-        if (isNaN(pagenum) || pagenum < 1) {
-            throw new Error("invalid page number")
-        }
-
-        const html = await handleLatestPageRequest(trx, pagenum)
+        const html = await renderLatestPage(trx)
         res.send(html)
     }
 )
