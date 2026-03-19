@@ -237,9 +237,9 @@ export const VALID_PEER_COUNTRY_STRATEGY_QUERY_PARAMS: PeerCountryStrategyQueryP
 
 export enum GrapherTooltipAnchor {
     /** The tooltip is positioned relative to the mouse cursor */
-    mouse = "mouse",
+    Mouse = "mouse",
     /** The tooltip is pinned to the bottom of the screen */
-    bottom = "bottom",
+    Bottom = "bottom",
 }
 
 export interface AnnotationFieldsInTitle {
