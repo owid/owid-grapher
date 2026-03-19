@@ -7,14 +7,8 @@ import {
     DemographySkeleton,
     LoadingSpinner,
 } from "../components/DemographyLoadAndError.js"
-import {
-    queryClient,
-    useDemographyEntityData,
-    useDemographyMetadata,
-} from "../helpers/fetch.js"
-import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
+import { queryClient, useDemographyData } from "../helpers/fetch.js"
 import type { PopulationVariantConfig } from "../config.js"
-import { combineStatuses } from "../helpers/utils.js"
 
 import { articulateEntity } from "@ourworldindata/utils"
 
@@ -48,36 +42,11 @@ function PopulationVariant({
         config.region ?? DEFAULT_ENTITY_NAME
     )
 
-    const metadataResponse = useDemographyMetadata()
-    const entityDataResponse = useDemographyEntityData(
-        entityName,
-        metadataResponse.data
-    )
+    const { metadata, entityData, isLoadingEntityData, status } =
+        useDemographyData(entityName)
 
-    const isLoadingEntityData = useDelayedLoading(
-        entityDataResponse.isPlaceholderData,
-        300
-    )
-
-    const metadata = metadataResponse.data
-    const entityData = entityDataResponse.data
-
-    const loadingStatus = combineStatuses(
-        metadataResponse.status,
-        entityDataResponse.status
-    )
-
-    if (loadingStatus === "error") {
-        return <DemographyChartError />
-    }
-
-    if (loadingStatus === "pending") {
-        return <DemographySkeleton />
-    }
-
-    if (!metadata || !entityData) {
-        return <DemographyChartError />
-    }
+    if (status === "pending") return <DemographySkeleton />
+    if (!metadata || !entityData) return <DemographyChartError />
 
     return (
         <div className="demography-chart demography-chart--population">
