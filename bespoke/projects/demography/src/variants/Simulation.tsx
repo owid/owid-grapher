@@ -16,7 +16,7 @@ import {
     DemographySkeleton,
     LoadingSpinner,
 } from "../components/DemographyLoadAndError.js"
-import { CountryData } from "../helpers/types.js"
+import { CountryData, ParameterKey } from "../helpers/types.js"
 import { articulateEntity } from "@ourworldindata/utils"
 import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
@@ -91,6 +91,9 @@ function SimulationVariant({
                 isLoading={isLoadingEntityData}
                 title={config.title}
                 subtitle={config.subtitle}
+                focusParameter={config.focusParameter}
+                stabilizingParameter={config.stabilizingParameter}
+                hidePopulationPyramid={config.hidePopulationPyramid}
             />
         </div>
     )
@@ -101,11 +104,17 @@ function SimulationCaptionedChart({
     isLoading = false,
     title: titleOverride,
     subtitle: subtitleOverride,
+    focusParameter,
+    stabilizingParameter,
+    hidePopulationPyramid,
 }: {
     data: CountryData
     isLoading?: boolean
     title?: string
     subtitle?: string
+    focusParameter?: ParameterKey
+    stabilizingParameter?: ParameterKey
+    hidePopulationPyramid?: boolean
 }) {
     const countryName = data.country
 
@@ -121,7 +130,12 @@ function SimulationCaptionedChart({
             <ChartHeader title={title} subtitle={subtitle} />
             <div className="demography-captioned-chart__chart-area">
                 {isLoading && <LoadingSpinner />}
-                <SimulationContent data={data} />
+                <SimulationContent
+                    data={data}
+                    focusParameter={focusParameter}
+                    stabilizingParameter={stabilizingParameter}
+                    hidePopulationPyramid={hidePopulationPyramid}
+                />
             </div>
             <ChartFooter
                 className="demography-footer"

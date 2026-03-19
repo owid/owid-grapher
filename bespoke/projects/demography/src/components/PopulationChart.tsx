@@ -37,11 +37,13 @@ interface DataPoint {
 interface PopulationChartProps {
     simulation: Simulation
     showCustomProjection?: boolean
+    hideChangeAnnotation?: boolean
 }
 
 function PopulationChart({
     simulation,
     showCustomProjection = true,
+    hideChangeAnnotation = false,
     width,
     height,
 }: PopulationChartProps & { width: number; height: number }) {
@@ -135,7 +137,8 @@ function PopulationChart({
     const dotDistance = Math.abs(
         yScale(lastProjectionDataPoint) - yScale(lastBenchmarkDataPoint)
     )
-    const shouldShowChangeAnnotation = hasUserChanges && dotDistance > 20
+    const shouldShowChangeAnnotation =
+        !hideChangeAnnotation && hasUserChanges && dotDistance > 20
 
     return (
         <div style={{ position: "relative" }}>
@@ -242,6 +245,7 @@ export const ResponsivePopulationChart = memo(
     function ResponsivePopulationChart({
         simulation,
         showCustomProjection,
+        hideChangeAnnotation,
     }: PopulationChartProps) {
         const { parentRef, width, height } = useParentSize()
         return (
@@ -250,6 +254,7 @@ export const ResponsivePopulationChart = memo(
                     <PopulationChart
                         simulation={simulation}
                         showCustomProjection={showCustomProjection}
+                        hideChangeAnnotation={hideChangeAnnotation}
                         width={width}
                         height={height}
                     />
