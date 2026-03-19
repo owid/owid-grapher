@@ -5,6 +5,8 @@ export type VariantName = (typeof VARIANT_NAMES)[number]
 export interface SimulationVariantConfig {
     hideControls: boolean
     region?: string
+    title?: string
+    subtitle?: string
 }
 
 export interface PopulationVariantConfig {
@@ -35,6 +37,8 @@ export function parseConfig(
             return {
                 hideControls: raw.hideControls === "true",
                 region: raw.region,
+                title: raw.title,
+                subtitle: raw.subtitle,
             }
         case "population":
             return {
