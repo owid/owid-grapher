@@ -19,6 +19,13 @@ import { OwidVariableRoundingMode } from "@ourworldindata/types"
 import { QueryStatus } from "@tanstack/react-query"
 
 export function formatPopulationValueShort(value: number): string {
+    if (Math.abs(value) < 1) {
+        return formatValue(value, {
+            roundingMode: OwidVariableRoundingMode.decimalPlaces,
+            numDecimalPlaces: 2,
+            numberAbbreviation: "short",
+        })
+    }
     return formatValue(value, {
         roundingMode: OwidVariableRoundingMode.significantFigures,
         numSignificantFigures: 1,
