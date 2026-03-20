@@ -18,10 +18,10 @@ export enum SlideTemplate {
  */
 export type MarkdownText = string
 
-/** Either an uploaded image (by filename) or a grapher URL, but not both */
+/** Either an uploaded image (by filename) or a grapher chart (by slug), but not both */
 export type SlideMedia =
     | { type: "image"; filename: string }
-    | { type: "grapher"; url: string }
+    | { type: "grapher"; slug: string; queryString?: string }
 
 export interface SlideImageChartOnly {
     template: SlideTemplate.ImageChartOnly
@@ -103,7 +103,11 @@ export interface SlideshowConfig {
 
 const SlideMediaSchema = z.discriminatedUnion("type", [
     z.object({ type: z.literal("image"), filename: z.string().min(1) }),
-    z.object({ type: z.literal("grapher"), url: z.string().min(1) }),
+    z.object({
+        type: z.literal("grapher"),
+        slug: z.string().min(1),
+        queryString: z.string().optional(),
+    }),
 ])
 
 const SlideImageChartOnlySchema = z.object({

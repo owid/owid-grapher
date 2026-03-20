@@ -32,13 +32,11 @@ function extractLinksFromSlides(slides: Slide[]): {
         if (slide.media.type === "image") {
             imageFilenames.push(slide.media.filename)
         } else if (slide.media.type === "grapher") {
-            const url = new URL(slide.media.url, "https://ourworldindata.org")
-            const slug = url.pathname.replace(/^\/grapher\//, "")
             links.push({
-                target: slug,
+                target: slide.media.slug,
                 linkType: ContentGraphLinkType.Grapher,
-                queryString: url.search,
-                hash: url.hash,
+                queryString: slide.media.queryString ?? "",
+                hash: "",
             })
         }
     }
