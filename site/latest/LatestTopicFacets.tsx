@@ -22,6 +22,7 @@ export const LatestTopicFacets = ({
     disabledFilters,
     disabledTopics,
     allTopicsDisabled,
+    tagFacetCounts,
 }: {
     topics: string[]
     selectedTopics: string[]
@@ -31,6 +32,7 @@ export const LatestTopicFacets = ({
     disabledFilters: Set<string>
     disabledTopics: Set<string>
     allTopicsDisabled: boolean
+    tagFacetCounts: Record<string, number>
 }) => {
     const [isTopicDropdownOpen, setIsTopicDropdownOpen] = useState(false)
 
@@ -140,6 +142,7 @@ export const LatestTopicFacets = ({
                                     const isSelected =
                                         selectedTopics.includes(topic)
                                     const isDisabled = disabledTopics.has(topic)
+                                    const count = tagFacetCounts[topic] ?? 0
                                     return (
                                         <li
                                             key={topic}
@@ -182,6 +185,9 @@ export const LatestTopicFacets = ({
                                             </span>
                                             <span className="latest-search__topic-dropdown-label">
                                                 {topic}
+                                            </span>
+                                            <span className="latest-search__topic-dropdown-count">
+                                                {count}
                                             </span>
                                         </li>
                                     )
