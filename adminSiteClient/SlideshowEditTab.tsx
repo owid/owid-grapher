@@ -56,6 +56,39 @@ function makeDefaultSlideForTemplate(template: SlideTemplate): Slide {
     }
 }
 
+/** Returns true if the slide has any user-entered content beyond defaults */
+function slideHasContent(slide: Slide): boolean {
+    switch (slide.template) {
+        case SlideTemplate.ImageChartOnly:
+            return (
+                slide.media !== null ||
+                !!slide.sectionTitle ||
+                !!slide.slideTitle
+            )
+        case SlideTemplate.Section:
+            return !!slide.title || !!slide.subtitle
+        case SlideTemplate.ImageChartWithText:
+            return slide.media !== null || !!slide.text
+        case SlideTemplate.TitleSlide:
+            return (
+                !!slide.title ||
+                !!slide.subtitle ||
+                !!slide.author ||
+                !!slide.date
+            )
+        case SlideTemplate.Blank:
+            return false
+        case SlideTemplate.TwoColumnText:
+            return !!slide.leftText || !!slide.rightText
+        case SlideTemplate.Quote:
+            return !!slide.quote || !!slide.attribution
+        case SlideTemplate.BigNumber:
+            return !!slide.number || !!slide.label
+        case SlideTemplate.FullSlideImage:
+            return slide.media !== null
+    }
+}
+
 export function SlideshowEditTab(props: {
     slide: Slide
     onUpdate: (slide: Slide) => void
@@ -63,6 +96,15 @@ export function SlideshowEditTab(props: {
     const { slide, onUpdate } = props
 
     const handleTemplateChange = (template: SlideTemplate) => {
+        if (template === slide.template) return
+        if (
+            slideHasContent(slide) &&
+            !confirm(
+                "Changing the template will discard the current slide content. Continue?"
+            )
+        ) {
+            return
+        }
         onUpdate(makeDefaultSlideForTemplate(template))
     }
 
@@ -114,7 +156,19 @@ export function SlideshowEditTab(props: {
     )
 }
 
-const GRAPHER_BASE_URL = "https://ourworldindata.org/grapher/"
+const GRAPHER_URL_REGEX = /^https?:\/\/[^/]*\/grapher\/([a-z0-9-]+)(\?.*)?$/i
+
+/** Parse a full grapher URL into slug + queryString, or return null */
+function parseGrapherUrl(
+    input: string
+): { slug: string; queryString?: string } | null {
+    const match = input.match(GRAPHER_URL_REGEX)
+    if (!match) return null
+    return {
+        slug: match[1],
+        queryString: match[2] || undefined,
+    }
+}
 
 function MediaEditor(props: {
     media: SlideMedia | null
@@ -128,17 +182,27 @@ function MediaEditor(props: {
 
     const { data: grapherSlugs = [] } = useGrapherSlugs()
 
-    // Display the slug portion only, stripping the base URL if present
-    const grapherInputValue =
-        media?.type === "grapher" && media.url.startsWith(GRAPHER_BASE_URL)
-            ? media.url.slice(GRAPHER_BASE_URL.length)
-            : media?.type === "grapher"
-              ? media.url
-              : ""
+    // Local search text for the autocomplete — only committed to
+    // the slide data model when the user selects from the dropdown
+    // or pastes a full URL. This prevents the Grapher from trying
+    // to instantiate on every keystroke.
+    const committedSlug = media?.type === "grapher" ? media.slug : ""
+    const [grapherSearchText, setGrapherSearchText] = useState(committedSlug)
+
+    // Keep search text in sync when the committed slug changes
+    // externally (e.g. navigating between slides).
+    const prevCommittedSlugRef = React.useRef(committedSlug)
+    if (prevCommittedSlugRef.current !== committedSlug) {
+        prevCommittedSlugRef.current = committedSlug
+        setGrapherSearchText(committedSlug)
+    }
+
+    const grapherQueryString =
+        media?.type === "grapher" ? (media.queryString ?? "") : ""
 
     const grapherOptions = useMemo(() => {
-        if (!grapherInputValue) return []
-        const term = grapherInputValue.toLowerCase()
+        if (!grapherSearchText) return []
+        const term = grapherSearchText.toLowerCase()
         return grapherSlugs
             .filter((slug) => slug.toLowerCase().includes(term))
             .sort((a, b) => a.length - b.length)
@@ -147,7 +211,33 @@ function MediaEditor(props: {
                 value: slug,
                 label: slug,
             }))
-    }, [grapherSlugs, grapherInputValue])
+    }, [grapherSlugs, grapherSearchText])
+
+    const handleGrapherSearch = (text: string): void => {
+        setGrapherSearchText(text)
+
+        if (!text) {
+            onChange(null)
+            return
+        }
+
+        // If user pastes a full URL, commit immediately
+        const parsed = parseGrapherUrl(text)
+        if (parsed) {
+            setGrapherSearchText(parsed.slug)
+            onChange({
+                type: "grapher",
+                slug: parsed.slug,
+                queryString: parsed.queryString,
+            })
+        }
+    }
+
+    const handleGrapherSelect = (slug: string): void => {
+        setGrapherSearchText(slug)
+        // Always clear queryString when selecting a new slug
+        onChange({ type: "grapher", slug })
+    }
 
     return (
         <div className="SlideshowEditTab__media-editor">
@@ -220,28 +310,19 @@ function MediaEditor(props: {
             <label>
                 Grapher chart:
                 <AutoComplete
-                    value={grapherInputValue}
+                    value={grapherSearchText}
                     options={grapherOptions}
-                    onSearch={(text) => {
-                        if (text) {
-                            onChange({
-                                type: "grapher",
-                                url: `${GRAPHER_BASE_URL}${text}`,
-                            })
-                        } else {
-                            onChange(null)
-                        }
-                    }}
-                    onSelect={(slug) => {
-                        onChange({
-                            type: "grapher",
-                            url: `${GRAPHER_BASE_URL}${slug}`,
-                        })
-                    }}
-                    placeholder="Search by chart slug..."
+                    onSearch={handleGrapherSearch}
+                    onSelect={handleGrapherSelect}
+                    placeholder="Search by slug or paste a full grapher URL..."
                     style={{ width: "100%" }}
                 />
             </label>
+            {media?.type === "grapher" && media.slug && grapherQueryString && (
+                <p className="SlideshowEditTab__query-string-display">
+                    {grapherQueryString}
+                </p>
+            )}
         </div>
     )
 }
