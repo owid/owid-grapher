@@ -1,4 +1,4 @@
-import { memo, useMemo } from "react"
+import { memo, useMemo, useState, useCallback } from "react"
 import { useParentSize } from "@visx/responsive"
 import { scaleLinear } from "@visx/scale"
 import { LinePath } from "@visx/shape"
@@ -19,10 +19,13 @@ import {
     LABEL_COLOR,
 } from "../helpers/constants"
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
+import { TooltipCard } from "@ourworldindata/grapher/src/tooltip/TooltipCard.js"
+import { TooltipValue } from "@ourworldindata/grapher/src/tooltip/TooltipContents.js"
 import { formatValue } from "@ourworldindata/utils"
+import { localPoint } from "@visx/event"
 import * as R from "remeda"
 import { BezierArrow } from "../../../../components/BezierArrow/BezierArrow.js"
-import { Halo } from "@ourworldindata/components"
+import { Halo, TextWrap } from "@ourworldindata/components"
 import { formatPopulationValueLong } from "../helpers/utils.js"
 import { TimeAxisX } from "./TimeAxisX.js"
 import { last } from "lodash-es"
@@ -32,6 +35,15 @@ const margin = { top: 18, bottom: 18, left: 0, right: 0 }
 interface DataPoint {
     year: number
     value: number
+}
+
+function pixelDistance(
+    yScale: (v: number) => number,
+    a: number | undefined,
+    b: number | undefined
+): number {
+    if (a === undefined || b === undefined) return 0
+    return Math.abs(yScale(a) - yScale(b))
 }
 
 interface PopulationChartProps {
@@ -47,6 +59,10 @@ function PopulationChart({
     width,
     height,
 }: PopulationChartProps & { width: number; height: number }) {
+    // Hover state for tooltip
+    const [hoveredYear, setHoveredYear] = useState<number | null>(null)
+    const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+
     const historicalDataPoints = useMemo(
         () =>
             R.pipe(
@@ -124,6 +140,50 @@ function PopulationChart({
     const lastProjectionDataPoint = last(projectionDataPoints)?.value
     const lastBenchmarkDataPoint = last(benchmarkDataPoints)?.value
 
+    const handleMouseMove = useCallback(
+        (e: React.MouseEvent<SVGRectElement>) => {
+            const point = localPoint(e)
+            if (!point) return
+
+            const svgX = point.x - margin.left
+            // Invert x position to get the year, then snap to nearest integer
+            const rawYear = xScale.invert(svgX)
+            const snappedYear = Math.round(rawYear)
+            const clampedYear = Math.max(
+                START_YEAR,
+                Math.min(END_YEAR, snappedYear)
+            )
+
+            setHoveredYear(clampedYear)
+            setMousePosition({ x: point.x, y: point.y })
+        },
+        [xScale]
+    )
+
+    const handleMouseLeave = useCallback(() => {
+        setHoveredYear(null)
+    }, [])
+
+    // Look up values at the hovered year
+    const hoveredValues = useMemo(() => {
+        if (hoveredYear === null) return null
+        const historical = historicalDataPoints.find(
+            (d) => d.year === hoveredYear
+        )
+        const projection = projectionDataPoints.find(
+            (d) => d.year === hoveredYear
+        )
+        const benchmark = benchmarkDataPoints.find(
+            (d) => d.year === hoveredYear
+        )
+        return { historical, projection, benchmark }
+    }, [
+        hoveredYear,
+        historicalDataPoints,
+        projectionDataPoints,
+        benchmarkDataPoints,
+    ])
+
     // Shouldn't happen
     if (
         lastProjectionDataPoint === undefined ||
@@ -134,11 +194,23 @@ function PopulationChart({
 
     const hasUserChanges =
         showCustomProjection && simulation.activePreset !== "unwpp"
-    const dotDistance = Math.abs(
-        yScale(lastProjectionDataPoint) - yScale(lastBenchmarkDataPoint)
+
+    // Show change annotation at hovered year when hovering a projection year,
+    // otherwise at the end year
+    const isHoveringProjection =
+        hoveredYear !== null && hoveredYear > HISTORICAL_END_YEAR
+    const changeAnnotationYear = isHoveringProjection ? hoveredYear : END_YEAR
+    const dotDistance = pixelDistance(
+        yScale,
+        isHoveringProjection
+            ? hoveredValues?.projection?.value
+            : lastProjectionDataPoint,
+        isHoveringProjection
+            ? hoveredValues?.benchmark?.value
+            : lastBenchmarkDataPoint
     )
     const shouldShowChangeAnnotation =
-        !hideChangeAnnotation && hasUserChanges && dotDistance > 20
+        !hideChangeAnnotation && hasUserChanges && dotDistance > 18
 
     return (
         <div style={{ position: "relative" }}>
@@ -152,6 +224,19 @@ function PopulationChart({
                         height={innerHeight}
                         fill={PROJECTION_BACKGROUND}
                     />
+
+                    {/* Hover vertical line */}
+                    {hoveredYear !== null && (
+                        <line
+                            x1={xScale(hoveredYear)}
+                            y1={0}
+                            x2={xScale(hoveredYear)}
+                            y2={innerHeight}
+                            stroke="#ccc"
+                            strokeWidth={1}
+                            pointerEvents="none"
+                        />
+                    )}
 
                     <TimeAxisX
                         xScale={xScale}
@@ -231,12 +316,55 @@ function PopulationChart({
                         <ChangeAnnotation
                             xScale={xScale}
                             yScale={yScale}
+                            year={changeAnnotationYear}
+                            innerWidth={innerWidth}
                             projectionDataPoints={projectionDataPoints}
                             benchmarkDataPoints={benchmarkDataPoints}
                         />
                     )}
+
+                    {/* Hover dots — rendered above the change annotation */}
+                    {hoveredYear !== null && hoveredValues && (
+                        <HoverDots
+                            x={xScale(hoveredYear)}
+                            yScale={yScale}
+                            hoveredValues={hoveredValues}
+                            showCustomProjection={showCustomProjection}
+                        />
+                    )}
+
+                    {/* Invisible interaction rect — must be last to capture events */}
+                    <rect
+                        x={0}
+                        y={0}
+                        width={innerWidth}
+                        height={innerHeight}
+                        fill="transparent"
+                        onMouseMove={handleMouseMove}
+                        onMouseLeave={handleMouseLeave}
+                    />
                 </Group>
             </svg>
+
+            {/* Tooltip */}
+            {hoveredYear !== null && hoveredValues && (
+                <TooltipCard
+                    id="population-chart-tooltip"
+                    x={mousePosition.x}
+                    y={mousePosition.y}
+                    offsetX={15}
+                    offsetY={-10}
+                    title={String(hoveredYear)}
+                    containerBounds={{ width, height }}
+                >
+                    <PopulationTooltipContent
+                        hoveredYear={hoveredYear}
+                        hoveredValues={hoveredValues}
+                        showCustomProjection={showCustomProjection}
+                        hasUserChanges={hasUserChanges}
+                    />
+                </TooltipCard>
+            )}
         </div>
     )
 }
@@ -263,6 +391,62 @@ export const ResponsivePopulationChart = memo(
         )
     }
 )
+
+function HoverDots({
+    x,
+    yScale,
+    hoveredValues,
+    showCustomProjection,
+}: {
+    x: number
+    yScale: (v: number) => number
+    hoveredValues: {
+        historical: DataPoint | undefined
+        projection: DataPoint | undefined
+        benchmark: DataPoint | undefined
+    }
+    showCustomProjection: boolean
+}) {
+    return (
+        <g>
+            {hoveredValues.historical && (
+                <circle
+                    cx={x}
+                    cy={yScale(hoveredValues.historical.value)}
+                    r={4}
+                    fill={DENIM_BLUE}
+                    stroke="#fff"
+                    strokeWidth={1.5}
+                    pointerEvents="none"
+                />
+            )}
+            {hoveredValues.benchmark && (
+                <circle
+                    cx={x}
+                    cy={yScale(hoveredValues.benchmark.value)}
+                    r={4}
+                    fill={
+                        showCustomProjection ? BENCHMARK_LINE_COLOR : DENIM_BLUE
+                    }
+                    stroke="#fff"
+                    strokeWidth={1.5}
+                    pointerEvents="none"
+                />
+            )}
+            {showCustomProjection && hoveredValues.projection && (
+                <circle
+                    cx={x}
+                    cy={yScale(hoveredValues.projection.value)}
+                    r={4}
+                    fill={DENIM_BLUE}
+                    stroke="#fff"
+                    strokeWidth={1.5}
+                    pointerEvents="none"
+                />
+            )}
+        </g>
+    )
+}
 
 function EndpointLabels({
     xScale,
@@ -322,17 +506,25 @@ function EndpointLabels({
 function ChangeAnnotation({
     xScale,
     yScale,
+    year,
+    innerWidth,
     projectionDataPoints,
     benchmarkDataPoints,
 }: {
     xScale: (v: number) => number
     yScale: (v: number) => number
+    year: number
+    innerWidth: number
     projectionDataPoints: { year: number; value: number }[]
     benchmarkDataPoints: { year: number; value: number }[]
 }) {
-    const forecastValue = projectionDataPoints.at(-1)!.value
-    const benchmarkValue = benchmarkDataPoints.at(-1)!.value
-    const x = xScale(END_YEAR)
+    const forecastPoint = projectionDataPoints.find((d) => d.year === year)
+    const benchmarkPoint = benchmarkDataPoints.find((d) => d.year === year)
+    if (!forecastPoint || !benchmarkPoint) return null
+
+    const forecastValue = forecastPoint.value
+    const benchmarkValue = benchmarkPoint.value
+    const x = xScale(year)
     const yForecast = yScale(forecastValue)
     const yBenchmark = yScale(benchmarkValue)
 
@@ -350,6 +542,16 @@ function ChangeAnnotation({
         showPlus: true,
     })
 
+    const labelFontSize = 10
+    const labelGap = 6
+    const labelWidth = new TextWrap({
+        text: pctLabel,
+        fontSize: labelFontSize,
+        fontWeight: 500,
+        maxWidth: Infinity,
+    }).width
+    const placeOnRight = x + labelGap + labelWidth <= innerWidth
+
     return (
         <>
             {/* Arrow between dots */}
@@ -363,17 +565,85 @@ function ChangeAnnotation({
             {/* Percentage label */}
             <Halo id="change-label" outlineWidth={2}>
                 <text
-                    x={x - 6}
+                    x={placeOnRight ? x + labelGap : x - labelGap}
                     y={midY}
-                    textAnchor="end"
+                    textAnchor={placeOnRight ? "start" : "end"}
                     dominantBaseline="middle"
-                    fontSize={10}
+                    fontSize={labelFontSize}
                     fontWeight={500}
                     fill={DENIM_BLUE}
                 >
                     {pctLabel}
                 </text>
             </Halo>
+        </>
+    )
+}
+
+function PopulationTooltipContent({
+    hoveredYear,
+    hoveredValues,
+    showCustomProjection,
+    hasUserChanges,
+}: {
+    hoveredYear: number
+    hoveredValues: {
+        historical: DataPoint | undefined
+        projection: DataPoint | undefined
+        benchmark: DataPoint | undefined
+    }
+    showCustomProjection: boolean
+    hasUserChanges: boolean
+}) {
+    const isHistorical = hoveredYear <= HISTORICAL_END_YEAR
+
+    if (isHistorical && hoveredValues.historical) {
+        return (
+            <TooltipValue
+                label="Population"
+                value={formatPopulationValueLong(
+                    hoveredValues.historical.value
+                )}
+                color={DENIM_BLUE}
+            />
+        )
+    }
+
+    const projectionValue = showCustomProjection
+        ? hoveredValues.projection
+        : hoveredValues.benchmark
+    const benchmarkValue = hoveredValues.benchmark
+
+    if (!projectionValue || !benchmarkValue) return null
+
+    const difference = projectionValue.value - benchmarkValue.value
+    const formattedDifference = formatValue(difference, {
+        numSignificantFigures: 2,
+        numberAbbreviation: "short",
+        showPlus: true,
+    })
+
+    return (
+        <>
+            <TooltipValue
+                label="UN projection"
+                value={formatPopulationValueLong(benchmarkValue.value)}
+                color={showCustomProjection ? GRAPHER_LIGHT_TEXT : DENIM_BLUE}
+            />
+            <TooltipValue
+                label="Your projection"
+                value={
+                    <span>
+                        {formatPopulationValueLong(projectionValue.value)}
+                        {hasUserChanges && difference !== 0 && (
+                            <span className="population-chart-tooltip__difference">
+                                ({formattedDifference})
+                            </span>
+                        )}
+                    </span>
+                }
+                color={DENIM_BLUE}
+            />
         </>
     )
 }
