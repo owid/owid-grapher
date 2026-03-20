@@ -17,7 +17,9 @@ import {
     SearchFlatArticleResponse,
     SearchProfileResponse,
     ProfileHit,
+    PageChronologicalRecord,
 } from "@ourworldindata/types"
+import { type SearchResponse } from "algoliasearch"
 import { type LiteClient } from "algoliasearch/lite"
 import {
     getFilterNamesOfType,
@@ -27,6 +29,7 @@ import {
     getSelectableTopics,
     CHARTS_INDEX,
     PAGES_INDEX,
+    PAGES_CHRONOLOGICAL_INDEX,
     DATA_CATALOG_ATTRIBUTES,
     formatDisjunctiveFacetFilters,
 } from "./searchUtils.js"
@@ -56,6 +59,21 @@ export const searchQueryKeys = {
         [PAGES_INDEX, "topics", makeStateForKey(state)] as const,
     profiles: (state: SearchState) =>
         [PAGES_INDEX, "profiles", makeStateForKey(state)] as const,
+} as const
+
+export const latestPagesQueryKey = {
+    latestPages: (
+        topics: string[],
+        contentType: string | null,
+        kicker: string | null
+    ) =>
+        [
+            PAGES_CHRONOLOGICAL_INDEX,
+            "latest",
+            topics.length > 0 ? topics.sort().join(",") : "all",
+            contentType ?? "all",
+            kicker ?? "all",
+        ] as const,
 } as const
 
 export const chartHitQueryKeys = {
@@ -362,6 +380,97 @@ export async function queryProfiles(
     return liteSearchClient
         .search<ProfileHit>(searchParams)
         .then((response) => response.results[0] as SearchProfileResponse)
+}
+
+export interface LatestPagesResult {
+    response: SearchResponse<PageChronologicalRecord>
+    /** Tag facet counts filtered by the active type/kicker, disjunctive on topics.
+     *  Used to determine which topics to show/disable in the dropdown. */
+    tagFacetCounts: Record<string, number>
+    /** Type facet counts filtered by topics only (no type/kicker filter).
+     *  Used to determine which type pills to disable. */
+    typeFacetCounts: Record<string, number>
+    /** Kicker facet counts filtered by topics only (no type/kicker filter).
+     *  Used to determine which kicker pills to disable. */
+    kickerFacetCounts: Record<string, number>
+}
+
+export async function queryLatestPages(
+    liteSearchClient: LiteClient,
+    topics: string[],
+    offset: number,
+    length: number,
+    contentType: string | null = null,
+    kicker: string | null = null
+): Promise<LatestPagesResult> {
+    // Multiple topics are OR'd within a single facetFilter group
+    const topicFacetFilters: string[][] =
+        topics.length > 0 ? [topics.map((t) => "tags:" + t)] : []
+
+    let filters: string
+    if (kicker) {
+        filters = `type:${OwidGdocType.Announcement} AND kicker:"${kicker}"`
+    } else if (contentType) {
+        filters = `type:${contentType}`
+    } else {
+        filters = `type:${OwidGdocType.Article} OR type:${OwidGdocType.DataInsight} OR type:${OwidGdocType.Announcement}`
+    }
+
+    const baseFilter = `type:${OwidGdocType.Article} OR type:${OwidGdocType.DataInsight} OR type:${OwidGdocType.Announcement}`
+
+    const searchParams = [
+        // Query 1: paginated results (filtered by the active pill and
+        // selected topics)
+        {
+            indexName: PAGES_CHRONOLOGICAL_INDEX,
+            query: "",
+            filters,
+            facetFilters: topicFacetFilters,
+            offset,
+            length,
+            facets: ["tags"],
+        },
+        // Query 2: type/kicker facet counts filtered by topics only (no
+        // type/kicker filter) for pill disabling. Pills are mutually exclusive,
+        // so the active pill should not affect which other pills are enabled.
+        {
+            indexName: PAGES_CHRONOLOGICAL_INDEX,
+            query: "",
+            filters: baseFilter,
+            facetFilters: topicFacetFilters,
+            offset: 0,
+            length: 0,
+            facets: ["type", "kicker"],
+        },
+        // Query 3: tag facet counts filtered by the active pill only (no
+        // topic filter) for topic disabling. Topics are disjunctive (OR),
+        // so selected topics should not affect which other topics are enabled.
+        {
+            indexName: PAGES_CHRONOLOGICAL_INDEX,
+            query: "",
+            filters,
+            offset: 0,
+            length: 0,
+            facets: ["tags"],
+        },
+    ]
+
+    return liteSearchClient
+        .search<PageChronologicalRecord>(searchParams)
+        .then((response) => {
+            const mainResult = response
+                .results[0] as SearchResponse<PageChronologicalRecord>
+            const pillResult = response
+                .results[1] as SearchResponse<PageChronologicalRecord>
+            const topicResult = response
+                .results[2] as SearchResponse<PageChronologicalRecord>
+            return {
+                response: mainResult,
+                tagFacetCounts: topicResult.facets?.tags ?? {},
+                typeFacetCounts: pillResult.facets?.type ?? {},
+                kickerFacetCounts: pillResult.facets?.kicker ?? {},
+            }
+        })
 }
 
 export async function queryWritingTopics(
