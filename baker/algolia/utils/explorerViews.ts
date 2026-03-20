@@ -17,6 +17,7 @@ import { parseDelimited } from "@ourworldindata/core-table"
 import { toPlaintext } from "@ourworldindata/components"
 import {
     ColumnTypeNames,
+    ContentGraphLinkType,
     CoreRow,
     MinimalExplorerInfo,
     OwidColumnDef,
@@ -46,6 +47,7 @@ import {
     FinalizedExplorerRecord,
 } from "./types.js"
 import {
+    computeRecordScore,
     EMPTY_DATASET_CHART_RECORD_DIMENSIONS,
     MAX_NON_FM_RECORD_SCORE,
     maybeAddChangeInPrefix,
@@ -54,6 +56,7 @@ import {
     scaleRecordScores,
     uniqNonEmptyStrings,
 } from "./shared.js"
+import { getPublishedLinksTo } from "../../../db/model/Link.js"
 
 /**
  * Matches "duplicate 1234", to catch the (hacky) rows that are using the `duplicate` transformation to create
@@ -319,15 +322,6 @@ async function getEntitiesPerColumnPerTable(
         // Merge all these objects together
     ).then((results) => Object.assign({}, ...results))
 }
-
-const computeExplorerViewScore = (record: {
-    views_7d: number
-    numNonDefaultSettings: number
-    titleLength: number
-}) =>
-    (record.views_7d || 0) * 10 -
-    record.numNonDefaultSettings * 50 -
-    record.titleLength
 
 const parseYVariableIds = (matrixRow: CoreRow): (string | number)[] => {
     return (
@@ -665,7 +659,9 @@ async function finalizeRecords(
     records: EnrichedExplorerRecord[],
     slug: string,
     pageviews: Record<string, { views_7d: number }>,
-    explorerInfo: MinimalExplorerInfo
+    explorerInfo: MinimalExplorerInfo,
+    numRelatedArticles: number,
+    isFMSource: boolean
 ): Promise<FinalizedExplorerRecord[]> {
     const withCleanSubtitles = processSubtitles(records)
 
@@ -688,7 +684,7 @@ async function finalizeRecords(
                 updatedAt: explorerInfo.updatedAt.toISOString(),
                 keyChartForTags: [],
                 numDimensions: record.yVariableIds.length,
-                numRelatedArticles: 0,
+                numRelatedArticles,
                 title: record.viewTitle as string,
                 containerTitle: explorerInfo.title,
                 subtitle: record.viewSubtitle!,
@@ -698,7 +694,12 @@ async function finalizeRecords(
                 tags: explorerInfo.tags,
                 objectID: `${explorerInfo.slug}-${i}`,
                 id: `explorer/${explorerInfo.slug}${record.viewQueryParams}`,
-                score: computeExplorerViewScore(record),
+                score: computeRecordScore(
+                    numRelatedArticles,
+                    record.views_7d,
+                    isFMSource,
+                    record.titleLength
+                ),
                 views_7d: record.views_7d,
                 availableEntities: record.availableEntities,
                 titleLength: record.titleLength,
@@ -714,7 +715,7 @@ async function finalizeRecords(
 
     const sortedByScore = _.orderBy(
         unsortedFinalRecords,
-        computeExplorerViewScore,
+        "score",
         "desc"
     ) as Omit<FinalizedExplorerRecord, "viewTitleIndexWithinExplorer">[]
 
@@ -736,7 +737,8 @@ export const getExplorerViewRecordsForExplorer = async (
     explorerInfo: MinimalExplorerInfo,
     pageviews: Record<string, { views_7d: number }>,
     explorerAdminServer: ExplorerAdminServer,
-    skipGrapherViews: boolean
+    skipGrapherViews: boolean,
+    fmSlugs: Set<string>
 ): Promise<FinalizedExplorerRecord[]> => {
     const { slug } = explorerInfo
     const explorerProgram = await explorerAdminServer.getExplorerFromSlug(
@@ -819,8 +821,23 @@ export const getExplorerViewRecordsForExplorer = async (
         ...enrichedCsvRecords,
     ]
 
+    const linksFromGdocs = await getPublishedLinksTo(
+        trx,
+        [slug],
+        ContentGraphLinkType.Explorer
+    )
+    const numRelatedArticles = linksFromGdocs.length
+    const isFMSource = fmSlugs.has(slug)
+
     // Finalize records with titles, sorting, and grouping
-    return finalizeRecords(enrichedRecords, slug, pageviews, explorerInfo)
+    return finalizeRecords(
+        enrichedRecords,
+        slug,
+        pageviews,
+        explorerInfo,
+        numRelatedArticles,
+        isFMSource
+    )
 }
 
 async function getExplorersWithInheritedTags(
@@ -861,9 +878,15 @@ export const getExplorerViewRecords = async (
         slug?: string
         skipGrapherViews?: boolean
         baseContext?: IndexingContext
+        fmSlugs?: Set<string>
     }
 ): Promise<FinalizedExplorerRecord[]> => {
-    const { slug, skipGrapherViews = false, baseContext } = options ?? {}
+    const {
+        slug,
+        skipGrapherViews = false,
+        baseContext,
+        fmSlugs = new Set<string>(),
+    } = options ?? {}
 
     console.log("Getting explorer view records")
     if (skipGrapherViews) {
@@ -886,7 +909,8 @@ export const getExplorerViewRecords = async (
                 explorerInfo,
                 context.pageviews,
                 explorerAdminServer,
-                skipGrapherViews
+                skipGrapherViews,
+                fmSlugs
             ),
         { concurrency: 1 }
     ).then((records) => records.flat())
