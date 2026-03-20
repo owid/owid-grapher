@@ -72,6 +72,7 @@ export interface PopulationPyramidProps {
     colorByAgeGroup?: (ageGroup: string) => string
     showAgeGroupBackground?: boolean
     showAgeZoneLabels?: boolean
+    xAxisScaleMode?: "fixed" | "adaptive"
 }
 
 function PopulationPyramid({
@@ -80,6 +81,7 @@ function PopulationPyramid({
     colorByAgeGroup,
     showAgeGroupBackground = false,
     showAgeZoneLabels = false,
+    xAxisScaleMode = "fixed",
     width,
     height,
 }: PopulationPyramidProps & { width: number; height: number }) {
@@ -128,7 +130,19 @@ function PopulationPyramid({
     }, [populationBySex])
 
     const xScale = useMemo(() => {
-        const xAxisMax = computeMaxAgeGroupPopulation(simulation)
+        let xAxisMax: number
+        if (xAxisScaleMode === "adaptive") {
+            // Max from current year only
+            xAxisMax = Math.max(
+                ...Object.values(ageBucketsBySex.male),
+                ...Object.values(ageBucketsBySex.female),
+                0
+            )
+            xAxisMax = Math.ceil(xAxisMax * 1.1)
+        } else {
+            // Max across all years
+            xAxisMax = computeMaxAgeGroupPopulation(simulation)
+        }
         const domain = [0, xAxisMax]
         return {
             // Male: 0 at center, xAxisMax at left edge
@@ -136,7 +150,7 @@ function PopulationPyramid({
             // Female: 0 at center, xAxisMax at right edge
             female: scaleLinear({ domain, range: [0, halfWidth] }),
         }
-    }, [halfWidth, simulation])
+    }, [halfWidth, simulation, xAxisScaleMode, ageBucketsBySex])
 
     const yScale = useMemo(
         () =>
@@ -267,6 +281,7 @@ export function ResponsivePopulationPyramid({
     colorByAgeGroup,
     showAgeGroupBackground,
     showAgeZoneLabels,
+    xAxisScaleMode,
 }: PopulationPyramidProps) {
     const { parentRef, width, height } = useParentSize()
     return (
@@ -278,6 +293,7 @@ export function ResponsivePopulationPyramid({
                     colorByAgeGroup={colorByAgeGroup}
                     showAgeGroupBackground={showAgeGroupBackground}
                     showAgeZoneLabels={showAgeZoneLabels}
+                    xAxisScaleMode={xAxisScaleMode}
                     width={width}
                     height={height}
                 />

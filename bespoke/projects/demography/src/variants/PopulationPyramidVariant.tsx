@@ -8,34 +8,36 @@ import {
     LoadingSpinner,
 } from "../components/DemographyLoadAndError.js"
 import { queryClient, useDemographyData } from "../helpers/fetch.js"
-import type { PopulationVariantConfig } from "../config.js"
-
+import type { PopulationPyramidVariantConfig } from "../config.js"
 import { articulateEntity } from "@ourworldindata/utils"
-
 import { CountryData } from "../helpers/types.js"
 import { useSimulation } from "../helpers/useSimulation.js"
-
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
-import { ResponsivePopulationChart } from "../components/PopulationChart.js"
-import { DEFAULT_ENTITY_NAME } from "../helpers/constants.js"
+import { DetailedPopulationPyramid } from "../components/DetailedPopulationPyramid.js"
+import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
+import {
+    DEFAULT_ENTITY_NAME,
+    END_YEAR,
+    FULL_TIME_RANGE,
+} from "../helpers/constants.js"
 
-export function PopulationVariantWithProviders(props: {
+export function PopulationPyramidVariantWithProviders(props: {
     container: HTMLDivElement
-    config: PopulationVariantConfig
+    config: PopulationPyramidVariantConfig
 }): React.ReactElement {
     return (
         <QueryClientProvider client={queryClient}>
-            <PopulationVariant config={props.config} />
+            <PopulationPyramidVariant config={props.config} />
         </QueryClientProvider>
     )
 }
 
-function PopulationVariant({
+function PopulationPyramidVariant({
     config,
 }: {
-    config: PopulationVariantConfig
+    config: PopulationPyramidVariantConfig
 }): React.ReactElement {
     const showControls = !config.hideControls
     const [entityName, setEntityName] = useState(
@@ -49,7 +51,7 @@ function PopulationVariant({
     if (!metadata || !entityData) return <DemographyChartError />
 
     return (
-        <div className="demography-chart demography-chart--population">
+        <div className="demography-chart demography-chart__population-pyramid-variant">
             {showControls && (
                 <DemographyControls
                     metadata={metadata}
@@ -57,49 +59,63 @@ function PopulationVariant({
                     setEntityName={setEntityName}
                 />
             )}
-            <PopulationCaptionedChart
+            <PopulationPyramidCaptionedChart
                 data={entityData}
                 isLoading={isLoadingEntityData}
                 title={config.title}
                 subtitle={config.subtitle}
+                hideTimeline={config.hideTimeline}
             />
         </div>
     )
 }
 
-function PopulationCaptionedChart({
+function PopulationPyramidCaptionedChart({
     data,
     isLoading = false,
     title: titleOverride,
     subtitle: subtitleOverride,
+    hideTimeline,
 }: {
     data: CountryData
     isLoading?: boolean
     title?: string
     subtitle?: string
+    hideTimeline?: boolean
 }) {
+    const [year, setYear] = useState(END_YEAR)
+
     const simulation = useSimulation(data)
     const countryName = data.country
 
     const title =
         titleOverride ??
-        `Population of ${articulateEntity(countryName)}, 1950 to 2100`
+        `Age structure of ${articulateEntity(countryName)} in ${year}`
     const subtitle =
-        subtitleOverride ??
-        "Past estimates and future projections based on the UN's medium scenario"
+        subtitleOverride ?? "Population distribution by age and sex"
 
     return (
-        <Frame className="demography-population-only">
+        <Frame className="demography-population-pyramid">
             <ChartHeader title={title} subtitle={subtitle} />
-            <div className="demography-population-only__chart-area">
+            <div className="demography-population-pyramid__chart-area">
                 {isLoading && <LoadingSpinner />}
                 {simulation && (
-                    <ResponsivePopulationChart
+                    <DetailedPopulationPyramid
                         simulation={simulation}
-                        showCustomProjection={false}
+                        year={year}
+                        xAxisScaleMode={hideTimeline ? "adaptive" : "fixed"}
                     />
                 )}
             </div>
+            {!hideTimeline && (
+                <div className="demography-population-pyramid__slider">
+                    <TimeSlider
+                        times={FULL_TIME_RANGE}
+                        selectedTime={year}
+                        onChange={setYear}
+                    />
+                </div>
+            )}
             <ChartFooter
                 className="demography-footer"
                 source="List of data sources"
