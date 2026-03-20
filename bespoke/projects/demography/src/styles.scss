@@ -237,6 +237,13 @@ $panel-gap: 12px;
     padding: 6px;
 }
 
+.population-chart-tooltip__difference {
+    margin-left: 6px;
+    font-size: 0.8em;
+    font-weight: 400;
+    color: $denim-blue;
+}
+
 .population-chart-legend {
     display: flex;
     flex-wrap: wrap;

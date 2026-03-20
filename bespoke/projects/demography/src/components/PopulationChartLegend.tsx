@@ -17,7 +17,7 @@ export function PopulationChartLegend() {
                     />
                 </svg>
                 <span className="population-chart-legend__label">
-                    Configured projection
+                    Your projection
                 </span>
             </span>
             <span className="population-chart-legend__item">
