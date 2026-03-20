@@ -245,6 +245,25 @@
     padding: 48px 0;
 }
 
+.latest-search__clear-filters-button {
+    @include body-2-semibold;
+    background-color: transparent;
+    color: $blue-60;
+    border: 1px solid $blue-20;
+    border-radius: 4px;
+    padding: 8px 24px;
+    cursor: pointer;
+    margin-top: 16px;
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease;
+
+    &:hover {
+        background-color: $blue-10;
+        color: $blue-90;
+    }
+}
+
 .latest-search__load-more {
     display: flex;
     justify-content: center;
