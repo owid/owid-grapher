@@ -1,8 +1,7 @@
 import cx from "classnames"
 import { faCalendarDay } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-
-import { dayjs } from "@ourworldindata/utils"
+import { formatRelativeDate } from "@ourworldindata/utils"
 
 export default function DataInsightDateline({
     className,
@@ -18,27 +17,16 @@ export default function DataInsightDateline({
     formatOptions?: Intl.DateTimeFormatOptions
     highlightToday?: boolean
 }) {
-    const date = dayjs(publishedAt)
-    let highlightClassName
-    let formattedDate
-    if (publishedAt) {
-        if (date.isToday()) {
-            formattedDate = "Today"
-            if (highlightToday) {
-                highlightClassName = "data-insight-dateline--is-today"
-            }
-        } else if (date.isYesterday()) {
-            formattedDate = "Yesterday"
-        } else {
-            const options =
-                date.year() !== dayjs().year()
-                    ? { ...formatOptions, year: "numeric" as const }
-                    : formatOptions
-            formattedDate = date.toDate().toLocaleDateString("en-US", options)
-        }
-    } else {
-        formattedDate = "Unpublished"
-    }
+    const formattedDate = formatRelativeDate({
+        publishedAt,
+        now: new Date(),
+        formatOptions,
+    })
+    const highlightClassName =
+        highlightToday && publishedAt && formattedDate === "Today"
+            ? "data-insight-dateline--is-today"
+            : undefined
+
     return (
         <p
             className={cx(

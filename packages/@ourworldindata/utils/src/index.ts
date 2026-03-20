@@ -90,6 +90,7 @@ export {
     extractGdocPageData,
     deserializeOwidGdocPageData,
     formatDate,
+    formatRelativeDate,
     canWriteToClipboard,
     isNegativeInfinity,
     isPositiveInfinity,

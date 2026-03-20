@@ -3,7 +3,9 @@ import { expect, it, describe, vi } from "vitest"
 import timezoneMock from "timezone-mock"
 import {
     findClosestTime,
+    formatDate,
     formatDay,
+    formatRelativeDate,
     retryPromise,
     rollingMap,
     next,
@@ -183,6 +185,66 @@ describe(formatDay, () => {
         it("handles decrements", () => {
             expect(formatDay(-21)).toEqual("Dec 31, 2019")
         })
+    })
+})
+
+describe(formatDate, () => {
+    it("formats publication dates consistently across timezones", () => {
+        const publishedAt = new Date("2026-03-16T00:00:00.000Z")
+
+        timezoneMock.register("US/Pacific")
+        expect(formatDate(publishedAt)).toEqual("March 16, 2026")
+        timezoneMock.unregister()
+
+        timezoneMock.register("Australia/Adelaide")
+        expect(formatDate(publishedAt)).toEqual("March 16, 2026")
+        timezoneMock.unregister()
+    })
+})
+
+describe(formatRelativeDate, () => {
+    it("returns Today for the same UTC calendar day", () => {
+        expect(
+            formatRelativeDate({
+                publishedAt: new Date("2026-03-16T00:00:00.000Z"),
+                now: new Date("2026-03-16T23:59:59.000Z"),
+            })
+        ).toEqual("Today")
+    })
+
+    it("returns Yesterday for the previous UTC calendar day", () => {
+        expect(
+            formatRelativeDate({
+                publishedAt: new Date("2026-03-15T23:59:59.000Z"),
+                now: new Date("2026-03-16T00:00:00.000Z"),
+            })
+        ).toEqual("Yesterday")
+    })
+
+    it("formats older dates consistently across timezones", () => {
+        const publishedAt = new Date("2026-03-14T00:00:00.000Z")
+        const now = new Date("2026-03-16T12:00:00.000Z")
+
+        timezoneMock.register("US/Pacific")
+        expect(formatRelativeDate({ publishedAt, now })).toEqual("March 14")
+        timezoneMock.unregister()
+
+        timezoneMock.register("Australia/Adelaide")
+        expect(formatRelativeDate({ publishedAt, now })).toEqual("March 14")
+        timezoneMock.unregister()
+    })
+
+    it("includes the year when the published date is in a different UTC year", () => {
+        expect(
+            formatRelativeDate({
+                publishedAt: new Date("2025-12-31T00:00:00.000Z"),
+                now: new Date("2026-01-02T12:00:00.000Z"),
+            })
+        ).toEqual("December 31, 2025")
+    })
+
+    it("returns Unpublished when publishedAt is null", () => {
+        expect(formatRelativeDate({ publishedAt: null })).toEqual("Unpublished")
     })
 })
 

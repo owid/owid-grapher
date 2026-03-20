@@ -1231,14 +1231,57 @@ export const getIndexableKeys = Object.keys as <T extends object>(
     obj: T
 ) => Array<keyof T>
 
-/** Formats a date like this: "October 6, 2024"
+/**
+ * Formats a date like this: "October 6, 2024".
+ *
+ * We pin the formatter to UTC so publication dates render as the same calendar
+ * day during SSR, baking, and client hydration. Use this for absolute date
+ * displays. For publication labels that can render "Today" or "Yesterday",
+ * use formatRelativeDate().
  */
 export const formatDate = (date: Date): string => {
     return date.toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",
+        timeZone: "UTC",
     })
+}
+
+/**
+ * Returns a UTC-based publication label. This can be a relative label
+ * ("Today", "Yesterday") or a UTC-formatted absolute date for older content.
+ */
+export const formatRelativeDate = ({
+    publishedAt,
+    now = new Date(),
+    formatOptions = {
+        month: "long",
+        day: "numeric",
+    },
+}: {
+    publishedAt: Date | null
+    now?: Date
+    formatOptions?: Intl.DateTimeFormatOptions
+}): string => {
+    if (!publishedAt) return "Unpublished"
+
+    const publishedDate = dayjs.utc(publishedAt.getTime())
+    const currentDate = dayjs.utc(now.getTime())
+
+    if (publishedDate.isSame(currentDate, "day")) return "Today"
+    if (publishedDate.isSame(currentDate.subtract(1, "day"), "day"))
+        return "Yesterday"
+
+    const options =
+        publishedDate.year() !== currentDate.year()
+            ? { ...formatOptions, year: "numeric" as const }
+            : formatOptions
+
+    return new Intl.DateTimeFormat("en-US", {
+        ...options,
+        timeZone: "UTC",
+    }).format(publishedAt)
 }
 
 /**
