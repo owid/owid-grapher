@@ -230,6 +230,13 @@
     white-space: nowrap;
 }
 
+.latest-search__topic-dropdown-count {
+    @include label-2-regular;
+    color: $blue-40;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
 .latest-search__loading,
 .latest-search__no-results {
     @include body-1-regular;
