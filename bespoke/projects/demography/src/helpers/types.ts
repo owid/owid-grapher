@@ -1,3 +1,5 @@
+import { Bounds } from "@ourworldindata/utils"
+
 type CountryName = string
 type CountrySlug = string
 
@@ -60,4 +62,21 @@ export function isValidParameterKey(value: unknown): value is ParameterKey {
         typeof value === "string" &&
         PARAMETER_KEYS.includes(value as ParameterKey)
     )
+}
+
+export interface PopulationByAgeZone {
+    young: number // 0-14
+    working: number // 15-64
+    old: number // 65+
+}
+
+export interface AgeZone {
+    zone: "retired" | "working" | "children"
+    label: string
+    color: string
+    ageGroups: string[]
+}
+
+export interface AgeZoneWithBounds extends AgeZone {
+    bounds: Bounds
 }

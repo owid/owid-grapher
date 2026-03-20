@@ -1,5 +1,19 @@
-import { MAX_AGE, OWID_AGE_GROUPS, PYRAMID_AGE_GROUPS } from "./constants"
-import type { CountryData, PopulationBySex, DeathsByAgeGroup } from "./types"
+import {
+    COLOR_CHILDREN,
+    COLOR_RETIRED,
+    COLOR_WORKING,
+    MAX_AGE,
+    OWID_AGE_GROUPS,
+    PYRAMID_AGE_GROUPS,
+    RETIREMENT_AGE,
+    WORKING_AGE,
+} from "./constants"
+import type {
+    CountryData,
+    PopulationBySex,
+    DeathsByAgeGroup,
+    AgeZone,
+} from "./types"
 import { formatValue } from "@ourworldindata/utils"
 import { OwidVariableRoundingMode } from "@ourworldindata/types"
 import { QueryStatus } from "@tanstack/react-query"
@@ -20,7 +34,7 @@ export function formatPopulationValueLong(value: number): string {
     })
 }
 
-function parseAgeGroupBounds(ageGroup: string): {
+export function parseAgeGroup(ageGroup: string): {
     startAge: number
     endAge: number
 } {
@@ -55,7 +69,7 @@ export function calculateMedianAge(populationByAge: number[]): number {
  */
 export function findAgeGroup(age: number): string | undefined {
     for (const ageGroup of PYRAMID_AGE_GROUPS) {
-        const { startAge, endAge } = parseAgeGroupBounds(ageGroup)
+        const { startAge, endAge } = parseAgeGroup(ageGroup)
         if (age >= startAge && age <= endAge) return ageGroup
     }
     return undefined
@@ -66,7 +80,7 @@ export function groupByAgeRange(
 ): Record<string, number> {
     const grouped: Record<string, number> = {}
     for (const ageGroup of PYRAMID_AGE_GROUPS) {
-        const { startAge, endAge } = parseAgeGroupBounds(ageGroup)
+        const { startAge, endAge } = parseAgeGroup(ageGroup)
         let sum = 0
         for (let age = startAge; age <= Math.min(endAge, MAX_AGE); age++) {
             sum += singleYearArray[age] || 0
@@ -169,4 +183,48 @@ export function getTotalPopulation(population: PopulationBySex): number {
         total += (population.female[age] || 0) + (population.male[age] || 0)
     }
     return total
+}
+
+/**
+ * Group the pyramid age labels (ordered oldest-first) into three zones
+ * based on WORKING_AGE and RETIREMENT_AGE thresholds.
+ */
+export function groupAgeGroupsByZone(): AgeZone[] {
+    const ageGroupLabels = [...PYRAMID_AGE_GROUPS].reverse()
+
+    const retired: string[] = []
+    const working: string[] = []
+    const children: string[] = []
+
+    for (const label of ageGroupLabels) {
+        const { startAge } = parseAgeGroup(label)
+        if (startAge >= RETIREMENT_AGE) {
+            retired.push(label)
+        } else if (startAge >= WORKING_AGE) {
+            working.push(label)
+        } else {
+            children.push(label)
+        }
+    }
+
+    return [
+        {
+            zone: "retired",
+            label: `Retired (${RETIREMENT_AGE}+)`,
+            color: COLOR_RETIRED,
+            ageGroups: retired,
+        },
+        {
+            zone: "working",
+            label: "",
+            color: COLOR_WORKING,
+            ageGroups: working,
+        },
+        {
+            zone: "children",
+            label: `Children (<${WORKING_AGE})`,
+            color: COLOR_CHILDREN,
+            ageGroups: children,
+        },
+    ]
 }
