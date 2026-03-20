@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { QueryClientProvider } from "@tanstack/react-query"
 
 import { DemographyControls } from "../components/DemographyControls.js"
@@ -15,7 +15,9 @@ import { useSimulation } from "../helpers/useSimulation.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
-import { DetailedPopulationPyramid } from "../components/DetailedPopulationPyramid.js"
+import { ResponsivePopulationPyramid } from "../components/PopulationPyramid.js"
+import { ResponsiveAgeZoneLegend } from "../components/AgeZoneLegend.js"
+import { groupAgeGroupsByZone } from "../helpers/utils.js"
 import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
 import {
     DEFAULT_ENTITY_NAME,
@@ -84,15 +86,14 @@ function PopulationPyramidCaptionedChart({
     hideTimeline?: boolean
 }) {
     const [year, setYear] = useState(END_YEAR)
-
     const simulation = useSimulation(data)
-    const countryName = data.country
+    const ageZones = useMemo(() => groupAgeGroupsByZone(), [])
 
     const title =
         titleOverride ??
-        `Age structure of ${articulateEntity(countryName)} in ${year}`
+        `Age structure of ${articulateEntity(data.country)} in ${year}`
     const subtitle =
-        subtitleOverride ?? "Population distribution by age and sex"
+        subtitleOverride ?? "Population distribution by age and sex. Bla bla"
 
     return (
         <Frame className="demography-population-pyramid">
@@ -100,11 +101,24 @@ function PopulationPyramidCaptionedChart({
             <div className="demography-population-pyramid__chart-area">
                 {isLoading && <LoadingSpinner />}
                 {simulation && (
-                    <DetailedPopulationPyramid
-                        simulation={simulation}
-                        year={year}
-                        xAxisScaleMode={hideTimeline ? "adaptive" : "fixed"}
-                    />
+                    <div className="detailed-population-pyramid">
+                        <ResponsiveAgeZoneLegend
+                            populationByAgeZone={simulation.getAgeZonePopulation(
+                                year
+                            )}
+                        />
+                        <div className="detailed-population-pyramid__chart">
+                            <ResponsivePopulationPyramid
+                                simulation={simulation}
+                                year={year}
+                                ageZones={ageZones}
+                                // xAxisScaleMode={
+                                //     hideTimeline ? "adaptive" : "fixed"
+                                // }
+                                xAxisScaleMode="adaptive"
+                            />
+                        </div>
+                    </div>
                 )}
             </div>
             {!hideTimeline && (
@@ -119,6 +133,7 @@ function PopulationPyramidCaptionedChart({
             <ChartFooter
                 className="demography-footer"
                 source="List of data sources"
+                note="Optional note"
             />
         </Frame>
     )
