@@ -1,6 +1,6 @@
-import { useContext, useState } from "react"
+import { useContext, useMemo, useState } from "react"
 import * as React from "react"
-import { Button, Select, Upload } from "antd"
+import { AutoComplete, Button, Select, Upload } from "antd"
 import { useQueryClient } from "@tanstack/react-query"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faImages, faUpload } from "@fortawesome/free-solid-svg-icons"
@@ -13,6 +13,7 @@ import {
     ImageUploadResponse,
 } from "./imagesHelpers.js"
 import { ImageSelectorModal } from "./ImageSelectorModal.js"
+import { useGrapherSlugs } from "./useGrapherSlugs.js"
 
 const TEMPLATE_OPTIONS = [
     { value: SlideTemplate.ImageChartOnly, label: "Image/Chart Only" },
@@ -113,6 +114,8 @@ export function SlideshowEditTab(props: {
     )
 }
 
+const GRAPHER_BASE_URL = "https://ourworldindata.org/grapher/"
+
 function MediaEditor(props: {
     media: SlideMedia | null
     onChange: (media: SlideMedia | null) => void
@@ -122,6 +125,29 @@ function MediaEditor(props: {
     const queryClient = useQueryClient()
     const [isImageSelectorOpen, setIsImageSelectorOpen] = useState(false)
     const [isUploading, setIsUploading] = useState(false)
+
+    const { data: grapherSlugs = [] } = useGrapherSlugs()
+
+    // Display the slug portion only, stripping the base URL if present
+    const grapherInputValue =
+        media?.type === "grapher" && media.url.startsWith(GRAPHER_BASE_URL)
+            ? media.url.slice(GRAPHER_BASE_URL.length)
+            : media?.type === "grapher"
+              ? media.url
+              : ""
+
+    const grapherOptions = useMemo(() => {
+        if (!grapherInputValue) return []
+        const term = grapherInputValue.toLowerCase()
+        return grapherSlugs
+            .filter((slug) => slug.toLowerCase().includes(term))
+            .sort((a, b) => a.length - b.length)
+            .slice(0, 50)
+            .map((slug) => ({
+                value: slug,
+                label: slug,
+            }))
+    }, [grapherSlugs, grapherInputValue])
 
     return (
         <div className="SlideshowEditTab__media-editor">
@@ -192,19 +218,28 @@ function MediaEditor(props: {
             />
             <p>or</p>
             <label>
-                Enter grapher url:
-                <input
-                    type="text"
-                    placeholder="https://ourworldindata.org/grapher/..."
-                    value={media?.type === "grapher" ? media.url : ""}
-                    onChange={(e) => {
-                        const url = e.target.value
-                        if (url) {
-                            onChange({ type: "grapher", url })
+                Grapher chart:
+                <AutoComplete
+                    value={grapherInputValue}
+                    options={grapherOptions}
+                    onSearch={(text) => {
+                        if (text) {
+                            onChange({
+                                type: "grapher",
+                                url: `${GRAPHER_BASE_URL}${text}`,
+                            })
                         } else {
                             onChange(null)
                         }
                     }}
+                    onSelect={(slug) => {
+                        onChange({
+                            type: "grapher",
+                            url: `${GRAPHER_BASE_URL}${slug}`,
+                        })
+                    }}
+                    placeholder="Search by chart slug..."
+                    style={{ width: "100%" }}
                 />
             </label>
         </div>
