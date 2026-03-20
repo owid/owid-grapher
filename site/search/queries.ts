@@ -419,8 +419,8 @@ export async function queryLatestPages(
     const baseFilter = `type:${OwidGdocType.Article} OR type:${OwidGdocType.DataInsight} OR type:${OwidGdocType.Announcement}`
 
     const searchParams = [
-        // Query 1: paginated results + tag facet counts (filtered by the
-        // active pill and selected topics) for the topic dropdown
+        // Query 1: paginated results (filtered by the active pill and
+        // selected topics)
         {
             indexName: PAGES_CHRONOLOGICAL_INDEX,
             query: "",
@@ -442,6 +442,17 @@ export async function queryLatestPages(
             length: 0,
             facets: ["type", "kicker"],
         },
+        // Query 3: tag facet counts filtered by the active pill only (no
+        // topic filter) for topic disabling. Topics are disjunctive (OR),
+        // so selected topics should not affect which other topics are enabled.
+        {
+            indexName: PAGES_CHRONOLOGICAL_INDEX,
+            query: "",
+            filters,
+            offset: 0,
+            length: 0,
+            facets: ["tags"],
+        },
     ]
 
     return liteSearchClient
@@ -451,9 +462,11 @@ export async function queryLatestPages(
                 .results[0] as SearchResponse<PageChronologicalRecord>
             const pillResult = response
                 .results[1] as SearchResponse<PageChronologicalRecord>
+            const topicResult = response
+                .results[2] as SearchResponse<PageChronologicalRecord>
             return {
                 response: mainResult,
-                tagFacetCounts: mainResult.facets?.tags ?? {},
+                tagFacetCounts: topicResult.facets?.tags ?? {},
                 typeFacetCounts: pillResult.facets?.type ?? {},
                 kickerFacetCounts: pillResult.facets?.kicker ?? {},
             }
