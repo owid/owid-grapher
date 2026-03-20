@@ -152,6 +152,7 @@ export const LatestSearch = ({
                     disabledFilters={disabledFilters}
                     disabledTopics={disabledTopics}
                     allTopicsDisabled={allTopicsDisabled}
+                    tagFacetCounts={tagFacetCounts}
                 />
             </div>
             {isLoading ? (
