@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useState, useCallback, useMemo } from "react"
 import { useParentSize } from "@visx/responsive"
 import { scaleLinear, scaleBand } from "@visx/scale"
 import { Bar } from "@visx/shape"
@@ -17,6 +17,7 @@ import {
     GRAPHER_DARK_TEXT,
     GRAPHER_LIGHT_TEXT,
 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
+import { darkenColorForText } from "@ourworldindata/grapher/src/color/ColorUtils.js"
 import { TextWrap } from "@ourworldindata/components"
 import { BezierArrow } from "../../../../components/BezierArrow/BezierArrow.js"
 import { computeMaxAgeGroupPopulation } from "../model/projectionRunner"
@@ -145,6 +146,9 @@ function PopulationPyramid({
         [ageZones, yScale, innerHeight, margin.left, width]
     )
 
+    const [hoveredAgeGroup, setHoveredAgeGroup] = useState<string | null>(null)
+    const handlePointerLeave = useCallback(() => setHoveredAgeGroup(null), [])
+
     return (
         <div style={{ position: "relative" }}>
             <svg width={width} height={height}>
@@ -161,6 +165,11 @@ function PopulationPyramid({
                         height={innerHeight}
                         tickFontSize={font.tick}
                         ageZones={ageZones}
+                        side="male"
+                        outerMargin={margin.left}
+                        hoveredAgeGroup={hoveredAgeGroup}
+                        onAgeGroupHover={setHoveredAgeGroup}
+                        onPointerLeave={handlePointerLeave}
                     />
 
                     <PopulationPyramidHalf
@@ -171,6 +180,11 @@ function PopulationPyramid({
                         height={innerHeight}
                         tickFontSize={font.tick}
                         ageZones={ageZones}
+                        side="female"
+                        outerMargin={margin.right}
+                        hoveredAgeGroup={hoveredAgeGroup}
+                        onAgeGroupHover={setHoveredAgeGroup}
+                        onPointerLeave={handlePointerLeave}
                     />
 
                     <PopulationPyramidAxisX
@@ -180,6 +194,7 @@ function PopulationPyramid({
                         medianAgeBucket={medianAgeBucketBySex}
                         font={font}
                         triangle={triangle}
+                        hoveredAgeGroup={hoveredAgeGroup}
                     />
 
                     {ageZonesWithBounds && (
@@ -217,6 +232,8 @@ export function ResponsivePopulationPyramid({
     )
 }
 
+const BAR_LABEL_PADDING = 5
+
 function PopulationPyramidHalf({
     left,
     xScale,
@@ -225,6 +242,11 @@ function PopulationPyramidHalf({
     height,
     tickFontSize,
     ageZones,
+    side,
+    outerMargin,
+    hoveredAgeGroup,
+    onAgeGroupHover,
+    onPointerLeave,
 }: {
     left: number
     xScale: ScaleLinear<number, number>
@@ -233,8 +255,16 @@ function PopulationPyramidHalf({
     height: number
     tickFontSize: number
     ageZones?: AgeZone[]
+    side: "male" | "female"
+    outerMargin: number
+    hoveredAgeGroup: string | null
+    onAgeGroupHover: (ageGroup: string) => void
+    onPointerLeave: () => void
 }) {
     const zeroX = xScale(0)
+    const halfWidth = Math.abs(xScale(0) - xScale(xScale.domain()[1]))
+    const bandwidth = yScale.bandwidth()
+
     return (
         <Group left={left}>
             {/* Grid lines */}
@@ -273,21 +303,155 @@ function PopulationPyramidHalf({
             {/* Bars */}
             {AGE_GROUP_LABELS.map((g) => {
                 const scaledVal = xScale(ageBuckets[g] || 0)
+                const barWidth = Math.abs(scaledVal - zeroX)
+                const barX = Math.min(scaledVal, zeroX)
+                const barY = yScale(g) ?? 0
+                const barColor =
+                    ageZones?.find((z) => z.ageGroups.includes(g))?.color ??
+                    DENIM_BLUE
+                const dimmed = hoveredAgeGroup !== null && hoveredAgeGroup !== g
+
                 return (
                     <Bar
                         key={g}
-                        x={Math.min(scaledVal, zeroX)}
-                        y={yScale(g) ?? 0}
-                        width={Math.abs(scaledVal - zeroX)}
-                        height={yScale.bandwidth()}
-                        fill={
-                            ageZones?.find((z) => z.ageGroups.includes(g))
-                                ?.color ?? DENIM_BLUE
-                        }
+                        x={barX}
+                        y={barY}
+                        width={barWidth}
+                        height={bandwidth}
+                        fill={barColor}
+                        opacity={dimmed ? 0.4 : 1}
+                    />
+                )
+            })}
+
+            {/* Value label for hovered bar */}
+            {hoveredAgeGroup !== null && (
+                <BarValueLabel
+                    value={ageBuckets[hoveredAgeGroup] || 0}
+                    barWidth={Math.abs(
+                        xScale(ageBuckets[hoveredAgeGroup] || 0) - zeroX
+                    )}
+                    barX={Math.min(
+                        xScale(ageBuckets[hoveredAgeGroup] || 0),
+                        zeroX
+                    )}
+                    barY={yScale(hoveredAgeGroup) ?? 0}
+                    barHeight={bandwidth}
+                    halfWidth={halfWidth}
+                    direction={side === "male" ? "left" : "right"}
+                    fontSize={tickFontSize}
+                    barColor={
+                        ageZones?.find((z) =>
+                            z.ageGroups.includes(hoveredAgeGroup)
+                        )?.color ?? DENIM_BLUE
+                    }
+                />
+            )}
+
+            {/* Invisible hit rects for hover — use step (band + gap) to eliminate gaps,
+                and extend into the outer margin so the full chart area is hoverable */}
+            {AGE_GROUP_LABELS.map((g, i) => {
+                const step = yScale.step()
+                const bandY = yScale(g) ?? 0
+                const halfGap = (step - bandwidth) / 2
+                const y = i === 0 ? 0 : bandY - halfGap
+                const bottom =
+                    i === AGE_GROUP_LABELS.length - 1
+                        ? height
+                        : bandY + bandwidth + halfGap
+                // Male: extend left into margin; Female: extend right into margin
+                const hitX = side === "male" ? -outerMargin : 0
+                const hitWidth = halfWidth + outerMargin
+                return (
+                    <rect
+                        key={`hit-${g}`}
+                        x={hitX}
+                        y={y}
+                        width={hitWidth}
+                        height={bottom - y}
+                        fill="transparent"
+                        onPointerEnter={() => onAgeGroupHover(g)}
+                        onPointerLeave={onPointerLeave}
                     />
                 )
             })}
         </Group>
+    )
+}
+
+function BarValueLabel({
+    value,
+    barWidth,
+    barX,
+    barY,
+    barHeight,
+    halfWidth,
+    direction,
+    fontSize,
+    barColor,
+}: {
+    value: number
+    barWidth: number
+    barX: number
+    barY: number
+    barHeight: number
+    halfWidth: number
+    direction: "left" | "right"
+    fontSize: number
+    barColor: string
+}) {
+    const text = formatPopulationValueShort(value)
+    const tw = new TextWrap({ text, maxWidth: Infinity, fontSize })
+    const labelWidth = tw.width + BAR_LABEL_PADDING * 2
+
+    // Available space outside the bar (away from center)
+    const spaceOutside =
+        direction === "left" ? barX : halfWidth - (barX + barWidth)
+    const fitsOutside = labelWidth < spaceOutside
+
+    let x: number
+    let textAnchor: "start" | "end"
+    let fill: string
+
+    if (direction === "left") {
+        // Bar end is at the left edge (barX)
+        if (fitsOutside) {
+            x = barX - BAR_LABEL_PADDING
+            textAnchor = "end"
+            fill = darkenColorForText(barColor)
+        } else {
+            x = barX + BAR_LABEL_PADDING
+            textAnchor = "start"
+            fill = "white"
+        }
+    } else {
+        // Bar end is at the right edge (barX + barWidth)
+        if (fitsOutside) {
+            x = barX + barWidth + BAR_LABEL_PADDING
+            textAnchor = "start"
+            fill = darkenColorForText(barColor)
+        } else {
+            x = barX + barWidth - BAR_LABEL_PADDING
+            textAnchor = "end"
+            fill = "white"
+        }
+    }
+
+    const y = barY + barHeight / 2
+
+    return (
+        <text
+            x={x}
+            y={y}
+            textAnchor={textAnchor}
+            dominantBaseline="central"
+            fontSize={fontSize}
+            fontWeight={700}
+            fill={fill}
+            style={{ pointerEvents: "none" }}
+        >
+            {text}
+        </text>
     )
 }
 
@@ -298,6 +462,7 @@ function PopulationPyramidAxisX({
     medianAgeBucket,
     font,
     triangle,
+    hoveredAgeGroup,
 }: {
     centerX: number
     gapWidth: number
@@ -305,7 +470,9 @@ function PopulationPyramidAxisX({
     medianAgeBucket: { male?: string; female?: string }
     font: { ageLabel: number; header: number; ageHeader: number }
     triangle: { w: number; h: number }
+    hoveredAgeGroup: string | null
 }) {
+    const isHovering = hoveredAgeGroup !== null
     return (
         <>
             {/* Age group labels with median arrows */}
@@ -316,10 +483,11 @@ function PopulationPyramidAxisX({
                 const isMaleMedian = ageGroupLabel === medianAgeBucket.male
                 const isFemaleMedian = ageGroupLabel === medianAgeBucket.female
                 const isMedian = isMaleMedian || isFemaleMedian
+                const isHovered = ageGroupLabel === hoveredAgeGroup
 
                 return (
                     <g key={ageGroupLabel}>
-                        {isMaleMedian && (
+                        {isMaleMedian && !isHovering && (
                             <Triangle
                                 x={centerX - font.ageLabel - triangle.w}
                                 y={bandY}
@@ -333,11 +501,17 @@ function PopulationPyramidAxisX({
                             textAnchor="middle"
                             dominantBaseline="central"
                             fontSize={font.ageLabel}
-                            fill={isMedian ? GRAPHER_LIGHT_TEXT : LABEL_COLOR}
+                            fill={
+                                isHovered
+                                    ? GRAPHER_DARK_TEXT
+                                    : isMedian
+                                      ? GRAPHER_LIGHT_TEXT
+                                      : LABEL_COLOR
+                            }
                         >
                             {ageGroupLabel}
                         </text>
-                        {isFemaleMedian && (
+                        {isFemaleMedian && !isHovering && (
                             <Triangle
                                 x={centerX + font.ageLabel + triangle.w}
                                 y={bandY}
@@ -431,7 +605,10 @@ function AgeZoneLabels({
                 const direction = zone.zone === "children" ? 1 : -1
 
                 return (
-                    <g key={`boundary-${zone.zone}`}>
+                    <g
+                        key={`boundary-${zone.zone}`}
+                        style={{ pointerEvents: "none" }}
+                    >
                         <line
                             x1={zone.bounds.left}
                             y1={lineY}
