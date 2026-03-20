@@ -4,7 +4,7 @@
  */
 
 import { useMemo, useState, useCallback } from "react"
-import type { CountryData, PopulationBySex } from "./types"
+import type { CountryData, PopulationBySex, PopulationByAgeZone } from "./types"
 import {
     getPopulationForYear,
     getDeathsForYear,
@@ -21,6 +21,7 @@ import {
     TREND_EARLY_END,
     TREND_LATE_START,
     TREND_LATE_END,
+    RETIREMENT_AGE,
 } from "./constants"
 import {
     runHistoricalProjection,
@@ -72,6 +73,7 @@ export interface Simulation {
         medianAge: number
         dependencyRatio: number
     } | null
+    getAgeZonePopulation: (year: number) => PopulationByAgeZone
 }
 
 function calculateMedianAge(population: PopulationBySex): number {
@@ -90,24 +92,59 @@ function calculateMedianAge(population: PopulationBySex): number {
     return 50
 }
 
+/**
+ * Calculate dependency ratio from population
+ * Dependency ratio = (pop under 15 + pop at/above retirement age) / pop 15 to (retirement age - 1)
+ * Returned as percentage (e.g., 52 means 52 dependents per 100 working-age people)
+ */
 function calculateDependencyRatio(
     population: PopulationBySex,
-    retirementAge = 65
-): number {
-    let working = 0
-    let dependents = 0
+    upperAge = RETIREMENT_AGE,
+    returnBreakdown: boolean = false
+):
+    | number
+    | {
+          ratio: number
+          young: number
+          workingAge: number
+          old: number
+          total: number
+          youngPct: number
+          workingPct: number
+          oldPct: number
+      } {
+    let young = 0 // 0-14
+    let workingAge = 0 // 15 to (upperAge - 1)
+    let old = 0 // upperAge+
 
     for (let age = 0; age <= MAX_AGE; age++) {
-        const count =
-            (population.female[age] || 0) + (population.male[age] || 0)
-        if (age >= 15 && age < retirementAge) {
-            working += count
+        const pop = (population.female[age] || 0) + (population.male[age] || 0)
+        if (age < 15) {
+            young += pop
+        } else if (age < upperAge) {
+            workingAge += pop
         } else {
-            dependents += count
+            old += pop
         }
     }
 
-    return working > 0 ? dependents / working : 0
+    const ratio =
+        workingAge === 0 ? 0 : Math.round(((young + old) / workingAge) * 100)
+
+    if (returnBreakdown) {
+        const total = young + workingAge + old
+        return {
+            ratio,
+            young,
+            workingAge,
+            old,
+            total,
+            youngPct: total > 0 ? (young / total) * 100 : 0,
+            workingPct: total > 0 ? (workingAge / total) * 100 : 0,
+            oldPct: total > 0 ? (old / total) * 100 : 0,
+        }
+    }
+    return ratio
 }
 
 export function useSimulation(data: CountryData): Simulation | null {
@@ -327,7 +364,29 @@ export function useSimulation(data: CountryData): Simulation | null {
                     pop.male
                 ),
                 medianAge: calculateMedianAge(pop),
-                dependencyRatio: calculateDependencyRatio(pop),
+                dependencyRatio: calculateDependencyRatio(pop) as number,
+            }
+        },
+        [getPopForYear]
+    )
+
+    const getAgeZonePopulation = useCallback(
+        (year: number): PopulationByAgeZone => {
+            const pop = getPopForYear(year)
+            if (!pop) return { young: 0, working: 0, old: 0 }
+            const breakdown = calculateDependencyRatio(
+                pop,
+                RETIREMENT_AGE,
+                true
+            ) as {
+                young: number
+                workingAge: number
+                old: number
+            }
+            return {
+                young: breakdown.young,
+                working: breakdown.workingAge,
+                old: breakdown.old,
             }
         },
         [getPopForYear]
@@ -349,5 +408,6 @@ export function useSimulation(data: CountryData): Simulation | null {
         setScenarioParams,
         getPopulationForYear: getPopForYear,
         getStatsForYear,
+        getAgeZonePopulation,
     }
 }
