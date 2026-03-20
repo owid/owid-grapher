@@ -49,7 +49,7 @@ function ParametersVariant({
     if (!metadata || !entityData) return <DemographyChartError />
 
     return (
-        <div className="demography-chart demography-chart--parameters">
+        <div className="demography-chart demography-chart__parameters-variant">
             {showControls && (
                 <DemographyControls
                     metadata={metadata}

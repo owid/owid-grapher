@@ -7,10 +7,10 @@ import type {
     BespokeComponentVariantsList,
 } from "owid-bespoke-types"
 
-import { SimulationVariantWithProviders } from "./variants/Simulation.js"
-import { PopulationVariantWithProviders } from "./variants/Population.js"
-import { PopulationPyramidVariantWithProviders } from "./variants/PopulationPyramid.js"
-import { ParametersVariantWithProviders } from "./variants/Parameters.js"
+import { SimulationVariantWithProviders } from "./variants/SimulationVariant.js"
+import { PopulationVariantWithProviders } from "./variants/PopulationVariant.js"
+import { PopulationPyramidVariantWithProviders } from "./variants/PopulationPyramidVariant.js"
+import { ParametersVariantWithProviders } from "./variants/ParametersVariant.js"
 import { parseConfig, VariantName } from "./config.js"
 
 // Styles for portaled react-aria overlays that render outside the Shadow
@@ -26,24 +26,26 @@ export const VARIANTS = [
     {
         name: "simulation",
         component: SimulationVariantWithProviders,
-        defaultConfig: {},
+        demoConfig: {},
     },
     {
         name: "population",
         component: PopulationVariantWithProviders,
-        defaultConfig: {},
+        demoConfig: {},
     },
     {
         name: "populationPyramid",
         component: PopulationPyramidVariantWithProviders,
-        defaultConfig: {
+        demoConfig: {
             region: "South Korea",
+            hideTimeline: "true",
+            hideControls: "true",
         },
     },
     {
         name: "parameters",
         component: ParametersVariantWithProviders,
-        defaultConfig: {},
+        demoConfig: {},
     },
 ] satisfies BespokeComponentVariantsList<VariantName>
 
