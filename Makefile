@@ -70,9 +70,9 @@ up: require create-if-missing.env tmp-downloads/owid_metadata.sql.gz node_module
 			set remain-on-exit on \; \
 		set-option -g default-shell $(SCRIPT_SHELL) \; \
 		new-window -n admin \
-			'devTools/docker/wait-for-mysql.sh && yarn startAdminDevServer' \; \
+			'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) devTools/docker/wait-for-mysql.sh && ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) yarn startAdminDevServer' \; \
 			set remain-on-exit on \; \
-		new-window -n vite 'yarn run startSiteFront' \; \
+		new-window -n vite 'VITE_PORT=$(VITE_PORT) yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
 		new-window -n welcome 'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) VITE_PORT=$(VITE_PORT) devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
@@ -81,17 +81,21 @@ up: require create-if-missing.env tmp-downloads/owid_metadata.sql.gz node_module
 		set -g mouse on \
 		|| make down
 
+up.devcontainer: export TMUX_SESSION_NAME ?= grapher
+up.devcontainer: export ADMIN_SERVER_PORT ?= 3030
+up.devcontainer: export VITE_PORT ?= 8090
+
 up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.sql.gz node_modules
 	@make validate.env
 	@make check-port-3306
 
 	@echo '==> Starting dev environment'
 	@mkdir -p logs
-	tmux new-session -s grapher \
+	tmux new-session -s $(TMUX_SESSION_NAME) \
 		-n admin \
-			'devTools/docker/wait-for-mysql.sh && yarn startAdminDevServer' \; \
+			'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) devTools/docker/wait-for-mysql.sh && ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) yarn startAdminDevServer' \; \
 			set remain-on-exit on \; \
-		new-window -n vite 'yarn run startSiteFront' \; \
+		new-window -n vite 'VITE_PORT=$(VITE_PORT) yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
 		new-window -n welcome 'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) VITE_PORT=$(VITE_PORT) devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
@@ -120,11 +124,11 @@ up.full: require create-if-missing.env.full tmp-downloads/owid_metadata.sql.gz n
 			set remain-on-exit on \; \
 		set-option -g default-shell $(SCRIPT_SHELL) \; \
 		new-window -n admin \
-			'devTools/docker/wait-for-mysql.sh && yarn startAdminDevServer' \; \
+			'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) devTools/docker/wait-for-mysql.sh && ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) yarn startAdminDevServer' \; \
 			set remain-on-exit on \; \
-		new-window -n vite 'yarn run startSiteFront' \; \
+		new-window -n vite 'VITE_PORT=$(VITE_PORT) yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
-		new-window -n functions 'yarn startLocalCloudflareFunctions' \; \
+		new-window -n functions 'WRANGLER_PORT=$(WRANGLER_PORT) yarn startLocalCloudflareFunctions' \; \
 			set remain-on-exit on \; \
 		new-window -n bespoke 'yarn startBespokeDevServer' \; \
 			set remain-on-exit on \; \
@@ -185,7 +189,7 @@ down: export COMPOSE_PROJECT_NAME ?= owid-grapher
 
 down:
 	@echo '==> Stopping services'
-	docker compose -f docker-compose.grapher.yml down
+	COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT_NAME) docker compose -f docker-compose.grapher.yml down
 
 require:
 	@echo '==> Checking your local environment has the necessary commands...'
