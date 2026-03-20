@@ -111,16 +111,15 @@ export const LatestSearch = ({
         return disabled
     }, [filter, typeFacetCounts, kickerFacetCounts])
 
-    // Disable topics that would yield 0 results given the current pill.
-    // Tag facet counts from query 1 are narrowed by selected topics (Algolia
-    // doesn't give disjunctive counts in the raw API). To avoid incorrectly
-    // disabling topics when others are selected, only apply disabling when no
-    // topics are selected — once a topic is selected, the dropdown shows only
-    // topics that co-occur with the selected ones.
+    // Disable topics that would yield 0 results given the current filters.
+    // Never disable a topic that is already selected (so the user can deselect
+    // it). When topics are selected the facet counts are narrowed by Algolia's
+    // conjunctive filtering, so the counts reflect co-occurrence with the
+    // current selection — topics with 0 count genuinely add no results.
     const disabledTopics = useMemo(() => {
-        if (topics.length > 0) return new Set<string>()
         const disabled = new Set<string>()
         for (const area of allAreas) {
+            if (topics.includes(area)) continue
             if ((tagFacetCounts[area] ?? 0) === 0) disabled.add(area)
         }
         return disabled
