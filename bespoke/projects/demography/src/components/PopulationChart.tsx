@@ -17,6 +17,7 @@ import {
     PROJECTION_DASHARRAY,
     GRID_LINE_COLOR,
     LABEL_COLOR,
+    HOVER_LINE_COLOR,
 } from "../helpers/constants"
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { TooltipCard } from "@ourworldindata/grapher/src/tooltip/TooltipCard.js"
@@ -281,7 +282,7 @@ function PopulationChart({
                             y1={0}
                             x2={xScale(hoveredYear)}
                             y2={innerHeight}
-                            stroke="#ccc"
+                            stroke={HOVER_LINE_COLOR}
                             strokeWidth={1}
                             pointerEvents="none"
                         />

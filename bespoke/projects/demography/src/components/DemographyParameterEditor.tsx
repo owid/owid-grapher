@@ -13,12 +13,15 @@ import {
     END_YEAR,
     DENIM_BLUE,
     BENCHMARK_LINE_COLOR,
+    HOVER_LINE_COLOR,
 } from "../helpers/constants"
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
-import { Halo } from "@ourworldindata/components"
+import { Halo, TextWrap } from "@ourworldindata/components"
+import { Bounds } from "@ourworldindata/utils"
 import { parameterConfigByKey } from "../helpers/parameterConfigs.js"
 import { TimeAxisX } from "./TimeAxisX.js"
 import { ParameterKey } from "../helpers/types.js"
+import { getInterpolatedValue } from "../model/projectionRunner.js"
 
 const SMALL_DOT_RADIUS = 3
 const CONTROL_POINT_RADIUS = 5
@@ -57,6 +60,7 @@ function DemographyParameterEditor({
     height,
 }: DemographyParameterEditorProps & { width: number; height: number }) {
     const config = parameterConfigByKey[variant]
+    const [hoveredYear, setHoveredYear] = useState<number | null>(null)
 
     const {
         points: historicalDataPoints,
@@ -95,6 +99,28 @@ function DemographyParameterEditor({
         clamp: true,
     })
 
+    const handlePointerMove = useCallback(
+        (e: React.PointerEvent<SVGRectElement>) => {
+            const point = localPoint(e)
+            if (!point) return
+            const rawYear = (
+                xScale as unknown as { invert: (x: number) => number }
+            ).invert(point.x - margin.left)
+            const rounded = Math.round(rawYear)
+
+            if (rounded >= START_YEAR && rounded <= END_YEAR) {
+                setHoveredYear(rounded)
+            } else {
+                setHoveredYear(null)
+            }
+        },
+        [xScale]
+    )
+
+    const handlePointerLeave = useCallback(() => {
+        setHoveredYear(null)
+    }, [])
+
     const firstHistoricalDataPoint = historicalDataPoints[0]
     const lastHistoricalDataPoint = historicalDataPoints.at(-1)!
 
@@ -108,6 +134,161 @@ function DemographyParameterEditor({
     }))
 
     const projX = xScale(HISTORICAL_END_YEAR)
+
+    // Look up hovered value — historical from data points, projection via interpolation
+    // In interactive mode, skip control years since they already have labels from DraggableControlPoint
+    const isControlYear =
+        interactive &&
+        hoveredYear !== null &&
+        (CONTROL_YEARS as readonly number[]).includes(hoveredYear)
+    const hoveredValue = useMemo(() => {
+        if (hoveredYear === null || isControlYear) return undefined
+        if (hoveredYear <= HISTORICAL_END_YEAR) {
+            return historicalDataPoints.find((d) => d.year === hoveredYear)
+                ?.value
+        }
+        // Augment control points with the historical anchor at HISTORICAL_END_YEAR
+        // so interpolation between 2023 and 2030 is correct
+        const augmentedPoints = {
+            [HISTORICAL_END_YEAR]: lastHistoricalDataPoint.value,
+            ...controlPoints,
+        }
+        const augmentedControlYears = [HISTORICAL_END_YEAR, ...CONTROL_YEARS]
+        return getInterpolatedValue(
+            augmentedPoints,
+            hoveredYear,
+            HISTORICAL_END_YEAR,
+            augmentedControlYears
+        )
+    }, [
+        hoveredYear,
+        isControlYear,
+        historicalDataPoints,
+        controlPoints,
+        lastHistoricalDataPoint,
+    ])
+
+    // Determine which static PointLabelWithYear elements overlap the hover elements.
+    // If either the year label or value label overlaps, hide both together.
+    const hiddenPointLabels = useMemo(() => {
+        const hidden = new Set<string>()
+        if (hoveredYear === null) return hidden
+
+        const hx = xScale(hoveredYear)
+
+        // Hover year label bounds (always present)
+        const hoverYearBounds = yearLabelBounds(
+            hx,
+            innerHeight,
+            hoveredYear,
+            "middle",
+            YEAR_LABEL_FONT_SIZE,
+            YEAR_LABEL_OFFSET
+        )
+
+        // Hover value label bounds (only when hoveredValue is defined)
+        const hoverValueBounds =
+            hoveredValue !== undefined
+                ? pointLabelBounds(
+                      hx,
+                      yScale(hoveredValue),
+                      formatValue(hoveredValue),
+                      valueLabelFontSize
+                  )
+                : undefined
+
+        interface StaticLabel {
+            key: string
+            year: number
+            yearAnchor: "start" | "middle" | "end"
+            x: number
+            valueBounds?: Bounds
+        }
+
+        const statics: StaticLabel[] = [
+            {
+                key: "first-historical",
+                year: firstHistoricalDataPoint.year,
+                yearAnchor: "start",
+                x: xScale(firstHistoricalDataPoint.year),
+                valueBounds: pointLabelBounds(
+                    xScale(firstHistoricalDataPoint.year),
+                    yScale(firstHistoricalDataPoint.value),
+                    formatValue(firstHistoricalDataPoint.value),
+                    valueLabelFontSize
+                ),
+            },
+            {
+                key: "last-historical",
+                year: lastHistoricalDataPoint.year,
+                yearAnchor: "middle",
+                x: xScale(lastHistoricalDataPoint.year),
+                valueBounds: !interactive
+                    ? pointLabelBounds(
+                          xScale(lastHistoricalDataPoint.year),
+                          yScale(lastHistoricalDataPoint.value),
+                          formatValue(lastHistoricalDataPoint.value),
+                          valueLabelFontSize
+                      )
+                    : undefined,
+            },
+        ]
+
+        if (projectionPoints.length > 0) {
+            const last = projectionPoints.at(-1)!
+            statics.push({
+                key: "last-projection",
+                year: last.year,
+                yearAnchor: "end",
+                x: xScale(last.year),
+                valueBounds: !interactive
+                    ? pointLabelBounds(
+                          xScale(last.year),
+                          yScale(last.value),
+                          formatValue(last.value),
+                          valueLabelFontSize
+                      )
+                    : undefined,
+            })
+        }
+
+        for (const s of statics) {
+            const sYearBounds = yearLabelBounds(
+                s.x,
+                innerHeight,
+                s.year,
+                s.yearAnchor,
+                YEAR_LABEL_FONT_SIZE,
+                YEAR_LABEL_OFFSET
+            )
+
+            // Check year-vs-year overlap
+            if (sYearBounds.intersects(hoverYearBounds)) {
+                hidden.add(s.key)
+                continue
+            }
+
+            // Check value-vs-value overlap
+            if (s.valueBounds && hoverValueBounds) {
+                if (s.valueBounds.intersects(hoverValueBounds)) {
+                    hidden.add(s.key)
+                }
+            }
+        }
+        return hidden
+    }, [
+        hoveredYear,
+        hoveredValue,
+        xScale,
+        yScale,
+        innerHeight,
+        formatValue,
+        valueLabelFontSize,
+        firstHistoricalDataPoint,
+        lastHistoricalDataPoint,
+        projectionPoints,
+        interactive,
+    ])
 
     return (
         <svg
@@ -128,11 +309,7 @@ function DemographyParameterEditor({
 
                 {/* Projection label */}
                 {showProjectionLabel && (
-                    <Halo
-                        id="projection-label"
-                        outlineWidth={2}
-                        outlineColor={PROJECTION_BACKGROUND}
-                    >
+                    <Halo id="projection-label" outlineWidth={3}>
                         <text
                             x={projX + 6}
                             y={12}
@@ -162,8 +339,9 @@ function DemographyParameterEditor({
                     innerWidth={innerWidth}
                     innerHeight={innerHeight}
                     strokeColor={minValue === 0 ? GRAPHER_LIGHT_TEXT : "#ddd"}
-                    fontSize={9}
-                    labelOffset={14}
+                    fontSize={YEAR_LABEL_FONT_SIZE}
+                    labelOffset={YEAR_LABEL_OFFSET}
+                    hideLabels={hoveredYear !== null}
                 />
 
                 {/* Historical line */}
@@ -197,37 +375,63 @@ function DemographyParameterEditor({
                     strokeLinecap="butt"
                 />
 
-                {/* Dot and label for first historical point */}
-                <PointLabel
+                {/* First historical point (1950) — always with value label */}
+                <PointLabelWithYear
                     x={xScale(firstHistoricalDataPoint.year)}
                     y={yScale(firstHistoricalDataPoint.value)}
+                    innerHeight={innerHeight}
                     label={formatValue(firstHistoricalDataPoint.value)}
                     color={lineColor}
                     labelColor={labelColor}
                     fontSize={valueLabelFontSize}
+                    year={firstHistoricalDataPoint.year}
+                    yearAnchor="start"
+                    hidden={hiddenPointLabels.has("first-historical")}
                 />
 
-                {/* Dot and label for last historical point (non-interactive) */}
-                {!interactive && (
-                    <PointLabel
-                        x={xScale(lastHistoricalDataPoint.year)}
-                        y={yScale(lastHistoricalDataPoint.value)}
-                        label={formatValue(lastHistoricalDataPoint.value)}
-                        color={lineColor}
-                        labelColor={labelColor}
-                        fontSize={valueLabelFontSize}
-                    />
-                )}
+                {/* Last historical point (2023) */}
+                <PointLabelWithYear
+                    x={xScale(lastHistoricalDataPoint.year)}
+                    y={
+                        !interactive
+                            ? yScale(lastHistoricalDataPoint.value)
+                            : undefined
+                    }
+                    innerHeight={innerHeight}
+                    label={
+                        !interactive
+                            ? formatValue(lastHistoricalDataPoint.value)
+                            : undefined
+                    }
+                    color={lineColor}
+                    labelColor={labelColor}
+                    fontSize={valueLabelFontSize}
+                    year={lastHistoricalDataPoint.year}
+                    yearAnchor="middle"
+                    hidden={hiddenPointLabels.has("last-historical")}
+                />
 
-                {/* Dot and label for last projection point (non-interactive) */}
-                {!interactive && projectionPoints.length > 0 && (
-                    <PointLabel
+                {/* Last projection point (2100) */}
+                {projectionPoints.length > 0 && (
+                    <PointLabelWithYear
                         x={xScale(projectionPoints.at(-1)!.year)}
-                        y={yScale(projectionPoints.at(-1)!.value)}
-                        label={formatValue(projectionPoints.at(-1)!.value)}
+                        y={
+                            !interactive
+                                ? yScale(projectionPoints.at(-1)!.value)
+                                : undefined
+                        }
+                        innerHeight={innerHeight}
+                        label={
+                            !interactive
+                                ? formatValue(projectionPoints.at(-1)!.value)
+                                : undefined
+                        }
                         color={lineColor}
                         labelColor={labelColor}
                         fontSize={valueLabelFontSize}
+                        year={projectionPoints.at(-1)!.year}
+                        yearAnchor="end"
+                        hidden={hiddenPointLabels.has("last-projection")}
                     />
                 )}
 
@@ -241,6 +445,64 @@ function DemographyParameterEditor({
                             color={BENCHMARK_LINE_COLOR}
                         />
                     ))}
+
+                {/* Invisible interaction rect for hover — placed before control points so they get priority */}
+                <rect
+                    x={0}
+                    y={0}
+                    width={innerWidth}
+                    height={innerHeight}
+                    fill="transparent"
+                    onPointerMove={handlePointerMove}
+                    onPointerLeave={handlePointerLeave}
+                />
+
+                {/* Hover elements */}
+                {hoveredYear !== null && (
+                    <g style={{ pointerEvents: "none" }}>
+                        {/* Vertical line */}
+                        <line
+                            x1={xScale(hoveredYear)}
+                            y1={0}
+                            x2={xScale(hoveredYear)}
+                            y2={innerHeight}
+                            stroke={HOVER_LINE_COLOR}
+                            strokeWidth={1}
+                        />
+
+                        {/* Year tick + label below x-axis */}
+                        <line
+                            x1={xScale(hoveredYear)}
+                            y1={innerHeight}
+                            x2={xScale(hoveredYear)}
+                            y2={innerHeight + 5}
+                            stroke={GRAPHER_LIGHT_TEXT}
+                        />
+                        <Halo id="hover-year-label" outlineWidth={3}>
+                            <text
+                                x={xScale(hoveredYear)}
+                                y={innerHeight + 14}
+                                textAnchor="middle"
+                                fontSize={9}
+                                fill={GRAPHER_LIGHT_TEXT}
+                            >
+                                {hoveredYear}
+                            </text>
+                        </Halo>
+
+                        {/* Dot + value label */}
+                        {hoveredValue !== undefined && (
+                            <PointLabel
+                                x={xScale(hoveredYear)}
+                                y={yScale(hoveredValue)}
+                                label={formatValue(hoveredValue)}
+                                color={lineColor}
+                                labelColor={labelColor}
+                                fontSize={valueLabelFontSize}
+                            />
+                        )}
+                    </g>
+                )}
 
                 {/* Draggable control points */}
                 {interactive &&
@@ -260,6 +522,8 @@ function DemographyParameterEditor({
                                     [year]: value,
                                 })
                             }
+                            onPointerEnter={() => setHoveredYear(year)}
+                            onPointerLeave={handlePointerLeave}
                         />
                     ))}
             </Group>
@@ -307,6 +571,8 @@ function DraggableControlPoint({
     yScale,
     marginTop,
     onValueChange,
+    onPointerEnter,
+    onPointerLeave,
 }: {
     cx: number
     cy: number
@@ -316,6 +582,8 @@ function DraggableControlPoint({
     yScale: { invert: (y: number) => number }
     marginTop: number
     onValueChange: (value: number) => void
+    onPointerEnter?: () => void
+    onPointerLeave?: () => void
 }) {
     const [isDragging, setIsDragging] = useState(false)
 
@@ -328,6 +596,8 @@ function DraggableControlPoint({
                 r={CONTROL_POINT_HIT_RADIUS}
                 fill="transparent"
                 cursor="ns-resize"
+                onPointerEnter={onPointerEnter}
+                onPointerLeave={onPointerLeave}
                 onPointerDown={(e) => {
                     e.currentTarget.setPointerCapture(e.pointerId)
                     setIsDragging(true)
@@ -379,11 +649,7 @@ function DraggableControlPoint({
             </text>
 
             {/* Value label — flips below the dot when near the top */}
-            <Halo
-                id="control-value-label"
-                outlineWidth={4}
-                outlineColor={PROJECTION_BACKGROUND}
-            >
+            <Halo id="control-value-label" outlineWidth={3}>
                 <text
                     x={cx}
                     y={cy < 20 ? cy + 22 : cy - 15}
@@ -400,6 +666,54 @@ function DraggableControlPoint({
     )
 }
 
+/** Compute the Bounds of a PointLabel's value text. */
+function pointLabelBounds(
+    x: number,
+    y: number,
+    label: string,
+    fontSize: number
+): Bounds {
+    const tw = new TextWrap({ text: label, maxWidth: Infinity, fontSize })
+    const textY = y - fontSize / 2 - 3
+    return new Bounds(
+        x - tw.width / 2,
+        textY - tw.height,
+        tw.width,
+        tw.height
+    ).expand(2)
+}
+
+/** Compute the Bounds of a year label below the x-axis. */
+function yearLabelBounds(
+    x: number,
+    innerHeight: number,
+    year: number,
+    anchor: "start" | "middle" | "end",
+    fontSize: number,
+    labelOffset: number
+): Bounds {
+    const tw = new TextWrap({
+        text: String(year),
+        maxWidth: Infinity,
+        fontSize,
+    })
+    const bx =
+        anchor === "start"
+            ? x
+            : anchor === "end"
+              ? x - tw.width
+              : x - tw.width / 2
+    return new Bounds(
+        bx,
+        innerHeight + labelOffset - tw.height,
+        tw.width,
+        tw.height
+    ).expand(2)
+}
+
+const YEAR_LABEL_FONT_SIZE = 9
+const YEAR_LABEL_OFFSET = 14
+
 function PointLabel({
     x,
     y,
@@ -407,6 +721,7 @@ function PointLabel({
     color,
     labelColor,
     fontSize = 9,
+    hidden = false,
 }: {
     x: number
     y: number
@@ -414,23 +729,87 @@ function PointLabel({
     color: string
     labelColor?: string
     fontSize?: number
+    hidden?: boolean
 }) {
     return (
         <>
             <circle cx={x} cy={y} r={SMALL_DOT_RADIUS} fill={color} />
             {label && (
-                <Halo id="point-label" outlineWidth={2}>
+                <Halo id="point-label" outlineWidth={3}>
                     <text
                         x={x}
-                        y={y - fontSize / 2 - 2}
+                        y={y - fontSize / 2 - 3}
                         fontSize={fontSize}
                         fill={labelColor ?? color}
                         textAnchor="middle"
+                        opacity={hidden ? 0 : 1}
                     >
                         {label}
                     </text>
                 </Halo>
             )}
+        </>
+    )
+}
+
+function PointLabelWithYear({
+    x,
+    y,
+    innerHeight,
+    label,
+    color,
+    labelColor,
+    fontSize = 9,
+    year,
+    yearAnchor = "middle",
+    hidden = false,
+}: {
+    x: number
+    y?: number
+    innerHeight: number
+    label?: string
+    color: string
+    labelColor?: string
+    fontSize?: number
+    year: number
+    yearAnchor?: "start" | "middle" | "end"
+    hidden?: boolean
+}) {
+    return (
+        <>
+            {y !== undefined && (
+                <PointLabel
+                    x={x}
+                    y={y}
+                    label={label}
+                    color={color}
+                    labelColor={labelColor}
+                    fontSize={fontSize}
+                    hidden={hidden}
+                />
+            )}
+            {/* Year tick */}
+            <line
+                x1={x}
+                y1={innerHeight}
+                x2={x}
+                y2={innerHeight + 5}
+                stroke={GRAPHER_LIGHT_TEXT}
+                opacity={hidden ? 0 : 1}
+            />
+            {/* Year label */}
+            <Halo id="point-year-label" outlineWidth={3}>
+                <text
+                    x={x}
+                    y={innerHeight + YEAR_LABEL_OFFSET}
+                    textAnchor={yearAnchor}
+                    fontSize={YEAR_LABEL_FONT_SIZE}
+                    fill={GRAPHER_LIGHT_TEXT}
+                    opacity={hidden ? 0 : 1}
+                >
+                    {year}
+                </text>
+            </Halo>
         </>
     )
 }

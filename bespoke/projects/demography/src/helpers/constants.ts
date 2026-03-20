@@ -37,6 +37,7 @@ export const PROJECTION_BACKGROUND = "rgba(0, 0, 0, 0.02)"
 export const PROJECTION_DASHARRAY = "1.5,3"
 
 export const BENCHMARK_LINE_COLOR = "#bbb"
+export const HOVER_LINE_COLOR = "rgba(180, 180, 180, 0.4)"
 
 export const AGE_ZONE_BACKGROUND_OPACITY = 0.1
 
