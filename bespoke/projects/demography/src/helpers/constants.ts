@@ -38,8 +38,19 @@ export const PROJECTION_DASHARRAY = "1.5,3"
 
 export const BENCHMARK_LINE_COLOR = "#bbb"
 
+export const AGE_ZONE_BACKGROUND_OPACITY = 0.06
+
+// Age zone colors
+export const COLOR_WORKING = DENIM_BLUE
+export const COLOR_DEPENDENT = "#93b2d5" // or: #8c4569
+export const COLOR_CHILDREN = COLOR_DEPENDENT
+export const COLOR_RETIRED = COLOR_DEPENDENT
+
 // Maximum age tracked (131 single-year ages: 0 to 130)
 export const MAX_AGE = 130
+
+export const WORKING_AGE = 15
+export const RETIREMENT_AGE = 65
 
 // OWID data uses these 5-year age groups
 export const OWID_AGE_GROUPS = [
