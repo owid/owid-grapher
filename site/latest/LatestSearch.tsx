@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom-v5-compat"
 import { TagGraphRoot } from "@ourworldindata/types"
 import { LiteClient } from "algoliasearch/lite"
 import { useTagGraphTopics } from "../search/searchHooks.js"
+import { deserializeSet } from "../search/searchUtils.js"
 import { useInfiniteLatestPages } from "./latestHooks.js"
 import { LatestTopicFacets } from "./LatestTopicFacets.js"
 import {
@@ -27,11 +28,13 @@ export const LatestSearch = ({
 
     const { allAreas } = useTagGraphTopics(topicTagGraph)
 
-    const topicParams = searchParams.getAll("topic")
+    const topicsParam = searchParams.get("topics")
     const topics = useMemo(
-        () => topicParams.filter((t) => allAreas.includes(t)),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [topicParams.join(","), allAreas]
+        () =>
+            [...deserializeSet(topicsParam)].filter((t) =>
+                allAreas.includes(t)
+            ),
+        [topicsParam, allAreas]
     )
 
     const filter: LatestFilter | null = decodeFilter(searchParams.get("type"))
@@ -41,9 +44,10 @@ export const LatestSearch = ({
             setSearchParams(
                 (prev) => {
                     const next = new URLSearchParams(prev)
-                    next.delete("topic")
-                    for (const t of newTopics) {
-                        next.append("topic", t)
+                    if (newTopics.length > 0) {
+                        next.set("topics", newTopics.join("~"))
+                    } else {
+                        next.delete("topics")
                     }
                     return next
                 },
