@@ -22,7 +22,7 @@ import {
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { TooltipCard } from "@ourworldindata/grapher/src/tooltip/TooltipCard.js"
 import { TooltipValue } from "@ourworldindata/grapher/src/tooltip/TooltipContents.js"
-import { Bounds, formatValue } from "@ourworldindata/utils"
+import { formatValue } from "@ourworldindata/utils"
 import { localPoint } from "@visx/event"
 import * as R from "remeda"
 import { BezierArrow } from "../../../../components/BezierArrow/BezierArrow.js"
@@ -185,55 +185,6 @@ function PopulationChart({
         benchmarkDataPoints,
     ])
 
-    // Compute endpoint label bounds so ChangeAnnotation can hide its label on overlap
-    const endpointLabelBounds = useMemo(() => {
-        if (
-            lastProjectionDataPoint === undefined ||
-            lastBenchmarkDataPoint === undefined
-        )
-            return []
-
-        const x = xScale(END_YEAR)
-        const yForecast = yScale(lastProjectionDataPoint)
-        const yBenchmark = yScale(lastBenchmarkDataPoint)
-
-        const forecastText = formatPopulationValueLong(lastProjectionDataPoint)
-        const benchmarkText = formatPopulationValueLong(lastBenchmarkDataPoint)
-
-        const forecastWrap = new TextWrap({
-            text: forecastText,
-            fontSize: 11,
-            fontWeight: 700,
-            maxWidth: Infinity,
-        })
-        const benchmarkWrap = new TextWrap({
-            text: benchmarkText,
-            fontSize: 11,
-            fontWeight: 500,
-            maxWidth: Infinity,
-        })
-
-        // Match EndpointLabels offset logic: -10 if above, +14 if below
-        const forecastLabelY = yForecast + (yForecast < yBenchmark ? -10 : 14)
-        const benchmarkLabelY = yBenchmark + (yBenchmark < yForecast ? -10 : 14)
-
-        // textAnchor="end" means text extends leftward from x
-        const forecastBounds = new Bounds(
-            x - forecastWrap.width,
-            forecastLabelY - forecastWrap.height,
-            forecastWrap.width,
-            forecastWrap.height
-        ).expand(3)
-        const benchmarkBounds = new Bounds(
-            x - benchmarkWrap.width,
-            benchmarkLabelY - benchmarkWrap.height,
-            benchmarkWrap.width,
-            benchmarkWrap.height
-        ).expand(3)
-
-        return [forecastBounds, benchmarkBounds]
-    }, [xScale, yScale, lastProjectionDataPoint, lastBenchmarkDataPoint])
-
     // Shouldn't happen
     if (
         lastProjectionDataPoint === undefined ||
@@ -245,19 +196,14 @@ function PopulationChart({
     const hasUserChanges =
         showCustomProjection && simulation.activePreset !== "unwpp"
 
-    // Show change annotation at hovered year when hovering a projection year,
-    // otherwise at the end year
-    const isHoveringProjection =
-        hoveredYear !== null && hoveredYear > HISTORICAL_END_YEAR
-    const changeAnnotationYear = isHoveringProjection ? hoveredYear : END_YEAR
+    // Show change annotation at the end year when not hovering,
+    // or at the hovered year when hovering a projection year
+    const isHovering = hoveredYear !== null
+    const changeAnnotationYear = isHovering ? hoveredYear : END_YEAR
     const dotDistance = pixelDistance(
         yScale,
-        isHoveringProjection
-            ? hoveredValues?.projection?.value
-            : lastProjectionDataPoint,
-        isHoveringProjection
-            ? hoveredValues?.benchmark?.value
-            : lastBenchmarkDataPoint
+        isHovering ? hoveredValues?.projection?.value : lastProjectionDataPoint,
+        isHovering ? hoveredValues?.benchmark?.value : lastBenchmarkDataPoint
     )
     const shouldShowChangeAnnotation =
         !hideChangeAnnotation && hasUserChanges && dotDistance > 18
@@ -348,18 +294,20 @@ function PopulationChart({
                         />
                     )}
 
-                    {/* Endpoint labels with dots — rendered above the change annotation */}
-                    <EndpointLabels
-                        xScale={xScale}
-                        yScale={yScale}
-                        forecastDataPoints={
-                            showCustomProjection
-                                ? projectionDataPoints
-                                : benchmarkDataPoints
-                        }
-                        benchmarkDataPoints={benchmarkDataPoints}
-                        showBenchmark={hasUserChanges}
-                    />
+                    {/* Endpoint labels with dots */}
+                    {!isHovering && (
+                        <EndpointLabels
+                            xScale={xScale}
+                            yScale={yScale}
+                            forecastDataPoints={
+                                showCustomProjection
+                                    ? projectionDataPoints
+                                    : benchmarkDataPoints
+                            }
+                            benchmarkDataPoints={benchmarkDataPoints}
+                            showBenchmark={hasUserChanges}
+                        />
+                    )}
 
                     {/* Change annotation between endpoints with arrow */}
                     {shouldShowChangeAnnotation && (
@@ -370,7 +318,6 @@ function PopulationChart({
                             innerWidth={innerWidth}
                             projectionDataPoints={projectionDataPoints}
                             benchmarkDataPoints={benchmarkDataPoints}
-                            endpointLabelBounds={endpointLabelBounds}
                         />
                     )}
 
@@ -565,7 +512,6 @@ function ChangeAnnotation({
     innerWidth,
     projectionDataPoints,
     benchmarkDataPoints,
-    endpointLabelBounds,
 }: {
     xScale: (v: number) => number
     yScale: (v: number) => number
@@ -573,7 +519,6 @@ function ChangeAnnotation({
     innerWidth: number
     projectionDataPoints: { year: number; value: number }[]
     benchmarkDataPoints: { year: number; value: number }[]
-    endpointLabelBounds: Bounds[]
 }) {
     const forecastPoint = projectionDataPoints.find((d) => d.year === year)
     const benchmarkPoint = benchmarkDataPoints.find((d) => d.year === year)
@@ -609,18 +554,6 @@ function ChangeAnnotation({
     }).width
     const placeOnRight = x + labelGap + labelWidth <= innerWidth
 
-    // Check if the pct label overlaps any endpoint label
-    const labelHeight = labelFontSize // approximate line height
-    const labelX = placeOnRight ? x + labelGap : x - labelGap - labelWidth
-    // dominantBaseline="middle" centers text vertically at midY
-    const labelBounds = new Bounds(
-        labelX,
-        midY - labelHeight / 2,
-        labelWidth,
-        labelHeight
-    )
-    const hideLabel = endpointLabelBounds.some((b) => labelBounds.intersects(b))
-
     return (
         <>
             {/* Arrow between dots */}
@@ -631,22 +564,20 @@ function ChangeAnnotation({
                 width={1.5}
             />
 
-            {/* Percentage label — hidden when it overlaps endpoint labels */}
-            {!hideLabel && (
-                <Halo id="change-label" outlineWidth={2}>
-                    <text
-                        x={placeOnRight ? x + labelGap : x - labelGap}
-                        y={midY}
-                        textAnchor={placeOnRight ? "start" : "end"}
-                        dominantBaseline="middle"
-                        fontSize={labelFontSize}
-                        fontWeight={500}
-                        fill={DENIM_BLUE}
-                    >
-                        {pctLabel}
-                    </text>
-                </Halo>
-            )}
+            {/* Percentage label */}
+            <Halo id="change-label" outlineWidth={2}>
+                <text
+                    x={placeOnRight ? x + labelGap : x - labelGap}
+                    y={midY}
+                    textAnchor={placeOnRight ? "start" : "end"}
+                    dominantBaseline="middle"
+                    fontSize={labelFontSize}
+                    fontWeight={500}
+                    fill={DENIM_BLUE}
+                >
+                    {pctLabel}
+                </text>
+            </Halo>
         </>
     )
 }
@@ -686,6 +617,17 @@ function PopulationTooltipContent({
     const benchmarkValue = hoveredValues.benchmark
 
     if (!projectionValue || !benchmarkValue) return null
+
+    // When only the UN projection line is shown, display a single value
+    if (!showCustomProjection) {
+        return (
+            <TooltipValue
+                label="UN projection"
+                value={formatPopulationValueLong(benchmarkValue.value)}
+                color={DENIM_BLUE}
+            />
+        )
+    }
 
     const difference = projectionValue.value - benchmarkValue.value
     const formattedDifference = formatValue(difference, {
