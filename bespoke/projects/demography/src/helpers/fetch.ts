@@ -67,7 +67,7 @@ export const useDemographyEntityData = (
 export function useDemographyData(entityName: string): {
     metadata?: DemographyMetadata
     entityData?: CountryData
-    isLoadingEntityData: boolean
+    isLoadingEntityData: boolean // TODO: Is this necessary?
     status: QueryStatus
 } {
     const metadataResponse = useDemographyMetadata()

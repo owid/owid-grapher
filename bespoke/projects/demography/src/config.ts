@@ -28,6 +28,7 @@ export interface PopulationVariantConfig {
 
 export interface PopulationPyramidVariantConfig {
     hideControls: boolean
+    hideTimeline?: boolean
     region?: string
     title?: string
     subtitle?: string
@@ -73,6 +74,7 @@ export function parseConfig(
         case "populationPyramid":
             return {
                 hideControls: parseBoolean(raw.hideControls),
+                hideTimeline: parseBoolean(raw.hideTimeline),
                 region: raw.region,
                 title: raw.title,
                 subtitle: raw.subtitle,

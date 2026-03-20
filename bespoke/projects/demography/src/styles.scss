@@ -2,25 +2,20 @@ $denim-blue: #4c6a9c;
 
 $panel-gap: 12px;
 
-.demography-page {
-    margin: 24px;
-    font-family: $sans-serif-font-stack;
-}
-
 .demography-chart {
     max-width: 1200px;
     color: $dark-text;
 
-    &--population {
+    &.demography-chart__population-variant {
         max-width: 850px;
     }
 
-    &--population-pyramid {
-        max-width: 500px;
+    &.demography-chart__population-pyramid-variant {
+        max-width: 600px;
     }
 
-    &--parameters {
-        max-width: 500px;
+    &.demography-chart__parameters-variant {
+        max-width: 600px;
     }
 }
 
@@ -44,8 +39,8 @@ $panel-gap: 12px;
         width: 100%;
     }
 
-    .demography-population-pyramid__controls {
-        margin-bottom: 12px;
+    .demography-population-pyramid__slider {
+        margin-top: 16px;
     }
 }
 
