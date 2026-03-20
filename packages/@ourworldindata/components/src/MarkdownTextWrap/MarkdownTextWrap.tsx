@@ -3,7 +3,6 @@ import { CSSProperties } from "react"
 import * as React from "react"
 import {
     excludeUndefined,
-    imemo,
     Bounds,
     FontFamily,
     type RequiredBy,
@@ -54,10 +53,10 @@ export class IRText implements IRToken {
         public text: string,
         public fontParams?: IRFontParams
     ) {}
-    @imemo get width(): number {
+    get width(): number {
         return Bounds.forText(this.text, this.fontParams).width
     }
-    @imemo get height(): number {
+    get height(): number {
         return this.fontParams?.fontSize || 13
     }
     getBreakpointBefore(): undefined {
@@ -76,7 +75,7 @@ export class IRText implements IRToken {
 
 export class IRWhitespace implements IRToken {
     constructor(public fontParams?: IRFontParams) {}
-    @imemo get width(): number {
+    get width(): number {
         return Bounds.forText(" ", this.fontParams).width
     }
     getBreakpointBefore(): IRBreakpoint {
@@ -121,7 +120,7 @@ export abstract class IRElement implements IRToken {
         public fontParams?: IRFontParams
     ) {}
 
-    @imemo get width(): number {
+    get width(): number {
         return getLineWidth(this.children)
     }
 
@@ -210,10 +209,10 @@ export class IRSuperscript implements IRToken {
         public text: string,
         public fontParams?: IRFontParams
     ) {}
-    @imemo get width(): number {
+    get width(): number {
         return Bounds.forText(this.text, { fontSize: this.height / 2 }).width
     }
-    @imemo get height(): number {
+    get height(): number {
         return this.fontParams?.fontSize || 16
     }
     getBreakpointBefore(): undefined {
@@ -524,7 +523,7 @@ export class MarkdownTextWrap implements ITextWrap {
         this.initialProps = props
     }
 
-    @imemo get props(): RequiredBy<
+    get props(): RequiredBy<
         MarkdownTextWrapProps,
         keyof typeof MarkdownTextWrap.defaultOptions
     > {
@@ -590,29 +589,29 @@ export class MarkdownTextWrap implements ITextWrap {
         }
     }
 
-    @imemo get maxWidth(): number {
+    get maxWidth(): number {
         return this.props.maxWidth
     }
-    @imemo get lineHeight(): number {
+    get lineHeight(): number {
         return this.props.lineHeight
     }
-    @imemo get fontSize(): number {
+    get fontSize(): number {
         return this.props.fontSize
     }
-    @imemo get fontWeight(): number | undefined {
+    get fontWeight(): number | undefined {
         return this.props.fontWeight
     }
-    @imemo get fontFamily(): FontFamily | undefined {
+    get fontFamily(): FontFamily | undefined {
         return this.props.fontFamily
     }
-    @imemo get fontParams(): IRFontParams {
+    get fontParams(): IRFontParams {
         return {
             fontFamily: this.props.fontFamily,
             fontSize: this.props.fontSize,
             fontWeight: this.props.fontWeight,
         }
     }
-    @imemo get text(): string {
+    get text(): string {
         // NOTE: ❗Here we deviate from the normal markdown spec. We replace \n with <SPACE><SPACE>\n to make sure that single \n are treated as
         // actual line breaks but only if none of the other markdown line break rules apply.
         // This is a bit different to how markdown usually works but we have a substantial
@@ -634,20 +633,20 @@ export class MarkdownTextWrap implements ITextWrap {
         text = text.replaceAll("@@LINEBREAK@@", "  \n")
         return text
     }
-    @imemo get detailsOrderedByReference(): string[] {
+    get detailsOrderedByReference(): string[] {
         return this.props.detailsOrderedByReference
     }
 
-    @imemo get plaintext(): string {
+    get plaintext(): string {
         return this.htmlLines.map(lineToPlaintext).join("\n")
     }
 
-    @imemo get tokensFromMarkdown(): IRToken[] {
+    get tokensFromMarkdown(): IRToken[] {
         const tokens = convertMarkdownToIRTokens(this.text, this.fontParams)
         return tokens
     }
 
-    @imemo get htmlLines(): IRToken[][] {
+    get htmlLines(): IRToken[][] {
         const tokens = this.tokensFromMarkdown
         const lines = splitIntoLines(tokens, this.maxWidth)
         return lines.map((line) =>
@@ -655,13 +654,13 @@ export class MarkdownTextWrap implements ITextWrap {
         )
     }
 
-    @imemo get svgLines(): IRToken[][] {
+    get svgLines(): IRToken[][] {
         const tokens = this.tokensFromMarkdown
         const lines = splitIntoLines(tokens, this.maxWidth)
         return lines
     }
 
-    @imemo get svgLinesWithDodReferenceNumbers(): IRToken[][] {
+    get svgLinesWithDodReferenceNumbers(): IRToken[][] {
         const references = this.detailsOrderedByReference
         const tokens = this.tokensFromMarkdown
         const tokensWithReferenceNumbers = appendReferenceNumbers(
@@ -671,7 +670,7 @@ export class MarkdownTextWrap implements ITextWrap {
         return splitIntoLines(tokensWithReferenceNumbers, this.maxWidth)
     }
 
-    @imemo get width(): number {
+    get width(): number {
         const { htmlLines } = this
         const lineLengths = htmlLines.map((tokens) =>
             _.sumBy(tokens, (token) => token.width)
@@ -679,21 +678,21 @@ export class MarkdownTextWrap implements ITextWrap {
         return _.max(lineLengths) ?? 0
     }
 
-    @imemo get singleLineHeight(): number {
+    get singleLineHeight(): number {
         return this.fontSize * this.lineHeight
     }
 
-    @imemo get lastLineWidth(): number {
+    get lastLineWidth(): number {
         return _.sumBy(R.last(this.htmlLines), (token) => token.width) ?? 0
     }
 
-    @imemo get height(): number {
+    get height(): number {
         const { htmlLines } = this
         if (htmlLines.length === 0) return 0
         return htmlLines.length * this.singleLineHeight
     }
 
-    @imemo get style(): any {
+    get style(): any {
         return {
             ...this.fontParams,
             ...this.props.style,
