@@ -58,3 +58,9 @@ playwright-report/
 
 # Claude
 .claude/settings.local.json
+
+# Auto Claude
+.auto-claude/
+.auto-claude-security.json
+.auto-claude-status
+.claude_settings.json
