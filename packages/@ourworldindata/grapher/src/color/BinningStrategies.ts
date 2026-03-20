@@ -470,7 +470,7 @@ const autoChooseBinningStrategy = (
         return "equalSizeBins-normal"
     }
 
-    return "log-auto"
+    return "equalSizeBins-few-bins"
 }
 
 export const mirrorBinsAroundMidpoint = (
