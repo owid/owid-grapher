@@ -1,4 +1,11 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from "react"
+import {
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react"
 import * as React from "react"
 import { Button, Tabs } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -9,6 +16,7 @@ import {
     faChevronLeft,
     faChevronRight,
 } from "@fortawesome/free-solid-svg-icons"
+import { GrapherState } from "@ourworldindata/grapher"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
@@ -25,6 +33,7 @@ import { SlideshowArrangeTab } from "./SlideshowArrangeTab.js"
 import { SlideshowPreviewTab } from "./SlideshowPreviewTab.js"
 import { makeImageSrc } from "./imagesHelpers.js"
 import { useImages } from "./useImages.js"
+import { SlideGrapher } from "./SlideGrapher.js"
 
 import "./SlideshowEditorPage.scss"
 
@@ -84,6 +93,30 @@ export function SlideshowEditorPage(props: {
             setSlides((prev) => {
                 const next = [...prev]
                 next[currentSlideIndex] = updatedSlide
+                return next
+            })
+            setIsDirty(true)
+        },
+        [currentSlideIndex]
+    )
+
+    const grapherStateRef = useRef<GrapherState | null>(null)
+
+    const handleGrapherQueryStringChange = useCallback(
+        (queryString: string) => {
+            setSlides((prev) => {
+                const slide = prev[currentSlideIndex]
+                if (!slide || !("media" in slide) || !slide.media) return prev
+                if (slide.media.type !== "grapher") return prev
+                if ((slide.media.queryString ?? "") === queryString) return prev
+                const next = [...prev]
+                next[currentSlideIndex] = {
+                    ...slide,
+                    media: {
+                        ...slide.media,
+                        queryString: queryString || undefined,
+                    },
+                }
                 return next
             })
             setIsDirty(true)
@@ -246,6 +279,10 @@ export function SlideshowEditorPage(props: {
                                 <SlidePreview
                                     slide={currentSlide}
                                     imageCloudflareIds={imageCloudflareIds}
+                                    grapherStateRef={grapherStateRef}
+                                    onGrapherQueryStringChange={
+                                        handleGrapherQueryStringChange
+                                    }
                                 />
                             )}
                         </div>
@@ -332,12 +369,19 @@ export function SlideshowEditorPage(props: {
     )
 }
 
-/** Renders a SlideMedia value as either an image or a grapher URL placeholder */
+/** Renders a SlideMedia value as either an image, live Grapher, or placeholder */
 function MediaPreview(props: {
     media: SlideMedia | null
     imageCloudflareIds: Map<string, string>
+    grapherStateRef: React.RefObject<GrapherState | null>
+    onGrapherQueryStringChange?: (queryString: string) => void
 }): React.ReactElement {
-    const { media, imageCloudflareIds } = props
+    const {
+        media,
+        imageCloudflareIds,
+        grapherStateRef,
+        onGrapherQueryStringChange,
+    } = props
 
     if (!media) {
         return (
@@ -363,15 +407,29 @@ function MediaPreview(props: {
         )
     }
 
-    return <div className="SlidePreview__media-placeholder">{media.url}</div>
+    return (
+        <SlideGrapher
+            slug={media.slug}
+            initialQueryString={media.queryString}
+            grapherStateRef={grapherStateRef}
+            onQueryStringChange={onGrapherQueryStringChange}
+        />
+    )
 }
 
 /** Minimal slide preview renderer - will be expanded per template */
 function SlidePreview(props: {
     slide: Slide
     imageCloudflareIds: Map<string, string>
+    grapherStateRef: React.RefObject<GrapherState | null>
+    onGrapherQueryStringChange?: (queryString: string) => void
 }): React.ReactElement {
-    const { slide, imageCloudflareIds } = props
+    const {
+        slide,
+        imageCloudflareIds,
+        grapherStateRef,
+        onGrapherQueryStringChange,
+    } = props
 
     switch (slide.template) {
         case SlideTemplate.TitleSlide:
@@ -410,6 +468,8 @@ function SlidePreview(props: {
                     <MediaPreview
                         media={slide.media}
                         imageCloudflareIds={imageCloudflareIds}
+                        grapherStateRef={grapherStateRef}
+                        onGrapherQueryStringChange={onGrapherQueryStringChange}
                     />
                 </div>
             )
