@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from "@tanstack/react-query"
+import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query"
 import { LiteClient } from "algoliasearch/lite"
 import {
     latestPagesQueryKey,
@@ -48,6 +48,7 @@ export function useInfiniteLatestPages({
                 : undefined
         },
         initialPageParam: 0,
+        placeholderData: keepPreviousData,
     })
 
     const hits: PageChronologicalRecord[] =
