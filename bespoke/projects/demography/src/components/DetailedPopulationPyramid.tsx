@@ -58,9 +58,11 @@ function computeAgeZonePopulation(
 export function DetailedPopulationPyramid({
     simulation,
     year,
+    xAxisScaleMode,
 }: {
     simulation: Simulation
     year: number
+    xAxisScaleMode?: "fixed" | "adaptive"
 }) {
     const colorByAgeGroup = useCallback(
         (ageGroup: string) => getAgeZoneColor(ageGroup),
@@ -80,6 +82,7 @@ export function DetailedPopulationPyramid({
                     colorByAgeGroup={colorByAgeGroup}
                     showAgeGroupBackground
                     showAgeZoneLabels
+                    xAxisScaleMode={xAxisScaleMode}
                 />
             </div>
         </div>
@@ -355,18 +358,42 @@ function AgeZoneBar({
                     x1={secondX + 1}
                     x2={secondX + secondW - 1}
                     height={annotationHeight}
-                    color={youngIsLarger ? YOUNG_DEPENDENT_COLOR : OLD_DEPENDENT_COLOR}
-                    labelWrap={youngIsLarger ? youngAnnotation.label : oldAnnotation.label}
-                    valueWrap={youngIsLarger ? youngAnnotation.value : oldAnnotation.value}
+                    color={
+                        youngIsLarger
+                            ? YOUNG_DEPENDENT_COLOR
+                            : OLD_DEPENDENT_COLOR
+                    }
+                    labelWrap={
+                        youngIsLarger
+                            ? youngAnnotation.label
+                            : oldAnnotation.label
+                    }
+                    valueWrap={
+                        youngIsLarger
+                            ? youngAnnotation.value
+                            : oldAnnotation.value
+                    }
                     labelValueGap={LABEL_VALUE_GAP}
                 />
                 <AnnotationBracket
                     x1={thirdX + 1}
                     x2={width - 1}
                     height={annotationHeight}
-                    color={youngIsLarger ? OLD_DEPENDENT_COLOR : YOUNG_DEPENDENT_COLOR}
-                    labelWrap={youngIsLarger ? oldAnnotation.label : youngAnnotation.label}
-                    valueWrap={youngIsLarger ? oldAnnotation.value : youngAnnotation.value}
+                    color={
+                        youngIsLarger
+                            ? OLD_DEPENDENT_COLOR
+                            : YOUNG_DEPENDENT_COLOR
+                    }
+                    labelWrap={
+                        youngIsLarger
+                            ? oldAnnotation.label
+                            : youngAnnotation.label
+                    }
+                    valueWrap={
+                        youngIsLarger
+                            ? oldAnnotation.value
+                            : youngAnnotation.value
+                    }
                     labelValueGap={LABEL_VALUE_GAP}
                 />
             </Group>
