@@ -75,6 +75,18 @@ export const LatestSearch = ({
         [setSearchParams]
     )
 
+    const clearAllFilters = useCallback(() => {
+        setSearchParams(
+            (prev) => {
+                const next = new URLSearchParams(prev)
+                next.delete("topics")
+                next.delete("type")
+                return next
+            },
+            { replace: true }
+        )
+    }, [setSearchParams])
+
     // Derive contentType and kicker from the active filter
     const contentType = filter?.kind === "type" ? filter.value : null
     const kicker = filter?.kind === "kicker" ? filter.value : null
@@ -160,9 +172,15 @@ export const LatestSearch = ({
                     Loading…
                 </p>
             ) : hits.length === 0 ? (
-                <p className="latest-search__no-results span-cols-8 col-start-2 span-md-cols-10 col-md-start-2 span-sm-cols-14 col-sm-start-1">
-                    No results found.
-                </p>
+                <div className="latest-search__no-results span-cols-8 col-start-2 span-md-cols-10 col-md-start-2 span-sm-cols-14 col-sm-start-1">
+                    <p>No results found.</p>
+                    <button
+                        className="latest-search__clear-filters-button"
+                        onClick={clearAllFilters}
+                    >
+                        Clear all filters
+                    </button>
+                </div>
             ) : (
                 <>
                     {hits.slice(0, 2).map((hit) => (
