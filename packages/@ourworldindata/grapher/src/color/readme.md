@@ -4,22 +4,25 @@ Grapher supports several automatic binning strategies, and can also automaticall
 One key input into choosing a suiting strategy is the (log10) magnitude difference, i.e. $\log_{10}(maxValue) - \log_{10}(minValue)$.
 For example, the magnitude difference between 4 and 400 is 2, because $4 \cdot 10^{\mathbf 2} = 400$.
 
-In general, if we have a high magnitude difference, we want to use a logarithmic binning strategy, and if we have a low one we want to use an equal-sized binning strategy.
+In general, if we have a low magnitude difference, we want to use an equal-sized binning strategy. For high magnitude differences, `auto` currently falls back to `equalSizeBins-few-bins` rather than choosing a logarithmic strategy directly.
 We only compute the magnitude difference based on positive values, and don't take the lowest and highest values directly, but rather some low and high quantiles.
 
 ```mermaid
 flowchart TD
-    A -->|small magnitude diff| E
-    S --> E[equalSizeBins]
+    A -->|small magnitude diff| E1
+    A -->|large magnitude diff| E2
     S(Binning Strategy) --> A[auto]
+    S --> E[equalSizeBins]
     S --> L[logarithmic]
-    A -->|large magnitude diff| L
 
-    E --> E1(Compute min, max value based on quantiles)
-    E1 --> E2(Find fitting, nice step size that produces a decent number of bins)
-    E2 -->|e.g. 10| E3(Compute bins; e.g. 0, 10, 20, 30, 40)
+    E1 --> E3(Use equalSizeBins-normal or percent)
+    E2 --> E4(Use equalSizeBins-few-bins)
+    E3 --> E5(Compute min, max value based on quantiles)
+    E4 --> E5
+    E5 --> E6(Find fitting, nice step size that produces a decent number of bins)
+    E6 --> E7(Compute bins; e.g. 0, 10, 20, 30, 40)
 
-    L --> L1(Compute min, max value based on quantiles)
+    L --> L1(Explicit log strategy)
     L1 --> L2(Decide specific strategy based on magnitude difference)
     L2 -->|log-1-2-5| L3(Compute bins; e.g. 0, 10, 20, 50, 100)
     L2 -->|log-1-3| L3
