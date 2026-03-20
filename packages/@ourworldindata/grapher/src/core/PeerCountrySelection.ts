@@ -40,6 +40,7 @@ interface SelectByClosestValueParams {
 }
 
 interface SelectByDataRangeParams {
+    targetCountry?: EntityName
     availableEntities: EntityName[]
     dataColumn: CoreColumn
     randomize?: boolean
@@ -389,6 +390,7 @@ async function selectNeighborsAsPeers({
 
 /** Selects countries representing the full data range */
 async function selectPeerCountriesByDataRange({
+    targetCountry,
     availableEntities,
     dataColumn,
     additionalDataLoaderFn,
@@ -420,7 +422,13 @@ async function selectPeerCountriesByDataRange({
         populationData.map((row) => [row.entity, row.value])
     )
 
-    return findDataRangePeers({ values, population, targetCount, randomize })
+    return findDataRangePeers({
+        targetCountry,
+        values,
+        population,
+        targetCount,
+        randomize,
+    })
 }
 
 /** Finds entities with values closest to a target entity using logarithmic distance */
@@ -550,13 +558,16 @@ const findClosestByLogDistance = ({
 export function findDataRangePeers({
     values,
     population,
-    randomize = false,
     targetCount = 5,
+    targetCountry,
+    randomize = false,
 }: {
     values: Map<EntityName, number>
     /** Population data for weighted selection (prefers larger countries) */
     population: Map<EntityName, number>
     targetCount?: number
+    /** If specified, skip the bucket that contains this country */
+    targetCountry?: EntityName
     /** If true, use randomized selection; if false, pick most populous */
     randomize?: boolean
 }): EntityName[] {
@@ -571,10 +582,22 @@ export function findDataRangePeers({
     const bucketSize = Math.ceil(sortedData.length / targetCount)
     const buckets = R.chunk(sortedData, bucketSize)
 
+    // If a target country is specified and has data, include it directly
+    // and only pick peers for buckets that don't contain it
+    const targetBucketIndex =
+        targetCountry !== undefined && values.has(targetCountry)
+            ? buckets.findIndex((bucket) =>
+                  bucket.some((item) => item.entityName === targetCountry)
+              )
+            : -1
+
     const selected = R.pipe(
         buckets,
-        R.map((bucket) => {
+        R.map((bucket, bucketIndex) => {
             if (bucket.length === 0) return undefined
+
+            // Skip if the target country is in this bucket
+            if (bucketIndex === targetBucketIndex) return undefined
 
             return randomize
                 ? weightedRandomPick(bucket, population)
