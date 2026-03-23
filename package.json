@@ -190,6 +190,8 @@
     "devDependencies": {
         "@react-aria/optimize-locales-plugin": "^1.1.5",
         "@rmp135/sql-ts": "^2.1.0",
+        "@rollup/plugin-swc": "^0.4.0",
+        "@swc/core": "^1.15.21",
         "@testing-library/dom": "^10.4.1",
         "@testing-library/jest-dom": "^6.9.1",
         "@testing-library/react": "^16.3.2",
@@ -224,7 +226,7 @@
         "@types/topojson-server": "^3.0.4",
         "@types/url-parse": "^1.4.11",
         "@types/yargs": "^17.0.35",
-        "@vitejs/plugin-react": "^5.1.1",
+        "@vitejs/plugin-react": "^6.0.1",
         "@vitest/coverage-v8": "^4.1.0",
         "@yarnpkg/types": "^4.0.1",
         "bundlemon": "^3.1.0",
@@ -245,7 +247,7 @@
         "schema-dts": "^1.1.5",
         "topojson-server": "^3.0.1",
         "tsx": "^4.21.0",
-        "vite": "^7.3.0",
+        "vite": "^8.0.1",
         "vitest": "^4.1.0",
         "wrangler": "^4.75.0"
     },
