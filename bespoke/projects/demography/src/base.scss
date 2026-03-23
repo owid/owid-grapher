@@ -1,3 +1,9 @@
 :host {
     font-family: $sans-serif-font-stack;
 }
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}

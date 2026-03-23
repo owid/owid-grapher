@@ -92,8 +92,7 @@ function PopulationPyramidCaptionedChart({
     const title =
         titleOverride ??
         `Age structure of ${articulateEntity(data.country)} in ${year}`
-    const subtitle =
-        subtitleOverride ?? "Population distribution by age and sex. Bla bla"
+    const subtitle = subtitleOverride ?? "Bla bla subtitle subtitle"
 
     return (
         <Frame className="demography-population-pyramid">

@@ -44,12 +44,28 @@ $panel-gap: 12px;
     }
 }
 
+.demography-age-distribution {
+    .demography-age-distribution__chart-area {
+        position: relative;
+        width: 100%;
+    }
+
+    .demography-age-distribution__chart {
+        width: 100%;
+        aspect-ratio: 2 / 1;
+    }
+
+    .demography-age-distribution__slider {
+        margin-top: 16px;
+    }
+}
+
 .detailed-population-pyramid {
     width: 100%;
 
     .detailed-population-pyramid__chart {
         width: 100%;
-        aspect-ratio: 10 / 9;
+        aspect-ratio: 1 / 1;
     }
 }
 
@@ -159,6 +175,10 @@ $panel-gap: 12px;
     .population-panel {
         flex: 2;
     }
+
+    .age-distribution-panel {
+        display: none;
+    }
 }
 
 .chart-panel {
@@ -168,7 +188,6 @@ $panel-gap: 12px;
     border-radius: 2px;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
 
     &.chart-panel--focus {
         border: 2px solid $denim-blue;
@@ -217,12 +236,22 @@ $panel-gap: 12px;
     }
 
     .chart-panel__info-icon {
-        margin-left: 4px;
         cursor: help;
         opacity: 0.8;
 
         &:hover {
             opacity: 1;
+        }
+    }
+
+    &.age-distribution-panel {
+        overflow: visible;
+
+        .chart-panel__header {
+            position: absolute;
+            top: $panel-gap;
+            right: $panel-gap;
+            width: 40%;
         }
     }
 
@@ -315,19 +344,26 @@ $panel-gap: 12px;
     color: $gray-100;
 }
 
-// @media (max-width: 1000px) {
-//     .output-panels {
-//         flex-direction: column;
+@media (max-width: 1024px) {
+    .output-panels {
+        flex-direction: column;
 
-//         .population-panel {
-//             flex: 1;
-//         }
+        .pyramid-panel {
+            display: none;
+        }
 
-//         > *:not(.population-panel) {
-//             max-width: 120px;
-//         }
-//     }
-// }
+        .age-distribution-panel {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .population-panel {
+            flex: 2;
+            min-height: 0;
+        }
+    }
+}
 
 @media (max-width: 768px) {
     .chart-content {
@@ -345,8 +381,8 @@ $panel-gap: 12px;
 
     .container-arrow {
         display: block;
-        width: 40px;
-        margin: 16px auto;
+        width: 24px;
+        margin: 8px auto;
         transform: rotate(90deg);
     }
 
@@ -364,14 +400,55 @@ $panel-gap: 12px;
         > * + * {
             margin-top: $panel-gap;
         }
+
+        .pyramid-panel {
+            display: none;
+        }
+
+        .age-distribution-panel {
+            display: block;
+        }
+    }
+
+    .container {
+        padding: 12px;
+    }
+
+    .container .container__title {
+        font-size: 10px;
     }
 
     .chart-panel {
         display: block;
+        padding: 8px;
+    }
+
+    .chart-panel .chart-panel__title {
+        font-size: 11px;
+    }
+
+    .chart-panel .chart-panel__subtitle {
+        font-size: 10px;
+    }
+
+    .chart-panel .chart-panel__reset-btn {
+        font-size: 9px;
+    }
+
+    .demography-controls .demography-controls__title {
+        font-size: 10px;
+    }
+
+    .population-chart-legend .population-chart-legend__item {
+        font-size: 0.6rem;
     }
 
     .chart-panel__content {
         height: 300px;
+    }
+
+    .age-distribution-panel .chart-panel__content {
+        height: 200px;
     }
 
     .population-panel .chart-panel__content {
@@ -381,6 +458,28 @@ $panel-gap: 12px;
     .input-panels .chart-panel__content {
         height: 60px;
         touch-action: none;
+    }
+}
+
+@media (max-width: 500px) {
+    .chart-header .chart-header__title {
+        font-size: 1rem !important;
+        margin-bottom: 4px !important;
+    }
+
+    .chart-header .chart-header__subtitle {
+        font-size: 0.75rem !important;
+        margin-bottom: 8px !important;
+    }
+
+    .output-panels {
+        .pyramid-panel {
+            display: block;
+        }
+
+        .age-distribution-panel {
+            display: none;
+        }
     }
 }
 

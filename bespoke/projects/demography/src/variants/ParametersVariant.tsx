@@ -84,9 +84,7 @@ function ParametersCaptionedChart({
     const title =
         titleOverride ??
         `Demographic assumptions for ${articulateEntity(countryName)}`
-    const subtitle =
-        subtitleOverride ??
-        "Drag the control points to adjust fertility, life expectancy, and migration assumptions"
+    const subtitle = subtitleOverride ?? "Bla bla subtitle subtitle"
 
     return (
         <Frame className="demography-parameters">
@@ -101,21 +99,18 @@ function ParametersCaptionedChart({
                             className="parameters-panel"
                             interactive={false}
                             showProjectionLabel
-                            valueLabelFontSize={10}
                         />
                         <InputChartPanel
                             simulation={simulation}
                             variant="lifeExpectancy"
                             className="parameters-panel"
                             interactive={false}
-                            valueLabelFontSize={10}
                         />
                         <InputChartPanel
                             simulation={simulation}
                             variant="netMigrationRate"
                             className="parameters-panel"
                             interactive={false}
-                            valueLabelFontSize={10}
                         />
                     </div>
                 )}
@@ -123,6 +118,7 @@ function ParametersCaptionedChart({
             <ChartFooter
                 className="demography-footer"
                 source="List of data sources"
+                note="Optional note"
             />
         </Frame>
     )

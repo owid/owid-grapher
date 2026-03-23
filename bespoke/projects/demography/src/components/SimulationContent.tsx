@@ -9,6 +9,7 @@ import { useSimulation, type Simulation } from "../helpers/useSimulation"
 import { ResponsivePopulationChart } from "./PopulationChart.js"
 import { ResponsiveDemographyParameterEditor } from "./DemographyParameterEditor.js"
 import { ResponsivePopulationPyramid } from "./PopulationPyramid.js"
+import { ResponsivePopulationByAgeChart } from "./PopulationByAgeChart.js"
 import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
 import {
     START_YEAR,
@@ -135,21 +136,41 @@ export function SimulationContent({
                         />
                     </ChartPanel>
                     {!hidePopulationPyramid && (
-                        <ChartPanel
-                            title={`Age Structure in ${year}`}
-                            subtitle={`Population distribution by age and sex`}
-                            footer={
-                                <SimpleYearSlider
-                                    selectedYear={year}
-                                    onChange={setYear}
+                        <>
+                            <ChartPanel
+                                className="pyramid-panel"
+                                title={`Age Structure in ${year}`}
+                                subtitle="Population distribution by age and sex"
+                                footer={
+                                    <SimpleYearSlider
+                                        selectedYear={year}
+                                        onChange={setYear}
+                                    />
+                                }
+                            >
+                                <ResponsivePopulationPyramid
+                                    simulation={simulation}
+                                    year={year}
+                                    compact
                                 />
-                            }
-                        >
-                            <ResponsivePopulationPyramid
-                                simulation={simulation}
-                                year={year}
-                            />
-                        </ChartPanel>
+                            </ChartPanel>
+                            <ChartPanel
+                                className="age-distribution-panel"
+                                title={`Age Structure in ${year}`}
+                                subtitle="Population distribution by age"
+                                header={
+                                    <SimpleYearSlider
+                                        selectedYear={year}
+                                        onChange={setYear}
+                                    />
+                                }
+                            >
+                                <ResponsivePopulationByAgeChart
+                                    simulation={simulation}
+                                    year={year}
+                                />
+                            </ChartPanel>
+                        </>
                     )}
                 </div>
             </Container>
@@ -183,7 +204,6 @@ export function InputChartPanel({
     labelColor,
     hideReset = false,
     showProjectionLabel,
-    valueLabelFontSize,
 }: {
     simulation: Simulation
     variant: ParameterKey
@@ -193,7 +213,6 @@ export function InputChartPanel({
     labelColor?: string
     hideReset?: boolean
     showProjectionLabel?: boolean
-    valueLabelFontSize?: number
 }) {
     const { title, subtitle, tooltipContent } = parameterConfigByKey[variant]
 
@@ -228,7 +247,6 @@ export function InputChartPanel({
                 lineColor={lineColor}
                 labelColor={labelColor}
                 showProjectionLabel={showProjectionLabel}
-                valueLabelFontSize={valueLabelFontSize}
             />
         </ChartPanel>
     )
@@ -253,8 +271,15 @@ export function ChartPanel({
     className?: string
     onReset?: () => void
 }) {
+    const panelRef = useRef<HTMLDivElement>(null)
+    const getTippyContainer = useCallback(() => {
+        const root = panelRef.current?.getRootNode()
+        if (root instanceof ShadowRoot) return root as unknown as Element
+        return document.body
+    }, [])
+
     return (
-        <div className={cx("chart-panel", className)}>
+        <div ref={panelRef} className={cx("chart-panel", className)}>
             {onReset && (
                 <button className="chart-panel__reset-btn" onClick={onReset}>
                     Reset
@@ -264,10 +289,13 @@ export function ChartPanel({
             <p className="chart-panel__subtitle">
                 {subtitle}
                 {tooltipContent && (
-                    <>
-                        {/* Non-breaking space to prevent the icon from wrapping to a new line alone */}
+                    <span style={{ whiteSpace: "nowrap" }}>
                         {"\u00a0"}
-                        <Tippy content={tooltipContent} placement="top">
+                        <Tippy
+                            content={tooltipContent}
+                            placement="top"
+                            appendTo={getTippyContainer}
+                        >
                             <span className="chart-panel__info-icon">
                                 <FontAwesomeIcon
                                     icon={faCircleInfo}
@@ -275,7 +303,7 @@ export function ChartPanel({
                                 />
                             </span>
                         </Tippy>
-                    </>
+                    </span>
                 )}
             </p>
             {header && <div className="chart-panel__header">{header}</div>}
