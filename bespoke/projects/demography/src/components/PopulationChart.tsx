@@ -295,19 +295,17 @@ function PopulationChart({
                     )}
 
                     {/* Endpoint labels with dots */}
-                    {!isHovering && (
-                        <EndpointLabels
-                            xScale={xScale}
-                            yScale={yScale}
-                            forecastDataPoints={
-                                showCustomProjection
-                                    ? projectionDataPoints
-                                    : benchmarkDataPoints
-                            }
-                            benchmarkDataPoints={benchmarkDataPoints}
-                            showBenchmark={hasUserChanges}
-                        />
-                    )}
+                    <EndpointLabels
+                        xScale={xScale}
+                        yScale={yScale}
+                        forecastDataPoints={
+                            showCustomProjection
+                                ? projectionDataPoints
+                                : benchmarkDataPoints
+                        }
+                        benchmarkDataPoints={benchmarkDataPoints}
+                        showBenchmark={hasUserChanges}
+                    />
 
                     {/* Change annotation between endpoints with arrow */}
                     {shouldShowChangeAnnotation && (
