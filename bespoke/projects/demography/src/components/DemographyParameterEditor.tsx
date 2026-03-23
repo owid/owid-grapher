@@ -102,6 +102,8 @@ function DemographyParameterEditor({
         clamp: true,
     })
 
+    const axisColor = minValue === 0 ? ZERO_LINE_COLOR : "#ddd"
+
     const handlePointerMove = useCallback(
         (e: React.PointerEvent<SVGRectElement>) => {
             const point = localPoint(e)
@@ -339,7 +341,7 @@ function DemographyParameterEditor({
                     xScale={xScale}
                     innerWidth={innerWidth}
                     innerHeight={innerHeight}
-                    strokeColor={minValue === 0 ? GRAPHER_LIGHT_TEXT : "#ddd"}
+                    strokeColor={axisColor}
                     fontSize={fontTier.label}
                     labelOffset={YEAR_LABEL_OFFSET}
                     hideLabels={hoveredYear !== null}
@@ -388,6 +390,7 @@ function DemographyParameterEditor({
                     year={firstHistoricalDataPoint.year}
                     yearAnchor="start"
                     hidden={hiddenPointLabels.has("first-historical")}
+                    hideTickMark
                 />
 
                 {/* Last historical point (2023) */}
@@ -410,6 +413,7 @@ function DemographyParameterEditor({
                     year={lastHistoricalDataPoint.year}
                     yearAnchor="middle"
                     hidden={hiddenPointLabels.has("last-historical")}
+                    tickColor={axisColor}
                 />
 
                 {/* Last projection point (2100) */}
@@ -433,6 +437,7 @@ function DemographyParameterEditor({
                         year={projectionPoints.at(-1)!.year}
                         yearAnchor="end"
                         hidden={hiddenPointLabels.has("last-projection")}
+                        hideTickMark
                     />
                 )}
 
@@ -760,6 +765,8 @@ function PointLabelWithYear({
     year,
     yearAnchor = "middle",
     hidden = false,
+    hideTickMark = false,
+    tickColor = GRAPHER_LIGHT_TEXT,
 }: {
     x: number
     y?: number
@@ -771,6 +778,8 @@ function PointLabelWithYear({
     year: number
     yearAnchor?: "start" | "middle" | "end"
     hidden?: boolean
+    hideTickMark?: boolean
+    tickColor?: string
 }) {
     return (
         <>
@@ -786,14 +795,16 @@ function PointLabelWithYear({
                 />
             )}
             {/* Year tick */}
-            <line
-                x1={x}
-                y1={innerHeight}
-                x2={x}
-                y2={innerHeight + 5}
-                stroke={GRAPHER_LIGHT_TEXT}
-                opacity={hidden ? 0 : 1}
-            />
+            {!hideTickMark && (
+                <line
+                    x1={x}
+                    y1={innerHeight}
+                    x2={x}
+                    y2={innerHeight + 5}
+                    stroke={tickColor}
+                    opacity={hidden ? 0 : 1}
+                />
+            )}
             {/* Year label */}
             <Halo id="point-year-label" outlineWidth={3}>
                 <text
