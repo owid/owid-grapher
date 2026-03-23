@@ -107,7 +107,7 @@ export enum Menu {
 }
 
 export const ABOUT_LINKS = [
-    { title: "About Us", url: "/about" },
+    { title: "About us", url: "/about" },
     { title: "Organization", url: "/organization" },
     { title: "Funding", url: "/funding" },
     { title: "Team", url: "/team" },

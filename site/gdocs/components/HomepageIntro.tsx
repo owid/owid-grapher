@@ -211,7 +211,7 @@ function HomepageAnnouncements() {
         <div className="homepage-intro__announcements span-cols-1 span-md-cols-2">
             <div className="homepage-intro__announcements-header">
                 <AnnouncementsIcon />
-                <h4 className="h3-bold">Updates and Announcements</h4>
+                <h4 className="h3-bold">Updates and announcements</h4>
             </div>
             <ul className="homepage-intro__announcements-list">
                 {announcements.map((announcement, i) => (
