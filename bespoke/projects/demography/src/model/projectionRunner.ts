@@ -279,7 +279,7 @@ export function computeMaxAgeGroupPopulation(simulation: {
         }
     }
 
-    return Math.ceil(maxVal * 1.1)
+    return maxVal
 }
 
 /**
@@ -315,7 +315,7 @@ export function computeMaxTotalAgeGroupPopulation(simulation: {
         }
     }
 
-    return Math.ceil(maxVal * 1.1)
+    return maxVal
 }
 
 export { getInterpolatedValue }
