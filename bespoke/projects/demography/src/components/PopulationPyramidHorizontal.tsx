@@ -11,6 +11,7 @@ import {
     MAX_AGE,
     PYRAMID_AGE_GROUP_SIZE,
     PYRAMID_AGE_GROUPS,
+    ZERO_LINE_COLOR,
 } from "../helpers/constants"
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { computeMaxAgeGroupPopulation } from "../model/projectionRunner"
@@ -438,7 +439,7 @@ function AgeAxisCenter({
                 y1={femaleBaseline}
                 x2={innerWidth}
                 y2={femaleBaseline}
-                stroke={GRID_LINE_COLOR}
+                stroke={ZERO_LINE_COLOR}
                 strokeWidth={0.5}
             />
             <line
@@ -446,7 +447,7 @@ function AgeAxisCenter({
                 y1={maleBaseline}
                 x2={innerWidth}
                 y2={maleBaseline}
-                stroke={GRID_LINE_COLOR}
+                stroke={ZERO_LINE_COLOR}
                 strokeWidth={0.5}
             />
             {tickValues.map((tick, i) => (
