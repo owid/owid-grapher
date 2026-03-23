@@ -316,6 +316,7 @@ function PopulationChart({
                             innerWidth={innerWidth}
                             projectionDataPoints={projectionDataPoints}
                             benchmarkDataPoints={benchmarkDataPoints}
+                            hideLabel={isHovering}
                         />
                     )}
 
@@ -510,6 +511,7 @@ function ChangeAnnotation({
     innerWidth,
     projectionDataPoints,
     benchmarkDataPoints,
+    hideLabel = false,
 }: {
     xScale: (v: number) => number
     yScale: (v: number) => number
@@ -517,6 +519,7 @@ function ChangeAnnotation({
     innerWidth: number
     projectionDataPoints: { year: number; value: number }[]
     benchmarkDataPoints: { year: number; value: number }[]
+    hideLabel?: boolean
 }) {
     const forecastPoint = projectionDataPoints.find((d) => d.year === year)
     const benchmarkPoint = benchmarkDataPoints.find((d) => d.year === year)
@@ -563,19 +566,21 @@ function ChangeAnnotation({
             />
 
             {/* Percentage label */}
-            <Halo id="change-label" outlineWidth={2}>
-                <text
-                    x={placeOnRight ? x + labelGap : x - labelGap}
-                    y={midY}
-                    textAnchor={placeOnRight ? "start" : "end"}
-                    dominantBaseline="middle"
-                    fontSize={labelFontSize}
-                    fontWeight={500}
-                    fill={DENIM_BLUE}
-                >
-                    {pctLabel}
-                </text>
-            </Halo>
+            {!hideLabel && (
+                <Halo id="change-label" outlineWidth={2}>
+                    <text
+                        x={placeOnRight ? x + labelGap : x - labelGap}
+                        y={midY}
+                        textAnchor={placeOnRight ? "start" : "end"}
+                        dominantBaseline="middle"
+                        fontSize={labelFontSize}
+                        fontWeight={500}
+                        fill={DENIM_BLUE}
+                    >
+                        {pctLabel}
+                    </text>
+                </Halo>
+            )}
         </>
     )
 }
