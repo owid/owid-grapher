@@ -19,6 +19,26 @@ As of **2026-03-23**, we support the following browsers:
 - [CSS container queries (`@container`)](https://caniuse.com/css-container-queries) (Chrome 105+, Safari 16+, Firefox 110+) — used in grapher controls and tooltips.
 - [`Array.prototype.findLast()` / `findLastIndex()`](https://caniuse.com/mdn-javascript_builtins_array_findlast) (Chrome 97+, Safari 15.4+, Firefox 104+).
 
+### Features we can't yet use
+
+The following features are **not** available across all our supported browsers and should be avoided (or guarded) until we raise our minimum targets:
+
+- [`Set` methods (`intersection()`, `union()`, `difference()`, etc.)](https://caniuse.com/mdn-javascript_builtins_set_intersection) — Chrome 122+, Firefox 127+, Safari 17+.
+- [`Object.groupBy()` / `Map.groupBy()`](https://caniuse.com/mdn-javascript_builtins_object_groupby) — Chrome 117+, Firefox 119+, Safari 17.4+.
+- [`Promise.withResolvers()`](https://caniuse.com/mdn-javascript_builtins_promise_withresolvers) — Chrome 119+, Firefox 121+, Safari 17.4+.
+- [CSS native nesting](https://caniuse.com/css-nesting) — Chrome 112+, Firefox 117+, Safari 16.4+. Close, but Chrome 112 > 111 and Firefox 117 > 114.
+- [`URL.canParse()`](https://caniuse.com/mdn-api_url_canparse_static) — Chrome 120+, Firefox 115+, Safari 17+.
+- [Popover API (`popover` attribute, `showPopover()`)](https://caniuse.com/mdn-api_htmlelement_popover) — Chrome 114+, Firefox 125+, Safari 17+.
+- [`Array.fromAsync()`](https://caniuse.com/mdn-javascript_builtins_array_fromasync) — Chrome 121+, Firefox 115+, Safari 16.4+. Missing in Chrome 111–120.
+- [Iterator helpers (`.map()`, `.filter()`, `.take()`, etc.)](https://caniuse.com/mdn-javascript_builtins_iterator_map) — Chrome 122+, Firefox 131+, Safari 18.2+.
+- [RegExp `v` flag (unicodeSets)](https://caniuse.com/mdn-javascript_builtins_regexp_unicodesets) — Chrome 112+, Firefox 116+, Safari 17+.
+- [CSS `text-wrap: balance`](https://caniuse.com/css-text-wrap-balance) — Chrome 114+, Firefox 121+, Safari 17.5+.
+- [CSS `@starting-style`](https://caniuse.com/mdn-css_at-rules_starting-style) — Chrome 117+, Firefox 129+, Safari 17.5+.
+- [View Transitions API](https://caniuse.com/view-transitions) — Chrome 111+, Safari 18+, Firefox 144+.
+- [CSS subgrid](https://caniuse.com/css-subgrid) — Firefox 71+, Safari 16+, but Chrome 117+.
+
+Note: many of the JS features above (e.g. `Set` methods, `groupBy`, `Promise.withResolvers`) could be polyfilled using [core-js](https://github.com/nicolo-ribaudo/core-js-contrib) or similar libraries if we wanted to use them before raising our browser targets. CSS features obviously can't be polyfilled this way.
+
 ### Polyfills
 
 We ship explicit polyfills in `site/polyfills.ts` for ES2022/ES2023 features (e.g. `Array.at`, `Array.findLast`, `Array.toReversed`, `Array.toSorted`) that aren't available in all supported browsers. The polyfill file is imported at the top of `site/owid.entry.ts` before any other code runs.
