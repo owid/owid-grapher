@@ -86,8 +86,7 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                                 decorators: true,
                             },
                             transform: {
-                                // NOTE: SWC doesn't support the latest '2023-11' version yet.
-                                decoratorVersion: "2022-03",
+                                decoratorVersion: "2023-11" as any, // @swc/types@0.1.25 doesn't have the now-supported decorator version 2023-11 yet, but swc supports it
                                 useDefineForClassFields: true,
                             },
 
