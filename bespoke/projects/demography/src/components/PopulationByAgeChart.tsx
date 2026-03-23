@@ -4,57 +4,56 @@ import { scaleLinear } from "@visx/scale"
 import { Group } from "@visx/group"
 import type { Simulation } from "../helpers/useSimulation"
 import {
-    DENIM_BLUE,
+    FEMALE_COLOR,
     GRID_LINE_COLOR,
     LABEL_COLOR,
+    MALE_COLOR,
     MAX_AGE,
     PYRAMID_AGE_GROUP_SIZE,
     PYRAMID_AGE_GROUPS,
-    ZERO_LINE_COLOR,
 } from "../helpers/constants"
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
-import { computeMaxTotalAgeGroupPopulation } from "../model/projectionRunner"
-import { groupByAgeRange, parseAgeGroup } from "../helpers/utils"
+import { computeMaxAgeGroupPopulation } from "../model/projectionRunner"
+import {
+    groupByAgeRange,
+    parseAgeGroup,
+    formatPopulationValueShort,
+} from "../helpers/utils"
 import { Bounds, formatValue } from "@ourworldindata/utils"
+import { TextWrap, TextWrapSvg } from "@ourworldindata/components"
 import { OwidVariableRoundingMode } from "@ourworldindata/types"
-import { AgeZone } from "../helpers/types.js"
 import { useBreakpoint } from "../helpers/useBreakpoint.js"
-import { getFontTier, getSizeTier } from "../helpers/fontTiers.js"
+import { getFontTier } from "../helpers/fontTiers.js"
 
 export interface PopulationByAgeChartProps {
     simulation: Simulation
     year: number
     yAxisScaleMode?: "fixed" | "adaptive"
-    ageZones?: AgeZone[]
 }
 
 function PopulationByAgeChart({
     simulation,
     year,
     yAxisScaleMode = "fixed",
-    ageZones,
     width,
     height,
 }: PopulationByAgeChartProps & { width: number; height: number }) {
     const breakpoint = useBreakpoint()
     const fontTier = getFontTier(breakpoint)
-    const margin = { top: 0, right: 0, bottom: 14, left: 0 }
+    const margin = { top: 0, right: 0, bottom: 0, left: 0 }
 
     const innerWidth = width - margin.left - margin.right
     const innerHeight = height - margin.top - margin.bottom
 
     const populationBySex = simulation.getPopulationForYear(year)
 
-    const ageBuckets = useMemo(() => {
+    const ageBucketsBySex = useMemo(() => {
         const male = populationBySex?.male ?? []
         const female = populationBySex?.female ?? []
-        const maleGrouped = groupByAgeRange(male)
-        const femaleGrouped = groupByAgeRange(female)
-        const total: Record<string, number> = {}
-        for (const g of PYRAMID_AGE_GROUPS) {
-            total[g] = (maleGrouped[g] || 0) + (femaleGrouped[g] || 0)
+        return {
+            male: groupByAgeRange(male),
+            female: groupByAgeRange(female),
         }
-        return total
     }, [populationBySex])
 
     const xScale = useMemo(
@@ -68,20 +67,36 @@ function PopulationByAgeChart({
 
     const yMax = useMemo(() => {
         if (yAxisScaleMode === "adaptive") {
-            const max = Math.max(...Object.values(ageBuckets), 0)
-            return Math.ceil(max * 1.1)
+            const max = Math.max(
+                ...Object.values(ageBucketsBySex.male),
+                ...Object.values(ageBucketsBySex.female),
+                0
+            )
+            return max
         }
-        return computeMaxTotalAgeGroupPopulation(simulation)
-    }, [simulation, yAxisScaleMode, ageBuckets])
+        return Math.ceil(computeMaxAgeGroupPopulation(simulation))
+    }, [simulation, yAxisScaleMode, ageBucketsBySex])
 
-    const yScale = useMemo(
+    const centerY = innerHeight / 2
+    const centerGap = fontTier.tick + 6
+
+    // Female bars grow upward from center gap, male bars grow downward
+    const yScaleFemale = useMemo(
         () =>
             scaleLinear({
-                domain: [0, yMax * 1.05],
-                range: [innerHeight, 0],
-                nice: true,
+                domain: [0, yMax],
+                range: [centerY - centerGap / 2, 0],
             }),
-        [innerHeight, yMax]
+        [centerY, centerGap, yMax]
+    )
+
+    const yScaleMale = useMemo(
+        () =>
+            scaleLinear({
+                domain: [0, yMax],
+                range: [centerY + centerGap / 2, innerHeight],
+            }),
+        [centerY, centerGap, innerHeight, yMax]
     )
 
     const [hoveredAgeGroup, setHoveredAgeGroup] = useState<string | null>(null)
@@ -91,28 +106,107 @@ function PopulationByAgeChart({
         <svg width={width} height={height} overflow="visible">
             <Group top={margin.top} left={margin.left}>
                 <HorizontalGridLines
-                    yScale={yScale}
+                    yScale={yScaleFemale}
                     innerWidth={innerWidth}
-                    tickFontSize={fontTier.tick}
+                />
+                <HorizontalGridLines
+                    yScale={yScaleMale}
+                    innerWidth={innerWidth}
                 />
 
                 <AgeGroupBars
                     xScale={xScale}
-                    yScale={yScale}
-                    ageBuckets={ageBuckets}
-                    innerHeight={innerHeight}
-                    ageZones={ageZones}
+                    yScale={yScaleFemale}
+                    ageBuckets={ageBucketsBySex.female}
+                    color={FEMALE_COLOR}
                     hoveredAgeGroup={hoveredAgeGroup}
+                />
+                <AgeGroupBars
+                    xScale={xScale}
+                    yScale={yScaleMale}
+                    ageBuckets={ageBucketsBySex.male}
+                    color={MALE_COLOR}
+                    hoveredAgeGroup={hoveredAgeGroup}
+                />
+                <VerticalDividers
+                    xScale={xScale}
+                    tickValues={[25, 50, 75, 100, 125]}
+                    femaleBaseline={centerY - centerGap / 2}
+                    maleBaseline={centerY + centerGap / 2}
+                    innerHeight={innerHeight}
+                />
+                <TopGridLabel
+                    yScale={yScaleFemale}
+                    innerWidth={innerWidth}
+                    fontSize={fontTier.tick}
+                    labelText="women"
+                    labelColor={FEMALE_COLOR}
+                    position="above"
+                />
+                <TopGridLabel
+                    yScale={yScaleMale}
+                    innerWidth={innerWidth}
+                    fontSize={fontTier.tick}
+                    labelText="men"
+                    labelColor={MALE_COLOR}
+                    position="below"
+                />
+
+                <BarValueLabel
+                    xScale={xScale}
+                    yScale={yScaleFemale}
+                    ageBuckets={ageBucketsBySex.female}
+                    color={FEMALE_COLOR}
+                    hoveredAgeGroup={hoveredAgeGroup}
+                    fontSize={fontTier.label}
+                />
+                <BarValueLabel
+                    xScale={xScale}
+                    yScale={yScaleMale}
+                    ageBuckets={ageBucketsBySex.male}
+                    color={MALE_COLOR}
+                    hoveredAgeGroup={hoveredAgeGroup}
+                    fontSize={fontTier.label}
+                />
+                <HoverHitRects
+                    xScale={xScale}
+                    innerHeight={innerHeight}
                     onHoverAgeGroup={setHoveredAgeGroup}
                     onPointerLeave={handlePointerLeave}
                 />
 
-                <AgeAxisBottom
+                <AgeAxisCenter
                     xScale={xScale}
-                    innerHeight={innerHeight}
+                    centerY={centerY}
+                    centerGap={centerGap}
+                    innerWidth={innerWidth}
                     tickValues={[25, 50, 75, 100, 125]}
                     fontSize={fontTier.tick}
                 />
+
+                {/* Sex labels in the center gap */}
+                {/* <text
+                    x={0}
+                    y={centerY}
+                    dominantBaseline="auto"
+                    fontSize={fontTier.label}
+                    fill={FEMALE_COLOR}
+                    fontWeight={700}
+                    style={{ pointerEvents: "none" }}
+                >
+                    WOMEN
+                </text>
+                <text
+                    x={0}
+                    y={centerY}
+                    dominantBaseline="hanging"
+                    fontSize={fontTier.label}
+                    fill={MALE_COLOR}
+                    fontWeight={700}
+                    style={{ pointerEvents: "none" }}
+                >
+                    MEN
+                </text> */}
             </Group>
         </svg>
     )
@@ -139,18 +233,118 @@ function AgeGroupBars({
     xScale,
     yScale,
     ageBuckets,
-    innerHeight,
-    ageZones,
+    color,
     hoveredAgeGroup,
-    onHoverAgeGroup,
-    onPointerLeave,
 }: {
     xScale: ReturnType<typeof scaleLinear<number>>
     yScale: ReturnType<typeof scaleLinear<number>>
     ageBuckets: Record<string, number>
-    innerHeight: number
-    ageZones?: AgeZone[]
+    color: string
     hoveredAgeGroup: string | null
+}) {
+    const baseline = yScale(0)
+    return (
+        <>
+            {PYRAMID_AGE_GROUPS.map((g) => {
+                const { startAge } = parseAgeGroup(g)
+                const barX = xScale(startAge)
+                const barWidth =
+                    xScale(startAge + PYRAMID_AGE_GROUP_SIZE) - barX
+                const value = ageBuckets[g] || 0
+                const barY = yScale(value)
+
+                const dimmed = hoveredAgeGroup !== null && hoveredAgeGroup !== g
+                const opacity = dimmed ? 0.4 : 1
+
+                const y = Math.min(barY, baseline)
+                const h = Math.abs(barY - baseline)
+
+                return (
+                    <rect
+                        key={g}
+                        x={barX}
+                        y={y}
+                        width={barWidth}
+                        height={h}
+                        fill={color}
+                        opacity={opacity}
+                        shapeRendering="crispEdges"
+                    />
+                )
+            })}
+        </>
+    )
+}
+
+function BarValueLabel({
+    xScale,
+    yScale,
+    ageBuckets,
+    color,
+    hoveredAgeGroup,
+    fontSize,
+}: {
+    xScale: ReturnType<typeof scaleLinear<number>>
+    yScale: ReturnType<typeof scaleLinear<number>>
+    ageBuckets: Record<string, number>
+    color: string
+    hoveredAgeGroup: string | null
+    fontSize: number
+}) {
+    if (!hoveredAgeGroup) return null
+    const value = ageBuckets[hoveredAgeGroup] || 0
+    if (value <= 0) return null
+
+    const { startAge } = parseAgeGroup(hoveredAgeGroup)
+    const barX = xScale(startAge)
+    const barWidth = xScale(startAge + PYRAMID_AGE_GROUP_SIZE) - barX
+    const barY = yScale(value)
+    const baseline = yScale(0)
+
+    const y = Math.min(barY, baseline)
+    const h = Math.abs(barY - baseline)
+    const growsUp = barY < baseline
+    const labelFontSize = fontSize - 2
+    const fitsInside = h > labelFontSize + 4
+
+    let labelY: number
+    let dominantBaseline: "hanging" | "auto"
+    let fill: string
+
+    if (fitsInside) {
+        labelY = growsUp ? y + 2 : y + h - 2
+        dominantBaseline = growsUp ? "hanging" : "auto"
+        fill = "white"
+    } else {
+        labelY = growsUp ? y - 2 : y + h + 2
+        dominantBaseline = growsUp ? "auto" : "hanging"
+        fill = color
+    }
+
+    return (
+        <text
+            x={barX + barWidth / 2}
+            y={labelY}
+            textAnchor="middle"
+            dominantBaseline={dominantBaseline}
+            fontSize={labelFontSize}
+            fontWeight={700}
+            fill={fill}
+            style={{ pointerEvents: "none" }}
+        >
+            {formatPopulationValueShort(value)}
+        </text>
+    )
+}
+
+function HoverHitRects({
+    xScale,
+    innerHeight,
+    onHoverAgeGroup,
+    onPointerLeave,
+}: {
+    xScale: ReturnType<typeof scaleLinear<number>>
+    innerHeight: number
     onHoverAgeGroup: (g: string) => void
     onPointerLeave: () => void
 }) {
@@ -160,26 +354,16 @@ function AgeGroupBars({
                 const { startAge } = parseAgeGroup(g)
                 const barX = xScale(startAge)
                 const barWidth =
-                    xScale(startAge + PYRAMID_AGE_GROUP_SIZE) - barX + 0.5
-                const value = ageBuckets[g] || 0
-                const barY = yScale(value)
-                const barHeight = innerHeight - barY
-
-                const barColor =
-                    ageZones?.find((z) => z.ageGroups.includes(g))?.color ??
-                    DENIM_BLUE
-
-                const dimmed = hoveredAgeGroup !== null && hoveredAgeGroup !== g
+                    xScale(startAge + PYRAMID_AGE_GROUP_SIZE) - barX
 
                 return (
                     <rect
                         key={g}
                         x={barX}
-                        y={barY}
+                        y={0}
                         width={barWidth}
-                        height={barHeight}
-                        fill={barColor}
-                        opacity={dimmed ? 0.4 : 1}
+                        height={innerHeight}
+                        fill="transparent"
                         onPointerEnter={() => onHoverAgeGroup(g)}
                         onPointerLeave={onPointerLeave}
                     />
@@ -189,34 +373,89 @@ function AgeGroupBars({
     )
 }
 
-function AgeAxisBottom({
+function VerticalDividers({
     xScale,
-    innerHeight,
     tickValues,
-    fontSize,
+    femaleBaseline,
+    maleBaseline,
+    innerHeight,
 }: {
     xScale: ReturnType<typeof scaleLinear<number>>
-    innerHeight: number
     tickValues: number[]
-    fontSize: number
+    femaleBaseline: number
+    maleBaseline: number
+    innerHeight: number
 }) {
-    const labelY = innerHeight + fontSize + 4
     return (
-        <g>
-            {tickValues.map((tick, i) => (
+        <g style={{ pointerEvents: "none" }}>
+            {tickValues.map((tick) => (
                 <g key={tick}>
                     <line
                         x1={xScale(tick)}
                         y1={0}
                         x2={xScale(tick)}
+                        y2={femaleBaseline}
+                        stroke="white"
+                        strokeWidth={0.5}
+                    />
+                    <line
+                        x1={xScale(tick)}
+                        y1={maleBaseline}
+                        x2={xScale(tick)}
                         y2={innerHeight}
                         stroke="white"
                         strokeWidth={0.5}
-                        style={{ pointerEvents: "none" }}
                     />
+                </g>
+            ))}
+        </g>
+    )
+}
+
+function AgeAxisCenter({
+    xScale,
+    centerY,
+    centerGap,
+    innerWidth,
+    tickValues,
+    fontSize,
+}: {
+    xScale: ReturnType<typeof scaleLinear<number>>
+    centerY: number
+    centerGap: number
+    innerWidth: number
+    tickValues: number[]
+    fontSize: number
+}) {
+    const femaleBaseline = centerY - centerGap / 2
+    const maleBaseline = centerY + centerGap / 2
+
+    return (
+        <g style={{ pointerEvents: "none" }}>
+            {/* Baseline lines at the edges of the gap */}
+            <line
+                x1={0}
+                y1={femaleBaseline}
+                x2={innerWidth}
+                y2={femaleBaseline}
+                stroke={GRID_LINE_COLOR}
+                strokeWidth={0.5}
+            />
+            <line
+                x1={0}
+                y1={maleBaseline}
+                x2={innerWidth}
+                y2={maleBaseline}
+                stroke={GRID_LINE_COLOR}
+                strokeWidth={0.5}
+            />
+            {tickValues.map((tick, i) => (
+                <g key={tick}>
+                    {/* Tick label on the center line */}
                     <text
                         x={xScale(tick)}
-                        y={labelY}
+                        y={centerY}
+                        dy="0.35em"
                         textAnchor="middle"
                         fontSize={fontSize}
                         fill={GRAPHER_LIGHT_TEXT}
@@ -226,7 +465,8 @@ function AgeAxisBottom({
                     {i === 0 && (
                         <text
                             x={xScale(tick)}
-                            y={labelY}
+                            y={centerY}
+                            dy="0.35em"
                             textAnchor="start"
                             fontSize={fontSize}
                             fill={GRAPHER_LIGHT_TEXT}
@@ -252,45 +492,130 @@ function AgeAxisBottom({
 function HorizontalGridLines({
     yScale,
     innerWidth,
-    tickFontSize,
 }: {
     yScale: ReturnType<typeof scaleLinear<number>>
     innerWidth: number
-    tickFontSize: number
 }) {
+    const ticks = yScale.ticks(2).filter((t) => t > 0)
     return (
         <>
-            {yScale.ticks(2).map((tick, i, arr) => {
-                const isTop = i === arr.length - 1
-                return (
-                    <g key={`grid-${tick}`}>
-                        <line
-                            x1={0}
-                            y1={yScale(tick)}
-                            x2={innerWidth}
-                            y2={yScale(tick)}
-                            stroke={
-                                tick === 0 ? ZERO_LINE_COLOR : GRID_LINE_COLOR
-                            }
-                            strokeWidth={1}
-                            strokeDasharray={tick === 0 ? undefined : "4,4"}
-                        />
-                        {tick > 0 && (
-                            <text
-                                x={innerWidth}
-                                y={yScale(tick) - 4}
-                                textAnchor="end"
-                                fontSize={tickFontSize}
-                                fill={LABEL_COLOR}
-                            >
-                                {formatGridLabel(tick) +
-                                    (isTop ? " people" : "")}
-                            </text>
-                        )}
-                    </g>
-                )
-            })}
+            {ticks.map((tick) => (
+                <line
+                    key={`grid-${tick}`}
+                    x1={0}
+                    y1={yScale(tick)}
+                    x2={innerWidth}
+                    y2={yScale(tick)}
+                    stroke={GRID_LINE_COLOR}
+                    strokeWidth={0.5}
+                    strokeDasharray="4,4"
+                />
+            ))}
         </>
+    )
+}
+
+function TopGridLabel({
+    yScale,
+    innerWidth,
+    fontSize,
+    labelText,
+    labelColor,
+    position,
+}: {
+    yScale: ReturnType<typeof scaleLinear<number>>
+    innerWidth: number
+    fontSize: number
+    labelText: string
+    labelColor: string
+    position: "above" | "below"
+}) {
+    const ticks = yScale.ticks(2).filter((t) => t > 0)
+    const topTick = ticks.at(-1)
+    if (topTick === undefined) return null
+    return (
+        <GridLabel
+            valueText={formatGridLabel(topTick)}
+            labelText={labelText}
+            x={innerWidth}
+            y={yScale(topTick)}
+            fontSize={fontSize}
+            position={position}
+            labelColor={labelColor}
+        />
+    )
+}
+
+const GRID_LABEL_PADDING_X = 1.5
+const GRID_LABEL_PADDING_Y = 0.5
+
+function GridLabel({
+    valueText,
+    labelText,
+    x,
+    y,
+    fontSize,
+    position,
+    labelColor,
+}: {
+    valueText: string
+    labelText: string
+    x: number
+    y: number
+    fontSize: number
+    position: "above" | "below"
+    labelColor: string
+}) {
+    const valueWrap = new TextWrap({
+        text: valueText,
+        maxWidth: Infinity,
+        fontSize,
+    })
+    const labelWrap = new TextWrap({
+        text: labelText,
+        maxWidth: Infinity,
+        fontSize,
+    })
+    const spaceWidth = Bounds.forText(" ", { fontSize }).width
+
+    const labelRectWidth = labelWrap.width + GRID_LABEL_PADDING_X * 2
+    const labelRectHeight = labelWrap.height + GRID_LABEL_PADDING_Y * 2
+
+    // Right-align everything to x
+    const labelRectX = x - labelRectWidth
+    const valueTextX = labelRectX - spaceWidth - valueWrap.width
+    const labelTextX = labelRectX + GRID_LABEL_PADDING_X
+
+    // Position vertically: TextWrapSvg renders from top-left
+    const textY = position === "above" ? y - labelRectHeight : y + 1
+    const labelRectY = textY + GRID_LABEL_PADDING_Y
+
+    return (
+        <g>
+            {/* Value text (no background) */}
+            <TextWrapSvg
+                x={valueTextX}
+                y={textY + GRID_LABEL_PADDING_Y}
+                textWrap={valueWrap}
+                fill={LABEL_COLOR}
+            />
+            {/* Label background rect */}
+            <rect
+                x={labelRectX}
+                y={labelRectY - GRID_LABEL_PADDING_Y}
+                width={labelRectWidth}
+                height={labelRectHeight}
+                fill={labelColor}
+                rx={1}
+            />
+            {/* Label text */}
+            <TextWrapSvg
+                x={labelTextX}
+                y={labelRectY}
+                textWrap={labelWrap}
+                fill="white"
+            />
+        </g>
     )
 }
 
