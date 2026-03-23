@@ -122,7 +122,7 @@ function PopulationPyramid({
             return Math.ceil(max * 1.1)
         } else {
             // Max across all years
-            return computeMaxAgeGroupPopulation(simulation)
+            return Math.ceil(computeMaxAgeGroupPopulation(simulation) * 1.1)
         }
     }, [simulation, xAxisScaleMode, ageBucketsBySex])
 
