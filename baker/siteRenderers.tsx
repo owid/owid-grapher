@@ -832,3 +832,23 @@ const renderExplorerDefaultThumbnail = (): string => {
         <img src={`${BAKED_BASE_URL}/${DEFAULT_THUMBNAIL_FILENAME}`} />
     )
 }
+
+export const renderSlideshowPage = async (
+    slideshow: {
+        title: string
+        slug: string
+        config: { slides: import("@ourworldindata/types").Slide[] }
+    },
+    imageMetadata: Record<string, import("@ourworldindata/types").ImageMetadata>
+) => {
+    const { SlideshowPage } = await import("../site/SlideshowPage.js")
+    return renderToHtmlPage(
+        <SlideshowPage
+            baseUrl={BAKED_BASE_URL}
+            title={slideshow.title}
+            slug={slideshow.slug}
+            slides={slideshow.config.slides}
+            imageMetadata={imageMetadata}
+        />
+    )
+}
