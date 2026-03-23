@@ -9,7 +9,7 @@ import { useSimulation, type Simulation } from "../helpers/useSimulation"
 import { ResponsivePopulationChart } from "./PopulationChart.js"
 import { ResponsiveDemographyParameterEditor } from "./DemographyParameterEditor.js"
 import { ResponsivePopulationPyramid } from "./PopulationPyramid.js"
-import { ResponsivePopulationByAgeChart } from "./PopulationByAgeChart.js"
+import { ResponsivePopulationPyramidHorizontal } from "./PopulationPyramidHorizontal.js"
 import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
 import {
     START_YEAR,
@@ -165,7 +165,7 @@ export function SimulationContent({
                                     />
                                 }
                             >
-                                <ResponsivePopulationByAgeChart
+                                <ResponsivePopulationPyramidHorizontal
                                     simulation={simulation}
                                     year={year}
                                 />
