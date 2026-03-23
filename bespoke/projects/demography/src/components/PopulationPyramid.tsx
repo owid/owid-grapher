@@ -166,10 +166,7 @@ function PopulationPyramid({
                         tickFontSize={font.tick}
                         ageZones={ageZones}
                         side="male"
-                        outerMargin={margin.left}
                         hoveredAgeGroup={hoveredAgeGroup}
-                        onAgeGroupHover={setHoveredAgeGroup}
-                        onPointerLeave={handlePointerLeave}
                     />
 
                     <PopulationPyramidHalf
@@ -181,10 +178,7 @@ function PopulationPyramid({
                         tickFontSize={font.tick}
                         ageZones={ageZones}
                         side="female"
-                        outerMargin={margin.right}
                         hoveredAgeGroup={hoveredAgeGroup}
-                        onAgeGroupHover={setHoveredAgeGroup}
-                        onPointerLeave={handlePointerLeave}
                     />
 
                     <PopulationPyramidAxisX
@@ -203,6 +197,31 @@ function PopulationPyramid({
                             fontSize={font.ageZone}
                         />
                     )}
+
+                    {/* Full-width hit rects for hover — one per age group, spanning the entire SVG */}
+                    {AGE_GROUP_LABELS.map((g, i) => {
+                        const step = yScale.step()
+                        const bandY = yScale(g) ?? 0
+                        const bandwidth = yScale.bandwidth()
+                        const halfGap = (step - bandwidth) / 2
+                        const y = i === 0 ? 0 : bandY - halfGap
+                        const bottom =
+                            i === AGE_GROUP_LABELS.length - 1
+                                ? innerHeight
+                                : bandY + bandwidth + halfGap
+                        return (
+                            <rect
+                                key={`hit-${g}`}
+                                x={-margin.left}
+                                y={y}
+                                width={width}
+                                height={bottom - y}
+                                fill="transparent"
+                                onPointerEnter={() => setHoveredAgeGroup(g)}
+                                onPointerLeave={handlePointerLeave}
+                            />
+                        )
+                    })}
                 </Group>
             </svg>
         </div>
@@ -243,10 +262,7 @@ function PopulationPyramidHalf({
     tickFontSize,
     ageZones,
     side,
-    outerMargin,
     hoveredAgeGroup,
-    onAgeGroupHover,
-    onPointerLeave,
 }: {
     left: number
     xScale: ScaleLinear<number, number>
@@ -256,10 +272,7 @@ function PopulationPyramidHalf({
     tickFontSize: number
     ageZones?: AgeZone[]
     side: "male" | "female"
-    outerMargin: number
     hoveredAgeGroup: string | null
-    onAgeGroupHover: (ageGroup: string) => void
-    onPointerLeave: () => void
 }) {
     const zeroX = xScale(0)
     const halfWidth = Math.abs(xScale(0) - xScale(xScale.domain()[1]))
@@ -347,34 +360,6 @@ function PopulationPyramidHalf({
                     }
                 />
             )}
-
-            {/* Invisible hit rects for hover — use step (band + gap) to eliminate gaps,
-                and extend into the outer margin so the full chart area is hoverable */}
-            {AGE_GROUP_LABELS.map((g, i) => {
-                const step = yScale.step()
-                const bandY = yScale(g) ?? 0
-                const halfGap = (step - bandwidth) / 2
-                const y = i === 0 ? 0 : bandY - halfGap
-                const bottom =
-                    i === AGE_GROUP_LABELS.length - 1
-                        ? height
-                        : bandY + bandwidth + halfGap
-                // Male: extend left into margin; Female: extend right into margin
-                const hitX = side === "male" ? -outerMargin : 0
-                const hitWidth = halfWidth + outerMargin
-                return (
-                    <rect
-                        key={`hit-${g}`}
-                        x={hitX}
-                        y={y}
-                        width={hitWidth}
-                        height={bottom - y}
-                        fill="transparent"
-                        onPointerEnter={() => onAgeGroupHover(g)}
-                        onPointerLeave={onPointerLeave}
-                    />
-                )
-            })}
         </Group>
     )
 }
