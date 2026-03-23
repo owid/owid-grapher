@@ -27,7 +27,7 @@ export function HomepageSearch(props: { className?: string }) {
                             href={SEARCH_BASE_PATH}
                         >
                             <FontAwesomeIcon icon={faChartLine} />
-                            {commafyNumber(chartCount)} Charts
+                            {commafyNumber(chartCount)} charts
                         </a>
                     </li>
                     <li>
@@ -36,7 +36,7 @@ export function HomepageSearch(props: { className?: string }) {
                             href="#all-topics"
                         >
                             <FontAwesomeIcon icon={faBookmark} />
-                            {commafyNumber(topicCount)} Topic Pages
+                            {commafyNumber(topicCount)} topic pages
                         </a>
                     </li>
                     <li>
@@ -45,13 +45,13 @@ export function HomepageSearch(props: { className?: string }) {
                             href="/explorers"
                         >
                             <FontAwesomeIcon icon={faMagnifyingGlassChart} />
-                            {commafyNumber(explorerCount)} Data Explorers
+                            {commafyNumber(explorerCount)} data explorers
                         </a>
                     </li>
                 </ul>
                 <div className="homepage-search__links--mobile">
                     <a href="/data" className="body-3-medium">
-                        {commafyNumber(chartCount)} Charts
+                        {commafyNumber(chartCount)} charts
                     </a>{" "}
                     across {commafyNumber(topicCount)} topics
                 </div>
