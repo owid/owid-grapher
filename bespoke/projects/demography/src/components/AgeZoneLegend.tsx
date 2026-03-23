@@ -25,10 +25,10 @@ import {
     COLOR_WORKING,
 } from "../helpers/constants.js"
 import { Bounds, formatValue } from "@ourworldindata/utils"
+import { useBreakpoint } from "../helpers/useBreakpoint.js"
+import { getFontTier } from "../helpers/fontTiers.js"
 
 const BAR_HEIGHT = 20
-const FONT_SIZE = 12
-const LABEL_FONT_SIZE = 11
 const SEGMENT_GAP = 2
 const BOX_PADDING = 5
 const LABEL_VALUE_GAP = 2
@@ -60,6 +60,10 @@ function AgeZoneLegend({
     populationByAgeZone,
     width,
 }: AgeZoneLegendProps & { width: number }) {
+    const breakpoint = useBreakpoint()
+    const fontTier = getFontTier(breakpoint)
+    const fontSize = fontTier.tick
+
     const total =
         populationByAgeZone.young +
         populationByAgeZone.working +
@@ -97,10 +101,11 @@ function AgeZoneLegend({
     ]
 
     const renderZones = annotateZones(
-        placeZones(placedZones, width, SEGMENT_GAP)
+        placeZones(placedZones, width, SEGMENT_GAP),
+        fontSize
     )
 
-    const totalPopulationFontSize = FONT_SIZE
+    const totalPopulationFontSize = fontSize
     const totalPopulationLabelHeight = totalPopulationFontSize
 
     const barY = totalPopulationLabelHeight + 0.85 * totalPopulationFontSize
@@ -131,7 +136,7 @@ function AgeZoneLegend({
 
             {/* Stacked bar segments */}
             <Group top={barY}>
-                <BarSegments zones={renderZones} />
+                <BarSegments zones={renderZones} fontSize={fontSize} />
             </Group>
 
             {/* Annotations below bar */}
@@ -148,7 +153,13 @@ function AgeZoneLegend({
     )
 }
 
-function BarSegments({ zones }: { zones: AnnotatedZone[] }) {
+function BarSegments({
+    zones,
+    fontSize,
+}: {
+    zones: AnnotatedZone[]
+    fontSize: number
+}) {
     return (
         <g>
             {zones.map((zone) => {
@@ -159,7 +170,7 @@ function BarSegments({ zones }: { zones: AnnotatedZone[] }) {
                 const textWrap = new TextWrap({
                     text: percentageLabel,
                     maxWidth: Infinity,
-                    fontSize: LABEL_FONT_SIZE,
+                    fontSize,
                     fontWeight: 500,
                 })
                 const horizontalPadding = 2
@@ -181,7 +192,7 @@ function BarSegments({ zones }: { zones: AnnotatedZone[] }) {
                                 y={BAR_HEIGHT / 2}
                                 textAnchor="middle"
                                 dominantBaseline="central"
-                                fontSize={LABEL_FONT_SIZE}
+                                fontSize={fontSize}
                                 fontWeight={500}
                                 fill="white"
                             >
@@ -355,7 +366,7 @@ function placeZones(
     })
 }
 
-function annotateZones(zones: PlacedZone[]): AnnotatedZone[] {
+function annotateZones(zones: PlacedZone[], fontSize: number): AnnotatedZone[] {
     const fitsOnOneLine = (wrap: TextWrap, maxWidth: number) =>
         wrap.lines.length <= 1 && wrap.width <= maxWidth
 
@@ -363,7 +374,7 @@ function annotateZones(zones: PlacedZone[]): AnnotatedZone[] {
         new TextWrap({
             text,
             maxWidth: Infinity,
-            fontSize: FONT_SIZE,
+            fontSize,
             lineHeight: 1,
             fontWeight,
         })
@@ -380,7 +391,7 @@ function annotateZones(zones: PlacedZone[]): AnnotatedZone[] {
         }
         if (!fitsOnOneLine(labelWrap, maxWidth)) {
             labelText = shortenWithEllipsis(zone.labelShort, maxWidth, {
-                fontSize: FONT_SIZE,
+                fontSize,
                 fontWeight: 700,
             })
             labelWrap = makeTextWrap(labelText, 700)
