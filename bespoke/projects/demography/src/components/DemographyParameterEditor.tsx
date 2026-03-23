@@ -136,13 +136,12 @@ function DemographyParameterEditor({
     const projX = xScale(HISTORICAL_END_YEAR)
 
     // Look up hovered value — historical from data points, projection via interpolation
-    // In interactive mode, skip control years since they already have labels from DraggableControlPoint
     const isControlYear =
         interactive &&
         hoveredYear !== null &&
         (CONTROL_YEARS as readonly number[]).includes(hoveredYear)
     const hoveredValue = useMemo(() => {
-        if (hoveredYear === null || isControlYear) return undefined
+        if (hoveredYear === null) return undefined
         if (hoveredYear <= HISTORICAL_END_YEAR) {
             return historicalDataPoints.find((d) => d.year === hoveredYear)
                 ?.value
@@ -162,7 +161,6 @@ function DemographyParameterEditor({
         )
     }, [
         hoveredYear,
-        isControlYear,
         historicalDataPoints,
         controlPoints,
         lastHistoricalDataPoint,
@@ -435,17 +433,6 @@ function DemographyParameterEditor({
                     />
                 )}
 
-                {/* UN WPP reference dots at control years */}
-                {interactive &&
-                    CONTROL_YEARS.map((year) => (
-                        <PointLabel
-                            key={year}
-                            x={xScale(year)}
-                            y={yScale(referencePoints[year])}
-                            color={BENCHMARK_LINE_COLOR}
-                        />
-                    ))}
-
                 {/* Invisible interaction rect for hover — placed before control points so they get priority */}
                 <rect
                     x={0}
@@ -489,18 +476,6 @@ function DemographyParameterEditor({
                                 {hoveredYear}
                             </text>
                         </Halo>
-
-                        {/* Dot + value label */}
-                        {hoveredValue !== undefined && (
-                            <PointLabel
-                                x={xScale(hoveredYear)}
-                                y={yScale(hoveredValue)}
-                                label={formatValue(hoveredValue)}
-                                color={lineColor}
-                                labelColor={labelColor}
-                                fontSize={valueLabelFontSize}
-                            />
-                        )}
                     </g>
                 )}
 
@@ -526,6 +501,25 @@ function DemographyParameterEditor({
                             onPointerLeave={handlePointerLeave}
                         />
                     ))}
+
+                {/* Hover dot + value label — rendered above control points */}
+                {/* Hover dot + value label — rendered above control points */}
+                {hoveredYear !== null && hoveredValue !== undefined && (
+                    <g style={{ pointerEvents: "none" }}>
+                        <PointLabel
+                            x={xScale(hoveredYear)}
+                            y={yScale(hoveredValue)}
+                            label={
+                                isControlYear
+                                    ? undefined
+                                    : formatValue(hoveredValue)
+                            }
+                            color={lineColor}
+                            labelColor={labelColor}
+                            fontSize={valueLabelFontSize}
+                        />
+                    </g>
+                )}
             </Group>
         </svg>
     )
@@ -613,55 +607,54 @@ function DraggableControlPoint({
                 }}
             />
 
-            {/* ▲ above dot */}
-            <text
-                x={cx}
-                y={cy - 7}
-                textAnchor="middle"
-                fontSize={7}
-                fill={color}
-                style={{ pointerEvents: "none" }}
-            >
-                ▲
-            </text>
-
-            {/* Visible circle */}
-            <circle
-                cx={cx}
-                cy={cy}
-                r={CONTROL_POINT_RADIUS}
-                fill="white"
-                stroke={color}
-                strokeWidth={2}
-                cursor="ns-resize"
-                style={{ pointerEvents: "none" }}
-            />
-            {/* ▼ below dot */}
-            <text
-                x={cx}
-                y={cy + 12}
-                textAnchor="middle"
-                fontSize={7}
-                fill={color}
-                style={{ pointerEvents: "none" }}
-            >
-                ▼
-            </text>
-
-            {/* Value label — flips below the dot when near the top */}
-            <Halo id="control-value-label" outlineWidth={3}>
+            {/* Visual elements — all pointer-events: none so the Halo doesn't block interaction */}
+            <g style={{ pointerEvents: "none" }}>
+                {/* ▲ above dot */}
                 <text
                     x={cx}
-                    y={cy < 20 ? cy + 22 : cy - 15}
+                    y={cy - 7}
                     textAnchor="middle"
-                    fontSize={9}
-                    fontWeight={500}
+                    fontSize={7}
                     fill={color}
-                    style={{ pointerEvents: "none" }}
                 >
-                    {formatValue(value)}
+                    ▲
                 </text>
-            </Halo>
+
+                {/* Visible circle */}
+                <circle
+                    cx={cx}
+                    cy={cy}
+                    r={CONTROL_POINT_RADIUS}
+                    fill="white"
+                    stroke={color}
+                    strokeWidth={2}
+                    cursor="ns-resize"
+                />
+                {/* ▼ below dot */}
+                <text
+                    x={cx}
+                    y={cy + 12}
+                    textAnchor="middle"
+                    fontSize={7}
+                    fill={color}
+                >
+                    ▼
+                </text>
+
+                {/* Value label — flips below the dot when near the top */}
+                <Halo id="control-value-label" outlineWidth={3}>
+                    <text
+                        x={cx}
+                        y={cy < 20 ? cy + 22 : cy - 15}
+                        textAnchor="middle"
+                        fontSize={9}
+                        fontWeight={700}
+                        fill={color}
+                    >
+                        {formatValue(value)}
+                    </text>
+                </Halo>
+            </g>
         </g>
     )
 }
@@ -740,6 +733,7 @@ function PointLabel({
                         x={x}
                         y={y - fontSize / 2 - 3}
                         fontSize={fontSize}
+                        fontWeight={700}
                         fill={labelColor ?? color}
                         textAnchor="middle"
                         opacity={hidden ? 0 : 1}
