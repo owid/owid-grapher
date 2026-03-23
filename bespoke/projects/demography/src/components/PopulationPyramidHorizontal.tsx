@@ -25,19 +25,19 @@ import { OwidVariableRoundingMode } from "@ourworldindata/types"
 import { useBreakpoint } from "../helpers/useBreakpoint.js"
 import { getFontTier } from "../helpers/fontTiers.js"
 
-export interface PopulationByAgeChartProps {
+export interface PopulationPyramidHorizontalProps {
     simulation: Simulation
     year: number
     yAxisScaleMode?: "fixed" | "adaptive"
 }
 
-function PopulationByAgeChart({
+function PopulationPyramidHorizontal({
     simulation,
     year,
     yAxisScaleMode = "fixed",
     width,
     height,
-}: PopulationByAgeChartProps & { width: number; height: number }) {
+}: PopulationPyramidHorizontalProps & { width: number; height: number }) {
     const breakpoint = useBreakpoint()
     const fontTier = getFontTier(breakpoint)
     const margin = { top: 0, right: 0, bottom: 0, left: 0 }
@@ -212,14 +212,14 @@ function PopulationByAgeChart({
     )
 }
 
-export function ResponsivePopulationByAgeChart(
-    props: PopulationByAgeChartProps
+export function ResponsivePopulationPyramidHorizontal(
+    props: PopulationPyramidHorizontalProps
 ) {
     const { parentRef, width, height } = useParentSize()
     return (
         <div ref={parentRef} style={{ width: "100%", height: "100%" }}>
             {width > 0 && height > 0 ? (
-                <PopulationByAgeChart
+                <PopulationPyramidHorizontal
                     {...props}
                     width={width}
                     height={height}
