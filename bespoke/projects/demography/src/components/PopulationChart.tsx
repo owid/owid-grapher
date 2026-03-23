@@ -18,6 +18,7 @@ import {
     GRID_LINE_COLOR,
     LABEL_COLOR,
     HOVER_LINE_COLOR,
+    ZERO_LINE_COLOR,
 } from "../helpers/constants"
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { TooltipCard } from "@ourworldindata/grapher/src/tooltip/TooltipCard.js"
@@ -244,6 +245,7 @@ function PopulationChart({
                         innerWidth={innerWidth}
                         innerHeight={innerHeight}
                         fontSize={fontTier.tick}
+                        strokeColor={ZERO_LINE_COLOR}
                     />
                     <AxisY
                         yScale={yScale}
@@ -702,7 +704,9 @@ function AxisY({
                             y1={yScale(tick)}
                             x2={innerWidth}
                             y2={yScale(tick)}
-                            stroke={GRID_LINE_COLOR}
+                            stroke={
+                                tick === 0 ? ZERO_LINE_COLOR : GRID_LINE_COLOR
+                            }
                             strokeWidth={1}
                         />
                         {tick > 0 && (
