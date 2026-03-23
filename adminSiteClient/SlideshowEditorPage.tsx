@@ -34,6 +34,7 @@ import { SlideshowPreviewTab } from "./SlideshowPreviewTab.js"
 import { makeImageSrc } from "./imagesHelpers.js"
 import { useImages } from "./useImages.js"
 import { SlideGrapher } from "./SlideGrapher.js"
+import { SlideRenderer } from "../site/SlideRenderer.js"
 
 import "./SlideshowEditorPage.scss"
 
@@ -276,13 +277,20 @@ export function SlideshowEditorPage(props: {
                     <div className="SlideshowEditorPage__canvas">
                         <div className="SlideshowEditorPage__slide-preview">
                             {currentSlide && (
-                                <SlidePreview
+                                <SlideRenderer
                                     slide={currentSlide}
-                                    imageCloudflareIds={imageCloudflareIds}
-                                    grapherStateRef={grapherStateRef}
-                                    onGrapherQueryStringChange={
-                                        handleGrapherQueryStringChange
-                                    }
+                                    renderMedia={(media) => (
+                                        <AdminMediaRenderer
+                                            media={media}
+                                            imageCloudflareIds={
+                                                imageCloudflareIds
+                                            }
+                                            grapherStateRef={grapherStateRef}
+                                            onGrapherQueryStringChange={
+                                                handleGrapherQueryStringChange
+                                            }
+                                        />
+                                    )}
                                 />
                             )}
                         </div>
@@ -369,9 +377,13 @@ export function SlideshowEditorPage(props: {
     )
 }
 
-/** Renders a SlideMedia value as either an image, live Grapher, or placeholder */
-function MediaPreview(props: {
-    media: SlideMedia | null
+/**
+ * Admin-specific media renderer that uses SlideGrapher for grapher
+ * slides (with MobX sync) and Cloudflare image URLs for images.
+ * Passed to SlideRenderer via the renderMedia prop.
+ */
+function AdminMediaRenderer(props: {
+    media: SlideMedia
     imageCloudflareIds: Map<string, string>
     grapherStateRef: React.RefObject<GrapherState | null>
     onGrapherQueryStringChange?: (queryString: string) => void
@@ -382,12 +394,6 @@ function MediaPreview(props: {
         grapherStateRef,
         onGrapherQueryStringChange,
     } = props
-
-    if (!media) {
-        return (
-            <div className="SlidePreview__media-placeholder">IMAGE/CHART</div>
-        )
-    }
 
     if (media.type === "image") {
         const cloudflareId = imageCloudflareIds.get(media.filename)
@@ -415,71 +421,4 @@ function MediaPreview(props: {
             onQueryStringChange={onGrapherQueryStringChange}
         />
     )
-}
-
-/** Minimal slide preview renderer - will be expanded per template */
-function SlidePreview(props: {
-    slide: Slide
-    imageCloudflareIds: Map<string, string>
-    grapherStateRef: React.RefObject<GrapherState | null>
-    onGrapherQueryStringChange?: (queryString: string) => void
-}): React.ReactElement {
-    const {
-        slide,
-        imageCloudflareIds,
-        grapherStateRef,
-        onGrapherQueryStringChange,
-    } = props
-
-    switch (slide.template) {
-        case SlideTemplate.TitleSlide:
-            return (
-                <div className="SlidePreview SlidePreview--title-slide">
-                    <h1>{slide.title || "Title"}</h1>
-                    {slide.subtitle && <h2>{slide.subtitle}</h2>}
-                    {slide.author && (
-                        <p className="SlidePreview__author">{slide.author}</p>
-                    )}
-                    {slide.date && (
-                        <p className="SlidePreview__date">{slide.date}</p>
-                    )}
-                </div>
-            )
-        case SlideTemplate.Section:
-            return (
-                <div className="SlidePreview SlidePreview--section">
-                    <h1>{slide.title || "Section Title"}</h1>
-                    {slide.subtitle && <h2>{slide.subtitle}</h2>}
-                </div>
-            )
-        case SlideTemplate.ImageChartOnly:
-            return (
-                <div className="SlidePreview SlidePreview--image-chart-only">
-                    {slide.sectionTitle && (
-                        <p className="SlidePreview__section-title">
-                            {slide.sectionTitle}
-                        </p>
-                    )}
-                    {slide.slideTitle && (
-                        <h2 className="SlidePreview__slide-title">
-                            {slide.slideTitle}
-                        </h2>
-                    )}
-                    <MediaPreview
-                        media={slide.media}
-                        imageCloudflareIds={imageCloudflareIds}
-                        grapherStateRef={grapherStateRef}
-                        onGrapherQueryStringChange={onGrapherQueryStringChange}
-                    />
-                </div>
-            )
-        case SlideTemplate.Blank:
-            return <div className="SlidePreview SlidePreview--blank" />
-        default:
-            return (
-                <div className="SlidePreview SlidePreview--placeholder">
-                    <p>{slide.template}</p>
-                </div>
-            )
-    }
 }
