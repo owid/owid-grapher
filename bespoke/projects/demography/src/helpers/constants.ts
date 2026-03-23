@@ -1,3 +1,4 @@
+import { GRAY_50 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { range } from "lodash-es"
 
 export const DEFAULT_ENTITY_NAME = "United Kingdom"
@@ -40,7 +41,7 @@ export const PYRAMID_AGE_GROUPS: string[] = (() => {
 
 export const DENIM_BLUE = "#4c6a9c"
 export const GRID_LINE_COLOR = "#ddd"
-export const ZERO_LINE_COLOR = "#767676"
+export const ZERO_LINE_COLOR = GRAY_50
 export const LABEL_COLOR = "#a1a1a1"
 
 export const PROJECTION_BACKGROUND = "rgba(0, 0, 0, 0.02)"
