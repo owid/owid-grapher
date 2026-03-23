@@ -12,7 +12,7 @@ import {
 } from "@ourworldindata/types"
 import { makeLinkedCalloutKey } from "@ourworldindata/utils"
 
-describe("enrichedBlocksToIndexableText", () => {
+describe(enrichedBlocksToIndexableText, () => {
     const makeTextBlock = (text: string): OwidEnrichedGdocBlock => ({
         type: "text",
         parseErrors: [],

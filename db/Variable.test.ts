@@ -31,7 +31,7 @@ const mockS3data = (s3data: Record<string, any>): void => {
     vi.spyOn(Variable, "entitiesAsDF").mockResolvedValueOnce(entities)
 }
 
-describe.skip("writeVariableCSV", () => {
+describe.skip(writeVariableCSV, () => {
     const getCSVOutput = async (
         variablesDf: pl.DataFrame | undefined,
         s3data: any,
@@ -164,7 +164,7 @@ UK,2001,2,,
     })
 })
 
-describe.skip("_dataAsDFfromS3", () => {
+describe.skip(_dataAsDFfromS3, () => {
     it("works correctly for mixed data", async () => {
         const s3data = {
             1: {

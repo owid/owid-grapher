@@ -10,7 +10,7 @@ import {
 } from "@ourworldindata/types"
 import { makeLinkedCalloutKey } from "@ourworldindata/utils"
 
-describe("stripCustomMarkdownComponents", () => {
+describe(stripCustomMarkdownComponents, () => {
     describe("single-line components", () => {
         it("should strip single-line components", () => {
             const content = `Some text\n<Image filename="test.png" alt="Test"/>\nMore text`
@@ -90,7 +90,7 @@ Final text`)
     })
 })
 
-describe("enrichedBlocksToMarkdown", () => {
+describe(enrichedBlocksToMarkdown, () => {
     describe("data-callout with linkedCallouts", () => {
         it("should resolve span-callout values from linkedCallouts", () => {
             const url = "/grapher/co2-emissions?country=USA"

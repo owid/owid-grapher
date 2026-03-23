@@ -3,7 +3,7 @@ import { SeriesLabelState } from "./SeriesLabelState"
 
 const FONT_SIZE = 14
 
-describe("SeriesLabelState", () => {
+describe(SeriesLabelState, () => {
     it("handles plain labels correctly", () => {
         const label = new SeriesLabelState({
             text: "United States",

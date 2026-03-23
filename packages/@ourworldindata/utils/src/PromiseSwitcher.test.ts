@@ -26,7 +26,7 @@ it("selecting a new promise while one is pending discards the pending promise", 
     const selector = new PromiseSwitcher({ onResolve })
     void selector.set(delayResolve("first"))
     await selector.set(Promise.resolve("second"))
-    expect(onResolve).toHaveBeenCalledTimes(1)
+    expect(onResolve).toHaveBeenCalledOnce()
     expect(onResolve).toHaveBeenCalledWith("second")
 })
 

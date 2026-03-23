@@ -4,8 +4,8 @@ import * as searchApi from "./searchApi.js"
 import type { Env } from "../../_common/env.js"
 
 // Mock the searchApi module
-vi.mock("./searchApi.js", async (importOriginal) => {
-    const actual = await importOriginal<typeof import("./searchApi.js")>()
+vi.mock(import("./searchApi.js"), async (importOriginal) => {
+    const actual = await importOriginal()
     return {
         ...actual,
         searchCharts: vi.fn(),

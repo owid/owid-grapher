@@ -13,7 +13,7 @@ import {
     IRLineBreak,
 } from "./MarkdownTextWrap.js"
 
-describe("MarkdownTextWrap", () => {
+describe(MarkdownTextWrap, () => {
     it("heavier fontWeight should be wider than plain IRText", () => {
         const string = "abcdefghijklmnopqrstuvwxyz"
 

@@ -69,7 +69,7 @@ const createTestDocument = (): docs_v1.Schema$Document => ({
     },
 })
 
-describe(acceptAllGdocSuggestions.name, () => {
+describe(acceptAllGdocSuggestions, () => {
     it("removes deletions, keeps insertions, and applies style changes", () => {
         const original = createTestDocument()
         const transformed = acceptAllGdocSuggestions(original)

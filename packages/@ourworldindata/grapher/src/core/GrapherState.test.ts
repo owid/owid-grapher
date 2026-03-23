@@ -1,3 +1,4 @@
+// oxlint-disable vitest/no-conditional-tests
 import * as _ from "lodash-es"
 import { expect, it, describe } from "vitest"
 import {

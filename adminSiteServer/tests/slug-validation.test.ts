@@ -13,7 +13,7 @@ import {
 
 const env = getAdminTestEnv()
 
-describe("validateChartSlug", { timeout: 10000 }, () => {
+describe(validateChartSlug, { timeout: 10000 }, () => {
     it("returns true for a valid grapher URL", async () => {
         await env.testKnex(ChartConfigsTableName).insert({
             id: "0191b6c7-3629-74fd-9ebc-abcf9a99c1d2",

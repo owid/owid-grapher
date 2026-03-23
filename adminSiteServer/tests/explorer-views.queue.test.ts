@@ -16,7 +16,7 @@ async function getJobProcessor() {
 }
 
 // Avoid file side effects from deploy queue
-vi.mock("../../baker/GrapherBakingUtils.js", () => ({
+vi.mock(import("../../baker/GrapherBakingUtils.js"), () => ({
     triggerStaticBuild: vi.fn(async () => undefined),
 }))
 

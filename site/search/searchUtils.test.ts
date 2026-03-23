@@ -48,7 +48,7 @@ describe("Fuzzy search in search autocomplete", () => {
         ])
     })
 
-    describe("findTopicAndRegionFilters", () => {
+    describe(findTopicAndRegionFilters, () => {
         it("should return original results when no synonyms exist", () => {
             const result = findTopicAndRegionFilters(
                 ["france"],
@@ -254,7 +254,7 @@ describe("Fuzzy search in search autocomplete", () => {
         })
     })
 
-    describe("extractFiltersFromQuery", () => {
+    describe(extractFiltersFromQuery, () => {
         it("should handle multiple non-overlapping matches", () => {
             const result = extractFiltersFromQuery(
                 "united states climate change",
@@ -432,7 +432,7 @@ describe("Fuzzy search in search autocomplete", () => {
         })
     })
 
-    describe("removeMatchedWordsWithStopWords", () => {
+    describe(removeMatchedWordsWithStopWords, () => {
         it("should remove matched words and preceding stop words", () => {
             const words = [
                 "artificial",
@@ -518,7 +518,7 @@ describe("Fuzzy search in search autocomplete", () => {
         })
     })
 
-    describe("suggestFiltersFromQuerySuffix", () => {
+    describe(suggestFiltersFromQuerySuffix, () => {
         it("should find matches for existing topics", () => {
             const result = suggestFiltersFromQuerySuffix(
                 "pollution",
@@ -741,7 +741,7 @@ describe("Fuzzy search in search autocomplete", () => {
     })
 })
 
-describe("formatFeaturedMetricFacetFilter", () => {
+describe(formatFeaturedMetricFacetFilter, () => {
     it("returns filter to exclude FMs when query is non-empty", () => {
         const result = formatFeaturedMetricFacetFilter("population")
         expect(result).toEqual(["isFM:false"])

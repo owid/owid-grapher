@@ -78,7 +78,7 @@ const buildProfileTemplate = (): OwidGdocProfileContent => ({
     },
 })
 
-describe("instantiateProfile", () => {
+describe(instantiateProfile, () => {
     it("replaces placeholders with articulated entity name and code", () => {
         const country = getCountryByName("United States") as Country
         const template = buildProfileTemplate()
@@ -206,7 +206,7 @@ describe("instantiateProfile", () => {
     })
 })
 
-describe("getEntitiesForProfile", () => {
+describe(getEntitiesForProfile, () => {
     it("returns an empty list when the scope is blank", () => {
         const entities = getEntitiesForProfile("")
 
@@ -457,7 +457,7 @@ describe("shouldConditionalSectionRender", () => {
     })
 })
 
-describe("validateConditionalSectionLists", () => {
+describe(validateConditionalSectionLists, () => {
     it("Returns an error when same entity appears in both include and exclude", () => {
         const errors = validateConditionalSectionLists(
             ["Canada", "United States"],

@@ -20,7 +20,7 @@ const textBlock = (): EnrichedBlockText => ({
     parseErrors: [],
 })
 
-describe("injectAutomaticSubscribeBanner", () => {
+describe(injectAutomaticSubscribeBanner, () => {
     it("returns the original blocks when there is no level 1 heading", () => {
         const blocks: OwidEnrichedGdocBlock[] = [textBlock()]
 

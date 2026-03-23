@@ -32,7 +32,7 @@ const fragmentProps: OwidGdocPageProps = {
     relatedCharts: [],
 }
 
-describe("OwidGdoc", () => {
+describe(OwidGdoc, () => {
     it("does not render admin links into the server HTML", () => {
         const html = renderToStaticMarkup(<OwidGdoc {...fragmentProps} />)
 

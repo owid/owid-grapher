@@ -7,9 +7,8 @@ import findProjectBaseDir from "../../settings/findBaseDir.js"
 const baseDir = findProjectBaseDir(__dirname)
 if (!baseDir) throw Error("Could not find project base directory")
 
-vi.mock("@googleapis/docs", async (importOriginal) => {
-    const originalModule: typeof import("@googleapis/docs") =
-        await importOriginal()
+vi.mock(import("@googleapis/docs"), async (importOriginal) => {
+    const originalModule = await importOriginal()
     return {
         ...originalModule,
         docs: vi.fn(() => ({
@@ -29,5 +28,5 @@ vi.mock("@googleapis/docs", async (importOriginal) => {
                 }),
             },
         })),
-    }
+    } as any
 })

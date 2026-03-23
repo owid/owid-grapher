@@ -5,7 +5,7 @@ import {
     formatTopicFacetFilters,
 } from "./searchApi.js"
 
-describe("formatCountryFacetFilters", () => {
+describe(formatCountryFacetFilters, () => {
     it("returns empty array when no countries provided", () => {
         const result = formatCountryFacetFilters(new Set(), false)
         expect(result).toEqual([["isIncomeGroupSpecificFM:false"]])
@@ -62,7 +62,7 @@ describe("formatCountryFacetFilters", () => {
     })
 })
 
-describe("formatFeaturedMetricFacetFilter", () => {
+describe(formatFeaturedMetricFacetFilter, () => {
     it("returns filter to exclude FMs when query is non-empty", () => {
         const result = formatFeaturedMetricFacetFilter("population")
         expect(result).toEqual(["isFM:false"])
@@ -79,7 +79,7 @@ describe("formatFeaturedMetricFacetFilter", () => {
     })
 })
 
-describe("formatTopicFacetFilters", () => {
+describe(formatTopicFacetFilters, () => {
     it("returns empty array when no topics provided", () => {
         const result = formatTopicFacetFilters(new Set())
         expect(result).toEqual([])
