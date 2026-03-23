@@ -94,10 +94,6 @@ export const GDOCS_DATA_INSIGHT_API_TEMPLATE_ID: string =
 export const ETL_WIZARD_URL: string =
     process.env.ETL_WIZARD_URL ?? `http://${ADMIN_SERVER_HOST}:8053`
 
-// Production ETL API runs on http://etl-prod-2:8083/v1 (you need Tailscale to access it)
-export const ETL_API_URL: string =
-    process.env.ETL_API_URL ?? `http://${ADMIN_SERVER_HOST}:8081/api/v1`
-
 export const PUBLISHED_AT_FORMAT = "ddd, MMM D, YYYY HH:mm"
 
 /** A map of possible features which can be enabled or disabled. */

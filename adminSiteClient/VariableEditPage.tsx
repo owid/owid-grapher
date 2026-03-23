@@ -10,31 +10,14 @@ import {
 } from "mobx"
 import YAML from "yaml"
 import * as _ from "lodash-es"
-import { Prompt, Redirect } from "react-router-dom"
 import { AdminLayout } from "./AdminLayout.js"
 import { Link } from "./Link.js"
-import {
-    BindString,
-    BindStringArray,
-    BindFloat,
-    FieldsRow,
-    BindDropdown,
-    Toggle,
-    SelectField,
-    TextAreaField,
-    CatalogPathField,
-} from "./Forms.js"
+import { FieldsRow, TextAreaField, CatalogPathField } from "./Forms.js"
 import {
     OwidVariableWithDataAndSource,
-    OwidVariableDisplayConfig,
-    OwidVariablePresentation,
     DimensionProperty,
-    EPOCH_DATE,
     getETLPathComponents,
-    OwidProcessingLevel,
     OwidOrigin,
-    OwidSource,
-    stringifyUnknownError,
 } from "@ourworldindata/utils"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { OriginList } from "./OriginList.js"
@@ -43,7 +26,6 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
     GRAPHER_TAB_CONFIG_OPTIONS,
     GrapherInterface,
-    OwidVariableRoundingMode,
 } from "@ourworldindata/types"
 import {
     fetchInputTableForConfig,
@@ -53,12 +35,7 @@ import {
 } from "@ourworldindata/grapher"
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import {
-    CATALOG_URL,
-    DATA_API_URL,
-    ETL_API_URL,
-} from "../settings/clientSettings.js"
-import urljoin from "url-join"
+import { CATALOG_URL, DATA_API_URL } from "../settings/clientSettings.js"
 
 interface VariablePageData extends Omit<
     OwidVariableWithDataAndSource,
@@ -73,77 +50,40 @@ interface VariablePageData extends Omit<
     origins: OwidOrigin[]
 }
 
-// Calculates the difference between two objects, including nested objects.
-const getDifference = <T extends object>(object: T, base: T): Partial<T> => {
-    const changes = (obj: any, baseObj: any): any => {
-        return _.transform(obj, (result: any, value: any, key: keyof any) => {
-            if (_.isArray(value) && _.isArray(baseObj[key])) {
-                // If both are arrays and not equal, return the entire array
-                if (!_.isEqual(value, baseObj[key])) {
-                    result[key] = value
-                }
-            } else if (!_.isEqual(value, baseObj[key])) {
-                // For non-array values
-                result[key] =
-                    _.isObject(value) && _.isObject(baseObj[key])
-                        ? changes(value, baseObj[key])
-                        : value
-            }
-        })
+// Simple read-only field component for displaying metadata values
+function ReadOnlyField({
+    label,
+    value,
+    textarea,
+    rows,
+}: {
+    label: string
+    value: string | number | undefined | null
+    textarea?: boolean
+    rows?: number
+}) {
+    const displayValue = value?.toString() ?? ""
+    if (textarea) {
+        return (
+            <TextAreaField
+                label={label}
+                value={displayValue}
+                disabled
+                rows={rows}
+            />
+        )
     }
-    return changes(object, base)
-}
-
-class VariableEditable implements Omit<
-    OwidVariableWithDataAndSource,
-    "id" | "values" | "years" | "entities"
-> {
-    name = ""
-    unit = ""
-    shortUnit = ""
-    description = ""
-    entityAnnotationsMap = ""
-    display = new OwidVariableDisplayConfig()
-
-    descriptionShort = ""
-    descriptionFromProducer = ""
-    descriptionKey: string[] = []
-    descriptionProcessing = ""
-    processingLevel: OwidProcessingLevel | undefined = undefined
-
-    presentation = {} as OwidVariablePresentation
-
-    updatePeriodDays: number | undefined = undefined
-
-    origins: OwidOrigin[] = []
-
-    source: OwidSource | undefined = undefined
-
-    constructor(json: any) {
-        makeObservable(this, {
-            name: observable,
-            unit: observable,
-            shortUnit: observable,
-            description: observable,
-            entityAnnotationsMap: observable,
-            display: observable,
-            descriptionShort: observable,
-            descriptionFromProducer: observable,
-            descriptionKey: observable,
-            descriptionProcessing: observable,
-            processingLevel: observable,
-            presentation: observable,
-            updatePeriodDays: observable,
-            origins: observable,
-            source: observable,
-        })
-        for (const key in this) {
-            if (key === "display") _.extend(this.display, json.display)
-            else if (key === "presentation")
-                _.extend(this.presentation, json.presentation)
-            else this[key] = json[key]
-        }
-    }
+    return (
+        <div className="form-group">
+            <label>{label}</label>
+            <input
+                type="text"
+                className="form-control"
+                value={displayValue}
+                disabled
+            />
+        </div>
+    )
 }
 
 // XXX refactor with DatasetEditPage
@@ -151,39 +91,18 @@ class VariableEditable implements Omit<
 class VariableEditor extends Component<{
     variable: VariablePageData
 }> {
-    newVariable!: VariableEditable
-    isDeleted: boolean = false
-
     constructor(props: { variable: VariablePageData }) {
         super(props)
 
         makeObservable(this, {
-            newVariable: observable,
-            isDeleted: observable,
             grapherState: observable.ref,
         })
-    }
-
-    // Store the original dataset to determine when it is modified
-    override UNSAFE_componentWillMount() {
-        this.UNSAFE_componentWillReceiveProps()
-    }
-    override UNSAFE_componentWillReceiveProps() {
-        this.newVariable = new VariableEditable(this.props.variable)
-        this.isDeleted = false
     }
 
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     grapherState: GrapherState | undefined = undefined
-
-    @computed get isModified(): boolean {
-        return (
-            JSON.stringify(this.newVariable) !==
-            JSON.stringify(new VariableEditable(this.props.variable))
-        )
-    }
 
     @computed get configUrlParams() {
         if (!this.grapherState) return undefined
@@ -195,14 +114,12 @@ class VariableEditor extends Component<{
 
     override render() {
         const { variable } = this.props
-        const { newVariable, isV2MetadataVariable } = this
 
         const pathFragments = variable.catalogPath
             ? getETLPathComponents(variable.catalogPath)
             : undefined
 
-        if (this.isDeleted)
-            return <Redirect to={`/datasets/${variable.datasetId}`} />
+        const isV2MetadataVariable = (variable?.schemaVersion ?? 1) >= 2
 
         const grapherConfigAdminYAML = YAML.stringify(
             variable.grapherConfigAdmin
@@ -210,10 +127,6 @@ class VariableEditor extends Component<{
 
         return (
             <main className="VariableEditPage">
-                <Prompt
-                    when={this.isModified}
-                    message="Are you sure you want to leave? Unsaved changes will be lost."
-                />
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item">
                         {variable.datasetNamespace}
@@ -225,337 +138,264 @@ class VariableEditor extends Component<{
                     </li>
                     <li className="breadcrumb-item active">{variable.name}</li>
                 </ol>
-                <form
-                    onSubmit={(e) => {
-                        e.preventDefault()
-                        void this.save()
-                    }}
-                >
-                    <div className="row">
-                        <div className="col">
-                            <section>
-                                <h3>Indicator metadata</h3>
-                                {isV2MetadataVariable && (
-                                    <>
-                                        <a
-                                            href={`/admin/datapage-preview/${variable.id}`}
-                                        >
-                                            View data page
-                                        </a>
-                                        <br></br>
-                                    </>
-                                )}
-
-                                <p>
-                                    Open the metadata.yaml file:
-                                    <a
-                                        href={`https://github.com/owid/etl/blob/master/etl/steps/data/garden/${pathFragments?.producer}/${pathFragments?.version}/${pathFragments?.table}.meta.yml`}
-                                        target="_blank"
-                                        rel="noopener"
-                                    >
-                                        {" "}
-                                        garden level
-                                    </a>
-                                    ,{" "}
-                                    <a
-                                        href={`https://github.com/owid/etl/blob/master/etl/steps/data/grapher/${pathFragments?.producer}/${pathFragments?.version}/${pathFragments?.table}.meta.yml`}
-                                        target="_blank"
-                                        rel="noopener"
-                                    >
-                                        grapher level
-                                    </a>
-                                    ,{" "}
-                                    <a
-                                        href={`https://github.com/owid/etl/blob/master/etl/steps/data/grapher/${pathFragments?.producer}/${pathFragments?.version}/${pathFragments?.table}.meta.override.yml`}
-                                        target="_blank"
-                                        rel="noopener"
-                                    >
-                                        override
-                                    </a>
-                                    .{" "}
-                                    <small>
-                                        (opens on master branch - switch as
-                                        needed in the Github UI)
-                                    </small>
-                                </p>
-                                <h4>General</h4>
-                                <BindString
-                                    field="name"
-                                    store={newVariable}
-                                    label="Indicator Name"
-                                />
-                                <CatalogPathField
-                                    catalogPath={variable.catalogPath}
-                                />
-                                <BindString
-                                    label="Display name"
-                                    field="name"
-                                    store={newVariable.display}
-                                />
-                                <FieldsRow>
-                                    <BindString
-                                        label="Unit of measurement"
-                                        field="unit"
-                                        store={newVariable.display}
-                                        placeholder={newVariable.unit}
-                                    />
-                                    <BindString
-                                        label="Short (axis) unit"
-                                        field="shortUnit"
-                                        store={newVariable.display}
-                                        placeholder={newVariable.shortUnit}
-                                    />
-                                    <BindFloat
-                                        label="Unit conversion factor"
-                                        field="conversionFactor"
-                                        store={newVariable.display}
-                                        helpText={`Multiply all values by this amount`}
-                                    />
-                                </FieldsRow>
-                                <FieldsRow>
-                                    <SelectField
-                                        label="Rounding mode"
-                                        value={variable.display?.roundingMode}
-                                        onValue={(value) => {
-                                            const roundingMode =
-                                                value as OwidVariableRoundingMode
-                                            newVariable.display.roundingMode =
-                                                roundingMode !==
-                                                OwidVariableRoundingMode.decimalPlaces
-                                                    ? roundingMode
-                                                    : undefined
-                                        }}
-                                        options={Object.keys(
-                                            OwidVariableRoundingMode
-                                        ).map((key) => ({
-                                            value: key,
-                                            label: _.startCase(key),
-                                        }))}
-                                    />
-                                    <BindFloat
-                                        label="Number of decimal places"
-                                        field="numDecimalPlaces"
-                                        store={newVariable.display}
-                                    />
-                                    <BindFloat
-                                        label="Number of significant figures"
-                                        field="numSignificantFigures"
-                                        store={newVariable.display}
-                                    />
-                                </FieldsRow>
-                                <FieldsRow>
-                                    <Toggle
-                                        value={
-                                            newVariable.display.yearIsDay ===
-                                            true
-                                        }
-                                        onValue={(value) =>
-                                            (newVariable.display.yearIsDay =
-                                                value)
-                                        }
-                                        label="Treat year column as day series"
-                                        disabled
-                                    />
-                                    <BindString
-                                        label="Zero Day as YYYY-MM-DD"
-                                        field="zeroDay"
-                                        store={newVariable.display}
-                                        // disabled={
-                                        //     !newVariable.display.yearIsDay
-                                        // }
-                                        disabled
-                                        placeholder={
-                                            newVariable.display.yearIsDay
-                                                ? EPOCH_DATE
-                                                : ""
-                                        }
-                                        helpText={`The day series starts on this date.`}
-                                    />
-                                </FieldsRow>
-                            </section>
-                        </div>
-                        {/* BUG: when user pres Enter when editing form, chart will switch to `Table` tab */}
-                        {this.grapherState && (
-                            <div className="col">
-                                <div className="topbar">
-                                    <h3>Preview</h3>
-                                    <Link
-                                        className="btn btn-secondary"
-                                        to={`/charts/create?${this.configUrlParams}`}
-                                    >
-                                        Edit as new chart
-                                    </Link>
-                                </div>
-                                <Grapher
-                                    grapherState={this.grapherState}
-                                    // extraProps={{
-                                    //     // passed this way because clientSettings are baked and need a recompile to be updated
-                                    //     dataApiUrlForAdmin:
-                                    //         this.context.admin?.settings
-                                    //             ?.DATA_API_FOR_ADMIN_UI,
-                                    // }}
-                                />
-                            </div>
-                        )}
-                    </div>
-                    <div className="row">
-                        <div className="col">
-                            <section>
-                                <h4>
-                                    Data Page&nbsp;
-                                    <a href="https://docs.owid.io/projects/etl/architecture/metadata/reference/indicator/">
-                                        <FontAwesomeIcon
-                                            icon={faCircleInfo}
-                                            className="text-muted"
-                                        />
-                                    </a>
-                                </h4>
-
-                                <FieldsRow>
-                                    <BindString
-                                        label="Title public"
-                                        field="titlePublic"
-                                        store={newVariable.presentation}
-                                    />
-                                    <BindString
-                                        label="Title variant"
-                                        field="titleVariant"
-                                        store={newVariable.presentation}
-                                    />
-                                    <BindString
-                                        label="Attribution"
-                                        field="attribution"
-                                        store={newVariable.presentation}
-                                    />
-                                    <BindString
-                                        label="Attribution short"
-                                        field="attributionShort"
-                                        store={newVariable.presentation}
-                                    />
-                                </FieldsRow>
-                                <FieldsRow>
-                                    <BindString
-                                        label="Description short"
-                                        field="descriptionShort"
-                                        store={newVariable}
-                                        textarea
-                                    />
-                                    <BindString
-                                        label="Description from producer"
-                                        field="descriptionFromProducer"
-                                        store={newVariable}
-                                        textarea
-                                    />
-                                </FieldsRow>
-                                <FieldsRow>
-                                    <BindStringArray
-                                        label="Description key"
-                                        field="descriptionKey"
-                                        store={newVariable}
-                                        rows={8}
-                                    />
-                                    <BindString
-                                        label="Description processing"
-                                        field="descriptionProcessing"
-                                        store={newVariable}
-                                        textarea
-                                        rows={8}
-                                    />
-                                </FieldsRow>
-                                <FieldsRow>
-                                    <div className="col">
-                                        <BindDropdown
-                                            label="Processing Level"
-                                            field="processingLevel"
-                                            store={newVariable}
-                                            options={[
-                                                {
-                                                    value: "minor",
-                                                    label: "Minor",
-                                                },
-                                                {
-                                                    value: "major",
-                                                    label: "Major",
-                                                },
-                                            ]}
-                                        />
-                                        <BindString
-                                            label="Number of days between OWID updates"
-                                            field="updatePeriodDays"
-                                            store={newVariable}
-                                        />
-                                    </div>
-                                </FieldsRow>
-
-                                <h4>Other metadata</h4>
-                                <FieldsRow>
-                                    <Toggle
-                                        value={
-                                            newVariable.display
-                                                .includeInTable === true
-                                        }
-                                        onValue={(value) =>
-                                            (newVariable.display.includeInTable =
-                                                value)
-                                        }
-                                        label="Include in table"
-                                        disabled
-                                    />
-                                </FieldsRow>
-                                <FieldsRow>
-                                    <BindString
-                                        field="description"
-                                        store={newVariable}
-                                        label="Description"
-                                        textarea
-                                        disabled
-                                    />
-                                    <BindString
-                                        field="entityAnnotationsMap"
-                                        placeholder="Entity: note"
-                                        store={newVariable.display}
-                                        label="Entity annotations"
-                                        textarea
-                                        disabled
-                                        helpText="Additional text to show next to entity labels. Each note should be in a separate line."
-                                    />
-                                </FieldsRow>
-                            </section>
-                            <input
-                                type="submit"
-                                className="btn btn-success"
-                                value="Update indicator"
-                            />
-                        </div>
-                    </div>
-                    <hr></hr>
-                </form>
                 <div className="row">
                     <div className="col">
-                        <form>
-                            <section>
-                                <h3>
-                                    Origins&nbsp;
-                                    <a href="https://docs.owid.io/projects/etl/architecture/metadata/reference/origin/">
-                                        <FontAwesomeIcon
-                                            icon={faCircleInfo}
-                                            className="text-muted"
-                                        />
+                        <section>
+                            <h3>Indicator metadata</h3>
+                            {isV2MetadataVariable && (
+                                <>
+                                    <a
+                                        href={`/admin/datapage-preview/${variable.id}`}
+                                    >
+                                        View data page
                                     </a>
-                                </h3>
-                                <OriginList
-                                    origins={newVariable.origins || []}
+                                    <br></br>
+                                </>
+                            )}
+
+                            <p>
+                                Open the metadata.yaml file:
+                                <a
+                                    href={`https://github.com/owid/etl/blob/master/etl/steps/data/garden/${pathFragments?.producer}/${pathFragments?.version}/${pathFragments?.table}.meta.yml`}
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    {" "}
+                                    garden level
+                                </a>
+                                ,{" "}
+                                <a
+                                    href={`https://github.com/owid/etl/blob/master/etl/steps/data/grapher/${pathFragments?.producer}/${pathFragments?.version}/${pathFragments?.table}.meta.yml`}
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    grapher level
+                                </a>
+                                ,{" "}
+                                <a
+                                    href={`https://github.com/owid/etl/blob/master/etl/steps/data/grapher/${pathFragments?.producer}/${pathFragments?.version}/${pathFragments?.table}.meta.override.yml`}
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    override
+                                </a>
+                                .{" "}
+                                <small>
+                                    (opens on master branch - switch as needed
+                                    in the Github UI)
+                                </small>
+                            </p>
+                            <h4>General</h4>
+                            <ReadOnlyField
+                                label="Indicator Name"
+                                value={variable.name}
+                            />
+                            <CatalogPathField
+                                catalogPath={variable.catalogPath}
+                            />
+                            <ReadOnlyField
+                                label="Display name"
+                                value={variable.display?.name}
+                            />
+                            <FieldsRow>
+                                <ReadOnlyField
+                                    label="Unit of measurement"
+                                    value={
+                                        variable.display?.unit ?? variable.unit
+                                    }
                                 />
-                            </section>
-                        </form>
+                                <ReadOnlyField
+                                    label="Short (axis) unit"
+                                    value={
+                                        variable.display?.shortUnit ??
+                                        variable.shortUnit
+                                    }
+                                />
+                                <ReadOnlyField
+                                    label="Unit conversion factor"
+                                    value={variable.display?.conversionFactor}
+                                />
+                            </FieldsRow>
+                            <FieldsRow>
+                                <ReadOnlyField
+                                    label="Rounding mode"
+                                    value={
+                                        variable.display?.roundingMode
+                                            ? _.startCase(
+                                                  variable.display.roundingMode
+                                              )
+                                            : "Decimal Places"
+                                    }
+                                />
+                                <ReadOnlyField
+                                    label="Number of decimal places"
+                                    value={variable.display?.numDecimalPlaces}
+                                />
+                                <ReadOnlyField
+                                    label="Number of significant figures"
+                                    value={
+                                        variable.display?.numSignificantFigures
+                                    }
+                                />
+                            </FieldsRow>
+                            <FieldsRow>
+                                <ReadOnlyField
+                                    label="Treat year column as day series"
+                                    value={
+                                        variable.display?.yearIsDay
+                                            ? "Yes"
+                                            : "No"
+                                    }
+                                />
+                                <ReadOnlyField
+                                    label="Zero Day as YYYY-MM-DD"
+                                    value={variable.display?.zeroDay}
+                                />
+                            </FieldsRow>
+                        </section>
+                    </div>
+                    {this.grapherState && (
+                        <div className="col">
+                            <div className="topbar">
+                                <h3>Preview</h3>
+                                <Link
+                                    className="btn btn-secondary"
+                                    to={`/charts/create?${this.configUrlParams}`}
+                                >
+                                    Edit as new chart
+                                </Link>
+                            </div>
+                            <Grapher grapherState={this.grapherState} />
+                        </div>
+                    )}
+                </div>
+                <div className="row">
+                    <div className="col">
+                        <section>
+                            <h4>
+                                Data Page&nbsp;
+                                <a href="https://docs.owid.io/projects/etl/architecture/metadata/reference/indicator/">
+                                    <FontAwesomeIcon
+                                        icon={faCircleInfo}
+                                        className="text-muted"
+                                    />
+                                </a>
+                            </h4>
+
+                            <FieldsRow>
+                                <ReadOnlyField
+                                    label="Title public"
+                                    value={variable.presentation?.titlePublic}
+                                />
+                                <ReadOnlyField
+                                    label="Title variant"
+                                    value={variable.presentation?.titleVariant}
+                                />
+                                <ReadOnlyField
+                                    label="Attribution"
+                                    value={variable.presentation?.attribution}
+                                />
+                                <ReadOnlyField
+                                    label="Attribution short"
+                                    value={
+                                        variable.presentation?.attributionShort
+                                    }
+                                />
+                            </FieldsRow>
+                            <FieldsRow>
+                                <ReadOnlyField
+                                    label="Description short"
+                                    value={variable.descriptionShort}
+                                    textarea
+                                />
+                                <ReadOnlyField
+                                    label="Description from producer"
+                                    value={variable.descriptionFromProducer}
+                                    textarea
+                                />
+                            </FieldsRow>
+                            <FieldsRow>
+                                <TextAreaField
+                                    label="Description key"
+                                    value={
+                                        variable.descriptionKey?.join("\n") ??
+                                        ""
+                                    }
+                                    disabled
+                                    rows={8}
+                                />
+                                <ReadOnlyField
+                                    label="Description processing"
+                                    value={variable.descriptionProcessing}
+                                    textarea
+                                    rows={8}
+                                />
+                            </FieldsRow>
+                            <FieldsRow>
+                                <div className="col">
+                                    <ReadOnlyField
+                                        label="Processing Level"
+                                        value={variable.processingLevel}
+                                    />
+                                    <ReadOnlyField
+                                        label="Number of days between OWID updates"
+                                        value={variable.updatePeriodDays}
+                                    />
+                                </div>
+                            </FieldsRow>
+
+                            <h4>Other metadata</h4>
+                            <FieldsRow>
+                                <ReadOnlyField
+                                    label="Include in table"
+                                    value={
+                                        (variable.display?.includeInTable ??
+                                        true)
+                                            ? "Yes"
+                                            : "No"
+                                    }
+                                />
+                            </FieldsRow>
+                            <FieldsRow>
+                                <ReadOnlyField
+                                    label="Description"
+                                    value={variable.description}
+                                    textarea
+                                />
+                                <TextAreaField
+                                    label="Entity annotations"
+                                    value={
+                                        variable.display
+                                            ?.entityAnnotationsMap ?? ""
+                                    }
+                                    disabled
+                                    helpText="Additional text to show next to entity labels. Each note should be in a separate line."
+                                />
+                            </FieldsRow>
+                        </section>
                     </div>
                 </div>
-                {newVariable.source && (
+                <hr></hr>
+                <div className="row">
+                    <div className="col">
+                        <section>
+                            <h3>
+                                Origins&nbsp;
+                                <a href="https://docs.owid.io/projects/etl/architecture/metadata/reference/origin/">
+                                    <FontAwesomeIcon
+                                        icon={faCircleInfo}
+                                        className="text-muted"
+                                    />
+                                </a>
+                            </h3>
+                            <OriginList origins={variable.origins || []} />
+                        </section>
+                    </div>
+                </div>
+                {variable.source && (
                     <section>
-                        <form>
-                            <h3>Source</h3>
-                            <SourceList sources={[newVariable.source]} />
-                        </form>
+                        <h3>Source</h3>
+                        <SourceList sources={[variable.source]} />
                     </section>
                 )}
                 <section className="partial-grapher-configs">
@@ -628,102 +468,6 @@ class VariableEditor extends Component<{
         )
     }
 
-    @computed private get isV2MetadataVariable(): boolean {
-        const { variable } = this.props
-
-        return (variable?.schemaVersion ?? 1) >= 2
-    }
-
-    async etlApiIsRunning(): Promise<boolean> {
-        const healthcheckUrl = urljoin(ETL_API_URL, "health")
-        try {
-            await this.context.admin.rawRequest(
-                healthcheckUrl,
-                undefined,
-                "GET",
-                undefined,
-                "include"
-            )
-            return true
-        } catch {
-            return false
-        }
-    }
-
-    async save() {
-        const { variable } = this.props
-
-        this.context.admin.loadingIndicatorSetting = "loading"
-
-        const url = urljoin(ETL_API_URL, "indicators")
-
-        const indicatorDiff = getDifference(
-            this.newVariable,
-            new VariableEditable(this.props.variable)
-        )
-
-        const data = {
-            catalogPath: variable.catalogPath,
-            indicator: indicatorDiff,
-            dataApiUrl: DATA_API_URL,
-            triggerETL: true,
-        }
-
-        const request = this.context.admin.rawRequest(
-            url,
-            JSON.stringify(data),
-            "PUT",
-            undefined,
-            "include"
-        )
-        let response: Response
-        try {
-            response = await request
-            this.context.admin.loadingIndicatorSetting = "off"
-        } catch (err) {
-            const title = (await this.etlApiIsRunning())
-                ? `Internal error`
-                : `Error - ETL API is not running on ${ETL_API_URL}`
-
-            this.context.admin.setErrorMessage({
-                title: title,
-                content: JSON.stringify(
-                    {
-                        err: stringifyUnknownError(err),
-                        url,
-                        request: data,
-                    },
-                    null,
-                    2
-                ),
-                isFatal: true,
-            })
-            this.context.admin.loadingIndicatorSetting = "off"
-            throw err
-        }
-
-        if (response.status !== 200) {
-            const text = await response.text()
-            const json = JSON.parse(text)
-            this.context.admin.setErrorMessage({
-                title: `Validation error`,
-                content: JSON.stringify(
-                    {
-                        url,
-                        request: data,
-                        response: json.detail,
-                    },
-                    null,
-                    2
-                ),
-                isFatal: false,
-            })
-        } else {
-            // success
-            Object.assign(this.props.variable, _.cloneDeep(this.newVariable))
-        }
-    }
-
     @computed private get grapherConfig(): GrapherInterface {
         const { variable } = this.props
         const grapherConfig = variable.grapherConfig
@@ -743,7 +487,7 @@ class VariableEditor extends Component<{
                     {
                         property: DimensionProperty.y,
                         variableId: this.props.variable.id,
-                        display: _.clone(this.newVariable.display),
+                        display: _.clone(variable.display),
                     },
                 ],
             }
