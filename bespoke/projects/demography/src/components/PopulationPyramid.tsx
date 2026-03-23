@@ -29,12 +29,8 @@ import {
 } from "../helpers/utils"
 import { Bounds } from "@ourworldindata/utils"
 import { AgeZone, AgeZoneWithBounds } from "../helpers/types.js"
-
-const BASE_WIDTH = 200
-const BASE_MARGIN = { top: 12, right: 4, bottom: 18, left: 4 }
-const BASE_CENTER_GAP = 40
-const BASE_FONT = { tick: 9, ageLabel: 8, header: 10, ageHeader: 8, ageZone: 9 }
-const BASE_TRIANGLE_SIZE = { w: 4, h: 3 }
+import { useBreakpoint } from "../helpers/useBreakpoint.js"
+import { getFontTier, getSizeTier } from "../helpers/fontTiers.js"
 
 // Labels reversed so 0-4 at bottom, oldest at top
 const AGE_GROUP_LABELS = [...PYRAMID_AGE_GROUPS].reverse()
@@ -46,6 +42,7 @@ export interface PopulationPyramidProps {
     year: number
     xAxisScaleMode?: "fixed" | "adaptive"
     ageZones?: AgeZone[]
+    compact?: boolean
 }
 
 function PopulationPyramid({
@@ -53,11 +50,23 @@ function PopulationPyramid({
     year,
     xAxisScaleMode = "fixed",
     ageZones,
+    compact = false,
     width,
     height,
 }: PopulationPyramidProps & { width: number; height: number }) {
-    const sizes = useMemo(() => scaledSizes(width), [width])
-    const { margin, centerGap, font, triangle } = sizes
+    const breakpoint = useBreakpoint()
+    const fontTier = compact ? getFontTier("small") : getFontTier(breakpoint)
+    const sizeTier = compact ? getSizeTier("small") : getSizeTier(breakpoint)
+    const margin = { ...sizeTier.pyramidMargin }
+    const centerGap = sizeTier.pyramidCenterGap
+    const triangle = sizeTier.pyramidTriangle
+    const font = {
+        tick: fontTier.tick,
+        ageLabel: fontTier.label,
+        header: fontTier.header,
+        ageHeader: fontTier.label,
+        ageZone: fontTier.annotation,
+    }
 
     // Margin on the right to accommodate age zone boundary labels, if shown
     const ageZoneLabelMarginRight = useMemo(() => {
@@ -102,20 +111,22 @@ function PopulationPyramid({
         }
     }, [populationBySex])
 
-    const xScale = useMemo(() => {
-        let xAxisMax: number
+    const xAxisMax = useMemo(() => {
         if (xAxisScaleMode === "adaptive") {
             // Max from current year only
-            xAxisMax = Math.max(
+            const max = Math.max(
                 ...Object.values(ageBucketsBySex.male),
                 ...Object.values(ageBucketsBySex.female),
                 0
             )
-            xAxisMax = Math.ceil(xAxisMax * 1.1)
+            return Math.ceil(max * 1.1)
         } else {
             // Max across all years
-            xAxisMax = computeMaxAgeGroupPopulation(simulation)
+            return computeMaxAgeGroupPopulation(simulation)
         }
+    }, [simulation, xAxisScaleMode, ageBucketsBySex])
+
+    const xScale = useMemo(() => {
         const domain = [0, xAxisMax]
         return {
             // Male: 0 at center, xAxisMax at left edge
@@ -123,7 +134,7 @@ function PopulationPyramid({
             // Female: 0 at center, xAxisMax at right edge
             female: scaleLinear({ domain, range: [0, halfWidth] }),
         }
-    }, [halfWidth, simulation, xAxisScaleMode, ageBucketsBySex])
+    }, [halfWidth, xAxisMax])
 
     const yScale = useMemo(
         () =>
@@ -233,6 +244,7 @@ export function ResponsivePopulationPyramid({
     year,
     xAxisScaleMode,
     ageZones,
+    compact,
 }: PopulationPyramidProps) {
     const { parentRef, width, height } = useParentSize()
     return (
@@ -243,6 +255,7 @@ export function ResponsivePopulationPyramid({
                     year={year}
                     ageZones={ageZones}
                     xAxisScaleMode={xAxisScaleMode}
+                    compact={compact}
                     width={width}
                     height={height}
                 />
@@ -652,30 +665,6 @@ function Triangle({
     )
 }
 
-function scaledSizes(width: number) {
-    const s = Math.min(Math.sqrt(width / BASE_WIDTH), 1.2)
-    return {
-        margin: {
-            top: round(BASE_MARGIN.top * s),
-            right: round(BASE_MARGIN.right * s),
-            bottom: round(BASE_MARGIN.bottom * s),
-            left: round(BASE_MARGIN.left * s),
-        },
-        centerGap: round(BASE_CENTER_GAP * s),
-        font: {
-            tick: round(BASE_FONT.tick * s),
-            ageLabel: round(BASE_FONT.ageLabel * s),
-            header: round(BASE_FONT.header * s),
-            ageHeader: round(BASE_FONT.ageHeader * s),
-            ageZone: round(BASE_FONT.ageZone * s),
-        },
-        triangle: {
-            w: round(BASE_TRIANGLE_SIZE.w * s),
-            h: round(BASE_TRIANGLE_SIZE.h * s),
-        },
-    }
-}
-
 /**
  * Compute the y position and height for each zone's background rect.
  * Extends each zone to the midpoint of the gap between bands,
@@ -706,9 +695,4 @@ function computeZoneBounds(
             bounds: new Bounds(-rect.marginLeft, y, rect.fullWidth, yEnd - y),
         }
     })
-}
-
-/** Round to nearest 0.5px */
-function round(v: number): number {
-    return Math.round(v * 2) / 2
 }

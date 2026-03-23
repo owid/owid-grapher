@@ -20,17 +20,27 @@ export const TREND_EARLY_END = 2003
 export const TREND_LATE_START = 2020
 export const TREND_LATE_END = 2023
 
+// Maximum age tracked (131 single-year ages: 0 to 130)
+export const MAX_AGE = 130
+
+export const PYRAMID_AGE_GROUP_SIZE = 5
+
 export const PYRAMID_AGE_GROUPS: string[] = (() => {
     const groups: string[] = []
-    for (let start = 0; start <= 125; start += 5) {
-        groups.push(`${start}-${start + 4}`)
+    for (
+        let start = 0;
+        start <= MAX_AGE - PYRAMID_AGE_GROUP_SIZE;
+        start += PYRAMID_AGE_GROUP_SIZE
+    ) {
+        groups.push(`${start}-${start + PYRAMID_AGE_GROUP_SIZE - 1}`)
     }
-    groups.push("130+")
+    groups.push(`${MAX_AGE}+`)
     return groups
 })()
 
 export const DENIM_BLUE = "#4c6a9c"
 export const GRID_LINE_COLOR = "#ddd"
+export const ZERO_LINE_COLOR = "#767676"
 export const LABEL_COLOR = "#a1a1a1"
 
 export const PROJECTION_BACKGROUND = "rgba(0, 0, 0, 0.02)"
@@ -46,9 +56,6 @@ export const COLOR_WORKING = DENIM_BLUE
 export const COLOR_DEPENDENT = "#93b2d5" // or: #8c4569
 export const COLOR_CHILDREN = COLOR_DEPENDENT
 export const COLOR_RETIRED = COLOR_DEPENDENT
-
-// Maximum age tracked (131 single-year ages: 0 to 130)
-export const MAX_AGE = 130
 
 export const WORKING_AGE = 15
 export const RETIREMENT_AGE = 65
