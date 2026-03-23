@@ -55,6 +55,10 @@ import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import { SUBSCRIBE_PAGE_FORM_CONTAINER_ID } from "@ourworldindata/types"
 import UserSurvey from "./gdocs/components/UserSurvey.js"
+import {
+    SlideshowPresentation,
+    _OWID_SLIDESHOW_PROPS,
+} from "./SlideshowPresentation.js"
 
 function runSearchPage() {
     const root = document.getElementById("search-page-root")
@@ -129,6 +133,14 @@ async function hydrateDataInsightsIndexPage() {
                 <DataInsightsIndexPageContent {...props} />
             </DebugProvider>
         )
+    }
+}
+
+function hydrateSlideshowPage() {
+    const props = (window as any)[_OWID_SLIDESHOW_PROPS]
+    const container = document.querySelector("#slideshow-page-container")
+    if (container && props) {
+        hydrateRoot(container, <SlideshowPresentation {...props} />)
     }
 }
 
@@ -434,6 +446,12 @@ export const runSiteFooterScripts = async (
         case SiteFooterContext.searchPage:
             runSearchPage()
         // falls through
+        case SiteFooterContext.slideshowPage:
+            hydrateSlideshowPage()
+            runSiteNavigation(hideDonationFlag)
+            runSiteTools()
+            runCookiePreferencesManager()
+            break
         case SiteFooterContext.subscribePage:
             hydrateSubscribePage()
         // falls through

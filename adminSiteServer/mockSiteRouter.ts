@@ -716,6 +716,46 @@ getPlainRouteWithROTransaction(
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
+    "/slideshows/:slug",
+    async (req, res, trx) => {
+        const { renderSlideshowPage } =
+            await import("../baker/siteRenderers.js")
+        const slideshow = await trx("slideshows")
+            .where("slug", req.params.slug)
+            .first()
+
+        if (!slideshow) {
+            return res.status(404).send(renderNotFoundPage())
+        }
+
+        const config =
+            typeof slideshow.config === "string"
+                ? JSON.parse(slideshow.config)
+                : slideshow.config
+
+        // Collect image filenames from slides
+        const imageFilenames: string[] = []
+        for (const slide of config.slides) {
+            if (slide.media?.type === "image") {
+                imageFilenames.push(slide.media.filename)
+            }
+        }
+
+        const imageMetadata =
+            imageFilenames.length > 0
+                ? await getImageMetadataByFilenames(trx, imageFilenames)
+                : {}
+
+        const html = await renderSlideshowPage(
+            { title: slideshow.title, slug: slideshow.slug, config },
+            imageMetadata
+        )
+        return res.send(html)
+    }
+)
+
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
     "/{*splat}",
     async (req, res, trx) => {
         // Remove leading and trailing slashes
