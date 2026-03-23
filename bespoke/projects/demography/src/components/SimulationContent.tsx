@@ -136,45 +136,58 @@ export function SimulationContent({
                         />
                     </ChartPanel>
                     {!hidePopulationPyramid && (
-                        <>
-                            <ChartPanel
-                                className="pyramid-panel"
-                                title={`Age Structure in ${year}`}
-                                subtitle="Population distribution by age and sex"
-                                footer={
-                                    <SimpleYearSlider
-                                        selectedYear={year}
-                                        onChange={setYear}
-                                    />
-                                }
-                            >
-                                <ResponsivePopulationPyramid
-                                    simulation={simulation}
-                                    year={year}
-                                    compact
-                                />
-                            </ChartPanel>
-                            <ChartPanel
-                                className="age-distribution-panel"
-                                title={`Age Structure in ${year}`}
-                                subtitle="Population distribution by age"
-                                header={
-                                    <SimpleYearSlider
-                                        selectedYear={year}
-                                        onChange={setYear}
-                                    />
-                                }
-                            >
-                                <ResponsivePopulationPyramidHorizontal
-                                    simulation={simulation}
-                                    year={year}
-                                />
-                            </ChartPanel>
-                        </>
+                        <AgeStructurePanel
+                            simulation={simulation}
+                            year={year}
+                            onYearChange={setYear}
+                        />
                     )}
                 </div>
             </Container>
         </div>
+    )
+}
+
+function AgeStructurePanel({
+    simulation,
+    year,
+    onYearChange,
+}: {
+    simulation: Simulation
+    year: number
+    onYearChange: (year: number) => void
+}) {
+    const title = `Age Structure in ${year}`
+    const subtitle = "Population distribution by age and sex"
+    const slider = (
+        <SimpleYearSlider selectedYear={year} onChange={onYearChange} />
+    )
+    return (
+        <>
+            <ChartPanel
+                className="pyramid-panel"
+                title={title}
+                subtitle={subtitle}
+                footer={slider}
+            >
+                <ResponsivePopulationPyramid
+                    simulation={simulation}
+                    year={year}
+                    compact
+                />
+            </ChartPanel>
+            <ChartPanel
+                className="age-distribution-panel"
+                title={title}
+                subtitle={subtitle}
+                header={slider}
+            >
+                <ResponsivePopulationPyramidHorizontal
+                    simulation={simulation}
+                    year={year}
+                />
+            </ChartPanel>
+        </>
     )
 }
 
