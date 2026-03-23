@@ -38,7 +38,7 @@ export const PROJECTION_DASHARRAY = "1.5,3"
 
 export const BENCHMARK_LINE_COLOR = "#bbb"
 
-export const AGE_ZONE_BACKGROUND_OPACITY = 0.06
+export const AGE_ZONE_BACKGROUND_OPACITY = 0.1
 
 // Age zone colors
 export const COLOR_WORKING = DENIM_BLUE
