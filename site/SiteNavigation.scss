@@ -28,7 +28,7 @@
     padding-top: 12px;
     padding-bottom: 12px;
     @include sm-up {
-        @include column-gap(24px);
+        column-gap: 24px;
     }
 
     .SiteNavigationToggle--mobile-menu {
@@ -47,7 +47,7 @@
             display: flex;
             flex-direction: row;
             align-items: center;
-            @include column-gap(24px);
+            column-gap: 24px;
             > li {
                 list-style-type: none;
                 white-space: nowrap;
@@ -104,7 +104,7 @@
         align-items: center;
         justify-content: end;
         height: $search-cta-height;
-        @include column-gap(8px);
+        column-gap: 8px;
         @include sm-only {
             flex: 1; // center owid logo
         }
