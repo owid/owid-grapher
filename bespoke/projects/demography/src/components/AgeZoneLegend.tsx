@@ -29,7 +29,7 @@ import { Bounds, formatValue } from "@ourworldindata/utils"
 const BAR_HEIGHT = 20
 const FONT_SIZE = 12
 const LABEL_FONT_SIZE = 11
-const SEGMENT_GAP = 1
+const SEGMENT_GAP = 2
 const BOX_PADDING = 5
 const LABEL_VALUE_GAP = 2
 
@@ -251,7 +251,7 @@ function AgeZoneLegendBox({
     zone: AnnotatedZone
     height: number
 }) {
-    const strokeWidth = 2
+    const strokeWidth = 1
 
     const left = zone.startX + strokeWidth / 2
     const right = zone.startX + zone.width - strokeWidth / 2
@@ -273,7 +273,7 @@ function AgeZoneLegendBox({
                 fill={zone.color}
                 opacity={AGE_ZONE_BACKGROUND_OPACITY}
             />
-            {/* Left vertical line */}
+            {/*
             <line
                 x1={left}
                 y1={0}
@@ -282,7 +282,6 @@ function AgeZoneLegendBox({
                 stroke={zone.color}
                 strokeWidth={strokeWidth}
             />
-            {/* Right vertical line */}
             <line
                 x1={right}
                 y1={0}
@@ -291,7 +290,6 @@ function AgeZoneLegendBox({
                 stroke={zone.color}
                 strokeWidth={strokeWidth}
             />
-            {/* Bottom horizontal line */}
             <line
                 x1={left - strokeWidth / 2}
                 y1={height}
@@ -299,7 +297,7 @@ function AgeZoneLegendBox({
                 y2={height}
                 stroke={zone.color}
                 strokeWidth={strokeWidth}
-            />
+            /> */}
 
             {/* Label */}
             {zone.labelWrap && (
