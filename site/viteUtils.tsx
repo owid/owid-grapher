@@ -7,7 +7,6 @@ import {
     BAKED_BASE_URL,
     VITE_PREVIEW,
 } from "../settings/serverSettings.js"
-import { POLYFILL_URL } from "./SiteConstants.js"
 import type { Manifest, ManifestChunk } from "vite"
 import { readFromAssetMap } from "@ourworldindata/utils"
 import urljoin from "url-join"
@@ -18,23 +17,6 @@ import { IS_ARCHIVE } from "../settings/clientSettings.js"
 const VITE_PORT = process.env.VITE_PORT ?? "8090"
 const VITE_DEV_URL = process.env.VITE_DEV_URL ?? `http://localhost:${VITE_PORT}`
 
-// We ALWAYS load polyfills.
-
-const polyfillScript = <script key="polyfill" src={POLYFILL_URL} />
-const polyfillPreload = (
-    <link
-        key="polyfill-preload"
-        rel="preload"
-        href={POLYFILL_URL}
-        as="script"
-        // Cloudflare's Early Hints generation for this URL fumbles the `&amp;` contained in this link; so we disable this for "Early Hints" for now.
-        // See https://github.com/cloudflare/workers-sdk/issues/6527
-        // Cloudflare disables Early Hints generation for any <link> that doesn't just contain `rel`, `href`, `as` - so the actual name of this
-        // attr doesn't actually matter.
-        data-cloudflare-disable-early-hints
-    />
-)
-
 interface Assets {
     forHeader: React.ReactElement<React.HTMLProps<HTMLElement>>[]
     forFooter: React.ReactElement<React.HTMLProps<HTMLElement>>[]
@@ -43,9 +25,8 @@ interface Assets {
 // in dev: we need to load several vite core scripts and plugins; other than that we only need to load the entry point, and vite will take care of the rest.
 const devAssets = (entrypoint: ViteEntryPoint, baseUrl: string): Assets => {
     return {
-        forHeader: [polyfillPreload],
+        forHeader: [],
         forFooter: [
-            polyfillScript,
             <script
                 key="vite-react-preamble" // https://vitejs.dev/guide/backend-integration.html
                 type="module"
@@ -150,7 +131,7 @@ export const createTagsForManifestEntry = (
 }
 
 // in prod: we need to make sure that we include <script> and <link> tags that are required for the entry point.
-// this could be, for example: owid.mjs, common.mjs, owid.css, common.css. (plus Google Fonts and polyfills)
+// this could be, for example: owid.mjs, common.mjs, owid.css, common.css.
 const prodAssets = (
     entrypoint: ViteEntryPoint,
     baseUrl: string,
@@ -180,11 +161,8 @@ const prodAssets = (
 
     return {
         // sort for some kind of consistency: first modulepreload, then preload, then stylesheet
-        forHeader: _.sortBy(
-            [polyfillPreload, ...assets.forHeader],
-            "props.rel"
-        ),
-        forFooter: [polyfillScript, ...assets.forFooter],
+        forHeader: _.sortBy(assets.forHeader, "props.rel"),
+        forFooter: assets.forFooter,
     }
 }
 
