@@ -6,13 +6,13 @@
         "react",
         "unicorn",
         "react-perf",
-        "vitest",
+        "vitest"
     ],
     "categories": {
-        "correctness": "off",
+        "correctness": "off"
     },
     "env": {
-        "builtin": true,
+        "builtin": true
     },
     "rules": {
         "constructor-super": "error",
@@ -70,8 +70,8 @@
             "warn",
             {
                 "varsIgnorePattern": "^_",
-                "argsIgnorePattern": "^_",
-            },
+                "argsIgnorePattern": "^_"
+            }
         ],
         "no-useless-backreference": "error",
         "no-useless-catch": "error",
@@ -122,9 +122,9 @@
                     "d3-selection",
                     "d3-shape",
                     "d3-transition",
-                    "d3-zoom",
-                ],
-            },
+                    "d3-zoom"
+                ]
+            }
         ],
         "import-x-js/no-relative-packages": "error",
         "react/display-name": "warn",
@@ -134,8 +134,8 @@
         "react/jsx-no-target-blank": [
             "warn",
             {
-                "allowReferrer": true,
-            },
+                "allowReferrer": true
+            }
         ],
         "react/jsx-no-undef": "error",
         "react/no-children-prop": "error",
@@ -154,8 +154,8 @@
         "typescript/consistent-type-exports": [
             "warn",
             {
-                "fixMixedExportsWithInlineTypeSpecifier": true,
-            },
+                "fixMixedExportsWithInlineTypeSpecifier": true
+            }
         ],
         "typescript/no-empty-interface": "warn",
         "typescript/no-for-in-array": "warn",
@@ -165,14 +165,14 @@
         "no-console": [
             "warn",
             {
-                "allow": ["warn", "error"],
-            },
+                "allow": ["warn", "error"]
+            }
         ],
         "prefer-const": [
             "warn",
             {
-                "destructuring": "all",
-            },
+                "destructuring": "all"
+            }
         ],
         "no-empty-function": "warn",
         "no-self-compare": "warn",
@@ -204,24 +204,24 @@
         "vitest/prefer-to-be-object": "warn",
         "vitest/prefer-to-be-truthy": "off",
         "vitest/require-local-test-context-for-concurrent-snapshots": "warn",
-        "vitest/warn-todo": "warn",
+        "vitest/warn-todo": "warn"
     },
     "settings": {
         "react": {
-            "version": "19.2",
-        },
+            "version": "19.2"
+        }
     },
     "jsPlugins": [
         "eslint-plugin-mobx",
         "eslint-plugin-react-refresh",
-        { "name": "import-x-js", "specifier": "eslint-plugin-import-x" },
+        { "name": "import-x-js", "specifier": "eslint-plugin-import-x" }
     ],
     "overrides": [
         {
             "files": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
             "rules": {
-                "no-undef": "off", // this is enforced by TS
-            },
+                "no-undef": "off" // this is enforced by TS
+            }
         },
         {
             "files": [
@@ -233,11 +233,11 @@
                 "functions/**/*",
                 "explorerAdminServer/**/*",
                 "serverUtils/**/*",
-                "settings/**/*",
+                "settings/**/*"
             ],
             "rules": {
-                "no-console": "off",
-            },
+                "no-console": "off"
+            }
         },
         {
             "files": [
@@ -267,30 +267,30 @@
                 "packages/@ourworldindata/grapher/src/verticalColorLegend/**/*",
                 "packages/@ourworldindata/utils/**/*",
                 "packages/@ourworldindata/utils/src/persistable/**/*",
-                "settings/**/*",
+                "settings/**/*"
             ],
             "rules": {
                 "typescript/explicit-function-return-type": "warn",
-                "typescript/explicit-module-boundary-types": "warn",
-            },
+                "typescript/explicit-module-boundary-types": "warn"
+            }
         },
         {
             "files": [
                 "adminSiteClient/**/*.tsx",
                 "packages/@ourworldindata/components/src/**/*.tsx",
-                "site/**/*.tsx",
+                "site/**/*.tsx"
             ],
             "rules": {
                 "react-refresh/only-export-components": [
                     "error",
                     {
-                        "allowConstantExport": true,
-                    },
-                ],
-            },
-        },
+                        "allowConstantExport": true
+                    }
+                ]
+            }
+        }
     ],
     "options": {
-        "typeAware": true,
-    },
+        "typeAware": true
+    }
 }
