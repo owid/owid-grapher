@@ -282,4 +282,40 @@ export function computeMaxAgeGroupPopulation(simulation: {
     return Math.ceil(maxVal * 1.1)
 }
 
+/**
+ * Like computeMaxAgeGroupPopulation, but sums male + female for each age group.
+ */
+export function computeMaxTotalAgeGroupPopulation(simulation: {
+    data: CountryData
+    forecastResults: Record<number, YearResult> | null
+}): number {
+    const { data, forecastResults } = simulation
+    let maxVal = 0
+
+    const updateMax = (pop: PopulationBySex) => {
+        const maleGroups = groupByAgeRange(pop.male)
+        const femaleGroups = groupByAgeRange(pop.female)
+        for (const g of PYRAMID_AGE_GROUPS) {
+            maxVal = Math.max(
+                maxVal,
+                (maleGroups[g] || 0) + (femaleGroups[g] || 0)
+            )
+        }
+    }
+
+    for (let year = START_YEAR; year <= HISTORICAL_END_YEAR; year++) {
+        const pop = getPopulationForYear(data, year)
+        if (pop) updateMax(pop)
+    }
+
+    if (forecastResults) {
+        for (let year = HISTORICAL_END_YEAR + 1; year <= END_YEAR; year++) {
+            const pop = forecastResults[year]?.population
+            if (pop) updateMax(pop)
+        }
+    }
+
+    return Math.ceil(maxVal * 1.1)
+}
+
 export { getInterpolatedValue }

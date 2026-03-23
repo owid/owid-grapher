@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { QueryClientProvider } from "@tanstack/react-query"
 
 import { DemographyControls } from "../components/DemographyControls.js"
@@ -8,34 +8,37 @@ import {
     LoadingSpinner,
 } from "../components/DemographyLoadAndError.js"
 import { queryClient, useDemographyData } from "../helpers/fetch.js"
-import type { PopulationVariantConfig } from "../config.js"
-
+import type { AgeDistributionVariantConfig } from "../config.js"
 import { articulateEntity } from "@ourworldindata/utils"
-
 import { CountryData } from "../helpers/types.js"
 import { useSimulation } from "../helpers/useSimulation.js"
-
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
-import { ResponsivePopulationChart } from "../components/PopulationChart.js"
-import { DEFAULT_ENTITY_NAME } from "../helpers/constants.js"
+import { ResponsivePopulationByAgeChart } from "../components/PopulationByAgeChart.js"
+import { groupAgeGroupsByZone } from "../helpers/utils.js"
+import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
+import {
+    DEFAULT_ENTITY_NAME,
+    END_YEAR,
+    FULL_TIME_RANGE,
+} from "../helpers/constants.js"
 
-export function PopulationVariantWithProviders(props: {
+export function AgeDistributionVariantWithProviders(props: {
     container: HTMLDivElement
-    config: PopulationVariantConfig
+    config: AgeDistributionVariantConfig
 }): React.ReactElement {
     return (
         <QueryClientProvider client={queryClient}>
-            <PopulationVariant config={props.config} />
+            <AgeDistributionVariant config={props.config} />
         </QueryClientProvider>
     )
 }
 
-function PopulationVariant({
+function AgeDistributionVariant({
     config,
 }: {
-    config: PopulationVariantConfig
+    config: AgeDistributionVariantConfig
 }): React.ReactElement {
     const showControls = !config.hideControls
     const [entityName, setEntityName] = useState(
@@ -49,7 +52,7 @@ function PopulationVariant({
     if (!metadata || !entityData) return <DemographyChartError />
 
     return (
-        <div className="demography-chart demography-chart__population-variant">
+        <div className="demography-chart demography-chart__age-distribution-variant">
             {showControls && (
                 <DemographyControls
                     metadata={metadata}
@@ -57,49 +60,65 @@ function PopulationVariant({
                     setEntityName={setEntityName}
                 />
             )}
-            <PopulationCaptionedChart
+            <AgeDistributionCaptionedChart
                 data={entityData}
                 isLoading={isLoadingEntityData}
                 title={config.title}
                 subtitle={config.subtitle}
+                hideTimeline={config.hideTimeline}
             />
         </div>
     )
 }
 
-function PopulationCaptionedChart({
+function AgeDistributionCaptionedChart({
     data,
     isLoading = false,
     title: titleOverride,
     subtitle: subtitleOverride,
+    hideTimeline,
 }: {
     data: CountryData
     isLoading?: boolean
     title?: string
     subtitle?: string
+    hideTimeline?: boolean
 }) {
+    const [year, setYear] = useState(END_YEAR)
     const simulation = useSimulation(data)
-    const countryName = data.country
+    const ageZones = useMemo(() => groupAgeGroupsByZone(), [])
 
     const title =
         titleOverride ??
-        `Population of ${articulateEntity(countryName)}, 1950 to 2100`
+        `Age distribution of ${articulateEntity(data.country)} in ${year}`
     const subtitle =
-        subtitleOverride ??
-        "Past estimates and future projections based on the UN's medium scenario"
+        subtitleOverride ?? "Total population by five-year age group"
 
     return (
-        <Frame className="demography-population-only">
+        <Frame className="demography-age-distribution">
             <ChartHeader title={title} subtitle={subtitle} />
-            <div className="demography-population-only__chart-area">
+            <div className="demography-age-distribution__chart-area">
                 {isLoading && <LoadingSpinner />}
                 {simulation && (
-                    <ResponsivePopulationChart
-                        simulation={simulation}
-                        showCustomProjection={false}
-                    />
+                    <div className="demography-age-distribution__chart">
+                        <ResponsivePopulationByAgeChart
+                            simulation={simulation}
+                            year={year}
+                            ageZones={ageZones}
+                            yAxisScaleMode="adaptive"
+                        />
+                    </div>
                 )}
             </div>
+            {!hideTimeline && (
+                <div className="demography-age-distribution__slider">
+                    <TimeSlider
+                        times={FULL_TIME_RANGE}
+                        selectedTime={year}
+                        onChange={setYear}
+                    />
+                </div>
+            )}
             <ChartFooter
                 className="demography-footer"
                 source="List of data sources"

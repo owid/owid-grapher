@@ -30,6 +30,8 @@ import { Halo, TextWrap } from "@ourworldindata/components"
 import { formatPopulationValueLong } from "../helpers/utils.js"
 import { TimeAxisX } from "./TimeAxisX.js"
 import { last } from "lodash-es"
+import { useBreakpoint } from "../helpers/useBreakpoint.js"
+import { getFontTier, type FontTier } from "../helpers/fontTiers.js"
 
 const margin = { top: 18, bottom: 18, left: 0, right: 0 }
 
@@ -60,6 +62,9 @@ function PopulationChart({
     width,
     height,
 }: PopulationChartProps & { width: number; height: number }) {
+    const breakpoint = useBreakpoint()
+    const fontTier = getFontTier(breakpoint)
+
     // Hover state for tooltip
     const [hoveredYear, setHoveredYear] = useState<number | null>(null)
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
@@ -238,8 +243,13 @@ function PopulationChart({
                         xScale={xScale}
                         innerWidth={innerWidth}
                         innerHeight={innerHeight}
+                        fontSize={fontTier.tick}
                     />
-                    <AxisY yScale={yScale} innerWidth={innerWidth} />
+                    <AxisY
+                        yScale={yScale}
+                        innerWidth={innerWidth}
+                        fontTier={fontTier}
+                    />
 
                     {/* Projection label */}
                     <Halo
@@ -250,7 +260,7 @@ function PopulationChart({
                         <text
                             x={xScale(HISTORICAL_END_YEAR) + 6}
                             y={12}
-                            fontSize={10}
+                            fontSize={fontTier.annotation}
                             fill={GRAPHER_LIGHT_TEXT}
                         >
                             Projections →
@@ -305,6 +315,7 @@ function PopulationChart({
                         }
                         benchmarkDataPoints={benchmarkDataPoints}
                         showBenchmark={hasUserChanges}
+                        fontTier={fontTier}
                     />
 
                     {/* Change annotation between endpoints with arrow */}
@@ -317,6 +328,7 @@ function PopulationChart({
                             projectionDataPoints={projectionDataPoints}
                             benchmarkDataPoints={benchmarkDataPoints}
                             hideLabel={isHovering}
+                            fontTier={fontTier}
                         />
                     )}
 
@@ -451,12 +463,14 @@ function EndpointLabels({
     forecastDataPoints,
     benchmarkDataPoints,
     showBenchmark,
+    fontTier,
 }: {
     xScale: (v: number) => number
     yScale: (v: number) => number
     forecastDataPoints: DataPoint[]
     benchmarkDataPoints: DataPoint[]
     showBenchmark: boolean
+    fontTier: FontTier
 }) {
     const forecastValue = forecastDataPoints.at(-1)!.value
     const benchmarkValue = benchmarkDataPoints.at(-1)!.value
@@ -478,7 +492,7 @@ function EndpointLabels({
                             x={x}
                             y={yBenchmark + (yBenchmark < yForecast ? -10 : 14)}
                             textAnchor="end"
-                            fontSize={11}
+                            fontSize={fontTier.tick}
                             fill={GRAPHER_LIGHT_TEXT}
                             fontWeight={500}
                         >
@@ -493,7 +507,7 @@ function EndpointLabels({
                     x={x}
                     y={yForecast + (yForecast < yBenchmark ? -10 : 14)}
                     textAnchor="end"
-                    fontSize={11}
+                    fontSize={fontTier.tick}
                     fill={DENIM_BLUE}
                     fontWeight={700}
                 >
@@ -512,6 +526,7 @@ function ChangeAnnotation({
     projectionDataPoints,
     benchmarkDataPoints,
     hideLabel = false,
+    fontTier,
 }: {
     xScale: (v: number) => number
     yScale: (v: number) => number
@@ -520,6 +535,7 @@ function ChangeAnnotation({
     projectionDataPoints: { year: number; value: number }[]
     benchmarkDataPoints: { year: number; value: number }[]
     hideLabel?: boolean
+    fontTier: FontTier
 }) {
     const forecastPoint = projectionDataPoints.find((d) => d.year === year)
     const benchmarkPoint = benchmarkDataPoints.find((d) => d.year === year)
@@ -545,7 +561,7 @@ function ChangeAnnotation({
         showPlus: true,
     })
 
-    const labelFontSize = 10
+    const labelFontSize = fontTier.annotation
     const labelGap = 6
     const labelWidth = new TextWrap({
         text: pctLabel,
@@ -667,9 +683,11 @@ function PopulationTooltipContent({
 function AxisY({
     yScale,
     innerWidth,
+    fontTier,
 }: {
     yScale: { ticks: (count: number) => number[]; (v: number): number }
     innerWidth: number
+    fontTier: FontTier
 }) {
     const ticks = yScale.ticks(4)
 
@@ -691,7 +709,7 @@ function AxisY({
                             <text
                                 x={4}
                                 y={yScale(tick) - 4}
-                                fontSize={11}
+                                fontSize={fontTier.tick}
                                 fill={LABEL_COLOR}
                             >
                                 {formatPopulationValueLong(tick) +
