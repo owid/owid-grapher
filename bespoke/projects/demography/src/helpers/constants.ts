@@ -57,6 +57,9 @@ export const COLOR_DEPENDENT = "#93b2d5" // or: #8c4569
 export const COLOR_CHILDREN = COLOR_DEPENDENT
 export const COLOR_RETIRED = COLOR_DEPENDENT
 
+export const MALE_COLOR = DENIM_BLUE
+export const FEMALE_COLOR = COLOR_DEPENDENT
+
 export const WORKING_AGE = 15
 export const RETIREMENT_AGE = 65
 
