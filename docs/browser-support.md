@@ -19,6 +19,15 @@ As of **2026-03-23**, we support the following browsers:
 - [CSS container queries (`@container`)](https://caniuse.com/css-container-queries) (Chrome 105+, Safari 16+, Firefox 110+) — used in grapher controls and tooltips.
 - [`Array.prototype.findLast()` / `findLastIndex()`](https://caniuse.com/mdn-javascript_builtins_array_findlast) (Chrome 97+, Safari 15.4+, Firefox 104+).
 
+### "Most breaking" features in Vite-generated code
+
+Vite/Rolldown may emit syntax in the bundled output that we don't actively write ourselves. Vite will use syntax that are not supported in older browsers. The most notable examples are:
+
+- [Public class fields](https://caniuse.com/mdn-javascript_classes_public_class_fields) that contain parentheses (`class Foo { bar = _.noop() }`) — Safari 16.0+.
+- [Static class initialization blocks](https://caniuse.com/mdn-javascript_classes_static_initialization_blocks) (`class Foo { static { ... } }`) — Chrome 91+, Firefox 93+, Safari 16.4+.
+
+Both are safe for our current targets, but they will causes issues (incl. SyntaxErrors) when our code is run in older browsers, especially in Safari < 16.4.
+
 ### Features we can't yet use
 
 The following features are **not** available across all our supported browsers and should be avoided (or guarded) until we raise our minimum targets:
