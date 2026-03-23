@@ -1,9 +1,12 @@
 .subscribe-page {
+    --row-gap: 32px;
+
     background-color: $gray-5;
     padding-top: 48px;
 
     @include sm-only {
         padding-top: 24px;
+        --row-gap: 16px;
     }
 
     .subscribe-page__heading {
@@ -17,7 +20,12 @@
     .newsletter-subscription-form {
         padding-bottom: 24px;
         border-bottom: 1px solid $blue-20;
+        margin-top: 24px;
+
+        row-gap: var(--row-gap);
+
         @include sm-only {
+            margin-top: 8px;
             border-bottom: none;
         }
     }
@@ -27,9 +35,6 @@
         width: 84px;
         align-self: start;
         margin-right: 16px;
-        &:first-of-type {
-            margin-top: 24px;
-        }
         @include sm-only {
             display: none;
         }
@@ -37,16 +42,6 @@
 
     .newsletter-subscription-form__checkbox {
         flex: 1 1 calc(100% - 84px - 16px);
-        &:first-of-type {
-            margin-top: 24px;
-            margin-bottom: 32px !important;
-        }
-        @include sm-only {
-            &:first-of-type {
-                margin-top: 8px;
-                margin-bottom: 16px !important;
-            }
-        }
     }
 
     .newsletter-subscription-form__label-frequency {
@@ -58,11 +53,9 @@
     }
 
     .newsletter-subscription-form__email-submit {
-        margin-top: 24px;
-        margin-bottom: 8px !important;
-        @include sm-only {
-            margin-top: 8px;
-        }
+        margin-top: 8px;
+
+        margin-bottom: calc(var(--row-gap) * -1 + 8px);
     }
 
     .newsletter-subscription-form__privacy-notice {
