@@ -1,23 +1,23 @@
 ## Supported browsers
 
-As of **2025-07-15**, we support the following browsers:
+As of **2026-03-23**, we support the following browsers:
 
-- Safari 14.1+ [April 2021] (earlier versions are missing support for [the nullish coalescing assignment operator (`??=`)](https://caniuse.com/mdn-javascript_operators_nullish_coalescing_assignment) and [the CSS `gap` property for flexbox](https://caniuse.com/flexbox-gap))
-- iOS Safari 14.1+ [April 2021]
-- Chrome/Edge 91+ [May 2021]
-- Opera 77+ [June 2021] (since Opera 77 is based on Chromium 91)
-- Firefox 91+ [August 2021] (91 is a ESR version)
+- Safari 16.4+ [March 2023]
+- iOS Safari 16.4+ [March 2023]
+- Chrome/Edge 111+ [March 2023]
+- Opera 97+ [March 2023] (since Opera 97 is based on Chromium 111)
+- Firefox 114+ [June 2023] (115 is an ESR version)
 
-**Overall, [this caniuse link shows which browsers are supported](https://caniuse.com/mdn-javascript_operators_nullish_coalescing,mdn-css_properties_gap_grid_context,mdn-javascript_regular_expressions_unicode_character_class_escape,flexbox-gap,mdn-javascript_operators_nullish_coalescing_assignment)** (scroll down to "Feature summary").
+**Overall, [this caniuse link shows which browsers are supported](https://caniuse.com/mdn-javascript_builtins_array_toreversed,css-has,css-container-queries,mdn-javascript_builtins_array_findlast)** (scroll down to "Feature summary").
 
 ### "Most breaking" features
 
 "Most breaking" features we use are:
 
-- [Nullish coalescing assignment operator (`??=`)](https://caniuse.com/mdn-javascript_operators_nullish_coalescing_assignment), allowing for expressions like `foo ??= true`.
-- [The CSS `gap` property for flexbox](https://caniuse.com/flexbox-gap).
-- [The CSS `gap` property](https://caniuse.com/mdn-css_properties_gap_grid_context), together with `row-gap` and `column-gap`, which was previously prefixed by `grid-` in most browsers. Without support for these properties Google Docs-based pages are borderline unusable; however our interactive charts themselves work pretty much fine on their standalone pages.
-- [Unicode character class escapes in regular expressions](https://caniuse.com/mdn-javascript_regular_expressions_unicode_character_class_escape), which lets you do something like `\p{Letter}` to match any unicode letters in a RegExp.
+- [`Array.prototype.toReversed()`](https://caniuse.com/mdn-javascript_builtins_array_toreversed) (Chrome 110+, Safari 16+, Firefox 115+) — used extensively across grapher and site code.
+- [CSS `:has()` selector](https://caniuse.com/css-has) (Chrome 105+, Safari 15.4+, Firefox 121+) — used extensively in stylesheets. Note: Firefox only supports `:has()` from version 121 (December 2023), so it degrades gracefully in Firefox 114–120.
+- [CSS container queries (`@container`)](https://caniuse.com/css-container-queries) (Chrome 105+, Safari 16+, Firefox 110+) — used in grapher controls and tooltips.
+- [`Array.prototype.findLast()` / `findLastIndex()`](https://caniuse.com/mdn-javascript_builtins_array_findlast) (Chrome 97+, Safari 15.4+, Firefox 104+).
 
 ### Polyfills
 
@@ -25,7 +25,7 @@ We ship explicit polyfills in `site/polyfills.ts` for ES2022/ES2023 features (e.
 
 ### Setting the Vite `target`
 
-We have to be careful in increasing the `vite.config-common.ts` field `build.target`.
+We have to be careful in increasing the `vite.config-common.mts` field `build.target`.
 
 Dropping support for older browsers is fine, but it should be a conscious decision.
 
