@@ -2,22 +2,17 @@
 
 As of **2026-03-23**, we support the following browsers:
 
-- Safari 16.4+ [March 2023]
-- iOS Safari 16.4+ [March 2023]
-- Chrome/Edge 111+ [March 2023]
-- Opera 97+ [March 2023] (since Opera 97 is based on Chromium 111)
-- Firefox 115+ [July 2023] (115 is an ESR version)
-
-**Overall, [this caniuse link shows which browsers are supported](https://caniuse.com/mdn-javascript_builtins_array_toreversed,css-has,css-container-queries,mdn-javascript_builtins_array_findlast)** (scroll down to "Feature summary").
+- Safari 16.0+ [September 2022]
+- iOS Safari 16.0+ [September 2022]
+- Chrome/Edge 106+ [September 2022] (note that Chrome 109 is the last supported version on Windows 7/8, so we want to support that for a tad bit longer)
+- Firefox 110+ [February 2023] (note that 115 is an ESR version)
 
 ### "Most breaking" features
 
 "Most breaking" features we use are:
 
-- [`Array.prototype.toReversed()`](https://caniuse.com/mdn-javascript_builtins_array_toreversed) (Chrome 110+, Safari 16+, Firefox 115+).
 - [CSS `:has()` selector](https://caniuse.com/css-has) (Chrome 105+, Safari 15.4+, Firefox 121+) — used extensively in stylesheets. Note: Firefox only supports `:has()` from version 121 (December 2023), so make sure it degrades gracefully in Firefox <120.
-- [CSS container queries (`@container`)](https://caniuse.com/css-container-queries) (Chrome 105+, Safari 16+, Firefox 110+) — used in grapher controls and tooltips.
-- [`Array.prototype.findLast()` / `findLastIndex()`](https://caniuse.com/mdn-javascript_builtins_array_findlast) (Chrome 97+, Safari 15.4+, Firefox 104+).
+- [CSS container queries (`@container`)](https://caniuse.com/css-container-queries) (Chrome 106+, Safari 16.0+, Firefox 110+) — used in grapher controls and tooltips.
 
 ### "Most breaking" features in Vite-generated code
 
@@ -41,12 +36,14 @@ The following features are **not** available across all our supported browsers a
 - [`Array.fromAsync()`](https://caniuse.com/mdn-javascript_builtins_array_fromasync) — Chrome 121+, Firefox 115+, Safari 16.4+. Missing in Chrome 111–120.
 - [Iterator helpers (`.map()`, `.filter()`, `.take()`, etc.)](https://caniuse.com/mdn-javascript_builtins_iterator_map) — Chrome 122+, Firefox 131+, Safari 18.2+.
 - [RegExp `v` flag (unicodeSets)](https://caniuse.com/mdn-javascript_builtins_regexp_unicodesets) — Chrome 112+, Firefox 116+, Safari 17+.
-- [CSS `text-wrap: balance`](https://caniuse.com/css-text-wrap-balance) — Chrome 114+, Firefox 121+, Safari 17.5+.
 - [CSS `@starting-style`](https://caniuse.com/mdn-css_at-rules_starting-style) — Chrome 117+, Firefox 129+, Safari 17.5+.
 - [View Transitions API](https://caniuse.com/view-transitions) — Chrome 111+, Safari 18+, Firefox 144+.
 - [CSS subgrid](https://caniuse.com/css-subgrid) — Firefox 71+, Safari 16+, but Chrome 117+.
+- [Lookbehind assertions in regular expressions](https://caniuse.com/js-regexp-lookbehind) — Chrome 62+, Firefox 78+, Safari 16.4+.
+- [CSS support for oklab, oklch, lab, lch color spaces](https://caniuse.com/wf-oklab) — Chrome 111+, Firefox 113+, Safari 15.4+.
+- [CSS `color-mix()` function](https://caniuse.com/wf-color-mix) — Chrome 111+, Firefox 113+, Safari 16.2+.
 
-Note: many of the JS features above (e.g. `Set` methods, `groupBy`, `Promise.withResolvers`) could be polyfilled using [core-js](https://github.com/nicolo-ribaudo/core-js-contrib) or similar libraries if we wanted to use them before raising our browser targets. CSS features obviously can't be polyfilled this way.
+Note: many of the JS features above (e.g. `Set` methods, `groupBy`, `Promise.withResolvers`) could be polyfilled using [core-js](https://github.com/nicolo-ribaudo/core-js-contrib) or similar libraries if we wanted to use them before raising our browser targets. CSS features or JS syntax features obviously can't be polyfilled this way.
 
 ### Polyfills
 
