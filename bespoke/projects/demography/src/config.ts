@@ -29,6 +29,7 @@ export interface PopulationVariantConfig {
 export interface PopulationPyramidVariantConfig {
     hideControls: boolean
     hideTimeline?: boolean
+    time?: number
     region?: string
     title?: string
     subtitle?: string
@@ -75,6 +76,7 @@ export function parseConfig(
             return {
                 hideControls: parseBoolean(raw.hideControls),
                 hideTimeline: parseBoolean(raw.hideTimeline),
+                time: parseInteger(raw.time),
                 region: raw.region,
                 title: raw.title,
                 subtitle: raw.subtitle,
@@ -94,6 +96,15 @@ export function parseConfig(
 
 function parseParameterKey(value: unknown): ParameterKey | undefined {
     return isValidParameterKey(value) ? value : undefined
+}
+
+function parseInteger(value: unknown): number | undefined {
+    if (typeof value === "number") return Math.round(value)
+    if (typeof value === "string") {
+        const n = parseInt(value, 10)
+        return isNaN(n) ? undefined : n
+    }
+    return undefined
 }
 
 function parseBoolean(value: unknown): boolean {
