@@ -402,12 +402,12 @@ function AdminMediaRenderer(props: {
                 <img
                     src={makeImageSrc(cloudflareId, 960)}
                     alt={media.filename}
-                    className="SlidePreview__media-image"
+                    className="SlideContent__media-image"
                 />
             )
         }
         return (
-            <div className="SlidePreview__media-placeholder">
+            <div className="SlideContent__media-placeholder">
                 {media.filename}
             </div>
         )
