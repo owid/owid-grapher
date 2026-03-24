@@ -204,6 +204,11 @@ $panel-gap: 12px;
 
     &.chart-panel--muted {
         pointer-events: none;
+
+        .chart-panel__title,
+        .chart-panel__subtitle {
+            pointer-events: auto;
+        }
     }
 
     .chart-panel__reset-btn {

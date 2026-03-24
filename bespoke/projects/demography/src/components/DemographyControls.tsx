@@ -10,6 +10,7 @@ import { getRegionByCode } from "@ourworldindata/utils"
 
 import { DemographyMetadata } from "../helpers/types.js"
 import { useUserCountryInformation } from "../helpers/fetch.js"
+import { displayEntityName } from "../helpers/utils.js"
 
 import { Frame } from "../../../../components/Frame/Frame.js"
 
@@ -97,7 +98,7 @@ function EntityDropdown({
     const options: DropdownCollection<BasicDropdownOption> = useMemo(() => {
         const makeOption = (name: string) => ({
             value: name,
-            label: name,
+            label: displayEntityName(name),
             id: name,
         })
 
