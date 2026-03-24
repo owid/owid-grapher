@@ -68,12 +68,30 @@ export interface Simulation {
     applyPreset: (preset: PresetName) => void
     setScenarioParams: (params: ScenarioParams) => void
     getPopulationForYear: (year: number) => PopulationBySex | null
+    getBenchmarkPopulationForYear: (year: number) => PopulationBySex | null
     getStatsForYear: (year: number) => {
         totalPopulation: number
         medianAge: number
         dependencyRatio: number
     } | null
     getAgeZonePopulation: (year: number) => PopulationByAgeZone
+    getBenchmarkAgeZonePopulation: (year: number) => PopulationByAgeZone
+}
+
+function ageZoneFromPopulation(
+    pop: PopulationBySex | null
+): PopulationByAgeZone {
+    if (!pop) return { young: 0, working: 0, old: 0 }
+    const breakdown = calculateDependencyRatio(pop, RETIREMENT_AGE, true) as {
+        young: number
+        workingAge: number
+        old: number
+    }
+    return {
+        young: breakdown.young,
+        working: breakdown.workingAge,
+        old: breakdown.old,
+    }
 }
 
 function calculateMedianAge(population: PopulationBySex): number {
@@ -147,7 +165,10 @@ function calculateDependencyRatio(
     return ratio
 }
 
-export function useSimulation(data: CountryData): Simulation | null {
+export function useSimulation(
+    data: CountryData,
+    initialScenarioOverrides?: Partial<ScenarioParams>
+): Simulation | null {
     const [scenarioParams, setScenarioParamsRaw] =
         useState<ScenarioParams | null>(null)
     const [activePreset, setActivePreset] = useState<PresetName | null>("unwpp")
@@ -232,8 +253,23 @@ export function useSimulation(data: CountryData): Simulation | null {
     // Set default scenario when core changes
     const effectiveScenarioParams = useMemo(() => {
         if (!core) return null
-        return scenarioParams ?? core.defaultScenario
-    }, [core, scenarioParams])
+        if (scenarioParams) return scenarioParams
+        // Merge initial overrides with defaults
+        if (initialScenarioOverrides) {
+            return {
+                fertilityRate:
+                    initialScenarioOverrides.fertilityRate ??
+                    core.defaultScenario.fertilityRate,
+                lifeExpectancy:
+                    initialScenarioOverrides.lifeExpectancy ??
+                    core.defaultScenario.lifeExpectancy,
+                netMigrationRate:
+                    initialScenarioOverrides.netMigrationRate ??
+                    core.defaultScenario.netMigrationRate,
+            }
+        }
+        return core.defaultScenario
+    }, [core, scenarioParams, initialScenarioOverrides])
 
     // Forecast results (recomputed when scenario changes)
     const forecastResults = useMemo(() => {
@@ -373,23 +409,28 @@ export function useSimulation(data: CountryData): Simulation | null {
     const getAgeZonePopulation = useCallback(
         (year: number): PopulationByAgeZone => {
             const pop = getPopForYear(year)
-            if (!pop) return { young: 0, working: 0, old: 0 }
-            const breakdown = calculateDependencyRatio(
-                pop,
-                RETIREMENT_AGE,
-                true
-            ) as {
-                young: number
-                workingAge: number
-                old: number
-            }
-            return {
-                young: breakdown.young,
-                working: breakdown.workingAge,
-                old: breakdown.old,
-            }
+            return ageZoneFromPopulation(pop)
         },
         [getPopForYear]
+    )
+
+    const getBenchmarkPopForYear = useCallback(
+        (year: number): PopulationBySex | null => {
+            if (!data || !core) return null
+            if (year <= HISTORICAL_END_YEAR) {
+                return getPopulationForYear(data, year)
+            }
+            return core.unwppBenchmarkResults[year]?.population ?? null
+        },
+        [data, core]
+    )
+
+    const getBenchmarkAgeZonePopulation = useCallback(
+        (year: number): PopulationByAgeZone => {
+            const pop = getBenchmarkPopForYear(year)
+            return ageZoneFromPopulation(pop)
+        },
+        [getBenchmarkPopForYear]
     )
 
     if (!data || !core || !effectiveScenarioParams || !forecastResults)
@@ -407,7 +448,9 @@ export function useSimulation(data: CountryData): Simulation | null {
         applyPreset,
         setScenarioParams,
         getPopulationForYear: getPopForYear,
+        getBenchmarkPopulationForYear: getBenchmarkPopForYear,
         getStatsForYear,
         getAgeZonePopulation,
+        getBenchmarkAgeZonePopulation,
     }
 }

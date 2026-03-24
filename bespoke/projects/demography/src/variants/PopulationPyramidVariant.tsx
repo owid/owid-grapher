@@ -69,6 +69,9 @@ function PopulationPyramidVariant({
                 subtitle={config.subtitle}
                 hideTimeline={config.hideTimeline}
                 initialTime={config.time}
+                fertilityRateAssumptions={config.fertilityRateAssumptions}
+                lifeExpectancyAssumptions={config.lifeExpectancyAssumptions}
+                netMigrationRateAssumptions={config.netMigrationRateAssumptions}
             />
         </div>
     )
@@ -81,6 +84,9 @@ function PopulationPyramidCaptionedChart({
     subtitle: subtitleOverride,
     hideTimeline,
     initialTime,
+    fertilityRateAssumptions,
+    lifeExpectancyAssumptions,
+    netMigrationRateAssumptions,
 }: {
     data: CountryData
     isLoading?: boolean
@@ -88,10 +94,43 @@ function PopulationPyramidCaptionedChart({
     subtitle?: string
     hideTimeline?: boolean
     initialTime?: number
+    fertilityRateAssumptions?: Record<number, number>
+    lifeExpectancyAssumptions?: Record<number, number>
+    netMigrationRateAssumptions?: Record<number, number>
 }) {
     const [year, setYear] = useState(initialTime ?? END_YEAR)
-    const simulation = useSimulation(data)
+
+    const hasCustomAssumptions =
+        fertilityRateAssumptions !== undefined ||
+        lifeExpectancyAssumptions !== undefined ||
+        netMigrationRateAssumptions !== undefined
+
+    const scenarioOverrides = useMemo(
+        () =>
+            hasCustomAssumptions
+                ? {
+                      fertilityRate: fertilityRateAssumptions,
+                      lifeExpectancy: lifeExpectancyAssumptions,
+                      netMigrationRate: netMigrationRateAssumptions,
+                  }
+                : undefined,
+        [
+            hasCustomAssumptions,
+            fertilityRateAssumptions,
+            lifeExpectancyAssumptions,
+            netMigrationRateAssumptions,
+        ]
+    )
+
+    const simulation = useSimulation(data, scenarioOverrides)
     const ageZones = useMemo(() => groupAgeGroupsByZone(), [])
+
+    const getPopulationForYear = hasCustomAssumptions
+        ? simulation?.getPopulationForYear
+        : simulation?.getBenchmarkPopulationForYear
+    const getAgeZonePopulation = hasCustomAssumptions
+        ? simulation?.getAgeZonePopulation
+        : simulation?.getBenchmarkAgeZonePopulation
 
     const title =
         titleOverride ??
@@ -105,12 +144,10 @@ function PopulationPyramidCaptionedChart({
             <ChartHeader title={title} subtitle={subtitle} />
             <div className="demography-population-pyramid__chart-area">
                 {isLoading && <LoadingSpinner />}
-                {simulation && (
+                {simulation && getPopulationForYear && getAgeZonePopulation && (
                     <div className="detailed-population-pyramid">
                         <ResponsiveAgeZoneLegend
-                            populationByAgeZone={simulation.getAgeZonePopulation(
-                                year
-                            )}
+                            populationByAgeZone={getAgeZonePopulation(year)}
                         />
                         <div className="detailed-population-pyramid__chart">
                             <ResponsivePopulationPyramid
@@ -120,6 +157,7 @@ function PopulationPyramidCaptionedChart({
                                 xAxisScaleMode={
                                     hideTimeline ? "adaptive" : "fixed"
                                 }
+                                getPopulationForYear={getPopulationForYear}
                             />
                         </div>
                     </div>
@@ -142,3 +180,4 @@ function PopulationPyramidCaptionedChart({
         </Frame>
     )
 }
+
