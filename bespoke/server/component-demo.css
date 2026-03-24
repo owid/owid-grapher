@@ -5,19 +5,21 @@
 body {
     font-family: "Lato", sans-serif;
     margin: 0;
-    padding: 24px;
+    padding: 24px 0;
     color: #1d1d1d;
 }
 
 .project-title {
     font-size: 1.25rem;
     margin: 0 0 24px;
+    padding: 0 24px;
 }
 
 .mode-note {
     font-size: 0.85rem;
     color: #888;
     margin: -16px 0 48px;
+    padding: 0 24px;
 }
 
 .variant {
@@ -29,6 +31,7 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-bottom: 12px;
+    padding: 0 24px;
 }
 
 .variant-label-prefix {
