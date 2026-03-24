@@ -4,7 +4,10 @@ import { QueryClientProvider } from "@tanstack/react-query"
 import { DemographyControls } from "../components/DemographyControls.js"
 import { queryClient, useDemographyData } from "../helpers/fetch.js"
 import type { SimulationVariantConfig } from "../config.js"
-import { DEFAULT_ENTITY_NAME } from "../helpers/constants.js"
+import {
+    CHART_FOOTER_SOURCES,
+    DEFAULT_ENTITY_NAME,
+} from "../helpers/constants.js"
 import {
     DemographyChartError,
     DemographySkeleton,
@@ -91,7 +94,7 @@ function SimulationCaptionedChart({
         `How many people will live in ${articulateEntity(countryName)} by 2100?`
     const subtitle =
         subtitleOverride ??
-        "The UN projects how every country's population will change. But what if fertility falls faster? Or migration rises? Adjust the assumptions and compare."
+        "Demographers publish projections of how populations will change in the future. But what if fertility rates fall faster, or rebound? Or migration rates change? Adjust these assumptions and compare."
 
     return (
         <Frame className="demography-captioned-chart">
@@ -107,8 +110,20 @@ function SimulationCaptionedChart({
             </div>
             <ChartFooter
                 className="demography-footer"
-                source="List of data sources"
-                note="Optional note; probably link to the technical documentation here?"
+                source={CHART_FOOTER_SOURCES}
+                note={
+                    <>
+                        Technical details and assumptions used in this
+                        population model are available at
+                        <a
+                            href="https://population-simulation.owid.io/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            https://population-simulation.owid.io/
+                        </a>
+                    </>
+                }
             />
         </Frame>
     )
