@@ -315,13 +315,13 @@ class VariableEditor extends Component<{
                                 />
                             </FieldsRow>
                             <FieldsRow>
-                                <TextAreaField
+                                <ReadOnlyField
                                     label="Description key"
                                     value={
                                         variable.descriptionKey?.join("\n") ??
                                         ""
                                     }
-                                    disabled
+                                    textarea
                                     rows={8}
                                 />
                                 <ReadOnlyField
@@ -362,14 +362,12 @@ class VariableEditor extends Component<{
                                     value={variable.description}
                                     textarea
                                 />
-                                <TextAreaField
+                                <ReadOnlyField
                                     label="Entity annotations"
                                     value={
-                                        variable.display
-                                            ?.entityAnnotationsMap ?? ""
+                                        variable.display?.entityAnnotationsMap
                                     }
-                                    disabled
-                                    helpText="Additional text to show next to entity labels. Each note should be in a separate line."
+                                    textarea
                                 />
                             </FieldsRow>
                         </section>
