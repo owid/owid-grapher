@@ -3,6 +3,7 @@ import { useParentSize } from "@visx/responsive"
 import { scaleLinear } from "@visx/scale"
 import { Group } from "@visx/group"
 import type { Simulation } from "../helpers/useSimulation"
+import type { ProjectionType } from "./PopulationPyramid.js"
 import {
     FEMALE_COLOR,
     GRID_LINE_COLOR,
@@ -30,12 +31,14 @@ export interface PopulationPyramidHorizontalProps {
     simulation: Simulation
     year: number
     yAxisScaleMode?: "fixed" | "adaptive"
+    projection?: ProjectionType
 }
 
 function PopulationPyramidHorizontal({
     simulation,
     year,
     yAxisScaleMode = "fixed",
+    projection = "custom",
     width,
     height,
 }: PopulationPyramidHorizontalProps & { width: number; height: number }) {
@@ -46,7 +49,11 @@ function PopulationPyramidHorizontal({
     const innerWidth = width - margin.left - margin.right
     const innerHeight = height - margin.top - margin.bottom
 
-    const populationBySex = simulation.getPopulationForYear(year)
+    const populationBySex = (
+        projection === "un"
+            ? simulation.getBenchmarkPopulationForYear
+            : simulation.getPopulationForYear
+    )(year)
 
     const ageBucketsBySex = useMemo(() => {
         const male = populationBySex?.male ?? []

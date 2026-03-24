@@ -28,7 +28,7 @@ import {
     formatPopulationValueShort,
 } from "../helpers/utils"
 import { Bounds } from "@ourworldindata/utils"
-import type { AgeZone, AgeZoneWithBounds, PopulationBySex } from "../helpers/types.js"
+import type { AgeZone, AgeZoneWithBounds } from "../helpers/types.js"
 import { useBreakpoint } from "../helpers/useBreakpoint.js"
 import { getFontTier, getSizeTier } from "../helpers/fontTiers.js"
 
@@ -37,13 +37,15 @@ const AGE_GROUP_LABELS = [...PYRAMID_AGE_GROUPS].reverse()
 
 const AGE_ZONE_LABEL_PADDING = 24 // gap + arrow + spacing
 
+export type ProjectionType = "custom" | "un"
+
 export interface PopulationPyramidProps {
     simulation: Simulation
     year: number
     xAxisScaleMode?: "fixed" | "adaptive"
     ageZones?: AgeZone[]
     compact?: boolean
-    getPopulationForYear?: (year: number) => PopulationBySex | null
+    projection?: ProjectionType
 }
 
 function PopulationPyramid({
@@ -52,7 +54,7 @@ function PopulationPyramid({
     xAxisScaleMode = "fixed",
     ageZones,
     compact = false,
-    getPopulationForYear: getPopulationForYearOverride,
+    projection = "custom",
     width,
     height,
 }: PopulationPyramidProps & { width: number; height: number }) {
@@ -97,7 +99,9 @@ function PopulationPyramid({
     const centerX = margin.left + halfWidth
 
     const populationBySex = (
-        getPopulationForYearOverride ?? simulation.getPopulationForYear
+        projection === "un"
+            ? simulation.getBenchmarkPopulationForYear
+            : simulation.getPopulationForYear
     )(year)
 
     const { ageBucketsBySex, medianAgeBucketBySex } = useMemo(() => {
@@ -249,7 +253,7 @@ export function ResponsivePopulationPyramid({
     xAxisScaleMode,
     ageZones,
     compact,
-    getPopulationForYear,
+    projection,
 }: PopulationPyramidProps) {
     const { parentRef, width, height } = useParentSize()
     return (
@@ -261,7 +265,7 @@ export function ResponsivePopulationPyramid({
                     ageZones={ageZones}
                     xAxisScaleMode={xAxisScaleMode}
                     compact={compact}
-                    getPopulationForYear={getPopulationForYear}
+                    projection={projection}
                     width={width}
                     height={height}
                 />

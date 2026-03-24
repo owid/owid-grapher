@@ -17,7 +17,8 @@ import {
     formatPopulationValueLong,
     formatPopulationValueShort,
 } from "../helpers/utils.js"
-import type { PopulationByAgeZone } from "../helpers/types.js"
+import type { Simulation } from "../helpers/useSimulation.js"
+import type { ProjectionType } from "./PopulationPyramid.js"
 import {
     AGE_ZONE_BACKGROUND_OPACITY,
     COLOR_CHILDREN,
@@ -34,7 +35,9 @@ const BOX_PADDING = 5
 const LABEL_VALUE_GAP = 2
 
 interface AgeZoneLegendProps {
-    populationByAgeZone: PopulationByAgeZone
+    simulation: Simulation
+    year: number
+    projection?: ProjectionType
 }
 
 interface RawZone {
@@ -57,9 +60,16 @@ interface AnnotatedZone extends PlacedZone {
 }
 
 function AgeZoneLegend({
-    populationByAgeZone,
+    simulation,
+    year,
+    projection = "custom",
     width,
 }: AgeZoneLegendProps & { width: number }) {
+    const populationByAgeZone = (
+        projection === "un"
+            ? simulation.getBenchmarkAgeZonePopulation
+            : simulation.getAgeZonePopulation
+    )(year)
     const breakpoint = useBreakpoint()
     const fontTier = getFontTier(breakpoint)
     const fontSize = fontTier.tick
@@ -331,14 +341,18 @@ function AgeZoneLegendBox({
 }
 
 export function ResponsiveAgeZoneLegend({
-    populationByAgeZone,
+    simulation,
+    year,
+    projection,
 }: AgeZoneLegendProps) {
     const { parentRef, width } = useParentSize({ debounceTime: 0 })
     return (
         <div ref={parentRef} className="detailed-population-pyramid__bar">
             {width > 0 && (
                 <AgeZoneLegend
-                    populationByAgeZone={populationByAgeZone}
+                    simulation={simulation}
+                    year={year}
+                    projection={projection}
                     width={width}
                 />
             )}
