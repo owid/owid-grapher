@@ -20,6 +20,7 @@ import { ResponsiveAgeZoneLegend } from "../components/AgeZoneLegend.js"
 import { groupAgeGroupsByZone } from "../helpers/utils.js"
 import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
 import {
+    CHART_FOOTER_SOURCES,
     DEFAULT_ENTITY_NAME,
     END_YEAR,
     FULL_TIME_RANGE,
@@ -95,7 +96,9 @@ function PopulationPyramidCaptionedChart({
     const title =
         titleOverride ??
         `Age structure of ${articulateEntity(data.country)} in ${year}`
-    const subtitle = subtitleOverride ?? "Bla bla subtitle subtitle"
+    const subtitle =
+        subtitleOverride ??
+        `The population of ${articulateEntity(data.country)}, broken down by age and sex based on future projections. These are based on the user's fertility, life expectancy, and migration inputs to a demographic model.`
 
     return (
         <Frame className="demography-population-pyramid">
@@ -114,10 +117,9 @@ function PopulationPyramidCaptionedChart({
                                 simulation={simulation}
                                 year={year}
                                 ageZones={ageZones}
-                                // xAxisScaleMode={
-                                //     hideTimeline ? "adaptive" : "fixed"
-                                // }
-                                xAxisScaleMode="adaptive"
+                                xAxisScaleMode={
+                                    hideTimeline ? "adaptive" : "fixed"
+                                }
                             />
                         </div>
                     </div>
@@ -134,7 +136,7 @@ function PopulationPyramidCaptionedChart({
             )}
             <ChartFooter
                 className="demography-footer"
-                source="List of data sources"
+                source={CHART_FOOTER_SOURCES}
                 note="Optional note"
             />
         </Frame>
