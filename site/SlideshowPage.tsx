@@ -42,11 +42,11 @@ export function SlideshowPage(props: SlideshowPageProps): React.ReactElement {
                 pageDesc={`${title} — Our World in Data slideshow`}
                 baseUrl={baseUrl}
             />
-            <body>
-                <SiteHeader />
+            <body id="slideshow-page">
                 <main id="slideshow-page-container">
                     <SlideshowPresentation {...presentationProps} />
                 </main>
+                <p>A presentation by Our World in Data</p>
                 <SiteFooter context={SiteFooterContext.slideshowPage} />
                 <script
                     dangerouslySetInnerHTML={{

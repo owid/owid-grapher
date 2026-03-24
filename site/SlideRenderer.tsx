@@ -29,34 +29,34 @@ export function SlideRenderer(props: {
     switch (slide.template) {
         case SlideTemplate.TitleSlide:
             return (
-                <div className="SlidePreview SlidePreview--title-slide">
+                <div className="SlideContent SlideContent--title-slide">
                     <h1>{slide.title || "Title"}</h1>
                     {slide.subtitle && <h2>{slide.subtitle}</h2>}
                     {slide.author && (
-                        <p className="SlidePreview__author">{slide.author}</p>
+                        <p className="SlideContent__author">{slide.author}</p>
                     )}
                     {slide.date && (
-                        <p className="SlidePreview__date">{slide.date}</p>
+                        <p className="SlideContent__date">{slide.date}</p>
                     )}
                 </div>
             )
         case SlideTemplate.Section:
             return (
-                <div className="SlidePreview SlidePreview--section">
+                <div className="SlideContent SlideContent--section">
                     <h1>{slide.title || "Section Title"}</h1>
                     {slide.subtitle && <h2>{slide.subtitle}</h2>}
                 </div>
             )
         case SlideTemplate.ImageChartOnly:
             return (
-                <div className="SlidePreview SlidePreview--image-chart-only">
+                <div className="SlideContent SlideContent--image-chart-only">
                     {slide.sectionTitle && (
-                        <p className="SlidePreview__section-title">
+                        <p className="SlideContent__section-title">
                             {slide.sectionTitle}
                         </p>
                     )}
                     {slide.slideTitle && (
-                        <h2 className="SlidePreview__slide-title">
+                        <h2 className="SlideContent__slide-title">
                             {slide.slideTitle}
                         </h2>
                     )}
@@ -68,10 +68,10 @@ export function SlideRenderer(props: {
                 </div>
             )
         case SlideTemplate.Blank:
-            return <div className="SlidePreview SlidePreview--blank" />
+            return <div className="SlideContent SlideContent--blank" />
         default:
             return (
-                <div className="SlidePreview SlidePreview--placeholder">
+                <div className="SlideContent SlideContent--placeholder">
                     <p>{slide.template}</p>
                 </div>
             )
@@ -88,7 +88,7 @@ function SlideMediaRenderer(props: {
 
     if (!media) {
         return (
-            <div className="SlidePreview__media-placeholder">IMAGE/CHART</div>
+            <div className="SlideContent__media-placeholder">IMAGE/CHART</div>
         )
     }
 
@@ -104,12 +104,12 @@ function SlideMediaRenderer(props: {
                 <img
                     src={`${CLOUDFLARE_IMAGES_URL}/${metadata.cloudflareId}/w=960`}
                     alt={metadata.defaultAlt || media.filename}
-                    className="SlidePreview__media-image"
+                    className="SlideContent__media-image"
                 />
             )
         }
         return (
-            <div className="SlidePreview__media-placeholder">
+            <div className="SlideContent__media-placeholder">
                 {media.filename}
             </div>
         )
@@ -117,7 +117,7 @@ function SlideMediaRenderer(props: {
 
     // Grapher slide — use GrapherFigureView for the baked site
     return (
-        <div className="SlidePreview__grapher-container">
+        <div className="SlideContent__grapher-container">
             <GrapherFigureView
                 slug={media.slug}
                 queryStr={media.queryString}

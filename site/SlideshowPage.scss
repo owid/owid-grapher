@@ -1,0 +1,24 @@
+#slideshow-page {
+    .site-footer,
+    .donate-footer {
+        display: none;
+    }
+}
+
+.SlideGrapher {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+
+    .GrapherComponent {
+        border: none;
+    }
+}
+
+.SlideContent,
+.SlideGrapher {
+    aspect-ratio: 16 / 9;
+    height: auto;
+}
