@@ -1,11 +1,14 @@
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import {
     Slide,
     SlideMedia,
     SlideshowConfig,
     ImageMetadata,
 } from "@ourworldindata/types"
+import { GrapherState } from "@ourworldindata/grapher"
+import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
 import { SlideRenderer } from "./SlideRenderer.js"
+import { SlideGrapher } from "./SlideGrapher.js"
 
 export const _OWID_SLIDESHOW_PROPS = "_OWID_SLIDESHOW_PROPS"
 
@@ -18,6 +21,9 @@ export interface SlideshowPresentationProps {
 /**
  * Interactive slideshow viewer with keyboard navigation.
  * Used on the baked site (hydrated) and importable by the admin editor.
+ *
+ * Owns a `grapherStateRef` so that grapher slides sharing the same
+ * chart slug transition smoothly (no remount / white flash).
  */
 export function SlideshowPresentation(props: {
     title: string
@@ -66,11 +72,49 @@ export function SlideshowPresentation(props: {
         return () => window.removeEventListener("keydown", handleKeyDown)
     }, [goToPrev, goToNext])
 
+    // Owned by this component so that SlideGrapher can persist
+    // the GrapherState across slide transitions.
+    const grapherStateRef = useRef<GrapherState | null>(null)
+
+    // Default media renderer: uses SlideGrapher for graphers,
+    // Cloudflare URLs for images. The admin editor can override
+    // this via the renderMedia prop.
+    const defaultRenderMedia = useCallback(
+        (media: SlideMedia): React.ReactElement => {
+            if (media.type === "image") {
+                const metadata = imageMetadata[media.filename]
+                if (metadata?.cloudflareId) {
+                    return (
+                        <img
+                            src={`${CLOUDFLARE_IMAGES_URL}/${metadata.cloudflareId}/w=960`}
+                            alt={metadata.defaultAlt || media.filename}
+                            className="SlideContent__media-image"
+                        />
+                    )
+                }
+                return (
+                    <div className="SlideContent__media-placeholder">
+                        {media.filename}
+                    </div>
+                )
+            }
+
+            return (
+                <SlideGrapher
+                    slug={media.slug}
+                    initialQueryString={media.queryString}
+                    grapherStateRef={grapherStateRef}
+                />
+            )
+        },
+        [imageMetadata]
+    )
+
     if (!currentSlide) return <div className="SlideshowPresentation" />
 
-    const slideRenderMedia = renderMedia
+    const activeRenderMedia = renderMedia
         ? (media: SlideMedia) => renderMedia(media, currentIndex)
-        : undefined
+        : defaultRenderMedia
 
     return (
         <div className="SlideshowPresentation">
@@ -78,7 +122,7 @@ export function SlideshowPresentation(props: {
                 <SlideRenderer
                     slide={currentSlide}
                     imageMetadata={imageMetadata}
-                    renderMedia={slideRenderMedia}
+                    renderMedia={activeRenderMedia}
                 />
             </div>
             <div className="SlideshowPresentation__nav">
