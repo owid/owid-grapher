@@ -58,7 +58,9 @@ async function _loadCatalogData<K extends CatalogKey>(
     return fetchJson(url)
 }
 
-export const loadCatalogData = _.memoize(_loadCatalogData)
+export const loadCatalogData: typeof _loadCatalogData = _.memoize(
+    _loadCatalogData
+) as unknown as typeof _loadCatalogData
 
 /** Creates an OwidTable from numeric catalog data points */
 function catalogDataToOwidTable(

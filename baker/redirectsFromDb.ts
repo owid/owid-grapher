@@ -121,22 +121,29 @@ export const DEPRECATED_getSiteRedirectsMap = async (
     return new Map(siteRedirects.map((row) => [row.source, row.target]))
 }
 
-export const DEPRECATED_getAllRedirectsMap = _.memoize(
-    async (knex: db.KnexReadonlyTransaction): Promise<Map<string, string>> => {
-        // source: pathnames only (e.g. /transport)
-        // target: pathnames with or without origins (e.g. /transport-new or https://ourworldindata.org/transport-new)
+type _MemoizedFn<T extends (...args: any[]) => any> = T & {
+    cache: { clear?: () => void }
+}
 
-        const grapherRedirects =
-            await getGrapherToChartAndMultiDimRedirects(knex)
-        const explorerRedirects = await getExplorerToMultiDimRedirects(knex)
-        const siteRedirects = await DEPRECATED_getSiteRedirectsMap(knex)
+async function _getAllRedirectsMap(
+    knex: db.KnexReadonlyTransaction
+): Promise<Map<string, string>> {
+    // source: pathnames only (e.g. /transport)
+    // target: pathnames with or without origins (e.g. /transport-new or https://ourworldindata.org/transport-new)
 
-        // The order matters: site redirects can override both grapher and
-        // explorer redirects.
-        return new Map([
-            ...grapherRedirects,
-            ...explorerRedirects,
-            ...siteRedirects,
-        ])
-    }
-)
+    const grapherRedirects = await getGrapherToChartAndMultiDimRedirects(knex)
+    const explorerRedirects = await getExplorerToMultiDimRedirects(knex)
+    const siteRedirects = await DEPRECATED_getSiteRedirectsMap(knex)
+
+    // The order matters: site redirects can override both grapher and
+    // explorer redirects.
+    return new Map([
+        ...grapherRedirects,
+        ...explorerRedirects,
+        ...siteRedirects,
+    ])
+}
+
+export const DEPRECATED_getAllRedirectsMap: _MemoizedFn<
+    typeof _getAllRedirectsMap
+> = _.memoize(_getAllRedirectsMap) as _MemoizedFn<typeof _getAllRedirectsMap>
