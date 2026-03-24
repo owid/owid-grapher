@@ -89,15 +89,21 @@ export function SimulationContent({
                 <div className="input-panels">
                     {PARAMETER_KEYS.map((key) => {
                         const isFocus = focusParameter && focusParameter === key
-                        const isMuted = focusParameter && focusParameter !== key
+                        const isWorldMigration =
+                            key === "netMigrationRate" &&
+                            data.country === "World"
+                        const isMuted =
+                            (focusParameter && focusParameter !== key) ||
+                            isWorldMigration
+                        const isNonInteractive =
+                            (focusParameter && focusParameter !== key) ||
+                            isWorldMigration
                         return (
                             <InputChartPanel
                                 key={key}
                                 simulation={simulation}
                                 variant={key}
-                                interactive={
-                                    !focusParameter || focusParameter === key
-                                }
+                                interactive={!isNonInteractive}
                                 lineColor={
                                     isMuted ? BENCHMARK_LINE_COLOR : undefined
                                 }
@@ -105,6 +111,7 @@ export function SimulationContent({
                                     isMuted ? GRAPHER_LIGHT_TEXT : undefined
                                 }
                                 hideReset={!!stabilizingParameter}
+                                hideInfoIcon={isWorldMigration}
                                 className={cx({
                                     "chart-panel--focus": isFocus,
                                     "chart-panel--muted": isMuted,
@@ -216,6 +223,7 @@ export function InputChartPanel({
     lineColor,
     labelColor,
     hideReset = false,
+    hideInfoIcon = false,
     showProjectionLabel,
 }: {
     simulation: Simulation
@@ -225,9 +233,12 @@ export function InputChartPanel({
     lineColor?: string
     labelColor?: string
     hideReset?: boolean
+    hideInfoIcon?: boolean
     showProjectionLabel?: boolean
 }) {
-    const { title, subtitle, tooltipContent } = parameterConfigByKey[variant]
+    const { title, subtitle: getSubtitle, tooltipContent } =
+        parameterConfigByKey[variant]
+    const subtitle = getSubtitle(simulation.data.country)
 
     const hasResetButton =
         !hideReset &&
@@ -250,7 +261,7 @@ export function InputChartPanel({
             className={className}
             title={title}
             subtitle={subtitle}
-            tooltipContent={tooltipContent}
+            tooltipContent={hideInfoIcon ? undefined : tooltipContent}
             onReset={hasResetButton ? handleReset : undefined}
         >
             <ResponsiveDemographyParameterEditor
