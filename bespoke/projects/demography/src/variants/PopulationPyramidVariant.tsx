@@ -158,9 +158,8 @@ function PopulationPyramidCaptionedChart({
             <ChartFooter
                 className="demography-footer"
                 source={CHART_FOOTER_SOURCES}
-                note="Optional note"
+                note="Projections are based on user inputs and do not necessarily reflect plausible scenarios or those assumed by expert demographers."
             />
         </Frame>
     )
 }
-
