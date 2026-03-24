@@ -250,6 +250,7 @@ function PopulationChart({
                     <AxisY
                         yScale={yScale}
                         innerWidth={innerWidth}
+                        innerHeight={innerHeight}
                         fontTier={fontTier}
                     />
 
@@ -338,11 +339,13 @@ function PopulationChart({
                         />
                     )}
 
-                    {/* Invisible interaction rect — must be last to capture events */}
+                    {/* Invisible interaction rect — must be last to capture events.
+                        Extended horizontally by 20px on each side so the hover
+                        doesn't disappear immediately at the chart edges. */}
                     <rect
-                        x={0}
+                        x={-20}
                         y={0}
-                        width={innerWidth}
+                        width={innerWidth + 40}
                         height={innerHeight}
                         fill="transparent"
                         onMouseMove={handleMouseMove}
@@ -687,13 +690,16 @@ function PopulationTooltipContent({
 function AxisY({
     yScale,
     innerWidth,
+    innerHeight,
     fontTier,
 }: {
     yScale: { ticks: (count: number) => number[]; (v: number): number }
     innerWidth: number
+    innerHeight: number
     fontTier: FontTier
 }) {
-    const ticks = yScale.ticks(4)
+    const tickCount = innerHeight < 150 ? 2 : innerHeight < 250 ? 3 : 4
+    const ticks = yScale.ticks(tickCount)
 
     return (
         <>

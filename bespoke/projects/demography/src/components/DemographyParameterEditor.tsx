@@ -439,11 +439,13 @@ function DemographyParameterEditor({
                     />
                 )}
 
-                {/* Invisible interaction rect for hover — placed before control points so they get priority */}
+                {/* Invisible interaction rect for hover — placed before control points so they get priority.
+                    Extended horizontally by 20px on each side so the hover
+                    doesn't disappear immediately at the chart edges. */}
                 <rect
-                    x={0}
+                    x={-20}
                     y={0}
-                    width={innerWidth}
+                    width={innerWidth + 40}
                     height={innerHeight}
                     fill="transparent"
                     onPointerMove={handlePointerMove}

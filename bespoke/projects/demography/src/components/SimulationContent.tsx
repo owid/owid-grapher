@@ -22,7 +22,11 @@ import { PopulationChartLegend } from "./PopulationChartLegend.js"
 import { parameterConfigByKey } from "../helpers/parameterConfigs.js"
 import { getPopulationForYear } from "../helpers/utils.js"
 import { stabilizeParameter } from "../model/stabilize.js"
-import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
+import { useBreakpoint } from "../helpers/useBreakpoint.js"
+import {
+    GRAY_60,
+    GRAPHER_LIGHT_TEXT,
+} from "@ourworldindata/grapher/src/color/ColorConstants.js"
 
 export function SimulationContent({
     data,
@@ -108,7 +112,7 @@ export function SimulationContent({
                                     isMuted ? BENCHMARK_LINE_COLOR : undefined
                                 }
                                 labelColor={
-                                    isMuted ? GRAPHER_LIGHT_TEXT : undefined
+                                    isMuted ? GRAY_60 : undefined
                                 }
                                 resetTarget={
                                     stabilizedParams?.[key]
@@ -342,6 +346,24 @@ export function ChartPanel({
 }
 
 function ArrowFromInputToOutputPanels() {
+    const breakpoint = useBreakpoint()
+    const isVertical = breakpoint === "small"
+
+    if (isVertical) {
+        return (
+            <svg className="container-arrow" viewBox="0 0 36 36">
+                <BezierArrow
+                    start={[18, 6]}
+                    end={[18, 30]}
+                    color="currentColor"
+                    width={2}
+                    headAnchor="end"
+                    headLength={6}
+                />
+            </svg>
+        )
+    }
+
     return (
         <svg className="container-arrow" viewBox="0 0 60 20">
             <BezierArrow

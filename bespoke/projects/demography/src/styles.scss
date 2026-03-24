@@ -40,7 +40,7 @@ $panel-gap: 12px;
     }
 
     .demography-population-pyramid__slider {
-        margin-top: 16px;
+        margin-top: 14px;
     }
 }
 
@@ -142,6 +142,11 @@ $panel-gap: 12px;
         min-width: 0;
         display: flex;
         flex-direction: column;
+
+        @media (max-width: 1024px) {
+            width: auto;
+            flex: 1;
+        }
     }
 
     &.container-right {
@@ -376,6 +381,15 @@ $panel-gap: 12px;
             flex: 2;
             min-height: 0;
         }
+
+        .chart-panel__title,
+        .chart-panel__subtitle {
+            font-size: 0.75rem;
+        }
+    }
+
+    .population-chart-legend .population-chart-legend__item {
+        font-size: 0.6875rem;
     }
 }
 
@@ -397,7 +411,6 @@ $panel-gap: 12px;
         display: block;
         width: 24px;
         margin: 8px auto;
-        transform: rotate(90deg);
     }
 
     .input-panels {
@@ -424,38 +437,38 @@ $panel-gap: 12px;
         }
     }
 
-    .container {
-        padding: 12px;
-    }
+    // .container {
+    //     padding: 12px;
+    // }
 
-    .container .container__title {
-        font-size: 10px;
-    }
+    // .container .container__title {
+    //     font-size: 10px;
+    // }
 
     .chart-panel {
         display: block;
-        padding: 8px;
+        // padding: 8px;
     }
 
-    .chart-panel .chart-panel__title {
-        font-size: 11px;
-    }
+    // .chart-panel .chart-panel__title {
+    //     font-size: 11px;
+    // }
 
-    .chart-panel .chart-panel__subtitle {
-        font-size: 10px;
-    }
+    // .chart-panel .chart-panel__subtitle {
+    //     font-size: 10px;
+    // }
 
-    .chart-panel .chart-panel__reset-btn {
-        font-size: 9px;
-    }
+    // .chart-panel .chart-panel__reset-btn {
+    //     font-size: 9px;
+    // }
 
-    .demography-controls .demography-controls__title {
-        font-size: 10px;
-    }
+    // .demography-controls .demography-controls__title {
+    //     font-size: 10px;
+    // }
 
-    .population-chart-legend .population-chart-legend__item {
-        font-size: 0.6rem;
-    }
+    // .population-chart-legend .population-chart-legend__item {
+    //     font-size: 0.6rem;
+    // }
 
     .chart-panel__content {
         height: 300px;
@@ -494,6 +507,22 @@ $panel-gap: 12px;
         .age-distribution-panel {
             display: none;
         }
+    }
+
+    .chart-footer {
+        font-size: 0.75rem !important;
+
+        .chart-footer__note {
+            font-size: 0.75rem;
+        }
+
+        .chart-footer__note-row .chart-footer__cc {
+            font-size: 0.75rem;
+        }
+    }
+
+    .container .container__title {
+        font-size: 0.6875rem;
     }
 }
 
