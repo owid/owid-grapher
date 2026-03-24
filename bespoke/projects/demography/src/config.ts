@@ -1,4 +1,5 @@
 import { isValidParameterKey, type ParameterKey } from "./helpers/types.js"
+import { CONTROL_YEARS } from "./helpers/constants.js"
 
 const VARIANT_NAMES = [
     "simulation",
@@ -33,6 +34,9 @@ export interface PopulationPyramidVariantConfig {
     region?: string
     title?: string
     subtitle?: string
+    fertilityRateAssumptions?: Record<number, number>
+    lifeExpectancyAssumptions?: Record<number, number>
+    netMigrationRateAssumptions?: Record<number, number>
 }
 
 export interface ParametersVariantConfig {
@@ -80,6 +84,15 @@ export function parseConfig(
                 region: raw.region,
                 title: raw.title,
                 subtitle: raw.subtitle,
+                fertilityRateAssumptions: parseControlPoints(
+                    raw.fertilityRateAssumptions
+                ),
+                lifeExpectancyAssumptions: parseControlPoints(
+                    raw.lifeExpectancyAssumptions
+                ),
+                netMigrationRateAssumptions: parseControlPoints(
+                    raw.netMigrationRateAssumptions
+                ),
             }
         case "parameters":
             return {
@@ -105,6 +118,22 @@ function parseInteger(value: unknown): number | undefined {
         return isNaN(n) ? undefined : n
     }
     return undefined
+}
+
+/** Parse a comma-separated string of numbers into a Record keyed by CONTROL_YEARS */
+function parseControlPoints(
+    csv: string | undefined
+): Record<number, number> | undefined {
+    if (!csv) return undefined
+    const values = csv.split(",").map(Number)
+    const result: Record<number, number> = {}
+    for (let i = 0; i < CONTROL_YEARS.length; i++) {
+        const v = values[i]
+        if (v !== undefined && !isNaN(v)) {
+            result[CONTROL_YEARS[i]] = v
+        }
+    }
+    return Object.keys(result).length > 0 ? result : undefined
 }
 
 function parseBoolean(value: unknown): boolean {
