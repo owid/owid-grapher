@@ -82,6 +82,21 @@ Use the `{.bespoke-component}` ArchieML block:
 | `size`    | No       | `wide`  | Layout width: `narrow`, `wide`, or `widest`                                                         |
 | `config`  | No       | `{}`    | Key-value pairs passed to the mount function. Values must be strings (no nesting).                  |
 
+## Sizing
+
+The **width** of your component is determined by the `size` property in the ArchieML block:
+
+- `narrow` — 6 columns on wide screens
+- `wide` — 8 columns (default)
+- `widest` — 12 columns
+
+On smaller screens, these map to other grid-based widths. See [site/gdocs/components/layout.ts](../site/gdocs/components/layout.ts) for the exact grid definitions. The **height** is entirely up to you — set it to whatever works for your viz.
+
+Ideally, your component adapts fluidly to any width given by its container. But if you need a `max-width` or a set of "good" widths, that's fine too.
+
+There is currently no mechanism for specifying dimensions ahead of time to prevent layout shifts. Components are rendered at whatever size the container provides once they load, and there will be a layout shift.
+We might add a way to specify dimensions for the loading state in the future.
+
 ## Shadow DOM considerations
 
 Components run inside a Shadow DOM, which provides full CSS encapsulation but comes with trade-offs:
