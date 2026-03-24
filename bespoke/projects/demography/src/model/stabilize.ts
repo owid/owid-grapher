@@ -150,7 +150,8 @@ function computeNumericalGradient(
     )
 
     const actualEpsilon =
-        paramsPlus[parameterKey][controlYear] - paramsMinus[parameterKey][controlYear]
+        paramsPlus[parameterKey][controlYear] -
+        paramsMinus[parameterKey][controlYear]
     const gradient =
         actualEpsilon > 0 ? (errorPlus - errorMinus) / actualEpsilon : 0
 
