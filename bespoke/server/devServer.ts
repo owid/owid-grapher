@@ -16,7 +16,7 @@
 
 import http from "node:http"
 import net from "node:net"
-import { spawn, type ChildProcess } from "node:child_process"
+import { execSync, spawn, type ChildProcess } from "node:child_process"
 import path from "node:path"
 import fs from "node:fs"
 
@@ -85,6 +85,9 @@ async function getOrStartProject(name: string): Promise<ProjectServer | null> {
     const ready = new Promise<void>((r) => {
         resolveReady = r
     })
+
+    console.log(`Running yarn install in "${name}"...`)
+    execSync("yarn install", { cwd: dir, stdio: "inherit" })
 
     console.log(`Starting Vite for "${name}" (${dir}) on port ${port}...`)
 
