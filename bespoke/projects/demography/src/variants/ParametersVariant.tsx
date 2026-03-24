@@ -11,6 +11,7 @@ import { queryClient, useDemographyData } from "../helpers/fetch.js"
 import type { ParametersVariantConfig } from "../config.js"
 
 import { articulateEntity } from "@ourworldindata/utils"
+import { displayEntityName } from "../helpers/utils.js"
 
 import { CountryData } from "../helpers/types.js"
 import { useSimulation } from "../helpers/useSimulation.js"
@@ -83,7 +84,7 @@ function ParametersCaptionedChart({
 
     const title =
         titleOverride ??
-        `Demographic assumptions for ${articulateEntity(countryName)}`
+        `Demographic assumptions for ${articulateEntity(displayEntityName(countryName))}`
     const subtitle = subtitleOverride
 
     return (

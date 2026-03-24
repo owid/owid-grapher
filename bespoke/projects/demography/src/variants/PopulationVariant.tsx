@@ -11,6 +11,7 @@ import { queryClient, useDemographyData } from "../helpers/fetch.js"
 import type { PopulationVariantConfig } from "../config.js"
 
 import { articulateEntity } from "@ourworldindata/utils"
+import { displayEntityName } from "../helpers/utils.js"
 
 import { CountryData } from "../helpers/types.js"
 import { useSimulation } from "../helpers/useSimulation.js"
@@ -83,7 +84,7 @@ function PopulationCaptionedChart({
 
     const title =
         titleOverride ??
-        `Population of ${articulateEntity(countryName)}, 1950 to 2100`
+        `Population of ${articulateEntity(displayEntityName(countryName))}, 1950 to 2100`
     const subtitle =
         subtitleOverride ??
         "Historical estimates and projections of total population"
