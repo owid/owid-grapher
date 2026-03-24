@@ -14,9 +14,9 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     string,
     BespokeComponentDefinition
 > = {
-    // Example:
-    // "my-widget": {
-    //     scriptUrl: "/assets/bespoke/my-widget.mjs",
-    //     cssUrl: "/assets/bespoke/my-widget.css",
-    // },
+    "causes-of-death": {
+        scriptUrl:
+            "https://owid-public.owid.io/sophia-causes-of-death-2026-03/causes-of-death.js",
+        cssUrl: "https://owid-public.owid.io/sophia-causes-of-death-2026-03/index2.css",
+    },
 }
