@@ -30,17 +30,27 @@ export const VARIANTS = [
         demoSize: "widest",
     },
     {
-        name: "population",
-        component: PopulationVariantWithProviders,
-        demoConfig: {},
-        demoSize: "wide",
+        name: "simulation",
+        component: SimulationVariantWithProviders,
+        demoConfig: {
+            focusParameter: "fertilityRate",
+            stabilizingParameter: "fertilityRate",
+            hidePopulationPyramid: "true",
+        },
+        demoSize: "widest",
     },
-    {
-        name: "populationPyramid",
-        component: PopulationPyramidVariantWithProviders,
-        demoConfig: {},
-        demoSize: "narrow",
-    },
+    // {
+    //     name: "population",
+    //     component: PopulationVariantWithProviders,
+    //     demoConfig: {},
+    //     demoSize: "wide",
+    // },
+    // {
+    //     name: "populationPyramid",
+    //     component: PopulationPyramidVariantWithProviders,
+    //     demoConfig: {},
+    //     demoSize: "narrow",
+    // },
     {
         name: "parameters",
         component: ParametersVariantWithProviders,
