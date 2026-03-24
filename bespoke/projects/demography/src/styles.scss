@@ -106,6 +106,15 @@ $panel-gap: 12px;
 
 .demography-footer {
     margin-top: 16px;
+
+    a {
+        color: inherit;
+        text-decoration: underline;
+
+        &:hover {
+            text-decoration: none;
+        }
+    }
 }
 
 .chart-content {
