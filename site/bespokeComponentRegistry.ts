@@ -21,7 +21,7 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     },
     demography: {
         scriptUrl:
-            "https://owid-public.owid.io/population-simulation-2026-03/assets/demography.js",
-        cssUrl: "https://owid-public.owid.io/population-simulation-2026-03/assets/index2.css",
+            "https://owid-public.owid.io/population-simulation-2026-03/assets/demography.js?nocache",
+        cssUrl: "https://owid-public.owid.io/population-simulation-2026-03/assets/index2.css?nocache",
     },
 }

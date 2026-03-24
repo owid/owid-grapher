@@ -65,8 +65,8 @@ function PopulationPyramid({
     const centerGap = sizeTier.pyramidCenterGap
     const triangle = sizeTier.pyramidTriangle
     const font = {
-        tick: fontTier.tick,
-        ageLabel: fontTier.label,
+        tick: fontTier.tick + 1,
+        ageLabel: (fontTier.label + fontTier.annotation) / 2,
         header: fontTier.header,
         ageHeader: fontTier.label,
         ageZone: fontTier.annotation,
