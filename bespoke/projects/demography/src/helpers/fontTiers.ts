@@ -58,13 +58,13 @@ const SIZE_TIERS: Record<Breakpoint, SizeTier> = {
         chartMargin: { top: 0, right: 0, bottom: 12, left: 0 },
     },
     medium: {
-        pyramidMargin: { top: 10, right: 3, bottom: 18, left: 3 },
+        pyramidMargin: { top: 12, right: 3, bottom: 18, left: 3 },
         pyramidCenterGap: 32,
         pyramidTriangle: { w: 3.5, h: 2.5 },
         chartMargin: { top: 0, right: 0, bottom: 10, left: 0 },
     },
     small: {
-        pyramidMargin: { top: 10, right: 3, bottom: 18, left: 3 },
+        pyramidMargin: { top: 12, right: 3, bottom: 18, left: 3 },
         pyramidCenterGap: 32,
         pyramidTriangle: { w: 3.5, h: 2.5 },
         chartMargin: { top: 0, right: 0, bottom: 10, left: 0 },
