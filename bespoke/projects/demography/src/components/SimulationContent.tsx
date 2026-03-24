@@ -82,7 +82,7 @@ export function SimulationContent({
                 className="container-left"
                 title={
                     focusParameter
-                        ? `Change ${parameterConfigByKey[focusParameter].title.toLowerCase()} assumptions`
+                        ? `Change future assumptions on ${parameterConfigByKey[focusParameter].title.toLowerCase()}`
                         : "Change these future assumptions"
                 }
             >
@@ -110,7 +110,9 @@ export function SimulationContent({
                                 labelColor={
                                     isMuted ? GRAPHER_LIGHT_TEXT : undefined
                                 }
-                                hideReset={!!stabilizingParameter}
+                                resetTarget={
+                                    stabilizedParams?.[key]
+                                }
                                 hideInfoIcon={isWorldMigration}
                                 className={cx({
                                     "chart-panel--focus": isFocus,
@@ -139,7 +141,6 @@ export function SimulationContent({
                     >
                         <ResponsivePopulationChart
                             simulation={simulation}
-                            hideChangeAnnotation={!!stabilizingParameter}
                         />
                     </ChartPanel>
                     {!hidePopulationPyramid && (
@@ -222,8 +223,8 @@ export function InputChartPanel({
     interactive = true,
     lineColor,
     labelColor,
-    hideReset = false,
     hideInfoIcon = false,
+    resetTarget,
     showProjectionLabel,
 }: {
     simulation: Simulation
@@ -232,29 +233,32 @@ export function InputChartPanel({
     interactive?: boolean
     lineColor?: string
     labelColor?: string
-    hideReset?: boolean
     hideInfoIcon?: boolean
+    resetTarget?: Record<number, number>
     showProjectionLabel?: boolean
 }) {
     const { title, subtitle: getSubtitle, tooltipContent } =
         parameterConfigByKey[variant]
     const subtitle = getSubtitle(simulation.data.country)
 
+    // Reset target: explicit override (e.g. stabilized params), or UN WPP defaults
+    const effectiveResetTarget =
+        resetTarget ?? simulation.unwppScenarioParams[variant]
+
     const hasResetButton =
-        !hideReset &&
         interactive &&
-        Object.keys(simulation.unwppScenarioParams[variant]).some(
+        Object.keys(effectiveResetTarget).some(
             (k) =>
                 simulation.scenarioParams[variant][Number(k)] !==
-                simulation.unwppScenarioParams[variant][Number(k)]
+                effectiveResetTarget[Number(k)]
         )
 
     const handleReset = useCallback(() => {
         simulation.setScenarioParams({
             ...simulation.scenarioParams,
-            [variant]: { ...simulation.unwppScenarioParams[variant] },
+            [variant]: { ...effectiveResetTarget },
         })
-    }, [simulation, variant])
+    }, [simulation, variant, effectiveResetTarget])
 
     return (
         <ChartPanel
