@@ -29,28 +29,28 @@ export const VARIANTS = [
         demoConfig: {},
         demoSize: "widest",
     },
+    // {
+    //     name: "simulation",
+    //     component: SimulationVariantWithProviders,
+    //     demoConfig: {
+    //         focusParameter: "fertilityRate",
+    //         stabilizingParameter: "fertilityRate",
+    //         hidePopulationPyramid: "true",
+    //     },
+    //     demoSize: "widest",
+    // },
     {
-        name: "simulation",
-        component: SimulationVariantWithProviders,
-        demoConfig: {
-            focusParameter: "fertilityRate",
-            stabilizingParameter: "fertilityRate",
-            hidePopulationPyramid: "true",
-        },
-        demoSize: "widest",
+        name: "population",
+        component: PopulationVariantWithProviders,
+        demoConfig: {},
+        demoSize: "wide",
     },
-    // {
-    //     name: "population",
-    //     component: PopulationVariantWithProviders,
-    //     demoConfig: {},
-    //     demoSize: "wide",
-    // },
-    // {
-    //     name: "populationPyramid",
-    //     component: PopulationPyramidVariantWithProviders,
-    //     demoConfig: {},
-    //     demoSize: "narrow",
-    // },
+    {
+        name: "populationPyramid",
+        component: PopulationPyramidVariantWithProviders,
+        demoConfig: {},
+        demoSize: "narrow",
+    },
     {
         name: "parameters",
         component: ParametersVariantWithProviders,

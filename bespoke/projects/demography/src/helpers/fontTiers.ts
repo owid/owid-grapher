@@ -52,19 +52,19 @@ export interface SizeTier {
 
 const SIZE_TIERS: Record<Breakpoint, SizeTier> = {
     large: {
-        pyramidMargin: { top: 12, right: 4, bottom: 18, left: 4 },
+        pyramidMargin: { top: 16, right: 4, bottom: 14, left: 4 },
         pyramidCenterGap: 40,
         pyramidTriangle: { w: 4, h: 3 },
         chartMargin: { top: 0, right: 0, bottom: 12, left: 0 },
     },
     medium: {
-        pyramidMargin: { top: 12, right: 3, bottom: 18, left: 3 },
+        pyramidMargin: { top: 16, right: 3, bottom: 14, left: 3 },
         pyramidCenterGap: 32,
         pyramidTriangle: { w: 3.5, h: 2.5 },
         chartMargin: { top: 0, right: 0, bottom: 10, left: 0 },
     },
     small: {
-        pyramidMargin: { top: 12, right: 3, bottom: 18, left: 3 },
+        pyramidMargin: { top: 16, right: 3, bottom: 14, left: 3 },
         pyramidCenterGap: 32,
         pyramidTriangle: { w: 3.5, h: 2.5 },
         chartMargin: { top: 0, right: 0, bottom: 10, left: 0 },

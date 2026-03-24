@@ -11,6 +11,16 @@ export default defineConfig({
         // the single copy in this project's node_modules.
         dedupe: ["react", "react-dom", "@react-stately/flags"],
     },
+    define: {
+        // Libraries like MobX and core-js reference `process` and
+        // `process.env.NODE_ENV`. Vite library mode doesn't shim
+        // these automatically. Longer keys take precedence in Vite's
+        // define, so `process.env.NODE_ENV` is replaced first, then
+        // any remaining bare `process` references become `undefined`.
+        "process.env.NODE_ENV": JSON.stringify("production"),
+        "process.env": "{}",
+        process: "undefined",
+    },
     build: {
         lib: {
             entry: Object.values(entrypoints),

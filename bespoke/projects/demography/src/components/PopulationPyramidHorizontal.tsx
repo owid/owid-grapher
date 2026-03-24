@@ -147,16 +147,16 @@ function PopulationPyramidHorizontal({
                     yScale={yScaleFemale}
                     innerWidth={innerWidth}
                     fontSize={fontTier.tick}
-                    labelText="women"
-                    labelColor={FEMALE_COLOR}
+                    labelText="people"
+                    labelColor={LABEL_COLOR}
                     position="above"
                 />
                 <TopGridLabel
                     yScale={yScaleMale}
                     innerWidth={innerWidth}
                     fontSize={fontTier.tick}
-                    labelText="men"
-                    labelColor={MALE_COLOR}
+                    labelText="people"
+                    labelColor={LABEL_COLOR}
                     position="below"
                 />
 
@@ -175,6 +175,7 @@ function PopulationPyramidHorizontal({
                     color={MALE_COLOR}
                     hoveredAgeGroup={hoveredAgeGroup}
                     fontSize={fontTier.label}
+                    innerHeight={innerHeight}
                 />
                 <HoverHitRects
                     xScale={xScale}
@@ -193,11 +194,12 @@ function PopulationPyramidHorizontal({
                 />
 
                 {/* Sex labels in the center gap */}
-                {/* <text
+                <text
                     x={0}
                     y={centerY}
+                    dy={-1}
                     dominantBaseline="auto"
-                    fontSize={fontTier.label}
+                    fontSize={fontTier.label - 1}
                     fill={FEMALE_COLOR}
                     fontWeight={700}
                     style={{ pointerEvents: "none" }}
@@ -207,14 +209,15 @@ function PopulationPyramidHorizontal({
                 <text
                     x={0}
                     y={centerY}
+                    dy={1}
                     dominantBaseline="hanging"
-                    fontSize={fontTier.label}
+                    fontSize={fontTier.label - 1}
                     fill={MALE_COLOR}
                     fontWeight={700}
                     style={{ pointerEvents: "none" }}
                 >
                     MEN
-                </text> */}
+                </text>
             </Group>
         </svg>
     )
@@ -312,22 +315,9 @@ function BarValueLabel({
     const y = Math.min(barY, baseline)
     const h = Math.abs(barY - baseline)
     const growsUp = barY < baseline
-    const labelFontSize = fontSize - 2
-    const fitsInside = h > labelFontSize + 4
-
-    let labelY: number
-    let dominantBaseline: "hanging" | "auto"
-    let fill: string
-
-    if (fitsInside) {
-        labelY = growsUp ? y + 2 : y + h - 2
-        dominantBaseline = growsUp ? "hanging" : "auto"
-        fill = "white"
-    } else {
-        labelY = growsUp ? y - 2 : y + h + 2
-        dominantBaseline = growsUp ? "auto" : "hanging"
-        fill = color
-    }
+    const labelFontSize = fontSize
+    const labelY = growsUp ? y - 2 : y + h + 2
+    const dominantBaseline = growsUp ? "auto" : "hanging"
 
     return (
         <text
@@ -337,7 +327,7 @@ function BarValueLabel({
             dominantBaseline={dominantBaseline}
             fontSize={labelFontSize}
             fontWeight={700}
-            fill={fill}
+            fill={color}
             style={{ pointerEvents: "none" }}
         >
             {formatPopulationValueShort(value)}
@@ -554,9 +544,6 @@ function TopGridLabel({
     )
 }
 
-const GRID_LABEL_PADDING_X = 1.5
-const GRID_LABEL_PADDING_Y = 0.5
-
 function GridLabel({
     valueText,
     labelText,
@@ -574,56 +561,23 @@ function GridLabel({
     position: "above" | "below"
     labelColor: string
 }) {
-    const valueWrap = new TextWrap({
-        text: valueText,
+    const fullText = `${valueText} ${labelText}`
+    const textWrap = new TextWrap({
+        text: fullText,
         maxWidth: Infinity,
         fontSize,
     })
-    const labelWrap = new TextWrap({
-        text: labelText,
-        maxWidth: Infinity,
-        fontSize,
-    })
-    const spaceWidth = Bounds.forText(" ", { fontSize }).width
 
-    const labelRectWidth = labelWrap.width + GRID_LABEL_PADDING_X * 2
-    const labelRectHeight = labelWrap.height + GRID_LABEL_PADDING_Y * 2
-
-    // Right-align everything to x
-    const labelRectX = x - labelRectWidth
-    const valueTextX = labelRectX - spaceWidth - valueWrap.width
-    const labelTextX = labelRectX + GRID_LABEL_PADDING_X
-
-    // Position vertically: TextWrapSvg renders from top-left
-    const textY = position === "above" ? y - labelRectHeight : y + 1
-    const labelRectY = textY + GRID_LABEL_PADDING_Y
+    const textX = x - textWrap.width
+    const textY = position === "above" ? y - textWrap.height - 1 : y + 2
 
     return (
-        <g>
-            {/* Value text (no background) */}
-            <TextWrapSvg
-                x={valueTextX}
-                y={textY + GRID_LABEL_PADDING_Y}
-                textWrap={valueWrap}
-                fill={LABEL_COLOR}
-            />
-            {/* Label background rect */}
-            <rect
-                x={labelRectX}
-                y={labelRectY - GRID_LABEL_PADDING_Y}
-                width={labelRectWidth}
-                height={labelRectHeight}
-                fill={labelColor}
-                rx={1}
-            />
-            {/* Label text */}
-            <TextWrapSvg
-                x={labelTextX}
-                y={labelRectY}
-                textWrap={labelWrap}
-                fill="white"
-            />
-        </g>
+        <TextWrapSvg
+            x={textX}
+            y={textY}
+            textWrap={textWrap}
+            fill={labelColor}
+        />
     )
 }
 
