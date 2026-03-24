@@ -19,4 +19,9 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
             "https://owid-public.owid.io/sophia-causes-of-death-2026-03/causes-of-death.js?nocache",
         cssUrl: "https://owid-public.owid.io/sophia-causes-of-death-2026-03/index2.css?nocache",
     },
+    demography: {
+        scriptUrl:
+            "https://owid-public.owid.io/population-simulation-2026-03/assets/demography.js",
+        cssUrl: "https://owid-public.owid.io/population-simulation-2026-03/assets/index2.css",
+    },
 }
