@@ -509,7 +509,7 @@ function EndpointLabels({
             <Halo id="projection-label" outlineWidth={3} outlineColor="white">
                 <text
                     x={x}
-                    y={yForecast + (forecastLabelAbove ? -12 : 16)}
+                    y={yForecast + (forecastLabelAbove ? -10 : 16)}
                     textAnchor="end"
                     fontSize={fontTier.tick}
                     fill={DENIM_BLUE}

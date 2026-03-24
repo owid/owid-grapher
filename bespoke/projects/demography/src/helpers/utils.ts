@@ -18,6 +18,11 @@ import { formatValue } from "@ourworldindata/utils"
 import { OwidVariableRoundingMode } from "@ourworldindata/types"
 import { QueryStatus } from "@tanstack/react-query"
 
+/** Strip suffixes like " (UN)" from entity names for display */
+export function displayEntityName(name: string): string {
+    return name.replace(/\s*\(UN\)$/, "")
+}
+
 export function formatPopulationValueShort(value: number): string {
     if (Math.abs(value) < 1) {
         return formatValue(value, {

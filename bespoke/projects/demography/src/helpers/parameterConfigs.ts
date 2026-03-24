@@ -1,5 +1,5 @@
 import * as R from "remeda"
-import { formatValue } from "@ourworldindata/utils"
+import { formatValue, getRegionByName } from "@ourworldindata/utils"
 import { HISTORICAL_TIME_RANGE } from "./constants.js"
 import {
     calculateTFRFromRaw,
@@ -11,7 +11,7 @@ import { ParameterKey } from "./types.js"
 
 interface ParameterConfig {
     title: string
-    subtitle: string
+    subtitle: (entityName: string) => string
     tooltipContent: string
     formatValue: (value: number) => string
     computeHistorical: (
@@ -27,7 +27,7 @@ interface ParameterConfig {
 export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
     fertilityRate: {
         title: "Fertility Rate",
-        subtitle: "Average number of births per woman",
+        subtitle: () => "Average number of births per woman",
         tooltipContent:
             "Total fertility rate is the number of births a woman would have, if she experienced the birth rates of women of each age group in one particular year across her childbearing years.",
         formatValue: (v) =>
@@ -61,7 +61,7 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
     },
     lifeExpectancy: {
         title: "Life expectancy at birth",
-        subtitle:
+        subtitle: () =>
             "Years a newborn is expected to live, given current mortality rates",
         tooltipContent:
             "Period life expectancy is the number of years the average person born in a certain year would live if they experienced the same chances of dying at each age as people did that year.",
@@ -107,7 +107,13 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
     },
     netMigrationRate: {
         title: "Net Migration Rate",
-        subtitle: "Difference between people entering and leaving the country",
+        subtitle: (entityName: string) => {
+            if (entityName === "World") return "Not applicable"
+            const region = getRegionByName(entityName)
+            if (region?.regionType === "aggregate")
+                return "Difference between people entering and leaving the continent"
+            return "Difference between people entering and leaving the country"
+        },
         tooltipContent:
             "Net migration is the difference in immigration (people entering the country) and emigration (people leaving). This number is positive if more people are entering than leaving. This difference is given as a percentage of the total population.",
         formatValue: (v) =>
