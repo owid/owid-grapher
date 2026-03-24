@@ -7,45 +7,55 @@ export function ChartFooter({
     note,
     className,
 }: {
-    source: string
-    note?: string
+    source: React.ReactNode
+    note?: React.ReactNode
     className?: string
 }) {
     const footerRef = useRef<HTMLElement>(null)
 
+    const ccBy = (
+        <TooltipTrigger>
+            <Link
+                className="chart-footer__cc"
+                href="https://creativecommons.org/licenses/by/4.0/"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                CC BY
+            </Link>
+            <Tooltip
+                className="chart-footer__tooltip"
+                UNSTABLE_portalContainer={footerRef.current ?? undefined}
+            >
+                Our World in Data charts are licensed under Creative Commons;
+                you are free to use, share, and adapt this material. Click
+                through to the CC BY page for more information. Please bear in
+                mind that the underlying source data for all our charts might be
+                subject to different license terms from third-party authors.
+            </Tooltip>
+        </TooltipTrigger>
+    )
+
     return (
         <footer ref={footerRef} className={cx("chart-footer", className)}>
-            <div className="chart-footer__source-and-cc">
-                <div>
-                    <strong>Data source:</strong> {source}
-                </div>
-                <TooltipTrigger>
-                    <Link
-                        className="chart-footer__cc"
-                        href="https://creativecommons.org/licenses/by/4.0/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        CC BY
-                    </Link>
-                    <Tooltip
-                        className="chart-footer__tooltip"
-                        UNSTABLE_portalContainer={
-                            footerRef.current ?? undefined
-                        }
-                    >
-                        Our World in Data charts are licensed under Creative
-                        Commons; you are free to use, share, and adapt this
-                        material. Click through to the CC BY page for more
-                        information. Please bear in mind that the underlying
-                        source data for all our charts might be subject to
-                        different license terms from third-party authors.
-                    </Tooltip>
-                </TooltipTrigger>
-            </div>
-            {note && (
-                <div className="chart-footer__note">
-                    <strong>Note:</strong> {note}
+            {note ? (
+                <>
+                    <div>
+                        <strong>Data source:</strong> {source}
+                    </div>
+                    <div className="chart-footer__row chart-footer__note-row">
+                        <div className="chart-footer__note">
+                            <strong>Note:</strong> {note}
+                        </div>
+                        {ccBy}
+                    </div>
+                </>
+            ) : (
+                <div className="chart-footer__row">
+                    <div>
+                        <strong>Data source:</strong> {source}
+                    </div>
+                    {ccBy}
                 </div>
             )}
         </footer>

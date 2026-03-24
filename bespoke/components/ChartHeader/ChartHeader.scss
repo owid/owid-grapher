@@ -1,4 +1,10 @@
 .chart-header {
+    &::after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+
     .chart-header__logo {
         float: right;
         height: 45px;

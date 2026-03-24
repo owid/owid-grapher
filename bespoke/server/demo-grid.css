@@ -1,0 +1,85 @@
+/**
+ * Minimal subset of the OWID 12-column grid system for the bespoke demo page.
+ * Mirrors the grid defined in site/css/grid.scss and the bespoke-component
+ * layout classes from site/gdocs/components/layout.ts.
+ *
+ * Only the classes actually used by narrow/wide/widest are included.
+ */
+
+:root {
+    --grid-gap: 24px;
+}
+
+@media (max-width: 768px) {
+    :root {
+        --grid-gap: 16px;
+    }
+}
+
+.grid {
+    display: grid;
+    gap: 0 var(--grid-gap);
+    grid-template-columns: repeat(12, 1fr);
+    grid-auto-rows: min-content;
+}
+
+/* Full-page-width grid: 1 auto | 12 inner cols | 1 auto  (14 total) */
+.grid-cols-12-full-width {
+    --inner-cols-max-total-width: 1280px;
+    --single-col-max-width: calc(
+        (var(--inner-cols-max-total-width) - 11 * var(--grid-gap)) / 12
+    );
+    grid-template-columns:
+        1fr
+        repeat(12, minmax(0, var(--single-col-max-width)))
+        1fr;
+}
+
+/* Column spans — must come BEFORE col-start so that the shorthand's
+   implicit grid-column-start can be overridden by col-start-* below. */
+.span-cols-6 {
+    grid-column: span 6 / span 6;
+}
+.span-cols-8 {
+    grid-column: span 8 / span 8;
+}
+.span-cols-12 {
+    grid-column: span 12 / span 12;
+}
+
+/* Column start positions */
+.col-start-2 {
+    grid-column-start: 2;
+}
+.col-start-4 {
+    grid-column-start: 4;
+}
+.col-start-5 {
+    grid-column-start: 5;
+}
+
+/* Tablet (max-width: 960px) */
+@media only screen and (max-width: 960px) {
+    .span-md-cols-10 {
+        grid-column: span 10 / span 10;
+    }
+    .span-md-cols-12 {
+        grid-column: span 12 / span 12;
+    }
+    .col-md-start-2 {
+        grid-column-start: 2;
+    }
+    .col-md-start-3 {
+        grid-column-start: 3;
+    }
+}
+
+/* Mobile (max-width: 768px) */
+@media only screen and (max-width: 768px) {
+    .span-sm-cols-12 {
+        grid-column: span 12 / span 12;
+    }
+    .col-sm-start-2 {
+        grid-column-start: 2;
+    }
+}

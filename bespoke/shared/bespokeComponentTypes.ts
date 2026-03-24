@@ -20,6 +20,7 @@ export interface BespokeComponentVariantsEntry<
 > extends Record<string, unknown> {
     name: VariantName
     demoConfig?: Record<string, string>
+    demoSize?: "narrow" | "wide" | "widest"
 }
 
 export type BespokeComponentVariantsList<VariantName extends string = string> =

@@ -13,6 +13,7 @@
         </script>
         <script type="module" src="/{{PROJECT}}/@vite/client"></script>
         <link rel="stylesheet" href="https://ourworldindata.org/fonts.css" />
+        <link rel="stylesheet" href="/{{PROJECT}}/@fs{{DEMO_GRID_CSS}}" />
         <link rel="stylesheet" href="/{{PROJECT}}/@fs{{DEMO_CSS}}" />
     </head>
     <body>
@@ -27,8 +28,16 @@
             import { mountBespokeComponentInShadow } from "/{{PROJECT}}/@fs{{SHARED_DIR}}/bespokeComponentShadowDom.ts"
             import { VARIANTS } from "/{{PROJECT}}/{{ENTRYPOINT_JS}}"
 
+            const SIZE_CLASSES = {
+                narrow: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+                wide: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+                widest: "span-cols-12 col-start-2",
+            }
+
             const root = document.getElementById("demo-root")
             for (const variant of VARIANTS) {
+                const size = variant.demoSize ?? "wide"
+
                 const wrapper = document.createElement("div")
                 wrapper.className = "variant"
                 wrapper.id = `variant--${variant.name}`
@@ -45,8 +54,16 @@
                 label.appendChild(name)
                 wrapper.appendChild(label)
 
+                const gridContainer = document.createElement("div")
+                gridContainer.className = "grid grid-cols-12-full-width"
+
+                const gridCell = document.createElement("div")
+                gridCell.className = SIZE_CLASSES[size] ?? SIZE_CLASSES.wide
+
                 const container = document.createElement("div")
-                wrapper.appendChild(container)
+                gridCell.appendChild(container)
+                gridContainer.appendChild(gridCell)
+                wrapper.appendChild(gridContainer)
                 root.appendChild(wrapper)
 
                 mountBespokeComponentInShadow({
