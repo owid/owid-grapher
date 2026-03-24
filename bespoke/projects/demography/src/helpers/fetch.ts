@@ -95,9 +95,10 @@ export function useUserCountryInformation(): { data?: UserCountryInformation } {
     const result = useQuery({
         queryKey: queryKeys.location(),
         queryFn: async () => {
-            return fetchJson<UserCountryInformation>(
-                "https://detect-country.owid.io"
-            )
+            const response = await fetchJson<{
+                country: UserCountryInformation
+            }>("https://ourworldindata.org/api/detect-country")
+            return response.country
         },
     })
 
