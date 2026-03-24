@@ -114,7 +114,7 @@ function SimulationCaptionedChart({
                 note={
                     <>
                         Technical details and assumptions used in this
-                        population model are available at
+                        population model are available at{" "}
                         <a
                             href="https://population-simulation.owid.io/"
                             target="_blank"

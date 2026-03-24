@@ -19,10 +19,7 @@ import { InputChartPanel } from "../components/SimulationContent.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
-import {
-    CHART_FOOTER_SOURCES,
-    DEFAULT_ENTITY_NAME,
-} from "../helpers/constants.js"
+import { DEFAULT_ENTITY_NAME } from "../helpers/constants.js"
 
 export function ParametersVariantWithProviders(props: {
     container: HTMLDivElement
@@ -87,7 +84,7 @@ function ParametersCaptionedChart({
     const title =
         titleOverride ??
         `Demographic assumptions for ${articulateEntity(countryName)}`
-    const subtitle = subtitleOverride ?? "Bla bla subtitle subtitle"
+    const subtitle = subtitleOverride
 
     return (
         <Frame className="demography-parameters">
@@ -120,7 +117,7 @@ function ParametersCaptionedChart({
             </div>
             <ChartFooter
                 className="demography-footer"
-                source={CHART_FOOTER_SOURCES}
+                source="Historical estimates and projections from the UN World Population Prospects"
             />
         </Frame>
     )
