@@ -15,6 +15,7 @@ import {
 } from "../components/DemographyLoadAndError.js"
 import { CountryData, ParameterKey } from "../helpers/types.js"
 import { articulateEntity } from "@ourworldindata/utils"
+import { displayEntityName } from "../helpers/utils.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { SimulationContent } from "../components/SimulationContent.js"
@@ -91,7 +92,7 @@ function SimulationCaptionedChart({
 
     const title =
         titleOverride ??
-        `How many people will live in ${articulateEntity(countryName)} by 2100?`
+        `How many people will live in ${articulateEntity(displayEntityName(countryName))} by 2100?`
     const subtitle =
         subtitleOverride ??
         "Demographers publish projections of how populations will change in the future. But what if fertility rates fall faster, or rebound? Or migration rates change? Adjust these assumptions and compare."

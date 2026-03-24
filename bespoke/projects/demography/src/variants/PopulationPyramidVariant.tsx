@@ -10,6 +10,7 @@ import {
 import { queryClient, useDemographyData } from "../helpers/fetch.js"
 import type { PopulationPyramidVariantConfig } from "../config.js"
 import { articulateEntity } from "@ourworldindata/utils"
+import { displayEntityName } from "../helpers/utils.js"
 import { CountryData } from "../helpers/types.js"
 import { useSimulation } from "../helpers/useSimulation.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
@@ -115,10 +116,10 @@ function PopulationPyramidCaptionedChart({
 
     const title =
         titleOverride ??
-        `Age structure of ${articulateEntity(data.country)} in ${year}`
+        `Age structure of ${articulateEntity(displayEntityName(data.country))} in ${year}`
     const subtitle =
         subtitleOverride ??
-        `The population of ${articulateEntity(data.country)}, broken down by age and sex based on future projections. These are based on the user's fertility, life expectancy, and migration inputs to a demographic model.`
+        `The population of ${articulateEntity(displayEntityName(data.country))}, broken down by age and sex based on future projections. These are based on the user's fertility, life expectancy, and migration inputs to a demographic model.`
 
     return (
         <Frame className="demography-population-pyramid">
