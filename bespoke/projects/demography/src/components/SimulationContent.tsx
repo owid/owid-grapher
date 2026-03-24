@@ -83,7 +83,7 @@ export function SimulationContent({
                 title={
                     focusParameter
                         ? `Change ${parameterConfigByKey[focusParameter].title.toLowerCase()} assumptions`
-                        : "Change these assumptions"
+                        : "Change these future assumptions"
                 }
             >
                 <div className="input-panels">
@@ -127,7 +127,7 @@ export function SimulationContent({
                     <ChartPanel
                         className="population-panel"
                         title="Population"
-                        subtitle="Past estimates and future projections"
+                        subtitle="Historical estimates and projections of total population"
                         header={<PopulationChartLegend />}
                     >
                         <ResponsivePopulationChart
@@ -158,7 +158,7 @@ function AgeStructurePanel({
     onYearChange: (year: number) => void
 }) {
     const title = `Age Structure in ${year}`
-    const subtitle = "Population distribution by age and sex"
+    const subtitle = "Population by age and sex"
     const slider = (
         <SimpleYearSlider selectedYear={year} onChange={onYearChange} />
     )
