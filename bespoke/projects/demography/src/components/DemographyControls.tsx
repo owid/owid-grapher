@@ -1,12 +1,12 @@
 import { useCallback, useMemo } from "react"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faLocationArrow } from "@fortawesome/free-solid-svg-icons"
 
 import { EntityName } from "@ourworldindata/types"
 import {
     BasicDropdownOption,
     Dropdown as GrapherDropdown,
+    DropdownCollection,
 } from "@ourworldindata/grapher/src/controls/Dropdown.js"
+import { getRegionByCode } from "@ourworldindata/utils"
 
 import { DemographyMetadata } from "../helpers/types.js"
 import { useUserCountryInformation } from "../helpers/fetch.js"
@@ -43,7 +43,7 @@ function Dropdown({
     fallbackValue,
     ...dropdownProps
 }: {
-    options: BasicDropdownOption[]
+    options: DropdownCollection<BasicDropdownOption>
     selectedValue: string
     onChange: (value: string) => void
     fallbackValue?: string
@@ -51,8 +51,16 @@ function Dropdown({
     React.ComponentProps<typeof GrapherDropdown>,
     "options" | "value" | "onChange"
 >) {
+    const allOptions = useMemo(
+        () =>
+            options.flatMap((item) =>
+                "options" in item ? item.options : [item]
+            ),
+        [options]
+    )
+
     const selectedOption =
-        options.find((option) => option.value === selectedValue) || null
+        allOptions.find((option) => option.value === selectedValue) || null
 
     const handleChange = useCallback(
         (option: BasicDropdownOption | null) => {
@@ -86,28 +94,54 @@ function EntityDropdown({
 }) {
     const { data: userCountryInfo } = useUserCountryInformation()
 
-    const options = useMemo(() => {
-        const baseOptions = availableCountries.map((name) => ({
+    const options: DropdownCollection<BasicDropdownOption> = useMemo(() => {
+        const makeOption = (name: string) => ({
             value: name,
             label: name,
             id: name,
-        }))
+        })
 
-        // Move user's country to the top of the list if it's available
-        if (!userCountryInfo) return baseOptions
+        if (!userCountryInfo) return availableCountries.map(makeOption)
 
-        const userCountryOptionIndex = baseOptions.findIndex(
-            (option) => option.label === userCountryInfo.name
-        )
-        if (userCountryOptionIndex > -1) {
-            const [userCountryOption] = baseOptions.splice(
-                userCountryOptionIndex,
-                1
-            )
-            baseOptions.unshift(userCountryOption)
+        const availableSet = new Set(availableCountries)
+
+        // Collect suggested names: user's country + regions they belong to
+        const suggestedNames: string[] = []
+        if (availableSet.has(userCountryInfo.name)) {
+            suggestedNames.push(userCountryInfo.name)
+        }
+        if (userCountryInfo.regions) {
+            for (const code of userCountryInfo.regions) {
+                const region = getRegionByCode(code)
+                if (
+                    region &&
+                    region.regionType !== "income_group" &&
+                    availableSet.has(region.name)
+                ) {
+                    suggestedNames.push(region.name)
+                }
+            }
         }
 
-        return baseOptions
+        if (suggestedNames.length === 0) {
+            return availableCountries.map(makeOption)
+        }
+
+        const suggestedSet = new Set(suggestedNames)
+        const remaining = availableCountries.filter(
+            (name) => !suggestedSet.has(name)
+        )
+
+        return [
+            {
+                label: "Suggested",
+                options: suggestedNames.map(makeOption),
+            },
+            {
+                label: "All countries and regions",
+                options: remaining.map(makeOption),
+            },
+        ]
     }, [availableCountries, userCountryInfo])
 
     return (
@@ -119,30 +153,6 @@ function EntityDropdown({
             placeholder="Select a country or region..."
             isSearchable={true}
             aria-label="Select a country or region"
-            renderMenuOption={(option) => (
-                <EntityDropdownOption
-                    option={option}
-                    isUserCountry={option?.label === userCountryInfo?.name}
-                />
-            )}
         />
-    )
-}
-
-function EntityDropdownOption({
-    option,
-    isUserCountry,
-}: {
-    option: BasicDropdownOption | null
-    isUserCountry?: boolean
-}): React.ReactElement | null {
-    if (!option) return null
-    return (
-        <div className="demography-controls__entity-dropdown-option">
-            <span>{option.label}</span>
-            {isUserCountry && (
-                <FontAwesomeIcon icon={faLocationArrow} size="sm" />
-            )}
-        </div>
     )
 }
