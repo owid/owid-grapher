@@ -187,7 +187,7 @@ export const LatestSearch = ({
                         <LatestResultCard key={hit.objectID} hit={hit} />
                     ))}
                     <NewsletterSignupBlock
-                        className="latest-page__newsletter-signup col-start-10 span-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-14"
+                        className="latest-page__newsletter-signup col-start-11 span-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-14"
                         context={NewsletterSubscriptionContext.Latest}
                     />
                     {hits.slice(2).map((hit) => (
