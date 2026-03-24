@@ -19,7 +19,10 @@ import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
 import { ResponsivePopulationChart } from "../components/PopulationChart.js"
-import { DEFAULT_ENTITY_NAME } from "../helpers/constants.js"
+import {
+    CHART_FOOTER_SOURCES,
+    DEFAULT_ENTITY_NAME,
+} from "../helpers/constants.js"
 
 export function PopulationVariantWithProviders(props: {
     container: HTMLDivElement
@@ -86,7 +89,7 @@ function PopulationCaptionedChart({
         `Population of ${articulateEntity(countryName)}, 1950 to 2100`
     const subtitle =
         subtitleOverride ??
-        "Past estimates and future projections based on the UN's medium scenario"
+        "Historical estimates and projections of total population"
 
     return (
         <Frame className="demography-population-only">
@@ -102,7 +105,7 @@ function PopulationCaptionedChart({
             </div>
             <ChartFooter
                 className="demography-footer"
-                source="List of data sources"
+                source={CHART_FOOTER_SOURCES}
                 note="Optional note"
             />
         </Frame>

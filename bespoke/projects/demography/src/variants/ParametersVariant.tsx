@@ -19,7 +19,10 @@ import { InputChartPanel } from "../components/SimulationContent.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
-import { DEFAULT_ENTITY_NAME } from "../helpers/constants.js"
+import {
+    CHART_FOOTER_SOURCES,
+    DEFAULT_ENTITY_NAME,
+} from "../helpers/constants.js"
 
 export function ParametersVariantWithProviders(props: {
     container: HTMLDivElement
@@ -117,8 +120,7 @@ function ParametersCaptionedChart({
             </div>
             <ChartFooter
                 className="demography-footer"
-                source="List of data sources"
-                note="Optional note"
+                source={CHART_FOOTER_SOURCES}
             />
         </Frame>
     )
