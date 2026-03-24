@@ -20,4 +20,9 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     "causes-of-death": {
         scriptUrl: "/causes-of-death/index.js",
     },
+    demography: {
+        scriptUrl:
+            "https://owid-public.owid.io/population-simulation-2026-03/assets/demography.js",
+        cssUrl: "https://owid-public.owid.io/population-simulation-2026-03/assets/index2.css",
+    },
 }
