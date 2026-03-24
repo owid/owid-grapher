@@ -1,9 +1,9 @@
+// Polyfills must be loaded before all other code.
+import "./polyfills.js"
+
 // This should be imported as early as possible so the global error handler is
 // set up before any errors are thrown.
 import "./instrument.js"
-
-// Polyfills must be loaded before almost all other code.
-import "./polyfills.js"
 
 import "@ourworldindata/grapher/src/core/grapher.scss"
 import "./owid.scss"
