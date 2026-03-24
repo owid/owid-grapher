@@ -737,7 +737,7 @@ function PointLabel({
                 <Halo id="point-label" outlineWidth={3}>
                     <text
                         x={x}
-                        y={y - fontSize / 2 - 3}
+                        y={y < 20 ? y + fontSize / 2 + 8 : y - fontSize / 2 - 3}
                         fontSize={fontSize}
                         fontWeight={700}
                         fill={labelColor ?? color}

@@ -95,10 +95,6 @@ function AgeZoneLegend({
         population: populationByAgeZone.old,
         color: COLOR_RETIRED,
     }
-    const dependents =
-        populationByAgeZone.young >= populationByAgeZone.old
-            ? [youngZone, oldZone]
-            : [oldZone, youngZone]
     const placedZones = [
         {
             key: "working",
@@ -107,7 +103,8 @@ function AgeZoneLegend({
             population: populationByAgeZone.working,
             color: COLOR_WORKING,
         },
-        ...dependents,
+        youngZone,
+        oldZone,
     ]
 
     const renderZones = annotateZones(
