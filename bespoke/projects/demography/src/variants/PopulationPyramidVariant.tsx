@@ -105,32 +105,13 @@ function PopulationPyramidCaptionedChart({
         lifeExpectancyAssumptions !== undefined ||
         netMigrationRateAssumptions !== undefined
 
-    const scenarioOverrides = useMemo(
-        () =>
-            hasCustomAssumptions
-                ? {
-                      fertilityRate: fertilityRateAssumptions,
-                      lifeExpectancy: lifeExpectancyAssumptions,
-                      netMigrationRate: netMigrationRateAssumptions,
-                  }
-                : undefined,
-        [
-            hasCustomAssumptions,
-            fertilityRateAssumptions,
-            lifeExpectancyAssumptions,
-            netMigrationRateAssumptions,
-        ]
-    )
-
-    const simulation = useSimulation(data, scenarioOverrides)
+    const simulation = useSimulation(data, {
+        fertilityRate: fertilityRateAssumptions,
+        lifeExpectancy: lifeExpectancyAssumptions,
+        netMigrationRate: netMigrationRateAssumptions,
+    })
     const ageZones = useMemo(() => groupAgeGroupsByZone(), [])
-
-    const getPopulationForYear = hasCustomAssumptions
-        ? simulation?.getPopulationForYear
-        : simulation?.getBenchmarkPopulationForYear
-    const getAgeZonePopulation = hasCustomAssumptions
-        ? simulation?.getAgeZonePopulation
-        : simulation?.getBenchmarkAgeZonePopulation
+    const projection = hasCustomAssumptions ? "custom" : "un"
 
     const title =
         titleOverride ??
@@ -144,10 +125,12 @@ function PopulationPyramidCaptionedChart({
             <ChartHeader title={title} subtitle={subtitle} />
             <div className="demography-population-pyramid__chart-area">
                 {isLoading && <LoadingSpinner />}
-                {simulation && getPopulationForYear && getAgeZonePopulation && (
+                {simulation && (
                     <div className="detailed-population-pyramid">
                         <ResponsiveAgeZoneLegend
-                            populationByAgeZone={getAgeZonePopulation(year)}
+                            simulation={simulation}
+                            year={year}
+                            projection={projection}
                         />
                         <div className="detailed-population-pyramid__chart">
                             <ResponsivePopulationPyramid
@@ -157,7 +140,7 @@ function PopulationPyramidCaptionedChart({
                                 xAxisScaleMode={
                                     hideTimeline ? "adaptive" : "fixed"
                                 }
-                                getPopulationForYear={getPopulationForYear}
+                                projection={projection}
                             />
                         </div>
                     </div>
