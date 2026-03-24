@@ -95,14 +95,14 @@ function ParametersCaptionedChart({
                     <div className="demography-parameters__panels">
                         <InputChartPanel
                             simulation={simulation}
-                            variant="fertilityRate"
+                            variant="lifeExpectancy"
                             className="parameters-panel"
                             interactive={false}
                             showProjectionLabel
                         />
                         <InputChartPanel
                             simulation={simulation}
-                            variant="lifeExpectancy"
+                            variant="fertilityRate"
                             className="parameters-panel"
                             interactive={false}
                         />

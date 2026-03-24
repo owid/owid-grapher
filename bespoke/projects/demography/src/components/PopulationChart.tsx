@@ -254,20 +254,14 @@ function PopulationChart({
                     />
 
                     {/* Projection label */}
-                    <Halo
-                        id="projection-label"
-                        outlineWidth={2}
-                        outlineColor={PROJECTION_BACKGROUND}
+                    <text
+                        x={xScale(HISTORICAL_END_YEAR) + 6}
+                        y={innerHeight - 6}
+                        fontSize={fontTier.annotation}
+                        fill={GRAPHER_LIGHT_TEXT}
                     >
-                        <text
-                            x={xScale(HISTORICAL_END_YEAR) + 6}
-                            y={12}
-                            fontSize={fontTier.annotation}
-                            fill={GRAPHER_LIGHT_TEXT}
-                        >
-                            Projections →
-                        </text>
-                    </Halo>
+                        Projections →
+                    </text>
 
                     {/* Historical line */}
                     <LinePath
@@ -480,6 +474,14 @@ function EndpointLabels({
     const yForecast = yScale(forecastValue)
     const yBenchmark = yScale(benchmarkValue)
 
+    // When both labels shown, place relative to each other.
+    // When only the forecast label is shown, place based on recent trend:
+    // if population increased over the last 20 years, label goes above.
+    const forecastLabelAbove = showBenchmark
+        ? yForecast < yBenchmark
+        : (forecastDataPoints.find((d) => d.year === END_YEAR - 20)?.value ??
+              forecastValue) < forecastValue
+
     return (
         <>
             {showBenchmark && (
@@ -492,7 +494,7 @@ function EndpointLabels({
                     >
                         <text
                             x={x}
-                            y={yBenchmark + (yBenchmark < yForecast ? -10 : 14)}
+                            y={yBenchmark + (yBenchmark < yForecast ? -12 : 16)}
                             textAnchor="end"
                             fontSize={fontTier.tick}
                             fill={GRAPHER_LIGHT_TEXT}
@@ -507,7 +509,7 @@ function EndpointLabels({
             <Halo id="projection-label" outlineWidth={3} outlineColor="white">
                 <text
                     x={x}
-                    y={yForecast + (yForecast < yBenchmark ? -10 : 14)}
+                    y={yForecast + (forecastLabelAbove ? -12 : 16)}
                     textAnchor="end"
                     fontSize={fontTier.tick}
                     fill={DENIM_BLUE}

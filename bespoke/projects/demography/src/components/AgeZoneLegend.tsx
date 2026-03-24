@@ -262,10 +262,8 @@ function AgeZoneLegendBox({
     zone: AnnotatedZone
     height: number
 }) {
-    const strokeWidth = 1
-
-    const left = zone.startX + strokeWidth / 2
-    const right = zone.startX + zone.width - strokeWidth / 2
+    const left = zone.startX
+    const right = zone.startX + zone.width
 
     const textX = left + BOX_PADDING
     const labelY = BOX_PADDING

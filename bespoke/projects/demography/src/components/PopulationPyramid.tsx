@@ -162,7 +162,7 @@ function PopulationPyramid({
 
     return (
         <div style={{ position: "relative" }}>
-            <svg width={width} height={height}>
+            <svg width={width} height={height} overflow="visible">
                 <Group top={margin.top}>
                     {ageZonesWithBounds && (
                         <AgeZoneBackgroundBands ageZones={ageZonesWithBounds} />
