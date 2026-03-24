@@ -27,9 +27,9 @@ interface ParameterConfig {
 export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
     fertilityRate: {
         title: "Fertility Rate",
-        subtitle: "Average number of children born per woman",
+        subtitle: "Average number of births per woman",
         tooltipContent:
-            "Average number of children a woman would have over her lifetime at current age-specific birth rates. A TFR of ~2.1 is needed to maintain population without migration.",
+            "Total fertility rate is the number of births a woman would have, if she experienced the birth rates of women of each age group in one particular year across her childbearing years.",
         formatValue: (v) =>
             formatValue(v, {
                 numDecimalPlaces: 1,
@@ -60,10 +60,11 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
         },
     },
     lifeExpectancy: {
-        title: "Life Expectancy",
-        subtitle: "Average number of years a person lives",
+        title: "Life expectancy at birth",
+        subtitle:
+            "Years a newborn is expected to live, given current mortality rates",
         tooltipContent:
-            "Average years a newborn would live if current age-specific mortality rates remained constant. Calculated from a period life table derived from death counts and population.",
+            "Period life expectancy is the number of years the average person born in a certain year would live if they experienced the same chances of dying at each age as people did that year.",
         formatValue: (v) =>
             formatValue(v, {
                 numDecimalPlaces: 0,
@@ -106,9 +107,9 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
     },
     netMigrationRate: {
         title: "Net Migration Rate",
-        subtitle: "Difference between immigration and emigration",
+        subtitle: "Difference between people entering and leaving the country",
         tooltipContent:
-            "Difference between immigration and emigration per 1,000 people. Positive values mean more people entering than leaving. Net migration is split into implied immigration and emigration flows and distributed by the migration assumptions in the details section below.",
+            "Net migration is the difference in immigration (people entering the country) and emigration (people leaving). This number is positive if more people are entering than leaving. This difference is given as a percentage of the total population.",
         formatValue: (v) =>
             formatValue(v, {
                 numDecimalPlaces: 1,

@@ -101,3 +101,6 @@ export const FERTILITY_AGE_GROUPS = [
     "45-49",
     "50-54",
 ]
+
+export const CHART_FOOTER_SOURCES =
+    "Historical estimates from the UN World Population Prospects; user projection based on their inputs and a simple demographic projection model."
