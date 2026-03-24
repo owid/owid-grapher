@@ -67,6 +67,7 @@ function PopulationPyramidVariant({
                 title={config.title}
                 subtitle={config.subtitle}
                 hideTimeline={config.hideTimeline}
+                initialTime={config.time}
             />
         </div>
     )
@@ -78,14 +79,16 @@ function PopulationPyramidCaptionedChart({
     title: titleOverride,
     subtitle: subtitleOverride,
     hideTimeline,
+    initialTime,
 }: {
     data: CountryData
     isLoading?: boolean
     title?: string
     subtitle?: string
     hideTimeline?: boolean
+    initialTime?: number
 }) {
-    const [year, setYear] = useState(END_YEAR)
+    const [year, setYear] = useState(initialTime ?? END_YEAR)
     const simulation = useSimulation(data)
     const ageZones = useMemo(() => groupAgeGroupsByZone(), [])
 

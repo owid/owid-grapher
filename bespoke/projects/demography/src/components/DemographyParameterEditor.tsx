@@ -312,16 +312,14 @@ function DemographyParameterEditor({
 
                 {/* Projection label */}
                 {showProjectionLabel && (
-                    <Halo id="projection-label" outlineWidth={3}>
-                        <text
-                            x={projX + 6}
-                            y={12}
-                            fontSize={fontTier.annotation}
-                            fill={GRAPHER_LIGHT_TEXT}
-                        >
-                            Projections →
-                        </text>
-                    </Halo>
+                    <text
+                        x={projX + 6}
+                        y={innerHeight - 6}
+                        fontSize={fontTier.annotation}
+                        fill={GRAPHER_LIGHT_TEXT}
+                    >
+                        Projections →
+                    </text>
                 )}
 
                 {/* Zero line */}
