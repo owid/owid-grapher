@@ -1,11 +1,13 @@
 ## Supported browsers
 
-As of **2026-03-23**, we support the following browsers:
+As of **2026-03-24**, we officially support the following browsers:
 
 - Safari 16.0+ [September 2022]
 - iOS Safari 16.0+ [September 2022]
 - Chrome/Edge 106+ [September 2022] (note that Chrome 109 is the last supported version on Windows 7/8, so we want to support that for a tad bit longer)
 - Firefox 110+ [February 2023] (note that 115 is an ESR version)
+
+Older versions of these browsers may still work, but we don't actively test or support them, and the site may be seriously broken.
 
 ### "Most breaking" features
 
@@ -18,10 +20,10 @@ As of **2026-03-23**, we support the following browsers:
 
 Vite/Rolldown may emit syntax in the bundled output that we don't actively write ourselves. Vite will use syntax that are not supported in older browsers. The most notable examples are:
 
-- [Public class fields](https://caniuse.com/mdn-javascript_classes_public_class_fields) that contain parentheses (`class Foo { bar = _.noop() }`) — Safari 16.0+.
-- [Static class initialization blocks](https://caniuse.com/mdn-javascript_classes_static_initialization_blocks) (`class Foo { static { ... } }`) — Chrome 91+, Firefox 93+, Safari 16.4+.
+- [Private class methods](https://caniuse.com/mdn-javascript_classes_private_class_methods) - Chrome 84+, Safari 15+, Firefox 90+.
+- [Nullish coalescing assignment operator (`??=`)](https://caniuse.com/mdn-javascript_operators_nullish_coalescing_assignment) — Chrome 85+, Safari 14+, Firefox 79+.
 
-Both are safe for our current targets, but they will causes issues (incl. SyntaxErrors) when our code is run in older browsers, especially in Safari < 16.4.
+Both are safe for our current targets, but they will causes issues (incl. SyntaxErrors) when our code is run in older browsers, especially in Safari < 16.0.
 
 ### Features we can't yet use
 
@@ -42,6 +44,7 @@ The following features are **not** available across all our supported browsers a
 - [Lookbehind assertions in regular expressions](https://caniuse.com/js-regexp-lookbehind) — Chrome 62+, Firefox 78+, Safari 16.4+.
 - [CSS support for oklab, oklch, lab, lch color spaces](https://caniuse.com/wf-oklab) — Chrome 111+, Firefox 113+, Safari 15.4+.
 - [CSS `color-mix()` function](https://caniuse.com/wf-color-mix) — Chrome 111+, Firefox 113+, Safari 16.2+.
+- [`Map.getOrInsert()`](https://caniuse.com/wf-getorinsert) — Chrome 145+, Firefox 144+, Safari 26.2+.
 
 Note: many of the JS features above (e.g. `Set` methods, `groupBy`, `Promise.withResolvers`) could be polyfilled using [core-js](https://github.com/nicolo-ribaudo/core-js-contrib) or similar libraries if we wanted to use them before raising our browser targets. CSS features or JS syntax features obviously can't be polyfilled this way.
 
