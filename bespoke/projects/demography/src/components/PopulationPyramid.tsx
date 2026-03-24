@@ -28,7 +28,7 @@ import {
     formatPopulationValueShort,
 } from "../helpers/utils"
 import { Bounds } from "@ourworldindata/utils"
-import { AgeZone, AgeZoneWithBounds } from "../helpers/types.js"
+import type { AgeZone, AgeZoneWithBounds, PopulationBySex } from "../helpers/types.js"
 import { useBreakpoint } from "../helpers/useBreakpoint.js"
 import { getFontTier, getSizeTier } from "../helpers/fontTiers.js"
 
@@ -43,6 +43,7 @@ export interface PopulationPyramidProps {
     xAxisScaleMode?: "fixed" | "adaptive"
     ageZones?: AgeZone[]
     compact?: boolean
+    getPopulationForYear?: (year: number) => PopulationBySex | null
 }
 
 function PopulationPyramid({
@@ -51,6 +52,7 @@ function PopulationPyramid({
     xAxisScaleMode = "fixed",
     ageZones,
     compact = false,
+    getPopulationForYear: getPopulationForYearOverride,
     width,
     height,
 }: PopulationPyramidProps & { width: number; height: number }) {
@@ -94,7 +96,9 @@ function PopulationPyramid({
     const halfWidth = (innerWidth - centerGap) / 2
     const centerX = margin.left + halfWidth
 
-    const populationBySex = simulation.getPopulationForYear(year)
+    const populationBySex = (
+        getPopulationForYearOverride ?? simulation.getPopulationForYear
+    )(year)
 
     const { ageBucketsBySex, medianAgeBucketBySex } = useMemo(() => {
         const male = populationBySex?.male ?? []
@@ -245,6 +249,7 @@ export function ResponsivePopulationPyramid({
     xAxisScaleMode,
     ageZones,
     compact,
+    getPopulationForYear,
 }: PopulationPyramidProps) {
     const { parentRef, width, height } = useParentSize()
     return (
@@ -256,6 +261,7 @@ export function ResponsivePopulationPyramid({
                     ageZones={ageZones}
                     xAxisScaleMode={xAxisScaleMode}
                     compact={compact}
+                    getPopulationForYear={getPopulationForYear}
                     width={width}
                     height={height}
                 />
