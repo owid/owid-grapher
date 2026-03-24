@@ -21,7 +21,7 @@ As of **2025-07-15**, we support the following browsers:
 
 ### Polyfills
 
-We use https://cdnjs.cloudflare.com/polyfill (see `site/SiteConstants.ts`), so using modern methods like `str.replaceAll()` is fine as long as it's included in the list of polyfilled functions.
+We ship explicit polyfills in `site/polyfills.ts` for ES2022/ES2023 features (e.g. `Array.at`, `Array.findLast`, `Array.toReversed`, `Array.toSorted`) that aren't available in all supported browsers. The polyfill file is imported at the top of `site/owid.entry.ts` before any other code runs.
 
 ### Setting the Vite `target`
 
