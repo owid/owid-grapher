@@ -6,27 +6,31 @@
         font-weight: 600;
     }
 
+    .chart-footer__row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        flex-wrap: wrap;
+        column-gap: 16px;
+        row-gap: 4px;
+    }
+
     .chart-footer__note {
         font-size: 0.75rem;
         margin-top: 4px;
     }
 
-    .chart-footer__source-and-cc {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-
-        column-gap: 16px;
-        row-gap: 2px;
-    }
-
     .chart-footer__cc {
+        flex-shrink: 0;
         background: none;
         border: none;
         cursor: pointer;
         text-decoration: none;
         color: inherit;
+    }
+
+    .chart-footer__note-row .chart-footer__cc {
+        font-size: 0.75rem;
     }
 
     .chart-footer__tooltip {
