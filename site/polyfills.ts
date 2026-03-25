@@ -18,3 +18,7 @@ import "core-js/proposals/array-find-from-last" // Chrome 97+, Safari 15.4+, Fir
 // Array change by copy: toReversed, toSorted, toSpliced, with
 // https://core-js.io/docs/features/proposals/change-array-by-copy
 import "core-js/proposals/change-array-by-copy-stage-4" // Chrome 110+, Safari 16.0+, Firefox 115+
+
+// Set methods: union, intersection, difference, symmetricDifference, etc.
+// https://core-js.io/docs/features/proposals/set-methods
+import "core-js/proposals/set-methods-v2" // Chrome 122+, Safari 17.0+, Firefox 127+
