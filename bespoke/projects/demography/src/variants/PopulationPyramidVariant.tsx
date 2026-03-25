@@ -160,7 +160,9 @@ function PopulationPyramidCaptionedChart({
 
     const title =
         titleOverride ??
-        `Age structure of ${articulateEntity(displayEntityName(data.country))} in ${year}`
+        (data.country === "World"
+            ? `Global age structure in ${year}`
+            : `Age structure of ${articulateEntity(displayEntityName(data.country))} in ${year}`)
     const subtitle =
         subtitleOverride ??
         `The population of ${articulateEntity(displayEntityName(data.country))}, broken down by age and sex based on future projections. These are based on the user's fertility, life expectancy, and migration inputs to a demographic model.`

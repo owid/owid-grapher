@@ -100,7 +100,9 @@ function PopulationCaptionedChart({
 
     const title =
         titleOverride ??
-        `Population of ${articulateEntity(displayEntityName(countryName))}, 1950 to 2100`
+        (countryName === "World"
+            ? "World population, 1950 to 2100"
+            : `Population of ${articulateEntity(displayEntityName(countryName))}, 1950 to 2100`)
     const subtitle =
         subtitleOverride ??
         "Historical estimates and projections of total population"
