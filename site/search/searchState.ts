@@ -26,7 +26,6 @@ import {
 } from "./searchUtils.js"
 import { useMemo, useEffect, useCallback } from "react"
 import { useSearchParams } from "react-router-dom-v5-compat"
-import { intersectionOfSets } from "@ourworldindata/utils"
 
 export const DEFAULT_SEARCH_STATE: SearchState = {
     query: "",
@@ -255,14 +254,12 @@ export function searchParamsToState(
     eligibleRegionNames: string[],
     eligibleTopicsAndAreas: string[]
 ): SearchState {
-    const topicsSet = intersectionOfSets([
-        deserializeSet(searchParams.get("topics")),
-        new Set(eligibleTopicsAndAreas),
-    ])
-    const countriesSet = intersectionOfSets([
-        deserializeSet(searchParams.get("countries")),
-        new Set(eligibleRegionNames),
-    ])
+    const topicsSet = deserializeSet(searchParams.get("topics")).intersection(
+        new Set(eligibleTopicsAndAreas)
+    )
+    const countriesSet = deserializeSet(
+        searchParams.get("countries")
+    ).intersection(new Set(eligibleRegionNames))
     const datasetsSet = new Set(
         [...deserializeSet(searchParams.get("datasetProducts"))].filter(Boolean)
     )

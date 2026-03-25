@@ -11,7 +11,6 @@ import {
     ColumnSlug,
     imemo,
     ToleranceStrategy,
-    differenceOfSets,
     sortedFindClosestIndex,
     csvEscape,
 } from "@ourworldindata/utils"
@@ -327,10 +326,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             }
         }
 
-        const entityNamesToDrop = differenceOfSets([
-            this.availableEntityNameSet,
-            entityNamesToKeep,
-        ])
+        const entityNamesToDrop =
+            this.availableEntityNameSet.difference(entityNamesToKeep)
         const droppedEntitiesStr =
             entityNamesToDrop.size > 0
                 ? [...entityNamesToDrop].join(", ")
@@ -367,10 +364,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
         // helper function to generate operation name
         const makeOpName = (entityNamesToKeep: Set<EntityName>): string => {
-            const entityNamesToDrop = differenceOfSets([
-                this.availableEntityNameSet,
-                entityNamesToKeep,
-            ])
+            const entityNamesToDrop =
+                this.availableEntityNameSet.difference(entityNamesToKeep)
             const droppedEntitiesStr =
                 entityNamesToDrop.size > 0
                     ? [...entityNamesToDrop].join(", ")
