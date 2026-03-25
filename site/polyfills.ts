@@ -30,3 +30,7 @@ import "core-js/proposals/set-methods-v2" // Chrome 122+, Safari 17.0+, Firefox 
 // Iterator helpers: map, filter, reduce, some, every, find, etc.
 // https://core-js.io/docs/features/proposals/iterator-helpers
 import "core-js/proposals/iterator-helpers-stage-3-2" // Chrome 122+, Safari 18.4+, Firefox 131+
+
+// Map upsert: getOrInsert, getOrInsertComputed
+// https://core-js.io/docs/features/proposals/map-upsert
+import "core-js/proposals/map-upsert-v4" // Chrome 145+, Safari 26.2+, Firefox 144+

@@ -21,7 +21,8 @@
             "es2024.collection", // `Map.groupBy`
             "es2024.object", // `Object.groupBy`
             "es2025.collection", // Set `union`, `intersection`, `difference` etc.
-            "es2025.iterator" // Iterator helpers: `map`, `filter`, `reduce`, `some`, `every`, `find`, etc.
+            "es2025.iterator", // Iterator helpers: `map`, `filter`, `reduce`, `some`, `every`, `find`, etc.
+            "esnext.collection" // Map upsert `getOrInsert`, `getOrInsertComputed`
         ],
 
         "types": ["@testing-library/jest-dom"],
