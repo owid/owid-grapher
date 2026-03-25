@@ -29,11 +29,18 @@ import {
 } from "../helpers/utils"
 import { Bounds } from "@ourworldindata/utils"
 import type { AgeZone, AgeZoneWithBounds } from "../helpers/types.js"
-import { useBreakpoint } from "../helpers/useBreakpoint.js"
-import { getFontTier, getSizeTier } from "../helpers/fontTiers.js"
+import { widthToBreakpoint } from "../helpers/useBreakpoint.js"
+import {
+    getPopulationPyramidFonts,
+    type PopulationPyramidFonts,
+} from "../helpers/fonts.js"
 
 // Labels reversed so 0-4 at bottom, oldest at top
 const AGE_GROUP_LABELS = [...PYRAMID_AGE_GROUPS].reverse()
+
+const PYRAMID_MARGIN = { top: 16, right: 3, bottom: 14, left: 3 }
+const CENTER_GAP_PADDING = 2
+const TRIANGLE = { w: 3.5, h: 2.5 }
 
 const AGE_ZONE_LABEL_PADDING = 24 // gap + arrow + spacing
 
@@ -44,7 +51,6 @@ export interface PopulationPyramidProps {
     year: number
     xAxisScaleMode?: "fixed" | "adaptive"
     ageZones?: AgeZone[]
-    compact?: boolean
     projection?: ProjectionType
 }
 
@@ -53,24 +59,17 @@ function PopulationPyramid({
     year,
     xAxisScaleMode = "fixed",
     ageZones,
-    compact = false,
     projection = "custom",
     width,
     height,
 }: PopulationPyramidProps & { width: number; height: number }) {
-    const breakpoint = useBreakpoint()
-    const fontTier = compact ? getFontTier("small") : getFontTier(breakpoint)
-    const sizeTier = compact ? getSizeTier("small") : getSizeTier(breakpoint)
-    const margin = { ...sizeTier.pyramidMargin }
-    const centerGap = sizeTier.pyramidCenterGap
-    const triangle = sizeTier.pyramidTriangle
-    const font = {
-        tick: fontTier.tick + 1,
-        ageLabel: (fontTier.label + fontTier.annotation) / 2,
-        header: fontTier.header,
-        ageHeader: fontTier.label,
-        ageZone: fontTier.annotation,
-    }
+    const bp = widthToBreakpoint(width)
+    const fonts = getPopulationPyramidFonts(bp)
+    const margin = { ...PYRAMID_MARGIN }
+    const centerGap =
+        Bounds.forText("125-129", { fontSize: fonts.ageGroupLabel }).width +
+        2 * CENTER_GAP_PADDING
+    const triangle = TRIANGLE
 
     // Margin on the right to accommodate age zone boundary labels, if shown
     const ageZoneLabelMarginRight = useMemo(() => {
@@ -81,12 +80,12 @@ function PopulationPyramid({
                     new TextWrap({
                         text: ageZone.label,
                         maxWidth: Infinity,
-                        fontSize: font.ageZone,
+                        fontSize: fonts.ageZoneLabel,
                     }).width
             )
         )
         return maxLabelWidth + AGE_ZONE_LABEL_PADDING
-    }, [font.ageZone, ageZones])
+    }, [fonts.ageZoneLabel, ageZones])
 
     if (ageZoneLabelMarginRight) {
         margin.right = ageZoneLabelMarginRight
@@ -182,7 +181,7 @@ function PopulationPyramid({
                         yScale={yScale}
                         ageBuckets={ageBucketsBySex.male}
                         height={innerHeight}
-                        tickFontSize={font.tick}
+                        tickFontSize={fonts.xTick}
                         ageZones={ageZones}
                         side="male"
                         hoveredAgeGroup={hoveredAgeGroup}
@@ -194,7 +193,7 @@ function PopulationPyramid({
                         yScale={yScale}
                         ageBuckets={ageBucketsBySex.female}
                         height={innerHeight}
-                        tickFontSize={font.tick}
+                        tickFontSize={fonts.xTick}
                         ageZones={ageZones}
                         side="female"
                         hoveredAgeGroup={hoveredAgeGroup}
@@ -205,7 +204,7 @@ function PopulationPyramid({
                         gapWidth={centerGap}
                         yScale={yScale}
                         medianAgeBucket={medianAgeBucketBySex}
-                        font={font}
+                        fonts={fonts}
                         triangle={triangle}
                         hoveredAgeGroup={hoveredAgeGroup}
                     />
@@ -213,7 +212,7 @@ function PopulationPyramid({
                     {ageZonesWithBounds && (
                         <AgeZoneLabels
                             ageZones={ageZonesWithBounds}
-                            fontSize={font.ageZone}
+                            fontSize={fonts.ageZoneLabel}
                         />
                     )}
 
@@ -252,7 +251,6 @@ export function ResponsivePopulationPyramid({
     year,
     xAxisScaleMode,
     ageZones,
-    compact,
     projection,
 }: PopulationPyramidProps) {
     const { parentRef, width, height } = useParentSize()
@@ -264,7 +262,6 @@ export function ResponsivePopulationPyramid({
                     year={year}
                     ageZones={ageZones}
                     xAxisScaleMode={xAxisScaleMode}
-                    compact={compact}
                     projection={projection}
                     width={width}
                     height={height}
@@ -468,7 +465,7 @@ function PopulationPyramidAxisX({
     gapWidth,
     yScale,
     medianAgeBucket,
-    font,
+    fonts,
     triangle,
     hoveredAgeGroup,
 }: {
@@ -476,7 +473,7 @@ function PopulationPyramidAxisX({
     gapWidth: number
     yScale: ReturnType<typeof scaleBand<string>>
     medianAgeBucket: { male?: string; female?: string }
-    font: { ageLabel: number; header: number; ageHeader: number }
+    fonts: PopulationPyramidFonts
     triangle: { w: number; h: number }
     hoveredAgeGroup: string | null
 }) {
@@ -497,7 +494,7 @@ function PopulationPyramidAxisX({
                     <g key={ageGroupLabel}>
                         {isMaleMedian && !isHovering && (
                             <Triangle
-                                x={centerX - font.ageLabel - triangle.w}
+                                x={centerX - fonts.ageGroupLabel - triangle.w}
                                 y={bandY}
                                 direction="right"
                                 size={triangle}
@@ -508,7 +505,7 @@ function PopulationPyramidAxisX({
                             y={bandY}
                             textAnchor="middle"
                             dominantBaseline="central"
-                            fontSize={font.ageLabel}
+                            fontSize={fonts.ageGroupLabel}
                             fill={
                                 isHovered
                                     ? GRAPHER_DARK_TEXT
@@ -521,7 +518,7 @@ function PopulationPyramidAxisX({
                         </text>
                         {isFemaleMedian && !isHovering && (
                             <Triangle
-                                x={centerX + font.ageLabel + triangle.w}
+                                x={centerX + fonts.ageGroupLabel + triangle.w}
                                 y={bandY}
                                 direction="left"
                                 size={triangle}
@@ -536,7 +533,7 @@ function PopulationPyramidAxisX({
                 x={centerX - gapWidth / 2 - 4}
                 y={-4}
                 textAnchor="end"
-                fontSize={font.header}
+                fontSize={fonts.sexLabel}
                 fontWeight={600}
                 fill={GRAPHER_LIGHT_TEXT}
                 letterSpacing="0.05em"
@@ -547,7 +544,7 @@ function PopulationPyramidAxisX({
                 x={centerX}
                 y={-4}
                 textAnchor="middle"
-                fontSize={font.ageHeader}
+                fontSize={fonts.ageZoneLabel}
                 fill={LABEL_COLOR}
                 letterSpacing="0.05em"
             >
@@ -557,7 +554,7 @@ function PopulationPyramidAxisX({
                 x={centerX + gapWidth / 2 + 4}
                 y={-4}
                 textAnchor="start"
-                fontSize={font.header}
+                fontSize={fonts.sexLabel}
                 fontWeight={600}
                 fill={GRAPHER_LIGHT_TEXT}
                 letterSpacing="0.05em"
@@ -595,8 +592,8 @@ function AgeZoneLabels({
     fontSize: number
 }) {
     const arrowLength = 0.9 * fontSize
-    const arrowMargin = 8 // Gap between the label text and the arrow
-    const verticalOffset = 8 // Gap between the horizontal line and the label+arrow
+    const arrowMargin = Math.ceil(fontSize * 0.6) // Gap between the label text and the arrow
+    const verticalOffset = Math.ceil(fontSize * 0.6) // Gap between the horizontal line and the label+arrow
 
     return (
         <>

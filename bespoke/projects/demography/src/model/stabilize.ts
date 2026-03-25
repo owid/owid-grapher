@@ -9,7 +9,7 @@
  */
 
 import type { ScenarioParams } from "./scenarios"
-import type { BaselineParams } from "./model"
+import type { BaselineParams, MigrationOptions } from "./model"
 import { getTotalPopulationFromArrays } from "./model"
 import {
     runProjectionFinalPopulation,
@@ -53,6 +53,7 @@ const CONVERGENCE_THRESHOLD = 0.001
 interface ProjectionContext {
     startPopulation: PopulationBySex
     baselineParams: BaselineParams
+    migrationOptions?: MigrationOptions
 }
 
 function runTrajectory(
@@ -66,6 +67,7 @@ function runTrajectory(
         historicalEndYear: HISTORICAL_END_YEAR,
         endYear: END_YEAR,
         controlYears: CONTROL_YEARS,
+        migrationOptions: ctx.migrationOptions,
     })
 }
 
@@ -77,6 +79,7 @@ function runFinalPop(params: ScenarioParams, ctx: ProjectionContext): number {
         historicalEndYear: HISTORICAL_END_YEAR,
         endYear: END_YEAR,
         controlYears: CONTROL_YEARS,
+        migrationOptions: ctx.migrationOptions,
     })
 }
 
@@ -276,14 +279,19 @@ export function stabilizeParameter(
     parameterKey: ParameterKey,
     scenarioParams: ScenarioParams,
     baselineParams: BaselineParams,
-    startPopulation: PopulationBySex
+    startPopulation: PopulationBySex,
+    migrationOptions?: MigrationOptions
 ): StabilizeResult {
     const targetPop = getTotalPopulationFromArrays(
         startPopulation.female,
         startPopulation.male
     )
 
-    const ctx: ProjectionContext = { startPopulation, baselineParams }
+    const ctx: ProjectionContext = {
+        startPopulation,
+        baselineParams,
+        migrationOptions,
+    }
 
     const fixedControlYears = new Set([CONTROL_YEARS[0]])
     const adjustableControlYears = CONTROL_YEARS.slice(1)

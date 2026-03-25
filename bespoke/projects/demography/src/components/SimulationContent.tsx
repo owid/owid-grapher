@@ -1,11 +1,15 @@
 import cx from "classnames"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { Tippy } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
 import { BezierArrow } from "../../../../components/BezierArrow/BezierArrow"
 import { CountryData, PARAMETER_KEYS, ParameterKey } from "../helpers/types"
-import { useSimulation, type Simulation } from "../helpers/useSimulation"
+import {
+    useSimulation,
+    computeStabilizedOverrides,
+    type Simulation,
+} from "../helpers/useSimulation"
 import { ResponsivePopulationChart } from "./PopulationChart.js"
 import { ResponsiveDemographyParameterEditor } from "./DemographyParameterEditor.js"
 import { ResponsivePopulationPyramid } from "./PopulationPyramid.js"
@@ -15,18 +19,13 @@ import {
     START_YEAR,
     END_YEAR,
     FULL_TIME_RANGE,
-    HISTORICAL_END_YEAR,
     BENCHMARK_LINE_COLOR,
 } from "../helpers/constants.js"
 import { PopulationChartLegend } from "./PopulationChartLegend.js"
 import { parameterConfigByKey } from "../helpers/parameterConfigs.js"
-import { getPopulationForYear } from "../helpers/utils.js"
-import { stabilizeParameter } from "../model/stabilize.js"
 import { useBreakpoint } from "../helpers/useBreakpoint.js"
-import {
-    GRAY_60,
-    GRAPHER_LIGHT_TEXT,
-} from "@ourworldindata/grapher/src/color/ColorConstants.js"
+import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
+import { GRAY_60 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 
 export function SimulationContent({
     data,
@@ -41,55 +40,23 @@ export function SimulationContent({
 }) {
     const [year, setYear] = useState(END_YEAR)
 
-    const simulation = useSimulation(data)
+    const stabilizedOverrides = useMemo(
+        () =>
+            stabilizingParameter
+                ? computeStabilizedOverrides(data, stabilizingParameter)
+                : undefined,
+        [data, stabilizingParameter]
+    )
 
-    // Keep a ref to setScenarioParams so the effect doesn't re-run
-    // when the simulation object changes identity
-    const setScenarioParamsRef = useRef(simulation?.setScenarioParams)
-    setScenarioParamsRef.current = simulation?.setScenarioParams
-
-    // Extract stable references for the stabilization computation.
-    // These only change when the country changes (new data loaded).
-    const unwppScenarioParams = simulation?.unwppScenarioParams
-    const baselineParams = simulation?.baselineParams
-
-    // Compute stabilized params from the UN WPP baseline (not current scenario)
-    // so that user drags don't trigger re-stabilization
-    const stabilizedParams = useMemo(() => {
-        if (!stabilizingParameter || !unwppScenarioParams || !baselineParams)
-            return null
-
-        const startPopulation = getPopulationForYear(data, HISTORICAL_END_YEAR)
-        if (!startPopulation) return null
-
-        const result = stabilizeParameter(
-            stabilizingParameter,
-            unwppScenarioParams,
-            baselineParams,
-            startPopulation
-        )
-        return result.params
-    }, [stabilizingParameter, unwppScenarioParams, baselineParams, data])
-
-    // Apply stabilized params once on mount and when country changes
-    useEffect(() => {
-        if (stabilizedParams) {
-            setScenarioParamsRef.current?.(stabilizedParams)
-        }
-    }, [stabilizedParams])
+    const simulation = useSimulation(data, stabilizedOverrides)
 
     if (!simulation) return null
 
+    const title = makeTitle({ focusParameter })
+
     return (
         <div className="chart-content">
-            <Container
-                className="container-left"
-                title={
-                    focusParameter
-                        ? `Change future assumptions on ${parameterConfigByKey[focusParameter].title.toLowerCase()}`
-                        : "Change these future assumptions"
-                }
-            >
+            <Container className="container-left" title={title}>
                 <div className="input-panels">
                     {PARAMETER_KEYS.map((key) => {
                         const isFocus = focusParameter && focusParameter === key
@@ -111,12 +78,8 @@ export function SimulationContent({
                                 lineColor={
                                     isMuted ? BENCHMARK_LINE_COLOR : undefined
                                 }
-                                labelColor={
-                                    isMuted ? GRAY_60 : undefined
-                                }
-                                resetTarget={
-                                    stabilizedParams?.[key]
-                                }
+                                labelColor={isMuted ? GRAY_60 : undefined}
+                                resetTarget={stabilizedOverrides?.[key]}
                                 hideInfoIcon={isWorldMigration}
                                 className={cx({
                                     "chart-panel--focus": isFocus,
@@ -145,6 +108,8 @@ export function SimulationContent({
                     >
                         <ResponsivePopulationChart
                             simulation={simulation}
+                            hideChangeAnnotation={!!stabilizingParameter}
+                            showHistoricalAnnotation={!!stabilizingParameter}
                         />
                     </ChartPanel>
                     {!hidePopulationPyramid && (
@@ -185,7 +150,6 @@ function AgeStructurePanel({
                 <ResponsivePopulationPyramid
                     simulation={simulation}
                     year={year}
-                    compact
                 />
             </ChartPanel>
             <ChartPanel
@@ -241,8 +205,11 @@ export function InputChartPanel({
     resetTarget?: Record<number, number>
     showProjectionLabel?: boolean
 }) {
-    const { title, subtitle: getSubtitle, tooltipContent } =
-        parameterConfigByKey[variant]
+    const {
+        title,
+        subtitle: getSubtitle,
+        tooltipContent,
+    } = parameterConfigByKey[variant]
     const subtitle = getSubtitle(simulation.data.country)
 
     // Reset target: explicit override (e.g. stabilized params), or UN WPP defaults
@@ -303,12 +270,8 @@ export function ChartPanel({
     className?: string
     onReset?: () => void
 }) {
-    const panelRef = useRef<HTMLDivElement>(null)
-    const getTippyContainer = useCallback(() => {
-        const root = panelRef.current?.getRootNode()
-        if (root instanceof ShadowRoot) return root as unknown as Element
-        return document.body
-    }, [])
+    const { ref: panelRef, getTippyContainer } =
+        useTippyContainer<HTMLDivElement>()
 
     return (
         <div ref={panelRef} className={cx("chart-panel", className)}>
@@ -347,7 +310,7 @@ export function ChartPanel({
 
 function ArrowFromInputToOutputPanels() {
     const breakpoint = useBreakpoint()
-    const isVertical = breakpoint === "small"
+    const isVertical = breakpoint === "small" || breakpoint === "narrow"
 
     if (isVertical) {
         return (
@@ -397,4 +360,17 @@ function SimpleYearSlider({
             <span className="demography-year-slider__label">{END_YEAR}</span>
         </div>
     )
+}
+
+function makeTitle({ focusParameter }: { focusParameter?: ParameterKey }) {
+    if (!focusParameter) return "Change these future assumptions"
+
+    switch (focusParameter) {
+        case "fertilityRate":
+            return "Change future assumptions about fertility"
+        case "lifeExpectancy":
+            return "Change future assumptions about life expectancy"
+        case "netMigrationRate":
+            return "Change future assumptions about migration"
+    }
 }

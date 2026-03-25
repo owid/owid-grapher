@@ -26,12 +26,14 @@ import {
     COLOR_WORKING,
 } from "../helpers/constants.js"
 import { Bounds, formatValue } from "@ourworldindata/utils"
-import { useBreakpoint } from "../helpers/useBreakpoint.js"
-import { getFontTier } from "../helpers/fontTiers.js"
+import { widthToBreakpoint } from "../helpers/useBreakpoint.js"
+import { getAgeZoneLegendFonts } from "../helpers/fonts.js"
 
-const BAR_HEIGHT = 20
+const BAR_PADDING_Y = 4
 const SEGMENT_GAP = 2
-const BOX_PADDING = 5
+const BOX_PADDING_Y = 5
+const BOX_PADDING_LEFT = 5
+const BOX_PADDING_RIGHT = 2
 const LABEL_VALUE_GAP = 2
 
 interface AgeZoneLegendProps {
@@ -70,9 +72,7 @@ function AgeZoneLegend({
             ? simulation.getBenchmarkAgeZonePopulation
             : simulation.getAgeZonePopulation
     )(year)
-    const breakpoint = useBreakpoint()
-    const fontTier = getFontTier(breakpoint)
-    const fontSize = fontTier.tick
+    const fonts = getAgeZoneLegendFonts(widthToBreakpoint(width))
 
     const total =
         populationByAgeZone.young +
@@ -109,14 +109,15 @@ function AgeZoneLegend({
 
     const renderZones = annotateZones(
         placeZones(placedZones, width, SEGMENT_GAP),
-        fontSize
+        fonts.ageZoneLabel,
+        fonts.valueLabel
     )
 
-    const totalPopulationFontSize = fontSize
-    const totalPopulationLabelHeight = totalPopulationFontSize
+    const barHeight = fonts.percentageLabel + 2 * BAR_PADDING_Y
+    const totalPopulationLabelHeight = fonts.totalPopulationLabel
 
-    const barY = totalPopulationLabelHeight + 0.85 * totalPopulationFontSize
-    const annotationY = barY + BAR_HEIGHT
+    const barY = totalPopulationLabelHeight + 0.85 * fonts.totalPopulationLabel
+    const annotationY = barY + barHeight
 
     // Use the tallest annotation to size the bracket
     const maximumLabelHeight = Math.max(
@@ -128,7 +129,7 @@ function AgeZoneLegend({
                 : z.labelWrap.height
         })
     )
-    const boxHeight = maximumLabelHeight + 2 * BOX_PADDING
+    const boxHeight = maximumLabelHeight + 2 * BOX_PADDING_Y
     const height = annotationY + boxHeight
 
     const bounds = new Bounds(0, 0, width, height)
@@ -138,12 +139,16 @@ function AgeZoneLegend({
             <TotalPopulationLabel
                 total={total}
                 width={bounds.width}
-                fontSize={totalPopulationFontSize}
+                fontSize={fonts.totalPopulationLabel}
             />
 
             {/* Stacked bar segments */}
             <Group top={barY}>
-                <BarSegments zones={renderZones} fontSize={fontSize} />
+                <BarSegments
+                    zones={renderZones}
+                    fontSize={fonts.percentageLabel}
+                    barHeight={barHeight}
+                />
             </Group>
 
             {/* Annotations below bar */}
@@ -163,9 +168,11 @@ function AgeZoneLegend({
 function BarSegments({
     zones,
     fontSize,
+    barHeight,
 }: {
     zones: AnnotatedZone[]
     fontSize: number
+    barHeight: number
 }) {
     return (
         <g>
@@ -190,13 +197,13 @@ function BarSegments({
                         <rect
                             x={zone.startX}
                             width={zone.width}
-                            height={BAR_HEIGHT}
+                            height={barHeight}
                             fill={zone.color}
                         />
                         {shouldShowLabel && (
                             <text
                                 x={zone.startX + zone.width / 2}
-                                y={BAR_HEIGHT / 2}
+                                y={barHeight / 2}
                                 textAnchor="middle"
                                 dominantBaseline="central"
                                 fontSize={fontSize}
@@ -272,8 +279,8 @@ function AgeZoneLegendBox({
     const left = zone.startX
     const right = zone.startX + zone.width
 
-    const textX = left + BOX_PADDING
-    const labelY = BOX_PADDING
+    const textX = left + BOX_PADDING_LEFT
+    const labelY = BOX_PADDING_Y
     const valueY = zone.labelWrap
         ? labelY + zone.labelWrap.height + LABEL_VALUE_GAP
         : labelY
@@ -375,11 +382,19 @@ function placeZones(
     })
 }
 
-function annotateZones(zones: PlacedZone[], fontSize: number): AnnotatedZone[] {
+function annotateZones(
+    zones: PlacedZone[],
+    labelFontSize: number,
+    valueFontSize: number
+): AnnotatedZone[] {
     const fitsOnOneLine = (wrap: TextWrap, maxWidth: number) =>
         wrap.lines.length <= 1 && wrap.width <= maxWidth
 
-    const makeTextWrap = (text: string, fontWeight?: number) =>
+    const makeTextWrap = (
+        text: string,
+        fontSize: number,
+        fontWeight?: number
+    ) =>
         new TextWrap({
             text,
             maxWidth: Infinity,
@@ -389,21 +404,22 @@ function annotateZones(zones: PlacedZone[], fontSize: number): AnnotatedZone[] {
         })
 
     return zones.map((zone) => {
-        const maxWidth = zone.width - 2 * 2 - 2 * BOX_PADDING
+        const maxWidth =
+            zone.width - 2 * 2 - BOX_PADDING_LEFT - BOX_PADDING_RIGHT
 
         // Label: try long → short → truncated short with ellipsis
         let labelText = zone.labelLong
-        let labelWrap = makeTextWrap(labelText, 700)
+        let labelWrap = makeTextWrap(labelText, labelFontSize, 700)
         if (!fitsOnOneLine(labelWrap, maxWidth)) {
             labelText = zone.labelShort
-            labelWrap = makeTextWrap(labelText, 700)
+            labelWrap = makeTextWrap(labelText, labelFontSize, 700)
         }
         if (!fitsOnOneLine(labelWrap, maxWidth)) {
             labelText = shortenWithEllipsis(zone.labelShort, maxWidth, {
-                fontSize,
+                fontSize: labelFontSize,
                 fontWeight: 700,
             })
-            labelWrap = makeTextWrap(labelText, 700)
+            labelWrap = makeTextWrap(labelText, labelFontSize, 700)
         }
 
         // If the label was truncated to just ellipsis, hide both label and value
@@ -413,13 +429,13 @@ function annotateZones(zones: PlacedZone[], fontSize: number): AnnotatedZone[] {
 
         // Value: try long → short → hide
         const longValue = formatPopulationValueLong(zone.population)
-        const longValueWrap = makeTextWrap(longValue)
+        const longValueWrap = makeTextWrap(longValue, valueFontSize)
         let valueWrap: TextWrap | undefined
         if (fitsOnOneLine(longValueWrap, maxWidth)) {
             valueWrap = longValueWrap
         } else {
             const shortValue = formatPopulationValueShort(zone.population)
-            const shortValueWrap = makeTextWrap(shortValue)
+            const shortValueWrap = makeTextWrap(shortValue, valueFontSize)
             if (fitsOnOneLine(shortValueWrap, maxWidth)) {
                 valueWrap = shortValueWrap
             }
