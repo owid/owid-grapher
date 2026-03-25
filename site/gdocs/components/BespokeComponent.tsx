@@ -4,6 +4,7 @@ import cx from "classnames"
 import { useEffect, useRef, useState } from "react"
 import { BESPOKE_COMPONENT_REGISTRY } from "../../bespokeComponentRegistry.js"
 import { mountBespokeComponentInShadow } from "../../../bespoke/shared/bespokeComponentShadowDom.js"
+import { BESPOKE_BASE_URL } from "../../../settings/clientSettings.js"
 
 /**
  * Renders a bespoke component inside a Shadow DOM container.
@@ -55,8 +56,8 @@ export function BespokeComponent({
 
         mountBespokeComponentInShadow({
             container,
-            scriptUrl: definition.scriptUrl,
-            cssUrl: definition.cssUrl,
+            scriptUrl: `${BESPOKE_BASE_URL}${definition.scriptUrl}`,
+            cssUrl: `${BESPOKE_BASE_URL}${definition.cssUrl}`,
             variant: block.variant,
             config: block.config,
             signal: abortController.signal,
