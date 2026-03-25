@@ -1,6 +1,9 @@
-import { useRef } from "react"
 import cx from "classnames"
-import { Link, Tooltip, TooltipTrigger } from "react-aria-components"
+import { Tippy } from "@ourworldindata/utils"
+import { useTippyContainer } from "../../hooks/useTippyContainer.js"
+
+const CC_BY_TOOLTIP =
+    "Our World in Data charts are licensed under Creative Commons; you are free to use, share, and adapt this material. Click through to the CC BY page for more information. Please bear in mind that the underlying source data for all our charts might be subject to different license terms from third-party authors."
 
 export function ChartFooter({
     source,
@@ -11,29 +14,24 @@ export function ChartFooter({
     note?: React.ReactNode
     className?: string
 }) {
-    const footerRef = useRef<HTMLElement>(null)
+    const { ref: footerRef, getTippyContainer } =
+        useTippyContainer<HTMLElement>()
 
     const ccBy = (
-        <TooltipTrigger>
-            <Link
+        <Tippy
+            content={CC_BY_TOOLTIP}
+            appendTo={getTippyContainer}
+            arrow={false}
+        >
+            <a
                 className="chart-footer__cc"
                 href="https://creativecommons.org/licenses/by/4.0/"
                 target="_blank"
                 rel="noopener noreferrer"
             >
                 CC BY
-            </Link>
-            <Tooltip
-                className="chart-footer__tooltip"
-                UNSTABLE_portalContainer={footerRef.current ?? undefined}
-            >
-                Our World in Data charts are licensed under Creative Commons;
-                you are free to use, share, and adapt this material. Click
-                through to the CC BY page for more information. Please bear in
-                mind that the underlying source data for all our charts might be
-                subject to different license terms from third-party authors.
-            </Tooltip>
-        </TooltipTrigger>
+            </a>
+        </Tippy>
     )
 
     return (
