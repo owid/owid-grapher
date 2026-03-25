@@ -51,34 +51,31 @@ export class LineChartTooltip extends React.Component<LineChartTooltipProps> {
         // Duplicate seriesNames will be present if there is a projected-values line
         const grouped = Map.groupBy(this.props.series, (s) => s.seriesName)
 
-        return excludeUndefined(
-            grouped
-                .values()
-                .map(
-                    (segments) =>
-                        // Ideally pick series with a defined value at the target time
-                        segments.find((series) =>
-                            series.points.find(
-                                (point) => point.x === target.time
-                            )
-                        ) ??
-                        // Otherwise pick the series whose start & end contains the target time
-                        // and display a "No data" notice.
-                        segments.find((series): boolean | void => {
-                            const [startX, endX] = extent(
-                                series.points,
-                                ({ x }) => x
-                            )
-                            return (
-                                _.isNumber(startX) &&
-                                _.isNumber(endX) &&
-                                startX < target.time &&
-                                target.time < endX
-                            )
-                        })
-                )
-                .toArray()
-        )
+        return grouped
+            .values()
+            .map(
+                (segments) =>
+                    // Ideally pick series with a defined value at the target time
+                    segments.find((series) =>
+                        series.points.find((point) => point.x === target.time)
+                    ) ??
+                    // Otherwise pick the series whose start & end contains the target time
+                    // and display a "No data" notice.
+                    segments.find((series): boolean | void => {
+                        const [startX, endX] = extent(
+                            series.points,
+                            ({ x }) => x
+                        )
+                        return (
+                            _.isNumber(startX) &&
+                            _.isNumber(endX) &&
+                            startX < target.time &&
+                            target.time < endX
+                        )
+                    })
+            )
+            .filter((series) => series !== undefined)
+            .toArray()
     }
 
     private get hasProjectedSeries(): boolean {

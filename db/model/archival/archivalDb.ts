@@ -35,7 +35,7 @@ import {
 import * as db from "../../db.js"
 import { stringify } from "safe-stable-stringify"
 import { hashHex } from "../../../serverUtils/hash.js"
-import { getAllVariableIds } from "@ourworldindata/utils"
+import { es6mapValues, getAllVariableIds } from "@ourworldindata/utils"
 import { getLatestArchivedChartVersionHashes } from "../ArchivedChartVersion.js"
 import { getLatestArchivedExplorerVersionHashes } from "../ArchivedExplorerVersion.js"
 import { getLatestArchivedMultiDimVersionHashes } from "../ArchivedMultiDimVersion.js"
@@ -788,11 +788,7 @@ async function resolveMultiDimRedirects(
         slugs,
         sourcePrefix
     )
-    return new Map(
-        redirects
-            .entries()
-            .map(([slug, redirect]) => [slug, redirect.targetSlug])
-    )
+    return es6mapValues(redirects, (redirect) => redirect.targetSlug)
 }
 
 /**

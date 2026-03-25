@@ -333,7 +333,7 @@ export function SExpressionToJsonLogic(
         processSqlColumnName: (columnName) => {
             const item = readOnlyEntries
                 .entries()
-                .find((item) => item[1].sExpressionColumnTarget === columnName)
+                .find(([_, col]) => col.sExpressionColumnTarget === columnName)
             const mappedColumnName = item![0]
             return mappedColumnName
         },

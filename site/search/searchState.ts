@@ -282,36 +282,26 @@ export function searchParamsToState(
     )
 
     const filters: Filter[] = [
-        topicsSet
-            .keys()
-            .map((topic) => createTopicFilter(topic))
-            .toArray(),
+        ...topicsSet.keys().map((topic) => createTopicFilter(topic)),
 
-        countriesSet
-            .keys()
-            .map((country) => createCountryFilter(country))
-            .toArray(),
+        ...countriesSet.keys().map((country) => createCountryFilter(country)),
 
-        datasetsSet
+        ...datasetsSet
             .keys()
-            .map((dataset) => createDatasetProductsFilter(dataset))
-            .toArray(),
+            .map((dataset) => createDatasetProductsFilter(dataset)),
 
-        namespacesSet
+        ...namespacesSet
             .keys()
-            .map((namespace) => createDatasetNamespaceFilter(namespace))
-            .toArray(),
+            .map((namespace) => createDatasetNamespaceFilter(namespace)),
 
-        versionsSet
+        ...versionsSet
             .keys()
-            .map((version) => createDatasetVersionFilter(version))
-            .toArray(),
+            .map((version) => createDatasetVersionFilter(version)),
 
-        producersSet
+        ...producersSet
             .keys()
-            .map((producer) => createDatasetProducerFilter(producer))
-            .toArray(),
-    ].flat()
+            .map((producer) => createDatasetProducerFilter(producer)),
+    ]
 
     const resultTypeParam = searchParams.get("resultType") ?? undefined
 
