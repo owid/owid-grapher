@@ -1,12 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react"
-import {
-    Slide,
-    SlideMedia,
-    SlideshowConfig,
-    ImageMetadata,
-} from "@ourworldindata/types"
+import { Slide, SlideshowConfig, ImageMetadata } from "@ourworldindata/types"
 import { GrapherState } from "@ourworldindata/grapher"
-import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
 import { SlideRenderer } from "./SlideRenderer.js"
 import { SlideGrapher } from "./SlideGrapher.js"
 
@@ -22,21 +16,21 @@ export interface SlideshowPresentationProps {
  * Interactive slideshow viewer with keyboard navigation.
  * Used on the baked site (hydrated) and importable by the admin editor.
  *
- * Owns a `grapherStateRef` so that grapher slides sharing the same
- * chart slug transition smoothly (no remount / white flash).
+ * Owns a `grapherStateRef` so that chart slides sharing the same
+ * slug transition smoothly (no remount / white flash).
  */
 export function SlideshowPresentation(props: {
     title: string
     slides: SlideshowConfig["slides"]
     imageMetadata: Record<string, ImageMetadata>
-    /** Override the media rendering for a specific slide (used by admin editor) */
-    renderMedia?: (media: SlideMedia, slideIndex: number) => React.ReactElement
+    /** Override chart rendering (used by admin editor for live MobX sync) */
+    renderChart?: (slug: string, queryString?: string) => React.ReactElement
     /** Controlled slide index (optional — if omitted, manages its own state) */
     currentSlideIndex?: number
     /** Called when the user navigates (optional — for controlled mode) */
     onSlideChange?: (index: number) => void
 }): React.ReactElement {
-    const { slides, imageMetadata, renderMedia } = props
+    const { slides, imageMetadata, renderChart } = props
 
     // Support both controlled and uncontrolled modes
     const [internalIndex, setInternalIndex] = useState(0)
@@ -76,45 +70,22 @@ export function SlideshowPresentation(props: {
     // the GrapherState across slide transitions.
     const grapherStateRef = useRef<GrapherState | null>(null)
 
-    // Default media renderer: uses SlideGrapher for graphers,
-    // Cloudflare URLs for images. The admin editor can override
-    // this via the renderMedia prop.
-    const defaultRenderMedia = useCallback(
-        (media: SlideMedia): React.ReactElement => {
-            if (media.type === "image") {
-                const metadata = imageMetadata[media.filename]
-                if (metadata?.cloudflareId) {
-                    return (
-                        <img
-                            src={`${CLOUDFLARE_IMAGES_URL}/${metadata.cloudflareId}/w=960`}
-                            alt={metadata.defaultAlt || media.filename}
-                            className="SlideContent__media-image"
-                        />
-                    )
-                }
-                return (
-                    <div className="SlideContent__media-placeholder">
-                        {media.filename}
-                    </div>
-                )
-            }
-
+    // Default chart renderer: uses SlideGrapher for smooth same-slug
+    // transitions. The admin editor can override via the renderChart prop.
+    const defaultRenderChart = useCallback(
+        (slug: string, queryString?: string): React.ReactElement => {
             return (
                 <SlideGrapher
-                    slug={media.slug}
-                    initialQueryString={media.queryString}
+                    slug={slug}
+                    initialQueryString={queryString}
                     grapherStateRef={grapherStateRef}
                 />
             )
         },
-        [imageMetadata]
+        []
     )
 
     if (!currentSlide) return <div className="SlideshowPresentation" />
-
-    const activeRenderMedia = renderMedia
-        ? (media: SlideMedia) => renderMedia(media, currentIndex)
-        : defaultRenderMedia
 
     return (
         <div className="SlideshowPresentation">
@@ -122,7 +93,7 @@ export function SlideshowPresentation(props: {
                 <SlideRenderer
                     slide={currentSlide}
                     imageMetadata={imageMetadata}
-                    renderMedia={activeRenderMedia}
+                    renderChart={renderChart ?? defaultRenderChart}
                 />
             </div>
             <div className="SlideshowPresentation__nav">

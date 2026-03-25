@@ -7,7 +7,7 @@ import {
     SlideshowsTableName,
     ImageMetadata,
     Slide,
-    SlideMedia,
+    SlideTemplate,
 } from "@ourworldindata/types"
 import { renderSlideshowPage } from "./siteRenderers.js"
 import { getImagesByFilenames } from "../db/model/Image.js"
@@ -16,10 +16,8 @@ import { getImagesByFilenames } from "../db/model/Image.js"
 function extractImageFilenames(slides: Slide[]): string[] {
     const filenames: string[] = []
     for (const slide of slides) {
-        if (!("media" in slide) || !slide.media) continue
-        const media = slide.media as SlideMedia
-        if (media.type === "image") {
-            filenames.push(media.filename)
+        if (slide.template === SlideTemplate.Image && slide.filename) {
+            filenames.push(slide.filename)
         }
     }
     return filenames

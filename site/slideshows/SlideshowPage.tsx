@@ -1,8 +1,7 @@
 import React from "react"
-import { Head } from "./Head.js"
-import { SiteHeader } from "./SiteHeader.js"
-import { SiteFooter } from "./SiteFooter.js"
-import { Html } from "./Html.js"
+import { Head } from "./../Head.js"
+import { SiteFooter } from "./../SiteFooter.js"
+import { Html } from "./../Html.js"
 import {
     SiteFooterContext,
     ImageMetadata,

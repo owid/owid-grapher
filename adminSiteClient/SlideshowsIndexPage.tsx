@@ -116,10 +116,14 @@ export function SlideshowsIndexPage() {
     const deleteFn = useCallback(
         async (slideshowId: number) => {
             if (confirm("Are you sure you want to delete this slideshow?")) {
-                await admin
-                    .requestJSON(`/api/slideshows/${slideshowId}`, {}, "DELETE")
-                    .then(() => alert("Slideshow deleted"))
-                    .then(() => window.location.reload())
+                await admin.requestJSON(
+                    `/api/slideshows/${slideshowId}`,
+                    {},
+                    "DELETE"
+                )
+                setSlideshows((prev) =>
+                    prev.filter((s) => s.id !== slideshowId)
+                )
             }
         },
         [admin]

@@ -736,8 +736,8 @@ getPlainRouteWithROTransaction(
         // Collect image filenames from slides
         const imageFilenames: string[] = []
         for (const slide of config.slides) {
-            if (slide.media?.type === "image") {
-                imageFilenames.push(slide.media.filename)
+            if (slide.template === "image" && slide.filename) {
+                imageFilenames.push(slide.filename)
             }
         }
 

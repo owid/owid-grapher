@@ -2,23 +2,15 @@ import * as React from "react"
 import { Button } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronUp, faChevronDown } from "@fortawesome/free-solid-svg-icons"
-import { Slide, SlideTemplate } from "@ourworldindata/types"
-
-const TEMPLATE_LABELS: Record<SlideTemplate, string> = {
-    [SlideTemplate.ImageChartOnly]: "Image/Chart Only",
-    [SlideTemplate.Section]: "Section",
-    [SlideTemplate.ImageChartWithText]: "Image/Chart with Text",
-    [SlideTemplate.TitleSlide]: "Title Slide",
-    [SlideTemplate.Blank]: "Blank",
-    [SlideTemplate.TwoColumnText]: "Two Column Text",
-    [SlideTemplate.Quote]: "Quote",
-    [SlideTemplate.BigNumber]: "Big Number",
-    [SlideTemplate.FullSlideImage]: "Full Slide Image",
-}
+import {
+    Slide,
+    SlideTemplate,
+    SLIDE_TEMPLATE_LABELS,
+} from "@ourworldindata/types"
 
 function getSlideName(slide: Slide, index: number): string {
     switch (slide.template) {
-        case SlideTemplate.TitleSlide:
+        case SlideTemplate.Cover:
             return slide.title || `Slide ${index + 1}`
         case SlideTemplate.Section:
             return slide.title || `Slide ${index + 1}`
@@ -68,7 +60,7 @@ export function SlideshowArrangeTab(props: {
                                 {getSlideName(slide, i)}
                             </span>
                             <span className="SlideshowArrangeTab__item-type">
-                                {TEMPLATE_LABELS[slide.template]}
+                                {SLIDE_TEMPLATE_LABELS[slide.template]}
                             </span>
                         </div>
                         <div className="SlideshowArrangeTab__item-actions">

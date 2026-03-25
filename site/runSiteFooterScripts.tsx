@@ -58,7 +58,7 @@ import UserSurvey from "./gdocs/components/UserSurvey.js"
 import {
     SlideshowPresentation,
     _OWID_SLIDESHOW_PROPS,
-} from "./SlideshowPresentation.js"
+} from "./slideshows/SlideshowPresentation.js"
 
 function runSearchPage() {
     const root = document.getElementById("search-page-root")
