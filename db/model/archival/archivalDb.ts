@@ -789,7 +789,9 @@ async function resolveMultiDimRedirects(
         sourcePrefix
     )
     return new Map(
-        Array.from(redirects, ([slug, redirect]) => [slug, redirect.targetSlug])
+        redirects
+            .entries()
+            .map(([slug, redirect]) => [slug, redirect.targetSlug])
     )
 }
 

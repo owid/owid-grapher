@@ -273,9 +273,10 @@ export const bakeAllMultiDimDataPages = async (
     const multiDimsBySlug = await getAllPublishedMultiDimDataPagesBySlug(knex)
 
     // Fetch archived versions for all multi-dim pages
-    const multiDimIds = Array.from(multiDimsBySlug.values()).map(
-        (row) => row.id
-    )
+    const multiDimIds = multiDimsBySlug
+        .values()
+        .map((row) => row.id)
+        .toArray()
     const archivedVersions = await getLatestMultiDimArchivedVersionsIfEnabled(
         knex,
         multiDimIds

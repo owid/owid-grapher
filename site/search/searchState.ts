@@ -261,33 +261,56 @@ export function searchParamsToState(
         searchParams.get("countries")
     ).intersection(new Set(eligibleRegionNames))
     const datasetsSet = new Set(
-        [...deserializeSet(searchParams.get("datasetProducts"))].filter(Boolean)
+        deserializeSet(searchParams.get("datasetProducts"))
+            .keys()
+            .filter(Boolean)
     )
     const namespacesSet = new Set(
-        [...deserializeSet(searchParams.get("datasetNamespaces"))].filter(
-            Boolean
-        )
+        deserializeSet(searchParams.get("datasetNamespaces"))
+            .keys()
+            .filter(Boolean)
     )
     const versionsSet = new Set(
-        [...deserializeSet(searchParams.get("datasetVersions"))].filter(Boolean)
+        deserializeSet(searchParams.get("datasetVersions"))
+            .keys()
+            .filter(Boolean)
     )
     const producersSet = new Set(
-        [...deserializeSet(searchParams.get("datasetProducers"))].filter(
-            Boolean
-        )
+        deserializeSet(searchParams.get("datasetProducers"))
+            .keys()
+            .filter(Boolean)
     )
 
     const filters: Filter[] = [
-        [...topicsSet].map((topic) => createTopicFilter(topic)),
-        [...countriesSet].map((country) => createCountryFilter(country)),
-        [...datasetsSet].map((dataset) => createDatasetProductsFilter(dataset)),
-        [...namespacesSet].map((namespace) =>
-            createDatasetNamespaceFilter(namespace)
-        ),
-        [...versionsSet].map((version) => createDatasetVersionFilter(version)),
-        [...producersSet].map((producer) =>
-            createDatasetProducerFilter(producer)
-        ),
+        topicsSet
+            .keys()
+            .map((topic) => createTopicFilter(topic))
+            .toArray(),
+
+        countriesSet
+            .keys()
+            .map((country) => createCountryFilter(country))
+            .toArray(),
+
+        datasetsSet
+            .keys()
+            .map((dataset) => createDatasetProductsFilter(dataset))
+            .toArray(),
+
+        namespacesSet
+            .keys()
+            .map((namespace) => createDatasetNamespaceFilter(namespace))
+            .toArray(),
+
+        versionsSet
+            .keys()
+            .map((version) => createDatasetVersionFilter(version))
+            .toArray(),
+
+        producersSet
+            .keys()
+            .map((producer) => createDatasetProducerFilter(producer))
+            .toArray(),
     ].flat()
 
     const resultTypeParam = searchParams.get("resultType") ?? undefined

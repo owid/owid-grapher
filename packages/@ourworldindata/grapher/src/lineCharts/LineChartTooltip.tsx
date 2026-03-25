@@ -52,27 +52,32 @@ export class LineChartTooltip extends React.Component<LineChartTooltipProps> {
         const grouped = Map.groupBy(this.props.series, (s) => s.seriesName)
 
         return excludeUndefined(
-            Array.from(grouped.values()).map(
-                (segments) =>
-                    // Ideally pick series with a defined value at the target time
-                    segments.find((series) =>
-                        series.points.find((point) => point.x === target.time)
-                    ) ??
-                    // Otherwise pick the series whose start & end contains the target time
-                    // and display a "No data" notice.
-                    segments.find((series): boolean | void => {
-                        const [startX, endX] = extent(
-                            series.points,
-                            ({ x }) => x
-                        )
-                        return (
-                            _.isNumber(startX) &&
-                            _.isNumber(endX) &&
-                            startX < target.time &&
-                            target.time < endX
-                        )
-                    })
-            )
+            grouped
+                .values()
+                .map(
+                    (segments) =>
+                        // Ideally pick series with a defined value at the target time
+                        segments.find((series) =>
+                            series.points.find(
+                                (point) => point.x === target.time
+                            )
+                        ) ??
+                        // Otherwise pick the series whose start & end contains the target time
+                        // and display a "No data" notice.
+                        segments.find((series): boolean | void => {
+                            const [startX, endX] = extent(
+                                series.points,
+                                ({ x }) => x
+                            )
+                            return (
+                                _.isNumber(startX) &&
+                                _.isNumber(endX) &&
+                                startX < target.time &&
+                                target.time < endX
+                            )
+                        })
+                )
+                .toArray()
         )
     }
 

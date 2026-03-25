@@ -665,7 +665,7 @@ export const es6mapValues = <K, V, M>(
     mapper: (value: V, key: K) => M
 ): Map<K, M> =>
     new Map(
-        Array.from(input, ([key, value]) => {
+        input.entries().map(([key, value]) => {
             return [key, mapper(value, key)]
         })
     )

@@ -331,9 +331,9 @@ export function SExpressionToJsonLogic(
 ): JSONPreciselyTyped {
     return sExpression.toJsonLogic({
         processSqlColumnName: (columnName) => {
-            const item = [...readOnlyEntries.entries()].find(
-                (item) => item[1].sExpressionColumnTarget === columnName
-            )
+            const item = readOnlyEntries
+                .entries()
+                .find((item) => item[1].sExpressionColumnTarget === columnName)
             const mappedColumnName = item![0]
             return mappedColumnName
         },

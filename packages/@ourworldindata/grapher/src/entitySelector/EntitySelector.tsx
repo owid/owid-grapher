@@ -767,7 +767,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         if (!isProjectionByTimeAndEntityName) return null
 
         const values = isProjectionByTimeAndEntityName.get(time)?.values() ?? []
-        return Array.from(values)?.some((isProjection) => !isProjection)
+        return values.some((isProjection) => !isProjection)
     }
 
     private makeSortColumnLabelForCombinedColumn(
