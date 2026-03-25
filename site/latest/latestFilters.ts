@@ -24,15 +24,15 @@ const TYPE_FILTER_OPTIONS: { filter: LatestFilter; label: string }[] = [
 const KICKER_FILTER_OPTIONS: { filter: LatestFilter; label: string }[] = [
     {
         filter: { kind: "kicker", value: "Data update" },
-        label: "Data update",
+        label: "Data updates",
     },
     {
         filter: { kind: "kicker", value: "Website upgrade" },
-        label: "Website upgrade",
+        label: "Website upgrades",
     },
     {
         filter: { kind: "kicker", value: "Announcement" },
-        label: "Announcement",
+        label: "Announcements",
     },
 ]
 

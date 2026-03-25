@@ -36,20 +36,48 @@
     }
 }
 
-.latest-page__item-dateline {
-    color: $blue-60;
+.latest-page__item-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     margin-bottom: 8px;
 }
 
-.latest-page__item-type {
-    text-align: right;
+.latest-page__item-meta-left {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: $blue-60;
+}
+
+.latest-page__item-type-label {
+    color: $blue-60;
+}
+
+.latest-page__item-meta-separator {
+    color: $blue-60;
+}
+
+.latest-page__item-area-tag {
+    @include h6-black-caps;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: $blue-90;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.latest-page__item-dateline {
     color: $blue-60;
     margin: 0;
-    margin-bottom: 8px;
 }
 
 .latest-page__newsletter-signup {
-    grid-row: 2 / span 5;
+    grid-row: 4 / span 5;
 
     @include md-down {
         grid-row: unset;
@@ -145,12 +173,7 @@
         display: none;
     }
     @include text-block-override {
-        @include note-12-medium;
-    }
-    @include sm-only {
-        @include text-block-override {
-            @include body-3-medium;
-        }
+        @include body-3-medium;
     }
 }
 
@@ -220,35 +243,7 @@
     }
 }
 
-.latest-page__announcement-kicker {
-    text-align: right;
-    color: $blue-60;
-    margin: 0;
-    margin-bottom: 16px;
-}
-
-.latest-page__announcement-card {
-    background-color: #fff;
-    padding: 24px;
-
-    @include sm-only {
-        padding: 16px;
-    }
-}
-
-.latest-page__announcement-thumbnail {
-    width: 100%;
-    height: auto;
-    align-self: start;
-
-    @include sm-only {
-        width: 80px;
-        height: 80px;
-    }
-}
-
 .latest-page__announcement-content {
-    flex: 1;
     min-width: 0;
 }
 
@@ -256,13 +251,17 @@
     margin: 0 0 8px;
 }
 
+.latest-page__announcement-title-icon {
+    margin-right: 6px;
+}
+
 .latest-page__announcement-authors {
-    margin-bottom: 12px;
+    margin-top: 16px;
 }
 
 .latest-page__announcement-body {
     @include text-block-override {
-        @include body-3-medium;
+        @include body-2-regular;
     }
 
     [class*="article-block__"]:last-child {
@@ -271,5 +270,13 @@
 
     .expandable-paragraph__content {
         margin-bottom: 0;
+    }
+
+    .expandable-paragraph__expand-button {
+        color: $vermillion;
+
+        &:hover {
+            color: $vermillion;
+        }
     }
 }
