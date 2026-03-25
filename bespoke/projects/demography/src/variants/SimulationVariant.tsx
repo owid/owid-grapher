@@ -1,4 +1,5 @@
 import { useState } from "react"
+import cx from "classnames"
 import { QueryClientProvider } from "@tanstack/react-query"
 
 import { DemographyControls } from "../components/DemographyControls.js"
@@ -20,6 +21,11 @@ import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { SimulationContent } from "../components/SimulationContent.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
+import {
+    BreakpointProvider,
+    useContainerBreakpoint,
+    breakpointClass,
+} from "../helpers/useBreakpoint.js"
 
 export function SimulationVariantWithProviders(props: {
     container: HTMLDivElement
@@ -40,6 +46,7 @@ function SimulationVariant({
     const [entityName, setEntityName] = useState(
         config.region ?? DEFAULT_ENTITY_NAME
     )
+    const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
     const { metadata, entityData, isLoadingEntityData, status } =
         useDemographyData(entityName)
@@ -50,24 +57,32 @@ function SimulationVariant({
     const showControls = !config.hideControls
 
     return (
-        <div className="demography-chart">
-            {showControls && (
-                <DemographyControls
-                    metadata={metadata}
-                    entityName={entityName}
-                    setEntityName={setEntityName}
+        <BreakpointProvider value={breakpoint}>
+            <div
+                ref={rootRef}
+                className={cx(
+                    "demography-chart demography-chart__simulation-variant",
+                    breakpointClass(breakpoint)
+                )}
+            >
+                {showControls && (
+                    <DemographyControls
+                        metadata={metadata}
+                        entityName={entityName}
+                        setEntityName={setEntityName}
+                    />
+                )}
+                <SimulationCaptionedChart
+                    data={entityData}
+                    isLoading={isLoadingEntityData}
+                    title={config.title}
+                    subtitle={config.subtitle}
+                    focusParameter={config.focusParameter}
+                    stabilizingParameter={config.stabilizingParameter}
+                    hidePopulationPyramid={config.hidePopulationPyramid}
                 />
-            )}
-            <SimulationCaptionedChart
-                data={entityData}
-                isLoading={isLoadingEntityData}
-                title={config.title}
-                subtitle={config.subtitle}
-                focusParameter={config.focusParameter}
-                stabilizingParameter={config.stabilizingParameter}
-                hidePopulationPyramid={config.hidePopulationPyramid}
-            />
-        </div>
+            </div>
+        </BreakpointProvider>
     )
 }
 
