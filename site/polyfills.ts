@@ -19,6 +19,10 @@ import "core-js/proposals/array-find-from-last" // Chrome 97+, Safari 15.4+, Fir
 // https://core-js.io/docs/features/proposals/change-array-by-copy
 import "core-js/proposals/change-array-by-copy-stage-4" // Chrome 110+, Safari 16.0+, Firefox 115+
 
+// Array & Map grouping: Object.groupBy, Map.groupBy
+// https://core-js.io/docs/features/proposals/array-grouping
+import "core-js/proposals/array-grouping-v2" // Chrome 117+, Safari 17.4+, Firefox 119+
+
 // Set methods: union, intersection, difference, symmetricDifference, etc.
 // https://core-js.io/docs/features/proposals/set-methods
 import "core-js/proposals/set-methods-v2" // Chrome 122+, Safari 17.0+, Firefox 127+
