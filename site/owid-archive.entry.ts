@@ -1,3 +1,6 @@
+// Polyfills must be loaded before all other code.
+import "./polyfills.js"
+
 import "@ourworldindata/grapher/src/core/grapher.scss"
 import "./owid.scss"
 // From https://fontawesome.com/how-to-use/on-the-web/other-topics/server-side-rendering:
