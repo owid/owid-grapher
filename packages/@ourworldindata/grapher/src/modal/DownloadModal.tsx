@@ -1,35 +1,46 @@
 import * as _ from "lodash-es"
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo } from "react"
 import * as React from "react"
 import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import cx from "classnames"
 import {
     Bounds,
     canWriteToClipboard,
     fetchWithTimeout,
-    formatValue,
     getOriginAttributionFragments,
+    makeDownloadCodeExamples,
     getPhraseForProcessingLevel,
+    SERVER_SIDE_DOWNLOAD_HELP_TEXT,
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
 } from "@ourworldindata/utils"
 import {
+    CsvDownloadType,
+    createCsvBlobLocally,
+    getDataDownloadFilename,
+    getDownloadUrl,
+    getNonRedistributableInfo,
+    type DataDownloadContextBase,
+    type DataDownloadContextClientSide,
+} from "../download.js"
+import {
+    DownloadApiOptions,
+    makeFilteredDownloadDescription,
+    makeFullDownloadDescription,
+    DownloadButton,
     Checkbox,
     CodeSnippet,
     OverlayHeader,
-    RadioButton,
+    NonRedistributableDataNotice,
 } from "@ourworldindata/components"
+import { useDataApiDownloadConfig } from "../hooks.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faCircleExclamation,
     faCopy,
-    faDownload,
     faInfoCircle,
-    faSpinner,
 } from "@fortawesome/free-solid-svg-icons"
 import {
-    type GrapherQueryParams,
     OwidColumnDef,
     OwidOrigin,
     QueryParams,
@@ -43,11 +54,6 @@ import {
 import { Modal } from "./Modal"
 import { GrapherRasterizeFn } from "../captionedChart/StaticChartRasterizer.js"
 import { TabItem, Tabs } from "../tabs/Tabs.js"
-import {
-    DownloadIconFullDataset,
-    DownloadIconSelected,
-} from "./DownloadIcons.js"
-import { match } from "ts-pattern"
 import * as R from "remeda"
 import {
     DEFAULT_GRAPHER_BOUNDS,
@@ -463,10 +469,10 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                                 )}
                             </Callout>
                         )}
-                        <div>
+                        <div className="download-modal__download-buttons">
                             {this.showCopyPngButton && (
                                 <button
-                                    className="download-modal__download-button download-modal__download-button--variant-copy"
+                                    className="download-modal__copy-button"
                                     onClick={this.onCopyPng}
                                     disabled={isRegenerating}
                                 >
@@ -480,7 +486,8 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                                 previewImageUrl={pngPreviewUrl}
                                 onClick={this.onPngDownload}
                                 imageStyle={imageStyle}
-                                isRegenerating={isRegenerating}
+                                trackingNote="chart_download_modal_vis_png"
+                                disabled={isRegenerating}
                             />
                             <DownloadButton
                                 title="Vector graphic (SVG)"
@@ -488,7 +495,8 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                                 previewImageUrl={svgPreviewUrl}
                                 onClick={this.onSvgDownload}
                                 imageStyle={imageStyle}
-                                isRegenerating={isRegenerating}
+                                trackingNote="chart_download_modal_vis_svg"
+                                disabled={isRegenerating}
                             />
                         </div>
                         {this.showExportControls && (
@@ -545,150 +553,6 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
             </div>
         )
     }
-}
-
-enum CsvDownloadType {
-    Full = "full",
-    CurrentSelection = "current_selection",
-}
-
-interface DataDownloadContextBase {
-    slug: string
-    searchParams: URLSearchParams
-    externalSearchParams: URLSearchParams
-    baseUrl: string
-}
-
-interface DataDownloadContextServerSide extends DataDownloadContextBase {
-    // Configurable options
-    csvDownloadType: CsvDownloadType
-    shortColNames: boolean
-}
-
-interface DataDownloadContextClientSide extends DataDownloadContextBase {
-    // Configurable options
-    csvDownloadType: CsvDownloadType
-    shortColNames: boolean
-
-    // Only needed for local CSV generation
-    fullTable: OwidTable
-    filteredTable: OwidTable
-    inputColumnSlugs: string[] | undefined
-}
-
-const createCsvBlobLocally = async (ctx: DataDownloadContextClientSide) => {
-    const downloadTable =
-        ctx.csvDownloadType === CsvDownloadType.Full
-            ? ctx.fullTable
-            : ctx.filteredTable
-    const csv = downloadTable.toPrettyCsv({ useShortNames: ctx.shortColNames })
-
-    return new Blob([csv], { type: "text/csv;charset=utf-8" })
-}
-
-const getDownloadSearchParams = (ctx: DataDownloadContextServerSide) => {
-    const searchParams = new URLSearchParams()
-    searchParams.set("v", "1") // API versioning
-    searchParams.set(
-        "csvType",
-        match(ctx.csvDownloadType)
-            .with(CsvDownloadType.CurrentSelection, () => "filtered")
-            .with(CsvDownloadType.Full, () => "full")
-            .exhaustive()
-    )
-    searchParams.set("useColumnShortNames", ctx.shortColNames.toString())
-
-    const otherParams =
-        ctx.csvDownloadType === CsvDownloadType.CurrentSelection
-            ? // Append all the current grapher settings, e.g.
-              // ?time=2020&selection=~USA + mdim dimensions.
-              ctx.searchParams
-            : // Use the base grapher settings + mdim dimensions.
-              ctx.externalSearchParams
-
-    const SEARCH_PARAMS_TO_EXCLUDE: string[] = [
-        "overlay", // always present when the modal is open, but just polluting the download URL
-    ] satisfies (keyof GrapherQueryParams)[]
-
-    for (const [key, value] of otherParams.entries()) {
-        if (SEARCH_PARAMS_TO_EXCLUDE.includes(key)) continue
-
-        searchParams.set(key, value)
-    }
-    return searchParams
-}
-
-const getDownloadUrl = (
-    extension: "csv" | "metadata.json" | "zip",
-    ctx: DataDownloadContextServerSide
-) => {
-    const searchParams = getDownloadSearchParams(ctx)
-    const searchStr = searchParams.toString().replaceAll("%7E", "~")
-    return `${ctx.baseUrl}.${extension}` + (searchStr ? `?${searchStr}` : "")
-}
-
-export const getNonRedistributableInfo = (
-    table: OwidTable | undefined
-): { cols: CoreColumn[] | undefined; sourceLinks: string[] | undefined } => {
-    if (!table) return { cols: undefined, sourceLinks: undefined }
-
-    const nonRedistributableCols = table.columnsAsArray.filter(
-        (col) => col.def.nonRedistributable
-    )
-
-    if (!nonRedistributableCols.length)
-        return { cols: undefined, sourceLinks: undefined }
-
-    const sourceLinks = nonRedistributableCols
-        .map((col) => {
-            const def = col.def
-            return def.sourceLink ?? def.origins?.[0]?.urlMain
-        })
-        .filter((link): link is string => !!link)
-
-    return { cols: nonRedistributableCols, sourceLinks: _.uniq(sourceLinks) }
-}
-
-const CodeExamplesBlock = (props: { csvUrl: string; metadataUrl: string }) => {
-    const code = {
-        "Excel / Google Sheets": `=IMPORTDATA("${props.csvUrl}")`,
-        "Python with Pandas": `import pandas as pd
-import requests
-
-# Fetch the data.
-df = pd.read_csv("${props.csvUrl}", storage_options = {'User-Agent': 'Our World In Data data fetch/1.0'})
-
-# Fetch the metadata
-metadata = requests.get("${props.metadataUrl}").json()`,
-        R: `library(jsonlite)
-
-# Fetch the data
-df <- read.csv("${props.csvUrl}")
-
-# Fetch the metadata
-metadata <- fromJSON("${props.metadataUrl}")`,
-        Stata: `import delimited "${props.csvUrl}", encoding("utf-8") clear`,
-    }
-
-    return (
-        <div className="download-modal__data-section">
-            <div className="download-modal__heading-with-caption">
-                <h3 className="grapher_h3-semibold">Code examples</h3>
-                <p className="grapher_label-2-regular">
-                    Examples of how to load this data into different data
-                    analysis tools.
-                </p>
-            </div>
-            <div className="download-modal__code-blocks">
-                {Object.entries(code).map(([name, snippet]) => (
-                    <div key={name}>
-                        <h4 className="grapher_body-2-medium">{name}</h4>
-                        <CodeSnippet code={snippet} />
-                    </div>
-                ))}
-            </div>
-        </div>
-    )
 }
 
 const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
@@ -779,34 +643,18 @@ const ApiAndCodeExamplesSection = (props: {
     downloadCtxBase: DataDownloadContextBase
     firstYColDef?: OwidColumnDef
 }) => {
-    const [onlyVisible, setOnlyVisible] = useState(false)
-    const [shortColNames, setShortColNames] = useState(true)
-
-    const exLongName = props.firstYColDef?.name
-    const exShortName = props.firstYColDef?.shortName
-
-    // Some charts, like pre-ETL ones or csv-based explorers, don't have short names available for their variables
-    const shortNamesAvailable = !!exShortName
-
-    const downloadCtx: DataDownloadContextServerSide = useMemo(
-        () => ({
-            ...props.downloadCtxBase,
-            csvDownloadType: onlyVisible
-                ? CsvDownloadType.CurrentSelection
-                : CsvDownloadType.Full,
-            shortColNames,
-        }),
-        [props.downloadCtxBase, onlyVisible, shortColNames]
-    )
-
-    const csvUrl = useMemo(
-        () => getDownloadUrl("csv", downloadCtx),
-        [downloadCtx]
-    )
-    const metadataUrl = useMemo(
-        () => getDownloadUrl("metadata.json", downloadCtx),
-        [downloadCtx]
-    )
+    const {
+        csvUrl,
+        metadataUrl,
+        onlyVisible,
+        setOnlyVisible,
+        shortColNames,
+        setShortColNames,
+    } = useDataApiDownloadConfig({
+        downloadCtxBase: props.downloadCtxBase,
+        firstYColDef: props.firstYColDef,
+    })
+    const codeExamples = makeDownloadCodeExamples(csvUrl, metadataUrl)
 
     return (
         <>
@@ -841,52 +689,31 @@ const ApiAndCodeExamplesSection = (props: {
                         <CodeSnippet code={metadataUrl} />
                     </div>
                 </section>
-                <section className="download-modal__config-list">
-                    <RadioButton
-                        label="Download full data, including all entities and time points"
-                        group="onlyVisible"
-                        checked={!onlyVisible}
-                        onChange={() => setOnlyVisible(false)}
-                    />
-                    <RadioButton
-                        label="Download only the currently selected data visible in the chart"
-                        group="onlyVisible"
-                        checked={onlyVisible}
-                        onChange={() => setOnlyVisible(true)}
-                    />
-                </section>
-                {shortNamesAvailable && (
-                    <section className="download-modal__config-list">
-                        <div>
-                            <RadioButton
-                                label="Long column names"
-                                group="shortColNames"
-                                checked={!shortColNames}
-                                onChange={() => setShortColNames(false)}
-                            />
-                            <p>
-                                e.g. <code>{exLongName}</code>
-                            </p>
-                        </div>
-                        <div>
-                            <RadioButton
-                                label="Shortened column names"
-                                group="shortColNames"
-                                checked={shortColNames}
-                                onChange={() => setShortColNames(true)}
-                            />
-                            <p>
-                                e.g.{" "}
-                                <code style={{ wordBreak: "break-all" }}>
-                                    {exShortName}
-                                </code>
-                            </p>
-                        </div>
-                    </section>
-                )}
+                <DownloadApiOptions
+                    onlyVisible={onlyVisible}
+                    onOnlyVisibleChange={setOnlyVisible}
+                    shortColNames={shortColNames}
+                    onShortColNamesChange={setShortColNames}
+                    firstYColDef={props.firstYColDef}
+                />
             </div>
-
-            <CodeExamplesBlock csvUrl={csvUrl} metadataUrl={metadataUrl} />
+            <div className="download-data-section download-modal__data-section">
+                <div className="download-modal__heading-with-caption">
+                    <h3 className="grapher_h3-semibold">Code examples</h3>
+                    <p className="grapher_label-2-regular">
+                        Examples of how to load this data into different data
+                        analysis tools.
+                    </p>
+                </div>
+                <div className="download-modal__code-blocks">
+                    {Object.entries(codeExamples).map(([name, snippet]) => (
+                        <div key={name}>
+                            <h4 className="grapher_body-2-medium">{name}</h4>
+                            <CodeSnippet code={snippet} />
+                        </div>
+                    ))}
+                </div>
+            </div>
         </>
     )
 }
@@ -964,12 +791,12 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                     }
 
                     const blob = await response.blob()
-                    const fullOrFiltered =
-                        csvDownloadType === CsvDownloadType.Full
-                            ? ""
-                            : ".filtered"
                     triggerDownloadFromBlob(
-                        ctx.slug + fullOrFiltered + ".zip",
+                        getDataDownloadFilename({
+                            slug: ctx.slug,
+                            extension: "zip",
+                            csvDownloadType,
+                        }),
                         blob
                     )
                 } catch (error) {
@@ -979,12 +806,26 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                         error
                     )
                     const blob = await createCsvBlobLocally(ctx)
-                    triggerDownloadFromBlob(ctx.slug + ".csv", blob)
+                    triggerDownloadFromBlob(
+                        getDataDownloadFilename({
+                            slug: ctx.slug,
+                            extension: "csv",
+                            csvDownloadType,
+                        }),
+                        blob
+                    )
                 }
             } else {
                 // Direct client-side download
                 void createCsvBlobLocally(ctx).then((blob) => {
-                    triggerDownloadFromBlob(ctx.slug + ".csv", blob)
+                    triggerDownloadFromBlob(
+                        getDataDownloadFilename({
+                            slug: ctx.slug,
+                            extension: "csv",
+                            csvDownloadType,
+                        }),
+                        blob
+                    )
                 })
             }
         },
@@ -998,25 +839,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                     title="The data in this chart is not available to download"
                     icon={<FontAwesomeIcon icon={faInfoCircle} />}
                 >
-                    The data is published under a license that doesn't allow us
-                    to redistribute it.
-                    {sourceLinks?.length && (
-                        <>
-                            {" "}
-                            Please visit the
-                            {sourceLinks.length > 1
-                                ? " data publishers' websites "
-                                : " data publisher's website "}
-                            for more details:
-                            <ul>
-                                {sourceLinks.map((link, i) => (
-                                    <li key={i}>
-                                        <a href={link}>{link}</a>
-                                    </li>
-                                ))}
-                            </ul>
-                        </>
-                    )}
+                    <NonRedistributableDataNotice sourceLinks={sourceLinks} />
                 </Callout>
             </div>
         )
@@ -1024,9 +847,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
 
     const downloadHelpText = serverSideDownloadAvailable ? (
         <p className="grapher_label-2-regular">
-            Download the data shown in this chart as a ZIP file containing a CSV
-            file, metadata in JSON format, and a README. The CSV file can be
-            opened in Excel, Google Sheets, and other data analysis tools.
+            {SERVER_SIDE_DOWNLOAD_HELP_TEXT}
         </p>
     ) : (
         <p className="grapher_label-2-regular">
@@ -1037,22 +858,18 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
     )
 
     const firstYColDef = yColumns?.[0]?.def as OwidColumnDef | undefined
-
     const activeView = props.manager.isOnTableTab
         ? "table"
         : props.manager.isOnMapTab
           ? "map"
           : "chart"
-
-    const fullDataDescription = `Includes all entities and time points`
-    const filteredDataDescription = `Includes only the entities and time points currently visible in the ${activeView}`
-
-    const fullTableRowCountSnippet = makeNumberOfRowsSnippet(
+    const fullDataDescription = makeFullDownloadDescription(
         downloadCtx.fullTable.numRows
     )
-    const filteredTableRowCountSnippet = makeNumberOfRowsSnippet(
-        downloadCtx.filteredTable.numRows
-    )
+    const filteredDataDescription = makeFilteredDownloadDescription({
+        visibleIn: activeView,
+        numRows: downloadCtx.filteredTable.numRows,
+    })
 
     return (
         <>
@@ -1063,33 +880,36 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                     {downloadHelpText}
                 </div>
                 <div>
-                    <DownloadButton
-                        title="Download full data"
-                        description={
-                            fullDataDescription + fullTableRowCountSnippet
-                        }
-                        icon={<DownloadIconFullDataset />}
-                        onClick={() => onDownloadClick(CsvDownloadType.Full)}
-                        tracking={
-                            "chart_download_full_data--" +
-                            (serverSideDownloadAvailable ? "server" : "client")
-                        }
-                    />
-                    <DownloadButton
-                        title="Download displayed data"
-                        description={
-                            filteredDataDescription +
-                            filteredTableRowCountSnippet
-                        }
-                        icon={<DownloadIconSelected />}
-                        onClick={() =>
-                            onDownloadClick(CsvDownloadType.CurrentSelection)
-                        }
-                        tracking={
-                            "chart_download_filtered_data--" +
-                            (serverSideDownloadAvailable ? "server" : "client")
-                        }
-                    />
+                    <div className="download-modal__download-buttons">
+                        <DownloadButton
+                            title="Download full data"
+                            description={fullDataDescription}
+                            icon="full"
+                            trackingNote={`chart_download_full_data${
+                                serverSideDownloadAvailable
+                                    ? "--server"
+                                    : "--client"
+                            }`}
+                            onClick={() =>
+                                onDownloadClick(CsvDownloadType.Full)
+                            }
+                        />
+                        <DownloadButton
+                            title="Download displayed data"
+                            description={filteredDataDescription}
+                            icon="selected"
+                            trackingNote={`chart_download_filtered_data${
+                                serverSideDownloadAvailable
+                                    ? "--server"
+                                    : "--client"
+                            }`}
+                            onClick={() =>
+                                onDownloadClick(
+                                    CsvDownloadType.CurrentSelection
+                                )
+                            }
+                        />
+                    </div>
                 </div>
             </div>
             {serverSideDownloadAvailable && (
@@ -1102,86 +922,13 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
     )
 }
 
-interface DownloadButtonProps {
-    title: string
-    description: string
-    onClick: () => void
-    icon?: React.ReactElement
-    previewImageUrl?: string
-    imageStyle?: React.CSSProperties
-    tracking?: string
-    isRegenerating?: boolean
-}
-
-function DownloadButton(props: DownloadButtonProps): React.ReactElement {
-    const { onClick, isRegenerating = false } = props
-
-    const [isDownloading, setIsDownloading] = useState(false)
-    const [showLoadingUI, setShowLoadingUI] = useState(false)
-
-    const handleClick = useCallback(async () => {
-        setIsDownloading(true)
-
-        // Delay showing the loading UI to prevent flashing for quick downloads
-        const loadingTimeout = setTimeout(() => setShowLoadingUI(true), 300)
-
-        try {
-            onClick()
-        } finally {
-            clearTimeout(loadingTimeout)
-            setIsDownloading(false)
-            setShowLoadingUI(false)
-        }
-    }, [onClick])
-
-    return (
-        <button
-            className={cx("download-modal__download-button", {
-                "download-modal__download-button--loading": showLoadingUI,
-            })}
-            onClick={handleClick}
-            data-track-note={props.tracking}
-            disabled={isDownloading || isRegenerating}
-        >
-            {props.icon && (
-                <div className="download-modal__option-icon">{props.icon}</div>
-            )}
-            {props.previewImageUrl && (
-                <div className="download-modal__download-preview-img">
-                    <img src={props.previewImageUrl} style={props.imageStyle} />
-                </div>
-            )}
-            <div className="download-modal__download-button-content">
-                <h4 className="grapher_body-2-semibold">{props.title}</h4>
-                <div className="download-modal__download-button-description-wrapper">
-                    <p className="grapher_label-1-regular download-modal__download-button-description">
-                        {props.description}
-                    </p>
-                    {showLoadingUI && (
-                        <p className="grapher_label-1-regular download-modal__download-button-loading-label">
-                            Loading…
-                        </p>
-                    )}
-                </div>
-            </div>
-            <div className="download-modal__download-icon">
-                {showLoadingUI ? (
-                    <FontAwesomeIcon icon={faSpinner} spin />
-                ) : (
-                    <FontAwesomeIcon icon={faDownload} />
-                )}
-            </div>
-        </button>
-    )
-}
-
 interface CalloutProps {
     title: React.ReactNode
     icon?: React.ReactElement
     children: React.ReactNode
 }
 
-function Callout(props: CalloutProps): React.ReactElement {
+function Callout(props: CalloutProps) {
     return (
         <div className="download-modal__callout">
             {props.title && (
@@ -1195,10 +942,4 @@ function Callout(props: CalloutProps): React.ReactElement {
             </p>
         </div>
     )
-}
-
-function makeNumberOfRowsSnippet(numRows: number): string {
-    if (numRows <= 0) return " (empty)"
-    if (numRows === 1) return " (1 row)"
-    return ` (${formatValue(numRows, { numDecimalPlaces: 0 })} rows)`
 }

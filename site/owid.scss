@@ -32,6 +32,8 @@
 @import "../packages/@ourworldindata/components/src/IndicatorSources/IndicatorSources.scss";
 @import "../packages/@ourworldindata/components/src/IndicatorProcessing/IndicatorProcessing.scss";
 @import "../packages/@ourworldindata/components/src/Button/Button.scss";
+@import "../packages/@ourworldindata/components/src/DownloadButton/DownloadButton.scss";
+@import "../packages/@ourworldindata/components/src/DownloadApiOptions/DownloadApiOptions.scss";
 @import "../packages/@ourworldindata/components/src/TextInput.scss";
 @import "../packages/@ourworldindata/components/src/GrapherTrendArrow.scss";
 
@@ -176,6 +178,7 @@
 @import "./multiDim/MultiDimEmbedSettingsPanel.scss";
 @import "./GrapherImage.scss";
 @import "./KeyDataTable.scss";
+@import "./DownloadSection.scss";
 @import "./MetadataSection.scss";
 @import "./TopicTags.scss";
 @import "./detailsOnDemand.scss";

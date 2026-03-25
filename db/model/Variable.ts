@@ -32,6 +32,7 @@ import {
     DbEnrichedVariable,
     DbPlainChart,
     DbPlainMultiDimXChartConfig,
+    Distribution,
 } from "@ourworldindata/types"
 import { knexRaw, knexRawFirst } from "../db.js"
 import {
@@ -946,6 +947,51 @@ export async function getVariableOfDatapageIfApplicable(
         return { id: indicatorId, metadata: fullMetadata }
     }
     return undefined
+}
+
+export async function getVariableDistribution(
+    knex: db.KnexReadonlyTransaction,
+    variableIds: number[]
+): Promise<Distribution> {
+    if (!variableIds.length) return { allowed: true }
+
+    const result = await knexRawFirst<{
+        hasNonRedistributableVariable: number
+    }>(
+        knex,
+        `-- sql
+            SELECT MAX(COALESCE(d.nonRedistributable, 0)) AS hasNonRedistributableVariable
+            FROM variables v
+            LEFT JOIN active_datasets d ON d.id = v.datasetId
+            WHERE v.id IN (?)
+        `,
+        [variableIds]
+    )
+
+    if (!result?.hasNonRedistributableVariable) return { allowed: true }
+
+    const sourceLinksRows = await knexRaw<{ sourceLink: string | null }>(
+        knex,
+        `-- sql
+            SELECT DISTINCT COALESCE(o.urlMain, s.description->>'$.link') AS sourceLink
+            FROM variables v
+            LEFT JOIN active_datasets d ON d.id = v.datasetId
+            LEFT JOIN origins_variables ov ON ov.variableId = v.id
+            LEFT JOIN origins o ON o.id = ov.originId
+            LEFT JOIN sources s ON s.id = v.sourceId
+            WHERE v.id IN (?)
+              AND COALESCE(d.nonRedistributable, 0) = 1
+              AND COALESCE(o.urlMain, s.description->>'$.link') IS NOT NULL
+        `,
+        [variableIds]
+    )
+
+    return {
+        allowed: false,
+        sourceLinks: sourceLinksRows
+            .map((row) => row.sourceLink)
+            .filter((link): link is string => !!link),
+    }
 }
 
 /**
