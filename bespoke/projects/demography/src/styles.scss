@@ -311,6 +311,10 @@ $panel-gap: 12px;
         }
     }
 
+    &.chart-panel--italic-subtitle .chart-panel__subtitle {
+        font-style: italic;
+    }
+
     .chart-panel__reset-btn {
         position: absolute;
         top: $panel-gap;

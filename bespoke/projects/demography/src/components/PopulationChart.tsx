@@ -23,15 +23,19 @@ import {
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { TooltipCard } from "@ourworldindata/grapher/src/tooltip/TooltipCard.js"
 import { TooltipValue } from "@ourworldindata/grapher/src/tooltip/TooltipContents.js"
-import { formatValue } from "@ourworldindata/utils"
+import { formatValue, GrapherTooltipAnchor } from "@ourworldindata/utils"
 import { localPoint } from "@visx/event"
 import * as R from "remeda"
 import { BezierArrow } from "../../../../components/BezierArrow/BezierArrow.js"
 import { Halo, TextWrap } from "@ourworldindata/components"
-import { formatPopulationValueLong } from "../helpers/utils.js"
+import {
+    formatPopulationValueLong,
+    formatPopulationAxisLabel,
+} from "../helpers/utils.js"
 import { TimeAxisX } from "./TimeAxisX.js"
 import { last } from "lodash-es"
 import { widthToBreakpoint } from "../helpers/useBreakpoint.js"
+import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
 import {
     getPopulationChartFonts,
     type PopulationChartFonts,
@@ -68,11 +72,18 @@ function PopulationChart({
     width,
     height,
 }: PopulationChartProps & { width: number; height: number }) {
-    const fonts = getPopulationChartFonts(widthToBreakpoint(width))
-
+    const breakpoint = widthToBreakpoint(width)
+    const fonts = getPopulationChartFonts(breakpoint)
     // Hover state for tooltip
     const [hoveredYear, setHoveredYear] = useState<number | null>(null)
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+
+    const dismissTooltip = useCallback(() => setHoveredYear(null), [])
+    const { ref: chartRef, isPinned: pinTooltipToBottom } =
+        usePinnedTooltip<HTMLDivElement>(
+        hoveredYear !== null,
+        dismissTooltip
+    )
 
     const historicalDataPoints = useMemo(
         () =>
@@ -219,7 +230,7 @@ function PopulationChart({
         !hideChangeAnnotation && hasUserChanges && dotDistance > 18
 
     return (
-        <div style={{ position: "relative" }}>
+        <div ref={chartRef} style={{ position: "relative" }}>
             <svg width={width} height={height} overflow="visible">
                 <Group left={margin.left} top={margin.top}>
                     {/* Projection background */}
@@ -384,7 +395,14 @@ function PopulationChart({
                     offsetX={15}
                     offsetY={-10}
                     title={String(hoveredYear)}
-                    containerBounds={{ width, height }}
+                    anchor={
+                        pinTooltipToBottom
+                            ? GrapherTooltipAnchor.Bottom
+                            : undefined
+                    }
+                    containerBounds={
+                        pinTooltipToBottom ? undefined : { width, height }
+                    }
                 >
                     <PopulationTooltipContent
                         hoveredYear={hoveredYear}
@@ -747,7 +765,7 @@ function AxisY({
                                 fontSize={fonts.yTick}
                                 fill={LABEL_COLOR}
                             >
-                                {formatPopulationValueLong(tick) +
+                                {formatPopulationAxisLabel(tick) +
                                     (isTop ? " people" : "")}
                             </text>
                         )}
