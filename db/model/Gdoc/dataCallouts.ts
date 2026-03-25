@@ -269,10 +269,7 @@ export async function loadLinkedCalloutsForBlocks(
     const urlsByChartKey = new Map<string, string[]>()
     for (const url of uniqueCalloutUrls) {
         const chartKey = makeCalloutGrapherStateKey(url)
-        if (!urlsByChartKey.has(chartKey)) {
-            urlsByChartKey.set(chartKey, [])
-        }
-        urlsByChartKey.get(chartKey)!.push(url)
+        urlsByChartKey.getOrInsert(chartKey, []).push(url)
     }
 
     // Pre-fetch slug to ID map for efficiency

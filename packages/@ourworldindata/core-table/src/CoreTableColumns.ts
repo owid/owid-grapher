@@ -217,8 +217,9 @@ export abstract class AbstractCoreColumn<
             this.validRowIndices
         ) as PrimitiveType[]
         indexValues.forEach((indexVal, index) => {
-            if (!map.has(indexVal)) map.set(indexVal, new Set())
-            map.get(indexVal)!.add(values[index])
+            map.getOrInsertComputed(indexVal, () => new Set()).add(
+                values[index]
+            )
         })
         return map
     }
@@ -290,8 +291,7 @@ export abstract class AbstractCoreColumn<
     @imemo get valuesToIndices(): Map<any, number[]> {
         const map = new Map<any, number[]>()
         this.valuesIncludingErrorValues.forEach((value, index) => {
-            if (!map.has(value)) map.set(value, [])
-            map.get(value)!.push(index)
+            map.getOrInsert(value, []).push(index)
         })
         return map
     }
@@ -509,9 +509,9 @@ export abstract class AbstractCoreColumn<
             Map<Time, OwidVariableRow<JS_TYPE>>
         >()
         this.owidRows.forEach((row) => {
-            if (!valueByEntityNameAndTime.has(row.entityName))
-                valueByEntityNameAndTime.set(row.entityName, new Map())
-            valueByEntityNameAndTime.get(row.entityName)!.set(row.time, row)
+            valueByEntityNameAndTime
+                .getOrInsertComputed(row.entityName, () => new Map())
+                .set(row.time, row)
         })
         return valueByEntityNameAndTime
     }
@@ -519,8 +519,7 @@ export abstract class AbstractCoreColumn<
     @imemo get valuesByTime(): Map<Time, JS_TYPE[]> {
         const map = new Map<Time, JS_TYPE[]>()
         this.owidRows.forEach((row) => {
-            if (!map.has(row.time)) map.set(row.time, [])
-            map.get(row.time)!.push(row.value)
+            map.getOrInsert(row.time, []).push(row.value)
         })
         return map
     }
@@ -531,10 +530,8 @@ export abstract class AbstractCoreColumn<
             Map<EntityName, JS_TYPE>
         >()
         this.owidRows.forEach((row) => {
-            if (!valueByTimeAndEntityName.has(row.time))
-                valueByTimeAndEntityName.set(row.time, new Map())
             valueByTimeAndEntityName
-                .get(row.time)!
+                .getOrInsertComputed(row.time, () => new Map())
                 .set(row.entityName, row.value)
         })
         return valueByTimeAndEntityName
@@ -550,10 +547,8 @@ export abstract class AbstractCoreColumn<
             Map<Time, JS_TYPE>
         >()
         this.owidRows.forEach((row) => {
-            if (!valueByEntityNameAndTime.has(row.entityName))
-                valueByEntityNameAndTime.set(row.entityName, new Map())
             valueByEntityNameAndTime
-                .get(row.entityName)!
+                .getOrInsertComputed(row.entityName, () => new Map())
                 .set(row.originalTime, row.value)
         })
         return valueByEntityNameAndTime

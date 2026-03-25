@@ -533,8 +533,8 @@ export class CoreTable<
         const keyFn = makeKeyFn(this.columnStore, columnSlugs)
         for (let i = 0; i < this.numRows; i++) {
             const key = keyFn(i)
-            if (index.has(key)) index.get(key)!.push(i)
-            else index.set(key, [i])
+
+            index.getOrInsert(key, []).push(i)
         }
         return index
     }
@@ -1223,9 +1223,9 @@ export class CoreTable<
         for (const index of this.indices) {
             const val1 = col1.values[index]
             const val2 = col2.values[index]
-            if (!existingRowValues.has(val1))
-                existingRowValues.set(val1, new Set([val2]))
-            else existingRowValues.get(val1)!.add(val2)
+            existingRowValues
+                .getOrInsertComputed(val1, () => new Set())
+                .add(val2)
         }
 
         // The below code should be as performant as possible, since it's often iterating over hundreds of thousands of rows.

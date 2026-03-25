@@ -182,9 +182,7 @@ const parentRegions = lazy(() => {
         for (const memberCode of region.members) {
             const subRegion = getRegionByCode(memberCode)
             if (!subRegion) continue
-            if (!parentRegions.has(subRegion.name))
-                parentRegions.set(subRegion.name, [])
-            parentRegions.get(subRegion.name)!.push(region)
+            parentRegions.getOrInsert(subRegion.name, []).push(region)
         }
     }
     return parentRegions

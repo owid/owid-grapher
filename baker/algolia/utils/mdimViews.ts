@@ -286,37 +286,35 @@ export async function getMdimViewRecords(
     for (const [sourceSlug, target] of grapherRedirects) {
         const sourcePath = `/grapher/${sourceSlug}`
         if (target.queryStr) {
-            const sources = redirectSourcesByTarget.get(
-                getRedirectKey(target.targetSlug, target.queryStr)
+            const redirectKey = getRedirectKey(
+                target.targetSlug,
+                target.queryStr
             )
-            if (sources) sources.push(sourcePath)
-            else
-                redirectSourcesByTarget.set(
-                    getRedirectKey(target.targetSlug, target.queryStr),
-                    [sourcePath]
-                )
+
+            redirectSourcesByTarget
+                .getOrInsert(redirectKey, [])
+                .push(sourcePath)
         } else {
-            const sources = redirectSourcesBySlug.get(target.targetSlug)
-            if (sources) sources.push(sourcePath)
-            else redirectSourcesBySlug.set(target.targetSlug, [sourcePath])
+            redirectSourcesBySlug
+                .getOrInsert(target.targetSlug, [])
+                .push(sourcePath)
         }
     }
     for (const [sourceSlug, target] of explorerRedirects) {
         const sourcePath = `/explorers/${sourceSlug}`
         if (target.queryStr) {
-            const sources = redirectSourcesByTarget.get(
-                getRedirectKey(target.targetSlug, target.queryStr)
+            const redirectKey = getRedirectKey(
+                target.targetSlug,
+                target.queryStr
             )
-            if (sources) sources.push(sourcePath)
-            else
-                redirectSourcesByTarget.set(
-                    getRedirectKey(target.targetSlug, target.queryStr),
-                    [sourcePath]
-                )
+
+            redirectSourcesByTarget
+                .getOrInsert(redirectKey, [])
+                .push(sourcePath)
         } else {
-            const sources = redirectSourcesBySlug.get(target.targetSlug)
-            if (sources) sources.push(sourcePath)
-            else redirectSourcesBySlug.set(target.targetSlug, [sourcePath])
+            redirectSourcesBySlug
+                .getOrInsert(target.targetSlug, [])
+                .push(sourcePath)
         }
     }
     const records = await Promise.all(

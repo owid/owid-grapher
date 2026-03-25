@@ -395,24 +395,22 @@ export const getExplorerChecksumsFromDb = async (
         )
 
     for (const row of explorerVariableRows) {
-        if (!variablesByExplorerSlug.has(row.explorerSlug)) {
-            variablesByExplorerSlug.set(row.explorerSlug, new Set<number>())
-        }
-        variablesByExplorerSlug.get(row.explorerSlug)!.add(row.variableId)
+        variablesByExplorerSlug
+            .getOrInsertComputed(row.explorerSlug, () => new Set())
+            .add(row.variableId)
         allVariableIds.add(row.variableId)
     }
 
     // 2) From generated explorer view configs (both grapher- and indicator-based)
     for (const row of viewConfigRows) {
         const slug = row.explorerSlug
-        if (!variablesByExplorerSlug.has(slug)) {
-            variablesByExplorerSlug.set(slug, new Set<number>())
-        }
         const config = parseChartConfig(row.chartConfigFull)
         if (config.dimensions) {
             for (const dimension of config.dimensions) {
                 const variableId = dimension.variableId
-                variablesByExplorerSlug.get(slug)?.add(variableId)
+                variablesByExplorerSlug
+                    .getOrInsertComputed(slug, () => new Set())
+                    .add(variableId)
                 allVariableIds.add(variableId)
             }
         }

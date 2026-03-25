@@ -157,9 +157,7 @@ export function groupEntitiesByRegionType(
         const parsedEntityName = parseLabel(entityName)
         if (parsedEntityName.providerKey) {
             const providerKey = parsedEntityName.providerKey
-            if (!entitiesByProvider.get(providerKey))
-                entitiesByProvider.set(providerKey, [])
-            entitiesByProvider.get(providerKey)!.push(entityName)
+            entitiesByProvider.getOrInsert(providerKey, []).push(entityName)
         }
     }
 

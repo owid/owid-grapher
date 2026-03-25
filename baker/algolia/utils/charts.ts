@@ -91,9 +91,7 @@ export async function getChartRedirectSlugsByChartId(
     const redirects = await query
 
     for (const redirect of redirects) {
-        const existing = redirectMap.get(redirect.chart_id)
-        if (existing) existing.push(redirect.slug)
-        else redirectMap.set(redirect.chart_id, [redirect.slug])
+        redirectMap.getOrInsert(redirect.chart_id, []).push(redirect.slug)
     }
 
     return redirectMap
