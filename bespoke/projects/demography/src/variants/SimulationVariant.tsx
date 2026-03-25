@@ -107,7 +107,9 @@ function SimulationCaptionedChart({
 
     const title =
         titleOverride ??
-        `How many people will live in ${articulateEntity(displayEntityName(countryName))} by 2100?`
+        (countryName === "World"
+            ? "How many people will be there in 2100?"
+            : `How many people will live in ${articulateEntity(displayEntityName(countryName))} by 2100?`)
     const subtitle =
         subtitleOverride ??
         "Demographers publish projections of how populations will change in the future. But what if fertility rates fall faster, or rebound? Or migration rates change? Adjust these assumptions and compare."

@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react"
+import { useState, useCallback, useMemo, useRef } from "react"
 import { useParentSize } from "@visx/responsive"
 import { scaleLinear } from "@visx/scale"
 import { Group } from "@visx/group"
@@ -20,11 +20,12 @@ import {
     groupByAgeRange,
     parseAgeGroup,
     formatPopulationValueShort,
+    formatPopulationAxisLabel,
 } from "../helpers/utils"
-import { Bounds, formatValue } from "@ourworldindata/utils"
+import { Bounds } from "@ourworldindata/utils"
 import { TextWrap, TextWrapSvg } from "@ourworldindata/components"
-import { OwidVariableRoundingMode } from "@ourworldindata/types"
 import { widthToBreakpoint } from "../helpers/useBreakpoint.js"
+import { useDismissOnTouchOutside } from "../../../../hooks/useDismissOnTouchOutside.js"
 import { getHorizontalPyramidFonts } from "../helpers/fonts.js"
 
 export interface PopulationPyramidHorizontalProps {
@@ -107,10 +108,31 @@ function PopulationPyramidHorizontal({
     )
 
     const [hoveredAgeGroup, setHoveredAgeGroup] = useState<string | null>(null)
-    const handlePointerLeave = useCallback(() => setHoveredAgeGroup(null), [])
+    const svgRef = useRef<SVGSVGElement>(null)
+    const dismissHover = useCallback(() => setHoveredAgeGroup(null), [])
+    useDismissOnTouchOutside(svgRef, hoveredAgeGroup !== null, dismissHover)
+
+    const handlePointerEnter = useCallback(
+        (e: React.PointerEvent, group: string) => {
+            if (e.pointerType === "mouse") setHoveredAgeGroup(group)
+        },
+        []
+    )
+    const handlePointerLeave = useCallback((e: React.PointerEvent) => {
+        if (e.pointerType === "mouse") setHoveredAgeGroup(null)
+    }, [])
+    const handlePointerDown = useCallback(
+        (e: React.PointerEvent, group: string) => {
+            if (e.pointerType === "touch") {
+                e.stopPropagation()
+                setHoveredAgeGroup((prev) => (prev === group ? null : group))
+            }
+        },
+        []
+    )
 
     return (
-        <svg width={width} height={height} overflow="visible">
+        <svg ref={svgRef} width={width} height={height} overflow="visible">
             <Group top={margin.top} left={margin.left}>
                 <HorizontalGridLines
                     yScale={yScaleFemale}
@@ -178,8 +200,9 @@ function PopulationPyramidHorizontal({
                 <HoverHitRects
                     xScale={xScale}
                     innerHeight={innerHeight}
-                    onHoverAgeGroup={setHoveredAgeGroup}
+                    onPointerEnter={handlePointerEnter}
                     onPointerLeave={handlePointerLeave}
+                    onPointerDown={handlePointerDown}
                 />
 
                 <AgeAxisCenter
@@ -336,13 +359,15 @@ function BarValueLabel({
 function HoverHitRects({
     xScale,
     innerHeight,
-    onHoverAgeGroup,
+    onPointerEnter,
     onPointerLeave,
+    onPointerDown,
 }: {
     xScale: ReturnType<typeof scaleLinear<number>>
     innerHeight: number
-    onHoverAgeGroup: (g: string) => void
-    onPointerLeave: () => void
+    onPointerEnter: (e: React.PointerEvent, g: string) => void
+    onPointerLeave: (e: React.PointerEvent) => void
+    onPointerDown: (e: React.PointerEvent, g: string) => void
 }) {
     return (
         <>
@@ -360,8 +385,9 @@ function HoverHitRects({
                         width={barWidth}
                         height={innerHeight}
                         fill="transparent"
-                        onPointerEnter={() => onHoverAgeGroup(g)}
+                        onPointerEnter={(e) => onPointerEnter(e, g)}
                         onPointerLeave={onPointerLeave}
+                        onPointerDown={(e) => onPointerDown(e, g)}
                     />
                 )
             })}
@@ -531,7 +557,7 @@ function TopGridLabel({
     if (topTick === undefined) return null
     return (
         <GridLabel
-            valueText={formatGridLabel(topTick)}
+            valueText={formatPopulationAxisLabel(topTick)}
             labelText={labelText}
             x={innerWidth}
             y={yScale(topTick)}
@@ -577,12 +603,4 @@ function GridLabel({
             fill={labelColor}
         />
     )
-}
-
-function formatGridLabel(value: number): string {
-    return formatValue(value, {
-        roundingMode: OwidVariableRoundingMode.decimalPlaces,
-        numDecimalPlaces: 0,
-        numberAbbreviation: "long",
-    })
 }

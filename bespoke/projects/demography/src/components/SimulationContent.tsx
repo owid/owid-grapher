@@ -25,7 +25,10 @@ import { PopulationChartLegend } from "./PopulationChartLegend.js"
 import { parameterConfigByKey } from "../helpers/parameterConfigs.js"
 import { useBreakpoint } from "../helpers/useBreakpoint.js"
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
-import { GRAY_60 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
+import {
+    GRAY_60,
+    GRAPHER_LIGHT_TEXT,
+} from "@ourworldindata/grapher/src/color/ColorConstants.js"
 
 export function SimulationContent({
     data,
@@ -211,6 +214,8 @@ export function InputChartPanel({
         tooltipContent,
     } = parameterConfigByKey[variant]
     const subtitle = getSubtitle(simulation.data.country)
+    const isWorldMigration =
+        variant === "netMigrationRate" && simulation.data.country === "World"
 
     // Reset target: explicit override (e.g. stabilized params), or UN WPP defaults
     const effectiveResetTarget =
@@ -233,7 +238,9 @@ export function InputChartPanel({
 
     return (
         <ChartPanel
-            className={className}
+            className={cx(className, {
+                "chart-panel--italic-subtitle": isWorldMigration,
+            })}
             title={title}
             subtitle={subtitle}
             tooltipContent={hideInfoIcon ? undefined : tooltipContent}
@@ -318,7 +325,7 @@ function ArrowFromInputToOutputPanels() {
                 <BezierArrow
                     start={[18, 6]}
                     end={[18, 30]}
-                    color="currentColor"
+                    color={GRAPHER_LIGHT_TEXT}
                     width={2}
                     headAnchor="end"
                     headLength={6}
@@ -332,7 +339,7 @@ function ArrowFromInputToOutputPanels() {
             <BezierArrow
                 start={[10, 10]}
                 end={[60 - 10, 10]}
-                color="currentColor"
+                color={GRAPHER_LIGHT_TEXT}
                 width={2}
                 headAnchor="end"
                 headLength={6}

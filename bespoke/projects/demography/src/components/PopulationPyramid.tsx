@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react"
+import { useState, useCallback, useMemo, useRef } from "react"
 import { useParentSize } from "@visx/responsive"
 import { scaleLinear, scaleBand } from "@visx/scale"
 import { Bar } from "@visx/shape"
@@ -26,10 +26,12 @@ import {
     calculateMedianAge,
     findAgeGroup,
     formatPopulationValueShort,
+    formatPopulationAxisLabelShort,
 } from "../helpers/utils"
 import { Bounds } from "@ourworldindata/utils"
 import type { AgeZone, AgeZoneWithBounds } from "../helpers/types.js"
 import { widthToBreakpoint } from "../helpers/useBreakpoint.js"
+import { useDismissOnTouchOutside } from "../../../../hooks/useDismissOnTouchOutside.js"
 import {
     getPopulationPyramidFonts,
     type PopulationPyramidFonts,
@@ -165,11 +167,31 @@ function PopulationPyramid({
     )
 
     const [hoveredAgeGroup, setHoveredAgeGroup] = useState<string | null>(null)
-    const handlePointerLeave = useCallback(() => setHoveredAgeGroup(null), [])
+    const svgRef = useRef<SVGSVGElement>(null)
+    const dismissHover = useCallback(() => setHoveredAgeGroup(null), [])
+    useDismissOnTouchOutside(svgRef, hoveredAgeGroup !== null, dismissHover)
 
+    const handlePointerEnter = useCallback(
+        (e: React.PointerEvent, group: string) => {
+            if (e.pointerType === "mouse") setHoveredAgeGroup(group)
+        },
+        []
+    )
+    const handlePointerLeave = useCallback((e: React.PointerEvent) => {
+        if (e.pointerType === "mouse") setHoveredAgeGroup(null)
+    }, [])
+    const handlePointerDown = useCallback(
+        (e: React.PointerEvent, group: string) => {
+            if (e.pointerType === "touch") {
+                e.stopPropagation()
+                setHoveredAgeGroup((prev) => (prev === group ? null : group))
+            }
+        },
+        []
+    )
     return (
         <div style={{ position: "relative" }}>
-            <svg width={width} height={height} overflow="visible">
+            <svg ref={svgRef} width={width} height={height} overflow="visible">
                 <Group top={margin.top}>
                     {ageZonesWithBounds && (
                         <AgeZoneBackgroundBands ageZones={ageZonesWithBounds} />
@@ -237,8 +259,9 @@ function PopulationPyramid({
                                 width={width}
                                 height={bottom - y}
                                 fill="transparent"
-                                onPointerEnter={() => setHoveredAgeGroup(g)}
+                                onPointerEnter={(e) => handlePointerEnter(e, g)}
                                 onPointerLeave={handlePointerLeave}
+                                onPointerDown={(e) => handlePointerDown(e, g)}
                             />
                         )
                     })}
@@ -326,7 +349,7 @@ function PopulationPyramidHalf({
                 top={height}
                 scale={xScale}
                 numTicks={3}
-                tickFormat={(v) => formatPopulationValueShort(v as number)}
+                tickFormat={(v) => formatPopulationAxisLabelShort(v as number)}
                 stroke="transparent"
                 tickStroke={GRAPHER_LIGHT_TEXT}
                 tickLength={4}

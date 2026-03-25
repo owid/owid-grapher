@@ -1,4 +1,4 @@
-import { memo, useState, useMemo, useCallback } from "react"
+import { memo, useState, useMemo, useCallback, useRef } from "react"
 import { useParentSize } from "@visx/responsive"
 import { scaleLinear } from "@visx/scale"
 import { LinePath } from "@visx/shape"
@@ -24,6 +24,7 @@ import { TimeAxisX } from "./TimeAxisX.js"
 import { ParameterKey } from "../helpers/types.js"
 import { getInterpolatedValue } from "../model/projectionRunner.js"
 import { widthToBreakpoint } from "../helpers/useBreakpoint.js"
+import { useDismissOnTouchOutside } from "../../../../hooks/useDismissOnTouchOutside.js"
 import { getParameterChartFonts } from "../helpers/fonts.js"
 
 const SMALL_DOT_RADIUS = 3
@@ -63,6 +64,10 @@ function DemographyParameterEditor({
     const config = parameterConfigByKey[variant]
     const fonts = getParameterChartFonts(widthToBreakpoint(width))
     const [hoveredYear, setHoveredYear] = useState<number | null>(null)
+    const pointerDownPos = useRef<{ x: number; y: number } | null>(null)
+    const didSwipe = useRef(false)
+    const stickyHover = useRef(false)
+    const svgRef = useRef<SVGSVGElement>(null)
 
     const {
         points: historicalDataPoints,
@@ -107,9 +112,13 @@ function DemographyParameterEditor({
         (e: React.PointerEvent<SVGRectElement>) => {
             const point = localPoint(e)
             if (!point) return
+            const clampedX = Math.max(
+                0,
+                Math.min(point.x - margin.left, innerWidth)
+            )
             const rawYear = (
                 xScale as unknown as { invert: (x: number) => number }
-            ).invert(point.x - margin.left)
+            ).invert(clampedX)
             const rounded = Math.round(rawYear)
 
             if (rounded >= START_YEAR && rounded <= END_YEAR) {
@@ -118,12 +127,22 @@ function DemographyParameterEditor({
                 setHoveredYear(null)
             }
         },
-        [xScale]
+        [xScale, innerWidth]
     )
 
-    const handlePointerLeave = useCallback(() => {
+    const handlePointerLeave = useCallback((e: React.PointerEvent) => {
+        // Don't dismiss on touch — sticky hover handles that
+        if (e.pointerType === "touch") return
         setHoveredYear(null)
+        stickyHover.current = false
     }, [])
+
+    const dismissStickyHover = useCallback(() => {
+        if (!stickyHover.current) return
+        setHoveredYear(null)
+        stickyHover.current = false
+    }, [])
+    useDismissOnTouchOutside(svgRef, hoveredYear !== null, dismissStickyHover)
 
     const firstHistoricalDataPoint = historicalDataPoints[0]
     const lastHistoricalDataPoint = historicalDataPoints.at(-1)!
@@ -294,10 +313,11 @@ function DemographyParameterEditor({
 
     return (
         <svg
+            ref={svgRef}
             width={width}
             height={height}
             overflow="visible"
-            style={{ display: "block" }}
+            style={{ display: "block", touchAction: "none" }}
         >
             <Group left={margin.left} top={margin.top}>
                 {/* Projection area background */}
@@ -447,7 +467,48 @@ function DemographyParameterEditor({
                     width={innerWidth + 40}
                     height={innerHeight}
                     fill="transparent"
-                    onPointerMove={handlePointerMove}
+                    onPointerDown={(e) => {
+                        if (e.pointerType === "touch") {
+                            pointerDownPos.current = {
+                                x: e.clientX,
+                                y: e.clientY,
+                            }
+                            didSwipe.current = false
+                            e.currentTarget.setPointerCapture(e.pointerId)
+                        }
+                        stickyHover.current = false
+                        handlePointerMove(e)
+                    }}
+                    onPointerMove={(e) => {
+                        if (
+                            e.pointerType === "touch" &&
+                            pointerDownPos.current
+                        ) {
+                            const dx = e.clientX - pointerDownPos.current.x
+                            const dy = e.clientY - pointerDownPos.current.y
+                            if (dx * dx + dy * dy > 25) {
+                                didSwipe.current = true
+                            }
+                        }
+                        handlePointerMove(e)
+                    }}
+                    onPointerUp={(e) => {
+                        e.currentTarget.releasePointerCapture(e.pointerId)
+                        pointerDownPos.current = null
+                        if (e.pointerType === "touch" && !didSwipe.current) {
+                            // Tap — keep hover sticky
+                            stickyHover.current = true
+                        } else {
+                            setHoveredYear(null)
+                            stickyHover.current = false
+                        }
+                    }}
+                    onPointerCancel={(e) => {
+                        e.currentTarget.releasePointerCapture(e.pointerId)
+                        pointerDownPos.current = null
+                        setHoveredYear(null)
+                        stickyHover.current = false
+                    }}
                     onPointerLeave={handlePointerLeave}
                 />
 

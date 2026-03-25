@@ -15,6 +15,7 @@ export function ParameterChartsDisclosure({
 }: {
     simulation: Simulation
 }) {
+    const isWorld = simulation.data.country === "World"
     return (
         <Disclosure className="demography-assumptions-disclosure">
             <Button
@@ -54,6 +55,7 @@ export function ParameterChartsDisclosure({
                         interactive={false}
                         lineColor={BENCHMARK_LINE_COLOR}
                         labelColor={GRAY_60}
+                        hideInfoIcon={isWorld}
                     />
                 </div>
             </DisclosurePanel>

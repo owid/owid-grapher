@@ -21,7 +21,11 @@ import { InputChartPanel } from "../components/SimulationContent.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
-import { DEFAULT_ENTITY_NAME } from "../helpers/constants.js"
+import {
+    BENCHMARK_LINE_COLOR,
+    DEFAULT_ENTITY_NAME,
+} from "../helpers/constants.js"
+import { GRAY_60 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import {
     BreakpointProvider,
     useContainerBreakpoint,
@@ -100,7 +104,9 @@ function ParametersCaptionedChart({
 
     const title =
         titleOverride ??
-        `Demographic assumptions for ${articulateEntity(displayEntityName(countryName))}`
+        (countryName === "World"
+            ? "Global demographic assumptions"
+            : `Demographic assumptions for ${articulateEntity(displayEntityName(countryName))}`)
     const subtitle = subtitleOverride
 
     return (
@@ -126,8 +132,22 @@ function ParametersCaptionedChart({
                         <InputChartPanel
                             simulation={simulation}
                             variant="netMigrationRate"
-                            className="parameters-panel"
+                            className={cx("parameters-panel", {
+                                "chart-panel--muted":
+                                    countryName === "World",
+                            })}
                             interactive={false}
+                            lineColor={
+                                countryName === "World"
+                                    ? BENCHMARK_LINE_COLOR
+                                    : undefined
+                            }
+                            labelColor={
+                                countryName === "World"
+                                    ? GRAY_60
+                                    : undefined
+                            }
+                            hideInfoIcon={countryName === "World"}
                         />
                     </div>
                 )}
