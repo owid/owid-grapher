@@ -49,10 +49,10 @@ export class LineChartTooltip extends React.Component<LineChartTooltipProps> {
         if (!target) return []
 
         // Duplicate seriesNames will be present if there is a projected-values line
-        const grouped = _.groupBy(this.props.series, "seriesName")
+        const grouped = Map.groupBy(this.props.series, (s) => s.seriesName)
 
         return excludeUndefined(
-            Object.values(grouped).map(
+            Array.from(grouped.values()).map(
                 (segments) =>
                     // Ideally pick series with a defined value at the target time
                     segments.find((series) =>

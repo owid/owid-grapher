@@ -162,7 +162,7 @@ async function getAllDataInsightIndexItemsOrderedByUpdatedAt(
     return rows.map((row) =>
         extractDataInsightIndexItem({
             ...row,
-            tags: groupedTags[row.gdocId] ? groupedTags[row.gdocId] : undefined,
+            tags: groupedTags.get(row.gdocId),
         })
     )
 }

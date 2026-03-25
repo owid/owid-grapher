@@ -332,13 +332,7 @@ export class SlopeChartState implements ChartState {
         EntityName,
         RawSlopeChartSeries[]
     > {
-        const map = new Map<EntityName, RawSlopeChartSeries[]>()
-        this.rawSeries.forEach((series) => {
-            const { entityName } = series
-            if (!map.has(entityName)) map.set(entityName, [])
-            map.get(entityName)!.push(series)
-        })
-        return map
+        return Map.groupBy(this.rawSeries, (series) => series.entityName)
     }
 
     @computed get series(): SlopeChartSeries[] {
