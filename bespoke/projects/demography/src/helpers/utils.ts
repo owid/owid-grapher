@@ -46,6 +46,24 @@ export function formatPopulationValueLong(value: number): string {
     })
 }
 
+/** Format a population value for axis/grid labels using decimal rounding (long form, e.g. "2 million") */
+export function formatPopulationAxisLabel(value: number): string {
+    return formatValue(value, {
+        roundingMode: OwidVariableRoundingMode.decimalPlaces,
+        numDecimalPlaces: 0,
+        numberAbbreviation: "long",
+    })
+}
+
+/** Format a population value for axis/grid labels using decimal rounding (short form, e.g. "2M") */
+export function formatPopulationAxisLabelShort(value: number): string {
+    return formatValue(value, {
+        roundingMode: OwidVariableRoundingMode.decimalPlaces,
+        numDecimalPlaces: 0,
+        numberAbbreviation: "short",
+    })
+}
+
 export function parseAgeGroup(ageGroup: string): {
     startAge: number
     endAge: number
