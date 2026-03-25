@@ -7,6 +7,7 @@ import {
     useState,
 } from "react"
 import * as React from "react"
+import { useHistory } from "react-router-dom"
 import { Button, Tabs } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -22,26 +23,25 @@ import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import {
     DbPlainSlideshow,
+    ImageMetadata,
     Slide,
-    SlideMedia,
     SlideTemplate,
     SlideshowConfig,
 } from "@ourworldindata/types"
 import { slugify } from "@ourworldindata/utils"
 import { SlideshowEditTab } from "./SlideshowEditTab.js"
 import { SlideshowArrangeTab } from "./SlideshowArrangeTab.js"
-import { SlideshowPreviewTab } from "./SlideshowPreviewTab.js"
-import { makeImageSrc } from "./imagesHelpers.js"
+
 import { useImages } from "./useImages.js"
-import { SlideGrapher } from "./SlideGrapher.js"
-import { SlideRenderer } from "../site/SlideRenderer.js"
+import { SlideGrapher } from "./../site/slideshows/SlideGrapher.js"
+import { SlideRenderer } from "../site/slideshows/SlideRenderer.js"
 
 import "./SlideshowEditorPage.scss"
 
 function makeDefaultSlide(): Slide {
     return {
-        template: SlideTemplate.ImageChartOnly,
-        media: null,
+        template: SlideTemplate.Image,
+        filename: null,
     }
 }
 
@@ -49,6 +49,7 @@ export function SlideshowEditorPage(props: {
     slideshowId?: number
 }): React.ReactElement {
     const { admin } = useContext(AdminAppContext)
+    const history = useHistory()
     const isCreate = props.slideshowId === undefined
 
     const [title, setTitle] = useState("")
@@ -60,12 +61,12 @@ export function SlideshowEditorPage(props: {
     const [isPublished, setIsPublished] = useState(0)
 
     const { data: images = [] } = useImages()
-    const imageCloudflareIds = useMemo(() => {
-        const map = new Map<string, string>()
+    const imageMetadata = useMemo(() => {
+        const record: Record<string, ImageMetadata> = {}
         for (const img of images) {
-            map.set(img.filename, img.cloudflareId)
+            record[img.filename] = img
         }
-        return map
+        return record
     }, [images])
 
     const currentSlide = slides[currentSlideIndex]
@@ -107,20 +108,20 @@ export function SlideshowEditorPage(props: {
         (queryString: string) => {
             setSlides((prev) => {
                 const slide = prev[currentSlideIndex]
-                if (!slide || !("media" in slide) || !slide.media) return prev
-                if (slide.media.type !== "grapher") return prev
-                if ((slide.media.queryString ?? "") === queryString) return prev
+                if (!slide || slide.template !== SlideTemplate.Chart)
+                    return prev
+                if ((slide.queryString ?? "") === queryString) return prev
                 const next = [...prev]
                 next[currentSlideIndex] = {
                     ...slide,
-                    media: {
-                        ...slide.media,
-                        queryString: queryString || undefined,
-                    },
+                    queryString: queryString || undefined,
                 }
                 return next
             })
-            setIsDirty(true)
+            // Don't set isDirty here — the reaction fires during Grapher
+            // initialization, which would spuriously mark the editor as
+            // dirty. Instead, isDirty is set by explicit user interactions
+            // (editing slide fields, adding/removing slides, etc.).
         },
         [currentSlideIndex]
     )
@@ -163,7 +164,8 @@ export function SlideshowEditorPage(props: {
                 slideshowId: number
             }>("/api/slideshows", { slug, title, config }, "POST")
             if (res.success) {
-                window.location.href = `/admin/slideshows/${res.slideshowId}/edit`
+                setIsDirty(false)
+                history.push(`/slideshows/${res.slideshowId}/edit`)
             }
         } else {
             await admin.requestJSON(
@@ -173,7 +175,7 @@ export function SlideshowEditorPage(props: {
             )
             setIsDirty(false)
         }
-    }, [admin, isCreate, props.slideshowId, slug, title, slides])
+    }, [admin, isCreate, props.slideshowId, slug, title, slides, history])
 
     const publish = useCallback(async () => {
         const config: SlideshowConfig = { slides }
@@ -187,7 +189,8 @@ export function SlideshowEditorPage(props: {
                 "POST"
             )
             if (res.success) {
-                window.location.href = `/admin/slideshows/${res.slideshowId}/edit`
+                setIsDirty(false)
+                history.push(`/slideshows/${res.slideshowId}/edit`)
             }
         } else {
             await admin.requestJSON(
@@ -198,7 +201,7 @@ export function SlideshowEditorPage(props: {
             setIsPublished(1)
             setIsDirty(false)
         }
-    }, [admin, isCreate, props.slideshowId, slug, title, slides])
+    }, [admin, isCreate, props.slideshowId, slug, title, slides, history])
 
     const canSave = slug.trim().length > 0 && title.trim().length > 0
 
@@ -225,11 +228,6 @@ export function SlideshowEditorPage(props: {
                     onDirty={() => setIsDirty(true)}
                 />
             ),
-        },
-        {
-            key: "preview",
-            label: "Preview",
-            children: <SlideshowPreviewTab slides={slides} />,
         },
     ]
 
@@ -279,14 +277,13 @@ export function SlideshowEditorPage(props: {
                             {currentSlide && (
                                 <SlideRenderer
                                     slide={currentSlide}
-                                    renderMedia={(media) => (
-                                        <AdminMediaRenderer
-                                            media={media}
-                                            imageCloudflareIds={
-                                                imageCloudflareIds
-                                            }
+                                    imageMetadata={imageMetadata}
+                                    renderChart={(slug, queryString) => (
+                                        <SlideGrapher
+                                            slug={slug}
+                                            initialQueryString={queryString}
                                             grapherStateRef={grapherStateRef}
-                                            onGrapherQueryStringChange={
+                                            onQueryStringChange={
                                                 handleGrapherQueryStringChange
                                             }
                                         />
@@ -374,51 +371,5 @@ export function SlideshowEditorPage(props: {
                 </div>
             </main>
         </AdminLayout>
-    )
-}
-
-/**
- * Admin-specific media renderer that uses SlideGrapher for grapher
- * slides (with MobX sync) and Cloudflare image URLs for images.
- * Passed to SlideRenderer via the renderMedia prop.
- */
-function AdminMediaRenderer(props: {
-    media: SlideMedia
-    imageCloudflareIds: Map<string, string>
-    grapherStateRef: React.RefObject<GrapherState | null>
-    onGrapherQueryStringChange?: (queryString: string) => void
-}): React.ReactElement {
-    const {
-        media,
-        imageCloudflareIds,
-        grapherStateRef,
-        onGrapherQueryStringChange,
-    } = props
-
-    if (media.type === "image") {
-        const cloudflareId = imageCloudflareIds.get(media.filename)
-        if (cloudflareId) {
-            return (
-                <img
-                    src={makeImageSrc(cloudflareId, 960)}
-                    alt={media.filename}
-                    className="SlideContent__media-image"
-                />
-            )
-        }
-        return (
-            <div className="SlideContent__media-placeholder">
-                {media.filename}
-            </div>
-        )
-    }
-
-    return (
-        <SlideGrapher
-            slug={media.slug}
-            initialQueryString={media.queryString}
-            grapherStateRef={grapherStateRef}
-            onQueryStringChange={onGrapherQueryStringChange}
-        />
     )
 }

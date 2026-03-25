@@ -17,7 +17,7 @@ import {
     CATALOG_URL,
     DATA_API_URL,
     GRAPHER_DYNAMIC_CONFIG_URL,
-} from "../settings/clientSettings.js"
+} from "../../settings/clientSettings.js"
 
 export interface SlideGrapherProps {
     /** Chart slug to render */
