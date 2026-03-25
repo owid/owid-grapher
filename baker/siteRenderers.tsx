@@ -51,6 +51,7 @@ import {
     LinkedChart,
     OwidGdocMinimalPostInterface,
     OwidGdocPublicationContext,
+    Slide,
 } from "@ourworldindata/types"
 import { formatPost } from "./formatWordpressPost.js"
 import {
@@ -104,6 +105,7 @@ import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import { getImagesByFilenames } from "../db/model/Image.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import { getLatestArchivedPostPageVersionsIfEnabled } from "../db/model/ArchivedPostVersion.js"
+import { SlideshowPage } from "../site/slideshows/SlideshowPage.js"
 
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToString(element)}`
@@ -837,11 +839,10 @@ export const renderSlideshowPage = async (
     slideshow: {
         title: string
         slug: string
-        config: { slides: import("@ourworldindata/types").Slide[] }
+        config: { slides: Slide[] }
     },
-    imageMetadata: Record<string, import("@ourworldindata/types").ImageMetadata>
+    imageMetadata: Record<string, ImageMetadata>
 ) => {
-    const { SlideshowPage } = await import("../site/SlideshowPage.js")
     return renderToHtmlPage(
         <SlideshowPage
             baseUrl={BAKED_BASE_URL}

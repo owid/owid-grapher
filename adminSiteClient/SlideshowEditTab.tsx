@@ -4,7 +4,11 @@ import { AutoComplete, Button, Select, Upload } from "antd"
 import { useQueryClient } from "@tanstack/react-query"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faImages, faUpload } from "@fortawesome/free-solid-svg-icons"
-import { Slide, SlideTemplate, SlideMedia } from "@ourworldindata/types"
+import {
+    Slide,
+    SlideTemplate,
+    SLIDE_TEMPLATE_LABELS,
+} from "@ourworldindata/types"
 import { RcFile } from "antd/es/upload/interface.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import {
@@ -15,61 +19,54 @@ import {
 import { ImageSelectorModal } from "./ImageSelectorModal.js"
 import { useGrapherSlugs } from "./useGrapherSlugs.js"
 
-const TEMPLATE_OPTIONS = [
-    { value: SlideTemplate.ImageChartOnly, label: "Image/Chart Only" },
-    { value: SlideTemplate.Section, label: "Section" },
-    { value: SlideTemplate.ImageChartWithText, label: "Image/Chart with Text" },
-    { value: SlideTemplate.TitleSlide, label: "Title Slide" },
-    { value: SlideTemplate.Blank, label: "Blank" },
-    { value: SlideTemplate.TwoColumnText, label: "Two Column Text" },
-    { value: SlideTemplate.Quote, label: "Quote" },
-    { value: SlideTemplate.BigNumber, label: "Big Number" },
-    { value: SlideTemplate.FullSlideImage, label: "Full Slide Image" },
-]
+const TEMPLATE_OPTIONS = Object.entries(SLIDE_TEMPLATE_LABELS).map(
+    ([value, label]) => ({ value: value as SlideTemplate, label })
+)
 
 const POPULAR_TEMPLATES = [
-    SlideTemplate.ImageChartOnly,
+    SlideTemplate.Image,
+    SlideTemplate.Chart,
     SlideTemplate.Section,
-    SlideTemplate.ImageChartWithText,
 ]
 
 function makeDefaultSlideForTemplate(template: SlideTemplate): Slide {
     switch (template) {
-        case SlideTemplate.ImageChartOnly:
-            return { template, media: null }
+        case SlideTemplate.Image:
+            return { template, filename: null }
+        case SlideTemplate.Chart:
+            return { template, slug: "" }
         case SlideTemplate.Section:
             return { template, title: "" }
-        case SlideTemplate.ImageChartWithText:
-            return { template, media: null, text: "" }
-        case SlideTemplate.TitleSlide:
+        case SlideTemplate.Cover:
             return { template, title: "" }
         case SlideTemplate.Blank:
             return { template }
-        case SlideTemplate.TwoColumnText:
-            return { template, leftText: "", rightText: "" }
         case SlideTemplate.Quote:
             return { template, quote: "" }
         case SlideTemplate.BigNumber:
             return { template, number: "", label: "" }
-        case SlideTemplate.FullSlideImage:
-            return { template, media: null }
     }
 }
 
 /** Returns true if the slide has any user-entered content beyond defaults */
 function slideHasContent(slide: Slide): boolean {
     switch (slide.template) {
-        case SlideTemplate.ImageChartOnly:
+        case SlideTemplate.Image:
             return (
-                slide.media !== null ||
+                slide.filename !== null ||
+                !!slide.sectionTitle ||
+                !!slide.slideTitle
+            )
+        case SlideTemplate.Chart:
+            return (
+                !!slide.slug ||
+                !!slide.queryString ||
                 !!slide.sectionTitle ||
                 !!slide.slideTitle
             )
         case SlideTemplate.Section:
             return !!slide.title || !!slide.subtitle
-        case SlideTemplate.ImageChartWithText:
-            return slide.media !== null || !!slide.text
-        case SlideTemplate.TitleSlide:
+        case SlideTemplate.Cover:
             return (
                 !!slide.title ||
                 !!slide.subtitle ||
@@ -78,14 +75,10 @@ function slideHasContent(slide: Slide): boolean {
             )
         case SlideTemplate.Blank:
             return false
-        case SlideTemplate.TwoColumnText:
-            return !!slide.leftText || !!slide.rightText
         case SlideTemplate.Quote:
             return !!slide.quote || !!slide.attribution
         case SlideTemplate.BigNumber:
             return !!slide.number || !!slide.label
-        case SlideTemplate.FullSlideImage:
-            return slide.media !== null
     }
 }
 
@@ -156,88 +149,17 @@ export function SlideshowEditTab(props: {
     )
 }
 
-const GRAPHER_URL_REGEX = /^https?:\/\/[^/]*\/grapher\/([a-z0-9-]+)(\?.*)?$/i
+// --- Image editor ---
 
-/** Parse a full grapher URL into slug + queryString, or return null */
-function parseGrapherUrl(
-    input: string
-): { slug: string; queryString?: string } | null {
-    const match = input.match(GRAPHER_URL_REGEX)
-    if (!match) return null
-    return {
-        slug: match[1],
-        queryString: match[2] || undefined,
-    }
-}
-
-function MediaEditor(props: {
-    media: SlideMedia | null
-    onChange: (media: SlideMedia | null) => void
+function ImageEditor(props: {
+    filename: string | null
+    onChange: (filename: string | null) => void
 }): React.ReactElement {
-    const { media, onChange } = props
+    const { filename, onChange } = props
     const { admin } = useContext(AdminAppContext)
     const queryClient = useQueryClient()
     const [isImageSelectorOpen, setIsImageSelectorOpen] = useState(false)
     const [isUploading, setIsUploading] = useState(false)
-
-    const { data: grapherSlugs = [] } = useGrapherSlugs()
-
-    // Local search text for the autocomplete — only committed to
-    // the slide data model when the user selects from the dropdown
-    // or pastes a full URL. This prevents the Grapher from trying
-    // to instantiate on every keystroke.
-    const committedSlug = media?.type === "grapher" ? media.slug : ""
-    const [grapherSearchText, setGrapherSearchText] = useState(committedSlug)
-
-    // Keep search text in sync when the committed slug changes
-    // externally (e.g. navigating between slides).
-    const prevCommittedSlugRef = React.useRef(committedSlug)
-    if (prevCommittedSlugRef.current !== committedSlug) {
-        prevCommittedSlugRef.current = committedSlug
-        setGrapherSearchText(committedSlug)
-    }
-
-    const grapherQueryString =
-        media?.type === "grapher" ? (media.queryString ?? "") : ""
-
-    const grapherOptions = useMemo(() => {
-        if (!grapherSearchText) return []
-        const term = grapherSearchText.toLowerCase()
-        return grapherSlugs
-            .filter((slug) => slug.toLowerCase().includes(term))
-            .sort((a, b) => a.length - b.length)
-            .slice(0, 50)
-            .map((slug) => ({
-                value: slug,
-                label: slug,
-            }))
-    }, [grapherSlugs, grapherSearchText])
-
-    const handleGrapherSearch = (text: string): void => {
-        setGrapherSearchText(text)
-
-        if (!text) {
-            onChange(null)
-            return
-        }
-
-        // If user pastes a full URL, commit immediately
-        const parsed = parseGrapherUrl(text)
-        if (parsed) {
-            setGrapherSearchText(parsed.slug)
-            onChange({
-                type: "grapher",
-                slug: parsed.slug,
-                queryString: parsed.queryString,
-            })
-        }
-    }
-
-    const handleGrapherSelect = (slug: string): void => {
-        setGrapherSearchText(slug)
-        // Always clear queryString when selecting a new slug
-        onChange({ type: "grapher", slug })
-    }
 
     return (
         <div className="SlideshowEditTab__media-editor">
@@ -263,10 +185,7 @@ function MediaEditor(props: {
                                     "POST"
                                 )
                             if (response.success) {
-                                onChange({
-                                    type: "image",
-                                    filename: response.image.filename,
-                                })
+                                onChange(response.image.filename)
                                 await queryClient.invalidateQueries({
                                     queryKey: ["images"],
                                 })
@@ -285,9 +204,9 @@ function MediaEditor(props: {
                         Upload image
                     </Button>
                 </Upload>
-                {media?.type === "image" && (
+                {filename && (
                     <span className="SlideshowEditTab__media-selected-filename">
-                        {media.filename}
+                        {filename}
                         <button
                             className="SlideshowEditTab__media-clear"
                             onClick={() => onChange(null)}
@@ -300,32 +219,104 @@ function MediaEditor(props: {
             </div>
             <ImageSelectorModal
                 open={isImageSelectorOpen}
-                onSelect={(filename) => {
-                    onChange({ type: "image", filename })
+                onSelect={(selected) => {
+                    onChange(selected)
                     setIsImageSelectorOpen(false)
                 }}
                 onCancel={() => setIsImageSelectorOpen(false)}
             />
-            <p>or</p>
+        </div>
+    )
+}
+
+// --- Chart editor ---
+
+const GRAPHER_URL_REGEX = /^https?:\/\/[^/]*\/grapher\/([a-z0-9-]+)(\?.*)?$/i
+
+/** Parse a full grapher URL into slug + queryString, or return null */
+function parseGrapherUrl(
+    input: string
+): { slug: string; queryString?: string } | null {
+    const match = input.match(GRAPHER_URL_REGEX)
+    if (!match) return null
+    return {
+        slug: match[1],
+        queryString: match[2] || undefined,
+    }
+}
+
+function ChartEditor(props: {
+    slug: string
+    queryString?: string
+    onChange: (slug: string, queryString?: string) => void
+}): React.ReactElement {
+    const { slug, queryString, onChange } = props
+
+    const { data: grapherSlugs = [] } = useGrapherSlugs()
+
+    const [searchText, setSearchText] = useState(slug)
+
+    // Keep search text in sync when the committed slug changes
+    // externally (e.g. navigating between slides).
+    const prevSlugRef = React.useRef(slug)
+    if (prevSlugRef.current !== slug) {
+        prevSlugRef.current = slug
+        setSearchText(slug)
+    }
+
+    const options = useMemo(() => {
+        if (!searchText) return []
+        const term = searchText.toLowerCase()
+        return grapherSlugs
+            .filter((s) => s.toLowerCase().includes(term))
+            .sort((a, b) => a.length - b.length)
+            .slice(0, 50)
+            .map((s) => ({ value: s, label: s }))
+    }, [grapherSlugs, searchText])
+
+    const handleSearch = (text: string): void => {
+        setSearchText(text)
+        if (!text) {
+            onChange("")
+            return
+        }
+        // If user pastes a full URL, commit immediately
+        const parsed = parseGrapherUrl(text)
+        if (parsed) {
+            setSearchText(parsed.slug)
+            onChange(parsed.slug, parsed.queryString)
+        }
+    }
+
+    const handleSelect = (selected: string): void => {
+        setSearchText(selected)
+        // Clear queryString when selecting a new slug
+        onChange(selected)
+    }
+
+    return (
+        <div className="SlideshowEditTab__media-editor">
             <label>
                 Grapher chart:
                 <AutoComplete
-                    value={grapherSearchText}
-                    options={grapherOptions}
-                    onSearch={handleGrapherSearch}
-                    onSelect={handleGrapherSelect}
+                    value={searchText}
+                    options={options}
+                    onSearch={handleSearch}
+                    onSelect={handleSelect}
                     placeholder="Search by slug or paste a full grapher URL..."
                     style={{ width: "100%" }}
                 />
             </label>
-            {media?.type === "grapher" && media.slug && grapherQueryString && (
+            {slug && queryString && (
                 <p className="SlideshowEditTab__query-string-display">
-                    {grapherQueryString}
+                    {queryString}
                 </p>
             )}
         </div>
     )
 }
+
+// --- Template options ---
 
 function TemplateOptionsEditor(props: {
     slide: Slide
@@ -334,12 +325,83 @@ function TemplateOptionsEditor(props: {
     const { slide, onUpdate } = props
 
     switch (slide.template) {
-        case SlideTemplate.ImageChartOnly:
+        case SlideTemplate.Image:
             return (
                 <>
-                    <MediaEditor
-                        media={slide.media}
-                        onChange={(media) => onUpdate({ ...slide, media })}
+                    <ImageEditor
+                        filename={slide.filename}
+                        onChange={(filename) =>
+                            onUpdate({ ...slide, filename })
+                        }
+                    />
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={slide.sectionTitle !== undefined}
+                            onChange={(e) =>
+                                onUpdate({
+                                    ...slide,
+                                    sectionTitle: e.target.checked
+                                        ? ""
+                                        : undefined,
+                                })
+                            }
+                        />{" "}
+                        Section title
+                    </label>
+                    {slide.sectionTitle !== undefined && (
+                        <input
+                            type="text"
+                            value={slide.sectionTitle}
+                            onChange={(e) =>
+                                onUpdate({
+                                    ...slide,
+                                    sectionTitle: e.target.value,
+                                })
+                            }
+                            placeholder="Section title"
+                        />
+                    )}
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={slide.slideTitle !== undefined}
+                            onChange={(e) =>
+                                onUpdate({
+                                    ...slide,
+                                    slideTitle: e.target.checked
+                                        ? ""
+                                        : undefined,
+                                })
+                            }
+                        />{" "}
+                        Slide title
+                    </label>
+                    {slide.slideTitle !== undefined && (
+                        <input
+                            type="text"
+                            value={slide.slideTitle}
+                            onChange={(e) =>
+                                onUpdate({
+                                    ...slide,
+                                    slideTitle: e.target.value,
+                                })
+                            }
+                            placeholder="Slide title"
+                        />
+                    )}
+                </>
+            )
+
+        case SlideTemplate.Chart:
+            return (
+                <>
+                    <ChartEditor
+                        slug={slide.slug}
+                        queryString={slide.queryString}
+                        onChange={(slug, queryString) =>
+                            onUpdate({ ...slide, slug, queryString })
+                        }
                     />
                     <label>
                         <input
@@ -431,7 +493,7 @@ function TemplateOptionsEditor(props: {
                 </>
             )
 
-        case SlideTemplate.TitleSlide:
+        case SlideTemplate.Cover:
             return (
                 <>
                     <label>
@@ -485,61 +547,6 @@ function TemplateOptionsEditor(props: {
                                 })
                             }
                             placeholder="Date (optional)"
-                        />
-                    </label>
-                </>
-            )
-
-        case SlideTemplate.ImageChartWithText:
-            return (
-                <>
-                    <MediaEditor
-                        media={slide.media}
-                        onChange={(media) => onUpdate({ ...slide, media })}
-                    />
-                    <label>
-                        Text
-                        <textarea
-                            value={slide.text}
-                            onChange={(e) =>
-                                onUpdate({ ...slide, text: e.target.value })
-                            }
-                            placeholder="Supports **bold** and *italics*"
-                            rows={4}
-                        />
-                    </label>
-                </>
-            )
-
-        case SlideTemplate.TwoColumnText:
-            return (
-                <>
-                    <label>
-                        Left column
-                        <textarea
-                            value={slide.leftText}
-                            onChange={(e) =>
-                                onUpdate({
-                                    ...slide,
-                                    leftText: e.target.value,
-                                })
-                            }
-                            placeholder="Supports **bold** and *italics*"
-                            rows={4}
-                        />
-                    </label>
-                    <label>
-                        Right column
-                        <textarea
-                            value={slide.rightText}
-                            onChange={(e) =>
-                                onUpdate({
-                                    ...slide,
-                                    rightText: e.target.value,
-                                })
-                            }
-                            placeholder="Supports **bold** and *italics*"
-                            rows={4}
                         />
                     </label>
                 </>
@@ -602,14 +609,6 @@ function TemplateOptionsEditor(props: {
                         />
                     </label>
                 </>
-            )
-
-        case SlideTemplate.FullSlideImage:
-            return (
-                <MediaEditor
-                    media={slide.media}
-                    onChange={(media) => onUpdate({ ...slide, media })}
-                />
             )
 
         case SlideTemplate.Blank:

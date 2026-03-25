@@ -1,15 +1,24 @@
 import { z } from "zod"
 
 export enum SlideTemplate {
-    ImageChartOnly = "image-chart-only",
+    Image = "image",
+    Chart = "chart",
     Section = "section",
-    ImageChartWithText = "image-chart-with-text",
-    TitleSlide = "title-slide",
+    Cover = "cover",
     Blank = "blank",
-    TwoColumnText = "two-column-text",
     Quote = "quote",
     BigNumber = "big-number",
-    FullSlideImage = "full-slide-image",
+}
+
+/** Canonical display labels for each slide template */
+export const SLIDE_TEMPLATE_LABELS: Record<SlideTemplate, string> = {
+    [SlideTemplate.Image]: "Image",
+    [SlideTemplate.Chart]: "Chart",
+    [SlideTemplate.Section]: "Section",
+    [SlideTemplate.Cover]: "Cover",
+    [SlideTemplate.Blank]: "Blank",
+    [SlideTemplate.Quote]: "Quote",
+    [SlideTemplate.BigNumber]: "Big Number",
 }
 
 /**
@@ -18,14 +27,17 @@ export enum SlideTemplate {
  */
 export type MarkdownText = string
 
-/** Either an uploaded image (by filename) or a grapher chart (by slug), but not both */
-export type SlideMedia =
-    | { type: "image"; filename: string }
-    | { type: "grapher"; slug: string; queryString?: string }
+export interface SlideImageOnly {
+    template: SlideTemplate.Image
+    filename: string | null
+    sectionTitle?: string
+    slideTitle?: string
+}
 
-export interface SlideImageChartOnly {
-    template: SlideTemplate.ImageChartOnly
-    media: SlideMedia | null
+export interface SlideChartOnly {
+    template: SlideTemplate.Chart
+    slug: string
+    queryString?: string
     sectionTitle?: string
     slideTitle?: string
 }
@@ -36,16 +48,8 @@ export interface SlideSection {
     subtitle?: string
 }
 
-export interface SlideImageChartWithText {
-    template: SlideTemplate.ImageChartWithText
-    media: SlideMedia | null
-    text: MarkdownText
-    sectionTitle?: string
-    slideTitle?: string
-}
-
 export interface SlideTitleSlide {
-    template: SlideTemplate.TitleSlide
+    template: SlideTemplate.Cover
     title: string
     subtitle?: string
     author?: string
@@ -54,14 +58,6 @@ export interface SlideTitleSlide {
 
 export interface SlideBlank {
     template: SlideTemplate.Blank
-}
-
-export interface SlideTwoColumnText {
-    template: SlideTemplate.TwoColumnText
-    leftText: MarkdownText
-    rightText: MarkdownText
-    sectionTitle?: string
-    slideTitle?: string
 }
 
 export interface SlideQuote {
@@ -79,21 +75,14 @@ export interface SlideBigNumber {
     slideTitle?: string
 }
 
-export interface SlideFullSlideImage {
-    template: SlideTemplate.FullSlideImage
-    media: SlideMedia | null
-}
-
 export type Slide =
-    | SlideImageChartOnly
+    | SlideImageOnly
+    | SlideChartOnly
     | SlideSection
-    | SlideImageChartWithText
     | SlideTitleSlide
     | SlideBlank
-    | SlideTwoColumnText
     | SlideQuote
     | SlideBigNumber
-    | SlideFullSlideImage
 
 export interface SlideshowConfig {
     slides: Slide[]
@@ -101,18 +90,17 @@ export interface SlideshowConfig {
 
 // --- Zod schemas ---
 
-const SlideMediaSchema = z.discriminatedUnion("type", [
-    z.object({ type: z.literal("image"), filename: z.string().min(1) }),
-    z.object({
-        type: z.literal("grapher"),
-        slug: z.string().min(1),
-        queryString: z.string().optional(),
-    }),
-])
+const SlideImageOnlySchema = z.object({
+    template: z.literal(SlideTemplate.Image),
+    filename: z.string().nullable(),
+    sectionTitle: z.string().optional(),
+    slideTitle: z.string().optional(),
+})
 
-const SlideImageChartOnlySchema = z.object({
-    template: z.literal(SlideTemplate.ImageChartOnly),
-    media: SlideMediaSchema.nullable(),
+const SlideChartOnlySchema = z.object({
+    template: z.literal(SlideTemplate.Chart),
+    slug: z.string().min(1),
+    queryString: z.string().optional(),
     sectionTitle: z.string().optional(),
     slideTitle: z.string().optional(),
 })
@@ -123,16 +111,8 @@ const SlideSectionSchema = z.object({
     subtitle: z.string().optional(),
 })
 
-const SlideImageChartWithTextSchema = z.object({
-    template: z.literal(SlideTemplate.ImageChartWithText),
-    media: SlideMediaSchema.nullable(),
-    text: z.string(),
-    sectionTitle: z.string().optional(),
-    slideTitle: z.string().optional(),
-})
-
 const SlideTitleSlideSchema = z.object({
-    template: z.literal(SlideTemplate.TitleSlide),
+    template: z.literal(SlideTemplate.Cover),
     title: z.string(),
     subtitle: z.string().optional(),
     author: z.string().optional(),
@@ -141,14 +121,6 @@ const SlideTitleSlideSchema = z.object({
 
 const SlideBlankSchema = z.object({
     template: z.literal(SlideTemplate.Blank),
-})
-
-const SlideTwoColumnTextSchema = z.object({
-    template: z.literal(SlideTemplate.TwoColumnText),
-    leftText: z.string(),
-    rightText: z.string(),
-    sectionTitle: z.string().optional(),
-    slideTitle: z.string().optional(),
 })
 
 const SlideQuoteSchema = z.object({
@@ -166,21 +138,14 @@ const SlideBigNumberSchema = z.object({
     slideTitle: z.string().optional(),
 })
 
-const SlideFullSlideImageSchema = z.object({
-    template: z.literal(SlideTemplate.FullSlideImage),
-    media: SlideMediaSchema.nullable(),
-})
-
 export const SlideSchema = z.discriminatedUnion("template", [
-    SlideImageChartOnlySchema,
+    SlideImageOnlySchema,
+    SlideChartOnlySchema,
     SlideSectionSchema,
-    SlideImageChartWithTextSchema,
     SlideTitleSlideSchema,
     SlideBlankSchema,
-    SlideTwoColumnTextSchema,
     SlideQuoteSchema,
     SlideBigNumberSchema,
-    SlideFullSlideImageSchema,
 ])
 
 export const SlideshowConfigSchema = z.object({

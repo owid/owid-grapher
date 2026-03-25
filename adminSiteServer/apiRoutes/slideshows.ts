@@ -9,6 +9,7 @@ import {
     DbInsertSlideshowXImage,
     SlideshowConfig,
     Slide,
+    SlideTemplate,
     ContentGraphLinkType,
     SlideshowCreateSchema,
     SlideshowUpdateSchema,
@@ -27,15 +28,13 @@ function extractLinksFromSlides(slides: Slide[]): {
     const imageFilenames: string[] = []
 
     for (const slide of slides) {
-        if (!("media" in slide) || !slide.media) continue
-
-        if (slide.media.type === "image") {
-            imageFilenames.push(slide.media.filename)
-        } else if (slide.media.type === "grapher") {
+        if (slide.template === SlideTemplate.Image && slide.filename) {
+            imageFilenames.push(slide.filename)
+        } else if (slide.template === SlideTemplate.Chart) {
             links.push({
-                target: slide.media.slug,
+                target: slide.slug,
                 linkType: ContentGraphLinkType.Grapher,
-                queryString: slide.media.queryString ?? "",
+                queryString: slide.queryString ?? "",
                 hash: "",
             })
         }
