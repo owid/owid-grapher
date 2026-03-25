@@ -274,6 +274,17 @@ export async function getPagesChronologicalRecords(
     const topicHierarchiesByChildName =
         await db.getTopicHierarchiesByChildName(knex)
 
+    // Load attachments for announcements: linkedAuthors (for author images),
+    // linkedCharts and linkedDocuments (for non-CTA announcements).
+    // These aren't populated by gdocFromJSON alone.
+    for (const gdoc of gdocs) {
+        if (gdoc.content.type === OwidGdocType.Announcement) {
+            await gdoc.loadLinkedAuthors(knex)
+            await gdoc.loadLinkedCharts(knex)
+            await gdoc.loadLinkedDocuments(knex)
+        }
+    }
+
     const records: PageChronologicalRecord[] = []
     for (const gdoc of gdocs) {
         if (!gdoc.content.type || !gdoc.publishedAt) continue
