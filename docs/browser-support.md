@@ -29,14 +29,11 @@ Both are safe for our current targets, but they will causes issues (incl. Syntax
 
 The following features are **not** available across all our supported browsers and should be avoided (or guarded) until we raise our minimum targets:
 
-- [`Set` methods (`intersection()`, `union()`, `difference()`, etc.)](https://caniuse.com/mdn-javascript_builtins_set_intersection) — Chrome 122+, Firefox 127+, Safari 17+.
-- [`Object.groupBy()` / `Map.groupBy()`](https://caniuse.com/mdn-javascript_builtins_object_groupby) — Chrome 117+, Firefox 119+, Safari 17.4+.
 - [`Promise.withResolvers()`](https://caniuse.com/mdn-javascript_builtins_promise_withresolvers) — Chrome 119+, Firefox 121+, Safari 17.4+.
 - [CSS native nesting](https://caniuse.com/css-nesting) — Chrome 112+, Firefox 117+, Safari 16.4+.
 - [`URL.canParse()`](https://caniuse.com/mdn-api_url_canparse_static) — Chrome 120+, Firefox 115+, Safari 17+.
 - [Popover API (`popover` attribute, `showPopover()`)](https://caniuse.com/mdn-api_htmlelement_popover) — Chrome 114+, Firefox 125+, Safari 17+.
 - [`Array.fromAsync()`](https://caniuse.com/mdn-javascript_builtins_array_fromasync) — Chrome 121+, Firefox 115+, Safari 16.4+. Missing in Chrome 111–120.
-- [Iterator helpers (`.map()`, `.filter()`, `.take()`, etc.)](https://caniuse.com/mdn-javascript_builtins_iterator_map) — Chrome 122+, Firefox 131+, Safari 18.2+.
 - [RegExp `v` flag (unicodeSets)](https://caniuse.com/mdn-javascript_builtins_regexp_unicodesets) — Chrome 112+, Firefox 116+, Safari 17+.
 - [CSS `@starting-style`](https://caniuse.com/mdn-css_at-rules_starting-style) — Chrome 117+, Firefox 129+, Safari 17.5+.
 - [View Transitions API](https://caniuse.com/view-transitions) — Chrome 111+, Safari 18+, Firefox 144+.
@@ -46,11 +43,21 @@ The following features are **not** available across all our supported browsers a
 - [CSS `color-mix()` function](https://caniuse.com/wf-color-mix) — Chrome 111+, Firefox 113+, Safari 16.2+.
 - [`Map.getOrInsert()`](https://caniuse.com/wf-getorinsert) — Chrome 145+, Firefox 144+, Safari 26.2+.
 
-Note: many of the JS features above (e.g. `Set` methods, `groupBy`, `Promise.withResolvers`) could be polyfilled using [core-js](https://github.com/nicolo-ribaudo/core-js-contrib) or similar libraries if we wanted to use them before raising our browser targets. CSS features or JS syntax features obviously can't be polyfilled this way.
+Note: some of the JS features above (e.g. `Map.getOrInsert`) could be polyfilled using [core-js](https://github.com/nicolo-ribaudo/core-js-contrib) or similar libraries if we wanted to use them before raising our browser targets. CSS features or JS syntax features obviously can't be polyfilled this way.
 
 ### Polyfills
 
-We ship explicit polyfills in `site/polyfills.ts` for ES2022/ES2023 features (e.g. `Array.at`, `Array.findLast`, `Array.toReversed`, `Array.toSorted`) that aren't available in all supported browsers. The polyfill file is imported at the top of `site/owid.entry.ts` before any other code runs.
+We ship explicit polyfills in `site/polyfills.ts` (via [core-js](https://github.com/nicolo-ribaudo/core-js-contrib)) for features that aren't available in all supported browsers. Currently polyfilled:
+
+- `Array.prototype.at`, `String.prototype.at` — Chrome 92+, Safari 15.4+, Firefox 90+
+- `Object.hasOwn` — Chrome 93+, Safari 15.4+, Firefox 92+
+- `Array.prototype.findLast`, `Array.prototype.findLastIndex` — Chrome 97+, Safari 15.4+, Firefox 104+
+- `Array.prototype.toReversed`, `Array.prototype.toSorted`, `Array.prototype.toSpliced`, `Array.prototype.with` — Chrome 110+, Safari 16.0+, Firefox 115+
+- `Object.groupBy`, `Map.groupBy` — Chrome 117+, Safari 17.4+, Firefox 119+
+- `Set` methods (`union`, `intersection`, `difference`, `symmetricDifference`, etc.) — Chrome 122+, Safari 17.0+, Firefox 127+
+- Iterator helpers (`.map()`, `.filter()`, `.reduce()`, `.some()`, `.every()`, `.find()`, etc.) — Chrome 122+, Safari 18.4+, Firefox 131+
+
+This means that we can use these features in our code without worrying about browser support.
 
 ### Setting the Vite `target`
 

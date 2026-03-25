@@ -188,10 +188,11 @@ export async function upsertExplorerVariables(
     // Get all variable ids and catalog paths from the explorer config.
     const proposed = detectVariableIdsAndCatalogPaths(config)
     const proposedCatalogPaths = new Set(
-        Array.from(proposed).filter((x) => isNaN(Number(x)))
+        proposed.keys().filter((x) => isNaN(Number(x)))
     )
     const proposedVariableIds = new Set(
-        Array.from(proposed)
+        proposed
+            .keys()
             .filter((x) => !isNaN(Number(x)))
             .map((x) => Number(x))
     )
@@ -218,9 +219,10 @@ export async function upsertExplorerVariables(
     const resolvedVariableIds = new Set<number>(
         resolvedRows.map((row: any) => row.id)
     )
-    const missing = Array.from(proposedCatalogPaths).filter(
-        (x) => !foundCatalogPaths.has(x)
-    )
+    const missing = proposedCatalogPaths
+        .keys()
+        .filter((x) => !foundCatalogPaths.has(x))
+        .toArray()
     if (missing.length > 0) {
         console.error(
             `Couldn't resolve ${missing.length} catalog paths:`,

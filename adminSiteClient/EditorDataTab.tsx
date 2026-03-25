@@ -1,10 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import {
-    differenceOfSets,
-    getRegionByName,
-    checkIsCountry,
-} from "@ourworldindata/utils"
+import { getRegionByName, checkIsCountry } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import cx from "classnames"
@@ -674,10 +670,8 @@ export class FocusSection extends React.Component<{
         const focusedSeriesNames = grapherState.focusArray.seriesNames
 
         const seriesNameSet = new Set(grapherState.focusableSeriesNames)
-        const availableSeriesNameSet = differenceOfSets([
-            seriesNameSet,
-            focusedSeriesNameSet,
-        ])
+        const availableSeriesNameSet =
+            seriesNameSet.difference(focusedSeriesNameSet)
 
         // Focusing only makes sense for two or more plotted series
         if (focusedSeriesNameSet.size === 0 && availableSeriesNameSet.size < 2)
@@ -687,10 +681,8 @@ export class FocusSection extends React.Component<{
             availableSeriesNameSet
         ).sort()
 
-        const invalidFocusedSeriesNames = differenceOfSets([
-            focusedSeriesNameSet,
-            seriesNameSet,
-        ])
+        const invalidFocusedSeriesNames =
+            focusedSeriesNameSet.difference(seriesNameSet)
 
         return (
             <Section name="Data to highlight">

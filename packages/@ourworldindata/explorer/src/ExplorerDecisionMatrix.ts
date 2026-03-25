@@ -5,6 +5,7 @@ import {
     differenceObj,
     trimObject,
     parseIntOrUndefined,
+    es6mapValues,
 } from "@ourworldindata/utils"
 import { ColumnTypeNames, CoreRow } from "@ourworldindata/types"
 import {
@@ -201,10 +202,9 @@ export class DecisionMatrix {
     get tableWithOriginalColumnNames() {
         return this.table.renameColumns(
             Object.fromEntries(
-                [...this.choiceNameToControlTypeMap.entries()].map(
-                    ([choiceName, controlType]) => {
-                        return [choiceName, `${choiceName} ${controlType}`]
-                    }
+                es6mapValues(
+                    this.choiceNameToControlTypeMap,
+                    (controlType, choiceName) => `${choiceName} ${controlType}`
                 )
             )
         )

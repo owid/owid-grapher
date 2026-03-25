@@ -700,7 +700,7 @@ export function getBestBreadcrumbs(
     }
 
     // Only keep the topics in the paths, because only topics are clickable as breadcrumbs
-    const topicsOnly = Array.from(result.values()).reduce(
+    const topicsOnly = result.values().reduce(
         (acc, path) => {
             return [...acc, path.filter((tag) => tag.slug)]
         },

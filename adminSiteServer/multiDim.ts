@@ -324,9 +324,10 @@ export async function upsertMultiDim(
         })
     )
 
-    const orphanedChartConfigIds = Array.from(
-        existingViewIdsToChartConfigIds.values()
-    ).filter((id) => !reusedChartConfigIds.has(id))
+    const orphanedChartConfigIds = existingViewIdsToChartConfigIds
+        .values()
+        .filter((id) => !reusedChartConfigIds.has(id))
+        .toArray()
     await cleanUpOrphanedChartConfigs(knex, orphanedChartConfigIds)
 
     const enrichedConfig = { ...config, views: enrichedViews }

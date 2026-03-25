@@ -58,7 +58,7 @@ const analyze = async (): Promise<void> => {
         }
 
         const sortedTagCount = _.sortBy(
-            Array.from(tagCounts.entries()),
+            tagCounts.entries().toArray(),
             ([tag, _]) => tag
         )
         for (const [tag, count] of sortedTagCount) {

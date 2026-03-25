@@ -26,7 +26,6 @@ import {
 } from "./searchUtils.js"
 import { useMemo, useEffect, useCallback } from "react"
 import { useSearchParams } from "react-router-dom-v5-compat"
-import { intersectionOfSets } from "@ourworldindata/utils"
 
 export const DEFAULT_SEARCH_STATE: SearchState = {
     query: "",
@@ -255,43 +254,54 @@ export function searchParamsToState(
     eligibleRegionNames: string[],
     eligibleTopicsAndAreas: string[]
 ): SearchState {
-    const topicsSet = intersectionOfSets([
-        deserializeSet(searchParams.get("topics")),
-        new Set(eligibleTopicsAndAreas),
-    ])
-    const countriesSet = intersectionOfSets([
-        deserializeSet(searchParams.get("countries")),
-        new Set(eligibleRegionNames),
-    ])
+    const topicsSet = deserializeSet(searchParams.get("topics")).intersection(
+        new Set(eligibleTopicsAndAreas)
+    )
+    const countriesSet = deserializeSet(
+        searchParams.get("countries")
+    ).intersection(new Set(eligibleRegionNames))
     const datasetsSet = new Set(
-        [...deserializeSet(searchParams.get("datasetProducts"))].filter(Boolean)
+        deserializeSet(searchParams.get("datasetProducts"))
+            .keys()
+            .filter(Boolean)
     )
     const namespacesSet = new Set(
-        [...deserializeSet(searchParams.get("datasetNamespaces"))].filter(
-            Boolean
-        )
+        deserializeSet(searchParams.get("datasetNamespaces"))
+            .keys()
+            .filter(Boolean)
     )
     const versionsSet = new Set(
-        [...deserializeSet(searchParams.get("datasetVersions"))].filter(Boolean)
+        deserializeSet(searchParams.get("datasetVersions"))
+            .keys()
+            .filter(Boolean)
     )
     const producersSet = new Set(
-        [...deserializeSet(searchParams.get("datasetProducers"))].filter(
-            Boolean
-        )
+        deserializeSet(searchParams.get("datasetProducers"))
+            .keys()
+            .filter(Boolean)
     )
 
     const filters: Filter[] = [
-        [...topicsSet].map((topic) => createTopicFilter(topic)),
-        [...countriesSet].map((country) => createCountryFilter(country)),
-        [...datasetsSet].map((dataset) => createDatasetProductsFilter(dataset)),
-        [...namespacesSet].map((namespace) =>
-            createDatasetNamespaceFilter(namespace)
-        ),
-        [...versionsSet].map((version) => createDatasetVersionFilter(version)),
-        [...producersSet].map((producer) =>
-            createDatasetProducerFilter(producer)
-        ),
-    ].flat()
+        ...topicsSet.keys().map((topic) => createTopicFilter(topic)),
+
+        ...countriesSet.keys().map((country) => createCountryFilter(country)),
+
+        ...datasetsSet
+            .keys()
+            .map((dataset) => createDatasetProductsFilter(dataset)),
+
+        ...namespacesSet
+            .keys()
+            .map((namespace) => createDatasetNamespaceFilter(namespace)),
+
+        ...versionsSet
+            .keys()
+            .map((version) => createDatasetVersionFilter(version)),
+
+        ...producersSet
+            .keys()
+            .map((producer) => createDatasetProducerFilter(producer)),
+    ]
 
     const resultTypeParam = searchParams.get("resultType") ?? undefined
 

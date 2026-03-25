@@ -190,7 +190,7 @@ export async function queryDataInsights(
     const query = [
         state.query,
         // Use advanced syntax to search for countries as exact phrases
-        ...Array.from(selectedCountryNames).map((c) => `"${c}"`),
+        ...selectedCountryNames.keys().map((c) => `"${c}"`),
     ]
         .filter(Boolean)
         .join(" ")
@@ -245,7 +245,7 @@ export async function queryArticles(
     const query = [
         state.query,
         // Use advanced syntax to search for countries as exact phrases
-        ...Array.from(selectedCountryNames).map((c) => `"${c}"`),
+        ...selectedCountryNames.keys().map((c) => `"${c}"`),
     ]
         .filter(Boolean)
         .join(" ")

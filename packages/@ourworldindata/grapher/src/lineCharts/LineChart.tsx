@@ -687,8 +687,8 @@ export class LineChart
 
         // Deduplicate series by seriesName to avoid showing the same label multiple times
         const deduplicatedSeries: LineChartSeries[] = []
-        const seriesGroupedByName = _.groupBy(series, "seriesName")
-        for (const duplicates of Object.values(seriesGroupedByName)) {
+        const seriesGroupedByName = Map.groupBy(series, (s) => s.seriesName)
+        for (const duplicates of seriesGroupedByName.values()) {
             // keep only the label for the series with the most recent data
             // (series are sorted by time, so we can just take the last one)
             deduplicatedSeries.push(R.last(duplicates)!)

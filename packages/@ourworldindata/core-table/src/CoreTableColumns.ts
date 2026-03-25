@@ -497,12 +497,7 @@ export abstract class AbstractCoreColumn<
         EntityName,
         OwidVariableRow<JS_TYPE>[]
     > {
-        const map = new Map<EntityName, OwidVariableRow<JS_TYPE>[]>()
-        this.owidRows.forEach((row) => {
-            if (!map.has(row.entityName)) map.set(row.entityName, [])
-            map.get(row.entityName)!.push(row)
-        })
-        return map
+        return Map.groupBy(this.owidRows, (row) => row.entityName)
     }
 
     @imemo get owidRowByEntityNameAndTime(): Map<
