@@ -26,3 +26,7 @@ import "core-js/proposals/array-grouping-v2" // Chrome 117+, Safari 17.4+, Firef
 // Set methods: union, intersection, difference, symmetricDifference, etc.
 // https://core-js.io/docs/features/proposals/set-methods
 import "core-js/proposals/set-methods-v2" // Chrome 122+, Safari 17.0+, Firefox 127+
+
+// Iterator helpers: map, filter, reduce, some, every, find, etc.
+// https://core-js.io/docs/features/proposals/iterator-helpers
+import "core-js/proposals/iterator-helpers-stage-3-2" // Chrome 122+, Safari 18.4+, Firefox 131+
