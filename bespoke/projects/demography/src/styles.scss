@@ -187,6 +187,12 @@ $panel-gap: 12px;
         color: $light-text;
         margin: 0;
         margin-bottom: 12px;
+
+        .breakpoint-medium &,
+        .breakpoint-small &,
+        .breakpoint-narrow & {
+            font-size: 0.6875rem;
+        }
     }
 }
 
