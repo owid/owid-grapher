@@ -39,10 +39,9 @@ import {
 const AGE_GROUP_LABELS = [...PYRAMID_AGE_GROUPS].reverse()
 
 const PYRAMID_MARGIN = { top: 16, right: 3, bottom: 14, left: 3 }
-const CENTER_GAP_PADDING = 2
-const TRIANGLE = { w: 3.5, h: 2.5 }
+const CENTER_GAP_PADDING = 4
 
-const AGE_ZONE_LABEL_PADDING = 24 // gap + arrow + spacing
+const AGE_ZONE_LABEL_PADDING = 6 // gap + arrow + spacing
 
 export type ProjectionType = "custom" | "un"
 
@@ -69,7 +68,8 @@ function PopulationPyramid({
     const centerGap =
         Bounds.forText("125-129", { fontSize: fonts.ageGroupLabel }).width +
         2 * CENTER_GAP_PADDING
-    const triangle = TRIANGLE
+    const triangleH = fonts.ageGroupLabel * 0.3
+    const triangle = { w: triangleH * 1.6, h: triangleH }
 
     // Margin on the right to accommodate age zone boundary labels, if shown
     const ageZoneLabelMarginRight = useMemo(() => {
@@ -182,6 +182,7 @@ function PopulationPyramid({
                         ageBuckets={ageBucketsBySex.male}
                         height={innerHeight}
                         tickFontSize={fonts.xTick}
+                        hoverFontSize={fonts.hoverLabel}
                         ageZones={ageZones}
                         side="male"
                         hoveredAgeGroup={hoveredAgeGroup}
@@ -194,6 +195,7 @@ function PopulationPyramid({
                         ageBuckets={ageBucketsBySex.female}
                         height={innerHeight}
                         tickFontSize={fonts.xTick}
+                        hoverFontSize={fonts.hoverLabel}
                         ageZones={ageZones}
                         side="female"
                         hoveredAgeGroup={hoveredAgeGroup}
@@ -280,6 +282,7 @@ function PopulationPyramidHalf({
     ageBuckets,
     height,
     tickFontSize,
+    hoverFontSize,
     ageZones,
     side,
     hoveredAgeGroup,
@@ -290,6 +293,7 @@ function PopulationPyramidHalf({
     ageBuckets: Record<string, number>
     height: number
     tickFontSize: number
+    hoverFontSize: number
     ageZones?: AgeZone[]
     side: "male" | "female"
     hoveredAgeGroup: string | null
@@ -372,7 +376,7 @@ function PopulationPyramidHalf({
                     barHeight={bandwidth}
                     halfWidth={halfWidth}
                     direction={side === "male" ? "left" : "right"}
-                    fontSize={tickFontSize}
+                    fontSize={hoverFontSize}
                     barColor={
                         ageZones?.find((z) =>
                             z.ageGroups.includes(hoveredAgeGroup)
@@ -509,7 +513,7 @@ function PopulationPyramidAxisX({
                             fill={
                                 isHovered
                                     ? GRAPHER_DARK_TEXT
-                                    : isMedian
+                                    : isMedian && !isHovering
                                       ? GRAPHER_LIGHT_TEXT
                                       : LABEL_COLOR
                             }
