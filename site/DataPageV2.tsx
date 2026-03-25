@@ -31,7 +31,7 @@ import { SiteHeader } from "./SiteHeader.js"
 import { IFrameDetector } from "./IframeDetector.js"
 import { DebugProvider } from "./gdocs/DebugProvider.js"
 import { Html } from "./Html.js"
-import { ArchiveContext } from "@ourworldindata/types"
+import { ArchiveContext, Distribution } from "@ourworldindata/types"
 import { DEFAULT_PAGE_DESCRIPTION } from "./dataPage.js"
 
 export const DataPageV2 = (props: {
@@ -45,6 +45,7 @@ export const DataPageV2 = (props: {
     tagToSlugMap: Record<string | number, string>
     archiveContext?: ArchiveContext
     dataApiUrl?: string
+    distribution: Distribution
 }) => {
     const {
         grapher,
@@ -56,6 +57,7 @@ export const DataPageV2 = (props: {
         tagToSlugMap,
         imageMetadata,
         archiveContext,
+        distribution,
     } = props
     const pageTitle = grapher?.title ?? datapageData.title.title
     const dataApiOrigin = Url.fromURL(DATA_API_URL).origin
@@ -164,6 +166,7 @@ export const DataPageV2 = (props: {
                                     canonicalUrl,
                                     tagToSlugMap: minimalTagToSlugMap,
                                     imageMetadata,
+                                    distribution,
                                 }
                             )}`,
                         }}
@@ -179,6 +182,7 @@ export const DataPageV2 = (props: {
                                 canonicalUrl={canonicalUrl}
                                 tagToSlugMap={tagToSlugMap}
                                 archiveContext={archiveContext}
+                                distribution={distribution}
                             />
                         </DebugProvider>
                     </div>

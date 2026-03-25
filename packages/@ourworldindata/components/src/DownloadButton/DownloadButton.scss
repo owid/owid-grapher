@@ -1,0 +1,93 @@
+.download-button {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    padding: 16px;
+    text-align: left;
+    cursor: pointer;
+    color: $blue-90;
+    background-color: $blue-5 !important;
+    border: none;
+    border-radius: 0;
+    text-decoration: none;
+
+    &:hover,
+    &:active {
+        background-color: $accent-pale-blue !important;
+    }
+
+    .download-button__icon {
+        margin-right: 12px;
+        display: flex;
+    }
+
+    .download-button__content {
+        flex: 1;
+    }
+
+    .download-button__preview-image img {
+        display: block;
+        box-shadow:
+            0px 0px 0px 0px rgba(49, 37, 2, 0.03),
+            0px 6px 13px 0px rgba(49, 37, 2, 0.03),
+            0px 93px 37px 0px rgba(49, 37, 2, 0.01),
+            0px 145px 41px 0px rgba(49, 37, 2, 0);
+        padding: 0;
+        margin: 0 24px 0 0;
+    }
+
+    .download-button__title {
+        display: block;
+        margin: 0;
+        font-family: $sans-serif-font-stack;
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 1.5;
+        letter-spacing: 0;
+    }
+
+    .download-button__description {
+        display: block;
+        margin: 0;
+        color: $blue-60;
+        font-family: $sans-serif-font-stack;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 1.2;
+        letter-spacing: 0;
+    }
+
+    .download-button__description-wrapper {
+        position: relative;
+    }
+
+    .download-button__loading-label {
+        display: block;
+        margin: 0;
+        color: $blue-60;
+        font-family: $sans-serif-font-stack;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 1.2;
+        letter-spacing: 0;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+    }
+
+    &.download-button--loading {
+        cursor: not-allowed;
+        opacity: 0.8;
+    }
+
+    &.download-button--loading .download-button__description {
+        visibility: hidden;
+    }
+
+    .download-button__download-icon {
+        padding: 0 8px 0 16px;
+        font-size: 16px;
+    }
+}

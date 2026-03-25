@@ -79,8 +79,6 @@ export {
     toRectangularMatrix,
     checkIsStringIndexable,
     checkIsTouchEvent,
-    triggerDownloadFromBlob,
-    triggerDownloadFromUrl,
     removeAllWhitespace,
     moveArrayItemToIndex,
     getIndexableKeys,
@@ -125,7 +123,6 @@ export {
     getParentVariableIdFromChartConfig,
     isArrayDifferentFromReference,
     readFromAssetMap,
-    downloadImage,
     getUniqueNamesFromTagHierarchies,
     getUserNavigatorLanguages,
     getUserNavigatorLanguagesNonEnglish,
@@ -167,6 +164,17 @@ export {
 export { getAllVariableIds } from "./multiDim.js"
 
 export { isPresent } from "./isPresent.js"
+
+export {
+    downloadImage,
+    makeDownloadCodeExamples,
+    makeFilteredDownloadDescription,
+    makeFullDownloadDescription,
+    makeNumberOfRowsSnippet,
+    SERVER_SIDE_DOWNLOAD_HELP_TEXT,
+    triggerDownloadFromBlob,
+    triggerDownloadFromUrl,
+} from "./download.js"
 
 import dayjs from "./dayjs.js"
 export { dayjs }
