@@ -30,6 +30,7 @@ $panel-gap: 12px;
         position: relative;
         width: 100%;
         aspect-ratio: 2 / 1;
+        min-height: 210px;
     }
 }
 
@@ -41,6 +42,87 @@ $panel-gap: 12px;
 
     .demography-population-pyramid__slider {
         margin-top: 14px;
+
+        .demography-year-slider__label {
+            font-size: 13px;
+        }
+    }
+}
+
+.demography-assumptions-disclosure {
+    margin-top: 16px;
+    background: $gray-5;
+
+    .breakpoint-narrow & {
+        margin-top: 10px;
+    }
+    border-radius: 2px;
+    padding: 8px 10px;
+
+    .demography-assumptions-disclosure__trigger {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        width: 100%;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 0.8125rem;
+        color: $dark-text;
+        padding: 0;
+        font-weight: 600;
+
+        &:hover {
+            color: $gray-100;
+        }
+
+        .breakpoint-narrow & {
+            font-size: 0.75rem;
+        }
+    }
+
+    .demography-assumptions-disclosure__arrow {
+        font-size: 0.8em;
+        line-height: 1;
+        display: inline-block;
+        transition: transform 0.15s ease;
+        margin-right: 4px;
+    }
+
+    &[data-expanded] .demography-assumptions-disclosure__arrow {
+        transform: rotate(90deg);
+    }
+
+    .demography-assumptions-disclosure__panel {
+        margin-top: 8px;
+    }
+
+    .demography-assumptions-disclosure__charts {
+        display: flex;
+        flex-direction: column;
+        gap: $panel-gap;
+    }
+
+    .assumptions-panel {
+        border: 1px solid $gray-10;
+    }
+
+    .assumptions-panel .chart-panel__content {
+        flex: none;
+        height: 60px;
+    }
+
+    .breakpoint-narrow & .assumptions-panel .chart-panel__title,
+    .breakpoint-narrow & .assumptions-panel .chart-panel__subtitle {
+        font-size: 0.6875rem;
+    }
+
+    .breakpoint-narrow & .assumptions-panel .chart-panel__title {
+        margin-bottom: 2px;
+    }
+
+    .breakpoint-narrow & .assumptions-panel .chart-panel__content {
+        height: 45px;
     }
 }
 
@@ -93,6 +175,10 @@ $panel-gap: 12px;
         flex: none;
         height: 80px;
     }
+
+    .breakpoint-narrow & .parameters-panel .chart-panel__content {
+        height: 60px;
+    }
 }
 
 .demography-controls {
@@ -130,10 +216,11 @@ $panel-gap: 12px;
     padding: 16px;
 
     .container__title {
+        @include grapher_h5-black-caps;
+
         margin: 0;
         margin-bottom: $panel-gap !important;
-
-        @include grapher_h5-black-caps;
+        font-size: 0.75rem;
     }
 
     &.container-left {
@@ -143,7 +230,9 @@ $panel-gap: 12px;
         display: flex;
         flex-direction: column;
 
-        @media (max-width: 1024px) {
+        .breakpoint-medium &,
+        .breakpoint-small &,
+        .breakpoint-narrow & {
             width: auto;
             flex: 1;
         }
@@ -298,7 +387,7 @@ $panel-gap: 12px;
     row-gap: 4px;
     column-gap: 16px;
     margin-top: 4px;
-    margin-bottom: 4px;
+    margin-bottom: 24px;
 
     .population-chart-legend__item {
         display: flex;
@@ -339,6 +428,10 @@ $panel-gap: 12px;
         font-size: 0.75rem;
     }
 
+    .breakpoint-medium & .chart-panel__subtitle {
+        margin-right: -#{$panel-gap - 2px};
+    }
+
     .chart-panel__title {
         margin-bottom: 2px;
     }
@@ -363,7 +456,9 @@ $panel-gap: 12px;
     color: $gray-100;
 }
 
-@media (max-width: 1024px) {
+.breakpoint-medium,
+.breakpoint-small,
+.breakpoint-narrow {
     .output-panels {
         flex-direction: column;
 
@@ -388,12 +483,26 @@ $panel-gap: 12px;
         }
     }
 
+    .container__title {
+        font-size: 0.6875rem;
+    }
+
     .population-chart-legend .population-chart-legend__item {
         font-size: 0.6875rem;
     }
+
+    .chart-content {
+        height: 460px;
+    }
 }
 
-@media (max-width: 768px) {
+.breakpoint-small,
+.breakpoint-narrow {
+    &.demography-chart__simulation-variant {
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
     .chart-content {
         display: block;
         height: auto;
@@ -437,38 +546,9 @@ $panel-gap: 12px;
         }
     }
 
-    // .container {
-    //     padding: 12px;
-    // }
-
-    // .container .container__title {
-    //     font-size: 10px;
-    // }
-
     .chart-panel {
         display: block;
-        // padding: 8px;
     }
-
-    // .chart-panel .chart-panel__title {
-    //     font-size: 11px;
-    // }
-
-    // .chart-panel .chart-panel__subtitle {
-    //     font-size: 10px;
-    // }
-
-    // .chart-panel .chart-panel__reset-btn {
-    //     font-size: 9px;
-    // }
-
-    // .demography-controls .demography-controls__title {
-    //     font-size: 10px;
-    // }
-
-    // .population-chart-legend .population-chart-legend__item {
-    //     font-size: 0.6rem;
-    // }
 
     .chart-panel__content {
         height: 300px;
@@ -488,15 +568,15 @@ $panel-gap: 12px;
     }
 }
 
-@media (max-width: 500px) {
+.breakpoint-narrow {
     .chart-header .chart-header__title {
-        font-size: 1rem !important;
-        margin-bottom: 4px !important;
+        font-size: 1rem;
+        // margin-bottom: 4px;
     }
 
     .chart-header .chart-header__subtitle {
-        font-size: 0.75rem !important;
-        margin-bottom: 8px !important;
+        font-size: 0.75rem;
+        // margin-bottom: 8px;
     }
 
     .output-panels {
@@ -510,7 +590,8 @@ $panel-gap: 12px;
     }
 
     .chart-footer {
-        font-size: 0.75rem !important;
+        font-size: 0.75rem;
+        margin-top: 8px;
 
         .chart-footer__note {
             font-size: 0.75rem;
@@ -523,6 +604,14 @@ $panel-gap: 12px;
 
     .container .container__title {
         font-size: 0.6875rem;
+    }
+
+    .frame {
+        padding: 12px;
+    }
+
+    .container {
+        padding: 12px;
     }
 }
 

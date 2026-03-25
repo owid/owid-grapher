@@ -9,6 +9,7 @@ import {
     scaleFertilityToTFR,
     scaleMortalityToLE,
     type BaselineParams,
+    type MigrationOptions,
     type YearResult,
 } from "./model"
 import { getPopulationForYear, groupByAgeRange } from "../helpers/utils"
@@ -166,6 +167,7 @@ export function runProjectionFinalPopulation({
     historicalEndYear,
     endYear,
     controlYears,
+    migrationOptions,
 }: {
     startPopulation: PopulationBySex
     baselineParams: BaselineParams
@@ -173,6 +175,7 @@ export function runProjectionFinalPopulation({
     historicalEndYear: number
     endYear: number
     controlYears: readonly number[]
+    migrationOptions?: MigrationOptions
 }): number {
     let population = clonePopulation(startPopulation)
 
@@ -190,7 +193,8 @@ export function runProjectionFinalPopulation({
             population,
             mortalityRates,
             fertilityRates,
-            migrationRate
+            migrationRate,
+            migrationOptions ?? null
         )
     }
 
@@ -204,6 +208,7 @@ export function runProjectionTrajectory({
     historicalEndYear,
     endYear,
     controlYears,
+    migrationOptions,
 }: {
     startPopulation: PopulationBySex
     baselineParams: BaselineParams
@@ -211,6 +216,7 @@ export function runProjectionTrajectory({
     historicalEndYear: number
     endYear: number
     controlYears: readonly number[]
+    migrationOptions?: MigrationOptions
 }): Record<number, number> {
     let population = clonePopulation(startPopulation)
     const trajectory: Record<number, number> = {
@@ -235,7 +241,8 @@ export function runProjectionTrajectory({
             population,
             mortalityRates,
             fertilityRates,
-            migrationRate
+            migrationRate,
+            migrationOptions ?? null
         )
         trajectory[nextYear] = getTotalPopulationFromArrays(
             population.female,

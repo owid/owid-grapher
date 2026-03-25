@@ -24,8 +24,8 @@ import {
 import { Bounds, formatValue } from "@ourworldindata/utils"
 import { TextWrap, TextWrapSvg } from "@ourworldindata/components"
 import { OwidVariableRoundingMode } from "@ourworldindata/types"
-import { useBreakpoint } from "../helpers/useBreakpoint.js"
-import { getFontTier } from "../helpers/fontTiers.js"
+import { widthToBreakpoint } from "../helpers/useBreakpoint.js"
+import { getHorizontalPyramidFonts } from "../helpers/fonts.js"
 
 export interface PopulationPyramidHorizontalProps {
     simulation: Simulation
@@ -42,8 +42,7 @@ function PopulationPyramidHorizontal({
     width,
     height,
 }: PopulationPyramidHorizontalProps & { width: number; height: number }) {
-    const breakpoint = useBreakpoint()
-    const fontTier = getFontTier(breakpoint)
+    const fonts = getHorizontalPyramidFonts(widthToBreakpoint(width))
     const margin = { top: 0, right: 0, bottom: 0, left: 0 }
 
     const innerWidth = width - margin.left - margin.right
@@ -86,7 +85,7 @@ function PopulationPyramidHorizontal({
     }, [simulation, yAxisScaleMode, ageBucketsBySex])
 
     const centerY = innerHeight / 2
-    const centerGap = fontTier.tick + 6
+    const centerGap = fonts.xTick + 6
 
     // Female bars grow upward from center gap, male bars grow downward
     const yScaleFemale = useMemo(
@@ -146,7 +145,7 @@ function PopulationPyramidHorizontal({
                 <TopGridLabel
                     yScale={yScaleFemale}
                     innerWidth={innerWidth}
-                    fontSize={fontTier.tick}
+                    fontSize={fonts.yTick}
                     labelText="people"
                     labelColor={LABEL_COLOR}
                     position="above"
@@ -154,7 +153,7 @@ function PopulationPyramidHorizontal({
                 <TopGridLabel
                     yScale={yScaleMale}
                     innerWidth={innerWidth}
-                    fontSize={fontTier.tick}
+                    fontSize={fonts.yTick}
                     labelText="people"
                     labelColor={LABEL_COLOR}
                     position="below"
@@ -166,7 +165,7 @@ function PopulationPyramidHorizontal({
                     ageBuckets={ageBucketsBySex.female}
                     color={FEMALE_COLOR}
                     hoveredAgeGroup={hoveredAgeGroup}
-                    fontSize={fontTier.label}
+                    fontSize={fonts.hoverLabel}
                 />
                 <BarValueLabel
                     xScale={xScale}
@@ -174,8 +173,7 @@ function PopulationPyramidHorizontal({
                     ageBuckets={ageBucketsBySex.male}
                     color={MALE_COLOR}
                     hoveredAgeGroup={hoveredAgeGroup}
-                    fontSize={fontTier.label}
-                    innerHeight={innerHeight}
+                    fontSize={fonts.hoverLabel}
                 />
                 <HoverHitRects
                     xScale={xScale}
@@ -190,7 +188,7 @@ function PopulationPyramidHorizontal({
                     centerGap={centerGap}
                     innerWidth={innerWidth}
                     tickValues={[25, 50, 75, 100, 125]}
-                    fontSize={fontTier.tick}
+                    fontSize={fonts.xTick}
                 />
 
                 {/* Sex labels in the center gap */}
@@ -199,7 +197,7 @@ function PopulationPyramidHorizontal({
                     y={centerY}
                     dy={-1}
                     dominantBaseline="auto"
-                    fontSize={fontTier.label - 1}
+                    fontSize={fonts.sexLabel}
                     fill={FEMALE_COLOR}
                     fontWeight={700}
                     style={{ pointerEvents: "none" }}
@@ -211,7 +209,7 @@ function PopulationPyramidHorizontal({
                     y={centerY}
                     dy={1}
                     dominantBaseline="hanging"
-                    fontSize={fontTier.label - 1}
+                    fontSize={fonts.sexLabel}
                     fill={MALE_COLOR}
                     fontWeight={700}
                     style={{ pointerEvents: "none" }}
