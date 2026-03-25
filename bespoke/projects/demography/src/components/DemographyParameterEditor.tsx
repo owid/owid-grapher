@@ -23,8 +23,8 @@ import { parameterConfigByKey } from "../helpers/parameterConfigs.js"
 import { TimeAxisX } from "./TimeAxisX.js"
 import { ParameterKey } from "../helpers/types.js"
 import { getInterpolatedValue } from "../model/projectionRunner.js"
-import { useBreakpoint } from "../helpers/useBreakpoint.js"
-import { getFontTier } from "../helpers/fontTiers.js"
+import { widthToBreakpoint } from "../helpers/useBreakpoint.js"
+import { getParameterChartFonts } from "../helpers/fonts.js"
 
 const SMALL_DOT_RADIUS = 3
 const CONTROL_POINT_RADIUS = 5
@@ -61,8 +61,7 @@ function DemographyParameterEditor({
     height,
 }: DemographyParameterEditorProps & { width: number; height: number }) {
     const config = parameterConfigByKey[variant]
-    const breakpoint = useBreakpoint()
-    const fontTier = getFontTier(breakpoint)
+    const fonts = getParameterChartFonts(widthToBreakpoint(width))
     const [hoveredYear, setHoveredYear] = useState<number | null>(null)
 
     const {
@@ -185,7 +184,7 @@ function DemographyParameterEditor({
             innerHeight,
             hoveredYear,
             "middle",
-            fontTier.label,
+            fonts.xTick,
             YEAR_LABEL_OFFSET
         )
 
@@ -196,7 +195,7 @@ function DemographyParameterEditor({
                       hx,
                       yScale(hoveredValue),
                       formatValue(hoveredValue),
-                      fontTier.label
+                      fonts.pointLabel
                   )
                 : undefined
 
@@ -218,7 +217,7 @@ function DemographyParameterEditor({
                     xScale(firstHistoricalDataPoint.year),
                     yScale(firstHistoricalDataPoint.value),
                     formatValue(firstHistoricalDataPoint.value),
-                    fontTier.label
+                    fonts.pointLabel
                 ),
             },
             {
@@ -231,7 +230,7 @@ function DemographyParameterEditor({
                           xScale(lastHistoricalDataPoint.year),
                           yScale(lastHistoricalDataPoint.value),
                           formatValue(lastHistoricalDataPoint.value),
-                          fontTier.label
+                          fonts.pointLabel
                       )
                     : undefined,
             },
@@ -249,7 +248,7 @@ function DemographyParameterEditor({
                           xScale(last.year),
                           yScale(last.value),
                           formatValue(last.value),
-                          fontTier.label
+                          fonts.pointLabel
                       )
                     : undefined,
             })
@@ -261,7 +260,7 @@ function DemographyParameterEditor({
                 innerHeight,
                 s.year,
                 s.yearAnchor,
-                fontTier.label,
+                fonts.xTick,
                 YEAR_LABEL_OFFSET
             )
 
@@ -286,7 +285,7 @@ function DemographyParameterEditor({
         yScale,
         innerHeight,
         formatValue,
-        fontTier.label,
+        fonts,
         firstHistoricalDataPoint,
         lastHistoricalDataPoint,
         projectionPoints,
@@ -315,7 +314,7 @@ function DemographyParameterEditor({
                     <text
                         x={projX + 6}
                         y={innerHeight - 6}
-                        fontSize={fontTier.annotation}
+                        fontSize={fonts.projectionAnnotation}
                         fill={GRAPHER_LIGHT_TEXT}
                     >
                         Projections →
@@ -340,7 +339,7 @@ function DemographyParameterEditor({
                     innerWidth={innerWidth}
                     innerHeight={innerHeight}
                     strokeColor={axisColor}
-                    fontSize={fontTier.label}
+                    fontSize={fonts.xTick}
                     labelOffset={YEAR_LABEL_OFFSET}
                     hideLabels={hoveredYear !== null}
                 />
@@ -384,7 +383,7 @@ function DemographyParameterEditor({
                     label={formatValue(firstHistoricalDataPoint.value)}
                     color={lineColor}
                     labelColor={labelColor}
-                    fontSize={fontTier.label}
+                    fontSize={fonts.pointLabel}
                     year={firstHistoricalDataPoint.year}
                     yearAnchor="start"
                     hidden={hiddenPointLabels.has("first-historical")}
@@ -407,7 +406,7 @@ function DemographyParameterEditor({
                     }
                     color={lineColor}
                     labelColor={labelColor}
-                    fontSize={fontTier.label}
+                    fontSize={fonts.pointLabel}
                     year={lastHistoricalDataPoint.year}
                     yearAnchor="middle"
                     hidden={hiddenPointLabels.has("last-historical")}
@@ -431,7 +430,7 @@ function DemographyParameterEditor({
                         }
                         color={lineColor}
                         labelColor={labelColor}
-                        fontSize={fontTier.label}
+                        fontSize={fonts.pointLabel}
                         year={projectionPoints.at(-1)!.year}
                         yearAnchor="end"
                         hidden={hiddenPointLabels.has("last-projection")}
@@ -477,8 +476,14 @@ function DemographyParameterEditor({
                             <text
                                 x={xScale(hoveredYear)}
                                 y={innerHeight + 14}
-                                textAnchor="middle"
-                                fontSize={fontTier.label}
+                                textAnchor={
+                                    hoveredYear === START_YEAR
+                                        ? "start"
+                                        : hoveredYear === END_YEAR
+                                          ? "end"
+                                          : "middle"
+                                }
+                                fontSize={fonts.xTick}
                                 fill={GRAPHER_LIGHT_TEXT}
                             >
                                 {hoveredYear}
@@ -497,6 +502,8 @@ function DemographyParameterEditor({
                             value={controlPoints[year]}
                             color={DENIM_BLUE}
                             formatValue={formatValue}
+                            dragArrowFontSize={fonts.dragArrow}
+                            controlLabelFontSize={fonts.controlLabel}
                             yScale={yScale}
                             marginTop={margin.top}
                             onValueChange={(value) =>
@@ -524,7 +531,7 @@ function DemographyParameterEditor({
                             }
                             color={lineColor}
                             labelColor={labelColor}
-                            fontSize={fontTier.label}
+                            fontSize={fonts.hoverLabel}
                         />
                     </g>
                 )}
@@ -570,6 +577,8 @@ function DraggableControlPoint({
     formatValue,
     yScale,
     marginTop,
+    dragArrowFontSize,
+    controlLabelFontSize,
     onValueChange,
     onPointerEnter,
     onPointerLeave,
@@ -581,13 +590,13 @@ function DraggableControlPoint({
     formatValue: (v: number) => string
     yScale: { invert: (y: number) => number }
     marginTop: number
+    dragArrowFontSize: number
+    controlLabelFontSize: number
     onValueChange: (value: number) => void
     onPointerEnter?: () => void
     onPointerLeave?: () => void
 }) {
     const [isDragging, setIsDragging] = useState(false)
-    const breakpoint = useBreakpoint()
-    const fontTier = getFontTier(breakpoint)
 
     return (
         <g>
@@ -622,7 +631,7 @@ function DraggableControlPoint({
                     x={cx}
                     y={cy - 7}
                     textAnchor="middle"
-                    fontSize={fontTier.symbol}
+                    fontSize={dragArrowFontSize}
                     fill={color}
                 >
                     ▲
@@ -643,7 +652,7 @@ function DraggableControlPoint({
                     x={cx}
                     y={cy + 12}
                     textAnchor="middle"
-                    fontSize={fontTier.symbol}
+                    fontSize={dragArrowFontSize}
                     fill={color}
                 >
                     ▼
@@ -655,7 +664,7 @@ function DraggableControlPoint({
                         x={cx}
                         y={cy < 20 ? cy + 22 : cy - 15}
                         textAnchor="middle"
-                        fontSize={fontTier.label}
+                        fontSize={controlLabelFontSize}
                         fontWeight={700}
                         fill={color}
                     >

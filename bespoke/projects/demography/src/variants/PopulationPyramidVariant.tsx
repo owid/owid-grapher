@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react"
+import cx from "classnames"
 import { QueryClientProvider } from "@tanstack/react-query"
 
 import { DemographyControls } from "../components/DemographyControls.js"
@@ -10,22 +11,31 @@ import {
 import { queryClient, useDemographyData } from "../helpers/fetch.js"
 import type { PopulationPyramidVariantConfig } from "../config.js"
 import { articulateEntity } from "@ourworldindata/utils"
-import { displayEntityName } from "../helpers/utils.js"
-import { CountryData } from "../helpers/types.js"
-import { useSimulation } from "../helpers/useSimulation.js"
+import { displayEntityName, groupAgeGroupsByZone } from "../helpers/utils.js"
+import { CountryData, type ParameterKey } from "../helpers/types.js"
+import {
+    useSimulation,
+    computeStabilizedOverrides,
+} from "../helpers/useSimulation.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
 import { ResponsivePopulationPyramid } from "../components/PopulationPyramid.js"
+import { ParameterChartsDisclosure } from "../components/ParameterChartsDisclosure.js"
 import { ResponsiveAgeZoneLegend } from "../components/AgeZoneLegend.js"
-import { groupAgeGroupsByZone } from "../helpers/utils.js"
 import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
 import {
     CHART_FOOTER_SOURCES,
     DEFAULT_ENTITY_NAME,
     END_YEAR,
     FULL_TIME_RANGE,
+    START_YEAR,
 } from "../helpers/constants.js"
+import {
+    BreakpointProvider,
+    useContainerBreakpoint,
+    breakpointClass,
+} from "../helpers/useBreakpoint.js"
 
 export function PopulationPyramidVariantWithProviders(props: {
     container: HTMLDivElement
@@ -51,30 +61,44 @@ function PopulationPyramidVariant({
     const { metadata, entityData, isLoadingEntityData, status } =
         useDemographyData(entityName)
 
+    const { breakpoint, ref: rootRef } = useContainerBreakpoint()
+
     if (status === "pending") return <DemographySkeleton />
     if (!metadata || !entityData) return <DemographyChartError />
 
     return (
-        <div className="demography-chart demography-chart__population-pyramid-variant">
-            {showControls && (
-                <DemographyControls
-                    metadata={metadata}
-                    entityName={entityName}
-                    setEntityName={setEntityName}
+        <BreakpointProvider value={breakpoint}>
+            <div
+                ref={rootRef}
+                className={cx(
+                    "demography-chart demography-chart__population-pyramid-variant",
+                    breakpointClass(breakpoint)
+                )}
+            >
+                {showControls && (
+                    <DemographyControls
+                        metadata={metadata}
+                        entityName={entityName}
+                        setEntityName={setEntityName}
+                    />
+                )}
+                <PopulationPyramidCaptionedChart
+                    data={entityData}
+                    isLoading={isLoadingEntityData}
+                    title={config.title}
+                    subtitle={config.subtitle}
+                    hideTimeline={config.hideTimeline}
+                    showAssumptionCharts={config.showAssumptionCharts}
+                    initialTime={config.time}
+                    stabilizingParameter={config.stabilizingParameter}
+                    fertilityRateAssumptions={config.fertilityRateAssumptions}
+                    lifeExpectancyAssumptions={config.lifeExpectancyAssumptions}
+                    netMigrationRateAssumptions={
+                        config.netMigrationRateAssumptions
+                    }
                 />
-            )}
-            <PopulationPyramidCaptionedChart
-                data={entityData}
-                isLoading={isLoadingEntityData}
-                title={config.title}
-                subtitle={config.subtitle}
-                hideTimeline={config.hideTimeline}
-                initialTime={config.time}
-                fertilityRateAssumptions={config.fertilityRateAssumptions}
-                lifeExpectancyAssumptions={config.lifeExpectancyAssumptions}
-                netMigrationRateAssumptions={config.netMigrationRateAssumptions}
-            />
-        </div>
+            </div>
+        </BreakpointProvider>
     )
 }
 
@@ -84,7 +108,9 @@ function PopulationPyramidCaptionedChart({
     title: titleOverride,
     subtitle: subtitleOverride,
     hideTimeline,
+    showAssumptionCharts = false,
     initialTime,
+    stabilizingParameter,
     fertilityRateAssumptions,
     lifeExpectancyAssumptions,
     netMigrationRateAssumptions,
@@ -94,25 +120,43 @@ function PopulationPyramidCaptionedChart({
     title?: string
     subtitle?: string
     hideTimeline?: boolean
+    showAssumptionCharts?: boolean
     initialTime?: number
+    stabilizingParameter?: ParameterKey
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
 }) {
     const [year, setYear] = useState(initialTime ?? END_YEAR)
 
-    const hasCustomAssumptions =
-        fertilityRateAssumptions !== undefined ||
-        lifeExpectancyAssumptions !== undefined ||
-        netMigrationRateAssumptions !== undefined
+    // Compute scenario overrides: stabilization takes priority over manual assumptions
+    const scenarioOverrides = useMemo(() => {
+        if (stabilizingParameter) {
+            return computeStabilizedOverrides(data, stabilizingParameter)
+        }
+        const hasCustom =
+            fertilityRateAssumptions !== undefined ||
+            lifeExpectancyAssumptions !== undefined ||
+            netMigrationRateAssumptions !== undefined
+        if (hasCustom) {
+            return {
+                fertilityRate: fertilityRateAssumptions,
+                lifeExpectancy: lifeExpectancyAssumptions,
+                netMigrationRate: netMigrationRateAssumptions,
+            }
+        }
+        return undefined
+    }, [
+        data,
+        stabilizingParameter,
+        fertilityRateAssumptions,
+        lifeExpectancyAssumptions,
+        netMigrationRateAssumptions,
+    ])
 
-    const simulation = useSimulation(data, {
-        fertilityRate: fertilityRateAssumptions,
-        lifeExpectancy: lifeExpectancyAssumptions,
-        netMigrationRate: netMigrationRateAssumptions,
-    })
+    const simulation = useSimulation(data, scenarioOverrides)
     const ageZones = useMemo(() => groupAgeGroupsByZone(), [])
-    const projection = hasCustomAssumptions ? "custom" : "un"
+    const projection = scenarioOverrides ? "custom" : "un"
 
     const title =
         titleOverride ??
@@ -149,12 +193,24 @@ function PopulationPyramidCaptionedChart({
             </div>
             {!hideTimeline && (
                 <div className="demography-population-pyramid__slider">
-                    <TimeSlider
-                        times={FULL_TIME_RANGE}
-                        selectedTime={year}
-                        onChange={setYear}
-                    />
+                    <div className="demography-year-slider">
+                        <span className="demography-year-slider__label">
+                            {START_YEAR}
+                        </span>
+                        <TimeSlider
+                            times={FULL_TIME_RANGE}
+                            selectedTime={year}
+                            onChange={setYear}
+                            showEdgeLabels={false}
+                        />
+                        <span className="demography-year-slider__label">
+                            {END_YEAR}
+                        </span>
+                    </div>
                 </div>
+            )}
+            {showAssumptionCharts && simulation && (
+                <ParameterChartsDisclosure simulation={simulation} />
             )}
             <ChartFooter
                 className="demography-footer"

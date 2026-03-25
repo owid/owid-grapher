@@ -30,10 +30,12 @@ export interface PopulationVariantConfig {
 export interface PopulationPyramidVariantConfig {
     hideControls: boolean
     hideTimeline?: boolean
+    showAssumptionCharts?: boolean
     time?: number
     region?: string
     title?: string
     subtitle?: string
+    stabilizingParameter?: ParameterKey
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
@@ -80,10 +82,14 @@ export function parseConfig(
             return {
                 hideControls: parseBoolean(raw.hideControls),
                 hideTimeline: parseBoolean(raw.hideTimeline),
+                showAssumptionCharts: parseBoolean(raw.showAssumptionCharts),
                 time: parseInteger(raw.time),
                 region: raw.region,
                 title: raw.title,
                 subtitle: raw.subtitle,
+                stabilizingParameter: parseParameterKey(
+                    raw.stabilizingParameter
+                ),
                 fertilityRateAssumptions: parseControlPoints(
                     raw.fertilityRateAssumptions
                 ),

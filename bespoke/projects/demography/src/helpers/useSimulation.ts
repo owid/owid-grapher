@@ -4,7 +4,12 @@
  */
 
 import { useMemo, useState, useCallback } from "react"
-import type { CountryData, PopulationBySex, PopulationByAgeZone } from "./types"
+import type {
+    CountryData,
+    ParameterKey,
+    PopulationBySex,
+    PopulationByAgeZone,
+} from "./types"
 import {
     getPopulationForYear,
     getDeathsForYear,
@@ -44,6 +49,7 @@ import {
     type ScenarioConstants,
 } from "../model/scenarios"
 import { runProjectionResults } from "../model/projectionRunner"
+import { stabilizeParameter } from "../model/stabilize.js"
 
 const SCENARIO_CONSTANTS: ScenarioConstants = {
     HISTORICAL_END_YEAR,
@@ -163,6 +169,56 @@ function calculateDependencyRatio(
         }
     }
     return ratio
+}
+
+/**
+ * Compute the scenario overrides that stabilize population for a given parameter.
+ * Pure function — no hooks, no side effects. Returns undefined if no stabilization needed.
+ */
+export function computeStabilizedOverrides(
+    data: CountryData,
+    stabilizingParameter: ParameterKey
+): ScenarioParams {
+    // Calibrate migration
+    const optimized = optimizeMigrationOptions(
+        data,
+        data.country,
+        HISTORICAL_END_YEAR - 14,
+        HISTORICAL_END_YEAR
+    )
+
+    // Historical benchmark
+    const benchmarkResults = runHistoricalProjection(
+        data,
+        START_YEAR,
+        HISTORICAL_END_YEAR,
+        { migrationOptions: { ...DEFAULT_MIGRATION_OPTIONS } }
+    )
+
+    // Baseline rates
+    const baselineParams = calculateBaselineRates(
+        data,
+        BASELINE_START_YEAR,
+        HISTORICAL_END_YEAR,
+        benchmarkResults
+    )
+
+    // UN WPP scenario
+    const unwppScenarioParams = calculateUNWPPScenario(
+        data,
+        benchmarkResults,
+        SCENARIO_CONSTANTS
+    )
+
+    const startPopulation = getPopulationForYear(data, HISTORICAL_END_YEAR)!
+
+    return stabilizeParameter(
+        stabilizingParameter,
+        unwppScenarioParams,
+        baselineParams,
+        startPopulation,
+        optimized.options
+    ).params
 }
 
 export function useSimulation(

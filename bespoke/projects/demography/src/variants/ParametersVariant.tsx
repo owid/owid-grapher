@@ -1,4 +1,5 @@
 import { useState } from "react"
+import cx from "classnames"
 import { QueryClientProvider } from "@tanstack/react-query"
 
 import { DemographyControls } from "../components/DemographyControls.js"
@@ -21,6 +22,11 @@ import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
 import { DEFAULT_ENTITY_NAME } from "../helpers/constants.js"
+import {
+    BreakpointProvider,
+    useContainerBreakpoint,
+    breakpointClass,
+} from "../helpers/useBreakpoint.js"
 
 export function ParametersVariantWithProviders(props: {
     container: HTMLDivElement
@@ -46,25 +52,35 @@ function ParametersVariant({
     const { metadata, entityData, isLoadingEntityData, status } =
         useDemographyData(entityName)
 
+    const { breakpoint, ref: rootRef } = useContainerBreakpoint()
+
     if (status === "pending") return <DemographySkeleton />
     if (!metadata || !entityData) return <DemographyChartError />
 
     return (
-        <div className="demography-chart demography-chart__parameters-variant">
-            {showControls && (
-                <DemographyControls
-                    metadata={metadata}
-                    entityName={entityName}
-                    setEntityName={setEntityName}
+        <BreakpointProvider value={breakpoint}>
+            <div
+                ref={rootRef}
+                className={cx(
+                    "demography-chart demography-chart__parameters-variant",
+                    breakpointClass(breakpoint)
+                )}
+            >
+                {showControls && (
+                    <DemographyControls
+                        metadata={metadata}
+                        entityName={entityName}
+                        setEntityName={setEntityName}
+                    />
+                )}
+                <ParametersCaptionedChart
+                    data={entityData}
+                    isLoading={isLoadingEntityData}
+                    title={config.title}
+                    subtitle={config.subtitle}
                 />
-            )}
-            <ParametersCaptionedChart
-                data={entityData}
-                isLoading={isLoadingEntityData}
-                title={config.title}
-                subtitle={config.subtitle}
-            />
-        </div>
+            </div>
+        </BreakpointProvider>
     )
 }
 
