@@ -38,25 +38,25 @@ const POPULATION_CHART_FONTS: Record<Breakpoint, PopulationChartFonts> = {
         projectionAnnotation: ANNOTATION_L,
     },
     medium: {
-        xTick: TICK_M,
-        yTick: TICK_M,
-        pointLabel: TICK_M,
-        changeAnnotation: ANNOTATION_M,
-        projectionAnnotation: ANNOTATION_M,
+        xTick: TICK_M + 1,
+        yTick: TICK_M + 1,
+        pointLabel: TICK_M + 1,
+        changeAnnotation: ANNOTATION_M + 1,
+        projectionAnnotation: ANNOTATION_M + 1,
     },
     small: {
-        xTick: TICK_S,
-        yTick: TICK_S,
-        pointLabel: TICK_S,
-        changeAnnotation: ANNOTATION_S,
-        projectionAnnotation: ANNOTATION_S,
+        xTick: TICK_S + 1,
+        yTick: TICK_S + 1,
+        pointLabel: TICK_S + 1,
+        changeAnnotation: ANNOTATION_S + 1,
+        projectionAnnotation: ANNOTATION_S + 1,
     },
     narrow: {
-        xTick: TICK_S,
-        yTick: TICK_S,
-        pointLabel: TICK_S,
-        changeAnnotation: ANNOTATION_S,
-        projectionAnnotation: ANNOTATION_S,
+        xTick: TICK_S + 1,
+        yTick: TICK_S + 1,
+        pointLabel: TICK_S + 1,
+        changeAnnotation: ANNOTATION_S + 1,
+        projectionAnnotation: ANNOTATION_S + 1,
     },
 }
 
@@ -125,6 +125,7 @@ export interface PopulationPyramidFonts {
     ageGroupLabel: number // age group labels (0-4, 5-9, etc.)
     sexLabel: number // "Women" / "Men" headers
     ageZoneLabel: number // age zone boundary/name labels
+    hoverLabel: number // hovered bar value label
 }
 
 const POPULATION_PYRAMID_FONTS: Record<Breakpoint, PopulationPyramidFonts> = {
@@ -133,24 +134,28 @@ const POPULATION_PYRAMID_FONTS: Record<Breakpoint, PopulationPyramidFonts> = {
         ageGroupLabel: (LABEL_L + ANNOTATION_L) / 2,
         sexLabel: ANNOTATION_L,
         ageZoneLabel: ANNOTATION_L,
+        hoverLabel: (LABEL_L + ANNOTATION_L) / 2,
     },
     medium: {
         xTick: TICK_M + 1,
         ageGroupLabel: (LABEL_M + ANNOTATION_M) / 2,
         sexLabel: ANNOTATION_M,
         ageZoneLabel: ANNOTATION_M,
+        hoverLabel: (LABEL_M + ANNOTATION_M) / 2,
     },
     small: {
-        xTick: TICK_S,
-        ageGroupLabel: ANNOTATION_S,
-        sexLabel: ANNOTATION_M,
-        ageZoneLabel: ANNOTATION_M,
+        xTick: TICK_S + 1,
+        ageGroupLabel: ANNOTATION_S + 1,
+        sexLabel: ANNOTATION_M + 1,
+        ageZoneLabel: ANNOTATION_M + 1,
+        hoverLabel: ANNOTATION_S + 1,
     },
     narrow: {
-        xTick: TICK_S - 1,
-        ageGroupLabel: ANNOTATION_S - 2,
-        sexLabel: ANNOTATION_S - 1,
-        ageZoneLabel: ANNOTATION_S - 1,
+        xTick: TICK_S,
+        ageGroupLabel: ANNOTATION_S - 1,
+        sexLabel: ANNOTATION_S,
+        ageZoneLabel: ANNOTATION_S,
+        hoverLabel: ANNOTATION_S - 1,
     },
 }
 
@@ -225,10 +230,10 @@ const AGE_ZONE_LEGEND_FONTS: Record<Breakpoint, AgeZoneLegendFonts> = {
         valueLabel: 11,
     },
     small: {
-        totalPopulationLabel: 12,
-        percentageLabel: 11,
-        ageZoneLabel: 11,
-        valueLabel: 11,
+        totalPopulationLabel: 13,
+        percentageLabel: 12,
+        ageZoneLabel: 12,
+        valueLabel: 12,
     },
     narrow: {
         totalPopulationLabel: 11,
