@@ -15,6 +15,8 @@ import {
 } from "./latestFilters.js"
 import { LatestResultCard } from "./LatestResultCard.js"
 import { NewsletterSignupBlock } from "../NewsletterSignupBlock.js"
+import { SearchHorizontalDivider } from "../search/SearchHorizontalDivider.js"
+import { SearchNoResults } from "../search/SearchNoResults.js"
 import { NewsletterSubscriptionContext } from "../newsletter.js"
 
 export const LatestSearch = ({
@@ -75,6 +77,15 @@ export const LatestSearch = ({
         [setSearchParams]
     )
 
+    const onTopicClick = useCallback(
+        (topic: string) => {
+            if (!topics.includes(topic)) {
+                onTopicsChange([...topics, topic])
+            }
+        },
+        [topics, onTopicsChange]
+    )
+
     const clearAllFilters = useCallback(() => {
         setSearchParams(
             (prev) => {
@@ -93,7 +104,6 @@ export const LatestSearch = ({
 
     const {
         hits,
-        totalResults,
         tagFacetCounts,
         typeFacetCounts,
         kickerFacetCounts,
@@ -154,7 +164,7 @@ export const LatestSearch = ({
                     Our latest articles, data updates, and announcements
                 </p>
             </header>
-            <div className="latest-search__facets-container span-cols-8 col-start-2 span-md-cols-10 col-md-start-2 span-sm-cols-14 col-sm-start-1">
+            <div className="latest-search__facets-container span-cols-12 col-start-2 span-md-cols-12 col-md-start-2 span-sm-cols-14 col-sm-start-1">
                 <LatestTopicFacets
                     topics={allAreas}
                     selectedTopics={topics}
@@ -167,44 +177,53 @@ export const LatestSearch = ({
                     tagFacetCounts={tagFacetCounts}
                 />
             </div>
+            <hr className="latest-search__filters-divider span-cols-12 col-start-2 span-md-cols-12 col-md-start-2 span-sm-cols-14 col-sm-start-1" />
             {isLoading ? (
-                <p className="latest-search__loading span-cols-8 col-start-2 span-md-cols-10 col-md-start-2 span-sm-cols-14 col-sm-start-1">
+                <p className="latest-search__loading span-cols-8 col-start-2 span-md-cols-12 col-md-start-2 span-sm-cols-14 col-sm-start-1">
                     Loading…
                 </p>
             ) : hits.length === 0 ? (
-                <div className="latest-search__no-results span-cols-8 col-start-2 span-md-cols-10 col-md-start-2 span-sm-cols-14 col-sm-start-1">
-                    <p>No results found.</p>
-                    <button
-                        className="latest-search__clear-filters-button"
-                        onClick={clearAllFilters}
-                    >
-                        Clear all filters
-                    </button>
-                </div>
+                <SearchNoResults
+                    subtitle={
+                        <p className="body-3-medium">
+                            Try removing some filters or{" "}
+                            <button
+                                className="latest-search__reset-button"
+                                onClick={clearAllFilters}
+                            >
+                                reset
+                            </button>
+                            .
+                        </p>
+                    }
+                />
             ) : (
                 <>
                     {hits.slice(0, 2).map((hit) => (
-                        <LatestResultCard key={hit.objectID} hit={hit} />
+                        <LatestResultCard
+                            key={hit.objectID}
+                            hit={hit}
+                            onTopicClick={onTopicClick}
+                        />
                     ))}
                     <NewsletterSignupBlock
-                        className="latest-page__newsletter-signup col-start-11 span-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-14"
+                        className="latest-page__newsletter-signup col-start-11 span-cols-3 col-lg-start-10 span-lg-cols-4 span-md-cols-14 col-md-start-1"
                         context={NewsletterSubscriptionContext.Latest}
                     />
                     {hits.slice(2).map((hit) => (
-                        <LatestResultCard key={hit.objectID} hit={hit} />
+                        <LatestResultCard
+                            key={hit.objectID}
+                            hit={hit}
+                            onTopicClick={onTopicClick}
+                        />
                     ))}
                     {hasNextPage && (
-                        <div className="latest-search__load-more span-cols-8 col-start-2 span-md-cols-10 col-md-start-2 span-sm-cols-14 col-sm-start-1">
-                            <button
-                                className="latest-search__load-more-button"
-                                onClick={() => fetchNextPage()}
-                                disabled={isFetchingNextPage}
-                            >
-                                {isFetchingNextPage
-                                    ? "Loading…"
-                                    : `Load more (${totalResults - hits.length} remaining)`}
-                            </button>
-                        </div>
+                        <SearchHorizontalDivider
+                            className="span-cols-8 col-start-2 span-md-cols-12 col-md-start-2 span-sm-cols-14 col-sm-start-1"
+                            hasButton
+                            isLoading={isFetchingNextPage}
+                            onClick={() => fetchNextPage()}
+                        />
                     )}
                 </>
             )}

@@ -1,17 +1,66 @@
-import { useCallback, useMemo, useState } from "react"
+import React, { useCallback, useContext, useMemo, useState } from "react"
 import cx from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faCaretDown,
-    faCheck,
+    faCaretLeft,
+    faCaretRight,
     faFilter,
 } from "@fortawesome/free-solid-svg-icons"
+import { ScrollMenu, VisibilityContext } from "react-horizontal-scrolling-menu"
 import {
     ALL_FILTER_OPTIONS,
     LatestFilter,
     filtersAreEqual,
     encodeFilter,
 } from "./latestFilters.js"
+
+/**
+ * Wrapper component that accepts the `itemId` prop required by
+ * react-horizontal-scrolling-menu while rendering a native button.
+ */
+const TopicPill = ({
+    itemId: _itemId,
+    ...props
+}: {
+    itemId: string
+} & React.ButtonHTMLAttributes<HTMLButtonElement>) => {
+    return <button {...props} />
+}
+
+const LeftArrow = () => {
+    const { useLeftArrowVisible, scrollPrev } = useContext(VisibilityContext)
+    const isFirstVisible = useLeftArrowVisible()
+
+    // Hide arrow when first item is visible (we're at the start)
+    if (isFirstVisible) return null
+
+    return (
+        <button
+            className="latest-search__scroll-arrow latest-search__scroll-arrow--left"
+            onClick={() => scrollPrev()}
+        >
+            <FontAwesomeIcon icon={faCaretLeft} />
+        </button>
+    )
+}
+
+const RightArrow = () => {
+    const { useRightArrowVisible, scrollNext } = useContext(VisibilityContext)
+    const isLastVisible = useRightArrowVisible()
+
+    // Hide arrow when last item is visible (we're at the end)
+    if (isLastVisible) return null
+
+    return (
+        <button
+            className="latest-search__scroll-arrow latest-search__scroll-arrow--right"
+            onClick={() => scrollNext()}
+        >
+            <FontAwesomeIcon icon={faCaretRight} />
+        </button>
+    )
+}
 
 export const LatestTopicFacets = ({
     topics,
@@ -21,8 +70,8 @@ export const LatestTopicFacets = ({
     onFilterChange,
     disabledFilters,
     disabledTopics,
-    allTopicsDisabled,
-    tagFacetCounts,
+    allTopicsDisabled: _allTopicsDisabled,
+    tagFacetCounts: _tagFacetCounts,
 }: {
     topics: string[]
     selectedTopics: string[]
@@ -34,14 +83,8 @@ export const LatestTopicFacets = ({
     allTopicsDisabled: boolean
     tagFacetCounts: Record<string, number>
 }) => {
-    const [isTopicDropdownOpen, setIsTopicDropdownOpen] = useState(false)
-
-    const topicLabel =
-        selectedTopics.length === 0
-            ? "Filter by area"
-            : selectedTopics.length === 1
-              ? selectedTopics[0]
-              : `${selectedTopics.length} areas selected`
+    const [isContentTypeDropdownOpen, setIsContentTypeDropdownOpen] =
+        useState(false)
 
     const handleTopicToggle = useCallback(
         (topic: string) => {
@@ -55,139 +98,180 @@ export const LatestTopicFacets = ({
         [selectedTopics, onTopicsChange]
     )
 
-    const sortedTopics = useMemo(
-        () => [...topics].sort((a, b) => a.localeCompare(b)),
-        [topics]
-    )
+    const contentTypeLabel = useMemo(() => {
+        if (!selectedFilter) return "Content types"
+        const match = ALL_FILTER_OPTIONS.find((opt) =>
+            filtersAreEqual(opt.filter, selectedFilter)
+        )
+        return match?.label ?? "Content types"
+    }, [selectedFilter])
 
     return (
         <div className="latest-search__filters-wrapper">
-            <p className="latest-search__filters-label">Filter by:</p>
             <div className="latest-search__filters">
-                <div className="latest-search__type-filters">
-                    {ALL_FILTER_OPTIONS.map((option) => {
-                        const isActive = filtersAreEqual(
-                            selectedFilter,
-                            option.filter
-                        )
-                        const isDisabled = disabledFilters.has(
-                            encodeFilter(option.filter)
-                        )
-                        return (
-                            <button
-                                key={encodeFilter(option.filter)}
-                                className={cx("latest-search__type-button", {
-                                    "latest-search__type-button--active":
-                                        isActive,
-                                    "latest-search__type-button--disabled":
-                                        isDisabled,
+                <div className="latest-search__topic-pills">
+                    <ScrollMenu LeftArrow={LeftArrow} RightArrow={RightArrow}>
+                        {[
+                            <TopicPill
+                                key="all"
+                                itemId="all"
+                                className={cx("latest-search__topic-pill", {
+                                    "latest-search__topic-pill--all-active":
+                                        selectedTopics.length === 0,
                                 })}
-                                onClick={() =>
-                                    onFilterChange(
-                                        isActive ? null : option.filter
-                                    )
-                                }
-                                disabled={isDisabled}
+                                onClick={() => onTopicsChange([])}
                             >
-                                {option.label}
-                            </button>
-                        )
-                    })}
+                                All
+                            </TopicPill>,
+                            ...topics.map((topic) => {
+                                const isSelected =
+                                    selectedTopics.includes(topic)
+                                const isDisabled = disabledTopics.has(topic)
+                                return (
+                                    <TopicPill
+                                        key={topic}
+                                        itemId={topic}
+                                        className={cx(
+                                            "latest-search__topic-pill",
+                                            {
+                                                "latest-search__topic-pill--active":
+                                                    isSelected,
+                                                "latest-search__topic-pill--disabled":
+                                                    isDisabled,
+                                            }
+                                        )}
+                                        onClick={() => handleTopicToggle(topic)}
+                                        disabled={isDisabled}
+                                    >
+                                        {topic}
+                                    </TopicPill>
+                                )
+                            }),
+                        ]}
+                    </ScrollMenu>
                 </div>
-                <div className="latest-search__topic-dropdown">
+                <div className="latest-search__content-type-dropdown">
                     <button
-                        className={cx("latest-search__topic-trigger", {
-                            "latest-search__topic-trigger--active":
-                                selectedTopics.length > 0,
-                            "latest-search__topic-trigger--disabled":
-                                allTopicsDisabled,
+                        className={cx("latest-search__content-type-trigger", {
+                            "latest-search__content-type-trigger--active":
+                                selectedFilter !== null,
                         })}
                         onClick={() =>
-                            setIsTopicDropdownOpen(!isTopicDropdownOpen)
+                            setIsContentTypeDropdownOpen(
+                                !isContentTypeDropdownOpen
+                            )
                         }
-                        disabled={allTopicsDisabled}
-                        aria-expanded={isTopicDropdownOpen}
+                        aria-expanded={isContentTypeDropdownOpen}
                         aria-haspopup="listbox"
                     >
                         <FontAwesomeIcon
                             icon={faFilter}
-                            className="latest-search__topic-trigger-icon"
+                            className="latest-search__content-type-trigger-icon"
                         />
-                        <span className="latest-search__topic-trigger-label">
-                            {topicLabel}
+                        <span className="latest-search__content-type-trigger-label">
+                            {contentTypeLabel}
                         </span>
                         <FontAwesomeIcon
                             icon={faCaretDown}
                             className={cx(
-                                "latest-search__topic-trigger-chevron",
+                                "latest-search__content-type-trigger-chevron",
                                 {
-                                    "latest-search__topic-trigger-chevron--open":
-                                        isTopicDropdownOpen,
+                                    "latest-search__content-type-trigger-chevron--open":
+                                        isContentTypeDropdownOpen,
                                 }
                             )}
                         />
                     </button>
-                    {isTopicDropdownOpen && (
+                    {isContentTypeDropdownOpen && (
                         <>
                             <div
-                                className="latest-search__topic-dropdown-backdrop"
-                                onClick={() => setIsTopicDropdownOpen(false)}
+                                className="latest-search__content-type-dropdown-backdrop"
+                                onClick={() =>
+                                    setIsContentTypeDropdownOpen(false)
+                                }
                             />
                             <ul
-                                className="latest-search__topic-dropdown-menu"
+                                className="latest-search__content-type-dropdown-menu"
                                 role="listbox"
-                                aria-multiselectable="true"
                             >
-                                {sortedTopics.map((topic) => {
-                                    const isSelected =
-                                        selectedTopics.includes(topic)
-                                    const isDisabled = disabledTopics.has(topic)
-                                    const count = tagFacetCounts[topic] ?? 0
+                                <li
+                                    className={cx(
+                                        "latest-search__content-type-dropdown-item",
+                                        {
+                                            "latest-search__content-type-dropdown-item--active":
+                                                selectedFilter === null,
+                                        }
+                                    )}
+                                    role="option"
+                                    aria-selected={selectedFilter === null}
+                                    onClick={() => onFilterChange(null)}
+                                >
+                                    <span
+                                        className={cx(
+                                            "latest-search__content-type-radio",
+                                            {
+                                                "latest-search__content-type-radio--checked":
+                                                    selectedFilter === null,
+                                            }
+                                        )}
+                                    >
+                                        {selectedFilter === null && (
+                                            <span className="latest-search__content-type-radio-dot" />
+                                        )}
+                                    </span>
+                                    <span className="latest-search__content-type-dropdown-label">
+                                        All
+                                    </span>
+                                </li>
+                                {ALL_FILTER_OPTIONS.map((option) => {
+                                    const isActive = filtersAreEqual(
+                                        selectedFilter,
+                                        option.filter
+                                    )
+                                    const isDisabled = disabledFilters.has(
+                                        encodeFilter(option.filter)
+                                    )
                                     return (
                                         <li
-                                            key={topic}
+                                            key={encodeFilter(option.filter)}
                                             className={cx(
-                                                "latest-search__topic-dropdown-item",
+                                                "latest-search__content-type-dropdown-item",
                                                 {
-                                                    "latest-search__topic-dropdown-item--active":
-                                                        isSelected,
-                                                    "latest-search__topic-dropdown-item--disabled":
+                                                    "latest-search__content-type-dropdown-item--active":
+                                                        isActive,
+                                                    "latest-search__content-type-dropdown-item--disabled":
                                                         isDisabled,
                                                 }
                                             )}
                                             role="option"
-                                            aria-selected={isSelected}
+                                            aria-selected={isActive}
                                             aria-disabled={isDisabled}
                                             onClick={
                                                 isDisabled
                                                     ? undefined
                                                     : () =>
-                                                          handleTopicToggle(
-                                                              topic
+                                                          onFilterChange(
+                                                              isActive
+                                                                  ? null
+                                                                  : option.filter
                                                           )
                                             }
                                         >
                                             <span
                                                 className={cx(
-                                                    "latest-search__topic-checkbox",
+                                                    "latest-search__content-type-radio",
                                                     {
-                                                        "latest-search__topic-checkbox--checked":
-                                                            isSelected,
+                                                        "latest-search__content-type-radio--checked":
+                                                            isActive,
                                                     }
                                                 )}
                                             >
-                                                {isSelected && (
-                                                    <FontAwesomeIcon
-                                                        icon={faCheck}
-                                                        className="latest-search__topic-checkbox-icon"
-                                                    />
+                                                {isActive && (
+                                                    <span className="latest-search__content-type-radio-dot" />
                                                 )}
                                             </span>
-                                            <span className="latest-search__topic-dropdown-label">
-                                                {topic}
-                                            </span>
-                                            <span className="latest-search__topic-dropdown-count">
-                                                {count}
+                                            <span className="latest-search__content-type-dropdown-label">
+                                                {option.label}
                                             </span>
                                         </li>
                                     )
@@ -197,7 +281,6 @@ export const LatestTopicFacets = ({
                     )}
                 </div>
             </div>
-            <hr className="latest-search__filters-divider" />
         </div>
     )
 }
