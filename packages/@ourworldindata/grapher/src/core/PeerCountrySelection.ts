@@ -404,15 +404,23 @@ async function selectPeerCountriesByDataRange({
         return region && checkIsCountry(region)
     })
 
-    // Extract latest values for candidate entities
+    // Extract values for candidate entities at the given time
     if (!isDataColumnAvailable(dataColumn)) return []
-    const values = new Map<EntityName, number>()
     const targetTime = time ?? dataColumn.maxTime
-    for (const entityName of candidateEntities) {
-        const latestValue = dataColumn.owidRowByEntityNameAndTime
-            .get(entityName)
-            ?.get(targetTime)?.value
-        if (latestValue !== undefined) values.set(entityName, latestValue)
+    let values = extractValuesAtTime({
+        entities: candidateEntities,
+        dataColumn,
+        time: targetTime,
+    })
+
+    // If no values found at the target time, retry with the column's latest time
+    // This can happen for charts with projected data
+    if (values.size === 0 && targetTime !== dataColumn.maxTime) {
+        values = extractValuesAtTime({
+            entities: candidateEntities,
+            dataColumn,
+            time: dataColumn.maxTime,
+        })
     }
 
     // Load population data for weighted selection (prefer larger countries)
@@ -648,4 +656,24 @@ function weightedRandomPick(
     }
 
     return bucket[bucket.length - 1]?.entityName
+}
+
+/** Extracts numeric values for entities at a specific time point */
+function extractValuesAtTime({
+    entities,
+    dataColumn,
+    time,
+}: {
+    entities: EntityName[]
+    dataColumn: CoreColumn
+    time: Time
+}): Map<EntityName, number> {
+    const values = new Map<EntityName, number>()
+    for (const entityName of entities) {
+        const value = dataColumn.owidRowByEntityNameAndTime
+            .get(entityName)
+            ?.get(time)?.value
+        if (value !== undefined) values.set(entityName, value)
+    }
+    return values
 }
