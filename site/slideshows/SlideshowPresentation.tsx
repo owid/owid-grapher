@@ -1,6 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { Slide, SlideshowConfig, ImageMetadata } from "@ourworldindata/types"
 import { GrapherState } from "@ourworldindata/grapher"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import {
+    faChevronLeft,
+    faChevronRight,
+    faExpand,
+    faCompress,
+} from "@fortawesome/free-solid-svg-icons"
 import { SlideRenderer } from "./SlideRenderer.js"
 import { SlideGrapher } from "./SlideGrapher.js"
 
@@ -95,10 +102,50 @@ export function SlideshowPresentation(props: {
         []
     )
 
+    const containerRef = useRef<HTMLDivElement>(null)
+    const [isFullscreen, setIsFullscreen] = useState(false)
+
+    const toggleFullscreen = useCallback(() => {
+        const el = containerRef.current
+        if (!el) return
+        if (!document.fullscreenElement) {
+            void el.requestFullscreen()
+        } else {
+            void document.exitFullscreen()
+        }
+    }, [])
+
+    // Sync fullscreen state with browser API
+    useEffect(() => {
+        const handleChange = () => {
+            setIsFullscreen(!!document.fullscreenElement)
+        }
+        document.addEventListener("fullscreenchange", handleChange)
+        return () =>
+            document.removeEventListener("fullscreenchange", handleChange)
+    }, [])
+
+    // Escape exits fullscreen (browser handles this natively, but
+    // we also want Escape to work as a keyboard shortcut)
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent): void => {
+            if (e.key === "Escape" && isFullscreen) {
+                void document.exitFullscreen()
+            } else if (e.key === "f") {
+                toggleFullscreen()
+            }
+        }
+        window.addEventListener("keydown", handleKeyDown)
+        return () => window.removeEventListener("keydown", handleKeyDown)
+    }, [isFullscreen, toggleFullscreen])
+
     if (!currentSlide) return <div className="SlideshowPresentation" />
 
     return (
-        <div className="SlideshowPresentation">
+        <div
+            ref={containerRef}
+            className={`SlideshowPresentation${isFullscreen ? " SlideshowPresentation--fullscreen" : ""}`}
+        >
             <div className="SlideshowPresentation__slide">
                 <SlideRenderer
                     slide={currentSlide}
@@ -106,25 +153,41 @@ export function SlideshowPresentation(props: {
                     renderChart={renderChart ?? defaultRenderChart}
                 />
             </div>
-            <div className="SlideshowPresentation__nav">
-                <button
-                    className="SlideshowPresentation__nav-button"
-                    onClick={goToPrev}
-                    disabled={currentIndex === 0}
-                    aria-label="Previous slide"
-                >
-                    &larr;
-                </button>
-                <span className="SlideshowPresentation__slide-counter">
-                    {currentIndex + 1} / {slides.length}
+            <div className="SlideshowPresentation__footer">
+                <span className="SlideshowPresentation__branding">
+                    A presentation by <strong>Our World in Data</strong>
                 </span>
+                <div className="SlideshowPresentation__nav">
+                    <button
+                        className="SlideshowPresentation__nav-button"
+                        onClick={goToPrev}
+                        disabled={currentIndex === 0}
+                        aria-label="Previous slide"
+                    >
+                        <FontAwesomeIcon icon={faChevronLeft} />
+                    </button>
+                    <span className="SlideshowPresentation__slide-counter">
+                        {currentIndex + 1} / {slides.length}
+                    </span>
+                    <button
+                        className="SlideshowPresentation__nav-button"
+                        onClick={goToNext}
+                        disabled={currentIndex === slides.length - 1}
+                        aria-label="Next slide"
+                    >
+                        <FontAwesomeIcon icon={faChevronRight} />
+                    </button>
+                </div>
                 <button
-                    className="SlideshowPresentation__nav-button"
-                    onClick={goToNext}
-                    disabled={currentIndex === slides.length - 1}
-                    aria-label="Next slide"
+                    className="SlideshowPresentation__fullscreen-button"
+                    onClick={toggleFullscreen}
+                    aria-label={
+                        isFullscreen ? "Exit fullscreen" : "Enter fullscreen"
+                    }
                 >
-                    &rarr;
+                    <FontAwesomeIcon
+                        icon={isFullscreen ? faCompress : faExpand}
+                    />
                 </button>
             </div>
         </div>
