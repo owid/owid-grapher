@@ -1922,7 +1922,8 @@ export class GrapherState
         tabName: GrapherTabName
     ): boolean => {
         // Scatter plots can show a time range, but a single time is preferred
-        return [GRAPHER_TAB_NAMES.ScatterPlot].includes(tabName as any)
+        // when the scatter is not the main chart, but a secondary tab
+        return !this.isScatter && tabName === GRAPHER_TAB_NAMES.ScatterPlot
     }
 
     @action.bound ensureTimeHandlesAreSensibleForTab(
@@ -1943,6 +1944,9 @@ export class GrapherState
     ): void {
         // No-op if the current tab is a map or table tab
         if (!isChartTab(tab)) return
+
+        // No-op if there is only a single chart tab
+        if (this.validChartTypes.length < 2) return
 
         const isChartTypeThatShowsAllEntities =
             this.isChartTypeThatShowsAllEntities(tab)
