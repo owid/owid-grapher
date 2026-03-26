@@ -7,6 +7,7 @@ import {
     TreeNode,
 } from "../helpers/CausesOfDeathConstants"
 import { useMemo, useState, useCallback, useRef } from "react"
+import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
 import * as d3 from "d3"
 import {
     useChartDimensions,
@@ -122,6 +123,17 @@ function CausesOfDeathTreemap({
         position: { x: 0, y: 0 },
     })
 
+    const dismissTooltip = useCallback(
+        () => setTooltipState((prev) => ({ ...prev, target: null })),
+        []
+    )
+
+    const { ref: chartRef, isPinned: shouldPinTooltipToBottom } =
+        usePinnedTooltip<HTMLDivElement>(
+            tooltipState.target !== null,
+            dismissTooltip
+        )
+
     const onTileMouseEnter = useCallback(
         (node: TreeNode, event: React.MouseEvent) => {
             if (!svgRef.current) return
@@ -234,7 +246,7 @@ function CausesOfDeathTreemap({
     const containerBounds = treemapBounds.expand(containerPadding)
 
     return (
-        <div>
+        <div ref={chartRef}>
             <svg
                 ref={svgRef}
                 viewBox={`0 0 ${containerBounds.width} ${containerBounds.height}`}
@@ -262,7 +274,7 @@ function CausesOfDeathTreemap({
             {tooltipState.target && (
                 <CausesOfDeathTreemapTooltip
                     state={tooltipState}
-                    shouldPinTooltipToBottom={isMobile}
+                    shouldPinTooltipToBottom={shouldPinTooltipToBottom}
                     containerBounds={containerBounds}
                     timeSeriesData={timeSeriesData}
                     year={year}
