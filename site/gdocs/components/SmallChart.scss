@@ -1,0 +1,110 @@
+.small-chart {
+    &__thumbnail-link,
+    &__thumbnail-button {
+        display: block;
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        border: none;
+        background: none;
+        padding: 0;
+
+        &:hover {
+            transform: scale(1.02);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+    }
+
+    &__thumbnail-link {
+        text-decoration: none;
+    }
+
+    &__content {
+        margin-top: 8px;
+
+        > *:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    &__title {
+        margin-bottom: 16px;
+    }
+}
+
+.small-chart--pull-quote {
+    .small-chart__thumbnail-link,
+    .small-chart__thumbnail-button {
+        max-width: 300px;
+    }
+
+    &.small-chart--align-left,
+    &.small-chart--align-left-center {
+        .small-chart__thumbnail-link,
+        .small-chart__thumbnail-button {
+            float: left;
+            margin-right: 24px;
+            margin-bottom: 8px;
+        }
+    }
+
+    &.small-chart--align-right,
+    &.small-chart--align-right-center {
+        .small-chart__thumbnail-link,
+        .small-chart__thumbnail-button {
+            float: right;
+            margin-left: 24px;
+            margin-bottom: 8px;
+        }
+    }
+
+    &::after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+
+    @media (max-width: 768px) {
+        .small-chart__thumbnail-link,
+        .small-chart__thumbnail-button {
+            float: none !important;
+            margin: 0 0 16px 0 !important;
+            max-width: 100%;
+        }
+    }
+}
+
+.small-chart--rows {
+    margin-top: 16px;
+    margin-bottom: 32px;
+    .small-chart__rows-container {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .small-chart__row-item {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+
+        @media (max-width: 768px) {
+            flex-direction: column;
+        }
+    }
+
+    .small-chart__thumbnail-link,
+    .small-chart__thumbnail-button {
+        flex-shrink: 0;
+        max-width: 300px;
+    }
+
+    .small-chart__content {
+        flex: 1;
+        min-width: 0;
+        margin-top: 0;
+    }
+
+    .small-chart__content .article-block__text {
+        @include body-3-regular;
+    }
+}
