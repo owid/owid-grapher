@@ -26,7 +26,6 @@ import { ResponsiveAgeZoneLegend } from "../components/AgeZoneLegend.js"
 import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
 import {
     CHART_FOOTER_SOURCES,
-    DEFAULT_ENTITY_NAME,
     END_YEAR,
     FULL_TIME_RANGE,
     START_YEAR,
@@ -36,6 +35,7 @@ import {
     useContainerBreakpoint,
     breakpointClass,
 } from "../helpers/useBreakpoint.js"
+import { useInitialEntityName } from "../helpers/useInitialEntityName.js"
 
 export function PopulationPyramidVariantWithProviders(props: {
     container: HTMLDivElement
@@ -54,9 +54,7 @@ function PopulationPyramidVariant({
     config: PopulationPyramidVariantConfig
 }): React.ReactElement {
     const showControls = !config.hideControls
-    const [entityName, setEntityName] = useState(
-        config.region ?? DEFAULT_ENTITY_NAME
-    )
+    const [entityName, setEntityName] = useInitialEntityName(config.region)
 
     const { metadata, entityData, isLoadingEntityData, status } =
         useDemographyData(entityName)

@@ -1,14 +1,11 @@
-import { useState } from "react"
 import cx from "classnames"
 import { QueryClientProvider } from "@tanstack/react-query"
 
 import { DemographyControls } from "../components/DemographyControls.js"
 import { queryClient, useDemographyData } from "../helpers/fetch.js"
 import type { SimulationVariantConfig } from "../config.js"
-import {
-    CHART_FOOTER_SOURCES,
-    DEFAULT_ENTITY_NAME,
-} from "../helpers/constants.js"
+import { CHART_FOOTER_SOURCES } from "../helpers/constants.js"
+import { useInitialEntityName } from "../helpers/useInitialEntityName.js"
 import {
     DemographyChartError,
     DemographySkeleton,
@@ -43,9 +40,7 @@ function SimulationVariant({
 }: {
     config: SimulationVariantConfig
 }): React.ReactElement {
-    const [entityName, setEntityName] = useState(
-        config.region ?? DEFAULT_ENTITY_NAME
-    )
+    const [entityName, setEntityName] = useInitialEntityName(config.region)
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
     const { metadata, entityData, isLoadingEntityData, status } =
