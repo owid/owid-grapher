@@ -32,6 +32,7 @@ export interface SlideImageOnly {
     filename: string | null
     sectionTitle?: string
     slideTitle?: string
+    text?: MarkdownText
 }
 
 export interface SlideChartOnly {
@@ -40,6 +41,7 @@ export interface SlideChartOnly {
     queryString?: string
     sectionTitle?: string
     slideTitle?: string
+    text?: MarkdownText
 }
 
 export interface SlideSection {
@@ -95,6 +97,7 @@ const SlideImageOnlySchema = z.object({
     filename: z.string().nullable(),
     sectionTitle: z.string().optional(),
     slideTitle: z.string().optional(),
+    text: z.string().optional(),
 })
 
 const SlideChartOnlySchema = z.object({
@@ -103,6 +106,7 @@ const SlideChartOnlySchema = z.object({
     queryString: z.string().optional(),
     sectionTitle: z.string().optional(),
     slideTitle: z.string().optional(),
+    text: z.string().optional(),
 })
 
 const SlideSectionSchema = z.object({

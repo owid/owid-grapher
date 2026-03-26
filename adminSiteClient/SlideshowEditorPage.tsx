@@ -278,7 +278,11 @@ export function SlideshowEditorPage(props: {
                                 <SlideRenderer
                                     slide={currentSlide}
                                     imageMetadata={imageMetadata}
-                                    renderChart={(slug, queryString) => (
+                                    renderChart={(
+                                        slug,
+                                        queryString,
+                                        { hideTitle }
+                                    ) => (
                                         <SlideGrapher
                                             slug={slug}
                                             initialQueryString={queryString}
@@ -286,6 +290,7 @@ export function SlideshowEditorPage(props: {
                                             onQueryStringChange={
                                                 handleGrapherQueryStringChange
                                             }
+                                            hideTitle={hideTitle}
                                         />
                                     )}
                                 />
