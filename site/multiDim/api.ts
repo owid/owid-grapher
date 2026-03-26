@@ -8,35 +8,39 @@ import {
 import { fetchWithRetry, readFromAssetMap } from "@ourworldindata/utils"
 import { DATA_API_URL } from "../../settings/clientSettings.js"
 
-export const cachedGetVariableMetadata = _.memoize(
-    async (
-        variableId: number,
-        isPreviewing: boolean,
-        assetMap?: AssetMap
-    ): Promise<OwidVariableWithSourceAndDimension> => {
-        const response = await fetchWithRetry(
-            getVariableMetadataRoute(DATA_API_URL, variableId, {
-                assetMap,
-                noCache: isPreviewing,
-            })
-        )
-        return await response.json()
-    }
-)
-
-export const cachedGetGrapherConfigByUuid = _.memoize(
-    async (
-        grapherConfigUuid: string,
-        isPreviewing: boolean,
-        assetMap?: AssetMap
-    ): Promise<GrapherInterface> => {
-        const configFileName = `${grapherConfigUuid}.config.json`
-        const fallbackUrl = `/grapher/by-uuid/${configFileName}${isPreviewing ? "?nocache" : ""}`
-        const url = readFromAssetMap(assetMap, {
-            path: configFileName,
-            fallback: fallbackUrl,
+async function _cachedGetVariableMetadata(
+    variableId: number,
+    isPreviewing: boolean,
+    assetMap?: AssetMap
+): Promise<OwidVariableWithSourceAndDimension> {
+    const response = await fetchWithRetry(
+        getVariableMetadataRoute(DATA_API_URL, variableId, {
+            assetMap,
+            noCache: isPreviewing,
         })
-        const response = await fetchWithRetry(url)
-        return await response.json()
-    }
-)
+    )
+    return await response.json()
+}
+export const cachedGetVariableMetadata: typeof _cachedGetVariableMetadata =
+    _.memoize(
+        _cachedGetVariableMetadata
+    ) as unknown as typeof _cachedGetVariableMetadata
+
+async function _cachedGetGrapherConfigByUuid(
+    grapherConfigUuid: string,
+    isPreviewing: boolean,
+    assetMap?: AssetMap
+): Promise<GrapherInterface> {
+    const configFileName = `${grapherConfigUuid}.config.json`
+    const fallbackUrl = `/grapher/by-uuid/${configFileName}${isPreviewing ? "?nocache" : ""}`
+    const url = readFromAssetMap(assetMap, {
+        path: configFileName,
+        fallback: fallbackUrl,
+    })
+    const response = await fetchWithRetry(url)
+    return await response.json()
+}
+export const cachedGetGrapherConfigByUuid: typeof _cachedGetGrapherConfigByUuid =
+    _.memoize(
+        _cachedGetGrapherConfigByUuid
+    ) as unknown as typeof _cachedGetGrapherConfigByUuid

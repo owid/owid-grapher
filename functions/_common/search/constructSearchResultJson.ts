@@ -569,7 +569,12 @@ async function fetchLatestPopulationData({
 
         // Create a map from entity name to population value
         const data = new Map<EntityName, number>(
-            catalogData.map(({ entity, value }) => [entity, value])
+            catalogData.map(
+                ({ entity, value }: { entity: string; value: number }) => [
+                    entity,
+                    value,
+                ]
+            )
         )
 
         // Update cache
