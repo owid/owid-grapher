@@ -15,6 +15,7 @@ import {
     BENCHMARK_LINE_COLOR,
     HOVER_LINE_COLOR,
     ZERO_LINE_COLOR,
+    USER_MODIFIED_COLOR,
 } from "../helpers/constants"
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { Halo, TextWrap } from "@ourworldindata/components"
@@ -42,6 +43,7 @@ interface DemographyParameterEditorProps {
     variant: ParameterKey
     interactive?: boolean
     lineColor?: string
+    projectionColor?: string
     labelColor?: string
     showProjectionLabel?: boolean
 }
@@ -56,11 +58,13 @@ function DemographyParameterEditor({
     variant,
     interactive = true,
     lineColor = DENIM_BLUE,
+    projectionColor: projectionColorProp,
     labelColor = DENIM_BLUE,
     showProjectionLabel = false,
     width,
     height,
 }: DemographyParameterEditorProps & { width: number; height: number }) {
+    const projectionColor = projectionColorProp ?? lineColor
     const config = parameterConfigByKey[variant]
     const fonts = getParameterChartFonts(widthToBreakpoint(width))
     const [hoveredYear, setHoveredYear] = useState<number | null>(null)
@@ -384,16 +388,45 @@ function DemographyParameterEditor({
                     strokeLinecap="butt"
                 />
 
-                {/* Projection line */}
-                <LinePath
-                    data={[lastHistoricalDataPoint, ...projectionPoints]}
-                    x={(d) => xScale(d.year)}
-                    y={(d) => yScale(d.value)}
-                    stroke={lineColor}
-                    strokeWidth={2}
-                    strokeDasharray="1,2"
-                    strokeLinecap="butt"
-                />
+                {/* Projection line — segments colored individually */}
+                {[lastHistoricalDataPoint, ...projectionPoints].map(
+                    (point, i, arr) => {
+                        if (i === 0) return null
+                        const prev = arr[i - 1]
+                        const prevModified =
+                            (CONTROL_YEARS as readonly number[]).includes(
+                                prev.year
+                            ) &&
+                            Math.abs(
+                                controlPoints[prev.year] -
+                                    referencePoints[prev.year]
+                            ) >= 0.01
+                        const currModified =
+                            (CONTROL_YEARS as readonly number[]).includes(
+                                point.year
+                            ) &&
+                            Math.abs(
+                                controlPoints[point.year] -
+                                    referencePoints[point.year]
+                            ) >= 0.01
+                        const segmentColor =
+                            prevModified || currModified
+                                ? USER_MODIFIED_COLOR
+                                : lineColor
+                        return (
+                            <LinePath
+                                key={point.year}
+                                data={[prev, point]}
+                                x={(d) => xScale(d.year)}
+                                y={(d) => yScale(d.value)}
+                                stroke={segmentColor}
+                                strokeWidth={2}
+                                strokeDasharray="1,2"
+                                strokeLinecap="butt"
+                            />
+                        )
+                    }
+                )}
 
                 {/* First historical point (1950) — always with value label */}
                 <PointLabelWithYear
@@ -553,32 +586,53 @@ function DemographyParameterEditor({
                     </g>
                 )}
 
-                {/* Draggable control points */}
+                {/* UN WPP reference dots */}
                 {interactive &&
                     CONTROL_YEARS.map((year) => (
-                        <DraggableControlPoint
-                            key={year}
+                        <circle
+                            key={`ref-${year}`}
                             cx={xScale(year)}
-                            cy={yScale(controlPoints[year])}
-                            value={controlPoints[year]}
-                            color={DENIM_BLUE}
-                            formatValue={formatValue}
-                            dragArrowFontSize={fonts.dragArrow}
-                            controlLabelFontSize={fonts.controlLabel}
-                            yScale={yScale}
-                            marginTop={margin.top}
-                            onValueChange={(value) =>
-                                handleChange({
-                                    ...controlPoints,
-                                    [year]: value,
-                                })
-                            }
-                            onPointerEnter={() => setHoveredYear(year)}
-                            onPointerLeave={handlePointerLeave}
+                            cy={yScale(referencePoints[year])}
+                            r={SMALL_DOT_RADIUS}
+                            fill={BENCHMARK_LINE_COLOR}
                         />
                     ))}
 
-                {/* Hover dot + value label — rendered above control points */}
+                {/* Draggable control points */}
+                {interactive &&
+                    CONTROL_YEARS.map((year) => {
+                        const isModified =
+                            Math.abs(
+                                controlPoints[year] - referencePoints[year]
+                            ) >= 0.01
+                        const pointColor = isModified
+                            ? USER_MODIFIED_COLOR
+                            : DENIM_BLUE
+                        return (
+                            <DraggableControlPoint
+                                key={year}
+                                cx={xScale(year)}
+                                cy={yScale(controlPoints[year])}
+                                value={controlPoints[year]}
+                                color={pointColor}
+                                modified={isModified}
+                                formatValue={formatValue}
+                                dragArrowFontSize={fonts.dragArrow}
+                                controlLabelFontSize={fonts.controlLabel}
+                                yScale={yScale}
+                                marginTop={margin.top}
+                                onValueChange={(value) =>
+                                    handleChange({
+                                        ...controlPoints,
+                                        [year]: value,
+                                    })
+                                }
+                                onPointerEnter={() => setHoveredYear(year)}
+                                onPointerLeave={handlePointerLeave}
+                            />
+                        )
+                    })}
+
                 {/* Hover dot + value label — rendered above control points */}
                 {hoveredYear !== null && hoveredValue !== undefined && (
                     <g style={{ pointerEvents: "none" }}>
@@ -590,7 +644,15 @@ function DemographyParameterEditor({
                                     ? undefined
                                     : formatValue(hoveredValue)
                             }
-                            color={lineColor}
+                            color={
+                                isControlYear &&
+                                Math.abs(
+                                    controlPoints[hoveredYear] -
+                                        referencePoints[hoveredYear]
+                                ) >= 0.01
+                                    ? USER_MODIFIED_COLOR
+                                    : lineColor
+                            }
                             labelColor={labelColor}
                             fontSize={fonts.hoverLabel}
                         />
@@ -607,6 +669,7 @@ export const ResponsiveDemographyParameterEditor = memo(
         variant,
         interactive,
         lineColor,
+        projectionColor,
         labelColor,
         showProjectionLabel,
     }: DemographyParameterEditorProps) {
@@ -619,6 +682,7 @@ export const ResponsiveDemographyParameterEditor = memo(
                         variant={variant}
                         interactive={interactive}
                         lineColor={lineColor}
+                        projectionColor={projectionColor}
                         labelColor={labelColor}
                         showProjectionLabel={showProjectionLabel}
                         width={width}
@@ -635,6 +699,7 @@ function DraggableControlPoint({
     cy,
     value,
     color,
+    modified = false,
     formatValue,
     yScale,
     marginTop,
@@ -648,6 +713,7 @@ function DraggableControlPoint({
     cy: number
     value: number
     color: string
+    modified?: boolean
     formatValue: (v: number) => string
     yScale: { invert: (y: number) => number }
     marginTop: number
@@ -699,11 +765,20 @@ function DraggableControlPoint({
                 </text>
 
                 {/* Visible circle */}
+                {modified && (
+                    <circle
+                        cx={cx}
+                        cy={cy}
+                        r={CONTROL_POINT_RADIUS}
+                        fill="white"
+                    />
+                )}
                 <circle
                     cx={cx}
                     cy={cy}
                     r={CONTROL_POINT_RADIUS}
-                    fill="white"
+                    fill={modified ? color : "white"}
+                    fillOpacity={modified ? 0.25 : 1}
                     stroke={color}
                     strokeWidth={2}
                     cursor="ns-resize"

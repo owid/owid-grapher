@@ -33,6 +33,7 @@ export interface PopulationPyramidHorizontalProps {
     year: number
     yAxisScaleMode?: "fixed" | "adaptive"
     projection?: ProjectionType
+    barColor?: string
 }
 
 function PopulationPyramidHorizontal({
@@ -40,9 +41,12 @@ function PopulationPyramidHorizontal({
     year,
     yAxisScaleMode = "fixed",
     projection = "custom",
+    barColor,
     width,
     height,
 }: PopulationPyramidHorizontalProps & { width: number; height: number }) {
+    const effectiveFemaleColor = barColor ?? FEMALE_COLOR
+    const effectiveMaleColor = barColor ?? MALE_COLOR
     const fonts = getHorizontalPyramidFonts(widthToBreakpoint(width))
     const margin = { top: 0, right: 0, bottom: 0, left: 0 }
 
@@ -147,14 +151,14 @@ function PopulationPyramidHorizontal({
                     xScale={xScale}
                     yScale={yScaleFemale}
                     ageBuckets={ageBucketsBySex.female}
-                    color={FEMALE_COLOR}
+                    color={effectiveFemaleColor}
                     hoveredAgeGroup={hoveredAgeGroup}
                 />
                 <AgeGroupBars
                     xScale={xScale}
                     yScale={yScaleMale}
                     ageBuckets={ageBucketsBySex.male}
-                    color={MALE_COLOR}
+                    color={effectiveMaleColor}
                     hoveredAgeGroup={hoveredAgeGroup}
                 />
                 <VerticalDividers
@@ -185,7 +189,7 @@ function PopulationPyramidHorizontal({
                     xScale={xScale}
                     yScale={yScaleFemale}
                     ageBuckets={ageBucketsBySex.female}
-                    color={FEMALE_COLOR}
+                    color={effectiveFemaleColor}
                     hoveredAgeGroup={hoveredAgeGroup}
                     fontSize={fonts.hoverLabel}
                 />
@@ -193,7 +197,7 @@ function PopulationPyramidHorizontal({
                     xScale={xScale}
                     yScale={yScaleMale}
                     ageBuckets={ageBucketsBySex.male}
-                    color={MALE_COLOR}
+                    color={effectiveMaleColor}
                     hoveredAgeGroup={hoveredAgeGroup}
                     fontSize={fonts.hoverLabel}
                 />
@@ -221,7 +225,7 @@ function PopulationPyramidHorizontal({
                     dy={-1}
                     dominantBaseline="auto"
                     fontSize={fonts.sexLabel}
-                    fill={FEMALE_COLOR}
+                    fill={effectiveFemaleColor}
                     fontWeight={700}
                     style={{ pointerEvents: "none" }}
                 >
@@ -233,7 +237,7 @@ function PopulationPyramidHorizontal({
                     dy={1}
                     dominantBaseline="hanging"
                     fontSize={fonts.sexLabel}
-                    fill={MALE_COLOR}
+                    fill={effectiveMaleColor}
                     fontWeight={700}
                     style={{ pointerEvents: "none" }}
                 >

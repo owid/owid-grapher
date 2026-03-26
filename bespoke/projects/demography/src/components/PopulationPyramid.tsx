@@ -53,6 +53,7 @@ export interface PopulationPyramidProps {
     xAxisScaleMode?: "fixed" | "adaptive"
     ageZones?: AgeZone[]
     projection?: ProjectionType
+    barColor?: string
 }
 
 function PopulationPyramid({
@@ -61,9 +62,11 @@ function PopulationPyramid({
     xAxisScaleMode = "fixed",
     ageZones,
     projection = "custom",
+    barColor: barColorProp,
     width,
     height,
 }: PopulationPyramidProps & { width: number; height: number }) {
+    const defaultBarColor = barColorProp ?? DENIM_BLUE
     const bp = widthToBreakpoint(width)
     const fonts = getPopulationPyramidFonts(bp)
     const margin = { ...PYRAMID_MARGIN }
@@ -206,6 +209,7 @@ function PopulationPyramid({
                         tickFontSize={fonts.xTick}
                         hoverFontSize={fonts.hoverLabel}
                         ageZones={ageZones}
+                        defaultBarColor={defaultBarColor}
                         side="male"
                         hoveredAgeGroup={hoveredAgeGroup}
                     />
@@ -219,6 +223,7 @@ function PopulationPyramid({
                         tickFontSize={fonts.xTick}
                         hoverFontSize={fonts.hoverLabel}
                         ageZones={ageZones}
+                        defaultBarColor={defaultBarColor}
                         side="female"
                         hoveredAgeGroup={hoveredAgeGroup}
                     />
@@ -277,6 +282,7 @@ export function ResponsivePopulationPyramid({
     xAxisScaleMode,
     ageZones,
     projection,
+    barColor,
 }: PopulationPyramidProps) {
     const { parentRef, width, height } = useParentSize()
     return (
@@ -288,6 +294,7 @@ export function ResponsivePopulationPyramid({
                     ageZones={ageZones}
                     xAxisScaleMode={xAxisScaleMode}
                     projection={projection}
+                    barColor={barColor}
                     width={width}
                     height={height}
                 />
@@ -307,6 +314,7 @@ function PopulationPyramidHalf({
     tickFontSize,
     hoverFontSize,
     ageZones,
+    defaultBarColor = DENIM_BLUE,
     side,
     hoveredAgeGroup,
 }: {
@@ -318,6 +326,7 @@ function PopulationPyramidHalf({
     tickFontSize: number
     hoverFontSize: number
     ageZones?: AgeZone[]
+    defaultBarColor?: string
     side: "male" | "female"
     hoveredAgeGroup: string | null
 }) {
@@ -368,7 +377,7 @@ function PopulationPyramidHalf({
                 const barY = yScale(g) ?? 0
                 const barColor =
                     ageZones?.find((z) => z.ageGroups.includes(g))?.color ??
-                    DENIM_BLUE
+                    defaultBarColor
                 const dimmed = hoveredAgeGroup !== null && hoveredAgeGroup !== g
 
                 return (
@@ -403,7 +412,7 @@ function PopulationPyramidHalf({
                     barColor={
                         ageZones?.find((z) =>
                             z.ageGroups.includes(hoveredAgeGroup)
-                        )?.color ?? DENIM_BLUE
+                        )?.color ?? defaultBarColor
                     }
                 />
             )}

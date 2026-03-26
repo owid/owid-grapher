@@ -10,6 +10,7 @@ import type {
     PopulationBySex,
     PopulationByAgeZone,
 } from "./types"
+import { PARAMETER_KEYS } from "./types"
 import {
     getPopulationForYear,
     getDeathsForYear,
@@ -71,6 +72,7 @@ export interface Simulation {
     baselineParams: BaselineParams
     scenarioParams: ScenarioParams
     activePreset: PresetName | null
+    modifiedParameters: Set<ParameterKey>
     applyPreset: (preset: PresetName) => void
     setScenarioParams: (params: ScenarioParams) => void
     getPopulationForYear: (year: number) => PopulationBySex | null
@@ -489,6 +491,21 @@ export function useSimulation(
         [getBenchmarkPopForYear]
     )
 
+    const modifiedParameters = useMemo(() => {
+        const modified = new Set<ParameterKey>()
+        if (!core || !effectiveScenarioParams) return modified
+        const un = core.defaultScenario
+        for (const key of PARAMETER_KEYS) {
+            const isModified = CONTROL_YEARS.some(
+                (y) =>
+                    Math.abs(effectiveScenarioParams[key][y] - un[key][y]) >=
+                    0.01
+            )
+            if (isModified) modified.add(key)
+        }
+        return modified
+    }, [core, effectiveScenarioParams])
+
     if (!data || !core || !effectiveScenarioParams || !forecastResults)
         return null
 
@@ -501,6 +518,7 @@ export function useSimulation(
         baselineParams: core.baselineParams,
         scenarioParams: effectiveScenarioParams,
         activePreset,
+        modifiedParameters,
         applyPreset,
         setScenarioParams,
         getPopulationForYear: getPopForYear,

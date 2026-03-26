@@ -18,8 +18,10 @@ import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
 import {
     START_YEAR,
     END_YEAR,
+    HISTORICAL_END_YEAR,
     FULL_TIME_RANGE,
     BENCHMARK_LINE_COLOR,
+    USER_MODIFIED_COLOR,
 } from "../helpers/constants.js"
 import { PopulationChartLegend } from "./PopulationChartLegend.js"
 import { parameterConfigByKey } from "../helpers/parameterConfigs.js"
@@ -55,6 +57,11 @@ export function SimulationContent({
     if (!simulation) return null
 
     const title = makeTitle({ focusParameter })
+    const hasUserChanges = simulation.activePreset !== "unwpp"
+    const pyramidBarColor =
+        hasUserChanges && year > HISTORICAL_END_YEAR
+            ? USER_MODIFIED_COLOR
+            : undefined
 
     return (
         <div className="chart-content">
@@ -119,6 +126,7 @@ export function SimulationContent({
                             simulation={simulation}
                             year={year}
                             onYearChange={setYear}
+                            barColor={pyramidBarColor}
                         />
                     )}
                 </div>
@@ -131,10 +139,12 @@ function AgeStructurePanel({
     simulation,
     year,
     onYearChange,
+    barColor,
 }: {
     simulation: Simulation
     year: number
     onYearChange: (year: number) => void
+    barColor?: string
 }) {
     const title = `Age Structure in ${year}`
     const subtitle = "Population by age and sex"
@@ -152,6 +162,7 @@ function AgeStructurePanel({
                 <ResponsivePopulationPyramid
                     simulation={simulation}
                     year={year}
+                    barColor={barColor}
                 />
             </ChartPanel>
             <ChartPanel
@@ -163,6 +174,7 @@ function AgeStructurePanel({
                 <ResponsivePopulationPyramidHorizontal
                     simulation={simulation}
                     year={year}
+                    barColor={barColor}
                 />
             </ChartPanel>
         </>
@@ -215,6 +227,7 @@ export function InputChartPanel({
     const subtitle = getSubtitle(simulation.data.country)
     const isWorldMigration =
         variant === "netMigrationRate" && simulation.data.country === "World"
+    const isParameterModified = simulation.modifiedParameters.has(variant)
 
     // Reset target: explicit override (e.g. stabilized params), or UN WPP defaults
     const effectiveResetTarget =
@@ -250,6 +263,11 @@ export function InputChartPanel({
                 variant={variant}
                 interactive={interactive}
                 lineColor={lineColor}
+                projectionColor={
+                    !lineColor && isParameterModified
+                        ? USER_MODIFIED_COLOR
+                        : undefined
+                }
                 labelColor={labelColor}
                 showProjectionLabel={showProjectionLabel}
             />
