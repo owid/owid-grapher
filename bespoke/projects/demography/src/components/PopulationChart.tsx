@@ -19,6 +19,7 @@ import {
     LABEL_COLOR,
     HOVER_LINE_COLOR,
     ZERO_LINE_COLOR,
+    USER_MODIFIED_COLOR,
 } from "../helpers/constants"
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { TooltipCard } from "@ourworldindata/grapher/src/tooltip/TooltipCard.js"
@@ -80,10 +81,7 @@ function PopulationChart({
 
     const dismissTooltip = useCallback(() => setHoveredYear(null), [])
     const { ref: chartRef, isPinned: pinTooltipToBottom } =
-        usePinnedTooltip<HTMLDivElement>(
-        hoveredYear !== null,
-        dismissTooltip
-    )
+        usePinnedTooltip<HTMLDivElement>(hoveredYear !== null, dismissTooltip)
 
     const historicalDataPoints = useMemo(
         () =>
@@ -216,6 +214,7 @@ function PopulationChart({
 
     const hasUserChanges =
         showCustomProjection && simulation.activePreset !== "unwpp"
+    const projectionColor = hasUserChanges ? USER_MODIFIED_COLOR : DENIM_BLUE
 
     // Show change annotation at the end year when not hovering,
     // or at the hovered year when hovering a projection year
@@ -315,7 +314,7 @@ function PopulationChart({
                             data={projectionDataPoints}
                             x={(d) => xScale(d.year)}
                             y={(d) => yScale(d.value)}
-                            stroke={DENIM_BLUE}
+                            stroke={projectionColor}
                             strokeWidth={3}
                             strokeDasharray={PROJECTION_DASHARRAY}
                             strokeLinecap="butt"
@@ -333,6 +332,7 @@ function PopulationChart({
                         }
                         benchmarkDataPoints={benchmarkDataPoints}
                         showBenchmark={hasUserChanges}
+                        forecastColor={projectionColor}
                         fonts={fonts}
                     />
 
@@ -357,6 +357,7 @@ function PopulationChart({
                             projectionDataPoints={projectionDataPoints}
                             benchmarkDataPoints={benchmarkDataPoints}
                             hideLabel={isHovering}
+                            color={projectionColor}
                             fonts={fonts}
                         />
                     )}
@@ -368,6 +369,7 @@ function PopulationChart({
                             yScale={yScale}
                             hoveredValues={hoveredValues}
                             showCustomProjection={showCustomProjection}
+                            projectionColor={projectionColor}
                         />
                     )}
 
@@ -409,6 +411,7 @@ function PopulationChart({
                         hoveredValues={hoveredValues}
                         showCustomProjection={showCustomProjection}
                         hasUserChanges={hasUserChanges}
+                        projectionColor={projectionColor}
                     />
                 </TooltipCard>
             )}
@@ -446,6 +449,7 @@ function HoverDots({
     yScale,
     hoveredValues,
     showCustomProjection,
+    projectionColor = DENIM_BLUE,
 }: {
     x: number
     yScale: (v: number) => number
@@ -455,6 +459,7 @@ function HoverDots({
         benchmark: DataPoint | undefined
     }
     showCustomProjection: boolean
+    projectionColor?: string
 }) {
     return (
         <g>
@@ -487,7 +492,7 @@ function HoverDots({
                     cx={x}
                     cy={yScale(hoveredValues.projection.value)}
                     r={4}
-                    fill={DENIM_BLUE}
+                    fill={projectionColor}
                     stroke="#fff"
                     strokeWidth={1.5}
                     pointerEvents="none"
@@ -503,6 +508,7 @@ function EndpointLabels({
     forecastDataPoints,
     benchmarkDataPoints,
     showBenchmark,
+    forecastColor = DENIM_BLUE,
     fonts,
 }: {
     xScale: (v: number) => number
@@ -510,6 +516,7 @@ function EndpointLabels({
     forecastDataPoints: DataPoint[]
     benchmarkDataPoints: DataPoint[]
     showBenchmark: boolean
+    forecastColor?: string
     fonts: PopulationChartFonts
 }) {
     const forecastValue = forecastDataPoints.at(-1)!.value
@@ -549,14 +556,14 @@ function EndpointLabels({
                     </Halo>
                 </>
             )}
-            <circle cx={x} cy={yForecast} r={4} fill={DENIM_BLUE} />
+            <circle cx={x} cy={yForecast} r={4} fill={forecastColor} />
             <Halo id="projection-label" outlineWidth={3} outlineColor="white">
                 <text
                     x={x}
                     y={yForecast + (forecastLabelAbove ? -10 : 16)}
                     textAnchor="end"
                     fontSize={fonts.pointLabel}
-                    fill={DENIM_BLUE}
+                    fill={forecastColor}
                     fontWeight={700}
                 >
                     {formatPopulationValueLong(forecastValue)}
@@ -574,6 +581,7 @@ function ChangeAnnotation({
     projectionDataPoints,
     benchmarkDataPoints,
     hideLabel = false,
+    color = DENIM_BLUE,
     fonts,
 }: {
     xScale: (v: number) => number
@@ -583,6 +591,7 @@ function ChangeAnnotation({
     projectionDataPoints: { year: number; value: number }[]
     benchmarkDataPoints: { year: number; value: number }[]
     hideLabel?: boolean
+    color?: string
     fonts: PopulationChartFonts
 }) {
     const forecastPoint = projectionDataPoints.find((d) => d.year === year)
@@ -625,7 +634,7 @@ function ChangeAnnotation({
             <BezierArrow
                 start={[x, benchmarkEnd]}
                 end={[x, forecastEnd]}
-                color={DENIM_BLUE}
+                color={color}
                 width={1.5}
             />
 
@@ -639,7 +648,7 @@ function ChangeAnnotation({
                         dominantBaseline="middle"
                         fontSize={labelFontSize}
                         fontWeight={500}
-                        fill={DENIM_BLUE}
+                        fill={color}
                     >
                         {pctLabel}
                     </text>
@@ -654,6 +663,7 @@ function PopulationTooltipContent({
     hoveredValues,
     showCustomProjection,
     hasUserChanges,
+    projectionColor = DENIM_BLUE,
 }: {
     hoveredYear: number
     hoveredValues: {
@@ -663,6 +673,7 @@ function PopulationTooltipContent({
     }
     showCustomProjection: boolean
     hasUserChanges: boolean
+    projectionColor?: string
 }) {
     const isHistorical = hoveredYear <= HISTORICAL_END_YEAR
 
@@ -722,7 +733,7 @@ function PopulationTooltipContent({
                         )}
                     </span>
                 }
-                color={DENIM_BLUE}
+                color={projectionColor}
             />
         </>
     )
