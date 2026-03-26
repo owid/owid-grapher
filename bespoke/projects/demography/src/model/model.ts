@@ -788,10 +788,11 @@ export function simulateYear(
     newPop.female[0] += totalBirths * FEMALE_BIRTH_RATIO
     newPop.male[0] += totalBirths * MALE_BIRTH_RATIO
 
-    // Ensure no negative populations
+    // Ensure no negative populations and round to whole numbers
+    // (fractional people are not meaningful)
     for (let age = 0; age <= MAX_AGE; age++) {
-        newPop.female[age] = Math.max(0, newPop.female[age])
-        newPop.male[age] = Math.max(0, newPop.male[age])
+        newPop.female[age] = Math.round(Math.max(0, newPop.female[age]))
+        newPop.male[age] = Math.round(Math.max(0, newPop.male[age]))
     }
 
     return newPop
