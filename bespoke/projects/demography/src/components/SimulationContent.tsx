@@ -23,7 +23,6 @@ import {
 } from "../helpers/constants.js"
 import { PopulationChartLegend } from "./PopulationChartLegend.js"
 import { parameterConfigByKey } from "../helpers/parameterConfigs.js"
-import { useBreakpoint } from "../helpers/useBreakpoint.js"
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 import {
     GRAY_60,
@@ -316,29 +315,11 @@ export function ChartPanel({
 }
 
 function ArrowFromInputToOutputPanels() {
-    const breakpoint = useBreakpoint()
-    const isVertical = breakpoint === "small" || breakpoint === "narrow"
-
-    if (isVertical) {
-        return (
-            <svg className="container-arrow" viewBox="0 0 36 36">
-                <BezierArrow
-                    start={[18, 6]}
-                    end={[18, 30]}
-                    color={GRAPHER_LIGHT_TEXT}
-                    width={2}
-                    headAnchor="end"
-                    headLength={6}
-                />
-            </svg>
-        )
-    }
-
     return (
-        <svg className="container-arrow" viewBox="0 0 60 20">
+        <svg className="container-arrow" viewBox="0 0 36 36">
             <BezierArrow
-                start={[10, 10]}
-                end={[60 - 10, 10]}
+                start={[18, 6]}
+                end={[18, 30]}
                 color={GRAPHER_LIGHT_TEXT}
                 width={2}
                 headAnchor="end"

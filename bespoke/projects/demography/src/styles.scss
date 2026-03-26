@@ -211,6 +211,7 @@ $panel-gap: 12px;
 
 .chart-content {
     display: flex;
+    flex-direction: column;
     gap: 0;
     width: 100%;
     height: 500px;
@@ -220,6 +221,17 @@ $panel-gap: 12px;
     background: $gray-5;
     border-radius: 2px;
     padding: 16px;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+
+    &.container-left {
+        flex: 2;
+    }
+
+    &.container-right {
+        flex: 3;
+    }
 
     .container__title {
         @include grapher_h5-black-caps;
@@ -253,19 +265,21 @@ $panel-gap: 12px;
 }
 
 .container-arrow {
-    width: 40px;
-    flex-shrink: 0;
+    flex: 0 0 auto;
+    width: 36px;
+    height: 36px;
+    margin: 0 auto;
 }
 
 .input-panels {
     display: flex;
-    flex-direction: column;
     gap: $panel-gap;
     flex: 1;
     min-height: 0;
 
     > * {
         flex: 1;
+        min-width: 0;
         min-height: 0;
     }
 }
