@@ -613,5 +613,16 @@ ${links}`
             { type: "bespoke-component" },
             (_): string | undefined => undefined
         )
+        .with({ type: "small-chart" }, (b): string | undefined => {
+            const rowTexts = b.rows.map((row) => {
+                const content = enrichedBlocksToMarkdown(
+                    row.content,
+                    exportComponents,
+                    options
+                )
+                return _.compact([`![](${row.image})`, content]).join("\n")
+            })
+            return rowTexts.join("\n\n") || undefined
+        })
         .exhaustive()
 }

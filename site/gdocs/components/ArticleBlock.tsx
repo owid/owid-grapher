@@ -1040,6 +1040,7 @@ function ArticleBlockInternal({
                 block={block}
             />
         ))
+        .with({ type: "small-chart" }, () => null)
         .exhaustive()
 }
 

@@ -304,7 +304,8 @@ export function extractFilenamesFromBlock(
                     "topic-page-intro",
                     "data-callout",
                     "country-profile-selector",
-                    "bespoke-component"
+                    "bespoke-component",
+                    "small-chart"
                 ),
             },
             _.noop

@@ -1798,6 +1798,14 @@ export function traverseEnrichedBlock(
             },
             callback
         )
+        .with({ type: "small-chart" }, (smallChart) => {
+            callback(smallChart)
+            for (const row of smallChart.rows) {
+                for (const node of row.content) {
+                    traverseEnrichedBlock(node, callback, spanCallback)
+                }
+            }
+        })
         .exhaustive()
 }
 

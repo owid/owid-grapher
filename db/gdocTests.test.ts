@@ -61,6 +61,92 @@ caption: Lorem ipsum dolor sit amet, consectetur adipiscing elit.
         })
     })
 
+    it("can parse a small-chart block", () => {
+        const doc = getArchieMLDocWithContent(
+            `
+{.small-chart}
+variant: rows
+title: More views of this data
+
+[.rows]
+image: life-expectancy-thumbnail.png
+url: /grapher/life-expectancy
+
+[.+content]
+Life expectancy has more than doubled.
+[]
+
+image: gdp-per-capita-thumbnail.png
+url: /grapher/gdp-per-capita
+[]
+{}`
+        )
+        const article = archieToEnriched(doc)
+        expect(article?.body?.length).toBe(1)
+        const block = article?.body?.[0]
+        expect(block?.type).toBe("small-chart")
+        if (block?.type === "small-chart") {
+            expect(block.variant).toBe("rows")
+            expect(block.title).toBe("More views of this data")
+            expect(block.rows).toHaveLength(2)
+            expect(block.rows[0].image).toBe("life-expectancy-thumbnail.png")
+            expect(block.rows[0].url).toBe("/grapher/life-expectancy")
+            expect(block.rows[0].content).toHaveLength(1)
+            expect(block.rows[1].image).toBe("gdp-per-capita-thumbnail.png")
+            expect(block.rows[1].content).toHaveLength(0)
+            expect(block.parseErrors).toHaveLength(0)
+        }
+    })
+
+    it("small-chart pull-quote variant defaults align to left", () => {
+        const doc = getArchieMLDocWithContent(
+            `
+{.small-chart}
+variant: pull-quote
+
+[.rows]
+image: chart.png
+url: /grapher/test
+[]
+{}`
+        )
+        const article = archieToEnriched(doc)
+        const block = article?.body?.[0]
+        expect(block?.type).toBe("small-chart")
+        if (block?.type === "small-chart") {
+            expect(block.align).toBe("left")
+            expect(block.parseErrors).toHaveLength(0)
+        }
+    })
+
+    it("small-chart warns when pull-quote has multiple rows", () => {
+        const doc = getArchieMLDocWithContent(
+            `
+{.small-chart}
+variant: pull-quote
+align: right
+
+[.rows]
+image: chart1.png
+url: /grapher/test1
+
+image: chart2.png
+url: /grapher/test2
+[]
+{}`
+        )
+        const article = archieToEnriched(doc)
+        const block = article?.body?.[0]
+        expect(block?.type).toBe("small-chart")
+        if (block?.type === "small-chart") {
+            expect(block.parseErrors).toHaveLength(1)
+            expect(block.parseErrors[0].isWarning).toBe(true)
+            expect(block.parseErrors[0].message).toContain(
+                "pull-quote variant should have only one row item"
+            )
+        }
+    })
+
     it("can parse a heading block", () => {
         const archieMLString = `{.heading}
 text: Lorem ipsum dolor sit amet, consectetur adipiscing elit.
