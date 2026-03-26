@@ -449,6 +449,12 @@ $panel-gap: 12px;
 
 .demography-country-selector {
     max-width: 320px;
+
+    .breakpoint-narrow &,
+    .breakpoint-small.demography-chart__simulation-variant &,
+    .breakpoint-narrow.demography-chart__simulation-variant & {
+        max-width: none;
+    }
 }
 
 .demography-spinner {
