@@ -19,11 +19,13 @@ import net from "node:net"
 import { execSync, spawn, type ChildProcess } from "node:child_process"
 import path from "node:path"
 import fs from "node:fs"
+import os from "node:os"
 
 const dirname = import.meta.dirname
 const PORT = parseInt(process.env.PORT ?? "8089", 10)
 const PROJECTS_DIR = path.resolve(dirname, "..", "projects")
 const SHARED_DIR = path.resolve(dirname, "..", "shared")
+const hostname = os.hostname()
 
 interface ProjectServer {
     port: number
@@ -93,7 +95,16 @@ async function getOrStartProject(name: string): Promise<ProjectServer | null> {
 
     const proc = spawn(
         "npx",
-        ["vite", "dev", "--port", String(port), "--base", `/${name}/`],
+        [
+            "vite",
+            "dev",
+            "--host",
+            hostname,
+            "--port",
+            String(port),
+            "--base",
+            `/${name}/`,
+        ],
         {
             cwd: dir,
             stdio: ["ignore", "pipe", "pipe"],
@@ -147,11 +158,18 @@ function sendProxy(
 ): void {
     const proxyReq = http.request(
         {
-            hostname: "localhost",
+            hostname,
             port: targetPort,
             path: req.url,
             method: req.method,
-            headers: { ...req.headers, "content-length": String(body.length) },
+            headers: {
+                ...req.headers,
+
+                // Override the Host header so Vite doesn't reject the request
+                // when the original host (e.g. a staging server) isn't in allowedHosts
+                host: `${hostname}:${targetPort}`,
+                "content-length": String(body.length),
+            },
         },
         (proxyRes: http.IncomingMessage) => {
             res.writeHead(proxyRes.statusCode!, proxyRes.headers)
@@ -191,7 +209,7 @@ function proxyWebSocket(
     targetPort: number
 ): void {
     const target = net.createConnection(
-        { port: targetPort, host: "localhost" },
+        { port: targetPort, host: hostname },
         () => {
             let raw = `${req.method} ${req.url} HTTP/${req.httpVersion}\r\n`
             for (let i = 0; i < req.rawHeaders.length; i += 2) {

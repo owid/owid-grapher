@@ -14,6 +14,10 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     string,
     BespokeComponentDefinition
 > = {
+    example: {
+        scriptUrl: "/example/index.js",
+        cssUrl: "/example/index.css",
+    },
     // Example:
     // "my-widget": {
     //     scriptUrl: "/assets/bespoke/my-widget.mjs",
