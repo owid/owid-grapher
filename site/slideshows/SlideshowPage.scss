@@ -5,6 +5,118 @@
     }
 }
 
+// --- Presentation layout ---
+
+.SlideshowPresentation {
+    display: flex;
+    flex-direction: column;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px;
+    gap: 12px;
+
+    &--fullscreen {
+        max-width: none;
+        height: 100vh;
+        padding: 0;
+        background: #fff;
+
+        .SlideshowPresentation__slide {
+            flex: 1;
+            min-height: 0;
+        }
+
+        .SlideshowPresentation__footer {
+            padding: 8px 24px;
+        }
+    }
+}
+
+.SlideshowPresentation__slide {
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.SlideshowPresentation__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 0;
+}
+
+.SlideshowPresentation__branding {
+    font-size: 13px;
+    color: #666;
+}
+
+.SlideshowPresentation__nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.SlideshowPresentation__nav-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    background: #fff;
+    color: #333;
+    font-size: 14px;
+    cursor: pointer;
+    transition:
+        background-color 0.15s,
+        border-color 0.15s;
+
+    &:hover:not(:disabled) {
+        background: #f5f5f5;
+        border-color: #bbb;
+    }
+
+    &:disabled {
+        color: #ccc;
+        border-color: #eee;
+        cursor: default;
+    }
+}
+
+.SlideshowPresentation__slide-counter {
+    font-size: 13px;
+    color: #666;
+    min-width: 48px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.SlideshowPresentation__fullscreen-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    background: #fff;
+    color: #333;
+    font-size: 14px;
+    cursor: pointer;
+    transition:
+        background-color 0.15s,
+        border-color 0.15s;
+
+    &:hover {
+        background: #f5f5f5;
+        border-color: #bbb;
+    }
+}
+
+// --- Slide content (shared with admin) ---
+
 .SlideGrapher {
     height: 100%;
 

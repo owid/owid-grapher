@@ -45,7 +45,6 @@ export function SlideshowPage(props: SlideshowPageProps): React.ReactElement {
                 <main id="slideshow-page-container">
                     <SlideshowPresentation {...presentationProps} />
                 </main>
-                <p>A presentation by Our World in Data</p>
                 <SiteFooter context={SiteFooterContext.slideshowPage} />
                 <script
                     dangerouslySetInnerHTML={{
