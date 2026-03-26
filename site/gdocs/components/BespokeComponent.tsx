@@ -1,10 +1,20 @@
 import { EnrichedBlockBespokeComponent } from "@ourworldindata/types"
 import { LoadingIndicator } from "@ourworldindata/components"
 import cx from "classnames"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { BESPOKE_COMPONENT_REGISTRY } from "../../bespokeComponentRegistry.js"
 import { mountBespokeComponentInShadow } from "../../../bespoke/shared/bespokeComponentShadowDom.js"
 import { BESPOKE_BASE_URL } from "../../../settings/clientSettings.js"
+
+// Use the `baseUrl` as a base for the URL constructor if set, and use just the URL (which might be host-relative) if not.
+// If `url` is already absolute, it will effectively just get passed through.
+const makeAbsoluteWithBaseUrlIfSet = (url: string, baseUrl?: string) => {
+    baseUrl = baseUrl?.trim()
+    if (baseUrl) {
+        return new URL(url, baseUrl).toString()
+    }
+    return url
+}
 
 /**
  * Renders a bespoke component inside a Shadow DOM container.
@@ -39,15 +49,35 @@ export function BespokeComponent({
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
+    const definition = useMemo(
+        () => BESPOKE_COMPONENT_REGISTRY[block.bundle],
+        [block.bundle]
+    )
+
+    const { scriptUrl, cssUrl } = useMemo(() => {
+        if (!definition) return { scriptUrl: undefined, cssUrl: undefined }
+
+        return {
+            scriptUrl: makeAbsoluteWithBaseUrlIfSet(
+                definition.scriptUrl,
+                BESPOKE_BASE_URL
+            ),
+            cssUrl: makeAbsoluteWithBaseUrlIfSet(
+                definition.cssUrl,
+                BESPOKE_BASE_URL
+            ),
+        }
+    }, [definition])
+
     useEffect(() => {
         const container = containerRef.current
         if (!container) return
 
-        const definition = BESPOKE_COMPONENT_REGISTRY[block.bundle]
         if (!definition) {
             setError(`Unknown bespoke bundle: "${block.bundle}"`)
             return
         }
+        if (!scriptUrl || !cssUrl) return
 
         const abortController = new AbortController()
 
@@ -56,8 +86,8 @@ export function BespokeComponent({
 
         mountBespokeComponentInShadow({
             container,
-            scriptUrl: `${BESPOKE_BASE_URL}${definition.scriptUrl}`,
-            cssUrl: `${BESPOKE_BASE_URL}${definition.cssUrl}`,
+            scriptUrl,
+            cssUrl,
             variant: block.variant,
             config: block.config,
             signal: abortController.signal,
@@ -88,7 +118,14 @@ export function BespokeComponent({
             }
             container.shadowRoot?.replaceChildren()
         }
-    }, [block.bundle, block.variant, block.config])
+    }, [
+        block.bundle,
+        block.variant,
+        block.config,
+        definition,
+        scriptUrl,
+        cssUrl,
+    ])
 
     if (error) {
         return <BespokeError className={className} message={error} />
