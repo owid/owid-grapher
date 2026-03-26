@@ -1,4 +1,8 @@
-import { DbEnrichedImage, JsonError } from "@ourworldindata/types"
+import {
+    DbEnrichedImage,
+    JsonError,
+    PostsGdocsXImagesTableName,
+} from "@ourworldindata/types"
 import pMap from "p-map"
 import {
     validateImagePayload,
@@ -192,6 +196,10 @@ export async function putImageHandler(
     await trx<DbEnrichedImage>("images").where("id", "=", id).update({
         replacedBy: newImageId,
     })
+
+    await trx(PostsGdocsXImagesTableName)
+        .where("imageId", "=", id)
+        .update({ imageId: newImageId })
 
     const updated = await db.getCloudflareImage(trx, originalFilename)
 
