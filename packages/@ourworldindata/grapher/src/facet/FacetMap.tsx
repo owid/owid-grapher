@@ -302,7 +302,6 @@ export class FacetMap
                 shouldPinTooltipToBottom,
                 externalLegendHoverBin: legendHoverBin,
                 logGrapherInteractionEvent,
-                disableIntroAnimation: true,
                 projectionColumnInfoBySlug,
                 highlightedTimesInTooltip: targetTimes,
                 mapViewport,

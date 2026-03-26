@@ -12,8 +12,7 @@ import {
 } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import { select, type Selection, type BaseType } from "d3-selection"
-import { easeLinear } from "d3-ease"
+
 import { DualAxisComponent } from "../axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { VerticalLabels } from "../verticalLabels/VerticalLabels"
@@ -359,16 +358,7 @@ export class LineChart
         }
     }
 
-    private animSelection?: Selection<
-        BaseType,
-        unknown,
-        SVGGElement | null,
-        unknown
-    >
     override componentDidMount(): void {
-        if (!this.manager.disableIntroAnimation) {
-            this.runFancyIntroAnimation()
-        }
         exposeInstanceOnWindow(this)
         document.addEventListener("click", this.onDocumentClick, {
             capture: true,
@@ -376,7 +366,6 @@ export class LineChart
     }
 
     override componentWillUnmount(): void {
-        if (this.animSelection) this.animSelection.interrupt()
         document.removeEventListener("click", this.onDocumentClick, {
             capture: true,
         })
@@ -421,18 +410,6 @@ export class LineChart
             renderUid: this.renderUid,
             box: this.clipPathBounds,
         })
-    }
-
-    private runFancyIntroAnimation(): void {
-        this.animSelection = select(this.base.current)
-            .selectAll("clipPath > rect")
-            .attr("width", 0)
-        this.animSelection
-            .transition()
-            .duration(800)
-            .ease(easeLinear)
-            .attr("width", this.clipPathBounds.width)
-            .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
     }
 
     @computed private get verticalLabelsState(): VerticalLabelsState {

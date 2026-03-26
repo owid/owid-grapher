@@ -2936,10 +2936,6 @@ export class GrapherState
         }
     }
 
-    @computed get disableIntroAnimation(): boolean {
-        return this.isStatic
-    }
-
     @computed get mapConfig(): MapConfig {
         return this.map
     }
