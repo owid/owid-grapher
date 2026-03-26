@@ -152,6 +152,12 @@ import {
     RawBlockCookieNotice,
     PullQuoteAlignment,
     pullquoteAlignments,
+    EnrichedBlockSmallChart,
+    EnrichedBlockSmallChartRow,
+    RawBlockSmallChart,
+    SmallChartAlignment,
+    smallChartAlignments,
+    smallChartVariants,
     RawBlockCountryProfileSelector,
     EnrichedBlockCountryProfileSelector,
     RawBlockExpander,
@@ -224,6 +230,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "people-rows" }, parsePeopleRows)
         .with({ type: "person" }, parsePerson)
         .with({ type: "pull-quote" }, parsePullQuote)
+        .with({ type: "small-chart" }, parseSmallChart)
         .with({ type: "resource-panel" }, parseResourcePanel)
         .with({ type: "guided-chart" }, parseGuidedChart)
         .with(
@@ -1184,6 +1191,118 @@ const parsePullQuote = (raw: RawBlockPullQuote): EnrichedBlockPullQuote => {
         align,
         quote,
         parseErrors: [],
+    }
+}
+
+function parseSmallChart(
+    raw: RawBlockSmallChart
+): EnrichedBlockSmallChart {
+    const createError = (
+        error: ParseError
+    ): EnrichedBlockSmallChart => ({
+        type: "small-chart",
+        variant: "rows",
+        rows: [],
+        parseErrors: [error],
+    })
+
+    if (typeof raw.value === "string") {
+        return createError({
+            message: "Value is a string, not an object with properties",
+        })
+    }
+
+    const { variant, align, title, rows } = raw.value
+    const parseErrors: ParseError[] = []
+
+    // Validate variant
+    const validVariant =
+        variant && validateRawEnum(smallChartVariants, variant)
+            ? variant
+            : "rows"
+    if (variant && !validateRawEnum(smallChartVariants, variant)) {
+        parseErrors.push({
+            message: `Invalid small-chart variant "${variant}". Must be one of ${smallChartVariants.join(", ")}. Defaulting to "rows".`,
+            isWarning: true,
+        })
+    }
+
+    // Validate align (only relevant for pull-quote)
+    let validAlign: SmallChartAlignment | undefined
+    if (align) {
+        if (validateRawEnum(smallChartAlignments, align)) {
+            validAlign = align
+        } else {
+            parseErrors.push({
+                message: `Invalid small-chart alignment "${align}". Must be one of ${smallChartAlignments.join(", ")}.`,
+                isWarning: true,
+            })
+        }
+    }
+    if (validVariant === "pull-quote" && !validAlign) {
+        validAlign = "left"
+    }
+
+    if (!rows || rows.length === 0) {
+        return {
+            ...createError({
+                message: "small-chart must have at least one row item",
+            }),
+            parseErrors: [
+                ...parseErrors,
+                {
+                    message:
+                        "small-chart must have at least one row item",
+                },
+            ],
+        }
+    }
+
+    // Warn if pull-quote has multiple rows
+    if (validVariant === "pull-quote" && rows.length > 1) {
+        parseErrors.push({
+            message: `pull-quote variant should have only one row item, but ${rows.length} were provided. Only the first will be used.`,
+            isWarning: true,
+        })
+    }
+
+    const enrichedRows: EnrichedBlockSmallChartRow[] = []
+    for (const row of rows) {
+        if (!row.image) {
+            parseErrors.push({
+                message: "small-chart row item missing image property",
+            })
+            continue
+        }
+        if (!row.url) {
+            parseErrors.push({
+                message: "small-chart row item missing url property",
+            })
+            continue
+        }
+
+        const enrichedContent: EnrichedBlockText[] = row.content
+            ? (row.content
+                  .map(parseRawBlocksToEnrichedBlocks)
+                  .filter(
+                      (b): b is EnrichedBlockText => b?.type === "text"
+                  ))
+            : []
+
+        enrichedRows.push({
+            image: row.image,
+            url: row.url,
+            content: enrichedContent,
+        })
+    }
+
+    return {
+        type: "small-chart",
+        variant: validVariant,
+        align: validAlign,
+        title,
+        rows: enrichedRows,
+        parseErrors,
     }
 }
 
