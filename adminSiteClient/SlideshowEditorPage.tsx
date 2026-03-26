@@ -281,7 +281,7 @@ export function SlideshowEditorPage(props: {
                                     renderChart={(
                                         slug,
                                         queryString,
-                                        { hideTitle }
+                                        { hideTitle, hideSubtitle }
                                     ) => (
                                         <SlideGrapher
                                             slug={slug}
@@ -291,6 +291,7 @@ export function SlideshowEditorPage(props: {
                                                 handleGrapherQueryStringChange
                                             }
                                             hideTitle={hideTitle}
+                                            hideSubtitle={hideSubtitle}
                                         />
                                     )}
                                 />
