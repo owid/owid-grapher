@@ -42,6 +42,7 @@ export interface SlideChartOnly {
     sectionTitle?: string
     slideTitle?: string
     text?: MarkdownText
+    hideSubtitle?: boolean
 }
 
 export interface SlideSection {
@@ -107,6 +108,7 @@ const SlideChartOnlySchema = z.object({
     sectionTitle: z.string().optional(),
     slideTitle: z.string().optional(),
     text: z.string().optional(),
+    hideSubtitle: z.boolean().optional(),
 })
 
 const SlideSectionSchema = z.object({

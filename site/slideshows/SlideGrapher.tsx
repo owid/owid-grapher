@@ -33,6 +33,8 @@ export interface SlideGrapherProps {
     onQueryStringChange?: (queryString: string) => void
     /** Hide the Grapher's built-in title (when the slide provides its own) */
     hideTitle?: boolean
+    /** Hide the Grapher's subtitle */
+    hideSubtitle?: boolean
 }
 
 /**
@@ -81,9 +83,10 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
             hideRelatedQuestion: true,
             hideLogo: true,
             hideTitle: props.hideTitle ?? false,
+            hideSubtitle: props.hideSubtitle ?? false,
             isEmbeddedInAnOwidPage: true,
         }),
-        [props.hideTitle]
+        [props.hideTitle, props.hideSubtitle]
     )
 
     // Measure the container and update bounds

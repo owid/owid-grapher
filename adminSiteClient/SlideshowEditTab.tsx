@@ -489,6 +489,19 @@ function TemplateOptionsEditor(props: {
                             rows={4}
                         />
                     </label>
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={!!slide.hideSubtitle}
+                            onChange={(e) =>
+                                onUpdate({
+                                    ...slide,
+                                    hideSubtitle: e.target.checked || undefined,
+                                })
+                            }
+                        />{" "}
+                        Hide chart subtitle
+                    </label>
                 </>
             )
 
