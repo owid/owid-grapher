@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef } from "react"
-import { reaction, runInAction } from "mobx"
+import { when, reaction, runInAction } from "mobx"
 import {
     FetchingGrapher,
     GrapherState,
@@ -147,29 +147,42 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
     // feedback loop when we programmatically apply query params.
     const isSuppressingReactionRef = useRef(false)
 
-    // Set up a MobX reaction on changedParams once the GrapherState
-    // is available. FetchingGrapher populates grapherStateRef
-    // synchronously during render (via useMaybeGlobalGrapherStateRef),
-    // so it's available by the time this effect runs.
+    // Wait for the Grapher to be fully ready (config + data loaded),
+    // then set up the changedParams reaction. This completely avoids
+    // the transient init noise that changedParams goes through while
+    // the config and data are loading. Same pattern as the chart
+    // editor's when(isReady) approach in AbstractChartEditor.
     useEffect(() => {
         const state = grapherStateRef.current
         if (!state) return
 
-        const dispose = reaction(
-            () => state.changedParams,
-            (changedParams) => {
-                if (isSuppressingReactionRef.current) return
-                const qs = queryParamsToStr(changedParams)
-                onChangeRef.current?.(qs)
+        let innerDispose: (() => void) | null = null
+
+        const outerDispose = when(
+            () => state.isReady,
+            () => {
+                innerDispose = reaction(
+                    () => state.changedParams,
+                    (changedParams) => {
+                        if (isSuppressingReactionRef.current) return
+                        const qs = queryParamsToStr(changedParams)
+                        onChangeRef.current?.(qs)
+                    }
+                )
             }
         )
-        return () => dispose()
+
+        return () => {
+            outerDispose()
+            innerDispose?.()
+        }
     }, [slug, grapherStateRef])
 
     // When navigating between slides with the same slug but different
     // query params, apply the new params to the existing GrapherState
     // (which stays mounted thanks to key={slug}). This gives a smooth
-    // transition rather than a full remount.
+    // transition rather than a full remount. Also update the baseline
+    // so the new params aren't reported as a "change".
     const prevInitialQueryStringRef = useRef(initialQueryString)
     useEffect(() => {
         if (prevInitialQueryStringRef.current === initialQueryString) return

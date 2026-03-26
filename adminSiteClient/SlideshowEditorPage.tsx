@@ -118,10 +118,10 @@ export function SlideshowEditorPage(props: {
                 }
                 return next
             })
-            // Don't set isDirty here — the reaction fires during Grapher
-            // initialization, which would spuriously mark the editor as
-            // dirty. Instead, isDirty is set by explicit user interactions
-            // (editing slide fields, adding/removing slides, etc.).
+            // SlideGrapher gates its reaction behind when(isReady) and
+            // takes a baseline snapshot, so by the time this callback is
+            // called, it's a genuine user interaction.
+            setIsDirty(true)
         },
         [currentSlideIndex]
     )
@@ -156,52 +156,47 @@ export function SlideshowEditorPage(props: {
         setIsDirty(true)
     }, [currentSlideIndex, slides.length])
 
-    const save = useCallback(async () => {
-        const config: SlideshowConfig = { slides }
-        if (isCreate) {
-            const res = await admin.requestJSON<{
-                success: boolean
-                slideshowId: number
-            }>("/api/slideshows", { slug, title, config }, "POST")
-            if (res.success) {
-                setIsDirty(false)
-                history.push(`/slideshows/${res.slideshowId}/edit`)
+    const save = useCallback(
+        async (opts?: { publish?: boolean }) => {
+            const config: SlideshowConfig = { slides }
+            const shouldPublish = opts?.publish || isPublished === 1
+            const payload = {
+                slug,
+                title,
+                config,
+                ...(shouldPublish ? { isPublished: 1 } : {}),
             }
-        } else {
-            await admin.requestJSON(
-                `/api/slideshows/${props.slideshowId}`,
-                { slug, title, config },
-                "PUT"
-            )
-            setIsDirty(false)
-        }
-    }, [admin, isCreate, props.slideshowId, slug, title, slides, history])
-
-    const publish = useCallback(async () => {
-        const config: SlideshowConfig = { slides }
-        if (isCreate) {
-            const res = await admin.requestJSON<{
-                success: boolean
-                slideshowId: number
-            }>(
-                "/api/slideshows",
-                { slug, title, config, isPublished: 1 },
-                "POST"
-            )
-            if (res.success) {
+            if (isCreate) {
+                const res = await admin.requestJSON<{
+                    success: boolean
+                    slideshowId: number
+                }>("/api/slideshows", payload, "POST")
+                if (res.success) {
+                    if (shouldPublish) setIsPublished(1)
+                    setIsDirty(false)
+                    history.push(`/slideshows/${res.slideshowId}/edit`)
+                }
+            } else {
+                await admin.requestJSON(
+                    `/api/slideshows/${props.slideshowId}`,
+                    payload,
+                    "PUT"
+                )
+                if (shouldPublish) setIsPublished(1)
                 setIsDirty(false)
-                history.push(`/slideshows/${res.slideshowId}/edit`)
             }
-        } else {
-            await admin.requestJSON(
-                `/api/slideshows/${props.slideshowId}`,
-                { slug, title, config, isPublished: 1 },
-                "PUT"
-            )
-            setIsPublished(1)
-            setIsDirty(false)
-        }
-    }, [admin, isCreate, props.slideshowId, slug, title, slides, history])
+        },
+        [
+            admin,
+            isCreate,
+            props.slideshowId,
+            slug,
+            title,
+            slides,
+            history,
+            isPublished,
+        ]
+    )
 
     const canSave = slug.trim().length > 0 && title.trim().length > 0
 
@@ -302,18 +297,31 @@ export function SlideshowEditorPage(props: {
 
                 <div className="SlideshowEditorPage__footer">
                     <div className="SlideshowEditorPage__footer-actions">
-                        <Button onClick={save} disabled={!isDirty || !canSave}>
-                            Save
-                        </Button>
-                        <Button
-                            type="primary"
-                            onClick={publish}
-                            disabled={
-                                !canSave || (isPublished === 1 && !isDirty)
-                            }
-                        >
-                            {isPublished ? "Update & Publish" : "Publish"}
-                        </Button>
+                        {isPublished ? (
+                            <Button
+                                type="primary"
+                                onClick={() => save()}
+                                disabled={!isDirty || !canSave}
+                            >
+                                Save
+                            </Button>
+                        ) : (
+                            <>
+                                <Button
+                                    onClick={() => save()}
+                                    disabled={!isDirty || !canSave}
+                                >
+                                    Save draft
+                                </Button>
+                                <Button
+                                    type="primary"
+                                    onClick={() => save({ publish: true })}
+                                    disabled={!canSave}
+                                >
+                                    Publish
+                                </Button>
+                            </>
+                        )}
                     </div>
 
                     <div className="SlideshowEditorPage__slide-strip">
