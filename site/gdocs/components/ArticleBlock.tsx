@@ -6,6 +6,7 @@ import ChartStory from "./ChartStory.js"
 import Chart from "./Chart.js"
 import Donors from "./Donors.js"
 import PullQuote from "./PullQuote.js"
+import SmallChart from "./SmallChart.js"
 import GuidedChart from "./GuidedChart.js"
 import Recirc from "./Recirc.js"
 import SubscribeBanner from "./SubscribeBanner.js"
@@ -1040,7 +1041,17 @@ function ArticleBlockInternal({
                 block={block}
             />
         ))
-        .with({ type: "small-chart" }, () => null)
+        .with({ type: "small-chart" }, (block) => (
+            <SmallChart
+                className={getLayout(
+                    block.variant === "pull-quote"
+                        ? `small-chart--pull-quote--${block.align ?? "left"}`
+                        : "small-chart",
+                    containerType
+                )}
+                d={block}
+            />
+        ))
         .exhaustive()
 }
 
