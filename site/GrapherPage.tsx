@@ -22,6 +22,7 @@ import urljoin from "url-join"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
+    CATALOG_URL,
     DATA_API_URL,
 } from "../settings/clientSettings.js"
 import { ChartListItemVariant } from "./ChartListItemVariant.js"
@@ -96,7 +97,7 @@ export const GrapherPage = (props: {
     })}
 const archiveContext = window._OWID_ARCHIVE_CONTEXT
 const isPreviewing = ${isPreviewing}
-window.renderSingleGrapherOnGrapherPage({ config: jsonConfig, dataApiUrl: "${DATA_API_URL}", archiveContext, isPreviewing })`
+window.renderSingleGrapherOnGrapherPage({ config: jsonConfig, dataApiUrl: "${DATA_API_URL}", catalogUrl: "${CATALOG_URL}", archiveContext, noCache: isPreviewing })`
 
     const variableIds = _.uniq(grapher.dimensions!.map((d) => d.variableId))
 
