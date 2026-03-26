@@ -149,7 +149,7 @@
         "react": "^19.2.4",
         "react-aria-components": "^1.14.0",
         "react-color": "^2.18.1",
-        "react-diff-viewer-continued": "^3.4.0",
+        "react-diff-viewer-continued": "^4.2.0",
         "react-dom": "^19.2.4",
         "react-flip-toolkit": "^7.2.4",
         "react-horizontal-scrolling-menu": "^8.2.0",
