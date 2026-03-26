@@ -74,6 +74,10 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
         [grapherStateRef]
     )
 
+    // Static config — must NOT include hideTitle/hideSubtitle because
+    // changing the config reference triggers FetchingGrapher's config
+    // fetch effect, which calls reset() and wipes query params.
+    // Instead, those display flags are applied imperatively below.
     const grapherConfig = useMemo(
         () => ({
             bakedGrapherURL: BAKED_GRAPHER_URL,
@@ -82,12 +86,21 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
             hideExploreTheDataButton: true,
             hideRelatedQuestion: true,
             hideLogo: true,
-            hideTitle: props.hideTitle ?? false,
-            hideSubtitle: props.hideSubtitle ?? false,
             isEmbeddedInAnOwidPage: true,
         }),
-        [props.hideTitle, props.hideSubtitle]
+        []
     )
+
+    // Apply hideTitle/hideSubtitle imperatively on the GrapherState
+    // so that toggling them doesn't cause FetchingGrapher to re-fetch.
+    useEffect(() => {
+        const state = grapherStateRef.current
+        if (!state) return
+        runInAction(() => {
+            state.hideTitle = props.hideTitle ?? false
+            state.hideSubtitle = props.hideSubtitle ?? false
+        })
+    }, [props.hideTitle, props.hideSubtitle, grapherStateRef])
 
     // Measure the container and update bounds
     useEffect(() => {
