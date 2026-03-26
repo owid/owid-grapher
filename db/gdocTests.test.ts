@@ -114,7 +114,7 @@ url: /grapher/test
         const block = article?.body?.[0]
         expect(block?.type).toBe("small-chart")
         if (block?.type === "small-chart") {
-            expect(block.align).toBe("left")
+            expect(block.align).toBe("left-center")
             expect(block.parseErrors).toHaveLength(0)
         }
     })
@@ -124,7 +124,7 @@ url: /grapher/test
             `
 {.small-chart}
 variant: pull-quote
-align: right
+align: right-center
 
 [.rows]
 image: chart1.png

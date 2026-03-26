@@ -5,12 +5,7 @@ import { EnrichedBlockText } from "./Text.js"
 export const smallChartVariants = ["pull-quote", "rows"] as const
 export type SmallChartVariant = (typeof smallChartVariants)[number]
 
-export const smallChartAlignments = [
-    "left",
-    "left-center",
-    "right-center",
-    "right",
-] as const
+export const smallChartAlignments = ["left-center", "right-center"] as const
 export type SmallChartAlignment = (typeof smallChartAlignments)[number]
 
 export type RawBlockSmallChartRow = {
@@ -32,7 +27,9 @@ export type RawBlockSmallChart = {
     value: {
         variant?: string
         align?: string
+        kicker?: string
         title?: string
+        source?: string
         rows?: RawBlockSmallChartRow[]
     }
 }
@@ -41,6 +38,8 @@ export type EnrichedBlockSmallChart = {
     type: "small-chart"
     variant: SmallChartVariant
     align?: SmallChartAlignment
+    kicker?: string
     title?: string
+    source?: string
     rows: EnrichedBlockSmallChartRow[]
 } & EnrichedBlockWithParseErrors

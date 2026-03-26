@@ -304,12 +304,16 @@ export function extractFilenamesFromBlock(
                     "topic-page-intro",
                     "data-callout",
                     "country-profile-selector",
-                    "bespoke-component",
-                    "small-chart"
+                    "bespoke-component"
                 ),
             },
             _.noop
         )
+        .with({ type: "small-chart" }, (item) => {
+            item.rows.forEach((row) => {
+                if (row.image) filenames.add(row.image)
+            })
+        })
         .exhaustive()
     return [...filenames]
 }

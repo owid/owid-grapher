@@ -1194,12 +1194,8 @@ const parsePullQuote = (raw: RawBlockPullQuote): EnrichedBlockPullQuote => {
     }
 }
 
-function parseSmallChart(
-    raw: RawBlockSmallChart
-): EnrichedBlockSmallChart {
-    const createError = (
-        error: ParseError
-    ): EnrichedBlockSmallChart => ({
+function parseSmallChart(raw: RawBlockSmallChart): EnrichedBlockSmallChart {
+    const createError = (error: ParseError): EnrichedBlockSmallChart => ({
         type: "small-chart",
         variant: "rows",
         rows: [],
@@ -1212,7 +1208,7 @@ function parseSmallChart(
         })
     }
 
-    const { variant, align, title, rows } = raw.value
+    const { variant, align, kicker, title, source, rows } = raw.value
     const parseErrors: ParseError[] = []
 
     // Validate variant
@@ -1240,7 +1236,7 @@ function parseSmallChart(
         }
     }
     if (validVariant === "pull-quote" && !validAlign) {
-        validAlign = "left"
+        validAlign = "left-center"
     }
 
     if (!rows || rows.length === 0) {
@@ -1251,8 +1247,7 @@ function parseSmallChart(
             parseErrors: [
                 ...parseErrors,
                 {
-                    message:
-                        "small-chart must have at least one row item",
+                    message: "small-chart must have at least one row item",
                 },
             ],
         }
@@ -1282,11 +1277,9 @@ function parseSmallChart(
         }
 
         const enrichedContent: EnrichedBlockText[] = row.content
-            ? (row.content
+            ? row.content
                   .map(parseRawBlocksToEnrichedBlocks)
-                  .filter(
-                      (b): b is EnrichedBlockText => b?.type === "text"
-                  ))
+                  .filter((b): b is EnrichedBlockText => b?.type === "text")
             : []
 
         enrichedRows.push({
@@ -1296,11 +1289,17 @@ function parseSmallChart(
         })
     }
 
+    // Kicker defaults to "More views of this data" for rows variant
+    const validKicker =
+        validVariant === "rows" ? (kicker ?? "More views of this data") : kicker
+
     return {
         type: "small-chart",
         variant: validVariant,
         align: validAlign,
+        kicker: validKicker,
         title,
+        source,
         rows: enrichedRows,
         parseErrors,
     }
