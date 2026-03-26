@@ -82,9 +82,11 @@ export const shortenWithEllipsis = (
 ): string => {
     const ellipsis = "…"
     const ellipsisWidth = Bounds.forText(ellipsis, fontSettings).width
+    const availableWidth = targetWidth - ellipsisWidth
+    if (availableWidth <= 0) return ""
     const truncatedText = shortenForTargetWidth(
         text,
-        targetWidth - ellipsisWidth,
+        availableWidth,
         fontSettings
     )
     return `${truncatedText}${ellipsis}`

@@ -1,0 +1,125 @@
+import cx from "classnames"
+import { QueryClientProvider } from "@tanstack/react-query"
+
+import { DemographyControls } from "../components/DemographyControls.js"
+import {
+    DemographyChartError,
+    DemographySkeleton,
+    LoadingSpinner,
+} from "../components/DemographyLoadAndError.js"
+import { queryClient, useDemographyData } from "../helpers/fetch.js"
+import type { PopulationVariantConfig } from "../config.js"
+
+import { articulateEntity } from "@ourworldindata/utils"
+import { displayEntityName } from "../helpers/utils.js"
+
+import { CountryData } from "../helpers/types.js"
+import { useSimulation } from "../helpers/useSimulation.js"
+
+import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
+import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
+import { Frame } from "../../../../components/Frame/Frame.js"
+import { ResponsivePopulationChart } from "../components/PopulationChart.js"
+import { useInitialEntityName } from "../helpers/useInitialEntityName.js"
+import {
+    BreakpointProvider,
+    useContainerBreakpoint,
+    breakpointClass,
+} from "../helpers/useBreakpoint.js"
+
+export function PopulationVariantWithProviders(props: {
+    container: HTMLDivElement
+    config: PopulationVariantConfig
+}): React.ReactElement {
+    return (
+        <QueryClientProvider client={queryClient}>
+            <PopulationVariant config={props.config} />
+        </QueryClientProvider>
+    )
+}
+
+function PopulationVariant({
+    config,
+}: {
+    config: PopulationVariantConfig
+}): React.ReactElement {
+    const showControls = !config.hideControls
+    const [entityName, setEntityName] = useInitialEntityName(config.region)
+
+    const { metadata, entityData, isLoadingEntityData, status } =
+        useDemographyData(entityName)
+
+    const { breakpoint, ref: rootRef } = useContainerBreakpoint()
+
+    if (status === "pending") return <DemographySkeleton />
+    if (!metadata || !entityData) return <DemographyChartError />
+
+    return (
+        <BreakpointProvider value={breakpoint}>
+            <div
+                ref={rootRef}
+                className={cx(
+                    "demography-chart demography-chart__population-variant",
+                    breakpointClass(breakpoint)
+                )}
+            >
+                {showControls && (
+                    <DemographyControls
+                        metadata={metadata}
+                        entityName={entityName}
+                        setEntityName={setEntityName}
+                    />
+                )}
+                <PopulationCaptionedChart
+                    data={entityData}
+                    isLoading={isLoadingEntityData}
+                    title={config.title}
+                    subtitle={config.subtitle}
+                />
+            </div>
+        </BreakpointProvider>
+    )
+}
+
+function PopulationCaptionedChart({
+    data,
+    isLoading = false,
+    title: titleOverride,
+    subtitle: subtitleOverride,
+}: {
+    data: CountryData
+    isLoading?: boolean
+    title?: string
+    subtitle?: string
+}) {
+    const simulation = useSimulation(data)
+    const countryName = data.country
+
+    const title =
+        titleOverride ??
+        (countryName === "World"
+            ? "World population, 1950 to 2100"
+            : `Population of ${articulateEntity(displayEntityName(countryName))}, 1950 to 2100`)
+    const subtitle =
+        subtitleOverride ??
+        "Historical estimates and projections of total population"
+
+    return (
+        <Frame className="demography-population-only">
+            <ChartHeader title={title} subtitle={subtitle} />
+            <div className="demography-population-only__chart-area">
+                {isLoading && <LoadingSpinner />}
+                {simulation && (
+                    <ResponsivePopulationChart
+                        simulation={simulation}
+                        showCustomProjection={false}
+                    />
+                )}
+            </div>
+            <ChartFooter
+                className="demography-footer"
+                source="Historical estimates and projections from the UN World Population Prospects"
+            />
+        </Frame>
+    )
+}
