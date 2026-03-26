@@ -87,3 +87,31 @@
     color: #999;
     font-size: 14px;
 }
+
+// Two-column layout: media on the left, text on the right
+.SlideContent__body {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+    gap: 24px;
+}
+
+.SlideContent__media {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.SlideContent--with-text .SlideContent__media {
+    flex: 3;
+}
+
+.SlideContent__text {
+    flex: 2;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #333;
+    overflow-y: auto;
+    white-space: pre-wrap;
+}
