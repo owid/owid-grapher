@@ -16,7 +16,7 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
 > = {
     "causes-of-death": {
         scriptUrl:
-            "https://owid-public.owid.io/sophia-causes-of-death-2026-03/causes-of-death.js",
-        cssUrl: "https://owid-public.owid.io/sophia-causes-of-death-2026-03/index2.css",
+            "https://owid-public.owid.io/sophia-causes-of-death-2026-03/causes-of-death.js?nocache",
+        cssUrl: "https://owid-public.owid.io/sophia-causes-of-death-2026-03/index2.css?nocache",
     },
 }
