@@ -104,7 +104,9 @@ export const enrichedBlockExamples: Record<
     "small-chart": {
         type: "small-chart",
         variant: "rows",
-        title: "More views of this data",
+        kicker: "More views of this data",
+        title: "Daily incomes by decile",
+        source: "Global Carbon Budget (2025)",
         rows: [
             {
                 image: "life-expectancy-thumbnail.png",

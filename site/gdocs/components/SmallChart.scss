@@ -3,19 +3,50 @@
     &__thumbnail-button {
         display: block;
         cursor: pointer;
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
         border: none;
         background: none;
         padding: 0;
+        position: relative;
 
         &:hover {
-            transform: scale(1.02);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            .small-chart__overlay {
+                opacity: 1;
+            }
         }
     }
 
     &__thumbnail-link {
         text-decoration: none;
+    }
+
+    .image {
+        border: 1px solid $blue-10;
+        padding: 10px 12px;
+    }
+
+    // "Click to explore" overlay, matching search thumbnail style
+    &__overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        padding: 12px;
+        background: rgba(163, 199, 245, 0.3);
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s ease-in-out;
+    }
+
+    &__cta {
+        @include label-2-medium;
+        background: $blue-70;
+        color: #fff;
+        padding: 8px 12px;
+        border-radius: 4px;
     }
 
     &__content {
@@ -26,36 +57,35 @@
         }
     }
 
+    &__kicker {
+        @include h5-black-caps;
+        & {
+            color: $blue-50;
+            margin: 0 0 2px;
+        }
+    }
+
     &__title {
-        margin-bottom: 16px;
+        @include h2-bold;
+        & {
+            color: $blue-90;
+            margin: 0;
+        }
+    }
+
+    &__source {
+        @include note-12-medium;
+        & {
+            color: $blue-50;
+            margin: 0;
+        }
     }
 }
 
+// Pull-quote variant: thumbnail floats within text, like the existing PullQuote component.
+// The thumbnail pulls slightly outside the content column via negative margins.
 .small-chart--pull-quote {
-    .small-chart__thumbnail-link,
-    .small-chart__thumbnail-button {
-        max-width: 300px;
-    }
-
-    &.small-chart--align-left,
-    &.small-chart--align-left-center {
-        .small-chart__thumbnail-link,
-        .small-chart__thumbnail-button {
-            float: left;
-            margin-right: 24px;
-            margin-bottom: 8px;
-        }
-    }
-
-    &.small-chart--align-right,
-    &.small-chart--align-right-center {
-        .small-chart__thumbnail-link,
-        .small-chart__thumbnail-button {
-            float: right;
-            margin-left: 24px;
-            margin-bottom: 8px;
-        }
-    }
+    margin-bottom: 16px;
 
     &::after {
         content: "";
@@ -63,12 +93,37 @@
         clear: both;
     }
 
-    @media (max-width: 768px) {
+    .small-chart__thumbnail-link,
+    .small-chart__thumbnail-button {
+        max-width: 300px;
+    }
+
+    &.small-chart--align-left-center {
         .small-chart__thumbnail-link,
         .small-chart__thumbnail-button {
-            float: none !important;
-            margin: 0 0 16px 0 !important;
-            max-width: 100%;
+            float: left;
+            margin-right: 24px;
+            margin-bottom: 8px;
+            margin-left: calc(-100vw / 12); // one column width
+        }
+    }
+
+    &.small-chart--align-right-center {
+        .small-chart__thumbnail-link,
+        .small-chart__thumbnail-button {
+            float: right;
+            margin-left: 24px;
+            margin-bottom: 8px;
+            margin-right: calc(-100vw / 12); // one column width
+        }
+    }
+
+    @include md-down {
+        .small-chart__thumbnail-link,
+        .small-chart__thumbnail-button {
+            float: none;
+            margin: 0 0 16px 0;
+            max-width: unset;
         }
     }
 }
@@ -76,18 +131,35 @@
 .small-chart--rows {
     margin-top: 16px;
     margin-bottom: 32px;
+    border-top: 1px solid $blue-10;
+    border-bottom: 1px solid $blue-10;
+    padding-top: 24px;
+    padding-bottom: 24px;
+
     .small-chart__rows-container {
         display: flex;
         flex-direction: column;
-        gap: 24px;
+        margin-top: 16px;
+        margin-bottom: 16px;
     }
 
     .small-chart__row-item {
         display: flex;
         gap: 16px;
         align-items: flex-start;
+        padding: 24px 0;
+        border-bottom: 1px solid $blue-10;
 
-        @media (max-width: 768px) {
+        &:first-child {
+            padding-top: 0;
+        }
+
+        &:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        @include md-down {
             flex-direction: column;
         }
     }

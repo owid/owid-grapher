@@ -331,7 +331,9 @@ export function enrichedBlockToRawBlock(
                 value: {
                     variant: b.variant,
                     align: b.align,
+                    kicker: b.kicker,
                     title: b.title,
+                    source: b.source,
                     rows: b.rows.map((row) => ({
                         image: row.image,
                         url: row.url,

@@ -373,7 +373,9 @@ function* rawBlockSmallChartToArchieMLString(
     if (block.value) {
         yield* propertyToArchieMLString("variant", block.value)
         yield* propertyToArchieMLString("align", block.value)
+        yield* propertyToArchieMLString("kicker", block.value)
         yield* propertyToArchieMLString("title", block.value)
+        yield* propertyToArchieMLString("source", block.value)
         const rows = block.value.rows
         if (rows) {
             yield "[.rows]"
