@@ -126,7 +126,6 @@ export class MapSparkline extends React.Component<MapSparklineProps> {
             showLegend: false,
             hidePoints: true,
             fontSize: 11,
-            disableIntroAnimation: true,
             lineStrokeWidth: 2,
             highlightedTimesInLineChart: this.highlightedTimesInLineChart,
             yAxisConfig: {

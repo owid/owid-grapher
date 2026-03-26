@@ -45,8 +45,7 @@ import {
 import { AxisConfig, AxisManager } from "../axis/AxisConfig.js"
 import { LabelSeries } from "../verticalLabels/VerticalLabelsTypes"
 import { Emphasis, resolveEmphasis } from "../interaction/Emphasis"
-import { easeLinear } from "d3-ease"
-import { select, type BaseType, type Selection } from "d3-selection"
+
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import { StackedAreas } from "./StackedAreas"
@@ -546,27 +545,11 @@ export class StackedAreaChart
         }
     }
 
-    animSelection?: Selection<BaseType, unknown, SVGGElement | null, unknown>
-
     base = React.createRef<SVGGElement>()
     override componentDidMount(): void {
         document.addEventListener("click", this.onDocumentClick, {
             capture: true,
         })
-
-        if (!this.manager.disableIntroAnimation) {
-            // Fancy intro animation
-            this.animSelection = select(this.base.current)
-                .selectAll("clipPath > rect")
-                .attr("width", 0)
-
-            this.animSelection
-                .transition()
-                .duration(800)
-                .ease(easeLinear)
-                .attr("width", this.bounds.width)
-                .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
-        }
         exposeInstanceOnWindow(this)
     }
 
@@ -574,8 +557,6 @@ export class StackedAreaChart
         document.removeEventListener("click", this.onDocumentClick, {
             capture: true,
         })
-
-        if (this.animSelection) this.animSelection.interrupt()
     }
 
     renderAxis(): React.ReactElement {

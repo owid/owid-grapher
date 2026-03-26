@@ -504,7 +504,6 @@ export class ScatterPlotChart
                 hoveredSeriesNames={this.hoveredSeriesNames}
                 isHoverModeActive={this.isHoverModeActive}
                 tooltipSeriesName={this.tooltipSeries?.seriesName}
-                disableIntroAnimation={this.manager.disableIntroAnimation}
                 hideScatterLabels={this.hideScatterLabels}
                 hideEntityLabels={!this.manager.showSeriesLabels}
                 onMouseEnter={this.onScatterMouseEnter}

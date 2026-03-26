@@ -92,7 +92,6 @@ export interface ChartManager {
     showNoDataArea?: boolean // No data area in Marimekko charts
 
     externalLegendHoverBin?: ColorScaleBin | undefined
-    disableIntroAnimation?: boolean
 
     missingDataStrategy?: MissingDataStrategy
 

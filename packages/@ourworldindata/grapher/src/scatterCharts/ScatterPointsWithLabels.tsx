@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
-import { type BaseType, type Selection, select } from "d3-selection"
+
 import { ScaleLinear } from "d3-scale"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { SortOrder } from "@ourworldindata/types"
@@ -627,34 +627,6 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                 })}
             </g>
         )
-    }
-
-    animSelection?: Selection<BaseType, unknown, SVGGElement | null, unknown>
-
-    private runAnimation(): void {
-        const radiuses: string[] = []
-        this.animSelection = select(this.base.current).selectAll("circle")
-
-        this.animSelection
-            .each(function () {
-                const circle = this as SVGCircleElement
-                radiuses.push(circle.getAttribute("r") as string)
-                circle.setAttribute("r", "0")
-            })
-            .transition()
-            .duration(500)
-            .attr("r", (_, i) => radiuses[i])
-            .on("end", () => this.forceUpdate())
-    }
-
-    override componentDidMount(): void {
-        if (!this.props.disableIntroAnimation) {
-            this.runAnimation()
-        }
-    }
-
-    override componentWillUnmount(): void {
-        if (this.animSelection) this.animSelection.interrupt()
     }
 
     override render(): React.ReactElement {

@@ -33,7 +33,7 @@ import {
 } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
 import { scaleLinear, ScaleLinear } from "d3-scale"
-import { select, type BaseType, type Selection } from "d3-selection"
+
 import {
     PlacedSlopeChartSeries,
     RawSlopeChartSeries,
@@ -599,35 +599,8 @@ export class SlopeChart
         )
     }
 
-    private animSelection?: Selection<
-        BaseType,
-        unknown,
-        SVGGElement | null,
-        unknown
-    >
-    private playIntroAnimation() {
-        // Nice little intro animation
-        this.animSelection = select(this.slopeAreaRef.current)
-            .selectAll(".slope")
-            .attr("stroke-dasharray", "100%")
-            .attr("stroke-dashoffset", "100%")
-
-        this.animSelection
-            .transition()
-            .duration(600)
-            .attr("stroke-dashoffset", "0%")
-    }
-
     override componentDidMount() {
         exposeInstanceOnWindow(this)
-
-        if (!this.manager.disableIntroAnimation) {
-            this.playIntroAnimation()
-        }
-    }
-
-    override componentWillUnmount(): void {
-        if (this.animSelection) this.animSelection.interrupt()
     }
 
     @computed private get shouldShowSeriesNamesInLeftLabels(): boolean {

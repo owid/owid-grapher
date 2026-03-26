@@ -49,8 +49,7 @@ import {
 } from "../legend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig.js"
-import { easeLinear } from "d3-ease"
-import { select, type BaseType, type Selection } from "d3-selection"
+
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
@@ -614,27 +613,7 @@ export class StackedBarChart
         })
     }
 
-    animSelection?: Selection<BaseType, unknown, SVGGElement | null, unknown>
-
-    base = React.createRef<SVGGElement>()
     override componentDidMount(): void {
-        if (!this.manager.disableIntroAnimation) {
-            // Fancy intro animation
-            this.animSelection = select(this.base.current)
-                .selectAll("clipPath > rect")
-                .attr("width", 0)
-
-            this.animSelection
-                .transition()
-                .duration(800)
-                .ease(easeLinear)
-                .attr("width", this.bounds.width)
-                .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
-        }
         exposeInstanceOnWindow(this)
-    }
-
-    override componentWillUnmount(): void {
-        if (this.animSelection) this.animSelection.interrupt()
     }
 }
