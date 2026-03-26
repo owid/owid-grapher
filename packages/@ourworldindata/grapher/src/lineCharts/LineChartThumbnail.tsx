@@ -393,10 +393,12 @@ export class LineChartThumbnail
 
         return (
             <>
-                <VerticalAxisZeroLine
-                    verticalAxis={this.dualAxis.verticalAxis}
-                    bounds={this.dualAxis.innerBounds}
-                />
+                {!this.dualAxis.verticalAxis.isLogScale && (
+                    <VerticalAxisZeroLine
+                        verticalAxis={this.dualAxis.verticalAxis}
+                        bounds={this.dualAxis.innerBounds}
+                    />
+                )}
                 <HorizontalAxisComponent
                     axis={this.dualAxis.horizontalAxis}
                     bounds={this.dualAxis.bounds}
