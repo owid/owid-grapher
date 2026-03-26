@@ -19,7 +19,7 @@ export function SlideRenderer(props: {
     renderChart?: (
         slug: string,
         queryString: string | undefined,
-        options: { hideTitle: boolean }
+        options: { hideTitle: boolean; hideSubtitle: boolean }
     ) => React.ReactElement
 }): React.ReactElement {
     const { slide, imageMetadata, renderChart } = props
@@ -96,6 +96,7 @@ export function SlideRenderer(props: {
                                 slug={slide.slug}
                                 queryString={slide.queryString}
                                 hideTitle={!!slide.slideTitle}
+                                hideSubtitle={!!slide.hideSubtitle}
                                 renderChart={renderChart}
                             />
                         </div>
@@ -146,16 +147,17 @@ function ChartRenderer(props: {
     slug: string
     queryString?: string
     hideTitle: boolean
+    hideSubtitle: boolean
     renderChart?: (
         slug: string,
         queryString: string | undefined,
-        options: { hideTitle: boolean }
+        options: { hideTitle: boolean; hideSubtitle: boolean }
     ) => React.ReactElement
 }): React.ReactElement {
-    const { slug, queryString, hideTitle, renderChart } = props
+    const { slug, queryString, hideTitle, hideSubtitle, renderChart } = props
 
     if (renderChart) {
-        return renderChart(slug, queryString, { hideTitle })
+        return renderChart(slug, queryString, { hideTitle, hideSubtitle })
     }
 
     // Default: use GrapherFigureView for the baked site (SSR fallback)
@@ -172,6 +174,7 @@ function ChartRenderer(props: {
                     hideRelatedQuestion: true,
                     hideLogo: true,
                     hideTitle,
+                    hideSubtitle,
                 }}
             />
         </div>

@@ -27,7 +27,7 @@ export function SlideshowPresentation(props: {
     renderChart?: (
         slug: string,
         queryString: string | undefined,
-        options: { hideTitle: boolean }
+        options: { hideTitle: boolean; hideSubtitle: boolean }
     ) => React.ReactElement
     /** Controlled slide index (optional — if omitted, manages its own state) */
     currentSlideIndex?: number
@@ -80,7 +80,7 @@ export function SlideshowPresentation(props: {
         (
             slug: string,
             queryString: string | undefined,
-            options: { hideTitle: boolean }
+            options: { hideTitle: boolean; hideSubtitle: boolean }
         ): React.ReactElement => {
             return (
                 <SlideGrapher
@@ -88,6 +88,7 @@ export function SlideshowPresentation(props: {
                     initialQueryString={queryString}
                     grapherStateRef={grapherStateRef}
                     hideTitle={options.hideTitle}
+                    hideSubtitle={options.hideSubtitle}
                 />
             )
         },
