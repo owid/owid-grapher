@@ -31,6 +31,8 @@ export interface SlideGrapherProps {
     grapherStateRef: React.RefObject<GrapherState | null>
     /** Called when the user interacts with the Grapher and its params change */
     onQueryStringChange?: (queryString: string) => void
+    /** Hide the Grapher's built-in title (when the slide provides its own) */
+    hideTitle?: boolean
 }
 
 /**
@@ -77,9 +79,11 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
             hideShareButton: true,
             hideExploreTheDataButton: true,
             hideRelatedQuestion: true,
+            hideLogo: true,
+            hideTitle: props.hideTitle ?? false,
             isEmbeddedInAnOwidPage: true,
         }),
-        []
+        [props.hideTitle]
     )
 
     // Measure the container and update bounds

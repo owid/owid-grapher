@@ -55,14 +55,16 @@ function slideHasContent(slide: Slide): boolean {
             return (
                 slide.filename !== null ||
                 !!slide.sectionTitle ||
-                !!slide.slideTitle
+                !!slide.slideTitle ||
+                !!slide.text
             )
         case SlideTemplate.Chart:
             return (
                 !!slide.slug ||
                 !!slide.queryString ||
                 !!slide.sectionTitle ||
-                !!slide.slideTitle
+                !!slide.slideTitle ||
+                !!slide.text
             )
         case SlideTemplate.Section:
             return !!slide.title || !!slide.subtitle
@@ -390,6 +392,20 @@ function TemplateOptionsEditor(props: {
                             placeholder="Slide title"
                         />
                     )}
+                    <label>
+                        Text (optional)
+                        <textarea
+                            value={slide.text ?? ""}
+                            onChange={(e) =>
+                                onUpdate({
+                                    ...slide,
+                                    text: e.target.value || undefined,
+                                })
+                            }
+                            placeholder="Text displayed beside the image"
+                            rows={4}
+                        />
+                    </label>
                 </>
             )
 
@@ -459,6 +475,20 @@ function TemplateOptionsEditor(props: {
                             placeholder="Slide title"
                         />
                     )}
+                    <label>
+                        Text (optional)
+                        <textarea
+                            value={slide.text ?? ""}
+                            onChange={(e) =>
+                                onUpdate({
+                                    ...slide,
+                                    text: e.target.value || undefined,
+                                })
+                            }
+                            placeholder="Text displayed beside the chart"
+                            rows={4}
+                        />
+                    </label>
                 </>
             )
 

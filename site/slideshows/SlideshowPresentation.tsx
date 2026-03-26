@@ -24,7 +24,11 @@ export function SlideshowPresentation(props: {
     slides: SlideshowConfig["slides"]
     imageMetadata: Record<string, ImageMetadata>
     /** Override chart rendering (used by admin editor for live MobX sync) */
-    renderChart?: (slug: string, queryString?: string) => React.ReactElement
+    renderChart?: (
+        slug: string,
+        queryString: string | undefined,
+        options: { hideTitle: boolean }
+    ) => React.ReactElement
     /** Controlled slide index (optional — if omitted, manages its own state) */
     currentSlideIndex?: number
     /** Called when the user navigates (optional — for controlled mode) */
@@ -73,12 +77,17 @@ export function SlideshowPresentation(props: {
     // Default chart renderer: uses SlideGrapher for smooth same-slug
     // transitions. The admin editor can override via the renderChart prop.
     const defaultRenderChart = useCallback(
-        (slug: string, queryString?: string): React.ReactElement => {
+        (
+            slug: string,
+            queryString: string | undefined,
+            options: { hideTitle: boolean }
+        ): React.ReactElement => {
             return (
                 <SlideGrapher
                     slug={slug}
                     initialQueryString={queryString}
                     grapherStateRef={grapherStateRef}
+                    hideTitle={options.hideTitle}
                 />
             )
         },

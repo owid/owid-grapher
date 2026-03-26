@@ -16,7 +16,11 @@ export function SlideRenderer(props: {
     slide: Slide
     imageMetadata?: Record<string, ImageMetadata>
     /** Override chart rendering (for SlideGrapher with live sync) */
-    renderChart?: (slug: string, queryString?: string) => React.ReactElement
+    renderChart?: (
+        slug: string,
+        queryString: string | undefined,
+        options: { hideTitle: boolean }
+    ) => React.ReactElement
 }): React.ReactElement {
     const { slide, imageMetadata, renderChart } = props
 
@@ -43,7 +47,9 @@ export function SlideRenderer(props: {
             )
         case SlideTemplate.Image:
             return (
-                <div className="SlideContent SlideContent--image">
+                <div
+                    className={`SlideContent SlideContent--image${slide.text ? " SlideContent--with-text" : ""}`}
+                >
                     {slide.sectionTitle && (
                         <p className="SlideContent__section-title">
                             {slide.sectionTitle}
@@ -54,15 +60,26 @@ export function SlideRenderer(props: {
                             {slide.slideTitle}
                         </h2>
                     )}
-                    <ImageRenderer
-                        filename={slide.filename}
-                        imageMetadata={imageMetadata}
-                    />
+                    <div className="SlideContent__body">
+                        <div className="SlideContent__media">
+                            <ImageRenderer
+                                filename={slide.filename}
+                                imageMetadata={imageMetadata}
+                            />
+                        </div>
+                        {slide.text && (
+                            <div className="SlideContent__text">
+                                {slide.text}
+                            </div>
+                        )}
+                    </div>
                 </div>
             )
         case SlideTemplate.Chart:
             return (
-                <div className="SlideContent SlideContent--chart">
+                <div
+                    className={`SlideContent SlideContent--chart${slide.text ? " SlideContent--with-text" : ""}`}
+                >
                     {slide.sectionTitle && (
                         <p className="SlideContent__section-title">
                             {slide.sectionTitle}
@@ -73,11 +90,21 @@ export function SlideRenderer(props: {
                             {slide.slideTitle}
                         </h2>
                     )}
-                    <ChartRenderer
-                        slug={slide.slug}
-                        queryString={slide.queryString}
-                        renderChart={renderChart}
-                    />
+                    <div className="SlideContent__body">
+                        <div className="SlideContent__media">
+                            <ChartRenderer
+                                slug={slide.slug}
+                                queryString={slide.queryString}
+                                hideTitle={!!slide.slideTitle}
+                                renderChart={renderChart}
+                            />
+                        </div>
+                        {slide.text && (
+                            <div className="SlideContent__text">
+                                {slide.text}
+                            </div>
+                        )}
+                    </div>
                 </div>
             )
         case SlideTemplate.Blank:
@@ -118,12 +145,17 @@ function ImageRenderer(props: {
 function ChartRenderer(props: {
     slug: string
     queryString?: string
-    renderChart?: (slug: string, queryString?: string) => React.ReactElement
+    hideTitle: boolean
+    renderChart?: (
+        slug: string,
+        queryString: string | undefined,
+        options: { hideTitle: boolean }
+    ) => React.ReactElement
 }): React.ReactElement {
-    const { slug, queryString, renderChart } = props
+    const { slug, queryString, hideTitle, renderChart } = props
 
     if (renderChart) {
-        return renderChart(slug, queryString)
+        return renderChart(slug, queryString, { hideTitle })
     }
 
     // Default: use GrapherFigureView for the baked site (SSR fallback)
@@ -138,6 +170,8 @@ function ChartRenderer(props: {
                     hideShareButton: true,
                     hideExploreTheDataButton: true,
                     hideRelatedQuestion: true,
+                    hideLogo: true,
+                    hideTitle,
                 }}
             />
         </div>
