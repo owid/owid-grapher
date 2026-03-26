@@ -66,6 +66,7 @@ import {
     RawBlockLTPToc,
     RawBlockConditionalSection,
     RawBlockCountryProfileSelector,
+    RawBlockSmallChart,
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -320,6 +321,29 @@ export function enrichedBlockToRawBlock(
                     title: b.title,
                     align: b.align,
                     links: b.links.map(convertEnrichedHybridLinksToRaw),
+                },
+            })
+        )
+        .with(
+            { type: "small-chart" },
+            (b): RawBlockSmallChart => ({
+                type: b.type,
+                value: {
+                    variant: b.variant,
+                    align: b.align,
+                    title: b.title,
+                    rows: b.rows.map((row) => ({
+                        image: row.image,
+                        url: row.url,
+                        content: row.content.length
+                            ? row.content.map(
+                                  (enriched) =>
+                                      enrichedBlockToRawBlock(
+                                          enriched
+                                      ) as RawBlockText
+                              )
+                            : undefined,
+                    })),
                 },
             })
         )

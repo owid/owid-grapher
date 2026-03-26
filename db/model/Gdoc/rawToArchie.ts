@@ -63,6 +63,7 @@ import {
     RawBlockDataCallout,
     RawBlockCountryProfileSelector,
     RawBlockBespokeComponent,
+    RawBlockSmallChart,
 } from "@ourworldindata/types"
 import { match } from "ts-pattern"
 
@@ -358,6 +359,36 @@ function* rawBlockRecircToArchieMLString(
                 yield* propertyToArchieMLString("url", link)
                 yield* propertyToArchieMLString("title", link)
                 yield* propertyToArchieMLString("subtitle", link)
+            }
+            yield "[]"
+        }
+    }
+    yield "{}"
+}
+
+function* rawBlockSmallChartToArchieMLString(
+    block: RawBlockSmallChart
+): Generator<string, void, undefined> {
+    yield "{.small-chart}"
+    if (block.value) {
+        yield* propertyToArchieMLString("variant", block.value)
+        yield* propertyToArchieMLString("align", block.value)
+        yield* propertyToArchieMLString("title", block.value)
+        const rows = block.value.rows
+        if (rows) {
+            yield "[.rows]"
+            for (const row of rows) {
+                yield* propertyToArchieMLString("image", row)
+                yield* propertyToArchieMLString("url", row)
+                if (row.content) {
+                    yield "[.+content]"
+                    for (const content of row.content) {
+                        yield* OwidRawGdocBlockToArchieMLStringGenerator(
+                            content
+                        )
+                    }
+                    yield "[]"
+                }
             }
             yield "[]"
         }
@@ -1077,6 +1108,7 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with({ type: "people-rows" }, rawBlockPeopleRowsToArchieMLString)
         .with({ type: "person" }, rawBlockPersonToArchieMLString)
         .with({ type: "pull-quote" }, rawBlockPullQuoteToArchieMLString)
+        .with({ type: "small-chart" }, rawBlockSmallChartToArchieMLString)
         .with({ type: "guided-chart" }, rawBlockGuidedChartToArchieMLString)
         .with(
             { type: "horizontal-rule" },
