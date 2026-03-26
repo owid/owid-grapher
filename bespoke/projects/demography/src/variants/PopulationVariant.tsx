@@ -1,4 +1,3 @@
-import { useState } from "react"
 import cx from "classnames"
 import { QueryClientProvider } from "@tanstack/react-query"
 
@@ -21,7 +20,7 @@ import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
 import { ResponsivePopulationChart } from "../components/PopulationChart.js"
-import { DEFAULT_ENTITY_NAME } from "../helpers/constants.js"
+import { useInitialEntityName } from "../helpers/useInitialEntityName.js"
 import {
     BreakpointProvider,
     useContainerBreakpoint,
@@ -45,9 +44,7 @@ function PopulationVariant({
     config: PopulationVariantConfig
 }): React.ReactElement {
     const showControls = !config.hideControls
-    const [entityName, setEntityName] = useState(
-        config.region ?? DEFAULT_ENTITY_NAME
-    )
+    const [entityName, setEntityName] = useInitialEntityName(config.region)
 
     const { metadata, entityData, isLoadingEntityData, status } =
         useDemographyData(entityName)
