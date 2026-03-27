@@ -67,7 +67,7 @@ export function BezierArrow({
 
     const path = useMemo(() => {
         const headOptions = {
-            length: headLength ?? clamp(0.08 * dist(start, end), 4, 8),
+            length: headLength ?? clamp(0.08 * dist(start, end), 4, 6),
             theta: headAngle,
         }
 
