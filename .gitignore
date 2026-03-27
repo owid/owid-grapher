@@ -53,6 +53,7 @@ test-results/
 **/.features-gen/**/*.spec.js
 playwright-report/
 
+tmp/
 # Sentry Config File
 .env.sentry-build-plugin
 
