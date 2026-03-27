@@ -8,4 +8,8 @@
             border-color: #1890ff;
         }
     }
+
+    &--inline .cm-editor {
+        min-height: 0;
+    }
 }

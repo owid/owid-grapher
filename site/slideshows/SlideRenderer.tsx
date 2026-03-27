@@ -62,7 +62,10 @@ export function SlideRenderer(props: {
                     )}
                     {slide.slideTitle && (
                         <h2 className="SlideContent__slide-title">
-                            {slide.slideTitle}
+                            <SimpleMarkdownText
+                                text={slide.slideTitle}
+                                useParagraphs={false}
+                            />
                         </h2>
                     )}
                     <div className="SlideContent__body">
@@ -93,7 +96,10 @@ export function SlideRenderer(props: {
                     )}
                     {slide.slideTitle && (
                         <h2 className="SlideContent__slide-title">
-                            {slide.slideTitle}
+                            <SimpleMarkdownText
+                                text={slide.slideTitle}
+                                useParagraphs={false}
+                            />
                         </h2>
                     )}
                     <div className="SlideContent__body">

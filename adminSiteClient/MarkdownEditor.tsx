@@ -13,10 +13,7 @@ import {
     indentWithTab,
 } from "@codemirror/commands"
 import { EditorSelection, type StateCommand } from "@codemirror/state"
-import {
-    syntaxHighlighting,
-    defaultHighlightStyle,
-} from "@codemirror/language"
+import { syntaxHighlighting, defaultHighlightStyle } from "@codemirror/language"
 
 import "./MarkdownEditor.scss"
 
@@ -79,9 +76,7 @@ function wrapWith(prefix: string, suffix: string): StateCommand {
             // Wrap: no selection → insert delimiters with cursor in the middle
             if (range.from === range.to) {
                 return {
-                    range: EditorSelection.cursor(
-                        range.from + prefix.length
-                    ),
+                    range: EditorSelection.cursor(range.from + prefix.length),
                     changes: {
                         from: range.from,
                         insert: prefix + suffix,
@@ -154,10 +149,7 @@ export function MarkdownEditor({
     placeholder,
     height = "120px",
 }: MarkdownEditorProps): React.ReactElement {
-    const handleChange = useCallback(
-        (val: string) => onChange(val),
-        [onChange]
-    )
+    const handleChange = useCallback((val: string) => onChange(val), [onChange])
 
     const extensions = useMemo(
         () => [
@@ -189,6 +181,89 @@ export function MarkdownEditor({
                 height={height}
                 placeholder={placeholder}
                 basicSetup={false}
+                extensions={extensions}
+                onChange={handleChange}
+            />
+        </div>
+    )
+}
+
+// Single-line theme: compact padding, no wrapping
+const inlineTheme = EditorView.theme({
+    "&": {
+        fontSize: "13px",
+    },
+    "&.cm-focused": {
+        outline: "none",
+    },
+    ".cm-gutters": {
+        display: "none",
+    },
+    ".cm-activeLine": {
+        backgroundColor: "transparent",
+    },
+    ".cm-scroller": {
+        fontFamily: "inherit",
+    },
+    ".cm-content": {
+        padding: "6px 8px",
+    },
+    ".cm-line": {
+        padding: "0",
+    },
+})
+
+/** Block Enter key to keep the editor single-line */
+const blockEnter: StateCommand = () => true
+
+interface InlineMarkdownEditorProps {
+    value: string
+    onChange: (value: string) => void
+    placeholder?: string
+}
+
+/**
+ * Single-line markdown editor supporting only bold and italic.
+ * Styled to look like a text input.
+ */
+export function InlineMarkdownEditor({
+    value,
+    onChange,
+    placeholder,
+}: InlineMarkdownEditorProps): React.ReactElement {
+    const handleChange = useCallback(
+        (val: string) => onChange(val.replace(/\n/g, "")),
+        [onChange]
+    )
+
+    const extensions = useMemo(
+        () => [
+            markdown({ base: markdownLanguage }),
+            syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+            history(),
+            EditorView.contentAttributes.of({
+                "aria-label": placeholder ?? "Inline markdown",
+            }),
+            inlineTheme,
+            keymap.of([
+                { key: "Enter", run: blockEnter },
+                { key: "Mod-b", run: wrapWith("**", "**") },
+                { key: "Mod-i", run: wrapWith("*", "*") },
+                ...defaultKeymap,
+                ...historyKeymap,
+            ]),
+        ],
+        [placeholder]
+    )
+
+    return (
+        <div className="MarkdownEditor MarkdownEditor--inline">
+            <CodeMirror
+                value={value}
+                height="auto"
+                placeholder={placeholder}
+                basicSetup={false}
+                indentWithTab={false}
                 extensions={extensions}
                 onChange={handleChange}
             />
