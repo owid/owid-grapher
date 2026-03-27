@@ -432,6 +432,14 @@ export function enrichedBlockToIndexableText(
                 },
                 (): undefined => undefined
             )
+            .with({ type: "small-chart" }, (b): string | undefined => {
+                const parts = b.rows.flatMap((row) =>
+                    row.content.map((contentBlock) =>
+                        enrichedBlockToIndexableText(contentBlock, options)
+                    )
+                )
+                return joinBlocksAsSentences(parts) || undefined
+            })
             .exhaustive()
     )
 }

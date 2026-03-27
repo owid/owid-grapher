@@ -1,0 +1,208 @@
+.small-chart {
+    &__thumbnail-link,
+    &__thumbnail-button {
+        display: block;
+        cursor: pointer;
+        border: none;
+        background: none;
+        padding: 0;
+        position: relative;
+
+        &:hover {
+            .small-chart__overlay {
+                opacity: 1;
+            }
+        }
+    }
+
+    &__thumbnail-link {
+        text-decoration: none;
+    }
+
+    .image {
+        border: 1px solid $blue-10;
+        padding: 10px 12px;
+    }
+
+    // "Click to explore" overlay, matching search thumbnail style
+    &__overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        padding: 12px;
+        background: rgba(163, 199, 245, 0.3);
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s ease-in-out;
+    }
+
+    &__cta {
+        @include label-2-medium;
+        background: $blue-70;
+        color: #fff;
+        padding: 8px 12px;
+        border-radius: 4px;
+    }
+
+    &__content {
+        margin-top: 8px;
+
+        > *:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    &__kicker {
+        @include h5-black-caps;
+        & {
+            color: $blue-50;
+            margin: 0 0 24px;
+        }
+
+        // Tighten gap when followed by a title
+        + .small-chart__title {
+            margin-top: -22px;
+        }
+    }
+
+    &__title {
+        @include h2-bold;
+        & {
+            color: $blue-90;
+            margin: 0;
+        }
+    }
+
+    &__source {
+        @include note-12-medium;
+        & {
+            color: $blue-50;
+            margin: 0;
+        }
+    }
+}
+
+// Pull-quote variant: thumbnail floats within text, like the existing PullQuote component.
+// The thumbnail pulls slightly outside the content column via negative margins.
+.small-chart--pull-quote {
+    margin-bottom: 16px;
+
+    &::after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+
+    .small-chart__thumbnail-link,
+    .small-chart__thumbnail-button {
+        max-width: 300px;
+    }
+
+    &.small-chart--align-left-center {
+        .small-chart__thumbnail-link,
+        .small-chart__thumbnail-button {
+            float: left;
+            margin-right: 24px;
+            margin-bottom: 8px;
+            margin-left: calc(-100vw / 12); // one column width
+        }
+    }
+
+    &.small-chart--align-right-center {
+        .small-chart__thumbnail-link,
+        .small-chart__thumbnail-button {
+            float: right;
+            margin-left: 24px;
+            margin-bottom: 8px;
+            margin-right: calc(-100vw / 12); // one column width
+        }
+    }
+
+    @include md-down {
+        .small-chart__thumbnail-link,
+        .small-chart__thumbnail-button {
+            float: none;
+            margin: 0 0 16px 0;
+            max-width: unset;
+        }
+    }
+}
+
+.small-chart--rows {
+    margin-top: 16px;
+    margin-bottom: 32px;
+    border-top: 1px solid $blue-10;
+    border-bottom: 1px solid $blue-10;
+    padding-top: 24px;
+    padding-bottom: 24px;
+
+    .small-chart__rows-container {
+        display: flex;
+        flex-direction: column;
+        margin-top: 16px;
+        margin-bottom: 16px;
+    }
+
+    .small-chart__row-item {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+        padding: 24px 0;
+        border-bottom: 1px solid $blue-10;
+
+        &:first-child {
+            padding-top: 0;
+        }
+
+        &:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        @include md-down {
+            flex-direction: column;
+        }
+    }
+
+    .small-chart__thumbnail-link,
+    .small-chart__thumbnail-button {
+        flex-shrink: 0;
+        max-width: 300px;
+    }
+
+    .small-chart__content {
+        flex: 1;
+        min-width: 0;
+        margin-top: 0;
+    }
+
+    .small-chart__content .article-block__text {
+        @include body-3-regular;
+    }
+
+    // Inside a guided chart: no outer borders, no margins, kicker only
+    &.small-chart--guided {
+        margin-top: 0;
+        margin-bottom: 0;
+        border-top: none;
+        border-bottom: none;
+        padding-top: 0;
+        padding-bottom: 0;
+
+        .small-chart__rows-container {
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+
+        // Keep the bottom divider on the last row
+        .small-chart__row-item:last-child {
+            border-bottom: 1px solid $blue-10;
+            padding-bottom: 24px;
+        }
+    }
+}
