@@ -59,16 +59,7 @@
 }
 
 .latest-page__item-area-tag {
-    @include h6-black-caps;
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
     color: $blue-90;
-
-    &:hover {
-        text-decoration: underline;
-    }
 }
 
 .latest-page__item-dateline {
