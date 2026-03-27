@@ -839,15 +839,18 @@ export const renderSlideshowPage = async (
     slideshow: {
         title: string
         slug: string
-        config: { slides: Slide[] }
+        config: { slides: Slide[]; authors?: string }
     },
-    imageMetadata: Record<string, ImageMetadata>
+    imageMetadata: Record<string, ImageMetadata>,
+    linkedAuthors: import("@ourworldindata/types").LinkedAuthor[] = []
 ) => {
     return renderToHtmlPage(
         <SlideshowPage
             baseUrl={BAKED_BASE_URL}
             title={slideshow.title}
             slug={slideshow.slug}
+            authors={slideshow.config.authors}
+            linkedAuthors={linkedAuthors}
             slides={slideshow.config.slides}
             imageMetadata={imageMetadata}
         />

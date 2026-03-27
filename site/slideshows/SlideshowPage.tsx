@@ -5,6 +5,7 @@ import { Html } from "./../Html.js"
 import {
     SiteFooterContext,
     ImageMetadata,
+    LinkedAuthor,
     SlideshowConfig,
     serializeJSONForHTML,
 } from "@ourworldindata/utils"
@@ -18,17 +19,29 @@ export interface SlideshowPageProps {
     baseUrl: string
     title: string
     slug: string
+    authors?: string
+    linkedAuthors: LinkedAuthor[]
     slides: SlideshowConfig["slides"]
     imageMetadata: Record<string, ImageMetadata>
 }
 
 export function SlideshowPage(props: SlideshowPageProps): React.ReactElement {
-    const { baseUrl, title, slug, slides, imageMetadata } = props
+    const {
+        baseUrl,
+        title,
+        slug,
+        authors,
+        linkedAuthors,
+        slides,
+        imageMetadata,
+    } = props
 
     const canonicalUrl = `${baseUrl}/slideshows/${slug}`
 
     const presentationProps: SlideshowPresentationProps = {
         title,
+        authors,
+        linkedAuthors,
         slides,
         imageMetadata,
     }

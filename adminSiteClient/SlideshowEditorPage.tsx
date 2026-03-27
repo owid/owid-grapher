@@ -55,6 +55,7 @@ export function SlideshowEditorPage(props: {
     const [title, setTitle] = useState("")
     const [slug, setSlug] = useState("")
     const [slugIsCustom, setSlugIsCustom] = useState(false)
+    const [authors, setAuthors] = useState(admin.username)
     const [slides, setSlides] = useState<Slide[]>([makeDefaultSlide()])
     const [currentSlideIndex, setCurrentSlideIndex] = useState(0)
     const [isDirty, setIsDirty] = useState(false)
@@ -83,6 +84,7 @@ export function SlideshowEditorPage(props: {
             setSlug(slideshow.slug)
             setSlugIsCustom(true)
             setIsPublished(slideshow.isPublished)
+            setAuthors(slideshow.config.authors ?? admin.username)
             if (slideshow.config.slides.length > 0) {
                 setSlides(slideshow.config.slides)
             }
@@ -158,7 +160,10 @@ export function SlideshowEditorPage(props: {
 
     const save = useCallback(
         async (opts?: { publish?: boolean }) => {
-            const config: SlideshowConfig = { slides }
+            const config: SlideshowConfig = {
+                slides,
+                authors: authors || undefined,
+            }
             const shouldPublish = opts?.publish || isPublished === 1
             const payload = {
                 slug,
@@ -192,6 +197,7 @@ export function SlideshowEditorPage(props: {
             props.slideshowId,
             slug,
             title,
+            authors,
             slides,
             history,
             isPublished,
@@ -259,6 +265,18 @@ export function SlideshowEditorPage(props: {
                                 setIsDirty(true)
                             }}
                             placeholder="slideshow-slug"
+                        />
+                    </label>
+                    <label>
+                        Authors
+                        <input
+                            type="text"
+                            value={authors}
+                            onChange={(e) => {
+                                setAuthors(e.target.value)
+                                setIsDirty(true)
+                            }}
+                            placeholder="Author name(s)"
                         />
                     </label>
                 </div>
