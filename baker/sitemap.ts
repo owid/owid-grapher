@@ -7,9 +7,11 @@ import { dayjs, countries, getEntitiesForProfile } from "@ourworldindata/utils"
 import {
     DbPlainChart,
     DbPlainMultiDimDataPage,
+    DbPlainSlideshow,
     DbRawPostGdoc,
     MultiDimDataPagesTableName,
     OwidGdocType,
+    SlideshowsTableName,
 } from "@ourworldindata/types"
 import {
     EXPLORERS_ROUTE_FOLDER,
@@ -132,6 +134,9 @@ export const makeSitemap = async (
 
     const explorers = await explorerAdminServer.getAllPublishedExplorers(knex)
     const multiDims = await getPublishedMultiDims(knex)
+    const slideshows = await knex<DbPlainSlideshow>(SlideshowsTableName)
+        .select("slug", "updatedAt")
+        .where("isPublished", 1)
 
     const profileUrls = profileTemplates.flatMap((profileTemplate) => {
         const lastmod = profileTemplate.updatedAt
@@ -205,6 +210,12 @@ export const makeSitemap = async (
             }))
         )
         .concat(profileUrls)
+        .concat(
+            slideshows.map((s) => ({
+                loc: urljoin(BAKED_BASE_URL, "slideshows", s.slug),
+                lastmod: dayjs(s.updatedAt).format("YYYY-MM-DD"),
+            }))
+        )
 
     const sitemap = `<?xml version="1.0" encoding="utf-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
