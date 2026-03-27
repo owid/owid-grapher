@@ -84,10 +84,18 @@ export function SlideRenderer(props: {
                     className={`SlideContent SlideContent--chart${slide.text ? " SlideContent--with-text" : ""}`}
                 >
                     {!slide.hideLogo && <SlideLogo />}
-                    {slide.slideTitle && (
+                    {slide.titleOverride && (
                         <h2 className="SlideContent__slide-title">
                             <SimpleMarkdownText
-                                text={slide.slideTitle}
+                                text={slide.titleOverride}
+                                useParagraphs={false}
+                            />
+                        </h2>
+                    )}
+                    {slide.subtitleOverride && (
+                        <h2 className="SlideContent__slide-subtitle">
+                            <SimpleMarkdownText
+                                text={slide.subtitleOverride}
                                 useParagraphs={false}
                             />
                         </h2>
@@ -96,8 +104,11 @@ export function SlideRenderer(props: {
                         <div className="SlideContent__media">
                             <ChartRenderer
                                 url={slide.url}
-                                hideTitle={!!slide.slideTitle}
-                                hideSubtitle={!!slide.hideSubtitle}
+                                hideTitle={!!slide.titleOverride}
+                                hideSubtitle={
+                                    !!slide.hideSubtitle ||
+                                    !!slide.subtitleOverride
+                                }
                                 renderChart={renderChart}
                             />
                         </div>

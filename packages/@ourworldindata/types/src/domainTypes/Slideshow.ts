@@ -39,10 +39,11 @@ export interface SlideChartOnly {
     template: SlideTemplate.Chart
     /** Relative URL path, e.g. "/grapher/life-expectancy?tab=table" or "/explorers/population" */
     url: string
-    slideTitle?: string
-    text?: MarkdownText
+    titleOverride?: string
+    subtitleOverride?: string
     hideSubtitle?: boolean
     hideLogo?: boolean
+    text?: MarkdownText
 }
 
 export interface SlideSection {
@@ -109,7 +110,8 @@ const SlideImageOnlySchema = z.object({
 const SlideChartOnlySchema = z.object({
     template: z.literal(SlideTemplate.Chart),
     url: z.string().min(1),
-    slideTitle: z.string().optional(),
+    titleOverride: z.string().optional(),
+    subtitleOverride: z.string().optional(),
     text: z.string().optional(),
     hideSubtitle: z.boolean().optional(),
     hideLogo: z.boolean().optional(),

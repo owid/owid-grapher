@@ -54,7 +54,12 @@ function slideHasContent(slide: Slide): boolean {
         case SlideTemplate.Image:
             return slide.filename !== null || !!slide.slideTitle || !!slide.text
         case SlideTemplate.Chart:
-            return !!slide.url || !!slide.slideTitle || !!slide.text
+            return (
+                !!slide.url ||
+                !!slide.titleOverride ||
+                !!slide.subtitleOverride ||
+                !!slide.text
+            )
         case SlideTemplate.Section:
             return !!slide.title || !!slide.subtitle
         case SlideTemplate.Cover:
@@ -293,29 +298,18 @@ function TemplateOptionsEditor(props: {
                         }
                     />
                     <label>
-                        <input
-                            type="checkbox"
-                            checked={slide.slideTitle !== undefined}
+                        Slide title
+                        <InlineMarkdownEditor
+                            value={slide.slideTitle ?? ""}
                             onChange={(e) =>
                                 onUpdate({
                                     ...slide,
-                                    slideTitle: e.target.checked
-                                        ? ""
-                                        : undefined,
+                                    slideTitle: e || undefined,
                                 })
-                            }
-                        />{" "}
-                        Slide title
-                    </label>
-                    {slide.slideTitle !== undefined && (
-                        <InlineMarkdownEditor
-                            value={slide.slideTitle}
-                            onChange={(slideTitle) =>
-                                onUpdate({ ...slide, slideTitle })
                             }
                             placeholder="Slide title"
                         />
-                    )}
+                    </label>
                     <label>
                         Text (optional)
                         <MarkdownEditor
@@ -341,29 +335,31 @@ function TemplateOptionsEditor(props: {
                         onChange={(url) => onUpdate({ ...slide, url })}
                     />
                     <label>
-                        <input
-                            type="checkbox"
-                            checked={slide.slideTitle !== undefined}
-                            onChange={(e) =>
+                        Title override
+                        <InlineMarkdownEditor
+                            value={slide.titleOverride ?? ""}
+                            onChange={(text) =>
                                 onUpdate({
                                     ...slide,
-                                    slideTitle: e.target.checked
-                                        ? ""
-                                        : undefined,
+                                    titleOverride: text || undefined,
                                 })
-                            }
-                        />{" "}
-                        Slide title
-                    </label>
-                    {slide.slideTitle !== undefined && (
-                        <InlineMarkdownEditor
-                            value={slide.slideTitle}
-                            onChange={(slideTitle) =>
-                                onUpdate({ ...slide, slideTitle })
                             }
                             placeholder="Slide title"
                         />
-                    )}
+                    </label>
+                    <label>
+                        Subtitle override
+                        <InlineMarkdownEditor
+                            value={slide.subtitleOverride ?? ""}
+                            onChange={(text) =>
+                                onUpdate({
+                                    ...slide,
+                                    subtitleOverride: text || undefined,
+                                })
+                            }
+                            placeholder="Slide subtitle"
+                        />
+                    </label>
                     <label>
                         Text (optional)
                         <MarkdownEditor
