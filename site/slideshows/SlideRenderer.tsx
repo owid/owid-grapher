@@ -1,5 +1,6 @@
 import React from "react"
 import { Slide, SlideTemplate, ImageMetadata } from "@ourworldindata/types"
+import { SimpleMarkdownText } from "@ourworldindata/components"
 import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"
 import { GrapherFigureView } from "../GrapherFigureView.js"
 
@@ -69,7 +70,7 @@ export function SlideRenderer(props: {
                         </div>
                         {slide.text && (
                             <div className="SlideContent__text">
-                                {slide.text}
+                                <SimpleMarkdownText text={slide.text} />
                             </div>
                         )}
                     </div>
@@ -102,7 +103,7 @@ export function SlideRenderer(props: {
                         </div>
                         {slide.text && (
                             <div className="SlideContent__text">
-                                {slide.text}
+                                <SimpleMarkdownText text={slide.text} />
                             </div>
                         )}
                     </div>
