@@ -69,12 +69,9 @@ const CardMetadataRow = ({
                     <span className="latest-page__item-meta-separator">—</span>
                 )}
                 {firstTag && (
-                    <button
-                        className="latest-page__item-area-tag"
-                        onClick={() => onTopicClick?.(firstTag)}
-                    >
-                        #{firstTag}
-                    </button>
+                    <span className="latest-page__item-area-tag">
+                        {firstTag}
+                    </span>
                 )}
             </span>
             <DataInsightDateline
