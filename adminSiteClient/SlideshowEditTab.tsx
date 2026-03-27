@@ -18,7 +18,7 @@ import {
 } from "./imagesHelpers.js"
 import { ImageSelectorModal } from "./ImageSelectorModal.js"
 import { useGrapherSlugs } from "./useGrapherSlugs.js"
-import { MarkdownEditor } from "./MarkdownEditor.js"
+import { InlineMarkdownEditor, MarkdownEditor } from "./MarkdownEditor.js"
 
 const TEMPLATE_OPTIONS = Object.entries(SLIDE_TEMPLATE_LABELS).map(
     ([value, label]) => ({ value: value as SlideTemplate, label })
@@ -403,14 +403,10 @@ function TemplateOptionsEditor(props: {
                         Slide title
                     </label>
                     {slide.slideTitle !== undefined && (
-                        <input
-                            type="text"
+                        <InlineMarkdownEditor
                             value={slide.slideTitle}
-                            onChange={(e) =>
-                                onUpdate({
-                                    ...slide,
-                                    slideTitle: e.target.value,
-                                })
+                            onChange={(slideTitle) =>
+                                onUpdate({ ...slide, slideTitle })
                             }
                             placeholder="Slide title"
                         />
@@ -486,14 +482,10 @@ function TemplateOptionsEditor(props: {
                         Slide title
                     </label>
                     {slide.slideTitle !== undefined && (
-                        <input
-                            type="text"
+                        <InlineMarkdownEditor
                             value={slide.slideTitle}
-                            onChange={(e) =>
-                                onUpdate({
-                                    ...slide,
-                                    slideTitle: e.target.value,
-                                })
+                            onChange={(slideTitle) =>
+                                onUpdate({ ...slide, slideTitle })
                             }
                             placeholder="Slide title"
                         />
