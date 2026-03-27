@@ -2,6 +2,7 @@
     margin-bottom: 0;
     @include sm-only {
         padding: 0 16px;
+        margin-bottom: 24px;
     }
 }
 
@@ -19,6 +20,7 @@
     @include sm-only {
         flex-direction: column;
         align-items: stretch;
+        gap: 16px;
     }
 }
 
@@ -26,6 +28,10 @@
     border: none;
     border-top: 1px solid $blue-20;
     margin: 16px 0 24px;
+
+    @include sm-only {
+        display: none;
+    }
 }
 
 // ---------- Topic pills (horizontal scroll) ----------
@@ -35,6 +41,11 @@
     min-width: 0;
     position: relative;
     overflow: visible;
+
+    @include sm-only {
+        padding-bottom: 16px;
+        border-bottom: 1px solid $blue-20;
+    }
 
     .react-horizontal-scrolling-menu--wrapper {
         position: relative;
@@ -197,7 +208,7 @@
 .latest-search__content-type-dropdown-menu {
     position: absolute;
     top: calc(100% + 4px);
-    right: 0;
+    left: 0;
     z-index: 100;
     background-color: #fff;
     border: 1px solid $blue-20;
