@@ -45,11 +45,16 @@
     @include sm-only {
         padding-bottom: 16px;
         border-bottom: 1px solid $blue-20;
+        overflow: hidden;
     }
 
     .react-horizontal-scrolling-menu--wrapper {
         position: relative;
         overflow: visible;
+
+        @include sm-only {
+            overflow: hidden;
+        }
     }
 
     .react-horizontal-scrolling-menu--scroll-container {
