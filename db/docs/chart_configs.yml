@@ -36,7 +36,7 @@ fields:
             The full schema is available at 'https://files.ourworldindata.org/schemas/grapher-schema.latest.json'. For querying chart contents, the most important fields are:
                 - title
                 - subtitle
-                - chartTypes: array of string enums with valid values: ScatterPlot, StackedArea, DiscreteBar, StackedDiscreteBar, SlopeChart, StackedBar, Marimekko. Indicates which of these chart tabs are enabled for the chart.
+                - chartTypes: array of string enums with valid values: ScatterPlot, StackedArea, DiscreteBar, StackedDiscreteBar, SlopeChart, StackedBar, Marimekko, Dumbbell. Indicates which of these chart tabs are enabled for the chart.
                 - hasMapTab: Whether the map tab is enabled
                 - isPublished: whether the chart is published, if it is a standalone chart (i.e. a chart referenced from the charts table)
     full:
@@ -46,7 +46,7 @@ fields:
             The full schema is available at 'https://files.ourworldindata.org/schemas/grapher-schema.latest.json'. For querying chart contents, the most important fields are:
                 - title
                 - subtitle
-                - chartTypes: array of string enums with valid values: ScatterPlot, StackedArea, DiscreteBar, StackedDiscreteBar, SlopeChart, StackedBar, Marimekko. Indicates which of these chart tabs are enabled for the chart.
+                - chartTypes: array of string enums with valid values: ScatterPlot, StackedArea, DiscreteBar, StackedDiscreteBar, SlopeChart, StackedBar, Marimekko, Dumbbell. Indicates which of these chart tabs are enabled for the chart.
                 - hasMapTab: Whether the map tab is enabled
                 - isPublished: whether the chart is published, if it is a standalone chart (i.e. a chart referenced from the charts table)
     slug:

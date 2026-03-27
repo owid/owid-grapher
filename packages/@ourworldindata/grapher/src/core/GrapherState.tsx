@@ -1902,20 +1902,44 @@ export class GrapherState
     ): boolean => {
         // Scatters aren't included here because although single-time selection
         // is preferred, start and end time selection is still possible
-        return [
-            GRAPHER_TAB_NAMES.DiscreteBar,
-            GRAPHER_TAB_NAMES.StackedDiscreteBar,
-            GRAPHER_TAB_NAMES.Marimekko,
-        ].includes(tabName as any)
+        if (
+            [
+                GRAPHER_TAB_NAMES.DiscreteBar,
+                GRAPHER_TAB_NAMES.StackedDiscreteBar,
+                GRAPHER_TAB_NAMES.Marimekko,
+            ].includes(tabName as any)
+        )
+            return true
+
+        // Dumbbell in two-column mode (2+ Y columns) uses a single time
+        if (
+            tabName === GRAPHER_TAB_NAMES.Dumbbell &&
+            this.yColumnSlugs.length >= 2
+        )
+            return true
+
+        return false
     }
 
     private checkOnlyTimeRangeSelectionPossible = (
         tabName: GrapherTabName
     ): boolean => {
-        return [
-            GRAPHER_TAB_NAMES.LineChart,
-            GRAPHER_TAB_NAMES.SlopeChart,
-        ].includes(tabName as any)
+        if (
+            [
+                GRAPHER_TAB_NAMES.LineChart,
+                GRAPHER_TAB_NAMES.SlopeChart,
+            ].includes(tabName as any)
+        )
+            return true
+
+        // Dumbbell in time-range mode (1 Y column) requires a time range
+        if (
+            tabName === GRAPHER_TAB_NAMES.Dumbbell &&
+            this.yColumnSlugs.length < 2
+        )
+            return true
+
+        return false
     }
 
     private checkSingleTimeSelectionPreferred = (
@@ -2791,6 +2815,10 @@ export class GrapherState
         return this.chartType === GRAPHER_CHART_TYPES.StackedDiscreteBar
     }
 
+    @computed get isDumbbell(): boolean {
+        return this.chartType === GRAPHER_CHART_TYPES.Dumbbell
+    }
+
     @computed get isOnLineChartTab(): boolean {
         return this.activeChartType === GRAPHER_CHART_TYPES.LineChart
     }
@@ -2821,6 +2849,10 @@ export class GrapherState
 
     @computed get isOnStackedDiscreteBarTab(): boolean {
         return this.activeChartType === GRAPHER_CHART_TYPES.StackedDiscreteBar
+    }
+
+    @computed get isOnDumbbellTab(): boolean {
+        return this.activeChartType === GRAPHER_CHART_TYPES.Dumbbell
     }
 
     @computed get hasLineChart(): boolean {
@@ -2855,6 +2887,10 @@ export class GrapherState
         return this.validChartTypeSet.has(
             GRAPHER_CHART_TYPES.StackedDiscreteBar
         )
+    }
+
+    @computed get hasDumbbell(): boolean {
+        return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.Dumbbell)
     }
 
     @computed get supportsMultipleYColumns(): boolean {

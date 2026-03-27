@@ -28,6 +28,7 @@ export const VALID_CHART_TYPE_COMBINATIONS = [
         GRAPHER_CHART_TYPES.DiscreteBar,
         GRAPHER_CHART_TYPES.Marimekko,
         GRAPHER_CHART_TYPES.ScatterPlot,
+        GRAPHER_CHART_TYPES.Dumbbell,
     ],
 ]
 
@@ -45,6 +46,7 @@ export const CHART_TYPE_LABEL: Record<GrapherChartType, string> = {
     [GRAPHER_CHART_TYPES.DiscreteBar]: "Bar",
     [GRAPHER_CHART_TYPES.StackedDiscreteBar]: "Stacked bar",
     [GRAPHER_CHART_TYPES.Marimekko]: "Marimekko",
+    [GRAPHER_CHART_TYPES.Dumbbell]: "Dumbbell",
 }
 
 export const LONG_CHART_TYPE_LABEL: Record<GrapherChartType, string> = {
@@ -56,6 +58,7 @@ export const LONG_CHART_TYPE_LABEL: Record<GrapherChartType, string> = {
     [GRAPHER_CHART_TYPES.DiscreteBar]: "Bar chart",
     [GRAPHER_CHART_TYPES.StackedDiscreteBar]: "Bar chart",
     [GRAPHER_CHART_TYPES.Marimekko]: "Marimekko chart",
+    [GRAPHER_CHART_TYPES.Dumbbell]: "Dumbbell plot",
 }
 
 const MAP_CHART_TAB_CONFIG_OPTION_TO_CHART_TYPE_NAME: Record<
@@ -73,6 +76,7 @@ const MAP_CHART_TAB_CONFIG_OPTION_TO_CHART_TYPE_NAME: Record<
     [GRAPHER_TAB_CONFIG_OPTIONS["stacked-discrete-bar"]]:
         GRAPHER_CHART_TYPES.StackedDiscreteBar,
     [GRAPHER_TAB_CONFIG_OPTIONS.marimekko]: GRAPHER_CHART_TYPES.Marimekko,
+    [GRAPHER_TAB_CONFIG_OPTIONS.dumbbell]: GRAPHER_CHART_TYPES.Dumbbell,
 }
 
 const MAP_CHART_TYPE_NAME_TO_CHART_TAB_CONFIG_OPTION = R.invert(
