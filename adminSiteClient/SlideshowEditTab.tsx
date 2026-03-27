@@ -18,6 +18,7 @@ import {
 } from "./imagesHelpers.js"
 import { ImageSelectorModal } from "./ImageSelectorModal.js"
 import { useGrapherSlugs } from "./useGrapherSlugs.js"
+import { MarkdownEditor } from "./MarkdownEditor.js"
 
 const TEMPLATE_OPTIONS = Object.entries(SLIDE_TEMPLATE_LABELS).map(
     ([value, label]) => ({ value: value as SlideTemplate, label })
@@ -394,16 +395,15 @@ function TemplateOptionsEditor(props: {
                     )}
                     <label>
                         Text (optional)
-                        <textarea
+                        <MarkdownEditor
                             value={slide.text ?? ""}
-                            onChange={(e) =>
+                            onChange={(text) =>
                                 onUpdate({
                                     ...slide,
-                                    text: e.target.value || undefined,
+                                    text: text || undefined,
                                 })
                             }
                             placeholder="Text displayed beside the image"
-                            rows={4}
                         />
                     </label>
                 </>
@@ -477,16 +477,15 @@ function TemplateOptionsEditor(props: {
                     )}
                     <label>
                         Text (optional)
-                        <textarea
+                        <MarkdownEditor
                             value={slide.text ?? ""}
-                            onChange={(e) =>
+                            onChange={(text) =>
                                 onUpdate({
                                     ...slide,
-                                    text: e.target.value || undefined,
+                                    text: text || undefined,
                                 })
                             }
                             placeholder="Text displayed beside the chart"
-                            rows={4}
                         />
                     </label>
                     <label>
@@ -600,13 +599,10 @@ function TemplateOptionsEditor(props: {
                 <>
                     <label>
                         Quote
-                        <textarea
+                        <MarkdownEditor
                             value={slide.quote}
-                            onChange={(e) =>
-                                onUpdate({ ...slide, quote: e.target.value })
-                            }
+                            onChange={(quote) => onUpdate({ ...slide, quote })}
                             placeholder="Supports **bold** and *italics*"
-                            rows={4}
                         />
                     </label>
                     <label>
