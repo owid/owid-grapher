@@ -1,6 +1,7 @@
 import React from "react"
 import { Slide, SlideTemplate, ImageMetadata } from "@ourworldindata/types"
 import { SimpleMarkdownText } from "@ourworldindata/components"
+import { OWID_LOGO_SVG } from "@ourworldindata/grapher/src/captionedChart/LogosSVG"
 import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"
 import { GrapherFigureView } from "../GrapherFigureView.js"
 
@@ -29,6 +30,7 @@ export function SlideRenderer(props: {
         case SlideTemplate.Cover:
             return (
                 <div className="SlideContent SlideContent--cover">
+                    {!slide.hideLogo && <SlideLogo />}
                     <h1>{slide.title || "Title"}</h1>
                     {slide.subtitle && <h2>{slide.subtitle}</h2>}
                     {slide.author && (
@@ -42,6 +44,7 @@ export function SlideRenderer(props: {
         case SlideTemplate.Section:
             return (
                 <div className="SlideContent SlideContent--section">
+                    {!slide.hideLogo && <SlideLogo />}
                     <h1>{slide.title || "Section Title"}</h1>
                     {slide.subtitle && <h2>{slide.subtitle}</h2>}
                 </div>
@@ -51,6 +54,7 @@ export function SlideRenderer(props: {
                 <div
                     className={`SlideContent SlideContent--image${slide.text ? " SlideContent--with-text" : ""}`}
                 >
+                    {!slide.hideLogo && <SlideLogo />}
                     {slide.sectionTitle && (
                         <p className="SlideContent__section-title">
                             {slide.sectionTitle}
@@ -81,6 +85,7 @@ export function SlideRenderer(props: {
                 <div
                     className={`SlideContent SlideContent--chart${slide.text ? " SlideContent--with-text" : ""}`}
                 >
+                    {!slide.hideLogo && <SlideLogo />}
                     {slide.sectionTitle && (
                         <p className="SlideContent__section-title">
                             {slide.sectionTitle}
@@ -110,7 +115,11 @@ export function SlideRenderer(props: {
                 </div>
             )
         case SlideTemplate.Blank:
-            return <div className="SlideContent SlideContent--blank" />
+            return (
+                <div className="SlideContent SlideContent--blank">
+                    {!slide.hideLogo && <SlideLogo />}
+                </div>
+            )
         default:
             return (
                 <div className="SlideContent SlideContent--placeholder">
@@ -179,5 +188,14 @@ function ChartRenderer(props: {
                 }}
             />
         </div>
+    )
+}
+
+function SlideLogo(): React.ReactElement {
+    return (
+        <span
+            className="SlideContent__logo"
+            dangerouslySetInnerHTML={{ __html: OWID_LOGO_SVG }}
+        />
     )
 }

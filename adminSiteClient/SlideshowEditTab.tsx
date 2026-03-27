@@ -321,6 +321,28 @@ function ChartEditor(props: {
 
 // --- Template options ---
 
+function HideLogoCheckbox(props: {
+    slide: Slide
+    onUpdate: (slide: Slide) => void
+}): React.ReactElement {
+    const { slide, onUpdate } = props
+    return (
+        <label>
+            <input
+                type="checkbox"
+                checked={!!slide.hideLogo}
+                onChange={(e) =>
+                    onUpdate({
+                        ...slide,
+                        hideLogo: e.target.checked || undefined,
+                    })
+                }
+            />{" "}
+            Hide OWID logo
+        </label>
+    )
+}
+
 function TemplateOptionsEditor(props: {
     slide: Slide
     onUpdate: (slide: Slide) => void
@@ -406,6 +428,7 @@ function TemplateOptionsEditor(props: {
                             placeholder="Text displayed beside the image"
                         />
                     </label>
+                    <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
                 </>
             )
 
@@ -501,6 +524,7 @@ function TemplateOptionsEditor(props: {
                         />{" "}
                         Hide chart subtitle
                     </label>
+                    <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
                 </>
             )
 
@@ -532,6 +556,7 @@ function TemplateOptionsEditor(props: {
                             placeholder="Subtitle (optional)"
                         />
                     </label>
+                    <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
                 </>
             )
 
@@ -591,6 +616,7 @@ function TemplateOptionsEditor(props: {
                             placeholder="Date (optional)"
                         />
                     </label>
+                    <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
                 </>
             )
 
@@ -619,6 +645,7 @@ function TemplateOptionsEditor(props: {
                             placeholder="Attribution (optional)"
                         />
                     </label>
+                    <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
                 </>
             )
 
@@ -647,10 +674,11 @@ function TemplateOptionsEditor(props: {
                             placeholder="e.g. World population"
                         />
                     </label>
+                    <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
                 </>
             )
 
         case SlideTemplate.Blank:
-            return <p>No options for blank slides.</p>
+            return <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
     }
 }

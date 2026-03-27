@@ -33,6 +33,7 @@ export interface SlideImageOnly {
     sectionTitle?: string
     slideTitle?: string
     text?: MarkdownText
+    hideLogo?: boolean
 }
 
 export interface SlideChartOnly {
@@ -43,12 +44,14 @@ export interface SlideChartOnly {
     slideTitle?: string
     text?: MarkdownText
     hideSubtitle?: boolean
+    hideLogo?: boolean
 }
 
 export interface SlideSection {
     template: SlideTemplate.Section
     title: string
     subtitle?: string
+    hideLogo?: boolean
 }
 
 export interface SlideTitleSlide {
@@ -57,10 +60,12 @@ export interface SlideTitleSlide {
     subtitle?: string
     author?: string
     date?: string
+    hideLogo?: boolean
 }
 
 export interface SlideBlank {
     template: SlideTemplate.Blank
+    hideLogo?: boolean
 }
 
 export interface SlideQuote {
@@ -68,6 +73,7 @@ export interface SlideQuote {
     quote: MarkdownText
     attribution?: string
     sectionTitle?: string
+    hideLogo?: boolean
 }
 
 export interface SlideBigNumber {
@@ -76,6 +82,7 @@ export interface SlideBigNumber {
     label: string
     sectionTitle?: string
     slideTitle?: string
+    hideLogo?: boolean
 }
 
 export type Slide =
@@ -101,6 +108,7 @@ const SlideImageOnlySchema = z.object({
     sectionTitle: z.string().optional(),
     slideTitle: z.string().optional(),
     text: z.string().optional(),
+    hideLogo: z.boolean().optional(),
 })
 
 const SlideChartOnlySchema = z.object({
@@ -111,12 +119,14 @@ const SlideChartOnlySchema = z.object({
     slideTitle: z.string().optional(),
     text: z.string().optional(),
     hideSubtitle: z.boolean().optional(),
+    hideLogo: z.boolean().optional(),
 })
 
 const SlideSectionSchema = z.object({
     template: z.literal(SlideTemplate.Section),
     title: z.string(),
     subtitle: z.string().optional(),
+    hideLogo: z.boolean().optional(),
 })
 
 const SlideTitleSlideSchema = z.object({
@@ -125,10 +135,12 @@ const SlideTitleSlideSchema = z.object({
     subtitle: z.string().optional(),
     author: z.string().optional(),
     date: z.string().optional(),
+    hideLogo: z.boolean().optional(),
 })
 
 const SlideBlankSchema = z.object({
     template: z.literal(SlideTemplate.Blank),
+    hideLogo: z.boolean().optional(),
 })
 
 const SlideQuoteSchema = z.object({
@@ -136,6 +148,7 @@ const SlideQuoteSchema = z.object({
     quote: z.string(),
     attribution: z.string().optional(),
     sectionTitle: z.string().optional(),
+    hideLogo: z.boolean().optional(),
 })
 
 const SlideBigNumberSchema = z.object({
@@ -144,6 +157,7 @@ const SlideBigNumberSchema = z.object({
     label: z.string(),
     sectionTitle: z.string().optional(),
     slideTitle: z.string().optional(),
+    hideLogo: z.boolean().optional(),
 })
 
 export const SlideSchema = z.discriminatedUnion("template", [
