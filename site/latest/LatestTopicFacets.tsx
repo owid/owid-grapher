@@ -90,9 +90,9 @@ export const LatestTopicFacets = ({
         (topic: string) => {
             const isSelected = selectedTopics.includes(topic)
             if (isSelected) {
-                onTopicsChange(selectedTopics.filter((t) => t !== topic))
+                onTopicsChange([])
             } else {
-                onTopicsChange([...selectedTopics, topic])
+                onTopicsChange([topic])
             }
         },
         [selectedTopics, onTopicsChange]
