@@ -204,7 +204,10 @@ export const LatestTopicFacets = ({
                                     )}
                                     role="option"
                                     aria-selected={selectedFilter === null}
-                                    onClick={() => onFilterChange(null)}
+                                    onClick={() => {
+                                        onFilterChange(null)
+                                        setIsContentTypeDropdownOpen(false)
+                                    }}
                                 >
                                     <span
                                         className={cx(
@@ -249,12 +252,16 @@ export const LatestTopicFacets = ({
                                             onClick={
                                                 isDisabled
                                                     ? undefined
-                                                    : () =>
+                                                    : () => {
                                                           onFilterChange(
                                                               isActive
                                                                   ? null
                                                                   : option.filter
                                                           )
+                                                          setIsContentTypeDropdownOpen(
+                                                              false
+                                                          )
+                                                      }
                                             }
                                         >
                                             <span
