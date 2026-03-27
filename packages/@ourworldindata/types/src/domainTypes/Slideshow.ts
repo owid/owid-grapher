@@ -89,6 +89,8 @@ export type Slide =
 
 export interface SlideshowConfig {
     slides: Slide[]
+    /** Display name(s) of the author(s). Defaults to the creating user's name. */
+    authors?: string
 }
 
 // --- Zod schemas ---
@@ -156,6 +158,7 @@ export const SlideSchema = z.discriminatedUnion("template", [
 
 export const SlideshowConfigSchema = z.object({
     slides: z.array(SlideSchema),
+    authors: z.string().optional(),
 })
 
 export const SlideshowCreateSchema = z.object({

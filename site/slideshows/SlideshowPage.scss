@@ -115,6 +115,10 @@
     }
 }
 
+.SlideshowPresentation__author-link {
+    @include owid-link-90;
+}
+
 // --- Slide content (shared with admin) ---
 
 .SlideGrapher {
