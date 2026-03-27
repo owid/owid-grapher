@@ -109,10 +109,6 @@ import { getDods, getParsedDodsDictionary } from "../db/model/Dod.js"
 import { getLatestArchivedChartPageVersionsIfEnabled } from "../db/model/ArchivedChartVersion.js"
 import { getLatestArchivedMultiDimPageVersionsIfEnabled } from "../db/model/ArchivedMultiDimVersion.js"
 import { SEARCH_BASE_PATH } from "../site/search/searchUtils.js"
-import {
-    getLatestPageItems,
-    enrichLatestPageItems,
-} from "../db/model/Gdoc/GdocPost.js"
 import { PostArchivalManifest } from "../serverUtils/archivalUtils.js"
 
 type PrefetchedAttachments = {
@@ -1097,61 +1093,8 @@ export class SiteBaker {
         if (!this.bakeSteps.has("blogIndex")) return
         this.progressBar.tick({ name: "Baking blog index" })
 
-        // Fetch and render page 1
-        const indexPageData = await getLatestPageItems(knex, 1, [
-            OwidGdocType.Article,
-            OwidGdocType.DataInsight,
-            OwidGdocType.Announcement,
-        ])
-
-        const { linkedAuthors, imageMetadata, linkedCharts, linkedDocuments } =
-            await enrichLatestPageItems(knex, indexPageData.items)
-
-        const indexPageHtml = renderLatestPage(
-            indexPageData.items,
-            imageMetadata,
-            linkedAuthors,
-            linkedCharts,
-            linkedDocuments,
-            indexPageData.pagination.pageNum,
-            indexPageData.pagination.totalPages
-        )
-
-        await this.stageWrite(`${this.bakedSiteDir}/latest.html`, indexPageHtml)
-
-        // Render remaining pages
-        const totalPages = indexPageData.pagination.totalPages
-        for (let pageNum = 2; pageNum <= totalPages; pageNum++) {
-            const pageData = await getLatestPageItems(knex, pageNum, [
-                OwidGdocType.Article,
-                OwidGdocType.DataInsight,
-                OwidGdocType.Announcement,
-            ])
-
-            const {
-                linkedAuthors,
-                imageMetadata,
-                linkedCharts,
-                linkedDocuments,
-            } = await enrichLatestPageItems(knex, pageData.items)
-
-            const pageHtml = renderLatestPage(
-                pageData.items,
-                imageMetadata,
-                linkedAuthors,
-                linkedCharts,
-                linkedDocuments,
-                pageData.pagination.pageNum,
-                pageData.pagination.totalPages
-            )
-
-            const outPath = path.join(
-                this.bakedSiteDir,
-                `latest/page/${pageNum}.html`
-            )
-            await fs.mkdirp(path.dirname(outPath))
-            await this.stageWrite(outPath, pageHtml)
-        }
+        const html = await renderLatestPage(knex)
+        await this.stageWrite(`${this.bakedSiteDir}/latest.html`, html)
     }
 
     // Bake the RSS feed

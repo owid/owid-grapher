@@ -26,12 +26,8 @@ import {
     _OWID_DATA_INSIGHTS_INDEX_PAGE_DATA,
     DataInsightsIndexPageContent,
 } from "./DataInsightsIndexPageContent.js"
-import {
-    _OWID_LATEST_PAGE_DATA,
-    LatestPageContent,
-    LatestPageContentProps,
-    LATEST_PAGE_CONTAINER_ID,
-} from "./LatestPageContent.js"
+import { LatestSearchWrapper } from "./latest/LatestSearchWrapper.js"
+import { LatestSearch } from "./latest/LatestSearch.js"
 import { runAllGraphersLoadedListener } from "./runAllGraphersLoadedListener.js"
 import {
     __OWID_EXPLORER_INDEX_PAGE_PROPS,
@@ -132,14 +128,22 @@ async function hydrateDataInsightsIndexPage() {
     }
 }
 
-function hydrateLatestPage() {
-    const props: LatestPageContentProps = (window as any)[
-        _OWID_LATEST_PAGE_DATA
-    ]
-    const container = document.querySelector(`#${LATEST_PAGE_CONTAINER_ID}`)
-
-    if (container && props) {
-        hydrateRoot(container, <LatestPageContent {...props} />)
+function runLatestPage() {
+    const root = document.getElementById("latest-page-root")
+    const topicTagGraph = window._OWID_TOPIC_TAG_GRAPH
+    if (root) {
+        createRoot(root).render(
+            <BrowserRouter>
+                <LatestSearchWrapper topicTagGraph={topicTagGraph}>
+                    {({ topicTagGraph, liteSearchClient }) => (
+                        <LatestSearch
+                            topicTagGraph={topicTagGraph}
+                            liteSearchClient={liteSearchClient}
+                        />
+                    )}
+                </LatestSearchWrapper>
+            </BrowserRouter>
+        )
     }
 }
 
@@ -417,7 +421,7 @@ export const runSiteFooterScripts = async (
             runUserSurveyWidget()
             break
         case SiteFooterContext.latestPage:
-            hydrateLatestPage()
+            runLatestPage()
             runSiteNavigation(hideDonationFlag)
             runSiteTools()
             runCookiePreferencesManager()

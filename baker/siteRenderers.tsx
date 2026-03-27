@@ -45,10 +45,6 @@ import {
     DbRawChartConfig,
     ExplorerViewsTableName,
     GrapherInterface,
-    ImageMetadata,
-    LatestPageItem,
-    LinkedAuthor,
-    LinkedChart,
     OwidGdocMinimalPostInterface,
     OwidGdocPublicationContext,
 } from "@ourworldindata/types"
@@ -281,25 +277,13 @@ export const renderDataInsightsIndexPage = (
     )
 }
 
-export const renderLatestPage = (
-    posts: LatestPageItem[],
-    imageMetadata: Record<string, ImageMetadata>,
-    linkedAuthors: LinkedAuthor[],
-    linkedCharts: Record<string, LinkedChart>,
-    linkedDocuments: Record<string, OwidGdocMinimalPostInterface>,
-    pageNum: number,
-    totalPages: number
-) => {
+export const renderLatestPage = async (knex: KnexReadonlyTransaction) => {
+    const topicTagGraph = await generateTopicTagGraph(knex)
+    const flattenedTopicTagGraph = flattenNonTopicNodes(topicTagGraph)
     return renderToHtmlPage(
         <LatestPage
-            posts={posts}
-            imageMetadata={imageMetadata}
-            linkedAuthors={linkedAuthors}
-            linkedCharts={linkedCharts}
-            linkedDocuments={linkedDocuments}
-            pageNum={pageNum}
-            numPages={totalPages}
             baseUrl={BAKED_BASE_URL}
+            topicTagGraph={flattenedTopicTagGraph}
         />
     )
 }
