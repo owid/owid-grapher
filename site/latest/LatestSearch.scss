@@ -34,9 +34,11 @@
     flex: 1;
     min-width: 0;
     position: relative;
+    overflow: visible;
 
     .react-horizontal-scrolling-menu--wrapper {
         position: relative;
+        overflow: visible;
     }
 
     .react-horizontal-scrolling-menu--scroll-container {
@@ -114,10 +116,11 @@
     }
 
     &--right {
-        right: 0;
-        background: linear-gradient(to left, $gray-5 40%, transparent);
+        right: -44px;
+        width: #{64px + 44px};
+        background: linear-gradient(to left, $gray-5 60%, transparent);
         justify-content: flex-end;
-        padding-right: 4px;
+        padding-right: 48px;
     }
 
     &:hover {
