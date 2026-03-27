@@ -6,6 +6,7 @@
     align-items: center;
     justify-content: center;
     padding: 32px;
+    position: relative;
 }
 
 .SlideGrapher {
@@ -48,6 +49,14 @@
 .SlideContent--image,
 .SlideContent--chart {
     align-items: stretch;
+}
+
+.SlideContent__logo {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 2;
+    line-height: 0;
 }
 
 .SlideContent__section-title {
