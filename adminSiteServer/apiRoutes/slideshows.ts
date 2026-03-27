@@ -30,11 +30,20 @@ function extractLinksFromSlides(slides: Slide[]): {
     for (const slide of slides) {
         if (slide.template === SlideTemplate.Image && slide.filename) {
             imageFilenames.push(slide.filename)
-        } else if (slide.template === SlideTemplate.Chart) {
+        } else if (slide.template === SlideTemplate.Chart && slide.url) {
+            // Parse the URL to extract the slug and query string
+            const path = slide.url.replace(/^https?:\/\/[^/]+/, "")
+            const isExplorer = path.startsWith("/explorers/")
+            const rest = isExplorer
+                ? path.slice("/explorers/".length)
+                : path.replace(/^\/grapher\//, "")
+            const [slug, qs] = rest.split("?", 2)
             links.push({
-                target: slide.slug,
-                linkType: ContentGraphLinkType.Grapher,
-                queryString: slide.queryString ?? "",
+                target: slug,
+                linkType: isExplorer
+                    ? ContentGraphLinkType.Explorer
+                    : ContentGraphLinkType.Grapher,
+                queryString: qs ? `?${qs}` : "",
                 hash: "",
             })
         }

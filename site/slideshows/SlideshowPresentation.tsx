@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import {
-    Slide,
+    SlideTemplate,
     SlideshowConfig,
     ImageMetadata,
     LinkedAuthor,
@@ -16,7 +16,8 @@ import {
     faCompress,
 } from "@fortawesome/free-solid-svg-icons"
 import { SlideRenderer } from "./SlideRenderer.js"
-import { SlideGrapher } from "./SlideGrapher.js"
+import { SlideChartEmbed } from "./SlideChartEmbed.js"
+import { preloadSlideCharts } from "./slideChartPreload.js"
 
 export const _OWID_SLIDESHOW_PROPS = "_OWID_SLIDESHOW_PROPS"
 
@@ -43,8 +44,7 @@ export function SlideshowPresentation(props: {
     imageMetadata: Record<string, ImageMetadata>
     /** Override chart rendering (used by admin editor for live MobX sync) */
     renderChart?: (
-        slug: string,
-        queryString: string | undefined,
+        url: string,
         options: { hideTitle: boolean; hideSubtitle: boolean }
     ) => React.ReactElement
     /** Controlled slide index (optional — if omitted, manages its own state) */
@@ -69,41 +69,40 @@ export function SlideshowPresentation(props: {
         setCurrentIndex(Math.min(slides.length - 1, currentIndex + 1))
     }, [currentIndex, slides.length, setCurrentIndex])
 
-    // Keyboard navigation
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent): void => {
-            if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-                e.preventDefault()
-                goToPrev()
-            } else if (
-                e.key === "ArrowRight" ||
-                e.key === "ArrowDown" ||
-                e.key === " "
-            ) {
-                e.preventDefault()
-                goToNext()
-            }
-        }
-        window.addEventListener("keydown", handleKeyDown)
-        return () => window.removeEventListener("keydown", handleKeyDown)
-    }, [goToPrev, goToNext])
+    // Consolidated keyboard handler using refs so the listener
+    // is only registered once (not torn down on every navigation).
+    const goToPrevRef = useRef(goToPrev)
+    goToPrevRef.current = goToPrev
+    const goToNextRef = useRef(goToNext)
+    goToNextRef.current = goToNext
 
-    // Owned by this component so that SlideGrapher can persist
-    // the GrapherState across slide transitions.
+    // Owned by this component so that SlideGrapher (via SlideChartEmbed)
+    // can persist the GrapherState across slide transitions.
     const grapherStateRef = useRef<GrapherState | null>(null)
 
-    // Default chart renderer: uses SlideGrapher for smooth same-slug
-    // transitions. The admin editor can override via the renderChart prop.
+    // Preload all chart configs in parallel on mount so navigating
+    // between slides is instant.
+    useEffect(() => {
+        const chartUrls = slides
+            .filter(
+                (s): s is Extract<typeof s, { template: "chart" }> =>
+                    s.template === SlideTemplate.Chart
+            )
+            .map((s) => s.url)
+            .filter(Boolean)
+        preloadSlideCharts(chartUrls)
+    }, [slides])
+
+    // Default chart renderer: uses SlideChartEmbed which resolves
+    // chart type (grapher, multi-dim, explorer) client-side.
     const defaultRenderChart = useCallback(
         (
-            slug: string,
-            queryString: string | undefined,
+            url: string,
             options: { hideTitle: boolean; hideSubtitle: boolean }
         ): React.ReactElement => {
             return (
-                <SlideGrapher
-                    slug={slug}
-                    initialQueryString={queryString}
+                <SlideChartEmbed
+                    url={url}
                     grapherStateRef={grapherStateRef}
                     hideTitle={options.hideTitle}
                     hideSubtitle={options.hideSubtitle}
@@ -136,19 +135,38 @@ export function SlideshowPresentation(props: {
             document.removeEventListener("fullscreenchange", handleChange)
     }, [])
 
-    // Escape exits fullscreen (browser handles this natively, but
-    // we also want Escape to work as a keyboard shortcut)
+    const isFullscreenRef = useRef(isFullscreen)
+    isFullscreenRef.current = isFullscreen
+    const toggleFullscreenRef = useRef(toggleFullscreen)
+    toggleFullscreenRef.current = toggleFullscreen
+
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent): void => {
-            if (e.key === "Escape" && isFullscreen) {
-                void document.exitFullscreen()
-            } else if (e.key === "f") {
-                toggleFullscreen()
+            switch (e.key) {
+                case "ArrowLeft":
+                case "ArrowUp":
+                    e.preventDefault()
+                    goToPrevRef.current()
+                    break
+                case "ArrowRight":
+                case "ArrowDown":
+                case " ":
+                    e.preventDefault()
+                    goToNextRef.current()
+                    break
+                case "Escape":
+                    if (isFullscreenRef.current) {
+                        void document.exitFullscreen()
+                    }
+                    break
+                case "f":
+                    toggleFullscreenRef.current()
+                    break
             }
         }
         window.addEventListener("keydown", handleKeyDown)
         return () => window.removeEventListener("keydown", handleKeyDown)
-    }, [isFullscreen, toggleFullscreen])
+    }, [])
 
     if (!currentSlide) return <div className="SlideshowPresentation" />
 

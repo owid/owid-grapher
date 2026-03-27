@@ -59,14 +59,6 @@
     line-height: 0;
 }
 
-.SlideContent__section-title {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #999;
-    margin-bottom: 4px;
-}
-
 .SlideContent__slide-title {
     font-size: 20px;
     margin-bottom: 16px;
@@ -123,4 +115,17 @@
     color: #333;
     overflow-y: auto;
     white-space: pre-wrap;
+}
+
+.SlideContent__explorer-container {
+    .GrapherComponent {
+        border: none;
+    }
+}
+
+.SlideContent__explorer-container,
+.Explorer,
+.ExplorerFigure,
+.GrapherComponent {
+    height: 100%;
 }

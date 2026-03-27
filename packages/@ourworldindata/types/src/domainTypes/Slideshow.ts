@@ -30,7 +30,6 @@ export type MarkdownText = string
 export interface SlideImageOnly {
     template: SlideTemplate.Image
     filename: string | null
-    sectionTitle?: string
     slideTitle?: string
     text?: MarkdownText
     hideLogo?: boolean
@@ -38,9 +37,8 @@ export interface SlideImageOnly {
 
 export interface SlideChartOnly {
     template: SlideTemplate.Chart
-    slug: string
-    queryString?: string
-    sectionTitle?: string
+    /** Relative URL path, e.g. "/grapher/life-expectancy?tab=table" or "/explorers/population" */
+    url: string
     slideTitle?: string
     text?: MarkdownText
     hideSubtitle?: boolean
@@ -72,7 +70,6 @@ export interface SlideQuote {
     template: SlideTemplate.Quote
     quote: MarkdownText
     attribution?: string
-    sectionTitle?: string
     hideLogo?: boolean
 }
 
@@ -80,7 +77,6 @@ export interface SlideBigNumber {
     template: SlideTemplate.BigNumber
     number: string
     label: string
-    sectionTitle?: string
     slideTitle?: string
     hideLogo?: boolean
 }
@@ -105,7 +101,6 @@ export interface SlideshowConfig {
 const SlideImageOnlySchema = z.object({
     template: z.literal(SlideTemplate.Image),
     filename: z.string().nullable(),
-    sectionTitle: z.string().optional(),
     slideTitle: z.string().optional(),
     text: z.string().optional(),
     hideLogo: z.boolean().optional(),
@@ -113,9 +108,7 @@ const SlideImageOnlySchema = z.object({
 
 const SlideChartOnlySchema = z.object({
     template: z.literal(SlideTemplate.Chart),
-    slug: z.string().min(1),
-    queryString: z.string().optional(),
-    sectionTitle: z.string().optional(),
+    url: z.string().min(1),
     slideTitle: z.string().optional(),
     text: z.string().optional(),
     hideSubtitle: z.boolean().optional(),
@@ -147,7 +140,6 @@ const SlideQuoteSchema = z.object({
     template: z.literal(SlideTemplate.Quote),
     quote: z.string(),
     attribution: z.string().optional(),
-    sectionTitle: z.string().optional(),
     hideLogo: z.boolean().optional(),
 })
 
@@ -155,7 +147,6 @@ const SlideBigNumberSchema = z.object({
     template: z.literal(SlideTemplate.BigNumber),
     number: z.string(),
     label: z.string(),
-    sectionTitle: z.string().optional(),
     slideTitle: z.string().optional(),
     hideLogo: z.boolean().optional(),
 })

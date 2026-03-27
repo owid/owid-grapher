@@ -4,6 +4,7 @@ import { SimpleMarkdownText } from "@ourworldindata/components"
 import { OWID_LOGO_SVG } from "@ourworldindata/grapher/src/captionedChart/LogosSVG"
 import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"
 import { GrapherFigureView } from "../GrapherFigureView.js"
+import { parseSlideChartUrl } from "./slideshowUtils.js"
 
 /**
  * Pure slide rendering component shared between the baked site and the
@@ -19,8 +20,7 @@ export function SlideRenderer(props: {
     imageMetadata?: Record<string, ImageMetadata>
     /** Override chart rendering (for SlideGrapher with live sync) */
     renderChart?: (
-        slug: string,
-        queryString: string | undefined,
+        url: string,
         options: { hideTitle: boolean; hideSubtitle: boolean }
     ) => React.ReactElement
 }): React.ReactElement {
@@ -55,11 +55,6 @@ export function SlideRenderer(props: {
                     className={`SlideContent SlideContent--image${slide.text ? " SlideContent--with-text" : ""}`}
                 >
                     {!slide.hideLogo && <SlideLogo />}
-                    {slide.sectionTitle && (
-                        <p className="SlideContent__section-title">
-                            {slide.sectionTitle}
-                        </p>
-                    )}
                     {slide.slideTitle && (
                         <h2 className="SlideContent__slide-title">
                             <SimpleMarkdownText
@@ -89,11 +84,6 @@ export function SlideRenderer(props: {
                     className={`SlideContent SlideContent--chart${slide.text ? " SlideContent--with-text" : ""}`}
                 >
                     {!slide.hideLogo && <SlideLogo />}
-                    {slide.sectionTitle && (
-                        <p className="SlideContent__section-title">
-                            {slide.sectionTitle}
-                        </p>
-                    )}
                     {slide.slideTitle && (
                         <h2 className="SlideContent__slide-title">
                             <SimpleMarkdownText
@@ -105,8 +95,7 @@ export function SlideRenderer(props: {
                     <div className="SlideContent__body">
                         <div className="SlideContent__media">
                             <ChartRenderer
-                                slug={slide.slug}
-                                queryString={slide.queryString}
+                                url={slide.url}
                                 hideTitle={!!slide.slideTitle}
                                 hideSubtitle={!!slide.hideSubtitle}
                                 renderChart={renderChart}
@@ -160,28 +149,29 @@ function ImageRenderer(props: {
 }
 
 function ChartRenderer(props: {
-    slug: string
-    queryString?: string
+    url: string
     hideTitle: boolean
     hideSubtitle: boolean
     renderChart?: (
-        slug: string,
-        queryString: string | undefined,
+        url: string,
         options: { hideTitle: boolean; hideSubtitle: boolean }
     ) => React.ReactElement
 }): React.ReactElement {
-    const { slug, queryString, hideTitle, hideSubtitle, renderChart } = props
+    const { url, hideTitle, hideSubtitle, renderChart } = props
 
     if (renderChart) {
-        return renderChart(slug, queryString, { hideTitle, hideSubtitle })
+        return renderChart(url, { hideTitle, hideSubtitle })
     }
 
-    // Default: use GrapherFigureView for the baked site (SSR fallback)
+    // Default SSR fallback: parse URL and render GrapherFigureView.
+    // This only handles /grapher/ URLs; multi-dim and explorer
+    // rendering requires the client-side SlideChartEmbed component.
+    const parsed = parseSlideChartUrl(url)
     return (
         <div className="SlideContent__grapher-container">
             <GrapherFigureView
-                slug={slug}
-                queryStr={queryString}
+                slug={parsed.slug}
+                queryStr={parsed.queryString}
                 isEmbeddedInAnOwidPage={true}
                 isEmbeddedInADataPage={false}
                 config={{

@@ -56,8 +56,8 @@ import { FeaturedMetricsPage } from "./FeaturedMetricsPage.js"
 import { DodsIndexPage } from "./DodsIndexPage.js"
 import { StaticVizIndexPage } from "./StaticVizIndexPage.js"
 import { StaticVizEditPage } from "./StaticVizEditPage.js"
-import { SlideshowsIndexPage } from "./SlideshowsIndexPage.js"
-import { SlideshowEditorPage } from "./SlideshowEditorPage.js"
+import { SlideshowsIndexPage } from "./slideshows/SlideshowsIndexPage.js"
+import { SlideshowEditorPage } from "./slideshows/SlideshowEditorPage.js"
 
 const queryClient = new QueryClient({
     defaultOptions: {

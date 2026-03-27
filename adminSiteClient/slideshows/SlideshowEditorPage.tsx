@@ -18,9 +18,8 @@ import {
     faChevronRight,
 } from "@fortawesome/free-solid-svg-icons"
 import { GrapherState } from "@ourworldindata/grapher"
-
-import { AdminLayout } from "./AdminLayout.js"
-import { AdminAppContext } from "./AdminAppContext.js"
+import { AdminLayout } from "../AdminLayout.js"
+import { AdminAppContext } from "../AdminAppContext.js"
 import {
     DbPlainSlideshow,
     ImageMetadata,
@@ -28,15 +27,12 @@ import {
     SlideTemplate,
     SlideshowConfig,
 } from "@ourworldindata/types"
-import { slugify } from "@ourworldindata/utils"
+import { slugify, Url } from "@ourworldindata/utils"
 import { SlideshowEditTab } from "./SlideshowEditTab.js"
 import { SlideshowArrangeTab } from "./SlideshowArrangeTab.js"
-
-import { useImages } from "./useImages.js"
-import { SlideGrapher } from "./../site/slideshows/SlideGrapher.js"
-import { SlideRenderer } from "../site/slideshows/SlideRenderer.js"
-
-import "./SlideshowEditorPage.scss"
+import { useImages } from "../useImages.js"
+import { SlideRenderer } from "../../site/slideshows/SlideRenderer.js"
+import { SlideChartEmbed } from "../../site/slideshows/SlideChartEmbed.js"
 
 function makeDefaultSlide(): Slide {
     return {
@@ -112,12 +108,17 @@ export function SlideshowEditorPage(props: {
                 const slide = prev[currentSlideIndex]
                 if (!slide || slide.template !== SlideTemplate.Chart)
                     return prev
-                if ((slide.queryString ?? "") === queryString) return prev
+                // Update the query string portion of the URL,
+                // preserving any hash fragment
+                const parsed = Url.fromURL(slide.url)
+                const basePath = parsed.originAndPath ?? ""
+                const hash = parsed.hash
+                const newUrl = queryString
+                    ? `${basePath}${queryString}${hash}`
+                    : `${basePath}${hash}`
+                if (slide.url === newUrl) return prev
                 const next = [...prev]
-                next[currentSlideIndex] = {
-                    ...slide,
-                    queryString: queryString || undefined,
-                }
+                next[currentSlideIndex] = { ...slide, url: newUrl }
                 return next
             })
             // SlideGrapher gates its reaction behind when(isReady) and
@@ -292,13 +293,11 @@ export function SlideshowEditorPage(props: {
                                     slide={currentSlide}
                                     imageMetadata={imageMetadata}
                                     renderChart={(
-                                        slug,
-                                        queryString,
+                                        url,
                                         { hideTitle, hideSubtitle }
                                     ) => (
-                                        <SlideGrapher
-                                            slug={slug}
-                                            initialQueryString={queryString}
+                                        <SlideChartEmbed
+                                            url={url}
                                             grapherStateRef={grapherStateRef}
                                             onQueryStringChange={
                                                 handleGrapherQueryStringChange

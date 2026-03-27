@@ -2,16 +2,16 @@ import { useCallback, useContext, useEffect, useMemo, useState } from "react"
 import * as React from "react"
 import { Button, Flex, Input, Space, Table, TableColumnsType } from "antd"
 
-import { AdminLayout } from "./AdminLayout.js"
-import { AdminAppContext } from "./AdminAppContext.js"
-import { Timeago } from "./Forms.js"
-import { ApiSlideshowOverview } from "../adminShared/AdminTypes.js"
-import { Link } from "./Link.js"
+import { AdminLayout } from "../AdminLayout.js"
+import { AdminAppContext } from "../AdminAppContext.js"
+import { Timeago } from "../Forms.js"
+import { ApiSlideshowOverview } from "../../adminShared/AdminTypes.js"
+import { Link } from "../Link.js"
 import {
     buildSearchWordsFromSearchString,
     filterFunctionForSearchWords,
     highlightFunctionForSearchWords,
-} from "../adminShared/search.js"
+} from "../../adminShared/search.js"
 
 function createColumns(ctx: {
     highlightFn: (

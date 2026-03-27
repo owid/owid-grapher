@@ -6,11 +6,8 @@ import {
     GuidedChartContext,
     GuidedChartContextValue,
 } from "@ourworldindata/grapher"
-import {
-    Bounds,
-    queryParamsToStr,
-    strToQueryParams,
-} from "@ourworldindata/utils"
+import { queryParamsToStr, strToQueryParams } from "@ourworldindata/utils"
+import { useElementBounds } from "../hooks.js"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
@@ -20,8 +17,10 @@ import {
 } from "../../settings/clientSettings.js"
 
 export interface SlideGrapherProps {
-    /** Chart slug to render */
+    /** Chart slug — used as the React key for remounting */
     slug: string
+    /** Override the config URL (e.g. for multi-dim views loaded by UUID) */
+    configUrl?: string
     /** Initial query string — only applied on first mount for a given slug */
     initialQueryString?: string
     /**
@@ -57,11 +56,10 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
         props
 
     const containerRef = useRef<HTMLDivElement>(null)
-    const [bounds, setBounds] = React.useState<Bounds>(
-        new Bounds(0, 0, 800, 450)
-    )
+    const bounds = useElementBounds(containerRef)
 
-    const configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/${slug}.config.json`
+    const resolvedConfigUrl =
+        props.configUrl ?? `${GRAPHER_DYNAMIC_CONFIG_URL}/${slug}.config.json`
 
     // Capture initialQueryString at mount time so it doesn't change
     // on re-renders (which would cause FetchingGrapher to re-init).
@@ -74,10 +72,6 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
         [grapherStateRef]
     )
 
-    // Static config — must NOT include hideTitle/hideSubtitle because
-    // changing the config reference triggers FetchingGrapher's config
-    // fetch effect, which calls reset() and wipes query params.
-    // Instead, those display flags are applied imperatively below.
     const grapherConfig = useMemo(
         () => ({
             bakedGrapherURL: BAKED_GRAPHER_URL,
@@ -86,38 +80,12 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
             hideExploreTheDataButton: true,
             hideRelatedQuestion: true,
             hideLogo: true,
+            hideTitle: props.hideTitle ?? false,
+            hideSubtitle: props.hideSubtitle ?? false,
             isEmbeddedInAnOwidPage: true,
         }),
-        []
+        [props.hideTitle, props.hideSubtitle]
     )
-
-    // Apply hideTitle/hideSubtitle imperatively on the GrapherState
-    // so that toggling them doesn't cause FetchingGrapher to re-fetch.
-    useEffect(() => {
-        const state = grapherStateRef.current
-        if (!state) return
-        runInAction(() => {
-            state.hideTitle = props.hideTitle ?? false
-            state.hideSubtitle = props.hideSubtitle ?? false
-        })
-    }, [props.hideTitle, props.hideSubtitle, grapherStateRef])
-
-    // Measure the container and update bounds
-    useEffect(() => {
-        const el = containerRef.current
-        if (!el) return
-
-        const observer = new ResizeObserver((entries) => {
-            for (const entry of entries) {
-                const { width, height } = entry.contentRect
-                if (width > 0 && height > 0) {
-                    setBounds(new Bounds(0, 0, width, height))
-                }
-            }
-        })
-        observer.observe(el)
-        return () => observer.disconnect()
-    }, [])
 
     // When the slug changes, clear the ref so FetchingGrapher creates
     // a fresh GrapherState for the new chart.
@@ -199,9 +167,17 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
                     strToQueryParams(initialQueryString)
                 )
             }
+            // Re-apply display overrides for the new slide
+            state.hideTitle = props.hideTitle ?? false
+            state.hideSubtitle = props.hideSubtitle ?? false
         })
         isSuppressingReactionRef.current = false
-    }, [initialQueryString, grapherStateRef])
+    }, [
+        initialQueryString,
+        grapherStateRef,
+        props.hideTitle,
+        props.hideSubtitle,
+    ])
 
     return (
         <div ref={containerRef} className="SlideGrapher">
@@ -209,7 +185,7 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
                 <FetchingGrapher
                     key={slug}
                     config={grapherConfig}
-                    configUrl={configUrl}
+                    configUrl={resolvedConfigUrl}
                     dataApiUrl={DATA_API_URL}
                     catalogUrl={CATALOG_URL}
                     archiveContext={undefined}

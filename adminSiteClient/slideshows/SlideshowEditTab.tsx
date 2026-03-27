@@ -1,6 +1,6 @@
-import { useContext, useMemo, useState } from "react"
+import { useContext, useState } from "react"
 import * as React from "react"
-import { AutoComplete, Button, Select, Upload } from "antd"
+import { Button, Select, Upload } from "antd"
 import { useQueryClient } from "@tanstack/react-query"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faImages, faUpload } from "@fortawesome/free-solid-svg-icons"
@@ -10,15 +10,14 @@ import {
     SLIDE_TEMPLATE_LABELS,
 } from "@ourworldindata/types"
 import { RcFile } from "antd/es/upload/interface.js"
-import { AdminAppContext } from "./AdminAppContext.js"
+import { AdminAppContext } from "../AdminAppContext.js"
 import {
     ACCEPTED_IMG_TYPES,
     fileToBase64,
     ImageUploadResponse,
-} from "./imagesHelpers.js"
-import { ImageSelectorModal } from "./ImageSelectorModal.js"
-import { useGrapherSlugs } from "./useGrapherSlugs.js"
-import { InlineMarkdownEditor, MarkdownEditor } from "./MarkdownEditor.js"
+} from "../imagesHelpers.js"
+import { ImageSelectorModal } from "../ImageSelectorModal.js"
+import { InlineMarkdownEditor, MarkdownEditor } from "../MarkdownEditor.js"
 
 const TEMPLATE_OPTIONS = Object.entries(SLIDE_TEMPLATE_LABELS).map(
     ([value, label]) => ({ value: value as SlideTemplate, label })
@@ -35,7 +34,7 @@ function makeDefaultSlideForTemplate(template: SlideTemplate): Slide {
         case SlideTemplate.Image:
             return { template, filename: null }
         case SlideTemplate.Chart:
-            return { template, slug: "" }
+            return { template, url: "" }
         case SlideTemplate.Section:
             return { template, title: "" }
         case SlideTemplate.Cover:
@@ -53,20 +52,9 @@ function makeDefaultSlideForTemplate(template: SlideTemplate): Slide {
 function slideHasContent(slide: Slide): boolean {
     switch (slide.template) {
         case SlideTemplate.Image:
-            return (
-                slide.filename !== null ||
-                !!slide.sectionTitle ||
-                !!slide.slideTitle ||
-                !!slide.text
-            )
+            return slide.filename !== null || !!slide.slideTitle || !!slide.text
         case SlideTemplate.Chart:
-            return (
-                !!slide.slug ||
-                !!slide.queryString ||
-                !!slide.sectionTitle ||
-                !!slide.slideTitle ||
-                !!slide.text
-            )
+            return !!slide.url || !!slide.slideTitle || !!slide.text
         case SlideTemplate.Section:
             return !!slide.title || !!slide.subtitle
         case SlideTemplate.Cover:
@@ -234,87 +222,32 @@ function ImageEditor(props: {
 
 // --- Chart editor ---
 
-const GRAPHER_URL_REGEX = /^https?:\/\/[^/]*\/grapher\/([a-z0-9-]+)(\?.*)?$/i
-
-/** Parse a full grapher URL into slug + queryString, or return null */
-function parseGrapherUrl(
-    input: string
-): { slug: string; queryString?: string } | null {
-    const match = input.match(GRAPHER_URL_REGEX)
-    if (!match) return null
-    return {
-        slug: match[1],
-        queryString: match[2] || undefined,
-    }
+/** Match full OWID URLs for grapher, explorer, or multi-dim */
+/** Normalize a full or relative OWID URL to a relative path */
+function normalizeChartUrl(input: string): string {
+    // Strip full URL prefix if present
+    return input.replace(/^https?:\/\/[^/]+/, "")
 }
 
 function ChartEditor(props: {
-    slug: string
-    queryString?: string
-    onChange: (slug: string, queryString?: string) => void
+    url: string
+    onChange: (url: string) => void
 }): React.ReactElement {
-    const { slug, queryString, onChange } = props
-
-    const { data: grapherSlugs = [] } = useGrapherSlugs()
-
-    const [searchText, setSearchText] = useState(slug)
-
-    // Keep search text in sync when the committed slug changes
-    // externally (e.g. navigating between slides).
-    const prevSlugRef = React.useRef(slug)
-    if (prevSlugRef.current !== slug) {
-        prevSlugRef.current = slug
-        setSearchText(slug)
-    }
-
-    const options = useMemo(() => {
-        if (!searchText) return []
-        const term = searchText.toLowerCase()
-        return grapherSlugs
-            .filter((s) => s.toLowerCase().includes(term))
-            .sort((a, b) => a.length - b.length)
-            .slice(0, 50)
-            .map((s) => ({ value: s, label: s }))
-    }, [grapherSlugs, searchText])
-
-    const handleSearch = (text: string): void => {
-        setSearchText(text)
-        if (!text) {
-            onChange("")
-            return
-        }
-        // If user pastes a full URL, commit immediately
-        const parsed = parseGrapherUrl(text)
-        if (parsed) {
-            setSearchText(parsed.slug)
-            onChange(parsed.slug, parsed.queryString)
-        }
-    }
-
-    const handleSelect = (selected: string): void => {
-        setSearchText(selected)
-        // Clear queryString when selecting a new slug
-        onChange(selected)
-    }
+    const { url, onChange } = props
 
     return (
         <div className="SlideshowEditTab__media-editor">
             <label>
-                Grapher chart:
-                <AutoComplete
-                    value={searchText}
-                    options={options}
-                    onSearch={handleSearch}
-                    onSelect={handleSelect}
-                    placeholder="Search by slug or paste a full grapher URL..."
-                    style={{ width: "100%" }}
+                Chart URL:
+                <input
+                    type="text"
+                    value={url}
+                    onChange={(e) =>
+                        onChange(normalizeChartUrl(e.target.value))
+                    }
+                    placeholder="/grapher/life-expectancy or paste a full URL"
                 />
             </label>
-            {slug && queryString && (
-                <p className="SlideshowEditTab__query-string-display">
-                    {queryString}
-                </p>
-            )}
         </div>
     )
 }
@@ -362,34 +295,6 @@ function TemplateOptionsEditor(props: {
                     <label>
                         <input
                             type="checkbox"
-                            checked={slide.sectionTitle !== undefined}
-                            onChange={(e) =>
-                                onUpdate({
-                                    ...slide,
-                                    sectionTitle: e.target.checked
-                                        ? ""
-                                        : undefined,
-                                })
-                            }
-                        />{" "}
-                        Section title
-                    </label>
-                    {slide.sectionTitle !== undefined && (
-                        <input
-                            type="text"
-                            value={slide.sectionTitle}
-                            onChange={(e) =>
-                                onUpdate({
-                                    ...slide,
-                                    sectionTitle: e.target.value,
-                                })
-                            }
-                            placeholder="Section title"
-                        />
-                    )}
-                    <label>
-                        <input
-                            type="checkbox"
                             checked={slide.slideTitle !== undefined}
                             onChange={(e) =>
                                 onUpdate({
@@ -432,40 +337,9 @@ function TemplateOptionsEditor(props: {
             return (
                 <>
                     <ChartEditor
-                        slug={slide.slug}
-                        queryString={slide.queryString}
-                        onChange={(slug, queryString) =>
-                            onUpdate({ ...slide, slug, queryString })
-                        }
+                        url={slide.url}
+                        onChange={(url) => onUpdate({ ...slide, url })}
                     />
-                    <label>
-                        <input
-                            type="checkbox"
-                            checked={slide.sectionTitle !== undefined}
-                            onChange={(e) =>
-                                onUpdate({
-                                    ...slide,
-                                    sectionTitle: e.target.checked
-                                        ? ""
-                                        : undefined,
-                                })
-                            }
-                        />{" "}
-                        Section title
-                    </label>
-                    {slide.sectionTitle !== undefined && (
-                        <input
-                            type="text"
-                            value={slide.sectionTitle}
-                            onChange={(e) =>
-                                onUpdate({
-                                    ...slide,
-                                    sectionTitle: e.target.value,
-                                })
-                            }
-                            placeholder="Section title"
-                        />
-                    )}
                     <label>
                         <input
                             type="checkbox"
