@@ -1,5 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from "react"
-import { Slide, SlideshowConfig, ImageMetadata } from "@ourworldindata/types"
+import {
+    Slide,
+    SlideshowConfig,
+    ImageMetadata,
+    LinkedAuthor,
+    OwidGdocType,
+} from "@ourworldindata/types"
+import { getCanonicalUrl } from "@ourworldindata/components"
 import { GrapherState } from "@ourworldindata/grapher"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -15,6 +22,8 @@ export const _OWID_SLIDESHOW_PROPS = "_OWID_SLIDESHOW_PROPS"
 
 export interface SlideshowPresentationProps {
     title: string
+    authors?: string
+    linkedAuthors: LinkedAuthor[]
     slides: SlideshowConfig["slides"]
     imageMetadata: Record<string, ImageMetadata>
 }
@@ -28,6 +37,8 @@ export interface SlideshowPresentationProps {
  */
 export function SlideshowPresentation(props: {
     title: string
+    authors?: string
+    linkedAuthors?: LinkedAuthor[]
     slides: SlideshowConfig["slides"]
     imageMetadata: Record<string, ImageMetadata>
     /** Override chart rendering (used by admin editor for live MobX sync) */
@@ -41,7 +52,7 @@ export function SlideshowPresentation(props: {
     /** Called when the user navigates (optional — for controlled mode) */
     onSlideChange?: (index: number) => void
 }): React.ReactElement {
-    const { slides, imageMetadata, renderChart } = props
+    const { authors, linkedAuthors, slides, imageMetadata, renderChart } = props
 
     // Support both controlled and uncontrolled modes
     const [internalIndex, setInternalIndex] = useState(0)
@@ -155,7 +166,11 @@ export function SlideshowPresentation(props: {
             </div>
             <div className="SlideshowPresentation__footer">
                 <span className="SlideshowPresentation__branding">
-                    A presentation by <strong>Our World in Data</strong>
+                    A presentation by{" "}
+                    <AuthorByline
+                        authors={authors}
+                        linkedAuthors={linkedAuthors}
+                    />
                 </span>
                 <div className="SlideshowPresentation__nav">
                     <button
@@ -191,5 +206,53 @@ export function SlideshowPresentation(props: {
                 </button>
             </div>
         </div>
+    )
+}
+
+/** Renders author names, linking to their author page when available */
+function AuthorByline(props: {
+    authors?: string
+    linkedAuthors?: LinkedAuthor[]
+}): React.ReactElement {
+    const { authors, linkedAuthors } = props
+
+    if (!authors) {
+        return <>Our World in Data</>
+    }
+
+    const names = authors
+        .split(",")
+        .map((n) => n.trim())
+        .filter(Boolean)
+
+    return (
+        <>
+            {names.map((name, i) => {
+                const linked = linkedAuthors?.find((a) => a.name === name)
+                const isLast = i === names.length - 1
+                const isSecondToLast = i === names.length - 2
+                return (
+                    <React.Fragment key={name}>
+                        {linked ? (
+                            <a
+                                className="SlideshowPresentation__author-link"
+                                href={getCanonicalUrl("", {
+                                    slug: linked.slug,
+                                    content: {
+                                        type: OwidGdocType.Author,
+                                    },
+                                })}
+                            >
+                                {name}
+                            </a>
+                        ) : (
+                            <span>{name}</span>
+                        )}
+                        {!isLast && names.length > 2 && ", "}
+                        {isSecondToLast && names.length > 1 && " and "}
+                    </React.Fragment>
+                )
+            })}
+        </>
     )
 }

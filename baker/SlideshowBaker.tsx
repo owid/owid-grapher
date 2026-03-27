@@ -11,6 +11,7 @@ import {
 } from "@ourworldindata/types"
 import { renderSlideshowPage } from "./siteRenderers.js"
 import { getImagesByFilenames } from "../db/model/Image.js"
+import { getMinimalAuthorsByNames } from "../db/model/Gdoc/GdocBase.js"
 
 /** Extract all image filenames referenced in the slides */
 function extractImageFilenames(slides: Slide[]): string[] {
@@ -54,11 +55,41 @@ export async function bakeAllPublishedSlideshows(
         }
     }
 
+    // Collect all author names and resolve to LinkedAuthors
+    const allAuthorNames = new Set<string>()
     for (const slideshow of slideshows) {
         const config =
             typeof slideshow.config === "string"
                 ? JSON.parse(slideshow.config)
                 : slideshow.config
+        if (config.authors) {
+            for (const name of config.authors.split(",")) {
+                const trimmed = name.trim()
+                if (trimmed) allAuthorNames.add(trimmed)
+            }
+        }
+    }
+    const allLinkedAuthors =
+        allAuthorNames.size > 0
+            ? await getMinimalAuthorsByNames(knex, [...allAuthorNames])
+            : []
+
+    for (const slideshow of slideshows) {
+        const config =
+            typeof slideshow.config === "string"
+                ? JSON.parse(slideshow.config)
+                : slideshow.config
+
+        // Filter linked authors to only those referenced by this slideshow
+        const authorNames = config.authors
+            ? config.authors
+                  .split(",")
+                  .map((n: string) => n.trim())
+                  .filter(Boolean)
+            : []
+        const linkedAuthors = allLinkedAuthors.filter((a) =>
+            authorNames.includes(a.name)
+        )
 
         const html = await renderSlideshowPage(
             {
@@ -66,7 +97,8 @@ export async function bakeAllPublishedSlideshows(
                 slug: slideshow.slug,
                 config,
             },
-            imageMetadataByFilename
+            imageMetadataByFilename,
+            linkedAuthors
         )
 
         const outDir = path.join(bakedSiteDir, "slideshows")

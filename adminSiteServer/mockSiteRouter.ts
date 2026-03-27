@@ -720,6 +720,8 @@ getPlainRouteWithROTransaction(
     async (req, res, trx) => {
         const { renderSlideshowPage } =
             await import("../baker/siteRenderers.js")
+        const { getMinimalAuthorsByNames } =
+            await import("../db/model/Gdoc/GdocBase.js")
         const slideshow = await trx("slideshows")
             .where("slug", req.params.slug)
             .first()
@@ -746,9 +748,22 @@ getPlainRouteWithROTransaction(
                 ? await getImageMetadataByFilenames(trx, imageFilenames)
                 : {}
 
+        // Resolve author names to linked author pages
+        const authorNames = config.authors
+            ? config.authors
+                  .split(",")
+                  .map((n: string) => n.trim())
+                  .filter(Boolean)
+            : []
+        const linkedAuthors =
+            authorNames.length > 0
+                ? await getMinimalAuthorsByNames(trx, authorNames)
+                : []
+
         const html = await renderSlideshowPage(
             { title: slideshow.title, slug: slideshow.slug, config },
-            imageMetadata
+            imageMetadata,
+            linkedAuthors
         )
         return res.send(html)
     }
