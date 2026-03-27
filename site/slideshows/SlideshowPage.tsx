@@ -6,9 +6,11 @@ import {
     SiteFooterContext,
     ImageMetadata,
     LinkedAuthor,
+    SlideTemplate,
     SlideshowConfig,
     serializeJSONForHTML,
 } from "@ourworldindata/utils"
+import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"
 import {
     SlideshowPresentation,
     SlideshowPresentationProps,
@@ -46,6 +48,19 @@ export function SlideshowPage(props: SlideshowPageProps): React.ReactElement {
         imageMetadata,
     }
 
+    // Collect all image URLs for preloading
+    const imageUrls: string[] = []
+    for (const slide of slides) {
+        if (slide.template === SlideTemplate.Image && slide.filename) {
+            const metadata = imageMetadata[slide.filename]
+            if (metadata?.cloudflareId) {
+                imageUrls.push(
+                    `${CLOUDFLARE_IMAGES_URL}/${metadata.cloudflareId}/w=960`
+                )
+            }
+        }
+    }
+
     return (
         <Html>
             <Head
@@ -53,7 +68,11 @@ export function SlideshowPage(props: SlideshowPageProps): React.ReactElement {
                 pageTitle={title}
                 pageDesc={`${title} — Our World in Data slideshow`}
                 baseUrl={baseUrl}
-            />
+            >
+                {imageUrls.map((url) => (
+                    <link key={url} rel="preload" as="image" href={url} />
+                ))}
+            </Head>
             <body id="slideshow-page">
                 <main id="slideshow-page-container">
                     <SlideshowPresentation {...presentationProps} />
