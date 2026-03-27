@@ -1386,6 +1386,13 @@ const parseGuidedChart = (
             if (node.type === "chart") {
                 chartCount++
             }
+            if (node.type === "small-chart" && (node.title || node.source)) {
+                contentErrors.push({
+                    message:
+                        "small-chart inside a guided-chart should not have title or source — these are hidden in guided chart mode",
+                    isWarning: true,
+                })
+            }
             if (node.parseErrors.length) {
                 contentErrors.push(
                     ...node.parseErrors.map((error) => ({

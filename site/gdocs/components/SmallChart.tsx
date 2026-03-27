@@ -69,6 +69,8 @@ export default function SmallChart({
     d: EnrichedBlockSmallChart
     className?: string
 }) {
+    const isInGuidedChart = !!useGuidedChartLinkHandler()
+
     if (d.variant === "pull-quote") {
         const row = d.rows[0]
         if (!row) return null
@@ -82,16 +84,22 @@ export default function SmallChart({
         )
     }
 
+    const rowsClassName = isInGuidedChart
+        ? "small-chart small-chart--rows small-chart--guided"
+        : "small-chart small-chart--rows"
+
     return (
-        <div className={`small-chart small-chart--rows ${className}`}>
+        <div className={`${rowsClassName} ${className}`}>
             {d.kicker && <p className="small-chart__kicker">{d.kicker}</p>}
-            {d.title && <h4 className="small-chart__title">{d.title}</h4>}
+            {!isInGuidedChart && d.title && (
+                <h4 className="small-chart__title">{d.title}</h4>
+            )}
             <div className="small-chart__rows-container">
                 {d.rows.map((row, i) => (
                     <SmallChartRowItem key={i} row={row} />
                 ))}
             </div>
-            {d.source && (
+            {!isInGuidedChart && d.source && (
                 <p className="small-chart__source">
                     <strong>Data source: </strong>
                     {d.source}

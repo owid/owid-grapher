@@ -61,7 +61,12 @@
         @include h5-black-caps;
         & {
             color: $blue-50;
-            margin: 0 0 2px;
+            margin: 0 0 24px;
+        }
+
+        // Tighten gap when followed by a title
+        + .small-chart__title {
+            margin-top: -22px;
         }
     }
 
@@ -178,5 +183,26 @@
 
     .small-chart__content .article-block__text {
         @include body-3-regular;
+    }
+
+    // Inside a guided chart: no outer borders, no margins, kicker only
+    &.small-chart--guided {
+        margin-top: 0;
+        margin-bottom: 0;
+        border-top: none;
+        border-bottom: none;
+        padding-top: 0;
+        padding-bottom: 0;
+
+        .small-chart__rows-container {
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+
+        // Keep the bottom divider on the last row
+        .small-chart__row-item:last-child {
+            border-bottom: 1px solid $blue-10;
+            padding-bottom: 24px;
+        }
     }
 }
