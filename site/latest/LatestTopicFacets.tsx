@@ -1,4 +1,11 @@
-import React, { useCallback, useContext, useMemo, useState } from "react"
+import React, {
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react"
 import cx from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -86,6 +93,9 @@ export const LatestTopicFacets = ({
     const [isContentTypeDropdownOpen, setIsContentTypeDropdownOpen] =
         useState(false)
 
+    type ScrollApiType = React.ContextType<typeof VisibilityContext>
+    const apiRef = useRef({} as ScrollApiType)
+
     const handleTopicToggle = useCallback(
         (topic: string) => {
             const isSelected = selectedTopics.includes(topic)
@@ -94,9 +104,27 @@ export const LatestTopicFacets = ({
             } else {
                 onTopicsChange([topic])
             }
+            const item = apiRef.current.getItemById?.(topic)
+            if (item) {
+                apiRef.current.scrollToItem(item, "smooth", "center")
+            }
         },
         [selectedTopics, onTopicsChange]
     )
+
+    // Scroll the selected topic into view on initial load
+    useEffect(() => {
+        const topic = selectedTopics[0]
+        if (!topic) return
+        // Delay to allow ScrollMenu to register items
+        const timer = requestAnimationFrame(() => {
+            const item = apiRef.current.getItemById?.(topic)
+            if (item) {
+                apiRef.current.scrollToItem(item, "smooth", "center")
+            }
+        })
+        return () => cancelAnimationFrame(timer)
+    }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
     const contentTypeLabel = useMemo(() => {
         if (!selectedFilter) return "Content types"
@@ -110,7 +138,11 @@ export const LatestTopicFacets = ({
         <div className="latest-search__filters-wrapper">
             <div className="latest-search__filters">
                 <div className="latest-search__topic-pills">
-                    <ScrollMenu LeftArrow={LeftArrow} RightArrow={RightArrow}>
+                    <ScrollMenu
+                        LeftArrow={LeftArrow}
+                        RightArrow={RightArrow}
+                        apiRef={apiRef}
+                    >
                         {[
                             <TopicPill
                                 key="all"
