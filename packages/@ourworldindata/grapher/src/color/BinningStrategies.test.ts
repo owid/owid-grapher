@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 import {
     mirrorBinsAroundMidpoint,
     pruneUnusedBins,
+    runBinningStrategy,
 } from "./BinningStrategies.js"
 
 describe(mirrorBinsAroundMidpoint, () => {
@@ -36,5 +37,27 @@ describe(pruneUnusedBins, () => {
         const bins = [0, 1, 2, 3, 4, 5]
         const prunedBins = pruneUnusedBins(bins, { minValue: 1, maxValue: 4.2 })
         expect(prunedBins).toEqual([1, 2, 3, 4, 5])
+    })
+})
+
+describe(runBinningStrategy, () => {
+    it("uses few-bins instead of log for wide positive ranges in auto mode", () => {
+        const sortedValues = [1, 2, 5, 10, 20, 50, 100, 300, 1000]
+
+        expect(
+            runBinningStrategy({
+                strategy: "auto",
+                sortedValues,
+                midpointMode: "none",
+                midpoint: 0,
+            }).bins
+        ).toEqual(
+            runBinningStrategy({
+                strategy: "equalSizeBins-few-bins",
+                sortedValues,
+                midpointMode: "none",
+                midpoint: 0,
+            }).bins
+        )
     })
 })
