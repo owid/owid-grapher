@@ -51,6 +51,7 @@ import {
     LinkedChart,
     OwidGdocMinimalPostInterface,
     OwidGdocPublicationContext,
+    Slide,
 } from "@ourworldindata/types"
 import { formatPost } from "./formatWordpressPost.js"
 import {
@@ -104,6 +105,7 @@ import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import { getImagesByFilenames } from "../db/model/Image.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import { getLatestArchivedPostPageVersionsIfEnabled } from "../db/model/ArchivedPostVersion.js"
+import { SlideshowPage } from "../site/slideshows/SlideshowPage.js"
 
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToString(element)}`
@@ -830,5 +832,27 @@ const renderGrapherThumbnailByResolvedChartSlug = (
 const renderExplorerDefaultThumbnail = (): string => {
     return ReactDOMServer.renderToStaticMarkup(
         <img src={`${BAKED_BASE_URL}/${DEFAULT_THUMBNAIL_FILENAME}`} />
+    )
+}
+
+export const renderSlideshowPage = async (
+    slideshow: {
+        title: string
+        slug: string
+        config: { slides: Slide[]; authors?: string }
+    },
+    imageMetadata: Record<string, ImageMetadata>,
+    linkedAuthors: import("@ourworldindata/types").LinkedAuthor[] = []
+) => {
+    return renderToHtmlPage(
+        <SlideshowPage
+            baseUrl={BAKED_BASE_URL}
+            title={slideshow.title}
+            slug={slideshow.slug}
+            authors={slideshow.config.authors}
+            linkedAuthors={linkedAuthors}
+            slides={slideshow.config.slides}
+            imageMetadata={imageMetadata}
+        />
     )
 }

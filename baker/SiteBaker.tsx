@@ -96,6 +96,7 @@ import {
 import { DATA_INSIGHTS_ATOM_FEED_NAME } from "../site/SiteConstants.js"
 import { getTombstones } from "../db/model/GdocTombstone.js"
 import { bakeAllMultiDimDataPages } from "./MultiDimBaker.js"
+import { bakeAllPublishedSlideshows } from "./SlideshowBaker.js"
 import { getAllLinkedPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
 import { getPublicDonorNames } from "../db/model/Donor.js"
 import { getNarrativeChartsInfo } from "../db/model/NarrativeChart.js"
@@ -148,6 +149,7 @@ const nonWordpressSteps = [
     "dods",
     "dataInsights",
     "authors",
+    "slideshows",
 ] as const
 
 const otherSteps = ["removeDeletedPosts"] as const
@@ -1092,6 +1094,12 @@ export class SiteBaker {
         }
     }
 
+    private async bakeSlideshows(knex: db.KnexReadonlyTransaction) {
+        if (!this.bakeSteps.has("slideshows")) return
+        this.progressBar.tick({ name: "Baking slideshows" })
+        await bakeAllPublishedSlideshows(this.bakedSiteDir, knex)
+    }
+
     // Bake the blog index
     private async bakeBlogIndex(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("blogIndex")) return
@@ -1279,6 +1287,7 @@ export class SiteBaker {
         await this.bakeGDocTombstones(knex)
         await this.bakeDataInsights(knex)
         await this.bakeAuthors(knex)
+        await this.bakeSlideshows(knex)
     }
 
     async bakeNonWordpressPages(knex: db.KnexReadonlyTransaction) {
