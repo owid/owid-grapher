@@ -54,10 +54,18 @@
 
 .latest-page__item-meta-separator {
     color: $blue-60;
+
+    @include sm-only {
+        display: none;
+    }
 }
 
 .latest-page__item-area-tag {
     color: $blue-90;
+
+    @include sm-only {
+        display: none;
+    }
 }
 
 .latest-page__item-dateline {
