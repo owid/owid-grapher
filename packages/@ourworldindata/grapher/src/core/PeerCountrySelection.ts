@@ -40,6 +40,7 @@ interface SelectByClosestValueParams {
 }
 
 interface SelectByDataRangeParams {
+    targetCountry?: EntityName
     availableEntities: EntityName[]
     dataColumn: CoreColumn
     randomize?: boolean
@@ -389,6 +390,7 @@ async function selectNeighborsAsPeers({
 
 /** Selects countries representing the full data range */
 async function selectPeerCountriesByDataRange({
+    targetCountry,
     availableEntities,
     dataColumn,
     additionalDataLoaderFn,
@@ -402,15 +404,23 @@ async function selectPeerCountriesByDataRange({
         return region && checkIsCountry(region)
     })
 
-    // Extract latest values for candidate entities
+    // Extract values for candidate entities at the given time
     if (!isDataColumnAvailable(dataColumn)) return []
-    const values = new Map<EntityName, number>()
     const targetTime = time ?? dataColumn.maxTime
-    for (const entityName of candidateEntities) {
-        const latestValue = dataColumn.owidRowByEntityNameAndTime
-            .get(entityName)
-            ?.get(targetTime)?.value
-        if (latestValue !== undefined) values.set(entityName, latestValue)
+    let values = extractValuesAtTime({
+        entities: candidateEntities,
+        dataColumn,
+        time: targetTime,
+    })
+
+    // If no values found at the target time, retry with the column's latest time
+    // This can happen for charts with projected data
+    if (values.size === 0 && targetTime !== dataColumn.maxTime) {
+        values = extractValuesAtTime({
+            entities: candidateEntities,
+            dataColumn,
+            time: dataColumn.maxTime,
+        })
     }
 
     // Load population data for weighted selection (prefer larger countries)
@@ -420,7 +430,13 @@ async function selectPeerCountriesByDataRange({
         populationData.map((row) => [row.entity, row.value])
     )
 
-    return findDataRangePeers({ values, population, targetCount, randomize })
+    return findDataRangePeers({
+        targetCountry,
+        values,
+        population,
+        targetCount,
+        randomize,
+    })
 }
 
 /** Finds entities with values closest to a target entity using logarithmic distance */
@@ -550,13 +566,16 @@ const findClosestByLogDistance = ({
 export function findDataRangePeers({
     values,
     population,
-    randomize = false,
     targetCount = 5,
+    targetCountry,
+    randomize = false,
 }: {
     values: Map<EntityName, number>
     /** Population data for weighted selection (prefers larger countries) */
     population: Map<EntityName, number>
     targetCount?: number
+    /** If specified, skip the bucket that contains this country */
+    targetCountry?: EntityName
     /** If true, use randomized selection; if false, pick most populous */
     randomize?: boolean
 }): EntityName[] {
@@ -571,10 +590,22 @@ export function findDataRangePeers({
     const bucketSize = Math.ceil(sortedData.length / targetCount)
     const buckets = R.chunk(sortedData, bucketSize)
 
+    // If a target country is specified and has data, include it directly
+    // and only pick peers for buckets that don't contain it
+    const targetBucketIndex =
+        targetCountry !== undefined && values.has(targetCountry)
+            ? buckets.findIndex((bucket) =>
+                  bucket.some((item) => item.entityName === targetCountry)
+              )
+            : -1
+
     const selected = R.pipe(
         buckets,
-        R.map((bucket) => {
+        R.map((bucket, bucketIndex) => {
             if (bucket.length === 0) return undefined
+
+            // Skip if the target country is in this bucket
+            if (bucketIndex === targetBucketIndex) return undefined
 
             return randomize
                 ? weightedRandomPick(bucket, population)
@@ -625,4 +656,24 @@ function weightedRandomPick(
     }
 
     return bucket[bucket.length - 1]?.entityName
+}
+
+/** Extracts numeric values for entities at a specific time point */
+function extractValuesAtTime({
+    entities,
+    dataColumn,
+    time,
+}: {
+    entities: EntityName[]
+    dataColumn: CoreColumn
+    time: Time
+}): Map<EntityName, number> {
+    const values = new Map<EntityName, number>()
+    for (const entityName of entities) {
+        const value = dataColumn.owidRowByEntityNameAndTime
+            .get(entityName)
+            ?.get(time)?.value
+        if (value !== undefined) values.set(entityName, value)
+    }
+    return values
 }
