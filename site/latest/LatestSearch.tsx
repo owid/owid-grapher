@@ -80,7 +80,7 @@ export const LatestSearch = ({
     const onTopicClick = useCallback(
         (topic: string) => {
             if (!topics.includes(topic)) {
-                onTopicsChange([...topics, topic])
+                onTopicsChange([topic])
             }
         },
         [topics, onTopicsChange]
@@ -204,6 +204,7 @@ export const LatestSearch = ({
                             key={hit.objectID}
                             hit={hit}
                             onTopicClick={onTopicClick}
+                            selectedTopic={topics[0]}
                         />
                     ))}
                     <NewsletterSignupBlock
@@ -215,6 +216,7 @@ export const LatestSearch = ({
                             key={hit.objectID}
                             hit={hit}
                             onTopicClick={onTopicClick}
+                            selectedTopic={topics[0]}
                         />
                     ))}
                     {hasNextPage && (

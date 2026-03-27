@@ -46,12 +46,17 @@ const KICKER_ICONS: Record<string, IconDefinition> = {
 const CardMetadataRow = ({
     hit,
     onTopicClick,
+    selectedTopic,
 }: {
     hit: PageChronologicalRecord
     onTopicClick?: (topic: string) => void
+    selectedTopic?: string
 }) => {
     const typeLabel = TYPE_LABELS[hit.type]
-    const firstTag = hit.tags?.[0]
+    const firstTag =
+        selectedTopic && hit.tags?.includes(selectedTopic)
+            ? selectedTopic
+            : hit.tags?.[0]
     return (
         <div className="latest-page__item-meta span-cols-8">
             <span className="latest-page__item-meta-left h6-black-caps">
@@ -98,9 +103,11 @@ function makeAttachments(hit: PageChronologicalRecord) {
 const LatestArticleCard = ({
     hit,
     onTopicClick,
+    selectedTopic,
 }: {
     hit: PageChronologicalRecord
     onTopicClick?: (topic: string) => void
+    selectedTopic?: string
 }) => {
     const href = getPrefixedGdocPath("", {
         slug: hit.slug,
@@ -112,7 +119,11 @@ const LatestArticleCard = ({
                 id={hit.slug}
                 className={cx("latest-page__article", COMMON_CLASSES)}
             >
-                <CardMetadataRow hit={hit} onTopicClick={onTopicClick} />
+                <CardMetadataRow
+                    hit={hit}
+                    onTopicClick={onTopicClick}
+                    selectedTopic={selectedTopic}
+                />
                 <a
                     href={href}
                     aria-label={hit.title}
@@ -145,9 +156,11 @@ const LatestArticleCard = ({
 const LatestDataInsightCard = ({
     hit,
     onTopicClick,
+    selectedTopic,
 }: {
     hit: PageChronologicalRecord
     onTopicClick?: (topic: string) => void
+    selectedTopic?: string
 }) => {
     const href = getPrefixedGdocPath("", {
         slug: hit.slug,
@@ -163,7 +176,11 @@ const LatestDataInsightCard = ({
                 id={hit.slug}
                 className={cx("latest-page__data-insight", COMMON_CLASSES)}
             >
-                <CardMetadataRow hit={hit} onTopicClick={onTopicClick} />
+                <CardMetadataRow
+                    hit={hit}
+                    onTopicClick={onTopicClick}
+                    selectedTopic={selectedTopic}
+                />
                 <a
                     href={href}
                     aria-label={hit.title}
@@ -219,9 +236,11 @@ function splitBodyBeforeMedia(blocks: OwidEnrichedGdocBlock[]): {
 const LatestAnnouncementCard = ({
     hit,
     onTopicClick,
+    selectedTopic,
 }: {
     hit: PageChronologicalRecord
     onTopicClick?: (topic: string) => void
+    selectedTopic?: string
 }) => {
     const kicker = hit.announcementContent?.kicker ?? hit.kicker
     const kickerIcon = kicker ? KICKER_ICONS[kicker] : undefined
@@ -249,7 +268,11 @@ const LatestAnnouncementCard = ({
                 id={hit.slug}
                 className={cx("latest-page__announcement", COMMON_CLASSES)}
             >
-                <CardMetadataRow hit={hit} onTopicClick={onTopicClick} />
+                <CardMetadataRow
+                    hit={hit}
+                    onTopicClick={onTopicClick}
+                    selectedTopic={selectedTopic}
+                />
                 <div className="latest-page__announcement-content span-cols-8">
                     <h2 className="latest-page__announcement-title subtitle-2-bold">
                         {kickerIcon && (
@@ -298,20 +321,36 @@ const LatestAnnouncementCard = ({
 export const LatestResultCard = ({
     hit,
     onTopicClick,
+    selectedTopic,
 }: {
     hit: PageChronologicalRecord
     onTopicClick?: (topic: string) => void
+    selectedTopic?: string
 }) => {
     switch (hit.type) {
         case OwidGdocType.Article:
-            return <LatestArticleCard hit={hit} onTopicClick={onTopicClick} />
+            return (
+                <LatestArticleCard
+                    hit={hit}
+                    onTopicClick={onTopicClick}
+                    selectedTopic={selectedTopic}
+                />
+            )
         case OwidGdocType.DataInsight:
             return (
-                <LatestDataInsightCard hit={hit} onTopicClick={onTopicClick} />
+                <LatestDataInsightCard
+                    hit={hit}
+                    onTopicClick={onTopicClick}
+                    selectedTopic={selectedTopic}
+                />
             )
         case OwidGdocType.Announcement:
             return (
-                <LatestAnnouncementCard hit={hit} onTopicClick={onTopicClick} />
+                <LatestAnnouncementCard
+                    hit={hit}
+                    onTopicClick={onTopicClick}
+                    selectedTopic={selectedTopic}
+                />
             )
         default:
             return null
