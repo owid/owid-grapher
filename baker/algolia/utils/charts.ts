@@ -18,6 +18,7 @@ import {
     getUniqueNamesFromTagHierarchies,
 } from "@ourworldindata/utils"
 import {
+    computeRecordScore,
     maybeAddChangeInPrefix,
     processAvailableEntities,
     parseJsonStringArray,
@@ -27,11 +28,6 @@ import { toPlaintext } from "@ourworldindata/components"
 import { getMaxViews7d } from "./pageviews.js"
 import { createChartsIndexingContext } from "./context.js"
 import pMap from "p-map"
-
-const computeChartScore = (
-    numRelatedArticles: number,
-    views_7d: number
-): number => numRelatedArticles * 500 + views_7d
 
 const parseRawChartRecord = (
     rawRecord: RawChartRecordRow
@@ -236,7 +232,8 @@ async function getRawChartsRecords(
 async function buildChartRecord(
     knex: db.KnexReadonlyTransaction,
     chart: ParsedChartRecordRow,
-    context: ChartsIndexingContext
+    context: ChartsIndexingContext,
+    fmSlugs: Set<string>
 ): Promise<ChartRecord | null> {
     const grapherState = new GrapherState(chart.config)
 
@@ -289,7 +286,12 @@ async function buildChartRecord(
         datasetVersions: chart.datasetVersions,
         datasetProducts: chart.datasetProducts,
         datasetProducers: chart.datasetProducers,
-        score: computeChartScore(numRelatedArticles, views_7d),
+        score: computeRecordScore(
+            numRelatedArticles,
+            views_7d,
+            fmSlugs.has(chart.slug),
+            chart.config.title?.length ?? 0
+        ),
     }
 }
 
@@ -298,9 +300,13 @@ async function buildChartRecord(
  */
 export const getChartsRecords = async (
     knex: db.KnexReadonlyTransaction,
-    options?: { chartIds?: number[]; baseContext?: IndexingContext }
+    options?: {
+        chartIds?: number[]
+        baseContext?: IndexingContext
+        fmSlugs?: Set<string>
+    }
 ): Promise<ChartRecord[]> => {
-    const { chartIds, baseContext } = options ?? {}
+    const { chartIds, baseContext, fmSlugs = new Set<string>() } = options ?? {}
 
     const context = await createChartsIndexingContext(
         knex,
@@ -312,7 +318,7 @@ export const getChartsRecords = async (
     const parsedCharts = rawChartsRecords.map(parseRawChartRecord)
     const recordsOrNull = await pMap(
         parsedCharts,
-        (chart) => buildChartRecord(knex, chart, context),
+        (chart) => buildChartRecord(knex, chart, context, fmSlugs),
         { concurrency: 10 }
     )
 

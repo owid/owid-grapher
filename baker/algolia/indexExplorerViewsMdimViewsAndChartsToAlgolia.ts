@@ -1,3 +1,4 @@
+import fs from "fs/promises"
 // This should be imported as early as possible so the global error handler is
 // set up before any errors are thrown.
 import "../../serverUtils/instrument.js"
@@ -12,6 +13,7 @@ import {
 } from "./utils/explorerViews.js"
 import {
     createFeaturedMetricRecords,
+    getFeaturedMetricSlugs,
     MAX_NON_FM_RECORD_SCORE,
     scaleRecordScores,
 } from "./utils/shared.js"
@@ -38,12 +40,20 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
         async (trx) => {
             // Create shared base context once for all record getters
             const baseContext = await createBaseIndexingContext(trx)
+            const fmSlugs = await getFeaturedMetricSlugs(trx)
             const explorerViews = await getExplorerViewRecords(trx, {
                 skipGrapherViews: true,
                 baseContext,
+                fmSlugs,
             })
-            const mdimViews = await getMdimViewRecords(trx, { baseContext })
-            const grapherViews = await getChartsRecords(trx, { baseContext })
+            const mdimViews = await getMdimViewRecords(trx, {
+                baseContext,
+                fmSlugs,
+            })
+            const grapherViews = await getChartsRecords(trx, {
+                baseContext,
+                fmSlugs,
+            })
             // Scale grapher records and the default explorer views between 1000 and 10000,
             // Scale the remaining explorer views between 0 and 1000.
             // This is because Graphers are generally higher quality than Explorers and we don't want
@@ -74,12 +84,17 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
         db.TransactionCloseMode.Close
     )
 
-    console.log(`Indexing ${records.length} records`)
-    await client.replaceAllObjects({
-        indexName,
-        objects: records as Array<Record<string, any>>,
-    })
-    console.log(`Indexing complete`)
+    await fs.writeFile(
+        `./${indexName}-records-adjusted.json`,
+        JSON.stringify(records, null, 2)
+    )
+
+    // console.log(`Indexing ${records.length} records`)
+    // await client.replaceAllObjects({
+    //     indexName,
+    //     objects: records as Array<Record<string, any>>,
+    // })
+    // console.log(`Indexing complete`)
 
     await reportFeaturedMetricFailuresToSlack(failures)
 }

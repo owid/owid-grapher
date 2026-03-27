@@ -29,6 +29,7 @@ import {
 } from "./types.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { GRAPHER_ROUTE_FOLDER } from "@ourworldindata/grapher"
+import * as db from "../../../db/db.js"
 
 const countriesWithVariantNames = new Set(
     countries
@@ -129,6 +130,27 @@ function findMatchingRecordByPathnameAndQueryParams(
 }
 
 export const MAX_NON_FM_RECORD_SCORE = 10000
+
+const FM_SOURCE_BONUS = 500
+
+/**
+ * Unified score formula for all record types (charts, multi-dim views, explorer views).
+ * Uses the number of related articles as the primary editorial signal,
+ * pageviews as a secondary signal, a bonus for records whose slug
+ * is used as a featured metric, and a small penalty for longer titles
+ * to downrank more specific variants (e.g. "Male life expectancy, 16-24"
+ * ranks below "Life expectancy").
+ */
+export const computeRecordScore = (
+    numRelatedArticles: number,
+    views_7d: number,
+    isFMSource: boolean,
+    titleLength: number
+): number =>
+    numRelatedArticles * 500 +
+    views_7d +
+    (isFMSource ? FM_SOURCE_BONUS : 0) -
+    titleLength
 
 /**
  * All featured metrics start at a score of 11000, which places them above all
@@ -325,3 +347,23 @@ export const EMPTY_DATASET_CHART_RECORD_DIMENSIONS: DatasetChartRecordDimensions
         datasetProducts: [],
         datasetProducers: [],
     }
+
+/**
+ * Returns a set of slugs that are used as featured metrics.
+ * This is used to give a scoring bonus to records whose underlying
+ * chart/explorer/multi-dim is editorially featured.
+ */
+export async function getFeaturedMetricSlugs(
+    trx: db.KnexReadonlyTransaction
+): Promise<Set<string>> {
+    const rows = await db.knexRaw<{ url: string }>(
+        trx,
+        `SELECT DISTINCT url FROM featured_metrics`
+    )
+    const slugs = new Set<string>()
+    for (const row of rows) {
+        const url = Url.fromURL(row.url)
+        if (url.slug) slugs.add(url.slug)
+    }
+    return slugs
+}
