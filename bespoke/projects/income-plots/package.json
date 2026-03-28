@@ -1,0 +1,38 @@
+{
+    "dependencies": {
+        "@floating-ui/react": "^0.27.16",
+        "@fortawesome/free-solid-svg-icons": "^7.2.0",
+        "@fortawesome/react-fontawesome": "^3.2.0",
+        "@ourworldindata/components": "*",
+        "@ourworldindata/types": "*",
+        "@ourworldindata/utils": "*",
+        "classnames": "^2.5.1",
+        "d3": "^7.9.0",
+        "fast-kde": "^0.2.2",
+        "jotai": "^2.15.1",
+        "jotai-devtools": "^0.13.0",
+        "jotai-effect": "^2.2.3",
+        "react": "^19.2.0",
+        "react-aria-components": "^1.13.0",
+        "react-dom": "^19.2.0",
+        "remeda": "^2.32.0",
+        "usehooks-ts": "^3.1.1"
+    },
+    "devDependencies": {
+        "@types/d3": "^7.4.3",
+        "@types/react": "^19.2.6",
+        "@types/react-dom": "^19.2.3",
+        "@vitejs/plugin-react": "^5.1.1",
+        "vite": "^7.2.4"
+    },
+    "workspaces": [
+        "../../../packages/@ourworldindata/components",
+        "../../../packages/@ourworldindata/grapher",
+        "../../../packages/@ourworldindata/types",
+        "../../../packages/@ourworldindata/utils"
+    ],
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build"
+    }
+}
