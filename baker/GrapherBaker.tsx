@@ -35,6 +35,7 @@ import {
 } from "@ourworldindata/types"
 import ProgressBar from "progress"
 import {
+    getVariableDistribution,
     getMergedGrapherConfigForVariable,
     getVariableOfDatapageIfApplicable,
 } from "../db/model/Variable.js"
@@ -210,7 +211,11 @@ export async function renderDataPageV2(
         ]
         grapher.dimensions = dimensions
     }
-    const datapageData = getDatapageDataV2(variableMetadata, grapher ?? {})
+    const variableIds = _.uniq(
+        _.compact(grapher.dimensions.map(({ variableId }) => variableId))
+    )
+    const distribution = await getVariableDistribution(knex, variableIds)
+    const datapageData = getDatapageDataV2(variableMetadata, grapher)
 
     datapageData.primaryTopic = await getPrimaryTopic(
         knex,
@@ -276,6 +281,7 @@ export async function renderDataPageV2(
             faqEntries={faqEntries}
             tagToSlugMap={tagToSlugMap}
             archiveContext={archiveContext}
+            distribution={distribution}
         />
     )
 }

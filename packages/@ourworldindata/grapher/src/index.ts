@@ -161,3 +161,20 @@ export {
     constructGrapherValuesJsonFromTable,
     type PreparedCalloutTable,
 } from "./core/GrapherValuesJson"
+export {
+    CsvDownloadType,
+    createCsvBlobLocally,
+    getDataDownloadFilename,
+    getDownloadSearchParams,
+    getDownloadUrl,
+    getNonRedistributableInfo,
+} from "./download.js"
+export type {
+    DataDownloadContextBase,
+    DataDownloadContextClientSide,
+    DataDownloadContextServerSide,
+} from "./download.js"
+export {
+    useDataApiDownloadConfig,
+    useStateWithDebouncedClear,
+} from "./hooks.js"

@@ -11,12 +11,16 @@
         }
     }
 
-    .faqs__title {
+    .metadata-section__title {
         @include datapage-section-title;
 
         @include md-up {
             margin-bottom: 0;
         }
+    }
+
+    .data-sources-processing__title {
+        @include datapage-section-title;
     }
 
     .faqs__items {
@@ -38,13 +42,7 @@
         }
     }
 
-    .data-sources-processing__title {
-        @include datapage-section-title;
-    }
-
-    .data-sources__heading,
-    .data-processing__heading,
-    .citations__heading {
+    .metadata-section__heading {
         @include h3-bold;
         margin: 0 0 24px;
     }
@@ -53,28 +51,29 @@
         margin-top: 32px;
     }
 
-    .reuse__title {
-        @include datapage-section-title;
-    }
-
-    .reuse__content {
+    .metadata-list {
         margin-bottom: 24px;
         margin-left: 16px;
+        color: $blue-60;
+
+        a {
+            @include owid-link-60;
+        }
+
+        li {
+            @include body-3-medium;
+            margin: 0 0 8px;
+        }
     }
 
-    .reuse__content,
     .citation__paragraph {
         color: $blue-60;
-    }
-
-    .reuse__list-item,
-    .citation__paragraph {
         @include body-3-medium;
         margin: 0 0 8px;
-    }
 
-    .reuse__link {
-        @include owid-link-60;
+        a {
+            @include owid-link-60;
+        }
     }
 
     .citations {
@@ -98,12 +97,12 @@
         margin: 0 0 8px;
     }
 
-    .citation__how-to-header--data {
-        margin-bottom: 16px;
-    }
-
     .citation__type {
         display: block;
         color: $blue-90;
+    }
+
+    .citations-section + .citations-section .citation__how-to-header {
+        margin-bottom: 16px;
     }
 }

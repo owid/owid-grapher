@@ -229,6 +229,7 @@ export {
 } from "./gdocTypes/Gdoc.js"
 
 export {
+    type Distribution,
     type DataPageV2ContentFields,
     type DataPageDataV2,
     type DataPageRelatedResearch,

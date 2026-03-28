@@ -2,7 +2,11 @@ import { expect, it } from "vitest"
 
 import { ColumnTypeNames } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
-import { getNonRedistributableInfo } from "./DownloadModal"
+import {
+    CsvDownloadType,
+    getDataDownloadFilename,
+    getNonRedistributableInfo,
+} from "./download.js"
 
 const getTable = (options: { nonRedistributable: boolean }): OwidTable => {
     return new OwidTable(
@@ -30,7 +34,7 @@ const getTable = (options: { nonRedistributable: boolean }): OwidTable => {
     )
 }
 
-it("correctly works with non-redistributable flag", () => {
+it("getNonRedistributableInfo respects the nonRedistributable flag", () => {
     const tableFalse = getTable({ nonRedistributable: false })
     const info1 = getNonRedistributableInfo(tableFalse)
     expect(info1.cols).toBeUndefined()
@@ -38,4 +42,30 @@ it("correctly works with non-redistributable flag", () => {
     const tableTrue = getTable({ nonRedistributable: true })
     const info2 = getNonRedistributableInfo(tableTrue)
     expect(info2.cols).toHaveLength(1)
+})
+
+it("getDataDownloadFilename adds the filtered suffix only for zip downloads", () => {
+    expect(
+        getDataDownloadFilename({
+            slug: "example-chart",
+            extension: "zip",
+            csvDownloadType: CsvDownloadType.Full,
+        })
+    ).toBe("example-chart.zip")
+
+    expect(
+        getDataDownloadFilename({
+            slug: "example-chart",
+            extension: "zip",
+            csvDownloadType: CsvDownloadType.CurrentSelection,
+        })
+    ).toBe("example-chart.filtered.zip")
+
+    expect(
+        getDataDownloadFilename({
+            slug: "example-chart",
+            extension: "csv",
+            csvDownloadType: CsvDownloadType.CurrentSelection,
+        })
+    ).toBe("example-chart.csv")
 })
