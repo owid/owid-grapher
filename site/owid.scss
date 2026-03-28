@@ -1069,5 +1069,12 @@ a.ref sup {
         margin: $vertical-spacing 0;
 
         @include popover-box-styles;
+        box-shadow: none;
+        outline: 1px solid $gray-10;
+    }
+
+    .FeedbackForm > .footer {
+        box-shadow: none;
+        outline: 1px solid $gray-10;
     }
 }

@@ -43,6 +43,7 @@ const LEGAL_LINKS: LinkData[] = [
         title: "Grapher license",
         url: "https://github.com/owid/owid-grapher/blob/master/LICENSE.md",
     },
+    { title: "Send feedback", url: "/feedback" },
 ]
 
 const FooterLink = (props: LinkData) => {
