@@ -11622,7 +11622,7 @@ __metadata:
     glob: "npm:^13.0.6"
     google-auth-library: "npm:^10.6.1"
     handsontable: "npm:^15.1.0"
-    happy-dom: "npm:^20.8.4"
+    happy-dom: "npm:^20.8.8"
     history: "npm:4"
     http-server: "npm:^14.1.1"
     husky: "npm:^9.0.11"
@@ -11749,9 +11749,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"happy-dom@npm:^20.8.4":
-  version: 20.8.4
-  resolution: "happy-dom@npm:20.8.4"
+"happy-dom@npm:^20.8.8":
+  version: 20.8.8
+  resolution: "happy-dom@npm:20.8.8"
   dependencies:
     "@types/node": "npm:>=20.0.0"
     "@types/whatwg-mimetype": "npm:^3.0.2"
@@ -11759,7 +11759,7 @@ __metadata:
     entities: "npm:^7.0.1"
     whatwg-mimetype: "npm:^3.0.0"
     ws: "npm:^8.18.3"
-  checksum: 10/fcad6a58433f10e11e653aa14f8f6696bd4917f5ca33c3363e380d34ba58d15d0490d91efc74e0cfddeb369c247f6fe07301c5752b65d43fc734f1e170ac000c
+  checksum: 10/aa07ee59a6402c4ff8871b177e09f4711c12acc611f843915efb5eebb18be5f77cdf4dab0dde196ecd86fbfcbc7697ad039eb8998737dee19c2ac85765759fae
   languageName: node
   linkType: hard
 
