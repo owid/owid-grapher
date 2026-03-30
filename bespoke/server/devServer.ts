@@ -333,17 +333,19 @@ function serveDemoPage(
     entrypoints: Record<string, string> | null
 ): void {
     const devOnlyGlobalCss = entrypoints?.["dev-only-global-css"]
-        ? `<link rel="stylesheet" href="/${projectName}/${entrypoints["dev-only-global-css"]}" />`
+        ? BUILD_MODE
+            ? `<link rel="stylesheet" href="/__bespoke/projects/${projectName}/${entrypoints["dev-only-global-css"]}" />`
+            : `<link rel="stylesheet" href="/${projectName}/${entrypoints["dev-only-global-css"]}" />`
         : ""
     const jsEntrypoint = BUILD_MODE
         ? "index.js"
         : (entrypoints?.js ?? "src/index.ts")
     const cssUrl = BUILD_MODE
         ? entrypoints?.css
-            ? `"/${projectName}/index.css"`
+            ? `/${projectName}/index.css`
             : ""
         : entrypoints?.css
-          ? `"/${projectName}/${entrypoints.css}"`
+          ? `/${projectName}/${entrypoints.css}`
           : ""
     const viteDevScripts = BUILD_MODE
         ? ""
