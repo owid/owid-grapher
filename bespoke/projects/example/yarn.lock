@@ -267,6 +267,7 @@ __metadata:
     react-dom: "npm:^19.2.4"
     sass: "npm:^1.87.0"
     vite: "npm:^8.0.0"
+    vite-plugin-css-position: "npm:^2.0.9"
   languageName: unknown
   linkType: soft
 
@@ -3500,6 +3501,35 @@ __metadata:
   peerDependencies:
     react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
   checksum: 10/b40ad2847ba220695bff2d4ba4f4d60391c0fb4fb012faa7a4c18eb38b69181936f5edc55a522c4d20a788d1a879b73c3810952c9d0fd128d01cb3f22042c09e
+  languageName: node
+  linkType: hard
+
+"vite-plugin-css-injected-by-js@npm:^3.5.2":
+  version: 3.5.2
+  resolution: "vite-plugin-css-injected-by-js@npm:3.5.2"
+  peerDependencies:
+    vite: ">2.0.0-0"
+  checksum: 10/be1ca1c71c31042dbca49d78ed58c88d3ffbbcf84024120f72d1daeebd489ad0ec4a0f1179adfeb196052d52b09226bff7d0979e0ef0be3e87e47b15eb728270
+  languageName: node
+  linkType: hard
+
+"vite-plugin-css-position@npm:^2.0.9":
+  version: 2.0.9
+  resolution: "vite-plugin-css-position@npm:2.0.9"
+  dependencies:
+    vite-plugin-css-injected-by-js: "npm:^3.5.2"
+  peerDependencies:
+    react: ^19.0.0
+    react-dom: ^19.0.0
+    vue: ^3.5.22
+  peerDependenciesMeta:
+    react:
+      optional: true
+    react-dom:
+      optional: true
+    vue:
+      optional: true
+  checksum: 10/83c27cfd88a8664ea415033fc86c46d6f2765e6443c6d12246a1a54e82141eb4f6faaac389ce267ddf96ec802eca6fcae2e98209ae9105d5a3fe29493dd10755
   languageName: node
   linkType: hard
 

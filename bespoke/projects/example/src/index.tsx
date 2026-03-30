@@ -1,5 +1,4 @@
 import { createRoot } from "react-dom/client"
-import { createElement } from "react"
 import { enableShadowDOM } from "@react-stately/flags"
 
 import { VariantName } from "./constants.js"
@@ -11,6 +10,7 @@ import type {
     BespokeComponentMountFn,
     BespokeComponentVariantsList,
 } from "owid-bespoke-types"
+import StylesTarget from "vite-plugin-css-position/react"
 
 import "./index.css"
 
@@ -19,9 +19,9 @@ import "./index.css"
 enableShadowDOM()
 
 export const VARIANTS = [
-    { name: "picker", component: Picker, defaultConfig: {} },
-    { name: "display", component: Display, defaultConfig: {} },
-    { name: "chart", component: Chart, defaultConfig: {} },
+    { name: "picker", component: Picker, demoConfig: {} },
+    { name: "display", component: Display, demoConfig: {} },
+    { name: "chart", component: Chart, demoConfig: {} },
 ] satisfies BespokeComponentVariantsList<VariantName>
 
 export const mount: BespokeComponentMountFn = (
@@ -35,6 +35,12 @@ export const mount: BespokeComponentMountFn = (
     }
 
     const root = createRoot(container)
-    root.render(createElement(variant.component))
+    root.render(
+        <>
+            {/* This is where Vite-injected styles will be placed - make sure to add this to your code so that the styles are correctly injected into the Shadow DOM. */}
+            <StylesTarget />
+            <variant.component />
+        </>
+    )
     return () => root.unmount()
 }
