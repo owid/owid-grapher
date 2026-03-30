@@ -62,10 +62,12 @@ export function BespokeComponent({
                 definition.scriptUrl,
                 BESPOKE_BASE_URL
             ),
-            cssUrl: makeAbsoluteWithBaseUrlIfSet(
-                definition.cssUrl,
-                BESPOKE_BASE_URL
-            ),
+            cssUrl:
+                definition.cssUrl &&
+                makeAbsoluteWithBaseUrlIfSet(
+                    definition.cssUrl,
+                    BESPOKE_BASE_URL
+                ),
         }
     }, [definition])
 

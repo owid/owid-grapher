@@ -4,7 +4,6 @@
     "type": "module",
     "entrypoints": {
         "js": "src/index.tsx",
-        "css": "src/index.css",
         "dev-only-global-css": "src/dev-only-global-css.css"
     },
     "scripts": {
