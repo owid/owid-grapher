@@ -25,19 +25,24 @@ import util from "node:util"
 const dirname = import.meta.dirname
 const PORT = parseInt(process.env.PORT ?? "8089", 10)
 const PROJECTS_DIR = path.resolve(dirname, "..", "projects")
-const SHARED_DIR = path.resolve(dirname, "..", "shared")
 const hostname = os.hostname()
 const BUILD_MODE = process.argv.includes("--build")
 
-interface ProjectServer {
+interface ViteServer {
     port: number
     process: ChildProcess
     ready: Promise<void>
+}
+
+interface ProjectServer extends ViteServer {
     entrypoints: Record<string, string> | null
 }
 
 // Map of project name -> running Vite server info
 const servers = new Map<string, ProjectServer>()
+
+// Shared Vite dev server for demo infrastructure (CSS, shared TS)
+let bespokeInternalServer: ViteServer | null = null
 
 // Bind to an ephemeral port and return it, so each Vite instance gets a unique port
 function findFreePort(): Promise<number> {
@@ -60,6 +65,78 @@ function isProject(name: string): boolean {
         isValidProjectName(name) &&
         fs.existsSync(path.join(PROJECTS_DIR, name, "vite.config.ts"))
     )
+}
+
+/**
+ * Returns the shared Vite dev server for __bespoke internal assets
+ * (demo CSS, shared TS helpers). Always runs in dev mode so it can
+ * transform TypeScript on the fly, even when projects use preview mode.
+ */
+async function getOrStartBespokeInternalServer(): Promise<ViteServer> {
+    if (bespokeInternalServer) {
+        await bespokeInternalServer.ready
+        return bespokeInternalServer
+    }
+
+    const port = await findFreePort()
+    const bespokeDir = path.resolve(dirname, "..")
+
+    let resolveReady: () => void
+    const ready = new Promise<void>((r) => {
+        resolveReady = r
+    })
+
+    console.log(
+        `Starting internal Vite dev server for __bespoke on port ${port}...`
+    )
+
+    const proc = spawn(
+        "npx",
+        [
+            "vite",
+            "dev",
+            "--host",
+            hostname,
+            "--port",
+            String(port),
+            "--base",
+            "/__bespoke/",
+        ],
+        {
+            cwd: bespokeDir,
+            stdio: ["ignore", "pipe", "pipe"],
+            env: { ...process.env, FORCE_COLOR: "1" },
+        }
+    )
+
+    proc.stdout.on("data", (data: Buffer) => {
+        const text = data.toString().trim()
+        if (text) console.log(`[__bespoke stdout] ${text}`)
+
+        const strippedText = util.stripVTControlCharacters(text)
+        if (
+            strippedText.includes("Local:") ||
+            strippedText.includes("Network:") ||
+            strippedText.includes("ready in")
+        ) {
+            resolveReady!()
+        }
+    })
+
+    proc.stderr.on("data", (data: Buffer) => {
+        const text = data.toString().trim()
+        if (text) console.error(`[__bespoke stderr] ${text}`)
+    })
+
+    proc.on("exit", (code: number | null) => {
+        console.log(`[__bespoke] Vite exited with code ${code}`)
+        bespokeInternalServer = null
+    })
+
+    bespokeInternalServer = { port, process: proc, ready }
+    await ready
+    console.log(`[__bespoke] Ready`)
+    return bespokeInternalServer
 }
 
 /**
@@ -255,7 +332,6 @@ function serveDemoPage(
     res: http.ServerResponse,
     entrypoints: Record<string, string> | null
 ): void {
-    const template = demoTemplate
     const devOnlyGlobalCss = entrypoints?.["dev-only-global-css"]
         ? `<link rel="stylesheet" href="/${projectName}/${entrypoints["dev-only-global-css"]}" />`
         : ""
@@ -265,13 +341,20 @@ function serveDemoPage(
     const cssUrl = BUILD_MODE
         ? (entrypoints?.css ? `"/${projectName}/index.css"` : "")
         : (entrypoints?.css ? `"/${projectName}/${entrypoints.css}"` : "")
-    const html = template
+    const viteDevScripts = BUILD_MODE
+        ? ""
+        : `<script type="module">
+            import { injectIntoGlobalHook } from "/${projectName}/@react-refresh"
+            injectIntoGlobalHook(window)
+            window.$RefreshReg$ = () => {}
+            window.$RefreshSig$ = () => (type) => type
+        </script>
+        <script type="module" src="/${projectName}/@vite/client"></script>`
+    const html = demoTemplate
         .replaceAll("{{PROJECT}}", projectName)
-        .replaceAll("{{SHARED_DIR}}", SHARED_DIR)
+        .replaceAll("{{VITE_DEV_SCRIPTS}}", viteDevScripts)
         .replaceAll("{{ENTRYPOINT_JS}}", jsEntrypoint)
         .replaceAll("{{CSS_URL}}", cssUrl)
-        .replaceAll("{{DEMO_CSS}}", path.join(dirname, "component-demo.css"))
-        .replaceAll("{{DEMO_GRID_CSS}}", path.join(dirname, "demo-grid.css"))
         .replaceAll("{{DEV_ONLY_GLOBAL_CSS}}", devOnlyGlobalCss)
     res.writeHead(200, { "Content-Type": "text/html" })
     res.end(html)
@@ -372,6 +455,15 @@ const server = http.createServer(
             return
         }
 
+        const rawPathname = (req.url || "/").split("?")[0]
+
+        // Proxy __bespoke internal assets to the shared Vite instance
+        if (rawPathname.startsWith("/__bespoke/")) {
+            const internal = await getOrStartBespokeInternalServer()
+            await proxyRequest(req, res, internal.port)
+            return
+        }
+
         const projectName = getProjectName(req.url || "/")
 
         if (!projectName) {
@@ -387,8 +479,6 @@ const server = http.createServer(
             return
         }
 
-        const pathname = (req.url || "/").split("?")[0]
-
         // In dev mode, redirect /<project>/index.js and /<project>/index.css
         // to actual source entrypoints so Vite can serve them.
         // In build mode, these files exist as-is in dist/, so no redirect needed.
@@ -396,7 +486,7 @@ const server = http.createServer(
             !BUILD_MODE &&
             tryEntrypointRedirect(
                 projectName,
-                pathname,
+                rawPathname,
                 res,
                 project.entrypoints
             )
@@ -405,8 +495,8 @@ const server = http.createServer(
 
         // Serve the shared demo page for /<project>/demo
         if (
-            pathname === `/${projectName}/demo` ||
-            pathname === `/${projectName}/demo/`
+            rawPathname === `/${projectName}/demo` ||
+            rawPathname === `/${projectName}/demo/`
         ) {
             serveDemoPage(projectName, res, project.entrypoints)
             return
@@ -420,6 +510,13 @@ const server = http.createServer(
 server.on(
     "upgrade",
     async (req: http.IncomingMessage, socket: net.Socket, head: Buffer) => {
+        // WebSocket upgrades for __bespoke (HMR for the shared Vite instance)
+        if ((req.url || "").startsWith("/__bespoke/")) {
+            const internal = await getOrStartBespokeInternalServer()
+            proxyWebSocket(req, socket, head, internal.port)
+            return
+        }
+
         const projectName = getProjectName(req.url || "/")
         if (!projectName) {
             socket.destroy()
@@ -439,6 +536,10 @@ server.on(
 // Graceful shutdown: kill all spawned Vite processes
 function shutdown(): void {
     console.log("\nShutting down...")
+    if (bespokeInternalServer) {
+        console.log("Stopping __bespoke...")
+        bespokeInternalServer.process.kill()
+    }
     for (const [name, { process: proc }] of servers) {
         console.log(`Stopping ${name}...`)
         proc.kill()

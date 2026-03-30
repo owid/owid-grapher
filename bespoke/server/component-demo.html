@@ -4,24 +4,17 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Demo — {{PROJECT}}</title>
-        <script type="module">
-            // We just assume that this project needs the React Refresh runtime, which is true for all our current projects. If we ever have a project that doesn't use React, we'll need to make this more flexible.
-            import { injectIntoGlobalHook } from "/{{PROJECT}}/@react-refresh"
-            injectIntoGlobalHook(window)
-            window.$RefreshReg$ = () => {}
-            window.$RefreshSig$ = () => (type) => type
-        </script>
-        <script type="module" src="/{{PROJECT}}/@vite/client"></script>
+        {{VITE_DEV_SCRIPTS}}
         <link rel="stylesheet" href="https://ourworldindata.org/fonts.css" />
-        <link rel="stylesheet" href="/{{PROJECT}}/@fs{{DEMO_GRID_CSS}}" />
-        <link rel="stylesheet" href="/{{PROJECT}}/@fs{{DEMO_CSS}}" />
+        <link rel="stylesheet" href="/__bespoke/server/demo-grid.css" />
+        <link rel="stylesheet" href="/__bespoke/server/component-demo.css" />
         {{DEV_ONLY_GLOBAL_CSS}}
     </head>
     <body>
         <h1 class="project-title">{{PROJECT}}</h1>
         <div id="demo-root"></div>
         <script type="module">
-            import { mountBespokeComponentInShadow } from "/{{PROJECT}}/@fs{{SHARED_DIR}}/bespokeComponentShadowDom.ts"
+            import { mountBespokeComponentInShadow } from "/__bespoke/shared/bespokeComponentShadowDom.ts"
             import { VARIANTS } from "/{{PROJECT}}/{{ENTRYPOINT_JS}}"
 
             const SIZE_CLASSES = {
