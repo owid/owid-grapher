@@ -339,8 +339,12 @@ function serveDemoPage(
         ? "index.js"
         : (entrypoints?.js ?? "src/index.ts")
     const cssUrl = BUILD_MODE
-        ? (entrypoints?.css ? `"/${projectName}/index.css"` : "")
-        : (entrypoints?.css ? `"/${projectName}/${entrypoints.css}"` : "")
+        ? entrypoints?.css
+            ? `"/${projectName}/index.css"`
+            : ""
+        : entrypoints?.css
+          ? `"/${projectName}/${entrypoints.css}"`
+          : ""
     const viteDevScripts = BUILD_MODE
         ? ""
         : `<script type="module">

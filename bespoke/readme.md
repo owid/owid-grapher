@@ -258,7 +258,7 @@ To fix this, add a `dev-only-global-css` entrypoint to your project's `package.j
 {
     "entrypoints": {
         "js": "src/index.tsx",
-        "css": "src/index.css",              // optional
+        "css": "src/index.css", // optional
         "dev-only-global-css": "src/dev-only-global-css.css"
     }
 }
