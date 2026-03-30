@@ -48,11 +48,9 @@ import {
 } from "./LineChartConstants"
 import { CoreColumn } from "@ourworldindata/core-table"
 import {
-    ClipPath,
     getHoverStateForSeries,
     getSeriesKey,
     isTargetOutsideElement,
-    makeClipPath,
 } from "../chart/ChartUtils"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { ColorScale } from "../color/ColorScale"
@@ -398,20 +396,6 @@ export class LineChart
         ]
     }
 
-    @computed private get clipPathBounds(): Bounds {
-        const { dualAxis, boundsWithoutColorLegend } = this
-        return boundsWithoutColorLegend
-            .set({ x: dualAxis.innerBounds.x })
-            .expand(10)
-    }
-
-    @computed private get clipPath(): ClipPath {
-        return makeClipPath({
-            renderUid: this.renderUid,
-            box: this.clipPathBounds,
-        })
-    }
-
     @computed private get verticalLabelsState(): VerticalLabelsState {
         return new VerticalLabelsState(this.verticalLabelsSeries, {
             yAxis: () => this.yAxis,
@@ -500,9 +484,6 @@ export class LineChart
                 onTouchStart={this.onCursorMove}
                 onTouchMove={this.onCursorMove}
             >
-                {/* The tiny bit of extra space in the clippath is to ensure circles
-                    centered on the very edge are still fully visible */}
-                {this.clipPath.element}
                 <rect {...this.bounds.toProps()} fillOpacity="0">
                     {/* This <rect> ensures that the parent <g> is big enough such that
                         we get mouse hover events for the whole charting area, including
@@ -512,7 +493,7 @@ export class LineChart
                 </rect>
                 {this.renderColorLegend()}
                 {this.renderDualAxis()}
-                <g clipPath={this.clipPath.id}>{this.renderChartElements()}</g>
+                {this.renderChartElements()}
 
                 {(this.isTooltipActive || this.hasTimeHighlights) &&
                     this.activeXVerticalLines}

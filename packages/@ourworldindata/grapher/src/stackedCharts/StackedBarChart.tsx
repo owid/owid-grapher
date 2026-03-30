@@ -40,7 +40,7 @@ import {
 } from "./StackedConstants"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { Color, HorizontalAlign, SeriesName } from "@ourworldindata/types"
-import { makeClipPath, getHoverStateForSeries } from "../chart/ChartUtils"
+import { getHoverStateForSeries } from "../chart/ChartUtils"
 import { InteractionState } from "../interaction/InteractionState"
 import { resolveEmphasis, Emphasis } from "../interaction/Emphasis"
 import {
@@ -519,13 +519,7 @@ export class StackedBarChart
     }
 
     renderInteractive(): React.ReactElement {
-        const { dualAxis, renderUid, bounds } = this
-        const { innerBounds } = dualAxis
-
-        const clipPath = makeClipPath({
-            renderUid: renderUid,
-            box: innerBounds,
-        })
+        const { bounds } = this
 
         return (
             <g
@@ -533,7 +527,6 @@ export class StackedBarChart
                 height={bounds.height}
                 onMouseMove={this.onMouseMove}
             >
-                {clipPath.element}
                 <rect
                     x={bounds.left}
                     y={bounds.top}
@@ -543,7 +536,7 @@ export class StackedBarChart
                     fill="rgba(255,255,255,0)"
                 />
                 {this.renderAxis()}
-                <g clipPath={clipPath.id}>{this.renderBars()}</g>
+                {this.renderBars()}
                 {this.renderLegend()}
                 {this.tooltip}
             </g>
