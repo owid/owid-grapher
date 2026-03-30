@@ -6,6 +6,8 @@ import { selectedColorAtom, selectedFoodAtom } from "../atoms"
 import { Dropdown } from "@ourworldindata/grapher/src/controls/Dropdown"
 import { COLOR_KEYS, FOOD_KEYS, FoodKey } from "../constants"
 
+import "./Picker.scss"
+
 interface FoodOption {
     value: FoodKey
     label: string

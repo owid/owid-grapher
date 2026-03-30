@@ -22,12 +22,6 @@ The dev server is a reverse proxy that lazily spawns a [Vite](https://vite.dev/)
 
 Visiting `/<project>/demo` serves a demo page that imports the project's `VARIANTS` list and mounts each variant inside its own Shadow DOM using `mountBespokeComponentInShadow` from `bespoke/shared`. This mirrors the production embedding behavior.
 
-#### `?shadowDom=false`
-
-Append `?shadowDom=false` to the demo URL (e.g. `/<project>/demo?shadowDom=false`) to mount variants **without** Shadow DOM. This is useful during active development because **CSS HMR only works in this mode**
-
-Both modes are linked from the project listing page at `http://localhost:8089/`.
-
 ### Entrypoints
 
 The demo page reads the `entrypoints` field from each project's `package.json` to know which source files to load:
@@ -46,5 +40,4 @@ Only `js` is required. If `css` is omitted, the demo page won't load a separate 
 ## Files
 
 - **devServer.ts** — The dev server itself
-- **component-demo.html** — Shadow DOM demo template
-- **component-demo-no-shadowdom.html** — No-shadow-DOM demo template (better CSS HMR)
+- **component-demo.html** — Demo page template (mounts variants inside Shadow DOM)

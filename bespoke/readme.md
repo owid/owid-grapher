@@ -242,8 +242,6 @@ yarn startBespokeDevServer
 
 Visit `http://localhost:8089/<project>/demo` to see a demo page that mounts all of a project's variants inside Shadow DOM — matching the production embedding behavior.
 
-Append `?shadowDom=false` to disable Shadow DOM isolation. This gives you proper CSS HMR. See [bespoke/server/readme.md](server/readme.md) for more.
-
 ### `dev-only-global-css`
 
 Some UI elements — like portaled react-aria overlays (dropdown menus, popovers) — render outside the Shadow DOM and need styles in the global document scope. On the real site these styles are available globally, but the demo page doesn't have them.

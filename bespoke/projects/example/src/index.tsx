@@ -12,7 +12,7 @@ import type {
 } from "owid-bespoke-types"
 import StylesTarget from "vite-plugin-css-position/react"
 
-import "./index.css"
+import "./index.scss"
 
 // Enable react-aria's internal Shadow DOM handling paths.
 // Must be called before any react-aria components render.

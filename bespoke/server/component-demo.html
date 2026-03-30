@@ -19,11 +19,6 @@
     </head>
     <body>
         <h1 class="project-title">{{PROJECT}}</h1>
-        <p class="mode-note">
-            Shadow DOM mode — CSS HMR does not work here.
-            <a href="?shadowDom=false">Switch to no-shadow-DOM mode</a> for CSS
-            hot reload.
-        </p>
         <div id="demo-root"></div>
         <script type="module">
             import { mountBespokeComponentInShadow } from "/{{PROJECT}}/@fs{{SHARED_DIR}}/bespokeComponentShadowDom.ts"
@@ -70,7 +65,7 @@
                 mountBespokeComponentInShadow({
                     container,
                     scriptUrl: "/{{PROJECT}}/{{ENTRYPOINT_JS}}",
-                    cssUrl: "/{{PROJECT}}/{{ENTRYPOINT_CSS}}",
+                    cssUrl: "{{CSS_URL}}" || undefined,
                     variant: variant.name,
                     config: variant.demoConfig,
                 })
