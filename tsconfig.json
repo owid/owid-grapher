@@ -2,8 +2,7 @@
     "extends": "./devTools/tsconfigs/tsconfig.base.json",
     "compilerOptions": {
         "outDir": "./itsJustJavascript",
-        "composite": false,
-        "baseUrl": "./"
+        "composite": false
     },
     "files": [],
     "references": [
