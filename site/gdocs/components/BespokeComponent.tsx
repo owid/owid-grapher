@@ -62,10 +62,12 @@ export function BespokeComponent({
                 definition.scriptUrl,
                 BESPOKE_BASE_URL
             ),
-            cssUrl: makeAbsoluteWithBaseUrlIfSet(
-                definition.cssUrl,
-                BESPOKE_BASE_URL
-            ),
+            cssUrl:
+                definition.cssUrl &&
+                makeAbsoluteWithBaseUrlIfSet(
+                    definition.cssUrl,
+                    BESPOKE_BASE_URL
+                ),
         }
     }, [definition])
 
@@ -77,7 +79,7 @@ export function BespokeComponent({
             setError(`Unknown bespoke bundle: "${block.bundle}"`)
             return
         }
-        if (!scriptUrl || !cssUrl) return
+        if (!scriptUrl) return
 
         const abortController = new AbortController()
 

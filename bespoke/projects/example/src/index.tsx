@@ -1,5 +1,4 @@
 import { createRoot } from "react-dom/client"
-import { createElement } from "react"
 import { enableShadowDOM } from "@react-stately/flags"
 
 import { VariantName } from "./constants.js"
@@ -11,20 +10,18 @@ import type {
     BespokeComponentMountFn,
     BespokeComponentVariantsList,
 } from "owid-bespoke-types"
+import StylesTarget from "vite-plugin-css-position/react"
 
-// Styles for portaled react-aria overlays (e.g. dropdown menus) that render
-// outside the Shadow DOM. On the real site these are available globally;
-// importing them here ensures they're present on the demo page too.
-import "./demo.scss"
+import "./index.scss"
 
 // Enable react-aria's internal Shadow DOM handling paths.
 // Must be called before any react-aria components render.
 enableShadowDOM()
 
 export const VARIANTS = [
-    { name: "picker", component: Picker, defaultConfig: {} },
-    { name: "display", component: Display, defaultConfig: {} },
-    { name: "chart", component: Chart, defaultConfig: {} },
+    { name: "picker", component: Picker, demoConfig: {} },
+    { name: "display", component: Display, demoConfig: {} },
+    { name: "chart", component: Chart, demoConfig: {} },
 ] satisfies BespokeComponentVariantsList<VariantName>
 
 export const mount: BespokeComponentMountFn = (
@@ -38,6 +35,12 @@ export const mount: BespokeComponentMountFn = (
     }
 
     const root = createRoot(container)
-    root.render(createElement(variant.component))
+    root.render(
+        <>
+            {/* This is where Vite-injected styles will be placed - make sure to add this to your code so that the styles are correctly injected into the Shadow DOM. */}
+            <StylesTarget />
+            <variant.component />
+        </>
+    )
     return () => root.unmount()
 }

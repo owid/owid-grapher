@@ -37,7 +37,7 @@ export async function mountBespokeComponentInShadow({
 }: {
     container: HTMLDivElement
     scriptUrl: string
-    cssUrl: string
+    cssUrl?: string
     variant?: string
     config?: Record<string, string>
     signal?: AbortSignal
@@ -48,13 +48,17 @@ export async function mountBespokeComponentInShadow({
     }
     shadowRoot.replaceChildren()
 
-    const cssPromise = loadCssIntoShadow(shadowRoot, cssUrl)
+    const promises = []
+    if (cssUrl) {
+        promises.push(loadCssIntoShadow(shadowRoot, cssUrl))
+    }
     const jsPromise = import(
         /* @vite-ignore */
         scriptUrl
     ) as Promise<BespokeComponentModule>
+    promises.push(jsPromise)
 
-    await cssPromise
+    await Promise.all(promises)
     const module = await jsPromise
 
     if (signal?.aborted) return {}

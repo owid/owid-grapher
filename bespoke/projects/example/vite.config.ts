@@ -1,9 +1,17 @@
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
 import { entrypoints } from "./package.json"
+import { viteCssPosition } from "vite-plugin-css-position"
 
 export default defineConfig({
-    plugins: [react()],
+    plugins: [
+        react(),
+        // This plugin allows us to Vite-inject styles directly into the Shadow DOM, and still use HMR in development.
+        // Use <StylesTarget /> in the React tree to specify where the styles should be injected.
+        viteCssPosition({
+            enableDev: true,
+        }),
+    ],
     resolve: {
         // The linked @ourworldindata/* packages resolve React relative
         // to their real paths, which would load a second copy of React
@@ -13,11 +21,16 @@ export default defineConfig({
     },
     build: {
         lib: {
-            entry: Object.values(entrypoints),
+            entry: entrypoints.js,
             formats: ["es"],
-            fileName: "example",
+            fileName: "index",
         },
-        cssCodeSplit: true,
+        sourcemap: true,
         outDir: "dist",
+    },
+    define: {
+        "process.env.NODE_ENV": JSON.stringify(
+            process.env.NODE_ENV || "development"
+        ),
     },
 })

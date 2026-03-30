@@ -12,6 +12,8 @@ import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 
+import "./Chart.scss"
+
 export function Chart() {
     const { parentRef, width, height } = useParentSize()
 

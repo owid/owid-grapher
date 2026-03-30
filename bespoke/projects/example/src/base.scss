@@ -1,3 +1,6 @@
+@use "../../../../packages/@ourworldindata/components/src/styles/typography-constants"
+    as typography;
+
 :host {
-    font-family: $sans-serif-font-stack;
+    font-family: typography.$sans-serif-font-stack;
 }
