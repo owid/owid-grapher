@@ -12,10 +12,7 @@ import type {
     BespokeComponentVariantsList,
 } from "owid-bespoke-types"
 
-// Styles for portaled react-aria overlays (e.g. dropdown menus) that render
-// outside the Shadow DOM. On the real site these are available globally;
-// importing them here ensures they're present on the demo page too.
-import "./demo.scss"
+import "./index.css"
 
 // Enable react-aria's internal Shadow DOM handling paths.
 // Must be called before any react-aria components render.

@@ -245,6 +245,9 @@ function serveDemoPage(
     entrypoints: Record<string, string> | null
 ): void {
     const template = useShadowDom ? demoTemplate : demoTemplateNoShadowDom
+    const devOnlyGlobalCss = entrypoints?.["dev-only-global-css"]
+        ? `<link rel="stylesheet" href="/${projectName}/${entrypoints["dev-only-global-css"]}" />`
+        : ""
     const html = template
         .replaceAll("{{PROJECT}}", projectName)
         .replaceAll("{{SHARED_DIR}}", SHARED_DIR)
@@ -252,6 +255,7 @@ function serveDemoPage(
         .replaceAll("{{ENTRYPOINT_CSS}}", entrypoints?.css ?? "src/index.css")
         .replaceAll("{{DEMO_CSS}}", path.join(dirname, "component-demo.css"))
         .replaceAll("{{DEMO_GRID_CSS}}", path.join(dirname, "demo-grid.css"))
+        .replaceAll("{{DEV_ONLY_GLOBAL_CSS}}", devOnlyGlobalCss)
     res.writeHead(200, { "Content-Type": "text/html" })
     res.end(html)
 }
