@@ -42,6 +42,7 @@ dist/
 .wrangler/
 .nx/cache
 .nx/workspace-data
+.turbo/
 .dev.vars
 cfstorage/
 vite.*.mjs

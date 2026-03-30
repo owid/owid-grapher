@@ -1,0 +1,11 @@
+{
+    "private": true,
+    "packageManager": "yarn@4.10.3",
+    "workspaces": [
+        "*"
+    ],
+    "scripts": {
+        "build": "yarn workspaces foreach -A run build",
+        "typecheck": "yarn workspaces foreach -A run typecheck"
+    }
+}
