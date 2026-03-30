@@ -16,7 +16,6 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
 > = {
     example: {
         scriptUrl: "/example/index.js",
-        cssUrl: "/example/index.css",
     },
     // Example:
     // "my-widget": {

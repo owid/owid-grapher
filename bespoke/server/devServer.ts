@@ -20,12 +20,14 @@ import { execSync, spawn, type ChildProcess } from "node:child_process"
 import path from "node:path"
 import fs from "node:fs"
 import os from "node:os"
+import util from "node:util"
 
 const dirname = import.meta.dirname
 const PORT = parseInt(process.env.PORT ?? "8089", 10)
 const PROJECTS_DIR = path.resolve(dirname, "..", "projects")
 const SHARED_DIR = path.resolve(dirname, "..", "shared")
 const hostname = os.hostname()
+const BUILD_MODE = process.argv.includes("--build")
 
 interface ProjectServer {
     port: number
@@ -91,13 +93,21 @@ async function getOrStartProject(name: string): Promise<ProjectServer | null> {
     console.log(`Running yarn install in "${name}"...`)
     execSync("yarn install", { cwd: dir, stdio: "inherit" })
 
-    console.log(`Starting Vite for "${name}" (${dir}) on port ${port}...`)
+    if (BUILD_MODE) {
+        console.log(`Building "${name}"...`)
+        execSync("yarn build", { cwd: dir, stdio: "inherit" })
+    }
+
+    const mode = BUILD_MODE ? "preview" : "dev"
+    console.log(
+        `Starting Vite ${mode} for "${name}" (${dir}) on port ${port}...`
+    )
 
     const proc = spawn(
         "npx",
         [
             "vite",
-            "dev",
+            mode,
             "--host",
             hostname,
             "--port",
@@ -114,15 +124,22 @@ async function getOrStartProject(name: string): Promise<ProjectServer | null> {
 
     proc.stdout.on("data", (data: Buffer) => {
         const text = data.toString().trim()
-        if (text) console.log(`[${name}] ${text}`)
-        if (text.includes("Local:") || text.includes("ready in")) {
+        if (text) console.log(`[${name} stdout] ${text}`)
+
+        const stippedText = util.stripVTControlCharacters(text)
+        if (
+            stippedText.includes("Local:") ||
+            stippedText.includes("Network:") ||
+            stippedText.includes("ready in")
+        ) {
+            console.log("ready stdout", text)
             resolveReady!()
         }
     })
 
     proc.stderr.on("data", (data: Buffer) => {
         const text = data.toString().trim()
-        if (text) console.error(`[${name}] ${text}`)
+        if (text) console.error(`[${name} stderr] ${text}`)
     })
 
     proc.on("exit", (code: number | null) => {
@@ -242,14 +259,17 @@ function serveDemoPage(
     const devOnlyGlobalCss = entrypoints?.["dev-only-global-css"]
         ? `<link rel="stylesheet" href="/${projectName}/${entrypoints["dev-only-global-css"]}" />`
         : ""
+    const jsEntrypoint = BUILD_MODE
+        ? "index.js"
+        : (entrypoints?.js ?? "src/index.ts")
+    const cssUrl = BUILD_MODE
+        ? (entrypoints?.css ? `"/${projectName}/index.css"` : "")
+        : (entrypoints?.css ? `"/${projectName}/${entrypoints.css}"` : "")
     const html = template
         .replaceAll("{{PROJECT}}", projectName)
         .replaceAll("{{SHARED_DIR}}", SHARED_DIR)
-        .replaceAll("{{ENTRYPOINT_JS}}", entrypoints?.js ?? "src/index.ts")
-        .replaceAll(
-            "{{CSS_URL}}",
-            entrypoints?.css ? `"/${projectName}/${entrypoints.css}"` : ""
-        )
+        .replaceAll("{{ENTRYPOINT_JS}}", jsEntrypoint)
+        .replaceAll("{{CSS_URL}}", cssUrl)
         .replaceAll("{{DEMO_CSS}}", path.join(dirname, "component-demo.css"))
         .replaceAll("{{DEMO_GRID_CSS}}", path.join(dirname, "demo-grid.css"))
         .replaceAll("{{DEV_ONLY_GLOBAL_CSS}}", devOnlyGlobalCss)
@@ -369,8 +389,11 @@ const server = http.createServer(
 
         const pathname = (req.url || "/").split("?")[0]
 
-        // Redirect /<project>/index.js and /<project>/index.css to actual entrypoints
+        // In dev mode, redirect /<project>/index.js and /<project>/index.css
+        // to actual source entrypoints so Vite can serve them.
+        // In build mode, these files exist as-is in dist/, so no redirect needed.
         if (
+            !BUILD_MODE &&
             tryEntrypointRedirect(
                 projectName,
                 pathname,
@@ -427,6 +450,8 @@ process.on("SIGINT", shutdown)
 process.on("SIGTERM", shutdown)
 
 server.listen(PORT, () => {
-    console.log(`Bespoke dev server running at http://localhost:${PORT}`)
+    console.log(
+        `Bespoke ${BUILD_MODE ? "preview" : "dev"} server running at http://localhost:${PORT}`
+    )
     console.log(`Projects directory: ${PROJECTS_DIR}`)
 })

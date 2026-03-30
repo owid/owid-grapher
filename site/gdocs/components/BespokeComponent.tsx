@@ -79,7 +79,7 @@ export function BespokeComponent({
             setError(`Unknown bespoke bundle: "${block.bundle}"`)
             return
         }
-        if (!scriptUrl || !cssUrl) return
+        if (!scriptUrl) return
 
         const abortController = new AbortController()
 

@@ -23,8 +23,9 @@ export default defineConfig({
         lib: {
             entry: entrypoints.js,
             formats: ["es"],
-            fileName: "example",
+            fileName: "index",
         },
+        sourcemap: true,
         outDir: "dist",
     },
 })
