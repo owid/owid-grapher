@@ -36,10 +36,12 @@ The demo page reads the `entrypoints` field from each project's `package.json` t
 {
     "entrypoints": {
         "js": "src/index.ts",
-        "css": "src/index.css"
+        "css": "src/index.css" // optional
     }
 }
 ```
+
+Only `js` is required. If `css` is omitted, the demo page won't load a separate stylesheet — useful when your component injects its own styles via `vite-plugin-css-position`, which is recommended.
 
 ## Files
 

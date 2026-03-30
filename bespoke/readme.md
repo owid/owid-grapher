@@ -22,7 +22,7 @@ bespoke/
 3. When an article containing a `{.bespoke-component}` block is rendered, the code:
     - Looks up the bundle in the registry
     - Creates a Shadow DOM container (for CSS isolation)
-    - Dynamically imports the JS module and loads the CSS into the shadow root
+    - Dynamically imports the JS module and, if a CSS URL is registered, loads the CSS into the shadow root
     - Calls the module's `mount()` function with the container and config
 
 ### The `mount` interface
@@ -52,10 +52,12 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
 > = {
     "income-plots": {
         scriptUrl: "/assets/bespoke/income-plots.mjs",
-        cssUrl: "/assets/bespoke/income-plots.css",
+        cssUrl: "/assets/bespoke/income-plots.css", // optional
     },
 }
 ```
+
+The `cssUrl` is optional — if your component manages its own styles (e.g. via `vite-plugin-css-position` injecting CSS into the Shadow DOM from JS), you can omit it.
 
 ## Embedding in Google Docs
 
@@ -147,7 +149,7 @@ Projects can import shared code from `bespoke/components/` if needed, but must b
 
 ### Build setup
 
-Projects use [Vite library mode](https://vite.dev/guide/build.html#library-mode) to produce the ESM module and CSS file. A minimal `vite.config.ts`:
+Projects use [Vite library mode](https://vite.dev/guide/build.html#library-mode) to produce the ESM module and optionally a CSS file. A minimal `vite.config.ts`:
 
 ```ts
 import { defineConfig } from "vite"
@@ -252,7 +254,7 @@ To fix this, add a `dev-only-global-css` entrypoint to your project's `package.j
 {
     "entrypoints": {
         "js": "src/index.tsx",
-        "css": "src/index.css",
+        "css": "src/index.css",              // optional
         "dev-only-global-css": "src/dev-only-global-css.css"
     }
 }
@@ -263,7 +265,7 @@ The dev server will inject this stylesheet into the demo page's `<head>` (outsid
 ## Creating a new bespoke component
 
 1. Create a new directory under `bespoke/projects/`
-2. Set up your project with its own `package.json` and build tooling to output an ESM module (`.mjs`) and a CSS file
+2. Set up your project with its own `package.json` and build tooling to output an ESM module (`.mjs`) and optionally a CSS file
 3. Export a `mount` function from the entry point
 4. Register the bundle in [site/bespokeComponentRegistry.ts](../site/bespokeComponentRegistry.ts)
 5. Deploy the built assets to the expected URL path
