@@ -1,8 +1,17 @@
 import cx from "classnames"
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo, useRef, useState } from "react"
 import { Tippy } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
+import {
+    DisclosureGroup,
+    Disclosure,
+    DisclosurePanel,
+    Button,
+} from "react-aria-components"
+import { LinePath } from "@visx/shape"
+import { scaleLinear } from "@visx/scale"
+import { Halo } from "@ourworldindata/components"
 import { BezierArrow } from "../../../../components/BezierArrow/BezierArrow"
 import { CountryData, PARAMETER_KEYS, ParameterKey } from "../helpers/types"
 import {
@@ -19,10 +28,14 @@ import {
     START_YEAR,
     END_YEAR,
     HISTORICAL_END_YEAR,
+    CONTROL_YEARS,
     FULL_TIME_RANGE,
     BENCHMARK_LINE_COLOR,
     USER_MODIFIED_COLOR,
+    DENIM_BLUE,
+    PROJECTION_BACKGROUND,
 } from "../helpers/constants.js"
+import { getInterpolatedValue } from "../model/projectionRunner.js"
 import { PopulationChartLegend } from "./PopulationChartLegend.js"
 import { parameterConfigByKey } from "../helpers/parameterConfigs.js"
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
@@ -65,55 +78,102 @@ export function SimulationContent({
 
     return (
         <div className="chart-content">
-            <Container className="container-left" title={title}>
+            <div className="container container-left">
                 <div className="input-panels">
-                    {PARAMETER_KEYS.map((key) => {
-                        const isFocus = focusParameter && focusParameter === key
-                        const isWorldMigration =
-                            key === "netMigrationRate" &&
-                            data.country === "World"
-                        const isMuted =
-                            (focusParameter && focusParameter !== key) ||
-                            isWorldMigration
-                        const isNonInteractive =
-                            (focusParameter && focusParameter !== key) ||
-                            isWorldMigration
-                        return (
-                            <InputChartPanel
-                                key={key}
-                                simulation={simulation}
-                                variant={key}
-                                interactive={!isNonInteractive}
-                                lineColor={
-                                    isMuted ? BENCHMARK_LINE_COLOR : undefined
-                                }
-                                labelColor={isMuted ? GRAY_60 : undefined}
-                                resetTarget={stabilizedOverrides?.[key]}
-                                hideInfoIcon={isWorldMigration}
-                                className={cx({
-                                    "chart-panel--focus": isFocus,
-                                    "chart-panel--muted": isMuted,
-                                })}
-                            />
-                        )
-                    })}
+                    <DisclosureGroup
+                        className="input-accordion"
+                        defaultExpandedKeys={
+                            new Set([focusParameter ?? "fertilityRate"])
+                        }
+                    >
+                        {PARAMETER_KEYS.map((key) => {
+                            const isWorldMigration =
+                                key === "netMigrationRate" &&
+                                data.country === "World"
+                            const isMuted =
+                                (focusParameter && focusParameter !== key) ||
+                                isWorldMigration
+                            const isNonInteractive =
+                                (focusParameter && focusParameter !== key) ||
+                                isWorldMigration
+                            const resetTarget =
+                                stabilizedOverrides?.[key] ??
+                                simulation.unwppScenarioParams[key]
+                            const canReset = Object.keys(
+                                resetTarget
+                            ).some(
+                                (k) =>
+                                    simulation.scenarioParams[key][
+                                        Number(k)
+                                    ] !== resetTarget[Number(k)]
+                            )
+                            return (
+                                <Disclosure
+                                    key={key}
+                                    id={key}
+                                    className="input-accordion__item"
+                                >
+                                    <div className="input-accordion__header">
+                                        <Button
+                                            slot="trigger"
+                                            className="input-accordion__trigger"
+                                        >
+                                            <span className="input-accordion__trigger-title-row">
+                                                <span className="input-accordion__trigger-title">
+                                                    {parameterConfigByKey[key].title}
+                                                </span>
+                                                <span className="input-accordion__expand-icon">
+                                                    +
+                                                </span>
+                                            </span>
+                                            <span className="input-accordion__trigger-subtitle">
+                                                {parameterConfigByKey[key].subtitle(data.country)}
+                                            </span>
+                                            <CollapsedSummary
+                                                simulation={simulation}
+                                                variant={key}
+                                            />
+                                        </Button>
+                                    </div>
+                                    <DisclosurePanel className="input-accordion__panel">
+                                        <InputChartPanel
+                                            simulation={simulation}
+                                            variant={key}
+                                            interactive={!isNonInteractive}
+                                            lineColor={
+                                                isMuted
+                                                    ? BENCHMARK_LINE_COLOR
+                                                    : undefined
+                                            }
+                                            labelColor={
+                                                isMuted ? GRAY_60 : undefined
+                                            }
+                                            resetTarget={
+                                                stabilizedOverrides?.[key]
+                                            }
+                                            hideInfoIcon={isWorldMigration}
+                                            showProjectionLabel
+                                            className={cx({
+                                                "chart-panel--focus":
+                                                    focusParameter &&
+                                                    focusParameter === key,
+                                                "chart-panel--muted": isMuted,
+                                            })}
+                                        />
+                                    </DisclosurePanel>
+                                </Disclosure>
+                            )
+                        })}
+                    </DisclosureGroup>
                 </div>
-            </Container>
-            <ArrowFromInputToOutputPanels />
-            <Container
-                className="container-right"
-                title={
-                    focusParameter
-                        ? "See how this affects population projections"
-                        : "See how they affect population projections"
-                }
-            >
+            </div>
+            <div className="container container-right">
                 <div className="output-panels">
                     <ChartPanel
                         className="population-panel"
                         title="Population"
                         subtitle="Historical estimates and projections of total population"
-                        header={<PopulationChartLegend />}
+                        header={<PopulationChartLegend modified={hasUserChanges} />}
                     >
                         <ResponsivePopulationChart
                             simulation={simulation}
@@ -130,7 +190,7 @@ export function SimulationContent({
                         />
                     )}
                 </div>
-            </Container>
+            </div>
         </div>
     )
 }
@@ -254,9 +314,27 @@ export function InputChartPanel({
                 "chart-panel--italic-subtitle": isWorldMigration,
             })}
             title={title}
+            titleSuffix={undefined}
             subtitle={subtitle}
             tooltipContent={hideInfoIcon ? undefined : tooltipContent}
             onReset={hasResetButton ? handleReset : undefined}
+            subheader={
+                interactive ? (
+                    <CollapsedSummary
+                        simulation={simulation}
+                        variant={variant}
+                    />
+                ) : undefined
+            }
+            header={
+                interactive ? (
+                    <PopulationChartLegend
+                        userLabel="Your assumptions"
+                        benchmarkLabel="UN WPP assumptions"
+                        modified={isParameterModified}
+                    />
+                ) : undefined
+            }
         >
             <ResponsiveDemographyParameterEditor
                 simulation={simulation}
@@ -277,8 +355,10 @@ export function InputChartPanel({
 
 export function ChartPanel({
     title,
+    titleSuffix,
     subtitle,
     tooltipContent,
+    subheader,
     children,
     header,
     footer,
@@ -286,8 +366,10 @@ export function ChartPanel({
     onReset,
 }: {
     title: string
+    titleSuffix?: React.ReactNode
     subtitle: string
     tooltipContent?: string
+    subheader?: React.ReactNode
     children?: React.ReactNode
     header?: React.ReactNode
     footer?: React.ReactNode
@@ -304,7 +386,10 @@ export function ChartPanel({
                     Reset
                 </button>
             )}
-            <h3 className="chart-panel__title">{title}</h3>
+            <h3 className="chart-panel__title">
+                {title}
+                {titleSuffix}
+            </h3>
             <p className="chart-panel__subtitle">
                 {subtitle}
                 {tooltipContent && (
@@ -325,10 +410,330 @@ export function ChartPanel({
                     </span>
                 )}
             </p>
+            {subheader && (
+                <div className="chart-panel__subheader">{subheader}</div>
+            )}
             {header && <div className="chart-panel__header">{header}</div>}
             {children && <div className="chart-panel__content">{children}</div>}
             {footer && <div className="chart-panel__footer">{footer}</div>}
         </div>
+    )
+}
+
+function CollapsedSummary({
+    simulation,
+    variant,
+}: {
+    simulation: Simulation
+    variant: ParameterKey
+}) {
+    const config = parameterConfigByKey[variant]
+    const formatVal = config.formatValue
+    const unit =
+        variant === "lifeExpectancy"
+            ? " years"
+            : variant === "fertilityRate"
+              ? " births"
+              : ""
+    const controlPoints = simulation.scenarioParams[variant]
+    const referencePoints = simulation.unwppScenarioParams[variant]
+
+    // Get the last historical value
+    const { points: historical } = config.computeHistorical(simulation, false)
+    const lastHistorical = historical.at(-1)
+
+    // Check which control years the user has modified
+    const modifiedYears = CONTROL_YEARS.filter(
+        (yr) => Math.abs(controlPoints[yr] - referencePoints[yr]) >= 0.01
+    )
+
+    const current = lastHistorical
+        ? `${formatVal(lastHistorical.value)}${unit} in ${lastHistorical.year}`
+        : ""
+
+    const isModified = modifiedYears.length > 0
+
+    let projectionText: string
+    if (isModified) {
+        const modified = modifiedYears.map(
+            (yr) => `${formatVal(controlPoints[yr])}${unit} by ${yr}`
+        )
+        projectionText = `set to ${modified.join(", ")}`
+    } else {
+        const endValue = controlPoints[CONTROL_YEARS[CONTROL_YEARS.length - 1]]
+        projectionText = `projected ${formatVal(endValue)}${unit} by ${CONTROL_YEARS[CONTROL_YEARS.length - 1]}`
+    }
+
+    return (
+        <span className="input-accordion__trigger-summary">
+            {current} →{" "}
+            <span
+                className={
+                    isModified
+                        ? "input-accordion__trigger-summary--modified"
+                        : undefined
+                }
+            >
+                {projectionText}
+            </span>
+        </span>
+    )
+}
+
+function CollapsedSparkline({
+    simulation,
+    variant,
+}: {
+    simulation: Simulation
+    variant: ParameterKey
+}) {
+    const config = parameterConfigByKey[variant]
+    const isModified = simulation.modifiedParameters.has(variant)
+
+    const {
+        historicalPoints,
+        projectionPoints,
+        benchmarkPoints,
+        minValue,
+        maxValue,
+    } = useMemo(() => {
+        const {
+            points: historical,
+            min,
+            max,
+        } = config.computeHistorical(simulation, false)
+
+        const lastHistorical = historical.at(-1)
+        if (!lastHistorical)
+            return {
+                historicalPoints: historical,
+                projectionPoints: [],
+                benchmarkPoints: [],
+                minValue: min,
+                maxValue: max,
+            }
+
+        const augmentedYears = [HISTORICAL_END_YEAR, ...CONTROL_YEARS]
+
+        const buildProjection = (
+            params: Record<number, number>
+        ): { year: number; value: number }[] => {
+            const aug: Record<number, number> = {
+                [HISTORICAL_END_YEAR]: lastHistorical.value,
+                ...params,
+            }
+            const pts: { year: number; value: number }[] = []
+            for (
+                let year = HISTORICAL_END_YEAR + 1;
+                year <= END_YEAR;
+                year++
+            ) {
+                pts.push({
+                    year,
+                    value: getInterpolatedValue(
+                        aug,
+                        year,
+                        HISTORICAL_END_YEAR,
+                        augmentedYears
+                    ),
+                })
+            }
+            return pts
+        }
+
+        const projection = buildProjection(
+            simulation.scenarioParams[variant]
+        )
+        const benchmark = buildProjection(
+            simulation.unwppScenarioParams[variant]
+        )
+
+        const allValues = [
+            ...historical.map((d) => d.value),
+            ...projection.map((d) => d.value),
+            ...benchmark.map((d) => d.value),
+        ]
+        return {
+            historicalPoints: historical,
+            projectionPoints: [lastHistorical, ...projection],
+            benchmarkPoints: [lastHistorical, ...benchmark],
+            minValue: Math.min(min, ...allValues),
+            maxValue: Math.max(max, ...allValues),
+        }
+    }, [simulation, variant, config])
+    const points = [...historicalPoints, ...projectionPoints.slice(1)]
+
+    const containerRef = useRef<HTMLDivElement>(null)
+    const [size, setSize] = useState({ width: 0, height: 0 })
+
+    const resizeRef = useCallback((node: HTMLDivElement | null) => {
+        containerRef.current = node
+        if (!node) return
+        const obs = new ResizeObserver((entries) => {
+            const { width, height } = entries[0].contentRect
+            setSize({ width, height })
+        })
+        obs.observe(node)
+        return () => obs.disconnect()
+    }, [])
+
+    if (points.length === 0) return null
+
+    const { width, height } = size
+    const dotRadius = 3
+    const fontSize = 10
+    const xScale = scaleLinear({
+        domain: [START_YEAR, END_YEAR],
+        range: [dotRadius, width - dotRadius],
+    })
+    const yScale = scaleLinear({
+        domain: [minValue, maxValue],
+        range: [height - 2, 2],
+        clamp: true,
+    })
+
+    const firstPoint = points[0]
+    const lastPoint = points[points.length - 1]
+    const projectionColor = isModified ? USER_MODIFIED_COLOR : DENIM_BLUE
+    const formatVal = config.formatValue
+
+    // Build labeled points with their screen positions
+    const controlPointYears = [2030, 2050] as const
+    const augmentedControlPoints = {
+        [HISTORICAL_END_YEAR]:
+            points.find((p) => p.year === HISTORICAL_END_YEAR)?.value ?? 0,
+        ...simulation.scenarioParams[variant],
+    }
+    const augmentedYears = [HISTORICAL_END_YEAR, ...CONTROL_YEARS]
+
+    const labeledPoints = [
+        ...(firstPoint
+            ? [
+                  {
+                      year: firstPoint.year,
+                      x: xScale(firstPoint.year),
+                      y: yScale(firstPoint.value),
+                      label: formatVal(firstPoint.value),
+                      textAnchor: "start" as const,
+                  },
+              ]
+            : []),
+        ...controlPointYears.map((yr) => {
+            const val = getInterpolatedValue(
+                augmentedControlPoints,
+                yr,
+                HISTORICAL_END_YEAR,
+                augmentedYears
+            )
+            return {
+                year: yr,
+                x: xScale(yr),
+                y: yScale(val),
+                label: formatVal(val),
+                textAnchor: "middle" as const,
+            }
+        }),
+        ...(lastPoint
+            ? [
+                  {
+                      year: lastPoint.year,
+                      x: xScale(lastPoint.year),
+                      y: yScale(lastPoint.value),
+                      label: formatVal(lastPoint.value),
+                      textAnchor: "end" as const,
+                  },
+              ]
+            : []),
+    ]
+
+    return (
+        <div ref={resizeRef} className="input-accordion__sparkline">
+            {width > 0 && height > 0 && (
+                <svg
+                    width={width}
+                    height={height}
+                    style={{ overflow: "visible" }}
+                >
+                    <LinePath
+                        data={benchmarkPoints}
+                        x={(d) => xScale(d.year)}
+                        y={(d) => yScale(d.value)}
+                        stroke={BENCHMARK_LINE_COLOR}
+                        strokeWidth={1.5}
+                        strokeDasharray="1,2"
+                        strokeLinecap="butt"
+                    />
+                    <LinePath
+                        data={historicalPoints}
+                        x={(d) => xScale(d.year)}
+                        y={(d) => yScale(d.value)}
+                        stroke={DENIM_BLUE}
+                        strokeWidth={1.5}
+                    />
+                    <LinePath
+                        data={projectionPoints}
+                        x={(d) => xScale(d.year)}
+                        y={(d) => yScale(d.value)}
+                        stroke={projectionColor}
+                        strokeWidth={1.5}
+                        strokeDasharray="1,2"
+                        strokeLinecap="butt"
+                    />
+                    {labeledPoints.map((pt) => (
+                        <SparklinePointLabel
+                            key={pt.year}
+                            x={pt.x}
+                            y={pt.y}
+                            label={pt.label}
+                            color={pt.year <= HISTORICAL_END_YEAR ? DENIM_BLUE : projectionColor}
+                            fontSize={fontSize}
+                            dotRadius={dotRadius}
+                            textAnchor={pt.textAnchor}
+                        />
+                    ))}
+                </svg>
+            )}
+        </div>
+    )
+}
+
+function SparklinePointLabel({
+    x,
+    y,
+    label,
+    color,
+    fontSize,
+    dotRadius,
+    textAnchor = "middle",
+}: {
+    x: number
+    y: number
+    label: string
+    color: string
+    fontSize: number
+    dotRadius: number
+    textAnchor?: "start" | "middle" | "end"
+}) {
+    // Above by default; below if the dot is too close to the top of the SVG
+    const labelY =
+        y < 20 ? y + fontSize / 2 + 8 : y - fontSize / 2 - 3
+
+    return (
+        <>
+            <circle cx={x} cy={y} r={dotRadius} fill={color} />
+            <Halo id="sparkline-label" outlineWidth={3} outlineColor="#f0f4fa">
+                <text
+                    x={x}
+                    y={labelY}
+                    fontSize={fontSize}
+                    fontWeight={700}
+                    fill={color}
+                    textAnchor={textAnchor}
+                >
+                    {label}
+                </text>
+            </Halo>
+        </>
     )
 }
 

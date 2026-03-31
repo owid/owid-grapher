@@ -16,6 +16,8 @@ import {
     HOVER_LINE_COLOR,
     ZERO_LINE_COLOR,
     USER_MODIFIED_COLOR,
+    GRID_LINE_COLOR,
+    LABEL_COLOR,
 } from "../helpers/constants"
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { Halo, TextWrap } from "@ourworldindata/components"
@@ -34,7 +36,9 @@ const CONTROL_POINT_HIT_RADIUS = 12
 const margin = {
     top: 0,
     right: 0.5 * CONTROL_POINT_HIT_RADIUS,
+    // right: 0,
     bottom: 14,
+    // left: 0,
     left: 0.5 * SMALL_DOT_RADIUS,
 }
 
@@ -84,6 +88,9 @@ function DemographyParameterEditor({
 
     const controlPoints = simulation.scenarioParams[variant]
     const referencePoints = simulation.unwppScenarioParams[variant]
+    const anyModified = CONTROL_YEARS.some(
+        (yr) => Math.abs(controlPoints[yr] - referencePoints[yr]) >= 0.01
+    )
     const formatValue = config.formatValue
 
     const handleChange = useCallback(
@@ -107,6 +114,7 @@ function DemographyParameterEditor({
     const yScale = scaleLinear({
         domain: [minValue, maxValue],
         range: [innerHeight, 0],
+        nice: true,
         clamp: true,
     })
 
@@ -324,13 +332,58 @@ function DemographyParameterEditor({
             style={{ display: "block", touchAction: "none" }}
         >
             <Group left={margin.left} top={margin.top}>
-                {/* Projection area background */}
-                <rect
-                    x={projX}
-                    y={0}
-                    width={innerWidth - projX}
-                    height={innerHeight}
-                    fill={PROJECTION_BACKGROUND}
+                {/* Y-axis grid lines and labels */}
+                {(() => {
+                    const ticks = yScale
+                        .ticks(innerHeight < 80 ? 2 : 3)
+                        .filter(
+                            (t) =>
+                                yScale(t) > 12 &&
+                                yScale(t) < innerHeight - 4
+                        )
+                    const topTick = ticks[ticks.length - 1]
+                    return ticks.map((tick) => (
+                        <g key={tick}>
+                            <line
+                                x1={0}
+                                y1={yScale(tick)}
+                                x2={innerWidth}
+                                y2={yScale(tick)}
+                                stroke={
+                                    tick === 0
+                                        ? ZERO_LINE_COLOR
+                                        : GRID_LINE_COLOR
+                                }
+                                strokeWidth={1}
+                            />
+                            {(tick !== 0 || minValue < 0) && (
+                                <text
+                                    x={4}
+                                    y={yScale(tick) - 4}
+                                    fontSize={fonts.yTick}
+                                    fill={LABEL_COLOR}
+                                >
+                                    {Math.round(tick * 10) / 10}
+                                    {config.axisUnit === "‰"
+                                        ? "‰"
+                                        : tick === topTick
+                                          ? ` ${config.axisUnit}`
+                                          : ""}
+                                </text>
+                            )}
+                        </g>
+                    ))
+                })()}
+
+                {/* Projection start line */}
+                <line
+                    x1={projX}
+                    y1={innerHeight}
+                    x2={projX}
+                    y2={innerHeight - 20}
+                    stroke={GRAPHER_LIGHT_TEXT}
+                    strokeWidth={1}
+                    strokeDasharray="2,2"
                 />
 
                 {/* Projection label */}
@@ -388,45 +441,16 @@ function DemographyParameterEditor({
                     strokeLinecap="butt"
                 />
 
-                {/* Projection line — segments colored individually */}
-                {[lastHistoricalDataPoint, ...projectionPoints].map(
-                    (point, i, arr) => {
-                        if (i === 0) return null
-                        const prev = arr[i - 1]
-                        const prevModified =
-                            (CONTROL_YEARS as readonly number[]).includes(
-                                prev.year
-                            ) &&
-                            Math.abs(
-                                controlPoints[prev.year] -
-                                    referencePoints[prev.year]
-                            ) >= 0.01
-                        const currModified =
-                            (CONTROL_YEARS as readonly number[]).includes(
-                                point.year
-                            ) &&
-                            Math.abs(
-                                controlPoints[point.year] -
-                                    referencePoints[point.year]
-                            ) >= 0.01
-                        const segmentColor =
-                            prevModified || currModified
-                                ? USER_MODIFIED_COLOR
-                                : lineColor
-                        return (
-                            <LinePath
-                                key={point.year}
-                                data={[prev, point]}
-                                x={(d) => xScale(d.year)}
-                                y={(d) => yScale(d.value)}
-                                stroke={segmentColor}
-                                strokeWidth={2}
-                                strokeDasharray="1,2"
-                                strokeLinecap="butt"
-                            />
-                        )
-                    }
-                )}
+                {/* Projection line */}
+                <LinePath
+                    data={[lastHistoricalDataPoint, ...projectionPoints]}
+                    x={(d) => xScale(d.year)}
+                    y={(d) => yScale(d.value)}
+                    stroke={anyModified ? USER_MODIFIED_COLOR : lineColor}
+                    strokeWidth={2}
+                    strokeDasharray="1,2"
+                    strokeLinecap="butt"
+                />
 
                 {/* First historical point (1950) — always with value label */}
                 <PointLabelWithYear
@@ -439,6 +463,7 @@ function DemographyParameterEditor({
                     fontSize={fonts.pointLabel}
                     year={firstHistoricalDataPoint.year}
                     yearAnchor="start"
+                    valueLabelAnchor="start"
                     hidden={hiddenPointLabels.has("first-historical")}
                     hideTickMark
                 />
@@ -577,7 +602,7 @@ function DemographyParameterEditor({
                                           ? "end"
                                           : "middle"
                                 }
-                                fontSize={fonts.xTick}
+                                fontSize={fonts.pointLabel}
                                 fill={GRAPHER_LIGHT_TEXT}
                             >
                                 {hoveredYear}
@@ -601,11 +626,7 @@ function DemographyParameterEditor({
                 {/* Draggable control points */}
                 {interactive &&
                     CONTROL_YEARS.map((year) => {
-                        const isModified =
-                            Math.abs(
-                                controlPoints[year] - referencePoints[year]
-                            ) >= 0.01
-                        const pointColor = isModified
+                        const pointColor = anyModified
                             ? USER_MODIFIED_COLOR
                             : DENIM_BLUE
                         return (
@@ -615,7 +636,8 @@ function DemographyParameterEditor({
                                 cy={yScale(controlPoints[year])}
                                 value={controlPoints[year]}
                                 color={pointColor}
-                                modified={isModified}
+                                modified={anyModified}
+                                highlighted={hoveredYear === year}
                                 formatValue={formatValue}
                                 dragArrowFontSize={fonts.dragArrow}
                                 controlLabelFontSize={fonts.controlLabel}
@@ -636,7 +658,7 @@ function DemographyParameterEditor({
                 {/* Hover dot + value label — rendered above control points */}
                 {hoveredYear !== null && hoveredValue !== undefined && (
                     <g style={{ pointerEvents: "none" }}>
-                        <PointLabel
+                        <HoverPointLabel
                             x={xScale(hoveredYear)}
                             y={yScale(hoveredValue)}
                             label={
@@ -645,16 +667,16 @@ function DemographyParameterEditor({
                                     : formatValue(hoveredValue)
                             }
                             color={
-                                isControlYear &&
-                                Math.abs(
-                                    controlPoints[hoveredYear] -
-                                        referencePoints[hoveredYear]
-                                ) >= 0.01
+                                anyModified && hoveredYear > HISTORICAL_END_YEAR
                                     ? USER_MODIFIED_COLOR
                                     : lineColor
                             }
-                            labelColor={labelColor}
                             fontSize={fonts.hoverLabel}
+                            backgroundFill={
+                                anyModified && hoveredYear > HISTORICAL_END_YEAR
+                                    ? USER_MODIFIED_COLOR
+                                    : DENIM_BLUE
+                            }
                         />
                     </g>
                 )}
@@ -700,6 +722,7 @@ function DraggableControlPoint({
     value,
     color,
     modified = false,
+    highlighted = false,
     formatValue,
     yScale,
     marginTop,
@@ -714,6 +737,7 @@ function DraggableControlPoint({
     value: number
     color: string
     modified?: boolean
+    highlighted?: boolean
     formatValue: (v: number) => string
     yScale: { invert: (y: number) => number }
     marginTop: number
@@ -724,6 +748,7 @@ function DraggableControlPoint({
     onPointerLeave?: () => void
 }) {
     const [isDragging, setIsDragging] = useState(false)
+    const showBackground = highlighted || isDragging
 
     return (
         <g>
@@ -765,20 +790,11 @@ function DraggableControlPoint({
                 </text>
 
                 {/* Visible circle */}
-                {modified && (
-                    <circle
-                        cx={cx}
-                        cy={cy}
-                        r={CONTROL_POINT_RADIUS}
-                        fill="white"
-                    />
-                )}
                 <circle
                     cx={cx}
                     cy={cy}
                     r={CONTROL_POINT_RADIUS}
-                    fill={modified ? color : "white"}
-                    fillOpacity={modified ? 0.25 : 1}
+                    fill="white"
                     stroke={color}
                     strokeWidth={2}
                     cursor="ns-resize"
@@ -795,18 +811,42 @@ function DraggableControlPoint({
                 </text>
 
                 {/* Value label — flips below the dot when near the top */}
-                <Halo id="control-value-label" outlineWidth={3}>
-                    <text
-                        x={cx}
-                        y={cy < 20 ? cy + 22 : cy - 15}
-                        textAnchor="middle"
-                        fontSize={controlLabelFontSize}
-                        fontWeight={700}
-                        fill={color}
-                    >
-                        {formatValue(value)}
-                    </text>
-                </Halo>
+                {showBackground ? (
+                    <>
+                        <TextBackground
+                            x={cx}
+                            y={cy < 20 ? cy + 22 : cy - 17}
+                            text={formatValue(value)}
+                            fontSize={controlLabelFontSize}
+                            padX={4}
+                            padY={2}
+                            fill={modified ? USER_MODIFIED_COLOR : DENIM_BLUE}
+                        />
+                        <text
+                            x={cx}
+                            y={cy < 20 ? cy + 22 : cy - 17}
+                            textAnchor="middle"
+                            fontSize={controlLabelFontSize}
+                            fontWeight={700}
+                            fill="white"
+                        >
+                            {formatValue(value)}
+                        </text>
+                    </>
+                ) : (
+                    <Halo id="control-value-label" outlineWidth={3}>
+                        <text
+                            x={cx}
+                            y={cy < 20 ? cy + 22 : cy - 17}
+                            textAnchor="middle"
+                            fontSize={controlLabelFontSize}
+                            fontWeight={700}
+                            fill={color}
+                        >
+                            {formatValue(value)}
+                        </text>
+                    </Halo>
+                )}
             </g>
         </g>
     )
@@ -868,6 +908,7 @@ function PointLabel({
     labelColor,
     fontSize = 9,
     hidden = false,
+    textAnchor = "middle",
 }: {
     x: number
     y: number
@@ -876,6 +917,7 @@ function PointLabel({
     labelColor?: string
     fontSize?: number
     hidden?: boolean
+    textAnchor?: "start" | "middle" | "end"
 }) {
     return (
         <>
@@ -888,7 +930,7 @@ function PointLabel({
                         fontSize={fontSize}
                         fontWeight={700}
                         fill={labelColor ?? color}
-                        textAnchor="middle"
+                        textAnchor={textAnchor}
                         opacity={hidden ? 0 : 1}
                     >
                         {label}
@@ -896,6 +938,85 @@ function PointLabel({
                 </Halo>
             )}
         </>
+    )
+}
+
+function HoverPointLabel({
+    x,
+    y,
+    label,
+    color,
+    fontSize = 9,
+    backgroundFill = DENIM_BLUE,
+}: {
+    x: number
+    y: number
+    label?: string
+    color: string
+    fontSize?: number
+    backgroundFill?: string
+}) {
+    const textY = y < 20 ? y + fontSize / 2 + 6 : y - fontSize / 2 - 5
+    const padX = 4
+    const padY = 2
+
+    return (
+        <>
+            <circle cx={x} cy={y} r={SMALL_DOT_RADIUS} fill={color} />
+            {label && (
+                <>
+                    <TextBackground
+                        x={x}
+                        y={textY}
+                        text={label}
+                        fontSize={fontSize}
+                        padX={padX}
+                        padY={padY}
+                        fill={backgroundFill}
+                    />
+                    <text
+                        x={x}
+                        y={textY}
+                        fontSize={fontSize}
+                        fontWeight={700}
+                        fill="white"
+                        textAnchor="middle"
+                    >
+                        {label}
+                    </text>
+                </>
+            )}
+        </>
+    )
+}
+
+function TextBackground({
+    x,
+    y,
+    text,
+    fontSize,
+    padX,
+    padY,
+    fill,
+}: {
+    x: number
+    y: number
+    text: string
+    fontSize: number
+    padX: number
+    padY: number
+    fill: string
+}) {
+    const tw = new TextWrap({ text, maxWidth: Infinity, fontSize })
+    return (
+        <rect
+            x={x - tw.width / 2 - padX}
+            y={y - tw.height + padY}
+            width={tw.width + padX * 2}
+            height={tw.height + padY}
+            rx={2}
+            fill={fill}
+        />
     )
 }
 
@@ -909,6 +1030,7 @@ function PointLabelWithYear({
     fontSize = 9,
     year,
     yearAnchor = "middle",
+    valueLabelAnchor,
     hidden = false,
     hideTickMark = false,
     tickColor = GRAPHER_LIGHT_TEXT,
@@ -922,6 +1044,7 @@ function PointLabelWithYear({
     fontSize?: number
     year: number
     yearAnchor?: "start" | "middle" | "end"
+    valueLabelAnchor?: "start" | "middle" | "end"
     hidden?: boolean
     hideTickMark?: boolean
     tickColor?: string
@@ -937,6 +1060,7 @@ function PointLabelWithYear({
                     labelColor={labelColor}
                     fontSize={fontSize}
                     hidden={hidden}
+                    textAnchor={valueLabelAnchor}
                 />
             )}
             {/* Year tick */}
