@@ -261,7 +261,10 @@
     "resolutions": {
         "whatwg-url": "15.0.0",
         "preact@npm:^10.13.2": "patch:preact@npm%3A10.17.0#~/.yarn/patches/preact-npm-10.17.0-e831e619a5.patch",
-        "preact@npm:^10.10.0": "patch:preact@npm%3A10.17.0#~/.yarn/patches/preact-npm-10.17.0-e831e619a5.patch"
+        "preact@npm:^10.10.0": "patch:preact@npm%3A10.17.0#~/.yarn/patches/preact-npm-10.17.0-e831e619a5.patch",
+        "@codemirror/view": "6.40.0",
+        "@codemirror/state": "6.6.0",
+        "@codemirror/language": "6.12.3"
     },
     "lint-staged": {
         "*": "yarn oxfmt --no-error-on-unmatched-pattern"
