@@ -54,6 +54,7 @@ import { isDarkColor } from "../color/ColorUtils"
 import { MapConfig } from "./MapConfig"
 import { MapSelectionArray } from "../selection/MapSelectionArray"
 import { MAP_PROJECTIONS } from "./MapProjections"
+import * as R from "remeda"
 
 @observer
 export class ChoroplethMap extends React.Component<{
@@ -154,7 +155,7 @@ export class ChoroplethMap extends React.Component<{
             newOffsetY,
         ]
         const matrixComponentsRounded = matrixComponents.map((c) =>
-            _.round(c, 4)
+            _.round(c, 3)
         )
 
         const matrixStr = `matrix(${matrixComponentsRounded.join(",")})`

@@ -44,6 +44,8 @@ import {
 import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
 import { InteractionState } from "../interaction/InteractionState"
 
+import * as R from "remeda"
+
 export const autoDetectYColumnSlugs = (manager: ChartManager): string[] => {
     if (manager.yColumnSlugs && manager.yColumnSlugs.length)
         return manager.yColumnSlugs
@@ -302,9 +304,10 @@ export function NoDataPattern({
     patternId?: string
     scale?: number
 }): React.ReactElement {
+    const roundedScale = R.round(scale, 3)
     const patternTransforms = excludeUndefined([
         `rotate(-45 2 2)`,
-        scale !== 1 ? `scale(${scale})` : undefined,
+        scale !== 1 ? `scale(${roundedScale})` : undefined,
     ])
     return (
         <pattern
