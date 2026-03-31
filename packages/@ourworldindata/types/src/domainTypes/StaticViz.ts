@@ -1,4 +1,4 @@
-import { z } from "zod"
+import { z } from "zod/mini"
 
 export const StaticVizTableName = "static_viz"
 
@@ -41,24 +41,24 @@ export type DbEnrichedStaticViz = Omit<
 }
 
 export const StaticVizInsertSchema = z.object({
-    name: z.string().min(1),
-    description: z.string().nullable().optional(),
-    grapherSlug: z.string().nullable().optional(),
-    sourceUrl: z.string().nullable().optional(),
-    imageId: z.number().min(1),
-    mobileImageId: z.number().min(1).nullable().optional(),
-    createdBy: z.number().min(1).nullable().optional(),
-    updatedBy: z.number().min(1).nullable().optional(),
+    name: z.string().check(z.minLength(1)),
+    description: z.nullable(z.optional(z.string())),
+    grapherSlug: z.nullable(z.optional(z.string())),
+    sourceUrl: z.nullable(z.optional(z.string())),
+    imageId: z.number().check(z.minimum(1)),
+    mobileImageId: z.optional(z.nullable(z.number().check(z.minimum(1)))),
+    createdBy: z.optional(z.nullable(z.number().check(z.minimum(1)))),
+    updatedBy: z.optional(z.nullable(z.number().check(z.minimum(1)))),
 })
 
 export const StaticVizUpdateSchema = z.object({
-    name: z.string().min(1).optional(),
-    description: z.string().nullable().optional(),
-    grapherSlug: z.string().nullable().optional(),
-    sourceUrl: z.string().nullable().optional(),
-    imageId: z.number().min(1).optional(),
-    mobileImageId: z.number().min(1).nullable().optional(),
-    updatedBy: z.number().min(1).nullable().optional(),
+    name: z.optional(z.string().check(z.minLength(1))),
+    description: z.nullable(z.optional(z.string())),
+    grapherSlug: z.nullable(z.optional(z.string())),
+    sourceUrl: z.nullable(z.optional(z.string())),
+    imageId: z.optional(z.number().check(z.minimum(1))),
+    mobileImageId: z.optional(z.nullable(z.number().check(z.minimum(1)))),
+    updatedBy: z.optional(z.nullable(z.number().check(z.minimum(1)))),
 })
 
 export type StaticVizUpdate = z.infer<typeof StaticVizUpdateSchema>
