@@ -10,6 +10,12 @@ import {
 import { format, FormatOptions } from "oxfmt"
 import oxfmtConfig from "../../.oxfmtrc.json"
 import * as _ from "lodash-es"
+import * as R from "remeda"
+
+// This is the number of decimal places to round lat/long coordinates to when generating the MapTopology.ts file.
+// at n=2 that's ~1.1km at the equator, more than enough for a world map
+// (precision ≈ 10^(-n) × 111,320m/° × cos(latitude))
+const ARC_PRECISION = 2
 
 const ETL_REGIONS_URL =
         process.env.ETL_REGIONS_URL ||
@@ -148,8 +154,14 @@ function csvToJson(val: string, col: string) {
 
 async function prettifiedTopology(geoJson: FeatureCollection): Promise<string> {
     // make sure the MapTopology.ts file will be diff-able even after running code formatter on the repo
-    const topoData = topology({ world: geoJson }),
-        arcs = _.remove(topoData.arcs),
+    const topoData = topology({ world: geoJson })
+    if (topoData.bbox)
+        topoData.bbox = topoData.bbox.map((n) =>
+            R.round(n, ARC_PRECISION)
+        ) as typeof topoData.bbox
+    const arcs = _.remove(topoData.arcs).map((arc) =>
+            arc.map((point) => point.map((n) => R.round(n, ARC_PRECISION)))
+        ),
         arcJson = arcs
             .map((vector) => `${JSON.stringify(vector)},`)
             .join("\n      ")
