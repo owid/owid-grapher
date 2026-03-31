@@ -10,7 +10,6 @@ import {
     BinaryLogicOperation,
     BinaryLogicOperators,
     BooleanAtom,
-    BooleanOperation,
     ComparisonOperator,
     EqualityComparison,
     EqualityOperator,
@@ -27,7 +26,6 @@ import {
     SqlColumnName,
     StringAtom,
     StringContainsOperation,
-    StringOperation,
 } from "../adminShared/SqlFilterSExpression.js"
 import {
     GrapherConfigPatch,
@@ -63,7 +61,6 @@ export function parseVariableAnnotationsRow(
 
 export enum GrapherConfigGridEditorSource {
     SourceVariableAnnotation = "SourceVariableAnnotation",
-    SourceCharts = "SourceCharts",
 }
 
 export interface BulkGrapherConfigRow {
@@ -78,13 +75,6 @@ export interface VariableAnnotationsRow extends BulkGrapherConfigRow {
     datasetname: string
     namespacename: string
     description: string
-}
-
-export interface BulkChartEditRow extends BulkGrapherConfigRow {
-    lastEditedAt: string
-    publishedAt: string
-    lastEditedByUser: string
-    publishedByUser: string
 }
 
 export interface ColumnInformation {
@@ -163,7 +153,7 @@ export function fetchVariablesParametersToQueryParametersString(
     return queryParamsToStr(fetchVariablesParametersToQueryParameters(params))
 }
 
-export interface IconToggleProps {
+interface IconToggleProps {
     isOn: boolean
     onIcon: IconDefinition
     offIcon: IconDefinition
@@ -172,7 +162,6 @@ export interface IconToggleProps {
 
 export enum ColumnDataSourceType {
     FieldDescription = "FieldDescription",
-    MultipleFieldDescriptions = "MultipleFieldDescriptions",
     ReadOnlyColumn = "ReadOnlyColumn",
     Unkown = "Unknown",
 }
@@ -208,29 +197,6 @@ export const IconToggleComponent = (props: IconToggleProps) => (
     </button>
 )
 
-/** Turns a search string like "nuclear share" into a BooleanOperation
-    that AND connects a CONTAINS query for every word - i.e. it would result in
-    (AND (CONTAINS target "nuclear") (CONTAINS target "share"))  */
-export function searchFieldStringToFilterOperations(
-    searchString: string,
-    target: StringOperation
-): BooleanOperation | undefined {
-    const fragments = searchString
-        .split(" ")
-        .map((item) => item.trim())
-        .filter((item) => item !== "")
-    const wordContainsParts = fragments.map(
-        (fragment) =>
-            new StringContainsOperation(target, new StringAtom(fragment))
-    )
-    if (fragments.length > 0)
-        return new BinaryLogicOperation(
-            BinaryLogicOperators.and,
-            wordContainsParts
-        )
-    else return undefined
-}
-
 // TODO: create a type and add the correct column names for the query
 
 export interface ReadOnlyColumn {
@@ -239,18 +205,6 @@ export interface ReadOnlyColumn {
     type: "string" | "datetime" | "number"
     sExpressionColumnTarget: string
 }
-
-export const getItemStyle = (
-    isDragging: boolean,
-    draggableStyle: any
-): any => ({
-    userSelect: "none",
-    // change background colour if dragging
-    background: isDragging ? "lightgreen" : "inherit",
-
-    // styles we need to apply on draggables
-    ...draggableStyle,
-})
 
 export function isConfigColumn(columnName: string): boolean {
     return columnName.startsWith("/")
@@ -267,15 +221,13 @@ export type FilterPanelState = {
     config: Config
 }
 
-export function getLogicOperator(str: string): BinaryLogicOperators {
+function getLogicOperator(str: string): BinaryLogicOperators {
     if (str === "AND") return BinaryLogicOperators.and
     else if (str === "OR") return BinaryLogicOperators.or
     else throw Error(`unknown logic operator: ${str}`)
 }
 
-export function getComparisonOperator(
-    str: string
-): ComparisonOperator | undefined {
+function getComparisonOperator(str: string): ComparisonOperator | undefined {
     return match(str)
         .with("less", () => ComparisonOperator.less)
         .with("less_or_equal", () => ComparisonOperator.lessOrEqual)
@@ -284,16 +236,14 @@ export function getComparisonOperator(
         .otherwise(() => undefined)
 }
 
-export function getNullCheckOperator(
-    str: string
-): NullCheckOperator | undefined {
+function getNullCheckOperator(str: string): NullCheckOperator | undefined {
     return match(str)
         .with("is_null", () => NullCheckOperator.isNull)
         .with("is_not_null", () => NullCheckOperator.isNotNull)
         .otherwise(() => undefined)
 }
 
-export function getFieldSymbol(
+function getFieldSymbol(
     fieldName: string,
     context: OperationContext,
     readOnlyFieldNamesMap: Map<string, ReadOnlyColumn>
@@ -307,14 +257,14 @@ export function getFieldSymbol(
         )
 }
 
-export function getValueAtom(val: any): Operation | undefined {
+function getValueAtom(val: any): Operation | undefined {
     if (typeof val === "string") return new StringAtom(val)
     else if (typeof val === "number") return new NumberAtom(val)
     else if (typeof val === "boolean") return new BooleanAtom(val)
     else return undefined
 }
 
-export function getEqualityOperator(str: string): EqualityOperator | undefined {
+function getEqualityOperator(str: string): EqualityOperator | undefined {
     if (str === "equal" || str === "select_equals")
         return EqualityOperator.equal
     else if (str === "not_equal" || str === "select_not_equals")

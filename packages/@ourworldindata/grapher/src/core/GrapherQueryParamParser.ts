@@ -35,7 +35,7 @@ import { isValidPeerCountryStrategyQueryParam } from "./PeerCountrySelection.js"
  * - `invalid`: The parameter was present but contained an invalid value
  * - `missing`: The parameter was not present in the query string
  */
-export type ParsedParam<T> =
+type ParsedParam<T> =
     | { status: "valid"; value: T }
     | { status: "invalid"; rawValue: string; reason: string }
     | { status: "missing" }
@@ -56,14 +56,14 @@ function missing<T>(): ParsedParam<T> {
 }
 
 /** Valid values for the `overlay` query parameter */
-export const OVERLAY_PARAM_VALUES = {
+const OVERLAY_PARAM_VALUES = {
     sources: "sources",
     download: "download",
     downloadData: "download-data",
     downloadVis: "download-vis",
 } as const
 
-export type OverlayParamValue =
+type OverlayParamValue =
     (typeof OVERLAY_PARAM_VALUES)[keyof typeof OVERLAY_PARAM_VALUES]
 
 export interface ParsedOverlay {
@@ -421,7 +421,7 @@ type _AssertAllKeysPresent =
 const _assertAllKeysPresent: _AssertAllKeysPresent = true
 
 /** Container for all parsed query parameters */
-export type ParsedGrapherQueryParams = {
+type ParsedGrapherQueryParams = {
     [K in keyof Required<GrapherQueryParams>]: ParsedParam<
         ParsedValueTypeMap[K]
     >

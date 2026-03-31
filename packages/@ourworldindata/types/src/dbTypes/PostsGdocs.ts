@@ -58,9 +58,7 @@ export function parsePostsGdocsBreadcrumbs(
     return breadcrumbs ? JSON.parse(breadcrumbs) : null
 }
 
-export function parsePostGdocsAuthors(
-    authors: JsonString | undefined
-): string[] {
+function parsePostGdocsAuthors(authors: JsonString | undefined): string[] {
     return authors ? JSON.parse(authors) : []
 }
 

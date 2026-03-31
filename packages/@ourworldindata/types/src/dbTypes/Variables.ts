@@ -160,13 +160,11 @@ export function serializeVariableProcessingLog(
     return processingLog ? JSON.stringify(processingLog) : null
 }
 
-export function parseVariableSort(sort: JsonString | null): string[] | null {
+function parseVariableSort(sort: JsonString | null): string[] | null {
     return sort ? JSON.parse(sort) : null
 }
 
-export function serializeVariableSort(
-    sort: string[] | null
-): JsonString | null {
+function serializeVariableSort(sort: string[] | null): JsonString | null {
     return sort ? JSON.stringify(sort) : null
 }
 

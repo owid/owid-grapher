@@ -317,7 +317,7 @@ export const getErrors = (gdoc: OwidGdoc): OwidGdocErrorMessage[] => {
     return errors
 }
 
-export const getPropertyFirstErrorOfType = (
+const getPropertyFirstErrorOfType = (
     type: OwidGdocErrorMessageType,
     property: OwidGdocErrorMessageProperty,
     errors?: OwidGdocErrorMessage[]

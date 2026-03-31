@@ -17,14 +17,6 @@ import { Integer } from "./Various.js"
 export type TableSlug = string // a url friendly name for a table
 export type ColumnSlugs = string // slugs cannot have spaces, so this is a space delimited array of ColumnSlugs
 
-/**
- * A concrete point in time (year or date). It's always supposed to be a finite number, but we
- * cannot enforce this in TypeScript.
- */
-export type TimeRange = [Time, Time]
-
-export type ValueRange = [number, number]
-
 export type TimeTolerance = Integer
 
 export interface CoreRow {

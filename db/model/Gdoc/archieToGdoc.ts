@@ -270,44 +270,6 @@ async function createGdoc(
     return createResp.data.id!
 }
 
-export async function createGdocAndInsertOwidGdocPostContent(
-    content: OwidGdocPostContent,
-    existingGdocId: string | null
-): Promise<string> {
-    const batchUpdates = articleToBatchUpdates(content)
-
-    const targetFolder = GDOCS_BACKPORTING_TARGET_FOLDER
-    if (targetFolder === undefined || targetFolder === "")
-        throw new Error("GDOCS_BACKPORTING_TARGET_FOLDER is not set")
-    const auth = OwidGoogleAuth.getGoogleReadWriteAuth()
-    const client = googleDocs({
-        version: "v1",
-        auth,
-    })
-    const driveClient = googleDrive({
-        version: "v3",
-        auth,
-    })
-    let documentId = existingGdocId
-
-    if (existingGdocId) {
-        await deleteGdocContent(client, existingGdocId)
-    } else {
-        documentId = await createGdoc(driveClient, content.title, targetFolder)
-    }
-
-    // Now that we have either created a new document or deleted the content of an existing one,
-    // we can insert the new content.
-    await client.documents.batchUpdate({
-        documentId: documentId ?? undefined,
-        requestBody: {
-            requests: batchUpdates,
-        },
-    })
-
-    return documentId!
-}
-
 export async function createGdocFromTemplate(
     templateId: string,
     title: string,

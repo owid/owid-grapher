@@ -455,57 +455,6 @@ interface Option {
     label?: string
 }
 
-export interface SelectGroup {
-    title: string
-    options: Option[]
-}
-
-interface SelectGroupsFieldProps {
-    label?: string
-    value: string | undefined
-    onValue: (value: string) => void
-    options: Option[]
-    groups: SelectGroup[]
-    helpText?: string
-}
-
-export class SelectGroupsField extends React.Component<SelectGroupsFieldProps> {
-    override render() {
-        const { props } = this
-
-        return (
-            <div className="form-group">
-                {props.label && <label>{props.label}</label>}
-                <select
-                    className="form-control"
-                    onChange={(e) => props.onValue(e.currentTarget.value)}
-                    value={props.value}
-                >
-                    {props.options.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                        </option>
-                    ))}
-                    {props.groups.map((group) => (
-                        <optgroup key={group.title} label={group.title}>
-                            {group.options.map((opt) => (
-                                <option key={opt.value} value={opt.value}>
-                                    {opt.label || opt.value}
-                                </option>
-                            ))}
-                        </optgroup>
-                    ))}
-                </select>
-                {props.helpText && (
-                    <small className="form-text text-muted">
-                        {props.helpText}
-                    </small>
-                )}
-            </div>
-        )
-    }
-}
-
 interface RadioGroupOption {
     label?: string
     value: string
@@ -551,40 +500,6 @@ export class RadioGroup extends React.Component<RadioGroupProps> {
                 </div>
             </div>
         )
-    }
-}
-
-interface NumberOption {
-    value: number
-    label?: string
-}
-
-interface NumericSelectFieldProps {
-    label?: string
-    value: number | undefined
-    onValue: (value: number) => void
-    options: NumberOption[]
-    helpText?: string
-}
-
-export class NumericSelectField extends React.Component<NumericSelectFieldProps> {
-    override render() {
-        const props = {
-            ...this.props,
-            value:
-                this.props.value !== undefined
-                    ? this.props.value.toString()
-                    : "",
-            options: this.props.options.map((opt) => ({
-                value: opt.value.toString(),
-                label: opt.label?.toString(),
-            })),
-            onValue: (value: string | undefined) => {
-                const asNumber = parseFloat(value as string)
-                this.props.onValue(asNumber)
-            },
-        }
-        return <SelectField {...props} />
     }
 }
 
@@ -655,7 +570,7 @@ export class EditableList extends React.Component<{
     }
 }
 
-export interface EditableListItemProps extends React.HTMLAttributes<HTMLLIElement> {
+interface EditableListItemProps extends React.HTMLAttributes<HTMLLIElement> {
     className?: string
 }
 
@@ -1078,48 +993,6 @@ class FloatField extends React.Component<FloatFieldProps> {
         const { props } = this
 
         return <NumberField {...props} allowDecimal allowNegative />
-    }
-}
-
-@observer
-export class BindFloat<
-    T extends { [field: string]: any },
-    K extends Extract<keyof T, string>,
-> extends React.Component<{
-    field: K
-    store: T
-    label?: string
-    helpText?: string
-    disabled?: boolean
-}> {
-    constructor(props: {
-        field: K
-        store: T
-        label?: string
-        helpText?: string
-        disabled?: boolean
-    }) {
-        super(props)
-        makeObservable(this)
-    }
-
-    @action.bound onValue(value: number | undefined) {
-        this.props.store[this.props.field] = value as any
-    }
-
-    override render() {
-        const { field, store, label, ...rest } = this.props
-
-        const value = store[field] as number | undefined
-
-        return (
-            <FloatField
-                label={label || _.capitalize(field)}
-                value={value}
-                onValue={this.onValue}
-                {...rest}
-            />
-        )
     }
 }
 

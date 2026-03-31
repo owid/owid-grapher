@@ -259,13 +259,13 @@ function detectChartType({
     return undefined
 }
 
-export function getChartTypeFromConfig(
+function getChartTypeFromConfig(
     chartConfig: GrapherInterface
 ): GrapherChartOrMapType | undefined {
     return getChartTypeFromConfigAndQueryParams(chartConfig)
 }
 
-export function getChartTypeFromConfigAndQueryParams(
+function getChartTypeFromConfigAndQueryParams(
     chartConfig: GrapherInterface,
     queryParams?: URLSearchParams
 ): GrapherChartOrMapType | undefined {

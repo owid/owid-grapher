@@ -641,7 +641,7 @@ export const matrixToDelimited = (
  * An array object representing all parsed rows. The array is enhanced with a property listing
  * the names of the parsed columns.
  */
-export interface DSVParsedArray<T> extends Array<T> {
+interface DSVParsedArray<T> extends Array<T> {
     /**
      * List of column names.
      */

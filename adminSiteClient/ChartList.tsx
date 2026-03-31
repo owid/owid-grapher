@@ -60,7 +60,7 @@ export interface ChartListItem {
     referencesCount: number
 }
 
-export type SortConfig = {
+type SortConfig = {
     field: "grapherViewsPerDay" | "narrativeChartsCount" | "referencesCount"
     direction: "asc" | "desc"
 } | null

@@ -1979,9 +1979,7 @@ export function checkIsDataInsight(
     return gdoc.content.type === OwidGdocType.DataInsight
 }
 
-export function checkIsAboutPage(
-    gdoc: OwidGdoc
-): gdoc is OwidGdocAboutInterface {
+function checkIsAboutPage(gdoc: OwidGdoc): gdoc is OwidGdocAboutInterface {
     return gdoc.content.type === OwidGdocType.AboutPage
 }
 
@@ -1989,9 +1987,7 @@ export function checkIsAuthor(gdoc: OwidGdoc): gdoc is OwidGdocAuthorInterface {
     return gdoc.content.type === OwidGdocType.Author
 }
 
-export function checkIsHomepage(
-    gdoc: OwidGdoc
-): gdoc is OwidGdocHomepageInterface {
+function checkIsHomepage(gdoc: OwidGdoc): gdoc is OwidGdocHomepageInterface {
     return gdoc.content.type === OwidGdocType.Homepage
 }
 

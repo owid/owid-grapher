@@ -44,13 +44,3 @@ export function parseChartConfigsRow<
         full: parseChartConfig(row.full),
     }
 }
-
-export function serializeChartsRow(
-    row: DbEnrichedChartConfig
-): DbRawChartConfig {
-    return {
-        ...row,
-        patch: serializeChartConfig(row.patch),
-        full: serializeChartConfig(row.full),
-    }
-}

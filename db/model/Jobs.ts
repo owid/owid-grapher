@@ -120,36 +120,6 @@ export async function requeueJob(
     )
 }
 
-export async function getJobBySlug(
-    knex: KnexReadWriteTransaction,
-    type: JobType,
-    slug: string
-): Promise<DbPlainJob | null> {
-    const result = await knexRaw<DbPlainJob>(
-        knex,
-        `-- sql
-            SELECT * FROM jobs
-            WHERE type = ? AND payload ->> '$.slug' = ?
-            LIMIT 1
-        `,
-        [type, slug]
-    )
-    if (result.length === 0) return null
-
-    // Parse the JSON payload field
-    const job = result[0]
-    if (typeof job.payload === "string") {
-        job.payload = JSON.parse(job.payload)
-    }
-
-    // Convert explorerUpdatedAt from string to Date for proper comparison
-    if (job.payload.explorerUpdatedAt) {
-        job.payload.explorerUpdatedAt = new Date(job.payload.explorerUpdatedAt)
-    }
-
-    return job
-}
-
 export async function isJobStillRunning(
     knex: KnexReadWriteTransaction,
     jobId: number

@@ -32,7 +32,7 @@ import { getShortPageCitation } from "../site/gdocs/utils.js"
  *
  * see https://github.com/owid/owid-grapher/issues/2121#issue-1676097164
  */
-export const getDatapageGdoc = async (
+const getDatapageGdoc = async (
     knex: KnexReadonlyTransaction,
     googleDocEditLinkOrId: string,
     isPreviewing: boolean

@@ -115,7 +115,7 @@ export const getCloudflarePagesRedirects = async (
     ]
 }
 
-export const DEPRECATED_resolveRedirectFromMap = async (
+const DEPRECATED_resolveRedirectFromMap = async (
     url: Url,
     redirectsMap: Map<string, string>
 ): Promise<Url> => {

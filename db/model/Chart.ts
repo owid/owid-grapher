@@ -1,13 +1,9 @@
 import * as lodash from "lodash-es"
 import * as db from "../db.js"
-import {
-    getDataForMultipleVariables,
-    getGrapherConfigsForVariable,
-} from "./Variable.js"
+import { getGrapherConfigsForVariable } from "./Variable.js"
 import {
     JsonError,
     KeyChartLevel,
-    MultipleOwidVariableDataDimensionsMap,
     DbChartTagJoin,
     getParentVariableIdFromChartConfig,
 } from "@ourworldindata/utils"
@@ -104,50 +100,7 @@ export async function mapSlugsToConfigs(
         )
 }
 
-export async function getEnrichedChartBySlug(
-    knex: db.KnexReadonlyTransaction,
-    slug: string
-): Promise<(DbPlainChart & { config: DbEnrichedChartConfig["full"] }) | null> {
-    let chart = await db.knexRawFirst<
-        DbPlainChart & { config: DbRawChartConfig["full"] }
-    >(
-        knex,
-        `-- sql
-            SELECT c.*, cc.full as config
-            FROM charts c
-            JOIN chart_configs cc ON c.configId = cc.id
-            WHERE cc.slug = ?
-        `,
-        [slug]
-    )
-
-    if (!chart) {
-        chart = await db.knexRawFirst<
-            DbPlainChart & { config: DbRawChartConfig["full"] }
-        >(
-            knex,
-            `-- sql
-                SELECT
-                    c.*, cc.full as config
-                FROM
-                    chart_slug_redirects csr
-                    JOIN charts c ON csr.chart_id = c.id
-                    JOIN chart_configs cc ON c.configId = cc.id
-                WHERE
-                    csr.slug = ?
-            `,
-            [slug]
-        )
-    }
-
-    if (!chart) return null
-
-    const enrichedChart = { ...chart, config: parseChartConfig(chart.config) }
-
-    return enrichedChart
-}
-
-export async function getRawChartById(
+async function getRawChartById(
     knex: db.KnexReadonlyTransaction,
     id: number
 ): Promise<(DbPlainChart & { config: DbRawChartConfig["full"] }) | null> {
@@ -167,7 +120,7 @@ export async function getRawChartById(
     return chart
 }
 
-export async function getRawChartsByIds(
+async function getRawChartsByIds(
     knex: db.KnexReadonlyTransaction,
     ids: number[]
 ): Promise<(DbPlainChart & { config: DbRawChartConfig["full"] })[]> {
@@ -585,18 +538,6 @@ export const oldChartFieldList = `
         crv.referencesCount
     `
 // TODO: replace this with getBySlug and pick
-
-export async function getChartVariableData(
-    config: GrapherInterface
-): Promise<MultipleOwidVariableDataDimensionsMap> {
-    const variableIds = lodash.uniq(
-        config.dimensions!.map((d: any) => d.variableId)
-    )
-    const allVariablesDataAndMetadataMap = await getDataForMultipleVariables(
-        variableIds as number[]
-    )
-    return allVariablesDataAndMetadataMap
-}
 
 export const getMostViewedGrapherIdsByChartType = async (
     knex: db.KnexReadonlyTransaction,

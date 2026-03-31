@@ -21,7 +21,7 @@ import { match, P } from "ts-pattern"
  * Options for markdown conversion functions.
  * Used to pass linkedCallouts context through the conversion.
  */
-export interface MarkdownConversionOptions {
+interface MarkdownConversionOptions {
     linkedCallouts?: LinkedCallouts
     /** URL of the current data-callout block (set when inside a data-callout) */
     currentDataCalloutUrl?: string
@@ -51,10 +51,7 @@ function resolveSpanCalloutValue(
     )
 }
 
-export function spanToMarkdown(
-    s: Span,
-    options?: MarkdownConversionOptions
-): string {
+function spanToMarkdown(s: Span, options?: MarkdownConversionOptions): string {
     return match(s)
         .with({ spanType: "span-simple-text" }, (span) => span.text)
         .with({ spanType: "span-newline" }, () => "\n  ")
@@ -105,7 +102,7 @@ export function spanToMarkdown(
         .exhaustive()
 }
 
-export function spansToMarkdown(
+function spansToMarkdown(
     spans: Span[] | undefined,
     options?: MarkdownConversionOptions
 ): string {
@@ -184,7 +181,7 @@ export function enrichedBlocksToMarkdown(
     else return result
 }
 
-export function enrichedBlockToMarkdown(
+function enrichedBlockToMarkdown(
     block: OwidEnrichedGdocBlock,
     exportComponents: boolean,
     options?: MarkdownConversionOptions

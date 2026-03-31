@@ -121,7 +121,7 @@ export function gdocFromJSON(
         .exhaustive()
 }
 
-export async function createGdocAndInsertIntoDb(
+async function createGdocAndInsertIntoDb(
     knex: KnexReadWriteTransaction,
     id: string
 ): Promise<OwidGdoc> {
@@ -174,7 +174,7 @@ export async function updateGdocContentOnly(
     await updateDerivedGdocPostsComponents(knex, id, gdoc.content.body)
 }
 
-export async function updateDerivedGdocPostsComponents(
+async function updateDerivedGdocPostsComponents(
     knex: KnexReadWriteTransaction,
     gdocId: string,
     body: OwidEnrichedGdocBlock[] | undefined
@@ -587,16 +587,6 @@ export async function getLatestDataInsights(
     }
 }
 
-export async function getAndLoadPublishedGdocPosts(
-    knex: KnexReadonlyTransaction
-): Promise<GdocPost[]> {
-    const rows = await getPublishedGdocsWithTags(knex)
-    const gdocs = await Promise.all(
-        rows.map(async (row) => loadGdocFromGdocBase(knex, row))
-    )
-    return gdocs as GdocPost[]
-}
-
 export async function loadPublishedGdocAuthors(
     knex: KnexReadonlyTransaction
 ): Promise<GdocAuthor[]> {
@@ -621,53 +611,6 @@ export async function loadPublishedGdocAuthors(
         enrichedRows.map((row) => loadGdocFromGdocBase(knex, row))
     )
     return gdocs as GdocAuthor[]
-}
-
-export async function getAndLoadListedGdocPosts(
-    knex: KnexReadonlyTransaction,
-    options?: { loadState?: boolean }
-): Promise<GdocPost[]> {
-    const shouldLoadState = options?.loadState ?? true
-
-    // TODO: Check if we shouldn't also restrict the types of gdocs here
-    const rows = await knexRaw<DbRawPostGdoc>(
-        knex,
-        `-- sql
-             SELECT *
-             FROM posts_gdocs
-             WHERE published = 1 AND
-             publicationContext = :publicationContext AND
-             publishedAt <= NOW()
-             ORDER BY publishedAt DESC`,
-        { publicationContext: OwidGdocPublicationContext.listed }
-    )
-    const ids = rows.map((row) => row.id)
-    const groupedTags = await getTagsGroupedByGdocId(knex, ids)
-    const enrichedRows = rows
-        .filter(
-            (row) =>
-                row.type !== OwidGdocType.Announcement &&
-                row.type !== OwidGdocType.Homepage
-        )
-        .map((row) => {
-            return {
-                ...parsePostsGdocsRow(row),
-                tags: groupedTags.get(row.id) ?? null,
-            } satisfies OwidGdocBaseInterface
-        })
-
-    // Pass loadState option through to loadGdocFromGdocBase
-    // When loadState=false (for blog index), it only creates gdoc objects with basic metadata
-    // When loadState=true (default), it fully loads linked charts, validates, loads images, etc.
-    const gdocs = (await Promise.all(
-        enrichedRows.map(async (row) =>
-            loadGdocFromGdocBase(knex, row, undefined, undefined, {
-                loadState: shouldLoadState,
-            })
-        )
-    )) as GdocPost[]
-
-    return gdocs
 }
 
 export async function setTagsForGdoc(
@@ -700,7 +643,7 @@ export async function setLinksForGdoc(
         await knex.table(PostsGdocsLinksTableName).insert(links)
 }
 
-export function getDbEnrichedGdocFromOwidGdoc(
+function getDbEnrichedGdocFromOwidGdoc(
     gdoc: OwidGdoc | GdocBase
 ): DbEnrichedPostGdoc {
     const enrichedGdoc = {

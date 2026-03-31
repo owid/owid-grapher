@@ -6,7 +6,7 @@ import {
 } from "@ourworldindata/utils"
 import { migrateSelectedEntityNamesParam } from "./EntityUrlBuilder"
 
-export const grapherUrlMigrations: UrlMigration[] = [
+const grapherUrlMigrations: UrlMigration[] = [
     (url: Url): Url => {
         const { year, time } = url.queryParams
         if (!year) return url

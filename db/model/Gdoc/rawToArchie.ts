@@ -66,7 +66,7 @@ import {
 } from "@ourworldindata/types"
 import { match } from "ts-pattern"
 
-export function appendDotEndIfMultiline(
+function appendDotEndIfMultiline(
     line: string | boolean | null | undefined
 ): string {
     if (typeof line === "boolean") return line ? "true" : "false"
@@ -90,14 +90,6 @@ export function* encloseLinesAsPropertyPossiblyMultiline(
         }
     }
     if (multiLine) yield ":end"
-}
-
-export function keyValueToArchieMlString(
-    key: string,
-    val: string | undefined | null
-): string {
-    if (val !== undefined) return `${key}: ${appendDotEndIfMultiline(val)}`
-    return ""
 }
 
 // The Record<string, any> here is not ideal - it would be nicer to

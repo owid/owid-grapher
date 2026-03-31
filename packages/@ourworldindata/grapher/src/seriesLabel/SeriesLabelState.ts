@@ -64,7 +64,7 @@ type ContentLine = ContentFragment[]
 export type PositionedTextFragment = TextFragment & Point
 export type PositionedIconFragment = IconFragment & Point
 
-export type PositionedFragment = PositionedTextFragment | PositionedIconFragment
+type PositionedFragment = PositionedTextFragment | PositionedIconFragment
 
 /**
  * Computes layout and positioning for a series label typically rendered

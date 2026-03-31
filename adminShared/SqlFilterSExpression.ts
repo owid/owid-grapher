@@ -6,7 +6,7 @@ import pointer from "json8-pointer"
 // transforms lists in S-Expressions into array, strings inside double quotes
 // as String (note the uppercase! It really uses the rarely used String object) and
 // all other tokes like numbers or symbols as normal string.
-export type SExprAtom = string | String | SExprAtom[] // eslint-disable-line @typescript-eslint/no-wrapper-object-types
+type SExprAtom = string | String | SExprAtom[] // eslint-disable-line @typescript-eslint/no-wrapper-object-types
 
 export type JSONPreciselyTyped =
     | string
@@ -20,7 +20,7 @@ export interface JsonLogicContext {
     processSqlColumnName(columnName: string): string
 }
 
-export enum Arity {
+enum Arity {
     nullary = "nullary",
     unary = "unary",
     binary = "binary",
@@ -46,7 +46,7 @@ export interface Operation {
     expressionType: ExpressionType
 }
 
-export abstract class NumericOperation implements Operation {
+abstract class NumericOperation implements Operation {
     abstract toSql(): string
     abstract toSExpr(): string
     abstract toJsonLogic(context: JsonLogicContext): JSONPreciselyTyped
@@ -231,7 +231,7 @@ export enum ArithmeticOperator {
     division = "/",
 }
 
-export const allArithmeticOperators = [
+const allArithmeticOperators = [
     ArithmeticOperator.addition,
     ArithmeticOperator.subtraction,
     ArithmeticOperator.multiplication,
@@ -270,7 +270,7 @@ export enum NullCheckOperator {
     isNotNull = "ISNOTNULL",
 }
 
-export const allNullCheckOperators = [
+const allNullCheckOperators = [
     NullCheckOperator.isNull,
     NullCheckOperator.isNotNull,
 ]
@@ -309,10 +309,7 @@ export enum EqualityOperator {
     unequal = "<>",
 }
 
-export const allEqualityOperators = [
-    EqualityOperator.equal,
-    EqualityOperator.unequal,
-]
+const allEqualityOperators = [EqualityOperator.equal, EqualityOperator.unequal]
 
 export class EqualityComparison extends BooleanOperation {
     constructor(
@@ -557,7 +554,7 @@ const operationFactoryMap = new Map<string, OperationInfo>([
     ],
 ])
 
-export function parseOperationRecursive(
+function parseOperationRecursive(
     sExpr: SExprAtom | undefined,
     context: OperationContext
 ): Operation | undefined {

@@ -82,7 +82,7 @@ export const GdocsSettingsContentField = ({
     )
 }
 
-export const GdocsSettingsTextField = ({
+const GdocsSettingsTextField = ({
     name,
     value,
     errorType,

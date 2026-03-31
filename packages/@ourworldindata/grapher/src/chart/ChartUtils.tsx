@@ -225,10 +225,10 @@ export function generateGrapherImageSrcSet(defaultSrc: string): string {
     return srcSet
 }
 
-export const isChartTab = (tab: GrapherTabName): boolean =>
+const isChartTab = (tab: GrapherTabName): boolean =>
     tab !== GRAPHER_TAB_NAMES.Table && tab !== GRAPHER_TAB_NAMES.WorldMap
 
-export const isMapTab = (tab: GrapherTabName): boolean =>
+const isMapTab = (tab: GrapherTabName): boolean =>
     tab === GRAPHER_TAB_NAMES.WorldMap
 
 export function combineHistoricalAndProjectionColumns(
@@ -343,7 +343,7 @@ export function getChartSvgProps({
 
 type SortKeyFn<T> = (item: T) => number | string | undefined
 
-export type SortKeyFunctions<T> = Record<SortBy, SortKeyFn<T>>
+type SortKeyFunctions<T> = Record<SortBy, SortKeyFn<T>>
 
 export function sortByConfig<T>(
     items: readonly T[],

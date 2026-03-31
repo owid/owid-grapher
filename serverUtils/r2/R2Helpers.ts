@@ -11,16 +11,7 @@ import { Base64String } from "@ourworldindata/types"
 import { R2_REGION } from "../../settings/serverSettings.js"
 import { IS_RUNNING_INSIDE_VITEST } from "../../settings/clientSettings.js"
 
-export interface R2Config {
-    endpoint: string
-    region: string
-    accessKeyId: string
-    secretAccessKey: string
-    bucket?: string
-    bucketPath?: string
-}
-
-export interface R2ClientConfig {
+interface R2ClientConfig {
     endpoint: string
     region?: string
     accessKeyId: string

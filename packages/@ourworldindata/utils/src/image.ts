@@ -11,12 +11,12 @@ import {
 } from "@ourworldindata/types"
 import { match, P } from "ts-pattern"
 
-export const AUTHOR_BYLINE_WIDTH = 48
+const AUTHOR_BYLINE_WIDTH = 48
 export const THUMBNAIL_WIDTH = 100
 export const LARGE_THUMBNAIL_WIDTH = 350
 export const LARGEST_IMAGE_WIDTH = 1350
 
-export function getArchivalSizes(
+function getArchivalSizes(
     originalWidth: ImageMetadata["originalWidth"]
 ): number[] {
     if (!originalWidth) return []

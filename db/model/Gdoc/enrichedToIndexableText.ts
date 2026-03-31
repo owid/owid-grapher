@@ -10,7 +10,7 @@ import {
 import { match, P } from "ts-pattern"
 import { htmlToEnrichedBlocks } from "./htmlToEnriched.js"
 
-export interface IndexableTextConversionOptions {
+interface IndexableTextConversionOptions {
     linkedCallouts?: LinkedCallouts
     currentDataCalloutUrl?: string
 }
@@ -121,7 +121,7 @@ function spansToIndexableText(
     return spans.map((span) => spanToIndexableText(span, options)).join("")
 }
 
-export function enrichedBlockToIndexableText(
+function enrichedBlockToIndexableText(
     block: OwidEnrichedGdocBlock,
     options?: IndexableTextConversionOptions
 ): string | undefined {

@@ -766,7 +766,7 @@ const annotationsToMap = (annotations: string): Map<string, string> => {
 /**
  * Loads a single variable into an OwidTable.
  */
-export function buildVariableTable(
+function buildVariableTable(
     variable: OwidVariableDataMetadataDimensions
 ): OwidTable {
     const entityMeta = variable.metadata.dimensions.entities.values

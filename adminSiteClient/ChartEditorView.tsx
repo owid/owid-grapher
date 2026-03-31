@@ -104,7 +104,7 @@ export class EditorDatabase {
     }
 }
 
-export type DetailReferences = Record<FieldWithDetailReferences, string[]>
+type DetailReferences = Record<FieldWithDetailReferences, string[]>
 
 export interface ChartEditorViewManager<Editor> {
     admin: Admin

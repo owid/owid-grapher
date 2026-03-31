@@ -480,8 +480,6 @@ export interface OwidGdocPostContent {
 
 export type OwidGdocStickyNavItem = { target: string; text: string }
 
-export type GdocsPatch = Partial<OwidGdocPostInterface>
-
 export enum GdocsContentSource {
     Internal = "internal",
     Gdocs = "gdocs",

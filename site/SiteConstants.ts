@@ -16,9 +16,6 @@ export const DEFAULT_LOCAL_BAKE_DIR = "localBake"
 export const SMALL_BREAKPOINT_MEDIA_QUERY = "(max-width: 768px)"
 export const MEDIUM_BREAKPOINT_MEDIA_QUERY = "(max-width: 960px)"
 
-export const TOUCH_DEVICE_MEDIA_QUERY =
-    "(hover: none), (pointer: coarse), (pointer: none)"
-
 export const DATA_INSIGHTS_ATOM_FEED_NAME = "atom-data-insights.xml"
 
 export const DEFAULT_ATOM_FEED_PROPS = {
@@ -110,13 +107,13 @@ export enum GalleryArrowDirection {
     next = "next",
 }
 
-export const MOST_RECENT_DATA_INSIGHT = "most-recent-data-insight"
-export const SECOND_MOST_RECENT_INSIGHT = "second-most-recent-data-insight"
-export const THIRD_MOST_RECENT_INSIGHT = "third-most-recent-data-insight"
-export const FOURTH_MOST_RECENT_INSIGHT = "fourth-most-recent-data-insight"
-export const FIFTH_MOST_RECENT_INSIGHT = "fifth-most-recent-data-insight"
-export const SIXTH_MOST_RECENT_INSIGHT = "sixth-most-recent-data-insight"
-export const SEVENTH_MOST_RECENT_INSIGHT = "seventh-most-recent-data-insight"
+const MOST_RECENT_DATA_INSIGHT = "most-recent-data-insight"
+const SECOND_MOST_RECENT_INSIGHT = "second-most-recent-data-insight"
+const THIRD_MOST_RECENT_INSIGHT = "third-most-recent-data-insight"
+const FOURTH_MOST_RECENT_INSIGHT = "fourth-most-recent-data-insight"
+const FIFTH_MOST_RECENT_INSIGHT = "fifth-most-recent-data-insight"
+const SIXTH_MOST_RECENT_INSIGHT = "sixth-most-recent-data-insight"
+const SEVENTH_MOST_RECENT_INSIGHT = "seventh-most-recent-data-insight"
 
 export const dataInsightIndexToIdMap: Record<number, string> = {
     0: MOST_RECENT_DATA_INSIGHT,

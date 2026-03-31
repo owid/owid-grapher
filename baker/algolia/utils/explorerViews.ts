@@ -731,7 +731,7 @@ async function finalizeRecords(
     return indexedExplorerViewData
 }
 
-export const getExplorerViewRecordsForExplorer = async (
+const getExplorerViewRecordsForExplorer = async (
     trx: db.KnexReadonlyTransaction,
     explorerInfo: MinimalExplorerInfo,
     pageviews: Record<string, { views_7d: number }>,

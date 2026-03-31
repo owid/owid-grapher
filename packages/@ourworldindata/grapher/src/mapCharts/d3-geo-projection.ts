@@ -62,7 +62,7 @@ const pattersonK1 = 1.0148,
     pattersonC4 = 9 * pattersonK4,
     pattersonYmax = 1.790857183
 
-export function pattersonRaw(lambda: number, phi: number): [number, number] {
+function pattersonRaw(lambda: number, phi: number): [number, number] {
     const phi2 = phi * phi
     return [
         lambda,
@@ -129,7 +129,7 @@ K.forEach(function (d) {
     d[1] *= 1.0144
 })
 
-export function robinsonRaw(lambda: number, phi: number): [number, number] {
+function robinsonRaw(lambda: number, phi: number): [number, number] {
     let k
     let i = Math.min(18, (Math.abs(phi) * 36) / pi),
         i0 = Math.floor(i),

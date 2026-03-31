@@ -36,7 +36,7 @@ type ChartTabConfigOption = Exclude<
     "table" | "map" | "chart"
 >
 
-export const CHART_TYPE_LABEL: Record<GrapherChartType, string> = {
+const CHART_TYPE_LABEL: Record<GrapherChartType, string> = {
     [GRAPHER_CHART_TYPES.LineChart]: "Line",
     [GRAPHER_CHART_TYPES.SlopeChart]: "Slope",
     [GRAPHER_CHART_TYPES.ScatterPlot]: "Scatter",
@@ -47,7 +47,7 @@ export const CHART_TYPE_LABEL: Record<GrapherChartType, string> = {
     [GRAPHER_CHART_TYPES.Marimekko]: "Marimekko",
 }
 
-export const LONG_CHART_TYPE_LABEL: Record<GrapherChartType, string> = {
+const LONG_CHART_TYPE_LABEL: Record<GrapherChartType, string> = {
     [GRAPHER_CHART_TYPES.LineChart]: "Line chart",
     [GRAPHER_CHART_TYPES.SlopeChart]: "Slope chart",
     [GRAPHER_CHART_TYPES.ScatterPlot]: "Scatter plot",
@@ -165,7 +165,7 @@ export function isValidTabQueryParam(
     return Object.values(GRAPHER_TAB_QUERY_PARAMS).includes(candidate as any)
 }
 
-export function isValidTabConfigOption(
+function isValidTabConfigOption(
     candidate: string
 ): candidate is GrapherTabConfigOption {
     return Object.values(GRAPHER_TAB_CONFIG_OPTIONS).includes(candidate as any)

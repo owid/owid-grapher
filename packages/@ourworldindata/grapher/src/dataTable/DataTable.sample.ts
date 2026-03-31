@@ -108,7 +108,7 @@ export const GrapherWithIncompleteData = (
     })
 }
 
-export const GrapherWithAggregates = (
+const GrapherWithAggregates = (
     props: Partial<GrapherInterface> = {}
 ): GrapherState => {
     const childMortalityId = 104402

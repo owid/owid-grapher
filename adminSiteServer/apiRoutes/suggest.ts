@@ -72,7 +72,7 @@ export async function suggestGptAltText(
     return response
 }
 
-export async function generateAltTextFromUrl(imageUrl: string): Promise<{
+async function generateAltTextFromUrl(imageUrl: string): Promise<{
     success: true
     altText: string
 }> {

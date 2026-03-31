@@ -8,7 +8,7 @@ import { CodeSnippet } from "../CodeSnippet/CodeSnippet.js"
 import { REUSE_THIS_WORK_SECTION_ID } from "../SharedDataPageConstants.js"
 import { makeLinks } from "../IndicatorKeyData/IndicatorKeyData.js"
 
-export interface IndicatorSourcesProps {
+interface IndicatorSourcesProps {
     sources: DisplaySource[]
     isEmbeddedInADataPage?: boolean // true by default
 }

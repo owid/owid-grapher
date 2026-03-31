@@ -74,7 +74,7 @@ import {
     validateDraftGrapherSlug,
 } from "../validation.js"
 
-export const getReferencesByChartId = async (
+const getReferencesByChartId = async (
     chartId: number,
     knex: db.KnexReadonlyTransaction
 ): Promise<References> => {

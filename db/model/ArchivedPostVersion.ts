@@ -51,7 +51,7 @@ export async function getLatestArchivedPostVersions(
     return await queryBuilder
 }
 
-export async function getLatestArchivedPostPageVersions(
+async function getLatestArchivedPostPageVersions(
     knex: db.KnexReadonlyTransaction,
     postIds?: string[]
 ): Promise<Record<string, ArchivedPageVersion>> {

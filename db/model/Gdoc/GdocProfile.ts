@@ -26,14 +26,14 @@ const GENERIC_PROFILE_SCOPES = new Set<OwidGdocProfileScope>([
     "all",
 ])
 
-export function checkIsValidGenericScope(
+function checkIsValidGenericScope(
     scope: string
 ): scope is OwidGdocProfileScope {
     const normalisedScope = scope.toLowerCase()
     return GENERIC_PROFILE_SCOPES.has(normalisedScope as OwidGdocProfileScope)
 }
 
-export function checkIsEntityNameScope(scope: string): boolean {
+function checkIsEntityNameScope(scope: string): boolean {
     const normalisedScope = scope.toLowerCase()
     const scopeWithoutParenthetical =
         removeTrailingParenthetical(normalisedScope)

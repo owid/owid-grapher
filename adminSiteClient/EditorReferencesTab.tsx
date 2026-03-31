@@ -57,7 +57,7 @@ export class EditorReferencesTab<
 }
 
 @observer
-export class EditorReferencesTabForChart extends Component<{
+class EditorReferencesTabForChart extends Component<{
     editor: ChartEditor
 }> {
     constructor(props: { editor: ChartEditor }) {
@@ -186,7 +186,7 @@ export class EditorReferencesTabForChart extends Component<{
     }
 }
 
-export class EditorReferencesTabForNarrativeChart extends Component<{
+class EditorReferencesTabForNarrativeChart extends Component<{
     editor: NarrativeChartEditor
 }> {
     constructor(props: { editor: NarrativeChartEditor }) {
@@ -333,7 +333,7 @@ class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<
 }
 
 @observer
-export class EditorReferencesTabForIndicator extends Component<{
+class EditorReferencesTabForIndicator extends Component<{
     editor: IndicatorChartEditor
 }> {
     override render() {

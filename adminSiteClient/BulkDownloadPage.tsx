@@ -20,7 +20,7 @@ export class BulkDownloadPage extends Component {
     }
 }
 
-export class DownloadChartsSection extends Component {
+class DownloadChartsSection extends Component {
     override render() {
         return (
             <section>

@@ -167,7 +167,7 @@ function handleComponent<T extends OwidEnrichedGdocBlock>(
     return [item, ...components]
 }
 
-export function enumerateGdocComponentsWithoutChildren(
+function enumerateGdocComponentsWithoutChildren(
     node: OwidEnrichedGdocBlock,
     parentPath: string,
     path: string

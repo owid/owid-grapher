@@ -238,7 +238,7 @@ async function iterateExplorerViews(
     return generatedViews
 }
 
-export interface ExplorerViewsRefreshResult {
+interface ExplorerViewsRefreshResult {
     updatedChartConfigIds: string[]
     unchangedChartConfigIds: string[]
     removedChartConfigIds: string[]

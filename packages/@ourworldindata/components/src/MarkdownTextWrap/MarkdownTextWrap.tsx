@@ -28,7 +28,7 @@ const SUPERSCRIPT_NUMERALS = {
     "9": "\u2079",
 }
 
-export interface IRFontParams {
+interface IRFontParams {
     fontSize?: number
     fontWeight?: number
     fontFamily?: FontFamily
@@ -115,7 +115,7 @@ export class IRLineBreak implements IRToken {
     }
 }
 
-export abstract class IRElement implements IRToken {
+abstract class IRElement implements IRToken {
     constructor(
         public children: IRToken[],
         public fontParams?: IRFontParams
@@ -185,7 +185,7 @@ export class IRBold extends IRElement {
     }
 }
 
-export class IRSpan extends IRElement {
+class IRSpan extends IRElement {
     getClone(children: IRToken[]): IRSpan {
         return new IRSpan(children, this.fontParams)
     }
@@ -205,7 +205,7 @@ export class IRSpan extends IRElement {
     }
 }
 
-export class IRSuperscript implements IRToken {
+class IRSuperscript implements IRToken {
     constructor(
         public text: string,
         public fontParams?: IRFontParams
@@ -239,7 +239,7 @@ export class IRSuperscript implements IRToken {
     }
 }
 
-export class IRItalic extends IRElement {
+class IRItalic extends IRElement {
     getClone(children: IRToken[]): IRItalic {
         return new IRItalic(children, this.fontParams)
     }
@@ -346,7 +346,7 @@ function splitAllOnNewline(tokens: IRToken[]): IRToken[][] {
     return lines
 }
 
-export function splitLineAtBreakpoint(
+function splitLineAtBreakpoint(
     tokens: IRToken[],
     breakWidth: number
 ): { before: IRToken[]; after: IRToken[] } {
@@ -381,7 +381,7 @@ function trimLeft(tokens: IRToken[]): IRToken[] {
 
 // Even though it says "before", it may return a breakpoint after, because
 // there is no earlier breakpoint in the line.
-export function getBreakpointBefore(
+function getBreakpointBefore(
     tokens: IRToken[],
     maxWidth: number
 ): IRBreakpoint | undefined {
@@ -417,7 +417,7 @@ export function lineToPlaintext(tokens: IRToken[]): string {
     return tokens.map((t) => t.toPlaintext()).join("")
 }
 
-export const isTextToken = (token: IRToken): token is IRText | IRWhitespace =>
+const isTextToken = (token: IRToken): token is IRText | IRWhitespace =>
     token instanceof IRText || token instanceof IRWhitespace
 
 /**
@@ -464,10 +464,7 @@ export const recursiveMergeTextTokens = (
     })
 }
 
-export function splitIntoLines(
-    tokens: IRToken[],
-    maxWidth: number
-): IRToken[][] {
+function splitIntoLines(tokens: IRToken[], maxWidth: number): IRToken[][] {
     const processedLines: IRToken[][] = []
     const unprocessedLines: IRToken[][] = splitAllOnNewline(tokens)
     while (unprocessedLines.length) {
@@ -719,7 +716,7 @@ export class MarkdownTextWrap implements ITextWrap {
     }
 }
 
-export function convertMarkdownToIRTokens(
+function convertMarkdownToIRTokens(
     markdown: string,
     fontParams?: IRFontParams
 ): IRToken[] {

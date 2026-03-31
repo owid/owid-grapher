@@ -217,36 +217,13 @@ export const renderMultiDimDataPageBySlug = async (
     })
 }
 
-export async function renderMultiDimDataPageByCatalogPath(
-    knex: db.KnexReadonlyTransaction,
-    catalogPath: string
-) {
-    const dbRow = await getMultiDimDataPageByCatalogPath(knex, catalogPath)
-    if (!dbRow)
-        throw new Error(
-            `No multi-dim site found for catalog path: ${catalogPath}`
-        )
-
-    const archivedVersion = await getLatestMultiDimArchivedVersionsIfEnabled(
-        knex,
-        [dbRow.id]
-    )
-
-    return renderMultiDimDataPageFromConfig({
-        knex,
-        slug: dbRow.slug,
-        config: dbRow.config,
-        archiveContext: archivedVersion[dbRow.id],
-    })
-}
-
-export const renderMultiDimDataPageFromProps = async (
+const renderMultiDimDataPageFromProps = async (
     props: MultiDimDataPageProps
 ) => {
     return renderToHtmlPage(<MultiDimDataPage {...props} />)
 }
 
-export const bakeMultiDimDataPage = async (
+const bakeMultiDimDataPage = async (
     knex: db.KnexReadonlyTransaction,
     bakedSiteDir: string,
     slug: string,

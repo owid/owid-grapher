@@ -48,7 +48,7 @@ const SortableItemContext = createContext<Context>({
     },
 })
 
-export function SortableItem({
+function SortableItem({
     children,
     id,
     className,
@@ -89,7 +89,7 @@ export function SortableItem({
     )
 }
 
-export function DragHandle() {
+function DragHandle() {
     const { attributes, listeners, ref } = useContext(SortableItemContext)
 
     return (
@@ -114,7 +114,7 @@ const dropAnimationConfig: DropAnimation = {
     }),
 }
 
-export function SortableOverlay({ children }: PropsWithChildren) {
+function SortableOverlay({ children }: PropsWithChildren) {
     return (
         <DragOverlay dropAnimation={dropAnimationConfig}>
             {children}

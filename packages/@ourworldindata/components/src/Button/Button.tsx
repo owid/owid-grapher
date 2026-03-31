@@ -35,7 +35,7 @@ type WithOnClickProps = {
     type?: "button" | "submit"
 }
 
-export type ButtonProps =
+type ButtonProps =
     | (ButtonCommonProps & WithHrefProps)
     | (ButtonCommonProps & WithOnClickProps)
 

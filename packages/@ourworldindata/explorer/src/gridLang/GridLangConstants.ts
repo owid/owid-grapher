@@ -137,15 +137,6 @@ export const IntegerCellDef: CellDef = {
     parse: (value: any) => parseInt(value),
 }
 
-export const PositiveIntegersCellDef: CellDef = {
-    keyword: "",
-    cssClass: "IntegerCellDef",
-    description: "",
-    regex: /^[0-9 ]+$/,
-    requirementsDescription: `Must be a positive integer or a list of positive integers`,
-    valuePlaceholder: "12345 23456",
-}
-
 export const SubTableHeaderCellDef: CellDef = {
     keyword: "",
     cssClass: "SubTableHeaderCellDef",
@@ -178,12 +169,6 @@ export const AbsoluteOrRelativeUrlCellDef: CellDef = {
     cssClass: "UrlCellDef",
     description: "",
     regex: AbsoluteOrRelativeUrlRegex,
-}
-
-export const QueryStringCellDef: CellDef = {
-    keyword: "",
-    cssClass: "QueryStringCellDef",
-    description: "",
 }
 
 export const NothingGoesThereCellDef: CellDef = {
@@ -255,14 +240,6 @@ export const IndicatorIdsOrEtlPathsCellDef: CellDef = {
     description: "One or more indicator IDs or paths to an ETL indicator.",
     regex: /^((\d+|[\w\d_/-]*#[\w\d_/-]+)( +|$))+$/,
     requirementsDescription: `Can only contain the characters a-zA-Z0-9-_/# `,
-}
-
-export const JSONObjectCellDef: CellDef = {
-    keyword: "",
-    cssClass: "JSONObjectCellDef",
-    description: "JSON object",
-    regex: /^\{.*\}$/, // very basic validation that expression starts with { and ends with }
-    requirementsDescription: "Must contain a valid JSON object",
 }
 
 export type MatrixLine = string[]

@@ -12,13 +12,6 @@ export async function getUserById(
     return knex<DbPlainUser>(UsersTableName).where({ id }).first()
 }
 
-export async function getUserByEmail(
-    knex: KnexReadonlyTransaction,
-    email: string
-): Promise<DbPlainUser | undefined> {
-    return knex<DbPlainUser>(UsersTableName).where({ email }).first()
-}
-
 export async function insertUser(
     knex: KnexReadWriteTransaction,
     user: DbInsertUser

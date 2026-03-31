@@ -428,7 +428,7 @@ export function checkShouldConditionalSectionRender({
 // Remove all grapher query params from a URL string
 // What remains is the base URL without any grapher-specific query params
 // e.g. only indicator-specifying query params remain
-export function stripGrapherQueryParams(url: string): string {
+function stripGrapherQueryParams(url: string): string {
     const urlObj = Url.fromURL(url)
     const emptyParams = Object.fromEntries(
         GRAPHER_QUERY_PARAM_KEYS.map((key) => [key, undefined])

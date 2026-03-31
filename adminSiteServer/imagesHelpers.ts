@@ -154,7 +154,7 @@ Example 2: "Changes in forest area by world region since 1990 is a set of bar ch
     return null
 }
 
-export interface TextExtractionResult {
+interface TextExtractionResult {
     text: string | null
     usage: {
         promptTokens: number

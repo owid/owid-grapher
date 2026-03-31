@@ -1,6 +1,6 @@
 import crypto from "crypto"
 
-export const API_KEY_BYTES = 32
+const API_KEY_BYTES = 32
 
 export function createApiKey(): string {
     return crypto.randomBytes(API_KEY_BYTES).toString("base64url")
