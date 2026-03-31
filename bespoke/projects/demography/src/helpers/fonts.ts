@@ -3,21 +3,21 @@ import type { Breakpoint } from "./useBreakpoint"
 // ── Shared defaults ──────────────────────────────────────────────────
 // Used as baseline values; individual charts can override.
 
-const TICK_L = 11
-const TICK_M = 10
-const TICK_S = 9
+const TICK_L = 12
+const TICK_M = 11
+const TICK_S = 10
 
-const LABEL_L = 9
-const LABEL_M = 9
-const LABEL_S = 8
+const LABEL_L = 10
+const LABEL_M = 10
+const LABEL_S = 9
 
-const ANNOTATION_L = 10
-const ANNOTATION_M = 10
-const ANNOTATION_S = 9
+const ANNOTATION_L = 11
+const ANNOTATION_M = 11
+const ANNOTATION_S = 10
 
-const SYMBOL_L = 7
-const SYMBOL_M = 7
-const SYMBOL_S = 6
+const SYMBOL_L = 8
+const SYMBOL_M = 8
+const SYMBOL_S = 7
 
 // ── PopulationChart ──────────────────────────────────────────────────
 
@@ -70,6 +70,7 @@ export function getPopulationChartFonts(
 
 export interface ParameterChartFonts {
     xTick: number // year labels below axis
+    yTick: number // y-axis grid line labels
     pointLabel: number // point value labels (first/last)
     controlLabel: number // draggable control point value label
     hoverLabel: number // hover value label
@@ -79,34 +80,38 @@ export interface ParameterChartFonts {
 
 const PARAMETER_CHART_FONTS: Record<Breakpoint, ParameterChartFonts> = {
     large: {
-        xTick: LABEL_L,
-        pointLabel: LABEL_L,
-        controlLabel: LABEL_L,
-        hoverLabel: LABEL_L,
+        xTick: TICK_L,
+        yTick: TICK_L,
+        pointLabel: TICK_L,
+        controlLabel: TICK_L,
+        hoverLabel: TICK_L,
         projectionAnnotation: ANNOTATION_L,
         dragArrow: SYMBOL_L,
     },
     medium: {
-        xTick: LABEL_M,
-        pointLabel: LABEL_M,
-        controlLabel: LABEL_M,
-        hoverLabel: LABEL_M,
-        projectionAnnotation: ANNOTATION_M,
+        xTick: TICK_M + 1,
+        yTick: TICK_M + 1,
+        pointLabel: TICK_M + 1,
+        controlLabel: TICK_M + 1,
+        hoverLabel: TICK_M + 1,
+        projectionAnnotation: ANNOTATION_M + 1,
         dragArrow: SYMBOL_M,
     },
     small: {
-        xTick: LABEL_S + 2,
-        pointLabel: LABEL_S + 2,
-        controlLabel: LABEL_S + 1,
-        hoverLabel: LABEL_S + 2,
+        xTick: TICK_S + 1,
+        yTick: TICK_S + 1,
+        pointLabel: TICK_S + 1,
+        controlLabel: TICK_S + 1,
+        hoverLabel: TICK_S + 1,
         projectionAnnotation: ANNOTATION_S + 1,
         dragArrow: SYMBOL_S + 1,
     },
     narrow: {
-        xTick: LABEL_S + 1,
-        pointLabel: LABEL_S + 1,
-        controlLabel: LABEL_S + 1,
-        hoverLabel: LABEL_S + 1,
+        xTick: TICK_S + 1,
+        yTick: TICK_S + 1,
+        pointLabel: TICK_S + 1,
+        controlLabel: TICK_S + 1,
+        hoverLabel: TICK_S + 1,
         projectionAnnotation: ANNOTATION_S + 1,
         dragArrow: SYMBOL_S + 1,
     },
@@ -218,28 +223,28 @@ export interface AgeZoneLegendFonts {
 
 const AGE_ZONE_LEGEND_FONTS: Record<Breakpoint, AgeZoneLegendFonts> = {
     large: {
-        totalPopulationLabel: 12,
-        percentageLabel: 11,
-        ageZoneLabel: 11,
-        valueLabel: 11,
-    },
-    medium: {
-        totalPopulationLabel: 12,
-        percentageLabel: 11,
-        ageZoneLabel: 11,
-        valueLabel: 11,
-    },
-    small: {
         totalPopulationLabel: 13,
         percentageLabel: 12,
         ageZoneLabel: 12,
         valueLabel: 12,
     },
+    medium: {
+        totalPopulationLabel: 13,
+        percentageLabel: 12,
+        ageZoneLabel: 12,
+        valueLabel: 12,
+    },
+    small: {
+        totalPopulationLabel: 14,
+        percentageLabel: 13,
+        ageZoneLabel: 13,
+        valueLabel: 13,
+    },
     narrow: {
-        totalPopulationLabel: 11,
-        percentageLabel: 10,
-        ageZoneLabel: 10,
-        valueLabel: 10,
+        totalPopulationLabel: 12,
+        percentageLabel: 11,
+        ageZoneLabel: 11,
+        valueLabel: 11,
     },
 }
 
