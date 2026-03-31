@@ -575,6 +575,7 @@ export class GrapherState
     hideSubtitle = false
     hideNote = false
     hideOriginUrl = false
+    hideFullscreenButton = false
     hideEntityControls = false
     hideShareButton = false
     hideExploreTheDataButton = true
@@ -731,6 +732,7 @@ export class GrapherState
             hideSubtitle: observable,
             hideNote: observable,
             hideOriginUrl: observable,
+            hideFullscreenButton: observable,
             hideEntityControls: observable,
             enableMapSelection: observable,
             forceHideAnnotationFieldsInTitle: observable,
@@ -3097,6 +3099,7 @@ export class GrapherState
     }
 
     @computed get hideFullScreenButton(): boolean {
+        if (this.hideFullscreenButton) return true
         if (this.isInFullScreenMode) return false
         if (!this.isSmall || !this.isMobile || !this.screenHeight) return false
 
