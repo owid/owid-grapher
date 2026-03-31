@@ -176,7 +176,8 @@ export class SiteBaker {
     progressBar: ProgressBar
     explorerAdminServer: ExplorerAdminServer
     bakeSteps: BakeStepConfig
-    private readonly _renderedProfileEntityCodes: Map<string, string[]> = new Map()
+    private readonly _renderedProfileEntityCodes: Map<string, string[]> =
+        new Map()
 
     constructor(
         bakedSiteDir: string,

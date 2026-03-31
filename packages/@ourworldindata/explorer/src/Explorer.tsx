@@ -317,8 +317,9 @@ export class Explorer
         root.render(<Explorer {...props} queryStr={url.queryStr} />)
     }
 
-    private readonly initialQueryParams = Url.fromQueryStr(this.props.queryStr ?? "")
-        .queryParams as ExplorerFullQueryParams
+    private readonly initialQueryParams = Url.fromQueryStr(
+        this.props.queryStr ?? ""
+    ).queryParams as ExplorerFullQueryParams
 
     explorerProgram = ExplorerProgram.fromJson(this.props).initDecisionMatrix(
         this.initialQueryParams
