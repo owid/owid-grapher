@@ -43,7 +43,6 @@ import {
     knexRaw,
     KnexReadWriteTransaction,
     getImageMetadataByFilenames,
-    getPublishedGdocsWithTags,
     getTagHierarchiesByChildName,
     getBestBreadcrumbs,
 } from "../../db.js"

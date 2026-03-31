@@ -108,54 +108,6 @@ export const GrapherWithIncompleteData = (
     })
 }
 
-const GrapherWithAggregates = (
-    props: Partial<GrapherInterface> = {}
-): GrapherState => {
-    const childMortalityId = 104402
-    const childMortalityMetadata: TestMetadata = {
-        id: childMortalityId,
-        display: {
-            name: "Child mortality",
-            unit: "%",
-            shortUnit: "%",
-            conversionFactor: 0.1,
-        },
-    }
-    const childMortalityData = [
-        { year: 1950, entity: fakeEntities.Afghanistan, value: 224.45 },
-        { year: 1950, entity: fakeEntities.Iceland, value: 333.68 },
-        { year: 1950, entity: fakeEntities.World, value: 456.33 },
-
-        { year: 2005, entity: fakeEntities.Afghanistan, value: 295.59 },
-        { year: 2005, entity: fakeEntities.Iceland, value: 246.12 },
-        { year: 2005, entity: fakeEntities.World, value: 298.87 },
-
-        { year: 2019, entity: fakeEntities.Afghanistan, value: 215.59 },
-        { year: 2019, entity: fakeEntities.Iceland, value: 226.12 },
-        { year: 2019, entity: fakeEntities.World, value: 450.87 },
-    ]
-    const dimensions = [
-        {
-            variableId: childMortalityId,
-            property: DimensionProperty.y,
-        },
-    ]
-    const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
-        createOwidTestDataset([
-            { metadata: childMortalityMetadata, data: childMortalityData },
-        ]),
-        dimensions,
-        {}
-    )
-    return new GrapherState({
-        tab: GRAPHER_TAB_CONFIG_OPTIONS.table,
-        dimensions,
-        selectedEntityNames: ["Afghanistan", "Iceland", "World"],
-        ...props,
-        table: inputTable,
-    })
-}
-
 export const GrapherWithMultipleVariablesAndMultipleYears = (
     props: Partial<GrapherInterface> = {}
 ): GrapherState => {

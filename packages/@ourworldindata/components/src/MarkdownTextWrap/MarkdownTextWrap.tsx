@@ -185,26 +185,6 @@ export class IRBold extends IRElement {
     }
 }
 
-class IRSpan extends IRElement {
-    getClone(children: IRToken[]): IRSpan {
-        return new IRSpan(children, this.fontParams)
-    }
-    toHTML(key?: React.Key): React.ReactElement {
-        return (
-            <span key={key}>
-                {this.children.map((child, i) => child.toHTML(i))}
-            </span>
-        )
-    }
-    toSVG(key?: React.Key): React.ReactElement {
-        return (
-            <tspan key={key}>
-                {this.children.map((child, i) => child.toSVG(i))}
-            </tspan>
-        )
-    }
-}
-
 class IRSuperscript implements IRToken {
     constructor(
         public text: string,

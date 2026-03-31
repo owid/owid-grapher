@@ -981,21 +981,6 @@ class AutoFloatField extends React.Component<AutoFloatFieldProps> {
     }
 }
 
-interface FloatFieldProps {
-    label?: string
-    value: number | undefined
-    helpText?: string
-    onValue: (value: number | undefined) => void
-}
-
-class FloatField extends React.Component<FloatFieldProps> {
-    override render() {
-        const { props } = this
-
-        return <NumberField {...props} allowDecimal allowNegative />
-    }
-}
-
 @observer
 export class BindAutoFloat<
     T extends { [field: string]: any },

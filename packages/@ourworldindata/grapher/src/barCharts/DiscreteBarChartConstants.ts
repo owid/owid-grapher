@@ -101,5 +101,4 @@ export type YColumnMode =
     | { type: "independent"; slugs: ColumnSlug[] }
     | { type: "combined"; slugs: ColumnSlug[]; info: ProjectionColumnInfo }
 
-const BACKGROUND_COLOR = "#fff"
 export const BAR_SPACING_FACTOR = 0.35

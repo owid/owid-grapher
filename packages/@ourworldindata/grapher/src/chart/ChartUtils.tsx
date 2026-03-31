@@ -11,8 +11,6 @@ import {
     EntityName,
     SeriesName,
     ColumnSlug,
-    GrapherTabName,
-    GRAPHER_TAB_NAMES,
     ProjectionColumnInfo,
     CoreValueType,
     PrimitiveType,
@@ -224,12 +222,6 @@ export function generateGrapherImageSrcSet(defaultSrc: string): string {
 
     return srcSet
 }
-
-const isChartTab = (tab: GrapherTabName): boolean =>
-    tab !== GRAPHER_TAB_NAMES.Table && tab !== GRAPHER_TAB_NAMES.WorldMap
-
-const isMapTab = (tab: GrapherTabName): boolean =>
-    tab === GRAPHER_TAB_NAMES.WorldMap
 
 export function combineHistoricalAndProjectionColumns(
     table: OwidTable,

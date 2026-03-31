@@ -36,7 +36,6 @@ import { fetchAndParseFaqs, getPrimaryTopic } from "./DatapageHelpers.js"
 import { getAllPublishedChartSlugs } from "../db/model/Chart.js"
 import {
     getAllPublishedMultiDimDataPagesBySlug,
-    getMultiDimDataPageByCatalogPath,
     getMultiDimDataPageBySlug,
 } from "../db/model/MultiDimDataPage.js"
 import { MultiDimArchivalManifest } from "../serverUtils/archivalUtils.js"

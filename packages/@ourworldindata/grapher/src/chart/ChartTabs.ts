@@ -165,12 +165,6 @@ export function isValidTabQueryParam(
     return Object.values(GRAPHER_TAB_QUERY_PARAMS).includes(candidate as any)
 }
 
-function isValidTabConfigOption(
-    candidate: string
-): candidate is GrapherTabConfigOption {
-    return Object.values(GRAPHER_TAB_CONFIG_OPTIONS).includes(candidate as any)
-}
-
 export const isChartTab = (tab: GrapherTabName): tab is GrapherChartType =>
     tab !== GRAPHER_TAB_NAMES.Table && tab !== GRAPHER_TAB_NAMES.WorldMap
 

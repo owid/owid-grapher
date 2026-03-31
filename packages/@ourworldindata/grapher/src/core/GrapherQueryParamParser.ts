@@ -63,9 +63,6 @@ const OVERLAY_PARAM_VALUES = {
     downloadVis: "download-vis",
 } as const
 
-type OverlayParamValue =
-    (typeof OVERLAY_PARAM_VALUES)[keyof typeof OVERLAY_PARAM_VALUES]
-
 export interface ParsedOverlay {
     modal: GrapherModal
     downloadTab?: DownloadModalTabName
