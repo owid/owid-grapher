@@ -121,8 +121,7 @@ async function resolveChartUrl(url: string): Promise<ResolvedChart> {
     }
 }
 
-// Module-level cache so resolutions persist across renders and
-// can be pre-populated by preloadSlideCharts().
+// Module-level cache so resolutions persist across renders.
 const resolutionCache = new Map<string, Promise<ResolvedChart>>()
 
 export function getCachedResolution(url: string): Promise<ResolvedChart> {
@@ -137,15 +136,4 @@ export function getCachedResolution(url: string): Promise<ResolvedChart> {
     })
     resolutionCache.set(url, promise)
     return promise
-}
-
-/**
- * Preload chart resolutions for all URLs. Call this on presentation
- * mount to resolve all chart types in parallel before the user
- * navigates to them.
- */
-export function preloadSlideCharts(urls: string[]): void {
-    for (const url of urls) {
-        if (url) void getCachedResolution(url)
-    }
 }

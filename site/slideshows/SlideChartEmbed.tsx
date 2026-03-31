@@ -7,7 +7,8 @@ import { type ResolvedChart, getCachedResolution } from "./slideChartPreload.js"
 
 interface SlideChartEmbedProps {
     url: string
-    grapherStateRef: React.RefObject<GrapherState | null>
+    /** If provided, the GrapherState is stored on this ref (for admin editor). Otherwise each chart owns its own. */
+    grapherStateRef?: React.RefObject<GrapherState | null>
     onQueryStringChange?: (queryString: string) => void
     hideTitle?: boolean
     hideSubtitle?: boolean

@@ -26,8 +26,9 @@ export interface SlideGrapherProps {
     /**
      * Top-level ref that the GrapherState is stored on via GuidedChartContext.
      * The parent owns this so it persists across re-renders.
+     * If not provided, a local ref is created.
      */
-    grapherStateRef: React.RefObject<GrapherState | null>
+    grapherStateRef?: React.RefObject<GrapherState | null>
     /** Called when the user interacts with the Grapher and its params change */
     onQueryStringChange?: (queryString: string) => void
     /** Hide the Grapher's built-in title (when the slide provides its own) */
@@ -52,8 +53,10 @@ export interface SlideGrapherProps {
  * smooth transition without remounting.
  */
 export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
-    const { slug, initialQueryString, grapherStateRef, onQueryStringChange } =
-        props
+    const { slug, initialQueryString, onQueryStringChange } = props
+
+    const localGrapherStateRef = useRef<GrapherState | null>(null)
+    const grapherStateRef = props.grapherStateRef ?? localGrapherStateRef
 
     const containerRef = useRef<HTMLDivElement>(null)
     const bounds = useElementBounds(containerRef)
