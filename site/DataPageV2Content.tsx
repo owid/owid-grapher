@@ -26,6 +26,7 @@ import {
 } from "../settings/clientSettings.js"
 import AboutThisData from "./AboutThisData.js"
 import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
+import { type DownloadSectionProps } from "./DownloadSection.js"
 import MetadataSection from "./MetadataSection.js"
 import TopicTags from "./TopicTags.js"
 import { processRelatedResearch } from "./dataPage.js"
@@ -33,6 +34,7 @@ import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import { DocumentContext } from "./gdocs/DocumentContext.js"
 import { BlockQueryClientProvider } from "./gdocs/components/BlockQueryClientProvider.js"
+import { useWindowQueryParams } from "./hooks.js"
 
 declare global {
     interface Window {
@@ -51,10 +53,15 @@ export const DataPageV2Content = ({
     tagToSlugMap,
     imageMetadata,
     archiveContext,
+    distribution,
 }: DataPageV2ContentFields & {
     grapherConfig: GrapherInterface
     imageMetadata: Record<string, ImageMetadata>
 }) => {
+    const slug = grapherConfig.slug
+    const queryStr =
+        typeof window !== "undefined" ? window?.location?.search : undefined
+    const reactiveQueryStr = useWindowQueryParams()
     const titleFragments = joinTitleFragments(
         datapageData.attributionShort,
         datapageData.titleVariant
@@ -111,6 +118,28 @@ export const DataPageV2Content = ({
         }
     }, [])
 
+    const downloadProps: DownloadSectionProps | undefined = useMemo(() => {
+        if (!slug) return undefined
+
+        // Note: yColumns is not passed here, which means the short column names
+        // option won't be visible in the download section on data pages.
+        //
+        // To enable this feature on data pages, we would need to:
+        // 1. Load variable metadata on the server to get column definitions with shortName
+        // 2. Pass that data through to this component (similar to how datapageData is passed)
+        // 3. Extract yColumns from the variable metadata and pass them here
+        //
+        // Without yColumns, users can still download data via the API URLs shown
+        // in the "Data API" section, where they can manually add
+        // &useColumnShortNames=true
+        return {
+            slug,
+            baseUrl: `${BAKED_GRAPHER_URL}/${slug}`,
+            searchParams: new URLSearchParams(reactiveQueryStr),
+            distribution,
+        }
+    }, [distribution, reactiveQueryStr, slug])
+
     return (
         <AttachmentsContext.Provider
             value={{
@@ -128,11 +157,7 @@ export const DataPageV2Content = ({
                         config={mergedGrapherConfig}
                         useProvidedConfigOnly
                         slug={grapherConfig.slug}
-                        queryStr={
-                            typeof window !== "undefined"
-                                ? window?.location?.search
-                                : undefined
-                        }
+                        queryStr={queryStr}
                         enablePopulatingUrlParams
                         isEmbeddedInAnOwidPage={false}
                         isEmbeddedInADataPage={false}
@@ -172,11 +197,7 @@ export const DataPageV2Content = ({
                                     config={mergedGrapherConfig}
                                     useProvidedConfigOnly
                                     id="explore-the-data"
-                                    queryStr={
-                                        typeof window !== "undefined"
-                                            ? window?.location?.search
-                                            : undefined
-                                    }
+                                    queryStr={queryStr}
                                     enablePopulatingUrlParams
                                     isEmbeddedInADataPage={true}
                                     isEmbeddedInAnOwidPage={false}
@@ -274,6 +295,7 @@ export const DataPageV2Content = ({
                         title={datapageData.title}
                         titleVariant={datapageData.titleVariant}
                         archiveContext={archiveContext}
+                        downloadProps={downloadProps}
                     />
                 </div>
             </DocumentContext.Provider>

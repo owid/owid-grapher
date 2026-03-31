@@ -389,6 +389,45 @@ export function DataPageContent({
         )
     }, [varDatapageData?.faqs, faqEntries])
 
+    const tableForDownload = useMobxStateToReactState(
+        useCallback(() => grapherStateRef.current?.tableForDownload, []),
+        !!grapherStateRef.current
+    )
+    const filteredTableForDownload = useMobxStateToReactState(
+        useCallback(
+            () => grapherStateRef.current?.filteredTableForDownload,
+            []
+        ),
+        !!grapherStateRef.current
+    )
+    const yColumns = useMobxStateToReactState(
+        useCallback(
+            () => grapherStateRef.current?.yColumnsFromDimensionsOrSlugsOrAuto,
+            []
+        ),
+        !!grapherStateRef.current
+    )
+
+    const downloadProps = useMemo(() => {
+        if (!slug) return undefined
+        return {
+            slug,
+            baseUrl: `${BAKED_GRAPHER_URL}/${slug}`,
+            searchParams,
+            externalQueryParams: settings,
+            tableForDownload,
+            filteredTableForDownload,
+            yColumns,
+        }
+    }, [
+        slug,
+        searchParams,
+        settings,
+        tableForDownload,
+        filteredTableForDownload,
+        yColumns,
+    ])
+
     return (
         <AttachmentsContext.Provider
             value={{
@@ -476,6 +515,7 @@ export function DataPageContent({
                         title={varDatapageData.title}
                         titleVariant={varDatapageData.titleVariant}
                         archiveContext={archiveContext}
+                        downloadProps={downloadProps}
                     />
                 )}
             </div>

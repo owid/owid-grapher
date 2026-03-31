@@ -1,4 +1,12 @@
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useMemo, useRef, useState } from "react"
+import type { Dispatch, SetStateAction } from "react"
+import { OwidColumnDef } from "@ourworldindata/types"
+import {
+    CsvDownloadType,
+    getDownloadUrl,
+    type DataDownloadContextBase,
+    type DataDownloadContextServerSide,
+} from "./download.js"
 
 /**
  * Like useState, but clearing (setting to undefined) is debounced.
@@ -27,4 +35,53 @@ export function useStateWithDebouncedClear<T>(
     }, [setValue, clearDelay])
 
     return [value, set, clear]
+}
+
+export function useDataApiDownloadConfig({
+    downloadCtxBase,
+    firstYColDef,
+}: {
+    downloadCtxBase: DataDownloadContextBase
+    firstYColDef?: OwidColumnDef
+}): {
+    csvUrl: string
+    metadataUrl: string
+    onlyVisible: boolean
+    setOnlyVisible: Dispatch<SetStateAction<boolean>>
+    shortColNames: boolean
+    setShortColNames: Dispatch<SetStateAction<boolean>>
+} {
+    const [onlyVisible, setOnlyVisible] = useState(false)
+    const [shortColNames, setShortColNames] = useState(
+        !!firstYColDef?.shortName
+    )
+
+    const downloadCtx: DataDownloadContextServerSide = useMemo(
+        () => ({
+            ...downloadCtxBase,
+            csvDownloadType: onlyVisible
+                ? CsvDownloadType.CurrentSelection
+                : CsvDownloadType.Full,
+            shortColNames,
+        }),
+        [downloadCtxBase, onlyVisible, shortColNames]
+    )
+
+    const csvUrl = useMemo(
+        () => getDownloadUrl("csv", downloadCtx),
+        [downloadCtx]
+    )
+    const metadataUrl = useMemo(
+        () => getDownloadUrl("metadata.json", downloadCtx),
+        [downloadCtx]
+    )
+
+    return {
+        csvUrl,
+        metadataUrl,
+        onlyVisible,
+        setOnlyVisible,
+        shortColNames,
+        setShortColNames,
+    }
 }

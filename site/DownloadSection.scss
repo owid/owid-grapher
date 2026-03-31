@@ -1,0 +1,58 @@
+.downloads {
+    margin-top: 16px;
+}
+
+.downloads-section {
+    &:first-child {
+        margin-bottom: 32px;
+    }
+}
+
+.download-api-options__config-list {
+    gap: 8px;
+    padding-bottom: 8px;
+    margin-top: 8px;
+
+    .label {
+        color: $blue-60;
+    }
+
+    + .download-api-options__config-list {
+        border-top: 1px solid $blue-20;
+        padding-top: 16px;
+    }
+
+    p {
+        margin-top: 4px;
+        margin-bottom: 0;
+        margin-left: 24px;
+        font-size: 13px;
+        line-height: 1.3;
+        color: $blue-60;
+    }
+}
+
+.downloads__api-urls,
+.downloads__code-blocks {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.downloads__api-urls {
+    border-top: 1px solid $blue-20;
+    padding-top: 16px;
+    margin-top: 8px;
+}
+
+.downloads__code-label {
+    margin: 0 0 8px;
+    color: $blue-90;
+}
+
+.downloads__download-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 8px;
+}

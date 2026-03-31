@@ -61,6 +61,13 @@ export { CodeSnippet } from "./CodeSnippet/CodeSnippet.js"
 export { hydrateCodeSnippets } from "./CodeSnippet/hydrateCodeSnippets.js"
 
 export { DataCitation } from "./DataCitation/DataCitation.js"
+export { DownloadButton } from "./DownloadButton/DownloadButton.js"
+export { DownloadButtonLink } from "./DownloadButton/DownloadButtonLink.js"
+export { DownloadApiOptions } from "./DownloadApiOptions/DownloadApiOptions.js"
+export {
+    makeFilteredDownloadDescription,
+    makeFullDownloadDescription,
+} from "@ourworldindata/utils"
 
 export {
     DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
@@ -75,6 +82,7 @@ export { Halo } from "./Halo/Halo.js"
 export { BodyPortal } from "./BodyPortal/BodyPortal.js"
 
 export { LoadingIndicator } from "./loadingIndicator/LoadingIndicator.js"
+export { NonRedistributableDataNotice } from "./NonRedistributableDataNotice/NonRedistributableDataNotice.js"
 
 export { reactRenderToStringClientOnly } from "./reactUtil.js"
 
