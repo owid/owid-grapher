@@ -124,7 +124,8 @@ export const IS_RUNNING_INSIDE_VITEST: boolean = !!process.env.VITEST
 // the bespoke component registry are resolved relative to this URL instead of
 // the current origin. Useful for pointing to the bespoke dev server during
 // local development (e.g. "http://localhost:8089").
-export const BESPOKE_BASE_URL: string = process.env.BESPOKE_BASE_URL ?? ""
+export const BESPOKE_BASE_URL: string =
+    process.env.BESPOKE_BASE_URL ?? "http://localhost:8089"
 
 /// Generated properties only, these cannot be overridden directly
 // Whether to only enable cookie-less tracking & never show the cookie notice

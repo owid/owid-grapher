@@ -1214,6 +1214,10 @@ export class SiteBaker {
             `rm -rf ${this.bakedSiteDir}/assets-admin && (cp -r ${BASE_DIR}/dist/assets-admin ${this.bakedSiteDir}/assets-admin || true)`
         )
 
+        await execWrapper(
+            `rm -rf ${this.bakedSiteDir}/assets/bespoke && cp -r ${BASE_DIR}/dist/assets-bespoke ${this.bakedSiteDir}/assets/bespoke`
+        )
+
         await this.validateTagIcons(trx)
         await execWrapper(
             `rsync -hav --delete ${BASE_DIR}/public/* ${this.bakedSiteDir}/`

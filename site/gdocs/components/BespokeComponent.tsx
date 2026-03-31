@@ -5,16 +5,15 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { BESPOKE_COMPONENT_REGISTRY } from "../../bespokeComponentRegistry.js"
 import { mountBespokeComponentInShadow } from "../../../bespoke/shared/bespokeComponentShadowDom.js"
 import { BESPOKE_BASE_URL } from "../../../settings/clientSettings.js"
+import urljoin from "url-join"
 
 // Use the `baseUrl` as a base for the URL constructor if set, and use just the URL (which might be host-relative) if not.
 // If `url` is already absolute, it will effectively just get passed through.
-const makeAbsoluteWithBaseUrlIfSet = (url: string, baseUrl?: string) => {
+const makeAbsoluteWithBaseUrl = (url: string, baseUrl: string | undefined) => {
     baseUrl = baseUrl?.trim()
-    if (baseUrl && !baseUrl.endsWith("/")) baseUrl += "/"
-    if (baseUrl) {
-        return new URL(url, baseUrl).toString()
-    }
-    return url
+    if (!baseUrl) return undefined
+
+    return urljoin(baseUrl, url)
 }
 
 /**
@@ -59,16 +58,13 @@ export function BespokeComponent({
         if (!definition) return { scriptUrl: undefined, cssUrl: undefined }
 
         return {
-            scriptUrl: makeAbsoluteWithBaseUrlIfSet(
+            scriptUrl: makeAbsoluteWithBaseUrl(
                 definition.scriptUrl,
                 BESPOKE_BASE_URL
             ),
             cssUrl:
                 definition.cssUrl &&
-                makeAbsoluteWithBaseUrlIfSet(
-                    definition.cssUrl,
-                    BESPOKE_BASE_URL
-                ),
+                makeAbsoluteWithBaseUrl(definition.cssUrl, BESPOKE_BASE_URL),
         }
     }, [definition])
 
@@ -80,7 +76,10 @@ export function BespokeComponent({
             setError(`Unknown bespoke bundle: "${block.bundle}"`)
             return
         }
-        if (!scriptUrl) return
+        if (!scriptUrl) {
+            setError("This custom component cannot be displayed on this page.")
+            return
+        }
 
         const abortController = new AbortController()
 
