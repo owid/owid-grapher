@@ -24,8 +24,8 @@ interface PromiseSelectorArg<Result> {
 export class PromiseSwitcher<Result> {
     private pendingPromise: Promise<Result> | undefined
 
-    private onResolve?: (result: Result) => void
-    private onReject?: (error: any) => void
+    private readonly onResolve?: (result: Result) => void
+    private readonly onReject?: (error: any) => void
 
     constructor(arg: PromiseSelectorArg<Result>) {
         this.onResolve = arg.onResolve

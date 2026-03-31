@@ -68,7 +68,7 @@ interface SourcesModalProps {
 
 @observer
 export class SourcesModal extends React.Component<SourcesModalProps> {
-    private container = React.createRef<HTMLDivElement>()
+    private readonly container = React.createRef<HTMLDivElement>()
 
     private activeTabKey = ""
 

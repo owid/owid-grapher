@@ -43,10 +43,10 @@ interface SimpleVerticalLabelsOptions {
  * and basic collision resolution by removing overlapping labels.
  */
 export class SimpleVerticalLabelsState {
-    private initialSeries: InitialSimpleLabelSeries[]
-    private initialOptions: SimpleVerticalLabelsOptions
+    private readonly initialSeries: InitialSimpleLabelSeries[]
+    private readonly initialOptions: SimpleVerticalLabelsOptions
 
-    private defaultOptions = {
+    private readonly defaultOptions = {
         lineHeight: 1,
         maxWidth: Infinity,
         minSpacing: 5,

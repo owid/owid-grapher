@@ -46,10 +46,10 @@ export interface VerticalLabelsStateOptions {
  * placement, collision resolution, and filtering when space is limited
  */
 export class VerticalLabelsState {
-    private initialSeries: LabelSeries[]
-    private initialOptions: VerticalLabelsStateOptions
+    private readonly initialSeries: LabelSeries[]
+    private readonly initialOptions: VerticalLabelsStateOptions
 
-    private defaultOptions = {
+    private readonly defaultOptions = {
         fontSize: BASE_FONT_SIZE,
         fontWeight: DEFAULT_FONT_WEIGHT,
         maxWidth: Infinity,

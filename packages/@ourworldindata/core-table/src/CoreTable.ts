@@ -68,17 +68,17 @@ export class CoreTable<
     ROW_TYPE extends CoreRow = CoreRow,
     COL_DEF_TYPE extends CoreColumnDef = CoreColumnDef,
 > {
-    private _columns: Map<ColumnSlug, CoreColumn<this, COL_DEF_TYPE>> =
+    private readonly _columns: Map<ColumnSlug, CoreColumn<this, COL_DEF_TYPE>> =
         new Map()
-    protected parent?: this
-    tableDescription: string
-    private timeToLoad = 0
-    private initTime = Date.now()
+    protected readonly parent?: this
+    readonly tableDescription: string
+    private readonly timeToLoad: number = 0
+    private readonly initTime = Date.now()
 
-    private originalInput: CoreTableInputOption
-    private advancedOptions: AdvancedOptions
+    private readonly originalInput: CoreTableInputOption
+    private readonly advancedOptions: AdvancedOptions
 
-    private inputColumnDefs: COL_DEF_TYPE[]
+    private readonly inputColumnDefs: COL_DEF_TYPE[]
     constructor(
         input: CoreTableInputOption = [],
         inputColumnDefs: COL_DEF_TYPE[] | string = [],
@@ -797,15 +797,11 @@ export class CoreTable<
         return this.colsToParse.length
     }
 
-    private static guids = 0
-    private guid = ++CoreTable.guids
-
     private get explanation(): Record<string, unknown> {
         // todo: is there a better way to do this in JS?
         const {
             tableDescription,
             transformCategory,
-            guid,
             numColumns,
             numRows,
             betweenTime,
@@ -819,7 +815,6 @@ export class CoreTable<
         return {
             tableDescription: truncate(tableDescription, 40),
             transformCategory,
-            guid,
             numColumns,
             numRows,
             betweenTime,
@@ -1274,8 +1269,8 @@ export class CoreTable<
 }
 
 class FilterMask {
-    private mask: boolean[]
-    private numRows: number
+    private readonly mask: boolean[]
+    private readonly numRows: number
     constructor(
         numRows: number,
         input: boolean[] | number[],

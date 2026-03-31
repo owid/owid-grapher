@@ -92,7 +92,7 @@ export const shareUsingShareApi = async (
 
 @observer
 export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
-    private menuRef = React.createRef<HTMLDivElement>()
+    private readonly menuRef = React.createRef<HTMLDivElement>()
 
     constructor(props: ShareMenuProps) {
         super(props)

@@ -36,11 +36,11 @@ export interface CategoricalColorAssignerProps {
  * Grapher#seriesColorMap for an example of a cache.
  */
 export class CategoricalColorAssigner {
-    private colorScheme: ColorScheme
-    private invertColorScheme: boolean
-    private colorMap: CategoricalColorMapReadonly
-    private autoColorMapCache: CategoricalColorMap
-    private numColorsInUse?: number
+    private readonly colorScheme: ColorScheme
+    private readonly invertColorScheme: boolean
+    private readonly colorMap: CategoricalColorMapReadonly
+    private readonly autoColorMapCache: CategoricalColorMap
+    private readonly numColorsInUse?: number
 
     constructor(props: CategoricalColorAssignerProps) {
         this.colorScheme = props.colorScheme

@@ -55,7 +55,7 @@ export class ChartDimension
     extends ChartDimensionDefaults
     implements Persistable, OwidChartDimensionInterfaceWithMandatorySlug
 {
-    private manager: LegacyDimensionsManager
+    private readonly manager: LegacyDimensionsManager
 
     constructor(
         obj: OwidChartDimensionInterface,

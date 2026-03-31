@@ -18,9 +18,9 @@ import {
 } from "./GridLangConstants.js"
 
 export class GridCell implements ParsedCell {
-    private position: CellPosition
-    private matrix: MatrixProgram
-    private rootDefinition: CellDef
+    private readonly position: CellPosition
+    private readonly matrix: MatrixProgram
+    private readonly rootDefinition: CellDef
     constructor(
         matrix: MatrixProgram,
         position: CellPosition,

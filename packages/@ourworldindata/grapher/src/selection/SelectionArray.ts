@@ -2,7 +2,7 @@ import { EntityName } from "@ourworldindata/types"
 import { action, computed, makeObservable, observable } from "mobx"
 
 export class SelectionArray {
-    private store: Set<EntityName> = new Set()
+    private readonly store: Set<EntityName> = new Set()
 
     constructor(selectedEntityNames: EntityName[] = []) {
         makeObservable<SelectionArray, "store">(this, { store: observable })

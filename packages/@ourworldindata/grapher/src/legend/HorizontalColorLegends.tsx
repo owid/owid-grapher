@@ -658,8 +658,8 @@ const NumericBinRect = (props: NumericBinRectProps) => {
 
 @observer
 export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
-    private rectPadding = 5
-    private markPadding = 5
+    private readonly rectPadding = 5
+    private readonly markPadding = 5
 
     constructor(props: { manager: HorizontalColorLegendManager }) {
         super(props)

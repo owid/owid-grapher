@@ -82,9 +82,9 @@ export class LineChart
     extends React.Component<LineChartProps>
     implements ChartInterface, HorizontalColorLegendManager, AxisManager
 {
-    private base = React.createRef<SVGGElement>()
+    private readonly base = React.createRef<SVGGElement>()
 
-    private tooltipState = new TooltipState<{ time: Time }>({
+    private readonly tooltipState = new TooltipState<{ time: Time }>({
         fade: "immediate",
     })
 

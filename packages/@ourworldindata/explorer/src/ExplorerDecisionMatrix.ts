@@ -167,7 +167,7 @@ export class DecisionMatrix {
         )
     }
 
-    private static allColumnSlugsWithIndicatorIdsOrCatalogPaths = [
+    private static readonly allColumnSlugsWithIndicatorIdsOrCatalogPaths = [
         GrapherGrammar.yVariableIds.keyword,
         GrapherGrammar.xVariableId.keyword,
         GrapherGrammar.colorVariableId.keyword,

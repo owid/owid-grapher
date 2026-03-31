@@ -862,7 +862,7 @@ interface DualAxisProps {
 // e.g. if the y axis becomes wider because a label is present, the x axis then has less
 // space to work with, and vice versa
 export class DualAxis {
-    private props: DualAxisProps
+    private readonly props: DualAxisProps
     constructor(props: DualAxisProps) {
         makeObservable(this)
         this.props = props

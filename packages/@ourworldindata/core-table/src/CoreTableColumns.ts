@@ -988,7 +988,7 @@ class QuarterColumn<
 > extends TimeColumn<TABLE_TYPE, DEF_TYPE> {
     preposition = "in"
 
-    private static regEx = /^([+-]?\d+)-Q([1-4])$/
+    private static readonly regEx = /^([+-]?\d+)-Q([1-4])$/
 
     override parse(val: unknown): number | ErrorValue {
         // skip parsing if a date is a number, it's already been parsed

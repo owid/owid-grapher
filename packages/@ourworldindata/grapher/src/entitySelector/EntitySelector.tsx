@@ -206,12 +206,12 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
     searchFieldRef = React.createRef<HTMLInputElement>()
     contentRef = React.createRef<HTMLDivElement>()
 
-    private sortConfigByName: SortConfig = {
+    private readonly sortConfigByName: SortConfig = {
         slug: this.table.entityNameSlug,
         order: SortOrder.asc,
     }
 
-    private disposers: IReactionDisposer[] = []
+    private readonly disposers: IReactionDisposer[] = []
 
     constructor(props: EntitySelectorProps) {
         super(props)

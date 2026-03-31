@@ -542,7 +542,7 @@ export class ExplorerProgram extends GridProgram {
      * A static method so that all explorers on the page share requests,
      * and no duplicate requests are sent.
      */
-    private static tableDataLoader = new PromiseCache(
+    private static readonly tableDataLoader = new PromiseCache(
         async (url: string): Promise<CoreTableInputOption> => {
             const response = await fetchWithRetry(url)
             if (!response.ok) throw new Error(response.statusText)

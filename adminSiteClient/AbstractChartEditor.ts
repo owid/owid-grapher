@@ -102,7 +102,7 @@ export abstract class AbstractChartEditor<
     // if inheritance is enabled, the parent config is applied to grapherState
     isInheritanceEnabled: boolean | undefined = undefined
 
-    private disposers: IReactionDisposer[] = []
+    private readonly disposers: IReactionDisposer[] = []
 
     constructor(props: { manager: Manager }) {
         makeObservable(this, {

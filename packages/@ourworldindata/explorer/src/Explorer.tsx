@@ -317,7 +317,7 @@ export class Explorer
         root.render(<Explorer {...props} queryStr={url.queryStr} />)
     }
 
-    private initialQueryParams = Url.fromQueryStr(this.props.queryStr ?? "")
+    private readonly initialQueryParams = Url.fromQueryStr(this.props.queryStr ?? "")
         .queryParams as ExplorerFullQueryParams
 
     explorerProgram = ExplorerProgram.fromJson(this.props).initDecisionMatrix(
@@ -487,7 +487,7 @@ export class Explorer
         )
     }
 
-    private persistedGrapherQueryParamsBySelectedRow: Map<
+    private readonly persistedGrapherQueryParamsBySelectedRow: Map<
         number,
         Partial<GrapherQueryParams>
     > = new Map()
@@ -572,7 +572,7 @@ export class Explorer
         return !this.isNarrow
     }
 
-    private futureGrapherTable = new PromiseSwitcher<OwidTable>({
+    private readonly futureGrapherTable = new PromiseSwitcher<OwidTable>({
         onResolve: (table) => this.setGrapherTable(table),
         onReject: (error) => this.grapher?.setError(error),
     })
@@ -1010,9 +1010,9 @@ export class Explorer
         )
     }
 
-    private grapherContainerRef = React.createRef<HTMLDivElement>()
+    private readonly grapherContainerRef = React.createRef<HTMLDivElement>()
 
-    private grapherRef = React.createRef<Grapher>()
+    private readonly grapherRef = React.createRef<Grapher>()
 
     private renderControlBar() {
         return (
@@ -1156,7 +1156,7 @@ export class Explorer
     entityPickerTable: OwidTable | undefined = undefined
     entityPickerTableIsLoading: boolean = false
 
-    private futureEntityPickerTable = new PromiseSwitcher<OwidTable>({
+    private readonly futureEntityPickerTable = new PromiseSwitcher<OwidTable>({
         onResolve: (table) => {
             this.entityPickerTable = table
             this.entityPickerTableIsLoading = false

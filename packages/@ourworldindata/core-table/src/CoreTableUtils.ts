@@ -590,7 +590,7 @@ export class Timer {
     }
 
     private _tickTime: number
-    private _firstTickTime: number
+    private readonly _firstTickTime: number
 
     tick(msg?: string): number {
         const elapsed = Date.now() - this._tickTime

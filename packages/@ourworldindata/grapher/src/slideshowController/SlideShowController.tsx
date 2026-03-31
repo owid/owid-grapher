@@ -16,9 +16,9 @@ export class SlideShowController<SlideData> {
         this.slides = slides
         this.manager = manager
     }
-    private slides: SlideData[]
+    private readonly slides: SlideData[]
     private currentIndex: number
-    private manager?: SlideShowManager<SlideData>
+    private readonly manager?: SlideShowManager<SlideData>
 
     get isEmpty() {
         return this.slides.length === 0

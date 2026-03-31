@@ -93,7 +93,7 @@ interface DataTableProps {
 
 @observer
 export class DataTable extends React.Component<DataTableProps> {
-    private storedState: DataTableState = {
+    private readonly storedState: DataTableState = {
         sort: DEFAULT_SORT_STATE,
     }
 

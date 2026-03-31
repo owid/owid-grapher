@@ -76,9 +76,9 @@ export type PositionedFragment = PositionedTextFragment | PositionedIconFragment
  * 3. Value: An optional formatted value to display alongside the name (e.g. "45.2%")
  */
 export class SeriesLabelState {
-    private initialOptions: SeriesLabelStateOptions
+    private readonly initialOptions: SeriesLabelStateOptions
 
-    private defaultOptions = {
+    private readonly defaultOptions = {
         fontWeight: 400,
         lineHeight: 1.1,
         placeFormattedValueInNewLine: false,

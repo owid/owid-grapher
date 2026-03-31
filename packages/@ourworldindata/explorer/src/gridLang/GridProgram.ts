@@ -10,7 +10,6 @@ import {
     CellDef,
     CellPosition,
     GRID_CELL_DELIMITER,
-    GRID_EDGE_DELIMITER,
     GRID_NODE_DELIMITER,
     Origin,
     ParsedCell,
@@ -42,17 +41,16 @@ export class GridProgram {
         this.grammar = grammar
     }
 
-    private grammar?
+    private readonly grammar?
 
     private static guids = 0
-    guid = ++GridProgram.guids
+    readonly guid = ++GridProgram.guids
 
     lastCommit?: GitCommit
     slug: string
 
-    private nodeDelimiter = GRID_NODE_DELIMITER
-    cellDelimiter = GRID_CELL_DELIMITER
-    private edgeDelimiter = GRID_EDGE_DELIMITER
+    private readonly nodeDelimiter = GRID_NODE_DELIMITER
+    readonly cellDelimiter = GRID_CELL_DELIMITER
     lines: string[][]
 
     toJson(): SerializedGridProgram {
@@ -274,7 +272,7 @@ export class GridProgram {
             .filter(isPresent)
     }
 
-    private static lineMatchesWords = (
+    private static readonly lineMatchesWords = (
         line: string[],
         words: (string | undefined)[]
     ): boolean =>

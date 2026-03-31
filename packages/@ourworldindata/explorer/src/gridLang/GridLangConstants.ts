@@ -12,7 +12,6 @@ export enum GridBoolean {
 
 export const GRID_NODE_DELIMITER = "\n"
 export const GRID_CELL_DELIMITER = "\t"
-export const GRID_EDGE_DELIMITER = "\t"
 
 export type CellCoordinate = number // An integer >= 0
 

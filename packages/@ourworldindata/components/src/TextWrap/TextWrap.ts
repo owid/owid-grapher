@@ -106,14 +106,14 @@ export interface ITextWrap {
 }
 
 export class TextWrap implements ITextWrap {
-    private static defaultOptions = {
+    private static readonly defaultOptions = {
         maxWidth: Infinity,
         lineHeight: 1.1,
         separators: [" "],
         verticalAlign: VerticalAlign.bottom,
     } as const satisfies Partial<TextWrapProps>
 
-    private initialProps: TextWrapProps
+    private readonly initialProps: TextWrapProps
     constructor(props: TextWrapProps) {
         this.initialProps = props
     }

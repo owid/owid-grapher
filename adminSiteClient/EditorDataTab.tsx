@@ -797,7 +797,7 @@ class PeerCountrySection<
         makeObservable(this)
     }
 
-    private peerCountryStrategyLabels: {
+    private readonly peerCountryStrategyLabels: {
         [key in PeerCountryStrategy]: string
     } = {
         [PeerCountryStrategy.ParentRegions]: "Continent, income group & World",

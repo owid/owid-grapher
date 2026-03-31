@@ -635,7 +635,7 @@ export class MarimekkoChart
         )
     }
 
-    private paddingInPixels = 5
+    private readonly paddingInPixels = 5
 
     private static labelCandidateFromItem(
         item: EntityWithSize,

@@ -21,9 +21,9 @@ type BuildState =
     | "finished"
 
 export class BuildkiteTrigger {
-    private organizationSlug = "our-world-in-data"
-    private pipelineSlug = BUILDKITE_DEPLOY_CONTENT_PIPELINE_SLUG
-    private branch = BUILDKITE_BRANCH
+    private readonly organizationSlug = "our-world-in-data"
+    private readonly pipelineSlug = BUILDKITE_DEPLOY_CONTENT_PIPELINE_SLUG
+    private readonly branch = BUILDKITE_BRANCH
 
     async triggerBuild(
         message: string,

@@ -622,7 +622,7 @@ export class GrapherState
     private peerCountriesPromise: Promise<void> | undefined = undefined
 
     /** Whether the grapher is running in the editor */
-    private isEditor =
+    private readonly isEditor =
         typeof window !== "undefined" && (window as any).isEditor === true
 
     disposers: (() => void)[] = []
@@ -1897,7 +1897,7 @@ export class GrapherState
         })
     }
 
-    private checkOnlySingleTimeSelectionPossible = (
+    private readonly checkOnlySingleTimeSelectionPossible = (
         tabName: GrapherTabName
     ): boolean => {
         // Scatters aren't included here because although single-time selection
@@ -1909,7 +1909,7 @@ export class GrapherState
         ].includes(tabName as any)
     }
 
-    private checkOnlyTimeRangeSelectionPossible = (
+    private readonly checkOnlyTimeRangeSelectionPossible = (
         tabName: GrapherTabName
     ): boolean => {
         return [
@@ -1918,7 +1918,7 @@ export class GrapherState
         ].includes(tabName as any)
     }
 
-    private checkSingleTimeSelectionPreferred = (
+    private readonly checkSingleTimeSelectionPreferred = (
         tabName: GrapherTabName
     ): boolean => {
         // Scatter plots can show a time range, but a single time is preferred

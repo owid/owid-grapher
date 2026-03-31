@@ -513,13 +513,13 @@ type MarkdownTextWrapProps = { text: string } & MarkdownTextWrapOptions
 type TextFragment = { text: string; bold?: boolean }
 
 export class MarkdownTextWrap implements ITextWrap {
-    private static defaultOptions = {
+    private static readonly defaultOptions = {
         maxWidth: Infinity,
         lineHeight: 1.1,
         detailsOrderedByReference: [] as string[],
     } as const satisfies Partial<MarkdownTextWrapProps>
 
-    private initialProps: MarkdownTextWrapProps
+    private readonly initialProps: MarkdownTextWrapProps
     constructor(props: MarkdownTextWrapProps) {
         this.initialProps = props
     }

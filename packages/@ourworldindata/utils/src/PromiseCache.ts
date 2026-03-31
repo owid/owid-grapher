@@ -10,9 +10,9 @@
  * For now it only supports primitive value keys, but we can extend it if necessary.
  */
 export class PromiseCache<Key extends string | number | undefined, Result> {
-    constructor(private createPromiseFromKey: (key: Key) => Promise<Result>) {}
+    constructor(private readonly createPromiseFromKey: (key: Key) => Promise<Result>) {}
 
-    private promisesByKey = new Map<Key, Promise<Result>>()
+    private readonly promisesByKey = new Map<Key, Promise<Result>>()
 
     get(key: Key): Promise<Result> {
         if (!this.promisesByKey.has(key)) {

@@ -171,12 +171,12 @@ function getProgressBarTotal(bakeSteps: BakeStepConfig): number {
 }
 
 export class SiteBaker {
-    private bakedSiteDir: string
+    private readonly bakedSiteDir: string
     baseUrl: string
     progressBar: ProgressBar
     explorerAdminServer: ExplorerAdminServer
     bakeSteps: BakeStepConfig
-    private _renderedProfileEntityCodes: Map<string, string[]> = new Map()
+    private readonly _renderedProfileEntityCodes: Map<string, string[]> = new Map()
 
     constructor(
         bakedSiteDir: string,

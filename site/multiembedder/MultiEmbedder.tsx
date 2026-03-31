@@ -50,7 +50,7 @@ const figuresFromDOM = (
     ).filter(isPresent)
 
 class MultiEmbedder {
-    private figuresObserver: IntersectionObserver | undefined
+    private readonly figuresObserver: IntersectionObserver | undefined
     private isPreviewing?: boolean
 
     constructor() {

@@ -63,7 +63,7 @@ export class StackedAreaChart
     extends React.Component<StackedAreaChartProps>
     implements ChartInterface, AxisManager
 {
-    private tooltipState = new TooltipState<{
+    private readonly tooltipState = new TooltipState<{
         index: number // time-index into points array
         series?: SeriesName
     }>({ fade: "immediate" })

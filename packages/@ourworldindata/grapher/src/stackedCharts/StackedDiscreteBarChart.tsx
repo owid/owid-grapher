@@ -83,11 +83,11 @@ export class StackedDiscreteBarChart
     extends React.Component<StackedDiscreteBarChartProps>
     implements ChartInterface, HorizontalColorLegendManager
 {
-    private base = React.createRef<SVGGElement>()
+    private readonly base = React.createRef<SVGGElement>()
 
     private legendHoverSeriesName: SeriesName | undefined = undefined
 
-    private tooltipState = new TooltipState<{
+    private readonly tooltipState = new TooltipState<{
         entityName: string
         seriesName?: string
     }>()

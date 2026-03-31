@@ -98,9 +98,9 @@ export class SlopeChart
     extends React.Component<SlopeChartProps>
     implements ChartInterface, AxisManager
 {
-    private slopeAreaRef = React.createRef<SVGGElement>()
+    private readonly slopeAreaRef = React.createRef<SVGGElement>()
 
-    private tooltipState = new TooltipState<{
+    private readonly tooltipState = new TooltipState<{
         series: SlopeChartSeries
     }>({ fade: "immediate" })
 

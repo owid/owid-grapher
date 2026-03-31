@@ -19,14 +19,14 @@ export interface ConnectedScatterLegendManager {
 export class ConnectedScatterLegend {
     manager: ConnectedScatterLegendManager
 
-    private lineToLabelSpacing = 8
-    private dotRadius = 2
-    private arrowRadius = 3
-    private padding = this.arrowRadius
-    private textColor = GRAPHER_DARK_TEXT
-    private arrowColor = GRAY_70
-    private outlineColor = "#fff"
-    private outlineWidth = 0.2
+    private readonly lineToLabelSpacing = 8
+    private readonly dotRadius = 2
+    private readonly arrowRadius = 3
+    private readonly padding = this.arrowRadius
+    private readonly textColor = GRAPHER_DARK_TEXT
+    private readonly arrowColor = GRAY_70
+    private readonly outlineColor = "#fff"
+    private readonly outlineWidth = 0.2
 
     constructor(manager: ConnectedScatterLegendManager) {
         makeObservable(this)

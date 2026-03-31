@@ -67,8 +67,8 @@ export class VerticalColorLegend extends React.Component<{
         return Math.round(this.fontSize / 1.4)
     }
 
-    private rectPadding = 5
-    private lineHeight = 5
+    private readonly rectPadding = 5
+    private readonly lineHeight = 5
 
     @computed private get title(): TextWrap | undefined {
         if (!this.manager.legendTitle) return undefined

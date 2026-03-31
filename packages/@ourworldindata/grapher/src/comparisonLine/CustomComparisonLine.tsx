@@ -18,8 +18,8 @@ import { ComparisonLineProps } from "./ComparisonLine"
 export class CustomComparisonLine extends React.Component<
     ComparisonLineProps<CustomComparisonLineConfig>
 > {
-    private renderUid = guid()
-    private pathId = `path-${this.renderUid}`
+    private readonly renderUid = guid()
+    private readonly pathId = `path-${this.renderUid}`
 
     constructor(props: ComparisonLineProps<CustomComparisonLineConfig>) {
         super(props)

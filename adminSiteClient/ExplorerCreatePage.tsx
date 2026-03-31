@@ -343,7 +343,7 @@ class HotEditor extends Component<{
     program: ExplorerProgram
     programOnDisk: ExplorerProgram
 }> {
-    private hotTableComponent = createRef<HotTableClass>()
+    private readonly hotTableComponent = createRef<HotTableClass>()
 
     constructor(props: {
         onChange: (code: string) => void

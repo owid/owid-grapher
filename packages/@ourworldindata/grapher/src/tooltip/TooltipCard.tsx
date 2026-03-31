@@ -19,7 +19,7 @@ import { SignificanceIcon } from "./TooltipContents.js"
 export class TooltipCard extends React.Component<
     TooltipProps & TooltipContainerProps
 > {
-    private base = React.createRef<HTMLDivElement>()
+    private readonly base = React.createRef<HTMLDivElement>()
     private tooltipWidth: number = 0
     private tooltipHeight: number = 0
 
