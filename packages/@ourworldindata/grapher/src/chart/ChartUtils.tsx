@@ -307,7 +307,7 @@ export function NoDataPattern({
     const roundedScale = R.round(scale, 3)
     const patternTransforms = excludeUndefined([
         `rotate(-45 2 2)`,
-        scale !== 1 ? `scale(${roundedScale})` : undefined,
+        roundedScale !== 1 ? `scale(${roundedScale})` : undefined,
     ])
     return (
         <pattern

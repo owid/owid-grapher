@@ -156,13 +156,14 @@ export function NoDataPattern({
     patternId: string
     scale?: number
 }): React.ReactElement {
+    const roundedScale = R.round(scale, 3)
     return (
         <pattern
             id={patternId}
             patternUnits="userSpaceOnUse"
             width="4"
             height="4"
-            patternTransform={`rotate(-45 2 2) scale(${scale})`}
+            patternTransform={`rotate(-45 2 2) scale(${roundedScale})`}
         >
             <path
                 d="M -1,2 l 6,0"
@@ -213,13 +214,15 @@ function DottedProjectedDataPattern({
     const lightness = calculateLightnessScore(color) ?? 0
     const opacity = dotOpacity ?? Math.max(1 - lightness, 0.1)
 
+    const roundedScale = R.round(scale, 3)
+
     return (
         <pattern
             id={patternId}
             patternUnits="userSpaceOnUse"
             width={patternSize}
             height={patternSize}
-            patternTransform={`rotate(45) scale(${scale})`}
+            patternTransform={`rotate(45) scale(${roundedScale})`}
         >
             {/* colored background */}
             <rect width={patternSize} height={patternSize} fill={color} />
