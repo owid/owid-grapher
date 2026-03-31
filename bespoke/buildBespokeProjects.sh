@@ -3,6 +3,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/projects"
 
+yarn --immutable
 yarn build
 
 OUTPUT_DIR="../../dist/assets-bespoke"

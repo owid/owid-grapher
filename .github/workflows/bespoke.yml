@@ -19,8 +19,11 @@ jobs:
 
             - uses: ./.github/actions/setup-node-yarn-deps
               with:
-                  runPostinstallScripts: false
+                  skipInstall: true
                   cacheDependencyPath: bespoke/projects/yarn.lock
+
+            - name: Install bespoke dependencies
+              run: yarn --immutable
 
             - name: Typecheck
               run: yarn typecheck
@@ -33,8 +36,11 @@ jobs:
 
             - uses: ./.github/actions/setup-node-yarn-deps
               with:
-                  runPostinstallScripts: false
+                  skipInstall: true
                   cacheDependencyPath: bespoke/projects/yarn.lock
+
+            - name: Install bespoke dependencies
+              run: yarn --immutable
 
             - name: Build
               run: yarn build
