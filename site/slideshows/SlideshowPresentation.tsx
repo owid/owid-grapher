@@ -1,13 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import {
-    SlideTemplate,
     SlideshowConfig,
     ImageMetadata,
     LinkedAuthor,
     OwidGdocType,
 } from "@ourworldindata/types"
 import { getCanonicalUrl } from "@ourworldindata/components"
-import { GrapherState } from "@ourworldindata/grapher"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faChevronLeft,
@@ -17,7 +15,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { SlideRenderer } from "./SlideRenderer.js"
 import { SlideChartEmbed } from "./SlideChartEmbed.js"
-import { preloadSlideCharts } from "./slideChartPreload.js"
 
 export const _OWID_SLIDESHOW_PROPS = "_OWID_SLIDESHOW_PROPS"
 
@@ -33,8 +30,8 @@ export interface SlideshowPresentationProps {
  * Interactive slideshow viewer with keyboard navigation.
  * Used on the baked site (hydrated) and importable by the admin editor.
  *
- * Owns a `grapherStateRef` so that chart slides sharing the same
- * slug transition smoothly (no remount / white flash).
+ * All slides are rendered simultaneously and toggled with CSS display.
+ * This ensures all chart data is fetched upfront so navigation is instant.
  */
 export function SlideshowPresentation(props: {
     title: string
@@ -59,8 +56,6 @@ export function SlideshowPresentation(props: {
     const currentIndex = props.currentSlideIndex ?? internalIndex
     const setCurrentIndex = props.onSlideChange ?? setInternalIndex
 
-    const currentSlide = slides[currentIndex]
-
     const goToPrev = useCallback(() => {
         setCurrentIndex(Math.max(0, currentIndex - 1))
     }, [currentIndex, setCurrentIndex])
@@ -76,25 +71,9 @@ export function SlideshowPresentation(props: {
     const goToNextRef = useRef(goToNext)
     goToNextRef.current = goToNext
 
-    // Owned by this component so that SlideGrapher (via SlideChartEmbed)
-    // can persist the GrapherState across slide transitions.
-    const grapherStateRef = useRef<GrapherState | null>(null)
-
-    // Preload all chart configs in parallel on mount so navigating
-    // between slides is instant.
-    useEffect(() => {
-        const chartUrls = slides
-            .filter(
-                (s): s is Extract<typeof s, { template: "chart" }> =>
-                    s.template === SlideTemplate.Chart
-            )
-            .map((s) => s.url)
-            .filter(Boolean)
-        preloadSlideCharts(chartUrls)
-    }, [slides])
-
-    // Default chart renderer: uses SlideChartEmbed which resolves
-    // chart type (grapher, multi-dim, explorer) client-side.
+    // Default chart renderer for the baked site: each chart owns
+    // its own state (no shared grapherStateRef needed since all
+    // slides are mounted simultaneously).
     const defaultRenderChart = useCallback(
         (
             url: string,
@@ -103,7 +82,6 @@ export function SlideshowPresentation(props: {
             return (
                 <SlideChartEmbed
                     url={url}
-                    grapherStateRef={grapherStateRef}
                     hideTitle={options.hideTitle}
                     hideSubtitle={options.hideSubtitle}
                 />
@@ -168,20 +146,30 @@ export function SlideshowPresentation(props: {
         return () => window.removeEventListener("keydown", handleKeyDown)
     }, [])
 
-    if (!currentSlide) return <div className="SlideshowPresentation" />
+    if (slides.length === 0) return <div className="SlideshowPresentation" />
+
+    const activeRenderChart = renderChart ?? defaultRenderChart
 
     return (
         <div
             ref={containerRef}
             className={`SlideshowPresentation${isFullscreen ? " SlideshowPresentation--fullscreen" : ""}`}
         >
-            <div className="SlideshowPresentation__slide">
-                <SlideRenderer
-                    slide={currentSlide}
-                    imageMetadata={imageMetadata}
-                    renderChart={renderChart ?? defaultRenderChart}
-                />
-            </div>
+            {/* All slides are rendered simultaneously and toggled with
+                CSS display so that chart data is fetched upfront. */}
+            {slides.map((slide, i) => (
+                <div
+                    key={i}
+                    className="SlideshowPresentation__slide"
+                    style={{ display: i === currentIndex ? "block" : "none" }}
+                >
+                    <SlideRenderer
+                        slide={slide}
+                        imageMetadata={imageMetadata}
+                        renderChart={activeRenderChart}
+                    />
+                </div>
+            ))}
             <div className="SlideshowPresentation__footer">
                 <span className="SlideshowPresentation__branding">
                     A presentation by{" "}
