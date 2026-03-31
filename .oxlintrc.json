@@ -180,7 +180,6 @@
         "no-void": ["warn", { "allowAsStatement": true }],
         "typescript/no-floating-promises": "error",
         "typescript/no-unnecessary-type-assertion": "warn",
-        "unicorn/no-for-loop": "warn",
         "unicorn/no-instanceof-array": "warn",
         "unicorn/no-unnecessary-await": "warn",
         "unicorn/no-useless-spread": "warn",

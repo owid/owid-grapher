@@ -72,16 +72,12 @@ function constructHtmlMessage(data: MessageData): string {
             impact — delivering more data, charts, and insights on an increasing
             number of pressing topics, all free and open to the world.
         </p>
-        ${
-            data.isSubscription
-                ? `<p>We really appreciate your ongoing support! You’ll receive a receipt each time after your payment is processed. If you’d like to cancel your recurring donation at any point, you can do so at <a href="${STRIPE_CUSTOMER_PORTAL_URL}">the billing portal</a> or just email us at <a href="mailto:donate@ourworldindata.org">donate@ourworldindata.org</a> and we'll take care of that for you.</p>`
-                : ""
-        }
-        ${
-            data.showOnList
-                ? `<p>In recognition of your support, we will be delighted to include your name as part of our <a href="https://ourworldindata.org/funding">List of Supporters</a>. We will add your name the next time we update the list, which we do every few months. The amount of your donation will not be disclosed.</p>`
-                : ""
-        }
+        ${data.isSubscription
+            ? `<p>We really appreciate your ongoing support! You’ll receive a receipt each time after your payment is processed. If you’d like to cancel your recurring donation at any point, you can do so at <a href="${STRIPE_CUSTOMER_PORTAL_URL}">the billing portal</a> or just email us at <a href="mailto:donate@ourworldindata.org">donate@ourworldindata.org</a> and we'll take care of that for you.</p>`
+            : ""}
+        ${data.showOnList
+            ? `<p>In recognition of your support, we will be delighted to include your name as part of our <a href="https://ourworldindata.org/funding">List of Supporters</a>. We will add your name the next time we update the list, which we do every few months. The amount of your donation will not be disclosed.</p>`
+            : ""}
         <p>
             <strong>Stay connected with our work:</strong> Follow us on social
             media or sign up for one of our newsletters here:
