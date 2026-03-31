@@ -211,7 +211,7 @@ $panel-gap: 12px;
 
 .chart-content {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 0;
     width: 100%;
     height: 500px;
@@ -225,14 +225,6 @@ $panel-gap: 12px;
     display: flex;
     flex-direction: column;
 
-    &.container-left {
-        flex: 2;
-    }
-
-    &.container-right {
-        flex: 3;
-    }
-
     .container__title {
         @include grapher_h5-black-caps;
 
@@ -242,8 +234,7 @@ $panel-gap: 12px;
     }
 
     &.container-left {
-        width: 35%;
-        flex-shrink: 0;
+        flex: 2;
         min-width: 0;
         display: flex;
         flex-direction: column;
@@ -257,7 +248,7 @@ $panel-gap: 12px;
     }
 
     &.container-right {
-        flex: 1;
+        flex: 3;
         min-width: 0;
         display: flex;
         flex-direction: column;
@@ -268,11 +259,13 @@ $panel-gap: 12px;
     flex: 0 0 auto;
     width: 36px;
     height: 36px;
-    margin: 0 auto;
+    margin: auto 0;
+    transform: rotate(-90deg);
 }
 
 .input-panels {
     display: flex;
+    flex-direction: column;
     gap: $panel-gap;
     flex: 1;
     min-height: 0;
@@ -550,6 +543,7 @@ $panel-gap: 12px;
         display: block;
         width: 24px;
         margin: 8px auto;
+        transform: none;
     }
 
     .input-panels {
