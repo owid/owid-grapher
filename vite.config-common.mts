@@ -120,13 +120,13 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                     project: entrypoint === "admin" ? "admin" : "website",
 
                     // When running inside Bundlemon, we want the output file size to be totally deterministic, and
-                    // therefore don't want sentry to inject any release information.
-                    release: isBundlemon
+                    // therefore don't want sentry to inject any release or _sentryDebugIdIdentifier information.
+                    ...(isBundlemon
                         ? {
-                              create: false,
-                              inject: false,
+                              release: { create: false, inject: false },
+                              sourcemaps: { disable: true },
                           }
-                        : undefined,
+                        : {}),
                 }),
         ],
         server: {
