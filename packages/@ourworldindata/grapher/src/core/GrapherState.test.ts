@@ -104,6 +104,13 @@ describe("toObject", () => {
     })
 })
 
+describe("hideFullScreenButton", () => {
+    it("respects the explicit hideFullscreenButton config", () => {
+        const grapher = new GrapherState({ hideFullscreenButton: true })
+        expect(grapher.hideFullScreenButton).toBe(true)
+    })
+})
+
 const unit = "% of children under 5"
 const name = "Some display name"
 const data = {
