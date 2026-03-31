@@ -54,7 +54,6 @@ import { isDarkColor } from "../color/ColorUtils"
 import { MapConfig } from "./MapConfig"
 import { MapSelectionArray } from "../selection/MapSelectionArray"
 import { MAP_PROJECTIONS } from "./MapProjections"
-import * as R from "remeda"
 
 @observer
 export class ChoroplethMap extends React.Component<{
