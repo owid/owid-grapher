@@ -11,6 +11,8 @@ import { ParameterKey } from "./types.js"
 
 interface ParameterConfig {
     title: string
+    unit: string
+    axisUnit: string
     subtitle: (entityName: string) => string
     tooltipContent: string
     formatValue: (value: number) => string
@@ -27,6 +29,8 @@ interface ParameterConfig {
 export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
     fertilityRate: {
         title: "Fertility Rate",
+        unit: "births per woman",
+        axisUnit: "births per woman",
         subtitle: () => "Average number of births per woman",
         tooltipContent:
             "Total fertility rate is the number of births a woman would have, if she experienced the birth rates of women of each age group in one particular year across her childbearing years.",
@@ -61,6 +65,8 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
     },
     lifeExpectancy: {
         title: "Life expectancy at birth",
+        unit: "years",
+        axisUnit: "years",
         subtitle: () =>
             "Years a newborn is expected to live, given current mortality rates",
         tooltipContent:
@@ -107,22 +113,24 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
     },
     netMigrationRate: {
         title: "Net Migration Rate",
+        unit: "per 1,000 population",
+        axisUnit: "‰",
         subtitle: (entityName: string) => {
             if (entityName === "World") return "Not applicable"
             const region = getRegionByName(entityName)
             if (region?.regionType === "aggregate")
-                return "Difference between people entering and leaving the continent"
-            return "Difference between people entering and leaving the country"
+                return "Difference between people entering and leaving the continent, per 1,000 population"
+            return "Difference between people entering and leaving the country, per 1,000 population"
         },
         tooltipContent:
-            "Net migration is the difference in immigration (people entering the country) and emigration (people leaving). This number is positive if more people are entering than leaving. This difference is given as a percentage of the total population.",
+            "Net migration is the difference in immigration (people entering the country) and emigration (people leaving). This number is positive if more people are entering than leaving. This difference is given per 1,000 population.",
         formatValue: (v) =>
             formatValue(v, {
                 numDecimalPlaces: 1,
                 numberAbbreviation: false,
                 showPlus: true,
                 trailingZeroes: true,
-            }),
+            }) + "‰",
         computeHistorical: (simulation, interactive = true) => {
             const points = R.pipe(
                 HISTORICAL_TIME_RANGE,
