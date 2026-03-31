@@ -1214,8 +1214,9 @@ export class SiteBaker {
             `rm -rf ${this.bakedSiteDir}/assets-admin && (cp -r ${BASE_DIR}/dist/assets-admin ${this.bakedSiteDir}/assets-admin || true)`
         )
 
+        // The bespoke assets are optional; they need not exist on the admin server, for example; don't fail if they don't exist
         await execWrapper(
-            `rm -rf ${this.bakedSiteDir}/assets/bespoke && cp -r ${BASE_DIR}/dist/assets-bespoke ${this.bakedSiteDir}/assets/bespoke`
+            `rm -rf ${this.bakedSiteDir}/assets/bespoke && (cp -r ${BASE_DIR}/dist/assets-bespoke ${this.bakedSiteDir}/assets/bespoke || true)`
         )
 
         await this.validateTagIcons(trx)
