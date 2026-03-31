@@ -3,8 +3,8 @@
     "private": true,
     "type": "module",
     "entrypoints": {
-        "js": "src/index.ts",
-        "css": "src/index.css"
+        "js": "src/index.tsx",
+        "dev-only-global-css": "src/dev-only-global-css.css"
     },
     "scripts": {
         "dev": "vite dev",
@@ -31,7 +31,8 @@
         "react-aria-components": "^1.8.0",
         "react-dom": "^19.2.4",
         "remeda": "^2.21.0",
-        "ts-pattern": "^5.7.1"
+        "ts-pattern": "^5.7.1",
+        "vite-plugin-css-position": "^2.0.9"
     },
     "devDependencies": {
         "@types/d3": "^7.4.3",
