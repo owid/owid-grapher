@@ -1,0 +1,46 @@
+name: Bespoke
+
+on:
+    pull_request:
+    push:
+        branches:
+            - master
+
+defaults:
+    run:
+        working-directory: bespoke/projects
+
+jobs:
+    bespoke-typecheck:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Clone repository
+              uses: actions/checkout@v5
+
+            - uses: ./.github/actions/setup-node-yarn-deps
+              with:
+                  runPostinstallScripts: false
+                  cacheDependencyPath: bespoke/projects/yarn.lock
+
+            - name: Install bespoke dependencies
+              run: yarn --immutable
+
+            - name: Typecheck
+              run: yarn typecheck
+
+    bespoke-build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Clone repository
+              uses: actions/checkout@v5
+
+            - uses: ./.github/actions/setup-node-yarn-deps
+              with:
+                  runPostinstallScripts: false
+                  cacheDependencyPath: bespoke/projects/yarn.lock
+
+            - name: Install bespoke dependencies
+              run: yarn --immutable
+
+            - name: Build
+              run: yarn build

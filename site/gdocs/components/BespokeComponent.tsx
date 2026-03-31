@@ -10,6 +10,7 @@ import { BESPOKE_BASE_URL } from "../../../settings/clientSettings.js"
 // If `url` is already absolute, it will effectively just get passed through.
 const makeAbsoluteWithBaseUrlIfSet = (url: string, baseUrl?: string) => {
     baseUrl = baseUrl?.trim()
+    if (baseUrl && !baseUrl.endsWith("/")) baseUrl += "/"
     if (baseUrl) {
         return new URL(url, baseUrl).toString()
     }
