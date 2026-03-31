@@ -1,6 +1,19 @@
-import { PROJECTION_DASHARRAY } from "../helpers/constants.js"
+import {
+    BENCHMARK_LINE_COLOR,
+    DENIM_BLUE,
+    USER_MODIFIED_COLOR,
+} from "../helpers/constants.js"
 
-export function PopulationChartLegend() {
+export function PopulationChartLegend({
+    userLabel = "Your projection",
+    benchmarkLabel = "UN WPP Medium projection",
+    modified = false,
+}: {
+    userLabel?: string
+    benchmarkLabel?: string
+    modified?: boolean
+} = {}) {
+    const userColor = modified ? USER_MODIFIED_COLOR : DENIM_BLUE
     return (
         <div className="population-chart-legend">
             <span className="population-chart-legend__item">
@@ -10,14 +23,14 @@ export function PopulationChartLegend() {
                         y1="3"
                         x2="16"
                         y2="3"
-                        stroke="#4c6a9c"
-                        strokeWidth="3"
-                        strokeDasharray={PROJECTION_DASHARRAY}
+                        stroke={userColor}
+                        strokeWidth="4"
+                        strokeDasharray="1.5,2"
                         strokeLinecap="butt"
                     />
                 </svg>
                 <span className="population-chart-legend__label">
-                    Your projection
+                    {userLabel}
                 </span>
             </span>
             <span className="population-chart-legend__item">
@@ -27,14 +40,14 @@ export function PopulationChartLegend() {
                         y1="3"
                         x2="16"
                         y2="3"
-                        stroke="#bbb"
-                        strokeWidth="3"
-                        strokeDasharray={PROJECTION_DASHARRAY}
+                        stroke={BENCHMARK_LINE_COLOR}
+                        strokeWidth="4"
+                        strokeDasharray="1.5,2"
                         strokeLinecap="butt"
                     />
                 </svg>
                 <span className="population-chart-legend__label">
-                    UN WPP Medium projection
+                    {benchmarkLabel}
                 </span>
             </span>
         </div>

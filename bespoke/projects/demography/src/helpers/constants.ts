@@ -1,4 +1,7 @@
-import { GRAY_50 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
+import {
+    GRAY_50,
+    GRAY_60,
+} from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { range } from "lodash-es"
 
 export const DEFAULT_ENTITY_NAME = "South Korea"
@@ -47,7 +50,7 @@ export const LABEL_COLOR = "#a1a1a1"
 export const PROJECTION_BACKGROUND = "rgba(0, 0, 0, 0.02)"
 export const PROJECTION_DASHARRAY = "1.5,3"
 
-export const BENCHMARK_LINE_COLOR = "#bbb"
+export const BENCHMARK_LINE_COLOR = GRAY_60
 export const USER_MODIFIED_COLOR = "#8c4569"
 export const HOVER_LINE_COLOR = "rgba(180, 180, 180, 0.4)"
 

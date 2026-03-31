@@ -232,13 +232,15 @@ function PopulationChart({
         <div ref={chartRef} style={{ position: "relative" }}>
             <svg width={width} height={height} overflow="visible">
                 <Group left={margin.left} top={margin.top}>
-                    {/* Projection background */}
-                    <rect
-                        x={xScale(HISTORICAL_END_YEAR)}
-                        y={0}
-                        width={innerWidth - xScale(HISTORICAL_END_YEAR)}
-                        height={innerHeight}
-                        fill={PROJECTION_BACKGROUND}
+                    {/* Projection start line */}
+                    <line
+                        x1={xScale(HISTORICAL_END_YEAR)}
+                        y1={innerHeight}
+                        x2={xScale(HISTORICAL_END_YEAR)}
+                        y2={innerHeight - 20}
+                        stroke={GRAPHER_LIGHT_TEXT}
+                        strokeWidth={1}
+                        strokeDasharray="2,2"
                     />
 
                     {/* Hover vertical line */}
@@ -537,7 +539,7 @@ function EndpointLabels({
         <>
             {showBenchmark && (
                 <>
-                    <circle cx={x} cy={yBenchmark} r={4} fill="#bbb" />
+                    <circle cx={x} cy={yBenchmark} r={4} fill={BENCHMARK_LINE_COLOR} />
                     <Halo
                         id="benchmark-label"
                         outlineWidth={3}
