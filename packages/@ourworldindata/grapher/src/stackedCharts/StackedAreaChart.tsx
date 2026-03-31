@@ -38,7 +38,6 @@ import {
     StackedSeries,
 } from "./StackedConstants"
 import {
-    makeClipPath,
     isTargetOutsideElement,
     getHoverStateForSeries,
 } from "../chart/ChartUtils"
@@ -595,17 +594,6 @@ export class StackedAreaChart
     }
 
     renderInteractive(): React.ReactElement {
-        const { bounds, dualAxis, renderUid } = this
-
-        const clipPath = makeClipPath({
-            renderUid,
-            box: {
-                ...bounds,
-                height: bounds.height * 2,
-                x: dualAxis.innerBounds.x,
-            },
-        })
-
         return (
             <g
                 ref={this.base}
@@ -617,21 +605,18 @@ export class StackedAreaChart
                 onTouchStart={this.onCursorMove}
                 onTouchMove={this.onCursorMove}
             >
-                {clipPath.element}
                 <rect {...this.bounds.toProps()} fillOpacity="0">
                     {/* This <rect> ensures that the parent <g> is big enough such that we get mouse hover events for the
                     whole charting area, including the axis, the entity labels, and the whitespace next to them.
                     We need these to be able to show the tooltip for the first/last year even if the mouse is outside the charting area. */}
                 </rect>
                 {this.renderAxis()}
-                <g clipPath={clipPath.id}>
-                    {this.renderVerticalLabels()}
-                    <StackedAreas
-                        series={this.renderSeries}
-                        onMouseEnter={this.onAreaMouseEnter}
-                        onMouseLeave={this.onAreaMouseLeave}
-                    />
-                </g>
+                {this.renderVerticalLabels()}
+                <StackedAreas
+                    series={this.renderSeries}
+                    onMouseEnter={this.onAreaMouseEnter}
+                    onMouseLeave={this.onAreaMouseLeave}
+                />
                 {this.isTooltipActive && this.activeXVerticalLine}
                 {this.tooltip}
             </g>
