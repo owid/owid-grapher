@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd "$(dirname "$0")/projects"
+cd "$(dirname "$0")"
 
 yarn --immutable
 yarn build
 
-OUTPUT_DIR="../../dist/assets-bespoke"
+OUTPUT_DIR="$(pwd)/../dist/assets-bespoke"
 rm -rf "$OUTPUT_DIR"
+
+cd projects
 
 for dist in */dist; do
     name="${dist%%/*}"

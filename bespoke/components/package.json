@@ -9,5 +9,12 @@
         "classnames": "^2.5.1",
         "react": "^19.2.4",
         "react-aria-components": "^1.8.0"
+    },
+    "devDependencies": {
+        "@typescript/native-preview": "^7.0.0-dev.20260401.1"
+    },
+    "scripts": {
+        "build": "",
+        "typecheck": "tsgo --noEmit"
     }
 }

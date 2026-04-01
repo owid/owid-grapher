@@ -8,7 +8,7 @@ on:
 
 defaults:
     run:
-        working-directory: bespoke/projects
+        working-directory: bespoke
 
 jobs:
     bespoke-typecheck:
@@ -20,7 +20,7 @@ jobs:
             - uses: ./.github/actions/setup-node-yarn-deps
               with:
                   runPostinstallScripts: false
-                  cacheDependencyPath: bespoke/projects/yarn.lock
+                  cacheDependencyPath: bespoke/yarn.lock
 
             - name: Install bespoke dependencies
               run: yarn --immutable
@@ -37,7 +37,7 @@ jobs:
             - uses: ./.github/actions/setup-node-yarn-deps
               with:
                   runPostinstallScripts: false
-                  cacheDependencyPath: bespoke/projects/yarn.lock
+                  cacheDependencyPath: bespoke/yarn.lock
 
             - name: Install bespoke dependencies
               run: yarn --immutable
