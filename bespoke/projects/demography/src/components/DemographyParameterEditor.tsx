@@ -35,11 +35,11 @@ const CONTROL_POINT_RADIUS = 5
 const CONTROL_POINT_HIT_RADIUS = 12
 const margin = {
     top: 0,
-    right: 0.5 * CONTROL_POINT_HIT_RADIUS,
-    // right: 0,
+    // right: 0.5 * CONTROL_POINT_HIT_RADIUS,
+    right: 0,
     bottom: 14,
-    // left: 0,
-    left: 0.5 * SMALL_DOT_RADIUS,
+    left: 0,
+    // left: 0.5 * SMALL_DOT_RADIUS,
 }
 
 interface DemographyParameterEditorProps {
@@ -346,9 +346,7 @@ function DemographyParameterEditor({
                     const ticks = yScale
                         .ticks(innerHeight < 80 ? 2 : 3)
                         .filter(
-                            (t) =>
-                                yScale(t) > 12 &&
-                                yScale(t) < innerHeight - 4
+                            (t) => yScale(t) > 12 && yScale(t) < innerHeight - 4
                         )
                     const topTick = ticks[ticks.length - 1]
                     return ticks.map((tick) => (
@@ -629,7 +627,12 @@ function DemographyParameterEditor({
                 {/* Draggable control points */}
                 {interactive &&
                     CONTROL_YEARS.map((year) => {
-                        const pointColor = anyModified
+                        const isPointModified =
+                            Math.abs(
+                                controlPoints[year] -
+                                    referencePoints[year]
+                            ) >= 0.01
+                        const pointColor = isPointModified
                             ? USER_MODIFIED_COLOR
                             : DENIM_BLUE
                         return (
@@ -639,7 +642,7 @@ function DemographyParameterEditor({
                                 cy={yScale(controlPoints[year])}
                                 value={controlPoints[year]}
                                 color={pointColor}
-                                modified={anyModified}
+                                modified={isPointModified}
                                 highlighted={hoveredYear === year}
                                 formatValue={formatValue}
                                 dragArrowFontSize={fonts.dragArrow}
