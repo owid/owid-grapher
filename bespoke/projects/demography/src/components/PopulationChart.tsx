@@ -232,15 +232,13 @@ function PopulationChart({
         <div ref={chartRef} style={{ position: "relative" }}>
             <svg width={width} height={height} overflow="visible">
                 <Group left={margin.left} top={margin.top}>
-                    {/* Projection start line */}
-                    <line
-                        x1={xScale(HISTORICAL_END_YEAR)}
-                        y1={innerHeight}
-                        x2={xScale(HISTORICAL_END_YEAR)}
-                        y2={innerHeight - 20}
-                        stroke={GRAPHER_LIGHT_TEXT}
-                        strokeWidth={1}
-                        strokeDasharray="2,2"
+                    {/* Projection area background */}
+                    <rect
+                        x={xScale(HISTORICAL_END_YEAR)}
+                        y={0}
+                        width={innerWidth - xScale(HISTORICAL_END_YEAR)}
+                        height={innerHeight}
+                        fill={PROJECTION_BACKGROUND}
                     />
 
                     {/* Hover vertical line */}
