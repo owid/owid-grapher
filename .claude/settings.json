@@ -1,6 +1,22 @@
 {
     "permissions": {
-        "allow": ["Bash(grep:*)", "Bash(yarn typecheck)", "Bash(git log:*)"],
+        "allow": [
+            "Bash(git log:*)",
+            "Bash(grep:*)",
+            "Bash(yarn typecheck)",
+
+            // Read-only access to GitHub using the `gh` cli tool
+            "Bash(gh issue list:*)",
+            "Bash(gh issue view:*)",
+            "Bash(gh pr checks:*)",
+            "Bash(gh pr diff:*)",
+            "Bash(gh pr list:*)",
+            "Bash(gh pr view:*)",
+            "Bash(gh repo view:*)",
+            "Bash(gh run list:*)",
+            "Bash(gh run view:*)",
+            "Bash(gh search:*)"
+        ],
         "deny": []
     }
 }
