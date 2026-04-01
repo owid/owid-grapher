@@ -419,7 +419,6 @@ $panel-gap: 12px;
     }
 }
 
-
 .output-panels {
     display: flex;
     gap: $panel-gap;
@@ -598,14 +597,26 @@ $panel-gap: 12px;
     }
 }
 
-.demography-country-selector {
-    max-width: 320px;
+.inline-entity-selector__trigger {
+    display: inline;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+}
 
-    .breakpoint-narrow &,
-    .breakpoint-small.demography-chart__simulation-variant &,
-    .breakpoint-narrow.demography-chart__simulation-variant & {
-        max-width: none;
-    }
+.inline-entity-selector__arrow {
+    font-size: 0.7em;
+    margin-left: 2px;
+}
+
+.inline-entity-selector__popover.grapher-dropdown-menu {
 }
 
 .demography-spinner {
