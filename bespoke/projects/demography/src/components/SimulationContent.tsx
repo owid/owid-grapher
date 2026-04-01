@@ -41,7 +41,7 @@ import {
 
 const PARAMETER_TAB_LABELS: Record<ParameterKey, string> = {
     fertilityRate: "Fertility Rate",
-    lifeExpectancy: "Life expectancy",
+    lifeExpectancy: "Life Expectancy",
     netMigrationRate: "Net Migration",
 }
 
