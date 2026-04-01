@@ -406,8 +406,10 @@ function AssumptionsTable({
 }: {
     simulation: Simulation
 }) {
+    const { ref: tableRef, getTippyContainer } =
+        useTippyContainer<HTMLTableElement>()
     return (
-        <table className="assumptions-table">
+        <table className="assumptions-table" ref={tableRef}>
             <thead>
                 <tr>
                     <th></th>
@@ -421,6 +423,7 @@ function AssumptionsTable({
                                             .tooltipContent
                                     }
                                     placement="top"
+                                    appendTo={getTippyContainer}
                                 >
                                     <span className="assumptions-table__info-icon">
                                         <FontAwesomeIcon
