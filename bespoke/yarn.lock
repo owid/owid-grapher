@@ -200,13 +200,13 @@ __metadata:
   languageName: node
   linkType: soft
 
-"@ourworldindata/components@link:../../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-demography%40workspace%3Ademography":
+"@ourworldindata/components@link:../../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-demography%40workspace%3Aprojects%2Fdemography":
   version: 0.0.0-use.local
-  resolution: "@ourworldindata/components@link:../../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-demography%40workspace%3Ademography"
+  resolution: "@ourworldindata/components@link:../../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-demography%40workspace%3Aprojects%2Fdemography"
   languageName: node
   linkType: soft
 
-"@ourworldindata/components@link:../../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-example%40workspace%3Aexample":
+"@ourworldindata/components@link:../../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-example%40workspace%3Aprojects%2Fexample":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/components@link:../../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-example%40workspace%3Aprojects%2Fexample"
   languageName: node
@@ -214,13 +214,13 @@ __metadata:
 
 "@ourworldindata/core-table@link:../../../packages/@ourworldindata/core-table::locator=%40owid%2Fbespoke-causes-of-death%40workspace%3Aprojects%2Fcauses-of-death":
   version: 0.0.0-use.local
-  resolution: "@ourworldindata/core-table@link:../../../packages/@ourworldindata/core-table::locator=%40owid%2Fbespoke-causes-of-death%40workspace%3Acauses-of-death"
+  resolution: "@ourworldindata/core-table@link:../../../packages/@ourworldindata/core-table::locator=%40owid%2Fbespoke-causes-of-death%40workspace%3Aprojects%2Fcauses-of-death"
   languageName: node
   linkType: soft
 
-"@ourworldindata/core-table@link:../../../packages/@ourworldindata/core-table::locator=%40owid%2Fbespoke-demography%40workspace%3Ademography":
+"@ourworldindata/core-table@link:../../../packages/@ourworldindata/core-table::locator=%40owid%2Fbespoke-demography%40workspace%3Aprojects%2Fdemography":
   version: 0.0.0-use.local
-  resolution: "@ourworldindata/core-table@link:../../../packages/@ourworldindata/core-table::locator=%40owid%2Fbespoke-demography%40workspace%3Ademography"
+  resolution: "@ourworldindata/core-table@link:../../../packages/@ourworldindata/core-table::locator=%40owid%2Fbespoke-demography%40workspace%3Aprojects%2Fdemography"
   languageName: node
   linkType: soft
 
@@ -236,13 +236,13 @@ __metadata:
   languageName: node
   linkType: soft
 
-"@ourworldindata/grapher@link:../../../packages/@ourworldindata/grapher::locator=%40owid%2Fbespoke-demography%40workspace%3Ademography":
+"@ourworldindata/grapher@link:../../../packages/@ourworldindata/grapher::locator=%40owid%2Fbespoke-demography%40workspace%3Aprojects%2Fdemography":
   version: 0.0.0-use.local
-  resolution: "@ourworldindata/grapher@link:../../../packages/@ourworldindata/grapher::locator=%40owid%2Fbespoke-demography%40workspace%3Ademography"
+  resolution: "@ourworldindata/grapher@link:../../../packages/@ourworldindata/grapher::locator=%40owid%2Fbespoke-demography%40workspace%3Aprojects%2Fdemography"
   languageName: node
   linkType: soft
 
-"@ourworldindata/grapher@link:../../../packages/@ourworldindata/grapher::locator=%40owid%2Fbespoke-example%40workspace%3Aexample":
+"@ourworldindata/grapher@link:../../../packages/@ourworldindata/grapher::locator=%40owid%2Fbespoke-example%40workspace%3Aprojects%2Fexample":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/grapher@link:../../../packages/@ourworldindata/grapher::locator=%40owid%2Fbespoke-example%40workspace%3Aprojects%2Fexample"
   languageName: node
@@ -254,33 +254,21 @@ __metadata:
   languageName: node
   linkType: soft
 
-"@ourworldindata/types@link:../../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-demography%40workspace%3Ademography":
+"@ourworldindata/types@link:../../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-demography%40workspace%3Aprojects%2Fdemography":
   version: 0.0.0-use.local
-  resolution: "@ourworldindata/types@link:../../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-demography%40workspace%3Ademography"
+  resolution: "@ourworldindata/types@link:../../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-demography%40workspace%3Aprojects%2Fdemography"
   languageName: node
   linkType: soft
 
-"@ourworldindata/types@link:../../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-example%40workspace%3Aexample":
+"@ourworldindata/types@link:../../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-example%40workspace%3Aprojects%2Fexample":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/types@link:../../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-example%40workspace%3Aprojects%2Fexample"
   languageName: node
   linkType: soft
 
-"@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-causes-of-death%40workspace%3Acauses-of-death":
+"@ourworldindata/types@link:../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-components%40workspace%3Acomponents":
   version: 0.0.0-use.local
-  resolution: "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-causes-of-death%40workspace%3Acauses-of-death"
-  languageName: node
-  linkType: soft
-
-"@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-demography%40workspace%3Ademography":
-  version: 0.0.0-use.local
-  resolution: "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-demography%40workspace%3Ademography"
-  languageName: node
-  linkType: soft
-
-"@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-example%40workspace%3Aexample":
-  version: 0.0.0-use.local
-  resolution: "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-example%40workspace%3Aexample"
+  resolution: "@ourworldindata/types@link:../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-components%40workspace%3Acomponents"
   languageName: node
   linkType: soft
 
@@ -293,6 +281,12 @@ __metadata:
 "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-causes-of-death%40workspace%3Aprojects%2Fcauses-of-death":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-causes-of-death%40workspace%3Aprojects%2Fcauses-of-death"
+  languageName: node
+  linkType: soft
+
+"@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-demography%40workspace%3Aprojects%2Fdemography":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-demography%40workspace%3Aprojects%2Fdemography"
   languageName: node
   linkType: soft
 
@@ -351,9 +345,23 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@owid/bespoke-demography@workspace:demography":
+"@owid/bespoke-components@workspace:components":
   version: 0.0.0-use.local
-  resolution: "@owid/bespoke-demography@workspace:demography"
+  resolution: "@owid/bespoke-components@workspace:components"
+  dependencies:
+    "@ourworldindata/types": "link:../../packages/@ourworldindata/types"
+    "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils"
+    "@typescript/native-preview": "npm:^7.0.0-dev.20260401.1"
+    "@visx/drag": "npm:^3.12.0"
+    classnames: "npm:^2.5.1"
+    react: "npm:^19.2.4"
+    react-aria-components: "npm:^1.8.0"
+  languageName: unknown
+  linkType: soft
+
+"@owid/bespoke-demography@workspace:projects/demography":
+  version: 0.0.0-use.local
+  resolution: "@owid/bespoke-demography@workspace:projects/demography"
   dependencies:
     "@fortawesome/fontawesome-svg-core": "npm:^6.7.2"
     "@fortawesome/free-solid-svg-icons": "npm:^6.7.2"
@@ -393,8 +401,9 @@ __metadata:
     vite-plugin-css-position: "npm:^2.0.9"
 <<<<<<< HEAD
     vitest: "npm:^4.1.2"
-||||||| parent of 67653582b7 (fix)
+||||||| parent of db4ba90941 (lock file)
     vitest: "npm:^3.2.1"
+<<<<<<< ours
 =======
     vitest: "npm:^3.2.1"
 <<<<<<<<< HEAD
@@ -411,7 +420,7 @@ __metadata:
     classnames: "npm:^2.5.1"
     react: "npm:^19.2.4"
     react-aria-components: "npm:^1.8.0"
->>>>>>> 67653582b7 (fix)
+>>>>>>> db4ba90941 (lock file)
 ||||||||| parent of 8e7b1a16f2 (test fix)
   languageName: unknown
   linkType: soft
@@ -442,6 +451,23 @@ __metadata:
     classnames: "npm:^2.5.1"
     react: "npm:^19.2.4"
     react-aria-components: "npm:^1.8.0"
+||||||| original
+  languageName: unknown
+  linkType: soft
+
+"@owid/bespoke-components@workspace:components":
+  version: 0.0.0-use.local
+  resolution: "@owid/bespoke-components@workspace:components"
+  dependencies:
+    "@ourworldindata/types": "link:../../packages/@ourworldindata/types"
+    "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils"
+    "@typescript/native-preview": "npm:^7.0.0-dev.20260401.1"
+    "@visx/drag": "npm:^3.12.0"
+    classnames: "npm:^2.5.1"
+    react: "npm:^19.2.4"
+    react-aria-components: "npm:^1.8.0"
+=======
+>>>>>>> theirs
   languageName: unknown
   linkType: soft
 
